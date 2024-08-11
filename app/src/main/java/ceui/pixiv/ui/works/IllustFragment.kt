@@ -5,17 +5,16 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.map
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentFancyIllustBinding
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
+import ceui.loxia.DateParse
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
@@ -24,18 +23,13 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ImgDisplayFragment
-import ceui.pixiv.ui.common.ImgUrlFragmentArgs
-import ceui.pixiv.ui.common.getFileSize
-import ceui.pixiv.ui.common.getImageDimensions
-import ceui.pixiv.ui.common.saveImageToGallery
 import ceui.pixiv.ui.common.setUpFullScreen
 import ceui.pixiv.ui.task.NamedUrl
-import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
+import ceui.pixiv.ui.user.setTextOrGone
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
-import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
 
@@ -63,10 +57,9 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             viewModel,
             listOf(
                 binding.toolbarLayout.root,
-                binding.userLayout,
+                binding.infoLayout,
                 binding.buttonLayout,
                 binding.topShadow,
-                binding.bottomShadow
             ),
             binding.toolbarLayout
         )
@@ -93,7 +86,12 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
                 binding.bookmark.setOnClick {
                     launchSuspend(it) {
                         Client.appApi.removeBookmark(args.illustId)
-                        ObjectPool.update(illust.copy(is_bookmarked = false))
+                        ObjectPool.update(
+                            illust.copy(
+                                is_bookmarked = false,
+                                total_bookmarks = illust.total_bookmarks?.minus(1)
+                            )
+                        )
                     }
                 }
             } else {
@@ -101,7 +99,12 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
                 binding.bookmark.setOnClick {
                     launchSuspend(it) {
                         Client.appApi.postBookmark(args.illustId)
-                        ObjectPool.update(illust.copy(is_bookmarked = true))
+                        ObjectPool.update(
+                            illust.copy(
+                                is_bookmarked = true,
+                                total_bookmarks = illust.total_bookmarks?.plus(1)
+                            )
+                        )
                     }
                 }
             }
@@ -111,6 +114,10 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             } else if (illust.page_count > 1) {
                 renderGalleryIllust(illust, context, adapter)
             }
+            binding.description.setTextOrGone(illust.caption)
+            binding.dateTime.setTextOrGone(DateParse.displayCreateDate(illust.create_date))
+            binding.visitCount.setTextOrGone("展示 " + illust.total_view)
+            binding.bookmarkCount.setTextOrGone("收藏 " + illust.total_bookmarks)
         }
 
         liveIllust.value?.user?.let { u ->

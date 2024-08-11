@@ -445,6 +445,10 @@ data class CommentResponse(
         get() = next_url
 }
 
+data class PostCommentResponse(
+    val comment: Comment? = null,
+): Serializable
+
 data class WebResponse<T> (
     val error: Boolean? = null,
     val message: String? = null,

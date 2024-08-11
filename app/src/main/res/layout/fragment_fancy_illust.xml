@@ -21,66 +21,108 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_width="match_parent"
         android:background="@drawable/black_gradient_revert"
-        android:layout_height="100dp"/>
-
-    <View
-        android:id="@+id/bottom_shadow"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_width="match_parent"
-        android:background="@drawable/black_gradient"
-        android:layout_height="60dp"/>
-
+        android:layout_height="130dp"/>
 
     <include
         layout="@layout/layout_toolbar"
         android:id="@+id/toolbar_layout"/>
 
     <LinearLayout
-        android:id="@+id/user_layout"
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
+        android:id="@+id/info_layout"
+        android:layout_width="match_parent"
+        android:background="@drawable/black_gradient"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:gravity="center"
-        android:layout_marginBottom="30dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingBottom="30dp"
+        android:paddingTop="20dp"
+        android:paddingHorizontal="@dimen/default_content_horizontal_margin"
+        android:orientation="vertical"
         android:layout_height="wrap_content">
 
-        <net.csdn.roundview.CircleImageView
-            android:id="@+id/user_icon"
-            android:layout_width="40dp"
-            android:scaleType="centerCrop"
-            android:layout_marginEnd="8dp"
-            android:layout_height="40dp"/>
+        <LinearLayout
+            android:id="@+id/user_layout"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:gravity="center_vertical|start"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_height="wrap_content">
+
+            <net.csdn.roundview.CircleImageView
+                android:id="@+id/user_icon"
+                android:layout_width="40dp"
+                android:scaleType="centerCrop"
+                android:layout_marginEnd="8dp"
+                android:layout_height="40dp"/>
+
+            <TextView
+                android:id="@+id/user_name"
+                android:textColor="@color/text00"
+                android:layout_marginEnd="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/follow"
+                style="@style/BlueShiningButton"
+                android:layout_width="wrap_content"
+                android:visibility="gone"
+                android:layout_height="32dp"
+                android:paddingHorizontal="16dp"
+                android:text="@string/follow"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp" />
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/unfollow"
+                style="@style/RedShiningButton"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:paddingHorizontal="16dp"
+                android:text="@string/unfollow"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/user_name"
-            android:textColor="@color/text00"
-            android:layout_marginEnd="8dp"
-            android:layout_width="wrap_content"
+            android:id="@+id/description"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text10"
+            android:textSize="14sp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
-        <ceui.loxia.ProgressTextButton
-            android:id="@+id/follow"
-            style="@style/BlueShiningButton"
-            android:layout_width="wrap_content"
-            android:visibility="gone"
-            android:layout_height="32dp"
-            android:paddingHorizontal="16dp"
-            android:text="@string/follow"
-            app:ptb_progress_stroke_width="3dp"
-            app:ptb_progress_width="14dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/date_time"
+                android:textColor="@color/text10"
+                android:textSize="13sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
-        <ceui.loxia.ProgressTextButton
-            android:id="@+id/unfollow"
-            style="@style/RedShiningButton"
-            android:visibility="gone"
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:paddingHorizontal="16dp"
-            android:text="@string/unfollow"
-            app:ptb_progress_stroke_width="3dp"
-            app:ptb_progress_width="14dp" />
+            <TextView
+                android:id="@+id/visit_count"
+                android:textColor="@color/text10"
+                android:layout_marginStart="16dp"
+                android:textSize="13sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/bookmark_count"
+                android:layout_marginStart="6dp"
+                android:textColor="@color/text10"
+                android:textSize="13sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+
+
     </LinearLayout>
 
 

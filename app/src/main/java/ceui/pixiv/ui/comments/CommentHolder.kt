@@ -79,13 +79,18 @@ class CommentViewHolder(bd: CellCommentBinding) :
 
         binding.reply.setOnClick { sender ->
             holder.comment.user.let {
-                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(it)
+                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(holder.comment)
             }
         }
 
         binding.showReply.setOnClick { sender ->
             sender.findActionReceiverOrNull<CommentActionReceiver>()
-                ?.onClickShowMoreReply(holder.comment.id, sender)
+                ?.onClickShowMoreReply(sender, holder.comment.id)
+        }
+
+        binding.delete.setOnClick { sender ->
+            sender.findActionReceiverOrNull<CommentActionReceiver>()
+                ?.onClickDeleteComment(sender, holder.comment, 0)
         }
 
         binding.commentTime.text = DateParse.displayCreateDate(holder.comment.date)
@@ -106,6 +111,7 @@ class CommentViewHolder(bd: CellCommentBinding) :
                 binding.childCommentsList.adapter = childAdapter
                 childAdapter.submitList(holder.childComments.map { childComment ->
                     CommentChildHolder(
+                        holder.comment.id,
                         childComment,
                         holder.illustArthurId
                     )
@@ -118,7 +124,7 @@ class CommentViewHolder(bd: CellCommentBinding) :
 }
 
 
-class CommentChildHolder(val comment: Comment, val illustArthurId: Long) : ListItemHolder() {
+class CommentChildHolder(val parentCommentId: Long, val comment: Comment, val illustArthurId: Long) : ListItemHolder() {
 
     override fun areItemsTheSame(other: ListItemHolder): Boolean {
         return comment.id == (other as? CommentChildHolder)?.comment?.id
@@ -169,8 +175,13 @@ class CellChildCommentViewHolder(bd: CellChildCommentBinding) :
 
         binding.reply.setOnClick { sender ->
             holder.comment.user.let {
-                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(it)
+                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(holder.comment)
             }
+        }
+
+        binding.delete.setOnClick { sender ->
+            sender.findActionReceiverOrNull<CommentActionReceiver>()
+                ?.onClickDeleteComment(sender, holder.comment, holder.parentCommentId)
         }
 
         binding.commentTime.text = DateParse.displayCreateDate(holder.comment.date)

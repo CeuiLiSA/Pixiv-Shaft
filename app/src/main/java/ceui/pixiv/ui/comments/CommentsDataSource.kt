@@ -1,11 +1,12 @@
 package ceui.pixiv.ui.comments
 
+import androidx.lifecycle.MutableLiveData
 import ceui.loxia.Client
 import ceui.loxia.Comment
 import ceui.loxia.CommentResponse
+import ceui.loxia.ProgressImageButton
 import ceui.loxia.ProgressTextButton
 import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.ListItemHolder
 
 class CommentsDataSource(
     private val args: CommentsFragmentArgs,
@@ -22,24 +23,22 @@ class CommentsDataSource(
         )
     },
     filter = { comment ->
-        comment.comment?.contains("翻墙") != true
+        comment.comment?.contains("翻墙") != true && comment.comment?.contains("VPN") != true
     }
 ) {
 
-    suspend fun showMoreReply(commentId: Long, sender: ProgressTextButton) {
-        try {
-            sender.showProgress()
-            val resp = Client.appApi.getIllustReplyComments(commentId)
-            childCommentsMap[commentId] = resp.comments
-            updateItem(commentId) { old ->
-                CommentHolder(
-                    old.comment,
-                    old.illustArthurId,
-                    resp.comments,
-                )
-            }
-        } finally {
-            sender.hideProgress()
+    val editingComment = MutableLiveData<String>()
+    val replyToComment = MutableLiveData<Comment?>()
+
+    suspend fun showMoreReply(commentId: Long) {
+        val resp = Client.appApi.getIllustReplyComments(commentId)
+        childCommentsMap[commentId] = resp.comments
+        updateItem(commentId) { old ->
+            CommentHolder(
+                old.comment,
+                old.illustArthurId,
+                resp.comments,
+            )
         }
     }
 
@@ -59,6 +58,56 @@ class CommentsDataSource(
                     ex.printStackTrace()
                 }
             }
+        }
+    }
+
+    suspend fun sendComment() {
+        val content = editingComment.value ?: return
+        if (content.isBlank() || content.isEmpty()) {
+            return
+        }
+
+        val parentCommentId = replyToComment.value?.id ?: 0L
+        if (parentCommentId > 0L) {
+            val resp = Client.appApi.postComment(args.illustId, content, parentCommentId)
+            resp.comment?.let {
+                updateItem(parentCommentId) { old ->
+                    val childComments = old.childComments + listOf(it)
+                    childCommentsMap[parentCommentId] = childComments
+                    CommentHolder(old.comment, args.illustArthurId, childComments = childComments)
+                }
+            }
+        } else {
+            val resp = Client.appApi.postComment(args.illustId, content)
+            resp.comment?.let {
+                val itemHolders = pickItemHolders()
+                val existing = (itemHolders.value ?: listOf()).toMutableList()
+                existing.add(0, CommentHolder(it, args.illustArthurId))
+                itemHolders.value = existing
+            }
+        }
+        replyToComment.value = null
+        editingComment.value = ""
+    }
+
+    suspend fun deleteComment(commentId: Long, parentCommentId: Long) {
+        Client.appApi.deleteComment(commentId)
+        if (parentCommentId > 0L) {
+            updateItem(parentCommentId) { old ->
+                val childComments = old.childComments.toMutableList()
+                childComments.removeIf { it.id == commentId }
+                childCommentsMap[parentCommentId] = childComments
+                CommentHolder(
+                    old.comment.copy(has_replies = childComments.isNotEmpty()),
+                    args.illustArthurId,
+                    childComments = childComments
+                )
+            }
+        } else {
+            val itemHolders = pickItemHolders()
+            val existing = (itemHolders.value ?: listOf()).toMutableList()
+            existing.removeIf { it.getItemId() == commentId }
+            itemHolders.value = existing
         }
     }
 }

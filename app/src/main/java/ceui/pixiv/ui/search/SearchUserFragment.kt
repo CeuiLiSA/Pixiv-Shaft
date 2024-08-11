@@ -3,6 +3,7 @@ package ceui.pixiv.ui.search
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
@@ -16,7 +17,7 @@ import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.setUpLinearLayout
+import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.user.UserPreviewHolder
 import ceui.refactor.ppppx
@@ -46,7 +47,8 @@ class SearchUserFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpLinearLayout(binding, viewModel)
+        binding.listView.layoutManager = LinearLayoutManager(requireContext())
+        setUpRefreshState(binding, viewModel)
         val dividerDecoration = BottomDividerDecoration(
             requireContext(),
             R.drawable.list_divider,

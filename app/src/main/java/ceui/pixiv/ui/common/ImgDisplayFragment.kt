@@ -20,6 +20,7 @@ import androidx.navigation.fragment.findNavController
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.findActionReceiverOrNull
+import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
@@ -219,7 +220,7 @@ fun CircularProgressIndicator.setUpWithTaskStatus(
             errorRetry()
         }
         if (status is TaskStatus.Error) {
-            errorTitle.text = status.exception.message
+            errorTitle.text = status.exception.getHumanReadableMessage(context)
         }
     }
 }

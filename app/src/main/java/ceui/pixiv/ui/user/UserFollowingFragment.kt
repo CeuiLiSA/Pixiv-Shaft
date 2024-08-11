@@ -3,6 +3,7 @@ package ceui.pixiv.ui.user
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.databinding.BindingAdapter
 import androidx.navigation.fragment.navArgs
@@ -23,7 +24,6 @@ import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 
@@ -81,4 +81,13 @@ fun ImageView.binding_loadUserIcon(user: User?) {
     Glide.with(this)
         .load(GlideUrlChild(url))
         .into(this)
+}
+
+fun TextView.setTextOrGone(content: String?) {
+    if (content?.isNotEmpty() == true) {
+        isVisible = true
+        text = content
+    } else {
+        isVisible = false
+    }
 }

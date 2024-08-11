@@ -17,6 +17,7 @@ import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.user.UserActionReceiver
@@ -92,6 +93,13 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Pix
             }
         }
         binding.loadingLayout.isVisible = state is RefreshState.LOADING && state.refreshHint == RefreshHint.initialLoad()
+        binding.errorLayout.isVisible = state is RefreshState.ERROR
+        binding.errorRetryButton.setOnClick {
+            viewModel.refresh(RefreshHint.initialLoad())
+        }
+        if (state is RefreshState.ERROR) {
+            binding.errorText.text = state.exception.getHumanReadableMessage(ctx)
+        }
     }
     val adapter = CommonAdapter(viewLifecycleOwner)
     binding.listView.adapter = adapter
@@ -104,9 +112,4 @@ fun Fragment.setUpStaggerLayout(binding: FragmentPixivListBinding, viewModel: Pi
     setUpRefreshState(binding, viewModel)
     binding.listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
     binding.listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-}
-
-fun Fragment.setUpLinearLayout(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
-    setUpRefreshState(binding, viewModel)
-    binding.listView.layoutManager = LinearLayoutManager(requireContext())
 }

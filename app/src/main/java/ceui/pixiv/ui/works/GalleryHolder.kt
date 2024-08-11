@@ -48,22 +48,6 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
     override fun onBindViewHolder(holder: GalleryHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         holder.loadUrl()
-        if (holder.index == 0 && holder.loadTask.file.value == null) {
-            val imgHeight =
-                (screenWidth * holder.illust.height / holder.illust.width.toFloat()).roundToInt()
-            binding.image.updateLayoutParams {
-                width = screenWidth
-                height = imgHeight
-            }
-            Glide.with(context)
-                .load(GlideUrlChild(holder.illust.meta_pages?.get(0)?.image_urls?.large))
-                .into(binding.image)
-        } else {
-            binding.image.updateLayoutParams {
-                width = screenWidth
-                height = 300.ppppx
-            }
-        }
         lifecycleOwner?.let {
             holder.loadTask.file.observe(it) { file ->
                 val resolution = getImageDimensions(file)
@@ -74,9 +58,6 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
                     height = imgHeight
                 }
                 binding.image.loadImage(file)
-//                Glide.with(context)
-//                    .load(file)
-//                    .into(binding.image)
             }
             binding.progressCircular.setUpWithTaskStatus(
                 holder.loadTask.status,

@@ -126,6 +126,20 @@ interface API {
         @Query("comment_id") comment_id: Long,
     ): CommentResponse
 
+    @FormUrlEncoded
+    @POST("/v1/illust/comment/add")
+    suspend fun postComment(
+        @Field("illust_id") illust_id: Long,
+        @Field("comment") comment: String,
+        @Field("parent_comment_id") parent_comment_id: Long? = null,
+    ): PostCommentResponse
+
+    @FormUrlEncoded
+    @POST("/v1/illust/comment/delete")
+    suspend fun deleteComment(
+        @Field("comment_id") comment_id: Long,
+    )
+
     @GET
     suspend fun generalGet(@Url url: String): ResponseBody
 }
