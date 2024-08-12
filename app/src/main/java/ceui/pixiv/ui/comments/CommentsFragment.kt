@@ -19,10 +19,10 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Comment
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.launchSuspend
-import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.common.BottomDividerDecoration
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
@@ -89,6 +89,18 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
     override fun onClickDeleteComment(sender: ProgressTextButton, comment: Comment, parentCommentId: Long) {
         launchSuspend(sender) {
             dataSource.deleteComment(comment.id, parentCommentId)
+        }
+    }
+
+    companion object {
+        fun newInstance(
+            objectId: Long,
+            objectArthurId: Long,
+            objectType: String
+        ): CommentsFragment {
+            return CommentsFragment().apply {
+                arguments = CommentsFragmentArgs(objectId, objectArthurId, objectType).toBundle()
+            }
         }
     }
 }

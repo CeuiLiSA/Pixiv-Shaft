@@ -15,4 +15,5 @@ object ObjectSpec {
 
     const val Illust = 5
     const val KUser = 6
+    const val JNOVEL = 7
 }

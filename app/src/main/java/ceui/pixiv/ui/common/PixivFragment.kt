@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.common
 
+import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -8,11 +10,13 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
+import ceui.lisa.activities.UserActivity
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
+import ceui.lisa.utils.Common
+import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
 import ceui.loxia.RefreshHint
@@ -38,7 +42,19 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     }
 
     override fun onClickUser(id: Long) {
-        pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
+        try {
+            pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            val userIntent = Intent(
+                requireContext(),
+                UserActivity::class.java
+            )
+            userIntent.putExtra(
+                Params.USER_ID, id.toInt()
+            )
+            startActivity(userIntent)
+        }
     }
 }
 
@@ -56,8 +72,15 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
         }
     } else {
         binding.toolbarLayout.isVisible = true
+        binding.toolbarLayout.background = ColorDrawable(
+            Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+        )
         binding.naviBack.setOnClick {
-            findNavController().popBackStack()
+            try {
+                findNavController().popBackStack()
+            } catch (ex: Exception) {
+                requireActivity().finish()
+            }
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())

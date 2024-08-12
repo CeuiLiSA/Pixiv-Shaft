@@ -15,7 +15,7 @@
         tools:background="@color/black"
         android:layout_width="match_parent"
         android:paddingTop="10dp"
-        android:paddingBottom="4dp"
+        android:paddingBottom="10dp"
         android:paddingEnd="8dp"
         android:paddingStart="14dp"
         android:layout_height="wrap_content"

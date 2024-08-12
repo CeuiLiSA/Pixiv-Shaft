@@ -4,20 +4,25 @@ import androidx.lifecycle.MutableLiveData
 import ceui.loxia.Client
 import ceui.loxia.Comment
 import ceui.loxia.CommentResponse
-import ceui.loxia.ProgressImageButton
-import ceui.loxia.ProgressTextButton
+import ceui.loxia.ObjectType
 import ceui.pixiv.ui.common.DataSource
 
 class CommentsDataSource(
     private val args: CommentsFragmentArgs,
     private val childCommentsMap: HashMap<Long, List<Comment>> = hashMapOf()
 ) : DataSource<Comment, CommentResponse>(
-    dataFetcher = { Client.appApi.getIllustComments(args.illustId) },
+    dataFetcher = {
+        if (args.objectType == ObjectType.ILLUST) {
+            Client.appApi.getIllustComments(args.objectId)
+        } else {
+            Client.appApi.getNovelComments(args.objectId)
+        }
+    },
     itemMapper = { comment ->
         listOf(
             CommentHolder(
                 comment,
-                args.illustArthurId,
+                args.objectArthurId,
                 childCommentsMap[comment.id] ?: listOf()
             )
         )
@@ -32,7 +37,7 @@ class CommentsDataSource(
     val replyParentComment = MutableLiveData<Long?>()
 
     suspend fun showMoreReply(commentId: Long) {
-        val resp = Client.appApi.getIllustReplyComments(commentId)
+        val resp = Client.appApi.getIllustReplyComments(args.objectType, commentId)
         childCommentsMap[commentId] = resp.comments
         updateItem(commentId) { old ->
             CommentHolder(
@@ -74,20 +79,28 @@ class CommentsDataSource(
             replyToComment.value?.id ?: 0L
         }
         if (parentCommentId > 0L) {
-            val resp = Client.appApi.postComment(args.illustId, content, parentCommentId)
+            val resp = if (args.objectType == ObjectType.ILLUST) {
+                Client.appApi.postIllustComment(args.objectId, content, parentCommentId)
+            } else {
+                Client.appApi.postNovelComment(args.objectId, content, parentCommentId)
+            }
             resp.comment?.let {
                 updateItem(parentCommentId) { old ->
                     val childComments = listOf(it) + old.childComments
                     childCommentsMap[parentCommentId] = childComments
-                    CommentHolder(old.comment, args.illustArthurId, childComments = childComments)
+                    CommentHolder(old.comment, args.objectArthurId, childComments = childComments)
                 }
             }
         } else {
-            val resp = Client.appApi.postComment(args.illustId, content)
+            val resp = if (args.objectType == ObjectType.ILLUST) {
+                Client.appApi.postIllustComment(args.objectId, content)
+            } else {
+                Client.appApi.postNovelComment(args.objectId, content)
+            }
             resp.comment?.let {
                 val itemHolders = pickItemHolders()
                 val existing = (itemHolders.value ?: listOf()).toMutableList()
-                existing.add(0, CommentHolder(it, args.illustArthurId))
+                existing.add(0, CommentHolder(it, args.objectArthurId))
                 itemHolders.value = existing
             }
         }
@@ -97,7 +110,7 @@ class CommentsDataSource(
     }
 
     suspend fun deleteComment(commentId: Long, parentCommentId: Long) {
-        Client.appApi.deleteComment(commentId)
+        Client.appApi.deleteComment(args.objectType, commentId)
         if (parentCommentId > 0L) {
             updateItem(parentCommentId) { old ->
                 val childComments = old.childComments.toMutableList()
@@ -105,7 +118,7 @@ class CommentsDataSource(
                 childCommentsMap[parentCommentId] = childComments
                 CommentHolder(
                     old.comment.copy(has_replies = childComments.isNotEmpty()),
-                    args.illustArthurId,
+                    args.objectArthurId,
                     childComments = childComments
                 )
             }

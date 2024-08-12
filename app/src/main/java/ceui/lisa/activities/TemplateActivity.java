@@ -74,12 +74,17 @@ import ceui.lisa.fragments.FragmentWorkSpace;
 import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.models.UserBean;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
+import ceui.loxia.ObjectPool;
+import ceui.loxia.ObjectType;
 import ceui.loxia.flag.FlagDescFragment;
 import ceui.loxia.flag.FlagReasonFragment;
+import ceui.pixiv.ui.comments.CommentsFragment;
 
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 
@@ -133,13 +138,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     Uri imageUri = intent.getParcelableExtra(Params.REVERSE_SEARCH_IMAGE_URI);
                     return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url(), imageUri);
                 case "相关评论": {
-                    String title = intent.getStringExtra(Params.ILLUST_TITLE);
-                    int workId = intent.getIntExtra(Params.ILLUST_ID, 0);
-                    if(workId == 0){
-                        workId = intent.getIntExtra(Params.NOVEL_ID, 0);
-                        return FragmentComment.newNovelInstance(workId, title);
-                    }
-                    return FragmentComment.newIllustInstance(workId, title);
+                    return getCommentsFragment(intent);
                 }
                 case "账号管理":
                     return new FragmentLocalUsers();
@@ -265,6 +264,44 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
             }
         }
         return null;
+    }
+
+
+    private CommentsFragment getCommentsFragment(Intent intent) {
+        int workId = intent.getIntExtra(Params.ILLUST_ID, 0);
+
+        if (workId == 0) {
+            workId = intent.getIntExtra(Params.NOVEL_ID, 0);
+            NovelBean hit = ObjectPool.INSTANCE.getNovel(workId).getValue();
+            int illustArthurId = getArthurIdFromNovel(hit);
+            return CommentsFragment.Companion.newInstance(workId, illustArthurId, ObjectType.NOVEL);
+        } else {
+            IllustsBean hit = ObjectPool.INSTANCE.getIllust(workId).getValue();
+            int illustArthurId = getArthurIdFromIllust(hit);
+            return CommentsFragment.Companion.newInstance(workId, illustArthurId, ObjectType.ILLUST);
+        }
+    }
+
+    // Helper method to extract Arthur ID from NovelBean
+    private int getArthurIdFromNovel(NovelBean hit) {
+        if (hit != null) {
+            UserBean user = hit.getUser();
+            if (user != null) {
+                return user.getId();
+            }
+        }
+        return 0;
+    }
+
+    // Helper method to extract Arthur ID from IllustsBean
+    private int getArthurIdFromIllust(IllustsBean hit) {
+        if (hit != null) {
+            UserBean user = hit.getUser();
+            if (user != null) {
+                return user.getId();
+            }
+        }
+        return 0;
     }
 
     @Override

@@ -17,6 +17,7 @@ import ceui.loxia.Client
 import ceui.loxia.DateParse
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
+import ceui.loxia.ObjectType
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
@@ -135,7 +136,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             binding.comment.setOnClick {
                 pushFragment(
                     R.id.navigation_comments_illust,
-                    CommentsFragmentArgs(args.illustId, illustArthurId = u.id).toBundle()
+                    CommentsFragmentArgs(args.illustId, objectArthurId = u.id, objectType = ObjectType.ILLUST).toBundle()
                 )
             }
         }

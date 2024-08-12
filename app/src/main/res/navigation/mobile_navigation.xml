@@ -63,12 +63,16 @@
         tools:layout="@layout/fragment_pixiv_list" >
 
         <argument
-            android:name="illust_id"
+            android:name="object_id"
             app:argType="long" />
 
         <argument
-            android:name="illust_arthur_id"
+            android:name="object_arthur_id"
             app:argType="long" />
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
     </fragment>
 
     <fragment

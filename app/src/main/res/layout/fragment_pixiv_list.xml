@@ -8,6 +8,23 @@
         layout="@layout/layout_toolbar"
         android:id="@+id/toolbar_layout"/>
 
+
+    <com.scwang.smart.refresh.layout.SmartRefreshLayout
+        android:id="@+id/refresh_layout"
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_layout"
+        android:layout_height="0dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -98,22 +115,6 @@
                 android:textColor="@color/text10" />
         </LinearLayout>
     </FrameLayout>
-
-    <com.scwang.smart.refresh.layout.SmartRefreshLayout
-        android:id="@+id/refresh_layout"
-        android:layout_width="match_parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_layout"
-        android:layout_height="0dp">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/list_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        </androidx.recyclerview.widget.RecyclerView>
-
-    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom_layout"

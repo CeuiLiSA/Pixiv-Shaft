@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.ModelObject
+import ceui.lisa.models.NovelBean
 import ceui.lisa.models.ObjectSpec
 import ceui.lisa.models.UserBean
 import java.io.Serializable
@@ -39,6 +40,10 @@ object ObjectPool {
 
     fun getIllust(illustId: Long): LiveData<IllustsBean> {
         return get(illustId)
+    }
+
+    fun getNovel(novelId: Long): LiveData<NovelBean> {
+        return get(novelId)
     }
 
     fun updateUser(userBean: UserBean) {
