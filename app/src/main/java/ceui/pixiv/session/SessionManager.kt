@@ -64,6 +64,18 @@ object SessionManager {
         }
     }
 
+    fun postUpdateSession(userModel: UserModel?) {
+        if (userModel == null) {
+            prefStore.putString(LoggedInUserJsonKey, "")
+            _loggedInAccount.postValue(AccountResponse())
+        } else {
+            val javaJson = gson.toJson(userModel)
+            val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)
+            prefStore.putString(LoggedInUserJsonKey, gson.toJson(accountResponse))
+            _loggedInAccount.postValue(accountResponse)
+        }
+    }
+
 
     fun refreshAccessToken(tokenForThisRequest: String): String? {
         val freshAccessToken = getAccessToken()

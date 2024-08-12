@@ -61,6 +61,7 @@ public class TokenInterceptor implements Interceptor {
             } else if(body.contains(TOKEN_ERROR_2)){
                 Shaft.sUserModel.getUser().setIs_login(false);
                 Local.saveUser(Shaft.sUserModel);
+                SessionManager.INSTANCE.postUpdateSession(null);
                 Common.showToast(R.string.string_340);
                 Common.restart();
                 Common.showLog("isTokenExpired 111");
@@ -100,6 +101,7 @@ public class TokenInterceptor implements Interceptor {
                 newUser.getUser().setIs_login(true);
             }
             Local.saveUser(newUser);
+            SessionManager.INSTANCE.postUpdateSession(newUser);
             Common.showLog("getNewToken 获取到了最新的 token:" + newUser.getAccess_token());
             return newUser.getAccess_token();
         } else {
