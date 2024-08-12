@@ -11,4 +11,9 @@ object ObjectSpec {
     const val USER = 2
     const val ARTICLE = 3
     const val GIF_INFO = 4
+
+
+    const val Illust = 5
+    const val KUser = 6
+    const val JNOVEL = 7
 }

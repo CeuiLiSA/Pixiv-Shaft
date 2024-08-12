@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.lisa.R
@@ -31,6 +32,13 @@ import java.io.File
 class ImageFileViewModel : ViewModel() {
     val fileLiveData = MutableLiveData<File>()
     var isHighQualityImageLoaded: Boolean = false
+    val progressLiveData = MutableLiveData<Int>()
+    val isFullscreenMode = MutableLiveData(false)
+
+    fun toggleFullscreen() {
+        val current = isFullscreenMode.value ?: false
+        isFullscreenMode.value = !current
+    }
 }
 
 

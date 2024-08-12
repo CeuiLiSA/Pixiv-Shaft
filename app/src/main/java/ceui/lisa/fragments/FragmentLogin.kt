@@ -14,29 +14,24 @@ import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
-import ceui.lisa.fragments.BaseFragment
-import com.facebook.rebound.SpringSystem
-import com.facebook.rebound.Spring
-import ceui.lisa.fragments.FragmentLogin
+import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.models.UserModel
-import ceui.lisa.database.UserEntity
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.activities.MainActivity
+import ceui.lisa.database.UserEntity
 import ceui.lisa.databinding.ActivityLoginBinding
-import ceui.lisa.interfaces.FeedBack
 import ceui.lisa.feature.HostManager
+import ceui.lisa.interfaces.FeedBack
+import ceui.lisa.models.UserModel
 import ceui.lisa.utils.*
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.facebook.rebound.SpringConfig
+import ceui.pixiv.session.SessionManager
 import com.facebook.rebound.SimpleSpringListener
-import kotlinx.coroutines.launch
+import com.facebook.rebound.Spring
+import com.facebook.rebound.SpringConfig
+import com.facebook.rebound.SpringSystem
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
 import java.util.*
 
 class LandingViewModel : ViewModel() {
@@ -71,25 +66,17 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 startActivity(intent)
                 return@OnMenuItemClickListener true
             } else if (item.itemId == R.id.action_import) {
-                val userJson = ClipBoardUtils.getClipboardContent(mContext)
-                if (userJson != null && !TextUtils.isEmpty(userJson)
-                    && userJson.contains(Params.USER_KEY)
-                ) {
-                    Common.showToast("导入成功", 2)
-                    val exportUser = Shaft.sGson.fromJson(userJson, UserModel::class.java)
-                    Local.saveUser(exportUser)
-                    Dev.refreshUser = true
-                    Shaft.sUserModel = exportUser
-                    val userEntity = UserEntity()
-                    userEntity.loginTime = System.currentTimeMillis()
-                    userEntity.userID = exportUser.user.id
-                    userEntity.userGson = Shaft.sGson.toJson(Local.getUser())
-                    AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity)
-                    val intent = Intent(mContext, MainActivity::class.java)
-                    MainActivity.newInstance(intent, mContext)
-                    mActivity.finish()
+                if (Dev.isDev) {
+                    performLogin(SAMPLE_USER_TOKEN)
                 } else {
-                    Common.showToast("剪贴板无用户信息", 3)
+                    val userJson = ClipBoardUtils.getClipboardContent(mContext)
+                    if (userJson != null && !TextUtils.isEmpty(userJson)
+                        && userJson.contains(Params.USER_KEY)
+                    ) {
+                        performLogin(userJson)
+                    } else {
+                        Common.showToast("剪贴板无用户信息", 3)
+                    }
                 }
                 return@OnMenuItemClickListener true
             }
@@ -173,6 +160,23 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             val res = viewModel.isChecked.value ?: false
             viewModel.isChecked.value = !res
         }
+    }
+
+    private fun performLogin(userJson: String) {
+        val exportUser = Shaft.sGson.fromJson(userJson, UserModel::class.java)
+        Local.saveUser(exportUser)
+        SessionManager.updateSession(exportUser)
+        Dev.refreshUser = true
+        Shaft.sUserModel = exportUser
+        val userEntity = UserEntity()
+        userEntity.loginTime = System.currentTimeMillis()
+        userEntity.userID = exportUser.user.id
+        userEntity.userGson = Shaft.sGson.toJson(Local.getUser())
+        AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity)
+        Common.showToast("导入成功", 2)
+        val intent = Intent(mContext, MainActivity::class.java)
+        MainActivity.newInstance(intent, mContext)
+        mActivity.finish()
     }
 
     private fun openProxyHint(feedBack: FeedBack) {
@@ -311,3 +315,48 @@ fun SpannableString.setLinkSpan(text: String, hideUnderLine: Boolean = true, col
         )
     }
 }
+
+private const val SAMPLE_USER_TOKEN = """{
+	"access_token": "kj_cDCmlXxdvRkUQ8LfgfyQoprxq6MEBDAW5A41uqb0",
+	"expires_in": 3600,
+	"token_type": "bearer",
+	"scope": "",
+	"refresh_token": "C6tnl4ByWwOkfmckPJsJPf_Ra-MO_-TW_Q1bH1g2a38",
+	"user": {
+		"profile_image_urls": {
+			"px_16x16": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_16.jpg",
+			"px_50x50": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_50.jpg",
+			"px_170x170": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_170.jpg"
+		},
+		"id": "31660292",
+		"name": "meppoi",
+		"account": "meppoi",
+		"mail_address": "863043461@qq.com",
+		"is_premium": false,
+		"x_restrict": 0,
+		"is_mail_authorized": true,
+		"require_policy_agreement": false
+	},
+	"response": {
+		"access_token": "kj_cDCmlXxdvRkUQ8LfgfyQoprxq6MEBDAW5A41uqb0",
+		"expires_in": 3600,
+		"token_type": "bearer",
+		"scope": "",
+		"refresh_token": "C6tnl4ByWwOkfmckPJsJPf_Ra-MO_-TW_Q1bH1g2a38",
+		"user": {
+			"profile_image_urls": {
+				"px_16x16": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_16.jpg",
+				"px_50x50": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_50.jpg",
+				"px_170x170": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_170.jpg"
+			},
+			"id": "31660292",
+			"name": "meppoi",
+			"account": "meppoi",
+			"mail_address": "863043461@qq.com",
+			"is_premium": false,
+			"x_restrict": 0,
+			"is_mail_authorized": true,
+			"require_policy_agreement": false
+		}
+	}
+}"""

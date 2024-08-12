@@ -3,7 +3,7 @@ package ceui.lisa.models;
 import java.io.Serializable;
 import java.util.List;
 
-public class NovelBean implements Serializable, Starable {
+public class NovelBean implements Serializable, Starable, ModelObject {
 
 
     /**
@@ -328,5 +328,15 @@ public class NovelBean implements Serializable, Starable {
 
     public void setContentOrder(String contentOrder) {
         this.contentOrder = contentOrder;
+    }
+
+    @Override
+    public long getObjectUniqueId() {
+        return id;
+    }
+
+    @Override
+    public int getObjectType() {
+        return ObjectSpec.JNOVEL;
     }
 }

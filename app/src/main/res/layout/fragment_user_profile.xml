@@ -1,0 +1,138 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="user"
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/transparent"
+            app:elevation="0dp">
+
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/collapsing_toolbar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/playlist_app_bar_height"
+                app:toolbarId="@+id/toolbar"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
+
+                <ImageView
+                    android:id="@+id/header_image"
+                    app:layout_collapseMode="parallax"
+                    app:layout_collapseParallaxMultiplier="0.5"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/colorBlack40"
+                    android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:id="@+id/info_layout"
+                    android:layout_width="wrap_content"
+                    app:layout_collapseMode="parallax"
+                    app:layout_collapseParallaxMultiplier="0.5"
+                    android:layout_gravity="center_horizontal|bottom"
+                    android:layout_marginBottom="20dp"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_height="wrap_content">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/user_icon"
+                        app:civ_border_width="1dp"
+                        userIcon="@{user}"
+                        app:civ_border_color="@color/white"
+                        android:layout_marginBottom="8dp"
+                        android:scaleType="centerCrop"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp" />
+
+                    <TextView
+                        android:id="@+id/user_name"
+                        android:text="@{user.name}"
+                        android:layout_width="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/text00"
+                        android:layout_height="wrap_content" />
+
+
+                    <ceui.loxia.ProgressTextButton
+                        android:id="@+id/follow"
+                        visibleOrGone="@{!user.is_followed()}"
+                        style="@style/BlueShiningButton"
+                        android:layout_width="wrap_content"
+                        android:visibility="gone"
+                        android:layout_height="32dp"
+                        android:paddingHorizontal="12dp"
+                        android:text="@string/follow"
+                        app:ptb_progress_stroke_width="3dp"
+                        app:ptb_progress_width="14dp" />
+
+                    <ceui.loxia.ProgressTextButton
+                        android:id="@+id/unfollow"
+                        visibleOrGone="@{user.is_followed()}"
+                        style="@style/RedShiningButton"
+                        android:visibility="gone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:paddingHorizontal="12dp"
+                        android:text="@string/unfollow"
+                        app:ptb_progress_stroke_width="3dp"
+                        app:ptb_progress_width="14dp" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize"
+                    app:layout_collapseMode="pin">
+
+                    <ImageView
+                        android:id="@+id/navi_back"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/icon_navi_back" />
+
+                    <ImageView
+                        android:id="@+id/navi_more"
+                        android:layout_gravity="end"
+                        android:layout_marginEnd="18dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/icon_navi_more" />
+
+                </androidx.appcompat.widget.Toolbar>
+
+
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@color/transparent"
+                app:tabBackground="@color/transparent"
+                app:tabIndicatorFullWidth="false"
+                app:tabMode="fixed" />
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>

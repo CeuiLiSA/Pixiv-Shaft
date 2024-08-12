@@ -11,15 +11,13 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.GlideApp
 import ceui.lisa.databinding.FragmentImageBinding
+import ceui.lisa.fragments.ImageFileViewModel
 import ceui.refactor.viewBinding
 import com.github.panpf.sketch.loadImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class ImageFileViewModel : ViewModel() {
-    val fileLiveData = MutableLiveData<File>()
-}
 
 class ImageFragment : NavFragment(R.layout.fragment_image) {
 

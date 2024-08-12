@@ -6,10 +6,8 @@ import ceui.lisa.databinding.CellFlagReasonBinding
 import ceui.loxia.RefreshState
 import ceui.loxia.Repository
 import ceui.loxia.findActionReceiverOrNull
-import ceui.loxia.findFragmentOrNull
-import ceui.loxia.novel.NovelTextHolder
-import ceui.refactor.ListItemHolder
-import ceui.refactor.ListItemViewHolder
+import ceui.pixiv.ui.common.ListItemHolder
+import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.refactor.setOnClick
 
 class FlagReasonRepository : Repository<FlagReasonFragment>() {

@@ -320,11 +320,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         return allItems.size() + mAdapter.headerSize();
     }
 
-    public void nowRefresh() {
-        mRecyclerView.smoothScrollToPosition(0);
-        mRefreshLayout.autoRefresh();
-    }
-
     public int getCount() {
         return allItems == null ? 0 : allItems.size();
     }

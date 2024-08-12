@@ -15,6 +15,7 @@
 
     <color name="follow_user_illust_divider">#ececec</color>
 
+    <color name="loading_placeholder">#14FFFFFF</color>
 
     <color name="white">#FFFFFF</color>
     <color name="white_and_black">#141414</color>
@@ -72,4 +73,10 @@
     <color name="panel_bg">#2A2A2A</color>
     <color name="image_background">#1AFFFFFF</color>
 
+    <color name="text00">#FFFFFF</color>
+    <color name="text10">#CCFFFFFF</color>
+    <color name="text20">#99FFFFFF</color>
+    <color name="white10">#1AFFFFFF</color>
+    <color name="white40">#66FFFFFF</color>
+    <color name="list_divider">#26FFFFFF</color>
 </resources>

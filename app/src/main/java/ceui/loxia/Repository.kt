@@ -1,7 +1,7 @@
 package ceui.loxia
 
 import androidx.lifecycle.MutableLiveData
-import ceui.refactor.ListItemHolder
+import ceui.pixiv.ui.common.ListItemHolder
 
 abstract class Repository<FragmentT: NavFragment> {
 

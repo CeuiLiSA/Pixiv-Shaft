@@ -109,6 +109,8 @@
     <color name="novel_marker_add">#ff445b</color>
     <color name="novel_marker_none">#eaeaea</color>
 
+    <color name="loading_placeholder">#14000000</color>
+
     <color name="colorWhite">#FFFFFFFF</color>
     <color name="colorWhite06">#0AFFFFFF</color>
     <color name="colorWhite08">#14FFFFFF</color>
@@ -176,6 +178,17 @@
     <color name="event_sample_color_10">#C500FF</color>
     <color name="event_sample_color_11">#F234C6</color>
     <color name="image_background">#1AFFFFFF</color>
+
+
+    <color name="text00">#000000</color>
+    <color name="text10">#CC000000</color>
+    <color name="text20">#99000000</color>
+    <color name="white10">#1A000000</color>
+    <color name="white40">#66000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="list_divider">#26000000</color>
 
 </resources>
 

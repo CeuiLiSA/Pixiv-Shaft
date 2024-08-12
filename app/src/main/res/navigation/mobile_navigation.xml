@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_home_viewpager">
+
+
+    <fragment
+        android:id="@+id/navigation_landing"
+        android:name="ceui.pixiv.ui.landing.LandingFragment"
+        tools:layout="@layout/fragment_landing" />
+
+    <fragment
+        android:id="@+id/navigation_cache_list"
+        android:name="ceui.pixiv.ui.task.CacheFileFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
+
+
+    <fragment
+        android:id="@+id/navigation_home_viewpager"
+        android:name="ceui.pixiv.ui.home.HomeViewPagerFragment"
+        tools:layout="@layout/fragment_home_viewpager" />
+
+    <fragment
+        android:id="@+id/navigation_search_viewpager"
+        android:name="ceui.pixiv.ui.search.SearchViewPagerFragment"
+        tools:layout="@layout/fragment_search_viewpager" >
+
+        <argument
+            app:argType="string"
+            android:defaultValue=""
+            android:name="keyword"/>
+
+        <argument
+            app:argType="integer"
+            android:defaultValue="0"
+            android:name="landing_index"
+            />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="ceui.pixiv.ui.home.HomeFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
+
+
+    <fragment
+        android:id="@+id/navigation_illust"
+        android:name="ceui.pixiv.ui.works.IllustFragment"
+        tools:layout="@layout/fragment_fancy_illust" >
+
+        <argument
+            android:name="illust_id"
+            app:argType="long" />
+    </fragment>
+
+
+
+    <fragment
+        android:id="@+id/navigation_comments_illust"
+        android:name="ceui.pixiv.ui.comments.CommentsFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            android:name="object_id"
+            app:argType="long" />
+
+        <argument
+            android:name="object_arthur_id"
+            app:argType="long" />
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_profile"
+        android:name="ceui.pixiv.ui.user.UserProfileFragment"
+        tools:layout="@layout/fragment_user_profile" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_bookmarked_illust"
+        android:name="ceui.pixiv.ui.user.UserBookmarkedIllustsFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_mine_profile"
+        android:name="ceui.pixiv.ui.user.MineProfileFragment" >
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_task_status"
+        android:name="ceui.pixiv.ui.task.TaskStatusFragment" >
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_created_illust"
+        android:name="ceui.pixiv.ui.user.UserCreatedIllustsFragment">
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_trending_tags"
+        android:name="ceui.pixiv.ui.trending.TrendingTagsFragment">
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_following_list"
+        android:name="ceui.pixiv.ui.user.UserFollowingFragment">
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+
+        <argument
+            android:name="restrict_type"
+            app:argType="string"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_img_url"
+        android:name="ceui.pixiv.ui.common.ImgUrlFragment">
+
+        <argument
+            android:name="url"
+            app:argType="string"/>
+
+        <argument
+            android:name="display_name"
+            app:argType="string"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_paged_img_urls"
+        android:name="ceui.pixiv.ui.works.PagedImgUrlFragment" >
+
+        <argument
+            android:name="illust_id"
+            app:argType="long" />
+
+        <argument
+            android:name="index"
+            app:argType="integer"/>
+    </fragment>
+</navigation>

@@ -75,7 +75,7 @@ class ClientManager {
             httpBuilder.dns(HttpDns.getInstance())
         }
 
-        httpBuilder.addInterceptor(HeaderInterceptor(false))
+        httpBuilder.addInterceptor(HeaderInterceptor())
         httpBuilder.addInterceptor(TokenFetcherInterceptor())
 
         return Retrofit.Builder()
@@ -93,7 +93,7 @@ class ClientManager {
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
 
-        httpBuilder.addInterceptor(HeaderInterceptor(false))
+        httpBuilder.addInterceptor(HeaderInterceptor())
 
         return Retrofit.Builder()
             .baseUrl(OAUTH_HOST)

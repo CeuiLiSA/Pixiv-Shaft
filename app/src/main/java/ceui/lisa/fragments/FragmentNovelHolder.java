@@ -26,14 +26,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
-import ceui.lisa.activities.NovelActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -54,7 +52,6 @@ import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.WebNovel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -63,8 +60,8 @@ import ceui.loxia.SpaceHolder;
 import ceui.loxia.TextDescHolder;
 import ceui.loxia.novel.NovelImageHolder;
 import ceui.loxia.novel.NovelTextHolder;
-import ceui.refactor.CommonAdapter;
-import ceui.refactor.ListItemHolder;
+import ceui.pixiv.ui.common.CommonAdapter;
+import ceui.pixiv.ui.common.ListItemHolder;
 import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -274,13 +271,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     private void refreshDetail(NovelDetail novelDetail) {
-        if (Dev.isDev && false) {
-            Intent intent = new Intent(mContext, NovelActivity.class);
-            intent.putExtra(Params.NOVEL_DETAIL, novelDetail);
-            startActivity(intent);
-            finish();
-            return;
-        }
         mNovelDetail = novelDetail;
         baseBind.viewPager.setVisibility(View.VISIBLE);
         baseBind.awesomeCardCon.setOnTouchListener(new View.OnTouchListener() {

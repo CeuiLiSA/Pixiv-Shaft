@@ -228,7 +228,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                     .listener(object : RequestListener<Bitmap?> {
                         override fun onLoadFailed(
                             e: GlideException?,
-                            model: Any,
+                            model: Any?,
                             target: Target<Bitmap?>,
                             isFirstResource: Boolean
                         ): Boolean {
@@ -236,9 +236,9 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                         }
 
                         override fun onResourceReady(
-                            resource: Bitmap?,
+                            resource: Bitmap,
                             model: Any,
-                            target: Target<Bitmap?>,
+                            target: Target<Bitmap?>?,
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {

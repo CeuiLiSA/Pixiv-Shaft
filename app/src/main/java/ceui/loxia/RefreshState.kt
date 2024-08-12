@@ -6,7 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemLoadingBinding
-import ceui.refactor.CommonAdapter
+import ceui.pixiv.ui.common.CommonAdapter
 import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader

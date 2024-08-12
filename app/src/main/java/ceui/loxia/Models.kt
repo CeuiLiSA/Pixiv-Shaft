@@ -26,6 +26,15 @@ data class IllustResponse(
     override val nextPageUrl: String? get() = next_url
 }
 
+data class HomeIllustResponse(
+    val illusts: List<Illust> = listOf(),
+    val ranking_illusts: List<Illust> = listOf(),
+    val next_url: String? = null
+) : Serializable, KListShow<Illust> {
+    override val displayList: List<Illust> get() = ranking_illusts + illusts
+    override val nextPageUrl: String? get() = next_url
+}
+
 object ObjectType {
     const val ILLUST = "illust"
     const val MANGA = "manga"
@@ -83,7 +92,7 @@ data class Illust(
     override val objectUniqueId: Long
         get() = id
     override val objectType: Int
-        get() = ObjectSpec.POST
+        get() = ObjectSpec.Illust
 
     fun displayCreateDate(): String {
         return DateParse.displayCreateDate(create_date)
@@ -155,7 +164,7 @@ data class User(
     override val objectUniqueId: Long
         get() = id
     override val objectType: Int
-        get() = ObjectSpec.USER
+        get() = ObjectSpec.KUser
 
     fun isOfficial(): Boolean {
         return ConstantUser.officialUsers.contains(id)
@@ -275,10 +284,10 @@ data class Profile(
     val pawoo_url: Any? = null,
     val region: String? = null,
     val total_follow_users: Int? = null,
-    val total_illust_bookmarks_public: Int? = null,
+    val total_illust_bookmarks_public: Int = 0,
     val total_illust_series: Int? = null,
-    val total_illusts: Int? = null,
-    val total_manga: Int? = null,
+    val total_illusts: Int = 0,
+    val total_manga: Int = 0,
     val total_mypixiv_users: Int? = null,
     val total_novel_series: Int? = null,
     val total_novels: Int? = null,
@@ -320,7 +329,7 @@ interface KListShow<T> {
 }
 
 data class UserPreview(
-    val illusts: List<Illust>? = null,
+    val illusts: List<Illust> = listOf(),
     val is_muted: Boolean? = null,
     val novels: List<Any>? = null,
     val user: User? = null
@@ -435,6 +444,10 @@ data class CommentResponse(
     override val nextPageUrl: String?
         get() = next_url
 }
+
+data class PostCommentResponse(
+    val comment: Comment? = null,
+): Serializable
 
 data class WebResponse<T> (
     val error: Boolean? = null,

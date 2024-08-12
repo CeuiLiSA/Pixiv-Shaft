@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.ModelObject
+import ceui.lisa.models.NovelBean
 import ceui.lisa.models.ObjectSpec
 import ceui.lisa.models.UserBean
 import java.io.Serializable
@@ -48,20 +49,32 @@ object ObjectPool {
         return get(illustId)
     }
 
+    fun getNovel(novelId: Long): LiveData<NovelBean> {
+        return get(novelId)
+    }
+
     fun updateUser(userBean: UserBean) {
         update(userBean)
     }
 
     fun followUser(userId: Long) {
-        val exist = get<UserBean>(userId).value ?: return
-        exist.isIs_followed = true
-        update(exist)
+        get<UserBean>(userId).value?.let { exist ->
+            exist.isIs_followed = true
+            update(exist)
+        }
+        get<User>(userId).value?.let { exist ->
+            update(exist.copy(is_followed = true))
+        }
     }
 
     fun unFollowUser(userId: Long) {
-        val exist = get<UserBean>(userId).value ?: return
-        exist.isIs_followed = false
-        update(exist)
+        get<UserBean>(userId).value?.let { exist ->
+            exist.isIs_followed = false
+            update(exist)
+        }
+        get<User>(userId).value?.let { exist ->
+            update(exist.copy(is_followed = false))
+        }
     }
 
     /**
@@ -123,8 +136,14 @@ object ObjectPool {
             "IllustsBean", "Novel" -> {
                 ObjectSpec.POST
             }
+            "Illust" -> {
+                ObjectSpec.Illust
+            }
             "UserBean" -> {
                 ObjectSpec.USER
+            }
+            "User" -> {
+                ObjectSpec.KUser
             }
             "Article" -> {
                 ObjectSpec.ARTICLE

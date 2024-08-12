@@ -1,19 +1,17 @@
-package ceui.refactor
+package ceui.pixiv.ui.common
 
+import android.content.Context
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import ceui.lisa.databinding.CellNoneBinding
-import ceui.lisa.databinding.FragmentItemAaaaBinding
-import ceui.lisa.databinding.FragmentItemBbbbBinding
-import ceui.loxia.flag.viewholdermap.ViewHolderFactory
+import ceui.pixiv.ui.viewholdermap.ViewHolderFactory
+import ceui.refactor.setOnClick
 import java.lang.RuntimeException
 
 val listItemHolderDiffUtil = object :
@@ -34,7 +32,7 @@ val listItemHolderDiffUtil = object :
 }
 
 
-class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
+class CommonAdapter(private val viewLifecycleOwner: LifecycleOwner) :
     ListAdapter<ListItemHolder, ListItemViewHolder<ViewBinding, ListItemHolder>>(
         listItemHolderDiffUtil
     ) {
@@ -55,11 +53,9 @@ class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
         position: Int
     ) {
         val item = getItem(position)
+        holder.lifecycleOwner = viewLifecycleOwner
         if (holder.binding is ViewDataBinding) {
-            holder.binding.lifecycleOwner = lifecycleOwner
-        }
-        holder.binding.root.setOnClick {
-            item.retrieveListener()(it)
+            holder.binding.lifecycleOwner = viewLifecycleOwner
         }
         holder.onBindViewHolder(item, position)
     }
@@ -67,13 +63,14 @@ class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
     override fun getItemViewType(position: Int): Int {
         return getItem(position).getItemViewType() // use layout id to unique the item type
     }
+
+    override fun getItemId(position: Int): Long {
+        return getItem(position).getItemId()
+    }
 }
 
 open class ListItemHolder {
 
-    private var onItemClickListener: (View) -> Unit = {
-        Log.d("ListItemHolder", "OnItemClick: ${this.javaClass.simpleName}, view: ${it.javaClass.simpleName}")
-    }
 
     open fun areItemsTheSame(other: ListItemHolder): Boolean {
         return this == other
@@ -87,18 +84,16 @@ open class ListItemHolder {
         return this::class.java.hashCode()
     }
 
-    fun onItemClick(block: (View) -> Unit) : ListItemHolder {
-        this.onItemClickListener = block
-        return this
-    }
-
-    fun retrieveListener(): ((View) -> Unit) {
-        return onItemClickListener
+    open fun getItemId(): Long {
+        return 0L
     }
 }
 
 open class ListItemViewHolder<Binding : ViewBinding, T : ListItemHolder>(val binding: Binding) :
     RecyclerView.ViewHolder(binding.root) {
+
+    protected val context: Context = binding.root.context
+    var lifecycleOwner: LifecycleOwner? = null
 
     open fun onBindViewHolder(holder: T, position: Int) {
 

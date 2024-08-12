@@ -689,4 +689,8 @@
     <string name="theme_nowUsing">（正在使用）</string>
     <string name="core_string_novel_marker">小说书签</string>
     <string name="toast_download_result">下载完成App内提示</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="title_home">Home</string>
+    <string name="show_reply">查看回复</string>
+    <string name="comments">评论</string>
 </resources>

@@ -1,14 +1,9 @@
 package ceui.loxia
 
-import android.text.TextUtils
-import ceui.lisa.activities.Shaft
-import ceui.lisa.fragments.FragmentLogin
-import ceui.lisa.utils.Local
+import ceui.pixiv.session.SessionManager
 import okhttp3.Interceptor
 import okhttp3.Response
-import kotlin.Exception
 import kotlin.Long
-import kotlin.String
 
 class TokenFetcherInterceptor : Interceptor {
 
@@ -20,13 +15,13 @@ class TokenFetcherInterceptor : Interceptor {
             val gson = response.peekBody(Long.MAX_VALUE).string()
             if (gson.contains(ClientManager.TOKEN_ERROR_1) || gson.contains(ClientManager.TOKEN_ERROR_2)) {
                 response.close()
-                val oldToken = request.header(ClientManager.HEADER_AUTH)
+                val tokenForThisRequest = request.header(ClientManager.HEADER_AUTH)
                     ?.substring(ClientManager.TOKEN_HEAD.length) ?: ""
-                val accessToken = refreshToken(oldToken)
-                if (accessToken != null) {
+                val refreshedAccessToken = SessionManager.refreshAccessToken(tokenForThisRequest)
+                if (refreshedAccessToken != null) {
                     val newRequest = chain.request()
                         .newBuilder()
-                        .header(ClientManager.HEADER_AUTH, accessToken)
+                        .header(ClientManager.HEADER_AUTH, ClientManager.TOKEN_HEAD + refreshedAccessToken)
                         .build()
                     chain.proceed(newRequest)
                 } else {
@@ -38,30 +33,5 @@ class TokenFetcherInterceptor : Interceptor {
         } else {
             response
         }
-    }
-
-    @Synchronized
-    private fun refreshToken(oldToken: String): String? {
-        if (!TextUtils.equals(Shaft.sUserModel.access_token, oldToken)) {
-            return Shaft.sUserModel.access_token
-        }
-
-        val refreshToken = Shaft.sUserModel.refresh_token ?: ""
-        try {
-            val accountResponse = Client.authApi.newRefreshToken(
-                FragmentLogin.CLIENT_ID,
-                FragmentLogin.CLIENT_SECRET,
-                FragmentLogin.REFRESH_TOKEN,
-                refreshToken,
-                true
-            ).execute().body()
-            if (accountResponse != null) {
-                Local.saveUser(accountResponse)
-                return accountResponse.access_token
-            }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-        return null
     }
 }
