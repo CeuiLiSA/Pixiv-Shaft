@@ -44,6 +44,7 @@ import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
@@ -220,7 +221,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (SessionManager.INSTANCE.isLoggedIn()) {
+        if (SessionManager.INSTANCE.isLoggedIn() || (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login())) {
             if (Dev.isDev && false) {
                 startActivity(new Intent(this, HomeActivity.class));
             } else {

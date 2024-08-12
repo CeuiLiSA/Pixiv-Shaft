@@ -22,14 +22,14 @@ class RankIllustRepo(
         //var debug = Retro.getLofterApi().getLofterRank(LOFTER_HEADER, LOFTER_APICOOKIE)
         return Retro.getAppApi().getRank(token(), mode, date)
     }
-
-    override fun initLofterApi(): Observable<ListIllust> {
-        //for debug usage
-        var debug_value = Retro.getLofterApi().getLofterRank(LOFTER_HEADER, LOFTER_APICOOKIE)
-        Common.showLog("initLofterApi")
-        Common.showLog(debug_value)
-        return Retro.getLofterApi().getLofterRank(LOFTER_HEADER, LOFTER_APICOOKIE)
-    }
+//
+//    override fun initLofterApi(): Observable<ListIllust> {
+//        //for debug usage
+//        var debug_value = Retro.getLofterApi().getLofterRank(LOFTER_HEADER, LOFTER_APICOOKIE)
+//        Common.showLog("initLofterApi")
+//        Common.showLog(debug_value)
+//        return Retro.getLofterApi().getLofterRank(LOFTER_HEADER, LOFTER_APICOOKIE)
+//    }
 
     override fun initNextApi(): Observable<ListIllust> {
         return Retro.getAppApi().getNextIllust(token(), nextUrl)
