@@ -4,7 +4,9 @@ import android.content.SharedPreferences;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.models.UserModel;
-
+/**
+ * A class deal with the {@link UserModel} and APP {@link Settings}
+ * */
 public class Local {
 
     public static final String LOCAL_DATA = "local_data";

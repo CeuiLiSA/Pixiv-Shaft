@@ -5,13 +5,15 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.model.RecmdIllust
 import io.reactivex.Observable
-
+/**
+ * The class represents for recommended illustrations
+ * */
 open class RecmdIllustRepo(
     private val dataType: String?
 ) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<RecmdIllust> {
-        return if ("漫画" == dataType) {
+        return if ("漫画" == dataType) {//DOUBT:Why use hardcoded string here
             Retro.getAppApi().getRecmdManga(token())
         } else {
             Retro.getAppApi().getRecmdIllust(token(), true)

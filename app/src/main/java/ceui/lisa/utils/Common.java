@@ -71,9 +71,17 @@ import okio.BufferedSource;
 
 public class Common {
 
+    /**
+     * 移除文件系统保留字符
+     */
     private static final String[][] safeReplacer = new String[][]{{"|", "%7c"}, {"\\", "%5c"}, {"?", "%3f"},
             {"*", "\u22c6"}, {"<", "%3c"}, {"\"", "%22"}, {":", "%3a"}, {">", "%3e"}, {"/", "%2f"}};
 
+    /**
+     * Judge the String provided is numeric or not
+     * @param str The provided String
+     * @return true if the string is numeric
+     * */
     public static boolean isNumeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             if (!Character.isDigit(str.charAt(i))) {
@@ -128,6 +136,17 @@ public class Common {
         ToastUtils.show(id);
     }
 
+    /**
+     * Show toast information
+     * @param t The information to show
+     * @param type Represents the type of toast
+     *             <p>
+     *                 2:Success
+     *             </p>
+     *             <p>
+     *                  3:Failure
+     *             </p>
+     * */
     //2成功， 3失败， 4info
     public static <T> void showToast(T t, int type) {
         ToastUtils.show(t);
@@ -148,6 +167,8 @@ public class Common {
 
     /**
      * 返回当前程序版本名
+     * @param context The app context
+     * @return versionName The version name of current application
      */
     public static String getAppVersionName(Context context) {
         String versionName=null;

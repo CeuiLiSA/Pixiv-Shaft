@@ -8,7 +8,9 @@ import com.blankj.utilcode.util.PathUtils;
 
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
-
+/**
+ * A class about all the application settings.
+ * */
 public class Settings {
 
     public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文", "русский", "한국어"};

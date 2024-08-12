@@ -17,6 +17,9 @@ data class ObjectKey(
     val type: Int
 ) : Serializable
 
+/**
+ * Object pool in Android is a software design pattern that involves reusing objects that are expensive to create or configure. It's essentially a collection of initialized objects that can be readily used by the application, reducing the overhead of creating new objects all the time.
+ * */
 object ObjectPool {
 
     val store = mutableMapOf<ObjectKey, MutableLiveData<Any>>()
@@ -38,6 +41,10 @@ object ObjectPool {
         }
     }
 
+    /**
+     * @param illustId The id of specified illustration
+     * @return
+     * */
     fun getIllust(illustId: Long): LiveData<IllustsBean> {
         return get(illustId)
     }
@@ -70,10 +77,19 @@ object ObjectPool {
         }
     }
 
+    /**
+     * @param id The id of the illustration
+     * @return
+     * */
     inline fun <reified ObjectT : ModelObject> get(id: Long): LiveData<ObjectT> {
         return getFromMap(ObjectT::class, id)
     }
 
+    /**
+     * @param objClass The data source
+     * @param id The id of the illustration
+     * @return
+     * */
     fun <ObjectT : ModelObject> getFromMap(objClass: KClass<ObjectT>, id: Long): LiveData<ObjectT> {
         val key = ObjectKey(id, findObjectSpec(objClass))
         val storedLiveData = store[key]

@@ -41,7 +41,9 @@ import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 
 import static ceui.lisa.utils.Local.LOCAL_DATA;
-
+/**
+ * Where the app code starts.
+ * */
 public class Shaft extends Application implements ServicesProvider {
 
     public static UserModel sUserModel;
@@ -65,7 +67,7 @@ public class Shaft extends Application implements ServicesProvider {
 
     static {
         SmartRefreshLayout.setDefaultRefreshHeaderCreator((context, layout) -> {
-            return new ClassicsHeader(context);//.setTimeFormat(new DynamicTimeFormat("更新于 %s"));//指定为经典Header，默认是 贝塞尔雷达Header
+            return new ClassicsHeader(context);//.setTimeFormat(new DynamicTimeFormat("更新于 %s"));//指定为经典Header，默认是 贝塞尔雷达Header(BezierRadarHeader)
         });
 
         SmartRefreshLayout.setDefaultRefreshFooterCreator((context, layout) ->
@@ -76,6 +78,9 @@ public class Shaft extends Application implements ServicesProvider {
         return sContext;
     }
 
+    /**
+     * Initialize the whole application.
+     * */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -91,7 +96,6 @@ public class Shaft extends Application implements ServicesProvider {
 
         sUserModel = Local.getUser();
 
-
         sSettings = Local.getSettings();
 
         SessionManager.INSTANCE.load();
@@ -99,7 +103,6 @@ public class Shaft extends Application implements ServicesProvider {
         updateTheme();
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
-
 
         this.mOkHttpClient = ProgressManager.getInstance().with(new OkHttpClient.Builder()).build();
 
@@ -111,12 +114,14 @@ public class Shaft extends Application implements ServicesProvider {
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
 
+        //Init the network
         if (netWorkStateReceiver == null) {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
 
         HostManager.get().init();
 
+        //Init Toast utils
         ToastUtils.init(this);
         ToastUtils.setGravity(Gravity.BOTTOM, 0, 0);
         ToastUtils.initStyle(new ToastStyle(this));
@@ -147,6 +152,9 @@ public class Shaft extends Application implements ServicesProvider {
         return mOkHttpClient;
     }
 
+    /**
+     * Update the theme according to the setting.
+     * */
     private void updateTheme() {
         int current = Shaft.sSettings.getThemeIndex();
         switch (current) {

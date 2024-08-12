@@ -54,15 +54,14 @@ public interface AppApi {
 
     /**
      * 获取排行榜
-     *
-     * @param mode
-     * @return
+     * @param mode The type of rank:day/week/.../
+     * @param token Token of current user
+     * @return ListIllust Observable<ListIllust>{@link ListIllust}
      */
     @GET("v1/illust/ranking?filter=for_android")
     Observable<ListIllust> getRank(@Header("Authorization") String token,
                                    @Query("mode") String mode,
                                    @Query("date") String date);
-
     @GET("v1/novel/ranking?filter=for_android")
     Observable<ListNovel> getRankNovel(@Header("Authorization") String token,
                                        @Query("mode") String mode,
@@ -70,9 +69,9 @@ public interface AppApi {
 
     /**
      * 推荐榜单
-     *
-     * @param token
-     * @return
+     * @param token Token of current user
+     * @param include_ranking_illusts (indoubt)
+     * @return RecmdIllust Observable<RecmdIllust>{@link RecmdIllust}
      */
     @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android")
     Observable<RecmdIllust> getRecmdIllust(@Header("Authorization") String token, @Query("include_ranking_illusts") boolean include_ranking_illusts);
@@ -343,6 +342,28 @@ public interface AppApi {
                                           @Query("search_target") String search_target);
 
 
+    /**
+     * (In doubt)
+     * Search by key word
+     * <p>
+     *     For example:
+     * </p>
+     * <p>
+     *     "洛天依" in Chinese
+     * </p>
+     * <p>
+     *     "\u6d1b\u5929\u4f9d" in Unicode
+     * </p>
+     * <p>
+     *     "%E6%B4%9B%E5%A4%A9%E4%BE%9D" in URL
+     * </p>
+     * <p>
+     *     URL:"https://app-api.pixiv.net/v2/search/autocomplete?merge_plain_keyword_results=true&word=%E6%B4%9B%E5%A4%A9%E4%BE%9D"
+     * </p>
+     *
+     * @return {"tags":[{"name":"\u6d1b\u5929\u4f9d","translated_name":null}]}
+     *
+     */
     // v2/search/autocomplete?merge_plain_keyword_results=true&word=%E5%A5%B3%E4%BD%93 HTTP/1.1
     @GET("v2/search/autocomplete?merge_plain_keyword_results=true")
     Observable<ListTrendingtag> searchCompleteWord(@Header("Authorization") String token,
