@@ -44,10 +44,10 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
      * */
     public abstract Observable<? extends Response> initApi();
 
-    /**
-     * Early development,it only returns JSON Array now
-     * */
-    public abstract Observable<? extends Response> initLofterApi();
+//    /**
+//     * Early development,it only returns JSON Array now
+//     * */
+//    public abstract Observable<? extends Response> initLofterApi();
 
     public abstract Observable<? extends Response> initNextApi();
 
@@ -65,15 +65,15 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
         }
     }
 
-    public void getLofterFirstData(NullCtrl<Response> nullCtrl) {
-        mApi = initLofterApi();//mApi contains the response data
-        if (mApi != null) {
-            mApi.subscribeOn(Schedulers.newThread())
-                    .map(mFunction)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(nullCtrl);
-        }
-    }
+//    public void getLofterFirstData(NullCtrl<Response> nullCtrl) {
+//        mApi = initLofterApi();//mApi contains the response data
+//        if (mApi != null) {
+//            mApi.subscribeOn(Schedulers.newThread())
+//                    .map(mFunction)
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(nullCtrl);
+//        }
+//    }
 
     public void getNextData(NullCtrl<Response> nullCtrl) {
         mApi = initNextApi();
