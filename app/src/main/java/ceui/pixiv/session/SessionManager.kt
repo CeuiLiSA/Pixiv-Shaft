@@ -52,11 +52,16 @@ object SessionManager {
         }
     }
 
-    fun updateSession(userModel: UserModel) {
-        val javaJson = gson.toJson(userModel)
-        val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)
-        prefStore.putString(LoggedInUserJsonKey, gson.toJson(accountResponse))
-        _loggedInAccount.value = accountResponse
+    fun updateSession(userModel: UserModel?) {
+        if (userModel == null) {
+            prefStore.putString(LoggedInUserJsonKey, "")
+            _loggedInAccount.value = AccountResponse()
+        } else {
+            val javaJson = gson.toJson(userModel)
+            val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)
+            prefStore.putString(LoggedInUserJsonKey, gson.toJson(accountResponse))
+            _loggedInAccount.value = accountResponse
+        }
     }
 
 

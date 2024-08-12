@@ -10,6 +10,7 @@ import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.session.SessionManager;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -60,6 +61,7 @@ public class TokenInterceptor implements Interceptor {
             } else if(body.contains(TOKEN_ERROR_2)){
                 Shaft.sUserModel.getUser().setIs_login(false);
                 Local.saveUser(Shaft.sUserModel);
+                SessionManager.INSTANCE.updateSession(null);
                 Common.showToast(R.string.string_340);
                 Common.restart();
                 Common.showLog("isTokenExpired 111");
@@ -99,6 +101,7 @@ public class TokenInterceptor implements Interceptor {
                 newUser.getUser().setIs_login(true);
             }
             Local.saveUser(newUser);
+            SessionManager.INSTANCE.updateSession(newUser);
             Common.showLog("getNewToken 获取到了最新的 token:" + newUser.getAccess_token());
             return newUser.getAccess_token();
         } else {
