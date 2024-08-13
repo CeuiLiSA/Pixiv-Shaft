@@ -19,7 +19,7 @@ class TaskStatusFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         setUpToolbar(binding.toolbarLayout, binding.refreshLayout)
 
-        val task = DownloadAllTask(requireContext()) {
+        val task = DownloadAllTask(requireActivity()) {
             val items = mutableListOf<NamedUrl>()
             loadIllustsFromCache()?.forEach { illust ->
                 if (illust.page_count == 1) {

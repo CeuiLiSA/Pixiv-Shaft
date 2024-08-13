@@ -222,7 +222,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     @Override
     protected void initData() {
         if (SessionManager.INSTANCE.isLoggedIn() || (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login())) {
-            if (Dev.isDev && false) {
+            if (Dev.isDev) {
                 startActivity(new Intent(this, HomeActivity.class));
             } else {
                 if (Common.isAndroidQ()) {

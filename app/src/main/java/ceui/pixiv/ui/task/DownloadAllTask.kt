@@ -2,8 +2,10 @@ package ceui.pixiv.ui.task
 
 import android.content.Context
 import android.graphics.ColorSpace.Named
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.ui.common.saveImageToGallery
@@ -30,7 +32,7 @@ data class NamedUrl(
 )
 
 class DownloadAllTask(
-    context: Context,
+    activity: FragmentActivity,
     contentsProvider: () -> List<NamedUrl>
 ) {
     val pendingTasks = mutableListOf<DownloadTask>()
@@ -38,7 +40,7 @@ class DownloadAllTask(
     init {
         val contents = contentsProvider()
         contents.forEach { content ->
-            pendingTasks.add(DownloadTask(content, context))
+            pendingTasks.add(DownloadTask(content, activity))
         }
     }
 
@@ -51,7 +53,7 @@ class DownloadAllTask(
     }
 }
 
-open class LoadTask(val content: NamedUrl, private val context: Context) {
+open class LoadTask(val content: NamedUrl, private val activity: FragmentActivity) {
     private val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
 
@@ -80,7 +82,7 @@ open class LoadTask(val content: NamedUrl, private val context: Context) {
                     }
                 })
 
-                val file = Glide.with(context)
+                val file = Glide.with(activity)
                     .asFile()
                     .load(GlideUrlChild(content.url))
                     .listener(object : RequestListener<File> {
@@ -131,12 +133,12 @@ open class LoadTask(val content: NamedUrl, private val context: Context) {
 }
 
 
-class DownloadTask(content: NamedUrl, private val context: Context) :
-    LoadTask(content, context) {
+class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
+    LoadTask(content, activity) {
 
     override fun onFilePrepared(file: File) {
         super.onFilePrepared(file)
-        saveImageToGallery(context, file, content.name)
+        saveImageToGallery(activity, file, content.name)
     }
 }
 
