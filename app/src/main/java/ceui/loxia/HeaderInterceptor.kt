@@ -2,6 +2,7 @@ package ceui.loxia
 
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.task.TaskPool
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response

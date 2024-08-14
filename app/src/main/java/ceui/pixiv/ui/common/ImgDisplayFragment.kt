@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
@@ -24,6 +24,7 @@ import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
+import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
@@ -38,36 +39,17 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
 
-
-open class ImgDisplayViewModel : ToggleToolnarViewModel() {
-
-    private val _taskMap: HashMap<Int, LoadTask> = hashMapOf()
-
-    protected fun taskFactory(index: Int, namedUrl: NamedUrl, context: Context): LoadTask {
-        return _taskMap.getOrPut(index) {
-            LoadTask(namedUrl, context)
-        }
-    }
-
-    fun loadNamedUrl(namedUrl: NamedUrl, context: Context): LoadTask {
-        val task = taskFactory(0, namedUrl, context)
-        viewModelScope.launch {
-            task.execute()
-        }
-        return task
-    }
-}
-
-
 abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
-    protected val viewModel by viewModels<ImgDisplayViewModel>()
+    protected val viewModel by viewModels<ToggleToolnarViewModel>()
     private val viewPagerViewModel by viewModels<ViewPagerViewModel>(ownerProducer = { requireParentFragment() })
 
     abstract val downloadButton: View
     abstract val progressCircular: CircularProgressIndicator
     abstract val displayImg: SketchZoomImageView
+
     abstract fun displayName(): String
+    abstract fun contentUrl(): String
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -79,13 +61,15 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
                 viewModel.toggleFullscreen()
             }
         }
-    }
-
-    protected open fun setUpLoadTask(context: Context, task: LoadTask) {
+        val activity = requireActivity()
+        val task = TaskPool.getLoadTask(NamedUrl(displayName(), contentUrl()), activity)
+        activity.lifecycleScope.launch {
+            task.execute()
+        }
         task.file.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {
-                saveImageToGallery(context, file, displayName())
+                saveImageToGallery(activity, file, displayName())
             }
             val resolution = getImageDimensions(file)
             Common.showLog("sadasd2 bb ${resolution}")
@@ -94,7 +78,7 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         if (parentFragment is ViewPagerFragment) {
             viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
                 task.file.value?.let { file ->
-                    saveImageToGallery(context, file, displayName())
+                    saveImageToGallery(activity, file, displayName())
                 }
             }
         }
