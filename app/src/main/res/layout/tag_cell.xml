@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    android:orientation="horizontal"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/tag_height"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:stateListAnimator="@animator/button_press_alpha"
+    android:paddingHorizontal="@dimen/tag_padding"
+    android:gravity="center_vertical">
+
+    <ImageView
+        android:id="@+id/pound_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_pound">
+    </ImageView>
+
+    <TextView
+        android:id="@+id/hashtag_name"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:gravity="center_vertical"
+        android:ellipsize="end"
+        android:minLines="1"
+        android:singleLine="true"
+        tools:text="roleplay"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"/>
+
+</LinearLayout>

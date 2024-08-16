@@ -190,5 +190,9 @@
     <color name="purple_200">#FFBB86FC</color>
     <color name="list_divider">#26000000</color>
 
+
+    <color name="tag_placeholder_bg">#0DFFFFFF</color>
+    <color name="tag_placeholder_border">#66FFFFFF</color>
+    <color name="dark_text_color">#99FFFFFF</color>
 </resources>
 

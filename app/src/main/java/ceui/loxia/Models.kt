@@ -134,7 +134,11 @@ data class MetaSinglePage(
 data class Tag(
     val name: String? = null,
     val translated_name: String? = null
-) : Serializable
+) : Serializable {
+    val tagName: String? get() {
+        return name ?: translated_name
+    }
+}
 
 object UserGender {
 

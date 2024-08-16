@@ -198,6 +198,7 @@ dependencies {
     implementation "io.noties.markwon:core:4.6.2"
     // Java language implementation
     implementation("androidx.activity:activity-ktx:1.9.1")
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
 
     implementation("io.github.panpf.zoomimage:zoomimage-view-sketch:1.1.0-alpha05")
 

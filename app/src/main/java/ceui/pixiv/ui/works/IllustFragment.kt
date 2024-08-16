@@ -74,6 +74,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             binding.toolbarLayout
         )
         val adapter = CommonAdapter(viewLifecycleOwner)
+        binding.illust = liveIllust
         liveIllust.observe(viewLifecycleOwner) { illust ->
             binding.toolbarLayout.naviTitle.text = illust.title
 

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="visible"
+            type="Boolean"/>
+        <variable
+            name="typingText"
+            type="String"/>
+
+    </data>
+
+    <LinearLayout
+        android:id="@+id/tag_edit_view"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/tag_height"
+        android:paddingHorizontal="@dimen/tag_padding"
+        android:background="@drawable/tag_add_background"
+        android:gravity="center_vertical"
+        android:showDividers="middle"
+        android:orientation="horizontal"
+        app:visibleOrGone="@{visible}">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_pound_dark" />
+
+        <EditText
+            android:id="@+id/tag_editer"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:hint="@string/new_tag"
+            android:inputType="text"
+            android:textColor="@android:color/white"
+            android:textColorHint="@color/dark_text_color"
+            android:textSize="13sp"
+            android:text="@={typingText}"
+            android:background="@android:color/transparent"/>
+
+
+    </LinearLayout>
+</layout>

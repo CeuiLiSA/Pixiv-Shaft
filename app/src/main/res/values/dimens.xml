@@ -25,4 +25,16 @@
     <dimen name="list_item_spacing">16dp</dimen>
     <dimen name="list_item_spacing_half">8dp</dimen>
     <dimen name="default_content_horizontal_margin">20dp</dimen>
+
+    <dimen name="tag_height">28dp</dimen>
+    <dimen name="tag_padding">10dp</dimen>
+    <dimen name="tag_border_width">0.6dp</dimen>
+
+    <dimen name="small_tag_height">20dp</dimen>
+    <dimen name="small_tag_padding">8dp</dimen>
+
+    <dimen name="dash_gap">3dp</dimen>
+    <dimen name="dash_width">4dp</dimen>
+    <dimen name="interest_dash_width">3dp</dimen>
+    <dimen name="interest_dash_gap">2dp</dimen>
 </resources>

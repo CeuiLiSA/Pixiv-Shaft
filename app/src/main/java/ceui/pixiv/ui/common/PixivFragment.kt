@@ -20,20 +20,25 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
+import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.list.PixivListViewModel
+import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
+import ceui.pixiv.widgets.TagsActionReceiver
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
-open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver, UserActionReceiver {
+open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
+    UserActionReceiver, TagsActionReceiver {
 
     override fun onClickIllustCard(illust: Illust) {
         pushFragment(
@@ -55,6 +60,16 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
                 Params.USER_ID, id.toInt()
             )
             startActivity(userIntent)
+        }
+    }
+
+    override fun onClickTag(tag: Tag, objectType: String) {
+        if (objectType == ObjectType.NOVEL) {
+
+        } else {
+            pushFragment(R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
+                keyword = tag.name ?: "",
+            ).toBundle())
         }
     }
 }
