@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.databinding.SmallTagCellBinding
 import ceui.lisa.databinding.TagCellBinding
+import ceui.lisa.models.TagsBean
 import ceui.loxia.ObjectType
 import ceui.loxia.Tag
 import ceui.loxia.findActionReceiverOrNull
@@ -78,8 +79,8 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
         onInverseBindingListener = listener
     }
 
-    private var onCellClickListener: ((cell: View, index: Int)->Unit)? = null
-    fun setOnCellClickListener(listener: (cell: View, index: Int)->Unit) {
+    private var onCellClickListener: ((tag: Tag, index: Int)->Unit)? = null
+    fun setOnCellClickListener(listener: (tag: Tag, index: Int)->Unit) {
         onCellClickListener = listener
     }
 
@@ -93,6 +94,10 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
     }
 
     private var nonCellCount = -1
+
+    fun setJavaTags(tags: List<TagsBean>?) {
+        setTags(tags?.sortedBy { (it.translated_name ?: it.name).length }?.map { Tag(name = it.name, translated_name = it.translated_name) })
+    }
 
     fun setTags(tags: List<Tag>?) {
         if (nonCellCount == -1) {
@@ -160,7 +165,7 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         child.background = selector
         val textView = child.findViewById<TextView>(R.id.hashtag_name)
-        textView.text = tag.translated_name ?: tag.name
+        textView.text = tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name
 
         val normalTextColor = getIntColor(ColorRandom.randomColorFromTag(tag))
         val selectedTextColor = Color.WHITE
@@ -180,7 +185,7 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         child.setOnClickListener {
             if (onCellClickListener != null) {
-                onCellClickListener!!.invoke(child, indexOfChild(child))
+                onCellClickListener!!.invoke(tag, indexOfChild(child))
             } else {
                 child.findActionReceiverOrNull<TagsActionReceiver>()?.onClickTag(tag, ObjectType.ILLUST)
             }

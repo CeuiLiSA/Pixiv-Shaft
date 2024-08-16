@@ -1,7 +1,6 @@
 package ceui.loxia
 
 import android.text.TextUtils
-import ceui.lisa.interfaces.ListShow
 import ceui.lisa.models.ModelObject
 import ceui.lisa.models.ObjectSpec
 import java.io.Serializable
@@ -361,7 +360,11 @@ data class TrendingTag(
     val tag: String? = null,
     val translated_name: String? = null,
     val illust: Illust? = null,
-) : Serializable
+) : Serializable {
+    fun buildTag(): Tag {
+        return Tag(name = tag, translated_name = translated_name)
+    }
+}
 
 
 data class ArticlesResponse(
