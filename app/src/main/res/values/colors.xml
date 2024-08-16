@@ -194,5 +194,10 @@
     <color name="tag_placeholder_bg">#0DFFFFFF</color>
     <color name="tag_placeholder_border">#66FFFFFF</color>
     <color name="dark_text_color">#99FFFFFF</color>
+
+
+    <color name="splash_background">#10B7F5</color>
+
+
 </resources>
 

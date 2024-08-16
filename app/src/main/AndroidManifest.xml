@@ -51,6 +51,7 @@
         <activity
             android:name=".activities.MainActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:theme="@style/SplashTheme"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -74,14 +75,17 @@
             </intent-filter>
         </activity>
         <activity
+            android:theme="@style/SplashTheme"
             android:name=".activities.TemplateActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".activities.RankActivity" />
         <activity
+            android:theme="@style/SplashTheme"
             android:name=".activities.ImageDetailActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity
             android:name=".activities.OutWakeActivity"
+            android:theme="@style/SplashTheme"
             android:exported="true"
             android:label="@string/string_310">
             <intent-filter android:autoVerify="true">
@@ -167,15 +171,20 @@
             android:name="ceui.lisa.core.GlideConfiguration"
             android:value="GlideModule" />
 
-        <activity android:name=".activities.UserActivity" />
         <activity
+            android:theme="@style/SplashTheme"
+            android:name=".activities.UserActivity" />
+        <activity
+            android:theme="@style/SplashTheme"
             android:name=".activities.SearchActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity android:name=".activities.VActivity" />
         <activity
+            android:theme="@style/SplashTheme"
             android:name=".activities.UActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity
+            android:theme="@style/SplashTheme"
             android:name=".activities.OutReversActivity"
             android:exported="true"
             android:label="@string/string_311">
@@ -187,8 +196,12 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.VPActivity" />
-        <activity android:name=".activities.NovelActivity" />
+        <activity
+            android:theme="@style/SplashTheme"
+            android:name=".activities.VPActivity" />
+        <activity
+            android:theme="@style/SplashTheme"
+            android:name=".activities.NovelActivity" />
 
         <receiver
             android:name=".notification.RecommendAppWidgetProvider"
