@@ -64,7 +64,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         float ratio = (float) target.getHeight() / (float) target.getWidth();
         ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
         int itemWidth =
-                (ScreenUtils.getDisplayMetrics().widthPixels - ScreenUtils.dpToPx(24)) / 2;
+                ScreenUtils.getDisplayMetrics().widthPixels / Shaft.sSettings.getLineCount();
         params.width = itemWidth;
         if (ratio > MAX_HEIGHT_RATIO) {
             // 如果图片很窄，但是高度很高，则限制最大高度，是宽的 1.8 倍
