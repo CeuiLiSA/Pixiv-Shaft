@@ -125,7 +125,7 @@ public class Common {
     }
 
     public static <T> void showLog(T t) {
-        Log.d("==SHAFT== log ==> ", String.valueOf(t));
+        Log.d("==SHAFT==>", String.valueOf(t));
     }
 
     public static <T> void showToast(T t) {

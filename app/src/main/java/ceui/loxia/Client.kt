@@ -1,5 +1,6 @@
 package ceui.loxia
 
+import android.util.Log
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AccountTokenApi
 import ceui.lisa.http.HttpDns
@@ -7,6 +8,7 @@ import ceui.lisa.http.RubySSLSocketFactory
 import ceui.lisa.http.pixivOkHttpClient
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -64,41 +66,47 @@ class ClientManager {
     }
 
     fun <T> createAPPAPI(service: Class<T>): T {
-        val httpBuilder = OkHttpClient.Builder()
+        val okhttpClientBuilder = OkHttpClient.Builder()
             .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
 
         if (Shaft.sSettings.isAutoFuckChina) {
-            httpBuilder.sslSocketFactory(RubySSLSocketFactory(), pixivOkHttpClient())
-            httpBuilder.dns(HttpDns.getInstance())
+            okhttpClientBuilder.sslSocketFactory(RubySSLSocketFactory(), pixivOkHttpClient())
+            okhttpClientBuilder.dns(HttpDns.getInstance())
         }
 
-        httpBuilder.addInterceptor(HeaderInterceptor())
-        httpBuilder.addInterceptor(TokenFetcherInterceptor())
+        okhttpClientBuilder.addInterceptor(HeaderInterceptor())
+        okhttpClientBuilder.addInterceptor(TokenFetcherInterceptor())
+        okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
+            setLevel(HttpLoggingInterceptor.Level.BODY)
+        })
 
         return Retrofit.Builder()
             .baseUrl(APP_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(httpBuilder.build())
+            .client(okhttpClientBuilder.build())
             .build()
             .create(service)
     }
 
     fun <T> createOAuthAPI(service: Class<T>): T {
-        val httpBuilder = OkHttpClient.Builder()
+        val okhttpClientBuilder = OkHttpClient.Builder()
             .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
 
-        httpBuilder.addInterceptor(HeaderInterceptor())
+        okhttpClientBuilder.addInterceptor(HeaderInterceptor())
+        okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
+            setLevel(HttpLoggingInterceptor.Level.BODY)
+        })
 
         return Retrofit.Builder()
             .baseUrl(OAUTH_HOST)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(httpBuilder.build())
+            .client(okhttpClientBuilder.build())
             .build()
             .create(service)
     }

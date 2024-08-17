@@ -1,19 +1,17 @@
 package ceui.pixiv.ui.list
 
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import ceui.loxia.Client
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.ListItemHolder
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 
@@ -32,27 +30,31 @@ fun <Item, T: KListShow<Item>> Fragment.pixivListViewModel(
 
 
 class PixivListViewModel<Item, T: KListShow<Item>>(
-    private val dataSource: DataSource<Item, T>
+    private val _dataSource: DataSource<Item, T>
 ) : ViewModel() {
 
-    val refreshState: LiveData<RefreshState> = dataSource.refreshState
-    val holders: LiveData<List<ListItemHolder>> = dataSource.itemHolders
+    val refreshState: LiveData<RefreshState> = _dataSource.refreshState
+    val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHolders
 
     init {
-        if (dataSource.initialLoad()) {
+        if (_dataSource.initialLoad()) {
             refresh(RefreshHint.initialLoad())
         }
     }
 
     fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
-            dataSource.refreshData(hint)
+            _dataSource.refreshData(hint)
         }
     }
 
     fun loadMore() {
         viewModelScope.launch {
-            dataSource.loadMoreData()
+            _dataSource.loadMoreData()
         }
+    }
+
+    fun <DataSourceT: DataSource<Item, T>> dataSource(): DataSourceT {
+        return _dataSource as DataSourceT
     }
 }
