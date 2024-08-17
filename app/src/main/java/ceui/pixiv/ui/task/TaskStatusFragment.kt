@@ -36,9 +36,6 @@ class TaskStatusFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             }
             items
         }
-        binding.toolbarLayout.naviMore.setOnClick {
-            task.go()
-        }
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.layoutManager = LinearLayoutManager(requireContext())
         binding.listView.adapter = adapter

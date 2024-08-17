@@ -79,4 +79,6 @@
     <color name="white10">#1AFFFFFF</color>
     <color name="white40">#66FFFFFF</color>
     <color name="list_divider">#26FFFFFF</color>
+
+    <color name="page_default_background">#000000</color>
 </resources>

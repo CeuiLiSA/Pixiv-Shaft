@@ -35,6 +35,7 @@
         tools:ignore="UnusedAttribute">
         <activity
             android:name="ceui.pixiv.ui.common.HomeActivity"
+            android:theme="@style/SplashTheme"
             android:exported="false"
             android:label="@string/title_activity_home" />
 

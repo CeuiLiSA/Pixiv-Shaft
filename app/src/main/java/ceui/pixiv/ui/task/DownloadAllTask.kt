@@ -43,14 +43,6 @@ class DownloadAllTask(
             pendingTasks.add(DownloadTask(content, activity))
         }
     }
-
-    fun go() {
-        MainScope().launch {
-            pendingTasks.forEach {
-                it.execute()
-            }
-        }
-    }
 }
 
 open class LoadTask(val content: NamedUrl, private val activity: FragmentActivity) {

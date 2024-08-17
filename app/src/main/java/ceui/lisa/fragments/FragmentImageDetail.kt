@@ -4,50 +4,25 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.core.GlideApp
 import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
-import ceui.lisa.utils.Common
-import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
-import ceui.loxia.launchSuspend
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
+import ceui.pixiv.ui.common.setUpWithTaskStatus
+import ceui.pixiv.ui.task.NamedUrl
+import ceui.pixiv.ui.task.TaskPool
 import com.github.panpf.sketch.loadImage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import me.jessyan.progressmanager.ProgressListener
-import me.jessyan.progressmanager.ProgressManager
-import me.jessyan.progressmanager.body.ProgressInfo
-import java.io.File
-
-class ImageFileViewModel : ViewModel() {
-    val fileLiveData = MutableLiveData<File>()
-    var isHighQualityImageLoaded: Boolean = false
-    val progressLiveData = MutableLiveData<Int>()
-    val isFullscreenMode = MutableLiveData(false)
-
-    fun toggleFullscreen() {
-        val current = isFullscreenMode.value ?: false
-        isFullscreenMode.value = !current
-    }
-}
-
+import kotlinx.coroutines.launch
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var mIllustsBean: IllustsBean? = null
     private var index = 0
     private var url: String? = null
-
-    private val fileViewModel by viewModels<ImageFileViewModel>()
 
     public override fun initBundle(bundle: Bundle) {
         url = bundle.getString(Params.URL)
@@ -65,10 +40,6 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
             baseBind.root.keepScreenOn = true
         }
-
-        fileViewModel.fileLiveData.observe(viewLifecycleOwner) { file ->
-            baseBind.bigImage.loadImage(file)
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -78,7 +49,6 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     private fun loadImage() {
         baseBind.emptyFrame.visibility = View.GONE
-        baseBind.progressLayout.root.visibility = View.VISIBLE
         val imageUrl: String?
         if (mIllustsBean == null && !TextUtils.isEmpty(url)) {
             imageUrl = url
@@ -94,38 +64,17 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 }
             }
         }
-        ProgressManager.getInstance().addResponseListener(imageUrl, object : ProgressListener {
-            override fun onProgress(progressInfo: ProgressInfo) {
-                Common.showLog("dsaasdsawq2 ${progressInfo.percent.toFloat()}")
-                baseBind.progressLayout.donutProgress.progress = progressInfo.percent.toFloat()
-            }
 
-            override fun onError(id: Long, e: Exception) {
+        if (imageUrl?.isNotEmpty() == true) {
+            val activity = requireActivity()
+            val task = TaskPool.getLoadTask(NamedUrl("", imageUrl), requireActivity())
+            activity.lifecycleScope.launch {
+                task.execute()
             }
-        })
-
-        launchSuspend {
-            withContext(Dispatchers.IO) {
-                try {
-                    val file = GlideApp.with(mContext)
-                        .asFile()
-                        .load(GlideUrlChild(imageUrl))
-                        .submit()
-                        .get()
-                    withContext(Dispatchers.Main) {
-                        baseBind.progressLayout.root.visibility = View.GONE
-                        baseBind.emptyFrame.visibility = View.GONE
-                    }
-                    fileViewModel.isHighQualityImageLoaded = true
-                    fileViewModel.fileLiveData.postValue(file)
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        baseBind.progressLayout.root.visibility = View.GONE
-                        baseBind.emptyFrame.visibility = View.VISIBLE
-                    }
-                }
+            task.file.observe(viewLifecycleOwner) { file ->
+                baseBind.image.loadImage(file)
             }
+            baseBind.progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
         }
     }
 

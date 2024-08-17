@@ -1,11 +1,9 @@
 package ceui.pixiv.ui.works
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -169,16 +167,16 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
 
     private fun getGalleryHolders(illust: Illust, activity: FragmentActivity): List<GalleryHolder>? {
         return illust.meta_pages?.mapIndexed { index, metaPage ->
-            val loadTask = TaskPool.getLoadTask(
+            val task = TaskPool.getLoadTask(
                 NamedUrl(
                     buildPixivWorksFileName(illust.id, index),
                     metaPage.image_urls?.original ?: ""
                 ),
                 activity
             )
-            GalleryHolder(illust, index, loadTask) {
+            GalleryHolder(illust, index, task) {
                 activity.lifecycleScope.launch {
-                    loadTask.execute()
+                    task.execute()
                 }
             }
         }

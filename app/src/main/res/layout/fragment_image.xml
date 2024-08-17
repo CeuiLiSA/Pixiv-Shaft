@@ -18,7 +18,7 @@
             android:scaleType="fitCenter" />
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/progress_circular_small"
+            android:id="@+id/progress_circular"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
