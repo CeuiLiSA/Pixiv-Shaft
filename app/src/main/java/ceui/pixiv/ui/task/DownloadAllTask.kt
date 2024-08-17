@@ -56,25 +56,27 @@ open class LoadTask(val content: NamedUrl, private val activity: FragmentActivit
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
             return
         }
-        withContext(Dispatchers.IO) {
-            try {
-                _status.postValue(TaskStatus.Executing(0))
-                ProgressManager.getInstance().addResponseListener(content.url, object : ProgressListener {
-                    override fun onProgress(progressInfo: ProgressInfo) {
-                        Common.showLog("dsaasdasw2 ${progressInfo.percent}")
-                        if (progressInfo.isFinish || progressInfo.percent == 100) {
-                            _status.postValue(TaskStatus.Finished)
-                        } else {
-                            _status.postValue(TaskStatus.Executing(progressInfo.percent))
+        try {
+            _status.value = TaskStatus.Executing(0)
+            ProgressManager.getInstance().addResponseListener(content.url, object : ProgressListener {
+                override fun onProgress(progressInfo: ProgressInfo) {
+                    Common.showLog("dsaasdasw2 ${progressInfo.percent}")
+                    if (progressInfo.isFinish || progressInfo.percent == 100) {
+                        _status.value = TaskStatus.Finished
+                    } else {
+                        if (_status.value != TaskStatus.Finished) {
+                            _status.value = TaskStatus.Executing(progressInfo.percent)
                         }
                     }
+                }
 
-                    override fun onError(id: Long, e: Exception) {
-                        _status.postValue(TaskStatus.Error(e))
-                    }
-                })
+                override fun onError(id: Long, e: Exception) {
+                    _status.value = TaskStatus.Error(e)
+                }
+            })
 
-                val file = Glide.with(activity)
+            val file = withContext(Dispatchers.IO) {
+                Glide.with(activity)
                     .asFile()
                     .load(GlideUrlChild(content.url))
                     .listener(object : RequestListener<File> {
@@ -103,15 +105,15 @@ open class LoadTask(val content: NamedUrl, private val activity: FragmentActivit
                     })
                     .submit()
                     .get()
-                _file.postValue(file)
-                onFilePrepared(file)
-                _status.postValue(TaskStatus.Finished)
-            } catch (ex: Exception) {
-                _status.postValue(TaskStatus.Error(ex))
-                ex.printStackTrace()
-            } finally {
-                optionalDelay()
             }
+            _file.value = file
+            onFilePrepared(file)
+            _status.value = TaskStatus.Finished
+        } catch (ex: Exception) {
+            _status.value = TaskStatus.Error(ex)
+            ex.printStackTrace()
+        } finally {
+            optionalDelay()
         }
     }
 

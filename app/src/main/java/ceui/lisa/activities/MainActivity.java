@@ -225,7 +225,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             if (!SessionManager.INSTANCE.isLoggedIn()) {
                 SessionManager.INSTANCE.updateSession(sUserModel);
             }
-            if (Dev.isDev) {
+            if (Dev.isDev && false) {
                 startActivity(new Intent(this, HomeActivity.class));
             } else {
                 if (Common.isAndroidQ()) {
