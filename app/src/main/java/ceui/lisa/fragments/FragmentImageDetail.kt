@@ -13,9 +13,12 @@ import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
+import ceui.pixiv.ui.common.setUpFullScreen
 import ceui.pixiv.ui.common.setUpWithTaskStatus
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
+import ceui.pixiv.ui.works.ToggleToolnarViewModel
+import ceui.refactor.setOnClick
 import com.github.panpf.sketch.loadImage
 import kotlinx.coroutines.launch
 
@@ -23,6 +26,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var mIllustsBean: IllustsBean? = null
     private var index = 0
     private var url: String? = null
+    private val viewModel by viewModels<ToggleToolnarViewModel>(ownerProducer = { requireActivity() })
 
     public override fun initBundle(bundle: Bundle) {
         url = bundle.getString(Params.URL)
@@ -40,6 +44,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
             baseBind.root.keepScreenOn = true
         }
+        baseBind.image.setOnClick {
+            viewModel.toggleFullscreen()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -49,20 +56,10 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     private fun loadImage() {
         baseBind.emptyFrame.visibility = View.GONE
-        val imageUrl: String?
-        if (mIllustsBean == null && !TextUtils.isEmpty(url)) {
-            imageUrl = url
+        val imageUrl: String? = if (mIllustsBean == null && !TextUtils.isEmpty(url)) {
+            url
         } else {
-            val originUrl = IllustDownload.getUrl(mIllustsBean, index)
-            imageUrl = if (Shaft.getMMKV().decodeBool(originUrl)) {
-                originUrl
-            } else {
-                if (!TextUtils.isEmpty(url)) {
-                    url
-                } else {
-                    IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL)
-                }
-            }
+            IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL)
         }
 
         if (imageUrl?.isNotEmpty() == true) {

@@ -60,6 +60,7 @@
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress_circular"
             android:layout_width="wrap_content"
+            android:visibility="gone"
             android:layout_centerInParent="true"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

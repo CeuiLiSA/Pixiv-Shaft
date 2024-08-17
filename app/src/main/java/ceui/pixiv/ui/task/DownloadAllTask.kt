@@ -2,6 +2,7 @@ package ceui.pixiv.ui.task
 
 import android.content.Context
 import android.graphics.ColorSpace.Named
+import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -78,7 +79,9 @@ open class LoadTask(val content: NamedUrl, private val activity: FragmentActivit
             val file = withContext(Dispatchers.IO) {
                 Glide.with(activity)
                     .asFile()
-                    .load(GlideUrlChild(content.url))
+                    .load(content.url.takeIf {
+                        it.startsWith("http")
+                    }?.let { GlideUrlChild(it) } ?: Uri.parse(content.url))
                     .listener(object : RequestListener<File> {
                         override fun onLoadFailed(
                             e: GlideException?,
