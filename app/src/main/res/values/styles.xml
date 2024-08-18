@@ -336,6 +336,38 @@
         <item name="windowSplashScreenAnimationDuration">200</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
+
+
+    <declare-styleable name="InsetLayout_Layout">
+        <attr name="layout_inset_margin_adjust_target" format="reference"/>
+        <attr name="layout_inset_padding_adjust_target" format="reference"/>
+        <attr name="layout_inset_padding_top_adjust_target" format="reference"/>
+        <attr name="layout_inset_padding_bottom_adjust_target" format="reference"/>
+        <attr name="layout_inset_ignores_keyboard" format="boolean"/>
+        <attr name="layout_inset_bar_type" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="top" value="1"/>
+            <enum name="bottom" value="2"/>
+        </attr>
+        <attr name="layout_inset_adjust_margin">
+            <flag name="top" value="0x01" />
+            <flag name="bottom" value="0x02" />
+            <flag name="left" value="0x04" />
+            <flag name="right" value="0x08" />
+        </attr>
+        <attr name="layout_inset_adjust_padding">
+            <flag name="top" value="0x01" />
+            <flag name="bottom" value="0x02" />
+            <flag name="left" value="0x04" />
+            <flag name="right" value="0x08" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="SlidingCursorView">
+        <attr name="scv_cursor_height" format="dimension" />
+        <attr name="scv_cursor_width" format="dimension" />
+        <attr name="scv_cursor_color" format="color" />
+    </declare-styleable>
 </resources>
 
 

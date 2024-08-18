@@ -6,6 +6,10 @@
         <variable
             name="account"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.AccountResponse>" />
+        <import type="ceui.pixiv.ui.home.HomeViewPagerViewModel"/>
+        <variable
+            name="viewModel"
+            type="HomeViewPagerViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -63,5 +67,89 @@
             android:layout_height="0dp">
 
         </androidx.viewpager2.widget.ViewPager2>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_gravity="bottom"
+            android:layout_height="wrap_content">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/bottom_tab"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:src="@drawable/bg_home_bottom_tab"
+                    android:layout_marginBottom="-30dp"
+                    android:scaleType="centerCrop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <ImageView
+                    android:id="@+id/icon_discover_tab"
+                    app:layout_constraintStart_toStartOf="parent"
+                    isSelected="@{viewModel.selectedTabIndex == 0}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginStart="10dp"
+                    app:layout_constraintEnd_toStartOf="@+id/icon_circles_tab"
+                    android:src="@drawable/icon_bottom_tab_discover"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <ImageView
+                    android:id="@+id/icon_circles_tab"
+                    isSelected="@{viewModel.selectedTabIndex == 1}"
+                    app:layout_constraintStart_toEndOf="@+id/icon_discover_tab"
+                    android:layout_marginBottom="10dp"
+                    app:layout_constraintEnd_toStartOf="@+id/home_compose"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:src="@drawable/icon_bottom_tab_circle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <ImageView
+                    android:id="@+id/home_compose"
+                    android:layout_width="wrap_content"
+                    app:layout_constraintStart_toEndOf="@+id/icon_circles_tab"
+                    android:src="@drawable/icon_home_bottom_add"
+                    app:layout_constraintEnd_toStartOf="@+id/icon_chats_tab"
+                    android:layout_marginBottom="5dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_height="wrap_content"/>
+
+                <ImageView
+                    android:id="@+id/icon_chats_tab"
+                    app:layout_constraintStart_toEndOf="@+id/home_compose"
+                    app:layout_constraintEnd_toStartOf="@+id/icon_friends_tab"
+                    isSelected="@{viewModel.selectedTabIndex == 2}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginBottom="10dp"
+                    android:src="@drawable/icon_bottom_tab_chats"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <ImageView
+                    android:id="@+id/icon_friends_tab"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/icon_chats_tab"
+                    android:layout_marginEnd="10dp"
+                    isSelected="@{viewModel.selectedTabIndex == 3}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:src="@drawable/icon_bottom_tab_friends"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:id="@+id/bottom_inset"
+                android:background="#180F2D"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"/>
+        </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

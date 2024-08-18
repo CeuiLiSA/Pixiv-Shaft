@@ -7,7 +7,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.loxia.ObjectType
@@ -23,6 +25,7 @@ import ceui.refactor.viewBinding
 
 class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), ViewPagerFragment {
     private val binding by viewBinding(FragmentHomeViewpagerBinding::bind)
+    private val viewModel by viewModels<HomeViewPagerViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -31,6 +34,9 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.toolbarLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 topMargin = insets.top
+            }
+            binding.bottomInset.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                height = insets.bottom
             }
             windowInsets
         }
@@ -43,10 +49,29 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
         }
 
         binding.account = SessionManager.loggedInAccount
-
+        binding.viewModel = viewModel
+        binding.iconDiscoverTab.setOnClick {
+            binding.homeViewPager.setCurrentItem(0, false)
+        }
+        binding.iconCirclesTab.setOnClick {
+            binding.homeViewPager.setCurrentItem(1, false)
+        }
+        binding.iconChatsTab.setOnClick {
+            binding.homeViewPager.setCurrentItem(2, false)
+        }
+        binding.iconFriendsTab.setOnClick {
+            binding.homeViewPager.setCurrentItem(3, false)
+        }
+        binding.homeViewPager.isUserInputEnabled = false
+        binding.homeViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                viewModel.selectedTabIndex.value = position
+            }
+        })
         binding.homeViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
-                return 3
+                return 4
             }
 
             override fun createFragment(position: Int): Fragment {
@@ -55,6 +80,10 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 } else if (position == 1) {
                     return TrendingTagsFragment().apply {
                         arguments = TrendingTagsFragmentArgs(ObjectType.ILLUST).toBundle()
+                    }
+                } else if (position == 2) {
+                    return TrendingTagsFragment().apply {
+                        arguments = TrendingTagsFragmentArgs(ObjectType.NOVEL).toBundle()
                     }
                 } else {
                     return RecommendUsersFragment()

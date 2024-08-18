@@ -84,7 +84,7 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
         binding.toolbarLayout.isVisible = false
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            content.updatePadding(0, 0, 0, insets.bottom)
+            content.updatePadding(0, 0, 0, insets.bottom + 80.ppppx)
             WindowInsetsCompat.CONSUMED
         }
     } else {

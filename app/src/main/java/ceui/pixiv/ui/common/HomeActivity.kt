@@ -1,11 +1,11 @@
 package ceui.pixiv.ui.common
 
+import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.pixiv.session.SessionManager

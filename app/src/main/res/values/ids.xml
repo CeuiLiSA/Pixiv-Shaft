@@ -19,4 +19,45 @@
     <item type="id" name="novel_markers" />
     <item type="id" name="follow_user" />
     <item type="id" name="new_work" />
+
+    <item type="id" name="initial_insets" />
+    <item type="id" name="action_bar_item" />
+
+    <item type="id" name="nav_graph_unique_fragment" />
+
+    <item type="id" name="telemetry_widget_name" />
+    <item type="id" name="telemetry_widget_params" />
+
+    <item type="id" name="list_view" />
+
+
+    <item type="id" name="child_bindings_mgr" />
+
+    <item type="id" name="list_item_view_observer" />
+    <item type="id" name="item_divider_rect" />
+
+    <item type="id" name="action_bar_back" />
+
+    <item type="id" name="action_bar_full" />
+
+    <item type="id" name="action_bar_end_item_0" />
+    <item type="id" name="action_bar_end_item_1" />
+    <item type="id" name="action_bar_end_item_2" />
+    <item type="id" name="action_bar_end_item_3" />
+    <item type="id" name="action_bar_end_item_other" />
+
+    <item type="id" name="action_bar_start_item_0" />
+    <item type="id" name="action_bar_start_item_1" />
+    <item type="id" name="action_bar_start_item_2" />
+    <item type="id" name="action_bar_start_item_3" />
+    <item type="id" name="action_bar_start_item_other" />
+
+    <item type="id" name="action_bar_middle_item_0" />
+    <item type="id" name="action_bar_middle_item_1" />
+    <item type="id" name="action_bar_middle_item_2" />
+    <item type="id" name="action_bar_middle_item_3" />
+    <item type="id" name="action_bar_middle_item_other" />
+
+
+    <item type="id" name="inflated_views_cache" />
 </resources>

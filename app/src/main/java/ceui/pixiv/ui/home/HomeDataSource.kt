@@ -16,6 +16,6 @@ class HomeDataSource(
         { Client.appApi.getHomeData(ObjectType.ILLUST) }
     )
 ) : DataSource<Illust, HomeIllustResponse>(
-    dataFetcher = { responseStore.retrieveData() },
+    dataFetcher = { responseStore.retrieveData().copy(next_url = null) },
     itemMapper = { illust -> listOf(IllustCardHolder(illust)) },
 )

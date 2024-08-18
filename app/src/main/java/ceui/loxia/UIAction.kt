@@ -148,3 +148,11 @@ inline fun <reified F : Fragment> View.findFragmentOrNull(): F? {
         null
     }
 }
+
+inline fun <reified T : Fragment> Fragment.findAncestorOrSelf(): T? {
+    if (this is T) {
+        return this
+    } else {
+        return findAncestor()
+    }
+}
