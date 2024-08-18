@@ -4,14 +4,18 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.loxia.Event
+import ceui.loxia.Tag
 
 class SearchViewModel(initialKeyword: String) : ViewModel() {
 
-    val keywords = MutableLiveData<String>()
+
+    val tagList = MutableLiveData<List<Tag>>()
+
+    val inputDraft = MutableLiveData("")
 
     init {
         if (initialKeyword.isNotEmpty()) {
-            keywords.value = initialKeyword
+            tagList.value = listOf(Tag(initialKeyword))
         }
     }
 

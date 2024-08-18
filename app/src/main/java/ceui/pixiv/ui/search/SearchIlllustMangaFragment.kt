@@ -51,7 +51,9 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by pixivListViewModel {
         SearchIllustMangaDataSource {
-            SearchConfig(searchViewModel.keywords.value ?: "")
+            SearchConfig(
+                searchViewModel.tagList.value?.map { it.name }?.joinToString(separator = " ") ?: ""
+            )
         }
     }
 
@@ -59,7 +61,7 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         setUpStaggerLayout(binding, viewModel)
         searchViewModel.searchIllustMangaEvent.observeEvent(viewLifecycleOwner) {
-            viewModel.refresh(RefreshHint.PullToRefresh)
+            viewModel.refresh(RefreshHint.InitialLoad)
         }
     }
 }

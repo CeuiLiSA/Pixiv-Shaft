@@ -76,6 +76,11 @@ interface API {
         @Query("restrict") restrict: String,
     ): UserPreviewResponse
 
+    @GET("/v2/illust/follow")
+    suspend fun followUserPosts(
+        @Query("restrict") restrict: String,
+    ): IllustResponse
+
     @GET("/v1/user/recommended?filter=for_ios")
     suspend fun recommendedUsers(): UserPreviewResponse
 

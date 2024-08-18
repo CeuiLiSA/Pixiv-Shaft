@@ -42,7 +42,9 @@ class SearchUserFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val searchViewModel by viewModels<SearchViewModel>(ownerProducer = { requireParentFragment() })
     private val viewModel by pixivListViewModel {
-        SearchUserSource { searchViewModel.keywords.value ?: "" }
+        SearchUserSource {
+            searchViewModel.tagList.value?.map { it.name }?.joinToString(separator = " ") ?: ""
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,7 +57,7 @@ class SearchUserFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         )
         binding.listView.addItemDecoration(dividerDecoration)
         searchViewModel.searchUserEvent.observeEvent(viewLifecycleOwner) {
-            viewModel.refresh(RefreshHint.PullToRefresh)
+            viewModel.refresh(RefreshHint.InitialLoad)
         }
     }
 }

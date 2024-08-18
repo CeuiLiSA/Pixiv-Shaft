@@ -31,8 +31,8 @@
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/user_icon"
                 userIcon="@{holder.userPreview.user}"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:layout_width="@dimen/user_head_size_feeds"
+                android:layout_height="@dimen/user_head_size_feeds"
                 app:civ_border_color="@color/white"
                 app:civ_border_width="1dp"
                 app:layout_constraintBottom_toBottomOf="parent"

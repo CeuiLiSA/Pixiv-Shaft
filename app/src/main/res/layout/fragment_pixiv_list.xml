@@ -1,6 +1,5 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -12,15 +11,14 @@
     <com.scwang.smart.refresh.layout.SmartRefreshLayout
         android:id="@+id/refresh_layout"
         android:layout_width="match_parent"
-        android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
         app:layout_constraintBottom_toTopOf="@+id/bottom_layout"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
         android:layout_height="0dp">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list_view"
-            android:clipToPadding="false"
             android:layout_width="match_parent"
+            android:clipToPadding="false"
             android:layout_height="match_parent">
 
         </androidx.recyclerview.widget.RecyclerView>

@@ -694,4 +694,19 @@
     <string name="show_reply">查看回复</string>
     <string name="comments">评论</string>
     <string name="new_tag">New Tag</string>
+    <string name="date_minute_plurals_zero" targets="widget,app" synced="58038e" platforms="all">Just now</string>
+    <plurals name="date_hour" targets="widget,app" synced_one="f9ed7d" synced_other="56508e" platforms="all">
+        <item quantity="one">%d hour ago</item>
+        <item quantity="other">%d hours ago</item>
+    </plurals>
+    <plurals name="recent_visits_date_minute" targets="widget,app" synced_one="ff2e35" synced_other="9085a0" platforms="all">
+        <item quantity="one">%d minute ago</item>
+        <item quantity="other">%d minutes ago</item>
+    </plurals>
+    <plurals name="date_day" targets="widget,app" synced_one="ece421" synced_other="2ed691" platforms="all">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+    <string name="type_user">用户</string>
+    <string name="add_keyword">添加关键字</string>
 </resources>

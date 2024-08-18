@@ -12,14 +12,13 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
-import ceui.loxia.ObjectType
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.ui.trending.TrendingTagsFragment
-import ceui.pixiv.ui.trending.TrendingTagsFragmentArgs
-import ceui.pixiv.ui.user.recommend.RecommendUsersFragment
+import ceui.pixiv.ui.chats.MyChatsFragment
+import ceui.pixiv.ui.circles.MyCirclesFragment
+import ceui.pixiv.ui.user.following.FollowingPostFragment
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
@@ -78,18 +77,11 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 if (position == 0) {
                     return HomeFragment()
                 } else if (position == 1) {
-                    return TrendingTagsFragment().apply {
-                        arguments = TrendingTagsFragmentArgs(ObjectType.ILLUST).toBundle()
-                    }
+                    return MyCirclesFragment()
                 } else if (position == 2) {
-                    return TrendingTagsFragment().apply {
-                        arguments = TrendingTagsFragmentArgs(ObjectType.NOVEL).toBundle()
-                    }
+                    return MyChatsFragment()
                 } else {
-                    return RecommendUsersFragment()
-//                    return UserFollowingFragment().apply {
-//                        arguments = UserFollowingFragmentArgs(SessionManager.loggedInUid, "public").toBundle()
-//                    }
+                    return FollowingPostFragment()
                 }
             }
         }

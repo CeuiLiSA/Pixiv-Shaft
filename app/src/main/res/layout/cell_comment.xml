@@ -19,8 +19,8 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_icon"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/user_head_size_feeds"
+            android:layout_height="@dimen/user_head_size_feeds"
             userIcon="@{holder.comment.user}"
             android:scaleType="centerCrop"
             app:civ_border_width="1dp"

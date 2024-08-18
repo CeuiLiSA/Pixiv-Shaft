@@ -88,6 +88,11 @@ data class Illust(
     val width: Int = 0,
     val x_restrict: Int? = null,
 ) : Serializable, ModelObject {
+
+    fun isAuthurExist(): Boolean {
+        return user?.exist() == true
+    }
+
     override val objectUniqueId: Long
         get() = id
     override val objectType: Int
@@ -179,6 +184,10 @@ data class User(
 
     fun hasGender(): Boolean {
         return gender != UserGender.UNKNOWN
+    }
+
+    fun exist(): Boolean {
+        return name?.isNotEmpty() == true || account?.isNotEmpty() == true
     }
 }
 

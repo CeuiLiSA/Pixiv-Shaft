@@ -3,6 +3,7 @@ package ceui.pixiv.ui.search
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -13,9 +14,21 @@ import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentSearchViewpagerBinding
+import ceui.loxia.ObjectType
+import ceui.loxia.Tag
+import ceui.loxia.combineLatest
+import ceui.loxia.debounce
+import ceui.loxia.hideKeyboard
+import ceui.loxia.toDiff
+import ceui.pixiv.ui.circles.PagedFragmentItem
+import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
+import ceui.pixiv.ui.trending.TrendingTagsFragment
+import ceui.pixiv.ui.trending.TrendingTagsFragmentArgs
+import ceui.pixiv.ui.user.recommend.RecommendUsersFragment
+import ceui.pixiv.widgets.setUpWith
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
@@ -37,30 +50,66 @@ class SearchViewPagerFragment : PixivFragment(R.layout.fragment_search_viewpager
             binding.searchLayout.updatePaddingRelative(top = insets.top)
             windowInsets
         }
-
+        combineLatest(searchViewModel.tagList, searchViewModel.inputDraft).observe(viewLifecycleOwner) {
+            val tags = it?.first ?: listOf()
+            val inputing = it?.second ?: ""
+            binding.search.isEnabled = tags.isNotEmpty() == true || inputing.isNotEmpty() == true
+        }
         binding.search.setOnClick {
-            searchViewModel.triggerAllRefreshEvent()
+            commitEditingTag()
         }
-
-
-        binding.viewPager.adapter = object : FragmentStateAdapter(this) {
-            override fun getItemCount(): Int {
-                return 3
+        binding.tagEditer.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                commitEditingTag()
             }
-
-            override fun createFragment(position: Int): Fragment {
-                if (position == 0) {
-                    return SearchIlllustMangaFragment()
-                } else if (position == 1) {
-                    return SearchNovelFragment()
-                } else {
-                    return SearchUserFragment()
-                }
-            }
+            true
         }
+        binding.tagsFlowView.setOnCellClickListener { cell, index ->
+
+        }
+        val adapter = SmartFragmentPagerAdapter(
+            listOf(
+                PagedFragmentItem(
+                    builder = {
+                        SearchIlllustMangaFragment()
+                    },
+                    title = getString(R.string.string_136)
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        SearchNovelFragment()
+                    },
+                    title = getString(R.string.type_novel)
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        SearchUserFragment()
+                    },
+                    title = getString(R.string.type_user)
+                )
+            ),
+            this
+        )
+        binding.searchViewPager.adapter = adapter
+        binding.tabLayoutList.setUpWith(binding.searchViewPager, binding.slidingCursor, viewLifecycleOwner, {})
 
         if (args.landingIndex > 0) {
-            binding.viewPager.setCurrentItem(args.landingIndex, false)
+            binding.searchViewPager.setCurrentItem(args.landingIndex, false)
+        }
+    }
+
+    private fun commitEditingTag() {
+        val draft = searchViewModel.inputDraft.value ?: ""
+        if (draft.isNotEmpty()) {
+            (searchViewModel.tagList.value ?: listOf()).toMutableList().also {
+                it.add(Tag(draft))
+                searchViewModel.tagList.value = it
+                searchViewModel.inputDraft.value = ""
+                binding.tagEditer.clearFocus()
+                binding.root.requestFocus()
+                hideKeyboard()
+                searchViewModel.triggerAllRefreshEvent()
+            }
         }
     }
 }

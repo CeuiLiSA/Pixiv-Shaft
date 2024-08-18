@@ -59,5 +59,6 @@
     <item type="id" name="action_bar_middle_item_other" />
 
 
+    <item type="id" name="user_head_icon_tag" />
     <item type="id" name="inflated_views_cache" />
 </resources>

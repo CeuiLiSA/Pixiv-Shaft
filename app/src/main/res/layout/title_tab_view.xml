@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="ceui.pixiv.widgets.TitleTabHolder" />
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingHorizontal="4dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:orientation="horizontal"
+            app:tabFocusFactor="@{viewModel.focusFactor}">
+
+            <TextView
+                android:id="@+id/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:gravity="center"
+                android:paddingHorizontal="6dp"
+                android:singleLine="true"
+                android:text="@{viewModel.title}"
+                android:textAlignment="center"
+                android:textColor="@color/always_white"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="Following" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|top"
+                android:layout_marginTop="3dp"
+                android:layout_marginEnd="2dp"
+                android:src="@drawable/tab_item_red_dot"
+                app:visibleOrGone="@{viewModel.showsRedDot}" />
+        </LinearLayout>
+    </FrameLayout>
+</layout>

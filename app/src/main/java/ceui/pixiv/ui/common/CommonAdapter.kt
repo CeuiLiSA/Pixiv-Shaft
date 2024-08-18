@@ -73,7 +73,7 @@ open class ListItemHolder {
 
 
     open fun areItemsTheSame(other: ListItemHolder): Boolean {
-        return this == other
+        return this.getItemId() == other.getItemId()
     }
 
     open fun areContentsTheSame(other: ListItemHolder): Boolean {

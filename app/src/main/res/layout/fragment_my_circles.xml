@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.recyclerview.widget.RecyclerView
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/tab_layout_list"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/tab_layout_height"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    <ceui.pixiv.widgets.SlidingCursorView
+        android:id="@+id/sliding_cursor"
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toBottomOf="@+id/tab_layout_list"
+        android:layout_marginBottom="4dp"
+        android:layout_height="wrap_content"
+        app:scv_cursor_color="@color/always_white"
+        app:scv_cursor_height="@dimen/tab_layout_cursor_height"
+        app:scv_cursor_width="@dimen/tab_layout_cursor_width" />
+
+
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/circles_viewpager"
+        app:layout_constraintTop_toBottomOf="@+id/sliding_cursor"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
