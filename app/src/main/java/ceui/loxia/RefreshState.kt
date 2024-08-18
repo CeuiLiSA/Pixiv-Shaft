@@ -24,28 +24,12 @@ sealed class RefreshState: Serializable {
     data class ERROR(val exception: Exception, val isInitialLoad: Boolean = false) : RefreshState()
 }
 
-data class RefreshHint(
-    val cause: Cause
-) {
-    enum class Cause {
-        PULL_TO_REFRESH,
-        INITIAL_LOAD,
-        LOAD_MORE,
-    }
-
-    companion object {
-        fun pullToRefresh(): RefreshHint {
-            return RefreshHint(Cause.PULL_TO_REFRESH)
-        }
-
-        fun initialLoad(): RefreshHint {
-            return RefreshHint(Cause.INITIAL_LOAD)
-        }
-
-        fun loadMore(): RefreshHint {
-            return RefreshHint(Cause.LOAD_MORE)
-        }
-    }
+sealed class RefreshHint {
+    data object PullToRefresh : RefreshHint()
+    data object InitialLoad : RefreshHint()
+    data object LoadMore : RefreshHint()
+    data object ErrorRetry : RefreshHint()
+    // You can add additional methods if needed
 }
 
 inline fun <reified FragmentT : SlinkyListFragment> FragmentT.setUpSlinkyList(
@@ -63,13 +47,13 @@ inline fun <reified FragmentT : SlinkyListFragment> FragmentT.setUpSlinkyList(
         this,
         refreshLayout,
         viewModel.refreshState,
-        refreshBlock = { viewModel.refresh(RefreshHint.pullToRefresh(), this) },
-        retryBlock = { viewModel.refresh(RefreshHint.initialLoad(), this) },
+        refreshBlock = { viewModel.refresh(RefreshHint.PullToRefresh, this) },
+        retryBlock = { viewModel.refresh(RefreshHint.InitialLoad, this) },
         loadMoreBlock = { viewModel.loadMore(this) }
     )
     if (!viewModel.isInitialLoaded) {
         viewModel.isInitialLoaded = true
-        viewModel.refresh(RefreshHint.initialLoad(), this)
+        viewModel.refresh(RefreshHint.InitialLoad, this)
     }
 }
 
@@ -115,13 +99,13 @@ fun ItemLoadingBinding.setUpRefreshState(
                 }
             } else if (refreshState is RefreshState.LOADING) {
                 emptyFrame.isVisible = false
-                if (refreshState.refreshHint?.cause == RefreshHint.Cause.PULL_TO_REFRESH) {
+                if (refreshState.refreshHint == RefreshHint.PullToRefresh) {
                     loadingFrame.isVisible = false
                     progressCircular.showProgress(false)
                     if (!refreshLayout.isRefreshing) {
                         refreshLayout.autoRefreshAnimationOnly()
                     }
-                } else if (refreshState.refreshHint?.cause == RefreshHint.Cause.INITIAL_LOAD) {
+                } else if (refreshState.refreshHint == RefreshHint.InitialLoad) {
                     loadingFrame.isVisible = true
                     progressCircular.showProgress(true)
                 }

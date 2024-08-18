@@ -59,7 +59,7 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         setUpStaggerLayout(binding, viewModel)
         searchViewModel.searchIllustMangaEvent.observeEvent(viewLifecycleOwner) {
-            viewModel.refresh(RefreshHint.pullToRefresh())
+            viewModel.refresh(RefreshHint.PullToRefresh)
         }
     }
 }

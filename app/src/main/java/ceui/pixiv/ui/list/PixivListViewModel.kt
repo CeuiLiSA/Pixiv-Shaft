@@ -38,7 +38,7 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
 
     init {
         if (_dataSource.initialLoad()) {
-            refresh(RefreshHint.initialLoad())
+            refresh(RefreshHint.InitialLoad)
         }
     }
 

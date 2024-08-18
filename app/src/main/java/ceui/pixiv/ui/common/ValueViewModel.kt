@@ -35,7 +35,7 @@ class ValueViewModel<T>(
     val result: LiveData<T> = _result
 
     init {
-        refresh(RefreshHint.initialLoad())
+        refresh(RefreshHint.InitialLoad)
     }
 
     fun refresh(hint: RefreshHint) {

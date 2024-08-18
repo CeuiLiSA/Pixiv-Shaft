@@ -7,6 +7,7 @@ import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import com.google.gson.Gson
+import kotlinx.coroutines.delay
 
 open class DataSource<Item, T: KListShow<Item>>(
     private val dataFetcher: suspend () -> T,
@@ -28,6 +29,9 @@ open class DataSource<Item, T: KListShow<Item>>(
     open suspend fun refreshData(hint: RefreshHint) {
         _refreshState.value = RefreshState.LOADING(refreshHint = hint)
         try {
+            if (hint == RefreshHint.ErrorRetry) {
+                delay(300L)
+            }
             val response = dataFetcher()
             responseClass = response::class.java as Class<T>
             _nextPageUrl = response.nextPageUrl
@@ -50,7 +54,7 @@ open class DataSource<Item, T: KListShow<Item>>(
 
     open suspend fun loadMoreData() {
         val nextPageUrl = _nextPageUrl ?: return
-        _refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.loadMore())
+        _refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.LoadMore)
         try {
             val responseBody = Client.appApi.generalGet(nextPageUrl)
             val responseJson = responseBody.string()

@@ -55,7 +55,7 @@ class SearchUserFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         )
         binding.listView.addItemDecoration(dividerDecoration)
         searchViewModel.searchUserEvent.observeEvent(viewLifecycleOwner) {
-            viewModel.refresh(RefreshHint.pullToRefresh())
+            viewModel.refresh(RefreshHint.PullToRefresh)
         }
     }
 }

@@ -34,6 +34,7 @@ import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.TagsActionReceiver
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
+import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
@@ -112,7 +113,7 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Pix
     setUpToolbar(binding.toolbarLayout, binding.refreshLayout)
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {
-        viewModel.refresh(RefreshHint.pullToRefresh())
+        viewModel.refresh(RefreshHint.PullToRefresh)
     }
     viewModel.refreshState.observe(viewLifecycleOwner) { state ->
         if (state !is RefreshState.LOADING) {
@@ -121,18 +122,26 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Pix
         }
         binding.emptyLayout.isVisible = state is RefreshState.LOADED && !state.hasContent
         if (state is RefreshState.LOADED) {
+            binding.refreshLayout.setEnableLoadMore(true)
             if (state.hasNext) {
+                binding.refreshLayout.setRefreshFooter(ClassicsFooter(ctx))
                 binding.refreshLayout.setOnLoadMoreListener {
                     viewModel.loadMore()
                 }
             } else {
                 binding.refreshLayout.setRefreshFooter(FalsifyFooter(ctx))
             }
+        } else {
+            binding.refreshLayout.setEnableLoadMore(false)
         }
-        binding.loadingLayout.isVisible = state is RefreshState.LOADING && state.refreshHint == RefreshHint.initialLoad()
+        binding.loadingLayout.isVisible =
+            state is RefreshState.LOADING && (
+                state.refreshHint == RefreshHint.InitialLoad ||
+                state.refreshHint == RefreshHint.ErrorRetry
+            )
         binding.errorLayout.isVisible = state is RefreshState.ERROR
         binding.errorRetryButton.setOnClick {
-            viewModel.refresh(RefreshHint.initialLoad())
+            viewModel.refresh(RefreshHint.ErrorRetry)
         }
         if (state is RefreshState.ERROR) {
             binding.errorText.text = state.exception.getHumanReadableMessage(ctx)

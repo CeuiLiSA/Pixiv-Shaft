@@ -32,7 +32,7 @@ abstract class Repository<FragmentT: NavFragment> {
 
     suspend fun loadMoreInvoker(frag: FragmentT) {
         try {
-            refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.loadMore())
+            refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.LoadMore)
             loadMore(frag)
         } catch (ex: Exception) {
             ex.printStackTrace()
