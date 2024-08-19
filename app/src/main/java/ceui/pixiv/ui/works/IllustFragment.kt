@@ -172,7 +172,8 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
                     buildPixivWorksFileName(illust.id, index),
                     metaPage.image_urls?.original ?: ""
                 ),
-                activity
+                activity,
+                false
             )
             GalleryHolder(illust, index, task) {
                 activity.lifecycleScope.launch {

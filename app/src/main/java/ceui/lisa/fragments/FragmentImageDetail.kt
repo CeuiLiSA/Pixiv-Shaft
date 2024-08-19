@@ -63,11 +63,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
 
         if (imageUrl?.isNotEmpty() == true) {
-            val activity = requireActivity()
             val task = TaskPool.getLoadTask(NamedUrl("", imageUrl), requireActivity())
-            activity.lifecycleScope.launch {
-                task.execute()
-            }
             task.file.observe(viewLifecycleOwner) { file ->
                 baseBind.image.loadImage(file)
             }
