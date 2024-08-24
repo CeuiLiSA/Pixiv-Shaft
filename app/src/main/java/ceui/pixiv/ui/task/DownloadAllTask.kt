@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
@@ -46,12 +47,20 @@ class DownloadAllTask(
     }
 }
 
-open class LoadTask(val content: NamedUrl, private val activity: FragmentActivity) {
+open class LoadTask(val content: NamedUrl, private val activity: FragmentActivity, autoStart: Boolean = true) {
     private val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
 
     private val _file = MutableLiveData<File>()
     val file: LiveData<File> = _file
+
+    init {
+        if (autoStart) {
+            activity.lifecycleScope.launch {
+                execute()
+            }
+        }
+    }
 
     suspend fun execute() {
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {

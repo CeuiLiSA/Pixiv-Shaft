@@ -63,9 +63,6 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         }
         val activity = requireActivity()
         val task = TaskPool.getLoadTask(NamedUrl(displayName(), contentUrl()), activity)
-        activity.lifecycleScope.launch {
-            task.execute()
-        }
         task.file.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {

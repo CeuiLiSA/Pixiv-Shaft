@@ -18,9 +18,9 @@ object TaskPool {
             }
         }
 
-    fun getLoadTask(namedUrl: NamedUrl, activity: FragmentActivity): LoadTask {
+    fun getLoadTask(namedUrl: NamedUrl, activity: FragmentActivity, autoStart: Boolean = true): LoadTask {
         return _taskMap.getOrPut(namedUrl.url) {
-            LoadTask(namedUrl, activity)
+            LoadTask(namedUrl, activity, autoStart)
         }
     }
 }
