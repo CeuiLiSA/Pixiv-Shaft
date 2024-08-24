@@ -9,6 +9,7 @@ import ceui.lisa.models.UserModel
 import ceui.lisa.utils.Local
 import ceui.loxia.AccountResponse
 import ceui.loxia.Client
+import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
@@ -45,7 +46,11 @@ object SessionManager {
         val json = prefStore.getString(LoggedInUserJsonKey, "")
         if (json?.isNotEmpty() == true) {
             try {
-                _loggedInAccount.value = gson.fromJson(json, AccountResponse::class.java)
+                val accountResponse = gson.fromJson(json, AccountResponse::class.java)
+                _loggedInAccount.value = accountResponse
+                accountResponse.user?.let {
+                    ObjectPool.update(it)
+                }
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }

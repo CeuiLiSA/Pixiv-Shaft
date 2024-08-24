@@ -97,15 +97,15 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
         }
     } else {
         binding.toolbarLayout.isVisible = true
-        binding.toolbarLayout.background = ColorDrawable(
-            Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
-        )
-        binding.naviBack.setOnClick {
-            try {
+        if (activity is HomeActivity) {
+            binding.naviBack.setOnClick {
                 findNavController().popBackStack()
-            } catch (ex: Exception) {
-                requireActivity().finish()
             }
+        } else {
+            binding.toolbarLayout.background = ColorDrawable(
+                Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+            )
+            requireActivity().finish()
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())

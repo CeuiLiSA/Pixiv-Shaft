@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import ceui.lisa.R
+import ceui.lisa.utils.Common
 import ceui.pixiv.utils.ShapedDrawables
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -93,6 +94,8 @@ class SlidingCursorView(context: Context, attrs: AttributeSet?, defStyle: Int): 
         val cellWidth = leftAndWidth.second
 
         val cursorCenter = cellLeft + (_focusIndex - (position - 0.5F)) * cellWidth
+
+        Common.showLog("sadsdas2 cellWidth: ${cellWidth}, cursorCenter: ${cursorCenter}")
 
         cursor.bounds = Rect((cursorCenter - _cursorWidth / 2F).roundToInt(), height - cursorHeight.roundToInt(), (cursorCenter + _cursorWidth / 2F).roundToInt(), height)
 

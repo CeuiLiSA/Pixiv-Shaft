@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.user.following
 
+import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
@@ -14,11 +15,12 @@ import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.user.UserPreviewHolder
 
 class FollowingPostsDataSource(
+    private val args: FollowingPostFragmentArgs,
     private val responseStore: ResponseStore<IllustResponse> = ResponseStore(
-        { "following-user-illusts-api" },
+        { "following-user-${args.objectType}-api-${args.restrictType}" },
         1800 * 1000L,
         IllustResponse::class.java,
-        { Client.appApi.followUserPosts("all") }
+        { Client.appApi.followUserPosts(args.objectType, args.restrictType ?: Params.TYPE_ALL) }
     )
 ) : DataSource<Illust, IllustResponse>(
     dataFetcher = { responseStore.retrieveData() },

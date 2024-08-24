@@ -15,13 +15,28 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
         android:layout_height="0dp">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/list_view"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:clipToPadding="false"
             android:layout_height="match_parent">
 
-        </androidx.recyclerview.widget.RecyclerView>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/list_view"
+                android:layout_width="match_parent"
+                android:clipToPadding="false"
+                android:layout_height="match_parent"/>
+
+            <ImageView
+                android:id="@+id/list_setting"
+                android:scaleType="centerInside"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginEnd="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:src="@drawable/icon_list_settings"
+                android:layout_width="44dp"
+                android:layout_height="44dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 

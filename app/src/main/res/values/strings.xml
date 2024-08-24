@@ -709,4 +709,6 @@
     </plurals>
     <string name="type_user">用户</string>
     <string name="add_keyword">添加关键字</string>
+    <string name="my_bookmarked_illusts">收藏的插画漫画</string>
+    <string name="my_bookmarked_novels">收藏的小说</string>
 </resources>

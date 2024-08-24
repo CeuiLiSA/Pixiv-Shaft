@@ -92,6 +92,27 @@
         <argument
             android:name="user_id"
             app:argType="long" />
+
+        <argument
+            android:name="restrict_type"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_following_post"
+        android:name="ceui.pixiv.ui.user.following.FollowingPostFragment" >
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
+
+        <argument
+            android:name="restrict_type"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
     </fragment>
 
     <fragment
@@ -165,6 +186,16 @@
 
         <argument
             android:name="index"
+            app:argType="integer"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_common_viewpager"
+        android:name="ceui.pixiv.ui.common.CommonViewPagerFragment" >
+
+        <argument
+            android:name="content_type"
             app:argType="integer"/>
     </fragment>
 </navigation>

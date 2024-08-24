@@ -18,7 +18,7 @@ import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
 import ceui.pixiv.ui.circles.MyCirclesFragment
-import ceui.pixiv.ui.user.following.FollowingPostFragment
+import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
@@ -81,7 +81,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 } else if (position == 2) {
                     return MyChatsFragment()
                 } else {
-                    return FollowingPostFragment()
+                    return FollowingViewPagerFragment()
                 }
             }
         }

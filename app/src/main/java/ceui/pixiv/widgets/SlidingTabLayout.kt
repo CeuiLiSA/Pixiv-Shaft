@@ -13,6 +13,8 @@ import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -74,16 +76,14 @@ fun RecyclerView.setUpWith(viewPager: ViewPager2, slidingCursorView: SlidingCurs
     slidingCursorView.getLeftAndWidthForPosition = { pos ->
         val itemView = findViewHolderForAdapterPosition(pos)?.itemView
         if (itemView == null) {
-            Common.showLog("sadsad2 aaa leftAndWidthBlock")
             Pair(0, 0)
         } else {
-            val ret = Pair(itemView.left, itemView.width)
-            Common.showLog("sadsad2 bbb leftAndWidthBlock ${ret}")
-            ret
+            Pair(itemView.left, itemView.width)
         }
     }
 
     slidingCursorView.focusIndex = viewPager.currentItem.toFloat()
+    post { slidingCursorView.invalidate() }
 
     viewPager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
         override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {

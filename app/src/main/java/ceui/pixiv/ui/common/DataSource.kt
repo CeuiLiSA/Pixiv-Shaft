@@ -14,6 +14,13 @@ open class DataSource<Item, T: KListShow<Item>>(
     private val itemMapper: (Item) -> List<ListItemHolder>,
     private val filter: (Item) -> Boolean = { _ -> true }
 ) {
+    private var _variableItemMapper: ((Item) -> List<ListItemHolder>)? = null
+
+    init {
+        _variableItemMapper = itemMapper
+    }
+
+    private val currentProtoItems = mutableListOf<Item>()
 
     private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
     val itemHolders: LiveData<List<ListItemHolder>> = _itemHolders
@@ -33,17 +40,13 @@ open class DataSource<Item, T: KListShow<Item>>(
                 delay(300L)
             }
             val response = dataFetcher()
+            currentProtoItems.clear()
             responseClass = response::class.java as Class<T>
             _nextPageUrl = response.nextPageUrl
-            val holders = response
-                .displayList
-                .filter { item ->
-                    filter(item)
-                }
-                .flatMap(itemMapper)
-            _itemHolders.value = holders
+            currentProtoItems.addAll(response.displayList)
+            mapProtoItemsToHolder()
             _refreshState.value = RefreshState.LOADED(
-                hasContent = holders.isNotEmpty(),
+                hasContent = _itemHolders.value?.isNotEmpty() == true,
                 hasNext = _nextPageUrl?.isNotEmpty() == true
             )
         } catch (ex: Exception) {
@@ -60,16 +63,10 @@ open class DataSource<Item, T: KListShow<Item>>(
             val responseJson = responseBody.string()
             val response = gson.fromJson(responseJson, responseClass)
             _nextPageUrl = response.nextPageUrl
-            val newHolders = response
-                .displayList
-                .filter { item ->
-                    filter(item)
-                }
-                .flatMap(itemMapper)
-            if (newHolders.isNotEmpty()) {
-                val existingHolders = (_itemHolders.value ?: listOf()).toMutableList()
-                existingHolders.addAll(newHolders)
-                _itemHolders.value = existingHolders
+
+            if (response.displayList.isNotEmpty()) {
+                currentProtoItems.addAll(response.displayList)
+                mapProtoItemsToHolder()
             }
             _refreshState.value = RefreshState.LOADED(
                 hasContent = _itemHolders.value?.isNotEmpty() == true,
@@ -79,6 +76,21 @@ open class DataSource<Item, T: KListShow<Item>>(
             _refreshState.value = RefreshState.ERROR(ex)
             ex.printStackTrace()
         }
+    }
+
+    fun mapProtoItemsToHolder() {
+        val mapper = _variableItemMapper ?: return
+        val holders = currentProtoItems
+            .filter { item ->
+                filter(item)
+            }
+            .flatMap(mapper)
+        _itemHolders.value = holders
+    }
+
+    fun updateMapper(mapper: (Item) -> List<ListItemHolder>) {
+        this._variableItemMapper = mapper
+        mapProtoItemsToHolder()
     }
 
     protected fun pickItemHolders(): MutableLiveData<List<ListItemHolder>> {

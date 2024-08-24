@@ -6,6 +6,7 @@ import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
@@ -23,7 +24,7 @@ class UserBookmarkedIllustsFragment: PixivFragment(R.layout.fragment_pixiv_list)
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by pixivListViewModel {
         DataSource(
-            dataFetcher = { Client.appApi.getUserBookmarkedIllusts(args.userId) },
+            dataFetcher = { Client.appApi.getUserBookmarkedIllusts(args.userId, args.restrictType ?: Params.TYPE_PUBLIC) },
             itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )
     }
@@ -33,7 +34,7 @@ class UserBookmarkedIllustsFragment: PixivFragment(R.layout.fragment_pixiv_list)
         super.onViewCreated(view, savedInstanceState)
         binding.toolbarLayout.naviMore.setOnClick {
             object : FetchAllTask<Illust, IllustResponse>(initialLoader = {
-                Client.appApi.getUserBookmarkedIllusts(args.userId)
+                Client.appApi.getUserBookmarkedIllusts(args.userId, args.restrictType ?: Params.TYPE_PUBLIC)
             }) {
                 override fun onEnd(results: List<Illust>) {
                     super.onEnd(results)

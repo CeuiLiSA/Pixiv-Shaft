@@ -59,9 +59,10 @@ interface API {
         @Query("type") type: String,
     ): IllustResponse
 
-    @GET("/v1/user/bookmarks/illust?filter=for_ios&restrict=public")
+    @GET("/v1/user/bookmarks/illust?filter=for_ios")
     suspend fun getUserBookmarkedIllusts(
         @Query("user_id") user_id: Long,
+        @Query("restrict") restrict: String,
     ): IllustResponse
 
 
@@ -76,8 +77,9 @@ interface API {
         @Query("restrict") restrict: String,
     ): UserPreviewResponse
 
-    @GET("/v2/illust/follow")
+    @GET("/v2/{type}/follow")
     suspend fun followUserPosts(
+        @Path("type") type: String,
         @Query("restrict") restrict: String,
     ): IllustResponse
 
