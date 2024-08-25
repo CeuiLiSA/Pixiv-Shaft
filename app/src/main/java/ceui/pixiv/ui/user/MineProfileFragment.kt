@@ -48,16 +48,11 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpToolbar(binding.toolbarLayout, binding.listView)
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         val ctx = requireContext()
         binding.listView.layoutManager = LinearLayoutManager(ctx)
-        binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
-        binding.refreshLayout.setOnRefreshListener {
-            viewModel.refresh(RefreshHint.PullToRefresh)
-        }
-        binding.refreshLayout.setRefreshFooter(FalsifyFooter(ctx))
+        setUpRefreshState(binding, viewModel)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(

@@ -32,7 +32,7 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val args by navArgs<CommentsFragmentArgs>()
     private val viewModel by pixivListViewModel { CommentsDataSource(args) }
-    private val dataSource: CommentsDataSource by lazy { viewModel.dataSource() }
+    private val dataSource: CommentsDataSource by lazy { viewModel.typedDataSource() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

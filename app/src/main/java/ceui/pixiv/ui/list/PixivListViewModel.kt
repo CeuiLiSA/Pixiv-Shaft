@@ -1,6 +1,5 @@
 package ceui.pixiv.ui.list
 
-import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
@@ -11,11 +10,15 @@ import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.common.DataSource
+import ceui.pixiv.ui.common.DataSourceContainer
+import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.ListItemHolder
+import ceui.pixiv.ui.common.LoadMoreOwner
+import ceui.pixiv.ui.common.RefreshOwner
 import kotlinx.coroutines.launch
 
 
-fun <Item, T: KListShow<Item>> Fragment.pixivListViewModel(
+fun <Item, T : KListShow<Item>> Fragment.pixivListViewModel(
     dataSourceProducer: () -> DataSource<Item, T>
 ): Lazy<PixivListViewModel<Item, T>> {
     return this.viewModels {
@@ -29,12 +32,12 @@ fun <Item, T: KListShow<Item>> Fragment.pixivListViewModel(
 }
 
 
-class PixivListViewModel<Item, T: KListShow<Item>>(
+class PixivListViewModel<Item, T : KListShow<Item>>(
     private val _dataSource: DataSource<Item, T>
-) : ViewModel() {
+) : ViewModel(), RefreshOwner, LoadMoreOwner, HoldersContainer, DataSourceContainer<Item, T> {
 
-    val refreshState: LiveData<RefreshState> = _dataSource.refreshState
-    val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHolders
+    override val refreshState: LiveData<RefreshState> = _dataSource.refreshState
+    override val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHolders
 
     init {
         if (_dataSource.initialLoad()) {
@@ -42,19 +45,23 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
         }
     }
 
-    fun refresh(hint: RefreshHint) {
+    override fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
             _dataSource.refreshData(hint)
         }
     }
 
-    fun loadMore() {
+    override fun loadMore() {
         viewModelScope.launch {
             _dataSource.loadMoreData()
         }
     }
 
-    fun <DataSourceT: DataSource<Item, T>> dataSource(): DataSourceT {
+    override fun dataSource(): DataSource<*, *> {
+        return _dataSource
+    }
+
+    override fun <DataSourceT : DataSource<Item, T>> typedDataSource(): DataSourceT {
         return _dataSource as DataSourceT
     }
 }

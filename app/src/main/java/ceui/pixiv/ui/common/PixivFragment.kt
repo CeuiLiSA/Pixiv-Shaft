@@ -10,24 +10,29 @@ import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
+import ceui.lisa.models.ModelObject
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
+import ceui.loxia.KListShow
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Tag
+import ceui.loxia.clearItemDecorations
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
+import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -116,7 +121,7 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
     }
 }
 
-fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
+fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner) {
     val ctx = requireContext()
     setUpToolbar(binding.toolbarLayout, binding.listView)
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
@@ -133,8 +138,12 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Pix
             binding.refreshLayout.setEnableLoadMore(true)
             if (state.hasNext) {
                 binding.refreshLayout.setRefreshFooter(ClassicsFooter(ctx))
-                binding.refreshLayout.setOnLoadMoreListener {
-                    viewModel.loadMore()
+                if (viewModel is LoadMoreOwner) {
+                    binding.refreshLayout.setOnLoadMoreListener {
+                        viewModel.loadMore()
+                    }
+                } else {
+                    binding.refreshLayout.setRefreshFooter(FalsifyFooter(ctx))
                 }
             } else {
                 binding.refreshLayout.setRefreshFooter(FalsifyFooter(ctx))
@@ -155,10 +164,35 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Pix
             binding.errorText.text = state.exception.getHumanReadableMessage(ctx)
         }
     }
-    val adapter = CommonAdapter(viewLifecycleOwner)
-    binding.listView.adapter = adapter
-    viewModel.holders.observe(viewLifecycleOwner) { holders ->
-        adapter.submitList(holders)
+    if (viewModel is HoldersContainer) {
+        val adapter = CommonAdapter(viewLifecycleOwner)
+        binding.listView.adapter = adapter
+        viewModel.holders.observe(viewLifecycleOwner) { holders ->
+            adapter.submitList(holders)
+        }
+
+        if (viewModel is DataSourceContainer<*, *>) {
+            var type = 0
+            val dataSource = viewModel.dataSource()
+            binding.listSetting.setOnClick {
+                binding.listView.layoutManager = null
+                binding.listView.clearItemDecorations()
+                if (type == 0) {
+                    type = 1
+                    adapter.submitList(listOf()) {
+                        binding.listView.layoutManager = LinearLayoutManager(requireContext())
+                        dataSource.updateMapper(mapper = { illust -> listOf(UserPostHolder(illust as Illust)) })
+                    }
+                } else if (type == 1) {
+                    type = 0
+                    adapter.submitList(listOf()) {
+                        binding.listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
+                        binding.listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+                        dataSource.updateMapper(mapper = { illust -> listOf(IllustCardHolder(illust as Illust)) })
+                    }
+                }
+            }
+        }
     }
 }
 

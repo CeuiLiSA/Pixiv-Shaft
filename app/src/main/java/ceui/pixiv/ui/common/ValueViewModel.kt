@@ -26,10 +26,10 @@ fun <T> Fragment.pixivValueViewModel(
 
 class ValueViewModel<T>(
     private val loader: suspend () -> T,
-) : ViewModel() {
+) : ViewModel(), RefreshOwner {
 
     private val _refreshState = MutableLiveData<RefreshState>()
-    val refreshState: LiveData<RefreshState> = _refreshState
+    override val refreshState: LiveData<RefreshState> = _refreshState
 
     private val _result = MutableLiveData<T>()
     val result: LiveData<T> = _result
@@ -38,7 +38,7 @@ class ValueViewModel<T>(
         refresh(RefreshHint.InitialLoad)
     }
 
-    fun refresh(hint: RefreshHint) {
+    override fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)

@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
 
 open class DataSource<Item, T: KListShow<Item>>(
     private val dataFetcher: suspend () -> T,
-    private val itemMapper: (Item) -> List<ListItemHolder>,
+    itemMapper: (Item) -> List<ListItemHolder>,
     private val filter: (Item) -> Boolean = { _ -> true }
 ) {
     private var _variableItemMapper: ((Item) -> List<ListItemHolder>)? = null
@@ -44,7 +44,7 @@ open class DataSource<Item, T: KListShow<Item>>(
             responseClass = response::class.java as Class<T>
             _nextPageUrl = response.nextPageUrl
             currentProtoItems.addAll(response.displayList)
-            mapProtoItemsToHolder()
+            mapProtoItemsToHolders()
             _refreshState.value = RefreshState.LOADED(
                 hasContent = _itemHolders.value?.isNotEmpty() == true,
                 hasNext = _nextPageUrl?.isNotEmpty() == true
@@ -66,7 +66,7 @@ open class DataSource<Item, T: KListShow<Item>>(
 
             if (response.displayList.isNotEmpty()) {
                 currentProtoItems.addAll(response.displayList)
-                mapProtoItemsToHolder()
+                mapProtoItemsToHolders()
             }
             _refreshState.value = RefreshState.LOADED(
                 hasContent = _itemHolders.value?.isNotEmpty() == true,
@@ -78,7 +78,7 @@ open class DataSource<Item, T: KListShow<Item>>(
         }
     }
 
-    fun mapProtoItemsToHolder() {
+    private fun mapProtoItemsToHolders() {
         val mapper = _variableItemMapper ?: return
         val holders = currentProtoItems
             .filter { item ->
@@ -89,8 +89,9 @@ open class DataSource<Item, T: KListShow<Item>>(
     }
 
     fun updateMapper(mapper: (Item) -> List<ListItemHolder>) {
+        _itemHolders.value = listOf()
         this._variableItemMapper = mapper
-        mapProtoItemsToHolder()
+        mapProtoItemsToHolders()
     }
 
     protected fun pickItemHolders(): MutableLiveData<List<ListItemHolder>> {
