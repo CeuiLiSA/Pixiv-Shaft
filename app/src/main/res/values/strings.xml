@@ -711,4 +711,5 @@
     <string name="add_keyword">添加关键字</string>
     <string name="my_bookmarked_illusts">收藏的插画漫画</string>
     <string name="my_bookmarked_novels">收藏的小说</string>
+    <string name="pixivision_articles">Pixivision Articles</string>
 </resources>

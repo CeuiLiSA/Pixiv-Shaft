@@ -3,6 +3,9 @@ package ceui.pixiv.ui.home
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.OvershootInterpolator
+import android.view.animation.RotateAnimation
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -18,6 +21,7 @@ import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
 import ceui.pixiv.ui.circles.MyCirclesFragment
+import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -68,6 +72,24 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 viewModel.selectedTabIndex.value = position
             }
         })
+        viewModel.selectedTabIndex.observe(viewLifecycleOwner) { index ->
+            if (index == 1) {
+                binding.tabName.text = "Circles"
+            } else if (index == 2) {
+                binding.tabName.text = "Chats"
+            } else if (index == 3) {
+                binding.tabName.text = "Friends"
+            }
+        }
+        binding.homeCompose.setOnClick {
+            binding.homeCompose.startAnimation(RotateAnimation(
+                0F, 45F, Animation.RELATIVE_TO_SELF, 0.5F, Animation.RELATIVE_TO_SELF, 0.5F
+            ).apply {
+                duration = 300L
+                interpolator = OvershootInterpolator(2F)
+                fillAfter = true
+            })
+        }
         binding.homeViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
                 return 4
@@ -75,7 +97,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
 
             override fun createFragment(position: Int): Fragment {
                 if (position == 0) {
-                    return HomeFragment()
+                    return DiscoverFragment()
                 } else if (position == 1) {
                     return MyCirclesFragment()
                 } else if (position == 2) {

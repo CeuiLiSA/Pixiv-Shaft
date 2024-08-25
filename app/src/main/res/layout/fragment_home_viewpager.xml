@@ -39,7 +39,23 @@
 
             <TextView
                 android:id="@+id/user_name"
+                android:textSize="20sp"
                 android:text="@{account.user.name}"
+                app:visibleOrGone="@{viewModel.selectedTabIndex == 0}"
+                style="@style/textMontserratBold"
+                app:layout_constraintStart_toEndOf="@+id/user_icon"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginStart="10dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:textColor="@color/text00"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tab_name"
+                app:visibleOrGone="@{viewModel.selectedTabIndex != 0}"
+                android:textSize="22sp"
+                style="@style/textMontserratBold"
                 app:layout_constraintStart_toEndOf="@+id/user_icon"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginStart="10dp"

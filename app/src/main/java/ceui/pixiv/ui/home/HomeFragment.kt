@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
@@ -20,7 +21,8 @@ import ceui.refactor.viewBinding
 class HomeFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val viewModel by pixivListViewModel { HomeDataSource() }
+    private val args by navArgs<HomeFragmentArgs>()
+    private val viewModel by pixivListViewModel { HomeDataSource(args) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
