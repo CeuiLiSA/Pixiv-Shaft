@@ -100,6 +100,11 @@ interface API {
         @Query("include_translated_tag_results") include_translated_tag_results: Boolean,
     ): IllustResponse
 
+    @GET("/v1/spotlight/articles?filter=for_ios")
+    suspend fun pixivsionArticles(
+        @Query("category") category: String,
+    ): ArticlesResponse
+
     @GET("/v1/search/illust?search_ai_type=0&filter=for_ios")
     suspend fun searchIllustManga(
         @Query("word") word: String,

@@ -12,6 +12,11 @@
         tools:layout="@layout/fragment_landing" />
 
     <fragment
+        android:id="@+id/navigation_articles"
+        android:name="ceui.pixiv.ui.article.ArticlesFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
+
+    <fragment
         android:id="@+id/navigation_cache_list"
         android:name="ceui.pixiv.ui.task.CacheFileFragment"
         tools:layout="@layout/fragment_pixiv_list" />

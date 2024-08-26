@@ -150,8 +150,8 @@ dependencies {
     implementation 'com.github.skydoves:transformationlayout:1.1.1'
     implementation 'com.blankj:utilcodex:1.31.1'
     implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
-    implementation 'com.google.firebase:firebase-analytics:21.2.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.3.5'
+    implementation 'com.google.firebase:firebase-analytics:22.1.0'
+    implementation 'com.google.firebase:firebase-crashlytics:19.0.3'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
 

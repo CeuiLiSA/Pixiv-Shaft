@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    android:id="@+id/discover_root_layout"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/discover_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -14,25 +13,67 @@
         app:elevation="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            app:layout_scrollFlags="scroll"
             android:layout_width="match_parent"
-            android:layout_marginEnd="6dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/article_block"
+            android:stateListAnimator="@animator/button_press_scale"
+            android:layout_marginEnd="2dp"
             android:background="@drawable/bg_card_purple"
-            android:layout_height="150dp">
+            app:layout_scrollFlags="scroll">
 
             <TextView
-                android:textSize="16sp"
-                android:textColor="#E8EAFF"
+                android:id="@+id/article_label"
+                style="@style/textMontserratBold"
+                android:padding="10dp"
+                android:layout_width="wrap_content"
+                android:layout_marginStart="-10dp"
+                android:layout_marginTop="-10dp"
+                android:layout_height="wrap_content"
+                android:shadowColor="#7053FF"
                 android:shadowDx="2"
                 android:shadowDy="2"
-                android:shadowColor="#7053FF"
                 android:shadowRadius="15"
-                app:layout_constraintTop_toTopOf="parent"
                 android:text="@string/pixivision_articles"
+                android:textColor="#E8EAFF"
+                android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
-                style="@style/textMontserratBold"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/article_preview_1"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:scaleType="centerCrop"
+                app:layout_constraintDimensionRatio="1.3:1"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@drawable/image_place_holder"
+                app:layout_constraintTop_toBottomOf="@+id/article_label"
+                app:rRadius="6dp" />
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/article_preview_2"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginHorizontal="4dp"
+                app:layout_constraintDimensionRatio="1.3:1"
+                android:scaleType="centerCrop"
+                android:background="@drawable/image_place_holder"
+                app:layout_constraintEnd_toStartOf="@+id/article_preview_3"
+                app:layout_constraintStart_toEndOf="@+id/article_preview_1"
+                app:layout_constraintTop_toBottomOf="@+id/article_label"
+                app:rRadius="6dp" />
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/article_preview_3"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="@drawable/image_place_holder"
+                app:layout_constraintDimensionRatio="1.3:1"
+                android:scaleType="centerCrop"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/article_preview_2"
+                app:layout_constraintTop_toBottomOf="@+id/article_label"
+                app:rRadius="6dp" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -46,9 +87,9 @@
         <ceui.pixiv.widgets.SlidingCursorView
             android:id="@+id/sliding_cursor"
             android:layout_width="match_parent"
-            app:layout_constraintTop_toBottomOf="@+id/tab_layout_list"
-            android:layout_marginBottom="4dp"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintTop_toBottomOf="@+id/tab_layout_list"
             app:scv_cursor_color="@color/always_white"
             app:scv_cursor_height="@dimen/tab_layout_cursor_height"
             app:scv_cursor_width="@dimen/tab_layout_cursor_width" />

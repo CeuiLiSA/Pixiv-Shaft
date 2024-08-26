@@ -101,6 +101,16 @@ fun ImageView.binding_loadSquareMedia(illust: Illust?) {
         .into(this)
 }
 
+@BindingAdapter("loadMedia")
+fun ImageView.binding_loadMedia(displayUrl: String?) {
+    val url = displayUrl ?: return
+    scaleType = ImageView.ScaleType.CENTER_CROP
+    Glide.with(this)
+        .load(GlideUrlChild(url))
+        .placeholder(R.drawable.image_place_holder)
+        .into(this)
+}
+
 fun TextView.setTextOrGone(content: String?) {
     if (content?.isNotEmpty() == true) {
         isVisible = true
