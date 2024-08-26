@@ -368,6 +368,10 @@
         <attr name="scv_cursor_width" format="dimension" />
         <attr name="scv_cursor_color" format="color" />
     </declare-styleable>
+
+    <style name="TransparentDialogTheme" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
 </resources>
 
 

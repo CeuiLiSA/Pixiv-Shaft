@@ -10,32 +10,30 @@ import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
-import ceui.lisa.models.ModelObject
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
+import ceui.loxia.Article
 import ceui.loxia.Illust
-import ceui.loxia.KListShow
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Tag
-import ceui.loxia.clearItemDecorations
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
-import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
+import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.TagsActionReceiver
+import ceui.pixiv.widgets.showActionMenu
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.footer.ClassicsFooter
@@ -43,7 +41,7 @@ import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
-    UserActionReceiver, TagsActionReceiver {
+    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver {
 
     override fun onClickIllustCard(illust: Illust) {
         pushFragment(
@@ -76,6 +74,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
                 keyword = tag.name ?: "",
             ).toBundle())
         }
+    }
+
+    override fun onClickArticle(article: Article) {
+
     }
 }
 
@@ -171,26 +173,18 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
             adapter.submitList(holders)
         }
 
-        if (viewModel is DataSourceContainer<*, *>) {
-            var type = 0
-            val dataSource = viewModel.dataSource()
-            binding.listSetting.setOnClick {
-                binding.listView.layoutManager = null
-                binding.listView.clearItemDecorations()
-                if (type == 0) {
-                    type = 1
-                    adapter.submitList(listOf()) {
-                        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-                        dataSource.updateMapper(mapper = { illust -> listOf(UserPostHolder(illust as Illust)) })
+        binding.listSetting.setOnClick {
+            showActionMenu {
+                add(
+                    MenuItem("下载全部作品") {
+                        Common.showLog("asddass2 下载全部作品")
                     }
-                } else if (type == 1) {
-                    type = 0
-                    adapter.submitList(listOf()) {
-                        binding.listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
-                        binding.listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-                        dataSource.updateMapper(mapper = { illust -> listOf(IllustCardHolder(illust as Illust)) })
+                )
+                add(
+                    MenuItem("收藏全部作品") {
+                        Common.showLog("asddass2 收藏全部作品")
                     }
-                }
+                )
             }
         }
     }

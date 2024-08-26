@@ -29,6 +29,7 @@ class ArticlesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel)
+        binding.toolbarLayout.naviTitle.text = getString(R.string.pixiv_special)
         binding.listView.layoutManager = LinearLayoutManager(requireContext())
         binding.listView.addItemDecoration(LinearItemDecoration(20.ppppx))
     }

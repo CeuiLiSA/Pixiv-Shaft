@@ -7,6 +7,8 @@ import ceui.lisa.databinding.CellPvisionMiniCardBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Article
 import ceui.loxia.Novel
+import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.ui.task.LoadTask
 import com.bumptech.glide.Glide
 
 class PvisionCardHolder(val article: Article) : ListItemHolder() {
@@ -26,5 +28,12 @@ class PvisionCardViewHolder(bd: CellPvisionCardBinding) : ListItemViewHolder<Cel
     override fun onBindViewHolder(holder: PvisionCardHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         binding.holder = holder
+        binding.root.setOnClickListener {
+            it.findActionReceiverOrNull<ArticleActionReceiver>()?.onClickArticle(holder.article)
+        }
     }
+}
+
+interface ArticleActionReceiver {
+    fun onClickArticle(article: Article)
 }

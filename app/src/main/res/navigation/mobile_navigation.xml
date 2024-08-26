@@ -208,4 +208,29 @@
             android:name="content_type"
             app:argType="integer"/>
     </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_pixiv_dialog"
+        android:name="ceui.pixiv.widgets.MenuDialog" >
+
+        <argument
+            android:name="task_uuid"
+            app:argType="string"/>
+
+        <argument
+            android:name="menu_items"
+            app:argType="ceui.pixiv.widgets.MenuItem[]"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_alert_dialog"
+        android:name="ceui.pixiv.widgets.AlertPurpleDialog" >
+
+        <argument
+            android:name="task_uuid"
+            app:argType="string"/>
+
+    </fragment>
 </navigation>
