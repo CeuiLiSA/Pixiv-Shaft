@@ -31,8 +31,6 @@ class AlertPurpleDialog : PixivDialog(R.layout.dialog_alert) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.ok.setOnClick {
-            // Set the listener on the child fragmentManager.
-            requireActivity().supportFragmentManager.setFragmentResult("requestKey", bundleOf("bundleKey" to "hello world asas"))
             task?.complete(true)
             dismissAllowingStateLoss()
         }
@@ -41,19 +39,15 @@ class AlertPurpleDialog : PixivDialog(R.layout.dialog_alert) {
             dismissAllowingStateLoss()
         }
     }
+
+    override fun performCancel() {
+        super.performCancel()
+        task?.cancel()
+        viewModel.alertTaskPool.remove(args.taskUuid)
+    }
 }
 
 suspend fun Fragment.alertYesOrCancel(): Boolean {
-    val activity = requireActivity()
-    activity.supportFragmentManager
-        .setFragmentResultListener("requestKey", activity) { requestKey, bundle ->
-            // We use a String here, but any type that can be put in a Bundle is supported.
-            val result = bundle.getString("bundleKey")
-            Common.showLog("dsaadsadsw2 ${result}")
-            // Do something with the result.
-        }
-
-
     val dialogViewModel by activityViewModels<DialogViewModel>()
     val taskUUID = UUID.randomUUID().toString()
     val task = CompletableDeferred<Boolean>()

@@ -13,6 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellMenuBinding
 import ceui.lisa.databinding.DialogMenuBinding
+import ceui.lisa.utils.Common
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
@@ -23,21 +24,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import java.util.UUID
-
-class DialogViewModel : ViewModel() {
-    val menuTaskPool = hashMapOf<String, CompletableDeferred<MenuItem>>()
-    val alertTaskPool = hashMapOf<String, CompletableDeferred<Boolean>>()
-}
-
-open class PixivDialog(layoutId: Int) : DialogFragment(layoutId) {
-
-    protected val viewModel by activityViewModels<DialogViewModel>()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setStyle(STYLE_NORMAL, R.style.TransparentDialogTheme)
-    }
-}
 
 open class MenuDialog : PixivDialog(R.layout.dialog_menu), MenuActionReceiver {
 
@@ -61,6 +47,12 @@ open class MenuDialog : PixivDialog(R.layout.dialog_menu), MenuActionReceiver {
     override fun onClickMenu(menuItem: MenuItem) {
         task?.complete(menuItem)
         dismissAllowingStateLoss()
+    }
+
+    override fun performCancel() {
+        super.performCancel()
+        task?.cancel()
+        viewModel.menuTaskPool.remove(args.taskUuid)
     }
 }
 
