@@ -32,6 +32,7 @@ import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.MenuItem
+import ceui.pixiv.widgets.PixivBottomSheet
 import ceui.pixiv.widgets.TagsActionReceiver
 import ceui.pixiv.widgets.showActionMenu
 import ceui.refactor.ppppx
@@ -174,17 +175,18 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         }
 
         binding.listSetting.setOnClick {
-            showActionMenu {
-                add(
-                    MenuItem("下载全部作品") {
-
-                    }
-                )
-                add(
-                    MenuItem("收藏全部作品") {
-                    }
-                )
-            }
+//            showActionMenu {
+//                add(
+//                    MenuItem("下载全部作品") {
+//
+//                    }
+//                )
+//                add(
+//                    MenuItem("收藏全部作品") {
+//                    }
+//                )
+//            }
+            PixivBottomSheet().show(childFragmentManager, "Tag")
         }
     }
 }
