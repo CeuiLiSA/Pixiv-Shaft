@@ -75,17 +75,14 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             CommonViewPagerFragmentArgs(ViewPagerContentType.MyBookmarkNovel).toBundle()
                         )
                     },
+                    TabCellHolder(getString(R.string.created_tasks)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_task_preview_list,
+                        )
+                    },
                     TabCellHolder(getString(R.string.action_settings)),
                 )
             )
         }
-//
-//        binding.cache.setOnClick {
-//            pushFragment(R.id.navigation_cache_list)
-//        }
-//
-//        binding.tasks.setOnClick {
-//            pushFragment(R.id.navigation_task_status)
-//        }
     }
 }

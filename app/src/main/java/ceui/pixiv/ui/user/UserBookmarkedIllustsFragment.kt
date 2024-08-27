@@ -10,6 +10,8 @@ import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
+import ceui.loxia.ObjectPool
+import ceui.loxia.User
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -33,7 +35,7 @@ class UserBookmarkedIllustsFragment: PixivFragment(R.layout.fragment_pixiv_list)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbarLayout.naviMore.setOnClick {
-            object : FetchAllTask<Illust, IllustResponse>(initialLoader = {
+            object : FetchAllTask<Illust, IllustResponse>(taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}收藏的全部插画", initialLoader = {
                 Client.appApi.getUserBookmarkedIllusts(args.userId, args.restrictType ?: Params.TYPE_PUBLIC)
             }) {
                 override fun onEnd(results: List<Illust>) {

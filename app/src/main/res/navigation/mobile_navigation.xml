@@ -19,6 +19,17 @@
     <fragment
         android:id="@+id/navigation_cache_list"
         android:name="ceui.pixiv.ui.task.CacheFileFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            app:argType="string"
+            android:name="task_uuid"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_task_preview_list"
+        android:name="ceui.pixiv.ui.task.TaskListFragment"
         tools:layout="@layout/fragment_pixiv_list" />
 
 

@@ -713,4 +713,5 @@
     <string name="my_bookmarked_novels">收藏的小说</string>
     <string name="pixivision_articles">Pixivision Articles</string>
     <string name="button_ok">OK</string>
+    <string name="created_tasks">创建的任务</string>
 </resources>

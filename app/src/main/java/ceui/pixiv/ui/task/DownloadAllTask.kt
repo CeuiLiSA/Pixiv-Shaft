@@ -45,6 +45,14 @@ class DownloadAllTask(
             pendingTasks.add(DownloadTask(content, activity))
         }
     }
+
+    fun go() {
+        MainScope().launch {
+            pendingTasks.forEach {
+                it.execute()
+            }
+        }
+    }
 }
 
 open class LoadTask(val content: NamedUrl, private val activity: FragmentActivity, autoStart: Boolean = true) {
@@ -140,11 +148,16 @@ open class LoadTask(val content: NamedUrl, private val activity: FragmentActivit
 
 
 class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
-    LoadTask(content, activity) {
+    LoadTask(content, activity, autoStart = false) {
 
     override fun onFilePrepared(file: File) {
         super.onFilePrepared(file)
         saveImageToGallery(activity, file, content.name)
+    }
+
+    override suspend fun optionalDelay() {
+        super.optionalDelay()
+        delay(3000L)
     }
 }
 

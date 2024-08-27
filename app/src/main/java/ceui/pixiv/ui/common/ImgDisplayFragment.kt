@@ -66,7 +66,15 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         task.file.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {
-                saveImageToGallery(activity, file, displayName())
+                val imageId = getImageIdInGallery(activity, displayName())
+                if (imageId != null) {
+                    Common.showLog("sdaadsads2 已存在， id: ${imageId}")
+                    deleteImageById(activity, imageId)
+                    val afterImageId = getImageIdInGallery(activity, displayName())
+                    Common.showLog("sdaadsads2 afterImageId: ${afterImageId}")
+                } else {
+                    saveImageToGallery(activity, file, displayName())
+                }
             }
             val resolution = getImageDimensions(file)
             Common.showLog("sadasd2 bb ${resolution}")

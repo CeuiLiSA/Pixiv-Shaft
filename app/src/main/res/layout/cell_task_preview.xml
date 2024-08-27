@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="ceui.pixiv.ui.task.TaskPreviewHolder" />
+
+        <variable
+            name="holder"
+            type="TaskPreviewHolder" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/cell_background"
+        android:paddingHorizontal="20dp">
+
+        <TextView
+            android:id="@+id/task_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{holder.humanReadableTask.taskFullName}"
+            android:textColor="@color/text00"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/preview_1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            loadSquareMedia="@{holder.getIllustOrNull(0)}"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/preview_2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/task_name"
+            app:rRadius="6dp" />
+
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/preview_2"
+            android:layout_width="0dp"
+            loadSquareMedia="@{holder.getIllustOrNull(1)}"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="4dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/preview_3"
+            app:layout_constraintStart_toEndOf="@+id/preview_1"
+            app:layout_constraintTop_toBottomOf="@+id/task_name"
+            app:rRadius="6dp" />
+
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/preview_3"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            loadSquareMedia="@{holder.getIllustOrNull(2)}"
+            android:layout_marginTop="10dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/preview_2"
+            app:layout_constraintTop_toBottomOf="@+id/task_name"
+            app:rRadius="6dp" />
+
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/preview_4"
+            android:layout_width="0dp"
+            loadSquareMedia="@{holder.getIllustOrNull(3)}"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/preview_5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/preview_1"
+            app:rRadius="6dp" />
+
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/preview_5"
+            loadSquareMedia="@{holder.getIllustOrNull(4)}"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginHorizontal="4dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/preview_6"
+            app:layout_constraintStart_toEndOf="@+id/preview_4"
+            app:layout_constraintTop_toBottomOf="@+id/preview_1"
+            app:rRadius="6dp" />
+
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/preview_6"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            loadSquareMedia="@{holder.getIllustOrNull(5)}"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/preview_5"
+            app:layout_constraintTop_toBottomOf="@+id/preview_1"
+            app:rRadius="6dp" />
+
+        <TextView
+            android:id="@+id/task_size"
+            app:layout_constraintTop_toBottomOf="@+id/preview_6"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="10dp"
+            android:layout_width="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text20"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

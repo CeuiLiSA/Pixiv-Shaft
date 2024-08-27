@@ -94,7 +94,7 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
         }
 
         binding.naviMore.setOnClick {
-            FetchAllTask { Client.appApi.getUserCreatedIllusts(args.userId, ObjectType.ILLUST) }
+            FetchAllTask(taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画") { Client.appApi.getUserCreatedIllusts(args.userId, ObjectType.ILLUST) }
         }
 
 

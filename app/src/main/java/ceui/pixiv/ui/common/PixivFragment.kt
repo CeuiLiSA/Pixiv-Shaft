@@ -177,12 +177,11 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
             showActionMenu {
                 add(
                     MenuItem("下载全部作品") {
-                        Common.showLog("asddass2 下载全部作品")
+
                     }
                 )
                 add(
                     MenuItem("收藏全部作品") {
-                        Common.showLog("asddass2 收藏全部作品")
                     }
                 )
             }

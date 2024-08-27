@@ -7,7 +7,9 @@ import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 open class DataSource<Item, T: KListShow<Item>>(
     private val dataFetcher: suspend () -> T,
@@ -39,7 +41,9 @@ open class DataSource<Item, T: KListShow<Item>>(
             if (hint == RefreshHint.ErrorRetry) {
                 delay(300L)
             }
-            val response = dataFetcher()
+            val response = withContext(Dispatchers.IO) {
+                dataFetcher()
+            }
             currentProtoItems.clear()
             responseClass = response::class.java as Class<T>
             _nextPageUrl = response.nextPageUrl
@@ -59,9 +63,11 @@ open class DataSource<Item, T: KListShow<Item>>(
         val nextPageUrl = _nextPageUrl ?: return
         _refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.LoadMore)
         try {
-            val responseBody = Client.appApi.generalGet(nextPageUrl)
-            val responseJson = responseBody.string()
-            val response = gson.fromJson(responseJson, responseClass)
+            val response = withContext(Dispatchers.IO) {
+                val responseBody = Client.appApi.generalGet(nextPageUrl)
+                val responseJson = responseBody.string()
+                gson.fromJson(responseJson, responseClass)
+            }
             _nextPageUrl = response.nextPageUrl
 
             if (response.displayList.isNotEmpty()) {
@@ -86,6 +92,10 @@ open class DataSource<Item, T: KListShow<Item>>(
             }
             .flatMap(mapper)
         _itemHolders.value = holders
+    }
+
+    fun pickProtoItems(): List<Item> {
+        return currentProtoItems
     }
 
     fun updateMapper(mapper: (Item) -> List<ListItemHolder>) {
