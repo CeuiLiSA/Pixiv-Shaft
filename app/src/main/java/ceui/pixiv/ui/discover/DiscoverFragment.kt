@@ -45,15 +45,6 @@ class DiscoverFragment : PixivFragment(R.layout.fragment_discover), HomeTabConta
 //                Glide.with(this).load(GlideUrlChild(thumbnail)).into(binding.articlePreview3)
 //            }
 //        }
-        binding.dialog.setOnClick {
-            MainScope().launch {
-                if (alertYesOrCancel()) {
-                    Common.showLog("adsadsadsw2 true")
-                } else {
-                    Common.showLog("adsadsadsw2 false")
-                }
-            }
-        }
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(

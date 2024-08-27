@@ -2,7 +2,9 @@ package ceui.pixiv.ui.common
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -29,12 +31,15 @@ import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.ui.works.ViewPagerViewModel
+import ceui.pixiv.widgets.alertYesOrCancel
 import ceui.refactor.animateFadeInQuickly
 import ceui.refactor.animateFadeOutQuickly
 import ceui.refactor.setOnClick
+import com.blankj.utilcode.util.UriUtils
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
@@ -68,10 +73,14 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
             downloadButton.setOnClick {
                 val imageId = getImageIdInGallery(activity, displayName())
                 if (imageId != null) {
-                    Common.showLog("sdaadsads2 已存在， id: ${imageId}")
-                    deleteImageById(activity, imageId)
-                    val afterImageId = getImageIdInGallery(activity, displayName())
-                    Common.showLog("sdaadsads2 afterImageId: ${afterImageId}")
+                    MainScope().launch {
+                        val uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId.toString())
+                        val filePath = UriUtils.uri2File(uri)
+                        if (alertYesOrCancel("图片已存在，确定覆盖下载吗? 文件路径: ${filePath?.path}")) {
+                            deleteImageById(activity, imageId)
+                            saveImageToGallery(activity, file, displayName())
+                        }
+                    }
                 } else {
                     saveImageToGallery(activity, file, displayName())
                 }

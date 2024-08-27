@@ -7,18 +7,24 @@
     android:orientation="vertical">
 
     <TextView
+        android:id="@+id/head"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textSize="18sp"
+        style="@style/textMontserratBold"
         android:layout_marginHorizontal="20dp"
         android:layout_marginTop="20dp"
         android:gravity="center"
-        android:text="Original Name"
+        android:text="@string/string_143"
         android:textColor="@color/text00">
 
     </TextView>
 
     <TextView
+        android:id="@+id/title"
         android:layout_width="match_parent"
+        style="@style/textMontserratSemiBold"
+        android:textSize="16sp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:layout_marginTop="10dp"
@@ -32,8 +38,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="20dp"
-        android:paddingBottom="20dp">
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="20dp">
 
         <FrameLayout
             android:id="@+id/cancel"

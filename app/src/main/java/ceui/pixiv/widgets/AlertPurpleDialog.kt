@@ -30,6 +30,7 @@ class AlertPurpleDialog : PixivDialog(R.layout.dialog_alert) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.title.text = args.title
         binding.ok.setOnClick {
             task?.complete(true)
             dismissAllowingStateLoss()
@@ -47,13 +48,13 @@ class AlertPurpleDialog : PixivDialog(R.layout.dialog_alert) {
     }
 }
 
-suspend fun Fragment.alertYesOrCancel(): Boolean {
+suspend fun Fragment.alertYesOrCancel(title: String): Boolean {
     val dialogViewModel by activityViewModels<DialogViewModel>()
     val taskUUID = UUID.randomUUID().toString()
     val task = CompletableDeferred<Boolean>()
     dialogViewModel.alertTaskPool[taskUUID] = task
     AlertPurpleDialog().apply {
-        arguments = AlertPurpleDialogArgs(taskUUID).toBundle()
+        arguments = AlertPurpleDialogArgs(taskUUID, title).toBundle()
     }.show(childFragmentManager, "AlertPurpleDialog-${taskUUID}")
     return task.await()
 }
