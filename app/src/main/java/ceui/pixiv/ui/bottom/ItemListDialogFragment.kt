@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.bottom
 
+import android.app.Dialog
+import android.graphics.Color
 import android.os.Bundle
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -7,10 +9,27 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsCompat.Type.systemBars
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.marginTop
 import ceui.lisa.R
+import ceui.lisa.databinding.DialogAlertBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogItemBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogBinding
+import ceui.lisa.utils.Common
+import ceui.pixiv.ui.common.setUpFullScreen
+import ceui.pixiv.widgets.PixivBottomSheet
+import ceui.refactor.viewBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.internal.ViewUtils.doOnApplyWindowInsets
+import com.google.android.material.internal.WindowUtils
 
 // TODO: Customize parameter argument names
 const val ARG_ITEM_COUNT = "item_count"
@@ -24,38 +43,25 @@ const val ARG_ITEM_COUNT = "item_count"
  *    ItemListDialogFragment.newInstance(30).show(supportFragmentManager, "dialog")
  * </pre>
  */
-class ItemListDialogFragment : BottomSheetDialogFragment() {
+class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dialog_list_dialog) {
 
-    private var _binding: FragmentItemListDialogListDialogBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-
-        _binding = FragmentItemListDialogListDialogBinding.inflate(inflater, container, false)
-        return binding.root
-
-    }
+    private val binding by viewBinding(FragmentItemListDialogListDialogBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         binding.list.layoutManager =
             LinearLayoutManager(context)
         binding.list.adapter =
             arguments?.getInt(ARG_ITEM_COUNT)?.let { ItemAdapter(it) }
     }
 
-    private inner class ViewHolder internal constructor(binding: FragmentItemListDialogListDialogItemBinding) :
+    private inner class ViewHolder(binding: FragmentItemListDialogListDialogItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        internal val text: TextView = binding.text
+        val text: TextView = binding.text
     }
 
-    private inner class ItemAdapter internal constructor(private val mItemCount: Int) :
+    private inner class ItemAdapter(private val mItemCount: Int) :
         RecyclerView.Adapter<ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -89,10 +95,5 @@ class ItemListDialogFragment : BottomSheetDialogFragment() {
                 }
             }
 
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

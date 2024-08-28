@@ -26,6 +26,7 @@ import ceui.loxia.RefreshState
 import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.pushFragment
+import ceui.pixiv.ui.bottom.ItemListDialogFragment
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
@@ -186,7 +187,7 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
 //                    }
 //                )
 //            }
-            PixivBottomSheet().show(childFragmentManager, "Tag")
+            ItemListDialogFragment.newInstance(3).show(childFragmentManager, "Tag")
         }
     }
 }

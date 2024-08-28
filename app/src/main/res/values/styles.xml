@@ -17,6 +17,21 @@
         <item name="qmui_skin_support_dialog_edit_text_color">@color/rank_text_color</item>
     </style>
 
+    <style name="PixivBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_dialog_header</item>
+    </style>
+
+    <style name="ThemeOverlay.App.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/PixivBottomSheetStyle</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor" tools:ignore="NewApi">@android:color/transparent</item>
+    </style>
+
+    <style name="HomeAppTheme" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
+    </style>
+
+
     <style name="AppTheme.Default" parent="AppTheme">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">#686bdd</item>

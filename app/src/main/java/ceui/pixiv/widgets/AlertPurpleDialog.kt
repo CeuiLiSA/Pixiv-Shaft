@@ -44,7 +44,6 @@ class AlertPurpleDialog : PixivDialog(R.layout.dialog_alert) {
     override fun performCancel() {
         super.performCancel()
         task?.cancel()
-        viewModel.alertTaskPool.remove(args.taskUuid)
     }
 }
 
@@ -52,6 +51,9 @@ suspend fun Fragment.alertYesOrCancel(title: String): Boolean {
     val dialogViewModel by activityViewModels<DialogViewModel>()
     val taskUUID = UUID.randomUUID().toString()
     val task = CompletableDeferred<Boolean>()
+    task.invokeOnCompletion {
+        dialogViewModel.alertTaskPool.remove(taskUUID)
+    }
     dialogViewModel.alertTaskPool[taskUUID] = task
     AlertPurpleDialog().apply {
         arguments = AlertPurpleDialogArgs(taskUUID, title).toBundle()
