@@ -20,6 +20,7 @@ import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
 import ceui.loxia.Illust
+import ceui.loxia.Novel
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
@@ -27,6 +28,7 @@ import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.list.PixivListViewModel
+import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
@@ -42,7 +44,7 @@ import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
-    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver {
+    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver {
 
     override fun onClickIllustCard(illust: Illust) {
         pushFragment(
@@ -79,6 +81,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 
     override fun onClickArticle(article: Article) {
 
+    }
+
+    override fun onClickNovel(novel: Novel) {
+        pushFragment(R.id.navigation_novel_text, NovelTextFragmentArgs(novel.id).toBundle())
     }
 }
 
