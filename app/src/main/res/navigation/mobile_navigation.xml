@@ -57,7 +57,7 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="ceui.pixiv.ui.home.HomeFragment"
+        android:name="ceui.pixiv.ui.home.RecmdIllustMangaFragment"
         tools:layout="@layout/fragment_pixiv_list" >
 
         <argument
@@ -76,6 +76,15 @@
             app:argType="long" />
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_novel_text"
+        android:name="ceui.pixiv.ui.novel.NovelTextFragment"
+        tools:layout="@layout/fragment_novel_text" >
+
+        <argument
+            android:name="novel_id"
+            app:argType="long" />
+    </fragment>
 
 
     <fragment

@@ -3,6 +3,7 @@ package ceui.loxia
 import ceui.lisa.models.NullResponse
 import ceui.lisa.utils.Params
 import okhttp3.ResponseBody
+import retrofit2.Call
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -52,6 +53,14 @@ interface API {
     suspend fun getHomeData(
         @Path("type") type: String,
     ): HomeIllustResponse
+
+    @GET("/v1/novel/recommended")
+    suspend fun getRecmdNovels(
+        @Query("include_ranking_illusts") include_ranking_illusts: Boolean = false,
+    ): NovelResponse
+
+    @GET("/webview/v2/novel")
+    suspend fun getNovelText(@Query("id") id: Long): ResponseBody
 
     @GET("/v1/user/illusts?filter=for_ios")
     suspend fun getUserCreatedIllusts(

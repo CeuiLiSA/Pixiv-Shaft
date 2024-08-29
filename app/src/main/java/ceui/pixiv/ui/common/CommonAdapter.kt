@@ -75,7 +75,7 @@ open class ListItemHolder {
     }
 
     open fun areContentsTheSame(other: ListItemHolder): Boolean {
-        return this == other
+        return this.getItemId() == other.getItemId()
     }
 
     fun getItemViewType(): Int {

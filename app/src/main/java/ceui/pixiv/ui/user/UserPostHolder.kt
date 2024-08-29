@@ -20,14 +20,6 @@ class UserPostHolder(val illust: Illust) : ListItemHolder() {
         }
     }
 
-    override fun areItemsTheSame(other: ListItemHolder): Boolean {
-        return illust.id == (other as? UserPostHolder)?.illust?.id
-    }
-
-    override fun areContentsTheSame(other: ListItemHolder): Boolean {
-        return illust == (other as? UserPostHolder)?.illust
-    }
-
     override fun getItemId(): Long {
         return illust.id
     }

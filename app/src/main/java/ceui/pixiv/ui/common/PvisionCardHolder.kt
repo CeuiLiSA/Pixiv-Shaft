@@ -13,12 +13,8 @@ import com.bumptech.glide.Glide
 
 class PvisionCardHolder(val article: Article) : ListItemHolder() {
 
-    override fun areItemsTheSame(other: ListItemHolder): Boolean {
-        return article.id == (other as? PvisionCardHolder)?.article?.id
-    }
-
-    override fun areContentsTheSame(other: ListItemHolder): Boolean {
-        return article == (other as? PvisionCardHolder)?.article
+    override fun getItemId(): Long {
+        return article.id
     }
 }
 
