@@ -11,7 +11,6 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:padding="20dp"
         android:layout_height="wrap_content">
 
         <TextView
@@ -49,5 +48,21 @@
             android:text="@{holder.novel.text_length.toString()}"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+
+        <ceui.pixiv.widgets.TagsFlowView
+            android:id="@+id/novel_tag"
+            app:layout_constraintTop_toBottomOf="@+id/text_count"
+            visibleOrGone="@{holder.novel.tags.size() > 0}"
+            app:dividerDrawable="@drawable/spacer_5dp"
+            app:flexWrap="wrap"
+            app:tfv_max_lines="3"
+            app:showDivider="middle"
+            app:tfv_style="small"
+            app:tags="@{holder.novel.tags}"
+            android:layout_marginTop="6dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
