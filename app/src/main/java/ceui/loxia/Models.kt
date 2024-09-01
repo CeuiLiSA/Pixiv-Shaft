@@ -192,6 +192,7 @@ data class User(
 }
 
 data class ImageUrls(
+    val url: String? = null,
     val large: String? = null,
     val medium: String? = null,
     val original: String? = null,
@@ -202,6 +203,10 @@ data class ImageUrls(
 ) : Serializable {
 
     fun findMaxSizeUrl(): String? {
+        if (url != null) {
+            return url
+        }
+
         if (original != null) {
             return original
         }

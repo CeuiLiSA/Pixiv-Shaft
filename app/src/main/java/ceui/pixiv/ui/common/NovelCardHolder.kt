@@ -3,9 +3,17 @@ package ceui.pixiv.ui.common
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
 import ceui.loxia.Novel
+import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
 
 class NovelCardHolder(val novel: Novel) : ListItemHolder() {
+    init {
+        ObjectPool.update(novel)
+        novel.user?.let {
+            ObjectPool.update(it)
+        }
+    }
+
     override fun getItemId(): Long {
         return novel.id
     }

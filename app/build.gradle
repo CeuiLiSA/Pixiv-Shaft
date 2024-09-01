@@ -185,6 +185,7 @@ dependencies {
     implementation 'com.github.tbruyelle:rxpermissions:0.12'
 
     implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'org.jsoup:jsoup:1.18.1'
 
     implementation 'com.hjq:toast:8.8'
 
