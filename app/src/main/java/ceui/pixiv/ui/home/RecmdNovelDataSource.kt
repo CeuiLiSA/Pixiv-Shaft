@@ -19,8 +19,7 @@ class RecmdNovelDataSource(
     )
 ) : DataSource<Novel, NovelResponse>(
     dataFetcher = {
-        val resp = responseStore.retrieveData()
-        resp.copy(novels = resp.novels.sortedBy { it.text_length })
+        responseStore.retrieveData()
     },
     itemMapper = { novel -> listOf(NovelCardHolder(novel)) },
 )

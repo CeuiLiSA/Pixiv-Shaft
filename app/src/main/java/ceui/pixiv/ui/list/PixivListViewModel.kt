@@ -17,6 +17,20 @@ import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.RefreshOwner
 import kotlinx.coroutines.launch
 
+fun <Item, T : KListShow<Item>, ArgsT: Any> Fragment.pixivListViewModel(
+    argsProducer: () -> ArgsT,
+    dataSourceProducer: (ArgsT) -> DataSource<Item, T>
+): Lazy<PixivListViewModel<Item, T>> {
+    return this.viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val args = argsProducer()
+                val dataSource = dataSourceProducer(args)
+                return PixivListViewModel(dataSource) as T
+            }
+        }
+    }
+}
 
 fun <Item, T : KListShow<Item>> Fragment.pixivListViewModel(
     dataSourceProducer: () -> DataSource<Item, T>

@@ -1,5 +1,7 @@
 package ceui.loxia.novel
 
+import androidx.core.content.ContextCompat
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelImageBinding
@@ -15,11 +17,13 @@ import com.bumptech.glide.load.model.GlideUrl
 import java.util.HashMap
 
 class NovelTextHolder(val text: String, val textColor: Int) : ListItemHolder() {
-
+    override fun getItemId(): Long {
+        return (text.hashCode() + textColor).toLong()
+    }
 }
 
 @ItemHolder(NovelTextHolder::class)
-class NovelTextViewHolder(private val bd: CellNovelTextBinding) : ListItemViewHolder<CellNovelTextBinding, NovelTextHolder>(bd) {
+class NovelTextViewHolder(bd: CellNovelTextBinding) : ListItemViewHolder<CellNovelTextBinding, NovelTextHolder>(bd) {
 
     override fun onBindViewHolder(holder: NovelTextHolder, position: Int) {
         super.onBindViewHolder(holder, position)

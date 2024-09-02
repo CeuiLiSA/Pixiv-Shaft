@@ -2,31 +2,52 @@ package ceui.pixiv.ui.novel
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentHomeViewpagerBinding
+import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.lisa.utils.Common
+import ceui.lisa.fragments.WebNovelParser
+import ceui.lisa.models.WebNovel
 import ceui.loxia.Client
+import ceui.loxia.KListShow
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
-import ceui.loxia.PixivHtmlObject
+import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.refactor.viewBinding
-import com.google.gson.Gson
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
+
+class NovelTextViewModel : ViewModel() {
+    var webNovel: WebNovel? = null
+}
 
 class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val args by navArgs<NovelTextFragmentArgs>()
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val novelViewModel by pixivListViewModel {
-        NovelTextDataSource(args.novelId)
+    private val viewModel by viewModels<NovelTextViewModel>()
+    private val novelViewModel by pixivListViewModel({ Pair(viewModel, args.novelId) }) { (vm, novelId) ->
+        DataSource<String, KListShow<String>>(
+            dataFetcher = {
+                val html = Client.appApi.getNovelText(novelId).string()
+                object : KListShow<String> {
+                    override val displayList: List<String>
+                        get() {
+                            val webNovel = WebNovelParser.parsePixivObject(html)?.novel
+                            vm.webNovel = webNovel
+                            return webNovel?.text?.split("\n") ?: listOf()
+                        }
+                    override val nextPageUrl: String?
+                        get() = null
+                }
+            },
+            itemMapper = { text -> WebNovelParser.buildNovelHolders(vm.webNovel, text) }
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
