@@ -59,11 +59,14 @@ open class MenuDialog : PixivDialog(R.layout.dialog_menu), MenuActionReceiver {
 @Parcelize
 data class MenuItem(
     val title: String,
+    val secondaryTitle: String? = null,
     val action: () -> Unit
 ) : Parcelable
 
 class MenuHolder(val menuItem: MenuItem) : ListItemHolder() {
-
+    override fun getItemId(): Long {
+        return menuItem.hashCode().toLong()
+    }
 }
 
 @ItemHolder(MenuHolder::class)

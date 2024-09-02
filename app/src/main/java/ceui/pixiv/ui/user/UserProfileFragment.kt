@@ -32,6 +32,8 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpToolbar
+import ceui.pixiv.widgets.MenuItem
+import ceui.pixiv.widgets.showActionMenu
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -94,7 +96,17 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
         }
 
         binding.naviMore.setOnClick {
-            FetchAllTask(taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画") { Client.appApi.getUserCreatedIllusts(args.userId, ObjectType.ILLUST) }
+            showActionMenu {
+                add(
+                    MenuItem("下载全部作品", "实验性功能，测试中") {
+                        FetchAllTask(taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画") { Client.appApi.getUserCreatedIllusts(args.userId, ObjectType.ILLUST) }
+                    }
+                )
+                add(
+                    MenuItem("收藏全部作品", "实验性功能，测试中") {
+                    }
+                )
+            }
         }
 
 

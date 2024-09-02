@@ -9,7 +9,7 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/transparent"
+        android:background="@null"
         app:elevation="0dp">
 
 <!--        <androidx.constraintlayout.widget.ConstraintLayout-->

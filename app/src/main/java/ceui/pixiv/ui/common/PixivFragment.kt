@@ -182,17 +182,6 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         }
 
         binding.listSetting.setOnClick {
-//            showActionMenu {
-//                add(
-//                    MenuItem("下载全部作品") {
-//
-//                    }
-//                )
-//                add(
-//                    MenuItem("收藏全部作品") {
-//                    }
-//                )
-//            }
             ItemListDialogFragment.newInstance(3).show(childFragmentManager, "Tag")
         }
     }

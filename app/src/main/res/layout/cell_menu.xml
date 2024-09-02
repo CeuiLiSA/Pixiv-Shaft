@@ -12,13 +12,29 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:background="@drawable/cell_background"
-        android:layout_height="60dp">
+        android:layout_height="wrap_content">
 
         <TextView
+            android:id="@+id/first_title"
             android:textColor="@color/text00"
             app:layout_constraintTop_toTopOf="parent"
             android:layout_marginStart="20dp"
+            android:textSize="15sp"
+            android:layout_marginTop="20dp"
             android:text="@{holder.menuItem.title}"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:textColor="@color/text20"
+            android:layout_marginTop="8dp"
+            visibleOrGone="@{holder.menuItem.secondaryTitle.length() > 0}"
+            app:layout_constraintTop_toBottomOf="@+id/first_title"
+            android:textSize="13sp"
+            android:layout_marginStart="20dp"
+            android:text="@{holder.menuItem.secondaryTitle}"
+            android:layout_marginBottom="20dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_width="wrap_content"
