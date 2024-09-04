@@ -25,6 +25,8 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.User
 import ceui.loxia.pushFragment
+import ceui.pixiv.ui.bottom.ItemListDialogFragment
+import ceui.pixiv.ui.bottom.OffsetPageActionReceiver
 import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.common.ImgUrlFragment
 import ceui.pixiv.ui.common.ImgUrlFragmentArgs
@@ -40,6 +42,7 @@ import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlin.math.roundToInt
 
 interface UserActionReceiver {
     fun onClickUser(id: Long)
@@ -95,19 +98,7 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
             windowInsets
         }
 
-        binding.naviMore.setOnClick {
-            showActionMenu {
-                add(
-                    MenuItem("下载全部作品", "实验性功能，测试中") {
-                        FetchAllTask(taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画") { Client.appApi.getUserCreatedIllusts(args.userId, ObjectType.ILLUST) }
-                    }
-                )
-                add(
-                    MenuItem("收藏全部作品", "实验性功能，测试中") {
-                    }
-                )
-            }
-        }
+
 
 
         binding.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
@@ -170,6 +161,30 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
             binding.tabLayout.getTabAt(0)?.text = buildTabText(0)
             binding.tabLayout.getTabAt(1)?.text = buildTabText(1)
             binding.tabLayout.getTabAt(2)?.text = buildTabText(2)
+            binding.naviMore.setOnClick {
+                showActionMenu {
+                    add(
+                        MenuItem("下载全部作品", "实验性功能，测试中") {
+                            FetchAllTask(taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画") {
+                                Client.appApi.getUserCreatedIllusts(
+                                    args.userId,
+                                    ObjectType.ILLUST
+                                )
+                            }
+                        }
+                    )
+                    add(
+                        MenuItem("收藏全部作品", "实验性功能，测试中") {
+                        }
+                    )
+                    add(
+                        MenuItem("按照页数查看作品", "实验性功能，测试中") {
+                            ItemListDialogFragment.newInstance(calculateTotalPages(result.profile?.total_illusts ?: 0, 30))
+                                .show(childFragmentManager, "Tag")
+                        }
+                    )
+                }
+            }
         }
 
         binding.viewPager.adapter = object : FragmentStateAdapter(this) {
@@ -204,5 +219,13 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
         ) { tab, position ->
             tab.setText(buildTabText(position))
         }.attach()
+    }
+
+    private fun calculateTotalPages(totalItems: Int, pageSize: Int): Int {
+        return if (totalItems % pageSize == 0) {
+            totalItems / pageSize
+        } else {
+            (totalItems / pageSize) + 1
+        }
     }
 }

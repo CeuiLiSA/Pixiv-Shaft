@@ -19,12 +19,18 @@ import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.marginTop
 import ceui.lisa.R
+import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.DialogAlertBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogItemBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogBinding
 import ceui.lisa.utils.Common
+import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.ui.common.CommonAdapter
+import ceui.pixiv.ui.common.ListItemHolder
+import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.setUpFullScreen
 import ceui.pixiv.widgets.PixivBottomSheet
+import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -43,45 +49,22 @@ const val ARG_ITEM_COUNT = "item_count"
  *    ItemListDialogFragment.newInstance(30).show(supportFragmentManager, "dialog")
  * </pre>
  */
-class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dialog_list_dialog) {
+class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dialog_list_dialog), OffsetPageActionReceiver {
 
     private val binding by viewBinding(FragmentItemListDialogListDialogBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val adapter = CommonAdapter(viewLifecycleOwner)
         binding.list.layoutManager =
             LinearLayoutManager(context)
-        binding.list.adapter =
-            arguments?.getInt(ARG_ITEM_COUNT)?.let { ItemAdapter(it) }
-    }
-
-    private inner class ViewHolder(binding: FragmentItemListDialogListDialogItemBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
-        val text: TextView = binding.text
-    }
-
-    private inner class ItemAdapter(private val mItemCount: Int) :
-        RecyclerView.Adapter<ViewHolder>() {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-
-            return ViewHolder(
-                FragmentItemListDialogListDialogItemBinding.inflate(
-                    LayoutInflater.from(
-                        parent.context
-                    ), parent, false
-                )
-            )
-
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.text.text = position.toString()
-        }
-
-        override fun getItemCount(): Int {
-            return mItemCount
+        binding.list.adapter = adapter
+        arguments?.getInt(ARG_ITEM_COUNT)?.let {
+            val holders = mutableListOf<ListItemHolder>()
+            repeat(it) { index ->
+                holders.add(OffsetPageHolder(index))
+            }
+            adapter.submitList(holders)
         }
     }
 
@@ -96,4 +79,32 @@ class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dial
             }
 
     }
+
+    override fun onClickOffsetPage(index: Int) {
+        viewModel.choosenOffsetPage.value = index
+        dismissAllowingStateLoss()
+    }
+}
+
+class OffsetPageHolder(val index: Int) : ListItemHolder() {
+    override fun getItemId(): Long {
+        return index.toLong()
+    }
+}
+
+@ItemHolder(OffsetPageHolder::class)
+class OffsetPageViewHolder(bd: FragmentItemListDialogListDialogItemBinding) :
+    ListItemViewHolder<FragmentItemListDialogListDialogItemBinding, OffsetPageHolder>(bd) {
+
+    override fun onBindViewHolder(holder: OffsetPageHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
+        binding.text.text = "第${holder.index * 30} ~ ${(holder.index + 1) * 30}条数据"
+        binding.root.setOnClick {
+            it.findActionReceiverOrNull<OffsetPageActionReceiver>()?.onClickOffsetPage(holder.index)
+        }
+    }
+}
+
+interface OffsetPageActionReceiver {
+    fun onClickOffsetPage(index: Int)
 }

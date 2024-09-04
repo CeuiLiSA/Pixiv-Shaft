@@ -2,6 +2,7 @@ package ceui.pixiv.ui.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
@@ -82,6 +83,33 @@ open class DataSource<Item, T: KListShow<Item>>(
             _refreshState.value = RefreshState.ERROR(ex)
             ex.printStackTrace()
         }
+    }
+
+    private fun updateOffsetInUrl(url: String, newOffset: Int): String {
+        val regex = """(offset=)(\d+)""".toRegex()
+        return if (regex.containsMatchIn(url)) {
+            // 替换现有的 offset 参数
+            regex.replace(url) { matchResult ->
+                "${matchResult.groupValues[1]}$newOffset"
+            }
+        } else {
+            // 如果 URL 中没有 offset 参数，直接添加它
+            if (url.contains("?")) {
+                "$url&offset=$newOffset"
+            } else {
+                "$url?offset=$newOffset"
+            }
+        }
+    }
+
+    suspend fun loadOffsetData(pageIndex: Int) {
+        val nextPageUrl = _nextPageUrl ?: return
+        Common.showLog("dasasds aaa ${nextPageUrl}")
+        val newNextUrl = updateOffsetInUrl(nextPageUrl, pageIndex * 30)
+        _nextPageUrl = newNextUrl
+        currentProtoItems.clear()
+        Common.showLog("dasasds bbb ${newNextUrl}")
+        loadMoreData()
     }
 
     private fun mapProtoItemsToHolders() {

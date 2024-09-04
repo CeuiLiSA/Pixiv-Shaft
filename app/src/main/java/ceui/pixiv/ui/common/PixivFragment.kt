@@ -182,7 +182,6 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         }
 
         binding.listSetting.setOnClick {
-            ItemListDialogFragment.newInstance(3).show(childFragmentManager, "Tag")
         }
     }
 }

@@ -3,11 +3,14 @@ package ceui.pixiv.widgets
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import ceui.lisa.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 open class PixivBottomSheet(layoutId: Int) : BottomSheetDialogFragment(layoutId) {
+
+    protected val viewModel by activityViewModels<DialogViewModel>()
 
     override fun onStart() {
         super.onStart()

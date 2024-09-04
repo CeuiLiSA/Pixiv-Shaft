@@ -3,6 +3,7 @@ package ceui.pixiv.widgets
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.lisa.R
 import kotlinx.coroutines.CompletableDeferred
@@ -10,6 +11,8 @@ import kotlinx.coroutines.CompletableDeferred
 class DialogViewModel : ViewModel() {
     val menuTaskPool = hashMapOf<String, CompletableDeferred<MenuItem>>()
     val alertTaskPool = hashMapOf<String, CompletableDeferred<Boolean>>()
+
+    val choosenOffsetPage = MutableLiveData<Int>()
 }
 
 open class PixivDialog(layoutId: Int) : DialogFragment(layoutId) {
