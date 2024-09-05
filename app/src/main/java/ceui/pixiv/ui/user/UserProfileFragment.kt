@@ -58,6 +58,7 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
             resp.user?.let {
                 ObjectPool.update(it)
             }
+            ObjectPool.update(resp)
             resp
         }
     )
@@ -177,12 +178,6 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
                         MenuItem("收藏全部作品", "实验性功能，测试中") {
                         }
                     )
-                    add(
-                        MenuItem("按照页数查看作品", "实验性功能，测试中") {
-                            ItemListDialogFragment.newInstance(calculateTotalPages(result.profile?.total_illusts ?: 0, 30))
-                                .show(childFragmentManager, "Tag")
-                        }
-                    )
                 }
             }
         }
@@ -219,13 +214,5 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
         ) { tab, position ->
             tab.setText(buildTabText(position))
         }.attach()
-    }
-
-    private fun calculateTotalPages(totalItems: Int, pageSize: Int): Int {
-        return if (totalItems % pageSize == 0) {
-            totalItems / pageSize
-        } else {
-            (totalItems / pageSize) + 1
-        }
     }
 }

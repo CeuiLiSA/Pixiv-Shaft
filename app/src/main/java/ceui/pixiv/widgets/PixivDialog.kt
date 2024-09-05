@@ -1,5 +1,6 @@
 package ceui.pixiv.widgets
 
+import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels

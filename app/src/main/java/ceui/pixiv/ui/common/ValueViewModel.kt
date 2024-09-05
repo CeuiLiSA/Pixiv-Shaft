@@ -6,15 +6,30 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.slinkyViewModels
 import kotlinx.coroutines.launch
 
 fun <T> Fragment.pixivValueViewModel(
     loader: suspend () -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return ValueViewModel(loader) as T
+            }
+        }
+    }
+}
+
+inline fun <T> Fragment.pixivValueViewModel(
+    noinline ownerProducer: () -> ViewModelStoreOwner = { this },
+    noinline loader: suspend () -> T,
+): Lazy<ValueViewModel<T>> {
+    return this.viewModels(ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return ValueViewModel(loader) as T

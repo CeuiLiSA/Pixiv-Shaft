@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
@@ -19,21 +20,27 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
+import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.Novel
+import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Tag
+import ceui.loxia.User
 import ceui.loxia.getHumanReadableMessage
+import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.bottom.ItemListDialogFragment
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
+import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
+import ceui.pixiv.widgets.DialogViewModel
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.PixivBottomSheet
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -180,9 +187,39 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
             adapter.submitList(holders)
         }
+    }
+}
 
-        binding.listSetting.setOnClick {
+
+private fun calculateTotalPages(totalItems: Int, pageSize: Int): Int {
+    return if (totalItems % pageSize == 0) {
+        totalItems / pageSize
+    } else {
+        (totalItems / pageSize) + 1
+    }
+}
+
+fun Fragment.setUpSizedList(binding: FragmentPixivListBinding, dataSource: DataSourceContainer<*, *>, listFullSize: Int) {
+    val dialogViewModel by activityViewModels<DialogViewModel>()
+    if (listFullSize > 30) {
+        binding.listSetting.isVisible = true
+        dialogViewModel.choosenOffsetPage.observe(viewLifecycleOwner) {
+            launchSuspend {
+                dataSource.dataSource().loadOffsetData(it)
+            }
         }
+        binding.listSetting.setOnClick {
+            showActionMenu {
+                add(
+                    MenuItem("按照页数查看作品", "实验性功能，测试中") {
+                        ItemListDialogFragment.newInstance(calculateTotalPages(listFullSize, 30))
+                            .show(childFragmentManager, "Tag")
+                    }
+                )
+            }
+        }
+    } else {
+        binding.listSetting.isVisible = false
     }
 }
 

@@ -274,18 +274,6 @@ data class Error(
 
 class UserMessageDetails : Serializable
 
-data class UserResponse(
-    val profile: Profile? = null,
-    val profile_publicity: ProfilePublicity? = null,
-    val user: User? = null,
-    val workspace: Workspace? = null
-) {
-
-    fun isPremium(): Boolean {
-        return profile?.is_premium == true
-    }
-}
-
 data class Profile(
     val address_id: Int? = null,
     val background_image_url: String? = null,

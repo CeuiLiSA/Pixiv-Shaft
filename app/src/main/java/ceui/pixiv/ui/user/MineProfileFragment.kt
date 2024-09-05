@@ -42,6 +42,7 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             resp.user?.let {
                 ObjectPool.update(it)
             }
+            ObjectPool.update(resp)
             resp
         }
     )

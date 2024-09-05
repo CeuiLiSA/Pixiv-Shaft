@@ -12,21 +12,26 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Client
 import ceui.loxia.Illust
+import ceui.loxia.ObjectPool
+import ceui.loxia.ObjectType
 import ceui.loxia.User
+import ceui.loxia.UserResponse
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.common.setUpSizedList
 import ceui.refactor.ppppx
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 
@@ -44,6 +49,13 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel)
+        if (args.userId == SessionManager.loggedInUid) {
+            ObjectPool.get<UserResponse>(args.userId).observe(viewLifecycleOwner) { user ->
+                if (args.restrictType == Params.TYPE_PUBLIC) {
+                    setUpSizedList(binding, viewModel, user.profile?.total_follow_users ?: 0)
+                }
+            }
+        }
         binding.listView.addItemDecoration(LinearItemDecoration(20.ppppx))
         binding.listView.layoutManager = LinearLayoutManager(requireContext())
     }

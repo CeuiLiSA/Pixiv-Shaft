@@ -18,18 +18,21 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.marginTop
+import androidx.lifecycle.LiveData
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.DialogAlertBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogItemBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogBinding
 import ceui.lisa.utils.Common
+import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.setUpFullScreen
 import ceui.pixiv.widgets.PixivBottomSheet
+import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -62,7 +65,7 @@ class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dial
         arguments?.getInt(ARG_ITEM_COUNT)?.let {
             val holders = mutableListOf<ListItemHolder>()
             repeat(it) { index ->
-                holders.add(OffsetPageHolder(index))
+                holders.add(OffsetPageHolder(index, viewModel.choosenOffsetPage))
             }
             adapter.submitList(holders)
         }
@@ -86,7 +89,7 @@ class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dial
     }
 }
 
-class OffsetPageHolder(val index: Int) : ListItemHolder() {
+class OffsetPageHolder(val index: Int, val selectedIndex: LiveData<Int>) : ListItemHolder() {
     override fun getItemId(): Long {
         return index.toLong()
     }
@@ -98,8 +101,10 @@ class OffsetPageViewHolder(bd: FragmentItemListDialogListDialogItemBinding) :
 
     override fun onBindViewHolder(holder: OffsetPageHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        binding.text.text = "第${holder.index * 30} ~ ${(holder.index + 1) * 30}条数据"
-        binding.root.setOnClick {
+        binding.holder = holder
+        binding.firstTitle.text = "第${holder.index + 1}页结果"
+        binding.secondaryTitle.text = "第${holder.index * 30} ~ ${(holder.index + 1) * 30}个作品"
+        binding.root.setOnClickListener {
             it.findActionReceiverOrNull<OffsetPageActionReceiver>()?.onClickOffsetPage(holder.index)
         }
     }
