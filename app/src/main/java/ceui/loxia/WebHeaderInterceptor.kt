@@ -35,15 +35,15 @@ class WebHeaderInterceptor : Interceptor {
             .addHeader("Cookie", cookies)
             .addHeader("Referer", "https://www.pixiv.net/")
             .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 6 Build/UQ1A.240105.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/123.0.6312.42 Mobile Safari/537.36 AgentWeb/4.1.9  UCBrowser/11.6.4.950")
-        val type = object : TypeToken<Map<String, String>>() {}.type
-        val jsonHeaders = prefStore.getString("web-api-header", "")
-        if (jsonHeaders?.isNotEmpty() == true) {
-            val deserializedHeaders: Map<String, String> = gson.fromJson(jsonHeaders, type)
-            deserializedHeaders.forEach { (k, v) ->
-                before.removeHeader(k)
-                before.addHeader(k, v)
-            }
-        }
+//        val type = object : TypeToken<Map<String, String>>() {}.type
+//        val jsonHeaders = prefStore.getString("web-api-header", "")
+//        if (jsonHeaders?.isNotEmpty() == true) {
+//            val deserializedHeaders: Map<String, String> = gson.fromJson(jsonHeaders, type)
+//            deserializedHeaders.forEach { (k, v) ->
+//                before.removeHeader(k)
+//                before.addHeader(k, v)
+//            }
+//        }
         return before
     }
 }
