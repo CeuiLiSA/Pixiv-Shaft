@@ -23,9 +23,7 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="20dp">
+            android:layout_height="wrap_content">
 
 
             <de.hdodenhof.circleimageview.CircleImageView
@@ -42,7 +40,6 @@
             <LinearLayout
                 android:layout_width="0dp"
                 app:layout_constraintEnd_toStartOf="@+id/end_layout"
-                android:layout_marginEnd="10dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="14dp"
                 android:orientation="vertical"
@@ -110,9 +107,8 @@
             visibleOrGone="@{holder.userPreview.illusts.size() > 0}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="8dp"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:layout_marginTop="8dp">
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_1"
@@ -152,10 +148,6 @@
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="20dp" />
 
     </LinearLayout>
 </layout>

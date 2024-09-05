@@ -6,6 +6,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
@@ -50,12 +51,8 @@ class SearchUserFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.listView.layoutManager = LinearLayoutManager(requireContext())
+        binding.listView.addItemDecoration(LinearItemDecoration(20.ppppx))
         setUpRefreshState(binding, viewModel)
-        val dividerDecoration = BottomDividerDecoration(
-            requireContext(),
-            R.drawable.list_divider,
-        )
-        binding.listView.addItemDecoration(dividerDecoration)
         searchViewModel.searchUserEvent.observeEvent(viewLifecycleOwner) {
             viewModel.refresh(RefreshHint.InitialLoad)
         }
