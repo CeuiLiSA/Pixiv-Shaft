@@ -14,6 +14,7 @@ import ceui.loxia.User
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
@@ -99,6 +100,7 @@ object SessionManager {
                     refreshToken,
                     true
                 ).execute().body()
+                delay(500L)
                 if (userModel != null) {
                     withContext(Dispatchers.Main) {
                         updateSession(userModel)

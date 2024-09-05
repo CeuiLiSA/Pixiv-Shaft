@@ -175,6 +175,9 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
     implementation 'com.github.liujingxing.rxlife:rxlife-rxjava3:2.2.1'
 
+    def lottieVersion = "3.4.0"
+    implementation "com.airbnb.android:lottie:$lottieVersion"
+
     implementation 'xyz.zpayh:hdimageview:3.0.2'
 
     implementation project(path: ':models')

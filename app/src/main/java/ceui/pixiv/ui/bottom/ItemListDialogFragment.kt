@@ -63,11 +63,9 @@ class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dial
             LinearLayoutManager(context)
         binding.list.adapter = adapter
         arguments?.getInt(ARG_ITEM_COUNT)?.let {
-            val holders = mutableListOf<ListItemHolder>()
-            repeat(it) { index ->
-                holders.add(OffsetPageHolder(index, viewModel.choosenOffsetPage))
-            }
-            adapter.submitList(holders)
+            adapter.submitList(List(it) { index ->
+                OffsetPageHolder(index, viewModel.choosenOffsetPage)
+            })
         }
     }
 
