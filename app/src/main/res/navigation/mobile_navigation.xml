@@ -32,6 +32,11 @@
         android:name="ceui.pixiv.ui.task.TaskListFragment"
         tools:layout="@layout/fragment_pixiv_list" />
 
+    <fragment
+        android:id="@+id/navigation_web_fragment"
+        android:name="ceui.pixiv.ui.web.WebFragment"
+        tools:layout="@layout/fragment_web" />
+
 
     <fragment
         android:id="@+id/navigation_home_viewpager"

@@ -38,6 +38,10 @@ object Client {
     val authApi: AccountTokenApi by lazy {
         clientManager.createOAuthAPI(AccountTokenApi::class.java)
     }
+
+    val webApi: PixivWebApi by lazy {
+        clientManager.createWebAPIService(PixivWebApi::class.java)
+    }
 }
 
 class ClientManager {
@@ -102,11 +106,33 @@ class ClientManager {
         okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
             setLevel(HttpLoggingInterceptor.Level.BODY)
         })
+        okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
+            setLevel(HttpLoggingInterceptor.Level.BODY)
+        })
 
         return Retrofit.Builder()
             .baseUrl(OAUTH_HOST)
             .addConverterFactory(GsonConverterFactory.create())
             .client(okhttpClientBuilder.build())
+            .build()
+            .create(service)
+    }
+
+    fun <T> createWebAPIService(service: Class<T>): T {
+        val httpBuilder = OkHttpClient.Builder()
+            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .protocols(listOf(Protocol.HTTP_1_1))
+
+        httpBuilder.addInterceptor(WebHeaderInterceptor())
+        httpBuilder.addInterceptor(HttpLoggingInterceptor().apply {
+            setLevel(HttpLoggingInterceptor.Level.BODY)
+        })
+        return Retrofit.Builder()
+            .baseUrl(WEB_API_HOST)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(httpBuilder.build())
             .build()
             .create(service)
     }
