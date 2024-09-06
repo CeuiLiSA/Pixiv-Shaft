@@ -58,7 +58,6 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
                     val headersMap: Map<String, String> = request.requestHeaders
                     val jsonHeaders: String = Gson().toJson(headersMap)
                     prefStore.putString("web-api-header", jsonHeaders)
-                    Common.showLog("asewsd requestUrlString ${requestUrlString}")
                     Common.showLog("asewsd jsonHeaders ${jsonHeaders}")
                 }
                 return super.shouldInterceptRequest(view, request)
