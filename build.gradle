@@ -41,6 +41,8 @@ allprojects {
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
         google()
+        maven { url 'https://maven.aliyun.com/repository/public/' }
+//        mavenLocal()
     }
 }
 
