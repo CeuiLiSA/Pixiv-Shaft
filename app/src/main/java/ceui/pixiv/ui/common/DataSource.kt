@@ -28,6 +28,9 @@ open class DataSource<Item, T: KListShow<Item>>(
     private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
     val itemHolders: LiveData<List<ListItemHolder>> = _itemHolders
 
+    private val _liveNextUrl = MutableLiveData<String>()
+    val liveNextUrl: LiveData<String> = _liveNextUrl
+
     private var _nextPageUrl: String? = null
     private val gson = Gson()
 
@@ -48,6 +51,7 @@ open class DataSource<Item, T: KListShow<Item>>(
             currentProtoItems.clear()
             responseClass = response::class.java as Class<T>
             _nextPageUrl = response.nextPageUrl
+            _liveNextUrl.value = response.nextPageUrl
             currentProtoItems.addAll(response.displayList)
             mapProtoItemsToHolders()
             _refreshState.value = RefreshState.LOADED(
@@ -70,7 +74,7 @@ open class DataSource<Item, T: KListShow<Item>>(
                 gson.fromJson(responseJson, responseClass)
             }
             _nextPageUrl = response.nextPageUrl
-
+            _liveNextUrl.value = response.nextPageUrl
             if (response.displayList.isNotEmpty()) {
                 currentProtoItems.addAll(response.displayList)
                 mapProtoItemsToHolders()
@@ -107,6 +111,7 @@ open class DataSource<Item, T: KListShow<Item>>(
         Common.showLog("dasasds aaa ${nextPageUrl}")
         val newNextUrl = updateOffsetInUrl(nextPageUrl, pageIndex * 30)
         _nextPageUrl = newNextUrl
+        _liveNextUrl.value = newNextUrl
         currentProtoItems.clear()
         Common.showLog("dasasds bbb ${newNextUrl}")
         loadMoreData()

@@ -25,6 +25,16 @@
                 android:clipToPadding="false"
                 android:layout_height="match_parent"/>
 
+            <TextView
+                android:id="@+id/next_url"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_margin="20dp"
+                android:textSize="11sp"
+                android:textColor="@color/text00"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
             <ImageView
                 android:id="@+id/list_setting"
                 android:scaleType="centerInside"

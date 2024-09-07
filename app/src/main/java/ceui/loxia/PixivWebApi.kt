@@ -36,6 +36,8 @@ interface PixivWebApi {
     suspend fun getMessageListBBBB()
 
 
-
-
+    @GET("/touch/ajax/search/illusts?include_meta=1&type=all&csw=0&s_mode=s_tag_full&lang=zh&version=eb51bf32f166e48a193f081b66211ef5cc643d6e")
+    suspend fun getCircleDetail(
+        @Query("word") word: String,
+    ): CircleResponse
 }

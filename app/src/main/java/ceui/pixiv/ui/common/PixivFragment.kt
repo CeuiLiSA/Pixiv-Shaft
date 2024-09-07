@@ -192,6 +192,9 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
             adapter.submitList(holders)
         }
+//        viewModel.liveNextUrl.observe(viewLifecycleOwner) { url ->
+//            binding.nextUrl.text = url
+//        }
     }
 }
 

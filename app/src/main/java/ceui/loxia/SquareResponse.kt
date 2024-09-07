@@ -2,12 +2,37 @@ package ceui.loxia
 
 import java.io.Serializable
 
+interface WebApiResponse<T> : Serializable {
+    val error: Boolean?
+    val message: String?
+    val body: T?
+}
+
+data class CircleResponse(
+    override val error: Boolean? = null,
+    override val message: String? = null,
+    override val body: Circle? = null
+) : WebApiResponse<Circle>
+
+data class Circle(
+    val illusts: List<WebIllust>? = null,
+    val total: Int = 0,
+    val lastPage: Int = 0,
+    val meta: CircleMeta? = null
+) : Serializable
+
+data class CircleMeta(
+    val tag: String? = null,
+    val translatedTag: String? = null,
+    val words: List<String>? = null,
+    val relatedTags: List<WebTag>? = null,
+) : Serializable
 
 data class SquareResponse(
-    val error: Boolean? = null,
-    val message: String? = null,
-    val body: Square? = null
-) : Serializable
+    override val error: Boolean? = null,
+    override val message: String? = null,
+    override val body: Square? = null
+) : WebApiResponse<Square>
 
 data class Square(
     val tagTranslation: Map<String, TranslatedTags>? = null,

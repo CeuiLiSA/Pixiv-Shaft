@@ -135,6 +135,16 @@ data class MetaSinglePage(
     val original_image_url: String? = null
 ) : Serializable
 
+data class WebTag(
+    val tag: String? = null,
+    val tag_translation: String? = null,
+    val cnt: Int? = null
+) : Serializable {
+    val tagName: String? get() {
+        return tag ?: tag_translation
+    }
+}
+
 data class Tag(
     val name: String? = null,
     val translated_name: String? = null

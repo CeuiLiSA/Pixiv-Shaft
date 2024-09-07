@@ -52,6 +52,7 @@ class PixivListViewModel<Item, T : KListShow<Item>>(
 
     override val refreshState: LiveData<RefreshState> = _dataSource.refreshState
     override val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHolders
+    override val liveNextUrl: LiveData<String> = _dataSource.liveNextUrl
 
     init {
         if (_dataSource.initialLoad()) {
