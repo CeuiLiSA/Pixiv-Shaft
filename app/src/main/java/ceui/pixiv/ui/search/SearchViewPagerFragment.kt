@@ -2,37 +2,30 @@ package ceui.pixiv.ui.search
 
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.navArgs
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentSearchViewpagerBinding
-import ceui.loxia.ObjectType
 import ceui.loxia.Tag
 import ceui.loxia.combineLatest
-import ceui.loxia.debounce
 import ceui.loxia.hideKeyboard
-import ceui.loxia.toDiff
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
+import ceui.pixiv.ui.common.CommonViewPagerViewModel
 import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
-import ceui.pixiv.ui.trending.TrendingTagsFragment
-import ceui.pixiv.ui.trending.TrendingTagsFragmentArgs
-import ceui.pixiv.ui.user.recommend.RecommendUsersFragment
 import ceui.pixiv.widgets.setUpWith
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
-class SearchViewPagerFragment : PixivFragment(R.layout.fragment_search_viewpager), ViewPagerFragment {
+class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search_viewpager) {
 
     private val binding by viewBinding(FragmentSearchViewpagerBinding::bind)
     private val args by navArgs<SearchViewPagerFragmentArgs>()
@@ -73,19 +66,25 @@ class SearchViewPagerFragment : PixivFragment(R.layout.fragment_search_viewpager
                     builder = {
                         SearchIlllustMangaFragment()
                     },
-                    title = getString(R.string.string_136)
+                    titleLiveData = getTitleLiveData(0).apply {
+                        value = getString(R.string.string_136)
+                    }
                 ),
                 PagedFragmentItem(
                     builder = {
                         SearchNovelFragment()
                     },
-                    title = getString(R.string.type_novel)
+                    titleLiveData = getTitleLiveData(1).apply {
+                        value = getString(R.string.type_novel)
+                    }
                 ),
                 PagedFragmentItem(
                     builder = {
                         SearchUserFragment()
                     },
-                    title = getString(R.string.type_user)
+                    titleLiveData = getTitleLiveData(2).apply {
+                        value = getString(R.string.type_user)
+                    }
                 )
             ),
             this

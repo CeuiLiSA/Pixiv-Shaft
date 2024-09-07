@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.web
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -11,18 +13,21 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.navigation.fragment.navArgs
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentWebBinding
 import ceui.lisa.utils.Common
-import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.setUpToolbar
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 
+
 class WebFragment : PixivFragment(R.layout.fragment_web) {
 
+    private val args by navArgs<WebFragmentArgs>()
     private val prefStore: MMKV by lazy {
         MMKV.defaultMMKV()
     }
@@ -33,8 +38,15 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         val binding = FragmentWebBinding.bind(view)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.webView.updatePadding(0, insets.top, 0, insets.bottom)
+            binding.refreshLayout.updateLayoutParams<MarginLayoutParams> {
+                topMargin = insets.top
+            }
             WindowInsetsCompat.CONSUMED
+        }
+
+        // 设置 SwipeRefreshLayout 的刷新监听器
+        binding.refreshLayout.setOnRefreshListener { // 重新加载 WebView 页面
+            binding.webView.reload()
         }
 
         val webSettings: WebSettings = binding.webView.settings
@@ -47,6 +59,13 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
                     Common.showLog("dsaadsdsaaww2 set ${cookie}")
                     prefStore.putString("web-api-cookie", cookie)
                 }
+
+                binding.refreshLayout.isRefreshing = false
+            }
+
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                binding.refreshLayout.isRefreshing = true
             }
 
             override fun shouldInterceptRequest(
@@ -54,11 +73,13 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
                 request: WebResourceRequest?
             ): WebResourceResponse? {
                 val requestUrlString = request?.url?.toString()
-                if (requestUrlString?.contains("ajax/user/bookmarks") == true) {
-                    val headersMap: Map<String, String> = request.requestHeaders
-                    val jsonHeaders: String = Gson().toJson(headersMap)
-                    prefStore.putString("web-api-header", jsonHeaders)
-                    Common.showLog("asewsd jsonHeaders ${jsonHeaders}")
+                if (requestUrlString?.contains("ajax") == true) {
+//                    val headersMap: Map<String, String> = request.requestHeaders
+//                    val jsonHeaders: String = Gson().toJson(headersMap)
+//                    prefStore.putString("web-api-header", jsonHeaders)
+                    Common.showLog("asewsd requestUrlString ${requestUrlString}")
+
+                    // https://www.pixiv.net/touch/ajax/user/31660292/illusts/bookmarks?rest=show&offset=0&limit=48&lang=zh&version=ebdc1282e55d2c6d71244b71f158c2f32e968753
                 }
                 return super.shouldInterceptRequest(view, request)
             }
@@ -77,6 +98,6 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         webSettings.domStorageEnabled = true// -> 是否节点缓存
 
         // 加载 URL
-        binding.webView.loadUrl("https://www.pixiv.net")
+        binding.webView.loadUrl(args.url)
     }
 }

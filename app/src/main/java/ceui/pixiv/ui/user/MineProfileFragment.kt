@@ -87,9 +87,10 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             R.id.navigation_task_preview_list,
                         )
                     },
-                    TabCellHolder(getString(R.string.action_settings)),
-                    TabCellHolder("同步用户cookie").onItemClick {
-                        pushFragment(R.id.navigation_web_fragment)
+                    TabCellHolder(getString(R.string.action_settings)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_settings,
+                        )
                     },
                 )
             )

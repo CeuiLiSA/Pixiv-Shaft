@@ -3,6 +3,7 @@ package ceui.pixiv.widgets
 import android.view.View
 import androidx.databinding.BindingAdapter
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -36,7 +37,7 @@ fun View.setTabFocusFactorBigger(factor: Float) {
     scaleY = 1.0f + factor * 0.3f
 }
 
-class TitleTabHolder(val title: String) : ListItemHolder() {
+class TitleTabHolder(val title: LiveData<String>) : ListItemHolder() {
     val focusFactor = MutableLiveData(1F)
     val showsRedDot = MutableLiveData(false)
 }
@@ -60,8 +61,8 @@ fun List<TitleTabHolder>.updateTabFocus(focus: Float) {
 
 fun RecyclerView.setUpWith(viewPager: ViewPager2, slidingCursorView: SlidingCursorView, viewLifecycleOwner: LifecycleOwner, scrollToTopAction: ()->Unit) {
     val tabs = (0 until viewPager.adapter!!.itemCount).map {
-        val title = (viewPager.adapter as SmartFragmentPagerAdapter).getPageTitle(it).toString()
-        TitleTabHolder(title)
+        val titleLiveData = (viewPager.adapter as SmartFragmentPagerAdapter).getPageTitle(it)
+        TitleTabHolder(titleLiveData)
     }
 
     adapter = CommonAdapter(viewLifecycleOwner).apply {

@@ -30,8 +30,8 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val args by navArgs<NovelTextFragmentArgs>()
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val viewModel by viewModels<NovelTextViewModel>()
-    private val novelViewModel by pixivListViewModel({ Pair(viewModel, args.novelId) }) { (vm, novelId) ->
+    private val novelViewModel by viewModels<NovelTextViewModel>()
+    private val viewModel by pixivListViewModel({ Pair(novelViewModel, args.novelId) }) { (vm, novelId) ->
         DataSource<String, KListShow<String>>(
             dataFetcher = {
                 val html = Client.appApi.getNovelText(novelId).string()
@@ -52,7 +52,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, novelViewModel)
+        setUpRefreshState(binding, viewModel)
         ObjectPool.get<Novel>(args.novelId).observe(viewLifecycleOwner) {
             binding.toolbarLayout.naviTitle.text = it.title
         }

@@ -49,7 +49,7 @@ interface API {
     )
 
 
-    @GET("/v1/{type}/recommended?include_ranking_illusts=true&include_privacy_policy=true&filter=for_ios")
+    @GET("/v1/{type}/recommended?include_ranking_illusts=false&include_privacy_policy=true&filter=for_ios")
     suspend fun getHomeData(
         @Path("type") type: String,
     ): HomeIllustResponse

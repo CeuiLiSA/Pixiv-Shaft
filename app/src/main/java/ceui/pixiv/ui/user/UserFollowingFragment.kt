@@ -26,6 +26,8 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.TitledViewPagerFragment
+import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.setUpSizedList
 import ceui.refactor.ppppx
@@ -45,14 +47,30 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             itemMapper = { preview -> listOf(UserPreviewHolder(preview)) }
         )
     }
+    private val contentViewModel by pixivValueViewModel {
+        val rest = if (args.restrictType == Params.TYPE_PRIVATE) { "hide" } else { "show" }
+        Client.webApi.getRelatedUsers(SessionManager.loggedInUid, "following", rest)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel)
         if (args.userId == SessionManager.loggedInUid) {
-            ObjectPool.get<UserResponse>(args.userId).observe(viewLifecycleOwner) { user ->
-                if (args.restrictType == Params.TYPE_PUBLIC) {
+            if (args.restrictType == Params.TYPE_PUBLIC) {
+                ObjectPool.get<UserResponse>(args.userId).observe(viewLifecycleOwner) { user ->
+                    (parentFragment as? TitledViewPagerFragment)?.let {
+                        it.getTitleLiveData(0).value =
+                            "${getString(R.string.string_391)} (${user.profile?.total_follow_users ?: 0})"
+                    }
                     setUpSizedList(binding, viewModel, user.profile?.total_follow_users ?: 0)
+                }
+            } else if (args.restrictType == Params.TYPE_PRIVATE) {
+                contentViewModel.result.observe(viewLifecycleOwner) { result ->
+                    (parentFragment as? TitledViewPagerFragment)?.let {
+                        it.getTitleLiveData(1).value =
+                            "${getString(R.string.string_392)} (${result.body?.total ?: 0})"
+                    }
+                    setUpSizedList(binding, viewModel, result.body?.total ?: 0)
                 }
             }
         }

@@ -4,7 +4,8 @@ import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellTabBinding
 
 class TabCellHolder(
-    val title: String
+    val title: String,
+    val secondaryTitle: String? = null,
 ) : ListItemHolder() {
 
 }

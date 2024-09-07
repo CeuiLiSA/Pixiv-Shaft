@@ -10,6 +10,7 @@ import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
@@ -100,6 +101,10 @@ interface ViewPagerFragment {
 
 }
 
+interface ITitledViewPager : ViewPagerFragment {
+    fun getTitleLiveData(index: Int): MutableLiveData<String>
+}
+
 interface HomeTabContainer : ViewPagerFragment {
     fun bottomExtraSpacing(): Int = 100.ppppx
 }
@@ -139,8 +144,8 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
 }
 
 fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner) {
-    val ctx = requireContext()
     setUpToolbar(binding.toolbarLayout, binding.listView)
+    val ctx = requireContext()
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {
         viewModel.refresh(RefreshHint.PullToRefresh)

@@ -35,7 +35,11 @@
     <fragment
         android:id="@+id/navigation_web_fragment"
         android:name="ceui.pixiv.ui.web.WebFragment"
-        tools:layout="@layout/fragment_web" />
+        tools:layout="@layout/fragment_web" >
+        <argument
+            app:argType="string"
+            android:name="url"/>
+    </fragment>
 
 
     <fragment
@@ -155,6 +159,14 @@
         android:name="ceui.pixiv.ui.user.MineProfileFragment" >
 
     </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_settings"
+        android:name="ceui.pixiv.ui.settings.SettingsFragment" >
+
+    </fragment>
+
 
     <fragment
         android:id="@+id/navigation_task_status"

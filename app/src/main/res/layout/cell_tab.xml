@@ -13,23 +13,38 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="wrap_content"
         android:background="@drawable/cell_background"
-        android:paddingHorizontal="20dp">
+        android:padding="20dp">
 
         <TextView
+            android:id="@+id/first_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:layout_marginEnd="10dp"
+            android:gravity="start"
             android:text="@{holder.title}"
             android:textColor="@color/text00"
-            android:gravity="start"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/icon_tab_show_more"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:textSize="16sp"
             app:layout_constraintEnd_toStartOf="@+id/show_more"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            visibleOrGone="@{holder.secondaryTitle.length() > 0}"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="10dp"
+            android:visibility="gone"
+            android:gravity="start"
+            android:text="@{holder.secondaryTitle}"
+            android:textColor="@color/text20"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/show_more"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/first_title" />
 
         <ImageView
             android:id="@+id/show_more"

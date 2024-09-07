@@ -17,13 +17,20 @@ interface PixivWebApi {
     @GET("/ajax/top/illust?mode=all&lang=zh")
     suspend fun getSquareContents(): SquareResponse
 
-    @GET("ajax/user/{user_id}/illusts/bookmarks?rest=show&offset=0&limit=48&lang=zh&version=ebdc1282e55d2c6d71244b71f158c2f32e968753")
+
+    @GET("/touch/ajax/user/bookmarks?p=1&lang=zh&version=eb51bf32f166e48a193f081b66211ef5cc643d6e")
     suspend fun getBookmarkedIllust(
-        @Path("user_id") user_id: Long
+        @Query("id") id: Long,
+        @Query("type") type: String,
+        @Query("rest") rest: String,
     ): SquareResponse
 
-    // https://www.pixiv.net/ajax/user/31660292/illusts/bookmarks?tag=&rest=show&lang=zh&version=ebdc1282e55d2c6d71244b71f158c2f32e968753
-
+    @GET("/touch/ajax/user/related?p=1&lang=zh&version=eb51bf32f166e48a193f081b66211ef5cc643d6e")
+    suspend fun getRelatedUsers(
+        @Query("id") id: Long,
+        @Query("type") type: String,
+        @Query("rest") rest: String,
+    ): SquareResponse
 
     @GET("/touch/ajax/recommender/top_items?mode=safe&lang=zh")
     suspend fun getMessageListBBBB()
