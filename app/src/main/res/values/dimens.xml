@@ -43,4 +43,5 @@
     <dimen name="tab_layout_cursor_width">10dp</dimen>
 
     <dimen name="user_head_size_feeds">42dp</dimen>
+    <dimen name="tab_layout_neg_height">-48dp</dimen>
 </resources>

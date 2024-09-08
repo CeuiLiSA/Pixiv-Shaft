@@ -17,6 +17,15 @@
         tools:layout="@layout/fragment_pixiv_list" />
 
     <fragment
+        android:id="@+id/navigation_circle"
+        android:name="ceui.pixiv.ui.circles.CircleFragment"
+        tools:layout="@layout/fragment_circle" >
+        <argument
+            app:argType="string"
+            android:name="keyword"/>
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_cache_list"
         android:name="ceui.pixiv.ui.task.CacheFileFragment"
         tools:layout="@layout/fragment_pixiv_list" >

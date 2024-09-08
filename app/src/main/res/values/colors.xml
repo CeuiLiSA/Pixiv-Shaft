@@ -199,6 +199,7 @@
     <color name="splash_background">#10B7F5</color>
     <color name="page_default_background">#0A001A</color>
 
+    <color name="view_pager_shoulder">#59FFFFFF</color>
 
 </resources>
 

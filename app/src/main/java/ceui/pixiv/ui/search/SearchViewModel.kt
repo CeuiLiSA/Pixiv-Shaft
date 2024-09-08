@@ -11,6 +11,8 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
 
     val tagList = MutableLiveData<List<Tag>>()
 
+    val selectedRadioTabIndex = MutableLiveData(0)
+
     val inputDraft = MutableLiveData("")
 
     init {

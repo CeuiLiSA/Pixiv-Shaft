@@ -81,4 +81,6 @@
     <color name="list_divider">#26FFFFFF</color>
 
     <color name="page_default_background">#0A001A</color>
+
+    <color name="view_pager_shoulder">#4D000000</color>
 </resources>

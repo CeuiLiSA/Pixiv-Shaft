@@ -3,6 +3,7 @@ package ceui.pixiv.ui.search
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
@@ -30,13 +31,23 @@ class SearchIllustMangaDataSource(
 ) : DataSource<Illust, IllustResponse>(
     dataFetcher = {
         val config = provider()
-        Client.appApi.popularPreview(
-            word = config.keyword,
-            sort = config.sort,
-            search_target = config.search_target,
-            merge_plain_keyword_results = config.merge_plain_keyword_results,
-            include_translated_tag_results = config.include_translated_tag_results,
-        )
+        if (config.sort == SortType.POPULAR_PREVIEW) {
+            Client.appApi.popularPreview(
+                word = config.keyword,
+                sort = config.sort,
+                search_target = config.search_target,
+                merge_plain_keyword_results = config.merge_plain_keyword_results,
+                include_translated_tag_results = config.include_translated_tag_results,
+            )
+        } else {
+            Client.appApi.searchIllustManga(
+                word = config.keyword,
+                sort = config.sort,
+                search_target = config.search_target,
+                merge_plain_keyword_results = config.merge_plain_keyword_results,
+                include_translated_tag_results = config.include_translated_tag_results,
+            )
+        }
     },
     itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
 ) {
@@ -49,10 +60,26 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val searchViewModel by viewModels<SearchViewModel>(ownerProducer = { requireParentFragment() })
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val viewModel by pixivListViewModel {
+    private val viewModel by pixivListViewModel({ searchViewModel }) { vm ->
         SearchIllustMangaDataSource {
+            val tabIndex = vm.selectedRadioTabIndex.value ?: 0
+            val sort = when (tabIndex) {
+                0 -> {
+                    SortType.POPULAR_PREVIEW
+                }
+                1 -> {
+                    SortType.DATE_DESC
+                }
+                2 -> {
+                    SortType.DATE_ASC
+                }
+                else -> {
+                    SortType.POPULAR_DESC
+                }
+            }
             SearchConfig(
-                searchViewModel.tagList.value?.map { it.name }?.joinToString(separator = " ") ?: ""
+                keyword = vm.tagList.value?.map { it.name }?.joinToString(separator = " ") ?: "",
+                sort = sort,
             )
         }
     }
@@ -60,8 +87,22 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpStaggerLayout(binding, viewModel)
+        binding.radioTab.setTabs(listOf(
+            "热度预览",
+            "从新到旧",
+            "从旧到新",
+            "热度排序",
+        ))
+        binding.radioTab.setItemCickListener { index ->
+            searchViewModel.selectedRadioTabIndex.value = index
+            val now = System.currentTimeMillis()
+            searchViewModel.triggerSearchIllustMangaEvent(now)
+        }
         searchViewModel.searchIllustMangaEvent.observeEvent(viewLifecycleOwner) {
             viewModel.refresh(RefreshHint.InitialLoad)
+        }
+        searchViewModel.selectedRadioTabIndex.observe(viewLifecycleOwner) { index ->
+            binding.radioTab.selectTab(index)
         }
     }
 }

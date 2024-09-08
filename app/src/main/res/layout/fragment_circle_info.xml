@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="ceui.loxia.CircleResponse"/>
+        <variable
+            name="circle"
+            type="androidx.lifecycle.LiveData&lt;CircleResponse>" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.core.widget.NestedScrollView
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:background="@drawable/bg__section_header"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/text00"
+                        android:textSize="13sp"
+                        style="@style/textMontserratSemiBold"
+                        android:text="Description"
+                        android:layout_gravity="center_vertical"
+                        android:layout_height="wrap_content"/>
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/description"
+                    android:textColor="@color/text00"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_circle_info"
+                    android:gravity="center"
+                    android:padding="20dp"
+                    android:layout_width="match_parent"
+                    android:text="@{circle.body.meta.pixpedia.abstract}"
+                    android:layout_height="wrap_content"/>
+
+                <FrameLayout
+                    android:background="@drawable/bg__section_header"
+                    android:layout_width="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="Tags"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/text00"
+                        android:textSize="13sp"
+                        style="@style/textMontserratSemiBold"
+                        android:layout_gravity="center_vertical"
+                        android:layout_height="wrap_content"/>
+
+                </FrameLayout>
+
+                <ceui.pixiv.widgets.TagsFlowView
+                    android:id="@+id/tags_flow_view"
+                    visibleOrGone="@{circle.body.meta.relatedTags.size() > 0}"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:dividerDrawable="@drawable/spacer_8dp"
+                    app:flexWrap="wrap"
+                    app:showDivider="middle"
+                    app:webTags="@{circle.body.meta.relatedTags}">
+
+                </ceui.pixiv.widgets.TagsFlowView>
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentDiscoverBinding
 import ceui.loxia.ObjectType
+import ceui.pixiv.ui.circles.CircleFragment
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.CommonViewPagerViewModel

@@ -1,6 +1,186 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <data>
+        <import type="ceui.loxia.CircleResponse"/>
+        <variable
+            name="circle"
+            type="androidx.lifecycle.LiveData&lt;CircleResponse>" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                app:loadBlurredMedia="@{circle.body.meta.pixpedia.illust.url}"
+                android:id="@+id/tag_preview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <View
+                android:background="@color/black_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
+            android:id="@+id/refresh_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:id="@+id/circle_root_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/shoulder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="@dimen/tab_layout_neg_height"
+                    android:background="@drawable/view_pager_shoulder"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+                <com.google.android.material.appbar.AppBarLayout
+                    android:id="@+id/app_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    app:elevation="0dp">
+
+                    <com.google.android.material.appbar.CollapsingToolbarLayout
+                        android:id="@+id/collapsing_toolbar_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:toolbarId="@+id/toolbar"
+                        app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/header_content"
+                            android:paddingHorizontal="18dp"
+                            android:paddingBottom="10dp"
+                            android:layout_height="wrap_content">
+
+                            <net.csdn.roundview.RoundImageView
+                                android:id="@+id/tag_icon"
+                                app:loadMedia="@{circle.body.meta.pixpedia.illust.url}"
+                                app:rRadius="10dp"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                android:layout_width="94dp"
+                                android:layout_height="94dp" />
+
+                            <TextView
+                                android:id="@+id/tag_name"
+                                android:textColor="@color/text00"
+                                android:textSize="20sp"
+                                android:text="@{`#` + circle.body.meta.tag}"
+                                app:layout_constraintStart_toEndOf="@+id/tag_icon"
+                                app:layout_constraintTop_toTopOf="parent"
+                                android:layout_marginStart="12dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+                            <TextView
+                                android:id="@+id/tag_translated_name"
+                                android:textColor="@color/text20"
+                                android:textSize="15sp"
+                                android:text="@{circle.body.meta.translatedTag}"
+                                app:layout_constraintStart_toEndOf="@+id/tag_icon"
+                                app:layout_constraintTop_toBottomOf="@+id/tag_name"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginTop="6dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+                            <TextView
+                                android:id="@+id/works_count"
+                                android:textColor="@color/text20"
+                                android:textSize="12sp"
+                                app:layout_constraintStart_toEndOf="@+id/tag_icon"
+                                android:layout_marginStart="12dp"
+                                app:layout_constraintBottom_toBottomOf="@+id/tag_icon"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+                            <TextView
+                                android:id="@+id/tag_abstract"
+                                android:textColor="@color/text00"
+                                android:textSize="12sp"
+                                android:gravity="start|center_vertical"
+                                app:layout_constraintStart_toStartOf="parent"
+                                android:background="@drawable/round_corner_white08_r8"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="8dp"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                android:text="@{circle.body.meta.meta.title}"
+                                app:layout_constraintTop_toBottomOf="@+id/tag_icon"
+                                android:layout_marginTop="12dp"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                        <androidx.appcompat.widget.Toolbar
+                            android:id="@+id/toolbar"
+                            android:layout_width="match_parent"
+                            android:layout_height="?actionBarSize"
+                            app:layout_collapseMode="pin">
+
+                            <ImageView
+                                android:id="@+id/navi_back"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/icon_navi_back" />
+
+                            <ImageView
+                                android:id="@+id/navi_more"
+                                android:layout_gravity="end"
+                                android:layout_marginEnd="18dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/icon_navi_more" />
+
+                        </androidx.appcompat.widget.Toolbar>
+
+                    </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/tab_layout_list"
+                        android:layout_width="match_parent"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_height="@dimen/tab_layout_height"
+                        android:orientation="horizontal"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                    <ceui.pixiv.widgets.SlidingCursorView
+                        android:id="@+id/sliding_cursor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="4dp"
+                        app:layout_constraintTop_toBottomOf="@+id/tab_layout_list"
+                        app:scv_cursor_color="@color/always_white"
+                        app:scv_cursor_height="@dimen/tab_layout_cursor_height"
+                        app:scv_cursor_width="@dimen/tab_layout_cursor_width" />
+
+                </com.google.android.material.appbar.AppBarLayout>
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/circle_view_pager"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -34,8 +34,11 @@ import ceui.refactor.ppppx
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.bumptech.glide.request.target.Target
+import jp.wasabeef.glide.transformations.BlurTransformation
 
 class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -48,7 +51,11 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         )
     }
     private val contentViewModel by pixivValueViewModel {
-        val rest = if (args.restrictType == Params.TYPE_PRIVATE) { "hide" } else { "show" }
+        val rest = if (args.restrictType == Params.TYPE_PRIVATE) {
+            "hide"
+        } else {
+            "show"
+        }
         Client.webApi.getRelatedUsers(SessionManager.loggedInUid, "following", rest)
     }
 
@@ -144,6 +151,18 @@ fun ImageView.binding_loadMedia(displayUrl: String?) {
     Glide.with(this)
         .load(GlideUrlChild(url))
         .placeholder(R.drawable.image_place_holder)
+        .into(this)
+}
+
+@BindingAdapter("loadBlurredMedia")
+fun ImageView.binding_loadBlurredMedia(displayUrl: String?) {
+    val url = displayUrl ?: return
+    scaleType = ImageView.ScaleType.CENTER_CROP
+    Glide.with(this)
+        .load(GlideUrlChild(url))
+        .placeholder(R.drawable.image_place_holder)
+        .apply(bitmapTransform(BlurTransformation(25, 3)))
+        .transition(withCrossFade())
         .into(this)
 }
 

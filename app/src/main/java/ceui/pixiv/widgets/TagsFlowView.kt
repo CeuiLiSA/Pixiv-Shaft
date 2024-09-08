@@ -23,6 +23,7 @@ import ceui.lisa.databinding.TagCellBinding
 import ceui.lisa.models.TagsBean
 import ceui.loxia.ObjectType
 import ceui.loxia.Tag
+import ceui.loxia.WebTag
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.findFragmentOrNull
 import ceui.loxia.hideKeyboard
@@ -165,7 +166,7 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         child.background = selector
         val textView = child.findViewById<TextView>(R.id.hashtag_name)
-        textView.text = tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name
+        textView.text = (tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name) + " " + backgroundColorString
 
         val normalTextColor = getIntColor(ColorRandom.randomColorFromTag(tag))
         val selectedTextColor = Color.WHITE
@@ -274,7 +275,10 @@ interface TagsActionReceiver {
     fun onClickTag(tag: Tag, objectType: String)
 }
 
-
+@BindingAdapter("webTags")
+fun TagsFlowView.binding_setWebTags(tags: List<WebTag>?) {
+    setTags(tags?.map { Tag(name = it.tag, translated_name = it.tag_translation) })
+}
 
 @BindingAdapter("tags")
 fun TagsFlowView.binding_setTags(tags: List<Tag>?) {

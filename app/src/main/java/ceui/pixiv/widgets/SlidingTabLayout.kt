@@ -62,7 +62,9 @@ fun List<TitleTabHolder>.updateTabFocus(focus: Float) {
 fun RecyclerView.setUpWith(viewPager: ViewPager2, slidingCursorView: SlidingCursorView, viewLifecycleOwner: LifecycleOwner, scrollToTopAction: ()->Unit) {
     val tabs = (0 until viewPager.adapter!!.itemCount).map {
         val titleLiveData = (viewPager.adapter as SmartFragmentPagerAdapter).getPageTitle(it)
-        TitleTabHolder(titleLiveData)
+        TitleTabHolder(titleLiveData).onItemClick {
+            viewPager.setCurrentItem(it, true)
+        } as TitleTabHolder
     }
 
     adapter = CommonAdapter(viewLifecycleOwner).apply {

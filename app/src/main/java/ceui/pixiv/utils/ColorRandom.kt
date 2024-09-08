@@ -13,10 +13,15 @@ object ColorRandom {
         "#F29B41", "#FF2E7E", "#FF7335", "#ECAC16", "#6FC445",
         "#00CFA5", "#FFEC3D", "#3DFFF3", "#86FF3D", "#FFB966",
         "#ADFE7C", "#ECC9B0", "#FFBEBE", "#D1FFD3", "#EBD1FF",
-        "#0AB2F6", "#080929", "#506F7C", "#717171", "#399500",
-        "#B47B39", "#2D35ED", "#09B9DF", "#9C1B1B", "#877900",
+        "#0AB2F6", "#506F7C", "#399500",
+        "#B47B39", "#2D35ED", "#09B9DF",
         "#FF5C00", "#737AFF", "#A465FF", "#D33EFF", "#FC38CF"
     )
+
+//    private val colorList = listOf(
+//        "#FF2E7E", "#FF7335", "#ECAC16", "#6FC445", "#00CFA5",
+//        "#FC38CF", "#D33EFF", "#A465FF", "#737AFF", "#0AB2F6",
+//    )
 
     fun randomColorFromTag(tag: Tag): String {
         // 如果 `Tag` 的 `name` 和 `translated_name` 都为空，直接返回默认颜色

@@ -21,11 +21,30 @@ data class Circle(
     val meta: CircleMeta? = null
 ) : Serializable
 
+data class Pixpedia(
+    val tag: String? = null,
+    val abstract: String? = null,
+    val illust: WebIllust? = null,
+    val parent_tag: String? = null,
+    val siblings_tags: List<String>? = null,
+    val children_tags: List<String>? = null,
+    val breadcrumbs: List<String>? = null,
+) : Serializable
+
 data class CircleMeta(
     val tag: String? = null,
     val translatedTag: String? = null,
+    val pixpedia: Pixpedia? = null,
+    val meta: CircleChildMeta? = null,
     val words: List<String>? = null,
     val relatedTags: List<WebTag>? = null,
+) : Serializable
+
+data class CircleChildMeta(
+    val title: String? = null,
+    val canonical: String? = null,
+    val description: String? = null,
+    val description_header: String? = null,
 ) : Serializable
 
 data class SquareResponse(

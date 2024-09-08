@@ -34,6 +34,7 @@ import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.bottom.ItemListDialogFragment
+import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
@@ -82,7 +83,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
         if (objectType == ObjectType.NOVEL) {
 
         } else {
-            pushFragment(R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
+//            pushFragment(R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
+//                keyword = tag.name ?: "",
+//            ).toBundle())
+            pushFragment(R.id.navigation_circle, CircleFragmentArgs(
                 keyword = tag.name ?: "",
             ).toBundle())
         }
