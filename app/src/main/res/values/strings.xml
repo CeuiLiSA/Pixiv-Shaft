@@ -714,4 +714,5 @@
     <string name="pixivision_articles">Pixivision Articles</string>
     <string name="button_ok">OK</string>
     <string name="created_tasks">创建的任务</string>
+    <string name="not_selected">未选择</string>
 </resources>

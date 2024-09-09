@@ -26,6 +26,7 @@ import ceui.lisa.databinding.FragmentItemListDialogListDialogItemBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.view.LinearItemDecoration
+import ceui.loxia.Event
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
@@ -83,6 +84,7 @@ class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dial
 
     override fun onClickOffsetPage(index: Int) {
         viewModel.choosenOffsetPage.value = index
+        viewModel.triggerOffsetPageEvent.value = Event(index)
         dismissAllowingStateLoss()
     }
 }

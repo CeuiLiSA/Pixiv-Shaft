@@ -26,6 +26,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
+            <TextView
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:text="@string/not_selected"
+                android:visibility="gone"
+                android:layout_marginEnd="20dp"
+                android:textSize="12sp"
+                android:textColor="@color/text00"
+                android:id="@+id/users_yori"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list_view"
                 android:layout_width="match_parent"

@@ -11,16 +11,21 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.navigation.fragment.navArgs
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
+import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.FragmentWebBinding
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.setUpToolbar
+import ceui.refactor.viewBinding
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 
@@ -28,14 +33,30 @@ import com.tencent.mmkv.MMKV
 class WebFragment : PixivFragment(R.layout.fragment_web) {
 
     private val args by navArgs<WebFragmentArgs>()
+    private val binding by viewBinding(FragmentWebBinding::bind)
     private val prefStore: MMKV by lazy {
         MMKV.defaultMMKV()
+    }
+
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            // Check whether there's history.
+            if (binding.webView.canGoBack()) {
+                binding.webView.goBack()
+            } else {
+                back()
+            }
+        }
+    }
+
+    private fun back() {
+        onBackPressedCallback.isEnabled = false
+        findNavController().popBackStack()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val binding = FragmentWebBinding.bind(view)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.refreshLayout.updateLayoutParams<MarginLayoutParams> {
@@ -99,5 +120,11 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
 
         // 加载 URL
         binding.webView.loadUrl(args.url)
+        requireActivity().onBackPressedDispatcher.addCallback(onBackPressedCallback)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        onBackPressedCallback.isEnabled = false
     }
 }

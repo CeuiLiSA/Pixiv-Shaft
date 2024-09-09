@@ -32,6 +32,7 @@ import ceui.loxia.Tag
 import ceui.loxia.User
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
+import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.bottom.ItemListDialogFragment
 import ceui.pixiv.ui.circles.CircleFragmentArgs
@@ -215,9 +216,9 @@ fun Fragment.setUpSizedList(binding: FragmentPixivListBinding, dataSource: DataS
     val dialogViewModel by activityViewModels<DialogViewModel>()
     if (listFullSize > 30) {
         binding.listSetting.isVisible = true
-        dialogViewModel.choosenOffsetPage.observe(viewLifecycleOwner) {
+        dialogViewModel.triggerOffsetPageEvent.observeEvent(this) { page ->
             launchSuspend {
-                dataSource.dataSource().loadOffsetData(it)
+                dataSource.dataSource().loadOffsetData(page)
             }
         }
         binding.listSetting.setOnClick {

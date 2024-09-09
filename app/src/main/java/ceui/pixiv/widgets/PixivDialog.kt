@@ -1,12 +1,12 @@
 package ceui.pixiv.widgets
 
-import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.lisa.R
+import ceui.loxia.Event
 import kotlinx.coroutines.CompletableDeferred
 
 class DialogViewModel : ViewModel() {
@@ -14,6 +14,10 @@ class DialogViewModel : ViewModel() {
     val alertTaskPool = hashMapOf<String, CompletableDeferred<Boolean>>()
 
     val choosenOffsetPage = MutableLiveData<Int>()
+    val triggerOffsetPageEvent = MutableLiveData<Event<Int>>()
+
+    val chosenUsersYoriCount = MutableLiveData<Int>()
+    val triggerUsersYoriEvent = MutableLiveData<Event<Long>>()
 }
 
 open class PixivDialog(layoutId: Int) : DialogFragment(layoutId) {
