@@ -2,6 +2,8 @@ package ceui.pixiv.ui.common
 
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
+import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -10,6 +12,7 @@ import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -56,6 +59,24 @@ import com.scwang.smart.refresh.header.MaterialHeader
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
     UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver {
+
+    private val fragmentViewModel: NavFragmentViewModel by viewModels()
+
+    open fun onViewFirstCreated(view: View) {
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        fragmentViewModel // force create
+
+        if (fragmentViewModel.viewCreatedTime.value == null) {
+            onViewFirstCreated(view)
+        }
+
+        fragmentViewModel.viewCreatedTime.value = System.currentTimeMillis()
+    }
 
     override fun onClickIllustCard(illust: Illust) {
         pushFragment(

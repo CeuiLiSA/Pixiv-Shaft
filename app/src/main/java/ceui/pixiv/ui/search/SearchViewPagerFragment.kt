@@ -6,6 +6,7 @@ import android.view.inputmethod.EditorInfo
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePaddingRelative
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.navArgs
@@ -21,6 +22,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
+import ceui.pixiv.widgets.DialogViewModel
 import ceui.pixiv.widgets.setUpWith
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -29,8 +31,16 @@ class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search
 
     private val binding by viewBinding(FragmentSearchViewpagerBinding::bind)
     private val args by navArgs<SearchViewPagerFragmentArgs>()
+    private val dialogViewModel by activityViewModels<DialogViewModel>()
     private val searchViewModel by constructVM({ args.keyword }) { word ->
         SearchViewModel(word)
+    }
+
+    override fun onViewFirstCreated(view: View) {
+        super.onViewFirstCreated(view)
+        dialogViewModel.chosenUsersYoriCount.value = 0
+        dialogViewModel.choosenOffsetPage.value = 0
+        searchViewModel.selectedRadioTabIndex.value = 0
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

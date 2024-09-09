@@ -109,6 +109,15 @@ interface API {
         @Query("include_translated_tag_results") include_translated_tag_results: Boolean,
     ): IllustResponse
 
+    @GET("/v1/search/popular-preview/novel?search_ai_type=0&filter=for_ios")
+    suspend fun popularPreviewNovel(
+        @Query("word") word: String,
+        @Query("sort") sort: String,
+        @Query("search_target") search_target: String,
+        @Query("merge_plain_keyword_results") merge_plain_keyword_results: Boolean,
+        @Query("include_translated_tag_results") include_translated_tag_results: Boolean,
+    ): NovelResponse
+
     @GET("/v1/spotlight/articles?filter=for_ios")
     suspend fun pixivsionArticles(
         @Query("category") category: String,
@@ -122,6 +131,15 @@ interface API {
         @Query("merge_plain_keyword_results") merge_plain_keyword_results: Boolean,
         @Query("include_translated_tag_results") include_translated_tag_results: Boolean,
     ): IllustResponse
+
+    @GET("/v1/search/novel?search_ai_type=0&filter=for_ios")
+    suspend fun searchNovel(
+        @Query("word") word: String,
+        @Query("sort") sort: String,
+        @Query("search_target") search_target: String,
+        @Query("merge_plain_keyword_results") merge_plain_keyword_results: Boolean,
+        @Query("include_translated_tag_results") include_translated_tag_results: Boolean,
+    ): NovelResponse
 
 
     @GET("/v1/search/user?filter=for_ios")
