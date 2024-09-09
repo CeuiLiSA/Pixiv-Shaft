@@ -51,4 +51,33 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
         triggerSearchUserEvent(now)
         triggerSearchNovelEvent(now)
     }
+
+    fun buildSearchConfig(usersYori: Int?): SearchConfig {
+        val tabIndex = selectedRadioTabIndex.value ?: 0
+        val sort = when (tabIndex) {
+            0 -> {
+                SortType.POPULAR_PREVIEW
+            }
+            1 -> {
+                SortType.DATE_DESC
+            }
+            2 -> {
+                SortType.DATE_ASC
+            }
+            else -> {
+                SortType.POPULAR_DESC
+            }
+        }
+        val yoriString = if ((usersYori ?: 0) > 0) {
+            "${usersYori}users入り"
+        } else {
+            ""
+        }
+        return SearchConfig(
+            keyword = tagList.value?.map { it.name }?.joinToString(separator = " ") ?: "",
+            usersYori = yoriString,
+            search_target = if (yoriString.isNotEmpty()) "exact_match_for_tags" else "partial_match_for_tags",
+            sort = sort,
+        )
+    }
 }

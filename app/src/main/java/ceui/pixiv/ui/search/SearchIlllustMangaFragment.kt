@@ -23,49 +23,6 @@ import ceui.pixiv.widgets.DialogViewModel
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
-data class SearchConfig(
-    val keyword: String,
-    val sort: String = "date_desc",
-    val usersYori: String = "",
-    val search_target: String = "partial_match_for_tags",
-    val merge_plain_keyword_results: Boolean = true,
-    val include_translated_tag_results: Boolean = true,
-)
-
-class SearchIllustMangaDataSource(
-    private val provider: () -> SearchConfig
-) : DataSource<Illust, IllustResponse>(
-    dataFetcher = {
-        val config = provider()
-        if (config.sort == SortType.POPULAR_PREVIEW) {
-            Client.appApi.popularPreview(
-                word = config.keyword,
-                sort = config.sort,
-                search_target = config.search_target,
-                merge_plain_keyword_results = config.merge_plain_keyword_results,
-                include_translated_tag_results = config.include_translated_tag_results,
-            )
-        } else {
-            val word = if (config.usersYori.isNotEmpty()) {
-                config.keyword + " " + config.usersYori
-            } else {
-                config.keyword
-            }
-            Client.appApi.searchIllustManga(
-                word = word,
-                sort = config.sort,
-                search_target = config.search_target,
-                merge_plain_keyword_results = config.merge_plain_keyword_results,
-                include_translated_tag_results = config.include_translated_tag_results,
-            )
-        }
-    },
-    itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
-) {
-    override fun initialLoad(): Boolean {
-        return provider().keyword.isNotEmpty()
-    }
-}
 
 class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -74,32 +31,8 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by pixivListViewModel({ Pair(searchViewModel, dialogViewModel) }) { (vm, dialogVM) ->
         SearchIllustMangaDataSource {
-            val tabIndex = vm.selectedRadioTabIndex.value ?: 0
-            val sort = when (tabIndex) {
-                0 -> {
-                    SortType.POPULAR_PREVIEW
-                }
-                1 -> {
-                    SortType.DATE_DESC
-                }
-                2 -> {
-                    SortType.DATE_ASC
-                }
-                else -> {
-                    SortType.POPULAR_DESC
-                }
-            }
-            val usersYori = dialogVM.chosenUsersYoriCount.value ?: 0
-            val yoriString = if (usersYori > 0) {
-                "${usersYori}users入り"
-            } else {
-                ""
-            }
-            SearchConfig(
-                keyword = vm.tagList.value?.map { it.name }?.joinToString(separator = " ") ?: "",
-                usersYori = yoriString,
-                sort = sort,
-            )
+            val count = dialogVM.chosenUsersYoriCount.value
+            vm.buildSearchConfig(count)
         }
     }
 
@@ -122,7 +55,7 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         }
         searchViewModel.selectedRadioTabIndex.observe(viewLifecycleOwner) { index ->
             binding.radioTab.selectTab(index)
-            binding.usersYori.isVisible = index == 1
+            binding.usersYori.isVisible = (index == 1) || (index == 2)
         }
         dialogViewModel.chosenUsersYoriCount.observe(viewLifecycleOwner) { count ->
             binding.usersYori.text = "${count}users入り"

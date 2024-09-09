@@ -107,7 +107,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
                 topMargin = insets.top - 10.ppppx
             }
             binding.headerContent.updatePaddingRelative(top = insets.top + BarUtils.getActionBarHeight())
-            WindowInsetsCompat.CONSUMED
+            windowInsets
         }
 
         val adapter = SmartFragmentPagerAdapter(listOf(
