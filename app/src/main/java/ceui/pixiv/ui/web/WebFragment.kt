@@ -15,18 +15,15 @@ import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
-import androidx.core.view.updatePadding
-import androidx.navigation.fragment.navArgs
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.FragmentWebBinding
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.setUpToolbar
 import ceui.refactor.viewBinding
-import com.google.gson.Gson
+import com.scwang.smart.refresh.header.FalsifyFooter
+import com.scwang.smart.refresh.header.MaterialHeader
 import com.tencent.mmkv.MMKV
 
 
@@ -66,6 +63,8 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         }
 
         // 设置 SwipeRefreshLayout 的刷新监听器
+        binding.refreshLayout.setRefreshHeader(MaterialHeader(requireContext()))
+        binding.refreshLayout.setEnableLoadMore(false)
         binding.refreshLayout.setOnRefreshListener { // 重新加载 WebView 页面
             binding.webView.reload()
         }
@@ -81,12 +80,12 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
                     prefStore.putString("web-api-cookie", cookie)
                 }
 
-                binding.refreshLayout.isRefreshing = false
+                binding.refreshLayout.finishRefresh()
             }
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
-                binding.refreshLayout.isRefreshing = true
+                binding.refreshLayout.finishRefresh()
             }
 
             override fun shouldInterceptRequest(

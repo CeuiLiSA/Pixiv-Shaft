@@ -98,6 +98,18 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         }
         progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
     }
+
+    override fun onDestroyView() {
+        if (viewModel.isFullscreenMode.value == true) {
+            val windowInsetsController = WindowInsetsControllerCompat(
+                requireActivity().window,
+                requireActivity().window.decorView
+            )
+            // 重新显示系统的状态栏和导航栏
+            windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+        }
+        super.onDestroyView()
+    }
 }
 
 
