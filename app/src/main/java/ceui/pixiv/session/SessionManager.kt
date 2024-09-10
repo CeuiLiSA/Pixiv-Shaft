@@ -9,6 +9,7 @@ import ceui.lisa.models.UserModel
 import ceui.lisa.utils.Local
 import ceui.loxia.AccountResponse
 import ceui.loxia.Client
+import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import com.google.gson.Gson
@@ -30,6 +31,13 @@ object SessionManager {
 
     private val _isRenewToken = MutableLiveData(false)
     val isRenewToken: LiveData<Boolean> = _isRenewToken
+
+    private val _newTokenEvent = MutableLiveData<Event<Long>>()
+    val newTokenEvent: LiveData<Event<Long>> = _newTokenEvent
+
+    fun testRenewAnim() {
+        _newTokenEvent.postValue(Event(System.currentTimeMillis()))
+    }
 
     private val prefStore: MMKV by lazy {
         MMKV.defaultMMKV()
@@ -91,6 +99,7 @@ object SessionManager {
 
         return runBlocking(Dispatchers.IO) {
             try {
+                _newTokenEvent.postValue(Event(System.currentTimeMillis()))
                 _isRenewToken.postValue(true)
                 val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
                 val userModel = Client.authApi.newRefreshToken(
