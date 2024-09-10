@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
@@ -32,6 +33,7 @@ import ceui.pixiv.ui.search.SearchNovelFragment
 import ceui.pixiv.ui.search.SearchUserFragment
 import ceui.pixiv.ui.search.SearchViewModel
 import ceui.pixiv.widgets.setUpWith
+import ceui.refactor.animateFadeIn
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -60,6 +62,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         searchViewModel
+        binding.naviTitle.text = args.keyword
         binding.refreshLayout.setOnRefreshListener {
             viewModel.refresh(RefreshHint.PullToRefresh)
             searchViewModel.triggerAllRefreshEvent()
@@ -89,13 +92,25 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
             }
 
             binding.headerContent.alpha = 1F - percentage
+            binding.naviTitle.isVisible = (percentage == 1F)
         }
         binding.circle = viewModel.result
         binding.refreshLayout.setEnableRefresh(true)
         binding.refreshLayout.setEnableLoadMore(false)
         viewModel.refreshState.observe(viewLifecycleOwner) { state ->
             if (state is RefreshState.LOADING) {
+                if (state.refreshHint == RefreshHint.InitialLoad) {
+                    binding.circleRootLayout.isVisible = false
+                    binding.progressCircular.isVisible = true
+                    binding.progressCircular.playAnimation()
+                }
                 binding.refreshLayout.finishRefresh()
+            } else {
+                binding.progressCircular.cancelAnimation()
+                binding.progressCircular.isVisible = false
+            }
+            if (state is RefreshState.LOADED) {
+                binding.circleRootLayout.isVisible = true
             }
         }
         binding.circle = viewModel.result
@@ -118,6 +133,12 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
                     value = getString(R.string.about_app)
                 }
             ),
+//            PagedFragmentItem(
+//                builder = { CircleResultPreviewFragment() },
+//                titleLiveData = getTitleLiveData(1).apply {
+//                    value = getString(R.string.about_app)
+//                }
+//            ),
             PagedFragmentItem(
                 builder = {
                     SearchIlllustMangaFragment()

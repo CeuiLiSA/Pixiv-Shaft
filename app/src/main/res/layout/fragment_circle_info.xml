@@ -71,7 +71,38 @@
                 </FrameLayout>
 
                 <ceui.pixiv.widgets.TagsFlowView
-                    android:id="@+id/tags_flow_view"
+                    android:id="@+id/pixpedia_tags_flow_view"
+                    visibleOrGone="@{circle.body.meta.pixpedia.pixpediaTags.size() > 0}"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:dividerDrawable="@drawable/spacer_8dp"
+                    app:flexWrap="wrap"
+                    app:showDivider="middle"
+                    app:tags="@{circle.body.meta.pixpedia.pixpediaTags}">
+
+                </ceui.pixiv.widgets.TagsFlowView>
+
+                <FrameLayout
+                    android:background="@drawable/bg__section_header"
+                    android:layout_width="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="Related"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/text00"
+                        android:textSize="13sp"
+                        style="@style/textMontserratSemiBold"
+                        android:layout_gravity="center_vertical"
+                        android:layout_height="wrap_content"/>
+
+                </FrameLayout>
+
+                <ceui.pixiv.widgets.TagsFlowView
+                    android:id="@+id/related_tags_flow_view"
                     visibleOrGone="@{circle.body.meta.relatedTags.size() > 0}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -82,6 +113,10 @@
                     app:webTags="@{circle.body.meta.relatedTags}">
 
                 </ceui.pixiv.widgets.TagsFlowView>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"/>
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>

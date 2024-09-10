@@ -3,6 +3,7 @@ package ceui.loxia
 import android.text.TextUtils
 import ceui.lisa.models.ModelObject
 import ceui.lisa.models.ObjectSpec
+import ceui.lisa.models.Urls
 import java.io.Serializable
 
 
@@ -61,7 +62,74 @@ object ConstantUser {
     )
 }
 
+data class WebIllust(
+    val alt: String? = null,
+    val bookmarkData: Any? = null,
+    val createDate: String? = null,
+    val description: String? = null,
+    val height: Int,
+    val id: Long = 0L,
+    val illustType: Int? = null,
+    val isBookmarkable: Boolean? = null,
+    val images: Urls? = null,
+    val isMasked: Boolean? = null,
+    val isUnlisted: Boolean? = null,
+    val pageCount: Int = 0,
+    val aiType: Int = 0,
+    val profileImageUrl: String? = null,
+    val restrict: Int? = null,
+    val sl: Int? = null,
+    val title: String? = null,
+    val updateDate: String? = null,
+    val url: String? = null,
+    val url_w: String? = null,
+    val url_sm: String? = null,
+    val url_s: String? = null,
+    val urls: Map<String, String?>? = null,
+    val userId: Long = 0L,
+    val tags: List<String>? = null,
+    val userName: String? = null,
+    val width: Int,
+    val xRestrict: Int? = null,
+) : Serializable {
 
+    fun toIllust(): Illust {
+        return Illust(
+            id = id,
+            caption = alt,
+            create_date = createDate,
+            height = height,
+            illust_ai_type = aiType,
+            image_urls = ImageUrls(
+                original = url,
+                large = url_w,
+                medium = url_sm,
+                square_medium = url_s,
+            ),
+            is_bookmarked = isBookmarkable != true,
+            is_muted = isUnlisted,
+            meta_pages = null,
+            meta_single_page = null,
+            page_count = pageCount,
+            restrict = restrict,
+            sanity_level = sl,
+            series = null,
+            tags = tags?.map { Tag(name = it) },
+            title = title,
+            tools = null,
+            total_bookmarks = null,
+            total_view = null,
+            type = null,
+            user = User(
+                account = "@${userId}",
+                id = userId
+            ),
+            visible = isMasked != true,
+            width = width,
+            x_restrict = xRestrict
+        )
+    }
+}
 
 data class Illust(
     val caption: String? = null,
@@ -70,6 +138,7 @@ data class Illust(
     val id: Long,
     val image_urls: ImageUrls? = null,
     val is_bookmarked: Boolean? = null,
+    val illust_ai_type: Int = 0,
     val is_muted: Boolean? = null,
     val meta_pages: List<MetaPage>? = null,
     val meta_single_page: MetaSinglePage? = null,
@@ -509,32 +578,6 @@ data class WebUser(
     val isMypixiv: Boolean? = null,
     val isBlocking: Boolean? = null,
     val acceptRequest: Boolean? = null
-) : Serializable
-
-data class WebIllust(
-    val alt: String? = null,
-    val bookmarkData: Any? = null,
-    val createDate: String? = null,
-    val description: String? = null,
-    val height: Int,
-    val id: Long = 0L,
-    val illustType: Int? = null,
-    val isBookmarkable: Boolean? = null,
-    val isMasked: Boolean? = null,
-    val isUnlisted: Boolean? = null,
-    val pageCount: Int? = null,
-    val profileImageUrl: String? = null,
-    val restrict: Int? = null,
-    val sl: Int? = null,
-    val tags: List<String>? = null,
-    val title: String? = null,
-    val titleCaptionTranslation: TitleCaptionTranslation? = null,
-    val updateDate: String? = null,
-    val url: String? = null,
-    val userId: String? = null,
-    val userName: String? = null,
-    val width: Int,
-    val xRestrict: Int? = null
 ) : Serializable
 
 

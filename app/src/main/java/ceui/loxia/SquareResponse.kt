@@ -21,6 +21,11 @@ data class Circle(
     val meta: CircleMeta? = null
 ) : Serializable
 
+data class CirclePopularIllusts(
+    val illusts: List<WebIllust>? = null,
+    val recent_illusts: List<WebIllust>? = null,
+) : Serializable
+
 data class Pixpedia(
     val tag: String? = null,
     val abstract: String? = null,
@@ -29,7 +34,22 @@ data class Pixpedia(
     val siblings_tags: List<String>? = null,
     val children_tags: List<String>? = null,
     val breadcrumbs: List<String>? = null,
-) : Serializable
+) : Serializable {
+
+    val pixpediaTags: List<Tag> get() {
+        val result = mutableListOf<Tag>()
+        siblings_tags?.forEach {
+            result.add(Tag(name = it))
+        }
+        children_tags?.forEach {
+            result.add(Tag(name = it))
+        }
+        breadcrumbs?.forEach {
+            result.add(Tag(name = it))
+        }
+        return result
+    }
+}
 
 data class CircleMeta(
     val tag: String? = null,
