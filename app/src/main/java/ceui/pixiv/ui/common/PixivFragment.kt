@@ -199,11 +199,16 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         } else {
             binding.refreshLayout.setEnableLoadMore(false)
         }
-        binding.loadingLayout.isVisible =
-            state is RefreshState.LOADING && (
+        val shouldShowLoading = state is RefreshState.LOADING && (
                 state.refreshHint == RefreshHint.InitialLoad ||
-                state.refreshHint == RefreshHint.ErrorRetry
-            )
+                        state.refreshHint == RefreshHint.ErrorRetry
+                )
+        binding.loadingLayout.isVisible = shouldShowLoading
+        if (shouldShowLoading) {
+            binding.progressCircular.playAnimation()
+        } else {
+            binding.progressCircular.cancelAnimation()
+        }
         binding.errorLayout.isVisible = state is RefreshState.ERROR
         binding.errorRetryButton.setOnClick {
             viewModel.refresh(RefreshHint.ErrorRetry)

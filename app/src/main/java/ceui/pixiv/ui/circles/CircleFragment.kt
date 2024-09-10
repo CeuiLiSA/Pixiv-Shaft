@@ -62,6 +62,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
         searchViewModel
         binding.refreshLayout.setOnRefreshListener {
             viewModel.refresh(RefreshHint.PullToRefresh)
+            searchViewModel.triggerAllRefreshEvent()
         }
         binding.naviBack.setOnClick {
             findNavController().popBackStack()
