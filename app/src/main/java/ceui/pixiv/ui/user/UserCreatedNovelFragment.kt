@@ -18,12 +18,12 @@ import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.refactor.ppppx
 import ceui.refactor.viewBinding
 
-class UserBookmarkedNovelFragment : PixivFragment(R.layout.fragment_pixiv_list) {
+class UserCreatedNovelFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val args by navArgs<UserBookmarkedNovelFragmentArgs>()
+    private val args by navArgs<UserCreatedNovelFragmentArgs>()
     private val viewModel by pixivListViewModel { DataSource(
-        dataFetcher = { Client.appApi.getUserBookmarkedNovels(args.userId, args.restrictType ?: Params.TYPE_PUBLIC) },
+        dataFetcher = { Client.appApi.getUserCreatedNovels(args.userId) },
         itemMapper = { novel -> listOf(NovelCardHolder(novel)) },
         filter = { novel -> novel.visible != false }
     ) }

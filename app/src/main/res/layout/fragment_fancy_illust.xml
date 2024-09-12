@@ -64,7 +64,7 @@
                     android:id="@+id/user_icon"
                     userIcon="@{user}"
                     android:layout_width="40dp"
-                    app:civ_border_color="@color/white"
+                    app:civ_border_color="@color/colorWhite40"
                     app:civ_border_width="1dp"
                     android:scaleType="centerCrop"
                     android:layout_marginEnd="8dp"

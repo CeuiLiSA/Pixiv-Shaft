@@ -83,6 +83,11 @@ interface API {
         @Query("restrict") restrict: String,
     ): NovelResponse
 
+    @GET("/v1/user/novels")
+    suspend fun getUserCreatedNovels(
+        @Query("user_id") user_id: Long,
+    ): NovelResponse
+
 
     @GET("/v2/user/detail?filter=for_ios")
     suspend fun getUserProfile(

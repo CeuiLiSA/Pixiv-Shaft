@@ -79,18 +79,6 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
             }
 
             val percentage = (Math.abs(verticalOffset) / totalScrollRange.toFloat())
-
-            if (percentage == 0f) {
-                // AppBarLayout fully expanded
-                Common.showLog("asdadsas onAppBarExpanded ${totalScrollRange}, ${verticalOffset}")
-            } else if (percentage == 100f) {
-                // AppBarLayout fully collapsed
-                Common.showLog("asdadsas onAppBarCollapsed ${totalScrollRange}, ${verticalOffset}")
-            } else {
-                // AppBarLayout partially collapsed
-                Common.showLog("asdadsas onAppBarPartiallyCollapsed ${totalScrollRange}, ${verticalOffset}, ${percentage}")
-            }
-
             binding.headerContent.alpha = 1F - percentage
             binding.naviTitle.isVisible = (percentage == 1F)
         }

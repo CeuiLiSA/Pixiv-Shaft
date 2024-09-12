@@ -54,7 +54,7 @@ class NovelImageViewHolder(private val bd: CellNovelImageBinding) : ListItemView
         if (holder.type == NovelImageHolder.Type.UploadedImage) {
             val urls = holder.webNovel.images?.get(holder.id.toString())?.urls
             val url = urls?.get(NovelImages.Size.Size1200x1200)
-            Glide.with(binding.novelImage).load(url?.toGlideUrl()).into(binding.novelImage)
+            Glide.with(binding.novelImage).load(url?.toGlideUrl()).placeholder(R.drawable.image_place_holder).into(binding.novelImage)
         } else if (holder.type == NovelImageHolder.Type.PixivImage) {
             val urls = if (holder.indexInIllust == 0) {
                 holder.webNovel.illusts?.get(holder.id.toString())?.illust?.images?.medium
@@ -64,7 +64,7 @@ class NovelImageViewHolder(private val bd: CellNovelImageBinding) : ListItemView
             binding.novelImage.setOnClick {
                 PixivOperate.getIllustByID(Shaft.sUserModel, holder.id, binding.novelImage.context)
             }
-            Glide.with(binding.novelImage).load(urls?.toGlideUrl()).into(binding.novelImage)
+            Glide.with(binding.novelImage).load(urls?.toGlideUrl()).placeholder(R.drawable.image_place_holder).into(binding.novelImage)
         }
     }
 }

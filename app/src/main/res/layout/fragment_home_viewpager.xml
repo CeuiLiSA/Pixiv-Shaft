@@ -28,7 +28,7 @@
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/user_icon"
                 android:layout_width="40dp"
-                app:civ_border_color="@color/white"
+                app:civ_border_color="@color/colorWhite40"
                 userIcon="@{account.user}"
                 app:civ_border_width="1dp"
                 app:layout_constraintTop_toTopOf="parent"

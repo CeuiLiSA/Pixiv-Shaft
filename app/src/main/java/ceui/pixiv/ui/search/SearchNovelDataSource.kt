@@ -37,7 +37,8 @@ class SearchNovelDataSource(
             )
         }
     },
-    itemMapper = { novel -> listOf(NovelCardHolder(novel)) }
+    itemMapper = { novel -> listOf(NovelCardHolder(novel)) },
+    filter = { novel -> novel.visible != false }
 ) {
     override fun initialLoad(): Boolean {
         return provider().keyword.isNotEmpty()

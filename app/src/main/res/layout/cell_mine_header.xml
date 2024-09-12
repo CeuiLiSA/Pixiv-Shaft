@@ -22,6 +22,8 @@
             userIcon="@{holder.liveUser}"
             android:layout_width="72dp"
             android:layout_height="72dp"
+            app:civ_border_color="@color/colorWhite40"
+            app:civ_border_width="1dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

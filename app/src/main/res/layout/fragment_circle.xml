@@ -65,6 +65,8 @@
                             android:layout_width="match_parent"
                             android:id="@+id/header_content"
                             android:paddingHorizontal="18dp"
+                            app:layout_collapseMode="parallax"
+                            app:layout_collapseParallaxMultiplier="0.5"
                             android:paddingBottom="10dp"
                             android:layout_height="wrap_content">
 

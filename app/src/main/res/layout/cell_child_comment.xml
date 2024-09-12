@@ -23,7 +23,7 @@
             android:scaleType="centerCrop"
             userIcon="@{holder.comment.user}"
             app:civ_border_width="1dp"
-            app:civ_border_color="@color/white"
+            app:civ_border_color="@color/colorWhite40"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

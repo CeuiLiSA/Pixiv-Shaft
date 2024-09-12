@@ -31,7 +31,7 @@
                 userIcon="@{holder.userPreview.user}"
                 android:layout_width="@dimen/user_head_size_feeds"
                 android:layout_height="@dimen/user_head_size_feeds"
-                app:civ_border_color="@color/white"
+                app:civ_border_color="@color/colorWhite40"
                 app:civ_border_width="1dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

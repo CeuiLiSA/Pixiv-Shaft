@@ -22,4 +22,5 @@ class RecmdNovelDataSource(
         responseStore.retrieveData()
     },
     itemMapper = { novel -> listOf(NovelCardHolder(novel)) },
+    filter = { novel -> novel.visible != false }
 )

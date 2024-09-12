@@ -5,6 +5,8 @@ import ceui.lisa.databinding.CellNovelCardBinding
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.ui.user.UserActionReceiver
+import ceui.refactor.setOnClick
 
 class NovelCardHolder(val novel: Novel) : ListItemHolder() {
     init {
@@ -25,7 +27,12 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
     override fun onBindViewHolder(holder: NovelCardHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         binding.holder = holder
-        binding.root.setOnClickListener {
+        binding.userLayout.setOnClick { sender ->
+            holder.novel.user?.id?.let {
+                sender.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(it)
+            }
+        }
+        binding.root.setOnClick {
             it.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(holder.novel)
         }
     }
