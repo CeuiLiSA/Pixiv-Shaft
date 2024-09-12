@@ -48,6 +48,8 @@ interface API {
         @Field("illust_id") illust_id: Long
     )
 
+    @GET("/v1/walkthrough/illusts")
+    suspend fun getWalkthroughWorks(): IllustResponse
 
     @GET("/v1/{type}/recommended?include_ranking_illusts=false&include_privacy_policy=true&filter=for_ios")
     suspend fun getHomeData(
@@ -73,6 +75,13 @@ interface API {
         @Query("user_id") user_id: Long,
         @Query("restrict") restrict: String,
     ): IllustResponse
+
+
+    @GET("/v1/user/bookmarks/novel?filter=for_ios")
+    suspend fun getUserBookmarkedNovels(
+        @Query("user_id") user_id: Long,
+        @Query("restrict") restrict: String,
+    ): NovelResponse
 
 
     @GET("/v2/user/detail?filter=for_ios")

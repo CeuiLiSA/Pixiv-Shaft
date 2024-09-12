@@ -23,27 +23,9 @@ import ceui.refactor.viewBinding
 class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), HomeTabContainer {
 
     private val binding by viewBinding(FragmentDiscoverBinding::bind)
-//    private val articlesViewModel by pixivValueViewModel {
-//        Client.appApi.pixivsionArticles(Params.TYPE_ALL)
-//    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        binding.articleBlock.setOnClickListener {
-//            pushFragment(R.id.navigation_articles)
-//        }
-//
-//        articlesViewModel.result.observe(viewLifecycleOwner) { resp ->
-//            resp.displayList.getOrNull(0)?.thumbnail?.let { thumbnail ->
-//                Glide.with(this).load(GlideUrlChild(thumbnail)).into(binding.articlePreview1)
-//            }
-//            resp.displayList.getOrNull(1)?.thumbnail?.let { thumbnail ->
-//                Glide.with(this).load(GlideUrlChild(thumbnail)).into(binding.articlePreview2)
-//            }
-//            resp.displayList.getOrNull(2)?.thumbnail?.let { thumbnail ->
-//                Glide.with(this).load(GlideUrlChild(thumbnail)).into(binding.articlePreview3)
-//            }
-//        }
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(

@@ -149,6 +149,21 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_user_bookmarked_novel"
+        android:name="ceui.pixiv.ui.user.UserBookmarkedNovelFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+
+        <argument
+            android:name="restrict_type"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_following_post"
         android:name="ceui.pixiv.ui.user.following.FollowingPostFragment" >
 

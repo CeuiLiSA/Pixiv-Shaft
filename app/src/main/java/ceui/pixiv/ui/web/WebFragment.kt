@@ -93,14 +93,7 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
                 request: WebResourceRequest?
             ): WebResourceResponse? {
                 val requestUrlString = request?.url?.toString()
-                if (requestUrlString?.contains("ajax") == true) {
-//                    val headersMap: Map<String, String> = request.requestHeaders
-//                    val jsonHeaders: String = Gson().toJson(headersMap)
-//                    prefStore.putString("web-api-header", jsonHeaders)
-                    Common.showLog("asewsd requestUrlString ${requestUrlString}")
-
-                    // https://www.pixiv.net/touch/ajax/user/31660292/illusts/bookmarks?rest=show&offset=0&limit=48&lang=zh&version=ebdc1282e55d2c6d71244b71f158c2f32e968753
-                }
+                Common.showLog("asewsd requestUrlString ${requestUrlString}")
                 return super.shouldInterceptRequest(view, request)
             }
         }

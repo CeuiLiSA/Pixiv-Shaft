@@ -17,6 +17,8 @@ import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.user.UserBookmarkedIllustsFragment
 import ceui.pixiv.ui.user.UserBookmarkedIllustsFragmentArgs
+import ceui.pixiv.ui.user.UserBookmarkedNovelFragment
+import ceui.pixiv.ui.user.UserBookmarkedNovelFragmentArgs
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
 import ceui.pixiv.widgets.setUpWith
@@ -103,6 +105,37 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                     builder = {
                         UserFollowingFragment().apply {
                             arguments = UserFollowingFragmentArgs(
+                                SessionManager.loggedInUid,
+                                Params.TYPE_PRIVATE
+                            ).toBundle()
+                        }
+                    },
+                    titleLiveData = getTitleLiveData(1).apply {
+                        value = getString(R.string.string_392)
+                    }
+                )
+            )
+        } else if (args.contentType == ViewPagerContentType.MyBookmarkNovel) {
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        UserBookmarkedNovelFragment().apply {
+                            arguments = UserBookmarkedNovelFragmentArgs(
+                                SessionManager.loggedInUid,
+                                Params.TYPE_PUBLIC
+                            ).toBundle()
+                        }
+                    },
+                    titleLiveData = getTitleLiveData(0).apply {
+                        value = getString(R.string.string_391)
+                    }
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        UserBookmarkedNovelFragment().apply {
+                            arguments = UserBookmarkedNovelFragmentArgs(
                                 SessionManager.loggedInUid,
                                 Params.TYPE_PRIVATE
                             ).toBundle()
