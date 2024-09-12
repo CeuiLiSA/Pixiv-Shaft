@@ -18,17 +18,23 @@
         <net.csdn.roundview.RoundImageView
             android:id="@+id/novel_cover"
             loadMedia="@{holder.novel.image_urls.findMaxSizeUrl()}"
-            android:layout_width="90dp"
-            android:layout_height="130dp"
+            android:layout_width="100dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="240:338"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:rRadius="4dp" />
 
         <TextView
             android:id="@+id/title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:includeFontPadding="false"
+            android:gravity="start"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:text="@{holder.novel.title}"
             android:textColor="@color/text00"
             android:textSize="15sp"
@@ -37,12 +43,15 @@
 
         <TextView
             android:id="@+id/caption"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:gravity="start"
             android:layout_marginStart="10dp"
+            android:includeFontPadding="false"
             android:layout_marginTop="6dp"
             android:ellipsize="end"
-            android:maxLines="2"
+            android:maxLines="3"
             android:text="@{holder.novel.caption}"
             android:textColor="@color/text20"
             android:textSize="13sp"
@@ -100,19 +109,19 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ceui.pixiv.widgets.TagsFlowView
-            android:id="@+id/novel_tag"
-            visibleOrGone="@{holder.novel.tags.size() > 0}"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            app:dividerDrawable="@drawable/spacer_5dp"
-            app:flexWrap="wrap"
-            app:layout_constraintTop_toBottomOf="@+id/novel_cover"
-            app:showDivider="middle"
-            app:tags="@{holder.novel.tags}"
-            app:tfv_max_lines="3"
-            app:tfv_style="small" />
+<!--        <ceui.pixiv.widgets.TagsFlowView-->
+<!--            android:id="@+id/novel_tag"-->
+<!--            visibleOrGone="@{holder.novel.tags.size() > 0}"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginTop="6dp"-->
+<!--            app:dividerDrawable="@drawable/spacer_5dp"-->
+<!--            app:flexWrap="wrap"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/novel_cover"-->
+<!--            app:showDivider="middle"-->
+<!--            app:tags="@{holder.novel.tags}"-->
+<!--            app:tfv_max_lines="3"-->
+<!--            app:tfv_style="small" />-->
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

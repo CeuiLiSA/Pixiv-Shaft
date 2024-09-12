@@ -7,6 +7,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
+import ceui.lisa.view.NovelItemDecoration
 import ceui.loxia.Client
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.NovelCardHolder
@@ -26,6 +27,6 @@ class RecmdNovelFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel)
         binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        binding.listView.addItemDecoration(LinearItemDecoration(20.ppppx))
+        binding.listView.addItemDecoration(NovelItemDecoration(10.ppppx))
     }
 }

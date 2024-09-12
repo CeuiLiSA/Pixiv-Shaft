@@ -7,15 +7,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.IllustResponse
+import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.observeEvent
-import ceui.pixiv.ui.bottom.ItemListDialogFragment
 import ceui.pixiv.ui.bottom.UsersYoriDialogFragment
-import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -32,7 +27,7 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val viewModel by pixivListViewModel({ Pair(searchViewModel, dialogViewModel) }) { (vm, dialogVM) ->
         SearchIllustMangaDataSource {
             val count = dialogVM.chosenUsersYoriCount.value
-            vm.buildSearchConfig(count)
+            vm.buildSearchConfig(count, ObjectType.ILLUST)
         }
     }
 
@@ -46,14 +41,14 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             "热度排序",
         ))
         binding.radioTab.setItemCickListener { index ->
-            searchViewModel.selectedRadioTabIndex.value = index
+            searchViewModel.illustSelectedRadioTabIndex.value = index
             val now = System.currentTimeMillis()
             searchViewModel.triggerSearchIllustMangaEvent(now)
         }
         searchViewModel.searchIllustMangaEvent.observeEvent(viewLifecycleOwner) {
             viewModel.refresh(RefreshHint.InitialLoad)
         }
-        searchViewModel.selectedRadioTabIndex.observe(viewLifecycleOwner) { index ->
+        searchViewModel.illustSelectedRadioTabIndex.observe(viewLifecycleOwner) { index ->
             binding.radioTab.selectTab(index)
             binding.usersYori.isVisible = (index == 1) || (index == 2)
         }

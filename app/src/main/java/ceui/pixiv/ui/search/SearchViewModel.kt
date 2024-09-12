@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.loxia.Event
+import ceui.loxia.ObjectType
 import ceui.loxia.Tag
 
 class SearchViewModel(initialKeyword: String) : ViewModel() {
@@ -11,7 +12,8 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
 
     val tagList = MutableLiveData<List<Tag>>()
 
-    val selectedRadioTabIndex = MutableLiveData(0)
+    val illustSelectedRadioTabIndex = MutableLiveData(0)
+    val novelSelectedRadioTabIndex = MutableLiveData(0)
 
     val inputDraft = MutableLiveData("")
 
@@ -52,8 +54,12 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
         triggerSearchNovelEvent(now)
     }
 
-    fun buildSearchConfig(usersYori: Int?): SearchConfig {
-        val tabIndex = selectedRadioTabIndex.value ?: 0
+    fun buildSearchConfig(usersYori: Int?, objectType: String): SearchConfig {
+        val tabIndex = if (objectType == ObjectType.ILLUST) {
+            illustSelectedRadioTabIndex.value ?: 0
+        } else {
+            novelSelectedRadioTabIndex.value ?: 0
+        }
         val sort = when (tabIndex) {
             0 -> {
                 SortType.POPULAR_PREVIEW

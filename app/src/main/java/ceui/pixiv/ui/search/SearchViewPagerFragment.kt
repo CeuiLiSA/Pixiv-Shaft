@@ -7,8 +7,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentSearchViewpagerBinding
@@ -17,10 +15,7 @@ import ceui.loxia.combineLatest
 import ceui.loxia.hideKeyboard
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
-import ceui.pixiv.ui.common.CommonViewPagerViewModel
-import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TitledViewPagerFragment
-import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.widgets.DialogViewModel
 import ceui.pixiv.widgets.setUpWith
@@ -40,7 +35,8 @@ class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search
         super.onViewFirstCreated(view)
         dialogViewModel.chosenUsersYoriCount.value = 0
         dialogViewModel.choosenOffsetPage.value = 0
-        searchViewModel.selectedRadioTabIndex.value = 0
+        searchViewModel.illustSelectedRadioTabIndex.value = 0
+        searchViewModel.novelSelectedRadioTabIndex.value = 0
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

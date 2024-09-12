@@ -2,6 +2,7 @@ package ceui.pixiv.ui.common
 
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
+import ceui.lisa.utils.Common
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
