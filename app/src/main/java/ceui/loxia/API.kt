@@ -95,6 +95,16 @@ interface API {
         @Query("restrict") restrict: String,
     ): UserPreviewResponse
 
+    @GET("/v1/user/follower?filter=for_ios")
+    suspend fun getUserFans(
+        @Query("user_id") user_id: Long,
+    ): UserPreviewResponse
+
+    @GET("/v1/user/mypixiv")
+    suspend fun getUserPixivFriends(
+        @Query("user_id") user_id: Long,
+    ): UserPreviewResponse
+
     @GET("/v2/{type}/follow")
     suspend fun followUserPosts(
         @Path("type") type: String,

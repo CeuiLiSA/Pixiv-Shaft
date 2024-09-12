@@ -179,6 +179,24 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_user_fans"
+        android:name="ceui.pixiv.ui.user.UserFansFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_friends"
+        android:name="ceui.pixiv.ui.user.UserFriendsFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_mine_profile"
         android:name="ceui.pixiv.ui.user.MineProfileFragment" >
 

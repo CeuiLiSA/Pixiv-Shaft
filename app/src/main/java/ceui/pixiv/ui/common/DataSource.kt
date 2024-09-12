@@ -20,7 +20,7 @@ open class DataSource<Item, T: KListShow<Item>>(
     private var _variableItemMapper: ((Item) -> List<ListItemHolder>)? = null
 
     init {
-        _variableItemMapper = itemMapper
+        this._variableItemMapper = itemMapper
     }
 
     private val currentProtoItems = mutableListOf<Item>()
