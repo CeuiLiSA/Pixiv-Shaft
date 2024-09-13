@@ -24,6 +24,7 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ImgDisplayFragment
+import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpFullScreen
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
@@ -49,6 +50,16 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
         get() = binding.image
 
     private val liveIllust by lazy { ObjectPool.get<Illust>(args.illustId) }
+    private val pixivViewModel by pixivValueViewModel({ args.illustId }) { illustId ->
+        val resp = Client.appApi.getIllust(illustId)
+        resp.illust?.let { illust ->
+            ObjectPool.update(illust)
+        }
+        resp.illust?.user?.let { user ->
+            ObjectPool.update(user)
+        }
+        resp
+    }
 
     override fun displayName(): String {
         return buildPixivWorksFileName(args.illustId)
@@ -129,7 +140,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             binding.bookmarkCount.setTextOrGone("收藏 " + illust.total_bookmarks)
         }
 
-        liveIllust.value?.user?.let { u ->
+        val onUserExisting : (User) -> Unit =  { u ->
             val liveUser = ObjectPool.get<User>(u.id)
             binding.user = liveUser
             binding.follow.setOnClick {
@@ -144,6 +155,18 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
                     R.id.navigation_comments_illust,
                     CommentsFragmentArgs(args.illustId, objectArthurId = u.id, objectType = ObjectType.ILLUST).toBundle()
                 )
+            }
+        }
+
+        val u = liveIllust.value?.user
+        if (u != null) {
+            onUserExisting(u)
+        } else {
+            pixivViewModel.refreshState.observe(viewLifecycleOwner) {
+
+            }
+            pixivViewModel.result.observe(viewLifecycleOwner) { resp ->
+                resp.illust?.user?.let(onUserExisting)
             }
         }
     }

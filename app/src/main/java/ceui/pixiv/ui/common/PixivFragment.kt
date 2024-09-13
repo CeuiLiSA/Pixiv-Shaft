@@ -45,6 +45,7 @@ import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
 import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
+import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.DialogViewModel
 import ceui.pixiv.widgets.MenuItem
@@ -115,7 +116,9 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     }
 
     override fun onClickArticle(article: Article) {
-
+        article.article_url?.let {
+            pushFragment(R.id.navigation_web_fragment, WebFragmentArgs(article.article_url).toBundle())
+        }
     }
 
     override fun onClickNovel(novel: Novel) {

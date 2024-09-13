@@ -5,6 +5,7 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentMyChatsBinding
 import ceui.loxia.ObjectType
+import ceui.pixiv.ui.article.ArticlesFragment
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.HomeTabContainer
@@ -43,9 +44,17 @@ class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), Hom
                 ),
                 PagedFragmentItem(
                     builder = {
-                        WalkthroughFragment()
+                        ArticlesFragment()
                     },
                     titleLiveData = getTitleLiveData(2).apply {
+                        value = "Pixivision"
+                    }
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        WalkthroughFragment()
+                    },
+                    titleLiveData = getTitleLiveData(3).apply {
                         value = "画廊"
                     }
                 ),

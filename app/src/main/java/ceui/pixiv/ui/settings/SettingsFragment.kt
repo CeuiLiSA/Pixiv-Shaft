@@ -42,7 +42,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     ).onItemClick {
                         pushFragment(
                             R.id.navigation_web_fragment,
-                            WebFragmentArgs("https://www.pixiv.net/").toBundle()
+                            WebFragmentArgs("https://www.pixiv.net/", saveCookies = true).toBundle()
                         )
                     },
                     TabCellHolder(

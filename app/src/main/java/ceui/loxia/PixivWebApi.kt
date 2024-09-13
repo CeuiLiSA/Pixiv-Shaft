@@ -14,7 +14,7 @@ interface PixivWebApi {
     @GET("/ajax/illust/{illust_id}")
     suspend fun getWebIllust(@Path("illust_id") illust_id: Long)
 
-    @GET("/ajax/top/{type}?mode=all&lang=zh&version=4dcee914d1511863175826299da4b8d422e9edd9")
+    @GET("/ajax/top/{type}?mode=all&lang=zh")
     suspend fun getSquareContents(
         @Path("type") type: String,
     ): SquareResponse

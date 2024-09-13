@@ -48,6 +48,12 @@ interface API {
         @Field("illust_id") illust_id: Long
     )
 
+
+    @GET("/v1/illust/detail")
+    suspend fun getIllust(
+        @Query("illust_id") illust_id: Long
+    ): SingleIllustResponse
+
     @GET("/v1/walkthrough/illusts")
     suspend fun getWalkthroughWorks(): IllustResponse
 

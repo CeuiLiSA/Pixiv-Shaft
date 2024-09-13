@@ -57,6 +57,10 @@
         <argument
             app:argType="string"
             android:name="url"/>
+        <argument
+            app:argType="boolean"
+            android:defaultValue="false"
+            android:name="save_cookies"/>
     </fragment>
 
 

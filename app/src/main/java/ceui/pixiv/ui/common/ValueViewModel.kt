@@ -25,6 +25,22 @@ fun <T> Fragment.pixivValueViewModel(
     }
 }
 
+inline fun <ArgsT, T> Fragment.pixivValueViewModel(
+    noinline argsProducer: () -> ArgsT,
+    noinline loader: suspend (ArgsT) -> T,
+): Lazy<ValueViewModel<T>> {
+    return this.viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val args = argsProducer()
+                return ValueViewModel(loader = {
+                    loader(args)
+                }) as T
+            }
+        }
+    }
+}
+
 inline fun <T> Fragment.pixivValueViewModel(
     noinline ownerProducer: () -> ViewModelStoreOwner = { this },
     noinline loader: suspend () -> T,

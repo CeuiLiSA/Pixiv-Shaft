@@ -3,6 +3,7 @@ package ceui.pixiv.ui.chats
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
@@ -24,6 +25,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
@@ -47,6 +49,7 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         setUpRefreshState(binding, viewModel)
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
+        binding.listView.updatePadding(left = 3.ppppx, right = 3.ppppx)
         binding.listView.layoutManager = GridLayoutManager(context, 3).apply {
             spanSizeLookup = object : SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int {

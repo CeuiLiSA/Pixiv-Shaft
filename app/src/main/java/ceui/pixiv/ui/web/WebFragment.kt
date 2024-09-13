@@ -74,10 +74,12 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                url?.let {
-                    val cookie = CookieManager.getInstance().getCookie(it)
-                    Common.showLog("dsaadsdsaaww2 set ${cookie}")
-                    prefStore.putString("web-api-cookie", cookie)
+                if (args.saveCookies) {
+                    url?.let {
+                        val cookie = CookieManager.getInstance().getCookie(it)
+                        Common.showLog("dsaadsdsaaww2 set ${cookie}")
+                        prefStore.putString("web-api-cookie", cookie)
+                    }
                 }
 
                 binding.refreshLayout.finishRefresh()
