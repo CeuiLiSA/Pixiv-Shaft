@@ -4,6 +4,7 @@ import androidx.core.content.ContextCompat
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.annotations.ItemHolder
+import ceui.lisa.databinding.CellNovelChapterBinding
 import ceui.lisa.databinding.CellNovelImageBinding
 import ceui.lisa.databinding.CellNovelTextBinding
 import ceui.lisa.utils.GlideUrlChild
@@ -16,6 +17,23 @@ import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
 import java.util.HashMap
+
+class NovelChapterHolder(val text: String, val textColor: Int) : ListItemHolder() {
+    override fun getItemId(): Long {
+        return (text.hashCode() + textColor).toLong()
+    }
+}
+
+@ItemHolder(NovelChapterHolder::class)
+class NovelChapterViewHolder(bd: CellNovelChapterBinding) : ListItemViewHolder<CellNovelChapterBinding, NovelChapterHolder>(bd) {
+
+    override fun onBindViewHolder(holder: NovelChapterHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
+        binding.novelText.text = holder.text
+        binding.novelText.setTextColor(holder.textColor)
+    }
+}
+
 
 class NovelTextHolder(val text: String, val textColor: Int) : ListItemHolder() {
     override fun getItemId(): Long {

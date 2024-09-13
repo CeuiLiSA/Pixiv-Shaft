@@ -22,6 +22,9 @@ import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.ui.common.IllustCardActionReceiver
+import ceui.pixiv.ui.common.IllustIdActionReceiver
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.TitledViewPagerFragment
@@ -104,6 +107,11 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
         binding.circle = viewModel.result
         viewModel.result.observe(viewLifecycleOwner) { circle ->
             binding.worksCount.text = "${circle.body?.total ?: 0}个作品"
+            binding.tagIcon.setOnClick {
+                circle?.body?.meta?.pixpedia?.illust?.id?.let { id ->
+                    it.findActionReceiverOrNull<IllustIdActionReceiver>()?.onClickIllust(id)
+                }
+            }
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())

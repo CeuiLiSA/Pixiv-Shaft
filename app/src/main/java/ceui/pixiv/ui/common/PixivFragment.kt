@@ -59,7 +59,7 @@ import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
-    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver {
+    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver {
 
     private val fragmentViewModel: NavFragmentViewModel by viewModels()
 
@@ -123,6 +123,13 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 
     override fun onClickNovel(novel: Novel) {
         pushFragment(R.id.navigation_novel_text, NovelTextFragmentArgs(novel.id).toBundle())
+    }
+
+    override fun onClickIllust(illustId: Long) {
+        pushFragment(
+            R.id.navigation_illust,
+            IllustFragmentArgs(illustId).toBundle()
+        )
     }
 }
 

@@ -37,6 +37,10 @@ interface IllustCardActionReceiver {
     fun onClickIllustCard(illust: Illust)
 }
 
+interface IllustIdActionReceiver {
+    fun onClickIllust(illustId: Long)
+}
+
 @ItemHolder(IllustCardHolder::class)
 class IllustCardViewHolder(bd: CellIllustCardBinding) :
     ListItemViewHolder<CellIllustCardBinding, IllustCardHolder>(bd) {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <TextView
+        android:id="@+id/novel_text"
+        android:layout_width="match_parent"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginHorizontal="@dimen/sixteen_dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="6dp"
+        android:lineSpacingExtra="@dimen/six_dp"
+        android:textIsSelectable="true"
+        android:textColor="@color/white_to_gray"
+        android:textColorHighlight="?attr/colorPrimary"
+        android:layout_height="wrap_content">
+
+    </TextView>
+</layout>
