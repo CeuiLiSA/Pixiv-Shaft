@@ -22,19 +22,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/mobile_navigation" />
 
-<!--    <com.airbnb.lottie.LottieAnimationView-->
-<!--        android:id="@+id/renew_token_progress"-->
-<!--        android:layout_width="160dp"-->
-<!--        android:layout_height="160dp"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:lottie_rawRes="@raw/renew_token_anim"-->
-<!--        app:lottie_autoPlay="true"-->
-<!--        app:lottie_loop="true"/>-->
-
-
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/renew_token_progress"
         android:layout_width="match_parent"

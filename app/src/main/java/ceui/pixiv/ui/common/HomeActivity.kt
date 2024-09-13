@@ -1,24 +1,26 @@
 package ceui.pixiv.ui.common
 
 import android.animation.Animator
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
+import androidx.lifecycle.LiveData
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.utils.INetworkState
+import ceui.pixiv.utils.NetworkStateManager
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : AppCompatActivity(), INetworkState {
 
     private lateinit var binding: ActivityHomeBinding
+    private val _networkStateManager by lazy { NetworkStateManager(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        _networkStateManager
         try {
             (this as? ComponentActivity)?.enableEdgeToEdge()
         } catch (ex: Exception) {
@@ -61,5 +63,14 @@ class HomeActivity : AppCompatActivity() {
 
         // 播放动画
         lottieView.playAnimation()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _networkStateManager.unregisterNetworkCallback()
+    }
+
+    override val networkState: LiveData<NetworkStateManager.NetworkType> get() {
+        return _networkStateManager.networkState
     }
 }

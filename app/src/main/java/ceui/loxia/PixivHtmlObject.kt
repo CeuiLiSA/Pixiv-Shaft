@@ -1,6 +1,5 @@
 package ceui.loxia
 
-import ceui.lisa.models.WebNovel
 
 data class PixivHtmlObject(
     val viewerVersion: String? = null,

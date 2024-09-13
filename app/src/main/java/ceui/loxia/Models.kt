@@ -2,8 +2,9 @@ package ceui.loxia
 
 import android.text.TextUtils
 import ceui.lisa.models.ModelObject
+import ceui.lisa.models.NovelBean
+import ceui.lisa.models.NovelDetail.NovelMarkerBean
 import ceui.lisa.models.ObjectSpec
-import ceui.lisa.models.Urls
 import java.io.Serializable
 
 
@@ -71,7 +72,7 @@ data class WebIllust(
     val id: Long = 0L,
     val illustType: Int? = null,
     val isBookmarkable: Boolean? = null,
-    val images: Urls? = null,
+    val images: ImageUrls? = null,
     val isMasked: Boolean? = null,
     val isUnlisted: Boolean? = null,
     val pageCount: Int = 0,
@@ -204,10 +205,12 @@ data class MetaSinglePage(
     val original_image_url: String? = null
 ) : Serializable
 
+
 data class WebTag(
     val tag: String? = null,
     val tag_translation: String? = null,
-    val cnt: Int? = null
+    val cnt: Int? = null,
+    val ids: List<Long>? = null,
 ) : Serializable {
     val tagName: String? get() {
         return tag ?: tag_translation
@@ -275,6 +278,7 @@ data class ImageUrls(
     val large: String? = null,
     val medium: String? = null,
     val original: String? = null,
+    val small: String? = null,
     val square_medium: String? = null,
     val px_16x16: String? = null,
     val px_170x170: String? = null,
@@ -300,6 +304,10 @@ data class ImageUrls(
 
         if (square_medium != null) {
             return square_medium
+        }
+
+        if (small != null) {
+            return small
         }
 
         if (px_170x170 != null) {
@@ -656,8 +664,8 @@ data class NovelText(
 )
 
 data class SeriesNavigation(
-    val nextNovel: NextNovel? = null,
-    val prevNovel: Any? = null
+    val nextNovel: NovelBean? = null,
+    val prevNovel: NovelBean? = null
 )
 
 data class NextNovel(
@@ -668,3 +676,51 @@ data class NextNovel(
     val viewable: Boolean? = null,
     val viewableMessage: Any? = null
 )
+
+
+data class WebNovel(
+    val aiType: Int? = null,
+    val caption: String? = null,
+    val coverUrl: String? = null,
+    val glossaryItems: List<Any?>? = null,
+    val id: String? = null,
+    val text: String? = null,
+    val isOriginal: Boolean? = null,
+    val marker: NovelMarkerBean? = null,
+    val illusts: Map<String, WebIllustHolder>? = null,
+    val images: Map<String, NovelImages>? = null,
+    val replaceableItemIds: List<Any?>? = null,
+    val seriesId: String? = null,
+    val seriesIsWatched: Boolean? = null,
+    val seriesNavigation: SeriesNavigation? = null,
+    val seriesTitle: String? = null,
+    val tags: List<String?>? = null,
+    val title: String? = null,
+    val userId: String? = null
+)
+
+data class WebIllustHolder(
+    val illust: WebIllust? = null,
+    val id: Long? = null,
+    val user: WebUser? = null
+) : Serializable
+
+
+
+data class NovelImages(
+    val novelImageId: Long? = null,
+    val sl: Int? = null,
+    val urls: Map<String, String>? = null,
+) {
+    companion object {
+
+    }
+
+    object Size {
+        const val Size240mw = "240mw"
+        const val Size480mw = "480mw"
+        const val Size1200x1200 = "1200x1200"
+        const val Size128x128 = "128x128"
+        const val SizeOriginal = "original"
+    }
+}

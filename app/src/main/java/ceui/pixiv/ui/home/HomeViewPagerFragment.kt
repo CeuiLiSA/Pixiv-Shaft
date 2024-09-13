@@ -123,7 +123,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 } else if (position == 1) {
                     return MyCirclesFragment()
                 } else if (position == 2) {
-                    return WalkthroughFragment()
+                    return MyChatsFragment()
                 } else {
                     return FollowingViewPagerFragment()
                 }

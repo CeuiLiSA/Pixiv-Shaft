@@ -2,10 +2,10 @@ package ceui.lisa.fragments
 
 import android.content.Context
 import ceui.lisa.models.NovelDetail
-import ceui.lisa.models.WebNovel
 import ceui.lisa.utils.Common
 import ceui.loxia.PixivHtmlObject
 import ceui.loxia.SpaceHolder
+import ceui.loxia.WebNovel
 import ceui.loxia.novel.NovelImageHolder
 import ceui.loxia.novel.NovelTextHolder
 import ceui.pixiv.ui.common.ListItemHolder

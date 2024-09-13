@@ -89,9 +89,9 @@ data class TranslatedTags(
 ) : Serializable
 
 data class Page(
-    val recommendByTag: List<Tag>? = null,
-    val trendingTags: List<Tag>? = null,
-    val tags: List<Tag>? = null,
+    val recommendByTag: List<WebTag>? = null,
+    val trendingTags: List<WebTag>? = null,
+    val tags: List<WebTag>? = null,
     val follow: List<Long>? = null,
     val ranking: RankingHolder? = null,
 ) : Serializable

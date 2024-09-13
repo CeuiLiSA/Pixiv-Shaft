@@ -11,11 +11,11 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.fragments.WebNovelParser
-import ceui.lisa.models.WebNovel
 import ceui.loxia.Client
 import ceui.loxia.KListShow
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
+import ceui.loxia.WebNovel
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
