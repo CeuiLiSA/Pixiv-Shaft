@@ -93,7 +93,12 @@ data class Page(
     val trendingTags: List<WebTag>? = null,
     val tags: List<WebTag>? = null,
     val follow: List<Long>? = null,
+    val recommend: IdsHolder? = null,
     val ranking: RankingHolder? = null,
+) : Serializable
+
+data class IdsHolder(
+    val ids: List<Long>? = null
 ) : Serializable
 
 data class Thumbnails(

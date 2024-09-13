@@ -98,7 +98,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             if (index == 1) {
                 binding.tabName.text = "Circles"
             } else if (index == 2) {
-                binding.tabName.text = "Chats"
+                binding.tabName.text = "Square"
             } else if (index == 3) {
                 binding.tabName.text = "Friends"
             }

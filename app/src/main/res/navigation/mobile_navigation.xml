@@ -35,6 +35,15 @@
             android:name="task_uuid"/>
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_square"
+        android:name="ceui.pixiv.ui.chats.SquareFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            app:argType="string"
+            android:name="object_type"/>
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_task_preview_list"
