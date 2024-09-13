@@ -48,6 +48,7 @@ import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.DialogViewModel
+import ceui.pixiv.widgets.FragmentResultStore
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.PixivBottomSheet
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -62,6 +63,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver {
 
     private val fragmentViewModel: NavFragmentViewModel by viewModels()
+    private val fragmentResultStore by activityViewModels<FragmentResultStore>()
 
     open fun onViewFirstCreated(view: View) {
 

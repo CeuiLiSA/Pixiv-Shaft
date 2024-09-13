@@ -23,6 +23,7 @@ class DialogViewModel : ViewModel() {
 open class PixivDialog(layoutId: Int) : DialogFragment(layoutId) {
 
     protected val viewModel by activityViewModels<DialogViewModel>()
+    private val fragmentResultStore by activityViewModels<FragmentResultStore>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
