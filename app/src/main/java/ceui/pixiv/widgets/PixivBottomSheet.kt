@@ -12,6 +12,7 @@ import kotlin.math.roundToInt
 
 open class PixivBottomSheet(layoutId: Int) : BottomSheetDialogFragment(layoutId) {
 
+    private val fragmentResultStore by activityViewModels<FragmentResultStore>()
     protected val viewModel by activityViewModels<DialogViewModel>()
 
     override fun onStart() {
