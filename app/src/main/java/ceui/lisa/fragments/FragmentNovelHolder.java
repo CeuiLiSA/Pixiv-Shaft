@@ -66,6 +66,8 @@ import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import me.zhanghai.android.fastscroll.FastScroller;
+import me.zhanghai.android.fastscroll.FastScrollerBuilder;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -97,6 +99,10 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
 
     @Override
     public void initView() {
+        baseBind.viewPager.setVerticalScrollBarEnabled(false);
+        baseBind.viewPager.setScrollbarFadingEnabled(false);
+        FastScroller fb = new FastScrollerBuilder(baseBind.viewPager).build();
+
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
         if (Shaft.sSettings.getNovelHolderColor() != 0) {
             setBackgroundColor(Shaft.sSettings.getNovelHolderColor());

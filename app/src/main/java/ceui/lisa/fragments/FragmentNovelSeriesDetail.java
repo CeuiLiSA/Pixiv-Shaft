@@ -11,6 +11,7 @@ import androidx.databinding.ViewDataBinding;
 
 import com.bumptech.glide.Glide;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,27 +96,51 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                 } else if (item.getItemId() == R.id.batch_download_as_one) {
                     Map<Integer, String> taskContainer = new HashMap<>();
                     String lineSeparator = System.lineSeparator();
+
+                   var si=mResponse.getNovel_series_detail();
+                   var  seriesTitle = si.getTitle()+"_"+si.getId()+lineSeparator+
+                            "Name:"+si.getUser().getName()+"_"+si.getUser().getId()+lineSeparator+
+                            "Caption:"+si.getCaption()+lineSeparator+lineSeparator;
+                    int count = 0;
                     for (NovelBean novelBean : allItems) {
+                        count++;
+
                         if (novelBean.isLocalSaved()) {
-                            String sb = lineSeparator + novelBean.getTitle() + " - " + novelBean.getId() + lineSeparator +
+                            String title = "第"+count+"篇•"+novelBean.getTitle();
+                            String sb = lineSeparator + title +"_"+novelBean.getId()+ lineSeparator +
+                                    "date:"+novelBean.getCreate_date()+lineSeparator+
+                                    "length:"+novelBean.getText_length()+lineSeparator+
+                                    "Tags:"+ Arrays.toString(novelBean.getTagNames())+lineSeparator+
+                                    "Caption:"+novelBean.getCaption()+lineSeparator+lineSeparator+
                                     Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class).getNovel_text();
+
                             taskContainer.put(novelBean.getId(), sb);
                             if (taskContainer.size() == allItems.size()) {
                                 String content = taskContainer.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.joining(lineSeparator));
+                                 content =seriesTitle+content;
                                 saveNovelSeriesToDownload(mResponse.getNovel_series_detail(), content);
                             }
                         } else {
+                            int finalCount = count;
                             Retro.getAppApi().getNovelDetailV2(Shaft.sUserModel.getAccess_token(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+
                                 @Override
                                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                                     new WebNovelParser(response) {
                                         @Override
                                         public void onNovelPrepared(@NonNull NovelDetail novelDetail, @NonNull WebNovel webNovel) {
-                                            String sb = lineSeparator + novelBean.getTitle() + " - " + novelBean.getId() + lineSeparator +
+                                            String title ="第"+ finalCount +"篇•"+ novelBean.getTitle();
+                                            String sb = lineSeparator + title +"_"+novelBean.getId()+ lineSeparator +
+                                                    "date:"+novelBean.getCreate_date()+lineSeparator+
+                                                    "length:"+novelBean.getText_length()+lineSeparator+
+                                                    "Tags:"+ Arrays.toString(novelBean.getTagNames())+lineSeparator+
+                                                    "Caption:"+novelBean.getCaption()+lineSeparator+lineSeparator+
                                                     novelDetail.getNovel_text();
+
                                             taskContainer.put(novelBean.getId(), sb);
                                             if (taskContainer.size() == allItems.size()) {
                                                 String content = taskContainer.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.joining(lineSeparator));
+                                                content=seriesTitle+content;
                                                 saveNovelSeriesToDownload(mResponse.getNovel_series_detail(), content);
                                             }
                                         }

@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -206,8 +207,23 @@ public class IllustDownload {
     }
 
     public static void downloadNovel(BaseActivity<?> activity, NovelBean novelBean, NovelDetail novelDetail, Callback<Uri> targetCallback) {
-        String displayName = FileCreator.deleteSpecialWords("Novel_" + novelBean.getId() + "_" + novelBean.getTitle() + ".txt");
-        String content = novelDetail.getNovel_text();
+
+        String title = novelBean.getTitle();
+        if (novelBean.getSeries()!= null && novelBean.getSeries().getTitle() != null){
+            title=title+"_"+novelBean.getSeries().getTitle();
+        }
+
+
+        String displayName = FileCreator.deleteSpecialWords("Novel_" + novelBean.getId() + "_" + title + ".txt");
+        String content = title +"_"+novelBean.getId()+"\n"+
+                 "date:"+novelBean.getCreate_date()+"\n"+
+                 "length:"+novelBean.getText_length()+"\n"+
+                 "Name:"+novelBean.getUser().getName()+"_"+novelBean.getUser().getId()+ "\n" +
+                 "Tags:"+Arrays.toString(novelBean.getTagNames())+"\n"+
+                 "Caption:"+novelBean.getCaption()+"\n\n"+
+                novelDetail.getNovel_text();
+
+
         downloadNovel(activity, displayName, content, targetCallback);
     }
 
