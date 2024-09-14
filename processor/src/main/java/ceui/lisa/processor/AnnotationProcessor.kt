@@ -69,7 +69,7 @@ class FileGenerator : AbstractProcessor() {
             processingEnv.elementUtils.getPackageOf(it).toString() + ".*"
         }
 
-        val packageName = (packages.first().split(".").subList(0, 3) + listOf("viewholdermap")).joinToString(".")
+        val packageName = "ceui.pixiv.ui.viewholdermap"
 
         val holderEntries = holderElements.map {
             val itemHolderFullName = getClassName {
