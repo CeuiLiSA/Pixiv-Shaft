@@ -207,6 +207,8 @@ dependencies {
 
     implementation("io.github.panpf.zoomimage:zoomimage-view-sketch:1.1.0-alpha05")
 
+    implementation("me.zhanghai.android.fastscroll:library:1.2.0")
+
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 
     configurations {

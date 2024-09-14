@@ -90,7 +90,8 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
             }
         });
         bindView.baseBind.author.setText(target.getUser().getName());
-        bindView.baseBind.howManyWord.setText(String.format(Locale.getDefault(), "%d字", target.getText_length()));
+        var date = target.getCreate_date().substring(0, 10);
+        bindView.baseBind.howManyWord.setText(String.format(Locale.getDefault(), "%d字\n%s", target.getText_length(),date));
         bindView.baseBind.bookmarkCount.setText(String.valueOf(target.getTotal_bookmarks()));
         Glide.with(mContext).load(GlideUtil.getUrl(target.getImage_urls().getMaxImage())).into(bindView.baseBind.cover);
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);

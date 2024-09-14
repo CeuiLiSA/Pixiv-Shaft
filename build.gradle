@@ -43,6 +43,8 @@ allprojects {
         maven { url "https://jsoup.org/" }
         mavenCentral()
         google()
+        maven { url 'https://maven.aliyun.com/repository/public/' }
+//        mavenLocal()
     }
 }
 
