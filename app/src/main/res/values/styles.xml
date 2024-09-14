@@ -29,6 +29,9 @@
 
     <style name="HomeAppTheme" parent="Theme.Material3.Dark.NoActionBar">
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
+        <!-- 自定义 motionDurationLong2 和 motionDurationMedium4 的值 -->
+        <item name="motionDurationLong2" type="integer">800</item>
+        <item name="motionDurationMedium4" type="integer">2000</item>
     </style>
 
 

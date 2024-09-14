@@ -34,9 +34,7 @@ class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), Ho
                             arguments = RecmdIllustMangaFragmentArgs(ObjectType.ILLUST).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = getString(R.string.type_illust)
-                    }
+                    initialTitle = getString(R.string.type_illust)
                 ),
                 PagedFragmentItem(
                     builder = {
@@ -44,17 +42,13 @@ class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), Ho
                             arguments = RecmdIllustMangaFragmentArgs(ObjectType.MANGA).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = getString(R.string.type_manga)
-                    }
+                    initialTitle = getString(R.string.type_manga)
                 ),
                 PagedFragmentItem(
                     builder = {
                         RecmdNovelFragment()
                     },
-                    titleLiveData = getTitleLiveData(2).apply {
-                        value = getString(R.string.type_novel)
-                    }
+                    initialTitle = getString(R.string.type_novel)
                 ),
             ),
             this

@@ -13,7 +13,9 @@ import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
@@ -24,15 +26,13 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
-import ceui.loxia.Client
+import ceui.loxia.FRAGMENT_RESULT_REQUEST_ID
 import ceui.loxia.Illust
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Tag
-import ceui.loxia.User
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
@@ -41,8 +41,6 @@ import ceui.pixiv.ui.bottom.ItemListDialogFragment
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
-import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
-import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
@@ -50,7 +48,6 @@ import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.DialogViewModel
 import ceui.pixiv.widgets.FragmentResultStore
 import ceui.pixiv.widgets.MenuItem
-import ceui.pixiv.widgets.PixivBottomSheet
 import ceui.pixiv.widgets.TagsActionReceiver
 import ceui.pixiv.widgets.showActionMenu
 import ceui.refactor.ppppx
@@ -59,7 +56,11 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
-open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
+interface FragmentResultRequestIdOwner {
+    val resultRequestId: String?
+}
+
+open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequestIdOwner, IllustCardActionReceiver,
     UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver {
 
     private val fragmentViewModel: NavFragmentViewModel by viewModels()
@@ -73,6 +74,16 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
         super.onViewCreated(view, savedInstanceState)
 
         fragmentViewModel // force create
+
+        resultRequestId?.let { requestId ->
+            viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                fragmentResultStore.getTypedResult(requestId)?.let {
+                    it.invoke()
+                    Common.showLog("dsaasdw ${requestId} launchWhenResumed use ${lifecycle.currentState}")
+                }
+            }
+        }
+
 
         if (fragmentViewModel.viewCreatedTime.value == null) {
             onViewFirstCreated(view)
@@ -133,6 +144,21 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
             IllustFragmentArgs(illustId).toBundle()
         )
     }
+
+    fun <T> setFragmentResult(result: T) {
+        resultRequestId?.let { requestId ->
+            val task = fragmentResultStore.getTypedTask<T>(requestId)
+            if (task != null) {
+                task.complete(result)
+                Common.showLog("dsaasdw ${requestId} task complete")
+            } else {
+                Common.showLog("dsaasdw ${requestId} task not found")
+            }
+        }
+    }
+
+    override val resultRequestId: String?
+        get() = arguments?.getString(FRAGMENT_RESULT_REQUEST_ID)
 }
 
 interface ViewPagerFragment {

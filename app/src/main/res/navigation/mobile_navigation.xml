@@ -63,6 +63,15 @@
             android:name="save_cookies"/>
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_ranking_illust_fragment"
+        android:name="ceui.pixiv.ui.rank.RankingIllustsFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+        <argument
+            app:argType="string"
+            android:name="mode"/>
+    </fragment>
+
 
     <fragment
         android:id="@+id/navigation_home_viewpager"

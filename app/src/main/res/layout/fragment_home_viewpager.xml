@@ -3,169 +3,203 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <variable
             name="account"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.AccountResponse>" />
-        <import type="ceui.pixiv.ui.home.HomeViewPagerViewModel"/>
+
+        <import type="ceui.pixiv.ui.home.HomeViewPagerViewModel" />
+
         <variable
             name="viewModel"
             type="HomeViewPagerViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/home_pager_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/toolbar_layout"
-            app:layout_constraintTop_toTopOf="parent"
-            android:paddingStart="18dp"
-            android:paddingEnd="18dp"
-            android:paddingVertical="12dp"
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@null"
+            app:elevation="0dp">
 
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/user_icon"
-                android:layout_width="40dp"
-                app:civ_border_color="@color/colorWhite40"
-                userIcon="@{account.user}"
-                app:civ_border_width="1dp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                android:scaleType="centerCrop"
-                android:layout_height="40dp" />
-
-            <TextView
-                android:id="@+id/user_name"
-                android:textSize="20sp"
-                android:text="@{account.user.name}"
-                app:visibleOrGone="@{viewModel.selectedTabIndex == 0}"
-                style="@style/textMontserratBold"
-                app:layout_constraintStart_toEndOf="@+id/user_icon"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginStart="10dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:textColor="@color/text00"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/tab_name"
-                app:visibleOrGone="@{viewModel.selectedTabIndex != 0}"
-                android:textSize="22sp"
-                style="@style/textMontserratBold"
-                app:layout_constraintStart_toEndOf="@+id/user_icon"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginStart="10dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:textColor="@color/text00"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <ImageView
-                android:id="@+id/navi_search"
-                android:layout_width="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/collapsing_toolbar_layout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:src="@drawable/icon_nav_search"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_scrollFlags="scroll|enterAlways|snap">
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/home_header_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="18dp"
+                    android:paddingVertical="12dp"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp"
+                    android:paddingBottom="10dp"
+                    app:layout_collapseMode="parallax"
+                    app:layout_collapseParallaxMultiplier="0.5"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/user_icon"
+                        userIcon="@{account.user}"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:scaleType="centerCrop"
+                        app:civ_border_color="@color/colorWhite40"
+                        app:civ_border_width="1dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/user_name"
+                        style="@style/textMontserratBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="@{account.user.name}"
+                        android:textColor="@color/text00"
+                        android:textSize="20sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/user_icon"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:visibleOrGone="@{viewModel.selectedTabIndex == 0}" />
+
+                    <TextView
+                        android:id="@+id/tab_name"
+                        style="@style/textMontserratBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/text00"
+                        android:textSize="22sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/user_icon"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:visibleOrGone="@{viewModel.selectedTabIndex != 0}" />
+
+                    <ImageView
+                        android:id="@+id/navi_search"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/icon_nav_search"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/home_view_pager"
             android:layout_width="match_parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_height="0dp">
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         </androidx.viewpager2.widget.ViewPager2>
 
-        <LinearLayout
-            android:orientation="vertical"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_gravity="bottom"
-            android:layout_height="wrap_content">
+            app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+            android:layout_height="match_parent">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/bottom_tab"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent">
 
-                <ImageView
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:src="@drawable/bg_home_bottom_tab"
-                    android:layout_marginBottom="-30dp"
-                    android:scaleType="centerCrop"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/bottom_tab"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content">
 
-                <ImageView
-                    android:id="@+id/icon_discover_tab"
-                    app:layout_constraintStart_toStartOf="parent"
-                    isSelected="@{viewModel.selectedTabIndex == 0}"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:layout_marginStart="10dp"
-                    app:layout_constraintEnd_toStartOf="@+id/icon_circles_tab"
-                    android:src="@drawable/icon_bottom_tab_discover"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="-30dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/bg_home_bottom_tab"
+                        app:layout_constraintBottom_toBottomOf="parent" />
 
-                <ImageView
-                    android:id="@+id/icon_circles_tab"
-                    isSelected="@{viewModel.selectedTabIndex == 1}"
-                    app:layout_constraintStart_toEndOf="@+id/icon_discover_tab"
-                    android:layout_marginBottom="10dp"
-                    app:layout_constraintEnd_toStartOf="@+id/home_compose"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:src="@drawable/icon_bottom_tab_circle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    <ImageView
+                        android:id="@+id/icon_discover_tab"
+                        isSelected="@{viewModel.selectedTabIndex == 0}"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:src="@drawable/icon_bottom_tab_discover"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/icon_circles_tab"
+                        app:layout_constraintStart_toStartOf="parent" />
 
-                <ImageView
-                    android:id="@+id/home_compose"
-                    android:layout_width="wrap_content"
-                    app:layout_constraintStart_toEndOf="@+id/icon_circles_tab"
-                    android:src="@drawable/icon_home_bottom_add"
-                    app:layout_constraintEnd_toStartOf="@+id/icon_chats_tab"
-                    android:layout_marginBottom="5dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:layout_height="wrap_content"/>
+                    <ImageView
+                        android:id="@+id/icon_circles_tab"
+                        isSelected="@{viewModel.selectedTabIndex == 1}"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:src="@drawable/icon_bottom_tab_circle"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/home_compose"
+                        app:layout_constraintStart_toEndOf="@+id/icon_discover_tab" />
 
-                <ImageView
-                    android:id="@+id/icon_chats_tab"
-                    app:layout_constraintStart_toEndOf="@+id/home_compose"
-                    app:layout_constraintEnd_toStartOf="@+id/icon_friends_tab"
-                    isSelected="@{viewModel.selectedTabIndex == 2}"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:layout_marginBottom="10dp"
-                    android:src="@drawable/icon_bottom_tab_chats"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    <ImageView
+                        android:id="@+id/home_compose"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5dp"
+                        android:src="@drawable/icon_home_bottom_add"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/icon_chats_tab"
+                        app:layout_constraintStart_toEndOf="@+id/icon_circles_tab" />
 
-                <ImageView
-                    android:id="@+id/icon_friends_tab"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/icon_chats_tab"
-                    android:layout_marginEnd="10dp"
-                    isSelected="@{viewModel.selectedTabIndex == 3}"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:src="@drawable/icon_bottom_tab_friends"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <ImageView
+                        android:id="@+id/icon_chats_tab"
+                        isSelected="@{viewModel.selectedTabIndex == 2}"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:src="@drawable/icon_bottom_tab_chats"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/icon_friends_tab"
+                        app:layout_constraintStart_toEndOf="@+id/home_compose" />
 
-            <View
-                android:id="@+id/bottom_inset"
-                android:background="#180F2D"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"/>
-        </LinearLayout>
+                    <ImageView
+                        android:id="@+id/icon_friends_tab"
+                        isSelected="@{viewModel.selectedTabIndex == 3}"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:src="@drawable/icon_bottom_tab_friends"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/icon_chats_tab" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <View
+                    android:id="@+id/bottom_inset"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="-10dp"
+                    android:layout_height="40dp"
+                    android:background="#180F2D"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
 </layout>

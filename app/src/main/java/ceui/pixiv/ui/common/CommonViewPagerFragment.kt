@@ -64,9 +64,7 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = getString(R.string.string_391)
-                    }
+                    initialTitle = getString(R.string.string_391)
                 )
             )
             pagedItems.add(
@@ -79,9 +77,7 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = getString(R.string.string_392)
-                    }
+                    initialTitle = getString(R.string.string_392)
                 )
             )
         } else if (args.contentType == ViewPagerContentType.MyFollowingUsers) {
@@ -95,9 +91,7 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = getString(R.string.string_391)
-                    }
+                    initialTitle = getString(R.string.string_391)
                 )
             )
             pagedItems.add(
@@ -110,9 +104,7 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = getString(R.string.string_392)
-                    }
+                    initialTitle = getString(R.string.string_392)
                 )
             )
         } else if (args.contentType == ViewPagerContentType.MyBookmarkNovel) {
@@ -126,9 +118,7 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = getString(R.string.string_391)
-                    }
+                    initialTitle = getString(R.string.string_391)
                 )
             )
             pagedItems.add(
@@ -141,9 +131,7 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = getString(R.string.string_392)
-                    }
+                    initialTitle = getString(R.string.string_392)
                 )
             )
         }

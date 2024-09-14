@@ -149,9 +149,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = "发布插画"
-                    }
+                    initialTitle = "发布插画"
                 ),
                 PagedFragmentItem(
                     builder = {
@@ -162,9 +160,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = "发布小说"
-                    }
+                    initialTitle = "发布小说"
                 ),
                 PagedFragmentItem(
                     builder = {
@@ -174,9 +170,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(2).apply {
-                        value = "发布漫画"
-                    }
+                    initialTitle = "发布漫画"
                 ),
                 PagedFragmentItem(
                     builder = {
@@ -184,9 +178,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
                             arguments = UserBookmarkedIllustsFragmentArgs(args.userId).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(3).apply {
-                        value = "收藏插画"
-                    }
+                    initialTitle = "收藏插画"
                 ),
             ),
             this
