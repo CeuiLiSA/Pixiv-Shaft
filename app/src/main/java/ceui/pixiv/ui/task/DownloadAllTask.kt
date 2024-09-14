@@ -2,8 +2,12 @@ package ceui.pixiv.ui.task
 
 import android.content.Context
 import android.graphics.ColorSpace.Named
+import android.net.Uri
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
+import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.ui.common.saveImageToGallery
@@ -30,7 +34,7 @@ data class NamedUrl(
 )
 
 class DownloadAllTask(
-    context: Context,
+    activity: FragmentActivity,
     contentsProvider: () -> List<NamedUrl>
 ) {
     val pendingTasks = mutableListOf<DownloadTask>()
@@ -38,7 +42,7 @@ class DownloadAllTask(
     init {
         val contents = contentsProvider()
         contents.forEach { content ->
-            pendingTasks.add(DownloadTask(content, context))
+            pendingTasks.add(DownloadTask(content, activity))
         }
     }
 
@@ -51,38 +55,50 @@ class DownloadAllTask(
     }
 }
 
-open class LoadTask(val content: NamedUrl, private val context: Context) {
+open class LoadTask(val content: NamedUrl, private val activity: FragmentActivity, autoStart: Boolean = true) {
     private val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
 
     private val _file = MutableLiveData<File>()
     val file: LiveData<File> = _file
 
+    init {
+        if (autoStart) {
+            activity.lifecycleScope.launch {
+                execute()
+            }
+        }
+    }
+
     suspend fun execute() {
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
             return
         }
-        withContext(Dispatchers.IO) {
-            try {
-                _status.postValue(TaskStatus.Executing(0))
-                ProgressManager.getInstance().addResponseListener(content.url, object : ProgressListener {
-                    override fun onProgress(progressInfo: ProgressInfo) {
-                        Common.showLog("dsaasdasw2 ${progressInfo.percent}")
-                        if (progressInfo.isFinish || progressInfo.percent == 100) {
-                            _status.postValue(TaskStatus.Finished)
-                        } else {
-                            _status.postValue(TaskStatus.Executing(progressInfo.percent))
+        try {
+            _status.value = TaskStatus.Executing(0)
+            ProgressManager.getInstance().addResponseListener(content.url, object : ProgressListener {
+                override fun onProgress(progressInfo: ProgressInfo) {
+                    Common.showLog("dsaasdasw2 ${progressInfo.percent}")
+                    if (progressInfo.isFinish || progressInfo.percent == 100) {
+                        _status.value = TaskStatus.Finished
+                    } else {
+                        if (_status.value != TaskStatus.Finished) {
+                            _status.value = TaskStatus.Executing(progressInfo.percent)
                         }
                     }
+                }
 
-                    override fun onError(id: Long, e: Exception) {
-                        _status.postValue(TaskStatus.Error(e))
-                    }
-                })
+                override fun onError(id: Long, e: Exception) {
+                    _status.value = TaskStatus.Error(e)
+                }
+            })
 
-                val file = Glide.with(context)
+            val file = withContext(Dispatchers.IO) {
+                Glide.with(activity)
                     .asFile()
-                    .load(GlideUrlChild(content.url))
+                    .load(content.url.takeIf {
+                        it.startsWith("http")
+                    }?.let { GlideUrlChild(it) } ?: Uri.parse(content.url))
                     .listener(object : RequestListener<File> {
                         override fun onLoadFailed(
                             e: GlideException?,
@@ -109,15 +125,15 @@ open class LoadTask(val content: NamedUrl, private val context: Context) {
                     })
                     .submit()
                     .get()
-                _file.postValue(file)
-                onFilePrepared(file)
-                _status.postValue(TaskStatus.Finished)
-            } catch (ex: Exception) {
-                _status.postValue(TaskStatus.Error(ex))
-                ex.printStackTrace()
-            } finally {
-                optionalDelay()
             }
+            _file.value = file
+            onFilePrepared(file)
+            _status.value = TaskStatus.Finished
+        } catch (ex: Exception) {
+            _status.value = TaskStatus.Error(ex)
+            ex.printStackTrace()
+        } finally {
+            optionalDelay()
         }
     }
 
@@ -131,12 +147,17 @@ open class LoadTask(val content: NamedUrl, private val context: Context) {
 }
 
 
-class DownloadTask(content: NamedUrl, private val context: Context) :
-    LoadTask(content, context) {
+class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
+    LoadTask(content, activity, autoStart = false) {
 
     override fun onFilePrepared(file: File) {
         super.onFilePrepared(file)
-        saveImageToGallery(context, file, content.name)
+        saveImageToGallery(activity, file, content.name)
+    }
+
+    override suspend fun optionalDelay() {
+        super.optionalDelay()
+        delay(3000L)
     }
 }
 

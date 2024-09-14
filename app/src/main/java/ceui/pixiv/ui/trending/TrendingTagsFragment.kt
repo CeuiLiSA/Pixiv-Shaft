@@ -9,6 +9,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
+import ceui.loxia.ObjectType
 import ceui.loxia.TrendingTag
 import ceui.loxia.TrendingTagsResponse
 import ceui.loxia.pushFragment
@@ -38,9 +39,7 @@ class TrendingTagsFragment : PixivFragment(R.layout.fragment_pixiv_list), Trendi
     }
 
     override fun onClickTrendingTag(trendingTag: TrendingTag) {
-        pushFragment(R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
-            keyword = trendingTag.tag ?: "",
-        ).toBundle())
+        onClickTag(trendingTag.buildTag(), ObjectType.ILLUST)
     }
 
     override fun onLongClickTrendingTag(trendingTag: TrendingTag) {

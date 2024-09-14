@@ -909,22 +909,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
-            baseBind.globalSwipeBack.setChecked(Shaft.sSettings.isGlobalSwipeBack());
-            baseBind.globalSwipeBack.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Shaft.sSettings.setGlobalSwipeBack(isChecked);
-                    Common.showToast(getString(R.string.please_restart_app));
-                    Local.setSettings(Shaft.sSettings);
-                }
-            });
-            baseBind.globalSwipeBackRela.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    baseBind.globalSwipeBack.performClick();
-                }
-            });
-
             baseBind.downloadAutoPostLike.setChecked(Shaft.sSettings.isAutoPostLikeWhenDownload());
             baseBind.downloadAutoPostLike.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override

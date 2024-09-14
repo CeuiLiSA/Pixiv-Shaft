@@ -24,6 +24,7 @@
             <RelativeLayout
                 android:id="@+id/bottom_rela"
                 android:layout_alignParentBottom="true"
+                android:paddingHorizontal="20dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -32,7 +33,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignBottom="@id/download_this_one"
-                    android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginEnd="@dimen/eight_dp"
                     android:layout_marginBottom="5dp"
                     android:layout_toStartOf="@+id/download_this_one"
@@ -47,6 +47,8 @@
                     android:layout_width="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:text="@string/string_7"
+                    android:ellipsize="middle"
+                    android:gravity="center"
                     android:layout_height="32dp"
                     android:layout_gravity="bottom|center_horizontal"
                     android:layout_marginBottom="40dp"
@@ -60,7 +62,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignBottom="@id/download_this_one"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
                     android:layout_marginBottom="5dp"
                     android:layout_toEndOf="@+id/download_this_one"
                     android:gravity="end"

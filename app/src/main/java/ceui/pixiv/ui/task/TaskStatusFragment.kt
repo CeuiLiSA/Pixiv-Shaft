@@ -19,29 +19,26 @@ class TaskStatusFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         setUpToolbar(binding.toolbarLayout, binding.refreshLayout)
 
-        val task = DownloadAllTask(requireContext()) {
-            val items = mutableListOf<NamedUrl>()
-            loadIllustsFromCache()?.forEach { illust ->
-                if (illust.page_count == 1) {
-                    illust.meta_single_page?.original_image_url?.let {
-                        items.add(NamedUrl(buildPixivWorksFileName(illust.id), it))
-                    }
-                } else {
-                    illust.meta_pages?.forEachIndexed { index, page ->
-                        page.image_urls?.original?.let {
-                            items.add(NamedUrl(buildPixivWorksFileName(illust.id, index), it))
-                        }
-                    }
-                }
-            }
-            items
-        }
-        binding.toolbarLayout.naviMore.setOnClick {
-            task.go()
-        }
-        val adapter = CommonAdapter(viewLifecycleOwner)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        binding.listView.adapter = adapter
-        adapter.submitList(task.pendingTasks.map { TaskStatusHolder(it) })
+//        val task = DownloadAllTask(requireActivity()) {
+//            val items = mutableListOf<NamedUrl>()
+//            loadIllustsFromCache()?.forEach { illust ->
+//                if (illust.page_count == 1) {
+//                    illust.meta_single_page?.original_image_url?.let {
+//                        items.add(NamedUrl(buildPixivWorksFileName(illust.id), it))
+//                    }
+//                } else {
+//                    illust.meta_pages?.forEachIndexed { index, page ->
+//                        page.image_urls?.original?.let {
+//                            items.add(NamedUrl(buildPixivWorksFileName(illust.id, index), it))
+//                        }
+//                    }
+//                }
+//            }
+//            items
+//        }
+//        val adapter = CommonAdapter(viewLifecycleOwner)
+//        binding.listView.layoutManager = LinearLayoutManager(requireContext())
+//        binding.listView.adapter = adapter
+//        adapter.submitList(task.pendingTasks.map { TaskStatusHolder(it) })
     }
 }

@@ -151,6 +151,9 @@ object ObjectPool {
             "GifInfoResponse" -> {
                 ObjectSpec.GIF_INFO
             }
+            "UserResponse" -> {
+                ObjectSpec.UserProfile
+            }
             else -> {
                 ObjectSpec.UNKNOWN
             }

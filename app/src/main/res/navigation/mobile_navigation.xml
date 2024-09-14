@@ -12,9 +12,56 @@
         tools:layout="@layout/fragment_landing" />
 
     <fragment
+        android:id="@+id/navigation_articles"
+        android:name="ceui.pixiv.ui.article.ArticlesFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
+
+    <fragment
+        android:id="@+id/navigation_circle"
+        android:name="ceui.pixiv.ui.circles.CircleFragment"
+        tools:layout="@layout/fragment_circle" >
+        <argument
+            app:argType="string"
+            android:name="keyword"/>
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_cache_list"
         android:name="ceui.pixiv.ui.task.CacheFileFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            app:argType="string"
+            android:name="task_uuid"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_square"
+        android:name="ceui.pixiv.ui.chats.SquareFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            app:argType="string"
+            android:name="object_type"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_task_preview_list"
+        android:name="ceui.pixiv.ui.task.TaskListFragment"
         tools:layout="@layout/fragment_pixiv_list" />
+
+    <fragment
+        android:id="@+id/navigation_web_fragment"
+        android:name="ceui.pixiv.ui.web.WebFragment"
+        tools:layout="@layout/fragment_web" >
+        <argument
+            app:argType="string"
+            android:name="url"/>
+        <argument
+            app:argType="boolean"
+            android:defaultValue="false"
+            android:name="save_cookies"/>
+    </fragment>
 
 
     <fragment
@@ -41,8 +88,13 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="ceui.pixiv.ui.home.HomeFragment"
-        tools:layout="@layout/fragment_pixiv_list" />
+        android:name="ceui.pixiv.ui.home.RecmdIllustMangaFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
+    </fragment>
 
 
     <fragment
@@ -55,6 +107,15 @@
             app:argType="long" />
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_novel_text"
+        android:name="ceui.pixiv.ui.novel.NovelTextFragment"
+        tools:layout="@layout/fragment_novel_text" >
+
+        <argument
+            android:name="novel_id"
+            app:argType="long" />
+    </fragment>
 
 
     <fragment
@@ -92,6 +153,69 @@
         <argument
             android:name="user_id"
             app:argType="long" />
+
+        <argument
+            android:name="restrict_type"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_bookmarked_novel"
+        android:name="ceui.pixiv.ui.user.UserBookmarkedNovelFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+
+        <argument
+            android:name="restrict_type"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_created_novel"
+        android:name="ceui.pixiv.ui.user.UserCreatedNovelFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_following_post"
+        android:name="ceui.pixiv.ui.user.following.FollowingPostFragment" >
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
+
+        <argument
+            android:name="restrict_type"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_fans"
+        android:name="ceui.pixiv.ui.user.UserFansFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_friends"
+        android:name="ceui.pixiv.ui.user.UserFriendsFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
     </fragment>
 
     <fragment
@@ -99,6 +223,14 @@
         android:name="ceui.pixiv.ui.user.MineProfileFragment" >
 
     </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_settings"
+        android:name="ceui.pixiv.ui.settings.SettingsFragment" >
+
+    </fragment>
+
 
     <fragment
         android:id="@+id/navigation_task_status"
@@ -166,5 +298,44 @@
         <argument
             android:name="index"
             app:argType="integer"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_common_viewpager"
+        android:name="ceui.pixiv.ui.common.CommonViewPagerFragment" >
+
+        <argument
+            android:name="content_type"
+            app:argType="integer"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_pixiv_dialog"
+        android:name="ceui.pixiv.widgets.MenuDialog" >
+
+        <argument
+            android:name="task_uuid"
+            app:argType="string"/>
+
+        <argument
+            android:name="menu_items"
+            app:argType="ceui.pixiv.widgets.MenuItem[]"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_alert_dialog"
+        android:name="ceui.pixiv.widgets.AlertPurpleDialog" >
+
+        <argument
+            android:name="task_uuid"
+            app:argType="string"/>
+
+        <argument
+            android:name="title"
+            app:argType="string"/>
+
     </fragment>
 </navigation>

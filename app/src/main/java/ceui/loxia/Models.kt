@@ -1,8 +1,9 @@
 package ceui.loxia
 
 import android.text.TextUtils
-import ceui.lisa.interfaces.ListShow
 import ceui.lisa.models.ModelObject
+import ceui.lisa.models.NovelBean
+import ceui.lisa.models.NovelDetail.NovelMarkerBean
 import ceui.lisa.models.ObjectSpec
 import java.io.Serializable
 
@@ -62,7 +63,74 @@ object ConstantUser {
     )
 }
 
+data class WebIllust(
+    val alt: String? = null,
+    val bookmarkData: Any? = null,
+    val createDate: String? = null,
+    val description: String? = null,
+    val height: Int,
+    val id: Long = 0L,
+    val illustType: Int? = null,
+    val isBookmarkable: Boolean? = null,
+    val images: ImageUrls? = null,
+    val isMasked: Boolean? = null,
+    val isUnlisted: Boolean? = null,
+    val pageCount: Int = 0,
+    val aiType: Int = 0,
+    val profileImageUrl: String? = null,
+    val restrict: Int? = null,
+    val sl: Int? = null,
+    val title: String? = null,
+    val updateDate: String? = null,
+    val url: String? = null,
+    val url_w: String? = null,
+    val url_sm: String? = null,
+    val url_s: String? = null,
+    val urls: Map<String, String?>? = null,
+    val userId: Long = 0L,
+    val tags: List<String>? = null,
+    val userName: String? = null,
+    val width: Int,
+    val xRestrict: Int? = null,
+) : Serializable {
 
+    fun toIllust(): Illust {
+        return Illust(
+            id = id,
+            caption = alt,
+            create_date = createDate,
+            height = height,
+            illust_ai_type = aiType,
+            image_urls = ImageUrls(
+                original = url,
+                large = url_w,
+                medium = url_sm,
+                square_medium = url_s,
+            ),
+            is_bookmarked = isBookmarkable != true,
+            is_muted = isUnlisted,
+            meta_pages = null,
+            meta_single_page = null,
+            page_count = pageCount,
+            restrict = restrict,
+            sanity_level = sl,
+            series = null,
+            tags = tags?.map { Tag(name = it) },
+            title = title,
+            tools = null,
+            total_bookmarks = null,
+            total_view = null,
+            type = null,
+            user = User(
+                account = "@${userId}",
+                id = userId
+            ),
+            visible = isMasked != true,
+            width = width,
+            x_restrict = xRestrict
+        )
+    }
+}
 
 data class Illust(
     val caption: String? = null,
@@ -71,6 +139,7 @@ data class Illust(
     val id: Long,
     val image_urls: ImageUrls? = null,
     val is_bookmarked: Boolean? = null,
+    val illust_ai_type: Int = 0,
     val is_muted: Boolean? = null,
     val meta_pages: List<MetaPage>? = null,
     val meta_single_page: MetaSinglePage? = null,
@@ -89,6 +158,11 @@ data class Illust(
     val width: Int = 0,
     val x_restrict: Int? = null,
 ) : Serializable, ModelObject {
+
+    fun isAuthurExist(): Boolean {
+        return user?.exist() == true
+    }
+
     override val objectUniqueId: Long
         get() = id
     override val objectType: Int
@@ -131,10 +205,26 @@ data class MetaSinglePage(
     val original_image_url: String? = null
 ) : Serializable
 
+
+data class WebTag(
+    val tag: String? = null,
+    val tag_translation: String? = null,
+    val cnt: Int? = null,
+    val ids: List<Long>? = null,
+) : Serializable {
+    val tagName: String? get() {
+        return tag ?: tag_translation
+    }
+}
+
 data class Tag(
     val name: String? = null,
     val translated_name: String? = null
-) : Serializable
+) : Serializable {
+    val tagName: String? get() {
+        return name ?: translated_name
+    }
+}
 
 object UserGender {
 
@@ -177,12 +267,18 @@ data class User(
     fun hasGender(): Boolean {
         return gender != UserGender.UNKNOWN
     }
+
+    fun exist(): Boolean {
+        return name?.isNotEmpty() == true || account?.isNotEmpty() == true
+    }
 }
 
 data class ImageUrls(
+    val url: String? = null,
     val large: String? = null,
     val medium: String? = null,
     val original: String? = null,
+    val small: String? = null,
     val square_medium: String? = null,
     val px_16x16: String? = null,
     val px_170x170: String? = null,
@@ -190,6 +286,10 @@ data class ImageUrls(
 ) : Serializable {
 
     fun findMaxSizeUrl(): String? {
+        if (url != null) {
+            return url
+        }
+
         if (original != null) {
             return original
         }
@@ -204,6 +304,10 @@ data class ImageUrls(
 
         if (square_medium != null) {
             return square_medium
+        }
+
+        if (small != null) {
+            return small
         }
 
         if (px_170x170 != null) {
@@ -256,18 +360,6 @@ data class Error(
 }
 
 class UserMessageDetails : Serializable
-
-data class UserResponse(
-    val profile: Profile? = null,
-    val profile_publicity: ProfilePublicity? = null,
-    val user: User? = null,
-    val workspace: Workspace? = null
-) {
-
-    fun isPremium(): Boolean {
-        return profile?.is_premium == true
-    }
-}
 
 data class Profile(
     val address_id: Int? = null,
@@ -357,7 +449,11 @@ data class TrendingTag(
     val tag: String? = null,
     val translated_name: String? = null,
     val illust: Illust? = null,
-) : Serializable
+) : Serializable {
+    fun buildTag(): Tag {
+        return Tag(name = tag, translated_name = translated_name)
+    }
+}
 
 
 data class ArticlesResponse(
@@ -492,32 +588,6 @@ data class WebUser(
     val acceptRequest: Boolean? = null
 ) : Serializable
 
-data class WebIllust(
-    val alt: String? = null,
-    val bookmarkData: Any? = null,
-    val createDate: String? = null,
-    val description: String? = null,
-    val height: Int,
-    val id: Long = 0L,
-    val illustType: Int? = null,
-    val isBookmarkable: Boolean? = null,
-    val isMasked: Boolean? = null,
-    val isUnlisted: Boolean? = null,
-    val pageCount: Int? = null,
-    val profileImageUrl: String? = null,
-    val restrict: Int? = null,
-    val sl: Int? = null,
-    val tags: List<String>? = null,
-    val title: String? = null,
-    val titleCaptionTranslation: TitleCaptionTranslation? = null,
-    val updateDate: String? = null,
-    val url: String? = null,
-    val userId: String? = null,
-    val userName: String? = null,
-    val width: Int,
-    val xRestrict: Int? = null
-) : Serializable
-
 
 data class TitleCaptionTranslation(
     val workCaption: Any,
@@ -594,8 +664,8 @@ data class NovelText(
 )
 
 data class SeriesNavigation(
-    val nextNovel: NextNovel? = null,
-    val prevNovel: Any? = null
+    val nextNovel: NovelBean? = null,
+    val prevNovel: NovelBean? = null
 )
 
 data class NextNovel(
@@ -606,3 +676,51 @@ data class NextNovel(
     val viewable: Boolean? = null,
     val viewableMessage: Any? = null
 )
+
+
+data class WebNovel(
+    val aiType: Int? = null,
+    val caption: String? = null,
+    val coverUrl: String? = null,
+    val glossaryItems: List<Any?>? = null,
+    val id: String? = null,
+    val text: String? = null,
+    val isOriginal: Boolean? = null,
+    val marker: NovelMarkerBean? = null,
+    val illusts: Map<String, WebIllustHolder>? = null,
+    val images: Map<String, NovelImages>? = null,
+    val replaceableItemIds: List<Any?>? = null,
+    val seriesId: String? = null,
+    val seriesIsWatched: Boolean? = null,
+    val seriesNavigation: SeriesNavigation? = null,
+    val seriesTitle: String? = null,
+    val tags: List<String?>? = null,
+    val title: String? = null,
+    val userId: String? = null
+)
+
+data class WebIllustHolder(
+    val illust: WebIllust? = null,
+    val id: Long? = null,
+    val user: WebUser? = null
+) : Serializable
+
+
+
+data class NovelImages(
+    val novelImageId: Long? = null,
+    val sl: Int? = null,
+    val urls: Map<String, String>? = null,
+) {
+    companion object {
+
+    }
+
+    object Size {
+        const val Size240mw = "240mw"
+        const val Size480mw = "480mw"
+        const val Size1200x1200 = "1200x1200"
+        const val Size128x128 = "128x128"
+        const val SizeOriginal = "original"
+    }
+}

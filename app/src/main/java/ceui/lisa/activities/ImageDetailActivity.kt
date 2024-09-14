@@ -2,23 +2,27 @@ package ceui.lisa.activities
 
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.fragment.app.Fragment
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.databinding.ActivityImageDetailBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.fragments.FragmentImageDetail
-import ceui.lisa.fragments.FragmentImageDetail.Companion.newInstance
-import ceui.lisa.fragments.FragmentLocalImageDetail
 import ceui.lisa.helper.PageTransformerHelper
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PixivOperate
+import ceui.pixiv.ui.works.ToggleToolnarViewModel
+import ceui.refactor.animateFadeInQuickly
+import ceui.refactor.animateFadeOutQuickly
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.Locale
@@ -33,6 +37,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private var downloadSingle: TextView? = null
     private var currentSize: TextView? = null
     private var index = 0
+    private val viewModel by viewModels<ToggleToolnarViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +51,28 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     override fun initView() {
         val dataType = intent.getStringExtra("dataType")
         baseBind!!.viewPager.setPageTransformer(true, PageTransformerHelper.getCurrentTransformer())
+        val windowInsetsController = WindowInsetsControllerCompat(
+            window,
+            window.decorView
+        )
+        val infoItems = listOf(
+            baseBind?.bottomRela
+        )
+        windowInsetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        viewModel.isFullscreenMode.observe(this) { isFullScreen ->
+            if (isFullScreen) {
+                windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+                infoItems.forEach {
+                    it?.animateFadeOutQuickly()
+                }
+            } else {
+                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+                infoItems.forEach {
+                    it?.animateFadeInQuickly()
+                }
+            }
+        }
         if ("二级详情" == dataType) {
             currentSize = findViewById(R.id.current_size)
             currentPage = findViewById(R.id.current_page)
@@ -59,7 +86,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 supportFragmentManager
             ) {
                 override fun getItem(i: Int): Fragment {
-                    return newInstance(mIllustsBean, i)
+                    return FragmentImageDetail.newInstance(mIllustsBean, i)
                 }
 
                 override fun getCount(): Int {
@@ -119,7 +146,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 supportFragmentManager
             ) {
                 override fun getItem(i: Int): Fragment {
-                    return newInstance(localIllust!![i])
+                    return FragmentImageDetail.newInstance(localIllust!![i])
                 }
 
                 override fun getCount(): Int {

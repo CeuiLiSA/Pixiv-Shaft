@@ -3,9 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+        <import type="ceui.loxia.Illust"/>
+        <import type="ceui.loxia.User"/>
         <variable
             name="user"
-            type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
+            type="androidx.lifecycle.LiveData&lt;User>" />
+        <variable
+            name="illust"
+            type="androidx.lifecycle.LiveData&lt;Illust>" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -59,7 +64,7 @@
                     android:id="@+id/user_icon"
                     userIcon="@{user}"
                     android:layout_width="40dp"
-                    app:civ_border_color="@color/white"
+                    app:civ_border_color="@color/colorWhite40"
                     app:civ_border_width="1dp"
                     android:scaleType="centerCrop"
                     android:layout_marginEnd="8dp"
@@ -105,6 +110,19 @@
                 android:textSize="14sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
+
+            <ceui.pixiv.widgets.TagsFlowView
+                android:id="@+id/tags_flow_view"
+                visibleOrGone="@{illust.tags.size() > 0}"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:dividerDrawable="@drawable/spacer_8dp"
+                app:flexWrap="wrap"
+                app:showDivider="middle"
+                app:tags="@{illust.tags}">
+
+            </ceui.pixiv.widgets.TagsFlowView>
 
             <LinearLayout
                 android:layout_width="match_parent"

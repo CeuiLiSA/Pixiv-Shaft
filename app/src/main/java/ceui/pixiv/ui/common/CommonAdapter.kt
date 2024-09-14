@@ -1,8 +1,6 @@
 package ceui.pixiv.ui.common
 
 import android.content.Context
-import android.util.Log
-import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
@@ -73,11 +71,11 @@ open class ListItemHolder {
 
 
     open fun areItemsTheSame(other: ListItemHolder): Boolean {
-        return this == other
+        return this.getItemId() == other.getItemId()
     }
 
     open fun areContentsTheSame(other: ListItemHolder): Boolean {
-        return this == other
+        return this.getItemId() == other.getItemId()
     }
 
     fun getItemViewType(): Int {
@@ -86,6 +84,17 @@ open class ListItemHolder {
 
     open fun getItemId(): Long {
         return 0L
+    }
+
+    private var _onItemClick: (() -> Unit)? = null
+
+    open fun onItemClick(block: () -> Unit): ListItemHolder {
+        _onItemClick = block
+        return this
+    }
+
+    fun retrieveClickListener(): (() -> Unit)? {
+        return _onItemClick
     }
 }
 
@@ -96,6 +105,14 @@ open class ListItemViewHolder<Binding : ViewBinding, T : ListItemHolder>(val bin
     var lifecycleOwner: LifecycleOwner? = null
 
     open fun onBindViewHolder(holder: T, position: Int) {
-
+        holder.retrieveClickListener()?.let {
+            binding.root.setOnClickListener {
+                try {
+                    it()
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            }
+        }
     }
 }

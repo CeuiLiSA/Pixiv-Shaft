@@ -7,6 +7,7 @@ import androidx.fragment.app.findFragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -138,6 +139,12 @@ inline fun<reified ActionReceiverT> View.findActionReceiver(): ActionReceiverT {
     return fragment.findActionReceiverOrNull<ActionReceiverT>()!!
 }
 
+fun <T : RecyclerView> T.clearItemDecorations() {
+    while (itemDecorationCount > 0) {
+        removeItemDecorationAt(0)
+    }
+}
+
 inline fun <reified F : Fragment> View.findFragmentOrNull(): F? {
     return try {
         val targetFragment = findFragment<Fragment>()
@@ -146,5 +153,13 @@ inline fun <reified F : Fragment> View.findFragmentOrNull(): F? {
         } else null
     } catch (e: Exception) {
         null
+    }
+}
+
+inline fun <reified T : Fragment> Fragment.findAncestorOrSelf(): T? {
+    if (this is T) {
+        return this
+    } else {
+        return findAncestor()
     }
 }

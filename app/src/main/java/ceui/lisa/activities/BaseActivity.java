@@ -2,6 +2,7 @@ package ceui.lisa.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
@@ -52,11 +53,13 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
                 }
             }
 
+            int primaryColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
             if (hideStatusBar()) {
                 BarUtils.transparentStatusBar(this);
             } else {
-                getWindow().setStatusBarColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
+                getWindow().setStatusBarColor(primaryColor);
             }
+            BarUtils.setNavBarColor(mActivity, Color.TRANSPARENT);
             try {
                 baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
             } catch (Exception ex) {

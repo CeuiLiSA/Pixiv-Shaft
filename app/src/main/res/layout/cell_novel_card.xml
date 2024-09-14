@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="ceui.pixiv.ui.common.NovelCardHolder" />
+
+        <variable
+            name="holder"
+            type="NovelCardHolder" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/novel_cover"
+            loadMedia="@{holder.novel.image_urls.findMaxSizeUrl()}"
+            android:layout_width="100dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="240:338"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:rRadius="4dp" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:includeFontPadding="false"
+            android:gravity="start"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="@{holder.novel.title}"
+            android:textColor="@color/text00"
+            android:textSize="15sp"
+            app:layout_constraintStart_toEndOf="@+id/novel_cover"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/caption"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:gravity="start"
+            android:layout_marginStart="10dp"
+            android:includeFontPadding="false"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:maxLines="3"
+            android:text="@{holder.novel.caption}"
+            android:textColor="@color/text20"
+            android:textSize="13sp"
+            app:layout_constraintStart_toEndOf="@+id/novel_cover"
+            app:layout_constraintTop_toBottomOf="@+id/title" />
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/user_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="@+id/novel_cover"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/novel_cover">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/user_icon"
+                userIcon="@{holder.novel.user}"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:scaleType="centerCrop"
+                app:civ_border_color="@color/colorWhite40"
+                app:civ_border_width="@dimen/hair_line_width"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/user_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:text="@{holder.novel.user.name}"
+                android:textColor="@color/text00"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/text_count"
+                app:layout_constraintStart_toEndOf="@+id/user_icon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/text_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:text="@{holder.novel.text_length.toString()}"
+                android:textColor="@color/text20"
+                android:textSize="13sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--        <ceui.pixiv.widgets.TagsFlowView-->
+<!--            android:id="@+id/novel_tag"-->
+<!--            visibleOrGone="@{holder.novel.tags.size() > 0}"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginTop="6dp"-->
+<!--            app:dividerDrawable="@drawable/spacer_5dp"-->
+<!--            app:flexWrap="wrap"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/novel_cover"-->
+<!--            app:showDivider="middle"-->
+<!--            app:tags="@{holder.novel.tags}"-->
+<!--            app:tfv_max_lines="3"-->
+<!--            app:tfv_style="small" />-->
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -22,6 +22,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.blankj.utilcode.util.ColorUtils;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
@@ -109,9 +110,6 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                         .apply(bitmapTransform(new BlurTransformation(25, 3)))
                         .transition(withCrossFade())
                         .into(baseBind.bgImage);
-                break;
-            case Configuration.UI_MODE_NIGHT_YES:
-                baseBind.bgImage.setImageResource(R.color.black_to_grey);
                 break;
         }
 
@@ -475,7 +473,8 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.userName.setText(illust.getUser().getName());
 
         SpannableString sizeString = new SpannableString(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
-        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
+//        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
+        int currentPrimaryColorId = ColorUtils.getColor(R.color.page_default_background);
         sizeString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
                 sizeString.length()-illust.getSize().length(), sizeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);

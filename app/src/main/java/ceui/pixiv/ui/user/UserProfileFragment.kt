@@ -7,11 +7,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
-import androidx.core.view.updatePadding
-import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
@@ -20,30 +17,29 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.User
 import ceui.loxia.pushFragment
-import ceui.pixiv.ui.task.FetchAllTask
-import ceui.pixiv.ui.common.ImgUrlFragment
+import ceui.pixiv.ui.circles.PagedFragmentItem
+import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.ImgUrlFragmentArgs
-import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.ViewPagerFragment
+import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
-import ceui.pixiv.ui.common.setUpToolbar
+import ceui.pixiv.ui.task.FetchAllTask
+import ceui.pixiv.widgets.MenuItem
+import ceui.pixiv.widgets.setUpWith
+import ceui.pixiv.widgets.showActionMenu
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
-import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.tabs.TabLayoutMediator
 
 interface UserActionReceiver {
     fun onClickUser(id: Long)
 }
 
-class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewPagerFragment {
+class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profile) {
 
     private val binding by viewBinding(FragmentUserProfileBinding::bind)
     private val args by navArgs<UserProfileFragmentArgs>()
@@ -53,31 +49,10 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
             resp.user?.let {
                 ObjectPool.update(it)
             }
+            ObjectPool.update(resp)
             resp
         }
     )
-
-    private fun buildTabText(position: Int): String {
-        val profile = viewModel.result.value?.profile
-        if (profile != null) {
-            if (position == 0) {
-                return "发布插画(${profile.total_illusts})"
-            } else if (position == 1) {
-                return "发布漫画(${profile.total_manga})"
-            }
-        } else {
-            if (position == 0) {
-                return "发布插画"
-            } else if (position == 1) {
-                return "发布漫画"
-            }
-        }
-
-        if (position == 2) {
-            return "收藏插画"
-        }
-        return "hello world"
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -93,11 +68,6 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
             windowInsets
         }
 
-        binding.naviMore.setOnClick {
-            FetchAllTask { Client.appApi.getUserCreatedIllusts(args.userId, ObjectType.ILLUST) }
-        }
-
-
         binding.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
             val totalScrollRange = appBarLayout.totalScrollRange
             if (totalScrollRange == 0) {
@@ -105,24 +75,14 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
             }
 
             val percentage = (Math.abs(verticalOffset) / totalScrollRange.toFloat())
-
-            if (percentage == 0f) {
-                // AppBarLayout fully expanded
-                Common.showLog("asdadsas onAppBarExpanded ${totalScrollRange}, ${verticalOffset}")
-            } else if (percentage == 100f) {
-                // AppBarLayout fully collapsed
-                Common.showLog("asdadsas onAppBarCollapsed ${totalScrollRange}, ${verticalOffset}")
-            } else {
-                // AppBarLayout partially collapsed
-                Common.showLog("asdadsas onAppBarPartiallyCollapsed ${totalScrollRange}, ${verticalOffset}, ${percentage}")
-            }
-
             binding.infoLayout.alpha = 1F - percentage
+            binding.naviTitle.isVisible = (percentage == 1F)
         }
 
         val liveUser = ObjectPool.get<User>(args.userId)
         binding.user = liveUser
         liveUser.observe(viewLifecycleOwner) { user ->
+            binding.naviTitle.text = user.name
             if (user?.profile_image_urls?.findMaxSizeUrl()?.isNotEmpty() == true) {
                 binding.userIcon.setOnClick {
                     pushFragment(
@@ -155,42 +115,85 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
                     )
                 }
             }
-            binding.tabLayout.getTabAt(0)?.text = buildTabText(0)
-            binding.tabLayout.getTabAt(1)?.text = buildTabText(1)
-            binding.tabLayout.getTabAt(2)?.text = buildTabText(2)
-        }
-
-        binding.viewPager.adapter = object : FragmentStateAdapter(this) {
-            override fun getItemCount(): Int {
-                return 3
-            }
-
-            override fun createFragment(position: Int): Fragment {
-                return if (position == 0) {
-                    UserCreatedIllustsFragment().apply {
-                        arguments = UserCreatedIllustsFragmentArgs(
-                            userId = args.userId,
-                            objectType = ObjectType.ILLUST
-                        ).toBundle()
-                    }
-                } else if (position == 1) {
-                    UserCreatedIllustsFragment().apply {
-                        arguments = UserCreatedIllustsFragmentArgs(
-                            userId = args.userId,
-                            objectType = ObjectType.MANGA
-                        ).toBundle()
-                    }
-                } else {
-                    UserBookmarkedIllustsFragment().apply {
-                        arguments = UserBookmarkedIllustsFragmentArgs(args.userId).toBundle()
-                    }
+            getTitleLiveData(0).value = "发布插画(${result.profile?.total_illusts})"
+            getTitleLiveData(1).value = "发布漫画(${result.profile?.total_manga})"
+            getTitleLiveData(2).value = "发布小说(${result.profile?.total_novels})"
+            binding.naviMore.setOnClick {
+                showActionMenu {
+                    add(
+                        MenuItem("下载全部作品", "实验性功能，测试中") {
+                            FetchAllTask(taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画") {
+                                Client.appApi.getUserCreatedIllusts(
+                                    args.userId,
+                                    ObjectType.ILLUST
+                                )
+                            }
+                        }
+                    )
+                    add(
+                        MenuItem("收藏全部作品", "实验性功能，测试中") {
+                        }
+                    )
                 }
             }
         }
-        TabLayoutMediator(
-            binding.tabLayout, binding.viewPager
-        ) { tab, position ->
-            tab.setText(buildTabText(position))
-        }.attach()
+
+        val adapter = SmartFragmentPagerAdapter(
+            listOf(
+                PagedFragmentItem(
+                    builder = {
+                        UserCreatedIllustsFragment().apply {
+                            arguments = UserCreatedIllustsFragmentArgs(
+                                userId = args.userId,
+                                objectType = ObjectType.ILLUST
+                            ).toBundle()
+                        }
+                    },
+                    titleLiveData = getTitleLiveData(0).apply {
+                        value = "发布插画"
+                    }
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        UserCreatedIllustsFragment().apply {
+                            arguments = UserCreatedIllustsFragmentArgs(
+                                userId = args.userId,
+                                objectType = ObjectType.MANGA
+                            ).toBundle()
+                        }
+                    },
+                    titleLiveData = getTitleLiveData(1).apply {
+                        value = "发布小说"
+                    }
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        UserCreatedNovelFragment().apply {
+                            arguments = UserCreatedNovelFragmentArgs(
+                                userId = args.userId,
+                            ).toBundle()
+                        }
+                    },
+                    titleLiveData = getTitleLiveData(2).apply {
+                        value = "发布漫画"
+                    }
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        UserBookmarkedIllustsFragment().apply {
+                            arguments = UserBookmarkedIllustsFragmentArgs(args.userId).toBundle()
+                        }
+                    },
+                    titleLiveData = getTitleLiveData(3).apply {
+                        value = "收藏插画"
+                    }
+                ),
+            ),
+            this
+        )
+        binding.profileViewPager.adapter = adapter
+        binding.tabLayoutList.setUpWith(binding.profileViewPager, binding.slidingCursor, viewLifecycleOwner) {
+
+        }
     }
 }

@@ -3,48 +3,144 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <import type="ceui.pixiv.ui.search.SearchViewModel"/>
+
+        <import type="ceui.pixiv.ui.search.SearchViewModel" />
+
         <variable
             name="viewModel"
             type="SearchViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/circle_root_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/search_layout"
-            app:layout_constraintTop_toTopOf="parent"
+        <ImageView
+            android:id="@+id/shoulder"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/tab_layout_neg_height"
+            android:background="@drawable/view_pager_shoulder"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-            <EditText
-                android:layout_width="0dp"
-                android:textColor="@color/text00"
-                android:text="@={viewModel.keywords}"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/search"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_height="wrap_content" />
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            app:elevation="0dp">
 
-            <Button
-                android:id="@+id/search"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/search_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/search"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ceui.pixiv.widgets.TagsFlowView
+                        android:id="@+id/tags_flow_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:dividerDrawable="@drawable/spacer_8dp"
+                        app:flexWrap="wrap"
+                        app:showDivider="middle"
+                        app:tags="@={viewModel.tagList}"
+                        app:tfv_cell_clickable="true">
+
+                        <LinearLayout
+                            android:id="@+id/tag_edit_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/tag_height"
+                            android:background="@drawable/tag_add_background"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="@dimen/tag_padding"
+                            android:showDividers="middle"
+                            app:visibleOrGone="@{viewModel.tagList.size() &lt; 5}">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_pound_dark" />
+
+                            <EditText
+                                android:id="@+id/tag_editer"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:background="@android:color/transparent"
+                                android:hint="@string/add_keyword"
+                                android:imeOptions="actionDone"
+                                android:inputType="text"
+                                android:singleLine="true"
+                                android:text="@={viewModel.inputDraft}"
+                                android:textColor="@android:color/white"
+                                android:textColorHint="@color/dark_text_color"
+                                android:textSize="13sp" />
+
+
+                        </LinearLayout>
+
+                    </ceui.pixiv.widgets.TagsFlowView>
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/search"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/blue_button"
+                    android:enabled="false"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="6dp"
+                    android:stateListAnimator="@animator/button_press_alpha"
+                    android:text="@string/search"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tab_layout_list"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/tab_layout_height"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@+id/search_layout" />
+
+            <ceui.pixiv.widgets.SlidingCursorView
+                android:id="@+id/sliding_cursor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                app:layout_constraintTop_toBottomOf="@+id/tab_layout_list"
+                app:scv_cursor_color="@color/always_white"
+                app:scv_cursor_height="@dimen/tab_layout_cursor_height"
+                app:scv_cursor_width="@dimen/tab_layout_cursor_width" />
+        </com.google.android.material.appbar.AppBarLayout>
+
 
         <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/view_pager"
-            app:layout_constraintTop_toBottomOf="@+id/search_layout"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/search_view_pager"
             android:layout_width="match_parent"
-            android:layout_height="0dp" />
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

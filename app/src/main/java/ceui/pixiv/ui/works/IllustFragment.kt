@@ -1,10 +1,10 @@
 package ceui.pixiv.ui.works
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
@@ -24,8 +24,10 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ImgDisplayFragment
+import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpFullScreen
 import ceui.pixiv.ui.task.NamedUrl
+import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.user.setTextOrGone
 import ceui.refactor.setOnClick
@@ -33,12 +35,12 @@ import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import kotlinx.coroutines.launch
 
 class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), GalleryActionReceiver {
 
     private val binding by viewBinding(FragmentFancyIllustBinding::bind)
     private val args by navArgs<IllustFragmentArgs>()
-    private val illustViewModel by viewModels<IllustViewModel>()
 
     override val downloadButton: View
         get() = binding.download
@@ -47,8 +49,24 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
     override val displayImg: SketchZoomImageView
         get() = binding.image
 
+    private val liveIllust by lazy { ObjectPool.get<Illust>(args.illustId) }
+    private val pixivViewModel by pixivValueViewModel({ args.illustId }) { illustId ->
+        val resp = Client.appApi.getIllust(illustId)
+        resp.illust?.let { illust ->
+            ObjectPool.update(illust)
+        }
+        resp.illust?.user?.let { user ->
+            ObjectPool.update(user)
+        }
+        resp
+    }
+
     override fun displayName(): String {
         return buildPixivWorksFileName(args.illustId)
+    }
+
+    override fun contentUrl(): String {
+        return liveIllust.value?.meta_single_page?.original_image_url ?: ""
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -64,9 +82,8 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             ),
             binding.toolbarLayout
         )
-        val liveIllust = ObjectPool.get<Illust>(args.illustId)
         val adapter = CommonAdapter(viewLifecycleOwner)
-        val context = requireContext()
+        binding.illust = liveIllust
         liveIllust.observe(viewLifecycleOwner) { illust ->
             binding.toolbarLayout.naviTitle.text = illust.title
 
@@ -108,9 +125,9 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             }
 
             if (illust.page_count == 1) {
-                renderSingleImageIllust(illust, context)
+                renderSingleImageIllust(illust)
             } else if (illust.page_count > 1) {
-                renderGalleryIllust(illust, context, adapter)
+                renderGalleryIllust(illust, adapter)
             }
             if (illust.caption?.isNotEmpty() == true) {
                 binding.description.isVisible = true
@@ -123,7 +140,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             binding.bookmarkCount.setTextOrGone("收藏 " + illust.total_bookmarks)
         }
 
-        liveIllust.value?.user?.let { u ->
+        val onUserExisting : (User) -> Unit =  { u ->
             val liveUser = ObjectPool.get<User>(u.id)
             binding.user = liveUser
             binding.follow.setOnClick {
@@ -140,26 +157,53 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
                 )
             }
         }
+
+        val u = liveIllust.value?.user
+        if (u != null) {
+            onUserExisting(u)
+        } else {
+            pixivViewModel.refreshState.observe(viewLifecycleOwner) {
+
+            }
+            pixivViewModel.result.observe(viewLifecycleOwner) { resp ->
+                resp.illust?.user?.let(onUserExisting)
+            }
+        }
     }
 
-    private fun renderSingleImageIllust(illust: Illust, context: Context) {
+    private fun renderSingleImageIllust(illust: Illust) {
         Glide.with(this).load(GlideUrlChild(illust.image_urls?.large)).into(binding.image)
         binding.image.isVisible = true
         binding.galleryList.isVisible = false
         binding.download.isVisible = true
-        val url = illust.meta_single_page?.original_image_url ?: return
-        val task = viewModel.loadNamedUrl(NamedUrl(displayName(), url), context)
-        setUpLoadTask(context, task)
     }
 
-    private fun renderGalleryIllust(illust: Illust, context: Context, adapter: CommonAdapter) {
+    private fun renderGalleryIllust(illust: Illust, adapter: CommonAdapter) {
         binding.image.isVisible = false
         binding.download.isVisible = false
         binding.progressCircular.isVisible = false
         binding.galleryList.isVisible = true
         binding.galleryList.adapter = adapter
         binding.galleryList.layoutManager = LinearLayoutManager(requireContext())
-        adapter.submitList(illustViewModel.getGalleryHolders(illust, context))
+        adapter.submitList(getGalleryHolders(illust, requireActivity()))
+    }
+
+    private fun getGalleryHolders(illust: Illust, activity: FragmentActivity): List<GalleryHolder>? {
+        return illust.meta_pages?.mapIndexed { index, metaPage ->
+            val task = TaskPool.getLoadTask(
+                NamedUrl(
+                    buildPixivWorksFileName(illust.id, index),
+                    metaPage.image_urls?.original ?: ""
+                ),
+                activity,
+                false
+            )
+            GalleryHolder(illust, index, task) {
+                activity.lifecycleScope.launch {
+                    task.execute()
+                }
+            }
+        }
     }
 
     override fun onClickGalleryHolder(index: Int, galleryHolder: GalleryHolder) {

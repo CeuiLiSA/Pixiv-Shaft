@@ -1,6 +1,5 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -12,22 +11,71 @@
     <com.scwang.smart.refresh.layout.SmartRefreshLayout
         android:id="@+id/refresh_layout"
         android:layout_width="match_parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
         app:layout_constraintBottom_toTopOf="@+id/bottom_layout"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
         android:layout_height="0dp">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/list_view"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-        </androidx.recyclerview.widget.RecyclerView>
+            <ceui.pixiv.widgets.RadioGroupTab
+                android:id="@+id/radio_tab"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:text="@string/not_selected"
+                android:visibility="gone"
+                android:layout_marginEnd="10dp"
+                android:textSize="12sp"
+                android:textColor="@color/text00"
+                android:id="@+id/users_yori"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/list_view"
+                android:layout_width="match_parent"
+                android:clipToPadding="false"
+                app:layout_constraintTop_toBottomOf="@+id/radio_tab"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_height="0dp"/>
+
+            <TextView
+                android:id="@+id/next_url"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_margin="20dp"
+                android:textSize="11sp"
+                android:textColor="@color/text00"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <ImageView
+                android:id="@+id/list_setting"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginEnd="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:src="@drawable/icon_list_settings"
+                android:layout_width="44dp"
+                android:layout_height="44dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -42,18 +90,23 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <ProgressBar
+            <com.airbnb.lottie.LottieAnimationView
                 android:id="@+id/progress_circular"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center" />
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                app:lottie_rawRes="@raw/renew_token_anim"
+                app:lottie_loop="true"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/now_loading"
-                android:textColor="@color/text10" />
+<!--            <com.google.android.material.progressindicator.CircularProgressIndicator-->
+<!--                android:id="@+id/progress_circular"-->
+<!--                android:layout_width="40dp"-->
+<!--                android:indeterminate="true"-->
+<!--                android:layout_height="40dp"-->
+<!--                app:trackCornerRadius="20dp"-->
+<!--                app:trackThickness="5dp"-->
+<!--                android:layout_gravity="center"-->
+<!--                app:indicatorColor="?attr/colorPrimary"/>-->
+
         </LinearLayout>
 
 
@@ -76,6 +129,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:gravity="center"
                 android:text="@string/string_48"
                 android:textColor="@color/text10" />
         </LinearLayout>
@@ -109,6 +163,7 @@
             <TextView
                 android:id="@+id/error_text"
                 android:layout_width="wrap_content"
+                android:gravity="center"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="@string/string_48"

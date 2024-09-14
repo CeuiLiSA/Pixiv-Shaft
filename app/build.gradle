@@ -15,8 +15,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 296
-        versionName "4.1.3"
+        versionCode 300
+        versionName "4.1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -150,13 +150,14 @@ dependencies {
     implementation 'com.github.skydoves:transformationlayout:1.1.1'
     implementation 'com.blankj:utilcodex:1.31.1'
     implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
-    implementation 'com.google.firebase:firebase-analytics:21.2.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.3.5'
+    implementation 'com.google.firebase:firebase-analytics:22.1.0'
+    implementation 'com.google.firebase:firebase-crashlytics:19.0.3'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
 
 
     implementation 'com.jaredrummler:colorpicker:1.1.0'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
 
 
     implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.13'
@@ -174,6 +175,9 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
     implementation 'com.github.liujingxing.rxlife:rxlife-rxjava3:2.2.1'
 
+    def lottieVersion = "3.4.0"
+    implementation "com.airbnb.android:lottie:$lottieVersion"
+
     implementation 'xyz.zpayh:hdimageview:3.0.2'
 
     implementation project(path: ':models')
@@ -184,6 +188,7 @@ dependencies {
     implementation 'com.github.tbruyelle:rxpermissions:0.12'
 
     implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'org.jsoup:jsoup:1.18.1'
 
     implementation 'com.hjq:toast:8.8'
 
@@ -198,6 +203,7 @@ dependencies {
     implementation "io.noties.markwon:core:4.6.2"
     // Java language implementation
     implementation("androidx.activity:activity-ktx:1.9.1")
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
 
     implementation("io.github.panpf.zoomimage:zoomimage-view-sketch:1.1.0-alpha05")
 

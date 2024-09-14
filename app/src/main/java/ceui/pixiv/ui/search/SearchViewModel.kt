@@ -4,14 +4,22 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.loxia.Event
+import ceui.loxia.ObjectType
+import ceui.loxia.Tag
 
 class SearchViewModel(initialKeyword: String) : ViewModel() {
 
-    val keywords = MutableLiveData<String>()
+
+    val tagList = MutableLiveData<List<Tag>>()
+
+    val illustSelectedRadioTabIndex = MutableLiveData(0)
+    val novelSelectedRadioTabIndex = MutableLiveData(0)
+
+    val inputDraft = MutableLiveData("")
 
     init {
         if (initialKeyword.isNotEmpty()) {
-            keywords.value = initialKeyword
+            tagList.value = listOf(Tag(initialKeyword))
         }
     }
 
@@ -44,5 +52,38 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
         triggerSearchIllustMangaEvent(now)
         triggerSearchUserEvent(now)
         triggerSearchNovelEvent(now)
+    }
+
+    fun buildSearchConfig(usersYori: Int?, objectType: String): SearchConfig {
+        val tabIndex = if (objectType == ObjectType.ILLUST) {
+            illustSelectedRadioTabIndex.value ?: 0
+        } else {
+            novelSelectedRadioTabIndex.value ?: 0
+        }
+        val sort = when (tabIndex) {
+            0 -> {
+                SortType.POPULAR_PREVIEW
+            }
+            1 -> {
+                SortType.DATE_DESC
+            }
+            2 -> {
+                SortType.DATE_ASC
+            }
+            else -> {
+                SortType.POPULAR_DESC
+            }
+        }
+        val yoriString = if ((usersYori ?: 0) > 0) {
+            "${usersYori}users入り"
+        } else {
+            ""
+        }
+        return SearchConfig(
+            keyword = tagList.value?.map { it.name }?.joinToString(separator = " ") ?: "",
+            usersYori = yoriString,
+            search_target = if (yoriString.isNotEmpty()) "exact_match_for_tags" else "partial_match_for_tags",
+            sort = sort,
+        )
     }
 }

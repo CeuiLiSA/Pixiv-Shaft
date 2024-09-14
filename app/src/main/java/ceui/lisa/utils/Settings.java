@@ -171,7 +171,6 @@ public class Settings {
 
     private boolean showRelatedWhenStar = true; // 收藏作品时展示关联作品
 
-    private boolean globalSwipeBack = true; // 全局滑动返回
 
     private boolean illustLongPressDownload = false; // 插画详情长按下载
 
@@ -548,14 +547,6 @@ public class Settings {
 
     public void setShowRelatedWhenStar(boolean showRelatedWhenStar) {
         this.showRelatedWhenStar = showRelatedWhenStar;
-    }
-
-    public boolean isGlobalSwipeBack() {
-        return globalSwipeBack;
-    }
-
-    public void setGlobalSwipeBack(boolean globalSwipeBack) {
-        this.globalSwipeBack = globalSwipeBack;
     }
 
     public boolean isIllustLongPressDownload() {

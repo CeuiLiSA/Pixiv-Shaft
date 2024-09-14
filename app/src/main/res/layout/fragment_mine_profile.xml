@@ -6,7 +6,7 @@
 
     <Button
         android:id="@+id/my_bookmark"
-        android:text="我的收藏"
+        android:text="@string/my_bookmarked_novels"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/search"
         app:layout_constraintStart_toStartOf="parent"

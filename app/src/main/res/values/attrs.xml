@@ -9,4 +9,13 @@
         <attr name="metaButtonBarButtonStyle" format="reference" />
     </declare-styleable>
 
+    <declare-styleable name="TagsFlowView">
+        <attr name="tfv_style" format="enum">
+            <enum name="normal" value="0"/>
+            <enum name="small" value="1"/>
+        </attr>
+        <attr name="tfv_cell_clickable" format="boolean"/>
+        <attr name="tfv_max_lines" format="integer"/>
+    </declare-styleable>
+
 </resources>

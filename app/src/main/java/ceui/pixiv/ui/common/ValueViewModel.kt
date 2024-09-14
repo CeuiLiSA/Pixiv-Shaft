@@ -6,9 +6,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.slinkyViewModels
 import kotlinx.coroutines.launch
 
 fun <T> Fragment.pixivValueViewModel(
@@ -23,22 +25,51 @@ fun <T> Fragment.pixivValueViewModel(
     }
 }
 
+inline fun <ArgsT, T> Fragment.pixivValueViewModel(
+    noinline argsProducer: () -> ArgsT,
+    noinline loader: suspend (ArgsT) -> T,
+): Lazy<ValueViewModel<T>> {
+    return this.viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val args = argsProducer()
+                return ValueViewModel(loader = {
+                    loader(args)
+                }) as T
+            }
+        }
+    }
+}
+
+inline fun <T> Fragment.pixivValueViewModel(
+    noinline ownerProducer: () -> ViewModelStoreOwner = { this },
+    noinline loader: suspend () -> T,
+): Lazy<ValueViewModel<T>> {
+    return this.viewModels(ownerProducer = ownerProducer) {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return ValueViewModel(loader) as T
+            }
+        }
+    }
+}
+
 
 class ValueViewModel<T>(
     private val loader: suspend () -> T,
-) : ViewModel() {
+) : ViewModel(), RefreshOwner {
 
     private val _refreshState = MutableLiveData<RefreshState>()
-    val refreshState: LiveData<RefreshState> = _refreshState
+    override val refreshState: LiveData<RefreshState> = _refreshState
 
     private val _result = MutableLiveData<T>()
     val result: LiveData<T> = _result
 
     init {
-        refresh(RefreshHint.initialLoad())
+        refresh(RefreshHint.InitialLoad)
     }
 
-    fun refresh(hint: RefreshHint) {
+    override fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)

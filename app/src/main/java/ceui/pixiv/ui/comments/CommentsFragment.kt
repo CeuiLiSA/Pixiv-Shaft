@@ -4,12 +4,11 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.core.view.updatePaddingRelative
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,8 +31,8 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val args by navArgs<CommentsFragmentArgs>()
-    private val dataSource by lazy { CommentsDataSource(args) }
-    private val viewModel by pixivListViewModel { dataSource }
+    private val viewModel by pixivListViewModel { CommentsDataSource(args) }
+    private val dataSource: CommentsDataSource by lazy { viewModel.typedDataSource() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -63,9 +62,7 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.toolbarLayout.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = insets.top
-            }
+            binding.toolbarLayout.root.updatePaddingRelative(top = insets.top)
             binding.bottomLayout.updatePadding(0, 0, 0, insets.bottom)
             WindowInsetsCompat.CONSUMED
         }

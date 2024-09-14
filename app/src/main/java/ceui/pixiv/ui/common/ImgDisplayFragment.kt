@@ -2,7 +2,9 @@ package ceui.pixiv.ui.common
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -15,7 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
@@ -24,50 +26,35 @@ import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
+import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.ui.works.ViewPagerViewModel
+import ceui.pixiv.widgets.alertYesOrCancel
 import ceui.refactor.animateFadeInQuickly
 import ceui.refactor.animateFadeOutQuickly
 import ceui.refactor.setOnClick
+import com.blankj.utilcode.util.UriUtils
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
 
-
-open class ImgDisplayViewModel : ToggleToolnarViewModel() {
-
-    private val _taskMap: HashMap<Int, LoadTask> = hashMapOf()
-
-    protected fun taskFactory(index: Int, namedUrl: NamedUrl, context: Context): LoadTask {
-        return _taskMap.getOrPut(index) {
-            LoadTask(namedUrl, context)
-        }
-    }
-
-    fun loadNamedUrl(namedUrl: NamedUrl, context: Context): LoadTask {
-        val task = taskFactory(0, namedUrl, context)
-        viewModelScope.launch {
-            task.execute()
-        }
-        return task
-    }
-}
-
-
 abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
-    protected val viewModel by viewModels<ImgDisplayViewModel>()
+    protected val viewModel by viewModels<ToggleToolnarViewModel>()
     private val viewPagerViewModel by viewModels<ViewPagerViewModel>(ownerProducer = { requireParentFragment() })
 
     abstract val downloadButton: View
     abstract val progressCircular: CircularProgressIndicator
     abstract val displayImg: SketchZoomImageView
+
     abstract fun displayName(): String
+    abstract fun contentUrl(): String
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -79,13 +66,24 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
                 viewModel.toggleFullscreen()
             }
         }
-    }
-
-    protected open fun setUpLoadTask(context: Context, task: LoadTask) {
+        val activity = requireActivity()
+        val task = TaskPool.getLoadTask(NamedUrl(displayName(), contentUrl()), activity)
         task.file.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {
-                saveImageToGallery(context, file, displayName())
+                val imageId = getImageIdInGallery(activity, displayName())
+                if (imageId != null) {
+                    MainScope().launch {
+                        val uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId.toString())
+                        val filePath = UriUtils.uri2File(uri)
+                        if (alertYesOrCancel("图片已存在，确定覆盖下载吗? 文件路径: ${filePath?.path}")) {
+                            deleteImageById(activity, imageId)
+                            saveImageToGallery(activity, file, displayName())
+                        }
+                    }
+                } else {
+                    saveImageToGallery(activity, file, displayName())
+                }
             }
             val resolution = getImageDimensions(file)
             Common.showLog("sadasd2 bb ${resolution}")
@@ -94,11 +92,23 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         if (parentFragment is ViewPagerFragment) {
             viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
                 task.file.value?.let { file ->
-                    saveImageToGallery(context, file, displayName())
+                    saveImageToGallery(activity, file, displayName())
                 }
             }
         }
         progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
+    }
+
+    override fun onDestroyView() {
+        if (viewModel.isFullscreenMode.value == true) {
+            val windowInsetsController = WindowInsetsControllerCompat(
+                requireActivity().window,
+                requireActivity().window.decorView
+            )
+            // 重新显示系统的状态栏和导航栏
+            windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+        }
+        super.onDestroyView()
     }
 }
 

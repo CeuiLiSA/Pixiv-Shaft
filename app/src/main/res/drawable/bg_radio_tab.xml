@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="false"
+        android:drawable="@drawable/round_corner_white08_r4" />
+    <item android:state_selected="true"
+        android:drawable="@drawable/round_corner_shining_btn_blue_r4" />
+</selector>

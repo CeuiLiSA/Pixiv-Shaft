@@ -24,10 +24,8 @@ import com.tencent.mmkv.MMKV;
 import androidx.annotation.NonNull;
 import ceui.lisa.R;
 import ceui.lisa.feature.HostManager;
-import ceui.lisa.feature.ToastStyle;
 import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
-import ceui.lisa.http.AppApi;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.notification.NetWorkStateReceiver;
 import ceui.lisa.utils.DensityUtil;
@@ -124,7 +122,6 @@ public class Shaft extends Application implements ServicesProvider {
         //Init Toast utils
         ToastUtils.init(this);
         ToastUtils.setGravity(Gravity.BOTTOM, 0, 0);
-        ToastUtils.initStyle(new ToastStyle(this));
 
         FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
                 sSettings.isFirebaseEnable()
@@ -133,15 +130,6 @@ public class Shaft extends Application implements ServicesProvider {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netWorkStateReceiver, filter);
-
-        if (sSettings.isGlobalSwipeBack()) {
-            SmartSwipeBack.activitySlidingBack(this, new SmartSwipeBack.ActivitySwipeBackFilter() {
-                @Override
-                public boolean onFilter(Activity activity) {
-                    return !(activity instanceof MainActivity);
-                }
-            });
-        }
 
         ShortcutHelper.addAppShortcuts();
 

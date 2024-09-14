@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.common
 
+import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -10,6 +11,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import ceui.lisa.R
+import ceui.lisa.utils.Common
 import com.blankj.utilcode.util.ImageUtils
 import java.io.File
 import java.io.FileInputStream
@@ -54,19 +56,20 @@ fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
         // Handle any other unexpected exceptions
         e.printStackTrace()
     }
-//    ImageUtils.save2Album(
-//        ImageUtils.getBitmap(imageFile),
-//        context.getString(R.string.app_name),
-//        Bitmap.CompressFormat.PNG,
-//    )
 }
 
-fun isImageInGallery(context: Context, displayName: String): Boolean {
+fun getImageIdInGallery(context: Context, displayName: String): Long? {
+    val contentResolver: ContentResolver = context.contentResolver
+
+    // Define the projection to retrieve the URI of the image
     val projection = arrayOf(MediaStore.Images.Media._ID)
+
+    // Define the selection criteria to match the displayName
     val selection = "${MediaStore.Images.Media.DISPLAY_NAME} = ?"
     val selectionArgs = arrayOf(displayName)
 
-    val cursor: Cursor? = context.contentResolver.query(
+    // Query MediaStore for the image
+    val cursor = contentResolver.query(
         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
         projection,
         selection,
@@ -74,8 +77,37 @@ fun isImageInGallery(context: Context, displayName: String): Boolean {
         null
     )
 
-    return cursor?.use {
-        it.count > 0
-    } ?: false
+    // Extract the ID if available
+    val imageId = cursor?.use {
+        if (it.moveToFirst()) {
+            val idColumnIndex = it.getColumnIndex(MediaStore.Images.Media._ID)
+            it.getLong(idColumnIndex)
+        } else {
+            null
+        }
+    }
+
+    return imageId
 }
 
+
+fun deleteImageById(context: Context, imageId: Long): Boolean {
+    val contentResolver: ContentResolver = context.contentResolver
+
+    // Construct the Uri for the image using the imageId
+    val imageUri: Uri = Uri.withAppendedPath(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        imageId.toString()
+    )
+
+    return try {
+        // Delete the image from MediaStore
+        val rowsDeleted = contentResolver.delete(imageUri, null, null)
+        // Check if deletion was successful
+        rowsDeleted > 0
+    } catch (e: Exception) {
+        // Handle any errors during deletion
+        e.printStackTrace()
+        false
+    }
+}

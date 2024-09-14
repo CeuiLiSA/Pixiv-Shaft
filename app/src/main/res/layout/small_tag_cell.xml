@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:orientation="horizontal"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/small_tag_height"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="@dimen/small_tag_padding"
+    android:stateListAnimator="@animator/button_press_alpha">
+
+    <ImageView
+        android:id="@+id/pound_image"
+        android:layout_width="9dp"
+        android:layout_height="9dp"
+        android:src="@drawable/ic_pound" />
+
+    <TextView
+        android:id="@+id/hashtag_name"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        android:ellipsize="end"
+        android:includeFontPadding="false"
+        android:gravity="center_vertical"
+        android:minLines="1"
+        android:singleLine="true"
+        android:textColor="@android:color/white"
+        android:textSize="10sp"
+        tools:text="Wolf" />
+
+</LinearLayout>

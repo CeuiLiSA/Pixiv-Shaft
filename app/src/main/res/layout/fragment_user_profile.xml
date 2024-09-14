@@ -8,6 +8,7 @@
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/user_profile_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -15,7 +16,7 @@
             android:id="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/transparent"
+            android:background="@null"
             app:elevation="0dp">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
@@ -53,7 +54,7 @@
                         android:id="@+id/user_icon"
                         app:civ_border_width="1dp"
                         userIcon="@{user}"
-                        app:civ_border_color="@color/white"
+                        app:civ_border_color="@color/colorWhite40"
                         android:layout_marginBottom="8dp"
                         android:scaleType="centerCrop"
                         android:layout_width="60dp"
@@ -99,37 +100,78 @@
                     android:layout_height="?actionBarSize"
                     app:layout_collapseMode="pin">
 
-                    <ImageView
-                        android:id="@+id/navi_back"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/icon_navi_back" />
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
 
-                    <ImageView
-                        android:id="@+id/navi_more"
-                        android:layout_gravity="end"
-                        android:layout_marginEnd="18dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/icon_navi_more" />
+                        <ImageView
+                            android:id="@+id/navi_back"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/icon_navi_back" />
+
+                        <FrameLayout
+                            android:layout_width="0dp"
+                            android:paddingHorizontal="10dp"
+                            app:layout_constraintStart_toEndOf="@+id/navi_back"
+                            app:layout_constraintEnd_toStartOf="@+id/navi_more"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:layout_height="0dp">
+
+                            <TextView
+                                android:layout_gravity="center"
+                                android:textSize="18sp"
+                                android:maxLines="1"
+                                android:ellipsize="end"
+                                android:textColor="@color/text00"
+                                android:id="@+id/navi_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                        </FrameLayout>
+
+                        <ImageView
+                            android:id="@+id/navi_more"
+                            android:layout_gravity="end"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:layout_marginEnd="18dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/icon_navi_more" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                 </androidx.appcompat.widget.Toolbar>
 
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tabLayout"
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tab_layout_list"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:background="@color/transparent"
-                app:tabBackground="@color/transparent"
-                app:tabIndicatorFullWidth="false"
-                app:tabMode="fixed" />
+                android:layout_height="@dimen/tab_layout_height"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+            <ceui.pixiv.widgets.SlidingCursorView
+                android:id="@+id/sliding_cursor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                app:layout_constraintTop_toBottomOf="@+id/tab_layout_list"
+                app:scv_cursor_color="@color/always_white"
+                app:scv_cursor_height="@dimen/tab_layout_cursor_height"
+                app:scv_cursor_width="@dimen/tab_layout_cursor_width" />
         </com.google.android.material.appbar.AppBarLayout>
 
         <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/view_pager"
+            android:id="@+id/profile_view_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />

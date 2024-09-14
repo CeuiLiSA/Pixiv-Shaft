@@ -17,6 +17,21 @@
         <item name="qmui_skin_support_dialog_edit_text_color">@color/rank_text_color</item>
     </style>
 
+    <style name="PixivBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_dialog_header</item>
+    </style>
+
+    <style name="ThemeOverlay.App.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/PixivBottomSheetStyle</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor" tools:ignore="NewApi">@android:color/transparent</item>
+    </style>
+
+    <style name="HomeAppTheme" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
+    </style>
+
+
     <style name="AppTheme.Default" parent="AppTheme">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">#686bdd</item>
@@ -325,6 +340,58 @@
 
     <style name="textMontserratExtraBold">
         <item name="fontFamily">@font/montserrat_extra_bold</item>
+    </style>
+
+    <style name="SplashTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <!--        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="s">-->
+        <!--            @drawable/splash_text-->
+        <!--        </item>-->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/snail_foreground</item>
+        <item name="windowSplashScreenAnimationDuration">200</item>
+        <item name="postSplashScreenTheme">@style/AppTheme</item>
+    </style>
+
+
+    <declare-styleable name="InsetLayout_Layout">
+        <attr name="layout_inset_margin_adjust_target" format="reference"/>
+        <attr name="layout_inset_padding_adjust_target" format="reference"/>
+        <attr name="layout_inset_padding_top_adjust_target" format="reference"/>
+        <attr name="layout_inset_padding_bottom_adjust_target" format="reference"/>
+        <attr name="layout_inset_ignores_keyboard" format="boolean"/>
+        <attr name="layout_inset_bar_type" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="top" value="1"/>
+            <enum name="bottom" value="2"/>
+        </attr>
+        <attr name="layout_inset_adjust_margin">
+            <flag name="top" value="0x01" />
+            <flag name="bottom" value="0x02" />
+            <flag name="left" value="0x04" />
+            <flag name="right" value="0x08" />
+        </attr>
+        <attr name="layout_inset_adjust_padding">
+            <flag name="top" value="0x01" />
+            <flag name="bottom" value="0x02" />
+            <flag name="left" value="0x04" />
+            <flag name="right" value="0x08" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="SlidingCursorView">
+        <attr name="scv_cursor_height" format="dimension" />
+        <attr name="scv_cursor_width" format="dimension" />
+        <attr name="scv_cursor_color" format="color" />
+    </declare-styleable>
+
+    <style name="TransparentDialogTheme" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style
+        name="dialog_animation_fade" >
+        <item name="android:windowEnterAnimation">@anim/dialog_enter_anim</item>
+        <item name="android:windowExitAnimation">@anim/dialog_exit_anim</item>
     </style>
 </resources>
 

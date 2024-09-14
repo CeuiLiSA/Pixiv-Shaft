@@ -9,10 +9,13 @@ import ceui.lisa.models.UserModel
 import ceui.lisa.utils.Local
 import ceui.loxia.AccountResponse
 import ceui.loxia.Client
+import ceui.loxia.Event
+import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
@@ -28,6 +31,13 @@ object SessionManager {
 
     private val _isRenewToken = MutableLiveData(false)
     val isRenewToken: LiveData<Boolean> = _isRenewToken
+
+    private val _newTokenEvent = MutableLiveData<Event<Long>>()
+    val newTokenEvent: LiveData<Event<Long>> = _newTokenEvent
+
+    fun testRenewAnim() {
+        _newTokenEvent.postValue(Event(System.currentTimeMillis()))
+    }
 
     private val prefStore: MMKV by lazy {
         MMKV.defaultMMKV()
@@ -45,7 +55,11 @@ object SessionManager {
         val json = prefStore.getString(LoggedInUserJsonKey, "")
         if (json?.isNotEmpty() == true) {
             try {
-                _loggedInAccount.value = gson.fromJson(json, AccountResponse::class.java)
+                val accountResponse = gson.fromJson(json, AccountResponse::class.java)
+                _loggedInAccount.value = accountResponse
+                accountResponse.user?.let {
+                    ObjectPool.update(it)
+                }
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
@@ -64,6 +78,18 @@ object SessionManager {
         }
     }
 
+    fun postUpdateSession(userModel: UserModel?) {
+        if (userModel == null) {
+            prefStore.putString(LoggedInUserJsonKey, "")
+            _loggedInAccount.postValue(AccountResponse())
+        } else {
+            val javaJson = gson.toJson(userModel)
+            val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)
+            prefStore.putString(LoggedInUserJsonKey, gson.toJson(accountResponse))
+            _loggedInAccount.postValue(accountResponse)
+        }
+    }
+
 
     fun refreshAccessToken(tokenForThisRequest: String): String? {
         val freshAccessToken = getAccessToken()
@@ -73,6 +99,7 @@ object SessionManager {
 
         return runBlocking(Dispatchers.IO) {
             try {
+                _newTokenEvent.postValue(Event(System.currentTimeMillis()))
                 _isRenewToken.postValue(true)
                 val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
                 val userModel = Client.authApi.newRefreshToken(
@@ -82,6 +109,7 @@ object SessionManager {
                     refreshToken,
                     true
                 ).execute().body()
+                delay(500L)
                 if (userModel != null) {
                     withContext(Dispatchers.Main) {
                         updateSession(userModel)

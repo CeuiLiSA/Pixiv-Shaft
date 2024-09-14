@@ -3,21 +3,36 @@ package ceui.pixiv.ui.list
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import ceui.loxia.Client
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.common.DataSource
+import ceui.pixiv.ui.common.DataSourceContainer
+import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.ListItemHolder
-import com.google.gson.Gson
+import ceui.pixiv.ui.common.LoadMoreOwner
+import ceui.pixiv.ui.common.RefreshOwner
 import kotlinx.coroutines.launch
 
+fun <Item, T : KListShow<Item>, ArgsT: Any> Fragment.pixivListViewModel(
+    argsProducer: () -> ArgsT,
+    dataSourceProducer: (ArgsT) -> DataSource<Item, T>
+): Lazy<PixivListViewModel<Item, T>> {
+    return this.viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val args = argsProducer()
+                val dataSource = dataSourceProducer(args)
+                return PixivListViewModel(dataSource) as T
+            }
+        }
+    }
+}
 
-fun <Item, T: KListShow<Item>> Fragment.pixivListViewModel(
+fun <Item, T : KListShow<Item>> Fragment.pixivListViewModel(
     dataSourceProducer: () -> DataSource<Item, T>
 ): Lazy<PixivListViewModel<Item, T>> {
     return this.viewModels {
@@ -31,28 +46,37 @@ fun <Item, T: KListShow<Item>> Fragment.pixivListViewModel(
 }
 
 
-class PixivListViewModel<Item, T: KListShow<Item>>(
-    private val dataSource: DataSource<Item, T>
-) : ViewModel() {
+class PixivListViewModel<Item, T : KListShow<Item>>(
+    private val _dataSource: DataSource<Item, T>
+) : ViewModel(), RefreshOwner, LoadMoreOwner, HoldersContainer, DataSourceContainer<Item, T> {
 
-    val refreshState: LiveData<RefreshState> = dataSource.refreshState
-    val holders: LiveData<List<ListItemHolder>> = dataSource.itemHolders
+    override val refreshState: LiveData<RefreshState> = _dataSource.refreshState
+    override val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHolders
+    override val liveNextUrl: LiveData<String> = _dataSource.liveNextUrl
 
     init {
-        if (dataSource.initialLoad()) {
-            refresh(RefreshHint.initialLoad())
+        if (_dataSource.initialLoad()) {
+            refresh(RefreshHint.InitialLoad)
         }
     }
 
-    fun refresh(hint: RefreshHint) {
+    override fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
-            dataSource.refreshData(hint)
+            _dataSource.refreshData(hint)
         }
     }
 
-    fun loadMore() {
+    override fun loadMore() {
         viewModelScope.launch {
-            dataSource.loadMoreData()
+            _dataSource.loadMoreData()
         }
+    }
+
+    override fun dataSource(): DataSource<*, *> {
+        return _dataSource
+    }
+
+    override fun <DataSourceT : DataSource<Item, T>> typedDataSource(): DataSourceT {
+        return _dataSource as DataSourceT
     }
 }
