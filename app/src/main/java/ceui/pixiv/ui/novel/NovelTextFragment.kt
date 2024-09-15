@@ -53,9 +53,6 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel)
-        ObjectPool.get<Novel>(args.novelId).observe(viewLifecycleOwner) {
-            binding.toolbarLayout.naviTitle.text = it.title
-        }
         binding.listView.layoutManager = LinearLayoutManager(requireContext())
     }
 }

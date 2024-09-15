@@ -27,6 +27,7 @@ import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.task.FetchAllTask
+import ceui.pixiv.ui.task.PixivTaskType
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.setUpWith
 import ceui.pixiv.widgets.showActionMenu
@@ -122,7 +123,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
                 showActionMenu {
                     add(
                         MenuItem("下载全部作品", "实验性功能，测试中") {
-                            FetchAllTask(taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画") {
+                            FetchAllTask(taskFullName = "下载${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画", PixivTaskType.DownloadAll) {
                                 Client.appApi.getUserCreatedIllusts(
                                     args.userId,
                                     ObjectType.ILLUST
@@ -132,6 +133,12 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
                     )
                     add(
                         MenuItem("收藏全部作品", "实验性功能，测试中") {
+                            FetchAllTask(taskFullName = "收藏${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画", PixivTaskType.BookmarkAll) {
+                                Client.appApi.getUserCreatedIllusts(
+                                    args.userId,
+                                    ObjectType.ILLUST
+                                )
+                            }
                         }
                     )
                 }

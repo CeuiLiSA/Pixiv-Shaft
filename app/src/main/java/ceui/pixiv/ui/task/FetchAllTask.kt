@@ -25,6 +25,7 @@ import java.util.UUID
 
 object PixivTaskType {
     const val DownloadAll = 1
+    const val BookmarkAll = 2
 }
 
 data class HumanReadableTask(
@@ -36,6 +37,7 @@ data class HumanReadableTask(
 
 open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
     taskFullName: String,
+    taskType: Int,
     initialLoader: suspend () -> KListShow<Item>
 ) {
 
@@ -89,7 +91,7 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
                         writer.write(json)
                     }
 
-                    val humanReadableTask = HumanReadableTask(taskUUID, taskFullName, PixivTaskType.DownloadAll, System.currentTimeMillis())
+                    val humanReadableTask = HumanReadableTask(taskUUID, taskFullName, taskType, System.currentTimeMillis())
                     prefStore.putString(taskUUID, gson.toJson(humanReadableTask))
 
                     val fileSize = getFileSize(cacheFile)

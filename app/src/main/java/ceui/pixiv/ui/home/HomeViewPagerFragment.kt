@@ -64,6 +64,9 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             binding.homeHeaderContent.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 topMargin = insets.top
             }
+            binding.toolbar.updateLayoutParams {
+                height = insets.top
+            }
             binding.bottomInset.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 height = insets.bottom
             }
