@@ -13,6 +13,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
@@ -83,9 +86,8 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             pushFragmentForResult(
                 R.id.navigation_ranking_illust_fragment,
                 RankingIllustsFragmentArgs("day").toBundle(),
-            ) { result: HelloResult ->
-                Common.showLog("dsaasdw really get ${result} ${lifecycle.currentState}")
-            }
+                HomeViewPagerFragment::onFragmentResult
+            )
         }
 
         binding.account = SessionManager.loggedInAccount
@@ -144,5 +146,9 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 }
             }
         }
+    }
+
+    private fun onFragmentResult(result: HelloResult) {
+        Common.showLog("dsaasdw really get ${result} ${lifecycle.currentState}")
     }
 }

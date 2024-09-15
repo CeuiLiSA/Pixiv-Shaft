@@ -1,9 +1,12 @@
 package ceui.pixiv.widgets
 
+import android.os.Parcelable
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CompletableDeferred
-import org.checkerframework.checker.units.qual.A
+import java.io.Serializable
+import java.util.concurrent.ConcurrentHashMap
 
 class FragmentResultStore : ViewModel() {
 
@@ -19,11 +22,15 @@ class FragmentResultStore : ViewModel() {
     }
 
 
-    fun putResult(requestId: String, block: () -> Unit) {
-        _pendingResultMap[requestId] = block
+    fun putResult(fragmentUniqueId: String, block: () -> Unit) {
+        _pendingResultMap[fragmentUniqueId] = block
     }
 
-    fun getTypedResult(requestId: String): (() -> Unit)? {
-        return _pendingResultMap[requestId]
+    fun getTypedResult(fragmentUniqueId: String): (() -> Unit)? {
+        return _pendingResultMap[fragmentUniqueId]
+    }
+
+    fun removeResult(fragmentUniqueId: String) {
+        _pendingResultMap.remove(fragmentUniqueId)
     }
 }

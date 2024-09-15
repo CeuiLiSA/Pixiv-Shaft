@@ -6,9 +6,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.findFragment
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
@@ -22,14 +19,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.util.UUID
-import kotlin.reflect.KClass
 
-inline fun<reified InterfaceT> Fragment.sendAction(action: (receiver: InterfaceT)->Boolean) {
+inline fun <reified InterfaceT> Fragment.sendAction(action: (receiver: InterfaceT) -> Boolean) {
     var received = false
     var itr: Fragment? = this
     while (itr != null) {
         val receiver = itr as? InterfaceT
-        if (receiver != null  && action(receiver)) {
+        if (receiver != null && action(receiver)) {
             received = true
             break
         } else {
@@ -45,7 +41,7 @@ inline fun<reified InterfaceT> Fragment.sendAction(action: (receiver: InterfaceT
     }
 }
 
-inline fun<reified InterfaceT> View.sendAction(action: (receiver: InterfaceT)->Boolean) {
+inline fun <reified InterfaceT> View.sendAction(action: (receiver: InterfaceT) -> Boolean) {
     val fragment = this.findFragment<Fragment>()
     fragment.sendAction<InterfaceT>(action)
 }
@@ -111,11 +107,17 @@ fun NavOptions.Builder.setFadeIn(): NavOptions.Builder {
 const val FRAGMENT_RESULT_REQUEST_ID = "FragmentResultRequestId"
 
 
-internal fun<T> T.listenToResultStore(resultStore: FragmentResultStore) where T: Fragment, T: FragmentResultRequestIdOwner {
+internal fun <T> T.listenToResultStore(resultStore: FragmentResultStore) where T : Fragment, T : FragmentResultRequestIdOwner {
 
 }
 
-inline fun <FragmentT: Fragment, reified T: Any> FragmentT.pushFragmentForResult(id: Int, bundle: Bundle? = null, noinline onResult: FragmentT.(T) -> Unit) {
+inline fun <FragmentT, reified T> FragmentT.pushFragmentForResult(
+    id: Int,
+    bundle: Bundle? = null,
+    crossinline onResult: FragmentT.(T) -> Unit
+) where FragmentT : Fragment, FragmentT : FragmentResultRequestIdOwner {
+    val caller = this
+
     val fragmentResultStore by activityViewModels<FragmentResultStore>()
     val requestId = UUID.randomUUID().toString()
     val task = CompletableDeferred<T>()
@@ -136,8 +138,11 @@ inline fun <FragmentT: Fragment, reified T: Any> FragmentT.pushFragmentForResult
                 Common.showLog("dsaasdw ${requestId} now use ${lifecycle.currentState}")
                 onResult(result)
             } else {
-                Common.showLog("dsaasdw ${requestId} store to use ${lifecycle.currentState}")
-                fragmentResultStore.putResult(requestId) { onResult(result) }
+                val callerId = caller.fragmentUniqueId
+                Common.showLog("dsaasdw ${requestId} store to use, caller: ${callerId} ${lifecycle.currentState}")
+                fragmentResultStore.putResult(callerId) {
+                    caller.onResult(result)
+                }
             }
         } else {
             Common.showLog("dsaasdw ${requestId} type not same ${lifecycle.currentState}")
@@ -181,12 +186,12 @@ inline fun <reified ActionReceiverT> Fragment.findActionReceiverOrNull(): Action
 }
 
 
-inline fun<reified ActionReceiverT> View.findActionReceiverOrNull(): ActionReceiverT? {
+inline fun <reified ActionReceiverT> View.findActionReceiverOrNull(): ActionReceiverT? {
     val fragment = this.findFragmentOrNull<Fragment>()
     return fragment?.findActionReceiverOrNull<ActionReceiverT>()
 }
 
-inline fun<reified ActionReceiverT> View.findActionReceiver(): ActionReceiverT {
+inline fun <reified ActionReceiverT> View.findActionReceiver(): ActionReceiverT {
     val fragment = this.findFragment<Fragment>()
     return fragment.findActionReceiverOrNull<ActionReceiverT>()!!
 }

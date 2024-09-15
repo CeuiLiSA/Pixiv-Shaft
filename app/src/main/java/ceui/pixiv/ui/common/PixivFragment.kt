@@ -58,6 +58,7 @@ import com.scwang.smart.refresh.header.MaterialHeader
 
 interface FragmentResultRequestIdOwner {
     val resultRequestId: String?
+    val fragmentUniqueId: String
 }
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequestIdOwner, IllustCardActionReceiver,
@@ -73,17 +74,13 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        fragmentViewModel // force create
-
-        resultRequestId?.let { requestId ->
+        fragmentResultStore.getTypedResult(fragmentUniqueId)?.let { block ->
             viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                fragmentResultStore.getTypedResult(requestId)?.let {
-                    it.invoke()
-                    Common.showLog("dsaasdw ${requestId} launchWhenResumed use ${lifecycle.currentState}")
-                }
+                Common.showLog("dsaasdw caller ${fragmentViewModel.fragmentUniqueId} picked launchWhenResumed use ${lifecycle.currentState}")
+                block()
+                fragmentResultStore.removeResult(fragmentUniqueId)
             }
         }
-
 
         if (fragmentViewModel.viewCreatedTime.value == null) {
             onViewFirstCreated(view)
@@ -159,6 +156,8 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
 
     override val resultRequestId: String?
         get() = arguments?.getString(FRAGMENT_RESULT_REQUEST_ID)
+    override val fragmentUniqueId: String
+        get() = fragmentViewModel.fragmentUniqueId
 }
 
 interface ViewPagerFragment {
