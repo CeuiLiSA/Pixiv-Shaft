@@ -77,7 +77,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             pushFragment(R.id.navigation_mine_profile)
         }
         binding.naviSearch.setOnClick {
-//            pushFragment(R.id.navigation_search_viewpager)
+            pushFragment(R.id.navigation_search_viewpager)
 //            SessionManager.testRenewAnim()
 //            val task = LoadTask(NamedUrl("test", "https://i.pximg.net/c/240x480_80/novel-cover-master/img/2023/02/19/22/32/21/ci19338210_456a179fb6c90b910911e9075874eda8_master1200.jpg"), requireActivity(), true)
 //            task.file.observe(viewLifecycleOwner) { file ->
@@ -86,11 +86,11 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
 //                Common.showLog("sadasd2 cc ${getFileSize(file)}")
 //            }
 
-            pushFragmentForResult(
-                R.id.navigation_ranking_illust_fragment,
-                RankingIllustsFragmentArgs("day").toBundle(),
-                HomeViewPagerFragment::onFragmentResult
-            )
+//            pushFragmentForResult(
+//                R.id.navigation_ranking_illust_fragment,
+//                RankingIllustsFragmentArgs("day").toBundle(),
+//                HomeViewPagerFragment::onFragmentResult
+//            )
         }
 
         binding.account = SessionManager.loggedInAccount

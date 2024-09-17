@@ -15,11 +15,15 @@ import ceui.loxia.Client
 import ceui.loxia.KListShow
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
+import ceui.loxia.ObjectType
 import ceui.loxia.WebNovel
+import ceui.loxia.pushFragment
+import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
+import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
 class NovelTextViewModel : ViewModel() {
@@ -54,5 +58,9 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel)
         binding.listView.layoutManager = LinearLayoutManager(requireContext())
+        val authorId = ObjectPool.get<Novel>(args.novelId).value?.user?.id ?: 0L
+        binding.toolbarLayout.naviMore.setOnClick {
+            pushFragment(R.id.navigation_comments_illust, CommentsFragmentArgs(args.novelId, authorId, ObjectType.NOVEL).toBundle())
+        }
     }
 }
