@@ -8,25 +8,30 @@ import kotlinx.coroutines.CompletableDeferred
 import java.io.Serializable
 import java.util.concurrent.ConcurrentHashMap
 
+data class FragmentResultByFragment<FragmentT: Fragment, ResultT>(
+    val result: ResultT,
+    val fragment: FragmentT,
+)
+
 class FragmentResultStore : ViewModel() {
 
-    private val _taskMap = hashMapOf<String, CompletableDeferred<*>>()
-    private val _pendingResultMap = hashMapOf<String, () -> Unit>()
+    private val _taskMap = hashMapOf<String, CompletableDeferred<FragmentResultByFragment<*, *>>>()
+    private val _pendingResultMap = hashMapOf<String, Any>()
 
-    fun <T> putTask(requestId: String, task: CompletableDeferred<T>) {
+    fun putTask(requestId: String, task: CompletableDeferred<FragmentResultByFragment<*, *>>) {
         _taskMap[requestId] = task
     }
 
-    fun <T> getTypedTask(requestId: String): CompletableDeferred<T>? {
-        return _taskMap.getOrPut(requestId, defaultValue = { CompletableDeferred<T>() }) as? CompletableDeferred<T>
+    fun getTypedTask(requestId: String): CompletableDeferred<FragmentResultByFragment<*, *>>? {
+        return _taskMap[requestId]
     }
 
 
-    fun putResult(fragmentUniqueId: String, block: () -> Unit) {
-        _pendingResultMap[fragmentUniqueId] = block
+    fun putResult(fragmentUniqueId: String, result: Any) {
+        _pendingResultMap[fragmentUniqueId] = result
     }
 
-    fun getTypedResult(fragmentUniqueId: String): (() -> Unit)? {
+    fun getTypedResult(fragmentUniqueId: String): Any? {
         return _pendingResultMap[fragmentUniqueId]
     }
 

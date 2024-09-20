@@ -35,6 +35,7 @@ import ceui.loxia.RefreshState
 import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
+import ceui.loxia.listenToResultStore
 import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.bottom.ItemListDialogFragment
@@ -46,6 +47,7 @@ import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.DialogViewModel
+import ceui.pixiv.widgets.FragmentResultByFragment
 import ceui.pixiv.widgets.FragmentResultStore
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -74,13 +76,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        fragmentResultStore.getTypedResult(fragmentUniqueId)?.let { block ->
-            viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                Common.showLog("dsaasdw caller ${fragmentViewModel.fragmentUniqueId} picked launchWhenResumed use ${lifecycle.currentState}")
-                block()
-                fragmentResultStore.removeResult(fragmentUniqueId)
-            }
-        }
+        listenToResultStore(fragmentResultStore)
 
         if (fragmentViewModel.viewCreatedTime.value == null) {
             onViewFirstCreated(view)
@@ -142,15 +138,9 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
         )
     }
 
-    fun <T> setFragmentResult(result: T) {
+    fun <T: Any> setFragmentResult(result: T) {
         resultRequestId?.let { requestId ->
-            val task = fragmentResultStore.getTypedTask<T>(requestId)
-            if (task != null) {
-                task.complete(result)
-                Common.showLog("dsaasdw ${requestId} task complete")
-            } else {
-                Common.showLog("dsaasdw ${requestId} task not found")
-            }
+            fragmentResultStore.putResult(requestId, result)
         }
     }
 

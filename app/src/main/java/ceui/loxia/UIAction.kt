@@ -5,7 +5,10 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.findFragment
+import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
@@ -13,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.FragmentResultRequestIdOwner
+import ceui.pixiv.widgets.FragmentResultByFragment
 import ceui.pixiv.widgets.FragmentResultStore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -107,8 +111,15 @@ fun NavOptions.Builder.setFadeIn(): NavOptions.Builder {
 const val FRAGMENT_RESULT_REQUEST_ID = "FragmentResultRequestId"
 
 
-internal fun <T> T.listenToResultStore(resultStore: FragmentResultStore) where T : Fragment, T : FragmentResultRequestIdOwner {
-
+internal fun<T> T.listenToResultStore(resultStore: FragmentResultStore) where T: Fragment, T: FragmentResultRequestIdOwner {
+    val fragment = this
+    viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+        resultStore.getTypedResult(fragmentUniqueId)?.let { result ->
+            resultStore.getTypedTask(fragmentUniqueId)?.let { task ->
+                task.complete(FragmentResultByFragment(result, fragment))
+            }
+        }
+    }
 }
 
 inline fun <FragmentT, reified T> FragmentT.pushFragmentForResult(
@@ -117,11 +128,12 @@ inline fun <FragmentT, reified T> FragmentT.pushFragmentForResult(
     crossinline onResult: FragmentT.(T) -> Unit
 ) where FragmentT : Fragment, FragmentT : FragmentResultRequestIdOwner {
     val caller = this
+    Common.showLog("dsaasdw gogogogo ${caller.fragmentUniqueId} picked launchWhenResumed use ${lifecycle.currentState}")
 
     val fragmentResultStore by activityViewModels<FragmentResultStore>()
-    val requestId = UUID.randomUUID().toString()
-    val task = CompletableDeferred<T>()
-    fragmentResultStore.putTask(requestId, task)
+    val requestId = fragmentUniqueId
+    val task = CompletableDeferred<FragmentResultByFragment<FragmentT, T>>()
+    fragmentResultStore.putTask(requestId, task as CompletableDeferred<FragmentResultByFragment<*, *>>)
 
     // 如果 bundle 为 null，则创建一个新的 Bundle
     val args = bundle ?: Bundle()
@@ -132,21 +144,22 @@ inline fun <FragmentT, reified T> FragmentT.pushFragmentForResult(
 
     MainScope().launch {
         val result = task.await()
-        if (result is T) {
-            Common.showLog("dsaasdw ${requestId} type is same ${lifecycle.currentState}")
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                Common.showLog("dsaasdw ${requestId} now use ${lifecycle.currentState}")
-                onResult(result)
-            } else {
-                val callerId = caller.fragmentUniqueId
-                Common.showLog("dsaasdw ${requestId} store to use, caller: ${callerId} ${lifecycle.currentState}")
-                fragmentResultStore.putResult(callerId) {
-                    caller.onResult(result)
-                }
-            }
-        } else {
-            Common.showLog("dsaasdw ${requestId} type not same ${lifecycle.currentState}")
-        }
+        onResult(result.fragment, result.result)
+//        if (result is T) {
+//            Common.showLog("dsaasdw ${requestId} type is same ${lifecycle.currentState}")
+//            if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+//                Common.showLog("dsaasdw ${requestId} now use ${lifecycle.currentState}")
+////                onResult(result)
+//            } else {
+//                Common.showLog("dsaasdw aaa ${requestId} store to use, caller: ${fragmentUniqueId} ${lifecycle.currentState}")
+//                fragmentResultStore.putResult(fragmentUniqueId) {
+//                    Common.showLog("dsaasdw bbb ${requestId} store to use, caller: ${fragmentUniqueId} ${lifecycle.currentState}")
+//                    onResult(result)
+//                }
+//            }
+//        } else {
+//            Common.showLog("dsaasdw ${requestId} type not same ${lifecycle.currentState}")
+//        }
     }
     findNavController().navigate(
         id,
