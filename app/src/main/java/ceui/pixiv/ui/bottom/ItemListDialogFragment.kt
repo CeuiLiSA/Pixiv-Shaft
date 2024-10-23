@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.marginTop
+import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.LiveData
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
@@ -70,21 +71,8 @@ class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dial
         }
     }
 
-    companion object {
-
-        // TODO: Customize parameters
-        fun newInstance(itemCount: Int): ItemListDialogFragment =
-            ItemListDialogFragment().apply {
-                arguments = Bundle().apply {
-                    putInt(ARG_ITEM_COUNT, itemCount)
-                }
-            }
-
-    }
-
     override fun onClickOffsetPage(index: Int) {
-        viewModel.choosenOffsetPage.value = index
-        viewModel.triggerOffsetPageEvent.value = Event(index)
+        setFragmentResult(index)
         dismissAllowingStateLoss()
     }
 }

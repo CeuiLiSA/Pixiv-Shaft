@@ -28,10 +28,5 @@ class RankingIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpStaggerLayout(binding, viewModel)
-
-        binding.toolbarLayout.naviMore.setOnClick {
-            setFragmentResult(HelloResult("name", 114514L))
-            findNavController().popBackStack()
-        }
     }
 }

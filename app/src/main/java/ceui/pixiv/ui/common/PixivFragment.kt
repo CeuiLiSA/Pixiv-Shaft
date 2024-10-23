@@ -37,7 +37,9 @@ import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.listenToResultStore
 import ceui.loxia.observeEvent
+import ceui.loxia.promptFragmentForResult
 import ceui.loxia.pushFragment
+import ceui.pixiv.ui.bottom.ARG_ITEM_COUNT
 import ceui.pixiv.ui.bottom.ItemListDialogFragment
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.list.PixivListViewModel
@@ -140,7 +142,18 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
 
     fun <T: Any> setFragmentResult(result: T) {
         resultRequestId?.let { requestId ->
-            fragmentResultStore.putResult(requestId, result)
+            val existingLifecycle = fragmentResultStore.getExistingLifecycle(requestId)
+            if (existingLifecycle != null && existingLifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                fragmentResultStore.getTypedResult(requestId)?.let { result ->
+                    Common.showLog("dsaasdw STARTED getTypedResult ${result}")
+//                    fragmentResultStore.getTypedTask(requestId)?.let { task ->
+//                        task.complete(FragmentResultByFragment(result, fragment))
+//                        fragmentResultStore.removeResult(requestId)
+//                    }
+                }
+            } else {
+                fragmentResultStore.putResult(requestId, result)
+            }
         }
     }
 
@@ -265,7 +278,11 @@ private fun calculateTotalPages(totalItems: Int, pageSize: Int): Int {
     }
 }
 
-fun Fragment.setUpSizedList(binding: FragmentPixivListBinding, dataSource: DataSourceContainer<*, *>, listFullSize: Int) {
+fun <FragmentT> FragmentT.setUpSizedList(binding: FragmentPixivListBinding, dataSource: DataSourceContainer<*, *>, listFullSize: Int) where FragmentT : Fragment, FragmentT : FragmentResultRequestIdOwner {
+    val self = this
+    val onResult: FragmentT.(Int) -> Unit = { result ->
+        Common.showLog("dsaasdw ${fragmentUniqueId} really get ${result} ${lifecycle.currentState}")
+    }
     val dialogViewModel by activityViewModels<DialogViewModel>()
     if (listFullSize > 30) {
         binding.listSetting.isVisible = true
@@ -275,14 +292,24 @@ fun Fragment.setUpSizedList(binding: FragmentPixivListBinding, dataSource: DataS
             }
         }
         binding.listSetting.setOnClick {
-            showActionMenu {
-                add(
-                    MenuItem("按照页数查看作品", "实验性功能，测试中") {
-                        ItemListDialogFragment.newInstance(calculateTotalPages(listFullSize, 30))
-                            .show(childFragmentManager, "Tag")
-                    }
-                )
-            }
+//            showActionMenu {
+//                add(
+//                    MenuItem("按照页数查看作品", "实验性功能，测试中") {
+//
+//                    }
+//                )
+//            }
+
+//            self.promptFragmentForResult<FragmentT, Int>(
+//                dialogProducer = {
+//                    ItemListDialogFragment()
+//                },
+//                bundle = Bundle().apply {
+//                    val itemCount = calculateTotalPages(listFullSize, 30)
+//                    putInt(ARG_ITEM_COUNT, itemCount)
+//                },
+//                onResult
+//            )
         }
     } else {
         binding.listSetting.isVisible = false

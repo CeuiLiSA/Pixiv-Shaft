@@ -2,6 +2,7 @@ package ceui.loxia
 
 import android.os.Bundle
 import android.view.View
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.findFragment
@@ -18,6 +19,7 @@ import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.FragmentResultRequestIdOwner
 import ceui.pixiv.widgets.FragmentResultByFragment
 import ceui.pixiv.widgets.FragmentResultStore
+import ceui.pixiv.widgets.PixivDialog
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
@@ -113,10 +115,12 @@ const val FRAGMENT_RESULT_REQUEST_ID = "FragmentResultRequestId"
 
 internal fun<T> T.listenToResultStore(resultStore: FragmentResultStore) where T: Fragment, T: FragmentResultRequestIdOwner {
     val fragment = this
+    val uniqueId = fragmentUniqueId
     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-        resultStore.getTypedResult(fragmentUniqueId)?.let { result ->
-            resultStore.getTypedTask(fragmentUniqueId)?.let { task ->
+        resultStore.getTypedResult(uniqueId)?.let { result ->
+            resultStore.getTypedTask(uniqueId)?.let { task ->
                 task.complete(FragmentResultByFragment(result, fragment))
+                resultStore.removeResult(uniqueId)
             }
         }
     }
@@ -140,32 +144,52 @@ inline fun <FragmentT, reified T> FragmentT.pushFragmentForResult(
     // 将 requestId 添加到 Bundle 中
     args.putString(FRAGMENT_RESULT_REQUEST_ID, requestId)
 
-
-
     MainScope().launch {
         val result = task.await()
-        onResult(result.fragment, result.result)
-//        if (result is T) {
-//            Common.showLog("dsaasdw ${requestId} type is same ${lifecycle.currentState}")
-//            if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-//                Common.showLog("dsaasdw ${requestId} now use ${lifecycle.currentState}")
-////                onResult(result)
-//            } else {
-//                Common.showLog("dsaasdw aaa ${requestId} store to use, caller: ${fragmentUniqueId} ${lifecycle.currentState}")
-//                fragmentResultStore.putResult(fragmentUniqueId) {
-//                    Common.showLog("dsaasdw bbb ${requestId} store to use, caller: ${fragmentUniqueId} ${lifecycle.currentState}")
-//                    onResult(result)
-//                }
-//            }
-//        } else {
-//            Common.showLog("dsaasdw ${requestId} type not same ${lifecycle.currentState}")
-//        }
+        result.fragment.onResult(result.result)
     }
     findNavController().navigate(
         id,
         args,
         NavOptions.Builder().setHorizontalSlide().build()
     )
+}
+
+
+inline fun <FragmentT, reified T> FragmentT.promptFragmentForResult(
+    dialogProducer: () -> DialogFragment,
+    bundle: Bundle? = null,
+    crossinline onResult: FragmentT.(T) -> Unit
+) where FragmentT : Fragment, FragmentT : FragmentResultRequestIdOwner {
+    val caller = this
+    Common.showLog("dsaasdw gogogogo ${caller.fragmentUniqueId} picked launchWhenResumed use ${lifecycle.currentState}")
+
+    val fragmentResultStore by activityViewModels<FragmentResultStore>()
+    val requestId = fragmentUniqueId
+    val task = CompletableDeferred<FragmentResultByFragment<FragmentT, T>>()
+    fragmentResultStore.putTask(requestId, task as CompletableDeferred<FragmentResultByFragment<*, *>>)
+    fragmentResultStore.registerListener(requestId, lifecycle)
+    lifecycle.addObserver(object : DefaultLifecycleObserver {
+        override fun onDestroy(owner: LifecycleOwner) {
+            super.onDestroy(owner)
+            fragmentResultStore.unRegisterListener(requestId)
+        }
+    })
+
+    // 如果 bundle 为 null，则创建一个新的 Bundle
+    val args = bundle ?: Bundle()
+    // 将 requestId 添加到 Bundle 中
+    args.putString(FRAGMENT_RESULT_REQUEST_ID, requestId)
+
+    MainScope().launch {
+        val result = task.await()
+        result.fragment.onResult(result.result)
+    }
+    val dialogFragment = dialogProducer()
+    dialogFragment.apply {
+        arguments = args
+    }
+    dialogFragment.show(childFragmentManager, "Tag")
 }
 
 fun Fragment.pushFragment(id: Int, bundle: Bundle? = null) {
