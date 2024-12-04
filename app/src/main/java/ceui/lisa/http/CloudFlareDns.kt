@@ -10,14 +10,14 @@ class CloudFlareDns(private val service: CloudFlareDNSService) : Dns {
 
         when (hostname) {
             "oauth.secure.pixiv.net" -> addresses.addAll(
-                listOf("210.140.131.209").map {
+                listOf("210.140.139.156").map {
                     InetAddress.getByName(
                         it
                     )
                 }
             )
             "app-api.pixiv.net" -> addresses.addAll(
-                listOf("210.140.131.208").map {
+                listOf("210.140.139.155").map {
                     InetAddress.getByName(
                         it
                     )
