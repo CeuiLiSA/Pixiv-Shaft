@@ -6,6 +6,7 @@ import ceui.lisa.utils.Common
 import ceui.loxia.PixivHtmlObject
 import ceui.loxia.SpaceHolder
 import ceui.loxia.WebNovel
+import ceui.loxia.novel.NovelChapterHolder
 import ceui.loxia.novel.NovelImageHolder
 import ceui.loxia.novel.NovelTextHolder
 import ceui.pixiv.ui.common.ListItemHolder
@@ -121,10 +122,18 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
                 )
             } else if (s.contains("[newpage]")) {
                 holderList.add(SpaceHolder())
+            } else if (s.contains("[chapter:")) {
+                holderList.add(NovelChapterHolder(extractChapterContent(s) ?: "", Common.getNovelTextColor()))
             } else {
                 holderList.add(NovelTextHolder(s, Common.getNovelTextColor()))
             }
             return holderList
+        }
+
+        private fun extractChapterContent(input: String): String? {
+            val regex = """\[chapter:(.+?)]""".toRegex()
+            val matchResult = regex.find(input)
+            return matchResult?.groups?.get(1)?.value
         }
     }
 }

@@ -28,9 +28,7 @@ class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), Hom
                             arguments = SquareFragmentArgs(ObjectType.ILLUST).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = "插画"
-                    }
+                    initialTitle = "插画"
                 ),
                 PagedFragmentItem(
                     builder = {
@@ -38,25 +36,19 @@ class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), Hom
                             arguments = SquareFragmentArgs(ObjectType.MANGA).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = "漫画"
-                    }
+                    initialTitle = "漫画"
                 ),
                 PagedFragmentItem(
                     builder = {
                         ArticlesFragment()
                     },
-                    titleLiveData = getTitleLiveData(2).apply {
-                        value = "Pixivision"
-                    }
+                    initialTitle = "Pixivision"
                 ),
                 PagedFragmentItem(
                     builder = {
                         WalkthroughFragment()
                     },
-                    titleLiveData = getTitleLiveData(3).apply {
-                        value = "画廊"
-                    }
+                    initialTitle = "画廊"
                 ),
             ),
             this

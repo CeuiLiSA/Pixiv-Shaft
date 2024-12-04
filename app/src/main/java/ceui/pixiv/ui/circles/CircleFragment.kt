@@ -22,6 +22,9 @@ import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.ui.common.IllustCardActionReceiver
+import ceui.pixiv.ui.common.IllustIdActionReceiver
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.TitledViewPagerFragment
@@ -104,6 +107,11 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
         binding.circle = viewModel.result
         viewModel.result.observe(viewLifecycleOwner) { circle ->
             binding.worksCount.text = "${circle.body?.total ?: 0}个作品"
+            binding.tagIcon.setOnClick {
+                circle?.body?.meta?.pixpedia?.illust?.id?.let { id ->
+                    it.findActionReceiverOrNull<IllustIdActionReceiver>()?.onClickIllust(id)
+                }
+            }
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -117,39 +125,25 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
         val adapter = SmartFragmentPagerAdapter(listOf(
             PagedFragmentItem(
                 builder = { CircleInfoFragment() },
-                titleLiveData = getTitleLiveData(0).apply {
-                    value = getString(R.string.about_app)
-                }
+                initialTitle = getString(R.string.about_app)
             ),
-//            PagedFragmentItem(
-//                builder = { CircleResultPreviewFragment() },
-//                titleLiveData = getTitleLiveData(1).apply {
-//                    value = getString(R.string.about_app)
-//                }
-//            ),
             PagedFragmentItem(
                 builder = {
                     SearchIlllustMangaFragment()
                 },
-                titleLiveData = getTitleLiveData(1).apply {
-                    value = getString(R.string.string_136)
-                }
+                initialTitle = getString(R.string.string_136)
             ),
             PagedFragmentItem(
                 builder = {
                     SearchNovelFragment()
                 },
-                titleLiveData = getTitleLiveData(2).apply {
-                    value = getString(R.string.type_novel)
-                }
+                initialTitle = getString(R.string.type_novel)
             ),
             PagedFragmentItem(
                 builder = {
                     SearchUserFragment()
                 },
-                titleLiveData = getTitleLiveData(3).apply {
-                    value = getString(R.string.type_user)
-                }
+                initialTitle = getString(R.string.type_user)
             )
         ), this)
         binding.circleViewPager.adapter = adapter

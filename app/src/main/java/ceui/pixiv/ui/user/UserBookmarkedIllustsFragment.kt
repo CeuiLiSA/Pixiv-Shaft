@@ -24,6 +24,8 @@ import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpSizedList
 import ceui.pixiv.ui.task.FetchAllTask
+import ceui.pixiv.ui.task.HumanReadableTask
+import ceui.pixiv.ui.task.PixivTaskType
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
@@ -59,21 +61,6 @@ class UserBookmarkedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list
                         it.getTitleLiveData(0).value =
                             "${getString(R.string.string_391)} (${result.body?.total ?: 0})"
                     }
-                }
-            }
-        }
-        binding.toolbarLayout.naviMore.setOnClick {
-            object : FetchAllTask<Illust, IllustResponse>(
-                taskFullName = "${ObjectPool.get<User>(args.userId).value?.name}收藏的全部插画",
-                initialLoader = {
-                    Client.appApi.getUserBookmarkedIllusts(
-                        args.userId,
-                        args.restrictType ?: Params.TYPE_PUBLIC
-                    )
-                }) {
-                override fun onEnd(results: List<Illust>) {
-                    super.onEnd(results)
-                    Common.showLog("FetchAllTask out onEnd ${results.size}")
                 }
             }
         }

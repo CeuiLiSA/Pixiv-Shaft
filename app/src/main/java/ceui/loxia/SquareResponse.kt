@@ -95,6 +95,12 @@ data class Page(
     val follow: List<Long>? = null,
     val recommend: IdsHolder? = null,
     val ranking: RankingHolder? = null,
+    val editorRecommend: List<EditorRecommend>? = null,
+) : Serializable
+
+data class EditorRecommend(
+    val illustId: Long? = null,
+    val comment: String? = null,
 ) : Serializable
 
 data class IdsHolder(

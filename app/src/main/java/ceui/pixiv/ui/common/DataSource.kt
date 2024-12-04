@@ -73,6 +73,7 @@ open class DataSource<Item, T: KListShow<Item>>(
                 val responseJson = responseBody.string()
                 gson.fromJson(responseJson, responseClass)
             }
+            responseClass = response::class.java as Class<T>
             _nextPageUrl = response.nextPageUrl
             _liveNextUrl.value = response.nextPageUrl
             if (response.displayList.isNotEmpty()) {

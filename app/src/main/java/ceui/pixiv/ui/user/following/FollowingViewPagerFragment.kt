@@ -34,9 +34,7 @@ class FollowingViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_my_
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = getString(R.string.string_391)
-                    }
+                    initialTitle = getString(R.string.string_391)
                 ),
                 PagedFragmentItem(
                     builder = {
@@ -47,9 +45,7 @@ class FollowingViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_my_
                             ).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = getString(R.string.string_392)
-                    }
+                    initialTitle = getString(R.string.string_392)
                 ),
             ),
             this

@@ -72,25 +72,19 @@ class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search
                     builder = {
                         SearchIlllustMangaFragment()
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = getString(R.string.string_136)
-                    }
+                    initialTitle = getString(R.string.string_136)
                 ),
                 PagedFragmentItem(
                     builder = {
                         SearchNovelFragment()
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = getString(R.string.type_novel)
-                    }
+                    initialTitle = getString(R.string.type_novel)
                 ),
                 PagedFragmentItem(
                     builder = {
                         SearchUserFragment()
                     },
-                    titleLiveData = getTitleLiveData(2).apply {
-                        value = getString(R.string.type_user)
-                    }
+                    initialTitle = getString(R.string.type_user)
                 )
             ),
             this

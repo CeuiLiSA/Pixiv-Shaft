@@ -31,9 +31,7 @@ class MyCirclesFragment : TitledViewPagerFragment(R.layout.fragment_my_circles),
                             arguments = TrendingTagsFragmentArgs(ObjectType.ILLUST).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(0).apply {
-                        value = getString(R.string.string_136)
-                    }
+                    initialTitle = getString(R.string.string_136)
                 ),
                 PagedFragmentItem(
                     builder = {
@@ -41,17 +39,13 @@ class MyCirclesFragment : TitledViewPagerFragment(R.layout.fragment_my_circles),
                             arguments = TrendingTagsFragmentArgs(ObjectType.NOVEL).toBundle()
                         }
                     },
-                    titleLiveData = getTitleLiveData(1).apply {
-                        value = getString(R.string.type_novel)
-                    }
+                    initialTitle = getString(R.string.type_novel)
                 ),
                 PagedFragmentItem(
                     builder = {
                         RecommendUsersFragment()
                     },
-                    titleLiveData =  getTitleLiveData(2).apply {
-                        value = getString(R.string.recommend_user)
-                    }
+                    initialTitle = getString(R.string.recommend_user)
                 )
             ),
             this

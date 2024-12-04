@@ -55,9 +55,23 @@ class DownloadAllTask(
     }
 }
 
-open class LoadTask(val content: NamedUrl, private val activity: FragmentActivity, autoStart: Boolean = true) {
-    private val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
+abstract class QueuedRunnable {
+
+    protected val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
+
+    abstract suspend fun execute()
+
+    open suspend fun optionalDelay() {
+
+    }
+}
+
+open class LoadTask(
+    val content: NamedUrl,
+    private val activity: FragmentActivity,
+    autoStart: Boolean = true
+) : QueuedRunnable() {
 
     private val _file = MutableLiveData<File>()
     val file: LiveData<File> = _file
@@ -70,7 +84,7 @@ open class LoadTask(val content: NamedUrl, private val activity: FragmentActivit
         }
     }
 
-    suspend fun execute() {
+    override suspend fun execute() {
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
             return
         }
@@ -138,10 +152,6 @@ open class LoadTask(val content: NamedUrl, private val activity: FragmentActivit
     }
 
     open fun onFilePrepared(file: File) {
-
-    }
-
-    open suspend fun optionalDelay() {
 
     }
 }

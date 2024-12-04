@@ -63,16 +63,6 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         }
         viewModel.result.observe(viewLifecycleOwner) { data ->
             val holders = mutableListOf<ListItemHolder>()
-            data.body?.page?.recommend?.ids?.let { recommendIllustIds ->
-                val webIllusts = mutableListOf<WebIllust>()
-                recommendIllustIds.forEach { id ->
-                    data.body.thumbnails?.illust?.firstOrNull { it.id == id }?.let { webIllust ->
-                        webIllusts.add(webIllust)
-                    }
-                }
-                holders.add(RedSectionHeaderHolder("Recommend Works"))
-                holders.addAll(webIllusts.map { IllustSquareHolder(it) })
-            }
 
             data.body?.page?.ranking?.let { ranking ->
                 val webIllusts = mutableListOf<WebIllust>()
@@ -84,6 +74,34 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                 holders.add(RedSectionHeaderHolder("Ranking for ${ranking.date}"))
                 holders.addAll(webIllusts.map { IllustSquareHolder(it) })
             }
+
+
+            data.body?.page?.editorRecommend?.let { editorRecommend ->
+                val webIllusts = mutableListOf<WebIllust>()
+                editorRecommend.forEach { recmd ->
+                    recmd.illustId?.let { id ->
+                        data.body.thumbnails?.illust?.firstOrNull { it.id == id }?.let { webIllust ->
+                            webIllusts.add(webIllust)
+                        }
+                    }
+                }
+                holders.add(RedSectionHeaderHolder("Editor Recommend Works"))
+                holders.addAll(webIllusts.map { IllustSquareHolder(it) })
+            }
+
+
+            data.body?.page?.recommend?.ids?.let { recommendIllustIds ->
+                val webIllusts = mutableListOf<WebIllust>()
+                recommendIllustIds.forEach { id ->
+                    data.body.thumbnails?.illust?.firstOrNull { it.id == id }?.let { webIllust ->
+                        webIllusts.add(webIllust)
+                    }
+                }
+                holders.add(RedSectionHeaderHolder("Recommend Works"))
+                holders.addAll(webIllusts.map { IllustSquareHolder(it) })
+            }
+
+
 
             data.body?.page?.recommendByTag?.forEach { tag ->
                 val webIllusts = mutableListOf<WebIllust>()
