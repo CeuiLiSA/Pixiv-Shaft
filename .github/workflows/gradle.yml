@@ -55,7 +55,7 @@ jobs:
           configuration-cache-enabled: true
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: ${{ !github.head_ref }}
         with:
           name: apk-debug
