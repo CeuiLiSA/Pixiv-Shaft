@@ -478,7 +478,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             url = new URL(path);
             conn = (HttpURLConnection) url.openConnection();
             // 异步接口获取IP
-            String ip = "210.140.131.188";
+            String ip = "210.140.139.157";
             if (ip != null) {
                 // 通过HTTPDNS获取IP成功，进行URL替换和HOST头设置
                 Log.d(TAG, "Get IP: " + ip + " for host: " + url.getHost() + " from HTTPDNS successfully!");

@@ -19,10 +19,10 @@ public class HttpDns implements Dns {
      */
 
     private static final String[] addresses = {
-            "210.140.131.188",
-            "210.140.131.218",
-            "210.140.131.187",
-            "210.140.131.189"
+            "210.140.139.155",
+            "210.140.139.156",
+            "210.140.139.157",
+            "210.140.139.158"
     };
     public static List<InetAddress> newDns = new ArrayList<>();
     private static HttpDns sHttpDns = null;
