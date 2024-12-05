@@ -21,6 +21,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.SmallTagCellBinding
 import ceui.lisa.databinding.TagCellBinding
 import ceui.lisa.models.TagsBean
+import ceui.lisa.utils.Dev
 import ceui.loxia.ObjectType
 import ceui.loxia.Tag
 import ceui.loxia.WebTag
@@ -166,7 +167,11 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         child.background = selector
         val textView = child.findViewById<TextView>(R.id.hashtag_name)
-        textView.text = (tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name) + " " + backgroundColorString
+        if (Dev.isDev) {
+            textView.text = (tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name) + " " + backgroundColorString
+        } else {
+            textView.text = (tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name)
+        }
 
         val normalTextColor = getIntColor(ColorRandom.randomColorFromTag(tag))
         val selectedTextColor = Color.WHITE

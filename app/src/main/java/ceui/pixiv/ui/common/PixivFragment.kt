@@ -71,6 +71,11 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
     private val fragmentViewModel: NavFragmentViewModel by viewModels()
     private val fragmentResultStore by activityViewModels<FragmentResultStore>()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Common.showLog("onCreate ${this::class.simpleName}")
+    }
+
     open fun onViewFirstCreated(view: View) {
 
     }
@@ -157,6 +162,11 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Common.showLog("onDestroy ${this::class.simpleName}")
+    }
+
     override val resultRequestId: String?
         get() = arguments?.getString(FRAGMENT_RESULT_REQUEST_ID)
     override val fragmentUniqueId: String
@@ -198,7 +208,9 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
             binding.toolbarLayout.background = ColorDrawable(
                 Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
             )
-            requireActivity().finish()
+            binding.naviBack.setOnClick {
+                requireActivity().finish()
+            }
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
