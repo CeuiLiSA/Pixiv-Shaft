@@ -79,7 +79,7 @@ fun ItemLoadingBinding.setUpRefreshState(
         }
         refreshState.observe(viewLifecycleOwner) { refreshState ->
             if (refreshState is RefreshState.LOADED) {
-                progressCircular.showProgress(false)
+                progressCircular.hideProgress()
                 loadingFrame.isVisible = false
                 refreshLayout.finishRefresh()
                 refreshLayout.finishLoadMore()
@@ -101,16 +101,16 @@ fun ItemLoadingBinding.setUpRefreshState(
                 emptyFrame.isVisible = false
                 if (refreshState.refreshHint == RefreshHint.PullToRefresh) {
                     loadingFrame.isVisible = false
-                    progressCircular.showProgress(false)
+                    progressCircular.hideProgress()
                     if (!refreshLayout.isRefreshing) {
                         refreshLayout.autoRefreshAnimationOnly()
                     }
                 } else if (refreshState.refreshHint == RefreshHint.InitialLoad) {
                     loadingFrame.isVisible = true
-                    progressCircular.showProgress(true)
+                    progressCircular.showProgress()
                 }
             } else if (refreshState is RefreshState.ERROR) {
-                progressCircular.showProgress(false)
+                progressCircular.hideProgress()
                 loadingFrame.isVisible = false
                 refreshLayout.finishRefresh()
                 refreshLayout.finishLoadMore()

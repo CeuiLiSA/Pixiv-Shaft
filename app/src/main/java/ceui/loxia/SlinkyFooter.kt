@@ -18,7 +18,7 @@ class SlinkyFooter(context: Context, attrs: AttributeSet? = null) : ClassicsFoot
             loadingFrame.updateLayoutParams {
                 height = 100.ppppx
             }
-            progressCircular.showProgress(true)
+            progressCircular.showProgress()
         }
 
     override fun getView(): View {

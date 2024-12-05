@@ -8,16 +8,14 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.Gravity
+import androidx.core.content.res.ResourcesCompat
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import ceui.lisa.R
 import kotlin.math.roundToInt
 
-interface Progressable {
-    var isProgressing: Boolean
-}
 
 class ProgressImageButton(context: Context, attrs: AttributeSet?, defStyle: Int) :
-    androidx.appcompat.widget.AppCompatImageButton(context, attrs, defStyle), Progressable {
+    androidx.appcompat.widget.AppCompatImageButton(context, attrs, defStyle), ProgressIndicator {
 
     data class OriginalState(
         val drawable: Drawable?,
@@ -28,46 +26,12 @@ class ProgressImageButton(context: Context, attrs: AttributeSet?, defStyle: Int)
 
     var preferSize: Int? = null
 
-    override var isProgressing: Boolean = false
-        set(value) {
-            if (value == field) {
-                return
-            }
-
-            if (value) {
-                originalState = OriginalState(drawable, isClickable)
-
-                val progressDrawable = CircularProgressDrawable(context).apply {
-                    setColorSchemeColors(Color.WHITE)
-                    strokeCap = Paint.Cap.ROUND
-                    strokeWidth = progressStrokeWidth
-                    centerRadius = (preferSize?.toFloat()?.div(2)) ?: (progressWidth / 2)
-                }
-
-                progressDrawable.start()
-
-                isClickable = false
-                setImageDrawable(progressDrawable)
-
-
-            } else {
-                (drawable as? CircularProgressDrawable)?.stop()
-
-                require(originalState != null)
-                originalState?.let {
-                    isClickable = it.isClickable
-                    setImageDrawable(it.drawable)
-                }
-            }
-            field = value
-        }
-
-    fun showProgress(progress: Boolean) {
-        isProgressing = progress
-    }
 
     private val progressStrokeWidth: Float
     private val progressWidth: Float
+
+    private var isAnimationRunning = false
+    private var pendingTarget: Drawable? = null
 
     constructor(context: Context) : this(context, null)
 
@@ -90,11 +54,48 @@ class ProgressImageButton(context: Context, attrs: AttributeSet?, defStyle: Int)
             AnimatorInflater.loadStateListAnimator(context, R.animator.button_press_alpha)
     }
 
+    override fun setImageResource(resId: Int) {
+        if (isAnimationRunning) {
+            pendingTarget = ResourcesCompat.getDrawable(resources, resId, context.theme)
+        } else {
+            super.setImageResource(resId)
+        }
+    }
+
+    override fun showProgress() {
+        originalState = OriginalState(drawable, isClickable)
+
+        val progressDrawable = CircularProgressDrawable(context).apply {
+            setColorSchemeColors(Color.WHITE)
+            strokeCap = Paint.Cap.ROUND
+            strokeWidth = progressStrokeWidth
+            centerRadius = (preferSize?.toFloat()?.div(2)) ?: (progressWidth / 2)
+        }
+
+        progressDrawable.start()
+
+        isClickable = false
+        setImageDrawable(progressDrawable)
+        isAnimationRunning = true
+    }
+
+    override fun hideProgress() {
+        isAnimationRunning = false
+        (drawable as? CircularProgressDrawable)?.stop()
+
+        require(originalState != null)
+        originalState?.let {
+            isClickable = it.isClickable
+            setImageDrawable(pendingTarget ?: it.drawable)
+            pendingTarget = null
+        }
+    }
+
 }
 
+
 class ProgressTextButton(context: Context, attrs: AttributeSet?, defStyle: Int) :
-    androidx.appcompat.widget.AppCompatButton(context, attrs, defStyle), Drawable.Callback,
-    Progressable {
+    androidx.appcompat.widget.AppCompatButton(context, attrs, defStyle), Drawable.Callback, ProgressIndicator {
 
     data class OriginalState(
         val padding: Rect,
@@ -105,54 +106,9 @@ class ProgressTextButton(context: Context, attrs: AttributeSet?, defStyle: Int) 
 
     private var originalState: OriginalState? = null
 
-    override var isProgressing: Boolean = false
-        set(value) {
-            if (value == field) {
-                return
-            }
+    private var pendingTarget: String? = null
+    private var color: Int = Color.WHITE
 
-            if (value) {
-                originalState = OriginalState(
-                    Rect(paddingLeft, paddingTop, paddingRight, paddingBottom),
-                    text.toString(),
-                    isClickable,
-                    compoundDrawables.firstOrNull()
-                )
-
-                val circleWidth = progressWidth.roundToInt()
-                val circleHeight = progressWidth.roundToInt()
-
-                val hPadding = (width - circleWidth) / 2
-                val vPadding = (height - circleHeight - paddingTop - paddingBottom) / 2
-
-                isClickable = false
-                text = null
-
-                val drawable = CircularProgressDrawable(context).apply {
-                    setColorSchemeColors(Color.WHITE)
-                    strokeCap = Paint.Cap.ROUND
-                    strokeWidth = progressStrokeWidth
-                    centerRadius = progressWidth / 2
-                }
-
-                setPadding(hPadding, vPadding, hPadding, vPadding)
-                drawable.bounds = Rect(0, 0, circleWidth, circleHeight)
-
-                drawable.callback = this
-                setCompoundDrawables(drawable, null, null, null)
-                drawable.start()
-            } else {
-                require(originalState != null)
-                setCompoundDrawables(originalState?.drawable, null, null, null)
-                originalState?.let {
-                    text = it.text
-                    isClickable = it.isClickable
-                    setPadding(it.padding.left, it.padding.top, it.padding.right, it.padding.bottom)
-                }
-            }
-
-            field = value
-        }
 
     private val progressStrokeWidth: Float
     private val progressWidth: Float
@@ -162,6 +118,7 @@ class ProgressTextButton(context: Context, attrs: AttributeSet?, defStyle: Int) 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
 
     init {
+
         val ta = context.obtainStyledAttributes(attrs, R.styleable.ProgressTextButton)
         progressStrokeWidth = ta.getDimension(
             R.styleable.ProgressTextButton_ptb_progress_stroke_width,
@@ -178,12 +135,64 @@ class ProgressTextButton(context: Context, attrs: AttributeSet?, defStyle: Int) 
             AnimatorInflater.loadStateListAnimator(context, R.animator.button_press_alpha)
     }
 
-    fun showProgress() {
-        isProgressing = true
+    private var isAnimationRunning = false
+
+    override fun showProgress() {
+        originalState = OriginalState(
+            Rect(paddingLeft, paddingTop, paddingRight, paddingBottom),
+            text.toString(),
+            isClickable,
+            compoundDrawables.firstOrNull()
+        )
+
+        val circleWidth = progressWidth.roundToInt()
+        val circleHeight = progressWidth.roundToInt()
+
+        val hPadding = (width - circleWidth) / 2
+        (height - circleHeight - paddingTop - paddingBottom) / 2
+
+        isClickable = false
+
+        val drawable = CircularProgressDrawable(context).apply {
+            setColorSchemeColors(color)
+            strokeCap = Paint.Cap.ROUND
+            strokeWidth = progressStrokeWidth
+            centerRadius = progressWidth / 2
+        }
+
+        text = null
+        setPadding(hPadding, 0, hPadding, 0)
+        drawable.bounds = Rect(0, 0, circleWidth, circleHeight)
+        drawable.callback = this
+        setCompoundDrawables(drawable, null, null, null)
+        drawable.start()
+        isAnimationRunning = true
     }
 
-    fun hideProgress() {
-        isProgressing = false
+
+    override fun hideProgress() {
+        isAnimationRunning = false
+        val stored = originalState?.copy() ?: return
+        originalState = null // 清空状态
+        // 恢复原始状态
+        setCompoundDrawables(stored.drawable, null, null, null)
+        text = pendingTarget ?: stored.text // 恢复文字
+        pendingTarget = null
+        isClickable = stored.isClickable
+        setPadding(
+            stored.padding.left,
+            stored.padding.top,
+            stored.padding.right,
+            stored.padding.bottom
+        )
+    }
+
+    override fun setText(text: CharSequence?, type: BufferType?) {
+        if (isAnimationRunning) {
+            pendingTarget = text?.toString()
+        } else {
+            super.setText(text, type)
+        }
     }
 
     override fun invalidateDrawable(who: Drawable) {
