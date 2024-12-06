@@ -39,7 +39,7 @@
                     android:id="@+id/home_header_content"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingVertical="12dp"
+                    android:paddingVertical="8dp"
                     android:paddingStart="18dp"
                     android:paddingEnd="18dp"
                     android:paddingBottom="10dp">

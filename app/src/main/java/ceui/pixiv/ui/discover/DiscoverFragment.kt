@@ -2,22 +2,29 @@ package ceui.pixiv.ui.discover
 
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentDiscoverBinding
+import ceui.loxia.Client
 import ceui.loxia.ObjectType
 import ceui.loxia.pushFragment
+import ceui.pixiv.ui.chats.IllustSquareHolder
 import ceui.pixiv.ui.circles.CircleFragment
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
+import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.CommonViewPagerViewModel
 import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TitledViewPagerFragment
+import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.home.RecmdIllustMangaFragment
 import ceui.pixiv.ui.home.RecmdIllustMangaFragmentArgs
 import ceui.pixiv.ui.home.RecmdNovelFragment
+import ceui.pixiv.ui.rank.RankPreviewHolder
 import ceui.pixiv.ui.rank.RankingIllustsFragment
 import ceui.pixiv.ui.rank.RankingIllustsFragmentArgs
 import ceui.pixiv.widgets.setUpWith
@@ -27,11 +34,21 @@ import ceui.refactor.viewBinding
 class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), HomeTabContainer {
 
     private val binding by viewBinding(FragmentDiscoverBinding::bind)
+    private val rankViewModel by pixivValueViewModel {
+        Client.appApi.getRankingIllusts("day")
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.showRank.setOnClick {
+        binding.rankItems.setOnClick {
             pushFragment(R.id.navigation_rank)
+        }
+        val rankingAdapter = CommonAdapter(viewLifecycleOwner)
+        binding.rankPreviewList.adapter = rankingAdapter
+        binding.rankPreviewList.layoutManager = LinearLayoutManager(requireContext(),
+            LinearLayoutManager.HORIZONTAL, false)
+        rankViewModel.result.observe(viewLifecycleOwner) { resp ->
+            rankingAdapter.submitList(resp.displayList.map { RankPreviewHolder(it) })
         }
         val adapter = SmartFragmentPagerAdapter(
             listOf(

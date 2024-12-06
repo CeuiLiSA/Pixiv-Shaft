@@ -5,24 +5,35 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/rank_items"
-        android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_width="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:background="@drawable/bg__section_header"
+        android:layout_width="wrap_content"
+        android:layout_marginStart="10dp"
         android:layout_height="wrap_content">
 
-        <Button
-            android:id="@+id/show_rank"
+        <TextView
             android:layout_width="wrap_content"
+            android:text="@string/ranking_list"
+            android:layout_marginStart="10dp"
             android:textColor="@color/text00"
-            android:text="@string/ranking_illust"
+            android:textSize="13sp"
+            style="@style/textMontserratSemiBold"
+            android:layout_gravity="center_vertical"
             android:layout_height="wrap_content"/>
 
-    </LinearLayout>
+    </FrameLayout>
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rank_preview_list"
         app:layout_constraintTop_toBottomOf="@+id/rank_items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        app:layout_constraintTop_toBottomOf="@+id/rank_preview_list"
         android:id="@+id/tab_layout_list"
         android:layout_width="match_parent"
         android:layout_height="@dimen/tab_layout_height"
