@@ -19,7 +19,6 @@ import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.User
-import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.CommonAdapter
@@ -95,33 +94,13 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
                     )
                 }
             }
-
+            binding.bookmark.setOnClick {
+                onClickBookmarkIllust(it, args.illustId)
+            }
             if (illust.is_bookmarked == true) {
                 binding.bookmark.setImageResource(R.drawable.icon_liked)
-                binding.bookmark.setOnClick {
-                    launchSuspend(it) {
-                        Client.appApi.removeBookmark(args.illustId)
-                        ObjectPool.update(
-                            illust.copy(
-                                is_bookmarked = false,
-                                total_bookmarks = illust.total_bookmarks?.minus(1)
-                            )
-                        )
-                    }
-                }
             } else {
                 binding.bookmark.setImageResource(R.drawable.icon_not_liked)
-                binding.bookmark.setOnClick {
-                    launchSuspend(it) {
-                        Client.appApi.postBookmark(args.illustId)
-                        ObjectPool.update(
-                            illust.copy(
-                                is_bookmarked = true,
-                                total_bookmarks = illust.total_bookmarks?.plus(1)
-                            )
-                        )
-                    }
-                }
             }
 
             if (illust.page_count == 1) {

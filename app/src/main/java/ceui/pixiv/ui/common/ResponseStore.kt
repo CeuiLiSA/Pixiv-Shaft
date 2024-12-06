@@ -3,6 +3,7 @@ package ceui.pixiv.ui.common
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 class ResponseStore<T>(
     private val keyProvider: () -> String,
@@ -46,11 +47,15 @@ class ResponseStore<T>(
     }
 
     private suspend fun loadFromCache(currentTime: Long): T {
-        val json = preferences.getString(jsonKey, null)
         return try {
-            delay(200L)
-            gson.fromJson(json, typeToken)
-        } catch (e: Exception) {
+            val json = preferences.getString(jsonKey, null)
+            if (json?.isNotEmpty() == true) {
+                gson.fromJson(json, typeToken)
+            } else {
+                fetchAndCacheData(currentTime)
+            }
+        } catch (ex: Exception) {
+            Timber.e(ex)
             fetchAndCacheData(currentTime)
         }
     }

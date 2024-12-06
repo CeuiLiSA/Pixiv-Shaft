@@ -6,6 +6,7 @@ import ceui.loxia.Comment
 import ceui.loxia.CommentResponse
 import ceui.loxia.ObjectType
 import ceui.pixiv.ui.common.DataSource
+import timber.log.Timber
 
 class CommentsDataSource(
     private val args: CommentsFragmentArgs,
@@ -61,7 +62,7 @@ class CommentsDataSource(
                     }
                     itemHolders.value = updatedHolders
                 } catch (ex: Exception) {
-                    ex.printStackTrace()
+                    Timber.e(ex)
                 }
             }
         }

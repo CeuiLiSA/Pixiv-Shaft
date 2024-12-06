@@ -17,6 +17,7 @@ import ceui.loxia.Client
 import ceui.loxia.SquareResponse
 import ceui.loxia.WebIllust
 import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
@@ -25,16 +26,22 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.settings.CookieNotSyncException
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
+import com.tencent.mmkv.MMKV
 
 class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val args by navArgs<SquareFragmentArgs>()
-    private val viewModel by pixivValueViewModel {
+    private val viewModel by pixivValueViewModel({ MMKV.defaultMMKV() }) { prefStore ->
+        if (prefStore.getString(SessionManager.COOKIE_KEY, "")?.isNotEmpty() == true) {
+            throw CookieNotSyncException("Pixiv cookie not synced")
+        }
+
         val responseStore = ResponseStore(
             keyProvider = { "home-square-${args.objectType}" },
             expirationTimeMillis = 1800 * 1000L,

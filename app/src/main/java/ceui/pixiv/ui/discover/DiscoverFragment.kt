@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentDiscoverBinding
 import ceui.loxia.ObjectType
+import ceui.loxia.pushFragment
 import ceui.pixiv.ui.circles.CircleFragment
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
@@ -17,7 +18,10 @@ import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.home.RecmdIllustMangaFragment
 import ceui.pixiv.ui.home.RecmdIllustMangaFragmentArgs
 import ceui.pixiv.ui.home.RecmdNovelFragment
+import ceui.pixiv.ui.rank.RankingIllustsFragment
+import ceui.pixiv.ui.rank.RankingIllustsFragmentArgs
 import ceui.pixiv.widgets.setUpWith
+import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
 class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), HomeTabContainer {
@@ -26,6 +30,9 @@ class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), Ho
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.showRank.setOnClick {
+            pushFragment(R.id.navigation_rank)
+        }
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(

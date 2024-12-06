@@ -11,7 +11,9 @@ import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.slinkyViewModels
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 fun <T> Fragment.pixivValueViewModel(
     loader: suspend () -> T,
@@ -73,6 +75,10 @@ class ValueViewModel<T>(
         viewModelScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
+                if (hint == RefreshHint.ErrorRetry) {
+                    delay(300L)
+                }
+
                val response = loader()
                 _result.value = response
                 _refreshState.value = RefreshState.LOADED(
@@ -81,7 +87,7 @@ class ValueViewModel<T>(
                 )
             } catch (ex: Exception) {
                 _refreshState.value = RefreshState.ERROR(ex)
-                ex.printStackTrace()
+                Timber.e(ex)
             }
         }
     }

@@ -44,4 +44,5 @@
 
     <dimen name="user_head_size_feeds">42dp</dimen>
     <dimen name="tab_layout_neg_height">-48dp</dimen>
+    <dimen name="min_widget_size">44dp</dimen>
 </resources>

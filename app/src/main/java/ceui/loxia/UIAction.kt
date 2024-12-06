@@ -24,6 +24,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.UUID
 
 inline fun <reified InterfaceT> Fragment.sendAction(action: (receiver: InterfaceT) -> Boolean) {
@@ -57,7 +58,7 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
         try {
             block()
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Timber.e(ex)
         }
     }
 }
@@ -68,7 +69,7 @@ fun Fragment.launchSuspend(sender: ProgressIndicator, block: suspend CoroutineSc
             sender.showProgress()
             block()
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Timber.e(ex)
         } finally {
             sender.hideProgress()
         }

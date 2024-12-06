@@ -6,6 +6,7 @@ import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
+import ceui.loxia.threadSafeArgs
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -18,9 +19,10 @@ import ceui.refactor.viewBinding
 class RankingIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val viewModel by pixivListViewModel {
+    private val safeArgs by threadSafeArgs<RankingIllustsFragmentArgs>()
+    private val viewModel by pixivListViewModel({ safeArgs.mode }) { mode ->
         DataSource(
-            dataFetcher = { Client.appApi.getRankingIllusts("day") },
+            dataFetcher = { Client.appApi.getRankingIllusts(mode) },
             itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )
     }

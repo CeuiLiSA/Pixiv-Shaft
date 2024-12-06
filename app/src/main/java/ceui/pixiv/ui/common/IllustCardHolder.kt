@@ -8,6 +8,7 @@ import ceui.lisa.databinding.CellIllustCardBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
+import ceui.loxia.ProgressIndicator
 import ceui.loxia.findActionReceiverOrNull
 import ceui.refactor.ppppx
 import ceui.refactor.screenWidth
@@ -35,6 +36,8 @@ class IllustCardHolder(val illust: Illust) : ListItemHolder() {
 
 interface IllustCardActionReceiver {
     fun onClickIllustCard(illust: Illust)
+
+    fun onClickBookmarkIllust(sender: ProgressIndicator, illustId: Long)
 }
 
 interface IllustIdActionReceiver {
@@ -47,6 +50,8 @@ class IllustCardViewHolder(bd: CellIllustCardBinding) :
 
     override fun onBindViewHolder(holder: IllustCardHolder, position: Int) {
         super.onBindViewHolder(holder, position)
+
+        binding.illust = ObjectPool.get<Illust>(holder.illust.id)
 
         val itemWidth = ((screenWidth - 12.ppppx) / 2F).roundToInt()
         val itemHeight =
@@ -70,6 +75,10 @@ class IllustCardViewHolder(bd: CellIllustCardBinding) :
         binding.image.setOnClick {
             it.findActionReceiverOrNull<IllustCardActionReceiver>()
                 ?.onClickIllustCard(holder.illust)
+        }
+        binding.bookmark.setOnClick {
+            it.findActionReceiverOrNull<IllustCardActionReceiver>()
+                ?.onClickBookmarkIllust(it, holder.illust.id)
         }
     }
 }

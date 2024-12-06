@@ -11,6 +11,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 open class DataSource<Item, T: KListShow<Item>>(
     private val dataFetcher: suspend () -> T,
@@ -60,7 +61,7 @@ open class DataSource<Item, T: KListShow<Item>>(
             )
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)
-            ex.printStackTrace()
+            Timber.e(ex)
         }
     }
 
@@ -86,7 +87,7 @@ open class DataSource<Item, T: KListShow<Item>>(
             )
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)
-            ex.printStackTrace()
+            Timber.e(ex)
         }
     }
 

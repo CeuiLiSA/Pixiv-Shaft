@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.pixiv.ui.viewholdermap.ViewHolderFactory
 import ceui.refactor.setOnClick
+import timber.log.Timber
 import java.lang.RuntimeException
 
 val listItemHolderDiffUtil = object :
@@ -110,7 +111,7 @@ open class ListItemViewHolder<Binding : ViewBinding, T : ListItemHolder>(val bin
                 try {
                     it()
                 } catch (ex: Exception) {
-                    ex.printStackTrace()
+                    Timber.e(ex)
                 }
             }
         }

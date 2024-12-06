@@ -22,6 +22,8 @@ import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.tencent.mmkv.MMKV;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import ceui.lisa.R;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.helper.ShortcutHelper;
@@ -37,6 +39,8 @@ import ceui.loxia.ServicesProvider;
 import ceui.pixiv.session.SessionManager;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
+import timber.log.Timber;
+import timber.log.Timber.DebugTree;
 
 import static ceui.lisa.utils.Local.LOCAL_DATA;
 /**
@@ -89,6 +93,8 @@ public class Shaft extends Application implements ServicesProvider {
         //0.0127254
 
         sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+
+        Timber.plant(new Timber.DebugTree());
 
         MMKV.initialize(this);
 

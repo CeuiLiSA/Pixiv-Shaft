@@ -21,11 +21,7 @@ class HomeActivity : AppCompatActivity(), INetworkState {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _networkStateManager
-        try {
-            (this as? ComponentActivity)?.enableEdgeToEdge()
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
+        enableEdgeToEdge()
 
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)

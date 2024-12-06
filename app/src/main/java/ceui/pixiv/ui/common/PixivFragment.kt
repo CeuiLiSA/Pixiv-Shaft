@@ -15,7 +15,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
@@ -26,10 +25,13 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
+import ceui.loxia.Client
 import ceui.loxia.FRAGMENT_RESULT_REQUEST_ID
 import ceui.loxia.Illust
 import ceui.loxia.Novel
+import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
+import ceui.loxia.ProgressIndicator
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Tag
@@ -37,10 +39,7 @@ import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.listenToResultStore
 import ceui.loxia.observeEvent
-import ceui.loxia.promptFragmentForResult
 import ceui.loxia.pushFragment
-import ceui.pixiv.ui.bottom.ARG_ITEM_COUNT
-import ceui.pixiv.ui.bottom.ItemListDialogFragment
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
@@ -49,16 +48,14 @@ import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.DialogViewModel
-import ceui.pixiv.widgets.FragmentResultByFragment
 import ceui.pixiv.widgets.FragmentResultStore
-import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.TagsActionReceiver
-import ceui.pixiv.widgets.showActionMenu
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
+import timber.log.Timber
 
 interface FragmentResultRequestIdOwner {
     val resultRequestId: String?
@@ -99,11 +96,36 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
         )
     }
 
+    override fun onClickBookmarkIllust(sender: ProgressIndicator, illustId: Long) {
+        launchSuspend(sender) {
+            val illust = ObjectPool.get<Illust>(illustId).value ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
+            if (illust != null) {
+                if (illust.is_bookmarked == true) {
+                    Client.appApi.removeBookmark(illustId)
+                    ObjectPool.update(
+                        illust.copy(
+                            is_bookmarked = false,
+                            total_bookmarks = illust.total_bookmarks?.minus(1)
+                        )
+                    )
+                } else {
+                    Client.appApi.postBookmark(illustId)
+                    ObjectPool.update(
+                        illust.copy(
+                            is_bookmarked = true,
+                            total_bookmarks = illust.total_bookmarks?.plus(1)
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     override fun onClickUser(id: Long) {
         try {
             pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Timber.e(ex)
             val userIntent = Intent(
                 requireContext(),
                 UserActivity::class.java
