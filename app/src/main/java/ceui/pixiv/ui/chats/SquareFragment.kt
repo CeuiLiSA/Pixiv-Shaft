@@ -24,6 +24,7 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
+import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.settings.CookieNotSyncException
@@ -42,10 +43,8 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             throw CookieNotSyncException("Pixiv cookie not synced")
         }
 
-        val responseStore = ResponseStore(
+        val responseStore = createResponseStore(
             keyProvider = { "home-square-${args.objectType}" },
-            expirationTimeMillis = 1800 * 1000L,
-            typeToken = SquareResponse::class.java,
             dataLoader = { Client.webApi.getSquareContents(args.objectType) }
         )
         responseStore.retrieveData(hint)

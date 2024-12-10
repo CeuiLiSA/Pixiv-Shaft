@@ -29,6 +29,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
+import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.search.SearchIlllustMangaFragment
@@ -51,10 +52,8 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
         SearchViewModel(word)
     }
     private val viewModel by pixivValueViewModel { hint ->
-        val responseStore = ResponseStore(
-            { "circle-detail-${args.keyword}" },
-            expirationTimeMillis = 1800L,
-            CircleResponse::class.java,
+        val responseStore = createResponseStore(
+            keyProvider = { "circle-detail-${args.keyword}" },
             dataLoader = {
                 Client.webApi.getCircleDetail(args.keyword)
             }

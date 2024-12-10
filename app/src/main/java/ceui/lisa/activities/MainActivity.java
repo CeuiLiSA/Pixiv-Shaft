@@ -227,6 +227,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             }
             if (Dev.isDev) {
                 startActivity(new Intent(this, HomeActivity.class));
+                finish();
             } else {
                 if (Common.isAndroidQ()) {
                     initFragment();
