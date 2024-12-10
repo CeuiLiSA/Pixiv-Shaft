@@ -23,7 +23,7 @@ class FollowingPostsDataSource(
         { Client.appApi.followUserPosts(args.objectType, args.restrictType ?: Params.TYPE_ALL) }
     )
 ) : DataSource<Illust, IllustResponse>(
-    dataFetcher = { responseStore.retrieveData() },
+    dataFetcher = { hint -> responseStore.retrieveData(hint) },
     itemMapper = { illust -> listOf(UserPostHolder(illust)) },
     filter = { illust -> illust.isAuthurExist() }
 )

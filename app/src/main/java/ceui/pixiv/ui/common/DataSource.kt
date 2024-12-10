@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 open class DataSource<Item, T: KListShow<Item>>(
-    private val dataFetcher: suspend () -> T,
+    private val dataFetcher: suspend (hint: RefreshHint) -> T,
     itemMapper: (Item) -> List<ListItemHolder>,
     private val filter: (Item) -> Boolean = { _ -> true }
 ) {
@@ -47,7 +47,7 @@ open class DataSource<Item, T: KListShow<Item>>(
                 delay(300L)
             }
             val response = withContext(Dispatchers.IO) {
-                dataFetcher()
+                dataFetcher(hint)
             }
             currentProtoItems.clear()
             responseClass = response::class.java as Class<T>

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 fun <T> Fragment.pixivValueViewModel(
-    loader: suspend () -> T,
+    loader: suspend (hint: RefreshHint) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
@@ -29,14 +29,14 @@ fun <T> Fragment.pixivValueViewModel(
 
 inline fun <ArgsT, T> Fragment.pixivValueViewModel(
     noinline argsProducer: () -> ArgsT,
-    noinline loader: suspend (ArgsT) -> T,
+    noinline loader: suspend (hint: RefreshHint, ArgsT) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val args = argsProducer()
-                return ValueViewModel(loader = {
-                    loader(args)
+                return ValueViewModel(loader = { hint ->
+                    loader(hint, args)
                 }) as T
             }
         }
@@ -45,7 +45,7 @@ inline fun <ArgsT, T> Fragment.pixivValueViewModel(
 
 inline fun <T> Fragment.pixivValueViewModel(
     noinline ownerProducer: () -> ViewModelStoreOwner = { this },
-    noinline loader: suspend () -> T,
+    noinline loader: suspend (hint: RefreshHint) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels(ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
@@ -58,7 +58,7 @@ inline fun <T> Fragment.pixivValueViewModel(
 
 
 class ValueViewModel<T>(
-    private val loader: suspend () -> T,
+    private val loader: suspend (hint: RefreshHint) -> T,
 ) : ViewModel(), RefreshOwner {
 
     private val _refreshState = MutableLiveData<RefreshState>()
@@ -79,7 +79,7 @@ class ValueViewModel<T>(
                     delay(300L)
                 }
 
-               val response = loader()
+               val response = loader(hint)
                 _result.value = response
                 _refreshState.value = RefreshState.LOADED(
                     hasContent = true,

@@ -49,7 +49,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
         get() = binding.image
 
     private val liveIllust by lazy { ObjectPool.get<Illust>(args.illustId) }
-    private val pixivViewModel by pixivValueViewModel({ args.illustId }) { illustId ->
+    private val pixivViewModel by pixivValueViewModel({ args.illustId }) { hint, illustId ->
         val resp = Client.appApi.getIllust(illustId)
         resp.illust?.let { illust ->
             ObjectPool.update(illust)

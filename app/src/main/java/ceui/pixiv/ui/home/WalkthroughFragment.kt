@@ -36,6 +36,6 @@ class WalkthroughDataSource(
         { Client.appApi.getWalkthroughWorks() }
     )
 ) : DataSource<Illust, IllustResponse>(
-    dataFetcher = { responseStore.retrieveData() },
+    dataFetcher = { hint -> responseStore.retrieveData(hint) },
     itemMapper = { illust -> listOf(IllustCardHolder(illust)) },
 )

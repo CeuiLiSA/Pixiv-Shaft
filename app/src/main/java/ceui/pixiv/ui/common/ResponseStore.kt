@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.common
 
 import ceui.loxia.Client
+import ceui.loxia.RefreshHint
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.delay
@@ -26,11 +27,11 @@ class ResponseStore<T>(
         MMKV.mmkvWithID("api-cache")
     }
 
-    suspend fun retrieveData(): T {
+    suspend fun retrieveData(hint: RefreshHint): T {
         val cacheTimestamp = preferences.getLong(timeKey, 0L)
         val currentTime = System.currentTimeMillis()
 
-        return if (isCacheExpired(cacheTimestamp, currentTime)) {
+        return if (hint == RefreshHint.PullToRefresh || isCacheExpired(cacheTimestamp, currentTime)) {
             fetchAndCacheData(currentTime)
         } else {
             loadFromCache(currentTime)

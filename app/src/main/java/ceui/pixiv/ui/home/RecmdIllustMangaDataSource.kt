@@ -6,6 +6,7 @@ import ceui.loxia.Illust
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ResponseStore
+import timber.log.Timber
 
 class RecmdIllustMangaDataSource(
     private val args: RecmdIllustMangaFragmentArgs,
@@ -16,6 +17,6 @@ class RecmdIllustMangaDataSource(
         { Client.appApi.getHomeData(args.objectType) }
     )
 ) : DataSource<Illust, HomeIllustResponse>(
-    dataFetcher = { responseStore.retrieveData() },
+    dataFetcher = { hint -> responseStore.retrieveData(hint) },
     itemMapper = { illust -> listOf(IllustCardHolder(illust)) },
 )

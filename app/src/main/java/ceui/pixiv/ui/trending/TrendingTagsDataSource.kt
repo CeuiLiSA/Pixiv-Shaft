@@ -15,6 +15,6 @@ class TrendingTagsDataSource(
         { Client.appApi.trendingTags(args.objectType) }
     )
 ) : DataSource<TrendingTag, TrendingTagsResponse>(
-    dataFetcher = { responseStore.retrieveData() },
+    dataFetcher = { hint -> responseStore.retrieveData(hint) },
     itemMapper = { trendingTag -> listOf(TrendingTagHolder(trendingTag)) }
 )

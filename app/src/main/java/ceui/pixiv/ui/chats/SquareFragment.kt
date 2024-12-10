@@ -37,8 +37,8 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val args by navArgs<SquareFragmentArgs>()
-    private val viewModel by pixivValueViewModel({ MMKV.defaultMMKV() }) { prefStore ->
-        if (prefStore.getString(SessionManager.COOKIE_KEY, "")?.isNotEmpty() == true) {
+    private val viewModel by pixivValueViewModel({ MMKV.defaultMMKV() }) { hint, prefStore ->
+        if (prefStore.getString(SessionManager.COOKIE_KEY, "").isNullOrEmpty()) {
             throw CookieNotSyncException("Pixiv cookie not synced")
         }
 
@@ -48,7 +48,7 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             typeToken = SquareResponse::class.java,
             dataLoader = { Client.webApi.getSquareContents(args.objectType) }
         )
-        responseStore.retrieveData()
+        responseStore.retrieveData(hint)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

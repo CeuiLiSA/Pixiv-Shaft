@@ -18,13 +18,13 @@ import kotlin.getValue
 class RankPreviewFragment : PixivFragment(R.layout.fragment_rank_preview) {
 
     private val binding by viewBinding(FragmentRankPreviewBinding::bind)
-    private val rankIllustViewModel by pixivValueViewModel {
+    private val rankIllustViewModel by pixivValueViewModel { hint ->
         val mode = "day"
         val responseStore = createResponseStore(
             keyProvider = { "rank-illust-$mode" },
             dataLoader = { Client.appApi.getRankingIllusts(mode) }
         )
-        responseStore.retrieveData()
+        responseStore.retrieveData(hint)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

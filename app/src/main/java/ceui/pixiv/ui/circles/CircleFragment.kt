@@ -50,7 +50,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
     private val searchViewModel by constructVM({ args.keyword }) { word ->
         SearchViewModel(word)
     }
-    private val viewModel by pixivValueViewModel {
+    private val viewModel by pixivValueViewModel { hint ->
         val responseStore = ResponseStore(
             { "circle-detail-${args.keyword}" },
             expirationTimeMillis = 1800L,
@@ -59,7 +59,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
                 Client.webApi.getCircleDetail(args.keyword)
             }
         )
-        responseStore.retrieveData()
+        responseStore.retrieveData(hint)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

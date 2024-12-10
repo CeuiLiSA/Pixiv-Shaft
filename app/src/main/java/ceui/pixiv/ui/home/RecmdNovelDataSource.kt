@@ -18,8 +18,8 @@ class RecmdNovelDataSource(
         { Client.appApi.getRecmdNovels() }
     )
 ) : DataSource<Novel, NovelResponse>(
-    dataFetcher = {
-        responseStore.retrieveData()
+    dataFetcher = { hint ->
+        responseStore.retrieveData(hint)
     },
     itemMapper = { novel -> listOf(NovelCardHolder(novel)) },
     filter = { novel -> novel.visible != false }

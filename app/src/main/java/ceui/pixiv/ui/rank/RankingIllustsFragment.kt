@@ -27,7 +27,7 @@ class RankingIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             dataLoader = { Client.appApi.getRankingIllusts(mode) }
         )
         DataSource(
-            dataFetcher = { responseStore.retrieveData() },
+            dataFetcher = { hint -> responseStore.retrieveData(hint) },
             itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )
     }

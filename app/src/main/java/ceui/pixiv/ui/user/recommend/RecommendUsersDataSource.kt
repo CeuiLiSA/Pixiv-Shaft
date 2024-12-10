@@ -18,6 +18,6 @@ class RecommendUsersDataSource(
         { Client.appApi.recommendedUsers() }
     )
 ) : DataSource<UserPreview, UserPreviewResponse>(
-    dataFetcher = { responseStore.retrieveData() },
+    dataFetcher = { hint -> responseStore.retrieveData(hint) },
     itemMapper = { preview -> listOf(UserPreviewHolder(preview)) }
 )
