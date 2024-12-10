@@ -2,6 +2,9 @@ package ceui.pixiv.ui.rank
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentRankViewpagerBinding
 import ceui.pixiv.ui.circles.PagedFragmentItem
@@ -16,6 +19,11 @@ class RankFragment : TitledViewPagerFragment(R.layout.fragment_rank_viewpager) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.rootLayout.updatePadding(0, insets.top, 0, 0)
+            windowInsets
+        }
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(

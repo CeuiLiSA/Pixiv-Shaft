@@ -20,6 +20,7 @@ import ceui.pixiv.ui.common.CommonViewPagerViewModel
 import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TitledViewPagerFragment
+import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.home.RecmdIllustMangaFragment
 import ceui.pixiv.ui.home.RecmdIllustMangaFragmentArgs
@@ -30,26 +31,15 @@ import ceui.pixiv.ui.rank.RankingIllustsFragmentArgs
 import ceui.pixiv.widgets.setUpWith
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
+import com.tencent.mmkv.MMKV
+import timber.log.Timber
 
 class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), HomeTabContainer {
 
     private val binding by viewBinding(FragmentDiscoverBinding::bind)
-    private val rankViewModel by pixivValueViewModel {
-        Client.appApi.getRankingIllusts("day")
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.rankItems.setOnClick {
-            pushFragment(R.id.navigation_rank)
-        }
-        val rankingAdapter = CommonAdapter(viewLifecycleOwner)
-        binding.rankPreviewList.adapter = rankingAdapter
-        binding.rankPreviewList.layoutManager = LinearLayoutManager(requireContext(),
-            LinearLayoutManager.HORIZONTAL, false)
-        rankViewModel.result.observe(viewLifecycleOwner) { resp ->
-            rankingAdapter.submitList(resp.displayList.map { RankPreviewHolder(it) })
-        }
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(

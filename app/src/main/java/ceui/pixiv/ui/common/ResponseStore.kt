@@ -1,9 +1,11 @@
 package ceui.pixiv.ui.common
 
+import ceui.loxia.Client
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.delay
 import timber.log.Timber
+import java.lang.reflect.Method
 
 class ResponseStore<T>(
     private val keyProvider: () -> String,
@@ -59,4 +61,17 @@ class ResponseStore<T>(
             fetchAndCacheData(currentTime)
         }
     }
+}
+
+inline fun <reified T : Any> createResponseStore(
+    expirationTimeMillis: Long = 30 * 60 * 1000L,
+    noinline keyProvider: () -> String,
+    noinline dataLoader: suspend () -> T
+): ResponseStore<T> {
+    return ResponseStore(
+        keyProvider = keyProvider,
+        expirationTimeMillis = expirationTimeMillis,
+        typeToken = T::class.java,
+        dataLoader = dataLoader
+    )
 }
