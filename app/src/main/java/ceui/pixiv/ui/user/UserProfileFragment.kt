@@ -13,7 +13,6 @@ import ceui.lisa.R
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentUserProfileBinding
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -45,7 +44,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
     private val binding by viewBinding(FragmentUserProfileBinding::bind)
     private val args by navArgs<UserProfileFragmentArgs>()
     private val viewModel by pixivValueViewModel(
-        loader = {
+        dataFetcher = {
             val resp = Client.appApi.getUserProfile(args.userId)
             resp.user?.let {
                 ObjectPool.update(it)

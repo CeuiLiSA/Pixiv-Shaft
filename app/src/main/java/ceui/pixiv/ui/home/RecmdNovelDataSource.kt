@@ -16,9 +16,7 @@ class RecmdNovelDataSource(
     dataFetcher = { hint ->
         Client.appApi.getRecmdNovels()
     },
-    responseStore = createResponseStore(
-        { "home-recommend-novel-api" },
-    ),
+    responseStore = createResponseStore({ "home-recommend-novel-api" }),
     itemMapper = { novel -> listOf(NovelCardHolder(novel)) },
     filter = { novel -> novel.visible != false }
 )

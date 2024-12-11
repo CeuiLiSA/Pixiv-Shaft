@@ -19,9 +19,7 @@ class FollowingPostsDataSource(
     private val args: FollowingPostFragmentArgs,
 ) : DataSource<Illust, IllustResponse>(
     dataFetcher = { hint -> Client.appApi.followUserPosts(args.objectType, args.restrictType ?: Params.TYPE_ALL) },
-    responseStore = createResponseStore(
-        { "following-user-${args.objectType}-api-${args.restrictType}" },
-    ),
+    responseStore = createResponseStore({ "following-user-${args.objectType}-api-${args.restrictType}" }),
     itemMapper = { illust -> listOf(UserPostHolder(illust)) },
     filter = { illust -> illust.isAuthurExist() }
 )
