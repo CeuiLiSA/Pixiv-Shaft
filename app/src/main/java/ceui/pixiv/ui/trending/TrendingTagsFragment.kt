@@ -16,9 +16,9 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
-import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.search.SearchViewPagerFragment
 import ceui.pixiv.ui.search.SearchViewPagerFragmentArgs
@@ -34,8 +34,7 @@ class TrendingTagsFragment : PixivFragment(R.layout.fragment_pixiv_list), Trendi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
-        binding.listView.layoutManager = GridLayoutManager(requireContext(), 3)
+        setUpRefreshState(binding, viewModel, ListMode.GRID)
     }
 
     override fun onClickTrendingTag(trendingTag: TrendingTag) {

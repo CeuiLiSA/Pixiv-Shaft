@@ -14,7 +14,7 @@ import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.createResponseStore
-import ceui.pixiv.ui.common.setUpStaggerLayout
+import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.refactor.viewBinding
 
@@ -25,7 +25,7 @@ class WalkthroughFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpStaggerLayout(binding, viewModel)
+        setUpRefreshState(binding, viewModel)
     }
 }
 

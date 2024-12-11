@@ -12,7 +12,7 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.observeEvent
 import ceui.pixiv.ui.bottom.UsersYoriDialogFragment
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.setUpStaggerLayout
+import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.widgets.DialogViewModel
 import ceui.refactor.setOnClick
@@ -33,7 +33,7 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpStaggerLayout(binding, viewModel)
+        setUpRefreshState(binding, viewModel)
         binding.radioTab.setTabs(listOf(
             "热度预览",
             "从新到旧",

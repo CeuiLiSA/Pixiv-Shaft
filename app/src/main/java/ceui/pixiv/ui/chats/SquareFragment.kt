@@ -22,6 +22,7 @@ import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.createResponseStore
@@ -49,21 +50,10 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
+        setUpRefreshState(binding, viewModel, ListMode.GRID_AND_SECTION_HEADER)
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         binding.listView.updatePadding(left = 3.ppppx, right = 3.ppppx)
-        binding.listView.layoutManager = GridLayoutManager(context, 3).apply {
-            spanSizeLookup = object : SpanSizeLookup() {
-                override fun getSpanSize(position: Int): Int {
-                    return if (binding.listView.adapter?.getItemViewType(position) == RedSectionHeaderHolder::class.java.hashCode()) {
-                        3
-                    } else {
-                        1
-                    }
-                }
-            }
-        }
         viewModel.result.observe(viewLifecycleOwner) { data ->
             val holders = mutableListOf<ListItemHolder>()
 

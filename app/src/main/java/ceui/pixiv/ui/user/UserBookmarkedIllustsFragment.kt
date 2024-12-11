@@ -18,10 +18,10 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.refactor.viewBinding
 
 class UserBookmarkedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
@@ -59,6 +59,6 @@ class UserBookmarkedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list
                 }
             }
         }
-        setUpStaggerLayout(binding, viewModel)
+        setUpRefreshState(binding, viewModel)
     }
 }

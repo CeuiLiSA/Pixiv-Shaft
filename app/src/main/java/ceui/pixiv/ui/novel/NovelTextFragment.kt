@@ -20,6 +20,7 @@ import ceui.loxia.WebNovel
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.DataSource
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -56,8 +57,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
         val authorId = ObjectPool.get<Novel>(args.novelId).value?.user?.id ?: 0L
         binding.toolbarLayout.naviMore.setOnClick {
             pushFragment(R.id.navigation_comments_illust, CommentsFragmentArgs(args.novelId, authorId, ObjectType.NOVEL).toBundle())

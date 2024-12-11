@@ -47,7 +47,7 @@ open class DataSource<Item, T: KListShow<Item>>(
 
             if (hint == RefreshHint.InitialLoad) {
                 responseStore?.loadFromCache()?.let { storedResponse ->
-                    applyResponse(storedResponse)
+                    applyResponse(storedResponse, false)
                 }
             }
 
@@ -57,25 +57,26 @@ open class DataSource<Item, T: KListShow<Item>>(
                         responseStore?.writeToCache(it)
                     }
                 }
-                applyResponse(response)
+                applyResponse(response, false)
             }
-
-            _refreshState.value = RefreshState.LOADED(
-                hasContent = _itemHolders.value?.isNotEmpty() == true,
-                hasNext = _nextPageUrl?.isNotEmpty() == true
-            )
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)
             Timber.e(ex)
         }
     }
 
-    private fun applyResponse(response: T) {
-        currentProtoItems.clear()
+    private fun applyResponse(response: T, isLoadMore: Boolean) {
+        if (!isLoadMore) {
+            currentProtoItems.clear()
+        }
         responseClass = response::class.java as Class<T>
         _nextPageUrl = response.nextPageUrl
         currentProtoItems.addAll(response.displayList)
         mapProtoItemsToHolders()
+        _refreshState.value = RefreshState.LOADED(
+            hasContent = _itemHolders.value?.isNotEmpty() == true,
+            hasNext = _nextPageUrl?.isNotEmpty() == true
+        )
     }
 
     open suspend fun loadMoreData() {
@@ -87,16 +88,7 @@ open class DataSource<Item, T: KListShow<Item>>(
                 val responseJson = responseBody.string()
                 gson.fromJson(responseJson, responseClass)
             }
-            responseClass = response::class.java as Class<T>
-            _nextPageUrl = response.nextPageUrl
-            if (response.displayList.isNotEmpty()) {
-                currentProtoItems.addAll(response.displayList)
-                mapProtoItemsToHolders()
-            }
-            _refreshState.value = RefreshState.LOADED(
-                hasContent = _itemHolders.value?.isNotEmpty() == true,
-                hasNext = _nextPageUrl?.isNotEmpty() == true
-            )
+            applyResponse(response, true)
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)
             Timber.e(ex)

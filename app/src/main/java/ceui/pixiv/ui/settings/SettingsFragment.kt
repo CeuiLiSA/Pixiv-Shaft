@@ -10,8 +10,10 @@ import ceui.loxia.User
 import ceui.loxia.pushFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.CommonAdapter
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
+import ceui.pixiv.ui.common.setUpLayoutManager
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.refactor.viewBinding
@@ -30,8 +32,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         binding.refreshLayout.setRefreshFooter(FalsifyFooter(requireContext()))
         setUpToolbar(binding.toolbarLayout, binding.listView)
         binding.listView.adapter = adapter
-        val ctx = requireContext()
-        binding.listView.layoutManager = LinearLayoutManager(ctx)
+        setUpLayoutManager(binding.listView, ListMode.VERTICAL_NO_MARGIN)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(

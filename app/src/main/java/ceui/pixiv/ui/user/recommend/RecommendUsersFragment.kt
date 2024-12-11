@@ -7,6 +7,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.view.LinearItemDecoration
 import ceui.pixiv.ui.common.BottomDividerDecoration
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -22,8 +23,6 @@ class RecommendUsersFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        binding.listView.addItemDecoration(LinearItemDecoration(20.ppppx))
-        setUpRefreshState(binding, viewModel)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
     }
 }

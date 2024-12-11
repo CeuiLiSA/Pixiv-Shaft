@@ -24,8 +24,8 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
@@ -60,7 +60,7 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
         if (args.userId == SessionManager.loggedInUid) {
             if (args.restrictType == Params.TYPE_PUBLIC) {
                 ObjectPool.get<UserResponse>(args.userId).observe(viewLifecycleOwner) { user ->
@@ -78,8 +78,6 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                 }
             }
         }
-        binding.listView.addItemDecoration(LinearItemDecoration(20.ppppx))
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
     }
 }
 

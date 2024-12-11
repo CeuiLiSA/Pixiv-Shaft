@@ -19,6 +19,7 @@ import ceui.loxia.Comment
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.launchSuspend
 import ceui.pixiv.ui.common.BottomDividerDecoration
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -37,14 +38,7 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbarLayout.naviTitle.text = getString(R.string.comments)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        setUpRefreshState(binding, viewModel)
-        val dividerDecoration = BottomDividerDecoration(
-            requireContext(),
-            R.drawable.list_divider,
-            marginLeft = 48.ppppx
-        )
-        binding.listView.addItemDecoration(dividerDecoration)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL_COMMENT)
         binding.bottomLayout.isVisible = true
         binding.bottomLayout.background = ColorDrawable(Color.parseColor("#66000000"))
         val childBinding = DataBindingUtil.inflate<CellEditingCommentBinding>(

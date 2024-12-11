@@ -17,6 +17,7 @@ import ceui.loxia.observeEvent
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -50,9 +51,7 @@ class SearchUserFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        binding.listView.addItemDecoration(LinearItemDecoration(20.ppppx))
-        setUpRefreshState(binding, viewModel)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
         searchViewModel.searchUserEvent.observeEvent(viewLifecycleOwner) {
             viewModel.refresh(RefreshHint.InitialLoad)
         }

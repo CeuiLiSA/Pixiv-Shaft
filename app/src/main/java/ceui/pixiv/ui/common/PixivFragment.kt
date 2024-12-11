@@ -16,6 +16,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
@@ -23,6 +27,7 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
+import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
 import ceui.loxia.Client
@@ -40,6 +45,7 @@ import ceui.loxia.launchSuspend
 import ceui.loxia.listenToResultStore
 import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
+import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
@@ -245,8 +251,9 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
     }
 }
 
-fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner) {
+fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner, listMode: Int = ListMode.STAGGERED_GRID) {
     setUpToolbar(binding.toolbarLayout, binding.listView)
+    setUpLayoutManager(binding.listView, listMode)
     val ctx = requireContext()
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {
@@ -302,9 +309,36 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
     }
 }
 
-
-fun Fragment.setUpStaggerLayout(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
-    setUpRefreshState(binding, viewModel)
-    binding.listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
-    binding.listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode.STAGGERED_GRID) {
+    val ctx = requireContext()
+    if (listMode == ListMode.STAGGERED_GRID) {
+        listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
+        listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+    } else if (listMode == ListMode.VERTICAL) {
+        listView.layoutManager = LinearLayoutManager(ctx)
+        listView.addItemDecoration(LinearItemDecoration(18.ppppx))
+    } else if (listMode == ListMode.VERTICAL_COMMENT) {
+        listView.layoutManager = LinearLayoutManager(requireContext())
+        listView.addItemDecoration(BottomDividerDecoration(
+            requireContext(),
+            R.drawable.list_divider,
+            marginLeft = 48.ppppx
+        ))
+    } else if (listMode == ListMode.VERTICAL_NO_MARGIN) {
+        listView.layoutManager = LinearLayoutManager(ctx)
+    } else if (listMode == ListMode.GRID) {
+        listView.layoutManager = GridLayoutManager(ctx, 3)
+    } else if (listMode == ListMode.GRID_AND_SECTION_HEADER) {
+        listView.layoutManager = GridLayoutManager(ctx, 3).apply {
+            spanSizeLookup = object : SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (listView.adapter?.getItemViewType(position) == RedSectionHeaderHolder::class.java.hashCode()) {
+                        3
+                    } else {
+                        1
+                    }
+                }
+            }
+        }
+    }
 }

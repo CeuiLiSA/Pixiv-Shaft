@@ -16,6 +16,7 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -56,9 +57,7 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
-        binding.toolbarLayout.naviTitle.text = getString(R.string.created_tasks)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
     }
 
     override fun onClickTaskPreview(humanReadableTask: HumanReadableTask) {

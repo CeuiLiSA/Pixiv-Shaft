@@ -13,7 +13,7 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.getImageIdInGallery
-import ceui.pixiv.ui.common.setUpStaggerLayout
+import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.works.buildPixivWorksFileName
 import ceui.refactor.setOnClick
@@ -46,7 +46,7 @@ class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         val humanReadableTask = Gson().fromJson(prefStore.getString(args.taskUuid, ""), HumanReadableTask::class.java)
         binding.toolbarLayout.naviTitle.text = humanReadableTask.taskFullName
-        setUpStaggerLayout(binding, viewModel)
+        setUpRefreshState(binding, viewModel)
         binding.toolbarLayout.naviMore.setOnClick {
             if (humanReadableTask.taskType == PixivTaskType.DownloadAll) {
                 val task = DownloadAllTask(requireActivity()) {
