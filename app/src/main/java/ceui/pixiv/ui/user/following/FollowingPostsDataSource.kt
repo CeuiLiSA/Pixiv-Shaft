@@ -11,19 +11,17 @@ import ceui.loxia.UserPreviewResponse
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ResponseStore
+import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.user.UserPreviewHolder
 
 class FollowingPostsDataSource(
     private val args: FollowingPostFragmentArgs,
-    private val responseStore: ResponseStore<IllustResponse> = ResponseStore(
-        { "following-user-${args.objectType}-api-${args.restrictType}" },
-        1800 * 1000L,
-        IllustResponse::class.java,
-        { Client.appApi.followUserPosts(args.objectType, args.restrictType ?: Params.TYPE_ALL) }
-    )
 ) : DataSource<Illust, IllustResponse>(
-    dataFetcher = { hint -> responseStore.retrieveData(hint) },
+    dataFetcher = { hint -> Client.appApi.followUserPosts(args.objectType, args.restrictType ?: Params.TYPE_ALL) },
+    responseStore = createResponseStore(
+        { "following-user-${args.objectType}-api-${args.restrictType}" },
+    ),
     itemMapper = { illust -> listOf(UserPostHolder(illust)) },
     filter = { illust -> illust.isAuthurExist() }
 )

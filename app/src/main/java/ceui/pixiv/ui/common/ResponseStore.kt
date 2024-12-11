@@ -11,8 +11,7 @@ import java.lang.reflect.Method
 class ResponseStore<T>(
     private val keyProvider: () -> String,
     private val expirationTimeMillis: Long,
-    private val typeToken: Class<T>,
-    private val dataLoader: suspend () -> T
+    private val typeToken: Class<T>
 ) {
 
     private val gson = Gson()
@@ -27,52 +26,40 @@ class ResponseStore<T>(
         MMKV.mmkvWithID("api-cache")
     }
 
-    suspend fun retrieveData(hint: RefreshHint): T {
-        val cacheTimestamp = preferences.getLong(timeKey, 0L)
+    fun writeToCache(data: T) {
         val currentTime = System.currentTimeMillis()
-
-        return if (hint == RefreshHint.PullToRefresh || isCacheExpired(cacheTimestamp, currentTime)) {
-            fetchAndCacheData(currentTime)
-        } else {
-            loadFromCache(currentTime)
-        }
+        preferences.putString(jsonKey, gson.toJson(data))
+        preferences.putLong(timeKey, currentTime)
     }
 
-    private fun isCacheExpired(cacheTimestamp: Long, currentTime: Long): Boolean {
+    fun isCacheExpired(): Boolean {
+        val currentTime = System.currentTimeMillis()
+        val cacheTimestamp = preferences.getLong(timeKey, 0L)
         return (currentTime - cacheTimestamp) > expirationTimeMillis
     }
 
-    private suspend fun fetchAndCacheData(currentTime: Long): T {
-        val data = dataLoader()
-        preferences.putString(jsonKey, gson.toJson(data))
-        preferences.putLong(timeKey, currentTime)
-        return data
-    }
-
-    private suspend fun loadFromCache(currentTime: Long): T {
+    fun loadFromCache(): T? {
         return try {
             val json = preferences.getString(jsonKey, null)
             if (json?.isNotEmpty() == true) {
                 gson.fromJson(json, typeToken)
             } else {
-                fetchAndCacheData(currentTime)
+                null
             }
         } catch (ex: Exception) {
             Timber.e(ex)
-            fetchAndCacheData(currentTime)
+            null
         }
     }
 }
 
 inline fun <reified T : Any> createResponseStore(
-    expirationTimeMillis: Long = 30 * 60 * 1000L,
     noinline keyProvider: () -> String,
-    noinline dataLoader: suspend () -> T
+    expirationTimeMillis: Long = 30 * 60 * 1000L,
 ): ResponseStore<T> {
     return ResponseStore(
         keyProvider = keyProvider,
         expirationTimeMillis = expirationTimeMillis,
         typeToken = T::class.java,
-        dataLoader = dataLoader
     )
 }

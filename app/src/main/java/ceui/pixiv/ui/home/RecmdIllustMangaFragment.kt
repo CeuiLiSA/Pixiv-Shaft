@@ -13,8 +13,10 @@ import ceui.refactor.viewBinding
 class RecmdIllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val args by navArgs<RecmdIllustMangaFragmentArgs>()
-    private val viewModel by pixivListViewModel { RecmdIllustMangaDataSource(args) }
+    private val safeArgs by navArgs<RecmdIllustMangaFragmentArgs>()
+    private val viewModel by pixivListViewModel({ safeArgs }) { args ->
+        RecmdIllustMangaDataSource(args)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

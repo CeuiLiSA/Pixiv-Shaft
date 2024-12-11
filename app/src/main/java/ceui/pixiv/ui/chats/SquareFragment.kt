@@ -38,16 +38,15 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val args by navArgs<SquareFragmentArgs>()
-    private val viewModel by pixivValueViewModel({ MMKV.defaultMMKV() }) { hint, prefStore ->
+    private val viewModel by pixivValueViewModel({ MMKV.defaultMMKV() },
+        responseStore = createResponseStore(
+            { "home-square-${args.objectType}" }
+        )) { hint, prefStore ->
         if (prefStore.getString(SessionManager.COOKIE_KEY, "").isNullOrEmpty()) {
             throw CookieNotSyncException("Pixiv cookie not synced")
         }
 
-        val responseStore = createResponseStore(
-            keyProvider = { "home-square-${args.objectType}" },
-            dataLoader = { Client.webApi.getSquareContents(args.objectType) }
-        )
-        responseStore.retrieveData(hint)
+        Client.webApi.getSquareContents(args.objectType)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -86,9 +85,10 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                 val webIllusts = mutableListOf<WebIllust>()
                 editorRecommend.forEach { recmd ->
                     recmd.illustId?.let { id ->
-                        data.body.thumbnails?.illust?.firstOrNull { it.id == id }?.let { webIllust ->
-                            webIllusts.add(webIllust)
-                        }
+                        data.body.thumbnails?.illust?.firstOrNull { it.id == id }
+                            ?.let { webIllust ->
+                                webIllusts.add(webIllust)
+                            }
                     }
                 }
                 holders.add(RedSectionHeaderHolder("Editor Recommend Works"))
@@ -137,8 +137,6 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         }
     }
 }
-
-
 
 
 class RedSectionHeaderHolder(

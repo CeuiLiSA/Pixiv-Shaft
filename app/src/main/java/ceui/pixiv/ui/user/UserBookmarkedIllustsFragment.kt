@@ -22,11 +22,6 @@ import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
-import ceui.pixiv.ui.common.setUpSizedList
-import ceui.pixiv.ui.task.FetchAllTask
-import ceui.pixiv.ui.task.HumanReadableTask
-import ceui.pixiv.ui.task.PixivTaskType
-import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
 class UserBookmarkedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {

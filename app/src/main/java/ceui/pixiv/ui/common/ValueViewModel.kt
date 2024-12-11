@@ -11,17 +11,20 @@ import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.slinkyViewModels
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 fun <T> Fragment.pixivValueViewModel(
     loader: suspend (hint: RefreshHint) -> T,
+    responseStore: ResponseStore<T>? = null,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ValueViewModel(loader) as T
+                return ValueViewModel(loader, responseStore) as T
             }
         }
     }
@@ -29,6 +32,7 @@ fun <T> Fragment.pixivValueViewModel(
 
 inline fun <ArgsT, T> Fragment.pixivValueViewModel(
     noinline argsProducer: () -> ArgsT,
+    responseStore: ResponseStore<T>? = null,
     noinline loader: suspend (hint: RefreshHint, ArgsT) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
@@ -37,7 +41,7 @@ inline fun <ArgsT, T> Fragment.pixivValueViewModel(
                 val args = argsProducer()
                 return ValueViewModel(loader = { hint ->
                     loader(hint, args)
-                }) as T
+                }, responseStore) as T
             }
         }
     }
@@ -45,12 +49,13 @@ inline fun <ArgsT, T> Fragment.pixivValueViewModel(
 
 inline fun <T> Fragment.pixivValueViewModel(
     noinline ownerProducer: () -> ViewModelStoreOwner = { this },
+    responseStore: ResponseStore<T>? = null,
     noinline loader: suspend (hint: RefreshHint) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels(ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ValueViewModel(loader) as T
+                return ValueViewModel(loader, responseStore) as T
             }
         }
     }
@@ -59,6 +64,7 @@ inline fun <T> Fragment.pixivValueViewModel(
 
 class ValueViewModel<T>(
     private val loader: suspend (hint: RefreshHint) -> T,
+    private val responseStore: ResponseStore<T>? = null,
 ) : ViewModel(), RefreshOwner {
 
     private val _refreshState = MutableLiveData<RefreshState>()
@@ -79,8 +85,21 @@ class ValueViewModel<T>(
                     delay(300L)
                 }
 
-               val response = loader(hint)
-                _result.value = response
+                if (hint == RefreshHint.InitialLoad) {
+                    responseStore?.loadFromCache()?.let { storedResponse ->
+                        _result.value = storedResponse
+                    }
+                }
+
+                if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
+                    val response = withContext(Dispatchers.IO) {
+                        loader(hint).also {
+                            responseStore?.writeToCache(it)
+                        }
+                    }
+                    _result.value = response
+                }
+
                 _refreshState.value = RefreshState.LOADED(
                     hasContent = true,
                     hasNext = false

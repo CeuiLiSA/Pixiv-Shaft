@@ -108,6 +108,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
                             total_bookmarks = illust.total_bookmarks?.minus(1)
                         )
                     )
+                    Common.showToast(getString(R.string.cancel_like_illust))
                 } else {
                     Client.appApi.postBookmark(illustId)
                     ObjectPool.update(
@@ -116,6 +117,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
                             total_bookmarks = illust.total_bookmarks?.plus(1)
                         )
                     )
+                    Common.showToast(getString(R.string.like_novel_success_public))
                 }
             }
         }
@@ -297,58 +299,9 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
             adapter.submitList(holders)
         }
-//        viewModel.liveNextUrl.observe(viewLifecycleOwner) { url ->
-//            binding.nextUrl.text = url
-//        }
     }
 }
 
-
-private fun calculateTotalPages(totalItems: Int, pageSize: Int): Int {
-    return if (totalItems % pageSize == 0) {
-        totalItems / pageSize
-    } else {
-        (totalItems / pageSize) + 1
-    }
-}
-
-fun <FragmentT> FragmentT.setUpSizedList(binding: FragmentPixivListBinding, dataSource: DataSourceContainer<*, *>, listFullSize: Int) where FragmentT : Fragment, FragmentT : FragmentResultRequestIdOwner {
-    val self = this
-    val onResult: FragmentT.(Int) -> Unit = { result ->
-        Common.showLog("dsaasdw ${fragmentUniqueId} really get ${result} ${lifecycle.currentState}")
-    }
-    val dialogViewModel by activityViewModels<DialogViewModel>()
-    if (listFullSize > 30) {
-        binding.listSetting.isVisible = true
-        dialogViewModel.triggerOffsetPageEvent.observeEvent(this) { page ->
-            launchSuspend {
-                dataSource.dataSource().loadOffsetData(page)
-            }
-        }
-        binding.listSetting.setOnClick {
-//            showActionMenu {
-//                add(
-//                    MenuItem("按照页数查看作品", "实验性功能，测试中") {
-//
-//                    }
-//                )
-//            }
-
-//            self.promptFragmentForResult<FragmentT, Int>(
-//                dialogProducer = {
-//                    ItemListDialogFragment()
-//                },
-//                bundle = Bundle().apply {
-//                    val itemCount = calculateTotalPages(listFullSize, 30)
-//                    putInt(ARG_ITEM_COUNT, itemCount)
-//                },
-//                onResult
-//            )
-        }
-    } else {
-        binding.listSetting.isVisible = false
-    }
-}
 
 fun Fragment.setUpStaggerLayout(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
     setUpRefreshState(binding, viewModel)

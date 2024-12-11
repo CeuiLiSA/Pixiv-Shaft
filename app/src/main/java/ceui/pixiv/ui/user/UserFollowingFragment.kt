@@ -29,7 +29,6 @@ import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
-import ceui.pixiv.ui.common.setUpSizedList
 import ceui.refactor.ppppx
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
@@ -69,7 +68,6 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         it.getTitleLiveData(0).value =
                             "${getString(R.string.string_391)} (${user.profile?.total_follow_users ?: 0})"
                     }
-                    setUpSizedList(binding, viewModel, user.profile?.total_follow_users ?: 0)
                 }
             } else if (args.restrictType == Params.TYPE_PRIVATE) {
                 contentViewModel.result.observe(viewLifecycleOwner) { result ->
@@ -77,7 +75,6 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         it.getTitleLiveData(1).value =
                             "${getString(R.string.string_392)} (${result.body?.total ?: 0})"
                     }
-                    setUpSizedList(binding, viewModel, result.body?.total ?: 0)
                 }
             }
         }

@@ -15,6 +15,7 @@ import timber.log.Timber
 
 open class DataSource<Item, T: KListShow<Item>>(
     private val dataFetcher: suspend (hint: RefreshHint) -> T,
+    private val responseStore: ResponseStore<T>? = null,
     itemMapper: (Item) -> List<ListItemHolder>,
     private val filter: (Item) -> Boolean = { _ -> true }
 ) {
@@ -28,9 +29,6 @@ open class DataSource<Item, T: KListShow<Item>>(
 
     private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
     val itemHolders: LiveData<List<ListItemHolder>> = _itemHolders
-
-    private val _liveNextUrl = MutableLiveData<String>()
-    val liveNextUrl: LiveData<String> = _liveNextUrl
 
     private var _nextPageUrl: String? = null
     private val gson = Gson()
@@ -46,15 +44,22 @@ open class DataSource<Item, T: KListShow<Item>>(
             if (hint == RefreshHint.ErrorRetry) {
                 delay(300L)
             }
-            val response = withContext(Dispatchers.IO) {
-                dataFetcher(hint)
+
+            if (hint == RefreshHint.InitialLoad) {
+                responseStore?.loadFromCache()?.let { storedResponse ->
+                    applyResponse(storedResponse)
+                }
             }
-            currentProtoItems.clear()
-            responseClass = response::class.java as Class<T>
-            _nextPageUrl = response.nextPageUrl
-            _liveNextUrl.value = response.nextPageUrl
-            currentProtoItems.addAll(response.displayList)
-            mapProtoItemsToHolders()
+
+            if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
+                val response = withContext(Dispatchers.IO) {
+                    dataFetcher(hint).also {
+                        responseStore?.writeToCache(it)
+                    }
+                }
+                applyResponse(response)
+            }
+
             _refreshState.value = RefreshState.LOADED(
                 hasContent = _itemHolders.value?.isNotEmpty() == true,
                 hasNext = _nextPageUrl?.isNotEmpty() == true
@@ -63,6 +68,14 @@ open class DataSource<Item, T: KListShow<Item>>(
             _refreshState.value = RefreshState.ERROR(ex)
             Timber.e(ex)
         }
+    }
+
+    private fun applyResponse(response: T) {
+        currentProtoItems.clear()
+        responseClass = response::class.java as Class<T>
+        _nextPageUrl = response.nextPageUrl
+        currentProtoItems.addAll(response.displayList)
+        mapProtoItemsToHolders()
     }
 
     open suspend fun loadMoreData() {
@@ -76,7 +89,6 @@ open class DataSource<Item, T: KListShow<Item>>(
             }
             responseClass = response::class.java as Class<T>
             _nextPageUrl = response.nextPageUrl
-            _liveNextUrl.value = response.nextPageUrl
             if (response.displayList.isNotEmpty()) {
                 currentProtoItems.addAll(response.displayList)
                 mapProtoItemsToHolders()
@@ -108,17 +120,6 @@ open class DataSource<Item, T: KListShow<Item>>(
         }
     }
 
-    suspend fun loadOffsetData(pageIndex: Int) {
-        val nextPageUrl = _nextPageUrl ?: return
-        Common.showLog("dasasds aaa ${nextPageUrl}")
-        val newNextUrl = updateOffsetInUrl(nextPageUrl, pageIndex * 30)
-        _nextPageUrl = newNextUrl
-        _liveNextUrl.value = newNextUrl
-        currentProtoItems.clear()
-        Common.showLog("dasasds bbb ${newNextUrl}")
-        loadMoreData()
-    }
-
     private fun mapProtoItemsToHolders() {
         val mapper = _variableItemMapper ?: return
         val holders = currentProtoItems
@@ -129,9 +130,6 @@ open class DataSource<Item, T: KListShow<Item>>(
         _itemHolders.value = holders
     }
 
-    fun pickProtoItems(): List<Item> {
-        return currentProtoItems
-    }
 
     fun updateMapper(mapper: (Item) -> List<ListItemHolder>) {
         _itemHolders.value = listOf()

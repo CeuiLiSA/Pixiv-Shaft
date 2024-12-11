@@ -29,12 +29,8 @@ class WalkthroughFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     }
 }
 
-class WalkthroughDataSource(
-    private val responseStore: ResponseStore<IllustResponse> = createResponseStore(
-        keyProvider = { "home-walkthrough-api" },
-        dataLoader = { Client.appApi.getWalkthroughWorks() }
-    )
-) : DataSource<Illust, IllustResponse>(
-    dataFetcher = { hint -> responseStore.retrieveData(hint) },
+class WalkthroughDataSource : DataSource<Illust, IllustResponse>(
+    dataFetcher = { hint -> Client.appApi.getWalkthroughWorks() },
+    responseStore = createResponseStore({ "home-walkthrough-api" }),
     itemMapper = { illust -> listOf(IllustCardHolder(illust)) },
 )
