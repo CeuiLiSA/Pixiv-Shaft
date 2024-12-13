@@ -311,6 +311,7 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
 
 fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode.STAGGERED_GRID) {
     val ctx = requireContext()
+    listView.itemAnimator = null
     if (listMode == ListMode.STAGGERED_GRID) {
         listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
         listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)

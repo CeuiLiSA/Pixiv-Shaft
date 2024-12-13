@@ -2,6 +2,7 @@ package ceui.pixiv.ui.works
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
@@ -110,7 +111,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             }
             if (illust.caption?.isNotEmpty() == true) {
                 binding.description.isVisible = true
-                binding.description.text = illust.caption
+                binding.description.text = HtmlCompat.fromHtml(illust.caption, HtmlCompat.FROM_HTML_MODE_COMPACT)
             } else {
                 binding.description.isVisible = false
             }
