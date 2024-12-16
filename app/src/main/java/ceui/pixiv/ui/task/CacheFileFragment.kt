@@ -49,35 +49,23 @@ class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         setUpRefreshState(binding, viewModel)
         binding.toolbarLayout.naviMore.setOnClick {
             if (humanReadableTask.taskType == PixivTaskType.DownloadAll) {
-                val task = DownloadAllTask(requireActivity()) {
-                    val items = mutableListOf<NamedUrl>()
-                    loadIllustsFromCache(args.taskUuid)?.forEach { illust ->
-                        if (illust.page_count == 1) {
-                            illust.meta_single_page?.original_image_url?.let {
-                                items.add(NamedUrl(buildPixivWorksFileName(illust.id), it))
-                            }
-                        } else {
-                            illust.meta_pages?.forEachIndexed { index, page ->
-                                page.image_urls?.original?.let {
-                                    items.add(NamedUrl(buildPixivWorksFileName(illust.id, index), it))
-                                }
+                val items = mutableListOf<NamedUrl>()
+                loadIllustsFromCache(args.taskUuid)?.forEach { illust ->
+                    if (illust.page_count == 1) {
+                        illust.meta_single_page?.original_image_url?.let {
+                            items.add(NamedUrl(buildPixivWorksFileName(illust.id), it))
+                        }
+                    } else {
+                        illust.meta_pages?.forEachIndexed { index, page ->
+                            page.image_urls?.original?.let {
+                                items.add(NamedUrl(buildPixivWorksFileName(illust.id, index), it))
                             }
                         }
                     }
-                    items
                 }
-                task.pendingTasks.forEach {
-                    val isExist = getImageIdInGallery(requireContext(), it.content.name)
-                    Common.showLog("sdaadsads2 ${it.content.name}, ${isExist}")
-                }
+                LoadTaskManager.addTasks(items.map { DownloadTask(it, requireActivity()) })
             } else if (humanReadableTask.taskType == PixivTaskType.BookmarkAll) {
-                val task = BookmarkAllTask {
-                    val items = mutableListOf<BookmarkTask>()
-                    loadIllustsFromCache(args.taskUuid)?.forEach { illust ->
-                        BookmarkTask(illust.id, ObjectType.ILLUST)
-                    }
-                    items
-                }
+
             }
         }
     }

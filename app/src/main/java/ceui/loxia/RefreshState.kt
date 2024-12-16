@@ -124,7 +124,7 @@ fun ItemLoadingBinding.setUpRefreshState(
 }
 
 fun Throwable.getHumanReadableMessage(context: Context): String {
-    return if (this is UnknownHostException || this is SSLHandshakeException || this is TimeoutException || this is SocketTimeoutException) {
+    return if (this is SSLHandshakeException || this is TimeoutException || this is SocketTimeoutException) {
         "${context.getString(R.string.connection_error)}: ${this.javaClass.simpleName}"
     } else {
         val lc = localizedMessage
