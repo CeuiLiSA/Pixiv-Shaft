@@ -37,6 +37,7 @@ open class MenuDialog : PixivDialog(R.layout.dialog_menu), MenuActionReceiver {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.menuList.layoutManager = LinearLayoutManager(requireContext())
+        binding.menuList.itemAnimator = null
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.menuList.adapter = adapter
         adapter.submitList(args.menuItems.map { menuItem ->

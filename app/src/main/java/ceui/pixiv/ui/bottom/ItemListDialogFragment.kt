@@ -72,7 +72,6 @@ class ItemListDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dial
     }
 
     override fun onClickOffsetPage(index: Int) {
-        setFragmentResult(index)
         dismissAllowingStateLoss()
     }
 }

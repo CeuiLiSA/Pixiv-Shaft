@@ -23,7 +23,6 @@ import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.Illust
 import ceui.loxia.pushFragment
-import ceui.loxia.pushFragmentForResult
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
@@ -39,7 +38,6 @@ import ceui.pixiv.ui.rank.RankingIllustsFragmentArgs
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
-import ceui.pixiv.widgets.FragmentResultByFragment
 import ceui.pixiv.widgets.alertYesOrCancel
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -137,9 +135,5 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 }
             }
         }
-    }
-
-    private fun onFragmentResult(result: HelloResult) {
-        Common.showLog("dsaasdw ${fragmentUniqueId} really get ${result} ${lifecycle.currentState}")
     }
 }

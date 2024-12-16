@@ -63,7 +63,11 @@ class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         }
                     }
                 }
-                LoadTaskManager.addTasks(items.map { DownloadTask(it, requireActivity()) })
+                items.forEach {
+                    val isExist = getImageIdInGallery(requireContext(), it.name)
+                    Common.showLog("sdaadsads2 ${it.name}, ${isExist}")
+                }
+//                LoadTaskManager.addTasks(items.map { DownloadTask(it, requireActivity()) })
             } else if (humanReadableTask.taskType == PixivTaskType.BookmarkAll) {
 
             }

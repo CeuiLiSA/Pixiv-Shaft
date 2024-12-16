@@ -9,7 +9,6 @@
         android:id="@+id/novel_text"
         android:layout_width="match_parent"
         android:textSize="17sp"
-        android:layout_marginHorizontal="@dimen/sixteen_dp"
         android:lineSpacingExtra="@dimen/six_dp"
         android:textIsSelectable="true"
         android:textColor="@color/white_to_gray"

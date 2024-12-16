@@ -31,7 +31,6 @@ import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
 import ceui.loxia.Client
-import ceui.loxia.FRAGMENT_RESULT_REQUEST_ID
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -42,7 +41,6 @@ import ceui.loxia.RefreshState
 import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
-import ceui.loxia.listenToResultStore
 import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
@@ -53,8 +51,6 @@ import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
-import ceui.pixiv.widgets.DialogViewModel
-import ceui.pixiv.widgets.FragmentResultStore
 import ceui.pixiv.widgets.TagsActionReceiver
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
@@ -63,16 +59,11 @@ import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 import timber.log.Timber
 
-interface FragmentResultRequestIdOwner {
-    val resultRequestId: String?
-    val fragmentUniqueId: String
-}
 
-open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequestIdOwner, IllustCardActionReceiver,
+open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
     UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver {
 
     private val fragmentViewModel: NavFragmentViewModel by viewModels()
-    private val fragmentResultStore by activityViewModels<FragmentResultStore>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,8 +77,6 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        listenToResultStore(fragmentResultStore)
-
         if (fragmentViewModel.viewCreatedTime.value == null) {
             onViewFirstCreated(view)
         }
@@ -96,10 +85,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
     }
 
     override fun onClickIllustCard(illust: Illust) {
-        pushFragment(
-            R.id.navigation_illust,
-            IllustFragmentArgs(illust.id).toBundle()
-        )
+        onClickIllust(illust.id)
     }
 
     override fun onClickBookmarkIllust(sender: ProgressIndicator, illustId: Long) {
@@ -175,32 +161,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
         )
     }
 
-    fun <T: Any> setFragmentResult(result: T) {
-        resultRequestId?.let { requestId ->
-            val existingLifecycle = fragmentResultStore.getExistingLifecycle(requestId)
-            if (existingLifecycle != null && existingLifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                fragmentResultStore.getTypedResult(requestId)?.let { result ->
-                    Common.showLog("dsaasdw STARTED getTypedResult ${result}")
-//                    fragmentResultStore.getTypedTask(requestId)?.let { task ->
-//                        task.complete(FragmentResultByFragment(result, fragment))
-//                        fragmentResultStore.removeResult(requestId)
-//                    }
-                }
-            } else {
-                fragmentResultStore.putResult(requestId, result)
-            }
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         Common.showLog("onDestroy ${this::class.simpleName}")
     }
-
-    override val resultRequestId: String?
-        get() = arguments?.getString(FRAGMENT_RESULT_REQUEST_ID)
-    override val fragmentUniqueId: String
-        get() = fragmentViewModel.fragmentUniqueId
 }
 
 interface ViewPagerFragment {
