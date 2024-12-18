@@ -14,6 +14,7 @@ import android.provider.MediaStore
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import com.blankj.utilcode.util.ImageUtils
+import com.hjq.toast.ToastUtils
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
@@ -44,6 +45,7 @@ fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
                 inputStream.copyTo(outputStream) // 复制文件内容到输出流
             }
         }
+        ToastUtils.show(context.getString(R.string.string_181))
     }.onFailure { ex ->
         // 记录异常信息，方便调试
         when (ex) {

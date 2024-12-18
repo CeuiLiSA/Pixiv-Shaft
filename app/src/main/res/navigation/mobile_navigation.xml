@@ -77,6 +77,15 @@
             android:name="mode"/>
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_related_illusts"
+        android:name="ceui.pixiv.ui.related.RelatedIllustsFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+        <argument
+            android:name="illust_id"
+            app:argType="long" />
+    </fragment>
+
 
     <fragment
         android:id="@+id/navigation_home_viewpager"

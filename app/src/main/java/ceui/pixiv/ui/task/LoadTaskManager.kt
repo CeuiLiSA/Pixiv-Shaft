@@ -9,19 +9,33 @@ object LoadTaskManager {
     private var isRunning: Boolean = false
 
     /**
-     * 添加单个任务到队列
+     * 添加单个任务到队列（去重）
      */
     fun addTask(task: DownloadTask) {
-        taskQueue.add(task)
-        processNextTask()
+        if (!isTaskInQueue(task)) {
+            taskQueue.add(task)
+            processNextTask()
+        } else {
+            Timber.d("Task already in queue: ${task.taskId}")
+        }
     }
 
     /**
-     * 批量添加任务到队列
+     * 批量添加任务到队列（去重）
      */
     fun addTasks(tasks: List<DownloadTask>) {
-        taskQueue.addAll(tasks)
-        processNextTask()
+        val newTasks = tasks.filterNot { isTaskInQueue(it) } // 过滤掉已存在的任务
+        if (newTasks.isNotEmpty()) {
+            taskQueue.addAll(newTasks)
+            processNextTask()
+        }
+    }
+
+    /**
+     * 检查任务是否已经存在于队列或失败任务列表中
+     */
+    private fun isTaskInQueue(task: DownloadTask): Boolean {
+        return taskQueue.any { it.taskId == task.taskId } || failedTasks.any { it.taskId == task.taskId }
     }
 
     /**

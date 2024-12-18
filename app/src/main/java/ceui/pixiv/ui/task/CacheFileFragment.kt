@@ -11,6 +11,7 @@ import ceui.loxia.KListShow
 import ceui.loxia.ObjectType
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.setUpRefreshState
@@ -20,58 +21,21 @@ import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
-import kotlinx.coroutines.delay
 
 class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val args by navArgs<CacheFileFragmentArgs>()
     private val prefStore by lazy { MMKV.mmkvWithID("user-tasks") }
-    private val viewModel by pixivListViewModel {
-        DataSource(
-            dataFetcher = {
-                delay(600L)
-                object : KListShow<Illust> {
-                    override val displayList: List<Illust>
-                        get() = loadIllustsFromCache(args.taskUuid) ?: listOf()
-                    override val nextPageUrl: String?
-                        get() = null
-                }
-            },
-            itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
-        )
+    private val viewModel by pixivListViewModel({ Pair(requireActivity(), args.taskUuid) }) { (activity, taskUuid) ->
+        QueuedTaskDataSource(taskUuid, activity)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val humanReadableTask = Gson().fromJson(prefStore.getString(args.taskUuid, ""), HumanReadableTask::class.java)
         binding.toolbarLayout.naviTitle.text = humanReadableTask.taskFullName
-        setUpRefreshState(binding, viewModel)
-        binding.toolbarLayout.naviMore.setOnClick {
-            if (humanReadableTask.taskType == PixivTaskType.DownloadAll) {
-                val items = mutableListOf<NamedUrl>()
-                loadIllustsFromCache(args.taskUuid)?.forEach { illust ->
-                    if (illust.page_count == 1) {
-                        illust.meta_single_page?.original_image_url?.let {
-                            items.add(NamedUrl(buildPixivWorksFileName(illust.id), it))
-                        }
-                    } else {
-                        illust.meta_pages?.forEachIndexed { index, page ->
-                            page.image_urls?.original?.let {
-                                items.add(NamedUrl(buildPixivWorksFileName(illust.id, index), it))
-                            }
-                        }
-                    }
-                }
-                items.forEach {
-                    val isExist = getImageIdInGallery(requireContext(), it.name)
-                    Common.showLog("sdaadsads2 ${it.name}, ${isExist}")
-                }
-//                LoadTaskManager.addTasks(items.map { DownloadTask(it, requireActivity()) })
-            } else if (humanReadableTask.taskType == PixivTaskType.BookmarkAll) {
-
-            }
-        }
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
     }
 
 }

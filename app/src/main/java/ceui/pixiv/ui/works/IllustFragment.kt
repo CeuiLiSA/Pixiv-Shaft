@@ -26,6 +26,7 @@ import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ImgDisplayFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpFullScreen
+import ceui.pixiv.ui.related.RelatedIllustsFragmentArgs
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
@@ -71,6 +72,10 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.toolbarLayout.naviMore.setOnClick {
+            pushFragment(R.id.navigation_related_illusts, RelatedIllustsFragmentArgs(args.illustId).toBundle())
+        }
 
         setUpFullScreen(
             viewModel,

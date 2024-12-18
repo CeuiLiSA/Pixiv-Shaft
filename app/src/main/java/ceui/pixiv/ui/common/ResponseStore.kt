@@ -8,7 +8,7 @@ import kotlinx.coroutines.delay
 import timber.log.Timber
 import java.lang.reflect.Method
 
-class ResponseStore<T>(
+class ResponseStore<T> private constructor(
     private val keyProvider: () -> String,
     private val expirationTimeMillis: Long,
     private val typeToken: Class<T>
@@ -51,13 +51,23 @@ class ResponseStore<T>(
             null
         }
     }
+
+    companion object {
+        fun <T> create(
+            keyProvider: () -> String,
+            expirationTimeMillis: Long,
+            typeToken: Class<T>
+        ): ResponseStore<T> {
+            return ResponseStore(keyProvider, expirationTimeMillis, typeToken)
+        }
+    }
 }
 
 inline fun <reified T : Any> createResponseStore(
     noinline keyProvider: () -> String,
     expirationTimeMillis: Long = 30 * 60 * 1000L,
 ): ResponseStore<T> {
-    return ResponseStore(
+    return ResponseStore.create(
         keyProvider = keyProvider,
         expirationTimeMillis = expirationTimeMillis,
         typeToken = T::class.java,

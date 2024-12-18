@@ -30,6 +30,9 @@ open class LoadTask(
     private val _file = MutableLiveData<File>()
     val file: LiveData<File> get() = _file
 
+    override val taskId: Long
+        get() = content.url.hashCode().toLong()
+
     init {
         if (autoStart) {
             activity.lifecycleScope.launch {
