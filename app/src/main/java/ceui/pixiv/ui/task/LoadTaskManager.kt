@@ -1,12 +1,24 @@
 package ceui.pixiv.ui.task
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import timber.log.Timber
 
 object LoadTaskManager {
 
+    // 定义任务状态
+    enum class TaskState {
+        IDLE,       // 空闲状态
+        RUNNING,    // 正在运行
+        PAUSED      // 暂停中
+    }
+
     private val taskQueue: MutableList<DownloadTask> = mutableListOf()
     private val failedTasks: MutableList<DownloadTask> = mutableListOf()
-    private var isRunning: Boolean = false
+
+    // 使用 LiveData 来观测状态
+    private val _taskState = MutableLiveData(TaskState.IDLE)
+    val taskState: LiveData<TaskState> get() = _taskState
 
     /**
      * 添加单个任务到队列（去重）
@@ -14,7 +26,7 @@ object LoadTaskManager {
     fun addTask(task: DownloadTask) {
         if (!isTaskInQueue(task)) {
             taskQueue.add(task)
-            processNextTask()
+            updateTaskState()
         } else {
             Timber.d("Task already in queue: ${task.taskId}")
         }
@@ -24,10 +36,10 @@ object LoadTaskManager {
      * 批量添加任务到队列（去重）
      */
     fun addTasks(tasks: List<DownloadTask>) {
-        val newTasks = tasks.filterNot { isTaskInQueue(it) } // 过滤掉已存在的任务
+        val newTasks = tasks.filterNot { isTaskInQueue(it) }
         if (newTasks.isNotEmpty()) {
             taskQueue.addAll(newTasks)
-            processNextTask()
+            updateTaskState()
         }
     }
 
@@ -39,34 +51,59 @@ object LoadTaskManager {
     }
 
     /**
+     * 开始任务
+     */
+    fun startProcessing() {
+        if (_taskState.value == TaskState.PAUSED || _taskState.value == TaskState.IDLE) {
+            Timber.d("Starting task processing")
+            _taskState.value = TaskState.RUNNING
+            processNextTask()
+        } else {
+            Timber.d("Task processing cannot start. Current state: ${_taskState.value}")
+        }
+    }
+
+    /**
+     * 暂停任务
+     */
+    fun pauseProcessing() {
+        if (_taskState.value == TaskState.RUNNING) {
+            Timber.d("Pausing task processing")
+            _taskState.value = TaskState.PAUSED
+        } else {
+            Timber.d("Cannot pause task processing. Current state: ${_taskState.value}")
+        }
+    }
+
+    /**
      * 处理下一个任务
      */
     private fun processNextTask() {
-        // 如果当前有任务正在运行，则直接返回
-        if (isRunning) return
+        if (_taskState.value != TaskState.RUNNING) {
+            Timber.d("Task processing is not running. Current state: ${_taskState.value}")
+            return
+        }
 
-        // 如果任务队列为空，则检查是否有失败任务需要重试
         if (taskQueue.isEmpty()) {
             if (failedTasks.isNotEmpty()) {
                 retryFailedTasks()
+            } else {
+                Timber.d("All tasks completed")
+                _taskState.value = TaskState.IDLE
             }
             return
         }
 
-        // 开始处理任务
-        isRunning = true
-        Timber.d("processNextTask:  ${getTaskStatus()}")
         val currentTask = taskQueue.removeAt(0)
-
         currentTask.startDownload(
             onSuccess = {
                 Timber.d("Task succeeded: ${currentTask.content.url}")
-                handleTaskCompletion() // 处理任务完成逻辑
+                handleTaskCompletion()
             },
             onFailure = { exception ->
                 Timber.e(exception, "Task failed: ${currentTask.content.url}")
-                failedTasks.add(currentTask) // 将失败任务加入失败列表
-                handleTaskCompletion() // 处理任务完成逻辑
+                failedTasks.add(currentTask)
+                handleTaskCompletion()
             }
         )
     }
@@ -75,14 +112,11 @@ object LoadTaskManager {
      * 处理任务完成逻辑
      */
     private fun handleTaskCompletion() {
-        isRunning = false
-
-        // 检查是否还有待处理任务
-        if (taskQueue.isNotEmpty()) {
-            processNextTask()
-        } else if (failedTasks.isNotEmpty()) {
-            // 如果没有待处理任务，但有失败任务，则重试失败任务
-            retryFailedTasks()
+        if (taskQueue.isEmpty() && failedTasks.isEmpty()) {
+            Timber.d("All tasks completed successfully")
+            _taskState.value = TaskState.IDLE
+        } else {
+            processNextTask() // 继续处理下一个任务
         }
     }
 
@@ -91,7 +125,7 @@ object LoadTaskManager {
      */
     private fun retryFailedTasks() {
         Timber.d("Retrying failed tasks: ${failedTasks.size}")
-        taskQueue.addAll(failedTasks) // 将失败任务加入任务队列
+        taskQueue.addAll(failedTasks)
         failedTasks.clear()
         processNextTask()
     }
@@ -102,13 +136,18 @@ object LoadTaskManager {
     fun clearAllTasks() {
         taskQueue.clear()
         failedTasks.clear()
-        isRunning = false
+        _taskState.value = TaskState.IDLE
+        Timber.d("All tasks cleared")
     }
 
     /**
-     * 获取当前任务队列状态
+     * 更新任务状态
      */
-    fun getTaskStatus(): String {
-        return "Pending: ${taskQueue.size}, Failed: ${failedTasks.size}, Running: $isRunning"
+    private fun updateTaskState() {
+        _taskState.value = if (taskQueue.isNotEmpty() || failedTasks.isNotEmpty()) {
+            TaskState.IDLE
+        } else {
+            TaskState.IDLE
+        }
     }
 }

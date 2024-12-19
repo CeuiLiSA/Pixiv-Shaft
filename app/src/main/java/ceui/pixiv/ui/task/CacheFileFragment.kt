@@ -35,6 +35,9 @@ class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         val humanReadableTask = Gson().fromJson(prefStore.getString(args.taskUuid, ""), HumanReadableTask::class.java)
         binding.toolbarLayout.naviTitle.text = humanReadableTask.taskFullName
+        binding.toolbarLayout.naviMore.setOnClick {
+            LoadTaskManager.startProcessing()
+        }
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
     }
 

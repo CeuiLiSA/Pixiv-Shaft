@@ -38,7 +38,7 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
         } else {
             Timber.d("dfsasf3 ${content.name} 图片不已存在，准备下载")
             activity.lifecycleScope.launch {
-                delay(1000L)
+                delay(400L)
                 execute()
             }
         }

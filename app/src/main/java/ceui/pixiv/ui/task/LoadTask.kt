@@ -69,7 +69,9 @@ open class LoadTask(
                 if (progressInfo.isFinish || percent == 100) {
                     _status.value = TaskStatus.Finished
                 } else {
-                    _status.value = TaskStatus.Executing(percent)
+                    if (_status.value != TaskStatus.Finished) {
+                        _status.value = TaskStatus.Executing(percent)
+                    }
                 }
             }
 
