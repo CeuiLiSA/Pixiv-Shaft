@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
+import ceui.pixiv.ui.common.getImageIdInGallery
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -128,7 +129,7 @@ open class LoadTask(
         }
     }
 
-    open fun onFilePrepared(file: File) {
+    open suspend fun onFilePrepared(file: File) {
         // 子类实现
     }
 }

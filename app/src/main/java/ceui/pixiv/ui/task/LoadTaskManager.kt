@@ -130,6 +130,14 @@ object LoadTaskManager {
         processNextTask()
     }
 
+    fun findExistingTask(taskId: Long): DownloadTask? {
+        val hit = taskQueue.firstOrNull { it.taskId == taskId } ?: failedTasks.firstOrNull { it.taskId == taskId }
+        if (hit != null) {
+            Timber.d("fsaasdw2 找到了 ${hit.content.name}")
+        }
+        return hit
+    }
+
     /**
      * 清空所有任务
      */

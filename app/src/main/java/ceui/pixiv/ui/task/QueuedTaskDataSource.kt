@@ -7,33 +7,32 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.works.buildPixivWorksFileName
 
 class QueuedTaskDataSource(
-    private val taskUuid: String,
-    private val activity: FragmentActivity
-) : DataSource<Illust, KListShow<Illust>>(
-    dataFetcher = {
-        object : KListShow<Illust> {
-            override val displayList: List<Illust>
-                get() = loadIllustsFromCache(taskUuid) ?: listOf()
-            override val nextPageUrl: String?
-                get() = null
-        }
-    },
-    responseStore = null,
-    itemMapper = { illust ->
-        val items = mutableListOf<NamedUrl>()
-        if (illust.page_count == 1) {
-            illust.meta_single_page?.original_image_url?.let {
-                items.add(NamedUrl(buildPixivWorksFileName(illust.id), it))
-            }
-        } else {
-            illust.meta_pages?.forEachIndexed { index, page ->
-                page.image_urls?.original?.let {
-                    items.add(NamedUrl(buildPixivWorksFileName(illust.id, index), it))
-                }
-            }
-        }
-        items.map { DownloadTask(it, activity).also {
-            LoadTaskManager.addTask(it)
-        } }.map { QueuedTaskHolder(it, illust) }
+    private val taskUuid: String, private val activity: FragmentActivity
+) : DataSource<Illust, KListShow<Illust>>(dataFetcher = {
+    object : KListShow<Illust> {
+        override val displayList: List<Illust>
+            get() = loadIllustsFromCache(taskUuid) ?: listOf()
+        override val nextPageUrl: String?
+            get() = null
     }
-)
+}, responseStore = null, itemMapper = { illust ->
+    val items = mutableListOf<NamedUrl>()
+    if (illust.page_count == 1) {
+        illust.meta_single_page?.original_image_url?.let {
+            items.add(NamedUrl(buildPixivWorksFileName(illust.id), it))
+        }
+    } else {
+        illust.meta_pages?.forEachIndexed { index, page ->
+            page.image_urls?.original?.let {
+                items.add(NamedUrl(buildPixivWorksFileName(illust.id, index), it))
+            }
+        }
+    }
+    items.map {
+        val taskId = it.url.hashCode().toLong()
+        val task = LoadTaskManager.findExistingTask(taskId) ?: DownloadTask(it, activity).also {
+            LoadTaskManager.addTask(it)
+        }
+        task
+    }.map { QueuedTaskHolder(it, illust) }
+})

@@ -11,9 +11,11 @@ import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.saveImageToGallery
 import ceui.pixiv.widgets.alertYesOrCancel
 import com.blankj.utilcode.util.UriUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -30,21 +32,24 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
         onSuccessCallback = onSuccess
         onFailureCallback = onFailure
 
-        val imageId = getImageIdInGallery(activity, content.name)
-        if (imageId != null) {
-            Timber.d("dfsasf3 ${content.name} 图片已存在")
-            _status.value = TaskStatus.Finished
-            onSuccessCallback?.invoke() // 成功回调
-        } else {
-            Timber.d("dfsasf3 ${content.name} 图片不已存在，准备下载")
-            activity.lifecycleScope.launch {
+        activity.lifecycleScope.launch {
+            val imageId = withContext(Dispatchers.IO) {
+                getImageIdInGallery(activity, content.name)
+            }
+            if (imageId != null) {
+                Timber.d("dfsasf3 ${content.name} 图片已存在")
+                delay(200L)
+                _status.value = TaskStatus.Finished
+                onSuccessCallback?.invoke() // 成功回调
+            } else {
+                Timber.d("dfsasf3 ${content.name} 图片不已存在，准备下载")
                 delay(400L)
                 execute()
             }
         }
     }
 
-    override fun onFilePrepared(file: File) {
+    override suspend fun onFilePrepared(file: File) {
         super.onFilePrepared(file)
         saveImageToGallery(activity, file, content.name)
         onSuccessCallback?.invoke() // 成功回调

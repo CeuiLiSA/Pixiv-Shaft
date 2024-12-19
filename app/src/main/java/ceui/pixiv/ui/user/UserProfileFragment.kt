@@ -122,7 +122,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
                 showActionMenu {
                     add(
                         MenuItem("下载全部作品", "实验性功能，测试中") {
-                            FetchAllTask(taskFullName = "下载${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画", PixivTaskType.DownloadAll) {
+                            FetchAllTask(this@UserProfileFragment, taskFullName = "下载${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画", PixivTaskType.DownloadAll) {
                                 Client.appApi.getUserCreatedIllusts(
                                     args.userId,
                                     ObjectType.ILLUST
@@ -132,7 +132,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
                     )
                     add(
                         MenuItem("收藏全部作品", "实验性功能，测试中") {
-                            FetchAllTask(taskFullName = "收藏${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画", PixivTaskType.BookmarkAll) {
+                            FetchAllTask(this@UserProfileFragment, taskFullName = "收藏${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画", PixivTaskType.BookmarkAll) {
                                 Client.appApi.getUserCreatedIllusts(
                                     args.userId,
                                     ObjectType.ILLUST
