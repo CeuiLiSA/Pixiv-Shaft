@@ -127,7 +127,7 @@ open class LoadTask(
     open fun handleError(ex: Exception?) {
         if (ex != null) {
             Timber.e(ex)
-            _status.value = TaskStatus.Error(ex)
+            _status.postValue(TaskStatus.Error(ex))
         }
     }
 

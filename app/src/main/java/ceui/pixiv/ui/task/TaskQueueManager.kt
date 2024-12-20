@@ -108,6 +108,7 @@ object TaskQueueManager {
      * Retry failed tasks
      */
     private fun retryFailedTasks() {
+        var shouldProcess = false
         synchronized(lock) {
             val failedTasks = taskQueue.filter { it.status.value is TaskStatus.Error }
             if (failedTasks.isNotEmpty()) {
@@ -115,11 +116,15 @@ object TaskQueueManager {
                 failedTasks.forEach { task ->
                     task.reset()
                 }
+                shouldProcess = true
             } else {
+                shouldProcess = false
                 Timber.d("No failed tasks to retry")
             }
         }
-        processNextTask()
+        if (shouldProcess) {
+            processNextTask()
+        }
     }
 
     fun clearAllTasks() {
