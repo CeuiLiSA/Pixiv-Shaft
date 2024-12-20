@@ -52,9 +52,6 @@ open class LoadTask(
             _status.value = TaskStatus.Executing(0)
             observeProgress()
 
-            delay(200L)
-            throw RuntimeException("hello ${content}")
-
             val file = downloadFile()
             if (file != null) {
                 _file.value = file
