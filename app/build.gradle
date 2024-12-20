@@ -8,13 +8,20 @@ apply plugin: 'org.jmailen.kotlinter'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 android {
-    compileSdk 34
+    compileSdk 35
 
+    splits {
+        abi {
+            enable true
+            reset()
+            include("arm64-v8a", "x86_64")
+        }
+    }
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
-        minSdkVersion 21
-        targetSdkVersion 34
+        minSdk 23
+        targetSdkVersion 35
         versionCode 324
         versionName "4.2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -25,7 +32,7 @@ android {
                         //必须，告知RxHttp你依赖的okhttp版本，目前已适配 v3.12.0 - v4.9.1版本  (v4.3.0除外)
                         rxhttp_okhttp : '4.4.1',
                         //使用asXxx方法时必须，告知RxHttp你依赖的rxjava版本，可传入rxjava2、rxjava3或具体的版本号
-                        rxhttp_rxjava : '3.1.3',
+                        rxhttp_rxjava : '3.1.9',
                         rxhttp_package: 'rxhttp'   //非必须，指定RxHttp类包名
                 ]
             }
@@ -92,19 +99,17 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
-
-
     //=============== Navigation
-    def nav_version = "2.8.4"
+    def nav_version = "2.8.5"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.25"
-    implementation "androidx.core:core-ktx:1.13.1"
+    implementation "androidx.core:core-ktx:1.15.0"
 
     api 'com.squareup.retrofit2:retrofit:2.11.0'
     api 'com.squareup.retrofit2:converter-gson:2.11.0'
-    api 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
+    api 'com.squareup.retrofit2:adapter-rxjava2:2.11.0'
 
     api 'io.reactivex.rxjava2:rxjava:2.2.21'
     api 'io.reactivex.rxjava2:rxandroid:2.1.1'
@@ -117,14 +122,14 @@ dependencies {
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.16.0'
     kapt 'com.github.bumptech.glide:compiler:4.16.0'
 
-    implementation 'com.github.lzyzsd:circleprogress:1.2.1'
+    implementation 'com.github.lzyzsd:circleprogress:1.2.4'
 
     def refresh_version = "2.1.0"
-    implementation  "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖
-    implementation  "io.github.scwang90:refresh-header-classics:$refresh_version"    //经典刷新头
-    implementation  "io.github.scwang90:refresh-header-falsify:$refresh_version"     //虚拟刷新头
-    implementation  "io.github.scwang90:refresh-header-material:$refresh_version"    //谷歌刷新头
-    implementation  "io.github.scwang90:refresh-footer-classics:$refresh_version"    //经典加载
+    implementation "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖
+    implementation "io.github.scwang90:refresh-header-classics:$refresh_version"    //经典刷新头
+    implementation "io.github.scwang90:refresh-header-falsify:$refresh_version"     //虚拟刷新头
+    implementation "io.github.scwang90:refresh-header-material:$refresh_version"    //谷歌刷新头
+    implementation "io.github.scwang90:refresh-footer-classics:$refresh_version"    //经典加载
 
     // okhttp3系列组件版本最高到 4.4.1，参看 RubySSLSocketFactory
     implementation 'com.squareup.okhttp3:logging-interceptor:4.4.1'
@@ -137,19 +142,19 @@ dependencies {
     implementation 'com.github.Justson.AgentWeb:agentweb-core:v4.1.9-androidx'
     implementation 'com.github.Justson.AgentWeb:agentweb-filechooser:v4.1.9-androidx'
     implementation 'com.facebook.rebound:rebound:0.3.8'
-    implementation("org.sufficientlysecure:html-textview:3.9")
+    implementation("org.sufficientlysecure:html-textview:4.0")
     implementation 'com.wdullaer:materialdatetimepicker:4.2.3'
-    implementation 'com.qmuiteam:qmui:2.0.1'
+    implementation 'com.qmuiteam:qmui:2.1.0'
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'jp.wasabeef:recyclerview-animators:4.0.2'
     implementation 'gdut.bsx:share2:0.9.3'
-    implementation 'com.github.skydoves:transformationlayout:1.1.1'
+    implementation 'com.github.skydoves:transformationlayout:1.1.4'
     implementation 'com.blankj:utilcodex:1.31.1'
     implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
     implementation 'com.google.firebase:firebase-analytics:22.1.2'
-    implementation 'com.google.firebase:firebase-crashlytics:19.2.1'
+    implementation 'com.google.firebase:firebase-crashlytics:19.3.0'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
 
@@ -161,7 +166,7 @@ dependencies {
     implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.13'
     implementation 'com.makeramen:roundedimageview:2.3.0'
 
-    implementation 'io.github.csdn-mobile:RoundView:1.8.0'
+    implementation 'io.github.csdn-mobile:RoundView:1.8.1'
 
 
     implementation 'com.github.liujingxing.rxhttp:rxhttp:2.7.3'
@@ -169,11 +174,11 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.4.1'
     kapt 'com.github.liujingxing.rxhttp:rxhttp-compiler:2.7.3'
 
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.3'
-    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
-    implementation 'com.github.liujingxing.rxlife:rxlife-rxjava3:2.2.1'
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.9'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
+    implementation 'com.github.liujingxing.rxlife:rxlife-rxjava3:2.2.2'
 
-    def lottieVersion = "3.4.1"
+    def lottieVersion = "6.6.2"
     implementation "com.airbnb.android:lottie:$lottieVersion"
 
     implementation 'xyz.zpayh:hdimageview:3.0.2'
@@ -182,7 +187,7 @@ dependencies {
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
     implementation 'com.waynejo:androidndkgif:0.3.3'
-    implementation 'com.tencent:mmkv-static:1.3.9'
+    implementation 'com.tencent:mmkv-static:2.0.2'
     implementation 'com.github.tbruyelle:rxpermissions:0.12'
 
     implementation 'androidx.webkit:webkit:1.12.1'
@@ -203,9 +208,9 @@ dependencies {
 
     implementation("io.github.panpf.zoomimage:zoomimage-view-sketch4:1.1.0-rc03")
 
-    implementation("me.zhanghai.android.fastscroll:library:1.2.0")
+    implementation("me.zhanghai.android.fastscroll:library:1.3.0")
 
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.3'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'

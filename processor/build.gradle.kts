@@ -13,8 +13,6 @@ dependencies {
     kapt(project(":annotations"))
     compileOnly(project(":annotations"))
 
-    kapt ("com.google.auto.service:auto-service:1.0")
-    implementation ("com.google.auto.service:auto-service:1.0")
-
-
+    kapt("com.google.auto.service:auto-service:1.1.1")
+    implementation("com.google.auto.service:auto-service:1.1.1")
 }
