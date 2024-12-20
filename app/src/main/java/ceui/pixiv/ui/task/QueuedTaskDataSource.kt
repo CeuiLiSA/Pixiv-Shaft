@@ -30,8 +30,8 @@ class QueuedTaskDataSource(
     }
     items.map {
         val taskId = it.url.hashCode().toLong()
-        val task = LoadTaskManager.findExistingTask(taskId) ?: DownloadTask(it, activity).also {
-            LoadTaskManager.addTask(it)
+        val task = TaskQueueManager.findExistingTask(taskId) ?: DownloadTask(it, activity).also {
+            TaskQueueManager.addTask(it)
         }
         task
     }.map { QueuedTaskHolder(it, illust) }

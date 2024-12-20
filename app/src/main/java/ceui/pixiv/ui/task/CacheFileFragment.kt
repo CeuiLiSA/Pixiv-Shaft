@@ -5,18 +5,10 @@ import android.view.View
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.lisa.utils.Common
-import ceui.loxia.Illust
-import ceui.loxia.KListShow
-import ceui.loxia.ObjectType
-import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.pixiv.ui.works.buildPixivWorksFileName
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.google.gson.Gson
@@ -36,7 +28,7 @@ class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         val humanReadableTask = Gson().fromJson(prefStore.getString(args.taskUuid, ""), HumanReadableTask::class.java)
         binding.toolbarLayout.naviTitle.text = humanReadableTask.taskFullName
         binding.toolbarLayout.naviMore.setOnClick {
-            LoadTaskManager.startProcessing()
+            TaskQueueManager.startProcessing()
         }
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
     }
