@@ -25,6 +25,9 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
     private var onSuccessCallback: (() -> Unit)? = null
     private var onFailureCallback: ((Exception) -> Unit)? = null
 
+    init {
+        Timber.d("fsaasdw2 创建了一个 DownloadTask: ${content}")
+    }
     /**
      * 启动任务并设置回调
      */

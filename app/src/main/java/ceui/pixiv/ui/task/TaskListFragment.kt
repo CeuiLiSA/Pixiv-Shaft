@@ -44,7 +44,7 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
 
                 object : KListShow<HumanReadableTask> {
                     override val displayList: List<HumanReadableTask>
-                        get() = humanReadableTasks
+                        get() = humanReadableTasks.sortedBy { it.createdTime }
                     override val nextPageUrl: String?
                         get() = null
                 }

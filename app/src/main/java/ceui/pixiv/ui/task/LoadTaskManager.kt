@@ -94,8 +94,8 @@ object LoadTaskManager {
             return
         }
 
-        val currentTask = taskQueue.removeAt(0)
-        currentTask.startDownload(
+        val currentTask = taskQueue.firstOrNull { it.status.value is TaskStatus.NotStart || it.status.value is TaskStatus.Error }
+        currentTask?.startDownload(
             onSuccess = {
                 Timber.d("Task succeeded: ${currentTask.content.url}")
                 handleTaskCompletion()
@@ -130,14 +130,6 @@ object LoadTaskManager {
         processNextTask()
     }
 
-    fun findExistingTask(taskId: Long): DownloadTask? {
-        val hit = taskQueue.firstOrNull { it.taskId == taskId } ?: failedTasks.firstOrNull { it.taskId == taskId }
-        if (hit != null) {
-            Timber.d("fsaasdw2 找到了 ${hit.content.name}")
-        }
-        return hit
-    }
-
     /**
      * 清空所有任务
      */
@@ -157,5 +149,15 @@ object LoadTaskManager {
         } else {
             TaskState.IDLE
         }
+    }
+
+    fun findExistingTask(taskId: Long): DownloadTask? {
+        val ret = taskQueue.firstOrNull { it.taskId == taskId } ?: failedTasks.firstOrNull { it.taskId == taskId }
+        if (ret != null) {
+            Timber.d("dfsdasw2 ret fount")
+        } else {
+            Timber.d("dfsdasw2 ret did not fount")
+        }
+        return ret
     }
 }
