@@ -22,8 +22,7 @@ import java.io.File
 class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
     LoadTask(content, activity, autoStart = false) {
 
-    private var onSuccessCallback: (() -> Unit)? = null
-    private var onFailureCallback: ((Exception) -> Unit)? = null
+    private var _onNext: (() -> Unit)? = null
 
     init {
         Timber.d("fsaasdw2 创建了一个 DownloadTask: ${content}")
@@ -39,9 +38,8 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
     /**
      * 启动任务并设置回调
      */
-    fun startDownload(onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        onSuccessCallback = onSuccess
-        onFailureCallback = onFailure
+    fun startDownload(onNext: () -> Unit) {
+        this._onNext = onNext
 
         activity.lifecycleScope.launch {
             val imageId = withContext(Dispatchers.IO) {
@@ -51,7 +49,7 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
                 Timber.d("dfsasf3 ${content.name} 图片已存在")
                 delay(100L)
                 _status.value = TaskStatus.Finished
-                onSuccessCallback?.invoke() // 成功回调
+                onNext.invoke()
             } else {
                 Timber.d("dfsasf3 ${content.name} 图片不已存在，准备下载")
                 delay(400L)
@@ -63,13 +61,13 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
     override suspend fun onFilePrepared(file: File) {
         super.onFilePrepared(file)
         saveImageToGallery(activity, file, content.name)
-        onSuccessCallback?.invoke() // 成功回调
+        this._onNext?.invoke()
     }
 
     override fun handleError(ex: Exception?) {
         super.handleError(ex)
         if (ex != null) {
-            onFailureCallback?.invoke(ex) // 错误回调
+            this._onNext?.invoke()
         }
     }
 }

@@ -89,16 +89,9 @@ object TaskQueueManager {
             }
         }
 
-        currentTask?.startDownload(
-            onSuccess = {
-                Timber.d("Task succeeded: ${currentTask.content.url}")
-                handleTaskCompletion()
-            },
-            onFailure = { exception ->
-                Timber.e(exception, "Task failed: ${currentTask.content.url}")
-                handleTaskCompletion()
-            }
-        )
+        currentTask?.startDownload {
+            handleTaskCompletion()
+        }
     }
 
     private fun handleTaskCompletion() {
