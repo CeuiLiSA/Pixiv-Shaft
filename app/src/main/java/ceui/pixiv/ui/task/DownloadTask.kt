@@ -27,6 +27,14 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
 
     init {
         Timber.d("fsaasdw2 创建了一个 DownloadTask: ${content}")
+        activity.lifecycleScope.launch {
+            val imageId = withContext(Dispatchers.IO) {
+                getImageIdInGallery(activity, content.name)
+            }
+            if (imageId != null) {
+                _status.value = TaskStatus.Finished
+            }
+        }
     }
     /**
      * 启动任务并设置回调
@@ -41,7 +49,7 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
             }
             if (imageId != null) {
                 Timber.d("dfsasf3 ${content.name} 图片已存在")
-                delay(200L)
+                delay(100L)
                 _status.value = TaskStatus.Finished
                 onSuccessCallback?.invoke() // 成功回调
             } else {
