@@ -6,7 +6,6 @@ import timber.log.Timber
 
 object TaskQueueManager {
 
-    // Define task states
     enum class TaskState {
         IDLE,       // Idle state
         RUNNING,    // Task is running
@@ -14,20 +13,16 @@ object TaskQueueManager {
     }
 
     private val taskQueue: MutableList<DownloadTask> = mutableListOf()
-    private val failedTasks: MutableList<DownloadTask> = mutableListOf()
-    private val lock = Any() // Synchronization lock object
+    private val lock = Any()
 
-    // Use LiveData to observe task states
     private val _taskState = MutableLiveData(TaskState.IDLE)
     val taskState: LiveData<TaskState> get() = _taskState
 
-    /**
-     * Add a single task to the queue (avoiding duplicates)
-     */
     fun addTask(task: DownloadTask) {
         synchronized(lock) {
             if (!isTaskInQueue(task)) {
                 taskQueue.add(task)
+                Timber.d("Task added: ${task.taskId}")
                 updateTaskState()
             } else {
                 Timber.d("Task already in queue: ${task.taskId}")
@@ -35,81 +30,62 @@ object TaskQueueManager {
         }
     }
 
-    /**
-     * Add multiple tasks to the queue (avoiding duplicates)
-     */
     fun addTasks(tasks: List<DownloadTask>) {
         synchronized(lock) {
             val newTasks = tasks.filterNot { isTaskInQueue(it) }
             if (newTasks.isNotEmpty()) {
                 taskQueue.addAll(newTasks)
+                Timber.d("Tasks added: ${newTasks.map { it.taskId }}")
                 updateTaskState()
             }
         }
     }
 
-    /**
-     * Check if a task already exists in the queue or failed task list
-     */
     private fun isTaskInQueue(task: DownloadTask): Boolean {
-        synchronized(lock) {
-            return taskQueue.any { it.taskId == task.taskId } || failedTasks.any { it.taskId == task.taskId }
-        }
+        return taskQueue.any { it.taskId == task.taskId }
     }
 
-    /**
-     * Start processing tasks
-     */
     fun startProcessing() {
         synchronized(lock) {
-            if (_taskState.value == TaskState.PAUSED || _taskState.value == TaskState.IDLE) {
+            if (_taskState.value != TaskState.RUNNING) {
                 Timber.d("Starting task processing")
                 _taskState.value = TaskState.RUNNING
             } else {
-                Timber.d("Task processing cannot start. Current state: ${_taskState.value}")
+                Timber.d("Task processing already running")
                 return
             }
         }
-        processNextTask() // Call outside of lock to avoid long lock holding
+        processNextTask()
     }
 
-    /**
-     * Pause task processing
-     */
     fun pauseProcessing() {
         synchronized(lock) {
             if (_taskState.value == TaskState.RUNNING) {
                 Timber.d("Pausing task processing")
                 _taskState.value = TaskState.PAUSED
             } else {
-                Timber.d("Cannot pause task processing. Current state: ${_taskState.value}")
+                Timber.d("Cannot pause, current state: ${_taskState.value}")
             }
         }
     }
 
-    /**
-     * Process the next task
-     */
     private fun processNextTask() {
         val currentTask: DownloadTask?
         synchronized(lock) {
             if (_taskState.value != TaskState.RUNNING) {
-                Timber.d("Task processing is not running. Current state: ${_taskState.value}")
+                Timber.d("Processing not running, current state: ${_taskState.value}")
                 return
             }
 
-            if (taskQueue.isEmpty()) {
-                if (failedTasks.isNotEmpty()) {
-                    retryFailedTasks()
-                } else {
+            currentTask = taskQueue.firstOrNull { it.status.value is TaskStatus.NotStart }
+            if (currentTask == null) {
+                if (taskQueue.all { it.status.value is TaskStatus.Finished }) {
                     Timber.d("All tasks completed")
                     _taskState.value = TaskState.IDLE
+                } else {
+                    retryFailedTasks()
                 }
                 return
-            }
-
-            currentTask = taskQueue.firstOrNull {
-                it.status.value is TaskStatus.NotStart || it.status.value is TaskStatus.Error
             }
         }
 
@@ -120,19 +96,15 @@ object TaskQueueManager {
             },
             onFailure = { exception ->
                 Timber.e(exception, "Task failed: ${currentTask.content.url}")
-                synchronized(lock) { failedTasks.add(currentTask) }
                 handleTaskCompletion()
             }
         )
     }
 
-    /**
-     * Handle task completion logic
-     */
     private fun handleTaskCompletion() {
         synchronized(lock) {
-            if (taskQueue.isEmpty() && failedTasks.isEmpty()) {
-                Timber.d("All tasks completed successfully")
+            if (taskQueue.all { it.status.value is TaskStatus.Finished }) {
+                Timber.d("All tasks completed")
                 _taskState.value = TaskState.IDLE
             }
         }
@@ -144,31 +116,30 @@ object TaskQueueManager {
      */
     private fun retryFailedTasks() {
         synchronized(lock) {
-            Timber.d("Retrying failed tasks: ${failedTasks.size}")
-            taskQueue.addAll(failedTasks)
-            failedTasks.clear()
+            val failedTasks = taskQueue.filter { it.status.value is TaskStatus.Error }
+            if (failedTasks.isNotEmpty()) {
+                Timber.d("Retrying failed tasks: ${failedTasks.size}")
+                failedTasks.forEach { task ->
+                    task.reset()
+                }
+            } else {
+                Timber.d("No failed tasks to retry")
+            }
         }
         processNextTask()
     }
 
-    /**
-     * Clear all tasks
-     */
     fun clearAllTasks() {
         synchronized(lock) {
             taskQueue.clear()
-            failedTasks.clear()
             _taskState.value = TaskState.IDLE
+            Timber.d("All tasks cleared")
         }
-        Timber.d("All tasks cleared")
     }
 
-    /**
-     * Update task state
-     */
     private fun updateTaskState() {
         synchronized(lock) {
-            _taskState.value = if (taskQueue.isNotEmpty() || failedTasks.isNotEmpty()) {
+            _taskState.value = if (taskQueue.any { it.status.value !is TaskStatus.Finished }) {
                 TaskState.IDLE
             } else {
                 TaskState.IDLE
@@ -176,18 +147,11 @@ object TaskQueueManager {
         }
     }
 
-    /**
-     * Find an existing task by task ID
-     */
     fun findExistingTask(taskId: Long): DownloadTask? {
         synchronized(lock) {
-            val ret = taskQueue.firstOrNull { it.taskId == taskId } ?: failedTasks.firstOrNull { it.taskId == taskId }
-            if (ret != null) {
-                Timber.d("Task found: $taskId")
-            } else {
-                Timber.d("Task not found: $taskId")
-            }
-            return ret
+            val task = taskQueue.firstOrNull { it.taskId == taskId }
+            Timber.d(if (task != null) "Task found: $taskId" else "Task not found: $taskId")
+            return task
         }
     }
 }

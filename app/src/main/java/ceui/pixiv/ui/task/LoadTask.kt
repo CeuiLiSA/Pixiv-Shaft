@@ -15,6 +15,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.jessyan.progressmanager.ProgressListener
@@ -50,6 +51,9 @@ open class LoadTask(
         try {
             _status.value = TaskStatus.Executing(0)
             observeProgress()
+
+            delay(200L)
+            throw RuntimeException("hello ${content}")
 
             val file = downloadFile()
             if (file != null) {
@@ -126,7 +130,7 @@ open class LoadTask(
     open fun handleError(ex: Exception?) {
         if (ex != null) {
             Timber.e(ex)
-            _status.postValue(TaskStatus.Error(ex))
+            _status.value = TaskStatus.Error(ex)
         }
     }
 

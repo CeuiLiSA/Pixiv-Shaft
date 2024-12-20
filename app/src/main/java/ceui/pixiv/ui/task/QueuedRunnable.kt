@@ -15,4 +15,8 @@ abstract class QueuedRunnable {
     val isDownloading: LiveData<Boolean> = status.map { it is TaskStatus.Executing }
 
     abstract suspend fun execute()
+
+    fun reset() {
+        _status.value = TaskStatus.NotStart
+    }
 }
