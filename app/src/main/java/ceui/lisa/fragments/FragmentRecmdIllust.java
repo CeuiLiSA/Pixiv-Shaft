@@ -72,17 +72,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        if (Dev.isDev) {
-            localData = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
-            return new RecmdIllustRepo(dataType) {
-                @Override
-                public boolean localData() {
-                    return !Common.isEmpty(localData);
-                }
-            };
-        } else {
-            return new RecmdIllustRepo(dataType);
-        }
+        return new RecmdIllustRepo(dataType);
     }
 
     @Override

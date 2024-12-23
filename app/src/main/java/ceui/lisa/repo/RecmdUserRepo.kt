@@ -18,11 +18,4 @@ class RecmdUserRepo(private val isHorizontal: Boolean) : RemoteRepo<ListUser>() 
         }
         return Retro.getAppApi().getNextUser(token(), nextUrl)
     }
-
-    override fun localData(): Boolean {
-        if (isHorizontal) {
-            return Dev.isDev
-        }
-        return super.localData()
-    }
 }

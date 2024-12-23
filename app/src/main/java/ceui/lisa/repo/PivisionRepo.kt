@@ -21,8 +21,4 @@ open class PivisionRepo(
         }
         return Retro.getAppApi().getNextArticles(token(), nextUrl)
     }
-
-    override fun localData(): Boolean {
-        return Dev.isDev
-    }
 }

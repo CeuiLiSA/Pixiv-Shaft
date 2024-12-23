@@ -78,28 +78,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             }
             false
         })
-        setTitle()
-        baseBind.title.setOnClickListener {
-            if (mHitCountDown > 0) {
-                mHitCountDown--
-                if (mHitCountDown == 0) {
-                    showDialog()
-                } else if (mHitCountDown > 0 && mHitCountDown < TAPS_TO_BE_A_DEVELOPER - 2) {
-                    if (mHitToast != null) {
-                        mHitToast?.cancel()
-                    }
-                    mHitToast = Toast.makeText(
-                        mActivity, String.format(
-                            Locale.getDefault(),
-                            "点击%d次切换版本", mHitCountDown
-                        ), Toast.LENGTH_SHORT
-                    )
-                    mHitToast?.show()
-                }
-            } else {
-                showDialog()
-            }
-        }
+        baseBind.title.text = getString(R.string.app_name)
         baseBind.login.setOnClickListener {
             checkAndNext {
                 openProxyHint {
@@ -189,32 +168,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         val window = qmuiDialog.window
         window?.setWindowAnimations(R.style.dialog_animation_scale)
         qmuiDialog.show()
-    }
-
-    private fun setTitle() {
-        if (Shaft.getMMKV().decodeBool(Params.USE_DEBUG, false)) {
-            baseBind.title.text = "Shaft(测试版)"
-        } else {
-            baseBind.title.text = "Shaft"
-        }
-    }
-
-    private fun showDialog() {
-        val builder = AlertDialog.Builder(mContext)
-        val titles = arrayOf("使用正式版", "使用测试版")
-        builder.setItems(titles) { dialog, which ->
-            if (which == 0) {
-                Shaft.getMMKV().encode(Params.USE_DEBUG, false)
-                Dev.isDev = false
-            } else if (which == 1) {
-                Shaft.getMMKV().encode(Params.USE_DEBUG, true)
-                Dev.isDev = true
-            }
-            mHitCountDown = TAPS_TO_BE_A_DEVELOPER
-            setTitle()
-        }
-        val alertDialog = builder.create()
-        alertDialog.show()
     }
 
     override fun initData() {

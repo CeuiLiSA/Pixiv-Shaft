@@ -36,8 +36,4 @@ class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
     override fun mapper(): Function<ListIllust, ListIllust> {
         return FilterMapper()
     }
-
-    override fun localData(): Boolean {
-        return Dev.isDev
-    }
 }

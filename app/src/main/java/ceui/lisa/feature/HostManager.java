@@ -35,13 +35,8 @@ public class HostManager {
     }
 
     public void init() {
-        if (Dev.isDev) {
-            host = "210.140.92.139";
-            updateHost();
-        } else {
-            host = randomHost();
-            updateHost();
-        }
+        host = randomHost();
+        updateHost();
     }
 
     /**
