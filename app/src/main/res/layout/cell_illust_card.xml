@@ -22,12 +22,21 @@
 
         <TextView
             android:id="@+id/p_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_margin="10dp"
+            android:background="@drawable/tag_stroke"
+            android:paddingStart="@dimen/four_dp"
+            android:includeFontPadding="false"
+            style="@style/textBlack"
+            android:paddingTop="@dimen/two_dp"
+            android:paddingEnd="@dimen/four_dp"
+            android:layout_marginTop="@dimen/six_dp"
+            android:layout_marginEnd="@dimen/six_dp"
+            android:paddingBottom="2dp"
             android:textColor="@color/text00"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:textSize="11sp" />
 
         <ceui.loxia.ProgressImageButton
             android:id="@+id/bookmark"

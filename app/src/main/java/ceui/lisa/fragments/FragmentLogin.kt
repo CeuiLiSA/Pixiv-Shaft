@@ -66,17 +66,13 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 startActivity(intent)
                 return@OnMenuItemClickListener true
             } else if (item.itemId == R.id.action_import) {
-                if (Dev.isDev) {
-                    performLogin(SAMPLE_USER_TOKEN)
+                val userJson = ClipBoardUtils.getClipboardContent(mContext)
+                if (userJson != null && !TextUtils.isEmpty(userJson)
+                    && userJson.contains(Params.USER_KEY)
+                ) {
+                    performLogin(userJson)
                 } else {
-                    val userJson = ClipBoardUtils.getClipboardContent(mContext)
-                    if (userJson != null && !TextUtils.isEmpty(userJson)
-                        && userJson.contains(Params.USER_KEY)
-                    ) {
-                        performLogin(userJson)
-                    } else {
-                        Common.showToast("剪贴板无用户信息", 3)
-                    }
+                    Common.showToast("剪贴板无用户信息", 3)
                 }
                 return@OnMenuItemClickListener true
             }
@@ -315,48 +311,3 @@ fun SpannableString.setLinkSpan(text: String, hideUnderLine: Boolean = true, col
         )
     }
 }
-
-private const val SAMPLE_USER_TOKEN = """{
-	"access_token": "kj_cDCmlXxdvRkUQ8LfgfyQoprxq6MEBDAW5A41uqb0",
-	"expires_in": 3600,
-	"token_type": "bearer",
-	"scope": "",
-	"refresh_token": "C6tnl4ByWwOkfmckPJsJPf_Ra-MO_-TW_Q1bH1g2a38",
-	"user": {
-		"profile_image_urls": {
-			"px_16x16": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_16.jpg",
-			"px_50x50": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_50.jpg",
-			"px_170x170": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_170.jpg"
-		},
-		"id": "31660292",
-		"name": "meppoi",
-		"account": "meppoi",
-		"mail_address": "863043461@qq.com",
-		"is_premium": false,
-		"x_restrict": 0,
-		"is_mail_authorized": true,
-		"require_policy_agreement": false
-	},
-	"response": {
-		"access_token": "kj_cDCmlXxdvRkUQ8LfgfyQoprxq6MEBDAW5A41uqb0",
-		"expires_in": 3600,
-		"token_type": "bearer",
-		"scope": "",
-		"refresh_token": "C6tnl4ByWwOkfmckPJsJPf_Ra-MO_-TW_Q1bH1g2a38",
-		"user": {
-			"profile_image_urls": {
-				"px_16x16": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_16.jpg",
-				"px_50x50": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_50.jpg",
-				"px_170x170": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_170.jpg"
-			},
-			"id": "31660292",
-			"name": "meppoi",
-			"account": "meppoi",
-			"mail_address": "863043461@qq.com",
-			"is_premium": false,
-			"x_restrict": 0,
-			"is_mail_authorized": true,
-			"require_policy_agreement": false
-		}
-	}
-}"""

@@ -188,6 +188,23 @@ public class Shaft extends Application implements ServicesProvider {
         }
     }
 
+    public static String getThemeColor() {
+        int current = Shaft.sSettings.getThemeIndex();
+        return switch (current) {
+            case 0 -> "#686bdd";
+            case 1 -> "#56baec";
+            case 2 -> "#008BF3";
+            case 3 -> "#03d0bf";
+            case 4 -> "#fee65e";
+            case 5 -> "#fe83a2";
+            case 6 -> "#F44336";
+            case 7 -> "#673AB7";
+            case 8 -> "#4CAF50";
+            case 9 -> "#E91E63";
+            default -> "#686bdd";
+        };
+    }
+
     @Override
     public void unbindService(ServiceConnection conn) {
         try {
