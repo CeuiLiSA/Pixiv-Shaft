@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 背景部分 -->
+    <item android:id="@android:id/background">
+        <shape>
+            <solid android:color="#1AD3D3D3" /> <!-- 背景颜色（浅灰色） -->
+            <corners android:radius="8dp" /> <!-- 圆角效果 -->
+        </shape>
+    </item>
+
+    <!-- 未完成的进度部分 -->
+    <item android:id="@android:id/secondaryProgress">
+        <shape>
+            <solid android:color="#1AD3D3D3" /> <!-- 未完成部分颜色（黄色） -->
+            <corners android:radius="8dp" /> <!-- 圆角效果 -->
+        </shape>
+    </item>
+
+    <!-- 已完成的进度部分 -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <solid android:color="#00FFCC" /> <!-- 已完成部分颜色（橙红色） -->
+                <corners android:radius="8dp" /> <!-- 圆角效果 -->
+            </shape>
+        </clip>
+    </item>
+</layer-list>

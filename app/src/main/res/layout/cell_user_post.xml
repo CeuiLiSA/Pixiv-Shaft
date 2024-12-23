@@ -3,10 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <import type="ceui.pixiv.ui.user.UserPostHolder"/>
+
+        <import type="ceui.pixiv.ui.user.UserPostHolder" />
+
         <variable
             name="user"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
+
         <variable
             name="holder"
             type="UserPostHolder" />
@@ -15,30 +18,27 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/cell_background"
-        android:paddingHorizontal="18dp"
-        android:paddingVertical="12dp">
+        android:background="@drawable/cell_background">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_icon"
+            userIcon="@{user}"
             android:layout_width="@dimen/user_head_size_feeds"
             android:layout_height="@dimen/user_head_size_feeds"
-            userIcon="@{user}"
             android:scaleType="centerCrop"
-            app:civ_border_width="1dp"
             app:civ_border_color="@color/colorWhite40"
+            app:civ_border_width="1dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
 
         <TextView
             android:id="@+id/user_name"
             android:layout_width="wrap_content"
-            android:text="@{user.name}"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
+            android:text="@{user.name}"
             android:textColor="@color/text00"
-            android:textSize="16sp"
+            android:textSize="15sp"
             app:layout_constraintStart_toEndOf="@+id/user_icon"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -47,22 +47,34 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
+            android:layout_marginTop="2dp"
             android:textColor="@color/text20"
             android:textSize="13sp"
-            android:layout_marginTop="2dp"
             app:layout_constraintStart_toEndOf="@+id/user_icon"
             app:layout_constraintTop_toBottomOf="@+id/user_name" />
 
+        <!-- 帖子图片（需要根据宽高比显示） -->
         <net.csdn.roundview.RoundImageView
             android:id="@+id/image"
-            app:rRadius="2dp"
-            loadSquareMedia="@{holder.illust}"
-            app:layout_constraintStart_toEndOf="@+id/user_icon"
+            loadMedia="@{holder.illust.image_urls.large}"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:scaleType="centerCrop"
             android:layout_marginTop="12dp"
-            android:layout_marginStart="12dp"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/post_time"
-            android:layout_width="200dp"
-            android:layout_height="200dp"/>
+            app:rRadius="6dp" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{holder.illust.title}"
+            android:textColor="@color/text00"
+            android:textSize="17sp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/image" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

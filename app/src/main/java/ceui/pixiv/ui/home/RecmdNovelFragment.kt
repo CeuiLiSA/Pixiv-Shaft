@@ -10,6 +10,7 @@ import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.NovelItemDecoration
 import ceui.loxia.Client
 import ceui.pixiv.ui.common.DataSource
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.PvisionCardHolder
@@ -25,8 +26,6 @@ class RecmdNovelFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        binding.listView.addItemDecoration(NovelItemDecoration(10.ppppx))
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
     }
 }

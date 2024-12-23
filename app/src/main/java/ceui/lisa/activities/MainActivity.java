@@ -80,7 +80,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initView() {
-        Dev.isDev = Shaft.getMMKV().decodeBool(Params.USE_DEBUG, false);
+        Dev.isDev = false;
         baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
         baseBind.navView.setNavigationItemSelectedListener(this);
         userHead = baseBind.navView.getHeaderView(0).findViewById(R.id.user_head);
@@ -227,6 +227,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             }
             if (Dev.isDev) {
                 startActivity(new Intent(this, HomeActivity.class));
+                finish();
             } else {
                 if (Common.isAndroidQ()) {
                     initFragment();

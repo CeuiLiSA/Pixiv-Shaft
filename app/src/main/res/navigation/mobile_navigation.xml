@@ -17,6 +17,11 @@
         tools:layout="@layout/fragment_pixiv_list" />
 
     <fragment
+        android:id="@+id/navigation_rank"
+        android:name="ceui.pixiv.ui.rank.RankFragment"
+        tools:layout="@layout/fragment_rank_viewpager" />
+
+    <fragment
         android:id="@+id/navigation_circle"
         android:name="ceui.pixiv.ui.circles.CircleFragment"
         tools:layout="@layout/fragment_circle" >
@@ -70,6 +75,15 @@
         <argument
             app:argType="string"
             android:name="mode"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_related_illusts"
+        android:name="ceui.pixiv.ui.related.RelatedIllustsFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+        <argument
+            android:name="illust_id"
+            app:argType="long" />
     </fragment>
 
 

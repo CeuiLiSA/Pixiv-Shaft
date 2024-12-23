@@ -18,9 +18,11 @@ import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.SmallTagCellBinding
 import ceui.lisa.databinding.TagCellBinding
 import ceui.lisa.models.TagsBean
+import ceui.lisa.utils.Dev
 import ceui.loxia.ObjectType
 import ceui.loxia.Tag
 import ceui.loxia.WebTag
@@ -30,6 +32,7 @@ import ceui.loxia.hideKeyboard
 import ceui.pixiv.utils.ColorRandom
 import ceui.pixiv.utils.ShapedDrawables
 import ceui.pixiv.utils.getIntColor
+import com.blankj.utilcode.util.ColorUtils
 import com.google.android.flexbox.FlexboxLayout
 
 class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
@@ -151,8 +154,8 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         val height = child.layoutParams.height.toFloat()
 
-        val borderColor = getIntColor(ColorRandom.randomColorFromTag(tag))
-        val backgroundColorString = ColorRandom.randomColorFromTag(tag)
+        val borderColor = getIntColor(Shaft.getThemeColor())
+        val backgroundColorString = Shaft.getThemeColor()
         val backgroundWithAlpha = backgroundColorString.replace("#", "#33")
         val backgroundColor = getIntColor(backgroundWithAlpha)
 
@@ -166,9 +169,9 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         child.background = selector
         val textView = child.findViewById<TextView>(R.id.hashtag_name)
-        textView.text = (tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name) + " " + backgroundColorString
+        textView.text = (tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name)
 
-        val normalTextColor = getIntColor(ColorRandom.randomColorFromTag(tag))
+        val normalTextColor = getIntColor(Shaft.getThemeColor())
         val selectedTextColor = Color.WHITE
 
         val colorSelector = ColorStateList(

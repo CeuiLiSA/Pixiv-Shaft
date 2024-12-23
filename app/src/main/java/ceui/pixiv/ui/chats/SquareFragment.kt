@@ -17,50 +17,43 @@ import ceui.loxia.Client
 import ceui.loxia.SquareResponse
 import ceui.loxia.WebIllust
 import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
+import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.settings.CookieNotSyncException
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
+import com.tencent.mmkv.MMKV
 
 class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val args by navArgs<SquareFragmentArgs>()
-    private val viewModel by pixivValueViewModel {
-        val responseStore = ResponseStore(
-            keyProvider = { "home-square-${args.objectType}" },
-            expirationTimeMillis = 1800 * 1000L,
-            typeToken = SquareResponse::class.java,
-            dataLoader = { Client.webApi.getSquareContents(args.objectType) }
-        )
-        responseStore.retrieveData()
+    private val viewModel by pixivValueViewModel({ MMKV.defaultMMKV() },
+        responseStore = createResponseStore({ "home-square-${args.objectType}" })) { hint, prefStore ->
+        if (prefStore.getString(SessionManager.COOKIE_KEY, "").isNullOrEmpty()) {
+            throw CookieNotSyncException("Pixiv cookie not synced")
+        }
+
+        Client.webApi.getSquareContents(args.objectType)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
+        setUpRefreshState(binding, viewModel, ListMode.GRID_AND_SECTION_HEADER)
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         binding.listView.updatePadding(left = 3.ppppx, right = 3.ppppx)
-        binding.listView.layoutManager = GridLayoutManager(context, 3).apply {
-            spanSizeLookup = object : SpanSizeLookup() {
-                override fun getSpanSize(position: Int): Int {
-                    return if (binding.listView.adapter?.getItemViewType(position) == RedSectionHeaderHolder::class.java.hashCode()) {
-                        3
-                    } else {
-                        1
-                    }
-                }
-            }
-        }
         viewModel.result.observe(viewLifecycleOwner) { data ->
             val holders = mutableListOf<ListItemHolder>()
 
@@ -80,9 +73,10 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                 val webIllusts = mutableListOf<WebIllust>()
                 editorRecommend.forEach { recmd ->
                     recmd.illustId?.let { id ->
-                        data.body.thumbnails?.illust?.firstOrNull { it.id == id }?.let { webIllust ->
-                            webIllusts.add(webIllust)
-                        }
+                        data.body.thumbnails?.illust?.firstOrNull { it.id == id }
+                            ?.let { webIllust ->
+                                webIllusts.add(webIllust)
+                            }
                     }
                 }
                 holders.add(RedSectionHeaderHolder("Editor Recommend Works"))
@@ -131,8 +125,6 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         }
     }
 }
-
-
 
 
 class RedSectionHeaderHolder(

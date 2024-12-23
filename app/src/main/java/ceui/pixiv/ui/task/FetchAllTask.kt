@@ -4,15 +4,18 @@ import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.KListShow
+import ceui.lisa.R
+import ceui.loxia.launchSuspend
+import ceui.loxia.pushFragment
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.getFileSize
 import com.blankj.utilcode.util.PathUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.hjq.toast.ToastUtils
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -36,6 +39,7 @@ data class HumanReadableTask(
 )
 
 open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
+    private val parentFragment: PixivFragment,
     taskFullName: String,
     taskType: Int,
     initialLoader: suspend () -> KListShow<Item>
@@ -48,7 +52,7 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
     }
 
     init {
-        MainScope().launch {
+        parentFragment.launchSuspend {
             withContext(Dispatchers.IO) {
                 try {
                     if (results.isNotEmpty()) {
@@ -70,7 +74,7 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
                     while (!nextPageUrl.isNullOrEmpty()) {
                         val responseClass = resp::class.java
                         Common.showLog("FetchAllTask subsequent start ${results.size}")
-                        delay(3000L)
+                        delay(1000L)
                         val responseBody = Client.appApi.generalGet(nextPageUrl)
                         val responseJson = responseBody.string()
                         val response = gson.fromJson(responseJson, responseClass) as ResponseT
@@ -97,7 +101,9 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
                     val fileSize = getFileSize(cacheFile)
                     Common.showLog("FetchAllTask fileSize ${fileSize}")
 
-                    onEnd(results)
+                    withContext(Dispatchers.Main) {
+                        onEnd(taskUUID, results)
+                    }
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                     // Handle exceptions accordingly
@@ -106,7 +112,9 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
         }
     }
 
-    open fun onEnd(results: List<Item>) {
+    open fun onEnd(taskUUID: String, results: List<Item>) {
+        parentFragment.pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(taskUuid = taskUUID).toBundle())
+        ToastUtils.show("全部结束")
         Common.showLog("FetchAllTask all end ${this.results.size}")
     }
 }

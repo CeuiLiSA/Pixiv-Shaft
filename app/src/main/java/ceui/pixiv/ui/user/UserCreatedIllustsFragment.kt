@@ -17,11 +17,11 @@ import ceui.pixiv.ui.bottom.OffsetPageActionReceiver
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
-import ceui.pixiv.ui.common.setUpSizedList
+import ceui.pixiv.ui.common.setUpRefreshState
+
 import ceui.pixiv.widgets.DialogViewModel
 import ceui.refactor.viewBinding
 
@@ -38,13 +38,6 @@ class UserCreatedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpStaggerLayout(binding, viewModel)
-        ObjectPool.get<UserResponse>(args.userId).observe(viewLifecycleOwner) { user ->
-            if (args.objectType == ObjectType.ILLUST) {
-                setUpSizedList(binding, viewModel, user.profile?.total_illusts ?: 0)
-            } else if (args.objectType == ObjectType.MANGA) {
-                setUpSizedList(binding, viewModel, user.profile?.total_manga ?: 0)
-            }
-        }
+        setUpRefreshState(binding, viewModel)
     }
 }

@@ -66,44 +66,19 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 startActivity(intent)
                 return@OnMenuItemClickListener true
             } else if (item.itemId == R.id.action_import) {
-                if (Dev.isDev) {
-                    performLogin(SAMPLE_USER_TOKEN)
+                val userJson = ClipBoardUtils.getClipboardContent(mContext)
+                if (userJson != null && !TextUtils.isEmpty(userJson)
+                    && userJson.contains(Params.USER_KEY)
+                ) {
+                    performLogin(userJson)
                 } else {
-                    val userJson = ClipBoardUtils.getClipboardContent(mContext)
-                    if (userJson != null && !TextUtils.isEmpty(userJson)
-                        && userJson.contains(Params.USER_KEY)
-                    ) {
-                        performLogin(userJson)
-                    } else {
-                        Common.showToast("剪贴板无用户信息", 3)
-                    }
+                    Common.showToast("剪贴板无用户信息", 3)
                 }
                 return@OnMenuItemClickListener true
             }
             false
         })
-        setTitle()
-        baseBind.title.setOnClickListener {
-            if (mHitCountDown > 0) {
-                mHitCountDown--
-                if (mHitCountDown == 0) {
-                    showDialog()
-                } else if (mHitCountDown > 0 && mHitCountDown < TAPS_TO_BE_A_DEVELOPER - 2) {
-                    if (mHitToast != null) {
-                        mHitToast?.cancel()
-                    }
-                    mHitToast = Toast.makeText(
-                        mActivity, String.format(
-                            Locale.getDefault(),
-                            "点击%d次切换版本", mHitCountDown
-                        ), Toast.LENGTH_SHORT
-                    )
-                    mHitToast?.show()
-                }
-            } else {
-                showDialog()
-            }
-        }
+        baseBind.title.text = getString(R.string.app_name)
         baseBind.login.setOnClickListener {
             checkAndNext {
                 openProxyHint {
@@ -193,32 +168,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         val window = qmuiDialog.window
         window?.setWindowAnimations(R.style.dialog_animation_scale)
         qmuiDialog.show()
-    }
-
-    private fun setTitle() {
-        if (Shaft.getMMKV().decodeBool(Params.USE_DEBUG, false)) {
-            baseBind.title.text = "Shaft(测试版)"
-        } else {
-            baseBind.title.text = "Shaft"
-        }
-    }
-
-    private fun showDialog() {
-        val builder = AlertDialog.Builder(mContext)
-        val titles = arrayOf("使用正式版", "使用测试版")
-        builder.setItems(titles) { dialog, which ->
-            if (which == 0) {
-                Shaft.getMMKV().encode(Params.USE_DEBUG, false)
-                Dev.isDev = false
-            } else if (which == 1) {
-                Shaft.getMMKV().encode(Params.USE_DEBUG, true)
-                Dev.isDev = true
-            }
-            mHitCountDown = TAPS_TO_BE_A_DEVELOPER
-            setTitle()
-        }
-        val alertDialog = builder.create()
-        alertDialog.show()
     }
 
     override fun initData() {
@@ -315,48 +264,3 @@ fun SpannableString.setLinkSpan(text: String, hideUnderLine: Boolean = true, col
         )
     }
 }
-
-private const val SAMPLE_USER_TOKEN = """{
-	"access_token": "kj_cDCmlXxdvRkUQ8LfgfyQoprxq6MEBDAW5A41uqb0",
-	"expires_in": 3600,
-	"token_type": "bearer",
-	"scope": "",
-	"refresh_token": "C6tnl4ByWwOkfmckPJsJPf_Ra-MO_-TW_Q1bH1g2a38",
-	"user": {
-		"profile_image_urls": {
-			"px_16x16": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_16.jpg",
-			"px_50x50": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_50.jpg",
-			"px_170x170": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_170.jpg"
-		},
-		"id": "31660292",
-		"name": "meppoi",
-		"account": "meppoi",
-		"mail_address": "863043461@qq.com",
-		"is_premium": false,
-		"x_restrict": 0,
-		"is_mail_authorized": true,
-		"require_policy_agreement": false
-	},
-	"response": {
-		"access_token": "kj_cDCmlXxdvRkUQ8LfgfyQoprxq6MEBDAW5A41uqb0",
-		"expires_in": 3600,
-		"token_type": "bearer",
-		"scope": "",
-		"refresh_token": "C6tnl4ByWwOkfmckPJsJPf_Ra-MO_-TW_Q1bH1g2a38",
-		"user": {
-			"profile_image_urls": {
-				"px_16x16": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_16.jpg",
-				"px_50x50": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_50.jpg",
-				"px_170x170": "https:\/\/i.pximg.net\/user-profile\/img\/2018\/12\/22\/16\/00\/30\/15159182_1e25c44944b0130e7fc9cbf22db96844_170.jpg"
-			},
-			"id": "31660292",
-			"name": "meppoi",
-			"account": "meppoi",
-			"mail_address": "863043461@qq.com",
-			"is_premium": false,
-			"x_restrict": 0,
-			"is_mail_authorized": true,
-			"require_policy_agreement": false
-		}
-	}
-}"""

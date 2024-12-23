@@ -12,6 +12,7 @@ import ceui.loxia.clearItemDecorations
 import ceui.loxia.launchSuspend
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -28,7 +29,6 @@ class FollowingPostFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        setUpRefreshState(binding, viewModel)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
     }
 }

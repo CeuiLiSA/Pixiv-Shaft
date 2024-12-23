@@ -35,13 +35,8 @@ public class HostManager {
     }
 
     public void init() {
-        if (Dev.isDev) {
-            host = "210.140.139.132";
-            updateHost();
-        } else {
-            host = randomHost();
-            updateHost();
-        }
+        host = randomHost();
+        updateHost();
     }
 
     /**
@@ -63,6 +58,7 @@ public class HostManager {
                 "210.140.139.138"
         };
         return already[Common.flatRandom(already.length)];
+      
     }
 
     private void updateHost() {

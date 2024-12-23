@@ -51,9 +51,11 @@ import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.ScrollChange;
 import ceui.loxia.SpaceHolder;
 import ceui.loxia.TextDescHolder;
@@ -445,9 +447,11 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 holderList.add(new TextDescHolder(getString(R.string.string_107)));
                 holderList.add(new SpaceHolder());
                 CommonAdapter commonAdapter = new CommonAdapter(getViewLifecycleOwner());
+                baseBind.viewPager.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(16)));
                 baseBind.viewPager.setAdapter(commonAdapter);
                 commonAdapter.submitList(holderList);
             } else  {
+                baseBind.viewPager.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(16)));
                 baseBind.viewPager.setAdapter(new VNewAdapter(novelDetail.getParsedChapters(), mContext));
             }
             if(novelDetail.getNovel_marker() != null){

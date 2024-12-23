@@ -11,6 +11,7 @@ import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.home.WalkthroughFragment
+import ceui.pixiv.ui.rank.RankPreviewFragment
 import ceui.pixiv.widgets.setUpWith
 import ceui.refactor.viewBinding
 
@@ -22,6 +23,12 @@ class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), Hom
         super.onViewCreated(view, savedInstanceState)
         val adapter = SmartFragmentPagerAdapter(
             listOf(
+                PagedFragmentItem(
+                    builder = {
+                        RankPreviewFragment()
+                    },
+                    initialTitle = getString(R.string.ranking_list)
+                ),
                 PagedFragmentItem(
                     builder = {
                         SquareFragment().apply {
@@ -44,12 +51,12 @@ class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), Hom
                     },
                     initialTitle = "Pixivision"
                 ),
-                PagedFragmentItem(
-                    builder = {
-                        WalkthroughFragment()
-                    },
-                    initialTitle = "画廊"
-                ),
+//                PagedFragmentItem(
+//                    builder = {
+//                        WalkthroughFragment()
+//                    },
+//                    initialTitle = "画廊"
+//                ),
             ),
             this
         )

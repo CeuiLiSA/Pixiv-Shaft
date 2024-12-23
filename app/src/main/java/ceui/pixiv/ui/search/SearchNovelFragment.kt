@@ -13,6 +13,7 @@ import ceui.lisa.view.NovelItemDecoration
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.observeEvent
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -33,7 +34,7 @@ class SearchNovelFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
         binding.radioTab.setTabs(listOf(
             "热度预览",
             "从新到旧",
@@ -52,7 +53,5 @@ class SearchNovelFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             binding.radioTab.selectTab(index)
             binding.usersYori.isVisible = (index == 1) || (index == 2)
         }
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        binding.listView.addItemDecoration(NovelItemDecoration(4.ppppx))
     }
 }

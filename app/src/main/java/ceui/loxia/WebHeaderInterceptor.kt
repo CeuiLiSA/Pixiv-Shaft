@@ -1,6 +1,8 @@
 package ceui.loxia
 
 import ceui.lisa.utils.Common
+import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.settings.SettingsFragment
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.tencent.mmkv.MMKV
@@ -25,7 +27,7 @@ class WebHeaderInterceptor : Interceptor {
     }
 
     private fun addHeader(before: Request.Builder): Request.Builder {
-        val cookies = prefStore.getString("web-api-cookie", "") ?: ""
+        val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
 //        val end = cookies.substring(1, cookies.length - 1)
 //        val end2 = end.replace("first_visit_datetime", "first_visit_datetime_pc")
         Common.showLog("dsaadsdsaaww2 get ${cookies}")

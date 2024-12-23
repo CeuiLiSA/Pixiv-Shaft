@@ -10,16 +10,20 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
-import ceui.loxia.slinkyViewModels
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 fun <T> Fragment.pixivValueViewModel(
-    loader: suspend () -> T,
+    dataFetcher: suspend (hint: RefreshHint) -> T,
+    responseStore: ResponseStore<T>? = null,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ValueViewModel(loader) as T
+                return ValueViewModel(dataFetcher, responseStore) as T
             }
         }
     }
@@ -27,15 +31,16 @@ fun <T> Fragment.pixivValueViewModel(
 
 inline fun <ArgsT, T> Fragment.pixivValueViewModel(
     noinline argsProducer: () -> ArgsT,
-    noinline loader: suspend (ArgsT) -> T,
+    responseStore: ResponseStore<T>? = null,
+    noinline dataFetcher: suspend (hint: RefreshHint, ArgsT) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val args = argsProducer()
-                return ValueViewModel(loader = {
-                    loader(args)
-                }) as T
+                return ValueViewModel(dataFetcher = { hint ->
+                    dataFetcher(hint, args)
+                }, responseStore) as T
             }
         }
     }
@@ -43,12 +48,13 @@ inline fun <ArgsT, T> Fragment.pixivValueViewModel(
 
 inline fun <T> Fragment.pixivValueViewModel(
     noinline ownerProducer: () -> ViewModelStoreOwner = { this },
-    noinline loader: suspend () -> T,
+    responseStore: ResponseStore<T>? = null,
+    noinline dataFetcher: suspend (hint: RefreshHint) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels(ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ValueViewModel(loader) as T
+                return ValueViewModel(dataFetcher, responseStore) as T
             }
         }
     }
@@ -56,7 +62,8 @@ inline fun <T> Fragment.pixivValueViewModel(
 
 
 class ValueViewModel<T>(
-    private val loader: suspend () -> T,
+    private val dataFetcher: suspend (hint: RefreshHint) -> T,
+    private val responseStore: ResponseStore<T>? = null,
 ) : ViewModel(), RefreshOwner {
 
     private val _refreshState = MutableLiveData<RefreshState>()
@@ -73,15 +80,32 @@ class ValueViewModel<T>(
         viewModelScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
-               val response = loader()
-                _result.value = response
+                if (hint == RefreshHint.ErrorRetry) {
+                    delay(300L)
+                }
+
+                if (hint == RefreshHint.InitialLoad) {
+                    responseStore?.loadFromCache()?.let { storedResponse ->
+                        _result.value = storedResponse
+                    }
+                }
+
+                if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
+                    val response = withContext(Dispatchers.IO) {
+                        dataFetcher(hint).also {
+                            responseStore?.writeToCache(it)
+                        }
+                    }
+                    _result.value = response
+                }
+
                 _refreshState.value = RefreshState.LOADED(
                     hasContent = true,
                     hasNext = false
                 )
             } catch (ex: Exception) {
                 _refreshState.value = RefreshState.ERROR(ex)
-                ex.printStackTrace()
+                Timber.e(ex)
             }
         }
     }

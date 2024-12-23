@@ -23,7 +23,6 @@ import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.Illust
 import ceui.loxia.pushFragment
-import ceui.loxia.pushFragmentForResult
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
@@ -39,7 +38,6 @@ import ceui.pixiv.ui.rank.RankingIllustsFragmentArgs
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
-import ceui.pixiv.widgets.FragmentResultByFragment
 import ceui.pixiv.widgets.alertYesOrCancel
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -79,19 +77,6 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
         }
         binding.naviSearch.setOnClick {
             pushFragment(R.id.navigation_search_viewpager)
-//            SessionManager.testRenewAnim()
-//            val task = LoadTask(NamedUrl("test", "https://i.pximg.net/c/240x480_80/novel-cover-master/img/2023/02/19/22/32/21/ci19338210_456a179fb6c90b910911e9075874eda8_master1200.jpg"), requireActivity(), true)
-//            task.file.observe(viewLifecycleOwner) { file ->
-//                val resolution = getImageDimensions(file)
-//                Common.showLog("sadasd2 bb ${resolution}")
-//                Common.showLog("sadasd2 cc ${getFileSize(file)}")
-//            }
-//
-//            pushFragmentForResult(
-//                R.id.navigation_ranking_illust_fragment,
-//                RankingIllustsFragmentArgs("day").toBundle(),
-//                HomeViewPagerFragment::onFragmentResult
-//            )
         }
 
         binding.account = SessionManager.loggedInAccount
@@ -150,9 +135,5 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 }
             }
         }
-    }
-
-    private fun onFragmentResult(result: HelloResult) {
-        Common.showLog("dsaasdw ${fragmentUniqueId} really get ${result} ${lifecycle.currentState}")
     }
 }

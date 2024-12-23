@@ -54,6 +54,11 @@ interface API {
         @Query("illust_id") illust_id: Long
     ): SingleIllustResponse
 
+    @GET("/v2/illust/related")
+    suspend fun getRelatedIllusts(
+        @Query("illust_id") illust_id: Long,
+    ): IllustResponse
+
     @GET("/v1/walkthrough/illusts")
     suspend fun getWalkthroughWorks(): IllustResponse
 

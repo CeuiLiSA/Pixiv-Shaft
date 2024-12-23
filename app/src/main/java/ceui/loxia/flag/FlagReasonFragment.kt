@@ -8,6 +8,8 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentSlinkyListBinding
 import ceui.loxia.*
+import ceui.pixiv.ui.common.ListMode
+import ceui.pixiv.ui.common.setUpLayoutManager
 import ceui.refactor.viewBinding
 
 class FlagReasonFragment : SlinkyListFragment(), FlagActionReceiver {
@@ -23,7 +25,7 @@ class FlagReasonFragment : SlinkyListFragment(), FlagActionReceiver {
         val activity = requireActivity()
         binding.toolbar.toolbar.setNavigationOnClickListener { activity.finish() }
         binding.toolbar.toolbarTitle.text = getString(R.string.violated_rule)
-        binding.listView.layoutManager = LinearLayoutManager(activity)
+        setUpLayoutManager(binding.listView, ListMode.VERTICAL_NO_MARGIN)
         setUpSlinkyList(binding.listView, binding.refreshLayout, binding.itemLoading, viewModel)
     }
 

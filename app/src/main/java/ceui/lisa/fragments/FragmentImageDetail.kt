@@ -4,23 +4,18 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
-import ceui.pixiv.ui.common.setUpFullScreen
 import ceui.pixiv.ui.common.setUpWithTaskStatus
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.refactor.setOnClick
 import com.github.panpf.sketch.loadImage
-import kotlinx.coroutines.launch
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var mIllustsBean: IllustsBean? = null
@@ -64,7 +59,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
         if (imageUrl?.isNotEmpty() == true) {
             val task = TaskPool.getLoadTask(NamedUrl("", imageUrl), requireActivity())
-            task.file.observe(viewLifecycleOwner) { file ->
+            task.result.observe(viewLifecycleOwner) { file ->
                 baseBind.image.loadImage(file)
             }
             baseBind.progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)

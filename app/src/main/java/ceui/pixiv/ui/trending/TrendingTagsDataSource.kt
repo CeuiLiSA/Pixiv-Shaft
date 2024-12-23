@@ -5,16 +5,12 @@ import ceui.loxia.TrendingTag
 import ceui.loxia.TrendingTagsResponse
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.ResponseStore
+import ceui.pixiv.ui.common.createResponseStore
 
 class TrendingTagsDataSource(
     private val args: TrendingTagsFragmentArgs,
-    private val responseStore: ResponseStore<TrendingTagsResponse> = ResponseStore(
-        { "trending-tags-${args.objectType}-api" },
-        1800 * 1000L,
-        TrendingTagsResponse::class.java,
-        { Client.appApi.trendingTags(args.objectType) }
-    )
 ) : DataSource<TrendingTag, TrendingTagsResponse>(
-    dataFetcher = { responseStore.retrieveData() },
+    dataFetcher = { hint -> Client.appApi.trendingTags(args.objectType) },
+    responseStore = createResponseStore({ "trending-tags-${args.objectType}-api" }),
     itemMapper = { trendingTag -> listOf(TrendingTagHolder(trendingTag)) }
 )

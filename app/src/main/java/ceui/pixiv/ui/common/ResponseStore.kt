@@ -1,14 +1,17 @@
 package ceui.pixiv.ui.common
 
+import ceui.loxia.Client
+import ceui.loxia.RefreshHint
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.delay
+import timber.log.Timber
+import java.lang.reflect.Method
 
-class ResponseStore<T>(
+class ResponseStore<T> private constructor(
     private val keyProvider: () -> String,
     private val expirationTimeMillis: Long,
-    private val typeToken: Class<T>,
-    private val dataLoader: suspend () -> T
+    private val typeToken: Class<T>
 ) {
 
     private val gson = Gson()
@@ -23,35 +26,50 @@ class ResponseStore<T>(
         MMKV.mmkvWithID("api-cache")
     }
 
-    suspend fun retrieveData(): T {
-        val cacheTimestamp = preferences.getLong(timeKey, 0L)
+    fun writeToCache(data: T) {
         val currentTime = System.currentTimeMillis()
-
-        return if (isCacheExpired(cacheTimestamp, currentTime)) {
-            fetchAndCacheData(currentTime)
-        } else {
-            loadFromCache(currentTime)
-        }
+        preferences.putString(jsonKey, gson.toJson(data))
+        preferences.putLong(timeKey, currentTime)
     }
 
-    private fun isCacheExpired(cacheTimestamp: Long, currentTime: Long): Boolean {
+    fun isCacheExpired(): Boolean {
+        val currentTime = System.currentTimeMillis()
+        val cacheTimestamp = preferences.getLong(timeKey, 0L)
         return (currentTime - cacheTimestamp) > expirationTimeMillis
     }
 
-    private suspend fun fetchAndCacheData(currentTime: Long): T {
-        val data = dataLoader()
-        preferences.putString(jsonKey, gson.toJson(data))
-        preferences.putLong(timeKey, currentTime)
-        return data
-    }
-
-    private suspend fun loadFromCache(currentTime: Long): T {
-        val json = preferences.getString(jsonKey, null)
+    fun loadFromCache(): T? {
         return try {
-            delay(200L)
-            gson.fromJson(json, typeToken)
-        } catch (e: Exception) {
-            fetchAndCacheData(currentTime)
+            val json = preferences.getString(jsonKey, null)
+            if (json?.isNotEmpty() == true) {
+                gson.fromJson(json, typeToken)
+            } else {
+                null
+            }
+        } catch (ex: Exception) {
+            Timber.e(ex)
+            null
         }
     }
+
+    companion object {
+        fun <T> create(
+            keyProvider: () -> String,
+            expirationTimeMillis: Long,
+            typeToken: Class<T>
+        ): ResponseStore<T> {
+            return ResponseStore(keyProvider, expirationTimeMillis, typeToken)
+        }
+    }
+}
+
+inline fun <reified T : Any> createResponseStore(
+    noinline keyProvider: () -> String,
+    expirationTimeMillis: Long = 30 * 60 * 1000L,
+): ResponseStore<T> {
+    return ResponseStore.create(
+        keyProvider = keyProvider,
+        expirationTimeMillis = expirationTimeMillis,
+        typeToken = T::class.java,
+    )
 }

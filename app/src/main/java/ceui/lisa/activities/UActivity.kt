@@ -41,6 +41,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResponse> {
     private var userId = 0
@@ -291,7 +292,7 @@ fun FragmentActivity.unfollowUser(sender: ProgressTextButton, userId: Int) {
             ObjectPool.unFollowUser(userId.toLong())
             Common.showToast(getString(R.string.cancel_like))
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Timber.e(ex)
             Common.showToast(ex.message)
         } finally {
             sender.hideProgress()

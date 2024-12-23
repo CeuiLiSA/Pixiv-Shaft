@@ -9,6 +9,7 @@ import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Client
 import ceui.pixiv.ui.common.DataSource
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.PvisionCardHolder
 import ceui.pixiv.ui.common.setUpRefreshState
@@ -28,9 +29,7 @@ class ArticlesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
         binding.toolbarLayout.naviTitle.text = getString(R.string.pixiv_special)
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
-        binding.listView.addItemDecoration(LinearItemDecoration(20.ppppx))
     }
 }

@@ -9,18 +9,14 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.ResponseStore
+import ceui.pixiv.ui.common.createResponseStore
 
 class RecmdNovelDataSource(
-    private val responseStore: ResponseStore<NovelResponse> = ResponseStore(
-        { "home-recommend-novel-api" },
-        1800 * 1000L,
-        NovelResponse::class.java,
-        { Client.appApi.getRecmdNovels() }
-    )
 ) : DataSource<Novel, NovelResponse>(
-    dataFetcher = {
-        responseStore.retrieveData()
+    dataFetcher = { hint ->
+        Client.appApi.getRecmdNovels()
     },
+    responseStore = createResponseStore({ "home-recommend-novel-api" }),
     itemMapper = { novel -> listOf(NovelCardHolder(novel)) },
     filter = { novel -> novel.visible != false }
 )

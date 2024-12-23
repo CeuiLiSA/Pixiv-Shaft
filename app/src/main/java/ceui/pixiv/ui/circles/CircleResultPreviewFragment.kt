@@ -9,8 +9,10 @@ import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Client
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.setUpLayoutManager
 import ceui.refactor.ppppx
 import ceui.refactor.viewBinding
 
@@ -23,8 +25,7 @@ class CircleResultPreviewFragment : PixivFragment(R.layout.fragment_pixiv_list) 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
-        binding.listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        setUpLayoutManager(binding.listView, ListMode.STAGGERED_GRID)
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         viewModel.result.observe(viewLifecycleOwner) { resp ->

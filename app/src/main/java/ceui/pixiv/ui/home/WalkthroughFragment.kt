@@ -13,7 +13,8 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
-import ceui.pixiv.ui.common.setUpStaggerLayout
+import ceui.pixiv.ui.common.createResponseStore
+import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.refactor.viewBinding
 
@@ -24,18 +25,12 @@ class WalkthroughFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpStaggerLayout(binding, viewModel)
+        setUpRefreshState(binding, viewModel)
     }
 }
 
-class WalkthroughDataSource(
-    private val responseStore: ResponseStore<IllustResponse> = ResponseStore(
-        { "home-walkthrough-api" },
-        1800 * 1000L,
-        IllustResponse::class.java,
-        { Client.appApi.getWalkthroughWorks() }
-    )
-) : DataSource<Illust, IllustResponse>(
-    dataFetcher = { responseStore.retrieveData() },
+class WalkthroughDataSource : DataSource<Illust, IllustResponse>(
+    dataFetcher = { hint -> Client.appApi.getWalkthroughWorks() },
+    responseStore = createResponseStore({ "home-walkthrough-api" }),
     itemMapper = { illust -> listOf(IllustCardHolder(illust)) },
 )

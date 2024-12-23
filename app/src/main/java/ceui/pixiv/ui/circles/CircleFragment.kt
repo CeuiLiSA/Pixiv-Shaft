@@ -29,6 +29,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
+import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.search.SearchIlllustMangaFragment
@@ -50,16 +51,10 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
     private val searchViewModel by constructVM({ args.keyword }) { word ->
         SearchViewModel(word)
     }
-    private val viewModel by pixivValueViewModel {
-        val responseStore = ResponseStore(
-            { "circle-detail-${args.keyword}" },
-            expirationTimeMillis = 1800L,
-            CircleResponse::class.java,
-            dataLoader = {
-                Client.webApi.getCircleDetail(args.keyword)
-            }
-        )
-        responseStore.retrieveData()
+    private val viewModel by pixivValueViewModel(
+        responseStore = createResponseStore({ "circle-detail-${args.keyword}" })
+    ) { hint ->
+        Client.webApi.getCircleDetail(args.keyword)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -122,32 +117,38 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
             windowInsets
         }
 
-        val adapter = SmartFragmentPagerAdapter(listOf(
-            PagedFragmentItem(
-                builder = { CircleInfoFragment() },
-                initialTitle = getString(R.string.about_app)
-            ),
-            PagedFragmentItem(
-                builder = {
-                    SearchIlllustMangaFragment()
-                },
-                initialTitle = getString(R.string.string_136)
-            ),
-            PagedFragmentItem(
-                builder = {
-                    SearchNovelFragment()
-                },
-                initialTitle = getString(R.string.type_novel)
-            ),
-            PagedFragmentItem(
-                builder = {
-                    SearchUserFragment()
-                },
-                initialTitle = getString(R.string.type_user)
-            )
-        ), this)
+        val adapter = SmartFragmentPagerAdapter(
+            listOf(
+                PagedFragmentItem(
+                    builder = { CircleInfoFragment() },
+                    initialTitle = getString(R.string.about_app)
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        SearchIlllustMangaFragment()
+                    },
+                    initialTitle = getString(R.string.string_136)
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        SearchNovelFragment()
+                    },
+                    initialTitle = getString(R.string.type_novel)
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        SearchUserFragment()
+                    },
+                    initialTitle = getString(R.string.type_user)
+                )
+            ), this
+        )
         binding.circleViewPager.adapter = adapter
-        binding.tabLayoutList.setUpWith(binding.circleViewPager, binding.slidingCursor, viewLifecycleOwner) {
+        binding.tabLayoutList.setUpWith(
+            binding.circleViewPager,
+            binding.slidingCursor,
+            viewLifecycleOwner
+        ) {
 
         }
     }

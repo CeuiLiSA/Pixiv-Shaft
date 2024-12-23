@@ -15,8 +15,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
@@ -24,23 +27,23 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
+import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
-import ceui.loxia.FRAGMENT_RESULT_REQUEST_ID
+import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.Novel
+import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
+import ceui.loxia.ProgressIndicator
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
-import ceui.loxia.listenToResultStore
 import ceui.loxia.observeEvent
-import ceui.loxia.promptFragmentForResult
 import ceui.loxia.pushFragment
-import ceui.pixiv.ui.bottom.ARG_ITEM_COUNT
-import ceui.pixiv.ui.bottom.ItemListDialogFragment
+import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
@@ -48,28 +51,24 @@ import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
-import ceui.pixiv.widgets.DialogViewModel
-import ceui.pixiv.widgets.FragmentResultByFragment
-import ceui.pixiv.widgets.FragmentResultStore
-import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.TagsActionReceiver
-import ceui.pixiv.widgets.showActionMenu
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
+import timber.log.Timber
 
-interface FragmentResultRequestIdOwner {
-    val resultRequestId: String?
-    val fragmentUniqueId: String
-}
 
-open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequestIdOwner, IllustCardActionReceiver,
+open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
     UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver {
 
     private val fragmentViewModel: NavFragmentViewModel by viewModels()
-    private val fragmentResultStore by activityViewModels<FragmentResultStore>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Common.showLog("onCreate ${this::class.simpleName}")
+    }
 
     open fun onViewFirstCreated(view: View) {
 
@@ -77,8 +76,6 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        listenToResultStore(fragmentResultStore)
 
         if (fragmentViewModel.viewCreatedTime.value == null) {
             onViewFirstCreated(view)
@@ -88,17 +85,41 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
     }
 
     override fun onClickIllustCard(illust: Illust) {
-        pushFragment(
-            R.id.navigation_illust,
-            IllustFragmentArgs(illust.id).toBundle()
-        )
+        onClickIllust(illust.id)
+    }
+
+    override fun onClickBookmarkIllust(sender: ProgressIndicator, illustId: Long) {
+        launchSuspend(sender) {
+            val illust = ObjectPool.get<Illust>(illustId).value ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
+            if (illust != null) {
+                if (illust.is_bookmarked == true) {
+                    Client.appApi.removeBookmark(illustId)
+                    ObjectPool.update(
+                        illust.copy(
+                            is_bookmarked = false,
+                            total_bookmarks = illust.total_bookmarks?.minus(1)
+                        )
+                    )
+                    Common.showToast(getString(R.string.cancel_like_illust))
+                } else {
+                    Client.appApi.postBookmark(illustId)
+                    ObjectPool.update(
+                        illust.copy(
+                            is_bookmarked = true,
+                            total_bookmarks = illust.total_bookmarks?.plus(1)
+                        )
+                    )
+                    Common.showToast(getString(R.string.like_novel_success_public))
+                }
+            }
+        }
     }
 
     override fun onClickUser(id: Long) {
         try {
             pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Timber.e(ex)
             val userIntent = Intent(
                 requireContext(),
                 UserActivity::class.java
@@ -140,27 +161,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), FragmentResultRequ
         )
     }
 
-    fun <T: Any> setFragmentResult(result: T) {
-        resultRequestId?.let { requestId ->
-            val existingLifecycle = fragmentResultStore.getExistingLifecycle(requestId)
-            if (existingLifecycle != null && existingLifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                fragmentResultStore.getTypedResult(requestId)?.let { result ->
-                    Common.showLog("dsaasdw STARTED getTypedResult ${result}")
-//                    fragmentResultStore.getTypedTask(requestId)?.let { task ->
-//                        task.complete(FragmentResultByFragment(result, fragment))
-//                        fragmentResultStore.removeResult(requestId)
-//                    }
-                }
-            } else {
-                fragmentResultStore.putResult(requestId, result)
-            }
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        Common.showLog("onDestroy ${this::class.simpleName}")
     }
-
-    override val resultRequestId: String?
-        get() = arguments?.getString(FRAGMENT_RESULT_REQUEST_ID)
-    override val fragmentUniqueId: String
-        get() = fragmentViewModel.fragmentUniqueId
 }
 
 interface ViewPagerFragment {
@@ -198,7 +202,9 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
             binding.toolbarLayout.background = ColorDrawable(
                 Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
             )
-            requireActivity().finish()
+            binding.naviBack.setOnClick {
+                requireActivity().finish()
+            }
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -209,8 +215,9 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
     }
 }
 
-fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner) {
+fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner, listMode: Int = ListMode.STAGGERED_GRID) {
     setUpToolbar(binding.toolbarLayout, binding.listView)
+    setUpLayoutManager(binding.listView, listMode)
     val ctx = requireContext()
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {
@@ -263,61 +270,40 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
             adapter.submitList(holders)
         }
-//        viewModel.liveNextUrl.observe(viewLifecycleOwner) { url ->
-//            binding.nextUrl.text = url
-//        }
     }
 }
 
-
-private fun calculateTotalPages(totalItems: Int, pageSize: Int): Int {
-    return if (totalItems % pageSize == 0) {
-        totalItems / pageSize
-    } else {
-        (totalItems / pageSize) + 1
-    }
-}
-
-fun <FragmentT> FragmentT.setUpSizedList(binding: FragmentPixivListBinding, dataSource: DataSourceContainer<*, *>, listFullSize: Int) where FragmentT : Fragment, FragmentT : FragmentResultRequestIdOwner {
-    val self = this
-    val onResult: FragmentT.(Int) -> Unit = { result ->
-        Common.showLog("dsaasdw ${fragmentUniqueId} really get ${result} ${lifecycle.currentState}")
-    }
-    val dialogViewModel by activityViewModels<DialogViewModel>()
-    if (listFullSize > 30) {
-        binding.listSetting.isVisible = true
-        dialogViewModel.triggerOffsetPageEvent.observeEvent(this) { page ->
-            launchSuspend {
-                dataSource.dataSource().loadOffsetData(page)
+fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode.STAGGERED_GRID) {
+    val ctx = requireContext()
+    listView.itemAnimator = null
+    if (listMode == ListMode.STAGGERED_GRID) {
+        listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
+        listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+    } else if (listMode == ListMode.VERTICAL) {
+        listView.layoutManager = LinearLayoutManager(ctx)
+        listView.addItemDecoration(LinearItemDecoration(18.ppppx))
+    } else if (listMode == ListMode.VERTICAL_COMMENT) {
+        listView.layoutManager = LinearLayoutManager(requireContext())
+        listView.addItemDecoration(BottomDividerDecoration(
+            requireContext(),
+            R.drawable.list_divider,
+            marginLeft = 48.ppppx
+        ))
+    } else if (listMode == ListMode.VERTICAL_NO_MARGIN) {
+        listView.layoutManager = LinearLayoutManager(ctx)
+    } else if (listMode == ListMode.GRID) {
+        listView.layoutManager = GridLayoutManager(ctx, 3)
+    } else if (listMode == ListMode.GRID_AND_SECTION_HEADER) {
+        listView.layoutManager = GridLayoutManager(ctx, 3).apply {
+            spanSizeLookup = object : SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (listView.adapter?.getItemViewType(position) == RedSectionHeaderHolder::class.java.hashCode()) {
+                        3
+                    } else {
+                        1
+                    }
+                }
             }
         }
-        binding.listSetting.setOnClick {
-//            showActionMenu {
-//                add(
-//                    MenuItem("按照页数查看作品", "实验性功能，测试中") {
-//
-//                    }
-//                )
-//            }
-
-//            self.promptFragmentForResult<FragmentT, Int>(
-//                dialogProducer = {
-//                    ItemListDialogFragment()
-//                },
-//                bundle = Bundle().apply {
-//                    val itemCount = calculateTotalPages(listFullSize, 30)
-//                    putInt(ARG_ITEM_COUNT, itemCount)
-//                },
-//                onResult
-//            )
-        }
-    } else {
-        binding.listSetting.isVisible = false
     }
-}
-
-fun Fragment.setUpStaggerLayout(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
-    setUpRefreshState(binding, viewModel)
-    binding.listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
-    binding.listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
 }
