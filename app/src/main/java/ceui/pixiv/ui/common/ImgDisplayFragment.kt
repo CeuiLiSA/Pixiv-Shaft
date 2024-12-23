@@ -41,6 +41,7 @@ import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import java.util.Locale
 
@@ -67,7 +68,15 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
             }
         }
         val activity = requireActivity()
-        val task = TaskPool.getLoadTask(NamedUrl(displayName(), contentUrl()), activity)
+        val url = contentUrl()
+        if (url.isEmpty()) {
+            Timber.d("ImgDisplayFragment display img: empty")
+            return
+        }
+
+        Timber.d("ImgDisplayFragment display img: ${url}")
+        val namedUrl = NamedUrl(displayName(), url)
+        val task = TaskPool.getLoadTask(namedUrl, activity)
         task.file.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {

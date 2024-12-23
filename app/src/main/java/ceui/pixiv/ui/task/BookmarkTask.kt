@@ -10,9 +10,12 @@ class BookmarkTask(
 
     override suspend fun execute() {
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
+            onIgnore()
             return
         }
+
         try {
+            onStart()
             _status.value = TaskStatus.Executing(0)
             if (objectType == ObjectType.NOVEL) {
 //            Client.appApi.postBookmark()
@@ -20,9 +23,9 @@ class BookmarkTask(
                 Client.appApi.postBookmark(objectId)
             }
             _status.value = TaskStatus.Finished
+            onEnd()
         } catch (ex: Exception) {
-            _status.value = TaskStatus.Error(ex)
-            ex.printStackTrace()
+            handleError(ex)
         }
     }
 }

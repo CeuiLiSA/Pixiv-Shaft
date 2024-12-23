@@ -46,12 +46,12 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
                 getImageIdInGallery(activity, content.name)
             }
             if (imageId != null) {
-                Timber.d("dfsasf3 ${content.name} 图片已存在")
+                Timber.d("${content.name} 图片已存在")
                 delay(100L)
                 _status.value = TaskStatus.Finished
                 onNext.invoke()
             } else {
-                Timber.d("dfsasf3 ${content.name} 图片不已存在，准备下载")
+                Timber.d("${content.name} 图片不已存在，准备下载")
                 delay(400L)
                 execute()
             }

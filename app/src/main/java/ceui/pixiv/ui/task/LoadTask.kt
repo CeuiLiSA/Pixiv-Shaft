@@ -46,9 +46,13 @@ open class LoadTask(
 
     override suspend fun execute() {
         // 防止重复执行任务
-        if (_status.value !is TaskStatus.NotStart) return
+        if (_status.value !is TaskStatus.NotStart) {
+            onIgnore()
+            return
+        }
 
         try {
+            onStart()
             _status.value = TaskStatus.Executing(0)
             observeProgress()
 
@@ -57,6 +61,7 @@ open class LoadTask(
                 _file.value = file
                 onFilePrepared(file)
                 _status.value = TaskStatus.Finished
+                onEnd()
             } else {
                 throw IllegalStateException("Unexpected null file")
             }
@@ -121,13 +126,6 @@ open class LoadTask(
                 Common.showLog("Resource ready: ${dataSource.name}, path: ${resource.path}")
                 return false
             }
-        }
-    }
-
-    open fun handleError(ex: Exception?) {
-        if (ex != null) {
-            Timber.e(ex)
-            _status.postValue(TaskStatus.Error(ex))
         }
     }
 
