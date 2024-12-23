@@ -12,8 +12,8 @@ abstract class QueuedRunnable<ResultT> {
     protected val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
 
-    protected val _result = MutableLiveData<File>()
-    val result: LiveData<File> get() = _result
+    protected val _result = MutableLiveData<ResultT>()
+    val result: LiveData<ResultT> get() = _result
 
     open val taskId = UUID.randomUUID().hashCode().toLong()
 
