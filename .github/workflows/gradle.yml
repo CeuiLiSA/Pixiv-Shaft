@@ -37,10 +37,10 @@ jobs:
           submodules: 'true'
           fetch-depth: 0
 
-      - name: set up JDK 17
+      - name: set up JDK 21
         uses: actions/setup-java@v4.2.2
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'adopt'
 
       - name: Grant execute permission for gradlew
