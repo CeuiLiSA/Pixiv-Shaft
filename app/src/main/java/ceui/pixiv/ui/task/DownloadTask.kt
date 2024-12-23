@@ -1,18 +1,10 @@
 package ceui.pixiv.ui.task
 
-import android.net.Uri
-import android.provider.MediaStore
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.map
-import ceui.pixiv.ui.common.deleteImageById
 import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.saveImageToGallery
-import ceui.pixiv.widgets.alertYesOrCancel
-import com.blankj.utilcode.util.UriUtils
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,14 +50,14 @@ class DownloadTask(content: NamedUrl, private val activity: FragmentActivity) :
         }
     }
 
-    override suspend fun onFilePrepared(file: File) {
-        super.onFilePrepared(file)
-        saveImageToGallery(activity, file, content.name)
+    override fun onEnd(resultT: File) {
+        super.onEnd(resultT)
+        saveImageToGallery(activity, resultT, content.name)
         this._onNext?.invoke()
     }
 
-    override fun handleError(ex: Exception?) {
-        super.handleError(ex)
+    override fun onError(ex: Exception?) {
+        super.onError(ex)
         if (ex != null) {
             this._onNext?.invoke()
         }

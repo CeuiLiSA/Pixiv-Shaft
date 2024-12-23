@@ -2,36 +2,27 @@ package ceui.pixiv.ui.task
 
 import android.net.Uri
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.map
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
-import ceui.pixiv.ui.common.getImageIdInGallery
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.jessyan.progressmanager.ProgressListener
 import me.jessyan.progressmanager.ProgressManager
 import me.jessyan.progressmanager.body.ProgressInfo
-import timber.log.Timber
 import java.io.File
 
 open class LoadTask(
     val content: NamedUrl,
     private val activity: FragmentActivity,
     autoStart: Boolean = true
-) : QueuedRunnable() {
-
-    private val _file = MutableLiveData<File>()
-    val file: LiveData<File> get() = _file
+) : QueuedRunnable<File>() {
 
     override val taskId: Long
         get() = content.url.hashCode().toLong()
@@ -58,15 +49,14 @@ open class LoadTask(
 
             val file = downloadFile()
             if (file != null) {
-                _file.value = file
-                onFilePrepared(file)
+                _result.value = file
                 _status.value = TaskStatus.Finished
-                onEnd()
+                onEnd(file)
             } else {
                 throw IllegalStateException("Unexpected null file")
             }
         } catch (ex: Exception) {
-            handleError(ex)
+            onError(ex)
         }
     }
 
@@ -84,7 +74,7 @@ open class LoadTask(
             }
 
             override fun onError(id: Long, ex: Exception) {
-                handleError(ex)
+                onError(ex)
             }
         })
     }
@@ -109,10 +99,10 @@ open class LoadTask(
             override fun onLoadFailed(
                 ex: GlideException?,
                 model: Any?,
-                target: com.bumptech.glide.request.target.Target<File>,
+                target: Target<File>,
                 isFirstResource: Boolean
             ): Boolean {
-                handleError(ex)
+                onError(ex)
                 return false
             }
 
@@ -127,9 +117,5 @@ open class LoadTask(
                 return false
             }
         }
-    }
-
-    open suspend fun onFilePrepared(file: File) {
-        // 子类实现
     }
 }

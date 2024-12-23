@@ -4,12 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import timber.log.Timber
+import java.io.File
 import java.util.UUID
 
-abstract class QueuedRunnable {
+abstract class QueuedRunnable<ResultT> {
 
     protected val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
+
+    protected val _result = MutableLiveData<File>()
+    val result: LiveData<File> get() = _result
 
     open val taskId = UUID.randomUUID().hashCode().toLong()
 
@@ -29,11 +33,11 @@ abstract class QueuedRunnable {
         Timber.d("${this.javaClass.simpleName}-${taskId} onStart")
     }
 
-    open fun onEnd() {
+    open fun onEnd(resultT: ResultT) {
         Timber.d("${this.javaClass.simpleName}-${taskId} onEnd")
     }
 
-    open fun handleError(ex: Exception?) {
+    open fun onError(ex: Exception?) {
         Timber.d("${this.javaClass.simpleName}-${taskId} handleError")
         if (ex != null) {
             Timber.e(ex)

@@ -6,7 +6,7 @@ import ceui.loxia.ObjectType
 class BookmarkTask(
     private val objectId: Long,
     private val objectType: String
-) : QueuedRunnable() {
+) : QueuedRunnable<Unit>() {
 
     override suspend fun execute() {
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
@@ -23,9 +23,9 @@ class BookmarkTask(
                 Client.appApi.postBookmark(objectId)
             }
             _status.value = TaskStatus.Finished
-            onEnd()
+            onEnd(Unit)
         } catch (ex: Exception) {
-            handleError(ex)
+            onError(ex)
         }
     }
 }

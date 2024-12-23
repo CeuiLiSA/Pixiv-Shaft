@@ -1,6 +1,5 @@
 package ceui.pixiv.ui.common
 
-import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
@@ -17,14 +16,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
-import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.task.TaskStatus
@@ -77,7 +74,7 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         Timber.d("ImgDisplayFragment display img: ${url}")
         val namedUrl = NamedUrl(displayName(), url)
         val task = TaskPool.getLoadTask(namedUrl, activity)
-        task.file.observe(viewLifecycleOwner) { file ->
+        task.result.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {
                 val imageId = getImageIdInGallery(activity, displayName())
@@ -100,7 +97,7 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         }
         if (parentFragment is ViewPagerFragment) {
             viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
-                task.file.value?.let { file ->
+                task.result.value?.let { file ->
                     saveImageToGallery(activity, file, displayName())
                 }
             }
