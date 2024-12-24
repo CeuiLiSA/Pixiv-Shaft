@@ -23,4 +23,11 @@ object TaskPool {
             LoadTask(namedUrl, activity, autoStart)
         }
     }
+
+    fun getDownloadTask(namedUrl: NamedUrl, activity: FragmentActivity): DownloadTask {
+        return (_taskMap[namedUrl.url] as? DownloadTask)
+            ?: DownloadTask(namedUrl, activity).also {
+                _taskMap[namedUrl.url] = it
+            }
+    }
 }

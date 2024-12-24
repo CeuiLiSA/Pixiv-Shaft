@@ -28,11 +28,10 @@ class QueuedTaskDataSource(
             }
         }
     }
-    items.map {
-        val taskId = it.url.hashCode().toLong()
-        val task = TaskQueueManager.findExistingTask(taskId) ?: DownloadTask(it, activity).also {
+    items.map { namedUrl ->
+        val task = TaskPool.getDownloadTask(namedUrl, activity).also {
             TaskQueueManager.addTask(it)
         }
-        task
-    }.map { QueuedTaskHolder(it, illust) }
+        QueuedTaskHolder(task, illust)
+    }
 })
