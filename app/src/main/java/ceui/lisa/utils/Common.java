@@ -459,6 +459,14 @@ public class Common {
         return color;
     }
 
+    public static int getNovelTextSize() {
+        int size = Shaft.sSettings.getNovelHolderTextSize();
+        if (size == 0) {
+            return 16;  // 默认大小
+        }
+        return size;
+    }
+
     /**
      * 文件大小是否满足反向搜索条件
      *

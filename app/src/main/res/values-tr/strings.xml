@@ -606,5 +606,6 @@
   <string name="string_452">İndirme sınırı türü</string>
   <string name="string_453">oto başlatma</string>
   <string name="string_454">İlk resmi paylaş</string>
-  <string name="string_455">AI çalışmalarını başka bir dizine kaydet</string>  
+  <string name="string_455">AI çalışmalarını başka bir dizine kaydet</string>
+  <string name="string_font_size">Yazı tipi boyutu</string>
 </resources>
