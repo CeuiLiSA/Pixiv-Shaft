@@ -11,20 +11,19 @@ import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.CellEditingCommentBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Comment
+import ceui.loxia.ObjectType
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.launchSuspend
-import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.user.UserActionReceiver
-import ceui.refactor.ppppx
+import ceui.pixiv.ui.works.blurBackground
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
@@ -53,6 +52,9 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
             launchSuspend(it) {
                 dataSource.sendComment()
             }
+        }
+        if (args.objectType == ObjectType.ILLUST) {
+            blurBackground(binding, args.objectId)
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())

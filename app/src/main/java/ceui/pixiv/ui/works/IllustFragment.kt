@@ -5,7 +5,6 @@ import android.view.View
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,6 +12,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentFancyIllustBinding
+import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -35,8 +35,10 @@ import ceui.pixiv.ui.user.setTextOrGone
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -217,5 +219,15 @@ fun getGalleryHolders(illust: Illust, coroutineScope: CoroutineScope): List<Gall
             }
         }
         else -> null
+    }
+}
+
+fun Fragment.blurBackground(binding: FragmentPixivListBinding, illustId: Long) {
+    val liveIllust = ObjectPool.get<Illust>(illustId)
+    liveIllust.observe(viewLifecycleOwner) { illust ->
+        Glide.with(this)
+            .load(GlideUrlChild(illust.image_urls?.large))
+            .apply(bitmapTransform(BlurTransformation(15, 3)))
+            .into(binding.pageBackground)
     }
 }

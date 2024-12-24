@@ -76,7 +76,7 @@
                 android:layout_width="wrap_content"
                 android:text="@{holder.comment.comment}"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text10"
+                android:textColor="@color/text00"
                 android:textSize="16sp" />
 
 
