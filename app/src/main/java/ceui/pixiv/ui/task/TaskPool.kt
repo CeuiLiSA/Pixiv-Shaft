@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.task
 
 import androidx.fragment.app.FragmentActivity
+import kotlinx.coroutines.CoroutineScope
 
 object TaskPool {
 
@@ -18,15 +19,15 @@ object TaskPool {
             }
         }
 
-    fun getLoadTask(namedUrl: NamedUrl, activity: FragmentActivity, autoStart: Boolean = true): LoadTask {
+    fun getLoadTask(namedUrl: NamedUrl, coroutineScope: CoroutineScope, autoStart: Boolean = true): LoadTask {
         return _taskMap.getOrPut(namedUrl.url) {
-            LoadTask(namedUrl, activity, autoStart)
+            LoadTask(namedUrl, coroutineScope, autoStart)
         }
     }
 
-    fun getDownloadTask(namedUrl: NamedUrl, activity: FragmentActivity): DownloadTask {
+    fun getDownloadTask(namedUrl: NamedUrl, coroutineScope: CoroutineScope): DownloadTask {
         return (_taskMap[namedUrl.url] as? DownloadTask)
-            ?: DownloadTask(namedUrl, activity).also {
+            ?: DownloadTask(namedUrl, coroutineScope).also {
                 _taskMap[namedUrl.url] = it
             }
     }
