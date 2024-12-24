@@ -197,6 +197,13 @@
         android:background="@drawable/black_gradient_revert"
         android:layout_height="130dp" />
 
+    <View
+        android:id="@+id/touch_outside"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
     <include
         layout="@layout/layout_toolbar"
         android:id="@+id/toolbar_layout"/>
