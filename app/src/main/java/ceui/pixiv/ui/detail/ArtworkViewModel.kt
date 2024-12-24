@@ -15,6 +15,7 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.ValueContent
+import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.works.getGalleryHolders
 import kotlinx.coroutines.async
@@ -30,9 +31,8 @@ class ArtworkViewModel(
     private val _refreshState = MutableLiveData<RefreshState>()
 
     private val valueContent = object : ValueContent<IllustResponse>(viewModelScope, {
-        delay(500L)
         Client.appApi.getRelatedIllusts(illustId)
-    }) {
+    }, responseStore = createResponseStore({ "related-illust-$illustId" })) {
         override fun applyResult(valueT: IllustResponse) {
             super.applyResult(valueT)
             // 从现有列表中剔除 LoadingHolder

@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -43,6 +44,7 @@ import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
+import ceui.pixiv.ui.article.ArticlesFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkFragmentArgs
@@ -172,6 +174,10 @@ interface ViewPagerFragment {
 
 }
 
+interface FitsSystemWindowFragment {
+
+}
+
 interface ITitledViewPager : ViewPagerFragment {
     fun getTitleLiveData(index: Int): MutableLiveData<String>
 }
@@ -217,6 +223,13 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
 }
 
 fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner, listMode: Int = ListMode.STAGGERED_GRID) {
+    if (this is FitsSystemWindowFragment) {
+        binding.topShadow.isVisible = true
+        val params = binding.refreshLayout.layoutParams as ConstraintLayout.LayoutParams
+        // 将 topToTop 设置为 parent
+        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+        binding.refreshLayout.layoutParams = params
+    }
     setUpToolbar(binding.toolbarLayout, binding.listView)
     setUpLayoutManager(binding.listView, listMode)
     val ctx = requireContext()
