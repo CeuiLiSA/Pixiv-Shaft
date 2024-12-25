@@ -16,6 +16,7 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.RefreshOwner
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 fun <Item, T : KListShow<Item>, ArgsT: Any> Fragment.pixivListViewModel(
     argsProducer: () -> ArgsT,
@@ -52,6 +53,10 @@ class PixivListViewModel<Item, T : KListShow<Item>>(
 
     override val refreshState: LiveData<RefreshState> = _dataSource.refreshState
     override val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHolders
+
+    override fun prepareIdMap(seed: String) {
+        _dataSource.prepareIdMap(seed)
+    }
 
     init {
         if (_dataSource.initialLoad()) {

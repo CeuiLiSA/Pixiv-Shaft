@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.models.ModelObject
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
@@ -22,6 +23,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.UUID
 
 class ArtworkViewModel(
     private val illustId: Long
@@ -77,6 +79,16 @@ class ArtworkViewModel(
                 Timber.e(ex)
             }
         }
+    }
+
+    override fun prepareIdMap(seed: String) {
+        val idList = mutableListOf<Long>()
+        val filteredList =
+            (_itemHolders.value ?: listOf()).filter { it is UserPostHolder }
+        filteredList.mapNotNull { (it as? UserPostHolder)?.illust }.forEach { item ->
+            idList.add(item.objectUniqueId)
+        }
+        ArtworksMap.store[seed] = idList
     }
 
     override val refreshState: LiveData<RefreshState>

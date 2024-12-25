@@ -159,10 +159,9 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     }
 
     override fun onClickIllust(illustId: Long) {
-        val seed = fragmentViewModel.pageSeed.value ?: return
         pushFragment(
             R.id.navigation_viewpager_artwork,
-            ArtworkViewPagerFragmentArgs(seed, illustId).toBundle()
+            ArtworkViewPagerFragmentArgs(fragmentViewModel.pageSeed, illustId).toBundle()
         )
     }
 
@@ -281,14 +280,13 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         }
     }
     if (viewModel is HoldersContainer) {
-        (viewModel as? PixivListViewModel<*, *>)?.dataSource()?.pageSeed?.let { seed ->
-            val fragmentViewModel: NavFragmentViewModel by viewModels()
-            fragmentViewModel.pageSeed.value = seed
-        }
+        val fragmentViewModel: NavFragmentViewModel by viewModels()
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
-            adapter.submitList(holders)
+            adapter.submitList(holders) {
+                viewModel.prepareIdMap(fragmentViewModel.pageSeed)
+            }
         }
     }
 }

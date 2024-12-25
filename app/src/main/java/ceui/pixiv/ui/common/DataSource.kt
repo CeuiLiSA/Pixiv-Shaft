@@ -23,7 +23,6 @@ open class DataSource<Item, T: KListShow<Item>>(
     private val filter: (Item) -> Boolean = { _ -> true }
 ) {
     private var _variableItemMapper: ((Item) -> List<ListItemHolder>)? = null
-    val pageSeed: String = UUID.randomUUID().toString()
 
     init {
         this._variableItemMapper = itemMapper
@@ -77,13 +76,6 @@ open class DataSource<Item, T: KListShow<Item>>(
         _nextPageUrl = response.nextPageUrl
         currentProtoItems.addAll(response.displayList)
         mapProtoItemsToHolders()
-        val idList = mutableListOf<Long>()
-        currentProtoItems.forEach { item ->
-            if (item is ModelObject) {
-                idList.add(item.objectUniqueId)
-            }
-        }
-        ArtworksMap.store[pageSeed] = idList
         _refreshState.value = RefreshState.LOADED(
             hasContent = _itemHolders.value?.isNotEmpty() == true,
             hasNext = _nextPageUrl?.isNotEmpty() == true
@@ -104,6 +96,16 @@ open class DataSource<Item, T: KListShow<Item>>(
             _refreshState.value = RefreshState.ERROR(ex)
             Timber.e(ex)
         }
+    }
+
+    fun prepareIdMap(pageSeed: String) {
+        val idList = mutableListOf<Long>()
+        currentProtoItems.forEach { item ->
+            if (item is ModelObject) {
+                idList.add(item.objectUniqueId)
+            }
+        }
+        ArtworksMap.store[pageSeed] = idList
     }
 
     private fun updateOffsetInUrl(url: String, newOffset: Int): String {
