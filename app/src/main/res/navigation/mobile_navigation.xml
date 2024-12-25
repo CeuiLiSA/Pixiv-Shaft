@@ -131,6 +131,20 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_viewpager_artwork"
+        android:name="ceui.pixiv.ui.detail.ArtworkViewPagerFragment"
+        tools:layout="@layout/fragment_artwork_viewpager" >
+
+        <argument
+            android:name="seed"
+            app:argType="string" />
+
+        <argument
+            android:name="object_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_artwork"
         android:name="ceui.pixiv.ui.detail.ArtworkFragment"
         tools:layout="@layout/fragment_pixiv_list" >

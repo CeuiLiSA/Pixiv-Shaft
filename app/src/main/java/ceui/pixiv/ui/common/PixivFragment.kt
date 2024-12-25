@@ -48,6 +48,7 @@ import ceui.pixiv.ui.article.ArticlesFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkFragmentArgs
+import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
@@ -158,9 +159,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     }
 
     override fun onClickIllust(illustId: Long) {
+        val seed = fragmentViewModel.pageSeed.value ?: return
         pushFragment(
-            R.id.navigation_artwork,
-            ArtworkFragmentArgs(illustId).toBundle()
+            R.id.navigation_viewpager_artwork,
+            ArtworkViewPagerFragmentArgs(seed, illustId).toBundle()
         )
     }
 
@@ -279,6 +281,10 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         }
     }
     if (viewModel is HoldersContainer) {
+        (viewModel as? PixivListViewModel<*, *>)?.dataSource()?.pageSeed?.let { seed ->
+            val fragmentViewModel: NavFragmentViewModel by viewModels()
+            fragmentViewModel.pageSeed.value = seed
+        }
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         viewModel.holders.observe(viewLifecycleOwner) { holders ->

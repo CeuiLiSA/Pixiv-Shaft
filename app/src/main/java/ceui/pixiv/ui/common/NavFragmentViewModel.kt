@@ -16,4 +16,6 @@ class NavFragmentViewModel(state: SavedStateHandle): ViewModel() {
         }
 
     val viewCreatedTime = state.getLiveData<Long>("viewCreatedTime")
+
+    val pageSeed = state.getLiveData<String>("pageSeed")
 }

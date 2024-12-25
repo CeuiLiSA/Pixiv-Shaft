@@ -2,16 +2,19 @@ package ceui.pixiv.ui.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.models.ModelObject
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.pixiv.ui.detail.ArtworksMap
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.UUID
 
 open class DataSource<Item, T: KListShow<Item>>(
     private val dataFetcher: suspend (hint: RefreshHint) -> T,
@@ -20,6 +23,7 @@ open class DataSource<Item, T: KListShow<Item>>(
     private val filter: (Item) -> Boolean = { _ -> true }
 ) {
     private var _variableItemMapper: ((Item) -> List<ListItemHolder>)? = null
+    val pageSeed: String = UUID.randomUUID().toString()
 
     init {
         this._variableItemMapper = itemMapper
@@ -73,6 +77,13 @@ open class DataSource<Item, T: KListShow<Item>>(
         _nextPageUrl = response.nextPageUrl
         currentProtoItems.addAll(response.displayList)
         mapProtoItemsToHolders()
+        val idList = mutableListOf<Long>()
+        currentProtoItems.forEach { item ->
+            if (item is ModelObject) {
+                idList.add(item.objectUniqueId)
+            }
+        }
+        ArtworksMap.store[pageSeed] = idList
         _refreshState.value = RefreshState.LOADED(
             hasContent = _itemHolders.value?.isNotEmpty() == true,
             hasNext = _nextPageUrl?.isNotEmpty() == true
