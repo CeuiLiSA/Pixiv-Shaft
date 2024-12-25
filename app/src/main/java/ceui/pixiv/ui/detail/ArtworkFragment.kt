@@ -17,13 +17,16 @@ import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.works.GalleryActionReceiver
+import ceui.pixiv.ui.works.GalleryHolder
+import ceui.pixiv.ui.works.PagedImgUrlFragmentArgs
 import ceui.pixiv.ui.works.blurBackground
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import kotlin.getValue
 
-class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment {
+class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, GalleryActionReceiver {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by threadSafeArgs<ArtworkFragmentArgs>()
@@ -49,5 +52,15 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
             binding.listView.addItemDecoration(LinearItemDecorationKt(16.ppppx, illust.page_count))
         }
         setUpRefreshState(binding, viewModel, ListMode.CUSTOM)
+    }
+
+    override fun onClickGalleryHolder(index: Int, galleryHolder: GalleryHolder) {
+        pushFragment(
+            R.id.navigation_paged_img_urls,
+            PagedImgUrlFragmentArgs(
+                safeArgs.illustId,
+                index
+            ).toBundle()
+        )
     }
 }

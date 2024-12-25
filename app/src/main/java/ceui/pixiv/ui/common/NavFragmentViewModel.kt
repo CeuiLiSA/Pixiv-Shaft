@@ -16,9 +16,4 @@ class NavFragmentViewModel(state: SavedStateHandle): ViewModel() {
         }
 
     val viewCreatedTime = state.getLiveData<Long>("viewCreatedTime")
-
-    val pageSeed: String = state["pageSeed"]
-        ?: UUID.randomUUID().toString().also {
-            state["pageSeed"] = it
-        }
 }

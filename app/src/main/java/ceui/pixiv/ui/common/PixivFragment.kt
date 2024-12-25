@@ -161,7 +161,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     override fun onClickIllust(illustId: Long) {
         pushFragment(
             R.id.navigation_viewpager_artwork,
-            ArtworkViewPagerFragmentArgs(fragmentViewModel.pageSeed, illustId).toBundle()
+            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, illustId).toBundle()
         )
     }
 
@@ -285,7 +285,7 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         binding.listView.adapter = adapter
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
             adapter.submitList(holders) {
-                viewModel.prepareIdMap(fragmentViewModel.pageSeed)
+                viewModel.prepareIdMap(fragmentViewModel.fragmentUniqueId)
             }
         }
     }

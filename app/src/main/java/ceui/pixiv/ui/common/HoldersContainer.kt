@@ -6,5 +6,5 @@ interface HoldersContainer {
 
     val holders: LiveData<List<ListItemHolder>>
 
-    fun prepareIdMap(seed: String)
+    fun prepareIdMap(fragmentUniqueId: String)
 }

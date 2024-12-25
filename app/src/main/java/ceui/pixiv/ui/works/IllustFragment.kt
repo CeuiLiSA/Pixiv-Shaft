@@ -177,8 +177,6 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
         adapter.submitList(getGalleryHolders(illust, requireActivity().lifecycleScope))
     }
 
-
-
     override fun onClickGalleryHolder(index: Int, galleryHolder: GalleryHolder) {
         pushFragment(
             R.id.navigation_paged_img_urls,
@@ -224,6 +222,7 @@ fun getGalleryHolders(illust: Illust, coroutineScope: CoroutineScope): List<Gall
 
 fun Fragment.blurBackground(binding: FragmentPixivListBinding, illustId: Long) {
     val liveIllust = ObjectPool.get<Illust>(illustId)
+    binding.dimmer.isVisible = true
     liveIllust.observe(viewLifecycleOwner) { illust ->
         Glide.with(this)
             .load(GlideUrlChild(illust.image_urls?.large))

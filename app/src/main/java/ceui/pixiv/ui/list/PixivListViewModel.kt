@@ -53,8 +53,8 @@ class PixivListViewModel<Item, T : KListShow<Item>>(
     override val refreshState: LiveData<RefreshState> = _dataSource.refreshStateImpl
     override val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHoldersImpl
 
-    override fun prepareIdMap(seed: String) {
-        _dataSource.prepareIdMapImpl(seed)
+    override fun prepareIdMap(fragmentUniqueId: String) {
+        _dataSource.prepareIdMapImpl(fragmentUniqueId)
     }
 
     init {

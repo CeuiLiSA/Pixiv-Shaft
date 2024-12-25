@@ -81,14 +81,14 @@ class ArtworkViewModel(
         }
     }
 
-    override fun prepareIdMap(seed: String) {
+    override fun prepareIdMap(fragmentUniqueId: String) {
         val idList = mutableListOf<Long>()
         val filteredList =
             (_itemHolders.value ?: listOf()).filter { it is UserPostHolder }
         filteredList.mapNotNull { (it as? UserPostHolder)?.illust }.forEach { item ->
             idList.add(item.objectUniqueId)
         }
-        ArtworksMap.store[seed] = idList
+        ArtworksMap.store[fragmentUniqueId] = idList
     }
 
     override val refreshState: LiveData<RefreshState>

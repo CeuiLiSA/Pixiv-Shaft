@@ -96,14 +96,14 @@ open class DataSource<Item, T: KListShow<Item>>(
         }
     }
 
-    fun prepareIdMapImpl(pageSeed: String) {
+    fun prepareIdMapImpl(fragmentUniqueId: String) {
         val idList = mutableListOf<Long>()
         currentProtoItems.forEach { item ->
             if (item is ModelObject) {
                 idList.add(item.objectUniqueId)
             }
         }
-        ArtworksMap.store[pageSeed] = idList
+        ArtworksMap.store[fragmentUniqueId] = idList
     }
 
     private fun updateOffsetInUrl(url: String, newOffset: Int): String {

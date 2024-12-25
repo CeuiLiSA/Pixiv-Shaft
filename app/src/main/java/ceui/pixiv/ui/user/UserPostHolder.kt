@@ -36,9 +36,17 @@ class UserPostViewHolder(bd: CellUserPostBinding) :
 
     override fun onBindViewHolder(holder: UserPostHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        binding.root.setOnClick {
+        binding.image.setOnClick {
             it.findActionReceiverOrNull<IllustCardActionReceiver>()
                 ?.onClickIllustCard(holder.illust)
+        }
+        binding.userIcon.setOnClick {
+            it.findActionReceiverOrNull<UserActionReceiver>()
+                ?.onClickUser(holder.illust.user?.id ?: 0L)
+        }
+        binding.userName.setOnClick {
+            it.findActionReceiverOrNull<UserActionReceiver>()
+                ?.onClickUser(holder.illust.user?.id ?: 0L)
         }
         val imageView = binding.image
         val w = if (holder.illust.width > holder.illust.height) {

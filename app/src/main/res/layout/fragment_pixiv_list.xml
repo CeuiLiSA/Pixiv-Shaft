@@ -16,6 +16,7 @@
     <ImageView
         android:id="@+id/dimmer"
         android:scaleType="centerCrop"
+        android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:src="@color/colorBlack40"
