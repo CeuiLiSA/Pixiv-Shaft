@@ -103,7 +103,7 @@ open class ListItemViewHolder<Binding : ViewBinding, T : ListItemHolder>(val bin
     RecyclerView.ViewHolder(binding.root) {
 
     protected val context: Context = binding.root.context
-    var lifecycleOwner: LifecycleOwner? = null
+    lateinit var lifecycleOwner: LifecycleOwner
 
     open fun onBindViewHolder(holder: T, position: Int) {
         holder.retrieveClickListener()?.let {

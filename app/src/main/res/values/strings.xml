@@ -715,4 +715,5 @@
     <string name="button_ok">OK</string>
     <string name="created_tasks">创建的任务</string>
     <string name="not_selected">未选择</string>
+    <string name="related_artworks">相关作品</string>
 </resources>
