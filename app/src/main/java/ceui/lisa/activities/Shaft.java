@@ -37,12 +37,16 @@ import ceui.lisa.view.MyDeliveryHeader;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.utils.NetworkStateManager;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
 import timber.log.Timber.DebugTree;
 
 import static ceui.lisa.utils.Local.LOCAL_DATA;
+
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Where the app code starts.
  * */
@@ -53,6 +57,7 @@ public class Shaft extends Application implements ServicesProvider {
     public static Gson sGson;
     public static SharedPreferences sPreferences;
     protected NetWorkStateReceiver netWorkStateReceiver;
+    private NetworkStateManager networkStateManager;
     private OkHttpClient mOkHttpClient;
     private static MMKV mmkv;
     public static AppLevelViewModel appViewModel;
@@ -97,7 +102,7 @@ public class Shaft extends Application implements ServicesProvider {
         Timber.plant(new Timber.DebugTree());
 
         MMKV.initialize(this);
-
+        networkStateManager = new NetworkStateManager(this);
         sUserModel = Local.getUser();
 
         sSettings = Local.getSettings();
@@ -231,5 +236,15 @@ public class Shaft extends Application implements ServicesProvider {
                 MyDeliveryHeader.changeCloudColor(getContext());
                 break;
         }
+    }
+
+    @Override
+    public @NotNull MMKV getPrefStore() {
+        return getMMKV();
+    }
+
+    @Override
+    public @NotNull NetworkStateManager getNetworkStateManager() {
+        return networkStateManager;
     }
 }
