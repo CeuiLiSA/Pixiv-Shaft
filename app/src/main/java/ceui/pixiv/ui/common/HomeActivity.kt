@@ -6,6 +6,7 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.LiveData
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
@@ -22,6 +23,8 @@ class HomeActivity : AppCompatActivity(), INetworkState {
         super.onCreate(savedInstanceState)
         _networkStateManager
         enableEdgeToEdge()
+
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)

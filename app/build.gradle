@@ -15,8 +15,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 326
-        versionName "4.2.3"
+        versionCode 328
+        versionName "4.2.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -95,7 +95,7 @@ dependencies {
 
 
     //=============== Navigation
-    def nav_version = "2.8.4"
+    def nav_version = "2.8.5"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 

@@ -68,7 +68,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                 }
             }
             baseBind.goQq.setOnClickListener {
-                val choices = arrayOf(getString(R.string.string_385), getString(R.string.string_386), getString(R.string.string_387), getString(R.string.string_411))
+                val choices = arrayOf(getString(R.string.string_385), getString(R.string.string_386), getString(R.string.string_387), getString(R.string.string_411), getString(R.string.qq_group_5), getString(R.string.qq_group_6))
                 MenuDialogBuilder(mActivity)
                     .addItems(choices) { dialog, which ->
                         val intent = Intent()
@@ -91,6 +91,16 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                             3 -> {
                                 intent.data = Uri.parse(
                                     "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "8WwEAkjbS4yOYMtNR17TS-Wghwv8xjNK"
+                                )
+                            }
+                            4 -> {
+                                intent.data = Uri.parse(
+                                    "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "sWRT0mSWFEiNlkPRtVwK8LmHGStPK9Op"
+                                )
+                            }
+                            5 -> {
+                                intent.data = Uri.parse(
+                                    "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "tBP0SrzxprYrVMadXxJq2KouWxDrcdle"
                                 )
                             }
                         }

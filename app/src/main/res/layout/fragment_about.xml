@@ -92,7 +92,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/string_199" />
 
                             <TextView
@@ -130,7 +130,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="FAQ"
                                 tools:ignore="HardcodedText" />
 
@@ -145,7 +145,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/string_198" />
 
                             <TextView style="@style/setting_right_arrow" />
@@ -159,7 +159,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/string_200" />
 
                             <TextView style="@style/setting_right_arrow" />
@@ -173,7 +173,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/string_201">
 
                             </TextView>
@@ -189,7 +189,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/string_225">
 
                             </TextView>
@@ -220,7 +220,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/pixiv_problem">
 
                             </TextView>
@@ -236,7 +236,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/pixiv_use_detail">
 
                             </TextView>
@@ -252,7 +252,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/privacy">
 
                             </TextView>
@@ -283,7 +283,7 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
+                                style="@style/setting_text_left_and_center"
                                 android:text="@string/string_28">
 
                             </TextView>

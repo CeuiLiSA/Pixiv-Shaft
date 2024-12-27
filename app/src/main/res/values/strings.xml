@@ -716,4 +716,6 @@
     <string name="created_tasks">创建的任务</string>
     <string name="not_selected">未选择</string>
     <string name="related_artworks">相关作品</string>
+    <string name="qq_group_5">五群</string>
+    <string name="qq_group_6">六群</string>
 </resources>
