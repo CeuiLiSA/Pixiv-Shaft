@@ -42,8 +42,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            buildConfigField "boolean", "IS_DEBUG_MODE", "true" // 在 debug 模式下为 true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
         release {
             minifyEnabled false
+            buildConfigField "boolean", "IS_DEBUG_MODE", "false" // 在 release 模式下为 false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
@@ -65,6 +71,7 @@ android {
     buildFeatures {
         dataBinding true
         viewBinding true
+        buildConfig = true // 启用 BuildConfig
     }
     packagingOptions {
         resources {

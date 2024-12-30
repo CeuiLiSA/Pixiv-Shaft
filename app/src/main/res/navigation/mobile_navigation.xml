@@ -86,6 +86,10 @@
             app:argType="long" />
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_select_country"
+        android:name="ceui.pixiv.ui.settings.SelectCountryFragment"
+        tools:layout="@layout/fragment_select_country" />
 
     <fragment
         android:id="@+id/navigation_home_viewpager"

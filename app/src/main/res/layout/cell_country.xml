@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="20dp"
+    android:paddingTop="23dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="23dp"
+    android:stateListAnimator="@animator/button_press_alpha">
+
+    <TextView
+        android:id="@+id/country_flag"
+        android:layout_width="32dp"
+        android:layout_height="24dp"
+        android:gravity="start|top"
+        android:textColor="@color/text00"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/country_code_info"
+        android:textStyle="bold"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:paddingStart="14dp"
+        android:singleLine="true"
+        android:textColor="@color/text00"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/country_code_number"
+        android:textStyle="bold"
+        android:layout_width="38dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical|end"
+        android:gravity="center_vertical|end"
+        android:textColor="@color/text20"
+        android:textSize="16sp" />
+</LinearLayout>
