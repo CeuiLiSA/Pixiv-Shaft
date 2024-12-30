@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,6 +12,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentFancyIllustBinding
+import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -34,8 +35,11 @@ import ceui.pixiv.ui.user.setTextOrGone
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import jp.wasabeef.glide.transformations.BlurTransformation
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), GalleryActionReceiver {
@@ -170,25 +174,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
         binding.galleryList.isVisible = true
         binding.galleryList.adapter = adapter
         binding.galleryList.layoutManager = LinearLayoutManager(requireContext())
-        adapter.submitList(getGalleryHolders(illust, requireActivity()))
-    }
-
-    private fun getGalleryHolders(illust: Illust, activity: FragmentActivity): List<GalleryHolder>? {
-        return illust.meta_pages?.mapIndexed { index, metaPage ->
-            val task = TaskPool.getLoadTask(
-                NamedUrl(
-                    buildPixivWorksFileName(illust.id, index),
-                    metaPage.image_urls?.original ?: ""
-                ),
-                activity,
-                false
-            )
-            GalleryHolder(illust, index, task) {
-                activity.lifecycleScope.launch {
-                    task.execute()
-                }
-            }
-        }
+        adapter.submitList(getGalleryHolders(illust, requireActivity().lifecycleScope))
     }
 
     override fun onClickGalleryHolder(index: Int, galleryHolder: GalleryHolder) {
@@ -200,4 +186,45 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             ).toBundle()
         )
     }
+}
+
+fun getGalleryHolders(illust: Illust, coroutineScope: CoroutineScope): List<GalleryHolder>? {
+    // Helper function to create a GalleryHolder
+    fun createGalleryHolder(index: Int, imageUrl: String?): GalleryHolder {
+        val task = TaskPool.getLoadTask(
+            NamedUrl(
+                buildPixivWorksFileName(illust.id, index),
+                imageUrl.orEmpty() // Handle null gracefully
+            ),
+            coroutineScope,
+            autoStart = false
+        )
+        return GalleryHolder(illust, index, task) {
+            coroutineScope.launch { task.execute() }
+        }
+    }
+
+    return when {
+        illust.page_count == 1 -> {
+            // Single page handling
+            val imageUrl = illust.meta_single_page?.original_image_url
+            listOf(createGalleryHolder(0, imageUrl))
+        }
+        !illust.meta_pages.isNullOrEmpty() -> {
+            // Multiple pages handling
+            illust.meta_pages.mapIndexed { index, metaPage ->
+                createGalleryHolder(index, metaPage.image_urls?.original)
+            }
+        }
+        else -> null
+    }
+}
+
+fun Fragment.blurBackground(binding: FragmentPixivListBinding, illustId: Long) {
+    val illust = ObjectPool.get<Illust>(illustId).value ?: return
+    binding.dimmer.isVisible = true
+    Glide.with(this)
+        .load(GlideUrlChild(illust.image_urls?.large))
+        .apply(bitmapTransform(BlurTransformation(15, 3)))
+        .into(binding.pageBackground)
 }

@@ -715,4 +715,16 @@
     <string name="button_ok">OK</string>
     <string name="created_tasks">创建的任务</string>
     <string name="not_selected">未选择</string>
+    <string name="related_artworks">相关作品</string>
+    <string name="qq_group_5">五群</string>
+    <string name="qq_group_6">六群</string>
+    <string name="cookie_sync_has_been_done">已完成同步</string>
+    <string name="cookie_was_not_synced">未同步</string>
+    <string name="sync_cookies_with_pixiv_net">Pixiv 主站同步</string>
+    <string name="can_use_web_features_after_sync">同步主站 Cookies 可以使用 web 端功能</string>
+    <string name="view_and_artworks_display">浏览与显示</string>
+    <string name="handle_r18g_displaying">设置是否显示 R-18(G) 内容</string>
+    <string name="country_and_region">国家和地区</string>
+    <string name="handle_content_language">设置内容展示语言</string>
+    <string name="published_on">发布于: %1$s</string>
 </resources>

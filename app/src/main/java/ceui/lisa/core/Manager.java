@@ -352,10 +352,8 @@ public class Manager {
                 }, throwable -> {
                     //下载失败，处理相关逻辑
                     throwable.printStackTrace();
-                    if (!Dev.isDev) {
-                        if (Shaft.sSettings.isToastDownloadResult()) {
-                            Common.showToast("下载失败，原因：" + throwable.toString());
-                        }
+                    if (Shaft.sSettings.isToastDownloadResult()) {
+                        Common.showToast("下载失败，原因：" + throwable.toString());
                     }
                     Common.showLog("下载失败，原因：" + throwable.toString());
                     complete(downloadItem, false);

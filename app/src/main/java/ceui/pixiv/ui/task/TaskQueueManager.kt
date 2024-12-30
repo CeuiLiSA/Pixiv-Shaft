@@ -144,12 +144,4 @@ object TaskQueueManager {
             }
         }
     }
-
-    fun findExistingTask(taskId: Long): DownloadTask? {
-        synchronized(lock) {
-            val task = taskQueue.firstOrNull { it.taskId == taskId }
-            Timber.d(if (task != null) "Task found: $taskId" else "Task not found: $taskId")
-            return task
-        }
-    }
 }

@@ -6,6 +6,7 @@ import ceui.lisa.databinding.CellTabBinding
 class TabCellHolder(
     val title: String,
     val secondaryTitle: String? = null,
+    val extraInfo: String? = null,
 ) : ListItemHolder() {
 
 }

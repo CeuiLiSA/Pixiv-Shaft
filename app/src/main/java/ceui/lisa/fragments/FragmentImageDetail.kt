@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentImageDetailBinding
@@ -58,7 +59,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
 
         if (imageUrl?.isNotEmpty() == true) {
-            val task = TaskPool.getLoadTask(NamedUrl("", imageUrl), requireActivity())
+            val task = TaskPool.getLoadTask(NamedUrl("", imageUrl), requireActivity().lifecycleScope)
             task.result.observe(viewLifecycleOwner) { file ->
                 baseBind.image.loadImage(file)
             }

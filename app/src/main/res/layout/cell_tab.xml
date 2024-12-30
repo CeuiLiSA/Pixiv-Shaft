@@ -31,6 +31,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
+            android:id="@+id/secondary_title"
             visibleOrGone="@{holder.secondaryTitle.length() > 0}"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -41,10 +42,28 @@
             android:text="@{holder.secondaryTitle}"
             android:textColor="@color/text20"
             android:textSize="13sp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/extra_info"
             app:layout_constraintEnd_toStartOf="@+id/show_more"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/first_title" />
+
+        <TextView
+            android:id="@+id/extra_info"
+            visibleOrGone="@{holder.extraInfo.length() > 0}"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="10dp"
+            android:visibility="gone"
+            android:gravity="start"
+            android:text="@{holder.extraInfo}"
+            android:textColor="@color/green_mark_text_color"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/show_more"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/secondary_title" />
+
 
         <ImageView
             android:id="@+id/show_more"

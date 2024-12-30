@@ -21,6 +21,7 @@ object SessionManager {
 
     private const val USER_KEY = "LoggedInUserJsonKey"
     const val COOKIE_KEY = "web-api-cookie"
+    const val CONTENT_LANGUAGE_KEY = "content-language"
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
     private val gson = Gson()
