@@ -61,21 +61,19 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
             resize(Pair(screenWidth, 300.ppppx))
         }
 
-        lifecycleOwner?.let {
-            holder.loadTask.result.observe(it) { file ->
-                val resolution = getImageDimensions(file)
-                resize(resolution)
-                binding.image.loadImage(file){ }
-            }
-            binding.progressCircular.setUpWithTaskStatus(
-                holder.loadTask.status,
-                binding.errorFrame,
-                binding.emptyTitle,
-                binding.errorRetryButton,
-                holder.loadUrl,
-                it
-            )
+        holder.loadTask.result.observe(lifecycleOwner) { file ->
+            val resolution = getImageDimensions(file)
+            resize(resolution)
+            binding.image.loadImage(file){ }
         }
+        binding.progressCircular.setUpWithTaskStatus(
+            holder.loadTask.status,
+            binding.errorFrame,
+            binding.emptyTitle,
+            binding.errorRetryButton,
+            holder.loadUrl,
+            lifecycleOwner
+        )
 
         binding.image.setOnClick {
             it.findActionReceiverOrNull<GalleryActionReceiver>()
