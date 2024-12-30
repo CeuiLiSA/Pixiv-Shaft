@@ -1,6 +1,7 @@
 package ceui.loxia
 
 import ceui.lisa.activities.Shaft
+import ceui.lisa.helper.LanguageHelper
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.task.TaskPool
 import okhttp3.Interceptor
@@ -20,7 +21,7 @@ class HeaderInterceptor : Interceptor {
     private fun addHeader(before: Request.Builder): Request.Builder {
         val requestNonce = RequestNonce.build()
         before.addHeader(ClientManager.HEADER_AUTH, ClientManager.TOKEN_HEAD + SessionManager.getAccessToken())
-            .addHeader("accept-language", "zh-cn")
+            .addHeader("accept-language", LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage())
             .addHeader("app-os", "ios")
             .addHeader("app-version", "7.13.4")
             .addHeader("x-client-time", requestNonce.xClientTime)

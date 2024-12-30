@@ -221,12 +221,10 @@ fun getGalleryHolders(illust: Illust, coroutineScope: CoroutineScope): List<Gall
 }
 
 fun Fragment.blurBackground(binding: FragmentPixivListBinding, illustId: Long) {
-    val liveIllust = ObjectPool.get<Illust>(illustId)
+    val illust = ObjectPool.get<Illust>(illustId).value ?: return
     binding.dimmer.isVisible = true
-    liveIllust.observe(viewLifecycleOwner) { illust ->
-        Glide.with(this)
-            .load(GlideUrlChild(illust.image_urls?.large))
-            .apply(bitmapTransform(BlurTransformation(15, 3)))
-            .into(binding.pageBackground)
-    }
+    Glide.with(this)
+        .load(GlideUrlChild(illust.image_urls?.large))
+        .apply(bitmapTransform(BlurTransformation(15, 3)))
+        .into(binding.pageBackground)
 }

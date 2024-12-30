@@ -72,6 +72,8 @@ class ArtworkViewModel(
                 result.add(ArtworkInfoHolder(illustId))
                 result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
                 result.add(UserInfoHolder(illust.user?.id ?: 0L))
+                result.add(RedSectionHeaderHolder("简介"))
+                result.add(ArtworkCaptionHolder(illustId))
                 result.add(RedSectionHeaderHolder(context.getString(R.string.related_artworks)))
                 result.add(LoadingHolder(valueContent.refreshState) {
                     valueContent.refresh(

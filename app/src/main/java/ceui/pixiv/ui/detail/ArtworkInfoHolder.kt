@@ -5,8 +5,11 @@ import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellArtworkInfoBinding
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
+import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.refactor.setOnClick
 
 
 class ArtworkInfoHolder(val illustId: Long) : ListItemHolder() {
@@ -22,10 +25,9 @@ class ArtworkInfoViewHolder(bd: CellArtworkInfoBinding) : ListItemViewHolder<Cel
         super.onBindViewHolder(holder, position)
         val liveIllust = ObjectPool.get<Illust>(holder.illustId)
         binding.illust = liveIllust
-        liveIllust.observe(lifecycleOwner) { illust ->
-            if (illust.caption?.isNotEmpty() == true) {
-                binding.caption.text = HtmlCompat.fromHtml(illust.caption, HtmlCompat.FROM_HTML_MODE_COMPACT)
-            }
+        binding.bookmark.setOnClick {
+            it.findActionReceiverOrNull<IllustCardActionReceiver>()
+                ?.onClickBookmarkIllust(it, holder.illustId)
         }
     }
 }

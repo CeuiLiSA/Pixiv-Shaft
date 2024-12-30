@@ -11,28 +11,31 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp">
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/title"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/bookmark"
             android:textSize="16sp"
             android:text="@{illust.title}"
             android:textStyle="bold"
             android:textColor="@color/text00"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"/>
 
-        <TextView
-            android:id="@+id/caption"
-            android:layout_marginTop="10dp"
-            app:layout_constraintTop_toBottomOf="@+id/title"
-            app:layout_constraintStart_toStartOf="parent"
-            android:textSize="14sp"
-            android:textColor="@color/text00"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <ceui.loxia.ProgressImageButton
+            android:id="@+id/bookmark"
+            app:ptb_progress_stroke_width="3dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:padding="8dp"
+            app:ptb_progress_width="14dp"
+            android:src="@{illust.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
+            android:layout_width="@dimen/min_widget_size"
+            android:layout_height="@dimen/min_widget_size" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

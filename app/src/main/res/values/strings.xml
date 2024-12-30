@@ -726,4 +726,5 @@
     <string name="handle_r18g_displaying">设置是否显示 R-18(G) 内容</string>
     <string name="country_and_region">国家和地区</string>
     <string name="handle_content_language">设置内容展示语言</string>
+    <string name="published_on">发布于: %1$s</string>
 </resources>
