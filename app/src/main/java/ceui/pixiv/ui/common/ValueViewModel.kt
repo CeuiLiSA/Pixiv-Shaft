@@ -66,47 +66,18 @@ class ValueViewModel<T>(
     private val responseStore: ResponseStore<T>? = null,
 ) : ViewModel(), RefreshOwner {
 
-    private val _refreshState = MutableLiveData<RefreshState>()
-    override val refreshState: LiveData<RefreshState> = _refreshState
+    private val valueContent = ValueContent(viewModelScope, dataFetcher, responseStore)
 
-    private val _result = MutableLiveData<T>()
-    val result: LiveData<T> = _result
+    override val refreshState: LiveData<RefreshState>
+        get() = valueContent.refreshState
+
+    val result: LiveData<T> get() = valueContent.result
 
     init {
         refresh(RefreshHint.InitialLoad)
     }
 
     override fun refresh(hint: RefreshHint) {
-        viewModelScope.launch {
-            try {
-                _refreshState.value = RefreshState.LOADING(refreshHint = hint)
-                if (hint == RefreshHint.ErrorRetry) {
-                    delay(300L)
-                }
-
-                if (hint == RefreshHint.InitialLoad) {
-                    responseStore?.loadFromCache()?.let { storedResponse ->
-                        _result.value = storedResponse
-                    }
-                }
-
-                if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
-                    val response = withContext(Dispatchers.IO) {
-                        dataFetcher(hint).also {
-                            responseStore?.writeToCache(it)
-                        }
-                    }
-                    _result.value = response
-                }
-
-                _refreshState.value = RefreshState.LOADED(
-                    hasContent = true,
-                    hasNext = false
-                )
-            } catch (ex: Exception) {
-                _refreshState.value = RefreshState.ERROR(ex)
-                Timber.e(ex)
-            }
-        }
+        valueContent.refresh(hint)
     }
 }

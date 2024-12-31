@@ -1,8 +1,7 @@
 package ceui.pixiv.ui.task
 
 import android.net.Uri
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
+import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import com.bumptech.glide.Glide
@@ -10,6 +9,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,7 +20,7 @@ import java.io.File
 
 open class LoadTask(
     val content: NamedUrl,
-    private val activity: FragmentActivity,
+    coroutineScope: CoroutineScope,
     autoStart: Boolean = true
 ) : QueuedRunnable<File>() {
 
@@ -29,7 +29,7 @@ open class LoadTask(
 
     init {
         if (autoStart) {
-            activity.lifecycleScope.launch {
+            coroutineScope.launch {
                 execute()
             }
         }
@@ -37,9 +37,11 @@ open class LoadTask(
 
     override suspend fun execute() {
         // 防止重复执行任务
-        if (_status.value !is TaskStatus.NotStart) {
-            onIgnore()
-            return
+        if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
+            if (_result.value != null) {
+                onIgnore()
+                return
+            }
         }
 
         try {
@@ -83,7 +85,7 @@ open class LoadTask(
 
     private suspend fun downloadFile(): File? {
         return withContext(Dispatchers.IO) {
-            Glide.with(activity)
+            Glide.with(Shaft.getContext())
                 .asFile()
                 .load(
                     content.url.takeIf { it.startsWith("http") }

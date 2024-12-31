@@ -57,9 +57,14 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
             }
 
             override fun createFragment(position: Int): Fragment {
+                val url = if (illust.page_count == 1 && position == 0) {
+                    illust.meta_single_page?.original_image_url ?: ""
+                } else {
+                    illust.meta_pages?.getOrNull(position)?.image_urls?.original ?: ""
+                }
                 return ImgUrlFragment().apply {
                     arguments = ImgUrlFragmentArgs(
-                        illust.meta_pages?.getOrNull(position)?.image_urls?.original ?: "",
+                        url,
                         buildPixivWorksFileName(args.illustId, position)
                     ).toBundle()
                 }

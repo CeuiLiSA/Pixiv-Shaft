@@ -2,6 +2,7 @@ package ceui.loxia
 
 import android.content.Context
 import androidx.core.view.isVisible
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
@@ -119,6 +120,47 @@ fun ItemLoadingBinding.setUpRefreshState(
                 emptyActionButton.text = getString(R.string.retry)
                 emptyTitle.text = refreshState.exception.getHumanReadableMessage(context)
             }
+        }
+    }
+}
+
+fun ItemLoadingBinding.setUpHolderRefreshState(
+    refreshState: LiveData<RefreshState>,
+    viewLifecycleOwner: LifecycleOwner,
+    retryBlock: () -> Unit,
+) {
+    val context = root.context
+    emptyActionButton.setOnClick {
+        retryBlock.invoke()
+    }
+    refreshState.observe(viewLifecycleOwner) { refreshState ->
+        if (refreshState is RefreshState.LOADED) {
+            progressCircular.hideProgress()
+            loadingFrame.isVisible = false
+
+            if (refreshState.hasContent) {
+                emptyFrame.isVisible = false
+            } else {
+                emptyFrame.isVisible = true
+                emptyActionButton.text = context.getString(R.string.refresh)
+                emptyTitle.text = context.getString(R.string.empty_content_here)
+            }
+        } else if (refreshState is RefreshState.LOADING) {
+            emptyFrame.isVisible = false
+            if (refreshState.refreshHint == RefreshHint.PullToRefresh) {
+                loadingFrame.isVisible = false
+                progressCircular.hideProgress()
+            } else if (refreshState.refreshHint == RefreshHint.InitialLoad) {
+                loadingFrame.isVisible = true
+                progressCircular.showProgress()
+            }
+        } else if (refreshState is RefreshState.ERROR) {
+            progressCircular.hideProgress()
+            loadingFrame.isVisible = false
+
+            emptyFrame.isVisible = true
+            emptyActionButton.text = context.getString(R.string.retry)
+            emptyTitle.text = refreshState.exception.getHumanReadableMessage(context)
         }
     }
 }

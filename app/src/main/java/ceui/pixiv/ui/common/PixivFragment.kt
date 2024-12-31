@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -43,8 +44,11 @@ import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
+import ceui.pixiv.ui.article.ArticlesFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
+import ceui.pixiv.ui.detail.ArtworkFragmentArgs
+import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
 import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
@@ -156,8 +160,8 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 
     override fun onClickIllust(illustId: Long) {
         pushFragment(
-            R.id.navigation_illust,
-            IllustFragmentArgs(illustId).toBundle()
+            R.id.navigation_viewpager_artwork,
+            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, illustId).toBundle()
         )
     }
 
@@ -168,6 +172,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 }
 
 interface ViewPagerFragment {
+
+}
+
+interface FitsSystemWindowFragment {
 
 }
 
@@ -216,6 +224,13 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
 }
 
 fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner, listMode: Int = ListMode.STAGGERED_GRID) {
+    if (this is FitsSystemWindowFragment) {
+        binding.topShadow.isVisible = true
+        val params = binding.refreshLayout.layoutParams as ConstraintLayout.LayoutParams
+        // 将 topToTop 设置为 parent
+        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+        binding.refreshLayout.layoutParams = params
+    }
     setUpToolbar(binding.toolbarLayout, binding.listView)
     setUpLayoutManager(binding.listView, listMode)
     val ctx = requireContext()
@@ -265,10 +280,13 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
         }
     }
     if (viewModel is HoldersContainer) {
+        val fragmentViewModel: NavFragmentViewModel by viewModels()
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
-            adapter.submitList(holders)
+            adapter.submitList(holders) {
+                viewModel.prepareIdMap(fragmentViewModel.fragmentUniqueId)
+            }
         }
     }
 }

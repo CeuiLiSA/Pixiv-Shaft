@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.common
 
+import androidx.core.text.HtmlCompat
+import androidx.core.view.isVisible
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
 import ceui.lisa.utils.Common
@@ -32,6 +34,12 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
             holder.novel.user?.id?.let {
                 sender.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(it)
             }
+        }
+        if (holder.novel.caption?.isNotEmpty() == true) {
+            binding.caption.isVisible = true
+            binding.caption.text = HtmlCompat.fromHtml(holder.novel.caption, HtmlCompat.FROM_HTML_MODE_COMPACT)
+        } else {
+            binding.caption.isVisible = false
         }
         binding.root.setOnClick {
             it.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(holder.novel)

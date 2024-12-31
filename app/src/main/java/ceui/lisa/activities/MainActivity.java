@@ -32,6 +32,7 @@ import com.tbruyelle.rxpermissions3.RxPermissions;
 
 import java.io.File;
 
+import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.ActivityCoverBinding;
@@ -80,7 +81,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initView() {
-        Dev.isDev = false;
         baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
         baseBind.navView.setNavigationItemSelectedListener(this);
         userHead = baseBind.navView.getHeaderView(0).findViewById(R.id.user_head);
@@ -225,7 +225,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             if (!SessionManager.INSTANCE.isLoggedIn()) {
                 SessionManager.INSTANCE.updateSession(sUserModel);
             }
-            if (Dev.isDev) {
+            if (BuildConfig.IS_DEBUG_MODE) {
                 startActivity(new Intent(this, HomeActivity.class));
                 finish();
             } else {

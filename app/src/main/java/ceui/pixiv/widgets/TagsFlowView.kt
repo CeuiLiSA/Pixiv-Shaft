@@ -169,7 +169,7 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         child.background = selector
         val textView = child.findViewById<TextView>(R.id.hashtag_name)
-        textView.text = (tag.translated_name?.takeIf { it.isNotEmpty() } ?: tag.name)
+        textView.text = tag.name
 
         val normalTextColor = getIntColor(Shaft.getThemeColor())
         val selectedTextColor = Color.WHITE

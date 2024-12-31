@@ -2,11 +2,12 @@ package ceui.pixiv.ui.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import ceui.lisa.utils.Common
+import ceui.lisa.models.ModelObject
 import ceui.loxia.Client
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.pixiv.ui.detail.ArtworksMap
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -28,7 +29,7 @@ open class DataSource<Item, T: KListShow<Item>>(
     private val currentProtoItems = mutableListOf<Item>()
 
     private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
-    val itemHolders: LiveData<List<ListItemHolder>> = _itemHolders
+    val itemHoldersImpl: LiveData<List<ListItemHolder>> = _itemHolders
 
     private var _nextPageUrl: String? = null
     private val gson = Gson()
@@ -36,9 +37,9 @@ open class DataSource<Item, T: KListShow<Item>>(
     private var responseClass: Class<T>? = null
 
     private val _refreshState = MutableLiveData<RefreshState>()
-    val refreshState: LiveData<RefreshState> = _refreshState
+    val refreshStateImpl: LiveData<RefreshState> = _refreshState
 
-    open suspend fun refreshData(hint: RefreshHint) {
+    open suspend fun refreshImpl(hint: RefreshHint) {
         _refreshState.value = RefreshState.LOADING(refreshHint = hint)
         try {
             if (hint == RefreshHint.ErrorRetry) {
@@ -79,7 +80,7 @@ open class DataSource<Item, T: KListShow<Item>>(
         )
     }
 
-    open suspend fun loadMoreData() {
+    open suspend fun loadMoreImpl() {
         val nextPageUrl = _nextPageUrl ?: return
         _refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.LoadMore)
         try {
@@ -93,6 +94,16 @@ open class DataSource<Item, T: KListShow<Item>>(
             _refreshState.value = RefreshState.ERROR(ex)
             Timber.e(ex)
         }
+    }
+
+    fun prepareIdMapImpl(fragmentUniqueId: String) {
+        val idList = mutableListOf<Long>()
+        currentProtoItems.forEach { item ->
+            if (item is ModelObject) {
+                idList.add(item.objectUniqueId)
+            }
+        }
+        ArtworksMap.store[fragmentUniqueId] = idList
     }
 
     private fun updateOffsetInUrl(url: String, newOffset: Int): String {

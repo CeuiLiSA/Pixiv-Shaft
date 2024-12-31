@@ -21,9 +21,9 @@ android {
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
         minSdk 23
-        targetSdkVersion 35
-        versionCode 324
-        versionName "4.2.2"
+        targetSdkVersion 34
+        versionCode 328
+        versionName "4.2.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -49,8 +49,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            buildConfigField "boolean", "IS_DEBUG_MODE", "true" // 在 debug 模式下为 true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
         release {
             minifyEnabled false
+            buildConfigField "boolean", "IS_DEBUG_MODE", "false" // 在 release 模式下为 false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
@@ -72,6 +78,7 @@ android {
     buildFeatures {
         dataBinding true
         viewBinding true
+        buildConfig = true // 启用 BuildConfig
     }
     packagingOptions {
         resources {
