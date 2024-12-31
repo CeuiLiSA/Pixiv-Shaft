@@ -28,10 +28,6 @@ object SessionManager {
 
     val loggedInAccount: LiveData<AccountResponse> = _loggedInAccount
 
-
-    private val _isRenewToken = MutableLiveData(false)
-    val isRenewToken: LiveData<Boolean> = _isRenewToken
-
     private val _newTokenEvent = MutableLiveData<Event<Long>>()
     val newTokenEvent: LiveData<Event<Long>> = _newTokenEvent
 
@@ -100,7 +96,6 @@ object SessionManager {
         return runBlocking(Dispatchers.IO) {
             try {
                 _newTokenEvent.postValue(Event(System.currentTimeMillis()))
-                _isRenewToken.postValue(true)
                 val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
                 val userModel = Client.authApi.newRefreshToken(
                     FragmentLogin.CLIENT_ID,
@@ -121,8 +116,6 @@ object SessionManager {
             } catch (ex: Exception) {
                 Timber.e(ex)
                 null
-            } finally {
-                _isRenewToken.postValue(false)
             }
         }
     }

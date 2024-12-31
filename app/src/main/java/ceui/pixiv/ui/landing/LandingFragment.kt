@@ -11,8 +11,6 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (SessionManager.isLoggedIn) {
-            fadeInFragment(R.id.navigation_home_viewpager)
-        }
+
     }
 }
