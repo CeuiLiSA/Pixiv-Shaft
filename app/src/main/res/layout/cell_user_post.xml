@@ -33,8 +33,9 @@
 
         <TextView
             android:id="@+id/user_name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            app:layout_constraintEnd_toStartOf="@+id/end_layout"
             android:layout_marginStart="12dp"
             android:text="@{user.name}"
             android:textColor="@color/text00"
@@ -52,6 +53,39 @@
             android:textSize="13sp"
             app:layout_constraintStart_toEndOf="@+id/user_icon"
             app:layout_constraintTop_toBottomOf="@+id/user_name" />
+
+        <FrameLayout
+            android:id="@+id/end_layout"
+            android:layout_width="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/user_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/user_icon"
+            android:layout_height="wrap_content">
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/follow"
+                visibleOrGone="@{!user.is_followed()}"
+                style="@style/BlueShiningButton"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/follow"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp" />
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/unfollow"
+                visibleOrGone="@{user.is_followed()}"
+                style="@style/RedShiningButton"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/unfollow"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp" />
+        </FrameLayout>
 
         <!-- 帖子图片（需要根据宽高比显示） -->
         <net.csdn.roundview.RoundImageView

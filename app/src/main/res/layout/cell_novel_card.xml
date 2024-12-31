@@ -18,7 +18,7 @@
         <net.csdn.roundview.RoundImageView
             android:id="@+id/novel_cover"
             loadMedia="@{holder.novel.image_urls.findMaxSizeUrl()}"
-            android:layout_width="100dp"
+            android:layout_width="130dp"
             android:layout_height="0dp"
             app:layout_constraintDimensionRatio="240:338"
             app:layout_constraintStart_toStartOf="parent"
@@ -51,8 +51,7 @@
             android:includeFontPadding="false"
             android:layout_marginTop="6dp"
             android:ellipsize="end"
-            android:maxLines="3"
-            android:text="@{holder.novel.caption}"
+            android:maxLines="5"
             android:textColor="@color/text20"
             android:textSize="13sp"
             app:layout_constraintStart_toEndOf="@+id/novel_cover"

@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.task
 
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import ceui.loxia.Illust
 import ceui.loxia.KListShow
 import ceui.pixiv.ui.common.DataSource
@@ -28,11 +29,10 @@ class QueuedTaskDataSource(
             }
         }
     }
-    items.map {
-        val taskId = it.url.hashCode().toLong()
-        val task = TaskQueueManager.findExistingTask(taskId) ?: DownloadTask(it, activity).also {
+    items.map { namedUrl ->
+        val task = TaskPool.getDownloadTask(namedUrl, activity.lifecycleScope).also {
             TaskQueueManager.addTask(it)
         }
-        task
-    }.map { QueuedTaskHolder(it, illust) }
+        QueuedTaskHolder(task, illust)
+    }
 })

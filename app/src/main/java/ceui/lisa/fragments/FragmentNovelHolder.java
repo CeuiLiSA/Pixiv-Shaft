@@ -34,6 +34,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.SearchActivity;
@@ -452,11 +457,9 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 holderList.add(new TextDescHolder(getString(R.string.string_107)));
                 holderList.add(new SpaceHolder());
                 CommonAdapter commonAdapter = new CommonAdapter(getViewLifecycleOwner());
-                baseBind.viewPager.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(16)));
                 baseBind.viewPager.setAdapter(commonAdapter);
                 commonAdapter.submitList(holderList);
-            } else {
-                baseBind.viewPager.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(16)));
+            } else  {
                 baseBind.viewPager.setAdapter(new VNewAdapter(novelDetail.getParsedChapters(), mContext));
             }
             if (novelDetail.getNovel_marker() != null) {

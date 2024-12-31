@@ -26,7 +26,7 @@ abstract class QueuedRunnable<ResultT> {
     }
 
     open fun onIgnore() {
-        Timber.d("${this.javaClass.simpleName}-${taskId} empty onIgnore")
+        Timber.d("${this.javaClass.simpleName}-${taskId} empty onIgnore ${_status.value}")
     }
 
     open fun onStart() {

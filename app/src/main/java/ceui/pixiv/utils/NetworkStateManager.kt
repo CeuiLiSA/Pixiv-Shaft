@@ -14,7 +14,7 @@ interface INetworkState {
     val networkState: LiveData<NetworkType>
 }
 
-class NetworkStateManager(context: Context) {
+class NetworkStateManager(context: Context) : INetworkState {
 
     enum class NetworkType {
         WIFI,
@@ -22,10 +22,10 @@ class NetworkStateManager(context: Context) {
         NONE
     }
 
-    private val _networkState = MutableLiveData<NetworkType>()
-    val networkState: LiveData<NetworkType> = _networkState
+    private val _networkState = MutableLiveData(NetworkType.NONE)
+    override val networkState: LiveData<NetworkType> get() = _networkState
 
-    private val connectivityManager =
+    private val connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -43,33 +43,41 @@ class NetworkStateManager(context: Context) {
     }
 
     init {
-        val networkRequest = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            connectivityManager.registerDefaultNetworkCallback(networkCallback)
-        } else {
-            connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+        registerNetworkCallback()
+    }
+
+    private fun registerNetworkCallback() {
+        try {
+            val networkRequest = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                connectivityManager.registerDefaultNetworkCallback(networkCallback)
+            } else {
+                connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _networkState.postValue(NetworkType.NONE)
         }
     }
 
     fun unregisterNetworkCallback() {
-        connectivityManager.unregisterNetworkCallback(networkCallback)
+        try {
+            connectivityManager.unregisterNetworkCallback(networkCallback)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun updateNetworkType(network: Network?) {
-        val networkType = if (network == null) {
-            NetworkType.NONE
-        } else {
-            val currentNetworkCapabilities = connectivityManager.getNetworkCapabilities(network)
-            when {
-                currentNetworkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> NetworkType.WIFI
-                currentNetworkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> NetworkType.CELLULAR
-                else -> NetworkType.NONE
-            }
+        val networkCapabilities = network?.let { connectivityManager.getNetworkCapabilities(it) }
+        val networkType = when {
+            networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> NetworkType.WIFI
+            networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> NetworkType.CELLULAR
+            else -> NetworkType.NONE
         }
-
         _networkState.postValue(networkType)
     }
 }
-

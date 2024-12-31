@@ -50,8 +50,12 @@ class PixivListViewModel<Item, T : KListShow<Item>>(
     private val _dataSource: DataSource<Item, T>
 ) : ViewModel(), RefreshOwner, LoadMoreOwner, HoldersContainer, DataSourceContainer<Item, T> {
 
-    override val refreshState: LiveData<RefreshState> = _dataSource.refreshState
-    override val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHolders
+    override val refreshState: LiveData<RefreshState> = _dataSource.refreshStateImpl
+    override val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHoldersImpl
+
+    override fun prepareIdMap(fragmentUniqueId: String) {
+        _dataSource.prepareIdMapImpl(fragmentUniqueId)
+    }
 
     init {
         if (_dataSource.initialLoad()) {
@@ -61,13 +65,13 @@ class PixivListViewModel<Item, T : KListShow<Item>>(
 
     override fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
-            _dataSource.refreshData(hint)
+            _dataSource.refreshImpl(hint)
         }
     }
 
     override fun loadMore() {
         viewModelScope.launch {
-            _dataSource.loadMoreData()
+            _dataSource.loadMoreImpl()
         }
     }
 

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="illust"
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.Illust>" />
+    </data>
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/caption"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/publish_time"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/illust_id"
+            android:textSize="14sp"
+            android:text="@{`ID: ` + String.valueOf(illust.id)}"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
+        <ceui.pixiv.widgets.TagsFlowView
+            android:id="@+id/tags_flow_view"
+            visibleOrGone="@{illust.tags.size() > 0}"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:dividerDrawable="@drawable/spacer_8dp"
+            app:flexWrap="wrap"
+            app:showDivider="middle"
+            app:tags="@{illust.tags}">
+
+        </ceui.pixiv.widgets.TagsFlowView>
+
+    </LinearLayout>
+</layout>

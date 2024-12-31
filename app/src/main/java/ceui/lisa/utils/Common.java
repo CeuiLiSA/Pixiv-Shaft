@@ -107,15 +107,13 @@ public class Common {
 
     public static void logOut(Context context, boolean deleteUser) {
         if (Shaft.sUserModel != null) {
-            if (!Dev.isDev) { //测试状态，不要真的退出登录，只是跳转到登录页面
-                Shaft.sUserModel.getUser().setIs_login(false);
-                Local.saveUser(Shaft.sUserModel);
-                if(deleteUser){
-                    UserEntity userEntity = new UserEntity();
-                    userEntity.setUserID(Shaft.sUserModel.getUserId());
-                    AppDatabase.getAppDatabase(context)
-                            .downloadDao().deleteUser(userEntity);
-                }
+            Shaft.sUserModel.getUser().setIs_login(false);
+            Local.saveUser(Shaft.sUserModel);
+            if(deleteUser){
+                UserEntity userEntity = new UserEntity();
+                userEntity.setUserID(Shaft.sUserModel.getUserId());
+                AppDatabase.getAppDatabase(context)
+                        .downloadDao().deleteUser(userEntity);
             }
             Intent intent = new Intent(context, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
