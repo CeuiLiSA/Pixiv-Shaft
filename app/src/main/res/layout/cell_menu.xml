@@ -12,6 +12,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:background="@drawable/cell_background"
+        android:minHeight="70dp"
         android:layout_height="wrap_content">
 
         <TextView
