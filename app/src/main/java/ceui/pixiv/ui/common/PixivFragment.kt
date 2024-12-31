@@ -60,6 +60,7 @@ import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
+import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
 import timber.log.Timber
 
@@ -324,4 +325,14 @@ fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode
             }
         }
     }
+}
+
+fun Fragment.setUpCustomAdapter(binding: FragmentPixivListBinding, listMode: Int): CommonAdapter {
+    val adapter = CommonAdapter(viewLifecycleOwner)
+    binding.listView.adapter = adapter
+    binding.refreshLayout.setRefreshHeader(FalsifyHeader(requireContext()))
+    binding.refreshLayout.setRefreshFooter(FalsifyFooter(requireContext()))
+    setUpToolbar(binding.toolbarLayout, binding.listView)
+    setUpLayoutManager(binding.listView, listMode)
+    return adapter
 }

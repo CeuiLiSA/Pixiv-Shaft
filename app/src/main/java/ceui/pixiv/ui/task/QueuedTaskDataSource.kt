@@ -8,11 +8,12 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.works.buildPixivWorksFileName
 
 class QueuedTaskDataSource(
-    private val taskUuid: String, private val activity: FragmentActivity
+    private val humanReadableTask: HumanReadableTask,
+    private val activity: FragmentActivity
 ) : DataSource<Illust, KListShow<Illust>>(dataFetcher = {
     object : KListShow<Illust> {
         override val displayList: List<Illust>
-            get() = loadIllustsFromCache(taskUuid) ?: listOf()
+            get() = loadIllustsFromCache(humanReadableTask.taskUUID) ?: listOf()
         override val nextPageUrl: String?
             get() = null
     }

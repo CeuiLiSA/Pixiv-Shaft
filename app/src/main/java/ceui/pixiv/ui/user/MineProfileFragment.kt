@@ -79,6 +79,11 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             UserFriendsFragmentArgs(SessionManager.loggedInUid).toBundle()
                         )
                     },
+                    TabCellHolder("屏蔽列表").onItemClick {
+                        pushFragment(
+                            R.id.navigation_blocking_item_list,
+                        )
+                    },
                     TabCellHolder(getString(R.string.created_tasks)).onItemClick {
                         pushFragment(
                             R.id.navigation_task_preview_list,

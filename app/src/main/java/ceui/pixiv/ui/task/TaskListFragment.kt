@@ -61,7 +61,7 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
     }
 
     override fun onClickTaskPreview(humanReadableTask: HumanReadableTask) {
-        pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(humanReadableTask.taskUUID).toBundle())
+        pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(task = humanReadableTask).toBundle())
     }
 }
 

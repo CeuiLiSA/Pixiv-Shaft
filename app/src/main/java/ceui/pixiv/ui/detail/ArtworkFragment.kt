@@ -55,29 +55,31 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
             }
 
             binding.toolbarLayout.naviMore.setOnClick {
-                showActionMenu {
-                    add(
-                        MenuItem("查看评论") {
-                            pushFragment(
-                                R.id.navigation_comments_illust, CommentsFragmentArgs(
-                                    safeArgs.illustId, illust.user?.id ?: 0L,
-                                    ObjectType.ILLUST
-                                ).toBundle()
-                            )
-                        }
-                    )
-                    add(
-                        MenuItem("举报作品") {
-
-                        }
-                    )
-                    if (isBlocked == true) {
+                if (isBlocked == true) {
+                    showActionMenu {
                         add(
                             MenuItem(getString(R.string.remove_blocking)) {
                                 BlockingManager.removeBlockedWork(safeArgs.illustId)
                             }
                         )
-                    } else {
+                    }
+                } else {
+                    showActionMenu {
+                        add(
+                            MenuItem(getString(R.string.view_comments)) {
+                                pushFragment(
+                                    R.id.navigation_comments_illust, CommentsFragmentArgs(
+                                        safeArgs.illustId, illust.user?.id ?: 0L,
+                                        ObjectType.ILLUST
+                                    ).toBundle()
+                                )
+                            }
+                        )
+                        add(
+                            MenuItem(getString(R.string.flag_artwork)) {
+
+                            }
+                        )
                         add(
                             MenuItem(getString(R.string.add_blocking)) {
                                 BlockingManager.addBlockedWork(safeArgs.illustId)

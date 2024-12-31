@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.task
 
+import android.os.Parcelable
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.Illust
@@ -17,6 +18,7 @@ import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.parcelize.Parcelize
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
@@ -31,12 +33,13 @@ object PixivTaskType {
     const val BookmarkAll = 2
 }
 
+@Parcelize
 data class HumanReadableTask(
     val taskUUID: String,
     val taskFullName: String,
     val taskType: Int,
     val createdTime: Long,
-)
+) : Parcelable
 
 open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
     private val parentFragment: PixivFragment,
@@ -102,7 +105,7 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
                     Common.showLog("FetchAllTask fileSize ${fileSize}")
 
                     withContext(Dispatchers.Main) {
-                        onEnd(taskUUID, results)
+                        onEnd(humanReadableTask, results)
                     }
                 } catch (ex: Exception) {
                     ex.printStackTrace()
@@ -112,8 +115,8 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
         }
     }
 
-    open fun onEnd(taskUUID: String, results: List<Item>) {
-        parentFragment.pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(taskUuid = taskUUID).toBundle())
+    open fun onEnd(humanReadableTask: HumanReadableTask, results: List<Item>) {
+        parentFragment.pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(task = humanReadableTask).toBundle())
         ToastUtils.show("全部结束")
         Common.showLog("FetchAllTask all end ${this.results.size}")
     }

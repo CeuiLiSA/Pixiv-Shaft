@@ -729,4 +729,6 @@
     <string name="published_on">发布于: %1$s</string>
     <string name="remove_blocking">取消屏蔽</string>
     <string name="add_blocking">屏蔽作品</string>
+    <string name="view_comments">查看评论</string>
+    <string name="flag_artwork">举报作品</string>
 </resources>
