@@ -11,7 +11,14 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.SeekBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.PathUtils;
@@ -62,8 +69,6 @@ import ceui.lisa.view.ScrollChange;
 import ceui.loxia.SpaceHolder;
 import ceui.loxia.TextDescHolder;
 import ceui.loxia.WebNovel;
-import ceui.loxia.novel.NovelImageHolder;
-import ceui.loxia.novel.NovelTextHolder;
 import ceui.pixiv.ui.common.CommonAdapter;
 import ceui.pixiv.ui.common.ListItemHolder;
 import gdut.bsx.share2.Share2;
@@ -368,7 +373,10 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                                 .show(mActivity);
                     }
                     return true;
-                }else if(item.getItemId() == R.id.action_change_text_color){
+                } else if (item.getItemId() == R.id.action_font_size) {
+                    showFontSizeDialog();
+                    return true;
+                } else if (item.getItemId() == R.id.action_change_text_color) {
                     if (Shaft.sSettings.getNovelHolderTextColor() != 0) {
                         ColorPickerDialog.newBuilder()
                                 .setDialogId(Params.DIALOG_NOVEL_TEXT_COLOR)
@@ -431,7 +439,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         if (novelText == null || novelText.isEmpty()) {
             novelText = "";
         }
-        if(novelDetail.getParsedChapters() != null && !novelDetail.getParsedChapters().isEmpty()){
+        if (novelDetail.getParsedChapters() != null && !novelDetail.getParsedChapters().isEmpty()) {
             String uploadedImageMark = "[uploadedimage:";
             String pixivImageMark = "[pixivimage:";
             if (novelText.contains(uploadedImageMark) || novelText.contains(pixivImageMark)) {
@@ -454,27 +462,27 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             } else  {
                 baseBind.viewPager.setAdapter(new VNewAdapter(novelDetail.getParsedChapters(), mContext));
             }
-            if(novelDetail.getNovel_marker() != null){
+            if (novelDetail.getNovel_marker() != null) {
                 int parsedSize = novelDetail.getParsedChapters().size();
-                int pageIndex = Math.min(novelDetail.getNovel_marker().getPage(),novelDetail.getParsedChapters().get(parsedSize-1).getChapterIndex());
-                pageIndex = Math.max(pageIndex,novelDetail.getParsedChapters().get(0).getChapterIndex());
-                baseBind.viewPager.scrollToPosition(pageIndex-1);
+                int pageIndex = Math.min(novelDetail.getNovel_marker().getPage(), novelDetail.getParsedChapters().get(parsedSize - 1).getChapterIndex());
+                pageIndex = Math.max(pageIndex, novelDetail.getParsedChapters().get(0).getChapterIndex());
+                baseBind.viewPager.scrollToPosition(pageIndex - 1);
 
                 // 设置书签
                 int markerPage = mNovelDetail.getNovel_marker().getPage();
-                if(markerPage > 0){
+                if (markerPage > 0) {
                     baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_add)));
-                }else{
+                } else {
                     baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_none)));
                 }
-            } else  {
+            } else {
                 baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_none)));
             }
 
             baseBind.saveNovel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    View someView = baseBind.viewPager.findChildViewUnder(0,0);
+                    View someView = baseBind.viewPager.findChildViewUnder(0, 0);
                     int currentPageIndex = baseBind.viewPager.findContainingViewHolder(someView).getAdapterPosition();
                     int chapterIndex = mNovelDetail.getParsedChapters().get(currentPageIndex).getChapterIndex();
                     PixivOperate.postNovelMarker(mNovelDetail.getNovel_marker(), mNovelBean.getId(), chapterIndex, baseBind.saveNovel);
@@ -493,4 +501,61 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             }
         }
     }
+
+    private void showFontSizeDialog() {
+        View view = LayoutInflater.from(mContext).inflate(R.layout.dialog_font_size, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setView(view);
+
+        TextView previewText = view.findViewById(R.id.preview_text);
+        final SeekBar seekBar = view.findViewById(R.id.font_size_seekbar);
+        TextView currentSizeText = view.findViewById(R.id.current_size_text);
+
+        // 从设置中获取当前字体大小
+        int currentSize = Shaft.sSettings.getNovelHolderTextSize();
+        if (currentSize == 0) {
+            currentSize = 16; // 默认大小
+        }
+
+        seekBar.setProgress(currentSize);
+        currentSizeText.setText(currentSize + "sp");
+        previewText.setTextSize(currentSize);
+
+        // 添加确认和取消按钮
+        builder.setPositiveButton(R.string.sure, (dialog, which) -> {
+            if (mActivity instanceof TemplateActivity) {
+                ((TemplateActivity) mActivity).onFontSizeSelected(seekBar.getProgress());
+            }
+        });
+
+        builder.setNegativeButton(R.string.cancel, null);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                previewText.setTextSize(progress);
+                currentSizeText.setText(progress + "sp");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+    }
+
+    public void setTextSize(int size) {
+        // 更新 ViewPager 中的文本大小
+        RecyclerView.Adapter<?> adapter = baseBind.viewPager.getAdapter();
+        if (adapter instanceof VNewAdapter) {
+            ((VNewAdapter) adapter).updateTextSize(size);
+        }
+    }
+
 }

@@ -14,6 +14,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_font_size"
+        android:orderInCategory="100"
+        android:title="@string/string_font_size"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_save"
         android:orderInCategory="100"
         android:title="@string/string_82"

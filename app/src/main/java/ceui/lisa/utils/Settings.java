@@ -153,6 +153,8 @@ public class Settings {
 
     private int novelHolderTextColor = 0;
 
+    private int novelHolderTextSize = 16;
+
     private int bottomBarOrder = 0;
 
     private boolean reverseDialogNeverShowAgain = false;
@@ -491,6 +493,14 @@ public class Settings {
 
     public void setNovelHolderTextColor(int novelHolderTextColor) {
         this.novelHolderTextColor = novelHolderTextColor;
+    }
+
+    public int getNovelHolderTextSize() {
+        return novelHolderTextSize;
+    }
+    
+    public void setNovelHolderTextSize(int size) {
+        this.novelHolderTextSize = size;
     }
 
     public int getBottomBarOrder() {
