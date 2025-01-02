@@ -5,11 +5,8 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.lisa.view.LinearItemDecoration
-import ceui.lisa.view.NovelItemDecoration
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.observeEvent
@@ -18,8 +15,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.widgets.DialogViewModel
-import ceui.refactor.ppppx
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class SearchNovelFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val searchViewModel by viewModels<SearchViewModel>(ownerProducer = { requireParentFragment() })

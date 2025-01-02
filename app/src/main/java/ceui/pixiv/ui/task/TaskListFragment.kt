@@ -2,28 +2,19 @@ package ceui.pixiv.ui.task
 
 import android.os.Bundle
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
-import ceui.lisa.annotations.ItemHolder
-import ceui.lisa.databinding.CellTaskPreviewBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Illust
 import ceui.loxia.KListShow
-import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.pushFragment
-import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.IllustCardHolder
-import ceui.pixiv.ui.common.ListItemHolder
-import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
-import kotlinx.coroutines.delay
 import timber.log.Timber
 
 class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPreviewActionReceiver {

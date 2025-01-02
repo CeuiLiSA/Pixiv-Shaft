@@ -4,12 +4,11 @@ import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
-import ceui.lisa.utils.Common
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.user.UserActionReceiver
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.setOnClick
 
 class NovelCardHolder(val novel: Novel) : ListItemHolder() {
     init {

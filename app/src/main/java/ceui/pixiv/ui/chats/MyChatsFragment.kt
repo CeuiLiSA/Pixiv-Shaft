@@ -10,10 +10,9 @@ import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.TitledViewPagerFragment
-import ceui.pixiv.ui.home.WalkthroughFragment
 import ceui.pixiv.ui.rank.RankPreviewFragment
 import ceui.pixiv.widgets.setUpWith
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), HomeTabContainer {
 

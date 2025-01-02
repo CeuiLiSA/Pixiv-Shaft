@@ -30,9 +30,9 @@ import ceui.pixiv.ui.works.PagedImgActionReceiver
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.ui.works.ViewPagerViewModel
 import ceui.pixiv.widgets.alertYesOrCancel
-import ceui.refactor.animateFadeInQuickly
-import ceui.refactor.animateFadeOutQuickly
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.animateFadeInQuickly
+import ceui.pixiv.utils.animateFadeOutQuickly
+import ceui.pixiv.utils.setOnClick
 import com.blankj.utilcode.util.UriUtils
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView

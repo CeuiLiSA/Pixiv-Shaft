@@ -5,7 +5,6 @@ import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.navArgs
@@ -22,7 +21,6 @@ import ceui.pixiv.ui.user.UserBookmarkedNovelFragmentArgs
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
 import ceui.pixiv.widgets.setUpWith
-import ceui.refactor.viewBinding
 
 object ViewPagerContentType {
     const val MyBookmarkIllustOrManga = 1

@@ -3,14 +3,11 @@ package ceui.pixiv.ui.circles
 import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentCircleBinding
 import ceui.lisa.databinding.FragmentCircleInfoBinding
-import ceui.loxia.CircleResponse
 import ceui.loxia.Client
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class CircleInfoFragment : PixivFragment(R.layout.fragment_circle_info) {
 

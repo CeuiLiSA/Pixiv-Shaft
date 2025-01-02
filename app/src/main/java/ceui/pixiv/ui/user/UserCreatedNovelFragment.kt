@@ -3,22 +3,16 @@ package ceui.pixiv.ui.user
 import android.os.Bundle
 import android.view.View
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.lisa.utils.Params
-import ceui.lisa.view.LinearItemDecoration
-import ceui.lisa.view.NovelItemDecoration
 import ceui.loxia.Client
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.PvisionCardHolder
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.refactor.ppppx
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class UserCreatedNovelFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 

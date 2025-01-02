@@ -15,7 +15,7 @@ import ceui.loxia.findFragmentOrNull
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.setOnClick
 
 class UserPreviewHolder(val userPreview: UserPreview) : ListItemHolder() {
     init {

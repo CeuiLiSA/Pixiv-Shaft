@@ -1,6 +1,5 @@
 package ceui.pixiv.ui.detail
 
-import androidx.core.text.HtmlCompat
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellArtworkInfoBinding
 import ceui.loxia.Illust
@@ -9,7 +8,7 @@ import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.setOnClick
 
 
 class ArtworkInfoHolder(val illustId: Long) : ListItemHolder() {

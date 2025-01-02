@@ -1,6 +1,5 @@
 package ceui.loxia.novel
 
-import androidx.core.content.ContextCompat
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.annotations.ItemHolder
@@ -13,10 +12,8 @@ import ceui.loxia.NovelImages
 import ceui.loxia.WebNovel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.model.GlideUrl
-import java.util.HashMap
 
 class NovelChapterHolder(val text: String, val textColor: Int) : ListItemHolder() {
     override fun getItemId(): Long {

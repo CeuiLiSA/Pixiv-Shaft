@@ -22,9 +22,7 @@ import ceui.lisa.databinding.FragmentWebBinding
 import ceui.lisa.utils.Common
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.settings.SettingsFragment
-import ceui.refactor.viewBinding
-import com.scwang.smart.refresh.header.FalsifyFooter
+import ceui.pixiv.ui.common.viewBinding
 import com.scwang.smart.refresh.header.MaterialHeader
 import com.tencent.mmkv.MMKV
 

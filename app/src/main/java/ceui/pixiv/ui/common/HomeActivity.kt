@@ -13,7 +13,7 @@ import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.INetworkState
 import ceui.pixiv.utils.NetworkStateManager
-import ceui.refactor.ppppx
+import ceui.pixiv.utils.ppppx
 import timber.log.Timber
 
 class HomeActivity : AppCompatActivity(), INetworkState {

@@ -3,27 +3,20 @@ package ceui.pixiv.ui.search
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.IllustResponse
 import ceui.loxia.RefreshHint
 import ceui.loxia.UserPreview
 import ceui.loxia.UserPreviewResponse
 import ceui.loxia.observeEvent
-import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.user.UserPreviewHolder
-import ceui.refactor.ppppx
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class SearchUserSource(
     private val keywordProvider: () -> String

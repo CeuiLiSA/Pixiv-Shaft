@@ -5,14 +5,12 @@ import android.content.Context.INPUT_METHOD_SERVICE
 import android.graphics.Rect
 import android.os.Build
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
-import androidx.annotation.RequiresApi
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.updatePadding
 import androidx.drawerlayout.widget.DrawerLayout
@@ -23,7 +21,7 @@ import ceui.lisa.R
 import ceui.loxia.asLiveData
 import ceui.loxia.findAncestorOrSelf
 import ceui.loxia.findFragmentOrNull
-import ceui.refactor.findAncestorOrNull
+import ceui.pixiv.utils.findAncestorOrNull
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlin.math.max
 

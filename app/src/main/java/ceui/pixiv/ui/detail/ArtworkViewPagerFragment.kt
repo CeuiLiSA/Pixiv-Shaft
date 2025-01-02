@@ -8,7 +8,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentArtworkViewpagerBinding
 import ceui.loxia.threadSafeArgs
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 import timber.log.Timber
 
 

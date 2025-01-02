@@ -7,14 +7,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.models.ObjectSpec
 import ceui.lisa.view.LinearItemDecorationKt
-import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
-import ceui.loxia.User
 import ceui.loxia.clearItemDecorations
 import ceui.loxia.combineLatest
+import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.pushFragment
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.ui.blocking.BlockingManager
@@ -23,19 +23,15 @@ import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpRefreshState
-import ceui.pixiv.ui.task.FetchAllTask
-import ceui.pixiv.ui.task.PixivTaskType
-import ceui.pixiv.ui.user.UserProfileFragment
 import ceui.pixiv.ui.works.GalleryActionReceiver
 import ceui.pixiv.ui.works.GalleryHolder
 import ceui.pixiv.ui.works.PagedImgUrlFragmentArgs
 import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
-import ceui.refactor.ppppx
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
-import timber.log.Timber
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import kotlin.getValue
 
 class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, GalleryActionReceiver {
@@ -77,7 +73,8 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                         )
                         add(
                             MenuItem(getString(R.string.flag_artwork)) {
-
+                                pushFragment(R.id.navigation_flag_reason, FlagReasonFragmentArgs(
+                                    safeArgs.illustId, ObjectSpec.Illust).toBundle())
                             }
                         )
                         add(

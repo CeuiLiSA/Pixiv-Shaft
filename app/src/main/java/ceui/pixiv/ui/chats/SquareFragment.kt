@@ -5,8 +5,6 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.FragmentPixivListBinding
@@ -14,7 +12,6 @@ import ceui.lisa.databinding.ItemIllustSquareBinding
 import ceui.lisa.databinding.ItemRedSectionHeaderBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Client
-import ceui.loxia.SquareResponse
 import ceui.loxia.WebIllust
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.session.SessionManager
@@ -24,14 +21,13 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.settings.CookieNotSyncException
-import ceui.refactor.ppppx
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import com.bumptech.glide.Glide
 import com.tencent.mmkv.MMKV
 

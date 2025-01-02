@@ -5,21 +5,20 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentFlagDescBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.*
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class FlagDescViewModel : ViewModel() {
     val desc = MutableLiveData<String>()
 }
 
-class FlagDescFragment : NavFragment(R.layout.fragment_flag_desc) {
+class FlagDescFragment : PixivFragment(R.layout.fragment_flag_desc) {
 
     private val binding by viewBinding(FragmentFlagDescBinding::bind)
     private val viewModel by viewModels<FlagDescViewModel>()
@@ -61,22 +60,15 @@ class FlagDescFragment : NavFragment(R.layout.fragment_flag_desc) {
                         FlagReason.ViolatedOtherRules
                     }
                 }
-                viewLifecycleOwner.lifecycleScope.launch {
-                    try {
-                        hideKeyboard()
-                        val activity = requireActivity()
-                        it.showProgress()
-                        Client.appApi.postFlagIllust(safeArgs.flagObjectId, flagReasonSpec, reasonDesc)
-                        FlagReasonFragment.shouldAutoFinish = true
-                        delay(200L)
-                        Common.showToast(getString(R.string.flag_send_successfully))
-                        delay(1000L)
-                        activity.finish()
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                    } finally {
-                        it.hideProgress()
-                    }
+                launchSuspend(it) {
+                    hideKeyboard()
+                    val activity = requireActivity()
+                    Client.appApi.postFlagIllust(safeArgs.flagObjectId, flagReasonSpec, reasonDesc)
+                    FlagReasonFragment.shouldAutoFinish = true
+                    delay(200L)
+                    Common.showToast(getString(R.string.flag_send_successfully))
+                    delay(1000L)
+                    activity.finish()
                 }
             }
         }

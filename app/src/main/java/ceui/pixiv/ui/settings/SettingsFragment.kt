@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.ObjectPool
@@ -13,18 +12,13 @@ import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.setUpCustomAdapter
-import ceui.pixiv.ui.common.setUpLayoutManager
-import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.widgets.alertYesOrCancel
-import ceui.refactor.viewBinding
-import com.scwang.smart.refresh.header.FalsifyFooter
-import com.scwang.smart.refresh.header.FalsifyHeader
+import ceui.pixiv.ui.common.viewBinding
 import com.tencent.mmkv.MMKV
 
 class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActionReceiver {

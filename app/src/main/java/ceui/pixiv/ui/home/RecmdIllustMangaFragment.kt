@@ -8,7 +8,7 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class RecmdIllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 

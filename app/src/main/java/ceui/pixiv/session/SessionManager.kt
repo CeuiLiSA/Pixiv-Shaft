@@ -47,7 +47,7 @@ object SessionManager {
         return _loggedInAccount.value?.user?.id ?: 0L
     }
 
-    fun load() {
+    fun initialize() {
         val json = prefStore.getString(USER_KEY, "")
         if (json?.isNotEmpty() == true) {
             try {

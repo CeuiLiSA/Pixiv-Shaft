@@ -5,15 +5,9 @@ import android.view.View
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.IllustResponse
-import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
-import ceui.loxia.User
-import ceui.loxia.UserResponse
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
@@ -22,7 +16,7 @@ import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class UserBookmarkedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 

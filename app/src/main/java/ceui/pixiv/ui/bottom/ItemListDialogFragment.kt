@@ -1,46 +1,19 @@
 package ceui.pixiv.ui.bottom
 
-import android.app.Dialog
-import android.graphics.Color
 import android.os.Bundle
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
-import android.widget.FrameLayout
-import android.widget.TextView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsCompat.Type.systemBars
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.marginTop
-import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.LiveData
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
-import ceui.lisa.databinding.DialogAlertBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogItemBinding
 import ceui.lisa.databinding.FragmentItemListDialogListDialogBinding
-import ceui.lisa.utils.Common
-import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.Event
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.pixiv.ui.common.setUpFullScreen
 import ceui.pixiv.widgets.PixivBottomSheet
-import ceui.refactor.ppppx
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.internal.ViewUtils.doOnApplyWindowInsets
-import com.google.android.material.internal.WindowUtils
+import ceui.pixiv.ui.common.viewBinding
 
 // TODO: Customize parameter argument names
 const val ARG_ITEM_COUNT = "item_count"

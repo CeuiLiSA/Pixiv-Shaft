@@ -14,7 +14,7 @@ import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.widgets.PixivBottomSheet
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class UsersYoriDialogFragment : PixivBottomSheet(R.layout.fragment_item_list_dialog_list_dialog),
     UsersYoriActionReceiver {

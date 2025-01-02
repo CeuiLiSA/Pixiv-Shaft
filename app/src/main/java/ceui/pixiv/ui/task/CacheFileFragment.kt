@@ -9,8 +9,8 @@ import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 

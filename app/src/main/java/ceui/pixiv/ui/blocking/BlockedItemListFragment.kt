@@ -7,7 +7,7 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.R
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.setUpCustomAdapter
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class BlockedItemListFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 

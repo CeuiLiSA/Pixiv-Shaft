@@ -2,7 +2,6 @@ package ceui.lisa.activities
 
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -21,8 +20,8 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PixivOperate
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
-import ceui.refactor.animateFadeInQuickly
-import ceui.refactor.animateFadeOutQuickly
+import ceui.pixiv.utils.animateFadeInQuickly
+import ceui.pixiv.utils.animateFadeOutQuickly
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.Locale

@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.pixiv.ui.viewholdermap.ViewHolderFactory
-import ceui.refactor.setOnClick
 import timber.log.Timber
 import java.lang.RuntimeException
 

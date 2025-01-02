@@ -32,9 +32,10 @@ import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.user.setTextOrGone
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
@@ -226,5 +227,6 @@ fun Fragment.blurBackground(binding: FragmentPixivListBinding, illustId: Long) {
     Glide.with(this)
         .load(GlideUrlChild(illust.image_urls?.large))
         .apply(bitmapTransform(BlurTransformation(15, 3)))
+        .transition(withCrossFade())
         .into(binding.pageBackground)
 }
