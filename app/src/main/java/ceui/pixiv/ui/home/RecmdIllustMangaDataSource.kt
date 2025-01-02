@@ -3,6 +3,7 @@ package ceui.pixiv.ui.home
 import ceui.loxia.Client
 import ceui.loxia.HomeIllustResponse
 import ceui.loxia.Illust
+import ceui.pixiv.ui.blocking.BlockingManager
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ResponseStore
@@ -15,4 +16,5 @@ class RecmdIllustMangaDataSource(
     dataFetcher = { hint -> Client.appApi.getHomeData(args.objectType) },
     responseStore = createResponseStore({ "home-recommend-${args.objectType}-api" }),
     itemMapper = { illust -> listOf(IllustCardHolder(illust)) },
+    filter = { artwork -> BlockingManager.isWorkBlocked(artwork.id).value != true }
 )

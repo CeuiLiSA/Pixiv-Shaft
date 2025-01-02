@@ -9,30 +9,6 @@
         android:name="ceui.lisa.jetpack.NavFragment"
         android:label="NavFragment" />
 
-    <fragment
-        android:id="@+id/navigation_flag_desc"
-        android:name="ceui.loxia.FlagDescFragment">
-        <argument
-            android:name="flag_reason_id"
-            app:argType="integer" />
-        <argument
-            android:name="flag_object_id"
-            app:argType="integer" />
-        <argument
-            android:name="flag_object_type"
-            app:argType="integer" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/navigation_flag_reason"
-        android:name="ceui.loxia.flag.FlagReasonFragment">
-        <argument
-            android:name="flag_object_id"
-            app:argType="integer" />
-        <argument
-            android:name="flag_object_type"
-            app:argType="integer" />
-    </fragment>
 
     <fragment
         android:id="@+id/navigation_illust_detail"

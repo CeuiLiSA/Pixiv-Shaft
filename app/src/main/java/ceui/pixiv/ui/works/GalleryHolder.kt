@@ -11,9 +11,9 @@ import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.getImageDimensions
 import ceui.pixiv.ui.common.setUpWithTaskStatus
 import ceui.pixiv.ui.task.LoadTask
-import ceui.refactor.ppppx
-import ceui.refactor.screenWidth
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.screenWidth
+import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.github.panpf.sketch.loadImage
 import timber.log.Timber
@@ -47,7 +47,6 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
             Timber.d("resizeRatio: ${resolution.second.toFloat() / resolution.first.toFloat()}")
             val imgHeight =
                 (screenWidth * resolution.second / resolution.first.toFloat()).roundToInt()
-            binding.resolution.text = "${resolution.first}x${resolution.second}"
             binding.image.updateLayoutParams {
                 width = screenWidth
                 height = imgHeight

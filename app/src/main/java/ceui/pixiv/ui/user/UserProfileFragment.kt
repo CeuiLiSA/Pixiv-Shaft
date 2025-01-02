@@ -30,9 +30,9 @@ import ceui.pixiv.ui.task.PixivTaskType
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.setUpWith
 import ceui.pixiv.widgets.showActionMenu
-import ceui.refactor.ppppx
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import com.bumptech.glide.Glide
 
 interface UserActionReceiver {

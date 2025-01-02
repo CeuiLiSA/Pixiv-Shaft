@@ -17,7 +17,7 @@ interface API {
     @FormUrlEncoded
     @POST("/v1/illust/report")
     suspend fun postFlagIllust(
-        @Field("illust_id") illust_id: Int,
+        @Field("illust_id") illust_id: Long,
         @Field("type_of_problem") type_of_problem: String?,
         @Field("message") message: String?
     ): NullResponse

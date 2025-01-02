@@ -2,20 +2,16 @@ package ceui.pixiv.ui.circles
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentMyCirclesBinding
 import ceui.loxia.ObjectType
-import ceui.pixiv.ui.common.CommonViewPagerViewModel
 import ceui.pixiv.ui.common.HomeTabContainer
-import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.trending.TrendingTagsFragment
 import ceui.pixiv.ui.trending.TrendingTagsFragmentArgs
 import ceui.pixiv.ui.user.recommend.RecommendUsersFragment
 import ceui.pixiv.widgets.setUpWith
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class MyCirclesFragment : TitledViewPagerFragment(R.layout.fragment_my_circles), HomeTabContainer {
 

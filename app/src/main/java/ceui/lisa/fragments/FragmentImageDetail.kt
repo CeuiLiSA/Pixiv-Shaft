@@ -15,7 +15,7 @@ import ceui.pixiv.ui.common.setUpWithTaskStatus
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {

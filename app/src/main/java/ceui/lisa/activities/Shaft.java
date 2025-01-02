@@ -1,7 +1,6 @@
 package ceui.lisa.activities;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -11,7 +10,6 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.view.Gravity;
 
-import com.billy.android.swipe.SmartSwipeBack;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 import com.hjq.toast.ToastUtils;
@@ -22,7 +20,6 @@ import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.tencent.mmkv.MMKV;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import ceui.lisa.R;
 import ceui.lisa.feature.HostManager;
@@ -37,11 +34,11 @@ import ceui.lisa.view.MyDeliveryHeader;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.blocking.BlockingManager;
 import ceui.pixiv.utils.NetworkStateManager;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
-import timber.log.Timber.DebugTree;
 
 import static ceui.lisa.utils.Local.LOCAL_DATA;
 
@@ -107,7 +104,8 @@ public class Shaft extends Application implements ServicesProvider {
 
         sSettings = Local.getSettings();
 
-        SessionManager.INSTANCE.load();
+        SessionManager.INSTANCE.initialize();
+        BlockingManager.INSTANCE.initialize();
 
         updateTheme();
 

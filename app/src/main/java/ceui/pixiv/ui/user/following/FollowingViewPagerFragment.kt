@@ -2,20 +2,16 @@ package ceui.pixiv.ui.user.following
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentMyCirclesBinding
 import ceui.lisa.utils.Params
 import ceui.loxia.ObjectType
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
-import ceui.pixiv.ui.common.CommonViewPagerViewModel
 import ceui.pixiv.ui.common.HomeTabContainer
-import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.widgets.setUpWith
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class FollowingViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_my_circles), HomeTabContainer {
 

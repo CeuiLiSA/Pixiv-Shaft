@@ -2,28 +2,20 @@ package ceui.pixiv.ui.task
 
 import android.os.Bundle
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
-import ceui.lisa.annotations.ItemHolder
-import ceui.lisa.databinding.CellTaskPreviewBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Illust
 import ceui.loxia.KListShow
-import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.pushFragment
-import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.IllustCardHolder
-import ceui.pixiv.ui.common.ListItemHolder
-import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
-import kotlinx.coroutines.delay
+import timber.log.Timber
 
 class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPreviewActionReceiver {
 
@@ -33,14 +25,21 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
         val maps = hashMapOf<String, List<Illust>>()
         DataSource(
             dataFetcher = {
-                val humanReadableTasks = mutableListOf<HumanReadableTask>()
                 val gson = Gson()
-                prefStore.allKeys()?.forEach { uuid ->
-                    maps[uuid] = loadIllustsFromCache(uuid) ?: listOf()
-                    humanReadableTasks.add(
-                        gson.fromJson(prefStore.getString(uuid, ""), HumanReadableTask::class.java)
-                    )
-                }
+                val humanReadableTasks = prefStore.allKeys()
+                    ?.mapNotNull { uuid ->
+                        val illusts = loadIllustsFromCache(uuid) ?: listOf()
+                        maps[uuid] = illusts
+                        prefStore.getString(uuid, "")?.let {
+                            try {
+                                gson.fromJson(it, HumanReadableTask::class.java)
+                            } catch (ex: Exception) {
+                                Timber.e(ex)
+                                null
+                            }
+                        }
+                    }
+                    ?: emptyList()
 
                 object : KListShow<HumanReadableTask> {
                     override val displayList: List<HumanReadableTask>
@@ -61,38 +60,6 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
     }
 
     override fun onClickTaskPreview(humanReadableTask: HumanReadableTask) {
-        pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(humanReadableTask.taskUUID).toBundle())
+        pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(task = humanReadableTask).toBundle())
     }
-}
-
-class TaskPreviewHolder(val humanReadableTask: HumanReadableTask, val illusts: List<Illust>) : ListItemHolder() {
-
-    override fun areItemsTheSame(other: ListItemHolder): Boolean {
-        return humanReadableTask.taskUUID == (other as? TaskPreviewHolder)?.humanReadableTask?.taskUUID
-    }
-
-    override fun areContentsTheSame(other: ListItemHolder): Boolean {
-        return humanReadableTask == (other as? TaskPreviewHolder)?.humanReadableTask
-    }
-
-    fun getIllustOrNull(index: Int): Illust? {
-        return illusts.getOrNull(index)
-    }
-}
-
-@ItemHolder(TaskPreviewHolder::class)
-class TaskPreviewViewHolder(bd: CellTaskPreviewBinding) : ListItemViewHolder<CellTaskPreviewBinding, TaskPreviewHolder>(bd) {
-
-    override fun onBindViewHolder(holder: TaskPreviewHolder, position: Int) {
-        super.onBindViewHolder(holder, position)
-        binding.holder = holder
-        binding.root.setOnClickListener {
-            it.findActionReceiverOrNull<TaskPreviewActionReceiver>()?.onClickTaskPreview(holder.humanReadableTask)
-        }
-        binding.taskSize.text = "共${holder.illusts.size}个作品"
-    }
-}
-
-interface TaskPreviewActionReceiver {
-    fun onClickTaskPreview(humanReadableTask: HumanReadableTask)
 }

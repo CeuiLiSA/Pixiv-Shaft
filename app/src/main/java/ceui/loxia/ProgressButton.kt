@@ -83,7 +83,6 @@ class ProgressImageButton(context: Context, attrs: AttributeSet?, defStyle: Int)
         isAnimationRunning = false
         (drawable as? CircularProgressDrawable)?.stop()
 
-        require(originalState != null)
         originalState?.let {
             isClickable = it.isClickable
             setImageDrawable(pendingTarget ?: it.drawable)

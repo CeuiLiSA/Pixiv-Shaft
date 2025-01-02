@@ -16,10 +16,9 @@ import ceui.loxia.findFragmentOrNull
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.refactor.ppppx
-import ceui.refactor.screenWidth
-import ceui.refactor.setOnClick
-import timber.log.Timber
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.screenWidth
+import ceui.pixiv.utils.setOnClick
 import kotlin.math.roundToInt
 
 class UserPostHolder(val illust: Illust) : ListItemHolder() {

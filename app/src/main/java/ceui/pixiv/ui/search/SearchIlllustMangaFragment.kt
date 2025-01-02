@@ -15,8 +15,8 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.widgets.DialogViewModel
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 
 
 class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {

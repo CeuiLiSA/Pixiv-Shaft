@@ -2,21 +2,14 @@ package ceui.pixiv.widgets
 
 import android.os.Bundle
 import android.view.View
-import androidx.core.os.bundleOf
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResult
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.DialogAlertBinding
-import ceui.lisa.databinding.DialogMenuBinding
-import ceui.lisa.utils.Common
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import java.util.UUID
 
 class AlertPurpleDialog : PixivDialog(R.layout.dialog_alert) {

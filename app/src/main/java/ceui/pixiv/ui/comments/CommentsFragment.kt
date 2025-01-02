@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -25,10 +24,9 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.user.UserActionReceiver
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.works.blurBackground
-import ceui.refactor.ppppx
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
 
 class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentActionReceiver {
 

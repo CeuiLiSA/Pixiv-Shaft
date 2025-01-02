@@ -5,13 +5,12 @@ import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.ItemIllustSquareBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Illust
-import ceui.loxia.WebIllust
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.refactor.ppppx
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 
 

@@ -2,26 +2,26 @@ package ceui.pixiv.ui.settings
 
 import android.os.Bundle
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.ObjectPool
+import ceui.loxia.ProgressIndicator
 import ceui.loxia.User
+import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
-import ceui.pixiv.ui.common.setUpLayoutManager
-import ceui.pixiv.ui.common.setUpToolbar
+import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.web.WebFragmentArgs
-import ceui.refactor.viewBinding
-import com.scwang.smart.refresh.header.FalsifyFooter
-import com.scwang.smart.refresh.header.FalsifyHeader
+import ceui.pixiv.widgets.alertYesOrCancel
+import ceui.pixiv.ui.common.viewBinding
 import com.tencent.mmkv.MMKV
 
-class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
+class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActionReceiver {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val prefStore: MMKV by lazy {
@@ -30,13 +30,8 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val adapter = CommonAdapter(viewLifecycleOwner)
+        val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_NO_MARGIN)
         binding.toolbarLayout.naviTitle.text = getString(R.string.app_settings)
-        binding.refreshLayout.setRefreshHeader(FalsifyHeader(requireContext()))
-        binding.refreshLayout.setRefreshFooter(FalsifyFooter(requireContext()))
-        setUpToolbar(binding.toolbarLayout, binding.listView)
-        binding.listView.adapter = adapter
-        setUpLayoutManager(binding.listView, ListMode.VERTICAL_NO_MARGIN)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
         val nameCode = prefStore.getString(SessionManager.CONTENT_LANGUAGE_KEY, "cn") ?: "cn"
@@ -74,8 +69,25 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             R.id.navigation_select_country,
                         )
                     },
+                    LogOutHolder()
                 )
             )
+        }
+    }
+
+    override fun onClickLogOut(sender: ProgressIndicator) {
+        launchSuspend(sender) {
+            if (alertYesOrCancel("确定退出登录吗")) {
+                SessionManager.updateSession(null)
+                findNavController().navigate(
+                    R.id.navigation_landing,
+                    null, // 如果有参数需要传递，可以用 Bundle 替代 null
+                    NavOptions.Builder()
+                        .setPopUpTo(R.id.mobile_navigation, true) // 清除栈中所有页面
+                        .setLaunchSingleTop(true) // 防止重复创建 D
+                        .build()
+                )
+            }
         }
     }
 }

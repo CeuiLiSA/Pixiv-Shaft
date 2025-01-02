@@ -13,6 +13,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -30,9 +31,9 @@ import ceui.pixiv.ui.works.PagedImgActionReceiver
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.ui.works.ViewPagerViewModel
 import ceui.pixiv.widgets.alertYesOrCancel
-import ceui.refactor.animateFadeInQuickly
-import ceui.refactor.animateFadeOutQuickly
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.animateFadeInQuickly
+import ceui.pixiv.utils.animateFadeOutQuickly
+import ceui.pixiv.utils.setOnClick
 import com.blankj.utilcode.util.UriUtils
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
@@ -78,19 +79,7 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         task.result.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {
-                val imageId = getImageIdInGallery(activity, displayName())
-                if (imageId != null) {
-                    MainScope().launch {
-                        val uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId.toString())
-                        val filePath = UriUtils.uri2File(uri)
-                        if (alertYesOrCancel("图片已存在，确定覆盖下载吗? 文件路径: ${filePath?.path}")) {
-                            deleteImageById(activity, imageId)
-                            saveImageToGallery(activity, file, displayName())
-                        }
-                    }
-                } else {
-                    saveImageToGallery(activity, file, displayName())
-                }
+                performDownload(activity, file)
             }
             val resolution = getImageDimensions(file)
             Common.showLog("sadasd2 bb ${resolution}")
@@ -99,11 +88,27 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         if (parentFragment is ViewPagerFragment) {
             viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
                 task.result.value?.let { file ->
-                    saveImageToGallery(activity, file, displayName())
+                    performDownload(activity, file)
                 }
             }
         }
         progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
+    }
+
+    private fun performDownload(activity: FragmentActivity, file: File) {
+        val imageId = getImageIdInGallery(activity, displayName())
+        if (imageId != null) {
+            MainScope().launch {
+                val uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId.toString())
+                val filePath = UriUtils.uri2File(uri)
+                if (alertYesOrCancel("图片已存在，确定覆盖下载吗? 文件路径: ${filePath?.path}")) {
+                    deleteImageById(activity, imageId)
+                    saveImageToGallery(activity, file, displayName())
+                }
+            }
+        } else {
+            saveImageToGallery(activity, file, displayName())
+        }
     }
 
     override fun onDestroyView() {

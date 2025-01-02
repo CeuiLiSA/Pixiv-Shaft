@@ -5,7 +5,7 @@ import ceui.lisa.databinding.CellCountryBinding
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.setOnClick
 
 class CountryHolder(val country: Country) : ListItemHolder() {
 }

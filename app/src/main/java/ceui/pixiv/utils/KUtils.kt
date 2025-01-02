@@ -1,4 +1,4 @@
-package ceui.refactor
+package ceui.pixiv.utils
 
 import android.animation.AnimatorInflater
 import android.content.res.Resources
@@ -6,8 +6,6 @@ import android.view.View
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.findFragment
 import ceui.lisa.R
 
 fun <T: View> T.setOnClick(listener: (T) -> Unit) {

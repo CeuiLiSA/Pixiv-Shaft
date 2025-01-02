@@ -12,9 +12,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -42,24 +40,20 @@ import ceui.loxia.RefreshState
 import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
-import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
-import ceui.pixiv.ui.article.ArticlesFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
-import ceui.pixiv.ui.detail.ArtworkFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
-import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
-import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.pixiv.widgets.TagsActionReceiver
-import ceui.refactor.ppppx
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
+import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
 import timber.log.Timber
 
@@ -67,7 +61,7 @@ import timber.log.Timber
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
     UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver {
 
-    private val fragmentViewModel: NavFragmentViewModel by viewModels()
+    protected val fragmentViewModel: NavFragmentViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -324,4 +318,14 @@ fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode
             }
         }
     }
+}
+
+fun Fragment.setUpCustomAdapter(binding: FragmentPixivListBinding, listMode: Int): CommonAdapter {
+    val adapter = CommonAdapter(viewLifecycleOwner)
+    binding.listView.adapter = adapter
+    binding.refreshLayout.setRefreshHeader(FalsifyHeader(requireContext()))
+    binding.refreshLayout.setRefreshFooter(FalsifyFooter(requireContext()))
+    setUpToolbar(binding.toolbarLayout, binding.listView)
+    setUpLayoutManager(binding.listView, listMode)
+    return adapter
 }

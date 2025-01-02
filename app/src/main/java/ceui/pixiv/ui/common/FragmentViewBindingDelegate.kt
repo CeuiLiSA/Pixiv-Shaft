@@ -1,4 +1,4 @@
-package ceui.refactor
+package ceui.pixiv.ui.common
 
 import android.view.LayoutInflater
 import android.view.View

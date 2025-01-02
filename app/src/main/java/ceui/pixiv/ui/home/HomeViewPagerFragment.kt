@@ -1,8 +1,6 @@
 package ceui.pixiv.ui.home
 
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
@@ -13,38 +11,20 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
-import ceui.lisa.utils.Common
-import ceui.loxia.Illust
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
 import ceui.pixiv.ui.circles.MyCirclesFragment
-import ceui.pixiv.ui.common.deleteImageById
-import ceui.pixiv.ui.common.getFileSize
-import ceui.pixiv.ui.common.getImageDimensions
-import ceui.pixiv.ui.common.getImageIdInGallery
-import ceui.pixiv.ui.common.saveImageToGallery
 import ceui.pixiv.ui.discover.DiscoverFragment
-import ceui.pixiv.ui.rank.RankingIllustsFragmentArgs
-import ceui.pixiv.ui.task.LoadTask
-import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
-import ceui.pixiv.widgets.alertYesOrCancel
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
-import com.blankj.utilcode.util.UriUtils
-import com.github.panpf.sketch.loadImage
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 
 data class HelloResult(
     val aa: String,

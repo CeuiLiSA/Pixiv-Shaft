@@ -11,7 +11,7 @@ import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.widgets.setUpWith
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class RankFragment : TitledViewPagerFragment(R.layout.fragment_rank_viewpager) {
 

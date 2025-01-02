@@ -22,6 +22,7 @@ import ceui.pixiv.ui.common.ValueContent
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.works.getGalleryHolders
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -29,11 +30,15 @@ import timber.log.Timber
 import java.util.UUID
 
 class ArtworkViewModel(
-    private val illustId: Long
+    private val illustId: Long,
+    private val activityCoroutineScope: CoroutineScope
 ) : ViewModel(), RefreshOwner, HoldersContainer {
 
     private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
     private val _refreshState = MutableLiveData<RefreshState>()
+
+    private val _illustLiveData = ObjectPool.get<Illust>(illustId)
+    val illustLiveData: LiveData<Illust> = _illustLiveData
 
     private val valueContent = object : ValueContent<IllustResponse>(viewModelScope, {
         Client.appApi.getRelatedIllusts(illustId)
@@ -61,12 +66,13 @@ class ArtworkViewModel(
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
                 val context = Shaft.getContext()
-                val illust = ObjectPool.get<Illust>(illustId).value ?: Client.appApi.getIllust(
-                    illustId
-                ).illust ?: return@launch
-                ObjectPool.update(illust, true)
+                val illust = ObjectPool.get<Illust>(illustId).value ?: run {
+                    Client.appApi.getIllust(illustId).illust?.also {
+                        ObjectPool.update(it)
+                    }
+                } ?: return@launch
                 val result = mutableListOf<ListItemHolder>()
-                val images = getGalleryHolders(illust, viewModelScope)
+                val images = getGalleryHolders(illust, activityCoroutineScope)
                 result.addAll(images ?: listOf())
                 result.add(RedSectionHeaderHolder("标题"))
                 result.add(ArtworkInfoHolder(illustId))

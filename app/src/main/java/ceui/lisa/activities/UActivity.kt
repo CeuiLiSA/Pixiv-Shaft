@@ -32,7 +32,7 @@ import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.github.ybq.android.spinkit.style.Wave
 import com.qmuiteam.qmui.skin.QMUISkinManager

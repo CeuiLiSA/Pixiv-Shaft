@@ -3,30 +3,48 @@ package ceui.loxia.flag
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.databinding.FragmentSlinkyListBinding
+import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.*
 import ceui.pixiv.ui.common.ListMode
-import ceui.pixiv.ui.common.setUpLayoutManager
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.setUpCustomAdapter
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 
-class FlagReasonFragment : SlinkyListFragment(), FlagActionReceiver {
+class FlagReasonFragment : PixivFragment(R.layout.fragment_pixiv_list), FlagActionReceiver {
 
-    private val binding by viewBinding(FragmentSlinkyListBinding::bind)
+    private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by threadSafeArgs<FlagReasonFragmentArgs>()
-    private val viewModel by slinkyListVMCustom {
-        FlagReasonRepository()
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = requireActivity()
-        binding.toolbar.toolbar.setNavigationOnClickListener { activity.finish() }
-        binding.toolbar.toolbarTitle.text = getString(R.string.violated_rule)
-        setUpLayoutManager(binding.listView, ListMode.VERTICAL_NO_MARGIN)
-        setUpSlinkyList(binding.listView, binding.refreshLayout, binding.itemLoading, viewModel)
+        binding.toolbarLayout.naviBack.setOnClick { activity.finish() }
+        binding.toolbarLayout.naviTitle.text = getString(R.string.violated_rule)
+        val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_NO_MARGIN)
+        adapter.submitList(
+            listOf(
+                FlagReasonHolder(
+                    FlagReason.ContainsExcessiveSexualId,
+                    getString(R.string.contains_excessive_sexual),
+                    FlagReason.ContainsExcessiveSexualContent
+                ), FlagReasonHolder(
+                    FlagReason.ContainsExcessiveGrotesqueId,
+                    getString(R.string.contains_excessive_grotesque),
+                    FlagReason.ContainsExcessiveGrotesqueContent
+                ), FlagReasonHolder(
+                    FlagReason.InfringesOnCopyrightsId,
+                    getString(R.string.infringes_on_copyrights),
+                    FlagReason.InfringesOnCopyrights
+                ), FlagReasonHolder(
+                    FlagReason.ViolatedOtherRulesId,
+                    getString(R.string.violated_other_rules),
+                    FlagReason.ViolatedOtherRules
+                )
+            )
+        )
     }
 
     companion object {
@@ -50,7 +68,7 @@ class FlagReasonFragment : SlinkyListFragment(), FlagActionReceiver {
         }
     }
 
-    override fun onClickFlag(holder: FlagReasonHolder) {
+    override fun onClickFlagReason(holder: FlagReasonHolder) {
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
             putExtra(TemplateActivity.EXTRA_FRAGMENT, "填写举报详细信息")
             putExtra(FlagDescFragment.FlagReasonIdKey, holder.id)

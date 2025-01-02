@@ -17,7 +17,7 @@ import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.setUpFullScreen
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.setOnClick
 
 interface PagedImgActionReceiver {
     fun onClickPagedImg()

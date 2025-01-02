@@ -6,19 +6,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
-import ceui.lisa.R
-
-open class NavFragment(layoutId: Int) : Fragment(layoutId)
-
-interface ActionReceiver {
-}
-
-abstract class SlinkyListFragment(layoutId: Int = R.layout.fragment_slinky_list) : NavFragment(layoutId) {
-
-    open fun isDefaultLayoutManager(): Boolean {
-        return true
-    }
-}
 
 fun Context.showKeyboard(editText: EditText?) {
     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager

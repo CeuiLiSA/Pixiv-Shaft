@@ -2,14 +2,10 @@ package ceui.pixiv.widgets
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import ceui.lisa.R
-import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.NavFragmentViewModel
-import ceui.refactor.screenHeight
+import ceui.pixiv.utils.screenHeight
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlin.math.roundToInt

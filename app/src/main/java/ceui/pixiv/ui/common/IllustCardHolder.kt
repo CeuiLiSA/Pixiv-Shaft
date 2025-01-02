@@ -10,9 +10,9 @@ import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.findActionReceiverOrNull
-import ceui.refactor.ppppx
-import ceui.refactor.screenWidth
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.screenWidth
+import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import kotlin.math.roundToInt
 

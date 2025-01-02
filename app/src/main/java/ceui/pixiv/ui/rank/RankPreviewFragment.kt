@@ -11,8 +11,8 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 import kotlin.getValue
 
 class RankPreviewFragment : PixivFragment(R.layout.fragment_rank_preview) {

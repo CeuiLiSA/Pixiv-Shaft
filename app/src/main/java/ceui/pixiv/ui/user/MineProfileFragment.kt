@@ -2,7 +2,6 @@ package ceui.pixiv.ui.user
 
 import android.os.Bundle
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
@@ -18,7 +17,7 @@ import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.ViewPagerContentType
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
-import ceui.refactor.viewBinding
+import ceui.pixiv.ui.common.viewBinding
 
 class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -77,6 +76,11 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         pushFragment(
                             R.id.navigation_user_friends,
                             UserFriendsFragmentArgs(SessionManager.loggedInUid).toBundle()
+                        )
+                    },
+                    TabCellHolder("屏蔽列表").onItemClick {
+                        pushFragment(
+                            R.id.navigation_blocking_item_list,
                         )
                     },
                     TabCellHolder(getString(R.string.created_tasks)).onItemClick {

@@ -19,8 +19,8 @@ import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.widgets.DialogViewModel
 import ceui.pixiv.widgets.setUpWith
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 
 class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search_viewpager) {
 

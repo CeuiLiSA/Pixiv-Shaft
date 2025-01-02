@@ -5,15 +5,11 @@ import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellArtworkCaptionBinding
-import ceui.lisa.databinding.CellArtworkInfoBinding
 import ceui.loxia.DateParse
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
-import ceui.loxia.findActionReceiverOrNull
-import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
-import ceui.refactor.setOnClick
 
 
 class ArtworkCaptionHolder(val illustId: Long) : ListItemHolder() {

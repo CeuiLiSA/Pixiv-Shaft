@@ -6,7 +6,6 @@ import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellChildCommentBinding
 import ceui.lisa.databinding.CellCommentBinding
-import ceui.lisa.utils.Emoji
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Comment
 import ceui.loxia.DateParse
@@ -17,8 +16,8 @@ import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.user.UserActionReceiver
-import ceui.refactor.ppppx
-import ceui.refactor.setOnClick
+import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 
 class CommentHolder(

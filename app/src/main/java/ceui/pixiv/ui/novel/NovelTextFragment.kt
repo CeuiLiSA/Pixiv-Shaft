@@ -2,13 +2,10 @@ package ceui.pixiv.ui.novel
 
 import android.os.Bundle
 import android.view.View
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
@@ -24,8 +21,8 @@ import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.refactor.setOnClick
-import ceui.refactor.viewBinding
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.viewBinding
 
 class NovelTextViewModel : ViewModel() {
     var webNovel: WebNovel? = null

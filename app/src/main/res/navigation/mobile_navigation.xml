@@ -36,8 +36,8 @@
         tools:layout="@layout/fragment_pixiv_list" >
 
         <argument
-            app:argType="string"
-            android:name="task_uuid"/>
+            app:argType="ceui.pixiv.ui.task.HumanReadableTask"
+            android:name="task" />
     </fragment>
 
     <fragment
@@ -53,6 +53,11 @@
     <fragment
         android:id="@+id/navigation_task_preview_list"
         android:name="ceui.pixiv.ui.task.TaskListFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
+
+    <fragment
+        android:id="@+id/navigation_blocking_item_list"
+        android:name="ceui.pixiv.ui.blocking.BlockedItemListFragment"
         tools:layout="@layout/fragment_pixiv_list" />
 
     <fragment
@@ -123,17 +128,6 @@
             app:argType="string"/>
     </fragment>
 
-
-    <fragment
-        android:id="@+id/navigation_illust"
-        android:name="ceui.pixiv.ui.works.IllustFragment"
-        tools:layout="@layout/fragment_fancy_illust" >
-
-        <argument
-            android:name="illust_id"
-            app:argType="long" />
-    </fragment>
-
     <fragment
         android:id="@+id/navigation_viewpager_artwork"
         android:name="ceui.pixiv.ui.detail.ArtworkViewPagerFragment"
@@ -168,6 +162,31 @@
             app:argType="long" />
     </fragment>
 
+
+    <fragment
+        android:id="@+id/navigation_flag_desc"
+        android:name="ceui.loxia.flag.FlagDescFragment">
+        <argument
+            android:name="flag_reason_id"
+            app:argType="integer" />
+        <argument
+            android:name="flag_object_id"
+            app:argType="long" />
+        <argument
+            android:name="flag_object_type"
+            app:argType="integer" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_flag_reason"
+        android:name="ceui.loxia.flag.FlagReasonFragment">
+        <argument
+            android:name="flag_object_id"
+            app:argType="long" />
+        <argument
+            android:name="flag_object_type"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_comments_illust"
