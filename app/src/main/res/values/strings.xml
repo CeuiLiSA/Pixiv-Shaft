@@ -731,4 +731,5 @@
     <string name="add_blocking">屏蔽作品</string>
     <string name="view_comments">查看评论</string>
     <string name="flag_artwork">举报作品</string>
+    <string name="string_font_size">字体大小</string>
 </resources>

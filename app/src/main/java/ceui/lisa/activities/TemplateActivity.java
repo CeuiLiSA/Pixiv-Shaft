@@ -382,4 +382,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
             super.onBackPressed();
         }
     }
+
+    public void onFontSizeSelected(int size) {
+        if (childFragment instanceof FragmentNovelHolder) {
+            Shaft.sSettings.setNovelHolderTextSize(size);
+            ((FragmentNovelHolder) childFragment).setTextSize(size);
+            Local.setSettings(Shaft.sSettings);
+        }
+    }
 }

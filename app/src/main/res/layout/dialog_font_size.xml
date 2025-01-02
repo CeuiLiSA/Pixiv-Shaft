@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 预览文本 -->
+    <TextView
+        android:id="@+id/preview_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:text="预览文本"
+        android:textSize="16sp" />
+
+    <!-- 滑动条 -->
+    <SeekBar
+        android:id="@+id/font_size_seekbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:max="30"
+        android:min="12"
+        android:progress="16" />
+
+    <!-- 当前字体大小显示 -->
+    <TextView
+        android:id="@+id/current_size_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="16sp"
+        android:textSize="14sp" />
+
+</LinearLayout>
