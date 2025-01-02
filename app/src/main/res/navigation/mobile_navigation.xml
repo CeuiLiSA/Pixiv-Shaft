@@ -128,17 +128,6 @@
             app:argType="string"/>
     </fragment>
 
-
-    <fragment
-        android:id="@+id/navigation_illust"
-        android:name="ceui.pixiv.ui.works.IllustFragment"
-        tools:layout="@layout/fragment_fancy_illust" >
-
-        <argument
-            android:name="illust_id"
-            app:argType="long" />
-    </fragment>
-
     <fragment
         android:id="@+id/navigation_viewpager_artwork"
         android:name="ceui.pixiv.ui.detail.ArtworkViewPagerFragment"

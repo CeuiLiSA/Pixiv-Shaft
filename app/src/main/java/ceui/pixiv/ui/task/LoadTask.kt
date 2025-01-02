@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import me.jessyan.progressmanager.ProgressListener
 import me.jessyan.progressmanager.ProgressManager
 import me.jessyan.progressmanager.body.ProgressInfo
+import timber.log.Timber
 import java.io.File
 
 open class LoadTask(
@@ -51,15 +52,14 @@ open class LoadTask(
 
             val file = downloadFile()
             if (file != null) {
-                file?.let {
-                    _result.value = it
-                }
+                _result.value = file
                 _status.value = TaskStatus.Finished
                 onEnd(file)
             } else {
                 throw IllegalStateException("Unexpected null file")
             }
         } catch (ex: Exception) {
+            Timber.d("fdsfdsaas2 aaa")
             onError(ex)
         }
     }
@@ -78,6 +78,7 @@ open class LoadTask(
             }
 
             override fun onError(id: Long, ex: Exception) {
+                Timber.d("fdsfdsaas2 bbb")
                 onError(ex)
             }
         })
@@ -106,6 +107,7 @@ open class LoadTask(
                 target: Target<File>,
                 isFirstResource: Boolean
             ): Boolean {
+                Timber.d("fdsfdsaas2 ccc")
                 onError(ex)
                 return false
             }

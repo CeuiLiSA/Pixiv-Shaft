@@ -28,6 +28,7 @@ import ceui.pixiv.ui.settings.CookieNotSyncException
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.detail.ArtworksMap
 import com.bumptech.glide.Glide
 import com.tencent.mmkv.MMKV
 
@@ -52,6 +53,7 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         binding.listView.updatePadding(left = 3.ppppx, right = 3.ppppx)
         viewModel.result.observe(viewLifecycleOwner) { data ->
             val holders = mutableListOf<ListItemHolder>()
+            val ids = mutableListOf<Long>()
 
             data.body?.page?.ranking?.let { ranking ->
                 val webIllusts = mutableListOf<WebIllust>()
@@ -61,7 +63,10 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     }
                 }
                 holders.add(RedSectionHeaderHolder("Ranking for ${ranking.date}"))
-                holders.addAll(webIllusts.map { IllustSquareHolder(it) })
+                holders.addAll(webIllusts.map {
+                    ids.add(it.id)
+                    IllustSquareHolder(it)
+                })
             }
 
 
@@ -76,7 +81,10 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     }
                 }
                 holders.add(RedSectionHeaderHolder("Editor Recommend Works"))
-                holders.addAll(webIllusts.map { IllustSquareHolder(it) })
+                holders.addAll(webIllusts.map {
+                    ids.add(it.id)
+                    IllustSquareHolder(it)
+                })
             }
 
 
@@ -88,7 +96,10 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     }
                 }
                 holders.add(RedSectionHeaderHolder("Recommend Works"))
-                holders.addAll(webIllusts.map { IllustSquareHolder(it) })
+                holders.addAll(webIllusts.map {
+                    ids.add(it.id)
+                    IllustSquareHolder(it)
+                })
             }
 
 
@@ -101,7 +112,10 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     }
                 }
                 holders.add(RedSectionHeaderHolder(tag.tag ?: ""))
-                holders.addAll(webIllusts.map { IllustSquareHolder(it) })
+                holders.addAll(webIllusts.map {
+                    ids.add(it.id)
+                    IllustSquareHolder(it)
+                })
             }
 
             val tags =
@@ -114,10 +128,15 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     }
                 }
                 holders.add(RedSectionHeaderHolder(tag.tag ?: ""))
-                holders.addAll(webIllusts.map { IllustSquareHolder(it) })
+                holders.addAll(webIllusts.map {
+                    ids.add(it.id)
+                    IllustSquareHolder(it)
+                })
             }
 
-            adapter.submitList(holders)
+            adapter.submitList(holders) {
+                ArtworksMap.store[fragmentViewModel.fragmentUniqueId] = ids
+            }
         }
     }
 }
@@ -160,28 +179,4 @@ class RedSectionHeaderViewHolder(aa: ItemRedSectionHeaderBinding) :
 interface SeeMoreAction {
 
     fun seeMore(type: Int)
-}
-
-class IllustSquareHolder(val illust: WebIllust) : ListItemHolder() {
-
-    override fun getItemId(): Long {
-        return illust.id
-    }
-}
-
-
-@ItemHolder(IllustSquareHolder::class)
-class IllustSquareViewHolder(aa: ItemIllustSquareBinding) :
-    ListItemViewHolder<ItemIllustSquareBinding, IllustSquareHolder>(aa) {
-
-    override fun onBindViewHolder(holder: IllustSquareHolder, position: Int) {
-        super.onBindViewHolder(holder, position)
-        Glide.with(context)
-            .load(GlideUrlChild(holder.illust.url))
-            .into(binding.squareImage)
-        binding.squareImage.setOnClick {
-            it.findActionReceiverOrNull<IllustCardActionReceiver>()
-                ?.onClickIllustCard(holder.illust.toIllust())
-        }
-    }
 }

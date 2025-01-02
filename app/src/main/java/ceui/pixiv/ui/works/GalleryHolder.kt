@@ -47,7 +47,6 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
             Timber.d("resizeRatio: ${resolution.second.toFloat() / resolution.first.toFloat()}")
             val imgHeight =
                 (screenWidth * resolution.second / resolution.first.toFloat()).roundToInt()
-            binding.resolution.text = "${resolution.first}x${resolution.second}"
             binding.image.updateLayoutParams {
                 width = screenWidth
                 height = imgHeight

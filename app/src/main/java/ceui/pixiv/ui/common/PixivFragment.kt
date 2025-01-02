@@ -61,7 +61,7 @@ import timber.log.Timber
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
     UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver {
 
-    private val fragmentViewModel: NavFragmentViewModel by viewModels()
+    protected val fragmentViewModel: NavFragmentViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
