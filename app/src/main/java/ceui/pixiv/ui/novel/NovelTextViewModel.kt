@@ -7,33 +7,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
-import ceui.lisa.utils.Common
 import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.IllustResponse
 import ceui.loxia.Novel
-import ceui.loxia.NovelSeriesResp
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.SpaceHolder
-import ceui.loxia.novel.NovelTextHolder
+import ceui.loxia.WebNovel
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
-import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.ListItemHolder
-import ceui.pixiv.ui.common.LoadMoreOwner
-import ceui.pixiv.ui.common.LoadingHolder
-import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.RefreshOwner
-import ceui.pixiv.ui.common.createResponseStore
-import ceui.pixiv.ui.detail.ArtworkCaptionHolder
-import ceui.pixiv.ui.detail.ArtworkInfoHolder
-import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.UserInfoHolder
-import ceui.pixiv.ui.user.UserPostHolder
-import ceui.pixiv.ui.works.getGalleryHolders
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -43,6 +28,9 @@ class NovelTextViewModel(
 
     private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
     private val _refreshState = MutableLiveData<RefreshState>()
+
+    private val _webNovel = MutableLiveData<WebNovel>()
+    val webNovel: LiveData<WebNovel> = _webNovel
 
     init {
         refresh(RefreshHint.InitialLoad)
@@ -54,7 +42,7 @@ class NovelTextViewModel(
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
                 val context = Shaft.getContext()
                 val html = Client.appApi.getNovelText(novelId).string()
-                val webNovel = WebNovelParser.parsePixivObject(html)?.novel
+                val wNovel = WebNovelParser.parsePixivObject(html)?.novel
 
                 val result = mutableListOf<ListItemHolder>()
                 result.add(SpaceHolder())
@@ -65,10 +53,14 @@ class NovelTextViewModel(
                 result.add(NovelCaptionHolder(novelId))
                 result.add(RedSectionHeaderHolder("正文"))
                 result.add(SpaceHolder())
-                (webNovel?.text?.split("\n") ?: listOf()).forEach { oneLineText ->
-                    result.addAll(
-                        WebNovelParser.buildNovelHolders(webNovel, oneLineText)
-                    )
+
+                wNovel?.let {
+                    (wNovel.text?.split("\n") ?: listOf()).forEach { oneLineText ->
+                        result.addAll(
+                            WebNovelParser.buildNovelHolders(wNovel, oneLineText)
+                        )
+                    }
+                    _webNovel.value = it
                 }
 
                 _itemHolders.value = result
