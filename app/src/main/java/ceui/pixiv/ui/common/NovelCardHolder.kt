@@ -7,10 +7,11 @@ import ceui.lisa.databinding.CellNovelCardBinding
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.setOnClick
 
-class NovelCardHolder(val novel: Novel) : ListItemHolder() {
+class NovelCardHolder(val novelId: Long, val novel: Novel) : ListItemHolder() {
     init {
         ObjectPool.update(novel)
         novel.user?.let {
@@ -34,14 +35,17 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
                 sender.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(it)
             }
         }
-        if (holder.novel.caption?.isNotEmpty() == true) {
-            binding.caption.isVisible = true
-            binding.caption.text = HtmlCompat.fromHtml(holder.novel.caption, HtmlCompat.FROM_HTML_MODE_COMPACT)
-        } else {
-            binding.caption.isVisible = false
+        binding.seriesName.setOnClick { sender ->
+            holder.novel.series?.let { series ->
+                sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickSeries(sender, series)
+            }
         }
         binding.root.setOnClick {
             it.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(holder.novel)
+        }
+        binding.bookmark.setOnClick {
+            it.findActionReceiverOrNull<IllustCardActionReceiver>()
+                ?.onClickBookmarkIllust(it, holder.illust.id)
         }
     }
 }

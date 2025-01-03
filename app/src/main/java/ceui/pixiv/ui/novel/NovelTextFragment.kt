@@ -2,36 +2,26 @@ package ceui.pixiv.ui.novel
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.lisa.fragments.WebNovelParser
-import ceui.lisa.models.ObjectSpec
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.KListShow
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.Series
-import ceui.loxia.WebNovel
 import ceui.loxia.combineLatest
-import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.pushFragment
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.ui.blocking.BlockingManager
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
-import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
-import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.task.DownloadNovelTask
@@ -42,7 +32,7 @@ import kotlinx.coroutines.launch
 import kotlin.getValue
 
 
-class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, NovelHeaderActionReceiver {
+class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, NovelSeriesActionReceiver {
 
     private val safeArgs by navArgs<NovelTextFragmentArgs>()
     private val binding by viewBinding(FragmentPixivListBinding::bind)
@@ -88,9 +78,4 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         }
     }
 
-    override fun onClickSeries(sender: View, series: Series) {
-        pushFragment(
-            R.id.navigation_novel_series, NovelSeriesFragmentArgs(series.id).toBundle()
-        )
-    }
 }

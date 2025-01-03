@@ -37,6 +37,7 @@ import ceui.loxia.ObjectType
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.Series
 import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
@@ -44,6 +45,8 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
+import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
+import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
@@ -59,7 +62,7 @@ import timber.log.Timber
 
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
-    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver {
+    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver, NovelSeriesActionReceiver {
 
     protected val fragmentViewModel: NavFragmentViewModel by viewModels()
 
@@ -105,6 +108,33 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
                         illust.copy(
                             is_bookmarked = true,
                             total_bookmarks = illust.total_bookmarks?.plus(1)
+                        )
+                    )
+                    Common.showToast(getString(R.string.like_novel_success_public))
+                }
+            }
+        }
+    }
+
+    override fun onClickBookmarkNovel(sender: ProgressIndicator, novelId: Long) {
+        launchSuspend(sender) {
+            val novel = ObjectPool.get<Novel>(novelId).value ?: Client.appApi.getIllust(novelId).illust?.also { ObjectPool.update(it) }
+            if (novel != null) {
+                if (novel.is_bookmarked == true) {
+                    Client.appApi.removeBookmark(novelId)
+                    ObjectPool.update(
+                        novel.copy(
+                            is_bookmarked = false,
+                            total_bookmarks = novel.total_bookmarks?.minus(1)
+                        )
+                    )
+                    Common.showToast(getString(R.string.cancel_like_illust))
+                } else {
+                    Client.appApi.postBookmark(novelId)
+                    ObjectPool.update(
+                        novel.copy(
+                            is_bookmarked = true,
+                            total_bookmarks = novel.total_bookmarks?.plus(1)
                         )
                     )
                     Common.showToast(getString(R.string.like_novel_success_public))
@@ -162,6 +192,12 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     override fun onDestroy() {
         super.onDestroy()
         Common.showLog("onDestroy ${this::class.simpleName}")
+    }
+
+    override fun onClickSeries(sender: View, series: Series) {
+        pushFragment(
+            R.id.navigation_novel_series, NovelSeriesFragmentArgs(series.id).toBundle()
+        )
     }
 }
 

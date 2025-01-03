@@ -1,8 +1,6 @@
 package ceui.pixiv.ui.novel
 
 import android.view.View
-import androidx.core.text.HtmlCompat
-import androidx.core.view.isVisible
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelHeaderBinding
 import ceui.loxia.Novel
@@ -29,12 +27,12 @@ class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<Cel
         binding.novel = liveNovel
         binding.seriesName.setOnClick { sender ->
             liveNovel.value?.series?.let { series ->
-                sender.findActionReceiverOrNull<NovelHeaderActionReceiver>()?.onClickSeries(sender, series)
+                sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickSeries(sender, series)
             }
         }
     }
 }
 
-interface NovelHeaderActionReceiver {
+interface NovelSeriesActionReceiver {
     fun onClickSeries(sender: View, series: Series)
 }

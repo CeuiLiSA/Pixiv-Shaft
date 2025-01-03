@@ -50,18 +50,25 @@ class DownloadNovelTask(
             stringBuffer.append("\n\n")
             stringBuffer.append("<===== Shaft Novel Start =====>")
             stringBuffer.append("\n\n")
+
             stringBuffer.append("标题：${novel.title}")
             stringBuffer.append("\n\n")
-            stringBuffer.append("小说链接：https://www.pixiv.net/novel/show.php?id=${novel.id}")
-            stringBuffer.append("\n\n")
-            stringBuffer.append("简介：${replaceBrWithNewLine(novel.caption)}") // 去除 HTML 标签
-            stringBuffer.append("\n\n")
-            stringBuffer.append("标签：${novel.tags?.map { it.name }?.joinToString(", ")}") // 去除 HTML 标签
-            stringBuffer.append("\n\n")
+
             stringBuffer.append("作者：${novel.user?.name}")
             stringBuffer.append("\n\n")
+
             stringBuffer.append("作者链接：https://www.pixiv.net/users/${novel.user?.id}")
             stringBuffer.append("\n\n")
+
+            stringBuffer.append("小说链接：https://www.pixiv.net/novel/show.php?id=${novel.id}")
+            stringBuffer.append("\n\n")
+
+            stringBuffer.append("标签：${novel.tags?.map { it.name }?.joinToString(", ")}") // 去除 HTML 标签
+            stringBuffer.append("\n\n")
+
+            stringBuffer.append("简介：${replaceBrWithNewLine(novel.caption)}") // 去除 HTML 标签
+            stringBuffer.append("\n\n")
+
             stringBuffer.append("正文：")
             stringBuffer.append("\n\n")
             stringBuffer.append(replaceBrWithNewLine(wNovel.text)) // 去除 HTML 标签
