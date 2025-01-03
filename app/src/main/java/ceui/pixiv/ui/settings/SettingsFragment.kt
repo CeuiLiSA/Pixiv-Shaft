@@ -6,6 +6,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.User
@@ -15,11 +16,13 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
+import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.widgets.alertYesOrCancel
 import ceui.pixiv.ui.common.viewBinding
 import com.tencent.mmkv.MMKV
+import timber.log.Timber
 
 class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActionReceiver {
 
@@ -27,9 +30,15 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
     private val prefStore: MMKV by lazy {
         MMKV.defaultMMKV()
     }
+    private val viewModel by pixivValueViewModel {
+        Client.appApi.getSelfProfile()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.result.observe(viewLifecycleOwner) {
+            Timber.d("getSelfProfile ${it}")
+        }
         val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_NO_MARGIN)
         binding.toolbarLayout.naviTitle.text = getString(R.string.app_settings)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)

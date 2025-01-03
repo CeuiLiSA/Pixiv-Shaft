@@ -164,6 +164,18 @@
 
 
     <fragment
+        android:id="@+id/navigation_novel_series"
+        android:name="ceui.pixiv.ui.novel.NovelSeriesFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            android:name="series_id"
+            app:argType="long" />
+    </fragment>
+
+
+
+    <fragment
         android:id="@+id/navigation_flag_desc"
         android:name="ceui.loxia.flag.FlagDescFragment">
         <argument

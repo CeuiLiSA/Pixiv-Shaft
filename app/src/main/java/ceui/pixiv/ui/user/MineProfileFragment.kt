@@ -18,6 +18,7 @@ import ceui.pixiv.ui.common.ViewPagerContentType
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 
 class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -89,8 +90,11 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         )
                     },
                     TabCellHolder(getString(R.string.action_settings)).onItemClick {
+//                        pushFragment(
+//                            R.id.navigation_settings,
+//                        )
                         pushFragment(
-                            R.id.navigation_settings,
+                            R.id.navigation_novel_series, NovelSeriesFragmentArgs(12759031L).toBundle()
                         )
                     },
                 )

@@ -8,6 +8,7 @@ import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.fragments.WebNovelParser
+import ceui.lisa.models.ObjectSpec
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.KListShow
@@ -15,8 +16,10 @@ import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.WebNovel
+import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.pushFragment
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.blocking.BlockingManager
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.ListMode
@@ -27,6 +30,8 @@ import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.works.blurBackground
+import ceui.pixiv.widgets.MenuItem
+import ceui.pixiv.widgets.showActionMenu
 
 class NovelTextViewModel : ViewModel() {
     var webNovel: WebNovel? = null
@@ -70,7 +75,18 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         }
         val authorId = ObjectPool.get<Novel>(args.novelId).value?.user?.id ?: 0L
         binding.toolbarLayout.naviMore.setOnClick {
-            pushFragment(R.id.navigation_comments_illust, CommentsFragmentArgs(args.novelId, authorId, ObjectType.NOVEL).toBundle())
+            showActionMenu {
+                add(
+                    MenuItem(getString(R.string.view_comments)) {
+                        pushFragment(R.id.navigation_comments_illust, CommentsFragmentArgs(args.novelId, authorId, ObjectType.NOVEL).toBundle())
+                    }
+                )
+                add(
+                    MenuItem(getString(R.string.string_5)) {
+
+                    }
+                )
+            }
         }
     }
 }
