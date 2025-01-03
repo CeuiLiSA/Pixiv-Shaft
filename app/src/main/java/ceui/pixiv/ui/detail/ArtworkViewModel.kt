@@ -43,19 +43,26 @@ class ArtworkViewModel(
         itemMapper = { illust -> listOf(UserPostHolder(illust)) }
     ) {
         override fun updateHolders(holders: List<ListItemHolder>) {
-            // 从现有列表中剔除 LoadingHolder
-            val filteredList =
-                (_itemHolders.value ?: listOf()).filterNot { it is LoadingHolder }.toMutableList()
+            if (holders.isNotEmpty()) {
+                // 从现有列表中剔除 LoadingHolder
+                val filteredList =
+                    (_itemHolders.value ?: listOf()).filterNot { it is LoadingHolder }.toMutableList()
 
-            // 添加新数据
-            filteredList.addAll(holders)
+                // 添加新数据
+                filteredList.addAll(holders)
 
-            // 更新列表
-            _itemHolders.value = filteredList
-            _refreshState.value = RefreshState.LOADED(
-                hasContent = true,
-                hasNext = hasNext()
-            )
+                // 更新列表
+                _itemHolders.value = filteredList
+                _refreshState.value = RefreshState.LOADED(
+                    hasContent = true,
+                    hasNext = hasNext()
+                )
+            } else {
+                _refreshState.value = RefreshState.LOADED(
+                    hasContent = true,
+                    hasNext = false
+                )
+            }
         }
     }
 
@@ -84,7 +91,7 @@ class ArtworkViewModel(
                 result.add(ArtworkCaptionHolder(illustId))
                 result.add(RedSectionHeaderHolder(context.getString(R.string.related_artworks)))
                 result.add(LoadingHolder(_relatedIllustsDataSource.refreshStateImpl) {
-                    launch {
+                    viewModelScope.launch {
                         _relatedIllustsDataSource.refreshImpl(
                             RefreshHint.ErrorRetry
                         )

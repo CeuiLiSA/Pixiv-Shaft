@@ -45,7 +45,7 @@ fun ItemLoadingBinding.setUpHolderRefreshState(
             if (refreshState.refreshHint == RefreshHint.PullToRefresh) {
                 loadingFrame.isVisible = false
                 progressCircular.hideProgress()
-            } else if (refreshState.refreshHint == RefreshHint.InitialLoad) {
+            } else {
                 loadingFrame.isVisible = true
                 progressCircular.showProgress()
             }

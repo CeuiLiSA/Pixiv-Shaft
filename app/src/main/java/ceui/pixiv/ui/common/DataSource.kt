@@ -52,7 +52,11 @@ open class DataSource<Item, T: KListShow<Item>>(
                 }
             }
 
-            if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
+            if (hint == RefreshHint.PullToRefresh ||
+                hint == RefreshHint.ErrorRetry ||
+                responseStore == null ||
+                responseStore.isCacheExpired()
+             ) {
                 val response = withContext(Dispatchers.IO) {
                     dataFetcher(hint).also {
                         responseStore?.writeToCache(it)
