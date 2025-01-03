@@ -259,6 +259,12 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_following_created_novel"
+        android:name="ceui.pixiv.ui.user.FollowingCreatedNovelFragment" >
+
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_user_created_novel"
         android:name="ceui.pixiv.ui.user.UserCreatedNovelFragment" >
 

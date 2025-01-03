@@ -85,10 +85,12 @@ class DownloadNovelTask(
     }
 
     // 定义替换方法，将 <br> 替换为换行符
-    fun replaceBrWithNewLine(input: String?): String {
-        return input
-            ?.replace(Regex("<br\\s*/?>"), "\n") // 替换 <br> 和 <br/> 为换行符
-            ?.replace(Regex("<[^>]*>"), "") // 移除其他 HTML 标签
-            ?: ""
+    companion object {
+        fun replaceBrWithNewLine(input: String?): String {
+            return input
+                ?.replace(Regex("<br\\s*/?>"), "\n") // 替换 <br> 和 <br/> 为换行符
+                ?.replace(Regex("<[^>]*>"), "") // 移除其他 HTML 标签
+                ?: ""
+        }
     }
 }

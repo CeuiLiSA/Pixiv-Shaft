@@ -61,6 +61,11 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             CommonViewPagerFragmentArgs(ViewPagerContentType.MyBookmarkNovel).toBundle()
                         )
                     },
+                    TabCellHolder(getString(R.string.string_197)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_following_created_novel,
+                        )
+                    },
                     TabCellHolder(getString(R.string.string_321)).onItemClick {
                         pushFragment(
                             R.id.navigation_common_viewpager,
