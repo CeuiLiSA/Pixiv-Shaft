@@ -4,36 +4,24 @@
 
     <data>
         <variable
-            name="novel"
-            type="androidx.lifecycle.LiveData&lt;ceui.loxia.Novel>" />
+            name="series"
+            type="ceui.loxia.NovelSeriesDetail" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <net.csdn.roundview.RoundImageView
-            android:id="@+id/novel_cover"
-            loadMedia="@{novel.image_urls.findMaxSizeUrl()}"
-            android:layout_width="130dp"
-            android:layout_height="0dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintDimensionRatio="240:338"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:rRadius="4dp" />
-
         <TextView
             android:id="@+id/title"
-            app:layout_constraintTop_toBottomOf="@+id/novel_cover"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/series_name"
-            android:layout_marginTop="16dp"
+            app:layout_constraintBottom_toTopOf="@+id/caption"
             app:layout_constraintEnd_toStartOf="@+id/bookmark"
             android:textSize="16sp"
-            android:text="@{novel.title}"
+            android:text="@{series.title}"
             android:textStyle="bold"
-            android:textColor="@color/text00"
+            android:textColor="@color/buttonTextGreen"
             android:layout_width="0dp"
             android:layout_height="wrap_content" />
 
@@ -46,22 +34,19 @@
             app:layout_constraintTop_toTopOf="@+id/title"
             android:padding="8dp"
             app:ptb_progress_width="14dp"
-            android:src="@{novel.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
+            android:src="@{series.watchlist_added ? @drawable/icon_liked : @drawable/icon_not_liked}"
             android:layout_width="@dimen/min_widget_size"
             android:layout_height="@dimen/min_widget_size" />
 
         <TextView
-            android:id="@+id/series_name"
+            android:id="@+id/caption"
             app:layout_constraintTop_toBottomOf="@+id/title"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             android:textSize="14sp"
-            android:text="@{novel.series.title}"
-            visibleOrGone="@{novel.series != null}"
-            android:textStyle="bold"
-            android:textColor="@color/buttonTextGreen"
+            android:textColor="@color/text10"
             android:layout_width="0dp"
             android:layout_height="wrap_content" />
 

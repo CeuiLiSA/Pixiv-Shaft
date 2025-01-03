@@ -15,6 +15,7 @@ import ceui.loxia.KListShow
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
+import ceui.loxia.Series
 import ceui.loxia.WebNovel
 import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.pushFragment
@@ -22,6 +23,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.blocking.BlockingManager
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.DataSource
+import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
@@ -36,7 +38,7 @@ import ceui.pixiv.widgets.showActionMenu
 import kotlin.getValue
 
 
-class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
+class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, NovelHeaderActionReceiver {
 
     private val safeArgs by navArgs<NovelTextFragmentArgs>()
     private val binding by viewBinding(FragmentPixivListBinding::bind)
@@ -71,5 +73,11 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                 )
             }
         }
+    }
+
+    override fun onClickSeries(sender: View, series: Series) {
+        pushFragment(
+            R.id.navigation_novel_series, NovelSeriesFragmentArgs(series.id).toBundle()
+        )
     }
 }

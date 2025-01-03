@@ -5,11 +5,17 @@ import android.view.View
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.loxia.ObjectType
+import ceui.loxia.pushFragment
 import ceui.loxia.threadSafeArgs
+import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.MenuItem
+import ceui.pixiv.widgets.showActionMenu
 import kotlin.getValue
 
 class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
@@ -23,8 +29,15 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
-        viewModel.series.observe(viewLifecycleOwner) {
-            binding.toolbarLayout.naviTitle.text = it.novel_series_detail?.title
+        binding.toolbarLayout.naviTitle.text = getString(R.string.novel_series)
+        binding.toolbarLayout.naviMore.setOnClick {
+            showActionMenu {
+                add(
+                    MenuItem(getString(R.string.download_all_artworks)) {
+
+                    }
+                )
+            }
         }
     }
 }

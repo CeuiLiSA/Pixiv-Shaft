@@ -1,14 +1,12 @@
 package ceui.pixiv.ui.novel
 
-import ceui.lisa.R
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.IllustResponse
 import ceui.loxia.Novel
 import ceui.loxia.NovelSeriesResp
 import ceui.loxia.ObjectPool
@@ -23,13 +21,7 @@ import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.createResponseStore
-import ceui.pixiv.ui.detail.ArtworkCaptionHolder
-import ceui.pixiv.ui.detail.ArtworkInfoHolder
-import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.UserInfoHolder
-import ceui.pixiv.ui.user.UserPostHolder
-import ceui.pixiv.ui.works.getGalleryHolders
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -74,9 +66,20 @@ class NovelSeriesViewModel(
         viewModelScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
+                val context = Shaft.getContext()
                 val resp = Client.appApi.getNovelSeries(seriesId)
                 _series.value = resp
                 val result = mutableListOf<ListItemHolder>()
+                resp.novel_series_detail?.let {
+                    result.add(NovelSeriesHeaderHolder(it))
+                }
+                result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
+                result.add(UserInfoHolder(resp.novel_series_detail?.user?.id ?: 0L))
+                result.add(RedSectionHeaderHolder(
+                    context.getString(
+                        R.string.total_works_count,
+                        resp.novel_series_detail?.content_count
+                    )))
                 result.addAll(resp.displayList.map { novel -> NovelCardHolder(novel) })
                 _lastOrder = resp.novels?.size
                 _itemHolders.value = result

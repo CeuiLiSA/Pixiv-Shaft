@@ -57,12 +57,14 @@ class NovelTextViewModel(
                 val webNovel = WebNovelParser.parsePixivObject(html)?.novel
 
                 val result = mutableListOf<ListItemHolder>()
+                result.add(SpaceHolder())
                 result.add(NovelHeaderHolder(novelId))
                 result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
                 result.add(UserInfoHolder(ObjectPool.get<Novel>(novelId).value?.user?.id ?: 0L))
                 result.add(RedSectionHeaderHolder("简介"))
                 result.add(NovelCaptionHolder(novelId))
-                result.add(NovelTextHolder("正文", Common.getNovelTextColor()))
+                result.add(RedSectionHeaderHolder("正文"))
+                result.add(SpaceHolder())
                 (webNovel?.text?.split("\n") ?: listOf()).forEach { oneLineText ->
                     result.addAll(
                         WebNovelParser.buildNovelHolders(webNovel, oneLineText)

@@ -90,11 +90,8 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         )
                     },
                     TabCellHolder(getString(R.string.action_settings)).onItemClick {
-//                        pushFragment(
-//                            R.id.navigation_settings,
-//                        )
                         pushFragment(
-                            R.id.navigation_novel_series, NovelSeriesFragmentArgs(12759031L).toBundle()
+                            R.id.navigation_settings,
                         )
                     },
                 )
