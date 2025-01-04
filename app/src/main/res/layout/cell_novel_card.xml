@@ -4,11 +4,11 @@
 
     <data>
 
-        <import type="ceui.pixiv.ui.common.NovelCardHolder" />
+        <import type="ceui.loxia.Novel" />
 
         <variable
-            name="holder"
-            type="NovelCardHolder" />
+            name="novel"
+            type="androidx.lifecycle.LiveData&lt;Novel>" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -17,7 +17,7 @@
 
         <net.csdn.roundview.RoundImageView
             android:id="@+id/novel_cover"
-            loadMedia="@{holder.novel.image_urls.findMaxSizeUrl()}"
+            loadMedia="@{novel.image_urls.findMaxSizeUrl()}"
             android:layout_width="100dp"
             android:layout_height="0dp"
             app:layout_constraintDimensionRatio="240:338"
@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:text="@{holder.novel.text_length.toString()}"
+            android:text="@{novel.text_length.toString()}"
             android:textColor="@color/text20"
             android:textSize="13sp"
             app:layout_constraintStart_toStartOf="@+id/novel_cover"
@@ -48,7 +48,7 @@
             android:layout_marginStart="10dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:text="@{holder.novel.title}"
+            android:text="@{novel.title}"
             android:textColor="@color/text00"
             android:textSize="15sp"
             app:layout_constraintStart_toEndOf="@+id/novel_cover"
@@ -62,8 +62,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginStart="10dp"
             android:textSize="14sp"
-            android:text="@{holder.novel.series.title}"
-            visibleOrGone="@{holder.novel.series != null}"
+            android:text="@{novel.series.title}"
+            visibleOrGone="@{novel.series != null}"
             android:textStyle="bold"
             android:textColor="@color/buttonTextGreen"
             android:layout_width="0dp"
@@ -83,7 +83,7 @@
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/user_icon"
-                userIcon="@{holder.novel.user}"
+                userIcon="@{novel.user}"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -99,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
-                android:text="@{holder.novel.user.name}"
+                android:text="@{novel.user.name}"
                 android:textColor="@color/text00"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -115,7 +115,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:padding="8dp"
                 app:ptb_progress_width="14dp"
-                android:src="@{holder.novel.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
+                android:src="@{novel.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
                 android:layout_width="@dimen/min_widget_size"
                 android:layout_height="@dimen/min_widget_size" />
 
@@ -123,7 +123,7 @@
 
         <ceui.pixiv.widgets.TagsFlowView
             android:id="@+id/novel_tag"
-            visibleOrGone="@{holder.novel.tags.size() > 0}"
+            visibleOrGone="@{novel.tags.size() > 0}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -131,7 +131,7 @@
             app:flexWrap="wrap"
             app:layout_constraintTop_toBottomOf="@+id/novel_cover"
             app:showDivider="middle"
-            app:tags="@{holder.novel.tags}"
+            app:tags="@{novel.tags}"
             app:tfv_max_lines="3"
             app:tfv_style="small" />
 

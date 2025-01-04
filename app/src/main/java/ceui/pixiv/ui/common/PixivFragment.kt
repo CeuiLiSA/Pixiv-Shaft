@@ -24,6 +24,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
+import ceui.lisa.models.ObjectSpec
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
@@ -118,10 +119,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 
     override fun onClickBookmarkNovel(sender: ProgressIndicator, novelId: Long) {
         launchSuspend(sender) {
-            val novel = ObjectPool.get<Novel>(novelId).value ?: Client.appApi.getIllust(novelId).illust?.also { ObjectPool.update(it) }
+            val novel = ObjectPool.get<Novel>(novelId).value ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
             if (novel != null) {
                 if (novel.is_bookmarked == true) {
-                    Client.appApi.removeBookmark(novelId)
+                    Client.appApi.removeNovelBookmark(novelId)
                     ObjectPool.update(
                         novel.copy(
                             is_bookmarked = false,
@@ -130,7 +131,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
                     )
                     Common.showToast(getString(R.string.cancel_like_illust))
                 } else {
-                    Client.appApi.postBookmark(novelId)
+                    Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
                     ObjectPool.update(
                         novel.copy(
                             is_bookmarked = true,
@@ -178,14 +179,17 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
         }
     }
 
-    override fun onClickNovel(novel: Novel) {
-        pushFragment(R.id.navigation_novel_text, NovelTextFragmentArgs(novel.id).toBundle())
+    override fun onClickNovel(novelId: Long) {
+        pushFragment(
+            R.id.navigation_viewpager_artwork,
+            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, novelId, ObjectType.NOVEL).toBundle()
+        )
     }
 
     override fun onClickIllust(illustId: Long) {
         pushFragment(
             R.id.navigation_viewpager_artwork,
-            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, illustId).toBundle()
+            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, illustId, ObjectType.ILLUST).toBundle()
         )
     }
 

@@ -486,6 +486,10 @@ data class SingleIllustResponse(
     val illust: Illust? = null,
 ) : Serializable
 
+data class SingleNovelResponse(
+    val novel: Novel? = null,
+) : Serializable
+
 data class GifInfoResponse(
     val illustId: Long,
     val ugoira_metadata: UgoiraMetaData? = null,

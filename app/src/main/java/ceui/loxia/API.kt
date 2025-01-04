@@ -43,6 +43,19 @@ interface API {
     )
 
     @FormUrlEncoded
+    @POST("/v2/novel/bookmark/add")
+    suspend fun addNovelBookmark(
+        @Field("novel_id") novel_id: Long,
+        @Field("restrict") followType: String
+    )
+
+    @FormUrlEncoded
+    @POST("/v1/novel/bookmark/delete")
+    suspend fun removeNovelBookmark(
+        @Field("novel_id") novel_id: Long
+    )
+
+    @FormUrlEncoded
     @POST("/v1/illust/bookmark/delete")
     suspend fun removeBookmark(
         @Field("illust_id") illust_id: Long
@@ -61,6 +74,11 @@ interface API {
     suspend fun getIllust(
         @Query("illust_id") illust_id: Long
     ): SingleIllustResponse
+
+    @GET("/v1/illust/detail")
+    suspend fun getNovel(
+        @Query("novel_id") novel_id: Long
+    ): SingleNovelResponse
 
     @GET("/v2/illust/related")
     suspend fun getRelatedIllusts(

@@ -140,6 +140,10 @@
         <argument
             android:name="object_id"
             app:argType="long" />
+
+        <argument
+            android:name="object_type"
+            app:argType="string" />
     </fragment>
 
     <fragment

@@ -6,6 +6,7 @@ import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
+import ceui.loxia.ProgressIndicator
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
 import ceui.pixiv.ui.user.UserActionReceiver
@@ -29,7 +30,7 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
 
     override fun onBindViewHolder(holder: NovelCardHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        binding.holder = holder
+        binding.novel = ObjectPool.get<Novel>(holder.novelId)
         binding.userLayout.setOnClick { sender ->
             holder.novel.user?.id?.let {
                 sender.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(it)
@@ -41,15 +42,16 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
             }
         }
         binding.root.setOnClick {
-            it.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(holder.novel)
+            it.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(holder.novelId)
         }
         binding.bookmark.setOnClick {
-            it.findActionReceiverOrNull<IllustCardActionReceiver>()
-                ?.onClickBookmarkIllust(it, holder.illust.id)
+            it.findActionReceiverOrNull<NovelActionReceiver>()
+                ?.onClickBookmarkNovel(it, holder.novelId)
         }
     }
 }
 
 interface NovelActionReceiver {
-    fun onClickNovel(novel: Novel)
+    fun onClickNovel(novelId: Long)
+    fun onClickBookmarkNovel(sender: ProgressIndicator, novelId: Long)
 }
