@@ -20,6 +20,7 @@ import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
+import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.utils.setOnClick
@@ -36,9 +37,10 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
 
     private val safeArgs by navArgs<NovelTextFragmentArgs>()
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val bgViewModel by pixivValueViewModel({
-        Client.appApi.getUserBookmarkedIllusts(SessionManager.loggedInUid, Params.TYPE_PUBLIC)
-    })
+    private val bgViewModel by pixivValueViewModel(
+        dataFetcher = { Client.appApi.getUserBookmarkedIllusts(SessionManager.loggedInUid, Params.TYPE_PUBLIC) },
+        responseStore = createResponseStore({"user-${SessionManager.loggedInUid}-bookmarked-illusts"})
+    )
     private val textModel by constructVM({ safeArgs.novelId }) { novelId->
         NovelTextViewModel(novelId)
     }
@@ -77,5 +79,4 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
             }
         }
     }
-
 }

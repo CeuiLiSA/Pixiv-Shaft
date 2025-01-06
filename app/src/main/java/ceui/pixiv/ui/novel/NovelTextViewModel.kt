@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
+import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -14,6 +15,7 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.SpaceHolder
 import ceui.loxia.WebNovel
+import ceui.loxia.novel.NovelTextHolder
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.ListItemHolder
@@ -62,6 +64,9 @@ class NovelTextViewModel(
                     }
                     _webNovel.value = it
                 }
+                result.add(SpaceHolder())
+                result.add(NovelTextHolder("<===== End =====>", Common.getNovelTextColor()))
+                result.add(SpaceHolder())
 
                 _itemHolders.value = result
                 _refreshState.value = RefreshState.LOADED(

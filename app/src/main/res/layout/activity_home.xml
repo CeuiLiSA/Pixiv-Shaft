@@ -28,7 +28,7 @@
         android:layout_height="match_parent"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
-        app:lottie_rawRes="@raw/renew_token_new"
+        app:lottie_rawRes="@raw/follow_success"
         app:lottie_loop="false"/>
 
     <com.airbnb.lottie.LottieAnimationView

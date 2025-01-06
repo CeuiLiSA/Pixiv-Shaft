@@ -39,7 +39,6 @@ class ArtworkViewModel(
 
     private val _relatedIllustsDataSource = object : DataSource<Illust, IllustResponse>(
         dataFetcher = { Client.appApi.getRelatedIllusts(illustId) },
-        responseStore = createResponseStore({ "related-illust-$illustId" }),
         itemMapper = { illust -> listOf(UserPostHolder(illust)) }
     ) {
         override fun updateHolders(holders: List<ListItemHolder>) {

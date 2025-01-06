@@ -21,6 +21,7 @@ import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.createResponseStore
+import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.UserInfoHolder
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -98,7 +99,11 @@ class NovelSeriesViewModel(
     }
 
     override fun prepareIdMap(fragmentUniqueId: String) {
+        val filteredList = _itemHolders.value.orEmpty()
+            .filterIsInstance<NovelCardHolder>() // 直接过滤为特定类型
+            .map { it.novel.id } // 提取 id 列表
 
+        ArtworksMap.store[fragmentUniqueId] = filteredList
     }
 
     override val refreshState: LiveData<RefreshState>

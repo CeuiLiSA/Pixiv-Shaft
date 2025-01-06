@@ -12,7 +12,7 @@ import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.setOnClick
 
-class NovelCardHolder(val novelId: Long, val novel: Novel) : ListItemHolder() {
+class NovelCardHolder(val novel: Novel) : ListItemHolder() {
     init {
         ObjectPool.update(novel)
         novel.user?.let {
@@ -30,7 +30,7 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
 
     override fun onBindViewHolder(holder: NovelCardHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        binding.novel = ObjectPool.get<Novel>(holder.novelId)
+        binding.novel = ObjectPool.get<Novel>(holder.novel.id)
         binding.userLayout.setOnClick { sender ->
             holder.novel.user?.id?.let {
                 sender.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(it)
@@ -42,11 +42,11 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
             }
         }
         binding.root.setOnClick {
-            it.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(holder.novelId)
+            it.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(holder.novel.id)
         }
         binding.bookmark.setOnClick {
             it.findActionReceiverOrNull<NovelActionReceiver>()
-                ?.onClickBookmarkNovel(it, holder.novelId)
+                ?.onClickBookmarkNovel(it, holder.novel.id)
         }
     }
 }
