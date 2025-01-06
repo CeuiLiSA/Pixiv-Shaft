@@ -176,7 +176,10 @@
   <string name="read_latest_episode">閱讀最新話</string>
   <string name="watchlist">追蹤列表</string>
   <string name="episode_number">%d話</string>
-  <string name="string_1">遮罩設定</string>  
+  <string name="add_to_watchlist">加入追蹤列表</string>
+  <string name="already_in_your_watchlist">已加入追蹤列表</string>
+  <string name="read_latest_episode_with_num">閱讀最新一話(#%1$d)</string>
+  <string name="string_1">遮罩設定</string>
   <string name="string_2">開發者預覽</string>  
   <string name="string_3">分享</string>  
   <string name="string_4">+關注</string>  

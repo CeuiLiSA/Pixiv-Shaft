@@ -43,6 +43,7 @@ public class NovelSeriesItem implements Serializable {
     private int total_character_count;
     private UserBean user;
     private String display_text;
+    private boolean watchlist_added;
 
     public int getId() {
         return id;
@@ -114,6 +115,14 @@ public class NovelSeriesItem implements Serializable {
 
     public void setDisplay_text(String display_text) {
         this.display_text = display_text;
+    }
+
+    public boolean isWatchlist_added() {
+        return watchlist_added;
+    }
+
+    public void setWatchlist_added(boolean watchlist_added) {
+        this.watchlist_added = watchlist_added;
     }
 
 }
