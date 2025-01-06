@@ -80,10 +80,24 @@
 
             </TextView>
 
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/series"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_toStartOf="@+id/cover"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="13sp">
+            </TextView>
+
             <com.zhy.view.flowlayout.TagFlowLayout
                 android:layout_width="match_parent"
                 android:id="@+id/novel_tag"
-                android:layout_below="@id/series"
+                android:layout_below="@id/date"
                 android:layout_toStartOf="@+id/cover"
                 android:layout_marginStart="@dimen/eight_dp"
                 android:layout_marginEnd="@dimen/eight_dp"
