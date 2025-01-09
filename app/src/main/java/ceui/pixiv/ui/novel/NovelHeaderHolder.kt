@@ -43,12 +43,12 @@ class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<Cel
         }
         binding.seriesName.setOnClick { sender ->
             liveNovel.value?.series?.let { series ->
-                sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickSeries(sender, series)
+                sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickNovelSeries(sender, series)
             }
         }
     }
 }
 
 interface NovelSeriesActionReceiver {
-    fun onClickSeries(sender: View, series: Series)
+    fun onClickNovelSeries(sender: View, series: Series)
 }

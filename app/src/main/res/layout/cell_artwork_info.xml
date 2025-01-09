@@ -15,9 +15,9 @@
 
         <TextView
             android:id="@+id/title"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/bookmark"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/bookmark"
             app:layout_constraintEnd_toStartOf="@+id/bookmark"
             android:textSize="16sp"
             android:text="@{illust.title}"
@@ -36,6 +36,23 @@
             android:src="@{illust.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
             android:layout_width="@dimen/min_widget_size"
             android:layout_height="@dimen/min_widget_size" />
+
+
+        <TextView
+            android:id="@+id/series_name"
+            app:layout_constraintTop_toBottomOf="@+id/title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:textSize="14sp"
+            android:text="@{`系列：` + illust.series.title}"
+            visibleOrGone="@{illust.series != null}"
+            android:textStyle="bold"
+            android:textColor="@color/buttonTextGreen"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

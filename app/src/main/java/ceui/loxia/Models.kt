@@ -146,7 +146,7 @@ data class Illust(
     val page_count: Int = 0,
     val restrict: Int? = null,
     val sanity_level: Int? = null,
-    val series: Any? = null,
+    val series: Series? = null,
     val tags: List<Tag>? = null,
     val title: String? = null,
     val tools: List<String>? = null,

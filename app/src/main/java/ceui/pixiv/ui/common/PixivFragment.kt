@@ -63,7 +63,7 @@ import timber.log.Timber
 
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
-    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver, NovelSeriesActionReceiver {
+    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver, NovelSeriesActionReceiver, IllustSeriesActionReceiver {
 
     protected val fragmentViewModel: NavFragmentViewModel by viewModels()
 
@@ -198,7 +198,13 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
         Common.showLog("onDestroy ${this::class.simpleName}")
     }
 
-    override fun onClickSeries(sender: View, series: Series) {
+    override fun onClickNovelSeries(sender: View, series: Series) {
+        pushFragment(
+            R.id.navigation_novel_series, NovelSeriesFragmentArgs(series.id).toBundle()
+        )
+    }
+
+    override fun onClickIllustSeries(sender: View, series: Series) {
         pushFragment(
             R.id.navigation_novel_series, NovelSeriesFragmentArgs(series.id).toBundle()
         )

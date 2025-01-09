@@ -1,7 +1,5 @@
 package ceui.pixiv.ui.common
 
-import androidx.core.text.HtmlCompat
-import androidx.core.view.isVisible
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
 import ceui.loxia.Novel
@@ -38,7 +36,7 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
         }
         binding.seriesName.setOnClick { sender ->
             holder.novel.series?.let { series ->
-                sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickSeries(sender, series)
+                sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickNovelSeries(sender, series)
             }
         }
         binding.root.setOnClick {
