@@ -778,3 +778,18 @@ data class NovelSeriesResp(
     override val nextPageUrl: String?
         get() = next_url
 }
+
+
+@Parcelize
+data class IllustSeriesResp(
+    val illust_series_detail: NovelSeriesDetail? = null,
+    val illust_series_first_illust: Illust? = null,
+    val illust_series_latest_illust: Illust? = null,
+    val illusts: List<Illust>? = null,
+    val next_url: String? = null
+) : Parcelable, KListShow<Illust> {
+    override val displayList: List<Illust>
+        get() = illusts ?: listOf()
+    override val nextPageUrl: String?
+        get() = next_url
+}

@@ -178,6 +178,16 @@
     </fragment>
 
 
+    <fragment
+        android:id="@+id/navigation_illust_series"
+        android:name="ceui.pixiv.ui.detail.IllustSeriesFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            android:name="series_id"
+            app:argType="long" />
+    </fragment>
+
 
     <fragment
         android:id="@+id/navigation_flag_desc"

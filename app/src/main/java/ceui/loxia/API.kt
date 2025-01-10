@@ -64,11 +64,17 @@ interface API {
     @GET("/v1/user/me/state")
     suspend fun getSelfProfile(): SelfProfile
 
-    @GET("/v2/novel/series?=8272360")
+    @GET("/v2/novel")
     suspend fun getNovelSeries(
         @Query("series_id") series_id: Long,
         @Query("last_order") last_order: Int? = null,
     ): NovelSeriesResp
+
+    @GET("/v1/illust/series")
+    suspend fun getIllustSeries(
+        @Query("illust_series_id") series_id: Long,
+        @Query("last_order") last_order: Int? = null,
+    ): IllustSeriesResp
 
     @GET("/v1/illust/detail")
     suspend fun getIllust(

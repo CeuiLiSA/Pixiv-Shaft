@@ -46,6 +46,7 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
+import ceui.pixiv.ui.detail.IllustSeriesFragmentArgs
 import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
 import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.novel.NovelTextFragmentArgs
@@ -206,7 +207,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 
     override fun onClickIllustSeries(sender: View, series: Series) {
         pushFragment(
-            R.id.navigation_novel_series, NovelSeriesFragmentArgs(series.id).toBundle()
+            R.id.navigation_illust_series, IllustSeriesFragmentArgs(series.id).toBundle()
         )
     }
 }
