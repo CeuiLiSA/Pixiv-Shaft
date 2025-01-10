@@ -64,7 +64,7 @@ interface API {
     @GET("/v1/user/me/state")
     suspend fun getSelfProfile(): SelfProfile
 
-    @GET("/v2/novel")
+    @GET("/v2/novel/series")
     suspend fun getNovelSeries(
         @Query("series_id") series_id: Long,
         @Query("last_order") last_order: Int? = null,
@@ -167,6 +167,7 @@ interface API {
     @GET("/v1/user/recommended?filter=for_ios")
     suspend fun recommendedUsers(): UserPreviewResponse
 
+    // /v1/illust/ranking?mode=day_manga&filter=for_ios
     @GET("/v1/illust/ranking?filter=for_ios")
     suspend fun getRankingIllusts(
         @Query("mode") mode: String,

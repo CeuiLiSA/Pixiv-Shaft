@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.novel
 
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import ceui.lisa.annotations.ItemHolder
