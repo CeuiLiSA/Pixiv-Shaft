@@ -98,7 +98,7 @@ class ArtworkViewModel(
                 })
                 _itemHolders.value = result
                 _refreshState.value = RefreshState.LOADED(
-                    hasContent = true, hasNext = true
+                    hasContent = true, hasNext = false
                 )
                 _relatedIllustsDataSource.refreshImpl(hint)
             } catch (ex: Exception) {
