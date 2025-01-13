@@ -1,10 +1,12 @@
 package ceui.loxia
 
+import android.os.Parcelable
 import android.text.TextUtils
 import ceui.lisa.models.ModelObject
 import ceui.lisa.models.NovelBean
 import ceui.lisa.models.NovelDetail.NovelMarkerBean
 import ceui.lisa.models.ObjectSpec
+import kotlinx.parcelize.Parcelize
 import java.io.Serializable
 
 
@@ -144,7 +146,7 @@ data class Illust(
     val page_count: Int = 0,
     val restrict: Int? = null,
     val sanity_level: Int? = null,
-    val series: Any? = null,
+    val series: Series? = null,
     val tags: List<Tag>? = null,
     val title: String? = null,
     val tools: List<String>? = null,
@@ -238,8 +240,10 @@ object UserGender {
 data class User(
     val account: String? = null,
     val id: Long = 0L,
+    val user_id: Long = 0L,
     val is_followed: Boolean? = null,
     val name: String? = null,
+    val pixiv_id: String? = null,
     val profile_image_urls: ImageUrls? = null,
     val is_mail_authorized: Boolean? = null,
     val is_premium: Boolean? = null,
@@ -482,6 +486,10 @@ data class SingleIllustResponse(
     val illust: Illust? = null,
 ) : Serializable
 
+data class SingleNovelResponse(
+    val novel: Novel? = null,
+) : Serializable
+
 data class GifInfoResponse(
     val illustId: Long,
     val ugoira_metadata: UgoiraMetaData? = null,
@@ -721,4 +729,67 @@ data class NovelImages(
         const val Size128x128 = "128x128"
         const val SizeOriginal = "original"
     }
+}
+
+@Parcelize
+data class SelfProfile(
+    val profile: User,
+    val user_state: KUserState
+) : Parcelable
+
+@Parcelize
+data class KUserState(
+    val is_mail_authorized: Boolean = false,
+    val has_mail_address: Boolean = false,
+    val has_changed_pixiv_id: Boolean = false,
+    val can_change_pixiv_id: Boolean = false,
+    val has_password: Boolean = false,
+    val require_policy_agreement: Boolean = false,
+    val no_login_method: Boolean = false,
+    val is_user_restricted: Boolean = false,
+) : Parcelable
+
+@Parcelize
+data class NovelSeriesDetail(
+    val id: Long = 0L,
+    val title: String? = null,
+    val caption: String? = null,
+    val display_text: String? = null,
+    val user: User? = null,
+    val is_original: Boolean? = null,
+    val is_concluded: Boolean? = null,
+    val watchlist_added: Boolean? = null,
+    val content_count: Int = 0,
+    val novel_ai_type: Int = 0,
+    val total_character_count: Int = 0,
+) : Parcelable
+
+
+@Parcelize
+data class NovelSeriesResp(
+    val novel_series_detail: NovelSeriesDetail? = null,
+    val novel_series_first_novel: Novel? = null,
+    val novel_series_latest_novel: Novel? = null,
+    val novels: List<Novel>? = null,
+    val next_url: String? = null
+) : Parcelable, KListShow<Novel> {
+    override val displayList: List<Novel>
+        get() = novels ?: listOf()
+    override val nextPageUrl: String?
+        get() = next_url
+}
+
+
+@Parcelize
+data class IllustSeriesResp(
+    val illust_series_detail: NovelSeriesDetail? = null,
+    val illust_series_first_illust: Illust? = null,
+    val illust_series_latest_illust: Illust? = null,
+    val illusts: List<Illust>? = null,
+    val next_url: String? = null
+) : Parcelable, KListShow<Illust> {
+    override val displayList: List<Illust>
+        get() = illusts ?: listOf()
+    override val nextPageUrl: String?
+        get() = next_url
 }

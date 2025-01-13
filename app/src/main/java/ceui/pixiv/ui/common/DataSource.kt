@@ -52,7 +52,11 @@ open class DataSource<Item, T: KListShow<Item>>(
                 }
             }
 
-            if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
+            if (hint == RefreshHint.PullToRefresh ||
+                hint == RefreshHint.ErrorRetry ||
+                responseStore == null ||
+                responseStore.isCacheExpired()
+             ) {
                 val response = withContext(Dispatchers.IO) {
                     dataFetcher(hint).also {
                         responseStore?.writeToCache(it)
@@ -76,8 +80,12 @@ open class DataSource<Item, T: KListShow<Item>>(
         mapProtoItemsToHolders()
         _refreshState.value = RefreshState.LOADED(
             hasContent = _itemHolders.value?.isNotEmpty() == true,
-            hasNext = _nextPageUrl?.isNotEmpty() == true
+            hasNext = hasNext()
         )
+    }
+
+    fun hasNext(): Boolean {
+        return _nextPageUrl?.isNotEmpty() == true
     }
 
     open suspend fun loadMoreImpl() {
@@ -130,6 +138,10 @@ open class DataSource<Item, T: KListShow<Item>>(
                 filter(item)
             }
             .flatMap(mapper)
+        updateHolders(holders)
+    }
+
+    open fun updateHolders(holders: List<ListItemHolder>) {
         _itemHolders.value = holders
     }
 

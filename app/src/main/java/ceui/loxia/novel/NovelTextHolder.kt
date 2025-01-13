@@ -10,10 +10,15 @@ import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.PixivOperate
 import ceui.loxia.NovelImages
 import ceui.loxia.WebNovel
+import ceui.loxia.findFragmentOrNull
+import ceui.loxia.pushFragment
+import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
+import timber.log.Timber
 
 class NovelChapterHolder(val text: String, val textColor: Int) : ListItemHolder() {
     override fun getItemId(): Long {
@@ -71,6 +76,17 @@ class NovelImageViewHolder(private val bd: CellNovelImageBinding) : ListItemView
             val urls = holder.webNovel.images?.get(holder.id.toString())?.urls
             val url = urls?.get(NovelImages.Size.Size1200x1200)
             Glide.with(binding.novelImage).load(GlideUrlChild(url)).placeholder(R.drawable.image_place_holder).into(binding.novelImage)
+            binding.novelImage.setOnClick { sender ->
+                if (url?.isNotEmpty() == true) {
+                    sender.findFragmentOrNull<PixivFragment>()?.pushFragment(
+                        R.id.navigation_img_url,
+                        ImgUrlFragmentArgs(
+                            url,
+                            "novel_inner_img_${holder.id}.png"
+                        ).toBundle()
+                    )
+                }
+            }
         } else if (holder.type == NovelImageHolder.Type.PixivImage) {
             val urls = if (holder.indexInIllust == 0) {
                 holder.webNovel.illusts?.get(holder.id.toString())?.illust?.images?.medium

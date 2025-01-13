@@ -14,8 +14,6 @@ class LoadingViewHolder(bd: ItemLoadingBinding) : ListItemViewHolder<ItemLoading
 
     override fun onBindViewHolder(holder: LoadingHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        lifecycleOwner?.let {
-            binding.setUpHolderRefreshState(holder.refreshState, it, holder.retryBlock)
-        }
+        binding.setUpHolderRefreshState(holder.refreshState, lifecycleOwner, holder.retryBlock)
     }
 }

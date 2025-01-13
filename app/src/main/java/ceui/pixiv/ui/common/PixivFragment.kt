@@ -24,6 +24,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
+import ceui.lisa.models.ObjectSpec
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
@@ -37,6 +38,7 @@ import ceui.loxia.ObjectType
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.Series
 import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
@@ -44,7 +46,9 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
-import ceui.pixiv.ui.novel.NovelTextFragmentArgs
+import ceui.pixiv.ui.detail.IllustSeriesFragmentArgs
+import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
+import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
@@ -59,7 +63,7 @@ import timber.log.Timber
 
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
-    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver {
+    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver, NovelSeriesActionReceiver, IllustSeriesActionReceiver {
 
     protected val fragmentViewModel: NavFragmentViewModel by viewModels()
 
@@ -113,6 +117,33 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
         }
     }
 
+    override fun onClickBookmarkNovel(sender: ProgressIndicator, novelId: Long) {
+        launchSuspend(sender) {
+            val novel = ObjectPool.get<Novel>(novelId).value ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
+            if (novel != null) {
+                if (novel.is_bookmarked == true) {
+                    Client.appApi.removeNovelBookmark(novelId)
+                    ObjectPool.update(
+                        novel.copy(
+                            is_bookmarked = false,
+                            total_bookmarks = novel.total_bookmarks?.minus(1)
+                        )
+                    )
+                    Common.showToast(getString(R.string.cancel_like_illust))
+                } else {
+                    Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
+                    ObjectPool.update(
+                        novel.copy(
+                            is_bookmarked = true,
+                            total_bookmarks = novel.total_bookmarks?.plus(1)
+                        )
+                    )
+                    Common.showToast(getString(R.string.like_novel_success_public))
+                }
+            }
+        }
+    }
+
     override fun onClickUser(id: Long) {
         try {
             pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
@@ -148,20 +179,35 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
         }
     }
 
-    override fun onClickNovel(novel: Novel) {
-        pushFragment(R.id.navigation_novel_text, NovelTextFragmentArgs(novel.id).toBundle())
+    override fun onClickNovel(novelId: Long) {
+        pushFragment(
+            R.id.navigation_viewpager_artwork,
+            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, novelId, ObjectType.NOVEL).toBundle()
+        )
     }
 
     override fun onClickIllust(illustId: Long) {
         pushFragment(
             R.id.navigation_viewpager_artwork,
-            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, illustId).toBundle()
+            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, illustId, ObjectType.ILLUST).toBundle()
         )
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Common.showLog("onDestroy ${this::class.simpleName}")
+    }
+
+    override fun onClickNovelSeries(sender: View, series: Series) {
+        pushFragment(
+            R.id.navigation_novel_series, NovelSeriesFragmentArgs(series.id).toBundle()
+        )
+    }
+
+    override fun onClickIllustSeries(sender: View, series: Series) {
+        pushFragment(
+            R.id.navigation_illust_series, IllustSeriesFragmentArgs(series.id).toBundle()
+        )
     }
 }
 
@@ -229,6 +275,8 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
     setUpLayoutManager(binding.listView, listMode)
     val ctx = requireContext()
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
+    binding.refreshLayout.setEnableLoadMore(true)
+    binding.refreshLayout.setRefreshFooter(FalsifyFooter(ctx))
     binding.refreshLayout.setOnRefreshListener {
         viewModel.refresh(RefreshHint.PullToRefresh)
     }

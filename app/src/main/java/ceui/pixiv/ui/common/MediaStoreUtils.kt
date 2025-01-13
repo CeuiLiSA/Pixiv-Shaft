@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import ceui.lisa.R
@@ -108,4 +109,37 @@ fun deleteImageById(context: Context, imageId: Long): Boolean {
         // 打印异常日志，便于调试
         Timber.e(ex)
     }.getOrDefault(false) // 如果发生异常，返回 false
+}
+
+
+
+fun saveToDownloadsScopedStorage(context: Context, fileName: String, content: String): Boolean {
+    try {
+        val resolver = context.contentResolver
+
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName) // 文件名
+            put(MediaStore.MediaColumns.MIME_TYPE, "text/plain") // 文件类型
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/ShaftNovels") // 子目录
+        }
+
+        // 插入文件描述符
+        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                ?: throw Exception("Failed to create file URI")
+        } else {
+            throw Exception("Failed to create file URI too low system version")
+        }
+
+        // 写入内容到文件
+        resolver.openOutputStream(uri)?.use { outputStream ->
+            outputStream.write(content.toByteArray())
+            outputStream.flush()
+        }
+
+        return true
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return false
+    }
 }

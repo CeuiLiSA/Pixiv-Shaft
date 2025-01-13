@@ -2,6 +2,7 @@ package ceui.pixiv.ui.common
 
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
@@ -208,7 +209,11 @@ fun CircularProgressIndicator.setUpWithTaskStatus(
             progressCircular.progress = 0
         } else if (status is TaskStatus.Executing) {
             progressCircular.isVisible = true
-            progressCircular.progress = status.percentage
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                progressCircular.setProgress(status.percentage, true)
+            } else {
+                progressCircular.progress = status.percentage
+            }
         } else {
             progressCircular.isVisible = false
         }
@@ -230,7 +235,11 @@ fun CircularProgressIndicator.setUpWithTaskStatus(
             progressCircular.progress = 0
         } else if (status is TaskStatus.Executing) {
             progressCircular.isVisible = true
-            progressCircular.progress = status.percentage
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                progressCircular.setProgress(status.percentage, true)
+            } else {
+                progressCircular.progress = status.percentage
+            }
         } else {
             progressCircular.isVisible = false
         }

@@ -14,6 +14,7 @@
         <net.csdn.roundview.RoundImageView
             android:id="@+id/square_image"
             app:rRadius="4dp"
+            android:background="@drawable/image_place_holder_r4"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:scaleType="centerCrop"

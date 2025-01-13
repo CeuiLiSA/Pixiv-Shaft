@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.keyedViewModels
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -52,6 +53,21 @@ inline fun <T> Fragment.pixivValueViewModel(
     noinline dataFetcher: suspend (hint: RefreshHint) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels(ownerProducer = ownerProducer) {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return ValueViewModel(dataFetcher, responseStore) as T
+            }
+        }
+    }
+}
+
+inline fun <T> Fragment.pixivKeyedValueViewModel(
+    keyPrefix: String,
+    noinline ownerProducer: () -> ViewModelStoreOwner = { this },
+    responseStore: ResponseStore<T>? = null,
+    noinline dataFetcher: suspend (hint: RefreshHint) -> T,
+): Lazy<ValueViewModel<T>> {
+    return this.keyedViewModels(keyPrefixProvider = { keyPrefix }, ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return ValueViewModel(dataFetcher, responseStore) as T

@@ -21,7 +21,6 @@ class RelatedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val viewModel by pixivListViewModel({ safeArgs.illustId }) { illustId ->
         DataSource(
             dataFetcher = { hint -> Client.appApi.getRelatedIllusts(illustId) },
-            responseStore = createResponseStore({ "related-illust-$illustId" }),
             itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )
     }

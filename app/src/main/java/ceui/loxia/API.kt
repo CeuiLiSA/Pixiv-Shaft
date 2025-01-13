@@ -43,16 +43,48 @@ interface API {
     )
 
     @FormUrlEncoded
+    @POST("/v2/novel/bookmark/add")
+    suspend fun addNovelBookmark(
+        @Field("novel_id") novel_id: Long,
+        @Field("restrict") followType: String
+    )
+
+    @FormUrlEncoded
+    @POST("/v1/novel/bookmark/delete")
+    suspend fun removeNovelBookmark(
+        @Field("novel_id") novel_id: Long
+    )
+
+    @FormUrlEncoded
     @POST("/v1/illust/bookmark/delete")
     suspend fun removeBookmark(
         @Field("illust_id") illust_id: Long
     )
 
+    @GET("/v1/user/me/state")
+    suspend fun getSelfProfile(): SelfProfile
+
+    @GET("/v2/novel/series")
+    suspend fun getNovelSeries(
+        @Query("series_id") series_id: Long,
+        @Query("last_order") last_order: Int? = null,
+    ): NovelSeriesResp
+
+    @GET("/v1/illust/series")
+    suspend fun getIllustSeries(
+        @Query("illust_series_id") series_id: Long,
+        @Query("last_order") last_order: Int? = null,
+    ): IllustSeriesResp
 
     @GET("/v1/illust/detail")
     suspend fun getIllust(
         @Query("illust_id") illust_id: Long
     ): SingleIllustResponse
+
+    @GET("/v1/illust/detail")
+    suspend fun getNovel(
+        @Query("novel_id") novel_id: Long
+    ): SingleNovelResponse
 
     @GET("/v2/illust/related")
     suspend fun getRelatedIllusts(
@@ -99,6 +131,11 @@ interface API {
         @Query("user_id") user_id: Long,
     ): NovelResponse
 
+    @GET("/v1/novel/follow")
+    suspend fun getFollowingCreatedNovels(
+        @Query("restrict") restrict: String,
+    ): NovelResponse
+
 
     @GET("/v2/user/detail?filter=for_ios")
     suspend fun getUserProfile(
@@ -130,6 +167,7 @@ interface API {
     @GET("/v1/user/recommended?filter=for_ios")
     suspend fun recommendedUsers(): UserPreviewResponse
 
+    // /v1/illust/ranking?mode=day_manga&filter=for_ios
     @GET("/v1/illust/ranking?filter=for_ios")
     suspend fun getRankingIllusts(
         @Query("mode") mode: String,

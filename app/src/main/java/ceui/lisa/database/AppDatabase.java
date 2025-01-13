@@ -22,7 +22,7 @@ import ceui.lisa.feature.FeatureEntity;
                 MuteEntity.class, //记录用户屏蔽的标签
                 UUIDEntity.class, //记录用户屏蔽的标签
                 FeatureEntity.class, //记录用户收藏的精华列表
-                DownloadingEntity.class //记录用户正在下载中的列表
+                DownloadingEntity.class, //记录用户正在下载中的列表
         },
         version = 25,
         exportSchema = false
@@ -71,6 +71,5 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract DownloadDao downloadDao();
 
     public abstract SearchDao searchDao();
-
 }
 

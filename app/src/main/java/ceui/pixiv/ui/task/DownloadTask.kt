@@ -20,10 +20,6 @@ class DownloadTask(
 ) : LoadTask(content, coroutineScope, autoStart = false) {
 
     private var _onNext: (() -> Unit)? = null
-    private val context: Context
-        get() {
-            return Shaft.getContext()
-        }
 
     init {
         Timber.d("fsaasdw2 创建了一个 DownloadTask: ${content}")

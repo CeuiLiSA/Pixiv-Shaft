@@ -12,6 +12,7 @@ import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.widgets.setUpWith
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.user.FollowingCreatedNovelFragment
 
 class FollowingViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_my_circles), HomeTabContainer {
 
@@ -42,6 +43,12 @@ class FollowingViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_my_
                         }
                     },
                     initialTitle = getString(R.string.string_392)
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        FollowingCreatedNovelFragment()
+                    },
+                    initialTitle = getString(R.string.string_197)
                 ),
             ),
             this

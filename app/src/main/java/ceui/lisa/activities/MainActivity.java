@@ -225,7 +225,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             if (!SessionManager.INSTANCE.isLoggedIn()) {
                 SessionManager.INSTANCE.updateSession(sUserModel);
             }
-            if (BuildConfig.IS_DEBUG_MODE) {
+            if (BuildConfig.IS_DEBUG_MODE || true) {
                 startActivity(new Intent(this, HomeActivity.class));
                 finish();
             } else {

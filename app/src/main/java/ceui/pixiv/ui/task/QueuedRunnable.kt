@@ -1,13 +1,19 @@
 package ceui.pixiv.ui.task
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
+import ceui.lisa.activities.Shaft
 import timber.log.Timber
-import java.io.File
 import java.util.UUID
 
 abstract class QueuedRunnable<ResultT> {
+
+    protected val context: Context
+        get() {
+            return Shaft.getContext()
+        }
 
     protected val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status

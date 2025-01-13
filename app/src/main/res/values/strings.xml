@@ -614,7 +614,7 @@
     <string name="string_429">正在加载</string>
     <string name="string_430">关键词搜索</string>
     <string name="string_431">搜索</string>
-    <string name="string_432">画师</string>
+    <string name="string_432">作者</string>
     <string name="string_64_1">热度排序(非会员仅显示部分)</string>
     <string name="string_433">按热度排序去哪儿了？</string>
     <string name="string_434">热度排序现在位于右边滑动栏的搜索选项/排序方式中，你可以通过右上角的设置键进行设置，设置完毕后请保存。</string>
@@ -735,4 +735,7 @@
     <string name="view_comments">查看评论</string>
     <string name="flag_artwork">举报作品</string>
     <string name="string_font_size">字体大小</string>
+    <string name="novel_series">小说系列</string>
+    <string name="total_works_count">系列中包含%1$d个作品</string>
+    <string name="download_all_artworks">下载系列全部作品</string>
 </resources>

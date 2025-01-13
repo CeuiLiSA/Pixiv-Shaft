@@ -23,6 +23,7 @@ class SelectCountryFragment : PixivFragment(R.layout.fragment_pixiv_list), Selec
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.loadData(requireContext())
+        binding.toolbarLayout.naviTitle.text = getString(R.string.country_and_region)
         val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_NO_MARGIN)
         viewModel.displayList.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list?.map { CountryHolder(it) })

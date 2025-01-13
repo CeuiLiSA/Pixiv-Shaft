@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.common
 
+import android.view.View
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import ceui.lisa.R
@@ -9,6 +10,7 @@ import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
+import ceui.loxia.Series
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.screenWidth
@@ -38,6 +40,10 @@ interface IllustCardActionReceiver {
     fun onClickIllustCard(illust: Illust)
 
     fun onClickBookmarkIllust(sender: ProgressIndicator, illustId: Long)
+}
+
+interface IllustSeriesActionReceiver {
+    fun onClickIllustSeries(sender: View, series: Series)
 }
 
 interface IllustIdActionReceiver {
