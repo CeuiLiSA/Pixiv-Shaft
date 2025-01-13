@@ -738,4 +738,10 @@
     <string name="novel_series">小说系列</string>
     <string name="total_works_count">系列中包含%1$d个作品</string>
     <string name="download_all_artworks">下载系列全部作品</string>
+    <string name="turn_on_v5_ui">体验新版UI(公测中)</string>
+    <string name="use_new_ui">体验新版</string>
+    <string name="turn_off_v5_ui">切换为旧版UI</string>
+    <string name="new_ui_desc">全新UI已经准备就绪，功能也接近移植完成，开始先行体验吧！！（新版暂未支持直连，需要自备梯子，可以自由切换回老版本）</string>
+    <string name="alert_when_turn_off_v5_ui">确认切换为旧版UI吗</string>
+    <string name="blocking_list">屏蔽列表</string>
 </resources>

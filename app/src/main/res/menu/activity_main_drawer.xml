@@ -28,6 +28,11 @@
             android:id="@+id/nav_manage"
             android:icon="@drawable/ic_baseline_settings_24"
             android:title="@string/app_settings" />
+
+        <item
+            android:id="@+id/nav_turn_on_v5"
+            android:icon="@drawable/baseline_auto_awesome_24"
+            android:title="@string/turn_on_v5_ui" />
     </group>
 
     <item android:title="@string/string_318">
