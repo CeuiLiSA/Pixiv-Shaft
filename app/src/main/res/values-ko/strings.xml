@@ -174,7 +174,10 @@
   <string name="read_latest_episode">최신화 읽기</string>
   <string name="watchlist">워치리스트</string>
   <string name="episode_number">%d화</string>
-  <string name="string_1">차단 설정</string>  
+  <string name="add_to_watchlist">워치리스트에 추가</string>
+  <string name="already_in_your_watchlist">워치리스트에 추가됨</string>
+  <string name="read_latest_episode_with_num">최신화(#%1$d) 읽기</string>
+  <string name="string_1">차단 설정</string>
   <string name="string_2">개발 자 미리보기</string>  
   <string name="string_3">함께 나누다</string>  
   <string name="string_4">+ 관심</string>  

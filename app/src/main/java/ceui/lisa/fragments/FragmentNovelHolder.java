@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -233,6 +234,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             baseBind.description.setVisibility(View.VISIBLE);
             baseBind.description.setHtml(mNovelBean.getCaption());
         }
+        baseBind.howManyWord.setText(String.format(Locale.getDefault(), "%d字", mNovelBean.getText_length()));
         baseBind.publishTime.setText(Common.getLocalYYYYMMDDHHMMString(mNovelBean.getCreate_date()));
         baseBind.viewCount.setText(String.valueOf(mNovelBean.getTotal_view()));
         baseBind.bookmarkCount.setText(String.valueOf(mNovelBean.getTotal_bookmarks()));

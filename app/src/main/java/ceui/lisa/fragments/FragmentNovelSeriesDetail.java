@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.cache.Cache;
@@ -196,6 +198,9 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                 NovelBean bean = listNovelOfSeries.getList().get(0);
                 UserBean userBean = bean.getUser();
                 initUser(userBean);
+                initReadLatestButton(listNovelOfSeries.getNovel_series_detail().getContent_count(),
+                        listNovelOfSeries.getNovel_series_latest_novel());
+                initAddToWatchListButton(listNovelOfSeries.getNovel_series_detail());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -264,6 +269,29 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
             public void doSomething(Uri t) {
                 Common.showToast(getString(R.string.string_279), 2);
             }
+        });
+    }
+
+    private void initReadLatestButton(int latest, NovelBean novel) {
+        baseBind.readLatest.setText(mContext.getString(R.string.read_latest_episode_with_num, latest));
+        baseBind.readLatest.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(Params.CONTENT, novel);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+            intent.putExtra("hideStatusBar", true);
+            mContext.startActivity(intent);
+        });
+    }
+
+    private void initAddToWatchListButton(NovelSeriesItem item) {
+        if (item.isWatchlist_added()) {
+            baseBind.addToWatchlist.setText(R.string.already_in_your_watchlist);
+        } else {
+            baseBind.addToWatchlist.setText(R.string.add_to_watchlist);
+        }
+
+        baseBind.addToWatchlist.setOnClickListener(v -> {
+            PixivOperate.postNovelWatchlist(item, baseBind.addToWatchlist);
         });
     }
 }

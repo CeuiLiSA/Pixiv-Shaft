@@ -59,6 +59,7 @@ import ceui.lisa.models.MarkedNovelItem;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
+import ceui.lisa.models.NovelSeriesItem;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserBean;
@@ -918,6 +919,36 @@ public class PixivOperate {
                             Common.showToast(getString(R.string.string_369));
                         }
                     });
+        }
+    }
+
+    public static void postNovelWatchlist(NovelSeriesItem series, Button btn) {
+        boolean add = !series.isWatchlist_added();
+        int seriesId = series.getId();
+        if (add) {
+            Retro.getAppApi().postWatchlistNovelAdd(
+                    sUserModel.getAccess_token(), seriesId)
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new ErrorCtrl<NullResponse>() {
+                @Override
+                public void next(NullResponse nullResponse) {
+                    series.setWatchlist_added(true);
+                    btn.setText(R.string.already_in_your_watchlist);
+                }
+            });
+        } else {
+            Retro.getAppApi().postWatchlistNovelDelete(
+                    sUserModel.getAccess_token(), seriesId)
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new ErrorCtrl<NullResponse>() {
+                @Override
+                public void next(NullResponse nullResponse) {
+                    series.setWatchlist_added(false);
+                    btn.setText(R.string.add_to_watchlist);
+                }
+            });
         }
     }
 }
