@@ -174,7 +174,10 @@
   <string name="read_latest_episode">Read latest episode</string>
   <string name="watchlist">Watchlist</string>
   <string name="episode_number">%d ep</string>
-  <string name="string_1">Mask Setting</string>  
+  <string name="add_to_watchlist">Add to Watchlist</string>
+  <string name="already_in_your_watchlist">Already in your Watchlist</string>
+  <string name="read_latest_episode_with_num">Read the latest chapter (#%1$d)</string>
+  <string name="string_1">Mask Setting</string>
   <string name="string_2">Developer Preview</string>  
   <string name="string_3">share</string>  
   <string name="string_4">+ Follow</string>  

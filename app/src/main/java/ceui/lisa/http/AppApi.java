@@ -562,6 +562,18 @@ public interface AppApi {
     @GET
     Observable<ListWatchlistNovel> getNextWatchlistNovel(@Header("Authorization") String token,
                                                          @Url String next_url);
+
+    // 加入/取消追更小说
+    @FormUrlEncoded
+    @POST("v1/watchlist/novel/add")
+    Observable<NullResponse> postWatchlistNovelAdd(@Header("Authorization") String token,
+                                                   @Field("series_id") int series_id);
+
+    @FormUrlEncoded
+    @POST("v1/watchlist/novel/delete")
+    Observable<NullResponse> postWatchlistNovelDelete(@Header("Authorization") String token,
+                                                      @Field("series_id") int series_id);
+
     // 小说书签
     @GET("v2/novel/markers")
     Observable<ListNovelMarkers> getNovelMarkers(@Header("Authorization") String token);

@@ -183,6 +183,15 @@
                         android:textColorLink="@color/white_to_gray"
                         android:textSize="11sp" />
 
+                    <TextView
+                        android:id="@+id/how_many_word"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="@dimen/sixteen_dp"
+                        android:paddingVertical="@dimen/six_dp"
+                        android:textColor="@color/white_to_gray"
+                        android:textSize="11sp" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

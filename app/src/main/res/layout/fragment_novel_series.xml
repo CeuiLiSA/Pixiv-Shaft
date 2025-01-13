@@ -134,6 +134,39 @@
                                 android:textColor="@color/rank_text_color"
                                 android:textSize="13sp"/>
 
+
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                                android:id="@+id/add_to_watchlist"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/twelve_dip"
+                                android:background="@drawable/btn_follow"
+                                android:gravity="center"
+                                android:paddingStart="@dimen/sixteen_dp"
+                                android:paddingTop="@dimen/four_dp"
+                                android:paddingEnd="@dimen/sixteen_dp"
+                                android:paddingBottom="@dimen/four_dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="15sp"
+                                app:qmui_borderColor="?attr/colorPrimary" />
+
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                                android:id="@+id/read_latest"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/twelve_dip"
+                                android:layout_marginEnd="@dimen/twelve_dip"
+                                android:layout_marginBottom="@dimen/twelve_dip"
+                                android:background="@drawable/btn_follow"
+                                android:gravity="center"
+                                android:paddingStart="@dimen/sixteen_dp"
+                                android:paddingTop="@dimen/four_dp"
+                                android:paddingEnd="@dimen/sixteen_dp"
+                                android:paddingBottom="@dimen/four_dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="15sp"
+                                app:qmui_borderColor="?attr/colorPrimary" />
+
                         </LinearLayout>
 
 

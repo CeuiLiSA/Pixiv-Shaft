@@ -174,7 +174,10 @@
   <string name="read_latest_episode">最新話を読む</string>
   <string name="watchlist">ウォッチリスト</string>
   <string name="episode_number">%d話</string>
-  <string name="string_1">ブロック設定</string>  
+  <string name="add_to_watchlist">ウォッチリストに追加</string>
+  <string name="already_in_your_watchlist">ウォッチリストに追加済み</string>
+  <string name="read_latest_episode_with_num">最新話（#%1$d）を読む</string>
+  <string name="string_1">ブロック設定</string>
   <string name="string_2">開発者のプレビュー</string>  
   <string name="string_3">シェア</string>  
   <string name="string_4">+フォロー</string>  

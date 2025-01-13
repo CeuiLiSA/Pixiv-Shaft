@@ -52,6 +52,7 @@ public class NovelMarkersAdapter extends BaseAdapter<MarkedNovelItem, RecyNovelM
             bindView.baseBind.series.setVisibility(View.GONE);
         }
         bindView.baseBind.title.setText(target.getNovel().getTitle());
+        bindView.baseBind.date.setText(target.getNovel().getCreate_date().substring(0, 10));
         bindView.baseBind.novelTag.setAdapter(new TagAdapter<TagsBean>(target.getNovel().getTags()) {
             @Override
             public View getView(FlowLayout parent, int position, TagsBean s) {
