@@ -1,11 +1,14 @@
 package ceui.lisa.activities;
 
+import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -21,13 +24,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.blankj.utilcode.util.AppUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.tbruyelle.rxpermissions3.RxPermissions;
 
 import java.io.File;
@@ -225,7 +232,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             if (!SessionManager.INSTANCE.isLoggedIn()) {
                 SessionManager.INSTANCE.updateSession(sUserModel);
             }
-            if (BuildConfig.IS_DEBUG_MODE || true) {
+            if (Shaft.getMMKV().getBoolean(SessionManager.USE_NEW_UI_KEY, false)) {
                 startActivity(new Intent(this, HomeActivity.class));
                 finish();
             } else {
@@ -323,6 +330,26 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             intent.putExtra(Params.URL, "https://www.pixiv.net/upload.php");
             intent.putExtra(Params.TITLE, getString(R.string.string_444));
             intent.putExtra(Params.PREFER_PRESERVE, true);
+        } else if (id == R.id.nav_turn_on_v5) {
+            FragmentActivity activity = this;
+            new QMUIDialog.MessageDialogBuilder(activity)
+                    .setTitle(activity.getResources().getString(R.string.app_name))
+                    .setMessage(activity.getResources().getString(R.string.new_ui_desc))
+                    .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                    .addAction(0, activity.getResources().getString(R.string.string_142),
+                            (dialog, index) -> dialog.dismiss())
+                    .addAction(0, activity.getResources().getString(R.string.use_new_ui),
+                            (dialog, index) -> {
+                                try {
+                                    dialog.dismiss();
+                                    Shaft.getMMKV().putBoolean(SessionManager.USE_NEW_UI_KEY, true);
+                                    AppUtils.relaunchApp();
+                                } catch (Exception e) {
+                                    Common.showToast(e.toString());
+                                    e.printStackTrace();
+                                }
+                            })
+                    .show();
         }
         if (intent != null) {
             startActivity(intent);

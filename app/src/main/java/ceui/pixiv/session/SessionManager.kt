@@ -20,6 +20,7 @@ import timber.log.Timber
 object SessionManager {
 
     private const val USER_KEY = "LoggedInUserJsonKey"
+    const val USE_NEW_UI_KEY = "use-v5-ui"
     const val COOKIE_KEY = "web-api-cookie"
     const val CONTENT_LANGUAGE_KEY = "content-language"
 
