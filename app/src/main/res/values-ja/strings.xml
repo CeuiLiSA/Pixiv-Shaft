@@ -675,8 +675,6 @@
   <string name="type_user">ユーザー</string>
   <string name="add_keyword">キーワードを追加</string>
   <string name="my_bookmarked_illusts">ブックマークしたイラスト</string>
-  <string name="my_bookmarked_illusts">ぶ</string>
-  <string name="my_bookmarked_illusts">ぶ</string>
   <string name="my_bookmarked_novels">ブックマークした小説</string>
   <string name="pixivision_articles">Pixivision Articles</string>
   <string name="button_ok">OK</string>
@@ -687,8 +685,8 @@
   <string name="cookie_sync_has_been_done">同期しました</string>
   <string name="cookie_was_not_synced">同期していません</string>
   <string name="sync_cookies_with_pixiv_net">Web版Pixivと同期</string>
-  <string name="sync_cookies_with_pixiv_net">「Pixiv本サイトと同期</string>
-  <string name="can_use_web_features_after_sync">Web版PixivのCookiesと同期することで、Web版の機能を使用できます。</string>
+  <string name="sync_cookies_with_pixiv_net">Pixiv本サイトと同期</string>
+  <string name="can_use_web_features_after_sync">Web版PixivのCookiesを同期することで、Web版の機能を使用できます。</string>
   <string name="view_and_artworks_display">閲覧と表示</string>
   <string name="view_and_artworks_display">「閲覧と表示」</string>
   <string name="handle_r18g_displaying">R-18(G)の表示設定</string>
