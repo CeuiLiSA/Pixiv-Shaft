@@ -251,7 +251,7 @@
   <string name="string_78">おすすめユーザー</string>  
   <string name="string_79">もっと見る</string>  
   <string name="string_80">フィード</string>
-  <string name="string_81">非公開フォロー</string>  
+  <string name="string_81">非公開</string>
   <string name="string_82">ダウンロード</string>
   <string name="string_83">前の章</string>  
   <string name="string_84">次の章</string>
@@ -299,7 +299,7 @@
   <string name="string_133">最新</string>  
   <string name="string_134">R-18</string>  
   <string name="string_135">操作が完了しました</string>
-  <string name="string_136">イラスト/漫画</string>  
+  <string name="string_136">イラスト・漫画</string>
   <string name="string_137">人気（有限）</string>  
   <string name="string_138">小説</string>  
   <string name="string_139">検索内容を入力</string>
@@ -357,8 +357,8 @@
   <string name="string_193">サイズ： %1$dpx * %2$dpx</string>
   <string name="string_194">作品ID： %d</string>  
   <string name="string_195">ユーザーID： %d</string>  
-  <string name="string_196">フォロー中ユーザーの小説</string>  
-  <string name="string_197">フォロー中ユーザーの最新小説</string>  
+  <string name="string_196">小説</string>
+  <string name="string_197">最新小説</string>
   <string name="string_198">レビューを投稿</string>  
   <string name="string_199">バージョン</string>  
   <string name="string_200">Weiboでフォロー</string>  
@@ -470,7 +470,7 @@
   <string name="string_320">すき！した小説</string>
   <string name="string_321">フォロー中</string>  
   <string name="string_322">フォロワー</string>
-  <string name="string_323">自分のマイピク</string>
+  <string name="string_323">マイピク</string>
   <string name="string_324">テーマカラー</string>  
   <string name="string_325">設定を開く</string>
   <string name="string_326">開始</string>  
@@ -547,8 +547,8 @@
   <string name="string_388">現在、ブロックしたユーザーはいません</string>
   <string name="string_389">これにより、全てのユーザーのブロックを解除します</string>
   <string name="string_390">すべて</string>
-  <string name="string_391">公開フォロー</string>
-  <string name="string_392">非公開フォロー</string>
+  <string name="string_391">公開</string>
+  <string name="string_392">非公開</string>
   <string name="string_393">イラストを開く時のアニメーション</string>
   <string name="string_394">本文を検索</string>
   <string name="string_395">キーワード検索</string>
@@ -685,7 +685,7 @@
   <string name="cookie_sync_has_been_done">同期しました</string>
   <string name="cookie_was_not_synced">同期していません</string>
   <string name="sync_cookies_with_pixiv_net">Web版Pixivと同期</string>
-  <string name="can_use_web_features_after_sync">Web版PixivのCookiesを同期することで、Web版の機能を使用できます。</string>
+  <string name="can_use_web_features_after_sync">Web版PixivのCookiesを同期することで、Web版の機能が使えるようになります。</string>
   <string name="view_and_artworks_display">閲覧と表示</string>
   <string name="handle_r18g_displaying">R-18(G)の表示設定</string>
   <string name="country_and_region">国と地域</string>
