@@ -697,4 +697,10 @@
   <string name="novel_series">シリーズ小説</string>
   <string name="download_all_artworks">シリーズ内の作品を一括ダウンロード</string>
   <string name="total_works_count">シリーズ数：%1$d</string>
+  <string name="turn_on_v5_ui">新UIを使用（パブリックベータ版）</string>
+  <string name="use_new_ui">新しいバージョンを使用</string>
+  <string name="turn_off_v5_ui">既存のUIに切り替え</string>
+  <string name="new_ui_desc">新しいUIへの準備は終わり、機能の移植もほぼ完了しました。先行体験を始めましょう！（新バージョンはまだプロキシに対応していないので、中国大陸で使用するにはVPNが必要です。）</string>
+  <string name="alert_when_turn_off_v5_ui">既存のUIに切り替えますか？</string>
+  <string name="blocking_list">ミュート一覧</string>
 </resources>
