@@ -14,6 +14,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="70dp"
         android:background="@drawable/cell_background"
         android:padding="20dp">
 
@@ -26,6 +27,7 @@
             android:text="@{holder.title}"
             android:textColor="@color/text00"
             android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/secondary_title"
             app:layout_constraintEnd_toStartOf="@+id/show_more"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

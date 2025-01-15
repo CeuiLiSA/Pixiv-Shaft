@@ -7,7 +7,8 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:background="@color/page_default_background"
+        android:src="@drawable/page_bg_img"
+        android:scaleType="centerCrop"
         android:layout_height="match_parent"/>
 
     <androidx.fragment.app.FragmentContainerView

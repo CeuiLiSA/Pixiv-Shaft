@@ -42,7 +42,7 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
-        setUpRefreshState(binding, viewModel, ListMode.VERTICAL_NO_MARGIN)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL_TABCELL)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(
