@@ -76,7 +76,7 @@
   <string name="filter_by_bookmark">タグでフィルター</string>
   <string name="access_denied">アクセスが拒否されました。権限を許可してください</string>
   <string name="view_history">閲覧履歴</string>
-  <string name="muted_history">ブロックの管理</string>
+  <string name="muted_history">ミュート設定</string>
   <string name="app_settings">設定</string>  
   <string name="full_about_app">アプリについて</string>  
   <string name="no_mail_address">メールアドレスが設定されていません。</string>  
@@ -702,5 +702,5 @@
   <string name="turn_off_v5_ui">既存UIに切り替える</string>
   <string name="new_ui_desc">新しいUIへの準備は終わり、機能の移植もほぼ完了しました。先行体験を始めましょう！（新バージョンはまだプロキシに対応していないので、中国大陸で使用するにはVPNが必要です。）</string>
   <string name="alert_when_turn_off_v5_ui">既存のUIに切り替えますか？</string>
-  <string name="blocking_list">ブロックの管理</string>
+  <string name="blocking_list">ミュート設定</string>
 </resources>
