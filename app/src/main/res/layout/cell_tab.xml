@@ -66,9 +66,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/secondary_title" />
 
+        <ImageView
+            android:id="@+id/selected"
+            app:visibleOrGone="@{holder.showGreenDone &amp;&amp; holder.selected}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/icon_green_selected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
         <ImageView
             android:id="@+id/show_more"
+            app:visibleOrGone="@{!holder.showGreenDone}"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/icon_tab_show_more"

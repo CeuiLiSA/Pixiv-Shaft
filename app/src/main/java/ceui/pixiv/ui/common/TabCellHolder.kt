@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.common
 
+import androidx.lifecycle.LiveData
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellTabBinding
 
@@ -7,6 +8,8 @@ class TabCellHolder(
     val title: String,
     val secondaryTitle: String? = null,
     val extraInfo: String? = null,
+    val showGreenDone: Boolean = false,
+    val selected: LiveData<Boolean>? = null
 ) : ListItemHolder() {
 
 }

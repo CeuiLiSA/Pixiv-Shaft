@@ -5,6 +5,7 @@ import android.view.View
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
@@ -39,7 +40,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
         viewModel.result.observe(viewLifecycleOwner) {
             Timber.d("getSelfProfile ${it}")
         }
-        val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_NO_MARGIN)
+        val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_TABCELL)
         binding.toolbarLayout.naviTitle.text = getString(R.string.app_settings)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
@@ -78,6 +79,17 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                             R.id.navigation_select_country,
                         )
                     },
+
+                    TabCellHolder(
+                        getString(R.string.language),
+                        getString(R.string.handle_content_language),
+                        Shaft.sSettings.appLanguage
+                    ).onItemClick {
+                        pushFragment(
+                            R.id.navigation_select_language,
+                        )
+                    },
+
                     LogOutHolder()
                 )
             )

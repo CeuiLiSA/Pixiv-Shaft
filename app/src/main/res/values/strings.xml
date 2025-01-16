@@ -744,4 +744,5 @@
     <string name="new_ui_desc">全新UI已经准备就绪，功能也接近移植完成，开始先行体验吧！！（新版暂未支持直连，需要自备梯子，可以自由切换回老版本）</string>
     <string name="alert_when_turn_off_v5_ui">确认切换为旧版UI吗</string>
     <string name="blocking_list">屏蔽列表</string>
+    <string name="change_language_confirm">确定使用 %1$s 作为应用内语言吗?</string>
 </resources>
