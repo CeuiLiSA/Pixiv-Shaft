@@ -154,10 +154,9 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         val height = child.layoutParams.height.toFloat()
 
-        val borderColor = getIntColor(Shaft.getThemeColor())
-        val backgroundColorString = Shaft.getThemeColor()
-        val backgroundWithAlpha = backgroundColorString.replace("#", "#33")
-        val backgroundColor = getIntColor(backgroundWithAlpha)
+        val mainTheme = "#6FC445"
+        val borderColor = getIntColor(mainTheme)
+        val backgroundColor = getIntColor("#66112702")
 
         val normal = ShapedDrawables.getRoundedRect(height / 2, context.resources.getDimension(R.dimen.tag_border_width), borderColor, backgroundColor)
         val selected = ShapedDrawables.getRoundedRect(height / 2, 0F, Color.TRANSPARENT, borderColor)
@@ -171,7 +170,7 @@ class TagsFlowView(context: Context, attrs: AttributeSet?, defStyle: Int)
         val textView = child.findViewById<TextView>(R.id.hashtag_name)
         textView.text = tag.name
 
-        val normalTextColor = getIntColor(Shaft.getThemeColor())
+        val normalTextColor = getIntColor(mainTheme)
         val selectedTextColor = Color.WHITE
 
         val colorSelector = ColorStateList(

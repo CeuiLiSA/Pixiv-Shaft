@@ -20,6 +20,7 @@
         android:id="@+id/hashtag_name"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:textStyle="bold"
         android:layout_gravity="center_vertical"
         android:ellipsize="end"
         android:includeFontPadding="false"
@@ -27,7 +28,7 @@
         android:minLines="1"
         android:singleLine="true"
         android:textColor="@android:color/white"
-        android:textSize="10sp"
+        android:textSize="11sp"
         tools:text="Wolf" />
 
 </LinearLayout>

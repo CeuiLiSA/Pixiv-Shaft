@@ -59,7 +59,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:textSize="14sp"
             android:text="@{`系列：` + novel.series.title}"
-            visibleOrGone="@{novel.series != null}"
+            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}"
             android:textStyle="bold"
             android:textColor="@color/buttonTextGreen"
             android:layout_width="0dp"

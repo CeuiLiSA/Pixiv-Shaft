@@ -745,4 +745,5 @@
     <string name="alert_when_turn_off_v5_ui">确认切换为旧版UI吗</string>
     <string name="blocking_list">屏蔽列表</string>
     <string name="change_language_confirm">确定使用 %1$s 作为应用内语言吗?</string>
+    <string name="how_many_words">%1$s个字</string>
 </resources>

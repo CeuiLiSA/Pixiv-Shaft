@@ -25,18 +25,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:rRadius="4dp" />
 
-        <TextView
-            android:id="@+id/text_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:text="@{novel.text_length.toString()}"
-            android:textColor="@color/text20"
-            android:textSize="13sp"
-            app:layout_constraintStart_toStartOf="@+id/novel_cover"
-            app:layout_constraintEnd_toEndOf="@+id/novel_cover"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/title"
@@ -58,7 +46,7 @@
             android:id="@+id/series_name"
             app:layout_constraintTop_toBottomOf="@+id/title"
             app:layout_constraintStart_toEndOf="@+id/novel_cover"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginStart="10dp"
             android:textSize="14sp"
@@ -135,7 +123,28 @@
             app:tfv_max_lines="3"
             app:tfv_style="small" />
 
+        <TextView
+            android:id="@+id/publish_time"
+            android:textSize="14sp"
+            android:layout_marginTop="6dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/novel_tag"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="wrap_content"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
 
+        <TextView
+            android:id="@+id/text_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/novel_tag"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:ellipsize="end"
+            android:textColor="@color/text10"
+            android:textSize="13sp"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
