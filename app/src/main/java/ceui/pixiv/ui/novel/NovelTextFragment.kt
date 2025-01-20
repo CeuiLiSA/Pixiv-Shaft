@@ -30,6 +30,8 @@ import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
 import kotlinx.coroutines.launch
+import me.zhanghai.android.fastscroll.FastScroller
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import kotlin.getValue
 
 

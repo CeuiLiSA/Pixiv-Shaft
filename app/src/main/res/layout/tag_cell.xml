@@ -22,6 +22,7 @@
         android:id="@+id/hashtag_name"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:textStyle="bold"
         android:layout_gravity="center_vertical"
         android:includeFontPadding="false"
         android:gravity="center_vertical"
@@ -30,6 +31,6 @@
         android:singleLine="true"
         tools:text="roleplay"
         android:textColor="@android:color/white"
-        android:textSize="12sp"/>
+        android:textSize="13sp"/>
 
 </LinearLayout>

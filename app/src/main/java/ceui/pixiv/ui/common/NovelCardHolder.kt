@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.common
 
+import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
+import ceui.loxia.DateParse
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
@@ -46,6 +48,12 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
             it.findActionReceiverOrNull<NovelActionReceiver>()
                 ?.onClickBookmarkNovel(it, holder.novel.id)
         }
+        binding.publishTime.text = context.getString(
+            R.string.published_on,
+            DateParse.getTimeAgo(context, holder.novel.create_date)
+        )
+        binding.textCount.text =
+            context.getString(R.string.how_many_words, holder.novel.text_length.toString())
     }
 }
 

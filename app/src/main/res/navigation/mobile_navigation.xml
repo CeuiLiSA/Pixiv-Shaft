@@ -92,6 +92,12 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_select_language"
+        android:name="ceui.pixiv.ui.settings.SelectLanguageFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
+
+
+    <fragment
         android:id="@+id/navigation_select_country"
         android:name="ceui.pixiv.ui.settings.SelectCountryFragment"
         tools:layout="@layout/fragment_pixiv_list" />

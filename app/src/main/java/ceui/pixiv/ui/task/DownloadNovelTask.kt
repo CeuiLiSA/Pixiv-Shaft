@@ -7,6 +7,7 @@ import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.WebNovel
 import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
+import ceui.pixiv.ui.works.buildPixivNovelFileName
 import com.blankj.utilcode.util.PathUtils
 import com.hjq.toast.ToastUtils
 import kotlinx.coroutines.delay
@@ -76,7 +77,7 @@ class DownloadNovelTask(
             stringBuffer.append("<===== Shaft Novel End =====>")
             stringBuffer.append("\n\n")
 
-            val b = saveToDownloadsScopedStorage(context, "novel_${novel.id}.txt", stringBuffer.toString())
+            val b = saveToDownloadsScopedStorage(context, buildPixivNovelFileName(novel), stringBuffer.toString())
             if (b) {
                 ToastUtils.show(context.getString(R.string.string_181))
                 _status.value = TaskStatus.Finished

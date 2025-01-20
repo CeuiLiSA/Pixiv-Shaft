@@ -9,9 +9,9 @@
         android:toAlpha="1.0" />
 
     <scale
-        android:fromXScale="1.05"
+        android:fromXScale="1.25"
         android:toXScale="1.0"
-        android:fromYScale="1.05"
+        android:fromYScale="1.25"
         android:toYScale="1.0"
         android:pivotX="50%"
         android:pivotY="50%" />
