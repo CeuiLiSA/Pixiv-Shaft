@@ -275,8 +275,6 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Ref
     setUpLayoutManager(binding.listView, listMode)
     val ctx = requireContext()
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
-    binding.refreshLayout.setEnableLoadMore(true)
-    binding.refreshLayout.setRefreshFooter(FalsifyFooter(ctx))
     binding.refreshLayout.setOnRefreshListener {
         viewModel.refresh(RefreshHint.PullToRefresh)
     }

@@ -32,7 +32,9 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
                         maps[uuid] = illusts
                         prefStore.getString(uuid, "")?.let {
                             try {
-                                gson.fromJson(it, HumanReadableTask::class.java)
+                                val task = gson.fromJson(it, HumanReadableTask::class.java)
+                                Timber.d("task $task")
+                                task
                             } catch (ex: Exception) {
                                 Timber.e(ex)
                                 null
