@@ -13,13 +13,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import kotlin.invoke
 
 class DownloadTask(
     content: NamedUrl,
     private val coroutineScope: CoroutineScope
 ) : LoadTask(content, coroutineScope, autoStart = false) {
-
-    private var _onNext: (() -> Unit)? = null
 
     init {
         Timber.d("fsaasdw2 创建了一个 DownloadTask: ${content}")
@@ -36,8 +35,8 @@ class DownloadTask(
     /**
      * 启动任务并设置回调
      */
-    fun startDownload(onNext: () -> Unit) {
-        this._onNext = onNext
+    override fun start(onNext: () -> Unit) {
+        super.start(onNext)
 
         coroutineScope.launch {
             val imageId = withContext(Dispatchers.IO) {
@@ -57,15 +56,7 @@ class DownloadTask(
     }
 
     override fun onEnd(resultT: File) {
-        super.onEnd(resultT)
         saveImageToGallery(context, resultT, content.name)
-        this._onNext?.invoke()
-    }
-
-    override fun onError(ex: Exception?) {
-        super.onError(ex)
-        if (ex != null) {
-            this._onNext?.invoke()
-        }
+        super.onEnd(resultT)
     }
 }

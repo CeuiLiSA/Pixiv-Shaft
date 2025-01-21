@@ -10,16 +10,27 @@ import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
 import ceui.pixiv.ui.works.buildPixivNovelFileName
 import com.blankj.utilcode.util.PathUtils
 import com.hjq.toast.ToastUtils
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 
 class DownloadNovelTask(
+    private val coroutineScope: CoroutineScope,
     private val novel: Novel,
-    private val webNovel: WebNovel? = null
+    private val webNovel: WebNovel? = null,
 ) : QueuedRunnable<Unit>() {
+
+    override fun start(onNext: () -> Unit) {
+        super.start(onNext)
+
+        coroutineScope.launch {
+            execute()
+        }
+    }
 
     override suspend fun execute() {
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
@@ -33,7 +44,7 @@ class DownloadNovelTask(
             val stringBuffer = StringBuffer()
 
             val wNovel = if (webNovel != null) {
-                delay(500L)
+                delay(1500L)
                 webNovel
             } else {
                 val html = Client.appApi.getNovelText(novel.id).string()
@@ -45,7 +56,7 @@ class DownloadNovelTask(
             }
 
             _status.value = TaskStatus.Executing(50)
-            delay(500L)
+            delay(1500L)
 
             // 构建内容，去除 HTML 标签
             stringBuffer.append("\n\n")

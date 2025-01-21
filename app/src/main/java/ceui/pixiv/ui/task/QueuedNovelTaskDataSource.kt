@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.task
 
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import ceui.loxia.KListShow
 import ceui.loxia.Novel
 import ceui.pixiv.ui.common.DataSource
@@ -17,5 +18,6 @@ class QueuedNovelTaskDataSource(
             get() = null
     }
 }, responseStore = null, itemMapper = { novel ->
+    TaskQueueManager.addTask(DownloadNovelTask(activity.lifecycleScope, novel))
     listOf(NovelCardHolder(novel))
 })
