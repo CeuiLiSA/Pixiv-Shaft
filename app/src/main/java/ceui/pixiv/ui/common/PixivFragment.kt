@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -12,8 +13,10 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
@@ -380,4 +383,16 @@ fun Fragment.setUpCustomAdapter(binding: FragmentPixivListBinding, listMode: Int
     setUpToolbar(binding.toolbarLayout, binding.listView)
     setUpLayoutManager(binding.listView, listMode)
     return adapter
+}
+
+fun navigateToAnotherFragment(activity: FragmentActivity, targetFragmentId: Int, bundle: Bundle? = null) {
+    val fragmentManager = activity.supportFragmentManager
+    val navigationFragment = fragmentManager.fragments.filterIsInstance<NavHostFragment>().firstOrNull()
+
+    if (navigationFragment != null) {
+        val navController = navigationFragment.findNavController()
+        navController.navigate(targetFragmentId, bundle) // 替换为目标 Fragment 的 action 或 ID
+    } else {
+        Timber.e("NavigationFragment not found")
+    }
 }

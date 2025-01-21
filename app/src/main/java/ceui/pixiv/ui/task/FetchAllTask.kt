@@ -13,6 +13,7 @@ import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.getFileSize
+import ceui.pixiv.ui.common.navigateToAnotherFragment
 import com.blankj.utilcode.util.PathUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -121,7 +122,7 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
     }
 
     open fun onEnd(humanReadableTask: HumanReadableTask, results: List<Item>) {
-//        parentFragment.pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(task = humanReadableTask).toBundle())
+        navigateToAnotherFragment(activity, R.id.navigation_cache_list, CacheFileFragmentArgs(task = humanReadableTask).toBundle())
         ToastUtils.show("全部结束")
         Common.showLog("FetchAllTask all end ${this.results.size}")
     }
