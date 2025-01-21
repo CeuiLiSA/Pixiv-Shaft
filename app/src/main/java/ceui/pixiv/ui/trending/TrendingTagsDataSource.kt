@@ -10,7 +10,7 @@ import ceui.pixiv.ui.common.createResponseStore
 class TrendingTagsDataSource(
     private val args: TrendingTagsFragmentArgs,
 ) : DataSource<TrendingTag, TrendingTagsResponse>(
-    dataFetcher = { hint -> Client.appApi.trendingTags(args.objectType) },
+    dataFetcher = { Client.appApi.trendingTags(args.objectType) },
     responseStore = createResponseStore({ "trending-tags-${args.objectType}-api" }),
     itemMapper = { trendingTag -> listOf(TrendingTagHolder(trendingTag)) }
 )

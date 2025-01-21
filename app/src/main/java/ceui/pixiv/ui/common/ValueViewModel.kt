@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 fun <T> Fragment.pixivValueViewModel(
-    dataFetcher: suspend (hint: RefreshHint) -> T,
+    dataFetcher: suspend () -> T,
     responseStore: ResponseStore<T>? = null,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
@@ -33,14 +33,14 @@ fun <T> Fragment.pixivValueViewModel(
 inline fun <ArgsT, T> Fragment.pixivValueViewModel(
     noinline argsProducer: () -> ArgsT,
     responseStore: ResponseStore<T>? = null,
-    noinline dataFetcher: suspend (hint: RefreshHint, ArgsT) -> T,
+    noinline dataFetcher: suspend (ArgsT) -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val args = argsProducer()
-                return ValueViewModel(dataFetcher = { hint ->
-                    dataFetcher(hint, args)
+                return ValueViewModel(dataFetcher = {
+                    dataFetcher(args)
                 }, responseStore) as T
             }
         }
@@ -50,7 +50,7 @@ inline fun <ArgsT, T> Fragment.pixivValueViewModel(
 inline fun <T> Fragment.pixivValueViewModel(
     noinline ownerProducer: () -> ViewModelStoreOwner = { this },
     responseStore: ResponseStore<T>? = null,
-    noinline dataFetcher: suspend (hint: RefreshHint) -> T,
+    noinline dataFetcher: suspend () -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels(ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
@@ -65,7 +65,7 @@ inline fun <T> Fragment.pixivKeyedValueViewModel(
     keyPrefix: String,
     noinline ownerProducer: () -> ViewModelStoreOwner = { this },
     responseStore: ResponseStore<T>? = null,
-    noinline dataFetcher: suspend (hint: RefreshHint) -> T,
+    noinline dataFetcher: suspend () -> T,
 ): Lazy<ValueViewModel<T>> {
     return this.keyedViewModels(keyPrefixProvider = { keyPrefix }, ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
@@ -78,7 +78,7 @@ inline fun <T> Fragment.pixivKeyedValueViewModel(
 
 
 class ValueViewModel<T>(
-    private val dataFetcher: suspend (hint: RefreshHint) -> T,
+    private val dataFetcher: suspend () -> T,
     private val responseStore: ResponseStore<T>? = null,
 ) : ViewModel(), RefreshOwner {
 

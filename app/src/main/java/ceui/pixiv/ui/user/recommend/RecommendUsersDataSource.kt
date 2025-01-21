@@ -12,7 +12,7 @@ import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPreviewHolder
 
 class RecommendUsersDataSource : DataSource<UserPreview, UserPreviewResponse>(
-    dataFetcher = { hint -> Client.appApi.recommendedUsers() },
+    dataFetcher = { Client.appApi.recommendedUsers() },
     responseStore = createResponseStore({ "recommend-users-api" }),
     itemMapper = { preview -> listOf(UserPreviewHolder(preview)) }
 )

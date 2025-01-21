@@ -20,7 +20,7 @@ class RelatedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val safeArgs by threadSafeArgs<RelatedIllustsFragmentArgs>()
     private val viewModel by pixivListViewModel({ safeArgs.illustId }) { illustId ->
         DataSource(
-            dataFetcher = { hint -> Client.appApi.getRelatedIllusts(illustId) },
+            dataFetcher = { Client.appApi.getRelatedIllusts(illustId) },
             itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )
     }

@@ -14,7 +14,7 @@ import timber.log.Timber
 
 open class ValueContent<ValueT>(
     private val coroutineScope: CoroutineScope,
-    private val dataFetcher: suspend (hint: RefreshHint) -> ValueT,
+    private val dataFetcher: suspend () -> ValueT,
     private val responseStore: ResponseStore<ValueT>? = null,
 ) : RefreshOwner {
 
@@ -40,7 +40,7 @@ open class ValueContent<ValueT>(
 
                 if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
                     val response = withContext(Dispatchers.IO) {
-                        dataFetcher(hint).also {
+                        dataFetcher().also {
                             responseStore?.writeToCache(it)
                         }
                     }
