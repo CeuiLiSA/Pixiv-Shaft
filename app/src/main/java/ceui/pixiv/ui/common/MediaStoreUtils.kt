@@ -143,3 +143,35 @@ fun saveToDownloadsScopedStorage(context: Context, fileName: String, content: St
         return false
     }
 }
+
+fun getTxtFileIdInDownloads(context: Context, displayName: String): Long? {
+    val contentResolver = context.contentResolver
+
+    return runCatching {
+        val projection = arrayOf(MediaStore.Downloads._ID) // 查询 ID 列
+        val selection = "${MediaStore.Downloads.DISPLAY_NAME} = ? AND ${MediaStore.Downloads.MIME_TYPE} = ?"
+        val selectionArgs = arrayOf(displayName, "text/plain") // 文件名和类型条件
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentResolver.query(
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI, // 下载目录的 URI
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val idColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Downloads._ID)
+                    cursor.getLong(idColumnIndex) // 返回文件 ID
+                } else {
+                    null // 未找到匹配的文件
+                }
+            }
+        } else {
+            throw Exception("Failed to create file URI too low system version")
+        }
+    }.onFailure { ex ->
+        // 打印异常日志，便于调试
+        Timber.e(ex)
+    }.getOrNull() // 如果发生异常，返回 null
+}

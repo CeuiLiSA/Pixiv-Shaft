@@ -6,13 +6,18 @@ import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.WebNovel
+import ceui.pixiv.ui.common.getImageIdInGallery
+import ceui.pixiv.ui.common.getTxtFileIdInDownloads
 import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
 import ceui.pixiv.ui.works.buildPixivNovelFileName
 import com.blankj.utilcode.util.PathUtils
 import com.hjq.toast.ToastUtils
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream
@@ -24,11 +29,24 @@ class DownloadNovelTask(
     private val webNovel: WebNovel? = null,
 ) : QueuedRunnable<Unit>() {
 
+    private val fileName = buildPixivNovelFileName(novel)
+
     override fun start(onNext: () -> Unit) {
         super.start(onNext)
 
         coroutineScope.launch {
-            execute()
+            val imageId = withContext(Dispatchers.IO) {
+                getTxtFileIdInDownloads(context, fileName)
+            }
+            if (imageId != null) {
+                Timber.d("${fileName} 文件已存在")
+                delay(100L)
+                _status.value = TaskStatus.Finished
+                onNext.invoke()
+            } else {
+                Timber.d("${fileName} 文件不已存在，准备下载")
+                execute()
+            }
         }
     }
 
@@ -88,7 +106,7 @@ class DownloadNovelTask(
             stringBuffer.append("<===== Shaft Novel End =====>")
             stringBuffer.append("\n\n")
 
-            val b = saveToDownloadsScopedStorage(context, buildPixivNovelFileName(novel), stringBuffer.toString())
+            val b = saveToDownloadsScopedStorage(context, fileName, stringBuffer.toString())
             if (b) {
                 ToastUtils.show(context.getString(R.string.string_181))
                 _status.value = TaskStatus.Finished
