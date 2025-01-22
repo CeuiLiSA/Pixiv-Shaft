@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -55,6 +56,7 @@ import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
+import ceui.pixiv.utils.animateWiggle
 import ceui.pixiv.widgets.TagsActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -257,6 +259,9 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
                 requireActivity().finish()
             }
         }
+        binding.naviMore.setOnClick {
+            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
+        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.toolbarLayout.updatePaddingRelative(top = insets.top)
@@ -385,14 +390,22 @@ fun Fragment.setUpCustomAdapter(binding: FragmentPixivListBinding, listMode: Int
     return adapter
 }
 
-fun navigateToAnotherFragment(activity: FragmentActivity, targetFragmentId: Int, bundle: Bundle? = null) {
-    val fragmentManager = activity.supportFragmentManager
-    val navigationFragment = fragmentManager.fragments.filterIsInstance<NavHostFragment>().firstOrNull()
 
-    if (navigationFragment != null) {
-        val navController = navigationFragment.findNavController()
-        navController.navigate(targetFragmentId, bundle) // 替换为目标 Fragment 的 action 或 ID
-    } else {
-        Timber.e("NavigationFragment not found")
+fun FragmentActivity.findCurrentFragmentOrNull(): Fragment? {
+    return try {
+        val navigationFragment = supportFragmentManager.fragments
+            .filterIsInstance<NavHostFragment>()
+            .firstOrNull()
+
+        val currentFragment = navigationFragment?.childFragmentManager?.fragments?.firstOrNull { it.isVisible }
+
+        currentFragment?.let {
+            Timber.d("Current Fragment Instance: ${it.javaClass.simpleName}")
+        }
+
+        currentFragment
+    } catch (ex: Exception) {
+        Timber.e(ex)
+        null
     }
 }

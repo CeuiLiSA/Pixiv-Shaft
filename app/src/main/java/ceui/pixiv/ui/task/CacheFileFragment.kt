@@ -7,10 +7,12 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.findCurrentFragmentOrNull
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.animateWiggle
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import timber.log.Timber

@@ -24,6 +24,7 @@ import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.TitledViewPagerFragment
+import ceui.pixiv.ui.common.findCurrentFragmentOrNull
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.task.PixivTaskType
@@ -119,6 +120,7 @@ class UserProfileFragment : TitledViewPagerFragment(R.layout.fragment_user_profi
             getTitleLiveData(1).value = "发布漫画(${result.profile?.total_manga})"
             getTitleLiveData(2).value = "发布小说(${result.profile?.total_novels})"
             binding.naviMore.setOnClick {
+                requireActivity().findCurrentFragmentOrNull()
                 showActionMenu {
                     add(
                         MenuItem("下载全部作品", "实验性功能，测试中") {

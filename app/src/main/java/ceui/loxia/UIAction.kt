@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.pixiv.widgets.PixivDialog
+import ceui.pixiv.widgets.alertYesOrCancel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
@@ -61,12 +62,16 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
 }
 
 fun Fragment.launchSuspend(sender: ProgressIndicator, block: suspend CoroutineScope.() -> Unit) {
+    val ctx = context
     viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
         try {
             sender.showProgress()
             block()
         } catch (ex: Exception) {
             Timber.e(ex)
+            if (ctx != null) {
+                alertYesOrCancel(ex.getHumanReadableMessage(ctx))
+            }
         } finally {
             sender.hideProgress()
         }

@@ -452,8 +452,6 @@ fun measureTextWidth(content: String, textSize: Float, resources: Resources): In
     return StaticLayout.getDesiredWidth(content, paint).toInt()
 }
 
-
-
 @BindingAdapter("shadowRadius", "shadowColor")
 fun TextView.binding_setShadow(radius: Float, @ColorInt color: Int) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
