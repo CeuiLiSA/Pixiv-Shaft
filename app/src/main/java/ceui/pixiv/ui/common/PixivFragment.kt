@@ -46,6 +46,7 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
+import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.IllustSeriesFragmentArgs
 import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
 import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
@@ -181,6 +182,17 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
             R.id.navigation_viewpager_artwork,
             ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, novelId, ObjectType.NOVEL).toBundle()
         )
+    }
+
+    override fun visitNovelById(novelId: Long) {
+        launchSuspend {
+            val novel = Client.appApi.getNovel(novelId).novel
+            if (novel != null) {
+                ArtworksMap.store[fragmentViewModel.fragmentUniqueId] = listOf(novelId)
+                ObjectPool.update(novel)
+                onClickNovel(novel.id)
+            }
+        }
     }
 
     override fun onClickIllust(illustId: Long) {
