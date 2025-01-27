@@ -81,7 +81,7 @@ interface API {
         @Query("illust_id") illust_id: Long
     ): SingleIllustResponse
 
-    @GET("/v1/illust/detail")
+    @GET("/v2/novel/detail")
     suspend fun getNovel(
         @Query("novel_id") novel_id: Long
     ): SingleNovelResponse

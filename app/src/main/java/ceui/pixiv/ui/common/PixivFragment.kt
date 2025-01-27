@@ -164,9 +164,6 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
         if (objectType == ObjectType.NOVEL) {
 
         } else {
-//            pushFragment(R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
-//                keyword = tag.name ?: "",
-//            ).toBundle())
             pushFragment(R.id.navigation_circle, CircleFragmentArgs(
                 keyword = tag.name ?: "",
             ).toBundle())
