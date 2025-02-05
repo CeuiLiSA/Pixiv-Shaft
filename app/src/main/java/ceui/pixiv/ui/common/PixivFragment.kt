@@ -63,8 +63,15 @@ import com.scwang.smart.refresh.header.MaterialHeader
 import timber.log.Timber
 
 
-open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver,
-    UserActionReceiver, TagsActionReceiver, ArticleActionReceiver, NovelActionReceiver, IllustIdActionReceiver, NovelSeriesActionReceiver, IllustSeriesActionReceiver {
+open class PixivFragment(layoutId: Int) : Fragment(layoutId),
+    IllustCardActionReceiver,
+    UserActionReceiver,
+    TagsActionReceiver,
+    ArticleActionReceiver,
+    NovelActionReceiver,
+    IllustIdActionReceiver,
+    NovelSeriesActionReceiver,
+    IllustSeriesActionReceiver {
 
     protected val fragmentViewModel: NavFragmentViewModel by viewModels()
 
@@ -93,7 +100,8 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 
     override fun onClickBookmarkIllust(sender: ProgressIndicator, illustId: Long) {
         launchSuspend(sender) {
-            val illust = ObjectPool.get<Illust>(illustId).value ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
+            val illust = ObjectPool.get<Illust>(illustId).value
+                ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
             if (illust != null) {
                 if (illust.is_bookmarked == true) {
                     Client.appApi.removeBookmark(illustId)
@@ -120,7 +128,8 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 
     override fun onClickBookmarkNovel(sender: ProgressIndicator, novelId: Long) {
         launchSuspend(sender) {
-            val novel = ObjectPool.get<Novel>(novelId).value ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
+            val novel = ObjectPool.get<Novel>(novelId).value
+                ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
             if (novel != null) {
                 if (novel.is_bookmarked == true) {
                     Client.appApi.removeNovelBookmark(novelId)
@@ -165,22 +174,31 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
         if (objectType == ObjectType.NOVEL) {
 
         } else {
-            pushFragment(R.id.navigation_circle, CircleFragmentArgs(
-                keyword = tag.name ?: "",
-            ).toBundle())
+            pushFragment(
+                R.id.navigation_circle, CircleFragmentArgs(
+                    keyword = tag.name ?: "",
+                ).toBundle()
+            )
         }
     }
 
     override fun onClickArticle(article: Article) {
         article.article_url?.let {
-            pushFragment(R.id.navigation_web_fragment, WebFragmentArgs(article.article_url).toBundle())
+            pushFragment(
+                R.id.navigation_web_fragment,
+                WebFragmentArgs(article.article_url).toBundle()
+            )
         }
     }
 
     override fun onClickNovel(novelId: Long) {
         pushFragment(
             R.id.navigation_viewpager_artwork,
-            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, novelId, ObjectType.NOVEL).toBundle()
+            ArtworkViewPagerFragmentArgs(
+                fragmentViewModel.fragmentUniqueId,
+                novelId,
+                ObjectType.NOVEL
+            ).toBundle()
         )
     }
 
@@ -209,7 +227,11 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     override fun onClickIllust(illustId: Long) {
         pushFragment(
             R.id.navigation_viewpager_artwork,
-            ArtworkViewPagerFragmentArgs(fragmentViewModel.fragmentUniqueId, illustId, ObjectType.ILLUST).toBundle()
+            ArtworkViewPagerFragmentArgs(
+                fragmentViewModel.fragmentUniqueId,
+                illustId,
+                ObjectType.ILLUST
+            ).toBundle()
         )
     }
 
@@ -268,7 +290,10 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
             }
         } else {
             binding.toolbarLayout.background = ColorDrawable(
-                Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+                Common.resolveThemeAttribute(
+                    requireContext(),
+                    androidx.appcompat.R.attr.colorPrimary
+                )
             )
             binding.naviBack.setOnClick {
                 requireActivity().finish()
@@ -283,7 +308,11 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
     }
 }
 
-fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: RefreshOwner, listMode: Int = ListMode.STAGGERED_GRID) {
+fun Fragment.setUpRefreshState(
+    binding: FragmentPixivListBinding,
+    viewModel: RefreshOwner,
+    listMode: Int = ListMode.STAGGERED_GRID
+) {
     if (this is FitsSystemWindowFragment) {
         binding.topShadow.isVisible = true
         val params = binding.refreshLayout.layoutParams as ConstraintLayout.LayoutParams
@@ -364,17 +393,21 @@ fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode
         listView.addItemDecoration(LinearItemDecoration(18.ppppx))
     } else if (listMode == ListMode.VERTICAL_COMMENT) {
         listView.layoutManager = LinearLayoutManager(requireContext())
-        listView.addItemDecoration(BottomDividerDecoration(
-            requireContext(),
-            R.drawable.list_divider,
-            marginLeft = 48.ppppx
-        ))
+        listView.addItemDecoration(
+            BottomDividerDecoration(
+                requireContext(),
+                R.drawable.list_divider,
+                marginLeft = 48.ppppx
+            )
+        )
     } else if (listMode == ListMode.VERTICAL_TABCELL) {
         listView.layoutManager = LinearLayoutManager(requireContext())
-        listView.addItemDecoration(BottomDividerDecoration(
-            requireContext(),
-            R.drawable.list_divider,
-        ))
+        listView.addItemDecoration(
+            BottomDividerDecoration(
+                requireContext(),
+                R.drawable.list_divider,
+            )
+        )
     } else if (listMode == ListMode.VERTICAL_NO_MARGIN) {
         listView.layoutManager = LinearLayoutManager(ctx)
     } else if (listMode == ListMode.GRID) {
