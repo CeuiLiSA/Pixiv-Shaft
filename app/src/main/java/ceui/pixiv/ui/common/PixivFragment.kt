@@ -51,6 +51,7 @@ import ceui.pixiv.ui.detail.IllustSeriesFragmentArgs
 import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
 import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
+import ceui.pixiv.ui.user.UserFragmentArgs
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.utils.ppppx
@@ -156,7 +157,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
 
     override fun onClickUser(id: Long) {
         try {
-            pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
+            pushFragment(R.id.navigation_user, UserFragmentArgs(id).toBundle())
         } catch (ex: Exception) {
             Timber.e(ex)
             val userIntent = Intent(

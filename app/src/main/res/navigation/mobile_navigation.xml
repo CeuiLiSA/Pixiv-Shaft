@@ -244,6 +244,16 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_user"
+        android:name="ceui.pixiv.ui.user.UserFragment"
+        tools:layout="@layout/fragment_user" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_user_profile"
         android:name="ceui.pixiv.ui.user.UserProfileFragment"
         tools:layout="@layout/fragment_user_profile" >
