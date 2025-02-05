@@ -7,11 +7,14 @@ import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellIllustCardBinding
 import ceui.lisa.utils.GlideUrlChild
+import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.Series
 import ceui.loxia.findActionReceiverOrNull
+import ceui.loxia.launchSuspend
+import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.screenWidth
 import ceui.pixiv.utils.setOnClick
@@ -38,8 +41,8 @@ class IllustCardHolder(val illust: Illust) : ListItemHolder() {
 
 interface IllustCardActionReceiver {
     fun onClickIllustCard(illust: Illust)
-
     fun onClickBookmarkIllust(sender: ProgressIndicator, illustId: Long)
+    fun visitIllustById(illustId: Long)
 }
 
 interface IllustSeriesActionReceiver {

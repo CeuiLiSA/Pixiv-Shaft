@@ -22,6 +22,7 @@ import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.common.shareIllust
 import ceui.pixiv.ui.works.GalleryActionReceiver
 import ceui.pixiv.ui.works.GalleryHolder
 import ceui.pixiv.ui.works.PagedImgUrlFragmentArgs
@@ -82,6 +83,11 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                                         ObjectType.ILLUST
                                     ).toBundle()
                                 )
+                            }
+                        )
+                        add(
+                            MenuItem(getString(R.string.string_110)) {
+                                shareIllust(illust)
                             }
                         )
                         add(

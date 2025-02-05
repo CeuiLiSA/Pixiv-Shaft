@@ -39,6 +39,15 @@
             android:textColor="@color/text00"
             android:layout_height="wrap_content"/>
 
+        <TextView
+            android:id="@+id/user_id"
+            android:textSize="14sp"
+            android:text="@{`UID: ` + String.valueOf(novel.user.id)}"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
         <ceui.pixiv.widgets.TagsFlowView
             android:id="@+id/tags_flow_view"
             visibleOrGone="@{novel.tags.size() > 0}"

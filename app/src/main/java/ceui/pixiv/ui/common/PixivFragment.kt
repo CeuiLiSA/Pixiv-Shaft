@@ -24,9 +24,9 @@ import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
-import ceui.lisa.models.ObjectSpec
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
+import ceui.lisa.utils.ShareIllust
 import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
@@ -53,9 +53,9 @@ import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
-import ceui.pixiv.widgets.TagsActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.TagsActionReceiver
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
@@ -191,6 +191,17 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
                 ArtworksMap.store[fragmentViewModel.fragmentUniqueId] = listOf(novelId)
                 ObjectPool.update(novel)
                 onClickNovel(novel.id)
+            }
+        }
+    }
+
+    override fun visitIllustById(illustId: Long) {
+        launchSuspend {
+            val illust = Client.appApi.getIllust(illustId).illust
+            if (illust != null) {
+                ArtworksMap.store[fragmentViewModel.fragmentUniqueId] = listOf(illustId)
+                ObjectPool.update(illust)
+                onClickIllust(illust.id)
             }
         }
     }
@@ -391,4 +402,44 @@ fun Fragment.setUpCustomAdapter(binding: FragmentPixivListBinding, listMode: Int
     setUpToolbar(binding.toolbarLayout, binding.listView)
     setUpLayoutManager(binding.listView, listMode)
     return adapter
+}
+
+fun Fragment.shareIllust(illust: Illust) {
+    launchSuspend {
+        val ctx = requireContext()
+        val shareText = ctx.getString(
+            R.string.share_illust,
+            illust.title,
+            illust.user?.name,
+            ShareIllust.URL_Head + illust.id
+        )
+
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }.also { intent ->
+            startActivity(Intent.createChooser(intent, ctx.getString(R.string.share)))
+        }
+    }
+}
+
+const val NOVEL_URL_HEAD = "https://www.pixiv.net/novel/show.php?id="
+
+fun Fragment.shareNovel(novel: Novel) {
+    launchSuspend {
+        val ctx = requireContext()
+        val shareText = ctx.getString(
+            R.string.share_illust,
+            novel.title,
+            novel.user?.name,
+            NOVEL_URL_HEAD + novel.id
+        )
+
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }.also { intent ->
+            startActivity(Intent.createChooser(intent, ctx.getString(R.string.share)))
+        }
+    }
 }
