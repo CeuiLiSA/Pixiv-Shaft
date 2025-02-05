@@ -173,6 +173,7 @@ class RedSectionHeaderViewHolder(aa: ItemRedSectionHeaderBinding) :
         binding.seeMore.setOnClick {
             it.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(holder.type)
         }
+
     }
 }
 
