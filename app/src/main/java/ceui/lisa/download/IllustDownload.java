@@ -236,8 +236,8 @@ public class IllustDownload {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());
                     outStream.close();
-                    Common.showLog("downloadNovel displayName " + displayName);
-                    OutPut.outPutNovel(activity, textFile, displayName);
+                    Common.showLog("downloadNovel displayName " + textFile.getName());
+                    OutPut.outPutNovel(activity, textFile, textFile.getName());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -259,8 +259,8 @@ public class IllustDownload {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());
                     outStream.close();
-                    Common.showLog("downloadFile displayName " + displayName);
-                    OutPut.outPutFile(activity, textFile, displayName);
+                    Common.showLog("downloadFile displayName " + textFile.getName());
+                    OutPut.outPutFile(activity, textFile, textFile.getName());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -282,8 +282,8 @@ public class IllustDownload {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());
                     outStream.close();
-                    Common.showLog("downloadBackupFile displayName " + displayName);
-                    OutPut.outPutBackupFile(activity, textFile, displayName);
+                    Common.showLog("downloadBackupFile displayName " + textFile.getName());
+                    OutPut.outPutBackupFile(activity, textFile, textFile.getName());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

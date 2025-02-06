@@ -7,6 +7,12 @@ import java.io.File;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.CodingErrorAction;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+
 public class LegacyFile {
 
     private static final String GIF_CACHE = "/gif cache";
@@ -72,7 +78,7 @@ public class LegacyFile {
 
     public static File textFile(Context context, String name) {
         File gifCacheFolder = gifCacheFolder(context);
-        File textFile = new File(gifCacheFolder, name);
+        File textFile = createValidFile(gifCacheFolder, name);
         if (!textFile.exists()) {
             try {
                 textFile.createNewFile();
@@ -82,4 +88,51 @@ public class LegacyFile {
         }
         return textFile;
     }
+
+    private static final int MAX_FILENAME_BYTES = 255;
+    private static final int MAX_PATH_BYTES = 4096;
+
+    public static File createValidFile(File parentDir, String fileName) {
+        String safeName = safeFileName(fileName);
+        File tempFile = new File(parentDir, safeName);
+        int fileLength = tempFile.getAbsolutePath().getBytes().length;
+        if (fileLength > MAX_PATH_BYTES) Common.showLog("LegacyFile createValidFile fileLength > MAX_PATH_BYTES ?");
+
+        return tempFile;
+    }
+
+    public static String safeFileName(String fileName) {
+        if (fileName == null)return "_";
+        String filtered =fileName.replaceAll("[\\p{C}\\\\<>/:\"|?*]", "_");
+        if (filtered.isEmpty()) {
+            return "_";
+        }
+        return truncateToBytes(filtered, MAX_FILENAME_BYTES-3);
+    }
+
+    private static String truncateToBytes(final String input, final int maxBytes) {
+        if (input == null || maxBytes <= 0 || input.isEmpty()) return "";
+
+        byte[] sba = input.getBytes(StandardCharsets.UTF_8);
+        if (sba.length <= maxBytes) return input;
+
+        CharsetDecoder cd = StandardCharsets.UTF_8.newDecoder();
+        cd.onMalformedInput(CodingErrorAction.IGNORE);
+        cd.onUnmappableCharacter(CodingErrorAction.IGNORE);
+
+        int lastDotIndex = input.lastIndexOf('.');
+        String extension = (lastDotIndex == -1) ? "" : input.substring(lastDotIndex);
+
+        byte[] extBytes = extension.getBytes(StandardCharsets.UTF_8);
+        int extLength = extBytes.length;
+
+        ByteBuffer bb = ByteBuffer.wrap(sba, 0, maxBytes-extLength);
+        CharBuffer cb = CharBuffer.allocate(maxBytes);
+        cd.decode(bb, cb, false);
+        cd.decode(ByteBuffer.wrap(extBytes), cb, true);
+        cd.flush(cb);
+
+        return  new String(cb.array(), 0, cb.position());
+    }
+
 }
