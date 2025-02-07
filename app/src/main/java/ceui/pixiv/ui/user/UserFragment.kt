@@ -16,11 +16,16 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.FragmentUserBinding
 import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.utils.Params
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
+import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.User
+import ceui.loxia.pushFragment
+import ceui.pixiv.ui.chats.SeeMoreAction
+import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.PixivFragment
@@ -39,8 +44,7 @@ import com.scwang.smart.refresh.header.MaterialHeader
 import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
 
-class UserFragment : PixivFragment(R.layout.fragment_user),
-    ViewPagerFragment,
+class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, SeeMoreAction,
     FitsSystemWindowFragment {
 
     private val safeArgs by navArgs<UserFragmentArgs>()
@@ -60,10 +64,8 @@ class UserFragment : PixivFragment(R.layout.fragment_user),
             windowInsets
         }
         viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->
-            Glide.with(this)
-                .load(GlideUrlChild(blurIllust?.image_urls?.large))
-                .apply(bitmapTransform(BlurTransformation(15, 3)))
-                .transition(withCrossFade())
+            Glide.with(this).load(GlideUrlChild(blurIllust?.image_urls?.large))
+                .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
                 .into(binding.pageBackground)
         }
         binding.naviBack.setOnClick {
@@ -91,6 +93,7 @@ class UserFragment : PixivFragment(R.layout.fragment_user),
             binding.naviTitle.isVisible = (percentage == 1F)
         }
         binding.user = viewModel.userLiveData
+        binding.profile = viewModel.userProfile.result
         binding.userViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
                 return 1
@@ -99,6 +102,28 @@ class UserFragment : PixivFragment(R.layout.fragment_user),
             override fun createFragment(position: Int): Fragment {
                 return UserContentFragment()
             }
+        }
+    }
+
+    override fun seeMore(type: Int) {
+        if (type == SeeMoreType.USER_CREATED_ILLUST) {
+            pushFragment(
+                R.id.navigation_user_created_illust, UserCreatedIllustsFragmentArgs(
+                    userId = safeArgs.userId, objectType = ObjectType.ILLUST
+                ).toBundle()
+            )
+        } else if (type == SeeMoreType.USER_CREATED_MANGA) {
+            pushFragment(
+                R.id.navigation_user_created_illust, UserCreatedIllustsFragmentArgs(
+                    userId = safeArgs.userId, objectType = ObjectType.MANGA
+                ).toBundle()
+            )
+        } else if (type == SeeMoreType.USER_BOOKMARKED_ILLUST) {
+            pushFragment(
+                R.id.navigation_user_bookmarked_illust, UserBookmarkedIllustsFragmentArgs(
+                    safeArgs.userId, Params.TYPE_PUBLIC
+                ).toBundle()
+            )
         }
     }
 }

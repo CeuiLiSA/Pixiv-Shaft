@@ -65,7 +65,6 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
 }
 
 fun Fragment.launchSuspend(sender: ProgressIndicator, block: suspend CoroutineScope.() -> Unit) {
-    val ctx = context
     viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
         try {
             sender.showProgress()
@@ -75,9 +74,6 @@ fun Fragment.launchSuspend(sender: ProgressIndicator, block: suspend CoroutineSc
                 alertYesOrCancel(ex.getHumanReadableMessage(it))
             }
             Timber.e(ex)
-            if (ctx != null) {
-                alertYesOrCancel(ex.getHumanReadableMessage(ctx))
-            }
         } finally {
             sender.hideProgress()
         }

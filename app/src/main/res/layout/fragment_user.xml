@@ -6,6 +6,10 @@
         <variable
             name="user"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
+
+        <variable
+            name="profile"
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.UserResponse>" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -122,7 +126,7 @@
 
                                         <TextView
                                             style="@style/textMontserratBold"
-                                            android:text="123"
+                                            android:text="@{String.valueOf(profile.profile.total_follow_users)}"
                                             android:textColor="@color/text00"
                                             android:includeFontPadding="false"
                                             android:textSize="20sp"
@@ -148,7 +152,7 @@
 
                                         <TextView
                                             style="@style/textMontserratBold"
-                                            android:text="123"
+                                            android:text="@{String.valueOf(profile.profile.total_mypixiv_users)}"
                                             android:textColor="@color/text00"
                                             android:includeFontPadding="false"
                                             android:textSize="20sp"

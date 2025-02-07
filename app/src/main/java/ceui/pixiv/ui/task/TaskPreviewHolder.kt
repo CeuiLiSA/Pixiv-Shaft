@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.task
 
+import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellTaskPreviewBinding
 import ceui.loxia.Illust
@@ -32,7 +33,7 @@ class TaskPreviewViewHolder(bd: CellTaskPreviewBinding) : ListItemViewHolder<Cel
         binding.root.setOnClickListener {
             it.findActionReceiverOrNull<TaskPreviewActionReceiver>()?.onClickTaskPreview(holder.humanReadableTask)
         }
-        binding.taskSize.text = "共${holder.illusts.size}个作品"
+        binding.taskSize.text = context.getString(R.string.all_works_count, holder.illusts.size)
     }
 }
 
