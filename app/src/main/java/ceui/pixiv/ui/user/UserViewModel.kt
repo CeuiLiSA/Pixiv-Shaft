@@ -13,13 +13,16 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.User
 import ceui.loxia.combineLatest
+import ceui.loxia.waitForValue
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.ValueContent
+import ceui.pixiv.ui.detail.ArtworksMap
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.collections.addAll
 
 class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, HoldersContainer {
 
@@ -32,16 +35,36 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
 
     private val userCreatedIllusts = ValueContent(viewModelScope, { Client.appApi.getUserCreatedIllusts(userId, Params.TYPE_ILLUST) })
     private val userBookmarkedIllusts = ValueContent(viewModelScope, { Client.appApi.getUserBookmarkedIllusts(userId, Params.TYPE_PUBLIC) })
+
+    val previewWorksIds = combineLatest(userCreatedIllusts.result, userBookmarkedIllusts.result).map { (created, bookmarked) ->
+        val idList = mutableListOf<Long>()
+        created?.illusts?.take(9)?.map {
+            ObjectPool.update(it)
+            it.id
+        }?.let {
+            idList.addAll(it)
+        }
+        bookmarked?.illusts?.take(9)?.map {
+            ObjectPool.update(it)
+            it.id
+        }?.let {
+            idList.addAll(it)
+        }
+        idList
+    }
+
     val blurBackground: LiveData<Illust?> get() {
-        return combineLatest(userCreatedIllusts.result, userBookmarkedIllusts.result).map { (created, bookmarked) ->
-            (created?.illusts?.getOrNull(userId.mod(10)) ?:
-            bookmarked?.illusts?.getOrNull(userId.mod(10)))?.also { target ->
-            ObjectPool.update(target)
-        } }
+        return userCreatedIllusts.result.map { created ->
+            created.illusts.getOrNull(userId.mod(10))?.also { target ->
+                ObjectPool.update(target)
+            }
+        }
     }
 
     override fun prepareIdMap(fragmentUniqueId: String) {
-
+        previewWorksIds.value?.let {
+            ArtworksMap.store[fragmentUniqueId] = it
+        }
     }
 
     private val _refreshState = MutableLiveData<RefreshState>()

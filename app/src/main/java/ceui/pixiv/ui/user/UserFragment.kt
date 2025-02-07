@@ -27,6 +27,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -36,6 +37,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withC
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.scwang.smart.refresh.header.MaterialHeader
 import jp.wasabeef.glide.transformations.BlurTransformation
+import timber.log.Timber
 
 class UserFragment : PixivFragment(R.layout.fragment_user),
     ViewPagerFragment,
