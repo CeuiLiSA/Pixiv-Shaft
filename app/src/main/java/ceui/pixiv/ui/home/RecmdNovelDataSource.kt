@@ -13,9 +13,7 @@ import ceui.pixiv.ui.common.createResponseStore
 
 class RecmdNovelDataSource(
 ) : DataSource<Novel, NovelResponse>(
-    dataFetcher = { hint ->
-        Client.appApi.getRecmdNovels()
-    },
+    dataFetcher = { Client.appApi.getRecmdNovels() },
     responseStore = createResponseStore({ "home-recommend-novel-api" }),
     itemMapper = { novel -> listOf(NovelCardHolder(novel)) },
     filter = { novel -> novel.visible != false }

@@ -13,7 +13,7 @@ import timber.log.Timber
 class RecmdIllustMangaDataSource(
     private val args: RecmdIllustMangaFragmentArgs,
 ) : DataSource<Illust, HomeIllustResponse>(
-    dataFetcher = { hint -> Client.appApi.getHomeData(args.objectType) },
+    dataFetcher = { Client.appApi.getHomeData(args.objectType) },
     responseStore = createResponseStore({ "home-recommend-${args.objectType}-api" }),
     itemMapper = { illust -> listOf(IllustCardHolder(illust)) },
     filter = { artwork -> BlockingManager.isWorkBlocked(artwork.id).value != true }

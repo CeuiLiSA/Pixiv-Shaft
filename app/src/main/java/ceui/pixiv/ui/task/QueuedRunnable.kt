@@ -15,6 +15,8 @@ abstract class QueuedRunnable<ResultT> {
             return Shaft.getContext()
         }
 
+    private var _onNext: (() -> Unit)? = null
+
     protected val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
 
@@ -24,6 +26,10 @@ abstract class QueuedRunnable<ResultT> {
     open val taskId = UUID.randomUUID().hashCode().toLong()
 
     val isDownloading: LiveData<Boolean> = status.map { it is TaskStatus.Executing }
+
+    open fun start(onNext: () -> Unit) {
+        this._onNext = onNext
+    }
 
     abstract suspend fun execute()
 
@@ -41,6 +47,7 @@ abstract class QueuedRunnable<ResultT> {
 
     open fun onEnd(resultT: ResultT) {
         Timber.d("${this.javaClass.simpleName}-${taskId} onEnd")
+        this._onNext?.invoke()
     }
 
     open fun onError(ex: Exception?) {
@@ -48,6 +55,7 @@ abstract class QueuedRunnable<ResultT> {
         if (ex != null) {
             Timber.e(ex)
             _status.postValue(TaskStatus.Error(ex))
+            this._onNext?.invoke()
         }
     }
 }

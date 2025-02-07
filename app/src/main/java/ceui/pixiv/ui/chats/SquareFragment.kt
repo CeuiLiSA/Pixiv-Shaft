@@ -37,7 +37,7 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by navArgs<SquareFragmentArgs>()
     private val viewModel by pixivValueViewModel({ Pair(safeArgs.objectType, MMKV.defaultMMKV()) },
-        responseStore = createResponseStore({ "home-square-${safeArgs.objectType}" })) { hint, (objectType, prefStore) ->
+        responseStore = createResponseStore({ "home-square-${safeArgs.objectType}" })) { (objectType, prefStore) ->
         if (prefStore.getString(SessionManager.COOKIE_KEY, "").isNullOrEmpty()) {
             throw CookieNotSyncException("Pixiv cookie not synced")
         }

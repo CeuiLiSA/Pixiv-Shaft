@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 open class DataSource<Item, T: KListShow<Item>>(
-    private val dataFetcher: suspend (hint: RefreshHint) -> T,
+    private val dataFetcher: suspend () -> T,
     private val responseStore: ResponseStore<T>? = null,
     itemMapper: (Item) -> List<ListItemHolder>,
     private val filter: (Item) -> Boolean = { _ -> true }
@@ -58,7 +58,7 @@ open class DataSource<Item, T: KListShow<Item>>(
                 responseStore.isCacheExpired()
              ) {
                 val response = withContext(Dispatchers.IO) {
-                    dataFetcher(hint).also {
+                    dataFetcher().also {
                         responseStore?.writeToCache(it)
                     }
                 }

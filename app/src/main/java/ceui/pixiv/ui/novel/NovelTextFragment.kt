@@ -79,8 +79,8 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                     )
                     add(
                         MenuItem(getString(R.string.string_5)) {
-                            requireActivity().lifecycleScope.launch {
-                                DownloadNovelTask(novel, webNovel).execute()
+                            DownloadNovelTask(requireActivity().lifecycleScope, novel, webNovel).start {
+
                             }
                         }
                     )

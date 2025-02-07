@@ -46,7 +46,7 @@ class NovelSeriesViewModel(
             // 从现有列表中剔除 LoadingHolder
             val filteredList =
                 (_itemHolders.value ?: listOf()).filterNot { it is LoadingHolder }.toMutableList()
-
+            Timber.d("dfsasfs2 ${holders.size}")
             // 添加新数据
             filteredList.addAll(holders)
 

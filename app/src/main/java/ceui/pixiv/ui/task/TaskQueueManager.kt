@@ -12,13 +12,13 @@ object TaskQueueManager {
         PAUSED      // Task is paused
     }
 
-    private val taskQueue: MutableList<DownloadTask> = mutableListOf()
+    private val taskQueue: MutableList<QueuedRunnable<*>> = mutableListOf()
     private val lock = Any()
 
     private val _taskState = MutableLiveData(TaskState.IDLE)
     val taskState: LiveData<TaskState> get() = _taskState
 
-    fun addTask(task: DownloadTask) {
+    fun addTask(task: QueuedRunnable<*>) {
         synchronized(lock) {
             if (!isTaskInQueue(task)) {
                 taskQueue.add(task)
@@ -30,7 +30,7 @@ object TaskQueueManager {
         }
     }
 
-    fun addTasks(tasks: List<DownloadTask>) {
+    fun addTasks(tasks: List<QueuedRunnable<*>>) {
         synchronized(lock) {
             val newTasks = tasks.filterNot { isTaskInQueue(it) }
             if (newTasks.isNotEmpty()) {
@@ -41,7 +41,7 @@ object TaskQueueManager {
         }
     }
 
-    private fun isTaskInQueue(task: DownloadTask): Boolean {
+    private fun isTaskInQueue(task: QueuedRunnable<*>): Boolean {
         return taskQueue.any { it.taskId == task.taskId }
     }
 
@@ -70,7 +70,7 @@ object TaskQueueManager {
     }
 
     private fun processNextTask() {
-        val currentTask: DownloadTask?
+        val currentTask: QueuedRunnable<*>?
         synchronized(lock) {
             if (_taskState.value != TaskState.RUNNING) {
                 Timber.d("Processing not running, current state: ${_taskState.value}")
@@ -89,7 +89,7 @@ object TaskQueueManager {
             }
         }
 
-        currentTask?.startDownload {
+        currentTask?.start {
             handleTaskCompletion()
         }
     }

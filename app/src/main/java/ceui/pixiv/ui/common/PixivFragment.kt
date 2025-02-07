@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -12,8 +13,11 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
@@ -54,6 +58,8 @@ import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserFragmentArgs
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
+import ceui.pixiv.utils.animateWiggle
+import ceui.pixiv.widgets.TagsActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -300,6 +306,9 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
                 requireActivity().finish()
             }
         }
+        binding.naviMore.setOnClick {
+            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
+        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.toolbarLayout.updatePaddingRelative(top = insets.top)
@@ -325,8 +334,6 @@ fun Fragment.setUpRefreshState(
     setUpLayoutManager(binding.listView, listMode)
     val ctx = requireContext()
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
-    binding.refreshLayout.setEnableLoadMore(true)
-    binding.refreshLayout.setRefreshFooter(FalsifyFooter(ctx))
     binding.refreshLayout.setOnRefreshListener {
         viewModel.refresh(RefreshHint.PullToRefresh)
     }
@@ -438,6 +445,27 @@ fun Fragment.setUpCustomAdapter(binding: FragmentPixivListBinding, listMode: Int
     return adapter
 }
 
+
+fun FragmentActivity.findCurrentFragmentOrNull(): Fragment? {
+    return try {
+        val navigationFragment = supportFragmentManager.fragments
+            .filterIsInstance<NavHostFragment>()
+            .firstOrNull()
+
+        val currentFragment = navigationFragment?.childFragmentManager?.fragments?.firstOrNull { it.isVisible }
+
+        currentFragment?.let {
+            Timber.d("Current Fragment Instance: ${it.javaClass.simpleName}")
+        }
+
+        currentFragment
+    } catch (ex: Exception) {
+        Timber.e(ex)
+        null
+    }
+}
+
+
 fun Fragment.shareIllust(illust: Illust) {
     launchSuspend {
         val ctx = requireContext()
@@ -456,6 +484,8 @@ fun Fragment.shareIllust(illust: Illust) {
         }
     }
 }
+
+
 
 const val NOVEL_URL_HEAD = "https://www.pixiv.net/novel/show.php?id="
 

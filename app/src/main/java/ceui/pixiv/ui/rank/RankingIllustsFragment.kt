@@ -20,7 +20,7 @@ class RankingIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val safeArgs by threadSafeArgs<RankingIllustsFragmentArgs>()
     private val viewModel by pixivListViewModel({ safeArgs.mode }) { mode ->
         DataSource(
-            dataFetcher = { hint -> Client.appApi.getRankingIllusts(mode) },
+            dataFetcher = { Client.appApi.getRankingIllusts(mode) },
             responseStore = createResponseStore({ "rank-illust-$mode" }),
             itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )

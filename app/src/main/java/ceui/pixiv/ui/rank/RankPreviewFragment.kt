@@ -22,13 +22,13 @@ class RankPreviewFragment : PixivFragment(R.layout.fragment_rank_preview) {
     private val rankIllustViewModel by pixivKeyedValueViewModel(
         keyPrefix = "rank-illust-day",
         responseStore = createResponseStore({ "rank-illust-day" })
-    ) { hint ->
+    ) {
         Client.appApi.getRankingIllusts("day")
     }
     private val rankMangaViewModel by pixivKeyedValueViewModel(
         keyPrefix = "rank-manga-day",
         responseStore = createResponseStore({ "rank-manga-day" })
-    ) { hint ->
+    ) {
         Client.appApi.getRankingIllusts("day_manga")
     }
 

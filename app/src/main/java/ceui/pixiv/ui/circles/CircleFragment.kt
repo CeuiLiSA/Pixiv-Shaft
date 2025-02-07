@@ -41,7 +41,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
     }
     private val viewModel by pixivValueViewModel(
         responseStore = createResponseStore({ "circle-detail-${args.keyword}" })
-    ) { hint ->
+    ) {
         Client.webApi.getCircleDetail(args.keyword)
     }
 

@@ -10,9 +10,11 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.findCurrentFragmentOrNull
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.setOnClick
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
@@ -32,7 +34,9 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
                         maps[uuid] = illusts
                         prefStore.getString(uuid, "")?.let {
                             try {
-                                gson.fromJson(it, HumanReadableTask::class.java)
+                                val task = gson.fromJson(it, HumanReadableTask::class.java)
+                                Timber.d("task $task")
+                                task
                             } catch (ex: Exception) {
                                 Timber.e(ex)
                                 null
@@ -57,6 +61,9 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
+        binding.toolbarLayout.naviMore.setOnClick {
+            requireActivity().findCurrentFragmentOrNull()
+        }
     }
 
     override fun onClickTaskPreview(humanReadableTask: HumanReadableTask) {
