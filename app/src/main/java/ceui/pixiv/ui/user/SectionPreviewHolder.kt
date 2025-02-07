@@ -4,6 +4,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellSectionPreviewBinding
 import ceui.loxia.IllustResponse
+import ceui.loxia.RefreshHint
+import ceui.loxia.setUpHolderRefreshState
 import ceui.pixiv.ui.chats.IllustSquareHolder
 import ceui.pixiv.ui.chats.IllustSquareV2Holder
 import ceui.pixiv.ui.common.CommonAdapter
@@ -21,6 +23,14 @@ class SectionPreviewViewHolder(private val bd: CellSectionPreviewBinding) :
 
     override fun onBindViewHolder(holder: SectionPreviewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
+        binding.itemLoadingLayout.setUpHolderRefreshState(
+            holder.valueContent.refreshState,
+            lifecycleOwner
+        ) {
+            holder.valueContent.refresh(
+                RefreshHint.ErrorRetry
+            )
+        }
         val adapter = CommonAdapter(lifecycleOwner)
         binding.previewListView.adapter = adapter
         binding.previewListView.layoutManager = GridLayoutManager(context, 3)

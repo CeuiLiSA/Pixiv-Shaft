@@ -21,6 +21,7 @@ import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.common.HoldersContainer
+import ceui.pixiv.ui.common.IllustsValueContent
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.ValueContent
@@ -39,13 +40,13 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
         get() = _itemHolders
 
     val userProfile = ValueContent(viewModelScope, { Client.appApi.getUserProfile(userId) })
-    private val userCreatedIllusts = ValueContent(
+    private val userCreatedIllusts = IllustsValueContent(
         viewModelScope,
         { Client.appApi.getUserCreatedIllusts(userId, Params.TYPE_ILLUST) })
-    private val userCreatedManga = ValueContent(
+    private val userCreatedManga = IllustsValueContent(
         viewModelScope,
         { Client.appApi.getUserCreatedIllusts(userId, Params.TYPE_MANGA) })
-    private val userBookmarkedIllusts = ValueContent(
+    private val userBookmarkedIllusts = IllustsValueContent(
         viewModelScope,
         { Client.appApi.getUserBookmarkedIllusts(userId, Params.TYPE_PUBLIC) })
 
