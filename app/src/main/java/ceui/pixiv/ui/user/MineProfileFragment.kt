@@ -7,6 +7,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
+import ceui.loxia.SpaceHolder
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment

@@ -51,6 +51,11 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_search_all"
+        android:name="ceui.pixiv.ui.search.SearchAllFragment"
+        tools:layout="@layout/fragment_search_all" />
+
+    <fragment
         android:id="@+id/navigation_task_preview_list"
         android:name="ceui.pixiv.ui.task.TaskListFragment"
         tools:layout="@layout/fragment_pixiv_list" />
@@ -236,6 +241,16 @@
         <argument
             android:name="object_type"
             app:argType="string"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user"
+        android:name="ceui.pixiv.ui.user.UserFragment"
+        tools:layout="@layout/fragment_user" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
     </fragment>
 
     <fragment

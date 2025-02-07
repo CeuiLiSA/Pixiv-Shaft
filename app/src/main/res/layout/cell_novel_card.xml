@@ -51,7 +51,7 @@
             android:layout_marginStart="10dp"
             android:textSize="14sp"
             android:text="@{novel.series.title}"
-            visibleOrGone="@{novel.series != null}"
+            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}"
             android:textStyle="bold"
             android:textColor="@color/buttonTextGreen"
             android:layout_width="0dp"

@@ -78,20 +78,30 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
         } else {
             bindView.baseBind.title.setText(target.getTitle());
         }
-        bindView.baseBind.novelTag.setJavaTags(target.getTags());
-        bindView.baseBind.novelTag.setOnCellClickListener(new Function2<Tag, Integer, Unit>() {
+        bindView.baseBind.novelTag.setAdapter(new TagAdapter<TagsBean>(target.getTags()) {
             @Override
-            public Unit invoke(Tag tag, Integer integer) {
+            public View getView(FlowLayout parent, int position, TagsBean s) {
+                TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text_new,
+                        parent, false);
+                String tag = s.getName();
+                tv.setText(tag);
+                return tv;
+            }
+        });
+        bindView.baseBind.novelTag.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
+            @Override
+            public boolean onTagClick(View view, int position, FlowLayout parent) {
                 Intent intent = new Intent(mContext, SearchActivity.class);
-                intent.putExtra(Params.KEY_WORD, tag.getName());
+                intent.putExtra(Params.KEY_WORD, target.getTags().get(position).getName());
                 intent.putExtra(Params.INDEX, 1);
                 mContext.startActivity(intent);
-                return Unit.INSTANCE;
+                return true;
             }
         });
         bindView.baseBind.author.setText(target.getUser().getName());
         var date = target.getCreate_date().substring(0, 10);
         bindView.baseBind.howManyWord.setText(String.format(Locale.getDefault(), "%d字\n%s", target.getText_length(),date));
+        bindView.baseBind.author.setText(target.getUser().getName());
         bindView.baseBind.bookmarkCount.setText(String.valueOf(target.getTotal_bookmarks()));
         Glide.with(mContext).load(GlideUtil.getUrl(target.getImage_urls().getMaxImage())).into(bindView.baseBind.cover);
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);

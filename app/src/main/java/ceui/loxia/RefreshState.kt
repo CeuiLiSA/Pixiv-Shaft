@@ -72,7 +72,7 @@ fun Throwable.getHumanReadableMessage(context: Context): String {
             val title = titleAfter.substringBefore("</title>")
             title
         } else {
-            lc
+            "${lc}: ${this.javaClass.simpleName}"
         }
     }
 }
