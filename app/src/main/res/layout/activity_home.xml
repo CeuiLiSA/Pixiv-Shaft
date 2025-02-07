@@ -6,6 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <ImageView
+        android:id="@+id/activity_background"
         android:layout_width="match_parent"
         android:src="@drawable/page_bg_img"
         android:scaleType="centerCrop"

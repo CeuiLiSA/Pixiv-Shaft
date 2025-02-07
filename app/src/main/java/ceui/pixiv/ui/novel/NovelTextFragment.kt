@@ -23,6 +23,8 @@ import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.common.shareIllust
+import ceui.pixiv.ui.common.shareNovel
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.task.DownloadNovelTask
@@ -68,6 +70,11 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                     add(
                         MenuItem(getString(R.string.view_comments)) {
                             pushFragment(R.id.navigation_comments_illust, CommentsFragmentArgs(safeArgs.novelId, authorId, ObjectType.NOVEL).toBundle())
+                        }
+                    )
+                    add(
+                        MenuItem(getString(R.string.string_110)) {
+                            shareNovel(novel)
                         }
                     )
                     add(

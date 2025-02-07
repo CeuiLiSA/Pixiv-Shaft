@@ -56,7 +56,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             pushFragment(R.id.navigation_mine_profile)
         }
         binding.naviSearch.setOnClick {
-            pushFragment(R.id.navigation_search_viewpager)
+            pushFragment(R.id.navigation_search_all)
         }
 
         binding.account = SessionManager.loggedInAccount

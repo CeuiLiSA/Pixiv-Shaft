@@ -2,6 +2,7 @@ package ceui.pixiv.ui.detail
 
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellArtworkInfoBinding
+import ceui.lisa.utils.Common
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
@@ -34,6 +35,9 @@ class ArtworkInfoViewHolder(bd: CellArtworkInfoBinding) : ListItemViewHolder<Cel
             liveIllust.value?.series?.let { series ->
                 sender.findActionReceiverOrNull<IllustSeriesActionReceiver>()?.onClickIllustSeries(sender, series)
             }
+        }
+        binding.title.setOnClick {
+            Common.copy(context, liveIllust.value?.title)
         }
     }
 }

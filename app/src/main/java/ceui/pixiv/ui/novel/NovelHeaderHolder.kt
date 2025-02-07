@@ -4,6 +4,7 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelHeaderBinding
+import ceui.lisa.utils.Common
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.Series
@@ -45,6 +46,9 @@ class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<Cel
             liveNovel.value?.series?.let { series ->
                 sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickNovelSeries(sender, series)
             }
+        }
+        binding.title.setOnClick {
+            Common.copy(context, liveNovel.value?.title)
         }
     }
 }

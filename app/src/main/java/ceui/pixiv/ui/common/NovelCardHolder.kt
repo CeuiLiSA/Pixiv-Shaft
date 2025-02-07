@@ -60,4 +60,5 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
 interface NovelActionReceiver {
     fun onClickNovel(novelId: Long)
     fun onClickBookmarkNovel(sender: ProgressIndicator, novelId: Long)
+    fun visitNovelById(novelId: Long)
 }

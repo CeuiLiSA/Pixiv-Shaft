@@ -5,11 +5,13 @@ import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellArtworkCaptionBinding
+import ceui.lisa.utils.Common
 import ceui.loxia.DateParse
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.utils.setOnClick
 
 
 class ArtworkCaptionHolder(val illustId: Long) : ListItemHolder() {
@@ -32,10 +34,16 @@ class ArtworkCaptionViewHolder(bd: CellArtworkCaptionBinding) : ListItemViewHold
             } else {
                 binding.caption.isVisible = false
             }
+            binding.userId.setOnClick {
+                Common.copy(context, illust.user?.id?.toString())
+            }
             binding.publishTime.text = context.getString(
                 R.string.published_on,
                 DateParse.getTimeAgo(context, illust.create_date)
             )
+        }
+        binding.illustId.setOnClick {
+            Common.copy(context, holder.illustId.toString())
         }
     }
 }

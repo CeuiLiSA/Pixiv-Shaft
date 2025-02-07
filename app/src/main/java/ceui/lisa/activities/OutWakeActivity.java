@@ -181,6 +181,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                     }
 
                     //pixiv内部链接，如
+                    //pixiv://users/73190863
                     //pixiv://illusts/73190863
                     //pixiv://account/login?code=BsQND5vc6uIWKIwLiDsh0S3h1yno6eVHDVMrX3fONgM&via=login
                     if (scheme.contains("pixiv") || scheme.contains("shaftintent")) {

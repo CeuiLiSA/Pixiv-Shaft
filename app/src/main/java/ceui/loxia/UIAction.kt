@@ -56,6 +56,9 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
         try {
             block()
         } catch (ex: Exception) {
+            context?.let {
+                alertYesOrCancel(ex.getHumanReadableMessage(it))
+            }
             Timber.e(ex)
         }
     }
@@ -68,6 +71,9 @@ fun Fragment.launchSuspend(sender: ProgressIndicator, block: suspend CoroutineSc
             sender.showProgress()
             block()
         } catch (ex: Exception) {
+            context?.let {
+                alertYesOrCancel(ex.getHumanReadableMessage(it))
+            }
             Timber.e(ex)
             if (ctx != null) {
                 alertYesOrCancel(ex.getHumanReadableMessage(ctx))

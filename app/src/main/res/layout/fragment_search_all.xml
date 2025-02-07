@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="ceui.pixiv.ui.search.SearchViewModel" />
+
+        <variable
+            name="viewModel"
+            type="SearchViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <include
+            android:id="@+id/toolbar_layout"
+            layout="@layout/layout_toolbar" />
+
+        <ScrollView
+            android:id="@+id/content_group"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/round_corner_white08_r8"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_height="46dp">
+
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:id="@+id/input_box"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:paddingStart="6dp"
+                        android:background="@null"
+                        android:textSize="15sp"
+                        android:hint="@string/search_by_id_or_word"
+                        android:text="@={viewModel.inputDraft}"
+                        app:layout_constraintEnd_toStartOf="@+id/clear_search"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent" />
+
+                    <ImageView
+                        android:id="@+id/clear_search"
+                        android:layout_width="44dp"
+                        android:padding="10dp"
+                        visibleOrGone="@{!viewModel.inputDraft.trim().empty}"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:src="@drawable/ic_clear_search"
+                        android:layout_height="44dp" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/id_search_illust"
+                    android:layout_width="200dp"
+                    android:layout_marginTop="40dp"
+                    android:text="@string/string_150"
+                    style="@style/GreenShiningButton"
+                    android:layout_height="50dp" />
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/id_search_user"
+                    android:layout_width="200dp"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/string_152"
+                    style="@style/GreenShiningButton"
+                    android:layout_height="50dp" />
+
+
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/id_search_novel"
+                    android:layout_width="200dp"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/string_153"
+                    style="@style/GreenShiningButton"
+                    android:layout_height="50dp" />
+
+
+                <ceui.loxia.ProgressTextButton
+                    style="@style/BlueShiningButton"
+                    android:id="@+id/keyword_search"
+                    android:layout_width="200dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/search_by_keyword" />
+
+
+            </LinearLayout>
+
+
+        </ScrollView>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
