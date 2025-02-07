@@ -84,7 +84,7 @@
 
 
                                 <de.hdodenhof.circleimageview.CircleImageView
-                                    loadMedia="@{user.profile_image_urls.findMaxSizeUrl()}"
+                                    userIcon="@{user}"
                                     android:layout_width="100dp"
                                     app:civ_border_color="@color/text00"
                                     app:civ_border_width="2dp"

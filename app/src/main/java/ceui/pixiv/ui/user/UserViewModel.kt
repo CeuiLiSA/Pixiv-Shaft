@@ -13,7 +13,9 @@ import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.SpaceHolder
 import ceui.loxia.User
+import ceui.loxia.UserResponse
 import ceui.loxia.combineLatest
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.waitForValue
@@ -26,6 +28,7 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.ValueContent
 import ceui.pixiv.ui.detail.ArtworksMap
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.collections.addAll
@@ -39,7 +42,13 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
     override val holders: LiveData<List<ListItemHolder>>
         get() = _itemHolders
 
-    val userProfile = ValueContent(viewModelScope, { Client.appApi.getUserProfile(userId) })
+    private val _userProfile = MutableLiveData<UserResponse>()
+    val userProfile: LiveData<UserResponse> = _userProfile
+
+    companion object {
+        const val PREVIEW_COUNT = 9
+    }
+
     private val userCreatedIllusts = IllustsValueContent(
         viewModelScope,
         { Client.appApi.getUserCreatedIllusts(userId, Params.TYPE_ILLUST) })
@@ -55,13 +64,13 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
         userBookmarkedIllusts.result
     ).map { (created, bookmarked) ->
         val idList = mutableListOf<Long>()
-        created?.illusts?.take(9)?.map {
+        created?.illusts?.take(PREVIEW_COUNT)?.map {
             ObjectPool.update(it)
             it.id
         }?.let {
             idList.addAll(it)
         }
-        bookmarked?.illusts?.take(9)?.map {
+        bookmarked?.illusts?.take(PREVIEW_COUNT)?.map {
             ObjectPool.update(it)
             it.id
         }?.let {
@@ -94,41 +103,46 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
         viewModelScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
-                userProfile.refresh(RefreshHint.InitialLoad)
-                userCreatedIllusts.refresh(RefreshHint.InitialLoad)
-                userCreatedManga.refresh(RefreshHint.InitialLoad)
+                val profileResp = Client.appApi.getUserProfile(userId)
+                _userProfile.value = profileResp
                 userBookmarkedIllusts.refresh(RefreshHint.InitialLoad)
                 val result = mutableListOf<ListItemHolder>()
-                result.add(
-                    RedSectionHeaderHolder(
-                        "Created Illust",
-                        type = SeeMoreType.USER_CREATED_ILLUST,
-                        liveEndText = userProfile.result.map { resp ->
-                            Shaft.getContext().getString(
-                                R.string.all_works_count,
-                                resp.profile?.total_illusts ?: 0
-                            )
-                        }).onItemClick { sender ->
-                        sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_ILLUST)
-                    }
-                )
-                result.add(SectionPreviewHolder(userCreatedIllusts))
 
-                result.add(
-                    RedSectionHeaderHolder(
-                        "Created Manga",
-                        type = SeeMoreType.USER_CREATED_MANGA,
-                        liveEndText = userProfile.result.map { resp ->
-                            Shaft.getContext().getString(
-                                R.string.all_works_count,
-                                resp.profile?.total_manga ?: 0
-                            )
-                        }).onItemClick { sender ->
-                        sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_MANGA)
-                    }
-                )
-                result.add(SectionPreviewHolder(userCreatedManga))
+                if ((profileResp.profile?.total_illusts ?: 0) > 0) {
+                    result.add(
+                        RedSectionHeaderHolder(
+                            "Created Illust",
+                            type = SeeMoreType.USER_CREATED_ILLUST,
+                            liveEndText = _userProfile.map { resp ->
+                                Shaft.getContext().getString(
+                                    R.string.all_works_count,
+                                    resp.profile?.total_illusts ?: 0
+                                )
+                            }).onItemClick { sender ->
+                            sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_ILLUST)
+                        }
+                    )
+                    result.add(SectionPreviewHolder(userCreatedIllusts, PREVIEW_COUNT))
+                    userCreatedIllusts.refresh(RefreshHint.InitialLoad)
+                }
 
+                if ((profileResp.profile?.total_manga ?: 0) > 0) {
+                    result.add(
+                        RedSectionHeaderHolder(
+                            "Created Manga",
+                            type = SeeMoreType.USER_CREATED_MANGA,
+                            liveEndText = _userProfile.map { resp ->
+                                Shaft.getContext().getString(
+                                    R.string.all_works_count,
+                                    resp.profile?.total_manga ?: 0
+                                )
+                            }).onItemClick { sender ->
+                            sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_MANGA)
+                        }
+                    )
+                    result.add(SectionPreviewHolder(userCreatedManga, PREVIEW_COUNT))
+                    userCreatedManga.refresh(RefreshHint.InitialLoad)
+                }
 
                 result.add(
                     RedSectionHeaderHolder("Bookmarked", type = SeeMoreType.USER_BOOKMARKED_ILLUST,
@@ -136,12 +150,29 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
                         sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_BOOKMARKED_ILLUST)
                     }
                 )
-                result.add(SectionPreviewHolder(userBookmarkedIllusts))
+                result.add(SectionPreviewHolder(userBookmarkedIllusts, PREVIEW_COUNT))
 
-                result.add(RedSectionHeaderHolder("Bio"))
-                result.add(SectionPreviewHolder(userCreatedIllusts))
+                if (profileResp.user?.comment?.isNotEmpty() == true) {
+                    result.add(RedSectionHeaderHolder("Bio"))
+                    result.add(UserTextHolder(profileResp.user.comment))
+                }
 
-                result.add(RedSectionHeaderHolder("Tags"))
+                if (profileResp.profile?.region?.isNotEmpty() == true) {
+                    result.add(RedSectionHeaderHolder("Region"))
+                    result.add(UserTextHolder(profileResp.profile.region))
+                }
+
+                if (profileResp.profile?.twitter_url?.isNotEmpty() == true) {
+                    result.add(XLinkHolder(profileResp.profile.twitter_url))
+                }
+
+                if (profileResp.profile?.job?.isNotEmpty() == true) {
+                    result.add(RedSectionHeaderHolder("Job"))
+                    result.add(UserTextHolder(profileResp.profile.job))
+                }
+
+                result.add(SpaceHolder())
+
                 _itemHolders.value = result
                 _refreshState.value = RefreshState.LOADED(
                     hasContent = true, hasNext = false

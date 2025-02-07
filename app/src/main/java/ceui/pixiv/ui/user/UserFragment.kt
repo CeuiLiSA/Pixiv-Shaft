@@ -64,9 +64,12 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
             windowInsets
         }
         viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->
-            Glide.with(this).load(GlideUrlChild(blurIllust?.image_urls?.large))
-                .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
-                .into(binding.pageBackground)
+            val url = blurIllust?.image_urls?.large
+            if (url?.isNotEmpty() == true) {
+                Glide.with(this).load(GlideUrlChild(url))
+                    .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
+                    .into(binding.pageBackground)
+            }
         }
         binding.naviBack.setOnClick {
             findNavController().popBackStack()
@@ -93,7 +96,7 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
             binding.naviTitle.isVisible = (percentage == 1F)
         }
         binding.user = viewModel.userLiveData
-        binding.profile = viewModel.userProfile.result
+        binding.profile = viewModel.userProfile
         binding.userViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
                 return 1

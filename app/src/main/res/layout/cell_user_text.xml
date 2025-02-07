@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <TextView
+        android:id="@+id/content_text"
+        android:layout_width="match_parent"
+        android:textSize="15sp"
+        android:textIsSelectable="true"
+        style="@style/textMontserratMedium"
+        android:textColor="@color/text00"
+        android:layout_height="wrap_content">
+
+    </TextView>
+</layout>

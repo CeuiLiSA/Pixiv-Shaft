@@ -14,7 +14,7 @@ import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.ValueContent
 
 
-class SectionPreviewHolder(val valueContent: ValueContent<IllustResponse>) : ListItemHolder() {
+class SectionPreviewHolder(val valueContent: ValueContent<IllustResponse>, val previewCount: Int) : ListItemHolder() {
 }
 
 @ItemHolder(SectionPreviewHolder::class)
@@ -35,7 +35,7 @@ class SectionPreviewViewHolder(private val bd: CellSectionPreviewBinding) :
         binding.previewListView.adapter = adapter
         binding.previewListView.layoutManager = GridLayoutManager(context, 3)
         holder.valueContent.result.observe(lifecycleOwner) { resp ->
-            val limitedList = resp.displayList.take(9)
+            val limitedList = resp.displayList.take(holder.previewCount)
             adapter.submitList(limitedList.map { illust -> IllustSquareV2Holder(illust) })
         }
     }
