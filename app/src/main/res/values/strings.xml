@@ -749,4 +749,5 @@
     <string name="search_by_keyword">关键字搜索</string>
     <string name="search_by_id_or_word">请输入ID或关键字</string>
     <string name="all_works_count">共%1$d个作品</string>
+    <string name="chat_with_him">私信</string>
 </resources>

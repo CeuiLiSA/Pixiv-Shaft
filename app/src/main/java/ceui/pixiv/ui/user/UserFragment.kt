@@ -13,6 +13,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
+import ceui.lisa.activities.followUser
+import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.FragmentUserBinding
 import ceui.lisa.utils.GlideUrlChild
@@ -70,6 +72,12 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
                     .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
                     .into(binding.pageBackground)
             }
+        }
+        binding.postFollow.setOnClick {
+            followUser(it, safeArgs.userId.toInt(), Params.TYPE_PUBLIC)
+        }
+        binding.removeFollow.setOnClick {
+            unfollowUser(it, safeArgs.userId.toInt())
         }
         binding.naviBack.setOnClick {
             findNavController().popBackStack()

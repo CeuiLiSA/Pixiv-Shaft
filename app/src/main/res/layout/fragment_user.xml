@@ -179,19 +179,33 @@
                                     android:layout_height="wrap_content">
 
                                     <ceui.loxia.ProgressTextButton
+                                        android:id="@+id/post_follow"
                                         style="@style/BlueShiningButton"
                                         android:text="@string/follow"
+                                        visibleOrGone="@{!user.is_followed()}"
                                         android:layout_width="120dp"
+                                        android:layout_height="42dp"/>
+
+                                    <ceui.loxia.ProgressImageButton
+                                        android:id="@+id/remove_follow"
+                                        android:visibility="gone"
+                                        android:padding="8dp"
+                                        app:ptb_progress_stroke_width="3dp"
+                                        app:ptb_progress_width="14dp"
+                                        android:background="@drawable/round_corner_white12_r8"
+                                        android:layout_width="42dp"
+                                        android:src="@drawable/icon_user_already_followed"
+                                        visibleOrGone="@{user.is_followed()}"
                                         android:layout_height="42dp"/>
 
 
                                     <View
-                                        android:layout_width="12dp"
-                                        android:layout_height="12dp"/>
+                                        android:layout_width="8dp"
+                                        android:layout_height="8dp"/>
 
                                     <ceui.loxia.ProgressTextButton
                                         style="@style/GreenShiningButton"
-                                        android:text="@string/follow"
+                                        android:text="@string/chat_with_him"
                                         android:layout_width="120dp"
                                         android:layout_height="42dp"/>
                                 </LinearLayout>
