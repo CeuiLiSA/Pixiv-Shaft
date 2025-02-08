@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
         <variable
@@ -91,23 +92,55 @@
                                     android:layout_marginBottom="16dp"
                                     android:layout_height="100dp"/>
 
-                                <TextView
-                                    style="@style/textMontserratBold"
-                                    android:text="@{user.name}"
-                                    android:textColor="@color/text00"
-                                    android:includeFontPadding="false"
-                                    android:textSize="22sp"
-                                    android:layout_marginBottom="4dp"
+                                <LinearLayout
                                     android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"/>
+                                    android:layout_marginBottom="4dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:layout_height="wrap_content">
+
+                                    <TextView
+                                        style="@style/textMontserratBold"
+                                        android:text="@{user.name}"
+                                        android:textColor="@color/text00"
+                                        android:includeFontPadding="false"
+                                        tools:text="UserName"
+                                        android:textSize="22sp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"/>
+
+                                    <ImageView
+                                        android:id="@+id/icon_official"
+                                        android:visibility="gone"
+                                        android:layout_marginStart="4dp"
+                                        android:src="@drawable/ic_official_user"
+                                        android:layout_width="22dp"
+                                        android:layout_height="22dp"/>
+
+                                    <ImageView
+                                        android:id="@+id/icon_prime"
+                                        android:visibility="gone"
+                                        android:layout_marginStart="4dp"
+                                        android:src="@drawable/icon_prime"
+                                        android:layout_width="40dp"
+                                        android:layout_height="16sp"/>
+                                </LinearLayout>
 
                                 <TextView
                                     style="@style/textMontserratMedium"
                                     android:text="@{`@` + user.account}"
                                     android:textColor="@color/text10"
+                                    tools:text="handle"
                                     android:includeFontPadding="false"
                                     android:textSize="13sp"
                                     android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"/>
+
+                                <ImageView
+                                    android:id="@+id/icon_volunteer"
+                                    android:layout_width="wrap_content"
+                                    android:src="@drawable/icon_volunteer"
+                                    android:layout_marginTop="8dp"
                                     android:layout_height="wrap_content"/>
 
                                 <LinearLayout

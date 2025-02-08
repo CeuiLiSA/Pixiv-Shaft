@@ -54,6 +54,10 @@ object ConstantUser {
     const val pixiv3 = 1085317L // pixiv MARKET事務局
     const val fanbox = 20390859L // pixivFANBOX公式
 
+    const val CeuiLiSA = 31660292L
+    const val VOLUNTEER_USER_1 = 89989626L // 千年孤狼
+    const val VOLUNTEER_USER_2 = 81263065L // 虎鲸
+
     val officialUsers = listOf(
         pixiv,
         pxv_sensei,
@@ -62,6 +66,12 @@ object ConstantUser {
         pxv_sketch,
         pixiv3,
         fanbox,
+    )
+
+    val volunteerUsers = listOf(
+        CeuiLiSA,
+        VOLUNTEER_USER_1,
+        VOLUNTEER_USER_2,
     )
 }
 
@@ -262,9 +272,10 @@ data class User(
         return ConstantUser.officialUsers.contains(id)
     }
 
-    fun isPremium(): Boolean {
-        return is_premium == true
+    fun isVolunteer(): Boolean {
+        return ConstantUser.volunteerUsers.contains(id)
     }
+
 
     fun hasGender(): Boolean {
         return gender != UserGender.UNKNOWN
@@ -388,7 +399,12 @@ data class Profile(
     val twitter_account: String? = null,
     val twitter_url: String? = null,
     val webpage: Any? = null
-)
+) {
+
+    fun isPremium(): Boolean {
+        return is_premium == true
+    }
+}
 
 data class ProfilePublicity(
     val birth_day: String? = null,

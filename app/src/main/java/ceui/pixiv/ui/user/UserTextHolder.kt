@@ -19,6 +19,7 @@ class UserTextiewHolder(bd: CellUserTextBinding) : ListItemViewHolder<CellUserTe
 
     override fun onBindViewHolder(holder: UserTextHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        binding.contentText.text = HtmlCompat.fromHtml(holder.text ?: "", HtmlCompat.FROM_HTML_MODE_COMPACT)
+//        binding.contentText.text = HtmlCompat.fromHtml(holder.text ?: "", HtmlCompat.FROM_HTML_MODE_COMPACT)
+        binding.contentText.text = holder.text
     }
 }

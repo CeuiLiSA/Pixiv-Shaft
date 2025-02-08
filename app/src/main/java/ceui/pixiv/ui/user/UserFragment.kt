@@ -52,6 +52,7 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
     private val safeArgs by navArgs<UserFragmentArgs>()
     private val binding by viewBinding(FragmentUserBinding::bind)
     private val viewModel by constructVM({ safeArgs.userId }) { userId ->
+        Timber.d("userId-${userId}")
         UserViewModel(userId)
     }
 
@@ -64,6 +65,13 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
             }
             binding.headerContent.updatePaddingRelative(top = insets.top + BarUtils.getActionBarHeight())
             windowInsets
+        }
+        viewModel.userLiveData.observe(viewLifecycleOwner) { user ->
+            binding.iconOfficial.isVisible = user.isOfficial()
+            binding.iconVolunteer.isVisible = user.isVolunteer()
+        }
+        viewModel.userProfile.observe(viewLifecycleOwner) { profile ->
+            binding.iconPrime.isVisible = profile.isPremium()
         }
         viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->
             val url = blurIllust?.image_urls?.large
