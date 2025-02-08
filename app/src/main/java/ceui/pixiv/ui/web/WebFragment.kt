@@ -38,8 +38,12 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             // Check whether there's history.
-            if (binding.webView.canGoBack()) {
-                binding.webView.goBack()
+            if (view != null) {
+                if (binding.webView.canGoBack()) {
+                    binding.webView.goBack()
+                } else {
+                    back()
+                }
             } else {
                 back()
             }
@@ -70,6 +74,7 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         }
 
         val webSettings: WebSettings = binding.webView.settings
+        val refreshLayout = binding.refreshLayout
 
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -82,12 +87,17 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
                     }
                 }
 
-                binding.refreshLayout.finishRefresh()
+                if (view != null) {
+                    refreshLayout.finishRefresh()
+                }
             }
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
-                binding.refreshLayout.finishRefresh()
+
+                if (view != null) {
+                    refreshLayout.finishRefresh()
+                }
             }
 
             override fun shouldInterceptRequest(
