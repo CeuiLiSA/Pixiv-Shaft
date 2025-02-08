@@ -194,4 +194,5 @@ object SeeMoreType {
     const val USER_CREATED_ILLUST = 199
     const val USER_CREATED_MANGA = 200
     const val USER_BOOKMARKED_ILLUST = 201
+    const val USER_CREATED_NOVEL = 202
 }

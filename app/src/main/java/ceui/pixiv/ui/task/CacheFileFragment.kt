@@ -33,12 +33,12 @@ class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
         val humanReadableTask = Gson().fromJson(prefStore.getString(args.task.taskUUID, ""), HumanReadableTask::class.java)
         binding.toolbarLayout.naviTitle.text = humanReadableTask.taskFullName
         binding.toolbarLayout.naviMore.setOnClick {
             TaskQueueManager.startProcessing()
         }
-        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
     }
 
 }

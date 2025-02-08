@@ -135,6 +135,12 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
                     safeArgs.userId, Params.TYPE_PUBLIC
                 ).toBundle()
             )
+        } else if (type == SeeMoreType.USER_CREATED_NOVEL) {
+            pushFragment(
+                R.id.navigation_user_created_novel, UserCreatedNovelFragmentArgs(
+                    safeArgs.userId
+                ).toBundle()
+            )
         }
     }
 }

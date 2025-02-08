@@ -18,20 +18,16 @@ import ceui.loxia.User
 import ceui.loxia.UserResponse
 import ceui.loxia.combineLatest
 import ceui.loxia.findActionReceiverOrNull
-import ceui.loxia.waitForValue
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.common.HoldersContainer
-import ceui.pixiv.ui.common.IllustsValueContent
+import ceui.pixiv.ui.common.KListShowValueContent
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.RefreshOwner
-import ceui.pixiv.ui.common.ValueContent
 import ceui.pixiv.ui.detail.ArtworksMap
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import kotlin.collections.addAll
 
 class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, HoldersContainer {
 
@@ -46,31 +42,35 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
     val userProfile: LiveData<UserResponse> = _userProfile
 
     companion object {
-        const val PREVIEW_COUNT = 9
+        const val ILLUST_PREVIEW_COUNT = 9
+        const val NOVEL_PREVIEW_COUNT = 3
     }
 
-    private val userCreatedIllusts = IllustsValueContent(
+    private val userCreatedIllusts = KListShowValueContent(
         viewModelScope,
         { Client.appApi.getUserCreatedIllusts(userId, Params.TYPE_ILLUST) })
-    private val userCreatedManga = IllustsValueContent(
+    private val userCreatedManga = KListShowValueContent(
         viewModelScope,
         { Client.appApi.getUserCreatedIllusts(userId, Params.TYPE_MANGA) })
-    private val userBookmarkedIllusts = IllustsValueContent(
+    private val userBookmarkedIllusts = KListShowValueContent(
         viewModelScope,
         { Client.appApi.getUserBookmarkedIllusts(userId, Params.TYPE_PUBLIC) })
+    private val userCreatedNovels = KListShowValueContent(
+        viewModelScope,
+        { Client.appApi.getUserCreatedNovels(userId) })
 
     val previewWorksIds = combineLatest(
         userCreatedIllusts.result,
         userBookmarkedIllusts.result
     ).map { (created, bookmarked) ->
         val idList = mutableListOf<Long>()
-        created?.illusts?.take(PREVIEW_COUNT)?.map {
+        created?.illusts?.take(ILLUST_PREVIEW_COUNT)?.map {
             ObjectPool.update(it)
             it.id
         }?.let {
             idList.addAll(it)
         }
-        bookmarked?.illusts?.take(PREVIEW_COUNT)?.map {
+        bookmarked?.illusts?.take(ILLUST_PREVIEW_COUNT)?.map {
             ObjectPool.update(it)
             it.id
         }?.let {
@@ -122,7 +122,7 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
                             sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_ILLUST)
                         }
                     )
-                    result.add(SectionPreviewHolder(userCreatedIllusts, PREVIEW_COUNT))
+                    result.add(SectionPreviewHolder(userCreatedIllusts, ILLUST_PREVIEW_COUNT))
                     userCreatedIllusts.refresh(RefreshHint.InitialLoad)
                 }
 
@@ -140,7 +140,7 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
                             sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_MANGA)
                         }
                     )
-                    result.add(SectionPreviewHolder(userCreatedManga, PREVIEW_COUNT))
+                    result.add(SectionPreviewHolder(userCreatedManga, ILLUST_PREVIEW_COUNT))
                     userCreatedManga.refresh(RefreshHint.InitialLoad)
                 }
 
@@ -150,7 +150,25 @@ class UserViewModel(private val userId: Long) : ViewModel(), RefreshOwner, Holde
                         sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_BOOKMARKED_ILLUST)
                     }
                 )
-                result.add(SectionPreviewHolder(userBookmarkedIllusts, PREVIEW_COUNT))
+                result.add(SectionPreviewHolder(userBookmarkedIllusts, ILLUST_PREVIEW_COUNT))
+
+                if ((profileResp.profile?.total_novels ?: 0) > 0) {
+                    result.add(
+                        RedSectionHeaderHolder(
+                            "Created Novel",
+                            type = SeeMoreType.USER_CREATED_NOVEL,
+                            liveEndText = _userProfile.map { resp ->
+                                Shaft.getContext().getString(
+                                    R.string.all_works_count,
+                                    resp.profile?.total_novels ?: 0
+                                )
+                            }).onItemClick { sender ->
+                            sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_NOVEL)
+                        }
+                    )
+                    result.add(NovelPreviewHolder(userCreatedNovels, NOVEL_PREVIEW_COUNT))
+                    userCreatedNovels.refresh(RefreshHint.InitialLoad)
+                }
 
                 if (profileResp.user?.comment?.isNotEmpty() == true) {
                     result.add(RedSectionHeaderHolder("Bio"))
