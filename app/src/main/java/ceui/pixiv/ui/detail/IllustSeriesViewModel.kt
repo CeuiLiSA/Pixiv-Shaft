@@ -14,6 +14,7 @@ import ceui.loxia.RefreshState
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersContainer
+import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.LoadingHolder
@@ -26,10 +27,8 @@ import timber.log.Timber
 
 class IllustSeriesViewModel(
     private val seriesId: Long,
-) : ViewModel(), RefreshOwner, LoadMoreOwner, HoldersContainer {
+) : HoldersViewModel() {
 
-    private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
-    private val _refreshState = MutableLiveData<RefreshState>()
     private var _lastOrder: Int? = null
 
     private val _series = MutableLiveData<IllustSeriesResp>()
@@ -61,38 +60,31 @@ class IllustSeriesViewModel(
         refresh(RefreshHint.InitialLoad)
     }
 
-    override fun refresh(hint: RefreshHint) {
-        viewModelScope.launch {
-            try {
-                _refreshState.value = RefreshState.LOADING(refreshHint = hint)
-                val context = Shaft.getContext()
-                val resp = Client.appApi.getIllustSeries(seriesId)
-                _series.value = resp
-                val result = mutableListOf<ListItemHolder>()
-                resp.illust_series_detail?.let {
-                    result.add(NovelSeriesHeaderHolder(it))
-                }
-                result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
-                result.add(UserInfoHolder(resp.illust_series_detail?.user?.id ?: 0L))
-                result.add(RedSectionHeaderHolder(
-                    context.getString(
-                        R.string.total_works_count,
-                        resp.illust_series_detail?.content_count
-                    )))
-                result.addAll(resp.displayList.map { illust -> UserPostHolder(illust) })
-                _lastOrder = resp.illusts?.size
-                _itemHolders.value = result
-                val hasNext = resp.next_url != null
-                _refreshState.value = RefreshState.LOADED(
-                    hasContent = true, hasNext = hasNext
-                )
-                if (hasNext) {
-                    _seriesIllustsDataSource.refreshImpl(hint)
-                }
-            } catch (ex: Exception) {
-                _refreshState.value = RefreshState.ERROR(ex)
-                Timber.e(ex)
-            }
+    override suspend fun refreshImpl(hint: RefreshHint) {
+        super.refreshImpl(hint)
+        val context = Shaft.getContext()
+        val resp = Client.appApi.getIllustSeries(seriesId)
+        _series.value = resp
+        val result = mutableListOf<ListItemHolder>()
+        resp.illust_series_detail?.let {
+            result.add(NovelSeriesHeaderHolder(it))
+        }
+        result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
+        result.add(UserInfoHolder(resp.illust_series_detail?.user?.id ?: 0L))
+        result.add(RedSectionHeaderHolder(
+            context.getString(
+                R.string.total_works_count,
+                resp.illust_series_detail?.content_count
+            )))
+        result.addAll(resp.displayList.map { illust -> UserPostHolder(illust) })
+        _lastOrder = resp.illusts?.size
+        _itemHolders.value = result
+        val hasNext = resp.next_url != null
+        _refreshState.value = RefreshState.LOADED(
+            hasContent = true, hasNext = hasNext
+        )
+        if (hasNext) {
+            _seriesIllustsDataSource.refreshImpl(hint)
         }
     }
 
@@ -103,11 +95,6 @@ class IllustSeriesViewModel(
 
         ArtworksMap.store[fragmentUniqueId] = filteredList
     }
-
-    override val refreshState: LiveData<RefreshState>
-        get() = _refreshState
-    override val holders: LiveData<List<ListItemHolder>>
-        get() = _itemHolders
 
     override fun loadMore() {
         viewModelScope.launch {
