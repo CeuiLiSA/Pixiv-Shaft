@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.LiveData
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
@@ -145,7 +146,8 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 class RedSectionHeaderHolder(
     val title: String,
     val type: Int = 0,
-    val seeMoreString: String? = null
+    val seeMoreString: String? = null,
+    val liveEndText: LiveData<String>? = null
 ) : ListItemHolder() {
 
 
@@ -168,16 +170,29 @@ class RedSectionHeaderViewHolder(aa: ItemRedSectionHeaderBinding) :
     override fun onBindViewHolder(holder: RedSectionHeaderHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         binding.title.text = holder.title
-        binding.seeMore.text = holder.seeMoreString
         binding.seeMore.isVisible = holder.type != 0
         binding.seeMore.setOnClick {
             it.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(holder.type)
         }
-
+        val liveEndText = holder.liveEndText
+        if (liveEndText != null) {
+            liveEndText.observe(lifecycleOwner) { liveText ->
+                binding.seeMore.text = liveText
+            }
+        } else {
+            binding.seeMore.text = holder.seeMoreString
+        }
     }
 }
 
 interface SeeMoreAction {
 
     fun seeMore(type: Int)
+}
+
+object SeeMoreType {
+    const val USER_CREATED_ILLUST = 199
+    const val USER_CREATED_MANGA = 200
+    const val USER_BOOKMARKED_ILLUST = 201
+    const val USER_CREATED_NOVEL = 202
 }

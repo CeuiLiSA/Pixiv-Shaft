@@ -26,5 +26,8 @@ class UserContentFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
+        viewModel.previewWorksIds.observe(viewLifecycleOwner) { artWorkIds ->
+            viewModel.prepareIdMap(fragmentViewModel.fragmentUniqueId)
+        }
     }
 }

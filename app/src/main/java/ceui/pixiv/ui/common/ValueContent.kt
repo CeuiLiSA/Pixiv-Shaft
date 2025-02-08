@@ -38,17 +38,20 @@ open class ValueContent<ValueT>(
                     }
                 }
 
-                if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
-                    val response = withContext(Dispatchers.IO) {
+                val response = if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
+                    val ret = withContext(Dispatchers.IO) {
                         dataFetcher().also {
                             responseStore?.writeToCache(it)
                         }
                     }
-                    applyResult(response)
+                    applyResult(ret)
+                    ret
+                } else {
+                    null
                 }
 
                 _refreshState.value = RefreshState.LOADED(
-                    hasContent = true,
+                    hasContent = response != null && hasContent(response),
                     hasNext = false
                 )
             } catch (ex: Exception) {
@@ -56,6 +59,10 @@ open class ValueContent<ValueT>(
                 Timber.e(ex)
             }
         }
+    }
+
+    open fun hasContent(valueT: ValueT): Boolean {
+        return true
     }
 
     open fun applyResult(valueT: ValueT) {

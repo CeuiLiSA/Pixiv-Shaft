@@ -50,8 +50,8 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                 listOf(
                     MineHeaderHolder(liveUser).onItemClick {
                         pushFragment(
-                            R.id.navigation_user_profile,
-                            UserProfileFragmentArgs(user?.id ?: 0L).toBundle()
+                            R.id.navigation_user,
+                            UserFragmentArgs(user?.id ?: 0L).toBundle()
                         )
                     },
                     TabCellHolder(getString(R.string.my_bookmarked_illusts)).onItemClick {

@@ -13,20 +13,28 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
+import ceui.lisa.activities.followUser
+import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.FragmentUserBinding
 import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.utils.Params
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
+import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.User
+import ceui.loxia.pushFragment
+import ceui.pixiv.ui.chats.SeeMoreAction
+import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -36,14 +44,15 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withC
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.scwang.smart.refresh.header.MaterialHeader
 import jp.wasabeef.glide.transformations.BlurTransformation
+import timber.log.Timber
 
-class UserFragment : PixivFragment(R.layout.fragment_user),
-    ViewPagerFragment,
+class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, SeeMoreAction,
     FitsSystemWindowFragment {
 
     private val safeArgs by navArgs<UserFragmentArgs>()
     private val binding by viewBinding(FragmentUserBinding::bind)
     private val viewModel by constructVM({ safeArgs.userId }) { userId ->
+        Timber.d("userId-${userId}")
         UserViewModel(userId)
     }
 
@@ -57,12 +66,26 @@ class UserFragment : PixivFragment(R.layout.fragment_user),
             binding.headerContent.updatePaddingRelative(top = insets.top + BarUtils.getActionBarHeight())
             windowInsets
         }
+        viewModel.userLiveData.observe(viewLifecycleOwner) { user ->
+            binding.iconOfficial.isVisible = user.isOfficial()
+            binding.iconVolunteer.isVisible = user.isVolunteer()
+        }
+        viewModel.userProfile.observe(viewLifecycleOwner) { profile ->
+            binding.iconPrime.isVisible = profile.isPremium()
+        }
         viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->
-            Glide.with(this)
-                .load(GlideUrlChild(blurIllust?.image_urls?.large))
-                .apply(bitmapTransform(BlurTransformation(15, 3)))
-                .transition(withCrossFade())
-                .into(binding.pageBackground)
+            val url = blurIllust?.image_urls?.large
+            if (url?.isNotEmpty() == true) {
+                Glide.with(this).load(GlideUrlChild(url))
+                    .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
+                    .into(binding.pageBackground)
+            }
+        }
+        binding.postFollow.setOnClick {
+            followUser(it, safeArgs.userId.toInt(), Params.TYPE_PUBLIC)
+        }
+        binding.removeFollow.setOnClick {
+            unfollowUser(it, safeArgs.userId.toInt())
         }
         binding.naviBack.setOnClick {
             findNavController().popBackStack()
@@ -89,6 +112,7 @@ class UserFragment : PixivFragment(R.layout.fragment_user),
             binding.naviTitle.isVisible = (percentage == 1F)
         }
         binding.user = viewModel.userLiveData
+        binding.profile = viewModel.userProfile
         binding.userViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
                 return 1
@@ -97,6 +121,34 @@ class UserFragment : PixivFragment(R.layout.fragment_user),
             override fun createFragment(position: Int): Fragment {
                 return UserContentFragment()
             }
+        }
+    }
+
+    override fun seeMore(type: Int) {
+        if (type == SeeMoreType.USER_CREATED_ILLUST) {
+            pushFragment(
+                R.id.navigation_user_created_illust, UserCreatedIllustsFragmentArgs(
+                    userId = safeArgs.userId, objectType = ObjectType.ILLUST
+                ).toBundle()
+            )
+        } else if (type == SeeMoreType.USER_CREATED_MANGA) {
+            pushFragment(
+                R.id.navigation_user_created_illust, UserCreatedIllustsFragmentArgs(
+                    userId = safeArgs.userId, objectType = ObjectType.MANGA
+                ).toBundle()
+            )
+        } else if (type == SeeMoreType.USER_BOOKMARKED_ILLUST) {
+            pushFragment(
+                R.id.navigation_user_bookmarked_illust, UserBookmarkedIllustsFragmentArgs(
+                    safeArgs.userId, Params.TYPE_PUBLIC
+                ).toBundle()
+            )
+        } else if (type == SeeMoreType.USER_CREATED_NOVEL) {
+            pushFragment(
+                R.id.navigation_user_created_novel, UserCreatedNovelFragmentArgs(
+                    safeArgs.userId
+                ).toBundle()
+            )
         }
     }
 }

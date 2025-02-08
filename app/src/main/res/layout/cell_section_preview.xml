@@ -11,4 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
+    <include android:id="@+id/item_loading_layout" layout="@layout/item_loading"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

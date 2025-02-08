@@ -14,6 +14,7 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.common.NovelActionReceiver
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.utils.setOnClick
 
@@ -31,6 +32,10 @@ class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<Cel
         super.onBindViewHolder(holder, position)
         val liveNovel = ObjectPool.get<Novel>(holder.novelId)
         binding.novel = liveNovel
+        binding.bookmark.setOnClick {
+            it.findActionReceiverOrNull<NovelActionReceiver>()
+                ?.onClickBookmarkNovel(it, holder.novelId)
+        }
         binding.novelCover.setOnClick { sender ->
             liveNovel.value?.image_urls?.findMaxSizeUrl()?.let { url ->
                 sender.findFragmentOrNull<PixivFragment>()?.pushFragment(

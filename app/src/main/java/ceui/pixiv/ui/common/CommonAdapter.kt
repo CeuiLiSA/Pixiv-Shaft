@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.common
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
@@ -86,14 +87,14 @@ open class ListItemHolder {
         return 0L
     }
 
-    private var _onItemClick: (() -> Unit)? = null
+    private var _onItemClick: ((View) -> Unit)? = null
 
-    open fun onItemClick(block: () -> Unit): ListItemHolder {
+    open fun onItemClick(block: (View) -> Unit): ListItemHolder {
         _onItemClick = block
         return this
     }
 
-    fun retrieveClickListener(): (() -> Unit)? {
+    fun retrieveClickListener(): ((View) -> Unit)? {
         return _onItemClick
     }
 }
@@ -105,10 +106,10 @@ open class ListItemViewHolder<Binding : ViewBinding, T : ListItemHolder>(val bin
     lateinit var lifecycleOwner: LifecycleOwner
 
     open fun onBindViewHolder(holder: T, position: Int) {
-        holder.retrieveClickListener()?.let {
-            binding.root.setOnClickListener {
+        holder.retrieveClickListener()?.let { listener ->
+            binding.root.setOnClickListener { sender ->
                 try {
-                    it()
+                    listener(sender)
                 } catch (ex: Exception) {
                     Timber.e(ex)
                 }

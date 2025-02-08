@@ -46,6 +46,24 @@ class ArtworkViewPagerFragment : PixivFragment(R.layout.fragment_artwork_viewpag
             if (index > 0) {
                 binding.artworkViewpager.setCurrentItem(index, false)
             }
+        } else {
+            binding.artworkViewpager.adapter = object : FragmentStateAdapter(this) {
+                override fun createFragment(position: Int): Fragment {
+                    if (safeArgs.objectType == ObjectType.NOVEL) {
+                        return NovelTextFragment().apply {
+                            arguments = NovelTextFragmentArgs(safeArgs.objectId).toBundle()
+                        }
+                    } else {
+                        return ArtworkFragment().apply {
+                            arguments = ArtworkFragmentArgs(safeArgs.objectId).toBundle()
+                        }
+                    }
+                }
+
+                override fun getItemCount(): Int {
+                    return 1
+                }
+            }
         }
     }
 }

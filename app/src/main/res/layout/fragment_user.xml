@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
         <variable
             name="user"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
+
+        <variable
+            name="profile"
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.UserResponse>" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -61,14 +66,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:toolbarId="@+id/toolbar"
-                        app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
+                        app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:id="@+id/header_content"
                             android:paddingHorizontal="18dp"
-                            app:layout_collapseMode="parallax"
-                            app:layout_collapseParallaxMultiplier="0.5"
+                            app:layout_collapseMode="none"
                             android:layout_height="wrap_content">
 
 
@@ -81,30 +85,62 @@
 
 
                                 <de.hdodenhof.circleimageview.CircleImageView
-                                    loadMedia="@{user.profile_image_urls.findMaxSizeUrl()}"
+                                    userIcon="@{user}"
                                     android:layout_width="100dp"
                                     app:civ_border_color="@color/text00"
                                     app:civ_border_width="2dp"
                                     android:layout_marginBottom="16dp"
                                     android:layout_height="100dp"/>
 
-                                <TextView
-                                    style="@style/textMontserratBold"
-                                    android:text="@{user.name}"
-                                    android:textColor="@color/text00"
-                                    android:includeFontPadding="false"
-                                    android:textSize="22sp"
-                                    android:layout_marginBottom="4dp"
+                                <LinearLayout
                                     android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"/>
+                                    android:layout_marginBottom="4dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:layout_height="wrap_content">
+
+                                    <TextView
+                                        style="@style/textMontserratBold"
+                                        android:text="@{user.name}"
+                                        android:textColor="@color/text00"
+                                        android:includeFontPadding="false"
+                                        tools:text="UserName"
+                                        android:textSize="22sp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"/>
+
+                                    <ImageView
+                                        android:id="@+id/icon_official"
+                                        android:visibility="gone"
+                                        android:layout_marginStart="4dp"
+                                        android:src="@drawable/ic_official_user"
+                                        android:layout_width="22dp"
+                                        android:layout_height="22dp"/>
+
+                                    <ImageView
+                                        android:id="@+id/icon_prime"
+                                        android:visibility="gone"
+                                        android:layout_marginStart="4dp"
+                                        android:src="@drawable/icon_prime"
+                                        android:layout_width="40dp"
+                                        android:layout_height="16sp"/>
+                                </LinearLayout>
 
                                 <TextView
                                     style="@style/textMontserratMedium"
                                     android:text="@{`@` + user.account}"
                                     android:textColor="@color/text10"
+                                    tools:text="handle"
                                     android:includeFontPadding="false"
                                     android:textSize="13sp"
                                     android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"/>
+
+                                <ImageView
+                                    android:id="@+id/icon_volunteer"
+                                    android:layout_width="wrap_content"
+                                    android:src="@drawable/icon_volunteer"
+                                    android:layout_marginTop="8dp"
                                     android:layout_height="wrap_content"/>
 
                                 <LinearLayout
@@ -123,7 +159,7 @@
 
                                         <TextView
                                             style="@style/textMontserratBold"
-                                            android:text="123"
+                                            android:text="@{String.valueOf(profile.profile.total_follow_users)}"
                                             android:textColor="@color/text00"
                                             android:includeFontPadding="false"
                                             android:textSize="20sp"
@@ -149,7 +185,7 @@
 
                                         <TextView
                                             style="@style/textMontserratBold"
-                                            android:text="123"
+                                            android:text="@{String.valueOf(profile.profile.total_mypixiv_users)}"
                                             android:textColor="@color/text00"
                                             android:includeFontPadding="false"
                                             android:textSize="20sp"
@@ -176,19 +212,33 @@
                                     android:layout_height="wrap_content">
 
                                     <ceui.loxia.ProgressTextButton
+                                        android:id="@+id/post_follow"
                                         style="@style/BlueShiningButton"
                                         android:text="@string/follow"
+                                        visibleOrGone="@{!user.is_followed()}"
                                         android:layout_width="120dp"
+                                        android:layout_height="42dp"/>
+
+                                    <ceui.loxia.ProgressImageButton
+                                        android:id="@+id/remove_follow"
+                                        android:visibility="gone"
+                                        android:padding="8dp"
+                                        app:ptb_progress_stroke_width="3dp"
+                                        app:ptb_progress_width="14dp"
+                                        android:background="@drawable/round_corner_white12_r8"
+                                        android:layout_width="42dp"
+                                        android:src="@drawable/icon_user_already_followed"
+                                        visibleOrGone="@{user.is_followed()}"
                                         android:layout_height="42dp"/>
 
 
                                     <View
-                                        android:layout_width="12dp"
-                                        android:layout_height="12dp"/>
+                                        android:layout_width="8dp"
+                                        android:layout_height="8dp"/>
 
                                     <ceui.loxia.ProgressTextButton
                                         style="@style/GreenShiningButton"
-                                        android:text="@string/follow"
+                                        android:text="@string/chat_with_him"
                                         android:layout_width="120dp"
                                         android:layout_height="42dp"/>
                                 </LinearLayout>
