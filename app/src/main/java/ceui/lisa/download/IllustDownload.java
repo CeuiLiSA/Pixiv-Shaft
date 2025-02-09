@@ -206,24 +206,43 @@ public class IllustDownload {
         downloadNovel(activity, displayName, content, targetCallback);
     }
 
+    public static String truncateTitle(String title, int maxLength) {
+        if (title == null)  return " ";
+        if (title.length() <= maxLength)  return title;
+        if (maxLength < 3) return title.substring(0, maxLength);
+
+        int available = maxLength - 3;
+        int front = available / 2;
+        int rear = available - front;
+
+        return title.substring(0, front) + "..." + title.substring(title.length() - rear);
+    }
+
+
+    public static String getNovelText( String title , NovelBean novelBean, NovelDetail novelDetail) {
+        String content = title +"\n\n"+
+                "RawTitle:"+novelBean.getTitle().replaceAll("([第（(章卷篇幕回节册季话集])", "$1'")+"\n"+
+                "Date:"+novelBean.getCreate_date().substring(0, 10)+" "+ "Length:"+novelBean.getText_length()+"\n"+
+                "Name:"+novelBean.getUser().getName()+"(https://www.pixiv.net/users/"+novelBean.getUser().getId()+ ")\n" +
+                "Source:"+"https://www.pixiv.net/novel/show.php?id="+novelBean.getId()+"\n"+
+                "Tags:"+Arrays.toString(novelBean.getTagNames())+"\n"+
+                "Caption:\n"+novelBean.getCaption().replaceAll("<br />", "\n")+
+                "\n>---------------------<\n";
+        content=content+ novelDetail.getNovel_text()+"\n\n";
+        return content;
+    }
+
+
     public static void downloadNovel(BaseActivity<?> activity, NovelBean novelBean, NovelDetail novelDetail, Callback<Uri> targetCallback) {
 
         String title = novelBean.getTitle();
         if (novelBean.getSeries()!= null && novelBean.getSeries().getTitle() != null){
-            title=title+"_"+novelBean.getSeries().getTitle();
+            title=novelBean.getSeries().getTitle()+"_"+title;
         }
+        String newTitle = truncateTitle(title, 58);
+        String displayName = FileCreator.deleteSpecialWords("Novel_" + novelBean.getId() + "_" + newTitle + ".txt");
 
-
-        String displayName = FileCreator.deleteSpecialWords("Novel_" + novelBean.getId() + "_" + title + ".txt");
-        String content = title +"_"+novelBean.getId()+"\n"+
-                 "date:"+novelBean.getCreate_date()+"\n"+
-                 "length:"+novelBean.getText_length()+"\n"+
-                 "Name:"+novelBean.getUser().getName()+"_"+novelBean.getUser().getId()+ "\n" +
-                 "Tags:"+Arrays.toString(novelBean.getTagNames())+"\n"+
-                 "Caption:"+novelBean.getCaption()+"\n\n"+
-                novelDetail.getNovel_text();
-
-
+        String content = getNovelText(title, novelBean, novelDetail);
         downloadNovel(activity, displayName, content, targetCallback);
     }
 
