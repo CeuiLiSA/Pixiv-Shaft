@@ -8,6 +8,7 @@ import android.view.animation.OvershootInterpolator
 import android.view.animation.RotateAnimation
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -63,6 +64,16 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             pushFragment(R.id.navigation_search_all)
         }
 
+        binding.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
+            val totalScrollRange = appBarLayout.totalScrollRange
+            if (totalScrollRange == 0) {
+                return@addOnOffsetChangedListener
+            }
+
+            val percentage = (Math.abs(verticalOffset) / totalScrollRange.toFloat())
+            binding.homeHeaderContent.alpha = 1F - percentage
+        }
+
         binding.account = SessionManager.loggedInAccount
         binding.viewModel = viewModel
         binding.iconDiscoverTab.setOnClick {
@@ -91,6 +102,11 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 binding.tabName.text = "Square"
             } else if (index == 3) {
                 binding.tabName.text = "Friends"
+            }
+        }
+        binding.tabName.setOnClick {
+            if (viewModel.selectedTabIndex.value == 0) {
+                pushFragment(R.id.navigation_mine_profile)
             }
         }
         binding.homeCompose.setOnClick {

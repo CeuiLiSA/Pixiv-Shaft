@@ -33,16 +33,16 @@
                 android:layout_height="wrap_content"
                 app:contentScrim="@color/transparent"
                 app:toolbarId="@+id/toolbar"
-                app:layout_scrollFlags="scroll|enterAlways">
+                app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/home_header_content"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingVertical="8dp"
+                    android:paddingTop="2dp"
                     android:paddingStart="18dp"
                     android:paddingEnd="18dp"
-                    android:paddingBottom="10dp">
+                    android:paddingBottom="2dp">
 
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/user_icon"

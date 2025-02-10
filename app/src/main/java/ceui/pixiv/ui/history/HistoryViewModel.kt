@@ -76,8 +76,6 @@ class HistoryViewModel(
     }
 
     override fun prepareIdMap(fragmentUniqueId: String) {
-        super.prepareIdMap(fragmentUniqueId)
-
         if (recordType == RecordType.VIEW_ILLUST_HISTORY) {
             val filteredList = _itemHolders.value.orEmpty()
                 .filterIsInstance<IllustCardHolder>()
