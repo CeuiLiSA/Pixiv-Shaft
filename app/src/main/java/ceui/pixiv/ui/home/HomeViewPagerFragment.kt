@@ -31,11 +31,6 @@ import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
 import timber.log.Timber
 
-data class HelloResult(
-    val aa: String,
-    val bb: Long
-)
-
 class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), ViewPagerFragment {
     private val binding by viewBinding(FragmentHomeViewpagerBinding::bind)
     private val viewModel by viewModels<HomeViewPagerViewModel>()
