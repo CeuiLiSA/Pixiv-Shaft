@@ -95,8 +95,8 @@ class IllustSeriesViewModel(
 
     override fun prepareIdMap(fragmentUniqueId: String) {
         val filteredList = _itemHolders.value.orEmpty()
-            .filterIsInstance<UserPostHolder>() // 直接过滤为特定类型
-            .map { it.illust.id } // 提取 id 列表
+            .filterIsInstance<UserPostHolder>()
+            .map { it.illust.id }
 
         ArtworksMap.store[fragmentUniqueId] = filteredList
     }

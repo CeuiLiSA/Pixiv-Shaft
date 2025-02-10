@@ -97,8 +97,8 @@ class NovelSeriesViewModel(
 
     override fun prepareIdMap(fragmentUniqueId: String) {
         val filteredList = _itemHolders.value.orEmpty()
-            .filterIsInstance<NovelCardHolder>() // 直接过滤为特定类型
-            .map { it.novel.id } // 提取 id 列表
+            .filterIsInstance<NovelCardHolder>()
+            .map { it.novel.id }
 
         ArtworksMap.store[fragmentUniqueId] = filteredList
     }

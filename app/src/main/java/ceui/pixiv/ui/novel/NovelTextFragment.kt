@@ -14,6 +14,7 @@ import ceui.loxia.ObjectType
 import ceui.loxia.Series
 import ceui.loxia.combineLatest
 import ceui.loxia.pushFragment
+import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
@@ -60,6 +61,11 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         }
         val liveNovel = ObjectPool.get<Novel>(safeArgs.novelId)
         combineLatest(liveNovel, textModel.webNovel).observe(viewLifecycleOwner) { (novel, webNovel) ->
+
+            if (novel != null) {
+                EntityWrapper.visitNovel(requireContext(), novel)
+            }
+
             binding.toolbarLayout.naviMore.setOnClick {
                 if (novel == null || webNovel == null) {
                     return@setOnClick
