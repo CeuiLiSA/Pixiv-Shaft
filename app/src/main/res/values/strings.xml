@@ -751,4 +751,5 @@
     <string name="all_works_count">共%1$d个作品</string>
     <string name="chat_with_him">私信</string>
     <string name="download_all_created_novels">下载此作者的全部作品</string>
+    <string name="browse_history">浏览历史</string>
 </resources>

@@ -8,14 +8,18 @@ import android.view.animation.OvershootInterpolator
 import android.view.animation.RotateAnimation
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
+import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
@@ -25,11 +29,7 @@ import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
-
-data class HelloResult(
-    val aa: String,
-    val bb: Long
-)
+import timber.log.Timber
 
 class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), ViewPagerFragment {
     private val binding by viewBinding(FragmentHomeViewpagerBinding::bind)
@@ -57,6 +57,16 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
         }
         binding.naviSearch.setOnClick {
             pushFragment(R.id.navigation_search_all)
+        }
+
+        binding.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
+            val totalScrollRange = appBarLayout.totalScrollRange
+            if (totalScrollRange == 0) {
+                return@addOnOffsetChangedListener
+            }
+
+            val percentage = (Math.abs(verticalOffset) / totalScrollRange.toFloat())
+            binding.homeHeaderContent.alpha = 1F - percentage
         }
 
         binding.account = SessionManager.loggedInAccount
@@ -89,14 +99,19 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 binding.tabName.text = "Friends"
             }
         }
+        binding.tabName.setOnClick {
+            if (viewModel.selectedTabIndex.value == 0) {
+                pushFragment(R.id.navigation_mine_profile)
+            }
+        }
         binding.homeCompose.setOnClick {
-            binding.homeCompose.startAnimation(RotateAnimation(
-                0F, 45F, Animation.RELATIVE_TO_SELF, 0.5F, Animation.RELATIVE_TO_SELF, 0.5F
-            ).apply {
-                duration = 300L
-                interpolator = OvershootInterpolator(2F)
-                fillAfter = true
-            })
+//            binding.homeCompose.startAnimation(RotateAnimation(
+//                0F, 45F, Animation.RELATIVE_TO_SELF, 0.5F, Animation.RELATIVE_TO_SELF, 0.5F
+//            ).apply {
+//                duration = 300L
+//                interpolator = OvershootInterpolator(2F)
+//                fillAfter = true
+//            })
         }
         binding.homeViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {

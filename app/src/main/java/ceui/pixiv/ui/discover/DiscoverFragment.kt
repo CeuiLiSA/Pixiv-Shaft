@@ -3,8 +3,12 @@ package ceui.pixiv.ui.discover
 import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentDiscoverBinding
 import ceui.loxia.ObjectType
+import ceui.loxia.launchSuspend
+import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.HomeTabContainer

@@ -37,7 +37,7 @@
                 android:text="@{viewModel.title}"
                 android:textAlignment="center"
                 android:textColor="@color/always_white"
-                android:textSize="17sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 tools:text="Following" />
 

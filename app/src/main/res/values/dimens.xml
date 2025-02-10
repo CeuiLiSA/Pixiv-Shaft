@@ -38,7 +38,7 @@
     <dimen name="interest_dash_width">3dp</dimen>
     <dimen name="interest_dash_gap">2dp</dimen>
 
-    <dimen name="tab_layout_height">40dp</dimen>
+    <dimen name="tab_layout_height">34dp</dimen>
     <dimen name="tab_layout_cursor_height">4dp</dimen>
     <dimen name="tab_layout_cursor_width">10dp</dimen>
 

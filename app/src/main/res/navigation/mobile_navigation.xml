@@ -101,6 +101,15 @@
         android:name="ceui.pixiv.ui.settings.SelectLanguageFragment"
         tools:layout="@layout/fragment_pixiv_list" />
 
+    <fragment
+        android:id="@+id/navigation_view_history"
+        android:name="ceui.pixiv.ui.history.ViewHistoryFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            android:name="record_type"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_select_country"

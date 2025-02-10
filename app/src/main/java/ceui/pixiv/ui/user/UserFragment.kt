@@ -26,6 +26,7 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.User
 import ceui.loxia.pushFragment
+import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
@@ -67,6 +68,7 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
             windowInsets
         }
         viewModel.userLiveData.observe(viewLifecycleOwner) { user ->
+            EntityWrapper.visitUser(requireContext(), user)
             binding.iconOfficial.isVisible = user.isOfficial()
             binding.iconVolunteer.isVisible = user.isVolunteer()
         }

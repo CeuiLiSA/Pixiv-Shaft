@@ -15,6 +15,7 @@ import ceui.loxia.RefreshState
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersContainer
+import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.LoadingHolder
@@ -29,10 +30,7 @@ import timber.log.Timber
 class ArtworkViewModel(
     private val illustId: Long,
     private val activityCoroutineScope: CoroutineScope
-) : ViewModel(), RefreshOwner, LoadMoreOwner, HoldersContainer {
-
-    private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
-    private val _refreshState = MutableLiveData<RefreshState>()
+) : HoldersViewModel() {
 
     private val _illustLiveData = ObjectPool.get<Illust>(illustId)
     val illustLiveData: LiveData<Illust> = _illustLiveData
@@ -69,43 +67,41 @@ class ArtworkViewModel(
         refresh(RefreshHint.InitialLoad)
     }
 
-    override fun refresh(hint: RefreshHint) {
-        viewModelScope.launch {
-            try {
-                _refreshState.value = RefreshState.LOADING(refreshHint = hint)
-                val context = Shaft.getContext()
-                val illust = ObjectPool.get<Illust>(illustId).value ?: run {
-                    Client.appApi.getIllust(illustId).illust?.also {
-                        ObjectPool.update(it)
-                    }
-                } ?: return@launch
-                val result = mutableListOf<ListItemHolder>()
-                val images = getGalleryHolders(illust, activityCoroutineScope)
-                result.addAll(images ?: listOf())
-                result.add(RedSectionHeaderHolder("标题"))
-                result.add(ArtworkInfoHolder(illustId))
-                result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
-                result.add(UserInfoHolder(illust.user?.id ?: 0L))
-                result.add(RedSectionHeaderHolder("简介"))
-                result.add(ArtworkCaptionHolder(illustId))
-                result.add(RedSectionHeaderHolder(context.getString(R.string.related_artworks)))
-                result.add(LoadingHolder(_relatedIllustsDataSource.refreshStateImpl) {
-                    viewModelScope.launch {
-                        _relatedIllustsDataSource.refreshImpl(
-                            RefreshHint.ErrorRetry
-                        )
-                    }
-                })
-                _itemHolders.value = result
-                _refreshState.value = RefreshState.LOADED(
-                    hasContent = true, hasNext = false
-                )
-                _relatedIllustsDataSource.refreshImpl(hint)
-            } catch (ex: Exception) {
-                _refreshState.value = RefreshState.ERROR(ex)
-                Timber.e(ex)
+    override suspend fun refreshImpl(hint: RefreshHint) {
+        super.refreshImpl(hint)
+        val context = Shaft.getContext()
+        val illust = ObjectPool.get<Illust>(illustId).value ?: run {
+            Client.appApi.getIllust(illustId).illust?.also {
+                ObjectPool.update(it)
             }
-        }
+        } ?: return
+        val result = mutableListOf<ListItemHolder>()
+        val images = getGalleryHolders(illust, activityCoroutineScope)
+        result.addAll(images ?: listOf())
+        result.add(RedSectionHeaderHolder("标题"))
+        result.add(ArtworkInfoHolder(illustId))
+        result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
+        result.add(UserInfoHolder(illust.user?.id ?: 0L))
+        result.add(RedSectionHeaderHolder("简介"))
+        result.add(ArtworkCaptionHolder(illustId))
+        result.add(RedSectionHeaderHolder(context.getString(R.string.related_artworks)))
+        result.add(LoadingHolder(_relatedIllustsDataSource.refreshStateImpl) {
+            viewModelScope.launch {
+                _relatedIllustsDataSource.refreshImpl(
+                    RefreshHint.ErrorRetry
+                )
+            }
+        })
+        _itemHolders.value = result
+        _refreshState.value = RefreshState.LOADED(
+            hasContent = true, hasNext = false
+        )
+        _relatedIllustsDataSource.refreshImpl(hint)
+    }
+
+    override suspend fun loadMoreImpl() {
+        super.loadMoreImpl()
+        _relatedIllustsDataSource.loadMoreImpl()
     }
 
     override fun prepareIdMap(fragmentUniqueId: String) {
@@ -116,16 +112,5 @@ class ArtworkViewModel(
             idList.add(item.objectUniqueId)
         }
         ArtworksMap.store[fragmentUniqueId] = idList
-    }
-
-    override val refreshState: LiveData<RefreshState>
-        get() = _refreshState
-    override val holders: LiveData<List<ListItemHolder>>
-        get() = _itemHolders
-
-    override fun loadMore() {
-        viewModelScope.launch {
-            _relatedIllustsDataSource.loadMoreImpl()
-        }
     }
 }

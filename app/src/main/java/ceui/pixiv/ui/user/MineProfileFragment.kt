@@ -84,6 +84,12 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             UserFriendsFragmentArgs(SessionManager.loggedInUid).toBundle()
                         )
                     },
+                    TabCellHolder(getString(R.string.browse_history)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_common_viewpager,
+                            CommonViewPagerFragmentArgs(ViewPagerContentType.MyViewHistory).toBundle()
+                        )
+                    },
                     TabCellHolder(getString(R.string.blocking_list)).onItemClick {
                         pushFragment(
                             R.id.navigation_blocking_item_list,
