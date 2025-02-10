@@ -10,6 +10,8 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 import ceui.lisa.feature.FeatureEntity;
+import ceui.pixiv.db.GeneralDao;
+import ceui.pixiv.db.GeneralEntity;
 
 @Database(
         entities = {
@@ -23,8 +25,9 @@ import ceui.lisa.feature.FeatureEntity;
                 UUIDEntity.class, //记录用户屏蔽的标签
                 FeatureEntity.class, //记录用户收藏的精华列表
                 DownloadingEntity.class, //记录用户正在下载中的列表
+                GeneralEntity.class, // 新增的 GeneralEntity
         },
-        version = 25,
+        version = 26,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -47,6 +50,19 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    // 新增 25 -> 26 迁移 (创建 general_table)
+    private static final Migration MIGRATION_25_26 = new Migration(25, 26) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS general_table (" +
+                            "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            "name TEXT, " +
+                            "description TEXT)"
+            );
+        }
+    };
+
     public static AppDatabase getAppDatabase(Context context) {
         if (INSTANCE == null) {
             INSTANCE =
@@ -57,6 +73,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             .allowMainThreadQueries()
                             .addMigrations(MIGRATION_23_24)
                             .addMigrations(MIGRATION_24_25)
+                            .addMigrations(MIGRATION_25_26) // 注册 25 -> 26 迁移
                             .build();
         }
         return INSTANCE;
@@ -71,5 +88,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract DownloadDao downloadDao();
 
     public abstract SearchDao searchDao();
+
+    public abstract GeneralDao generalDao();
+
 }
 
