@@ -50,18 +50,21 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
-    // 新增 25 -> 26 迁移 (创建 general_table)
+    // 迁移 25 -> 26 (创建 general_table)
     private static final Migration MIGRATION_25_26 = new Migration(25, 26) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL(
                     "CREATE TABLE IF NOT EXISTS general_table (" +
-                            "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                            "name TEXT, " +
-                            "description TEXT)"
+                            "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " + // ✅ 兼容 Long
+                            "json TEXT NOT NULL, " +
+                            "entityType INTEGER NOT NULL, " +
+                            "recordType INTEGER NOT NULL, " +
+                            "updatedTime INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000))"
             );
         }
     };
+
 
     public static AppDatabase getAppDatabase(Context context) {
         if (INSTANCE == null) {

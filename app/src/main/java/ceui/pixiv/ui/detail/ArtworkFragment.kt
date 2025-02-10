@@ -16,6 +16,7 @@ import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.pushFragment
 import ceui.loxia.threadSafeArgs
+import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.ui.blocking.BlockingManager
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
@@ -51,6 +52,9 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                 return@observe
             }
 
+            val ctx = requireContext()
+            EntityWrapper.visitIllust(ctx, illust)
+
             if (isBlocked == true) {
                 binding.refreshLayout.isVisible = false
                 binding.pageBackground.isVisible = false
@@ -70,7 +74,6 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                 binding.dimmer.isVisible = true
                 binding.listView.clearItemDecorations()
                 binding.listView.addItemDecoration(LinearItemDecorationKt(16.ppppx, illust.page_count))
-                val ctx = requireContext()
                 binding.listView.layoutManager = LinearLayoutManager(ctx)
                 blurBackground(binding, safeArgs.illustId)
                 binding.toolbarLayout.naviMore.setOnClick {

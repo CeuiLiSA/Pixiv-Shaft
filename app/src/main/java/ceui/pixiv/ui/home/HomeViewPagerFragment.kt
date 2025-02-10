@@ -14,8 +14,11 @@ import androidx.fragment.app.viewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
+import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
@@ -25,6 +28,7 @@ import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
+import timber.log.Timber
 
 data class HelloResult(
     val aa: String,
@@ -90,13 +94,13 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             }
         }
         binding.homeCompose.setOnClick {
-            binding.homeCompose.startAnimation(RotateAnimation(
-                0F, 45F, Animation.RELATIVE_TO_SELF, 0.5F, Animation.RELATIVE_TO_SELF, 0.5F
-            ).apply {
-                duration = 300L
-                interpolator = OvershootInterpolator(2F)
-                fillAfter = true
-            })
+//            binding.homeCompose.startAnimation(RotateAnimation(
+//                0F, 45F, Animation.RELATIVE_TO_SELF, 0.5F, Animation.RELATIVE_TO_SELF, 0.5F
+//            ).apply {
+//                duration = 300L
+//                interpolator = OvershootInterpolator(2F)
+//                fillAfter = true
+//            })
         }
         binding.homeViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {

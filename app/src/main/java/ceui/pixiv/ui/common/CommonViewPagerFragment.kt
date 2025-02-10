@@ -11,9 +11,12 @@ import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentCommonViewpagerBinding
 import ceui.lisa.utils.Params
+import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
+import ceui.pixiv.ui.history.ViewHistoryFragment
+import ceui.pixiv.ui.history.ViewHistoryFragmentArgs
 import ceui.pixiv.ui.user.UserBookmarkedIllustsFragment
 import ceui.pixiv.ui.user.UserBookmarkedIllustsFragmentArgs
 import ceui.pixiv.ui.user.UserBookmarkedNovelFragment
@@ -26,6 +29,7 @@ object ViewPagerContentType {
     const val MyBookmarkIllustOrManga = 1
     const val MyBookmarkNovel = 2
     const val MyFollowingUsers = 3
+    const val MyViewHistory = 4
 }
 
 class CommonViewPagerViewModel : ViewModel() {
@@ -130,6 +134,43 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                         }
                     },
                     initialTitle = getString(R.string.string_392)
+                )
+            )
+        } else if (args.contentType == ViewPagerContentType.MyViewHistory) {
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        ViewHistoryFragment().apply {
+                            arguments = ViewHistoryFragmentArgs(
+                                RecordType.VIEW_ILLUST_HISTORY
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.string_136)
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        ViewHistoryFragment().apply {
+                            arguments = ViewHistoryFragmentArgs(
+                                RecordType.VIEW_NOVEL_HISTORY
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_novel)
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        ViewHistoryFragment().apply {
+                            arguments = ViewHistoryFragmentArgs(
+                                RecordType.VIEW_USER_HISTORY
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_user)
                 )
             )
         }

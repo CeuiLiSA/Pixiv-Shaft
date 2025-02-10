@@ -15,5 +15,9 @@ interface GeneralDao {
 
     // ✅  查询所有数据，Room 正确解析 suspend 方法
     @Query("SELECT * FROM general_table")
-    fun getAll(): List<GeneralEntity> // 返回 Flow 以避免 Room 解析错误
+    fun getAll(): List<GeneralEntity> //
+
+    // ✅ 根据 entityType 查询数据
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC")
+    fun getByRecordType(recordType: Int): List<GeneralEntity> // 根据 entityType 返回数据
 }

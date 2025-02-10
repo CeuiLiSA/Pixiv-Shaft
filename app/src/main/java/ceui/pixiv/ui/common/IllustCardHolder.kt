@@ -19,6 +19,7 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.screenWidth
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 class IllustCardHolder(val illust: Illust) : ListItemHolder() {
@@ -63,6 +64,7 @@ class IllustCardViewHolder(bd: CellIllustCardBinding) :
         binding.illust = ObjectPool.get<Illust>(holder.illust.id)
 
         val itemWidth = ((screenWidth - 12.ppppx) / 2F).roundToInt()
+        Timber.d("dsaadssw22 ${holder.illust.height}, ${holder.illust.width}")
         val itemHeight =
             (itemWidth * holder.illust.height / holder.illust.width.toFloat()).roundToInt()
         binding.image.updateLayoutParams {
