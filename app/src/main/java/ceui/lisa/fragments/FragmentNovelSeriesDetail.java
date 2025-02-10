@@ -100,22 +100,19 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                     String lineSeparator = System.lineSeparator();
 
                    var si=mResponse.getNovel_series_detail();
-                   var  seriesTitle = si.getTitle()+"_"+si.getId()+lineSeparator+
-                            "Name:"+si.getUser().getName()+"_"+si.getUser().getId()+lineSeparator+
-                            "Caption:"+si.getCaption()+lineSeparator+lineSeparator;
+                   var  seriesTitle = "《"+si.getTitle()+"》"+lineSeparator+
+                           "Name:"+si.getUser().getName()+"(https://www.pixiv.net/users/"+si.getUser().getId()+")"+lineSeparator+
+                           "Source:"+"https://www.pixiv.net/novel/series/"+si.getId()+lineSeparator+
+                           "Caption:"+lineSeparator+si.getCaption()+lineSeparator+lineSeparator+
+                           "----------------------"+lineSeparator+lineSeparator+lineSeparator;
+
                     int count = 0;
                     for (NovelBean novelBean : allItems) {
                         count++;
 
                         if (novelBean.isLocalSaved()) {
-                            String title = "第"+count+"篇•"+novelBean.getTitle();
-                            String sb = lineSeparator + title +"_"+novelBean.getId()+ lineSeparator +
-                                    "date:"+novelBean.getCreate_date()+lineSeparator+
-                                    "length:"+novelBean.getText_length()+lineSeparator+
-                                    "Tags:"+ Arrays.toString(novelBean.getTagNames())+lineSeparator+
-                                    "Caption:"+novelBean.getCaption()+lineSeparator+lineSeparator+
-                                    Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class).getNovel_text();
-
+                            String title = "第"+count+"篇•"+ IllustDownload.truncateTitle(novelBean.getTitle(), 30);
+                            String sb = IllustDownload.getNovelText(title,novelBean,Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class));
                             taskContainer.put(novelBean.getId(), sb);
                             if (taskContainer.size() == allItems.size()) {
                                 String content = taskContainer.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.joining(lineSeparator));
@@ -131,14 +128,8 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                                     new WebNovelParser(response) {
                                         @Override
                                         public void onNovelPrepared(@NonNull NovelDetail novelDetail, @NonNull WebNovel webNovel) {
-                                            String title ="第"+ finalCount +"篇•"+ novelBean.getTitle();
-                                            String sb = lineSeparator + title +"_"+novelBean.getId()+ lineSeparator +
-                                                    "date:"+novelBean.getCreate_date()+lineSeparator+
-                                                    "length:"+novelBean.getText_length()+lineSeparator+
-                                                    "Tags:"+ Arrays.toString(novelBean.getTagNames())+lineSeparator+
-                                                    "Caption:"+novelBean.getCaption()+lineSeparator+lineSeparator+
-                                                    novelDetail.getNovel_text();
-
+                                            String title = "第"+finalCount+"篇•"+ IllustDownload.truncateTitle(novelBean.getTitle(), 30);
+                                            String sb =  IllustDownload.getNovelText(title, novelBean, novelDetail);
                                             taskContainer.put(novelBean.getId(), sb);
                                             if (taskContainer.size() == allItems.size()) {
                                                 String content = taskContainer.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.joining(lineSeparator));
