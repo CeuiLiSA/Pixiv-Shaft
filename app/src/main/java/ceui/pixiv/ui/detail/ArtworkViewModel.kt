@@ -99,6 +99,11 @@ class ArtworkViewModel(
         _relatedIllustsDataSource.refreshImpl(hint)
     }
 
+    override suspend fun loadMoreImpl() {
+        super.loadMoreImpl()
+        _relatedIllustsDataSource.loadMoreImpl()
+    }
+
     override fun prepareIdMap(fragmentUniqueId: String) {
         val idList = mutableListOf<Long>()
         val filteredList =
@@ -107,11 +112,5 @@ class ArtworkViewModel(
             idList.add(item.objectUniqueId)
         }
         ArtworksMap.store[fragmentUniqueId] = idList
-    }
-
-    override fun loadMore() {
-        viewModelScope.launch {
-            _relatedIllustsDataSource.loadMoreImpl()
-        }
     }
 }

@@ -17,7 +17,7 @@ interface GeneralDao {
     @Query("SELECT * FROM general_table")
     fun getAll(): List<GeneralEntity> //
 
-    // ✅ 根据 entityType 查询数据
-    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC")
-    fun getByRecordType(recordType: Int): List<GeneralEntity> // 根据 entityType 返回数据
+    // ✅ 根据 entityType 查询数据，并按 updatedTime 排序，支持分页
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC LIMIT :limit OFFSET :offset")
+    fun getByRecordType(recordType: Int, offset: Int, limit: Int = 30): List<GeneralEntity> // 根据 entityType 返回数据，按 updatedTime 降序排列，支持分页
 }

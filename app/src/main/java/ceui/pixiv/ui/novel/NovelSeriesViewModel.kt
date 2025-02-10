@@ -90,17 +90,16 @@ class NovelSeriesViewModel(
         }
     }
 
+    override suspend fun loadMoreImpl() {
+        super.loadMoreImpl()
+        _seriesNovelsDataSource.loadMoreImpl()
+    }
+
     override fun prepareIdMap(fragmentUniqueId: String) {
         val filteredList = _itemHolders.value.orEmpty()
             .filterIsInstance<NovelCardHolder>() // 直接过滤为特定类型
             .map { it.novel.id } // 提取 id 列表
 
         ArtworksMap.store[fragmentUniqueId] = filteredList
-    }
-
-    override fun loadMore() {
-        viewModelScope.launch {
-            _seriesNovelsDataSource.loadMoreImpl()
-        }
     }
 }

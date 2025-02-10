@@ -3,6 +3,8 @@ package ceui.pixiv.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ceui.lisa.activities.Shaft
+import ceui.lisa.models.ModelObject
+import ceui.loxia.ObjectPool
 
 @Entity(tableName = "general_table")
 data class GeneralEntity(
@@ -14,6 +16,10 @@ data class GeneralEntity(
     val updatedTime: Long = System.currentTimeMillis()
 ) {
     inline fun <reified T> typedObject(): T {
-        return Shaft.sGson.fromJson(json, T::class.java)
+        val obj = Shaft.sGson.fromJson(json, T::class.java)
+        if (obj is ModelObject) {
+            ObjectPool.update(obj)
+        }
+        return obj
     }
 }

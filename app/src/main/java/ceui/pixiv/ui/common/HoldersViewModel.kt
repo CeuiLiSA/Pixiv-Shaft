@@ -18,6 +18,10 @@ open class HoldersViewModel : ViewModel(), HoldersContainer, RefreshOwner, LoadM
 
     }
 
+    open suspend fun loadMoreImpl() {
+
+    }
+
     final override fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
             try {
@@ -30,8 +34,16 @@ open class HoldersViewModel : ViewModel(), HoldersContainer, RefreshOwner, LoadM
         }
     }
 
-    override fun loadMore() {
-
+    final override fun loadMore() {
+        viewModelScope.launch {
+            try {
+                _refreshState.value = RefreshState.LOADING()
+                loadMoreImpl()
+            } catch (ex: Exception) {
+                _refreshState.value = RefreshState.ERROR(ex)
+                Timber.e(ex)
+            }
+        }
     }
 
     override fun prepareIdMap(fragmentUniqueId: String) {
