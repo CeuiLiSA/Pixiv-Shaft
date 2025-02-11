@@ -21,6 +21,8 @@ import ceui.loxia.threadSafeArgs
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.blocking.BlockingManager
+import ceui.pixiv.ui.chats.SeeMoreAction
+import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
@@ -36,13 +38,14 @@ import ceui.pixiv.widgets.showActionMenu
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.related.RelatedIllustsFragmentArgs
 import ceui.pixiv.ui.works.blurBackground
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.getValue
 
-class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, GalleryActionReceiver {
+class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, GalleryActionReceiver, SeeMoreAction {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by threadSafeArgs<ArtworkFragmentArgs>()
@@ -131,5 +134,11 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                 index
             ).toBundle()
         )
+    }
+
+    override fun seeMore(type: Int) {
+        if (type == SeeMoreType.RELATED_ILLUST) {
+            pushFragment(R.id.navigation_related_illusts, RelatedIllustsFragmentArgs(safeArgs.illustId).toBundle())
+        }
     }
 }

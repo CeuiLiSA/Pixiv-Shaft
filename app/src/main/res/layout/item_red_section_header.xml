@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -24,18 +25,33 @@
                 style="@style/textMontserratSemiBold"
                 android:text="Description"
                 android:layout_gravity="center_vertical"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
 
         </FrameLayout>
 
 
-        <TextView
-            android:id="@+id/see_more"
-            android:stateListAnimator="@animator/button_press_alpha"
+        <LinearLayout
+            android:id="@+id/see_more_layout"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:stateListAnimator="@animator/button_press_alpha"
             android:layout_gravity="end|center_vertical"
-            android:layout_marginEnd="@dimen/default_content_horizontal_margin"
-            android:textColor="@color/text00" />
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/see_more"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:textColor="#6FC445" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:src="@drawable/ic_chevron_right"
+                android:layout_height="wrap_content"
+                app:tint="#6FC445" />
+
+        </LinearLayout>
     </FrameLayout>
 </layout>
