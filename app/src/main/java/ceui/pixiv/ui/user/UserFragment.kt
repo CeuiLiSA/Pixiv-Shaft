@@ -68,7 +68,9 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
             windowInsets
         }
         viewModel.userLiveData.observe(viewLifecycleOwner) { user ->
-            EntityWrapper.visitUser(requireContext(), user)
+            runOnceWithinFragmentLifecycle("visit-user-${safeArgs.userId}") {
+                EntityWrapper.visitUser(requireContext(), user)
+            }
             binding.iconOfficial.isVisible = user.isOfficial()
             binding.iconVolunteer.isVisible = user.isVolunteer()
         }

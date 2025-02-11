@@ -63,7 +63,11 @@
     <fragment
         android:id="@+id/navigation_blocking_item_list"
         android:name="ceui.pixiv.ui.blocking.BlockedItemListFragment"
-        tools:layout="@layout/fragment_pixiv_list" />
+        tools:layout="@layout/fragment_pixiv_list" >
+        <argument
+            android:name="record_type"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_web_fragment"

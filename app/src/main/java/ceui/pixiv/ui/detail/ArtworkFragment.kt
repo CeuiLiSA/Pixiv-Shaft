@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.models.ObjectSpec
 import ceui.lisa.view.LinearItemDecorationKt
@@ -14,9 +15,11 @@ import ceui.loxia.ObjectType
 import ceui.loxia.clearItemDecorations
 import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagReasonFragmentArgs
+import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.db.EntityWrapper
+import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.blocking.BlockingManager
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
@@ -34,6 +37,9 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.works.blurBackground
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import kotlin.getValue
 
 class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, GalleryActionReceiver {
@@ -47,13 +53,17 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel, ListMode.CUSTOM)
-        combineLatest(BlockingManager.isWorkBlocked(safeArgs.illustId), viewModel.illustLiveData).observe(viewLifecycleOwner) { (isBlocked, illust) ->
-            if (illust == null) {
+        val ctx = requireContext()
+
+        val isBlockedLiveData = AppDatabase.getAppDatabase(ctx).generalDao().isObjectBlocked(RecordType.BLOCK_ILLUST, safeArgs.illustId)
+
+        binding.listView.layoutManager = LinearLayoutManager(ctx)
+        blurBackground(binding, safeArgs.illustId)
+
+        combineLatest(isBlockedLiveData, viewModel.illustLiveData).observe(viewLifecycleOwner) { (isBlocked, illust) ->
+            if (isBlocked == null || illust == null) {
                 return@observe
             }
-
-            val ctx = requireContext()
-            EntityWrapper.visitIllust(ctx, illust)
 
             if (isBlocked == true) {
                 binding.refreshLayout.isVisible = false
@@ -63,19 +73,22 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                     showActionMenu {
                         add(
                             MenuItem(getString(R.string.remove_blocking)) {
-                                BlockingManager.removeBlockedWork(safeArgs.illustId)
+                                EntityWrapper.unblockIllust(ctx, illust)
                             }
                         )
                     }
                 }
             } else {
+                runOnceWithinFragmentLifecycle("visit-illust-${safeArgs.illustId}") {
+                    EntityWrapper.visitIllust(ctx, illust)
+                }
+
                 binding.refreshLayout.isVisible = true
                 binding.pageBackground.isVisible = true
                 binding.dimmer.isVisible = true
                 binding.listView.clearItemDecorations()
                 binding.listView.addItemDecoration(LinearItemDecorationKt(16.ppppx, illust.page_count))
-                binding.listView.layoutManager = LinearLayoutManager(ctx)
-                blurBackground(binding, safeArgs.illustId)
+
                 binding.toolbarLayout.naviMore.setOnClick {
                     showActionMenu {
                         add(
@@ -101,7 +114,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                         )
                         add(
                             MenuItem(getString(R.string.add_blocking)) {
-                                BlockingManager.addBlockedWork(safeArgs.illustId)
+                                EntityWrapper.blockIllust(ctx, illust)
                             }
                         )
                     }

@@ -63,7 +63,9 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         combineLatest(liveNovel, textModel.webNovel).observe(viewLifecycleOwner) { (novel, webNovel) ->
 
             if (novel != null) {
-                EntityWrapper.visitNovel(requireContext(), novel)
+                runOnceWithinFragmentLifecycle("visit-novel-${safeArgs.novelId}") {
+                    EntityWrapper.visitNovel(requireContext(), novel)
+                }
             }
 
             binding.toolbarLayout.naviMore.setOnClick {

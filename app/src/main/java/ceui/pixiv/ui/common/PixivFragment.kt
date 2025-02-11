@@ -99,6 +99,18 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
         fragmentViewModel.viewCreatedTime.value = System.currentTimeMillis()
     }
 
+    fun <ResultT> runOnceWithinFragmentLifecycle(
+        taskId: String,
+        task: () -> ResultT
+    ): ResultOrNoOp<ResultT> {
+        return if (fragmentViewModel.taskHasDone(taskId)) {
+            ResultOrNoOp.NoOp()
+        } else {
+            fragmentViewModel.setTaskHasDone(taskId)
+            ResultOrNoOp.Done(task())
+        }
+    }
+
     override fun onClickIllustCard(illust: Illust) {
         onClickIllust(illust.id)
     }
