@@ -16,4 +16,17 @@ class NavFragmentViewModel(state: SavedStateHandle): ViewModel() {
         }
 
     val viewCreatedTime = state.getLiveData<Long>("viewCreatedTime")
+
+    private val doneOnceTasks: MutableSet<String> =
+        state["doneOnceTasks"] ?: mutableSetOf<String>().also {
+            state["doneOnceTasks"] = it
+        }
+
+    fun taskHasDone(taskId: String): Boolean {
+        return doneOnceTasks.contains(taskId)
+    }
+
+    fun setTaskHasDone(taskId: String) {
+        doneOnceTasks.add(taskId)
+    }
 }

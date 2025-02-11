@@ -11,44 +11,93 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+
 object EntityWrapper {
 
-    fun visitIllust(context: Context, illust: Illust) {
-        MainScope().launch(Dispatchers.IO) {
-            try {
-                val json = Shaft.sGson.toJson(illust)
-                val entity = GeneralEntity(illust.id, json, EntityType.ILLUST, RecordType.VIEW_ILLUST_HISTORY)
-                AppDatabase.getAppDatabase(context).generalDao().insert(entity)
-                Timber.d("EntityWrapper visitIllust done ${illust.title}")
-            } catch (ex: Exception) {
-                Timber.e(ex)
-            }
+    // 通用插入方法
+    private suspend fun insertEntity(context: Context, entity: GeneralEntity) {
+        try {
+            AppDatabase.getAppDatabase(context).generalDao().insert(entity)
+            Timber.d("EntityWrapper insertEntity done ${entity.id}")
+        } catch (ex: Exception) {
+            Timber.e(ex, "Error inserting entity: ${entity.id}")
         }
+    }
+
+    // 通用删除方法
+    private suspend fun deleteEntity(context: Context, recordType: Int, id: Long) {
+        try {
+            AppDatabase.getAppDatabase(context).generalDao().deleteByRecordTypeAndId(recordType, id)
+            Timber.d("EntityWrapper deleteEntity done $id")
+        } catch (ex: Exception) {
+            Timber.e(ex, "Error deleting entity: $id")
+        }
+    }
+
+    // 插入访问记录
+    private fun visit(context: Context, id: Long, entityJson: String, entityType: Int, recordType: Int) {
+        MainScope().launch(Dispatchers.IO) {
+            val entity = GeneralEntity(id, entityJson, entityType, recordType)
+            insertEntity(context, entity)
+        }
+    }
+
+    // 插入或删除块操作
+    private fun block(context: Context, id: Long, entityJson: String, entityType: Int, recordType: Int) {
+        MainScope().launch(Dispatchers.IO) {
+            val entity = GeneralEntity(id, entityJson, entityType, recordType)
+            insertEntity(context, entity)
+        }
+    }
+
+    // 调用 `visit` 方法
+    fun visitIllust(context: Context, illust: Illust) {
+        val json = Shaft.sGson.toJson(illust)
+        visit(context, illust.id, json, EntityType.ILLUST, RecordType.VIEW_ILLUST_HISTORY)
     }
 
     fun visitNovel(context: Context, novel: Novel) {
-        MainScope().launch(Dispatchers.IO) {
-            try {
-                val json = Shaft.sGson.toJson(novel)
-                val entity = GeneralEntity(novel.id, json, EntityType.NOVEL, RecordType.VIEW_NOVEL_HISTORY)
-                AppDatabase.getAppDatabase(context).generalDao().insert(entity)
-                Timber.d("EntityWrapper visitNovel done ${novel.title}")
-            } catch (ex: Exception) {
-                Timber.e(ex)
-            }
-        }
+        val json = Shaft.sGson.toJson(novel)
+        visit(context, novel.id, json, EntityType.NOVEL, RecordType.VIEW_NOVEL_HISTORY)
     }
 
     fun visitUser(context: Context, user: User) {
+        val json = Shaft.sGson.toJson(user)
+        visit(context, user.id, json, EntityType.USER, RecordType.VIEW_USER_HISTORY)
+    }
+
+    // 调用 `block` 方法
+    fun blockIllust(context: Context, illust: Illust) {
+        val json = Shaft.sGson.toJson(illust)
+        block(context, illust.id, json, EntityType.ILLUST, RecordType.BLOCK_ILLUST)
+    }
+
+    fun blockNovel(context: Context, novel: Novel) {
+        val json = Shaft.sGson.toJson(novel)
+        block(context, novel.id, json, EntityType.NOVEL, RecordType.BLOCK_NOVEL)
+    }
+
+    fun blockUser(context: Context, user: User) {
+        val json = Shaft.sGson.toJson(user)
+        block(context, user.id, json, EntityType.USER, RecordType.BLOCK_USER)
+    }
+
+    // 调用删除方法
+    fun unblockIllust(context: Context, illust: Illust) {
         MainScope().launch(Dispatchers.IO) {
-            try {
-                val json = Shaft.sGson.toJson(user)
-                val entity = GeneralEntity(user.id, json, EntityType.USER, RecordType.VIEW_USER_HISTORY)
-                AppDatabase.getAppDatabase(context).generalDao().insert(entity)
-                Timber.d("EntityWrapper visitUser done ${user.name}")
-            } catch (ex: Exception) {
-                Timber.e(ex)
-            }
+            deleteEntity(context, RecordType.BLOCK_ILLUST, illust.id)
+        }
+    }
+
+    fun unblockNovel(context: Context, novel: Novel) {
+        MainScope().launch(Dispatchers.IO) {
+            deleteEntity(context, RecordType.BLOCK_NOVEL, novel.id)
+        }
+    }
+
+    fun unblockUser(context: Context, user: User) {
+        MainScope().launch(Dispatchers.IO) {
+            deleteEntity(context, RecordType.BLOCK_USER, user.id)
         }
     }
 }

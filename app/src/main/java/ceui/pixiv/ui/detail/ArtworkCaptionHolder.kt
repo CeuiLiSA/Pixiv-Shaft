@@ -1,17 +1,21 @@
 package ceui.pixiv.ui.detail
 
+import android.text.method.LinkMovementMethod
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellArtworkCaptionBinding
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.ShareIllust
 import ceui.loxia.DateParse
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.novel.CustomLinkMovementMethod
 import ceui.pixiv.utils.setOnClick
+import timber.log.Timber
 
 
 class ArtworkCaptionHolder(val illustId: Long) : ListItemHolder() {
@@ -37,6 +41,18 @@ class ArtworkCaptionViewHolder(bd: CellArtworkCaptionBinding) : ListItemViewHold
             binding.userId.setOnClick {
                 Common.copy(context, illust.user?.id?.toString())
             }
+            binding.illustLink.text =
+                context.getString(R.string.artwork_link, ShareIllust.URL_Head + illust.id)
+            binding.illustLink.setOnClick {
+                Common.copy(context, ShareIllust.URL_Head + illust.id)
+            }
+
+            binding.userLink.text =
+                context.getString(R.string.user_link, ShareIllust.USER_URL_Head + illust.user?.id)
+            binding.userLink.setOnClick {
+                Common.copy(context, ShareIllust.USER_URL_Head + illust.user?.id)
+            }
+
             binding.publishTime.text = context.getString(
                 R.string.published_on,
                 DateParse.getTimeAgo(context, illust.create_date)

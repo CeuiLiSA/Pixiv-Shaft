@@ -56,11 +56,13 @@ public abstract class AppDatabase extends RoomDatabase {
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL(
                     "CREATE TABLE IF NOT EXISTS general_table (" +
-                            "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " + // ✅ 兼容 Long
+                            "id INTEGER NOT NULL, " +  // id 字段，非空
+                            "recordType INTEGER NOT NULL, " +  // recordType 字段，非空
                             "json TEXT NOT NULL, " +
                             "entityType INTEGER NOT NULL, " +
-                            "recordType INTEGER NOT NULL, " +
-                            "updatedTime INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000))"
+                            "updatedTime INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000), " +
+                            "PRIMARY KEY(id, recordType)" +  // 复合主键
+                            ")"
             );
         }
     };

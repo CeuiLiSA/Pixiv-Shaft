@@ -61,13 +61,13 @@ class HistoryViewModel(
     }
 
     private fun mapper(entity: GeneralEntity): ListItemHolder? {
-        return if (recordType == RecordType.VIEW_ILLUST_HISTORY) {
+        return if (recordType == RecordType.VIEW_ILLUST_HISTORY || recordType == RecordType.BLOCK_ILLUST) {
             val illust = entity.typedObject<Illust>()
             IllustCardHolder(illust)
-        } else if (recordType == RecordType.VIEW_USER_HISTORY) {
+        } else if (recordType == RecordType.VIEW_USER_HISTORY || recordType == RecordType.BLOCK_USER) {
             val user = entity.typedObject<User>()
             UserInfoHolder(user.id)
-        } else if (recordType == RecordType.VIEW_NOVEL_HISTORY) {
+        } else if (recordType == RecordType.VIEW_NOVEL_HISTORY || recordType == RecordType.BLOCK_NOVEL) {
             val novel = entity.typedObject<Novel>()
             NovelCardHolder(novel)
         } else {
@@ -76,13 +76,13 @@ class HistoryViewModel(
     }
 
     override fun prepareIdMap(fragmentUniqueId: String) {
-        if (recordType == RecordType.VIEW_ILLUST_HISTORY) {
+        if (recordType == RecordType.VIEW_ILLUST_HISTORY || recordType == RecordType.BLOCK_ILLUST) {
             val filteredList = _itemHolders.value.orEmpty()
                 .filterIsInstance<IllustCardHolder>()
                 .map { it.illust.id }
 
             ArtworksMap.store[fragmentUniqueId] = filteredList
-        } else if (recordType == RecordType.VIEW_NOVEL_HISTORY) {
+        } else if (recordType == RecordType.VIEW_NOVEL_HISTORY || recordType == RecordType.BLOCK_NOVEL) {
             val filteredList = _itemHolders.value.orEmpty()
                 .filterIsInstance<NovelCardHolder>()
                 .map { it.novel.id }

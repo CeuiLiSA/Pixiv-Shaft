@@ -13,8 +13,12 @@ import ceui.lisa.databinding.FragmentCommonViewpagerBinding
 import ceui.lisa.utils.Params
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.blocking.BlockedItemListFragment
+import ceui.pixiv.ui.blocking.BlockedItemListFragmentArgs
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
+import ceui.pixiv.ui.common.ViewPagerContentType.MyBlockingHistory
+import ceui.pixiv.ui.common.ViewPagerContentType.MyViewHistory
 import ceui.pixiv.ui.history.ViewHistoryFragment
 import ceui.pixiv.ui.history.ViewHistoryFragmentArgs
 import ceui.pixiv.ui.user.UserBookmarkedIllustsFragment
@@ -30,6 +34,7 @@ object ViewPagerContentType {
     const val MyBookmarkNovel = 2
     const val MyFollowingUsers = 3
     const val MyViewHistory = 4
+    const val MyBlockingHistory = 5
 }
 
 class CommonViewPagerViewModel : ViewModel() {
@@ -136,7 +141,7 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                     initialTitle = getString(R.string.string_392)
                 )
             )
-        } else if (args.contentType == ViewPagerContentType.MyViewHistory) {
+        } else if (args.contentType == MyViewHistory) {
             pagedItems.add(
                 PagedFragmentItem(
                     builder = {
@@ -167,6 +172,43 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                         ViewHistoryFragment().apply {
                             arguments = ViewHistoryFragmentArgs(
                                 RecordType.VIEW_USER_HISTORY
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_user)
+                )
+            )
+        } else if (args.contentType == MyBlockingHistory) {
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        BlockedItemListFragment().apply {
+                            arguments = BlockedItemListFragmentArgs(
+                                RecordType.BLOCK_ILLUST
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.string_136)
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        BlockedItemListFragment().apply {
+                            arguments = BlockedItemListFragmentArgs(
+                                RecordType.BLOCK_NOVEL
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_novel)
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        BlockedItemListFragment().apply {
+                            arguments = BlockedItemListFragmentArgs(
+                                RecordType.BLOCK_USER
                             ).toBundle()
                         }
                     },

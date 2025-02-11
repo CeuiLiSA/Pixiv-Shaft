@@ -13,6 +13,7 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
+import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.HoldersViewModel
@@ -43,7 +44,8 @@ class ArtworkViewModel(
             if (holders.isNotEmpty()) {
                 // 从现有列表中剔除 LoadingHolder
                 val filteredList =
-                    (_itemHolders.value ?: listOf()).filterNot { it is LoadingHolder }.toMutableList()
+                    (_itemHolders.value ?: listOf()).filterNot { it is LoadingHolder }
+                        .toMutableList()
 
                 // 添加新数据
                 filteredList.addAll(holders)
@@ -84,7 +86,13 @@ class ArtworkViewModel(
         result.add(UserInfoHolder(illust.user?.id ?: 0L))
         result.add(RedSectionHeaderHolder("简介"))
         result.add(ArtworkCaptionHolder(illustId))
-        result.add(RedSectionHeaderHolder(context.getString(R.string.related_artworks)))
+        result.add(
+            RedSectionHeaderHolder(
+                context.getString(R.string.related_artworks),
+                type = SeeMoreType.RELATED_ILLUST,
+                seeMoreString = context.getString(R.string.see_more)
+            )
+        )
         result.add(LoadingHolder(_relatedIllustsDataSource.refreshStateImpl) {
             viewModelScope.launch {
                 _relatedIllustsDataSource.refreshImpl(
