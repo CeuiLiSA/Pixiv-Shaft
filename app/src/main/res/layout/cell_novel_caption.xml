@@ -16,7 +16,7 @@
 
         <TextView
             android:id="@+id/caption"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:layout_marginBottom="12dp"
             android:layout_width="match_parent"
             android:textColor="@color/text00"
@@ -24,7 +24,7 @@
 
         <TextView
             android:id="@+id/publish_time"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:layout_marginBottom="12dp"
             android:layout_width="match_parent"
             android:textColor="@color/text00"
@@ -32,7 +32,7 @@
 
         <TextView
             android:id="@+id/illust_id"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:text="@{`ID: ` + String.valueOf(novel.id)}"
             android:layout_marginBottom="12dp"
             android:layout_width="match_parent"
@@ -40,9 +40,25 @@
             android:layout_height="wrap_content"/>
 
         <TextView
+            android:id="@+id/illust_link"
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
+        <TextView
             android:id="@+id/user_id"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:text="@{`UID: ` + String.valueOf(novel.user.id)}"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/user_link"
+            android:textSize="15sp"
             android:layout_marginBottom="12dp"
             android:layout_width="match_parent"
             android:textColor="@color/text00"

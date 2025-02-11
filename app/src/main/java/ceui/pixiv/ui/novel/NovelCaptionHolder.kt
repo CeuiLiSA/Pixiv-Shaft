@@ -9,6 +9,7 @@ import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellArtworkCaptionBinding
 import ceui.lisa.databinding.CellNovelCaptionBinding
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.ShareIllust
 import ceui.loxia.Client
 import ceui.loxia.DateParse
 import ceui.loxia.Novel
@@ -19,6 +20,7 @@ import ceui.loxia.launchSuspend
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.NovelActionReceiver
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.detail.ArtworksMap
@@ -63,6 +65,18 @@ class NovelCaptionViewHolder(bd: CellNovelCaptionBinding) : ListItemViewHolder<C
             } else {
                 binding.caption.isVisible = false
             }
+            binding.illustLink.text =
+                context.getString(R.string.artwork_link, NOVEL_URL_HEAD + novel.id)
+            binding.illustLink.setOnClick {
+                Common.copy(context, NOVEL_URL_HEAD + novel.id)
+            }
+
+            binding.userLink.text =
+                context.getString(R.string.user_link, ShareIllust.USER_URL_Head + novel.user?.id)
+            binding.userLink.setOnClick {
+                Common.copy(context, ShareIllust.USER_URL_Head + novel.user?.id)
+            }
+
             binding.userId.setOnClick {
                 Common.copy(context, novel.user?.id?.toString())
             }

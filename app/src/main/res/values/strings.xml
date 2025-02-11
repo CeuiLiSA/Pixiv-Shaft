@@ -752,4 +752,6 @@
     <string name="chat_with_him">私信</string>
     <string name="download_all_created_novels">下载此作者的全部作品</string>
     <string name="browse_history">浏览历史</string>
+    <string name="artwork_link">作品链接：%1$s</string>
+    <string name="user_link">作者链接：%1$s</string>
 </resources>

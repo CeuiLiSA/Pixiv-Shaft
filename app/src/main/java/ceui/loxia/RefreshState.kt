@@ -5,8 +5,11 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.ItemLoadingBinding
 import ceui.pixiv.utils.setOnClick
+import retrofit2.HttpException
+import timber.log.Timber
 import java.io.Serializable
 import java.lang.Exception
 import java.net.SocketTimeoutException
@@ -72,7 +75,18 @@ fun Throwable.getHumanReadableMessage(context: Context): String {
             val title = titleAfter.substringBefore("</title>")
             title
         } else {
-            "${lc}: ${this.javaClass.simpleName}"
+            if (this is HttpException) {
+                val errorBody = this.response()?.errorBody()?.string()
+                try {
+                    val obj = Shaft.sGson.fromJson(errorBody, ErrorResp::class.java)
+                    obj.error?.user_message ?: errorBody ?: ""
+                } catch (ex: kotlin.Exception) {
+                    Timber.e(ex)
+                    errorBody ?: ""
+                }
+            } else {
+                "${lc}: ${this.javaClass.simpleName}"
+            }
         }
     }
 }
