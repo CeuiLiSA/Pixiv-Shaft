@@ -145,13 +145,6 @@ open class DataSource<Item, T: KListShow<Item>>(
         _itemHolders.value = holders
     }
 
-
-    fun updateMapper(mapper: (Item) -> List<ListItemHolder>) {
-        _itemHolders.value = listOf()
-        this._variableItemMapper = mapper
-        mapProtoItemsToHolders()
-    }
-
     protected fun pickItemHolders(): MutableLiveData<List<ListItemHolder>> {
         return _itemHolders
     }

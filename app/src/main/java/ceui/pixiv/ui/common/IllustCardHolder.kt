@@ -22,7 +22,7 @@ import com.bumptech.glide.Glide
 import timber.log.Timber
 import kotlin.math.roundToInt
 
-class IllustCardHolder(val illust: Illust) : ListItemHolder() {
+class IllustCardHolder(val illust: Illust, val isBlocked: Boolean = false) : ListItemHolder() {
 
     init {
         ObjectPool.update(illust)

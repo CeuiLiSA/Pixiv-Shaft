@@ -33,8 +33,8 @@ import ceui.lisa.utils.Settings;
 import ceui.lisa.view.MyDeliveryHeader;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
+import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.session.SessionManager;
-import ceui.pixiv.ui.blocking.BlockingManager;
 import ceui.pixiv.utils.NetworkStateManager;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
@@ -58,6 +58,8 @@ public class Shaft extends Application implements ServicesProvider {
     private OkHttpClient mOkHttpClient;
     private static MMKV mmkv;
     public static AppLevelViewModel appViewModel;
+
+    private EntityWrapper entityWrapper;
 
     /**
      * 状态栏高度，初始化
@@ -104,8 +106,10 @@ public class Shaft extends Application implements ServicesProvider {
 
         sSettings = Local.getSettings();
 
+        entityWrapper = new EntityWrapper(this);
+        entityWrapper.initialize();
+
         SessionManager.INSTANCE.initialize();
-        BlockingManager.INSTANCE.initialize();
 
         updateTheme();
 
@@ -244,5 +248,10 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull NetworkStateManager getNetworkStateManager() {
         return networkStateManager;
+    }
+
+    @Override
+    public @NotNull EntityWrapper getEntityWrapper() {
+        return entityWrapper;
     }
 }

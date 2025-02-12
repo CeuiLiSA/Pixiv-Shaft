@@ -17,10 +17,10 @@ import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.loxia.requireEntityWrapper
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.RecordType
-import ceui.pixiv.ui.blocking.BlockingManager
 import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
@@ -76,14 +76,14 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                     showActionMenu {
                         add(
                             MenuItem(getString(R.string.remove_blocking)) {
-                                EntityWrapper.unblockIllust(ctx, illust)
+                                requireEntityWrapper().unblockIllust(ctx, illust)
                             }
                         )
                     }
                 }
             } else {
                 runOnceWithinFragmentLifecycle("visit-illust-${safeArgs.illustId}") {
-                    EntityWrapper.visitIllust(ctx, illust)
+                    requireEntityWrapper().visitIllust(ctx, illust)
                 }
 
                 binding.refreshLayout.isVisible = true
@@ -117,7 +117,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                         )
                         add(
                             MenuItem(getString(R.string.add_blocking)) {
-                                EntityWrapper.blockIllust(ctx, illust)
+                                requireEntityWrapper().blockIllust(ctx, illust)
                             }
                         )
                     }

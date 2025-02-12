@@ -14,6 +14,7 @@ import ceui.loxia.ObjectType
 import ceui.loxia.Series
 import ceui.loxia.combineLatest
 import ceui.loxia.pushFragment
+import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
@@ -64,7 +65,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
 
             if (novel != null) {
                 runOnceWithinFragmentLifecycle("visit-novel-${safeArgs.novelId}") {
-                    EntityWrapper.visitNovel(requireContext(), novel)
+                    requireEntityWrapper().visitNovel(requireContext(), novel)
                 }
             }
 
