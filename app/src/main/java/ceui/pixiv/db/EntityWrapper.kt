@@ -9,15 +9,41 @@ import ceui.loxia.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 
-object EntityWrapper {
+class EntityWrapper(
+    private val context: Context
+) {
+
+    private val _blockingIllustIds = mutableSetOf<Long>()
+    private val _blockingUserIds = mutableSetOf<Long>()
+    private val _blockingNovelIds = mutableSetOf<Long>()
+
+    fun initialize() {
+        MainScope().launch {
+            withContext(Dispatchers.IO) {
+                val database = AppDatabase.getAppDatabase(context)
+
+                _blockingIllustIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_ILLUST))
+                _blockingUserIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_USER))
+                _blockingNovelIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_USER))
+            }
+        }
+    }
 
     // 通用插入方法
     private suspend fun insertEntity(context: Context, entity: GeneralEntity) {
         try {
             AppDatabase.getAppDatabase(context).generalDao().insert(entity)
+            if (entity.recordType == RecordType.BLOCK_ILLUST) {
+                _blockingIllustIds.add(entity.id)
+            } else if (entity.recordType == RecordType.BLOCK_USER) {
+                _blockingUserIds.add(entity.id)
+            } else if (entity.recordType == RecordType.BLOCK_NOVEL) {
+                _blockingNovelIds.add(entity.id)
+            }
             Timber.d("EntityWrapper insertEntity done ${entity.id}")
         } catch (ex: Exception) {
             Timber.e(ex, "Error inserting entity: ${entity.id}")
@@ -28,6 +54,13 @@ object EntityWrapper {
     private suspend fun deleteEntity(context: Context, recordType: Int, id: Long) {
         try {
             AppDatabase.getAppDatabase(context).generalDao().deleteByRecordTypeAndId(recordType, id)
+            if (recordType == RecordType.BLOCK_ILLUST) {
+                _blockingIllustIds.remove(id)
+            } else if (recordType == RecordType.BLOCK_USER) {
+                _blockingUserIds.remove(id)
+            } else if (recordType == RecordType.BLOCK_NOVEL) {
+                _blockingNovelIds.remove(id)
+            }
             Timber.d("EntityWrapper deleteEntity done $id")
         } catch (ex: Exception) {
             Timber.e(ex, "Error deleting entity: $id")
@@ -99,5 +132,9 @@ object EntityWrapper {
         MainScope().launch(Dispatchers.IO) {
             deleteEntity(context, RecordType.BLOCK_USER, user.id)
         }
+    }
+
+    fun isWorkBlocked(illustId: Long): Boolean {
+        return _blockingIllustIds.contains(illustId)
     }
 }

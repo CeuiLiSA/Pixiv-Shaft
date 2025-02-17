@@ -49,5 +49,18 @@
             android:layout_width="@dimen/min_widget_size"
             android:layout_height="@dimen/min_widget_size" />
 
+        <ceui.loxia.ProgressTextButton
+            android:id="@+id/remove_block"
+            android:layout_width="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:paddingHorizontal="20dp"
+            style="@style/RedShiningButton"
+            android:text="@string/string_119"
+            android:layout_height="44dp"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

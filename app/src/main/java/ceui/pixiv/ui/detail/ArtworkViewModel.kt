@@ -6,12 +6,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
+import ceui.lisa.database.AppDatabase
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.pixiv.db.EntityWrapper
+import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.common.DataSource
@@ -25,7 +28,9 @@ import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.works.getGalleryHolders
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class ArtworkViewModel(
@@ -73,6 +78,13 @@ class ArtworkViewModel(
         super.refreshImpl(hint)
         val context = Shaft.getContext()
         val illust = ObjectPool.get<Illust>(illustId).value ?: run {
+            withContext(Dispatchers.IO) {
+                val entity = AppDatabase.getAppDatabase(context).generalDao().getByRecordTypeAndId(RecordType.VIEW_ILLUST_HISTORY, illustId)
+                entity?.typedObject<Illust>()?.also {
+                    ObjectPool.update(it)
+                }
+            }
+        } ?: run {
             Client.appApi.getIllust(illustId).illust?.also {
                 ObjectPool.update(it)
             }

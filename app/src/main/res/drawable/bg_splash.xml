@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <solid android:color="@color/splash_background"/>
+        </shape>
+    </item>
+    <item android:top="160dp" android:gravity="center|top">
+        <bitmap android:src="@drawable/icon_shaft_v5" />
+    </item>
+</layer-list>
