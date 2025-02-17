@@ -350,7 +350,7 @@
         <!--        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="s">-->
         <!--            @drawable/splash_text-->
         <!--        </item>-->
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/snail_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/icon_shaft_with_bg</item>
         <item name="windowSplashScreenAnimationDuration">200</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>

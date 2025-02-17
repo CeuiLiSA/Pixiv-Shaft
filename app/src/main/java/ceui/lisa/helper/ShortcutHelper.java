@@ -39,12 +39,12 @@ public class ShortcutHelper {
         IconCompat iconCompat;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
-                iconCompat = IconCompat.createWithBitmap(getAdaptiveBitmap(context, R.mipmap.logo_final_round));
+                iconCompat = IconCompat.createWithBitmap(getAdaptiveBitmap(context, R.mipmap.ic_launcher_round));
             } catch (Exception e) {
-                iconCompat = IconCompat.createWithResource(context, R.mipmap.logo_final_round);
+                iconCompat = IconCompat.createWithResource(context, R.mipmap.ic_launcher_round);
             }
         } else {
-            iconCompat = IconCompat.createWithResource(context, R.mipmap.logo_final_round);
+            iconCompat = IconCompat.createWithResource(context, R.mipmap.ic_launcher_round);
         }
         ShortcutInfoCompat shortcut = new ShortcutInfoCompat.Builder(context, searchShortcutId)
                 .setShortLabel(context.getString(R.string.search))
