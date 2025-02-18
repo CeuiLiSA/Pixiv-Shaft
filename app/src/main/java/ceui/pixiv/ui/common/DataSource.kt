@@ -46,9 +46,12 @@ open class DataSource<Item, T: KListShow<Item>>(
                 delay(300L)
             }
 
+            var isCacheRetrieved = false
+
             if (hint == RefreshHint.InitialLoad) {
                 responseStore?.loadFromCache()?.let { storedResponse ->
                     applyResponse(storedResponse, false)
+                    isCacheRetrieved = true
                 }
             }
 
@@ -57,6 +60,12 @@ open class DataSource<Item, T: KListShow<Item>>(
                 responseStore == null ||
                 responseStore.isCacheExpired()
              ) {
+                if (hint == RefreshHint.InitialLoad && isCacheRetrieved) {
+                    delay(600L)
+                    _refreshState.value = RefreshState.FETCHING_LATEST()
+                    delay(1000L)
+                }
+
                 val response = withContext(Dispatchers.IO) {
                     dataFetcher().also {
                         responseStore?.writeToCache(it)

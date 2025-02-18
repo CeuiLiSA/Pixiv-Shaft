@@ -20,14 +20,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class HomeActivity : AppCompatActivity(), INetworkState {
+class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
-    private val _networkStateManager by lazy { NetworkStateManager(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        _networkStateManager
         enableEdgeToEdge()
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -131,14 +129,5 @@ class HomeActivity : AppCompatActivity(), INetworkState {
             }
         }
         return super.dispatchTouchEvent(event)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        _networkStateManager.unregisterNetworkCallback()
-    }
-
-    override val networkState: LiveData<NetworkStateManager.NetworkType> get() {
-        return _networkStateManager.networkState
     }
 }

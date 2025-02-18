@@ -5,7 +5,6 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,7 +15,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
-import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -370,6 +368,7 @@ fun Fragment.setUpRefreshState(
         } else {
             binding.refreshLayout.setEnableLoadMore(false)
         }
+        binding.cacheApplying.isVisible = state is RefreshState.FETCHING_LATEST
         val shouldShowLoading = state is RefreshState.LOADING && (
                 state.refreshHint == RefreshHint.InitialLoad ||
                         state.refreshHint == RefreshHint.ErrorRetry
