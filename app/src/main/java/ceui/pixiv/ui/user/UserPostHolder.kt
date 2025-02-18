@@ -94,8 +94,8 @@ class UserPostViewHolder(bd: CellUserPostBinding) :
             binding.imageList.clearItemDecorations()
             binding.imageList.addItemDecoration(GridSpacingItemDecoration(spanCount, 2.ppppx))
             adapter.submitList(holder.illust.meta_pages?.take(9)?.mapIndexedNotNull { index, page ->
-                if (page.image_urls?.square_medium != null) {
-                    SquareUrlHolder(page.image_urls.square_medium, holder.illust, index)
+                if (page.image_urls?.large != null) {
+                    SquareUrlHolder(page.image_urls.large, holder.illust, index)
                 } else {
                     null
                 }
