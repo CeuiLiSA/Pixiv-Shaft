@@ -3,6 +3,7 @@ package ceui.pixiv.ui.user
 import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.roundToInt
 
 class GridSpacingItemDecoration(
     private val spanCount: Int,
@@ -23,7 +24,7 @@ class GridSpacingItemDecoration(
         val totalItems = parent.adapter?.itemCount ?: 0
         val totalRows = (totalItems + spanCount - 1) / spanCount // 计算总行数（向上取整）
 
-        val halfSpacing = spacing / 2 // 让横向间距变小，匹配视觉效果
+        val halfSpacing = (spacing / 2F).roundToInt()  // 让横向间距变小，匹配视觉效果
 
         // 处理列间距
         when (column) {
@@ -43,6 +44,6 @@ class GridSpacingItemDecoration(
 
         // 处理行间距
         outRect.top = if (row == 0) 0 else halfSpacing // 第一行的上方没有间距
-        outRect.bottom = if (row < totalRows - 1) halfSpacing else 0 // 只有非最后一行才有底部间距
+//        outRect.bottom = if (row < totalRows - 1) halfSpacing else 0 // 只有非最后一行才有底部间距
     }
 }

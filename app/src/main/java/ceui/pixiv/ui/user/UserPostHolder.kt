@@ -16,6 +16,7 @@ import ceui.loxia.User
 import ceui.loxia.clearItemDecorations
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.findFragmentOrNull
+import ceui.pixiv.ui.chats.GridItemDecoration
 import ceui.pixiv.ui.chats.SquareUrlHolder
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.IllustCardActionReceiver
@@ -92,7 +93,7 @@ class UserPostViewHolder(bd: CellUserPostBinding) :
             val adapter = CommonAdapter(lifecycleOwner)
             binding.imageList.adapter = adapter
             binding.imageList.clearItemDecorations()
-            binding.imageList.addItemDecoration(GridSpacingItemDecoration(spanCount, 2.ppppx))
+            binding.imageList.addItemDecoration(GridItemDecoration(spanCount, 2.ppppx, false))
             adapter.submitList(holder.illust.meta_pages?.take(9)?.mapIndexedNotNull { index, page ->
                 if (page.image_urls?.large != null) {
                     SquareUrlHolder(page.image_urls.large, holder.illust, index)
