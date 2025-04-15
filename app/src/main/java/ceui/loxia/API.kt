@@ -4,6 +4,7 @@ import ceui.lisa.models.NullResponse
 import ceui.lisa.utils.Params
 import okhttp3.ResponseBody
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -21,6 +22,10 @@ interface API {
         @Field("type_of_problem") type_of_problem: String?,
         @Field("message") message: String?
     ): NullResponse
+
+
+    @POST("/v1/home/all")
+    suspend fun getHomeAll(@Body body: MainBody = MainBody()): HomeData
 
     @FormUrlEncoded
     @POST("/v1/user/follow/add")

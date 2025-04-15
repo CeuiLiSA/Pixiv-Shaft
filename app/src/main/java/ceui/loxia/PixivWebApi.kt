@@ -1,6 +1,8 @@
 package ceui.loxia
 
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -18,6 +20,10 @@ interface PixivWebApi {
     suspend fun getSquareContents(
         @Path("type") type: String,
     ): SquareResponse
+
+    // https://app-api.pixiv.net/v1/home/all
+    @POST("/ajax/street/v2/main")
+    suspend fun getMainData(@Body body: MainBody)
 
 
     @GET("/touch/ajax/user/bookmarks?p=1&lang=zh&version=eb51bf32f166e48a193f081b66211ef5cc643d6e")

@@ -590,6 +590,41 @@ data class TagsBody (
     val illust: List<SingleRecommend>? = null,
 ) : Serializable
 
+data class MainBody(
+    val k: String? = null,
+    val vhi: String? = null,
+    val vhm: String? = null,
+    val vhn: String? = null,
+    val next_params: NextPageSpec? = null,
+) : Serializable
+
+data class HomeData(
+    val contents: List<HomeOneLine>? = null,
+    val next_params: NextPageSpec? = null,
+) : Serializable, KListShow<HomeOneLine> {
+    override val displayList: List<HomeOneLine>
+        get() = contents.orEmpty()
+    override val nextPageUrl: String?
+        get() = null
+}
+
+data class HomeOneLine (
+    val kind: String? = null,
+    val thumbnails: List<ThumbnailItem>? = null
+) : Serializable {
+
+}
+
+data class ThumbnailItem (
+    val type: String? = null,
+    val app_model: Any? = null,
+) : Serializable
+
+data class NextPageSpec (
+    val page: Int? = null,
+    val content_index_prev: Int? = null,
+) : Serializable
+
 data class SingleRecommend (
     val tag: String? = null,
     val ids: List<Long>? = null,

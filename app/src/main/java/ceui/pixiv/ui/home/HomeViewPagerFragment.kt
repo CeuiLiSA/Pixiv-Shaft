@@ -17,6 +17,8 @@ import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
+import ceui.loxia.Client
+import ceui.loxia.MainBody
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.db.GeneralEntity
