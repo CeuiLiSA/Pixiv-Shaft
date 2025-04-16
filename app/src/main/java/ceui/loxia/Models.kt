@@ -610,6 +610,8 @@ data class HomeData(
 
 data class HomeOneLine (
     val kind: String? = null,
+    val ranking_date: String? = null,
+    val mode: String? = null,
     val thumbnails: List<ThumbnailItem>? = null
 ) : Serializable {
 
@@ -617,6 +619,11 @@ data class HomeOneLine (
 
 data class ThumbnailItem (
     val type: String? = null,
+    val sub_category: String? = null,
+    val sub_category_label: String? = null,
+    val title: String? = null,
+    val url: String? = null,
+    val image_url: String? = null,
     val app_model: Any? = null,
 ) : Serializable
 

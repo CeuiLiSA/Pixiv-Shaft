@@ -2,22 +2,19 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="200dp"
+    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ceui.loxia.ProgressTextButton
-        android:id="@+id/log_out"
-        style="@style/RedShiningButton"
-        android:layout_width="0dp"
-        android:layout_marginHorizontal="30dp"
-        android:includeFontPadding="false"
+    <TextView
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:text="@string/login_out"
-        android:textColor="@color/buttonTextRed"
+        android:id="@+id/content_text"
+        android:textColor="@color/text00"
+        android:layout_marginTop="12dp"
+        android:textSize="18sp"
+        style="@style/textMontserratSemiBold"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@drawable/log_out_btn"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

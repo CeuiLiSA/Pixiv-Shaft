@@ -16,6 +16,7 @@ import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPostHolder
 import com.google.gson.Gson
+import kotlin.collections.mutableListOf
 
 class DiscoverAllViewModel : HoldersViewModel() {
 
@@ -26,15 +27,19 @@ class DiscoverAllViewModel : HoldersViewModel() {
     override suspend fun refreshImpl(hint: RefreshHint) {
         super.refreshImpl(hint)
 
-        val resp = responseStore.loadFromCache() ?: Client.appApi.getHomeAll().also {
-            responseStore.writeToCache(it)
+        val cached = responseStore.loadFromCache()
+        val resp = if (cached != null && !responseStore.isCacheExpired()) {
+            cached
+        } else {
+            Client.appApi.getHomeAll().also {
+                responseStore.writeToCache(it)
+            }
         }
         _nextPageSpec = resp.next_params
         val records = mapHolders(resp.displayList)
         _itemHolders.value = records
         _refreshState.value = RefreshState.LOADED(
-            hasContent = records.isNotEmpty(),
-            hasNext = _nextPageSpec != null
+            hasContent = records.isNotEmpty(), hasNext = _nextPageSpec != null
         )
     }
 
@@ -46,22 +51,63 @@ class DiscoverAllViewModel : HoldersViewModel() {
         val records = mapHolders(resp.displayList)
         _itemHolders.value = ((_itemHolders.value ?: listOf()) + records)
         _refreshState.value = RefreshState.LOADED(
-            hasContent = true,
-            hasNext = _nextPageSpec != null
+            hasContent = true, hasNext = _nextPageSpec != null
         )
     }
 
     private fun mapHolders(items: List<HomeOneLine>): List<ListItemHolder> {
-        return items.mapNotNull { spec ->
-            val appModel = spec.thumbnails?.firstOrNull()?.app_model
-            val json = appModel?.let { gson.toJson(it) }.takeIf { !it.isNullOrEmpty() } ?: return@mapNotNull null
-
+        val ret = mutableListOf<ListItemHolder>()
+        items.forEach { spec ->
             when (spec.kind) {
-                ObjectType.NOVEL -> gson.fromJson(json, Novel::class.java)?.let { NovelCardHolder(it) }
-                ObjectType.ILLUST, ObjectType.MANGA -> gson.fromJson(json, Illust::class.java)?.let { UserPostHolder(it) }
+                ObjectType.NOVEL -> {
+                    val appModel = spec.thumbnails?.firstOrNull()?.app_model
+                    val json = appModel?.let { gson.toJson(it) }.takeIf { !it.isNullOrEmpty() }
+                        ?: return@forEach
+                    gson.fromJson(json, Novel::class.java)?.let {
+                        NovelCardHolder(it).also {
+                            ret.add(it)
+                        }
+                    }
+                }
+
+                ObjectType.ILLUST, ObjectType.MANGA -> {
+                    val appModel = spec.thumbnails?.firstOrNull()?.app_model
+                    val json = appModel?.let { gson.toJson(it) }.takeIf { !it.isNullOrEmpty() }
+                        ?: return@forEach
+                    gson.fromJson(json, Illust::class.java)?.let {
+                        UserPostHolder(it).also {
+                            ret.add(it)
+                        }
+                    }
+                }
+
+
+                "tags_carousel", "ranking" -> {
+                    val title = if (spec.kind == "ranking") {
+                        "Daily Ranking (${spec.ranking_date})"
+                    } else {
+                        "Hot Tags"
+                    }
+
+                    val illustList = mutableListOf<Illust>()
+                    spec.thumbnails?.forEach { thumbnail ->
+                        val appModel = thumbnail.app_model
+                        val json = appModel?.let { gson.toJson(it) }.takeIf { !it.isNullOrEmpty() }
+                            ?: return@forEach
+                        gson.fromJson(json, Illust::class.java)?.let {
+                            illustList.add(it)
+                        }
+                    }
+                    ret.add(RankPreviewListHolder(title, illustList))
+                }
+
+                "pixivision" -> {
+                    ret.add(ArticlePreviewListHolder("Pixivision", spec.thumbnails.orEmpty()))
+                }
                 else -> null
             }
         }
+        return ret
     }
 
 

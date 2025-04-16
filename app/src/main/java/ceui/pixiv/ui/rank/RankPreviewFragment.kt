@@ -2,23 +2,22 @@ package ceui.pixiv.ui.rank
 
 import android.os.Bundle
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentRankPreviewBinding
+import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
-import ceui.loxia.pushFragment
-import ceui.pixiv.ui.common.CommonAdapter
+import ceui.loxia.combineLatest
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivKeyedValueViewModel
-import ceui.pixiv.ui.common.pixivValueViewModel
-import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.discover.RankPreviewListHolder
 import kotlin.getValue
 
-class RankPreviewFragment : PixivFragment(R.layout.fragment_rank_preview) {
+class RankPreviewFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
-    private val binding by viewBinding(FragmentRankPreviewBinding::bind)
+    private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val rankIllustViewModel by pixivKeyedValueViewModel(
         keyPrefix = "rank-illust-day",
         responseStore = createResponseStore({ "rank-illust-day" })
@@ -34,27 +33,13 @@ class RankPreviewFragment : PixivFragment(R.layout.fragment_rank_preview) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.illustItems.setOnClick {
-            pushFragment(R.id.navigation_rank)
-        }
-        val rankingAdapter = CommonAdapter(viewLifecycleOwner)
-        binding.rankIllustList.adapter = rankingAdapter
-        binding.rankIllustList.layoutManager = LinearLayoutManager(requireContext(),
-            LinearLayoutManager.HORIZONTAL, false)
-        rankIllustViewModel.result.observe(viewLifecycleOwner) { resp ->
-            rankingAdapter.submitList(resp.displayList.map { RankPreviewHolder(it) })
-        }
 
-
-        binding.mangaItems.setOnClick {
-            pushFragment(R.id.navigation_rank)
-        }
-        val rankingMangaAdapter = CommonAdapter(viewLifecycleOwner)
-        binding.rankMangaList.adapter = rankingMangaAdapter
-        binding.rankMangaList.layoutManager = LinearLayoutManager(requireContext(),
-            LinearLayoutManager.HORIZONTAL, false)
-        rankMangaViewModel.result.observe(viewLifecycleOwner) { resp ->
-            rankingMangaAdapter.submitList(resp.displayList.map { RankPreviewHolder(it) })
+        val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL)
+        combineLatest(rankIllustViewModel.result, rankMangaViewModel.result).observe(viewLifecycleOwner) { (illustRank, mangaRank) ->
+            adapter.submitList(listOf(
+                RankPreviewListHolder("Illust Ranking", illustRank?.displayList.orEmpty()),
+                RankPreviewListHolder("Manga Ranking", mangaRank?.displayList.orEmpty()),
+            ))
         }
     }
 }

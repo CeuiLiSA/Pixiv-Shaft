@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="ceui.pixiv.ui.rank.ArticlePreviewHolder"/>
+        <variable
+            name="holder"
+            type="ArticlePreviewHolder" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:stateListAnimator="@animator/button_press_scale"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/thumbnail"
+            app:rRadius="6dp"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="match_parent"
+            loadMedia="@{holder.thumbnailItem.image_url}"
+            app:layout_constraintDimensionRatio="1200:630"
+            android:layout_height="0dp"/>
+
+        <TextView
+            app:layout_constraintTop_toBottomOf="@+id/thumbnail"
+            android:layout_width="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@{holder.thumbnailItem.title}"
+            app:layout_constraintStart_toStartOf="parent"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
