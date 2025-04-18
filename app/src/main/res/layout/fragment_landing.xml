@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.1"
+        app:layout_constraintVertical_bias="0.4"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="Welcome"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -22,11 +22,11 @@
 
     <Button
         android:id="@+id/start"
-        app:layout_constraintTop_toBottomOf="@+id/welcome_label"
+        app:layout_constraintTop_toTopOf="parent"
         android:layout_width="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.85"
+        app:layout_constraintVertical_bias="0.9"
         app:layout_constraintEnd_toEndOf="parent"
         android:text="@string/landing_start"
         android:layout_height="wrap_content"/>

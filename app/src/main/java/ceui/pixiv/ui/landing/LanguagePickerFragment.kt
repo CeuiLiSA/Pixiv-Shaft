@@ -13,6 +13,8 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.FragmentPixivListBinding.bind
 import ceui.lisa.databinding.FragmentSelectLanguageBinding
 import ceui.lisa.utils.Settings
+import ceui.loxia.launchSuspend
+import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
@@ -21,12 +23,16 @@ import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.animateFadeIn
+import ceui.pixiv.utils.animateFadeInQuickly
+import ceui.pixiv.utils.setOnClick
+import kotlinx.coroutines.delay
 
 class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) {
 
     private val binding by viewBinding(FragmentSelectLanguageBinding::bind)
 
-    class VM(initLanguage: String) : ViewModel() {
+    private class VM(initLanguage: String) : ViewModel() {
         val currencyLanguage = MutableLiveData<String>()
 
         init {
@@ -50,7 +56,7 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
                 R.drawable.list_divider,
             )
         )
-
+        val listView = binding.listView
         adapter.submitList(
             Settings.ALL_LANGUAGE.mapIndexed { index, language ->
                 TabCellHolder(
@@ -59,6 +65,17 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
                             it, language
                         )
                     }).onItemClick { viewModel.currencyLanguage.value = language }
-            })
+            }) {
+            launchSuspend {
+                listView.alpha = 0F
+                delay(500L)
+                listView.animateFadeInQuickly()
+            }
+        }
+
+
+        binding.start.setOnClick {
+            pushFragment(R.id.navigation_select_login_way)
+        }
     }
 }

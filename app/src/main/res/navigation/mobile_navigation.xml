@@ -110,6 +110,11 @@
         android:name="ceui.pixiv.ui.landing.LanguagePickerFragment"
         tools:layout="@layout/fragment_select_language" />
 
+    <fragment
+        android:id="@+id/navigation_select_login_way"
+        android:name="ceui.pixiv.ui.landing.SelectLoginWayFragment"
+        tools:layout="@layout/fragment_select_login_way" />
+
 
     <fragment
         android:id="@+id/navigation_view_history"
