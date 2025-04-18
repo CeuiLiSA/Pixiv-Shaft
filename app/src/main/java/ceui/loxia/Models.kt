@@ -573,6 +573,12 @@ data class WebResponse<T> (
     val body: T? = null,
 ) : Serializable
 
+data class NotLogInHomeData(
+    val error: Boolean? = null,
+    val message: String? = null,
+    val body: HomeData? = null,
+) : Serializable
+
 data class RelatedUserBody (
     val thumbnails: List<WebIllust>? = null,
     val users: List<WebUser>? = null,

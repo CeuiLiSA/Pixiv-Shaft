@@ -10,6 +10,7 @@ import ceui.loxia.Novel
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.NovelCardHolder
@@ -28,13 +29,19 @@ class DiscoverAllViewModel : HoldersViewModel() {
         super.refreshImpl(hint)
 
         val cached = responseStore.loadFromCache()
-        val resp = if (cached != null && !responseStore.isCacheExpired()) {
-            cached
-        } else {
-            Client.appApi.getHomeAll().also {
-                responseStore.writeToCache(it)
+        val resp = if (SessionManager.isLoggedIn) {
+            if (cached != null && !responseStore.isCacheExpired()) {
+                cached
+            } else {
+                Client.appApi.getHomeAll().also {
+                    responseStore.writeToCache(it)
+                }
             }
+        } else {
+//            gson.fromJson(PixivApiClient().getHomePage(), NotLogInHomeData::class.java).body ?: HomeData()
+            Client.webApi.getMainData(MainBody()).body ?: HomeData()
         }
+
         _nextPageSpec = resp.next_params
         val records = mapHolders(resp.displayList)
         _itemHolders.value = records

@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentLandingBinding
+import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.viewBinding

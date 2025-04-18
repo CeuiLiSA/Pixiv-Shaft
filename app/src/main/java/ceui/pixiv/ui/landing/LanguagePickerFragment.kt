@@ -6,6 +6,8 @@ import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -75,7 +77,16 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
 
 
         binding.start.setOnClick {
-            pushFragment(R.id.navigation_select_login_way)
+//            pushFragment(R.id.navigation_select_login_way)
+            val navController = findNavController()
+
+            val navOptions = NavOptions.Builder()
+                // 清除栈中的 A, B, C
+                .setPopUpTo(R.id.navigation_landing, true) // 设定返回到 A 并移除它以及之后的 fragment
+                .build()
+
+            // 跳转到 X Fragment，且关闭之前的 fragment
+            navController.navigate(R.id.navigation_discover_all, null, navOptions)
         }
     }
 }

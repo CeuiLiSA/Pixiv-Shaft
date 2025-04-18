@@ -23,7 +23,7 @@ interface PixivWebApi {
 
     // https://app-api.pixiv.net/v1/home/all
     @POST("/ajax/street/v2/main")
-    suspend fun getMainData(@Body body: MainBody)
+    suspend fun getMainData(@Body body: MainBody): NotLogInHomeData
 
 
     @GET("/touch/ajax/user/bookmarks?p=1&lang=zh&version=eb51bf32f166e48a193f081b66211ef5cc643d6e")

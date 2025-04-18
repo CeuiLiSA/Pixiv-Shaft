@@ -137,6 +137,12 @@
         tools:layout="@layout/fragment_home_viewpager" />
 
     <fragment
+        android:id="@+id/navigation_discover_all"
+        android:name="ceui.pixiv.ui.discover.DiscoverAllFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
+
+
+    <fragment
         android:id="@+id/navigation_search_viewpager"
         android:name="ceui.pixiv.ui.search.SearchViewPagerFragment"
         tools:layout="@layout/fragment_search_viewpager" >
