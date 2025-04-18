@@ -754,4 +754,5 @@
     <string name="browse_history">浏览历史</string>
     <string name="artwork_link">作品链接：%1$s</string>
     <string name="user_link">作者链接：%1$s</string>
+    <string name="landing_start">开始</string>
 </resources>

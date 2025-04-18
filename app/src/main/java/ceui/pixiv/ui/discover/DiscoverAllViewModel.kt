@@ -60,10 +60,7 @@ class DiscoverAllViewModel : HoldersViewModel() {
         items.forEach { spec ->
             when (spec.kind) {
                 ObjectType.NOVEL -> {
-                    val appModel = spec.thumbnails?.firstOrNull()?.app_model
-                    val json = appModel?.let { gson.toJson(it) }.takeIf { !it.isNullOrEmpty() }
-                        ?: return@forEach
-                    gson.fromJson(json, Novel::class.java)?.let {
+                    parseAppModel<Novel>(spec.thumbnails?.firstOrNull()?.app_model)?.let {
                         NovelCardHolder(it).also {
                             ret.add(it)
                         }
@@ -71,10 +68,7 @@ class DiscoverAllViewModel : HoldersViewModel() {
                 }
 
                 ObjectType.ILLUST, ObjectType.MANGA -> {
-                    val appModel = spec.thumbnails?.firstOrNull()?.app_model
-                    val json = appModel?.let { gson.toJson(it) }.takeIf { !it.isNullOrEmpty() }
-                        ?: return@forEach
-                    gson.fromJson(json, Illust::class.java)?.let {
+                    parseAppModel<Illust>(spec.thumbnails?.firstOrNull()?.app_model)?.let {
                         UserPostHolder(it).also {
                             ret.add(it)
                         }
@@ -91,12 +85,7 @@ class DiscoverAllViewModel : HoldersViewModel() {
 
                     val illustList = mutableListOf<Illust>()
                     spec.thumbnails?.forEach { thumbnail ->
-                        val appModel = thumbnail.app_model
-                        val json = appModel?.let { gson.toJson(it) }.takeIf { !it.isNullOrEmpty() }
-                            ?: return@forEach
-                        gson.fromJson(json, Illust::class.java)?.let {
-                            illustList.add(it)
-                        }
+                        parseAppModel<Illust>(thumbnail.app_model)?.let { illustList.add(it) }
                     }
                     ret.add(RankPreviewListHolder(title, illustList))
                 }
@@ -104,12 +93,17 @@ class DiscoverAllViewModel : HoldersViewModel() {
                 "pixivision" -> {
                     ret.add(ArticlePreviewListHolder("Pixivision", spec.thumbnails.orEmpty()))
                 }
+
                 else -> null
             }
         }
         return ret
     }
 
+    private inline fun <reified T> parseAppModel(app_model: Any?): T? {
+        val json = app_model?.let { gson.toJson(it) }
+        return json?.takeIf { it.isNotEmpty() }?.let { gson.fromJson(it, T::class.java) }
+    }
 
     init {
         refresh(RefreshHint.InitialLoad)

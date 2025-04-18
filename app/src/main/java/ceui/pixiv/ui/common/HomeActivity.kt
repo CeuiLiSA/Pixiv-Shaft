@@ -7,17 +7,12 @@ import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.utils.INetworkState
-import ceui.pixiv.utils.NetworkStateManager
+import ceui.lisa.R
 import ceui.pixiv.utils.ppppx
-import com.tencent.mmkv.MMKV
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class HomeActivity : AppCompatActivity() {
@@ -32,6 +27,16 @@ class HomeActivity : AppCompatActivity() {
 
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        val graph = navController.navInflater.inflate(R.navigation.mobile_navigation)
+        val startDestination = if (SessionManager.isLoggedIn) {
+            R.id.navigation_home_viewpager
+        } else {
+            R.id.navigation_landing
+        }
+        graph.setStartDestination(startDestination)
+        navController.graph = graph
 
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
