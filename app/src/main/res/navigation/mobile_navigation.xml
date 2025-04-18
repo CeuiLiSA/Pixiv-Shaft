@@ -106,6 +106,12 @@
         tools:layout="@layout/fragment_pixiv_list" />
 
     <fragment
+        android:id="@+id/navigation_language_picker"
+        android:name="ceui.pixiv.ui.landing.LanguagePickerFragment"
+        tools:layout="@layout/fragment_select_language" />
+
+
+    <fragment
         android:id="@+id/navigation_view_history"
         android:name="ceui.pixiv.ui.history.ViewHistoryFragment"
         tools:layout="@layout/fragment_pixiv_list" >

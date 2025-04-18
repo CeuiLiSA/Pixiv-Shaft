@@ -13,7 +13,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintVertical_bias="0.1"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:text="Welcome"
+        tools:text="Language"
         app:layout_constraintBottom_toBottomOf="parent"
         android:textColor="@color/text00"
         android:gravity="center"
@@ -28,7 +28,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintVertical_bias="0.85"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/landing_start"
+        android:text="@string/next"
         android:layout_height="wrap_content"/>
 
 

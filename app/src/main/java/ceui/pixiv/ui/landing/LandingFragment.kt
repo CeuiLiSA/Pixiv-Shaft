@@ -7,8 +7,10 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentLandingBinding
+import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.setOnClick
 
 class LandingFragment : PixivFragment(R.layout.fragment_landing) {
     private val binding by viewBinding(FragmentLandingBinding::bind)
@@ -20,6 +22,10 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
         // 初始化欢迎语
         landingViewModel.currentIndex.observe(viewLifecycleOwner) { index ->
             fadeToNextMessage(index)
+        }
+
+        binding.start.setOnClick {
+            pushFragment(R.id.navigation_language_picker)
         }
     }
 
