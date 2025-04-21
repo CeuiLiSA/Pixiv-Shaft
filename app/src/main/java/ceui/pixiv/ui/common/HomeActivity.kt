@@ -12,12 +12,15 @@ import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
 import ceui.lisa.R
+import ceui.pixiv.ui.landing.LandingFragment
 import ceui.pixiv.utils.ppppx
+import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
+    private val prefStore by lazy { MMKV.defaultMMKV() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +36,11 @@ class HomeActivity : AppCompatActivity() {
         val startDestination = if (SessionManager.isLoggedIn) {
             R.id.navigation_home_viewpager
         } else {
-            R.id.navigation_landing
+            if (prefStore.getBoolean(LandingFragment.IS_LANDING_PAGE_SHOWN, false)) {
+                R.id.navigation_discover_all
+            } else {
+                R.id.navigation_landing
+            }
         }
         graph.setStartDestination(startDestination)
         navController.graph = graph

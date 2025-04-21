@@ -28,11 +28,13 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.animateFadeIn
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.setOnClick
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.delay
 
 class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) {
 
     private val binding by viewBinding(FragmentSelectLanguageBinding::bind)
+    private val prefStore by lazy { MMKV.defaultMMKV() }
 
     private class VM(initLanguage: String) : ViewModel() {
         val currencyLanguage = MutableLiveData<String>()
@@ -84,6 +86,8 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
                 // 清除栈中的 A, B, C
                 .setPopUpTo(R.id.navigation_landing, true) // 设定返回到 A 并移除它以及之后的 fragment
                 .build()
+
+            prefStore.putBoolean(LandingFragment.IS_LANDING_PAGE_SHOWN, true)
 
             // 跳转到 X Fragment，且关闭之前的 fragment
             navController.navigate(R.id.navigation_discover_all, null, navOptions)

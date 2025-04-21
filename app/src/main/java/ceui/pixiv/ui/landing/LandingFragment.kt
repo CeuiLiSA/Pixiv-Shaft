@@ -32,7 +32,9 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
         }
     }
 
-
+    companion object {
+        const val IS_LANDING_PAGE_SHOWN = "IS_LANDING_PAGE_SHOWN"
+    }
 
 
     private val WELCOME_MESSAGES = arrayOf(

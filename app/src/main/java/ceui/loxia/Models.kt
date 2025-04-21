@@ -142,6 +142,12 @@ data class WebIllust(
     }
 }
 
+data class WebImgPage(
+    val width: Int = 1,
+    val height: Int = 1,
+    val urls: Map<String, String>? = null,
+)
+
 data class Illust(
     val caption: String? = null,
     val create_date: String? = null,
@@ -631,6 +637,7 @@ data class ThumbnailItem (
     val url: String? = null,
     val image_url: String? = null,
     val app_model: Any? = null,
+    val pages: List<WebImgPage>? = null,
 ) : Serializable
 
 data class NextPageSpec (

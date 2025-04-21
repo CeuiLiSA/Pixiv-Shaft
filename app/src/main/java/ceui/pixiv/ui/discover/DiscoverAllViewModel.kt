@@ -4,12 +4,14 @@ import ceui.loxia.Client
 import ceui.loxia.HomeData
 import ceui.loxia.HomeOneLine
 import ceui.loxia.Illust
+import ceui.loxia.ImageUrls
 import ceui.loxia.MainBody
 import ceui.loxia.NextPageSpec
 import ceui.loxia.Novel
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.WebIllust
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
@@ -75,8 +77,29 @@ class DiscoverAllViewModel : HoldersViewModel() {
                 }
 
                 ObjectType.ILLUST, ObjectType.MANGA -> {
-                    parseAppModel<Illust>(spec.thumbnails?.firstOrNull()?.app_model)?.let {
-                        UserPostHolder(it).also {
+                    val appModal = spec.thumbnails?.firstOrNull()?.app_model
+                    if (appModal != null) {
+                        parseAppModel<Illust>(appModal)?.let {
+                            UserPostHolder(it).also {
+                                ret.add(it)
+                            }
+                        }
+                    } else {
+                        val webIllust = gson.fromJson(gson.toJson(spec.thumbnails?.firstOrNull()), WebIllust::class.java)
+                        val page = spec.thumbnails?.firstOrNull()?.pages?.firstOrNull()
+                        val urls = page?.urls
+                        val illust = webIllust.toIllust().copy(
+                            width = page?.width ?: 1,
+                            height = page?.height ?: 1,
+                            page_count = 1,
+                            image_urls = ImageUrls(
+                                medium = urls?.get("360x360"),
+                                square_medium = urls?.get("540x540"),
+                                large = urls?.get("1200x1200"),
+                                original = urls?.get("1200x1200"),
+                            )
+                        )
+                        UserPostHolder(illust).also {
                             ret.add(it)
                         }
                     }
