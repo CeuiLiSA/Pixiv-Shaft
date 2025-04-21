@@ -41,7 +41,7 @@ class DiscoverAllViewModel : HoldersViewModel() {
             }
         } else {
 //            gson.fromJson(PixivApiClient().getHomePage(), NotLogInHomeData::class.java).body ?: HomeData()
-            Client.webApi.getMainData(MainBody()).body ?: HomeData()
+            Client.appApi.getHomeAll(MainBody())
         }
 
         _nextPageSpec = resp.next_params

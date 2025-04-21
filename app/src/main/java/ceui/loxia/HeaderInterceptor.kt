@@ -7,6 +7,7 @@ import ceui.pixiv.ui.task.TaskPool
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import timber.log.Timber
 
 class HeaderInterceptor : Interceptor {
 
@@ -20,8 +21,13 @@ class HeaderInterceptor : Interceptor {
 
     private fun addHeader(before: Request.Builder): Request.Builder {
         val requestNonce = RequestNonce.build()
-        before.addHeader(ClientManager.HEADER_AUTH, ClientManager.TOKEN_HEAD + SessionManager.getAccessToken())
-            .addHeader("accept-language", LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage())
+        try {
+            before.addHeader(ClientManager.HEADER_AUTH, ClientManager.TOKEN_HEAD + SessionManager.getAccessToken())
+        } catch (ex: Exception) {
+            Timber.e(ex)
+        }
+
+        before.addHeader("accept-language", LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage())
             .addHeader("app-os", "ios")
             .addHeader("app-version", "7.13.4")
             .addHeader("x-client-time", requestNonce.xClientTime)
