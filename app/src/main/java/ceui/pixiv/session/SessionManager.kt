@@ -9,6 +9,7 @@ import ceui.loxia.AccountResponse
 import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
+import ceui.pixiv.ui.landing.LandingFragment
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,7 @@ object SessionManager {
     const val USE_NEW_UI_KEY = "use-v5-ui"
     const val COOKIE_KEY = "web-api-cookie"
     const val CONTENT_LANGUAGE_KEY = "content-language"
+    const val IS_LANDING_PAGE_SHOWN = "IS_LANDING_PAGE_SHOWN"
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
     private val gson = Gson()
@@ -32,12 +34,8 @@ object SessionManager {
     private val _newTokenEvent = MutableLiveData<Event<Long>>()
     val newTokenEvent: LiveData<Event<Long>> = _newTokenEvent
 
-    fun testRenewAnim() {
-        _newTokenEvent.postValue(Event(System.currentTimeMillis()))
-    }
-
     private val prefStore: MMKV by lazy {
-        MMKV.defaultMMKV()
+        MMKV.mmkvWithID("shaft-session")
     }
 
     val isLoggedIn: Boolean get() {
@@ -127,5 +125,12 @@ object SessionManager {
     }
 
 
+    fun isLandingPageShown(): Boolean {
+        return prefStore.getBoolean(IS_LANDING_PAGE_SHOWN, false)
+    }
+
+    fun markLandingPageShown() {
+        prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
+    }
 
 }

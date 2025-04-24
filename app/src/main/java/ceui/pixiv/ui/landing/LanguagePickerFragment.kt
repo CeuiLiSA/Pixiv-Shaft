@@ -17,6 +17,7 @@ import ceui.lisa.databinding.FragmentSelectLanguageBinding
 import ceui.lisa.utils.Settings
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
@@ -87,7 +88,7 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
                 .setPopUpTo(R.id.navigation_landing, true) // 设定返回到 A 并移除它以及之后的 fragment
                 .build()
 
-            prefStore.putBoolean(LandingFragment.IS_LANDING_PAGE_SHOWN, true)
+            SessionManager.markLandingPageShown()
 
             // 跳转到 X Fragment，且关闭之前的 fragment
             navController.navigate(R.id.navigation_discover_all, null, navOptions)

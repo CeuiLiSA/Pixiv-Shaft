@@ -36,7 +36,7 @@ class HomeActivity : AppCompatActivity() {
         val startDestination = if (SessionManager.isLoggedIn) {
             R.id.navigation_home_viewpager
         } else {
-            if (prefStore.getBoolean(LandingFragment.IS_LANDING_PAGE_SHOWN, false)) {
+            if (SessionManager.isLandingPageShown()) {
                 R.id.navigation_discover_all
             } else {
                 R.id.navigation_landing
