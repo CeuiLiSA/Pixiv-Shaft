@@ -91,7 +91,7 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
             SessionManager.markLandingPageShown()
 
             // 跳转到 X Fragment，且关闭之前的 fragment
-            navController.navigate(R.id.navigation_discover_all, null, navOptions)
+            navController.navigate(R.id.navigation_home_walkthrough, null, navOptions)
         }
     }
 }

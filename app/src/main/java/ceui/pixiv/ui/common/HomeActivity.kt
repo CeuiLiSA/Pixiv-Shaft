@@ -37,7 +37,7 @@ class HomeActivity : AppCompatActivity() {
             R.id.navigation_home_viewpager
         } else {
             if (SessionManager.isLandingPageShown()) {
-                R.id.navigation_discover_all
+                R.id.navigation_home_walkthrough
             } else {
                 R.id.navigation_landing
             }

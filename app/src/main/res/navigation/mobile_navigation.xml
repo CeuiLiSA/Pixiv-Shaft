@@ -141,6 +141,11 @@
         android:name="ceui.pixiv.ui.discover.DiscoverAllFragment"
         tools:layout="@layout/fragment_pixiv_list" />
 
+    <fragment
+        android:id="@+id/navigation_home_walkthrough"
+        android:name="ceui.pixiv.ui.home.WalkthroughFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
+
 
     <fragment
         android:id="@+id/navigation_search_viewpager"
