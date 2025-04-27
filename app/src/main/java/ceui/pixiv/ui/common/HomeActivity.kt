@@ -20,7 +20,6 @@ import timber.log.Timber
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
-    private val prefStore by lazy { MMKV.defaultMMKV() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,11 +35,7 @@ class HomeActivity : AppCompatActivity() {
         val startDestination = if (SessionManager.isLoggedIn) {
             R.id.navigation_home_viewpager
         } else {
-            if (SessionManager.isLandingPageShown()) {
-                R.id.navigation_home_walkthrough
-            } else {
-                R.id.navigation_landing
-            }
+            R.id.navigation_landing
         }
         graph.setStartDestination(startDestination)
         navController.graph = graph

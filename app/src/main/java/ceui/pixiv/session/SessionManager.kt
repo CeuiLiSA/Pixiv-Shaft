@@ -1,8 +1,12 @@
 package ceui.pixiv.session
 
+import android.net.Uri
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavOptions
+import ceui.lisa.R
+import ceui.lisa.feature.HostManager
 import ceui.lisa.fragments.FragmentLogin
 import ceui.lisa.models.UserModel
 import ceui.loxia.AccountResponse
@@ -13,7 +17,9 @@ import ceui.pixiv.ui.landing.LandingFragment
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -74,15 +80,6 @@ object SessionManager {
         }
     }
 
-    fun updateAccountSession(accountResponse: AccountResponse?) {
-        if (accountResponse == null) {
-            _loggedInAccount.value = AccountResponse()
-            prefStore.clearAll()
-        } else {
-            prefStore.putString(USER_KEY, gson.toJson(accountResponse))
-            _loggedInAccount.value = accountResponse
-        }
-    }
 
     fun postUpdateSession(userModel: UserModel?) {
         if (userModel == null) {
@@ -140,8 +137,32 @@ object SessionManager {
         return prefStore.getBoolean(IS_LANDING_PAGE_SHOWN, false)
     }
 
-    fun markLandingPageShown() {
-        prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
+
+    fun login(uri: Uri, block: () -> Unit) {
+        MainScope().launch {
+            val accountResponse = withContext(Dispatchers.IO) {
+                Client.authApi.newLogin(
+                    FragmentLogin.CLIENT_ID,
+                    FragmentLogin.CLIENT_SECRET,
+                    FragmentLogin.AUTH_CODE,
+                    uri.getQueryParameter("code"),
+                    HostManager.get().getPkce().verify,
+                    FragmentLogin.CALL_BACK,
+                    true
+                ).execute().body()
+            }
+
+            if (accountResponse != null) {
+                Timber.d("Login success: $accountResponse")
+
+                prefStore.putString(USER_KEY, gson.toJson(accountResponse))
+                _loggedInAccount.value = accountResponse
+
+                prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
+
+                block()
+            }
+        }
     }
 
 }

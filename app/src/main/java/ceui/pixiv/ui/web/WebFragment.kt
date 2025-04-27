@@ -91,6 +91,9 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         val webSettings: WebSettings = binding.webView.settings
         val refreshLayout = binding.refreshLayout
 
+        val navController = findNavController()
+        val linkHandler = LinkHandler(navController)
+
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
@@ -120,12 +123,10 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
                 request: WebResourceRequest?
             ): Boolean {
                 val requestUrlString = request?.url?.toString()
-                if (requestUrlString?.startsWith("pixiv://") == true) {
-                    val uri = requestUrlString.toUri()
-                    Timber.d("Intercepted pixiv link: $uri")
-                    handlePixivDeeplink(uri)
+                if (linkHandler.processLink(requestUrlString)) {
                     return true // 自己处理了
                 }
+
                 return super.shouldOverrideUrlLoading(view, request)
             }
 
@@ -154,37 +155,6 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         // 加载 URL
         binding.webView.loadUrl(args.url)
         requireActivity().onBackPressedDispatcher.addCallback(onBackPressedCallback)
-    }
-
-    private fun handlePixivDeeplink(uri: Uri) {
-        if (uri.host == "account" && uri.path == "/login") {
-            launchSuspend {
-                val accountResponse = withContext(Dispatchers.IO) {
-                    Client.authApi.newLogin(
-                        FragmentLogin.CLIENT_ID,
-                        FragmentLogin.CLIENT_SECRET,
-                        FragmentLogin.AUTH_CODE,
-                        uri.getQueryParameter("code"),
-                        HostManager.get().getPkce().verify,
-                        FragmentLogin.CALL_BACK,
-                        true
-                    ).execute().body()
-                }
-                Timber.d("Login success: $accountResponse")
-
-                SessionManager.updateAccountSession(accountResponse)
-
-                val navController = findNavController()
-                val navOptions = NavOptions.Builder()
-                    .setPopUpTo(R.id.navigation_landing, true) // 清除到 Landing
-                    .build()
-
-                SessionManager.markLandingPageShown()
-                navController.navigate(R.id.navigation_home_viewpager, null, navOptions)
-            }
-        } else {
-            Timber.w("Unknown pixiv deeplink: ${uri}")
-        }
     }
 
     override fun onDestroy() {
