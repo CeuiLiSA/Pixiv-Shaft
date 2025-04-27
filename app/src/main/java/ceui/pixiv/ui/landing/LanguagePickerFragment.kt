@@ -80,18 +80,18 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
 
 
         binding.start.setOnClick {
-//            pushFragment(R.id.navigation_select_login_way)
-            val navController = findNavController()
-
-            val navOptions = NavOptions.Builder()
-                // 清除栈中的 A, B, C
-                .setPopUpTo(R.id.navigation_landing, true) // 设定返回到 A 并移除它以及之后的 fragment
-                .build()
-
-            SessionManager.markLandingPageShown()
-
-            // 跳转到 X Fragment，且关闭之前的 fragment
-            navController.navigate(R.id.navigation_home_walkthrough, null, navOptions)
+            pushFragment(R.id.navigation_select_login_way)
+//            val navController = findNavController()
+//
+//            val navOptions = NavOptions.Builder()
+//                // 清除栈中的 A, B, C
+//                .setPopUpTo(R.id.navigation_landing, true) // 设定返回到 A 并移除它以及之后的 fragment
+//                .build()
+//
+//            SessionManager.markLandingPageShown()
+//
+//            // 跳转到 X Fragment，且关闭之前的 fragment
+//            navController.navigate(R.id.navigation_home_walkthrough, null, navOptions)
         }
     }
 }

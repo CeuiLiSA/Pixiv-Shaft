@@ -2,6 +2,7 @@ package ceui.pixiv.ui.common
 
 import ceui.loxia.Client
 import ceui.loxia.RefreshHint
+import ceui.pixiv.session.SessionManager
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.delay
@@ -23,7 +24,7 @@ class ResponseStore<T> private constructor(
         get() = "time-key-${keyProvider()}"
 
     private val preferences: MMKV by lazy {
-        MMKV.mmkvWithID("api-cache")
+        MMKV.mmkvWithID("api-cache-${SessionManager.loggedInUid}")
     }
 
     fun writeToCache(data: T) {

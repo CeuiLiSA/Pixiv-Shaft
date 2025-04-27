@@ -65,6 +65,7 @@ object SessionManager {
         if (userModel == null) {
             prefStore.putString(USER_KEY, "")
             _loggedInAccount.value = AccountResponse()
+            MMKV.defaultMMKV().clearAll()
         } else {
             val javaJson = gson.toJson(userModel)
             val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)
@@ -73,10 +74,20 @@ object SessionManager {
         }
     }
 
+    fun updateAccountSession(accountResponse: AccountResponse?) {
+        if (accountResponse == null) {
+            _loggedInAccount.value = AccountResponse()
+            prefStore.clearAll()
+        } else {
+            prefStore.putString(USER_KEY, gson.toJson(accountResponse))
+            _loggedInAccount.value = accountResponse
+        }
+    }
+
     fun postUpdateSession(userModel: UserModel?) {
         if (userModel == null) {
-            prefStore.putString(USER_KEY, "")
             _loggedInAccount.postValue(AccountResponse())
+            prefStore.clearAll()
         } else {
             val javaJson = gson.toJson(userModel)
             val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)

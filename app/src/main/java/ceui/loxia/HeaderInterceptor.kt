@@ -9,7 +9,7 @@ import okhttp3.Request
 import okhttp3.Response
 import timber.log.Timber
 
-class HeaderInterceptor : Interceptor {
+class HeaderInterceptor(private val needToken: Boolean) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         return chain.proceed(
@@ -21,10 +21,12 @@ class HeaderInterceptor : Interceptor {
 
     private fun addHeader(before: Request.Builder): Request.Builder {
         val requestNonce = RequestNonce.build()
-        try {
-            before.addHeader(ClientManager.HEADER_AUTH, ClientManager.TOKEN_HEAD + SessionManager.getAccessToken())
-        } catch (ex: Exception) {
-            Timber.e(ex)
+        if (needToken) {
+            try {
+                before.addHeader(ClientManager.HEADER_AUTH, ClientManager.TOKEN_HEAD + SessionManager.getAccessToken())
+            } catch (ex: Exception) {
+                Timber.e(ex)
+            }
         }
 
         before.addHeader("accept-language", LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage())

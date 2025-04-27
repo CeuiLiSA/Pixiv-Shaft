@@ -81,7 +81,7 @@ class ClientManager {
             okhttpClientBuilder.dns(HttpDns.getInstance())
         }
 
-        okhttpClientBuilder.addInterceptor(HeaderInterceptor())
+        okhttpClientBuilder.addInterceptor(HeaderInterceptor(true))
         okhttpClientBuilder.addInterceptor(TokenFetcherInterceptor())
         okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
             setLevel(HttpLoggingInterceptor.Level.BODY)
@@ -102,7 +102,7 @@ class ClientManager {
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
 
-        okhttpClientBuilder.addInterceptor(HeaderInterceptor())
+        okhttpClientBuilder.addInterceptor(HeaderInterceptor(false))
         okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
             setLevel(HttpLoggingInterceptor.Level.BODY)
         })
