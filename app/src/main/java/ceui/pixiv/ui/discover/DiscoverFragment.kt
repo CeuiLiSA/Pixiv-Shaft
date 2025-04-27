@@ -29,12 +29,6 @@ class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), Ho
             listOf(
                 PagedFragmentItem(
                     builder = {
-                        DiscoverAllFragment()
-                    },
-                    initialTitle = getString(R.string.string_207)
-                ),
-                PagedFragmentItem(
-                    builder = {
                         RecmdIllustMangaFragment().apply {
                             arguments = RecmdIllustMangaFragmentArgs(ObjectType.ILLUST).toBundle()
                         }
@@ -54,6 +48,12 @@ class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), Ho
                         RecmdNovelFragment()
                     },
                     initialTitle = getString(R.string.type_novel)
+                ),
+                PagedFragmentItem(
+                    builder = {
+                        DiscoverAllFragment()
+                    },
+                    initialTitle = getString(R.string.string_207)
                 ),
             ),
             this

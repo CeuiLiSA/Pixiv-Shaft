@@ -140,27 +140,32 @@ object SessionManager {
 
     fun login(uri: Uri, block: () -> Unit) {
         MainScope().launch {
-            val accountResponse = withContext(Dispatchers.IO) {
-                Client.authApi.newLogin(
-                    FragmentLogin.CLIENT_ID,
-                    FragmentLogin.CLIENT_SECRET,
-                    FragmentLogin.AUTH_CODE,
-                    uri.getQueryParameter("code"),
-                    HostManager.get().getPkce().verify,
-                    FragmentLogin.CALL_BACK,
-                    true
-                ).execute().body()
-            }
+            try {
+                val accountResponse = withContext(Dispatchers.IO) {
+                    _newTokenEvent.postValue(Event(System.currentTimeMillis()))
+                    Client.authApi.newLogin(
+                        FragmentLogin.CLIENT_ID,
+                        FragmentLogin.CLIENT_SECRET,
+                        FragmentLogin.AUTH_CODE,
+                        uri.getQueryParameter("code"),
+                        HostManager.get().getPkce().verify,
+                        FragmentLogin.CALL_BACK,
+                        true
+                    ).execute().body()
+                }
 
-            if (accountResponse != null) {
-                Timber.d("Login success: $accountResponse")
+                if (accountResponse != null) {
+                    Timber.d("Login success: $accountResponse")
 
-                prefStore.putString(USER_KEY, gson.toJson(accountResponse))
-                _loggedInAccount.value = accountResponse
+                    prefStore.putString(USER_KEY, gson.toJson(accountResponse))
+                    _loggedInAccount.value = accountResponse
 
-                prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
+                    prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
 
-                block()
+                    block()
+                }
+            } catch (ex: Exception) {
+                Timber.e(ex)
             }
         }
     }
