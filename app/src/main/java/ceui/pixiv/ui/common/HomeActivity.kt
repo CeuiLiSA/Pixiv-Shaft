@@ -7,19 +7,54 @@ import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
 import ceui.lisa.R
+import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.utils.Params
+import ceui.loxia.Client
+import ceui.loxia.Illust
+import ceui.loxia.IllustResponse
+import ceui.loxia.ObjectPool
+import ceui.loxia.RefreshHint
 import ceui.pixiv.ui.landing.LandingFragment
 import ceui.pixiv.utils.ppppx
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+import com.bumptech.glide.request.RequestOptions.bitmapTransform
+import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
+import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
+import kotlin.getValue
 
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
+
+    private val bgViewModel by pixivValueViewModel(
+        dataFetcher = {
+            if (SessionManager.loggedInUid > 0L) {
+                Client.appApi.getUserBookmarkedIllusts(
+                    SessionManager.loggedInUid, Params.TYPE_PUBLIC
+                )
+            } else {
+//                Client.appApi.getWalkthroughWorks()
+                val jsonString = assets.open("walkthrough.json").bufferedReader().use { it.readText() }
+                val rest = Gson().fromJson(jsonString, IllustResponse::class.java)
+                val list = rest.illusts
+                rest.copy(illusts = list.shuffled())
+            }
+        }, responseStore = if (SessionManager.loggedInUid > 0L) {
+            createResponseStore({ "user-${SessionManager.loggedInUid}-bookmarked-illusts" })
+        } else {
+            null
+        }
+    )
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +77,22 @@ class HomeActivity : AppCompatActivity() {
 
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
+        }
+
+        SessionManager.loggedInAccount.observe(this) {
+            bgViewModel.refresh(RefreshHint.PullToRefresh)
+        }
+
+        bgViewModel.result.observe(this) { resp ->
+            resp.displayList.getOrNull(0)?.let { illust ->
+                ObjectPool.update(illust)
+                binding.dimmer.isVisible = true
+                Glide.with(this)
+                    .load(GlideUrlChild(illust.image_urls?.large))
+                    .apply(bitmapTransform(BlurTransformation(15, 3)))
+                    .transition(withCrossFade())
+                    .into(binding.pageBackground)
+            }
         }
     }
 

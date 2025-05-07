@@ -70,8 +70,6 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
 
             if (isBlocked == true) {
                 binding.refreshLayout.isVisible = false
-                binding.pageBackground.isVisible = false
-                binding.dimmer.isVisible = false
                 binding.toolbarLayout.naviMore.setOnClick {
                     showActionMenu {
                         add(
@@ -87,8 +85,6 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                 }
 
                 binding.refreshLayout.isVisible = true
-                binding.pageBackground.isVisible = true
-                binding.dimmer.isVisible = true
                 binding.listView.clearItemDecorations()
                 binding.listView.addItemDecoration(LinearItemDecorationKt(16.ppppx, illust.page_count))
 

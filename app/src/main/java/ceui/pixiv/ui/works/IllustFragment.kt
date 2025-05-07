@@ -49,11 +49,5 @@ fun getGalleryHolders(illust: Illust, coroutineScope: CoroutineScope): List<Gall
 }
 
 fun Fragment.blurBackground(binding: FragmentPixivListBinding, illustId: Long) {
-    val illust = ObjectPool.get<Illust>(illustId).value ?: return
-    binding.dimmer.isVisible = true
-    Glide.with(this)
-        .load(GlideUrlChild(illust.image_urls?.large))
-        .apply(bitmapTransform(BlurTransformation(15, 3)))
-        .transition(withCrossFade())
-        .into(binding.pageBackground)
+
 }
