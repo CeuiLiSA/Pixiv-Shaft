@@ -37,21 +37,17 @@ class HomeActivity : AppCompatActivity() {
 
     private val bgViewModel by pixivValueViewModel(
         dataFetcher = {
-            if (SessionManager.loggedInUid > 0L) {
+            val rest = if (SessionManager.loggedInUid > 0L) {
                 Client.appApi.getUserBookmarkedIllusts(
                     SessionManager.loggedInUid, Params.TYPE_PUBLIC
                 )
             } else {
-//                Client.appApi.getWalkthroughWorks()
                 val jsonString = assets.open("walkthrough.json").bufferedReader().use { it.readText() }
-                val rest = Gson().fromJson(jsonString, IllustResponse::class.java)
-                val list = rest.illusts
-                rest.copy(illusts = list.shuffled())
+                Gson().fromJson(jsonString, IllustResponse::class.java)
             }
-        }, responseStore = if (SessionManager.loggedInUid > 0L) {
-            createResponseStore({ "user-${SessionManager.loggedInUid}-bookmarked-illusts" })
-        } else {
-            null
+
+            val list = rest.illusts
+            rest.copy(illusts = list.shuffled())
         }
     )
 
@@ -80,6 +76,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         SessionManager.loggedInAccount.observe(this) {
+            Timber.d("loggedInAccount ${it}")
             bgViewModel.refresh(RefreshHint.PullToRefresh)
         }
 

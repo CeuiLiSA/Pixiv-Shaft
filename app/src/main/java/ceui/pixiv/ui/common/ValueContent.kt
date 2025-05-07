@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -24,7 +25,15 @@ open class ValueContent<ValueT>(
     private val _refreshState = MutableLiveData<RefreshState>()
     override val refreshState: LiveData<RefreshState> = _refreshState
 
+    private val _taskMutex = Mutex() // 互斥锁，防止重复刷新
+
     override fun refresh(hint: RefreshHint) {
+        if (!_taskMutex.tryLock()) {
+            Timber.e("ValueContent refresh tryLock returned")
+            return // 如果当前已有刷新任务在执行，则直接返回
+        }
+
+        Timber.e("ValueContent refresh tryLock passed")
         coroutineScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
@@ -57,6 +66,8 @@ open class ValueContent<ValueT>(
             } catch (ex: Exception) {
                 _refreshState.value = RefreshState.ERROR(ex)
                 Timber.e(ex)
+            } finally {
+                _taskMutex.unlock() // 释放锁
             }
         }
     }
