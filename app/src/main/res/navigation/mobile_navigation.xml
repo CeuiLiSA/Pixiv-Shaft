@@ -19,7 +19,12 @@
     <fragment
         android:id="@+id/navigation_rank"
         android:name="ceui.pixiv.ui.rank.RankFragment"
-        tools:layout="@layout/fragment_rank_viewpager" />
+        tools:layout="@layout/fragment_rank_viewpager" >
+
+        <argument
+            app:argType="string"
+            android:name="objectType"/>
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_circle"

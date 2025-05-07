@@ -7,6 +7,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentRankViewpagerBinding
+import ceui.loxia.ObjectType
+import ceui.loxia.threadSafeArgs
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.TitledViewPagerFragment
@@ -16,6 +18,7 @@ import ceui.pixiv.ui.common.viewBinding
 class RankFragment : TitledViewPagerFragment(R.layout.fragment_rank_viewpager) {
 
     private val binding by viewBinding(FragmentRankViewpagerBinding::bind)
+    private val safeArgs by threadSafeArgs<RankFragmentArgs>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -24,36 +27,38 @@ class RankFragment : TitledViewPagerFragment(R.layout.fragment_rank_viewpager) {
             binding.rootLayout.updatePadding(0, insets.top, 0, 0)
             windowInsets
         }
-        val adapter = SmartFragmentPagerAdapter(
+        val seeds = if (safeArgs.objectType == ObjectType.ILLUST) {
             listOf(
+                "day",
+                "week",
+                "month",
+                "day_ai",
+                "day_male",
+                "day_female",
+                "week_original",
+                "week_rookie"
+            )
+        } else {
+            listOf(
+                "day_manga",
+                "week_manga",
+                "month_manga",
+                "week_rookie_manga"
+            )
+        }
+        val adapter = SmartFragmentPagerAdapter(
+            seeds.map { str ->
                 PagedFragmentItem(
                     builder = {
                         RankingIllustsFragment().apply {
-                            arguments = RankingIllustsFragmentArgs("day").toBundle()
+                            arguments = RankingIllustsFragmentArgs(str).toBundle()
                         }
-                    },
-                    initialTitle = getString(R.string.daily_rank)
-                ),
-                PagedFragmentItem(
-                    builder = {
-                        RankingIllustsFragment().apply {
-                            arguments = RankingIllustsFragmentArgs("week").toBundle()
-                        }
-                    },
-                    initialTitle = getString(R.string.weekly_rank)
-                ),
-                PagedFragmentItem(
-                    builder = {
-                        RankingIllustsFragment().apply {
-                            arguments = RankingIllustsFragmentArgs("month").toBundle()
-                        }
-                    },
-                    initialTitle = getString(R.string.monthly_rank)
-                ),
-            ),
-            this
+                    }, initialTitle = str
+                )
+            }, this
         )
         binding.rankViewpager.adapter = adapter
-        binding.tabLayoutList.setUpWith(binding.rankViewpager, binding.slidingCursor, viewLifecycleOwner, {})
+        binding.tabLayoutList.setUpWith(
+            binding.rankViewpager, binding.slidingCursor, viewLifecycleOwner, {})
     }
 }

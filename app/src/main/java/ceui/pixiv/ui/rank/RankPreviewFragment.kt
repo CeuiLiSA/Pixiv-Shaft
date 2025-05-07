@@ -6,7 +6,9 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
+import ceui.loxia.ObjectType
 import ceui.loxia.combineLatest
+import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivKeyedValueViewModel
@@ -34,12 +36,32 @@ class RankPreviewFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL)
-        combineLatest(rankIllustViewModel.result, rankMangaViewModel.result).observe(viewLifecycleOwner) { (illustRank, mangaRank) ->
-            adapter.submitList(listOf(
-                RankPreviewListHolder("Illust Ranking", illustRank?.displayList.orEmpty()),
-                RankPreviewListHolder("Manga Ranking", mangaRank?.displayList.orEmpty()),
-            ))
+        val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_NO_MARGIN)
+        combineLatest(rankIllustViewModel.result, rankMangaViewModel.result).observe(
+            viewLifecycleOwner
+        ) { (illustRank, mangaRank) ->
+            adapter.submitList(
+                listOf(
+                    RankPreviewListHolder(
+                        "Illust Ranking",
+                        illustRank?.displayList.orEmpty()
+                    ).onItemClick {
+                        pushFragment(
+                            R.id.navigation_rank,
+                            RankFragmentArgs(ObjectType.ILLUST).toBundle()
+                        )
+                    },
+                    RankPreviewListHolder(
+                        "Manga Ranking",
+                        mangaRank?.displayList.orEmpty()
+                    ).onItemClick {
+                        pushFragment(
+                            R.id.navigation_rank,
+                            RankFragmentArgs(ObjectType.MANGA).toBundle()
+                        )
+                    },
+                )
+            )
         }
     }
 }
