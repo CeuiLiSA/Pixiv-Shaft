@@ -1,13 +1,17 @@
 package ceui.pixiv.ui.common.repo
 
 import ceui.pixiv.ui.common.ResponseStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 abstract class ResponseStoreRepository<ValueT>(
-    private val responseStore: ResponseStore<ValueT>,
+    val responseStore: ResponseStore<ValueT>,
 ) : HybridRepository<ValueT>() {
 
     override suspend fun loadFromCacheImpl(): DBCache<ValueT>? {
-        return responseStore.loadFromCache()?.let {
+        return withContext(Dispatchers.IO) {
+            responseStore.loadFromCache()
+        }?.let {
             DBCache(obj = it, updatedTime = System.currentTimeMillis())
         }
     }

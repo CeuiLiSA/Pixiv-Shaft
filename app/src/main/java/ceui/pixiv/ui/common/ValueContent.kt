@@ -8,6 +8,7 @@ import ceui.loxia.RefreshState
 import ceui.pixiv.ui.common.repo.HybridRepository
 import ceui.pixiv.ui.common.repo.LoadResult
 import ceui.pixiv.ui.common.repo.Repository
+import ceui.pixiv.ui.common.repo.ResponseStoreRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -43,18 +44,33 @@ open class ValueContent<ValueT>(
                     delay(300L)
                 }
 
+                var isCacheRetrieved = false
+
                 if (hint == RefreshHint.InitialLoad) {
                     (repository as? HybridRepository<ValueT>)?.loadFromCache()?.let {
                         _result.value = it
+                        isCacheRetrieved = true
                     }
                 }
 
-                val response = if (hint == RefreshHint.PullToRefresh) {
-                    val ret = withContext(Dispatchers.IO) {
+                val responseStore = (repository as? ResponseStoreRepository<*>)?.responseStore
+
+                val response = if (hint == RefreshHint.PullToRefresh ||
+                    hint == RefreshHint.ErrorRetry ||
+                    responseStore == null ||
+                    responseStore.isCacheExpired()
+                ) {
+                    if (hint == RefreshHint.InitialLoad && isCacheRetrieved) {
+                        delay(600L)
+                        _refreshState.value = RefreshState.FETCHING_LATEST()
+                        delay(1000L)
+                    }
+
+                    val response = withContext(Dispatchers.IO) {
                         repository.load()
                     }
-                    _result.value = ret
-                    ret
+                    _result.value = response
+                    response
                 } else {
                     null
                 }
