@@ -37,6 +37,7 @@ import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.ArtworksMap
+import ceui.pixiv.ui.landing.fadeToNextMessage
 import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick

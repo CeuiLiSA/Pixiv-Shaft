@@ -20,6 +20,7 @@ import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
+import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.landing.LandingFragment
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
@@ -35,8 +36,8 @@ class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
 
-    private val bgViewModel by pixivValueViewModel(
-        dataFetcher = {
+    private val bgViewModel by pixivValueViewModel {
+        RemoteRepository {
             val rest = if (SessionManager.loggedInUid > 0L) {
                 Client.appApi.getUserBookmarkedIllusts(
                     SessionManager.loggedInUid, Params.TYPE_PUBLIC
@@ -49,7 +50,7 @@ class HomeActivity : AppCompatActivity() {
             val list = rest.illusts
             rest.copy(illusts = list.shuffled())
         }
-    )
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,7 +81,8 @@ class HomeActivity : AppCompatActivity() {
             bgViewModel.refresh(RefreshHint.PullToRefresh)
         }
 
-        bgViewModel.result.observe(this) { resp ->
+        bgViewModel.result.observe(this) { loadResult ->
+            val resp = loadResult?.data ?: return@observe
             resp.displayList.getOrNull(0)?.let { illust ->
                 ObjectPool.update(illust)
                 binding.dimmer.isVisible = true

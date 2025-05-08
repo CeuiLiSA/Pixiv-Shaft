@@ -43,7 +43,7 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
 }
 
 
-fun TextView.fadeToNextMessage(textStr: String) {
+fun TextView.fadeToNextMessage(textStr: String? = null) {
     // 先执行淡出和上移动画
     animate()
         .alpha(0f)
@@ -51,7 +51,9 @@ fun TextView.fadeToNextMessage(textStr: String) {
         .setDuration(300)
         .withEndAction {
             // 切换文本，并把视图设置为稍微下方和透明
-            text = textStr
+            if (textStr != null) {
+                text = textStr
+            }
             translationY = 30f // 初始在下方
             alpha = 0f
 

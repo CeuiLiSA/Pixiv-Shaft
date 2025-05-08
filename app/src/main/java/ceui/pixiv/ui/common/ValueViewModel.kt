@@ -16,6 +16,9 @@ import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.keyedViewModels
+import ceui.pixiv.ui.common.repo.LoadResult
+import ceui.pixiv.ui.common.repo.RemoteRepository
+import ceui.pixiv.ui.common.repo.Repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,13 +27,13 @@ import timber.log.Timber
 import kotlin.reflect.KClass
 
 fun <T> Fragment.pixivValueViewModel(
-    dataFetcher: suspend () -> T,
-    responseStore: ResponseStore<T>? = null,
+    repositoryProducer: () -> Repository<T>,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ValueViewModel(dataFetcher, responseStore) as T
+                val repository = repositoryProducer()
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -38,16 +41,14 @@ fun <T> Fragment.pixivValueViewModel(
 
 inline fun <ArgsT, T> Fragment.pixivValueViewModel(
     noinline argsProducer: () -> ArgsT,
-    responseStore: ResponseStore<T>? = null,
-    noinline dataFetcher: suspend (ArgsT) -> T,
+    noinline repositoryProducer: (ArgsT) -> Repository<T>,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val args = argsProducer()
-                return ValueViewModel(dataFetcher = {
-                    dataFetcher(args)
-                }, responseStore) as T
+                val repository = repositoryProducer(args)
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -55,13 +56,13 @@ inline fun <ArgsT, T> Fragment.pixivValueViewModel(
 
 inline fun <T> Fragment.pixivValueViewModel(
     noinline ownerProducer: () -> ViewModelStoreOwner = { this },
-    responseStore: ResponseStore<T>? = null,
-    noinline dataFetcher: suspend () -> T,
+    noinline repositoryProducer: () -> Repository<T>,
 ): Lazy<ValueViewModel<T>> {
     return this.viewModels(ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ValueViewModel(dataFetcher, responseStore) as T
+                val repository = repositoryProducer()
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -70,26 +71,26 @@ inline fun <T> Fragment.pixivValueViewModel(
 inline fun <T> Fragment.pixivKeyedValueViewModel(
     keyPrefix: String,
     noinline ownerProducer: () -> ViewModelStoreOwner = { this },
-    responseStore: ResponseStore<T>? = null,
-    noinline dataFetcher: suspend () -> T,
+    noinline repositoryProducer: () -> Repository<T>,
 ): Lazy<ValueViewModel<T>> {
     return this.keyedViewModels(keyPrefixProvider = { keyPrefix }, ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ValueViewModel(dataFetcher, responseStore) as T
+                val repository = repositoryProducer()
+                return ValueViewModel(repository) as T
             }
         }
     }
 }
 
 inline fun <T> ComponentActivity.pixivValueViewModel(
-    responseStore: ResponseStore<T>? = null,
-    noinline dataFetcher: suspend () -> T,
+    noinline repositoryProducer: () -> Repository<T>,
 ): Lazy<ValueViewModel<T>> {
     return viewModels(keyPrefixProvider = { "aaa" }) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ValueViewModel(dataFetcher, responseStore) as T
+                val repository = repositoryProducer()
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -119,16 +120,15 @@ inline fun <reified VM : ViewModel> ComponentActivity.viewModels(
 
 
 class ValueViewModel<T>(
-    private val dataFetcher: suspend () -> T,
-    private val responseStore: ResponseStore<T>? = null,
+    repository: Repository<T>,
 ) : ViewModel(), RefreshOwner {
 
-    private val valueContent = ValueContent(viewModelScope, dataFetcher, responseStore)
+    private val valueContent = ValueContent(viewModelScope, repository)
 
     override val refreshState: LiveData<RefreshState>
         get() = valueContent.refreshState
 
-    val result: LiveData<T> get() = valueContent.result
+    val result: LiveData<LoadResult<T>> get() = valueContent.result
 
     init {
         refresh(RefreshHint.InitialLoad)

@@ -39,7 +39,8 @@ class SectionPreviewViewHolder(private val bd: CellSectionPreviewBinding) :
         binding.previewListView.layoutManager = GridLayoutManager(context, 3)
         binding.previewListView.clearItemDecorations()
         binding.previewListView.addItemDecoration(GridItemDecoration(3, 4.ppppx, false))
-        holder.valueContent.result.observe(lifecycleOwner) { resp ->
+        holder.valueContent.result.observe(lifecycleOwner) { loadResult ->
+            val resp = loadResult?.data ?: return@observe
             val limitedList = resp.displayList.take(holder.previewCount)
             adapter.submitList(limitedList.map { illust -> IllustSquareV2Holder(illust) })
         }

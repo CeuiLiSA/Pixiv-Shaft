@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.discover
 
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellRankPreviewListBinding
@@ -15,7 +16,7 @@ import ceui.pixiv.ui.rank.RankPreviewHolder
 import ceui.pixiv.utils.ppppx
 
 
-class RankPreviewListHolder(title: String, list: List<Illust>) :
+class RankPreviewListHolder(title: String, list: List<Illust>, val showExtraPadding: Boolean = false) :
     GenericPreviewListHolder<Illust>(title, list)
 
 @ItemHolder(RankPreviewListHolder::class)

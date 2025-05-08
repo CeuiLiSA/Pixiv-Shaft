@@ -19,6 +19,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.ViewPagerContentType
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
@@ -29,13 +30,15 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by pixivValueViewModel(
-        dataFetcher = {
-            val resp = Client.appApi.getUserProfile(SessionManager.loggedInUid)
-            resp.user?.let {
-                ObjectPool.update(it)
+        repositoryProducer = {
+            RemoteRepository {
+                val resp = Client.appApi.getUserProfile(SessionManager.loggedInUid)
+                resp.user?.let {
+                    ObjectPool.update(it)
+                }
+                ObjectPool.update(resp)
+                resp
             }
-            ObjectPool.update(resp)
-            resp
         }
     )
 

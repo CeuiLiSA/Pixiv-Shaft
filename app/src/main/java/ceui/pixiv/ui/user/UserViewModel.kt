@@ -59,7 +59,9 @@ class UserViewModel(private val userId: Long) : HoldersViewModel() {
     val previewWorksIds = combineLatest(
         userCreatedIllusts.result,
         userBookmarkedIllusts.result
-    ).map { (created, bookmarked) ->
+    ).map { (createdLoadResult, bookmarkedLoadResult) ->
+        val created = createdLoadResult?.data
+        val bookmarked = bookmarkedLoadResult?.data
         val idList = mutableListOf<Long>()
         created?.illusts?.take(ILLUST_PREVIEW_COUNT)?.map {
             ObjectPool.update(it)
@@ -78,7 +80,8 @@ class UserViewModel(private val userId: Long) : HoldersViewModel() {
 
     val blurBackground: LiveData<Illust?>
         get() {
-            return userCreatedIllusts.result.map { created ->
+            return userCreatedIllusts.result.map { createdLoadResult ->
+                val created = createdLoadResult.data
                 created.illusts.getOrNull(userId.mod(10))?.also { target ->
                     ObjectPool.update(target)
                 }

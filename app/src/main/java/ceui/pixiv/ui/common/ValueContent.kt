@@ -5,6 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.pixiv.ui.common.repo.HybridRepository
+import ceui.pixiv.ui.common.repo.LoadResult
+import ceui.pixiv.ui.common.repo.Repository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -15,12 +18,11 @@ import timber.log.Timber
 
 open class ValueContent<ValueT>(
     private val coroutineScope: CoroutineScope,
-    private val dataFetcher: suspend () -> ValueT,
-    private val responseStore: ResponseStore<ValueT>? = null,
+    private val repository: Repository<ValueT>,
 ) : RefreshOwner {
 
-    private val _result = MutableLiveData<ValueT>()
-    val result: LiveData<ValueT> = _result
+    private val _result = MutableLiveData<LoadResult<ValueT>>()
+    val result: LiveData<LoadResult<ValueT>> = _result
 
     private val _refreshState = MutableLiveData<RefreshState>()
     override val refreshState: LiveData<RefreshState> = _refreshState
@@ -42,25 +44,23 @@ open class ValueContent<ValueT>(
                 }
 
                 if (hint == RefreshHint.InitialLoad) {
-                    responseStore?.loadFromCache()?.let { storedResponse ->
-                        applyResult(storedResponse)
+                    (repository as? HybridRepository<ValueT>)?.loadFromCache()?.let {
+                        _result.value = it
                     }
                 }
 
-                val response = if (hint == RefreshHint.PullToRefresh || responseStore == null || responseStore.isCacheExpired()) {
+                val response = if (hint == RefreshHint.PullToRefresh) {
                     val ret = withContext(Dispatchers.IO) {
-                        dataFetcher().also {
-                            responseStore?.writeToCache(it)
-                        }
+                        repository.load()
                     }
-                    applyResult(ret)
+                    _result.value = ret
                     ret
                 } else {
                     null
                 }
 
                 _refreshState.value = RefreshState.LOADED(
-                    hasContent = response != null && hasContent(response),
+                    hasContent = response?.data != null && hasContent(response.data),
                     hasNext = false
                 )
             } catch (ex: Exception) {
@@ -74,9 +74,5 @@ open class ValueContent<ValueT>(
 
     open fun hasContent(valueT: ValueT): Boolean {
         return true
-    }
-
-    open fun applyResult(valueT: ValueT) {
-        _result.value = valueT
     }
 }

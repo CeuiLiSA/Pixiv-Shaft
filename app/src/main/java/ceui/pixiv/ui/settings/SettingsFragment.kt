@@ -18,6 +18,7 @@ import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.widgets.alertYesOrCancel
@@ -32,7 +33,9 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
         MMKV.defaultMMKV()
     }
     private val viewModel by pixivValueViewModel {
-        Client.appApi.getSelfProfile()
+        RemoteRepository {
+            Client.appApi.getSelfProfile()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
