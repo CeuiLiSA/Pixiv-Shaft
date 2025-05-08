@@ -30,7 +30,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val prefStore: MMKV by lazy {
-        MMKV.defaultMMKV()
+        MMKV.mmkvWithID("shaft-session")
     }
     private val viewModel by pixivValueViewModel {
         RemoteRepository {

@@ -102,9 +102,6 @@ public class Shaft extends Application implements ServicesProvider {
 
         MMKV.initialize(this);
 
-//        MMKV mk = MMKV.defaultMMKV();
-//        mk.clearAll();
-//        sPreferences.edit().clear().apply();
 
         networkStateManager = new NetworkStateManager(this);
         sUserModel = Local.getUser();

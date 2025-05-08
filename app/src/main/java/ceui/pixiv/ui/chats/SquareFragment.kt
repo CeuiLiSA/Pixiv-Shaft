@@ -39,7 +39,7 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by navArgs<SquareFragmentArgs>()
     private val viewModel by pixivValueViewModel(
-        argsProducer = { Pair(safeArgs.objectType, MMKV.defaultMMKV()) },
+        argsProducer = { Pair(safeArgs.objectType, MMKV.mmkvWithID("shaft-session")) },
         repositoryProducer = { (objectType, prefStore) ->
             SquareRepository(
                 objectType,

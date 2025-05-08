@@ -35,7 +35,6 @@ import kotlinx.coroutines.delay
 class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) {
 
     private val binding by viewBinding(FragmentSelectLanguageBinding::bind)
-    private val prefStore by lazy { MMKV.defaultMMKV() }
 
     private class VM(initLanguage: String) : ViewModel() {
         val currencyLanguage = MutableLiveData<String>()
