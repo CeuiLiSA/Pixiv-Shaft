@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.user.following
 
+import androidx.lifecycle.MutableLiveData
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
+import ceui.loxia.Event
 import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
 import ceui.pixiv.session.SessionManager
@@ -12,6 +14,7 @@ import com.tencent.mmkv.MMKV
 
 class FollowingPostsDataSource(
     private val args: FollowingPostFragmentArgs,
+    val fetchEvent: MutableLiveData<Event<Int>> = MutableLiveData()
 ) : DataSource<Illust, IllustResponse>(
     dataFetcher = {
         val prefStore = MMKV.mmkvWithID("api-cache-${SessionManager.loggedInUid}")
@@ -22,8 +25,7 @@ class FollowingPostsDataSource(
 
         val lastLatestIllustId = prefStore.getLong(key, 0L)
         val lastIndex = resp.displayList.indexOfFirst { it.id == lastLatestIllustId }
-        if (lastIndex > 0) {
-        }
+        fetchEvent.postValue(Event(lastIndex))
 
         resp.displayList.getOrNull(0)?.let { latestIllust ->
             prefStore.putLong(key, latestIllust.id)
