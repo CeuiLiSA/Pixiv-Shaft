@@ -49,6 +49,10 @@ open class ValueContent<ValueT>(
                 if (hint == RefreshHint.InitialLoad) {
                     (repository as? HybridRepository<ValueT>)?.loadFromCache()?.let {
                         _result.value = it
+                        _refreshState.value = RefreshState.LOADED(
+                            hasContent = hasContent(it.data),
+                            hasNext = false
+                        )
                         isCacheRetrieved = true
                     }
                 }
