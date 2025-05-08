@@ -11,6 +11,7 @@ import ceui.pixiv.ui.detail.ArtworksMap
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -39,7 +40,16 @@ open class DataSource<Item, T: KListShow<Item>>(
     private val _refreshState = MutableLiveData<RefreshState>()
     val refreshStateImpl: LiveData<RefreshState> = _refreshState
 
+    private val _taskMutex = Mutex() // 互斥锁，防止重复刷新
+
     open suspend fun refreshImpl(hint: RefreshHint) {
+        if (!_taskMutex.tryLock()) {
+            Timber.e("DataSource refresh tryLock returned")
+            return // 如果当前已有刷新任务在执行，则直接返回
+        }
+
+        Timber.e("DataSource refresh tryLock passed")
+
         _refreshState.value = RefreshState.LOADING(refreshHint = hint)
         try {
             if (hint == RefreshHint.ErrorRetry) {
@@ -76,6 +86,8 @@ open class DataSource<Item, T: KListShow<Item>>(
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)
             Timber.e(ex)
+        } finally {
+            _taskMutex.unlock() // 释放锁
         }
     }
 
