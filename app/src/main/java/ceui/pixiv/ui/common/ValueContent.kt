@@ -2,7 +2,6 @@ package ceui.pixiv.ui.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.common.repo.HybridRepository
@@ -50,7 +49,7 @@ open class ValueContent<ValueT>(
                     (repository as? HybridRepository<ValueT>)?.loadFromCache()?.let {
                         _result.value = it
                         _refreshState.value = RefreshState.LOADED(
-                            hasContent = hasContent(it.data),
+                            hasContent = it.data != null && hasContent(it.data),
                             hasNext = false
                         )
                         isCacheRetrieved = true
@@ -59,7 +58,7 @@ open class ValueContent<ValueT>(
 
                 val responseStore = (repository as? ResponseStoreRepository<*>)?.responseStore
 
-                val response = if (hint == RefreshHint.PullToRefresh ||
+                if (hint == RefreshHint.PullToRefresh ||
                     hint == RefreshHint.ErrorRetry ||
                     responseStore == null ||
                     responseStore.isCacheExpired()
@@ -74,15 +73,12 @@ open class ValueContent<ValueT>(
                         repository.load()
                     }
                     _result.value = response
-                    response
-                } else {
-                    null
-                }
 
-                _refreshState.value = RefreshState.LOADED(
-                    hasContent = response?.data != null && hasContent(response.data),
-                    hasNext = false
-                )
+                    _refreshState.value = RefreshState.LOADED(
+                        hasContent = response?.data != null && hasContent(response.data),
+                        hasNext = false
+                    )
+                }
             } catch (ex: Exception) {
                 _refreshState.value = RefreshState.ERROR(ex)
                 Timber.e(ex)
