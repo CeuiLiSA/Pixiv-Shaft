@@ -41,6 +41,14 @@ class RankFragment : TitledViewPagerFragment(R.layout.fragment_rank_viewpager) {
             windowInsets
         }
 
+        rankDayViewModal.rankDay.observe(viewLifecycleOwner) { day ->
+            if (day?.isNotEmpty() == true) {
+                binding.selectDate.text = day
+            } else {
+                binding.selectDate.text = "Select Date"
+            }
+        }
+
         binding.clearDate.setOnClick {
             rankDayViewModal.applyRankDay(null)
         }
