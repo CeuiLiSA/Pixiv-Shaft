@@ -1,13 +1,9 @@
 package ceui.pixiv.ui.common
 
-import ceui.loxia.Client
-import ceui.loxia.RefreshHint
 import ceui.pixiv.session.SessionManager
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
-import kotlinx.coroutines.delay
 import timber.log.Timber
-import java.lang.reflect.Method
 
 class ResponseStore<T> private constructor(
     private val keyProvider: () -> String,
@@ -66,7 +62,7 @@ class ResponseStore<T> private constructor(
 
 inline fun <reified T : Any> createResponseStore(
     noinline keyProvider: () -> String,
-    expirationTimeMillis: Long = 30 * 60 * 1000L,
+    expirationTimeMillis: Long = 5 * 60 * 1000L,
 ): ResponseStore<T> {
     return ResponseStore.create(
         keyProvider = keyProvider,

@@ -3,7 +3,6 @@ package ceui.loxia
 import ceui.lisa.models.NullResponse
 import ceui.lisa.utils.Params
 import okhttp3.ResponseBody
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -176,6 +175,7 @@ interface API {
     @GET("/v1/illust/ranking?filter=for_ios")
     suspend fun getRankingIllusts(
         @Query("mode") mode: String,
+        @Query("date") date: String? = null,
     ): IllustResponse
 
     @GET("/v1/search/popular-preview/illust?search_ai_type=0&filter=for_ios")

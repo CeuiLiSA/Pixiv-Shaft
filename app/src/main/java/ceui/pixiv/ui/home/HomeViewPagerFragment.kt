@@ -22,6 +22,7 @@ import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
+import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 
 class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), ViewPagerFragment {
@@ -37,7 +38,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 topMargin = insets.top
             }
             binding.toolbar.updateLayoutParams {
-                height = insets.top
+                height = insets.top - 10.ppppx
             }
             binding.bottomInset.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 height = insets.bottom

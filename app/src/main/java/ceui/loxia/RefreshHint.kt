@@ -5,4 +5,5 @@ sealed class RefreshHint {
     data object InitialLoad : RefreshHint()
     data object LoadMore : RefreshHint()
     data object ErrorRetry : RefreshHint()
+    data object FetchingLatest : RefreshHint()
 }
