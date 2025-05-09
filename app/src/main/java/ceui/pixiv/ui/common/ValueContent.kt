@@ -43,7 +43,6 @@ open class ValueContent<ValueT>(
                     delay(300L)
                 }
 
-                var isCacheRetrieved = false
 
                 if (hint == RefreshHint.InitialLoad) {
                     (repository as? HybridRepository<ValueT>)?.loadFromCache()?.let {
@@ -52,7 +51,6 @@ open class ValueContent<ValueT>(
                             hasContent = it.data != null && hasContent(it.data),
                             hasNext = false
                         )
-                        isCacheRetrieved = true
                     }
                 }
 
@@ -60,10 +58,11 @@ open class ValueContent<ValueT>(
 
                 if (hint == RefreshHint.PullToRefresh ||
                     hint == RefreshHint.ErrorRetry ||
+                    hint == RefreshHint.FetchingLatest ||
                     responseStore == null ||
                     responseStore.isCacheExpired()
                 ) {
-                    if (hint == RefreshHint.InitialLoad && isCacheRetrieved) {
+                    if ((hint == RefreshHint.InitialLoad || hint == RefreshHint.FetchingLatest) && _result.value != null) {
                         delay(600L)
                         _refreshState.value = RefreshState.FETCHING_LATEST()
                         delay(1000L)

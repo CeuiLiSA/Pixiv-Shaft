@@ -34,7 +34,7 @@ class RankingIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel)
         rankDayViewModal.refreshEvent.observeEvent(viewLifecycleOwner) {
-            viewModel.refresh(RefreshHint.PullToRefresh)
+            viewModel.refresh(RefreshHint.FetchingLatest)
         }
     }
 }

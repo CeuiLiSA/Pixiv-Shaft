@@ -15,7 +15,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-open class DataSource<Item, T: KListShow<Item>>(
+open class DataSource<Item, T : KListShow<Item>>(
     private val dataFetcher: suspend () -> T,
     private val responseStore: ResponseStore<T>? = null,
     itemMapper: (Item) -> List<ListItemHolder>,
@@ -56,21 +56,19 @@ open class DataSource<Item, T: KListShow<Item>>(
                 delay(300L)
             }
 
-            var isCacheRetrieved = false
-
             if (hint == RefreshHint.InitialLoad) {
                 responseStore?.loadFromCache()?.let { storedResponse ->
                     applyResponse(storedResponse, false)
-                    isCacheRetrieved = true
                 }
             }
 
             if (hint == RefreshHint.PullToRefresh ||
                 hint == RefreshHint.ErrorRetry ||
+                hint == RefreshHint.FetchingLatest ||
                 responseStore == null ||
                 responseStore.isCacheExpired()
-             ) {
-                if (hint == RefreshHint.InitialLoad && isCacheRetrieved) {
+            ) {
+                if ((hint == RefreshHint.InitialLoad || hint == RefreshHint.FetchingLatest) && _itemHolders.value?.isNotEmpty() == true) {
                     delay(600L)
                     _refreshState.value = RefreshState.FETCHING_LATEST()
                     delay(1000L)
