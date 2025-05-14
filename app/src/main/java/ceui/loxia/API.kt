@@ -152,6 +152,13 @@ interface API {
         @Query("restrict") restrict: String,
     ): UserPreviewResponse
 
+
+    @GET("/v1/notification/list")
+    suspend fun getNotifications(): NotificationResponse
+
+    @GET("/v1/notification/view-more")
+    suspend fun getViewMoreNotifications(@Query("notification_id") notification_id: Long): NotificationResponse
+
     @GET("/v1/user/follower?filter=for_ios")
     suspend fun getUserFans(
         @Query("user_id") user_id: Long,

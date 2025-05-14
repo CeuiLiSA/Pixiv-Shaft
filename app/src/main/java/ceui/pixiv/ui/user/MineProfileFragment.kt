@@ -7,7 +7,6 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
-import ceui.loxia.SpaceHolder
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
@@ -22,7 +21,7 @@ import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
+import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
 import com.blankj.utilcode.util.AppUtils
 
@@ -47,6 +46,9 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL_TABCELL)
+        binding.toolbarLayout.naviMore.setOnClick {
+            pushFragment(R.id.navigation_notification)
+        }
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(

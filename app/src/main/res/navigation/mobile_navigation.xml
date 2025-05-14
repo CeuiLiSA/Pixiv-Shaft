@@ -19,40 +19,40 @@
     <fragment
         android:id="@+id/navigation_rank"
         android:name="ceui.pixiv.ui.rank.RankFragment"
-        tools:layout="@layout/fragment_rank_viewpager" >
+        tools:layout="@layout/fragment_rank_viewpager">
 
         <argument
-            app:argType="string"
-            android:name="objectType"/>
+            android:name="objectType"
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_circle"
         android:name="ceui.pixiv.ui.circles.CircleFragment"
-        tools:layout="@layout/fragment_circle" >
+        tools:layout="@layout/fragment_circle">
         <argument
-            app:argType="string"
-            android:name="keyword"/>
+            android:name="keyword"
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_cache_list"
         android:name="ceui.pixiv.ui.task.CacheFileFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
 
         <argument
-            app:argType="ceui.pixiv.ui.task.HumanReadableTask"
-            android:name="task" />
+            android:name="task"
+            app:argType="ceui.pixiv.ui.task.HumanReadableTask" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_square"
         android:name="ceui.pixiv.ui.chats.SquareFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
 
         <argument
-            app:argType="string"
-            android:name="object_type"/>
+            android:name="object_type"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -68,7 +68,7 @@
     <fragment
         android:id="@+id/navigation_blocking_item_list"
         android:name="ceui.pixiv.ui.blocking.BlockedItemListFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
         <argument
             android:name="record_type"
             app:argType="integer" />
@@ -77,29 +77,29 @@
     <fragment
         android:id="@+id/navigation_web_fragment"
         android:name="ceui.pixiv.ui.web.WebFragment"
-        tools:layout="@layout/fragment_web" >
+        tools:layout="@layout/fragment_web">
         <argument
-            app:argType="string"
-            android:name="url"/>
+            android:name="url"
+            app:argType="string" />
         <argument
-            app:argType="boolean"
+            android:name="save_cookies"
             android:defaultValue="false"
-            android:name="save_cookies"/>
+            app:argType="boolean" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_ranking_illust_fragment"
         android:name="ceui.pixiv.ui.rank.RankingIllustsFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
         <argument
-            app:argType="string"
-            android:name="mode"/>
+            android:name="mode"
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_related_illusts"
         android:name="ceui.pixiv.ui.related.RelatedIllustsFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
         <argument
             android:name="illust_id"
             app:argType="long" />
@@ -124,7 +124,7 @@
     <fragment
         android:id="@+id/navigation_view_history"
         android:name="ceui.pixiv.ui.history.ViewHistoryFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
 
         <argument
             android:name="record_type"
@@ -155,34 +155,33 @@
     <fragment
         android:id="@+id/navigation_search_viewpager"
         android:name="ceui.pixiv.ui.search.SearchViewPagerFragment"
-        tools:layout="@layout/fragment_search_viewpager" >
+        tools:layout="@layout/fragment_search_viewpager">
 
         <argument
-            app:argType="string"
+            android:name="keyword"
             android:defaultValue=""
-            android:name="keyword"/>
+            app:argType="string" />
 
         <argument
-            app:argType="integer"
-            android:defaultValue="0"
             android:name="landing_index"
-            />
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_home"
         android:name="ceui.pixiv.ui.home.RecmdIllustMangaFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
 
         <argument
             android:name="object_type"
-            app:argType="string"/>
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_viewpager_artwork"
         android:name="ceui.pixiv.ui.detail.ArtworkViewPagerFragment"
-        tools:layout="@layout/fragment_artwork_viewpager" >
+        tools:layout="@layout/fragment_artwork_viewpager">
 
         <argument
             android:name="seed"
@@ -200,7 +199,7 @@
     <fragment
         android:id="@+id/navigation_artwork"
         android:name="ceui.pixiv.ui.detail.ArtworkFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
 
         <argument
             android:name="illust_id"
@@ -210,7 +209,7 @@
     <fragment
         android:id="@+id/navigation_novel_text"
         android:name="ceui.pixiv.ui.novel.NovelTextFragment"
-        tools:layout="@layout/fragment_novel_text" >
+        tools:layout="@layout/fragment_novel_text">
 
         <argument
             android:name="novel_id"
@@ -221,7 +220,7 @@
     <fragment
         android:id="@+id/navigation_novel_series"
         android:name="ceui.pixiv.ui.novel.NovelSeriesFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
 
         <argument
             android:name="series_id"
@@ -232,7 +231,7 @@
     <fragment
         android:id="@+id/navigation_illust_series"
         android:name="ceui.pixiv.ui.detail.IllustSeriesFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
 
         <argument
             android:name="series_id"
@@ -268,7 +267,7 @@
     <fragment
         android:id="@+id/navigation_comments_illust"
         android:name="ceui.pixiv.ui.comments.CommentsFragment"
-        tools:layout="@layout/fragment_pixiv_list" >
+        tools:layout="@layout/fragment_pixiv_list">
 
         <argument
             android:name="object_id"
@@ -280,13 +279,13 @@
 
         <argument
             android:name="object_type"
-            app:argType="string"/>
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_user"
         android:name="ceui.pixiv.ui.user.UserFragment"
-        tools:layout="@layout/fragment_user" >
+        tools:layout="@layout/fragment_user">
 
         <argument
             android:name="user_id"
@@ -295,7 +294,7 @@
 
     <fragment
         android:id="@+id/navigation_user_bookmarked_illust"
-        android:name="ceui.pixiv.ui.user.UserBookmarkedIllustsFragment" >
+        android:name="ceui.pixiv.ui.user.UserBookmarkedIllustsFragment">
 
         <argument
             android:name="user_id"
@@ -303,14 +302,14 @@
 
         <argument
             android:name="restrict_type"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_user_bookmarked_novel"
-        android:name="ceui.pixiv.ui.user.UserBookmarkedNovelFragment" >
+        android:name="ceui.pixiv.ui.user.UserBookmarkedNovelFragment">
 
         <argument
             android:name="user_id"
@@ -318,20 +317,20 @@
 
         <argument
             android:name="restrict_type"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_following_created_novel"
-        android:name="ceui.pixiv.ui.user.FollowingCreatedNovelFragment" >
+        android:name="ceui.pixiv.ui.user.FollowingCreatedNovelFragment">
 
     </fragment>
 
     <fragment
         android:id="@+id/navigation_user_created_novel"
-        android:name="ceui.pixiv.ui.user.UserCreatedNovelFragment" >
+        android:name="ceui.pixiv.ui.user.UserCreatedNovelFragment">
 
         <argument
             android:name="user_id"
@@ -340,22 +339,22 @@
 
     <fragment
         android:id="@+id/navigation_following_post"
-        android:name="ceui.pixiv.ui.user.following.FollowingPostFragment" >
+        android:name="ceui.pixiv.ui.user.following.FollowingPostFragment">
 
         <argument
             android:name="object_type"
-            app:argType="string"/>
+            app:argType="string" />
 
         <argument
             android:name="restrict_type"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_user_fans"
-        android:name="ceui.pixiv.ui.user.UserFansFragment" >
+        android:name="ceui.pixiv.ui.user.UserFansFragment">
 
         <argument
             android:name="user_id"
@@ -364,7 +363,7 @@
 
     <fragment
         android:id="@+id/navigation_user_friends"
-        android:name="ceui.pixiv.ui.user.UserFriendsFragment" >
+        android:name="ceui.pixiv.ui.user.UserFriendsFragment">
 
         <argument
             android:name="user_id"
@@ -373,23 +372,33 @@
 
     <fragment
         android:id="@+id/navigation_mine_profile"
-        android:name="ceui.pixiv.ui.user.MineProfileFragment" >
+        android:name="ceui.pixiv.ui.user.MineProfileFragment">
 
     </fragment>
 
 
     <fragment
         android:id="@+id/navigation_settings"
-        android:name="ceui.pixiv.ui.settings.SettingsFragment" >
+        android:name="ceui.pixiv.ui.settings.SettingsFragment">
 
     </fragment>
 
 
     <fragment
         android:id="@+id/navigation_task_status"
-        android:name="ceui.pixiv.ui.task.TaskStatusFragment" >
+        android:name="ceui.pixiv.ui.task.TaskStatusFragment">
 
     </fragment>
+
+    <fragment
+        android:id="@+id/navigation_notification"
+        android:name="ceui.pixiv.ui.notification.NotificationsFragment">
+        <argument
+            android:name="notification_id"
+            android:defaultValue="0L"
+            app:argType="long" />
+    </fragment>
+
 
     <fragment
         android:id="@+id/navigation_user_created_illust"
@@ -401,7 +410,7 @@
 
         <argument
             android:name="object_type"
-            app:argType="string"/>
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -410,7 +419,7 @@
 
         <argument
             android:name="object_type"
-            app:argType="string"/>
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -423,7 +432,7 @@
 
         <argument
             android:name="restrict_type"
-            app:argType="string"/>
+            app:argType="string" />
     </fragment>
 
 
@@ -433,16 +442,16 @@
 
         <argument
             android:name="url"
-            app:argType="string"/>
+            app:argType="string" />
 
         <argument
             android:name="display_name"
-            app:argType="string"/>
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_paged_img_urls"
-        android:name="ceui.pixiv.ui.works.PagedImgUrlFragment" >
+        android:name="ceui.pixiv.ui.works.PagedImgUrlFragment">
 
         <argument
             android:name="illust_id"
@@ -450,45 +459,45 @@
 
         <argument
             android:name="index"
-            app:argType="integer"/>
+            app:argType="integer" />
     </fragment>
 
 
     <fragment
         android:id="@+id/navigation_common_viewpager"
-        android:name="ceui.pixiv.ui.common.CommonViewPagerFragment" >
+        android:name="ceui.pixiv.ui.common.CommonViewPagerFragment">
 
         <argument
             android:name="content_type"
-            app:argType="integer"/>
+            app:argType="integer" />
     </fragment>
 
 
     <fragment
         android:id="@+id/navigation_pixiv_dialog"
-        android:name="ceui.pixiv.widgets.MenuDialog" >
+        android:name="ceui.pixiv.widgets.MenuDialog">
 
         <argument
             android:name="task_uuid"
-            app:argType="string"/>
+            app:argType="string" />
 
         <argument
             android:name="menu_items"
-            app:argType="ceui.pixiv.widgets.MenuItem[]"/>
+            app:argType="ceui.pixiv.widgets.MenuItem[]" />
     </fragment>
 
 
     <fragment
         android:id="@+id/navigation_alert_dialog"
-        android:name="ceui.pixiv.widgets.AlertPurpleDialog" >
+        android:name="ceui.pixiv.widgets.AlertPurpleDialog">
 
         <argument
             android:name="task_uuid"
-            app:argType="string"/>
+            app:argType="string" />
 
         <argument
             android:name="title"
-            app:argType="string"/>
+            app:argType="string" />
 
     </fragment>
 </navigation>
