@@ -2,16 +2,27 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="100dp">
+    android:layout_height="wrap_content">
+
+    <net.csdn.roundview.RoundImageView
+        android:id="@+id/lead_icon"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:rRadius="6dp" />
 
     <TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
         android:textColor="@color/text00"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@+id/lead_icon"
+        app:layout_constraintStart_toEndOf="@+id/lead_icon"
+        app:layout_constraintTop_toTopOf="@+id/lead_icon" />
 
     <Button
         android:id="@+id/show_more"
@@ -20,6 +31,6 @@
         android:layout_marginTop="10dp"
         android:text="@string/see_more"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text" />
+        app:layout_constraintTop_toBottomOf="@+id/lead_icon" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

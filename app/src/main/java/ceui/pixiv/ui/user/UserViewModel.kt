@@ -2,7 +2,6 @@ package ceui.pixiv.ui.user
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
@@ -21,14 +20,10 @@ import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
-import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.KListShowValueContent
 import ceui.pixiv.ui.common.ListItemHolder
-import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.detail.ArtworksMap
-import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class UserViewModel(private val userId: Long) : HoldersViewModel() {
 
@@ -97,6 +92,9 @@ class UserViewModel(private val userId: Long) : HoldersViewModel() {
     override suspend fun refreshImpl(hint: RefreshHint) {
         super.refreshImpl(hint)
         val profileResp = Client.appApi.getUserProfile(userId)
+        profileResp.user?.let {
+            ObjectPool.update(it, true)
+        }
         _userProfile.value = profileResp
         userBookmarkedIllusts.refresh(RefreshHint.InitialLoad)
         val result = mutableListOf<ListItemHolder>()
@@ -112,7 +110,8 @@ class UserViewModel(private val userId: Long) : HoldersViewModel() {
                             resp.profile?.total_illusts ?: 0
                         )
                     }).onItemClick { sender ->
-                    sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_ILLUST)
+                    sender.findActionReceiverOrNull<SeeMoreAction>()
+                        ?.seeMore(SeeMoreType.USER_CREATED_ILLUST)
                 }
             )
             result.add(SectionPreviewHolder(userCreatedIllusts, ILLUST_PREVIEW_COUNT))
@@ -130,7 +129,8 @@ class UserViewModel(private val userId: Long) : HoldersViewModel() {
                             resp.profile?.total_manga ?: 0
                         )
                     }).onItemClick { sender ->
-                    sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_MANGA)
+                    sender.findActionReceiverOrNull<SeeMoreAction>()
+                        ?.seeMore(SeeMoreType.USER_CREATED_MANGA)
                 }
             )
             result.add(SectionPreviewHolder(userCreatedManga, ILLUST_PREVIEW_COUNT))
@@ -138,9 +138,12 @@ class UserViewModel(private val userId: Long) : HoldersViewModel() {
         }
 
         result.add(
-            RedSectionHeaderHolder("Bookmarked", type = SeeMoreType.USER_BOOKMARKED_ILLUST,
-                liveEndText = MutableLiveData(Shaft.getContext().getString(R.string.string_167))).onItemClick { sender ->
-                sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_BOOKMARKED_ILLUST)
+            RedSectionHeaderHolder(
+                "Bookmarked", type = SeeMoreType.USER_BOOKMARKED_ILLUST,
+                liveEndText = MutableLiveData(Shaft.getContext().getString(R.string.string_167))
+            ).onItemClick { sender ->
+                sender.findActionReceiverOrNull<SeeMoreAction>()
+                    ?.seeMore(SeeMoreType.USER_BOOKMARKED_ILLUST)
             }
         )
         result.add(SectionPreviewHolder(userBookmarkedIllusts, ILLUST_PREVIEW_COUNT))
@@ -156,7 +159,8 @@ class UserViewModel(private val userId: Long) : HoldersViewModel() {
                             resp.profile?.total_novels ?: 0
                         )
                     }).onItemClick { sender ->
-                    sender.findActionReceiverOrNull<SeeMoreAction>()?.seeMore(SeeMoreType.USER_CREATED_NOVEL)
+                    sender.findActionReceiverOrNull<SeeMoreAction>()
+                        ?.seeMore(SeeMoreType.USER_CREATED_NOVEL)
                 }
             )
             result.add(NovelPreviewHolder(userCreatedNovels, NOVEL_PREVIEW_COUNT))

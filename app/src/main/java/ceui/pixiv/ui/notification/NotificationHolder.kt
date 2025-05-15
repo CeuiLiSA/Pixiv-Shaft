@@ -8,6 +8,7 @@ import ceui.loxia.Notification
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.user.binding_loadMedia
 import ceui.pixiv.utils.setOnClick
 
 class NotificationHolder(val notification: Notification) : ListItemHolder() {
@@ -26,6 +27,15 @@ class NotificationViewHolder(private val bd: CellNotificationBinding) :
             holder.notification.content?.text ?: "",
             HtmlCompat.FROM_HTML_MODE_COMPACT
         )
+
+        binding.leadIcon.binding_loadMedia(
+            holder.notification.content?.left_icon ?: holder.notification.content?.left_image
+        )
+
+        binding.root.setOnClick {
+            it.findActionReceiverOrNull<NotificationActionReceiver>()
+                ?.onClickNotification(holder.notification)
+        }
 
         binding.showMore.isVisible = holder.notification.view_more != null
         binding.showMore.setOnClick {

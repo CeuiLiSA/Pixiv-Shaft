@@ -2,6 +2,7 @@ package ceui.pixiv.ui.notification
 
 import android.os.Bundle
 import android.view.View
+import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
@@ -14,6 +15,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.list.pixivListViewModel
+import ceui.pixiv.ui.web.LinkHandler
 
 class NotificationsFragment : PixivFragment(R.layout.fragment_pixiv_list),
     NotificationActionReceiver {
@@ -40,7 +42,7 @@ class NotificationsFragment : PixivFragment(R.layout.fragment_pixiv_list),
     }
 
     override fun onClickNotification(notification: Notification) {
-
+        LinkHandler(findNavController()).processLink(notification.target_url)
     }
 
     override fun onClickViewMoreNotification(notification: Notification) {
