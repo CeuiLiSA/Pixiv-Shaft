@@ -140,6 +140,13 @@ interface API {
         @Query("restrict") restrict: String,
     ): NovelResponse
 
+    @GET("/v1/novel/new")
+    suspend fun getLatestNovels(): NovelResponse
+
+    @GET("/v1/illust/new?filter=for_ios")
+    suspend fun getLatestIllustManga(
+        @Query("content_type") content_type: String,
+    ): IllustResponse
 
     @GET("/v2/user/detail?filter=for_ios")
     suspend fun getUserProfile(

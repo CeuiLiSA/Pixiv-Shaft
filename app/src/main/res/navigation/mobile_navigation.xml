@@ -414,6 +414,19 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_latest_illust_manga"
+        android:name="ceui.pixiv.ui.latest.LatestIllustMangaFragment">
+
+        <argument
+            android:name="object_type"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_latest_novel"
+        android:name="ceui.pixiv.ui.latest.LatestNovelFragment" />
+
+    <fragment
         android:id="@+id/navigation_trending_tags"
         android:name="ceui.pixiv.ui.trending.TrendingTagsFragment">
 

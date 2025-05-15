@@ -83,6 +83,18 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             UserFansFragmentArgs(SessionManager.loggedInUid).toBundle()
                         )
                     },
+                    TabCellHolder(getString(R.string.the_latest_pixiv_artworks)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_common_viewpager,
+                            CommonViewPagerFragmentArgs(ViewPagerContentType.TheLatestPixivArtworks).toBundle()
+                        )
+                    },
+                    TabCellHolder(getString(R.string.created_by_me_artworks)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_common_viewpager,
+                            CommonViewPagerFragmentArgs(ViewPagerContentType.CreatedByMeArtworks).toBundle()
+                        )
+                    },
                     TabCellHolder(getString(R.string.string_323)).onItemClick {
                         pushFragment(
                             R.id.navigation_user_friends,
