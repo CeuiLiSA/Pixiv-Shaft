@@ -98,6 +98,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
 
                     TabCellHolder(
                         getString(R.string.export_refresh_token),
+                        extraInfo = SessionManager.loggedInAccount.value?.refresh_token,
                     ).onItemClick {
                         SessionManager.loggedInAccount.value?.refresh_token?.let { token ->
                             Common.copy(context, token)
@@ -106,6 +107,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
 
                     TabCellHolder(
                         getString(R.string.export_logged_in_user_json),
+                        extraInfo = "[JSON FORMATTED]"
                     ).onItemClick {
                         SessionManager.loggedInAccount.value?.let { account ->
                             Common.copy(context, Gson().toJson(account))
