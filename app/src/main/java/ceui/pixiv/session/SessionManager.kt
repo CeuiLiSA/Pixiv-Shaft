@@ -131,7 +131,6 @@ object SessionManager {
             refreshToken,
             true
         ).execute().body()
-        Timber.d("dasadsdsasd2 ${gson.toJson(accountResponse)}")
         delay(500L)
         return if (accountResponse != null) {
             withContext(Dispatchers.Main) {
