@@ -101,6 +101,8 @@ public class Shaft extends Application implements ServicesProvider {
         Timber.plant(new Timber.DebugTree());
 
         MMKV.initialize(this);
+
+
         networkStateManager = new NetworkStateManager(this);
         sUserModel = Local.getUser();
 

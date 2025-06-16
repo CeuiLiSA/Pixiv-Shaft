@@ -106,6 +106,10 @@ open class ListItemViewHolder<Binding : ViewBinding, T : ListItemHolder>(val bin
     lateinit var lifecycleOwner: LifecycleOwner
 
     open fun onBindViewHolder(holder: T, position: Int) {
+        if (binding is ViewDataBinding) {
+            binding.lifecycleOwner = lifecycleOwner
+        }
+
         holder.retrieveClickListener()?.let { listener ->
             binding.root.setOnClickListener { sender ->
                 try {

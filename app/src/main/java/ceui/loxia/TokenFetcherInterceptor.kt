@@ -3,6 +3,7 @@ package ceui.loxia
 import ceui.pixiv.session.SessionManager
 import okhttp3.Interceptor
 import okhttp3.Response
+import timber.log.Timber
 import kotlin.Long
 
 class TokenFetcherInterceptor : Interceptor {
@@ -17,7 +18,12 @@ class TokenFetcherInterceptor : Interceptor {
                 response.close()
                 val tokenForThisRequest = request.header(ClientManager.HEADER_AUTH)
                     ?.substring(ClientManager.TOKEN_HEAD.length) ?: ""
-                val refreshedAccessToken = SessionManager.refreshAccessToken(tokenForThisRequest)
+                val refreshedAccessToken = try {
+                    SessionManager.refreshAccessToken(tokenForThisRequest)
+                } catch (ex: Exception) {
+                    Timber.e(ex)
+                    null
+                }
                 if (refreshedAccessToken != null) {
                     val newRequest = chain.request()
                         .newBuilder()

@@ -38,7 +38,8 @@ class NovelPreviewViewHolder(private val bd: CellSectionPreviewBinding) :
         val adapter = CommonAdapter(lifecycleOwner)
         binding.previewListView.adapter = adapter
         binding.previewListView.layoutManager = LinearLayoutManager(context)
-        holder.valueContent.result.observe(lifecycleOwner) { resp ->
+        holder.valueContent.result.observe(lifecycleOwner) { loadResult ->
+            val resp = loadResult?.data ?: return@observe
             val limitedList = resp.displayList.take(holder.previewCount)
             adapter.submitList(limitedList.flatMap { novel ->
                 listOf(NovelCardHolder(novel), SpaceHolder(6.ppppx))

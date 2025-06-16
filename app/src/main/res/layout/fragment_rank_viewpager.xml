@@ -1,35 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rank_pager_root"
     android:layout_width="match_parent"
-    android:id="@+id/root_layout"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_height="match_parent">
 
-    <androidx.recyclerview.widget.RecyclerView
-        app:layout_constraintTop_toTopOf="parent"
-        android:id="@+id/tab_layout_list"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/tab_layout_height"
-        android:orientation="horizontal"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-    <ceui.pixiv.widgets.SlidingCursorView
-        android:id="@+id/sliding_cursor"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        app:layout_constraintTop_toBottomOf="@+id/tab_layout_list"
-        android:layout_marginBottom="4dp"
         android:layout_height="wrap_content"
-        app:scv_cursor_color="@color/always_white"
-        app:scv_cursor_height="@dimen/tab_layout_cursor_height"
-        app:scv_cursor_width="@dimen/tab_layout_cursor_width" />
+        android:background="@null"
+        app:elevation="0dp">
 
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:contentScrim="@color/transparent"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|enterAlways"
+            app:toolbarId="@+id/toolbar">
+
+            <LinearLayout
+                android:id="@+id/option_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/select_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Select Date">
+
+                </Button>
+
+                <Button
+                    android:id="@+id/clear_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Clear Date">
+
+                </Button>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                app:layout_collapseMode="pin">
+
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tab_layout_list"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tab_layout_height"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <ceui.pixiv.widgets.SlidingCursorView
+            android:id="@+id/sliding_cursor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:scv_cursor_color="@color/always_white"
+            app:scv_cursor_height="@dimen/tab_layout_cursor_height"
+            app:scv_cursor_width="@dimen/tab_layout_cursor_width" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/rank_viewpager"
-        app:layout_constraintTop_toBottomOf="@+id/sliding_cursor"
-        app:layout_constraintBottom_toBottomOf="parent"
         android:layout_width="match_parent"
-        android:layout_height="0dp"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    </androidx.viewpager2.widget.ViewPager2>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

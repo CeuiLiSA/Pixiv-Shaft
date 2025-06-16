@@ -5,7 +5,6 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,7 +15,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
-import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -47,6 +45,7 @@ import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
@@ -65,6 +64,7 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
+import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
 
@@ -370,6 +370,7 @@ fun Fragment.setUpRefreshState(
         } else {
             binding.refreshLayout.setEnableLoadMore(false)
         }
+        binding.cacheApplying.isVisible = state is RefreshState.FETCHING_LATEST
         val shouldShowLoading = state is RefreshState.LOADING && (
                 state.refreshHint == RefreshHint.InitialLoad ||
                         state.refreshHint == RefreshHint.ErrorRetry

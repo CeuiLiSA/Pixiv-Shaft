@@ -49,6 +49,12 @@ class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), Ho
                     },
                     initialTitle = getString(R.string.type_novel)
                 ),
+                PagedFragmentItem(
+                    builder = {
+                        DiscoverAllFragment()
+                    },
+                    initialTitle = getString(R.string.string_207)
+                ),
             ),
             this
         )

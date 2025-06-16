@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.user
 
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.annotations.ItemHolder
@@ -11,8 +13,12 @@ import ceui.loxia.DateParse
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
+import ceui.loxia.clearItemDecorations
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.findFragmentOrNull
+import ceui.pixiv.ui.chats.GridItemDecoration
+import ceui.pixiv.ui.chats.SquareUrlHolder
+import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
@@ -61,17 +67,44 @@ class UserPostViewHolder(bd: CellUserPostBinding) :
                 sender.findFragmentOrNull<Fragment>()?.unfollowUser(sender, it.toInt())
             }
         }
-        val imageView = binding.image
-        val w = if (holder.illust.width > holder.illust.height) {
-            screenWidth - 36.ppppx
+        if (holder.illust.page_count == 1) {
+            val imageView = binding.image
+            binding.imageList.isVisible = false
+            imageView.isVisible = true
+            val w = if (holder.illust.width > holder.illust.height) {
+                screenWidth - 36.ppppx
+            } else {
+                (screenWidth * 0.65F).roundToInt()
+            }
+            val h = (w * holder.illust.height.toFloat() / holder.illust.width.toFloat()).roundToInt()
+            imageView.updateLayoutParams {
+                width = w
+                height = h
+            }
         } else {
-            (screenWidth * 0.65F).roundToInt()
+            binding.image.isVisible = false
+            binding.imageList.isVisible = true
+            val spanCount = if (holder.illust.page_count <= 4) {
+                2
+            } else {
+                3
+            }
+            binding.imageList.layoutManager = GridLayoutManager(context, spanCount)
+            val adapter = CommonAdapter(lifecycleOwner)
+            binding.imageList.adapter = adapter
+            binding.imageList.clearItemDecorations()
+            binding.imageList.addItemDecoration(GridItemDecoration(spanCount, 2.ppppx, false))
+            adapter.submitList(holder.illust.meta_pages?.take(9)?.mapIndexedNotNull { index, page ->
+                if (page.image_urls?.large != null) {
+                    SquareUrlHolder(page.image_urls.large, holder.illust, index)
+                } else {
+                    null
+                }
+            }) {
+                binding.imageList.requestLayout()
+            }
         }
-        val h = (w * holder.illust.height.toFloat() / holder.illust.width.toFloat()).roundToInt()
-        imageView.updateLayoutParams {
-            width = w
-            height = h
-        }
+
         binding.postTime.text = DateParse.getTimeAgo(context, holder.illust.create_date)
         binding.user = ObjectPool.get<User>(holder.illust.user?.id ?: 0L)
         binding.holder = holder

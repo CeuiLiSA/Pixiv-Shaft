@@ -82,10 +82,9 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         baseBind.login.setOnClickListener {
             checkAndNext {
                 openProxyHint {
-                    val url = LOGIN_HEAD + HostManager.get().pkce.challenge + LOGIN_END
                     val intent = Intent(mContext, TemplateActivity::class.java)
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-                    intent.putExtra(Params.URL, url)
+                    intent.putExtra(Params.URL, HostManager.get().loginUrl)
                     intent.putExtra(Params.TITLE, getString(R.string.now_login))
                     intent.putExtra(Params.PREFER_PRESERVE, true)
                     startActivity(intent)
@@ -95,10 +94,9 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         baseBind.sign.setOnClickListener {
             checkAndNext {
                 openProxyHint {
-                    val url = SIGN_HEAD + HostManager.get().pkce.challenge + SIGN_END
                     val intent = Intent(mContext, TemplateActivity::class.java)
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-                    intent.putExtra(Params.URL, url)
+                    intent.putExtra(Params.URL, HostManager.get().signupUrl)
                     intent.putExtra(Params.TITLE, getString(R.string.now_sign))
                     intent.putExtra(Params.PREFER_PRESERVE, true)
                     startActivity(intent)
@@ -226,13 +224,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         const val REFRESH_TOKEN = "refresh_token"
         const val AUTH_CODE = "authorization_code"
         const val CALL_BACK = "https://app-api.pixiv.net/web/v1/users/auth/pixiv/callback"
-        private const val SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8"
-        private const val SIGN_REF = "pixiv_android_app_provisional_account"
-        private const val LOGIN_HEAD = "https://app-api.pixiv.net/web/v1/login?code_challenge="
-        private const val LOGIN_END = "&code_challenge_method=S256&client=pixiv-android"
-        private const val SIGN_HEAD =
-            "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge="
-        private const val SIGN_END = "&code_challenge_method=S256&client=pixiv-android"
         private const val TAPS_TO_BE_A_DEVELOPER = 7
     }
 }

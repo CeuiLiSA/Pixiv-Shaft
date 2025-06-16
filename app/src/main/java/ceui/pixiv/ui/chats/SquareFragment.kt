@@ -24,6 +24,7 @@ import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.repo.HybridRepository
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.settings.CookieNotSyncException
 import ceui.pixiv.utils.ppppx
@@ -37,14 +38,16 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by navArgs<SquareFragmentArgs>()
-    private val viewModel by pixivValueViewModel({ Pair(safeArgs.objectType, MMKV.defaultMMKV()) },
-        responseStore = createResponseStore({ "home-square-${safeArgs.objectType}" })) { (objectType, prefStore) ->
-        if (prefStore.getString(SessionManager.COOKIE_KEY, "").isNullOrEmpty()) {
-            throw CookieNotSyncException("Pixiv cookie not synced")
-        }
+    private val viewModel by pixivValueViewModel(
+        argsProducer = { Pair(safeArgs.objectType, MMKV.mmkvWithID("shaft-session")) },
+        repositoryProducer = { (objectType, prefStore) ->
+            SquareRepository(
+                objectType,
+                prefStore,
+                createResponseStore({ "home-square-${safeArgs.objectType}" })
+            )
+        })
 
-        Client.webApi.getSquareContents(objectType)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -52,7 +55,8 @@ class SquareFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         binding.listView.updatePadding(left = 3.ppppx, right = 3.ppppx)
-        viewModel.result.observe(viewLifecycleOwner) { data ->
+        viewModel.result.observe(viewLifecycleOwner) { loadResult ->
+            val data = loadResult?.data ?: return@observe
             val holders = mutableListOf<ListItemHolder>()
             val ids = mutableListOf<Long>()
 

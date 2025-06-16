@@ -31,7 +31,6 @@ class ImgUrlFragment : ImgDisplayFragment(R.layout.fragment_img_url) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requireActivity().findViewById<ImageView>(R.id.activity_background).isVisible = false
         val infoViews = listOf(
             binding.download,
             binding.toolbarLayout.root,
@@ -49,10 +48,5 @@ class ImgUrlFragment : ImgDisplayFragment(R.layout.fragment_img_url) {
                 binding.toolbarLayout
             )
         }
-    }
-
-    override fun onDestroyView() {
-        requireActivity().findViewById<ImageView>(R.id.activity_background).isVisible = false
-        super.onDestroyView()
     }
 }

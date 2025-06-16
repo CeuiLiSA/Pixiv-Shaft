@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.web
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.webkit.CookieManager
@@ -25,6 +27,19 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.viewBinding
 import com.scwang.smart.refresh.header.MaterialHeader
 import com.tencent.mmkv.MMKV
+import androidx.core.net.toUri
+import androidx.navigation.NavOptions
+import ceui.lisa.feature.HostManager
+import ceui.lisa.fragments.FragmentLogin
+import ceui.loxia.AccountResponse
+import ceui.loxia.Client
+import ceui.loxia.launchSuspend
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.Callback
+import retrofit2.Call
+import retrofit2.Response
+import timber.log.Timber
 
 
 class WebFragment : PixivFragment(R.layout.fragment_web) {
@@ -32,7 +47,7 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
     private val args by navArgs<WebFragmentArgs>()
     private val binding by viewBinding(FragmentWebBinding::bind)
     private val prefStore: MMKV by lazy {
-        MMKV.defaultMMKV()
+        MMKV.mmkvWithID("shaft-session")
     }
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -76,6 +91,9 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         val webSettings: WebSettings = binding.webView.settings
         val refreshLayout = binding.refreshLayout
 
+        val navController = findNavController()
+        val linkHandler = LinkHandler(navController)
+
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
@@ -98,6 +116,18 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
                 if (view != null) {
                     refreshLayout.finishRefresh()
                 }
+            }
+
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): Boolean {
+                val requestUrlString = request?.url?.toString()
+                if (linkHandler.processLink(requestUrlString)) {
+                    return true // 自己处理了
+                }
+
+                return super.shouldOverrideUrlLoading(view, request)
             }
 
             override fun shouldInterceptRequest(

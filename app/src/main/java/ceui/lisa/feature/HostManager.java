@@ -19,6 +19,12 @@ public class HostManager {
 //    public static final String HOST_OLD = "app-api.pixiv.net";
     public static final String HOST_NEW = "i.pixiv.re";
     private static final String HTTP_HEAD = "http://";
+
+    private static final String LOGIN_HEAD = "https://app-api.pixiv.net/web/v1/login?code_challenge=";
+    private static final String LOGIN_END = "&code_challenge_method=S256&client=pixiv-android";
+    private static final String SIGN_HEAD = "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge=";
+    private static final String SIGN_END = "&code_challenge_method=S256&client=pixiv-android";
+
     private PKCEItem pkceItem;
 
     private String host;
@@ -150,5 +156,13 @@ public class HostManager {
             }
         }
         return pkceItem;
+    }
+
+    public String getLoginUrl() {
+        return LOGIN_HEAD + getPkce().getChallenge() + LOGIN_END;
+    }
+
+    public String getSignupUrl() {
+        return SIGN_HEAD + getPkce().getChallenge() + SIGN_END;
     }
 }

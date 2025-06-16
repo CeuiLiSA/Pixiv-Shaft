@@ -228,38 +228,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (SessionManager.INSTANCE.isLoggedIn() || (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login())) {
-            if (!SessionManager.INSTANCE.isLoggedIn()) {
-                SessionManager.INSTANCE.updateSession(sUserModel);
-            }
-            if (Shaft.getMMKV().getBoolean(SessionManager.USE_NEW_UI_KEY, false)) {
-                startActivity(new Intent(this, HomeActivity.class));
-                finish();
-            } else {
-                if (Common.isAndroidQ()) {
-                    initFragment();
-//                startActivity(new Intent(this, ListActivity.class));
-                } else {
-                    new RxPermissions(mActivity)
-                            .requestEachCombined(
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            )
-                            .subscribe(permission -> {
-                                if (permission.granted) {
-                                    initFragment();
-                                } else {
-                                    Common.showToast(mActivity.getString(R.string.access_denied));
-                                    finish();
-                                }
-                            });
-                }
-            }
-        } else {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
-            startActivity(intent);
-            finish();
-        }
+        startActivity(new Intent(this, HomeActivity.class));
+        finish();
     }
 
     public DrawerLayout getDrawer() {

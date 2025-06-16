@@ -7,27 +7,54 @@ import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.lifecycleScope
+import androidx.core.view.isVisible
+import androidx.navigation.findNavController
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.utils.INetworkState
-import ceui.pixiv.utils.NetworkStateManager
+import ceui.lisa.R
+import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.utils.Params
+import ceui.loxia.Client
+import ceui.loxia.Illust
+import ceui.loxia.IllustResponse
+import ceui.loxia.ObjectPool
+import ceui.loxia.RefreshHint
+import ceui.pixiv.ui.common.repo.RemoteRepository
+import ceui.pixiv.ui.landing.LandingFragment
 import ceui.pixiv.utils.ppppx
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+import com.bumptech.glide.request.RequestOptions.bitmapTransform
+import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
+import kotlin.getValue
 
-class HomeActivity : AppCompatActivity(), INetworkState {
+class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
-    private val _networkStateManager by lazy { NetworkStateManager(this) }
+
+    private val bgViewModel by pixivValueViewModel {
+        RemoteRepository {
+            val rest = if (SessionManager.loggedInUid > 0L) {
+                Client.appApi.getUserBookmarkedIllusts(
+                    SessionManager.loggedInUid, Params.TYPE_PUBLIC
+                )
+            } else {
+                val jsonString = assets.open("walkthrough.json").bufferedReader().use { it.readText() }
+                Gson().fromJson(jsonString, IllustResponse::class.java)
+            }
+
+            val list = rest.illusts
+            rest.copy(illusts = list.shuffled())
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        _networkStateManager
         enableEdgeToEdge()
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -35,8 +62,36 @@ class HomeActivity : AppCompatActivity(), INetworkState {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        val graph = navController.navInflater.inflate(R.navigation.mobile_navigation)
+        val startDestination = if (SessionManager.isLoggedIn) {
+            R.id.navigation_home_viewpager
+        } else {
+            R.id.navigation_landing
+        }
+        graph.setStartDestination(startDestination)
+        navController.graph = graph
+
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
+        }
+
+        SessionManager.loggedInAccount.observe(this) {
+            Timber.d("loggedInAccount ${it}")
+            bgViewModel.refresh(RefreshHint.PullToRefresh)
+        }
+
+        bgViewModel.result.observe(this) { loadResult ->
+            val resp = loadResult?.data ?: return@observe
+            resp.displayList.getOrNull(0)?.let { illust ->
+                ObjectPool.update(illust)
+                binding.dimmer.isVisible = true
+                Glide.with(this)
+                    .load(GlideUrlChild(illust.image_urls?.large))
+                    .apply(bitmapTransform(BlurTransformation(15, 3)))
+                    .transition(withCrossFade())
+                    .into(binding.pageBackground)
+            }
         }
     }
 
@@ -131,14 +186,5 @@ class HomeActivity : AppCompatActivity(), INetworkState {
             }
         }
         return super.dispatchTouchEvent(event)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        _networkStateManager.unregisterNetworkCallback()
-    }
-
-    override val networkState: LiveData<NetworkStateManager.NetworkType> get() {
-        return _networkStateManager.networkState
     }
 }

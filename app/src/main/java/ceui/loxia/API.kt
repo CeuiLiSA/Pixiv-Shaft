@@ -3,7 +3,7 @@ package ceui.loxia
 import ceui.lisa.models.NullResponse
 import ceui.lisa.utils.Params
 import okhttp3.ResponseBody
-import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -21,6 +21,10 @@ interface API {
         @Field("type_of_problem") type_of_problem: String?,
         @Field("message") message: String?
     ): NullResponse
+
+
+    @POST("/v1/home/all")
+    suspend fun getHomeAll(@Body body: MainBody = MainBody()): HomeData
 
     @FormUrlEncoded
     @POST("/v1/user/follow/add")
@@ -136,6 +140,13 @@ interface API {
         @Query("restrict") restrict: String,
     ): NovelResponse
 
+    @GET("/v1/novel/new")
+    suspend fun getLatestNovels(): NovelResponse
+
+    @GET("/v1/illust/new?filter=for_ios")
+    suspend fun getLatestIllustManga(
+        @Query("content_type") content_type: String,
+    ): IllustResponse
 
     @GET("/v2/user/detail?filter=for_ios")
     suspend fun getUserProfile(
@@ -147,6 +158,13 @@ interface API {
         @Query("user_id") user_id: Long,
         @Query("restrict") restrict: String,
     ): UserPreviewResponse
+
+
+    @GET("/v1/notification/list")
+    suspend fun getNotifications(): NotificationResponse
+
+    @GET("/v1/notification/view-more")
+    suspend fun getViewMoreNotifications(@Query("notification_id") notification_id: Long): NotificationResponse
 
     @GET("/v1/user/follower?filter=for_ios")
     suspend fun getUserFans(
@@ -171,6 +189,7 @@ interface API {
     @GET("/v1/illust/ranking?filter=for_ios")
     suspend fun getRankingIllusts(
         @Query("mode") mode: String,
+        @Query("date") date: String? = null,
     ): IllustResponse
 
     @GET("/v1/search/popular-preview/illust?search_ai_type=0&filter=for_ios")

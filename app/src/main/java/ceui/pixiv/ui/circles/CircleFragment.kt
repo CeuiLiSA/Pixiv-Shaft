@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
+import androidx.lifecycle.map
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
@@ -40,10 +41,10 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
         SearchViewModel(word)
     }
     private val viewModel by pixivValueViewModel(
-        responseStore = createResponseStore({ "circle-detail-${args.keyword}" })
-    ) {
-        Client.webApi.getCircleDetail(args.keyword)
-    }
+        argsProducer = { args.keyword },
+        repositoryProducer = { keyword ->
+            CircleRepository(keyword, createResponseStore({ "circle-detail-${args.keyword}" }))
+        })
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -68,7 +69,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
             binding.headerContent.alpha = 1F - percentage
             binding.naviTitle.isVisible = (percentage == 1F)
         }
-        binding.circle = viewModel.result
+        binding.circle = viewModel.result.map { it.data }
         binding.refreshLayout.setEnableRefresh(true)
         binding.refreshLayout.setEnableLoadMore(false)
         viewModel.refreshState.observe(viewLifecycleOwner) { state ->
@@ -87,8 +88,8 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
                 binding.circleRootLayout.isVisible = true
             }
         }
-        binding.circle = viewModel.result
-        viewModel.result.observe(viewLifecycleOwner) { circle ->
+        viewModel.result.observe(viewLifecycleOwner) { loadResult ->
+            val circle = loadResult?.data ?: return@observe
             binding.worksCount.text = "${circle.body?.total ?: 0}个作品"
             binding.tagIcon.setOnClick {
                 circle?.body?.meta?.pixpedia?.illust?.id?.let { id ->
@@ -108,34 +109,25 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(
-                    builder = { CircleInfoFragment() },
-                    initialTitle = getString(R.string.about_app)
-                ),
-                PagedFragmentItem(
+                    builder = { CircleInfoFragment() }, initialTitle = getString(R.string.about_app)
+                ), PagedFragmentItem(
                     builder = {
                         SearchIlllustMangaFragment()
-                    },
-                    initialTitle = getString(R.string.string_136)
-                ),
-                PagedFragmentItem(
+                    }, initialTitle = getString(R.string.string_136)
+                ), PagedFragmentItem(
                     builder = {
                         SearchNovelFragment()
-                    },
-                    initialTitle = getString(R.string.type_novel)
-                ),
-                PagedFragmentItem(
+                    }, initialTitle = getString(R.string.type_novel)
+                ), PagedFragmentItem(
                     builder = {
                         SearchUserFragment()
-                    },
-                    initialTitle = getString(R.string.type_user)
+                    }, initialTitle = getString(R.string.type_user)
                 )
             ), this
         )
         binding.circleViewPager.adapter = adapter
         binding.tabLayoutList.setUpWith(
-            binding.circleViewPager,
-            binding.slidingCursor,
-            viewLifecycleOwner
+            binding.circleViewPager, binding.slidingCursor, viewLifecycleOwner
         ) {
 
         }

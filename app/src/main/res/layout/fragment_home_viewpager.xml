@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 app:contentScrim="@color/transparent"
                 app:toolbarId="@+id/toolbar"
-                app:layout_scrollFlags="scroll|exitUntilCollapsed">
+                app:layout_scrollFlags="scroll|exitUntilCollapsed|enterAlways">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/home_header_content"

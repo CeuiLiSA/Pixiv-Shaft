@@ -7,7 +7,6 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
-import ceui.loxia.SpaceHolder
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
@@ -19,9 +18,10 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.ViewPagerContentType
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
+import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
 import com.blankj.utilcode.util.AppUtils
 
@@ -29,13 +29,15 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by pixivValueViewModel(
-        dataFetcher = {
-            val resp = Client.appApi.getUserProfile(SessionManager.loggedInUid)
-            resp.user?.let {
-                ObjectPool.update(it)
+        repositoryProducer = {
+            RemoteRepository {
+                val resp = Client.appApi.getUserProfile(SessionManager.loggedInUid)
+                resp.user?.let {
+                    ObjectPool.update(it)
+                }
+                ObjectPool.update(resp)
+                resp
             }
-            ObjectPool.update(resp)
-            resp
         }
     )
 
@@ -44,6 +46,9 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL_TABCELL)
+        binding.toolbarLayout.naviMore.setOnClick {
+            pushFragment(R.id.navigation_notification)
+        }
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(
@@ -76,6 +81,18 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         pushFragment(
                             R.id.navigation_user_fans,
                             UserFansFragmentArgs(SessionManager.loggedInUid).toBundle()
+                        )
+                    },
+                    TabCellHolder(getString(R.string.the_latest_pixiv_artworks)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_common_viewpager,
+                            CommonViewPagerFragmentArgs(ViewPagerContentType.TheLatestPixivArtworks).toBundle()
+                        )
+                    },
+                    TabCellHolder(getString(R.string.created_by_me_artworks)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_common_viewpager,
+                            CommonViewPagerFragmentArgs(ViewPagerContentType.CreatedByMeArtworks).toBundle()
                         )
                     },
                     TabCellHolder(getString(R.string.string_323)).onItemClick {

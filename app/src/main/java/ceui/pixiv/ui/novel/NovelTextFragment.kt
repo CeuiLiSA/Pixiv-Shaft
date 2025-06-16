@@ -43,10 +43,6 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
 
     private val safeArgs by navArgs<NovelTextFragmentArgs>()
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val bgViewModel by pixivValueViewModel(
-        dataFetcher = { Client.appApi.getUserBookmarkedIllusts(SessionManager.loggedInUid, Params.TYPE_PUBLIC) },
-        responseStore = createResponseStore({"user-${SessionManager.loggedInUid}-bookmarked-illusts"})
-    )
     private val textModel by constructVM({ safeArgs.novelId }) { novelId->
         NovelTextViewModel(novelId)
     }
@@ -54,12 +50,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, textModel, ListMode.VERTICAL)
-        bgViewModel.result.observe(viewLifecycleOwner) { resp ->
-            resp.displayList.getOrNull(safeArgs.novelId.mod(10))?.let {
-                ObjectPool.update(it)
-                blurBackground(binding, it.id)
-            }
-        }
+
         val liveNovel = ObjectPool.get<Novel>(safeArgs.novelId)
         combineLatest(liveNovel, textModel.webNovel).observe(viewLifecycleOwner) { (novel, webNovel) ->
 

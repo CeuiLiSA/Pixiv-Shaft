@@ -14,6 +14,14 @@ import ceui.lisa.helper.ThemeHelper;
 public class Settings {
 
     public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文", "русский", "한국어"};
+    public static final String[] WELCOME_MESSAGES = new String[]{
+            "欢迎使用",       // 简体中文
+            "ようこそ",       // 日本語
+            "Welcome",       // English
+            "歡迎使用",       // 繁體中文
+            "Добро пожаловать", // русский
+            "환영합니다"       // 한국어
+    };
 
     //只包含1P图片的下载路径
     public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";

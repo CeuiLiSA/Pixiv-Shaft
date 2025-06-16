@@ -3,33 +3,27 @@ package ceui.pixiv.ui.home
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
 import android.view.animation.OvershootInterpolator
-import android.view.animation.RotateAnimation
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
-import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
-import ceui.pixiv.db.GeneralEntity
-import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
 import ceui.pixiv.ui.circles.MyCirclesFragment
+import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.ViewPagerFragment
+import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
+import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.ui.common.viewBinding
-import timber.log.Timber
 
 class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), ViewPagerFragment {
     private val binding by viewBinding(FragmentHomeViewpagerBinding::bind)
@@ -44,7 +38,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 topMargin = insets.top
             }
             binding.toolbar.updateLayoutParams {
-                height = insets.top
+                height = insets.top - 10.ppppx
             }
             binding.bottomInset.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 height = insets.bottom
@@ -84,7 +78,8 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             binding.homeViewPager.setCurrentItem(3, false)
         }
         binding.homeViewPager.isUserInputEnabled = false
-        binding.homeViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        binding.homeViewPager.registerOnPageChangeCallback(object :
+            ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 viewModel.selectedTabIndex.value = position
@@ -104,14 +99,28 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 pushFragment(R.id.navigation_mine_profile)
             }
         }
+
+        viewModel.composeButtonState.observe(viewLifecycleOwner) { state ->
+            if (state == HomeViewPagerViewModel.ComposeButtonState.OPEN) {
+                binding.homeCompose.animate()
+                    .rotation(135f)
+                    .scaleX(0.8f)
+                    .scaleY(0.8f)
+                    .setDuration(300L)
+                    .setInterpolator(OvershootInterpolator(2f))
+                    .start()
+            } else {
+                binding.homeCompose.animate()
+                    .rotation(0f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(300L)
+                    .setInterpolator(OvershootInterpolator(2f))
+                    .start()
+            }
+        }
         binding.homeCompose.setOnClick {
-//            binding.homeCompose.startAnimation(RotateAnimation(
-//                0F, 45F, Animation.RELATIVE_TO_SELF, 0.5F, Animation.RELATIVE_TO_SELF, 0.5F
-//            ).apply {
-//                duration = 300L
-//                interpolator = OvershootInterpolator(2F)
-//                fillAfter = true
-//            })
+            viewModel.toggleComposeButton()
         }
         binding.homeViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {

@@ -5,7 +5,7 @@ import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-class GridSpacingItemDecoration(
+class GridItemDecoration(
     private val spanCount: Int,
     private val spacing: Int,
     private val includeEdge: Boolean

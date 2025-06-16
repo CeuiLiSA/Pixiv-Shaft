@@ -11,6 +11,7 @@ import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentCommonViewpagerBinding
 import ceui.lisa.utils.Params
+import ceui.loxia.ObjectType
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.blocking.BlockedItemListFragment
@@ -21,10 +22,17 @@ import ceui.pixiv.ui.common.ViewPagerContentType.MyBlockingHistory
 import ceui.pixiv.ui.common.ViewPagerContentType.MyViewHistory
 import ceui.pixiv.ui.history.ViewHistoryFragment
 import ceui.pixiv.ui.history.ViewHistoryFragmentArgs
+import ceui.pixiv.ui.latest.LatestIllustMangaFragment
+import ceui.pixiv.ui.latest.LatestIllustMangaFragmentArgs
+import ceui.pixiv.ui.latest.LatestNovelFragment
 import ceui.pixiv.ui.user.UserBookmarkedIllustsFragment
 import ceui.pixiv.ui.user.UserBookmarkedIllustsFragmentArgs
 import ceui.pixiv.ui.user.UserBookmarkedNovelFragment
 import ceui.pixiv.ui.user.UserBookmarkedNovelFragmentArgs
+import ceui.pixiv.ui.user.UserCreatedIllustsFragment
+import ceui.pixiv.ui.user.UserCreatedIllustsFragmentArgs
+import ceui.pixiv.ui.user.UserCreatedNovelFragment
+import ceui.pixiv.ui.user.UserCreatedNovelFragmentArgs
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
 import ceui.pixiv.widgets.setUpWith
@@ -35,6 +43,8 @@ object ViewPagerContentType {
     const val MyFollowingUsers = 3
     const val MyViewHistory = 4
     const val MyBlockingHistory = 5
+    const val TheLatestPixivArtworks = 6
+    const val CreatedByMeArtworks = 7
 }
 
 class CommonViewPagerViewModel : ViewModel() {
@@ -213,6 +223,78 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                         }
                     },
                     initialTitle = getString(R.string.type_user)
+                )
+            )
+        } else if (args.contentType == ViewPagerContentType.TheLatestPixivArtworks) {
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        LatestIllustMangaFragment().apply {
+                            arguments = LatestIllustMangaFragmentArgs(
+                                ObjectType.ILLUST
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_illust)
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        LatestIllustMangaFragment().apply {
+                            arguments = LatestIllustMangaFragmentArgs(
+                                ObjectType.MANGA
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_manga)
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        LatestNovelFragment()
+                    },
+                    initialTitle = getString(R.string.type_novel)
+                )
+            )
+        } else if (args.contentType == ViewPagerContentType.CreatedByMeArtworks) {
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        UserCreatedIllustsFragment().apply {
+                            arguments = UserCreatedIllustsFragmentArgs(
+                                SessionManager.loggedInUid,
+                                ObjectType.ILLUST
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_illust)
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        UserCreatedIllustsFragment().apply {
+                            arguments = UserCreatedIllustsFragmentArgs(
+                                SessionManager.loggedInUid,
+                                ObjectType.MANGA
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_manga)
+                )
+            )
+            pagedItems.add(
+                PagedFragmentItem(
+                    builder = {
+                        UserCreatedNovelFragment().apply {
+                            arguments = UserCreatedNovelFragmentArgs(
+                                SessionManager.loggedInUid
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.type_novel)
                 )
             )
         }

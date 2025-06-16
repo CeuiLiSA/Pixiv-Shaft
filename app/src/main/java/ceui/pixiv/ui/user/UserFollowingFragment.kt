@@ -24,6 +24,7 @@ import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
 import com.bumptech.glide.Glide
@@ -45,12 +46,14 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         )
     }
     private val contentViewModel by pixivValueViewModel {
-        val rest = if (args.restrictType == Params.TYPE_PRIVATE) {
-            "hide"
-        } else {
-            "show"
+        RemoteRepository {
+            val rest = if (args.restrictType == Params.TYPE_PRIVATE) {
+                "hide"
+            } else {
+                "show"
+            }
+            Client.webApi.getRelatedUsers(SessionManager.loggedInUid, "following", rest)
         }
-        Client.webApi.getRelatedUsers(SessionManager.loggedInUid, "following", rest)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -65,8 +68,9 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     }
                 }
             } else if (args.restrictType == Params.TYPE_PRIVATE) {
-                contentViewModel.result.observe(viewLifecycleOwner) { result ->
+                contentViewModel.result.observe(viewLifecycleOwner) { loadResult ->
                     (parentFragment as? TitledViewPagerFragment)?.let {
+                        val result = loadResult?.data ?: return@observe
                         it.getTitleLiveData(1).value =
                             "${getString(R.string.string_392)} (${result.body?.total ?: 0})"
                     }

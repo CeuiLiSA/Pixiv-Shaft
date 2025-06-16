@@ -87,17 +87,29 @@
                 app:ptb_progress_width="14dp" />
         </FrameLayout>
 
-        <!-- 帖子图片（需要根据宽高比显示） -->
-        <net.csdn.roundview.RoundImageView
-            android:id="@+id/image"
-            loadMedia="@{holder.illust.image_urls.large}"
+        <FrameLayout
+            android:id="@+id/image_layout"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:scaleType="centerCrop"
             android:layout_marginTop="12dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/post_time"
-            app:rRadius="6dp" />
+            app:layout_constraintTop_toBottomOf="@+id/post_time">
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/image"
+                loadMedia="@{holder.illust.image_urls.large}"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scaleType="centerCrop"
+                app:rRadius="6dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/image_list"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </FrameLayout>
 
         <TextView
             android:id="@+id/title"
@@ -108,7 +120,7 @@
             android:textSize="17sp"
             android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/image" />
+            app:layout_constraintTop_toBottomOf="@+id/image_layout" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
