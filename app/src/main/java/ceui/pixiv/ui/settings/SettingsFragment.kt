@@ -7,6 +7,7 @@ import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
@@ -23,6 +24,7 @@ import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.widgets.alertYesOrCancel
+import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
@@ -48,6 +50,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
         val nameCode = prefStore.getString(SessionManager.CONTENT_LANGUAGE_KEY, "cn") ?: "cn"
+        val context = requireActivity()
 
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(
@@ -91,6 +94,22 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                         pushFragment(
                             R.id.navigation_select_language,
                         )
+                    },
+
+                    TabCellHolder(
+                        getString(R.string.export_refresh_token),
+                    ).onItemClick {
+                        SessionManager.loggedInAccount.value?.refresh_token?.let { token ->
+                            Common.copy(context, token)
+                        }
+                    },
+
+                    TabCellHolder(
+                        getString(R.string.export_logged_in_user_json),
+                    ).onItemClick {
+                        SessionManager.loggedInAccount.value?.let { account ->
+                            Common.copy(context, Gson().toJson(account))
+                        }
                     },
 
                     LogOutHolder()

@@ -758,4 +758,6 @@
     <string name="the_latest_pixiv_artworks">平台最新作品</string>
     <string name="created_by_me_artworks">我创作的作品</string>
     <string name="log_in_with_token">Log In With Token</string>
+    <string name="export_refresh_token">导出 Refresh Token</string>
+    <string name="export_logged_in_user_json">导出当前登录用户 JSON</string>
 </resources>
