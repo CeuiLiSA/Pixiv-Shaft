@@ -5,7 +5,6 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentPixivListBinding
@@ -15,41 +14,40 @@ import ceui.loxia.ObjectType
 import ceui.loxia.clearItemDecorations
 import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagReasonFragmentArgs
-import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.loxia.requireEntityWrapper
 import ceui.loxia.threadSafeArgs
-import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.shareIllust
+import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.related.RelatedIllustsFragmentArgs
 import ceui.pixiv.ui.works.GalleryActionReceiver
 import ceui.pixiv.ui.works.GalleryHolder
 import ceui.pixiv.ui.works.PagedImgUrlFragmentArgs
-
-import ceui.pixiv.widgets.MenuItem
-import ceui.pixiv.widgets.showActionMenu
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.related.RelatedIllustsFragmentArgs
-import ceui.pixiv.ui.works.blurBackground
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import timber.log.Timber
-import kotlin.getValue
+import ceui.pixiv.widgets.MenuItem
+import ceui.pixiv.widgets.showActionMenu
 
-class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment, GalleryActionReceiver, SeeMoreAction {
+class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment,
+    GalleryActionReceiver, SeeMoreAction {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by threadSafeArgs<ArtworkFragmentArgs>()
-    private val viewModel by constructVM({ Pair(safeArgs.illustId, requireActivity().lifecycleScope) }) { (illustId, lifecycleScope) ->
+    private val viewModel by constructVM({
+        Pair(
+            safeArgs.illustId,
+            requireActivity().lifecycleScope
+        )
+    }) { (illustId, lifecycleScope) ->
         ArtworkViewModel(illustId, lifecycleScope)
     }
 
@@ -58,12 +56,15 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
         setUpRefreshState(binding, viewModel, ListMode.CUSTOM)
         val ctx = requireContext()
 
-        val isBlockedLiveData = AppDatabase.getAppDatabase(ctx).generalDao().isObjectBlocked(RecordType.BLOCK_ILLUST, safeArgs.illustId)
+        val isBlockedLiveData = AppDatabase.getAppDatabase(ctx).generalDao()
+            .isObjectBlocked(RecordType.BLOCK_ILLUST, safeArgs.illustId)
 
         binding.listView.layoutManager = LinearLayoutManager(ctx)
-        blurBackground(binding, safeArgs.illustId)
 
-        combineLatest(isBlockedLiveData, viewModel.illustLiveData).observe(viewLifecycleOwner) { (isBlocked, illust) ->
+        combineLatest(
+            isBlockedLiveData,
+            viewModel.illustLiveData
+        ).observe(viewLifecycleOwner) { (isBlocked, illust) ->
             if (isBlocked == null || illust == null) {
                 return@observe
             }
@@ -86,7 +87,12 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
 
                 binding.refreshLayout.isVisible = true
                 binding.listView.clearItemDecorations()
-                binding.listView.addItemDecoration(LinearItemDecorationKt(16.ppppx, illust.page_count))
+                binding.listView.addItemDecoration(
+                    LinearItemDecorationKt(
+                        16.ppppx,
+                        illust.page_count
+                    )
+                )
 
                 binding.toolbarLayout.naviMore.setOnClick {
                     showActionMenu {
@@ -107,8 +113,11 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                         )
                         add(
                             MenuItem(getString(R.string.flag_artwork)) {
-                                pushFragment(R.id.navigation_flag_reason, FlagReasonFragmentArgs(
-                                    safeArgs.illustId, ObjectSpec.Illust).toBundle())
+                                pushFragment(
+                                    R.id.navigation_flag_reason, FlagReasonFragmentArgs(
+                                        safeArgs.illustId, ObjectSpec.Illust
+                                    ).toBundle()
+                                )
                             }
                         )
                         add(
@@ -134,7 +143,10 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
 
     override fun seeMore(type: Int) {
         if (type == SeeMoreType.RELATED_ILLUST) {
-            pushFragment(R.id.navigation_related_illusts, RelatedIllustsFragmentArgs(safeArgs.illustId).toBundle())
+            pushFragment(
+                R.id.navigation_related_illusts,
+                RelatedIllustsFragmentArgs(safeArgs.illustId).toBundle()
+            )
         }
     }
 }

@@ -4,8 +4,6 @@ import android.net.Uri
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.navigation.NavOptions
-import ceui.lisa.R
 import ceui.lisa.feature.HostManager
 import ceui.lisa.fragments.FragmentLogin
 import ceui.lisa.models.UserModel
@@ -13,7 +11,7 @@ import ceui.loxia.AccountResponse
 import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
-import ceui.pixiv.ui.landing.LandingFragment
+import ceui.loxia.isJson
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +28,6 @@ object SessionManager {
     const val USE_NEW_UI_KEY = "use-v5-ui"
     const val COOKIE_KEY = "web-api-cookie"
     const val CONTENT_LANGUAGE_KEY = "content-language"
-    const val IS_LANDING_PAGE_SHOWN = "IS_LANDING_PAGE_SHOWN"
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
     private val gson = Gson()
@@ -44,13 +41,15 @@ object SessionManager {
         MMKV.mmkvWithID("shaft-session")
     }
 
-    val isLoggedIn: Boolean get() {
-        return _loggedInAccount.value != null
-    }
+    val isLoggedIn: Boolean
+        get() {
+            return _loggedInAccount.value != null
+        }
 
-    val loggedInUid: Long get() {
-        return _loggedInAccount.value?.user?.id ?: 0L
-    }
+    val loggedInUid: Long
+        get() {
+            return _loggedInAccount.value?.user?.id ?: 0L
+        }
 
     fun initialize() {
         val json = prefStore.getString(USER_KEY, "")
@@ -80,6 +79,17 @@ object SessionManager {
         }
     }
 
+    fun updateSessionWithAccountResponse(accountResponse: AccountResponse?) {
+        if (accountResponse == null) {
+            prefStore.putString(USER_KEY, "")
+            _loggedInAccount.value = AccountResponse()
+            MMKV.defaultMMKV().clearAll()
+        } else {
+            prefStore.putString(USER_KEY, gson.toJson(accountResponse))
+            _loggedInAccount.value = accountResponse
+        }
+    }
+
 
     fun postUpdateSession(userModel: UserModel?) {
         if (userModel == null) {
@@ -102,28 +112,33 @@ object SessionManager {
 
         return runBlocking(Dispatchers.IO) {
             try {
-                _newTokenEvent.postValue(Event(System.currentTimeMillis()))
-                val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
-                val userModel = Client.authApi.newRefreshToken(
-                    FragmentLogin.CLIENT_ID,
-                    FragmentLogin.CLIENT_SECRET,
-                    FragmentLogin.REFRESH_TOKEN,
-                    refreshToken,
-                    true
-                ).execute().body()
-                delay(500L)
-                if (userModel != null) {
-                    withContext(Dispatchers.Main) {
-                        updateSession(userModel)
-                    }
-                    userModel.rawAccessToken
-                } else {
-                    throw RuntimeException("newRefreshToken failed")
-                }
+                val refreshToken = _loggedInAccount.value?.refresh_token
+                    ?: throw RuntimeException("refresh_token not exist")
+                refreshAccessTokenInternal(refreshToken)
             } catch (ex: Exception) {
                 Timber.e(ex)
                 null
             }
+        }
+    }
+
+    private suspend fun refreshAccessTokenInternal(refreshToken: String): String? {
+        _newTokenEvent.postValue(Event(System.currentTimeMillis()))
+        val accountResponse = Client.authApi.newRefreshToken2(
+            FragmentLogin.CLIENT_ID,
+            FragmentLogin.CLIENT_SECRET,
+            FragmentLogin.REFRESH_TOKEN,
+            refreshToken,
+            true
+        ).execute().body()
+        delay(500L)
+        return if (accountResponse != null) {
+            withContext(Dispatchers.Main) {
+                updateSessionWithAccountResponse(accountResponse)
+            }
+            accountResponse.access_token
+        } else {
+            throw RuntimeException("newRefreshToken failed")
         }
     }
 
@@ -132,13 +147,7 @@ object SessionManager {
         return account.access_token ?: throw RuntimeException("access_token not exist")
     }
 
-
-    fun isLandingPageShown(): Boolean {
-        return prefStore.getBoolean(IS_LANDING_PAGE_SHOWN, false)
-    }
-
-
-    fun login(uri: Uri, block: () -> Unit) {
+    fun loginWithUrl(uri: Uri, block: () -> Unit) {
         MainScope().launch {
             try {
                 val accountResponse = withContext(Dispatchers.IO) {
@@ -155,13 +164,9 @@ object SessionManager {
                 }
 
                 if (accountResponse != null) {
-                    Timber.d("Login success: $accountResponse")
-
+                    Timber.d("Login with url success: $accountResponse")
                     prefStore.putString(USER_KEY, gson.toJson(accountResponse))
                     _loggedInAccount.value = accountResponse
-
-                    prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
-
                     block()
                 }
             } catch (ex: Exception) {
@@ -170,4 +175,32 @@ object SessionManager {
         }
     }
 
+    fun loginWithToken(tokenString: String, block: () -> Unit) {
+        MainScope().launch {
+            try {
+                val accessToken = withContext(Dispatchers.IO) {
+                    val refreshToken = if (tokenString.isJson()) {
+                        val accountResponse =
+                            gson.fromJson(tokenString, AccountResponse::class.java)
+                        accountResponse?.refresh_token
+                    } else {
+                        tokenString
+                    }
+                    if (refreshToken?.isNotEmpty() == true) {
+                        refreshAccessTokenInternal(refreshToken)
+                    } else {
+                        ""
+                    }
+                }
+
+                if (accessToken?.isNotEmpty() == true) {
+                    withContext(Dispatchers.Main) {
+                        block()
+                    }
+                }
+            } catch (ex: Exception) {
+                Timber.e(ex)
+            }
+        }
+    }
 }

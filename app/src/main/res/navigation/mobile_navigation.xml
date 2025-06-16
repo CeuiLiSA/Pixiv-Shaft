@@ -120,6 +120,11 @@
         android:name="ceui.pixiv.ui.landing.SelectLoginWayFragment"
         tools:layout="@layout/fragment_select_login_way" />
 
+    <fragment
+        android:id="@+id/navigation_login_with_token"
+        android:name="ceui.pixiv.ui.landing.LoginWithTokenFragment"
+        tools:layout="@layout/fragment_login_with_token" />
+
 
     <fragment
         android:id="@+id/navigation_view_history"

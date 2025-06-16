@@ -1,10 +1,7 @@
 package ceui.lisa.http;
 
-import android.accounts.Account;
-
 import ceui.lisa.models.UserModel;
 import ceui.loxia.AccountResponse;
-import io.reactivex.Observable;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -19,6 +16,14 @@ public interface AccountTokenApi {
                                     @Field("grant_type") String grant_type,
                                     @Field("refresh_token") String refresh_token,
                                     @Field("include_policy") boolean include_policy);
+
+    @FormUrlEncoded
+    @POST("/auth/token")
+    Call<AccountResponse> newRefreshToken2(@Field("client_id") String client_id,
+                                           @Field("client_secret") String client_secret,
+                                           @Field("grant_type") String grant_type,
+                                           @Field("refresh_token") String refresh_token,
+                                           @Field("include_policy") boolean include_policy);
 
     @FormUrlEncoded
     @POST("/auth/token")

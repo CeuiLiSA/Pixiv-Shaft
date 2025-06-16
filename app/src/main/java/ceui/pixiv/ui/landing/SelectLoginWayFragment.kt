@@ -2,11 +2,11 @@ package ceui.pixiv.ui.landing
 
 import android.os.Bundle
 import android.view.View
-import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentSelectLoginWayBinding
 import ceui.lisa.feature.HostManager
 import ceui.loxia.pushFragment
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.utils.setOnClick
@@ -29,6 +29,12 @@ class SelectLoginWayFragment : PixivFragment(R.layout.fragment_select_login_way)
             pushFragment(
                 R.id.navigation_web_fragment,
                 WebFragmentArgs(HostManager.get().signupUrl, saveCookies = true).toBundle()
+            )
+        }
+
+        binding.loginWithToken.setOnClick {
+            pushFragment(
+                R.id.navigation_login_with_token,
             )
         }
     }
