@@ -9,28 +9,24 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
-import ceui.lisa.databinding.ActivityHomeBinding
-import ceui.loxia.observeEvent
-import ceui.pixiv.session.SessionManager
 import ceui.lisa.R
+import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
+import ceui.loxia.observeEvent
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.repo.RemoteRepository
-import ceui.pixiv.ui.landing.LandingFragment
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.google.gson.Gson
-import com.tencent.mmkv.MMKV
 import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
-import kotlin.getValue
 
 class HomeActivity : AppCompatActivity() {
 
@@ -43,7 +39,8 @@ class HomeActivity : AppCompatActivity() {
                     SessionManager.loggedInUid, Params.TYPE_PUBLIC
                 )
             } else {
-                val jsonString = assets.open("walkthrough.json").bufferedReader().use { it.readText() }
+                val jsonString =
+                    assets.open("walkthrough.json").bufferedReader().use { it.readText() }
                 Gson().fromJson(jsonString, IllustResponse::class.java)
             }
 

@@ -757,4 +757,5 @@
     <string name="landing_start">开始</string>
     <string name="the_latest_pixiv_artworks">平台最新作品</string>
     <string name="created_by_me_artworks">我创作的作品</string>
+    <string name="log_in_with_token">Log In With Token</string>
 </resources>

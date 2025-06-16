@@ -15,18 +15,16 @@ import ceui.lisa.R
 import ceui.lisa.databinding.CellEditingCommentBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Comment
-import ceui.loxia.ObjectType
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.hideKeyboard
 import ceui.loxia.launchSuspend
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.works.blurBackground
 
 class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentActionReceiver {
 
@@ -60,19 +58,19 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
                 dataSource.sendComment()
             }
         }
-        if (args.objectType == ObjectType.ILLUST) {
-            blurBackground(binding, args.objectId)
-        }
+
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime()) // 获取输入法的 insets
-            val systemBarsInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()) // 获取系统栏的 insets
+            val systemBarsInsets =
+                windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()) // 获取系统栏的 insets
 
             // 更新 Toolbar 的顶部 padding
             binding.toolbarLayout.root.updatePaddingRelative(top = systemBarsInsets.top)
 
             // 确定底部 inset
             binding.touchOutside.isVisible = imeInsets.bottom > 0
-            val bottomInsets = if (imeInsets.bottom > 0) imeInsets.bottom else systemBarsInsets.bottom
+            val bottomInsets =
+                if (imeInsets.bottom > 0) imeInsets.bottom else systemBarsInsets.bottom
             binding.bottomLayout.updatePadding(bottom = bottomInsets)
 
             WindowInsetsCompat.CONSUMED
@@ -94,7 +92,11 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
 
     }
 
-    override fun onClickDeleteComment(sender: ProgressTextButton, comment: Comment, parentCommentId: Long) {
+    override fun onClickDeleteComment(
+        sender: ProgressTextButton,
+        comment: Comment,
+        parentCommentId: Long
+    ) {
         launchSuspend(sender) {
             dataSource.deleteComment(comment.id, parentCommentId)
         }

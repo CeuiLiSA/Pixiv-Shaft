@@ -20,9 +20,10 @@ class LinkHandler(private val navController: NavController) {
 
             when {
                 uri.host == "account" && uri.path == "/login" -> {
-                    SessionManager.login(uri) {
+                    SessionManager.loginWithUrl(uri) {
                         val navOptions = NavOptions.Builder()
                             .setPopUpTo(R.id.navigation_landing, true)
+                            .setHorizontalSlide()
                             .build()
                         navController.navigate(R.id.navigation_home_viewpager, null, navOptions)
                     }

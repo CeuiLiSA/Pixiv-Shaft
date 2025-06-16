@@ -20,9 +20,9 @@ import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpCustomAdapter
+import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.widgets.alertYesOrCancel
-import ceui.pixiv.ui.common.viewBinding
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
@@ -102,6 +102,8 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
     override fun onClickLogOut(sender: ProgressIndicator) {
         launchSuspend(sender) {
             if (alertYesOrCancel("确定退出登录吗")) {
+                val prefStore = MMKV.mmkvWithID("api-cache-${SessionManager.loggedInUid}")
+                prefStore.clearAll()
                 SessionManager.updateSession(null)
                 findNavController().navigate(
                     R.id.navigation_landing,

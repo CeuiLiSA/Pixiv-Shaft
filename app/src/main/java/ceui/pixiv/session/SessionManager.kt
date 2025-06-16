@@ -4,8 +4,6 @@ import android.net.Uri
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.navigation.NavOptions
-import ceui.lisa.R
 import ceui.lisa.feature.HostManager
 import ceui.lisa.fragments.FragmentLogin
 import ceui.lisa.models.UserModel
@@ -13,7 +11,6 @@ import ceui.loxia.AccountResponse
 import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
-import ceui.pixiv.ui.landing.LandingFragment
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
@@ -44,13 +41,15 @@ object SessionManager {
         MMKV.mmkvWithID("shaft-session")
     }
 
-    val isLoggedIn: Boolean get() {
-        return _loggedInAccount.value != null
-    }
+    val isLoggedIn: Boolean
+        get() {
+            return _loggedInAccount.value != null
+        }
 
-    val loggedInUid: Long get() {
-        return _loggedInAccount.value?.user?.id ?: 0L
-    }
+    val loggedInUid: Long
+        get() {
+            return _loggedInAccount.value?.user?.id ?: 0L
+        }
 
     fun initialize() {
         val json = prefStore.getString(USER_KEY, "")
@@ -103,7 +102,8 @@ object SessionManager {
         return runBlocking(Dispatchers.IO) {
             try {
                 _newTokenEvent.postValue(Event(System.currentTimeMillis()))
-                val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
+                val refreshToken = _loggedInAccount.value?.refresh_token
+                    ?: throw RuntimeException("refresh_token not exist")
                 val userModel = Client.authApi.newRefreshToken(
                     FragmentLogin.CLIENT_ID,
                     FragmentLogin.CLIENT_SECRET,
@@ -138,7 +138,7 @@ object SessionManager {
     }
 
 
-    fun login(uri: Uri, block: () -> Unit) {
+    fun loginWithUrl(uri: Uri, block: () -> Unit) {
         MainScope().launch {
             try {
                 val accountResponse = withContext(Dispatchers.IO) {
@@ -155,7 +155,7 @@ object SessionManager {
                 }
 
                 if (accountResponse != null) {
-                    Timber.d("Login success: $accountResponse")
+                    Timber.d("Login with url success: $accountResponse")
 
                     prefStore.putString(USER_KEY, gson.toJson(accountResponse))
                     _loggedInAccount.value = accountResponse
@@ -170,4 +170,39 @@ object SessionManager {
         }
     }
 
+    fun loginWithToken(tokenString: String, block: () -> Unit) {
+        MainScope().launch {
+            try {
+                val accountResponse = gson.fromJson(tokenString, AccountResponse::class.java)
+                if (accountResponse != null) {
+                    if (accountResponse.refresh_token?.isNotEmpty() == true) {
+                        if (accountResponse.access_token?.isNotEmpty() == true) {
+                            if (accountResponse.user?.id != null) {
+                                Timber.d("Login with token success: $tokenString")
+                                prefStore.putString(USER_KEY, tokenString)
+                                _loggedInAccount.value = accountResponse
+                                prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
+                                block()
+
+                                delay(50L)
+                                if (accountResponse.user.profile_image_urls == null) {
+                                    val profile =
+                                        Client.appApi.getUserProfile(accountResponse.user.id)
+                                    val decoratedAccountResponse =
+                                        accountResponse.copy(user = profile.user)
+                                    prefStore.putString(
+                                        USER_KEY,
+                                        gson.toJson(decoratedAccountResponse)
+                                    )
+                                    _loggedInAccount.value = decoratedAccountResponse
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (ex: Exception) {
+                Timber.e(ex)
+            }
+        }
+    }
 }
