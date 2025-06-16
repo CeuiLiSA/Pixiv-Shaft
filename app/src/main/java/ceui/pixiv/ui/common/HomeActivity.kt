@@ -69,6 +69,18 @@ class HomeActivity : AppCompatActivity() {
         graph.setStartDestination(startDestination)
         navController.graph = graph
 
+        if (SessionManager.isLoggedIn) {
+            // ✅ 添加监听 currentDestination
+            navController.addOnDestinationChangedListener { controller, destination, arguments ->
+                if (destination.id == R.id.navigation_img_url || destination.id == R.id.navigation_paged_img_urls) {
+                    binding.pageBackground.isVisible = false
+                    binding.dimmer.isVisible = false
+                } else {
+                    binding.pageBackground.isVisible = true
+                    binding.dimmer.isVisible = true
+                }
+            }
+        }
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
         }

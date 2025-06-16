@@ -18,6 +18,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/default_content_horizontal_margin"
             android:gravity="center"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -27,7 +28,11 @@
                 android:id="@+id/input_box"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:text="@={viewModal.token}" />
+                android:background="@drawable/round_corner_white08_r6"
+                android:gravity="start"
+                android:padding="6dp"
+                android:text="@={viewModal.token}"
+                android:textSize="12sp" />
 
             <Button
                 android:id="@+id/login"

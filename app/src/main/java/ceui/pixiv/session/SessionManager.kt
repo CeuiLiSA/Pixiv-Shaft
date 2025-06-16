@@ -11,6 +11,7 @@ import ceui.loxia.AccountResponse
 import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
+import ceui.loxia.isJson
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +28,6 @@ object SessionManager {
     const val USE_NEW_UI_KEY = "use-v5-ui"
     const val COOKIE_KEY = "web-api-cookie"
     const val CONTENT_LANGUAGE_KEY = "content-language"
-    const val IS_LANDING_PAGE_SHOWN = "IS_LANDING_PAGE_SHOWN"
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
     private val gson = Gson()
@@ -79,6 +79,17 @@ object SessionManager {
         }
     }
 
+    fun updateSessionWithAccountResponse(accountResponse: AccountResponse?) {
+        if (accountResponse == null) {
+            prefStore.putString(USER_KEY, "")
+            _loggedInAccount.value = AccountResponse()
+            MMKV.defaultMMKV().clearAll()
+        } else {
+            prefStore.putString(USER_KEY, gson.toJson(accountResponse))
+            _loggedInAccount.value = accountResponse
+        }
+    }
+
 
     fun postUpdateSession(userModel: UserModel?) {
         if (userModel == null) {
@@ -101,25 +112,9 @@ object SessionManager {
 
         return runBlocking(Dispatchers.IO) {
             try {
-                _newTokenEvent.postValue(Event(System.currentTimeMillis()))
                 val refreshToken = _loggedInAccount.value?.refresh_token
                     ?: throw RuntimeException("refresh_token not exist")
-                val userModel = Client.authApi.newRefreshToken(
-                    FragmentLogin.CLIENT_ID,
-                    FragmentLogin.CLIENT_SECRET,
-                    FragmentLogin.REFRESH_TOKEN,
-                    refreshToken,
-                    true
-                ).execute().body()
-                delay(500L)
-                if (userModel != null) {
-                    withContext(Dispatchers.Main) {
-                        updateSession(userModel)
-                    }
-                    userModel.rawAccessToken
-                } else {
-                    throw RuntimeException("newRefreshToken failed")
-                }
+                refreshAccessTokenInternal(refreshToken)
             } catch (ex: Exception) {
                 Timber.e(ex)
                 null
@@ -127,16 +122,31 @@ object SessionManager {
         }
     }
 
+    private suspend fun refreshAccessTokenInternal(refreshToken: String): String? {
+        _newTokenEvent.postValue(Event(System.currentTimeMillis()))
+        val accountResponse = Client.authApi.newRefreshToken2(
+            FragmentLogin.CLIENT_ID,
+            FragmentLogin.CLIENT_SECRET,
+            FragmentLogin.REFRESH_TOKEN,
+            refreshToken,
+            true
+        ).execute().body()
+        Timber.d("dasadsdsasd2 ${gson.toJson(accountResponse)}")
+        delay(500L)
+        return if (accountResponse != null) {
+            withContext(Dispatchers.Main) {
+                updateSessionWithAccountResponse(accountResponse)
+            }
+            accountResponse.access_token
+        } else {
+            throw RuntimeException("newRefreshToken failed")
+        }
+    }
+
     fun getAccessToken(): String {
         val account = _loggedInAccount.value ?: throw RuntimeException("account not found")
         return account.access_token ?: throw RuntimeException("access_token not exist")
     }
-
-
-    fun isLandingPageShown(): Boolean {
-        return prefStore.getBoolean(IS_LANDING_PAGE_SHOWN, false)
-    }
-
 
     fun loginWithUrl(uri: Uri, block: () -> Unit) {
         MainScope().launch {
@@ -156,12 +166,8 @@ object SessionManager {
 
                 if (accountResponse != null) {
                     Timber.d("Login with url success: $accountResponse")
-
                     prefStore.putString(USER_KEY, gson.toJson(accountResponse))
                     _loggedInAccount.value = accountResponse
-
-                    prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
-
                     block()
                 }
             } catch (ex: Exception) {
@@ -173,31 +179,24 @@ object SessionManager {
     fun loginWithToken(tokenString: String, block: () -> Unit) {
         MainScope().launch {
             try {
-                val accountResponse = gson.fromJson(tokenString, AccountResponse::class.java)
-                if (accountResponse != null) {
-                    if (accountResponse.refresh_token?.isNotEmpty() == true) {
-                        if (accountResponse.access_token?.isNotEmpty() == true) {
-                            if (accountResponse.user?.id != null) {
-                                Timber.d("Login with token success: $tokenString")
-                                prefStore.putString(USER_KEY, tokenString)
-                                _loggedInAccount.value = accountResponse
-                                prefStore.putBoolean(IS_LANDING_PAGE_SHOWN, true)
-                                block()
+                val accessToken = withContext(Dispatchers.IO) {
+                    val refreshToken = if (tokenString.isJson()) {
+                        val accountResponse =
+                            gson.fromJson(tokenString, AccountResponse::class.java)
+                        accountResponse?.refresh_token
+                    } else {
+                        tokenString
+                    }
+                    if (refreshToken?.isNotEmpty() == true) {
+                        refreshAccessTokenInternal(refreshToken)
+                    } else {
+                        ""
+                    }
+                }
 
-                                delay(50L)
-                                if (accountResponse.user.profile_image_urls == null) {
-                                    val profile =
-                                        Client.appApi.getUserProfile(accountResponse.user.id)
-                                    val decoratedAccountResponse =
-                                        accountResponse.copy(user = profile.user)
-                                    prefStore.putString(
-                                        USER_KEY,
-                                        gson.toJson(decoratedAccountResponse)
-                                    )
-                                    _loggedInAccount.value = decoratedAccountResponse
-                                }
-                            }
-                        }
+                if (accessToken?.isNotEmpty() == true) {
+                    withContext(Dispatchers.Main) {
+                        block()
                     }
                 }
             } catch (ex: Exception) {
