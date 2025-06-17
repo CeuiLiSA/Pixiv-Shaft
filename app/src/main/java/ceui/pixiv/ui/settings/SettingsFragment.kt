@@ -8,7 +8,6 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.Common
-import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.User
@@ -18,15 +17,12 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
-import ceui.pixiv.ui.common.pixivValueViewModel
-import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.widgets.alertYesOrCancel
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
-import timber.log.Timber
 
 class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActionReceiver {
 
@@ -34,21 +30,11 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
     private val prefStore: MMKV by lazy {
         MMKV.mmkvWithID("shaft-session")
     }
-    private val viewModel by pixivValueViewModel {
-        RemoteRepository {
-            val resp = Client.appApi.getSelfProfile()
-            resp.profile.let { user ->
-                Timber.d("getSelfProfile ${user}")
-                ObjectPool.update(user)
-            }
-        }
-    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.result.observe(viewLifecycleOwner) {
-            Timber.d("getSelfProfile ${it}")
-        }
+
         val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_TABCELL)
         binding.toolbarLayout.naviTitle.text = getString(R.string.app_settings)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)

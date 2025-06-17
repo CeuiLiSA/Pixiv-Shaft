@@ -2,8 +2,6 @@ package ceui.pixiv.ui.detail
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.loxia.Client
@@ -13,17 +11,12 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
-import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.LoadingHolder
-import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.novel.NovelSeriesHeaderHolder
 import ceui.pixiv.ui.user.UserPostHolder
-import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class IllustSeriesViewModel(
     private val seriesId: Long,
@@ -71,11 +64,14 @@ class IllustSeriesViewModel(
         }
         result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
         result.add(UserInfoHolder(resp.illust_series_detail?.user?.id ?: 0L))
-        result.add(RedSectionHeaderHolder(
-            context.getString(
-                R.string.total_works_count,
-                resp.illust_series_detail?.content_count
-            )))
+        result.add(
+            RedSectionHeaderHolder(
+                context.getString(
+                    R.string.total_works_count,
+                    resp.illust_series_detail?.content_count
+                )
+            )
+        )
         result.addAll(resp.displayList.map { illust -> UserPostHolder(illust) })
         _lastOrder = resp.illusts?.size
         _itemHolders.value = result

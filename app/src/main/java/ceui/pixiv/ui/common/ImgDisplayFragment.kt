@@ -31,10 +31,10 @@ import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.ui.works.ViewPagerViewModel
-import ceui.pixiv.widgets.alertYesOrCancel
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.alertYesOrCancel
 import com.blankj.utilcode.util.UriUtils
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
@@ -100,7 +100,10 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         val imageId = getImageIdInGallery(activity, displayName())
         if (imageId != null) {
             MainScope().launch {
-                val uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId.toString())
+                val uri = Uri.withAppendedPath(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    imageId.toString()
+                )
                 val filePath = UriUtils.uri2File(uri)
                 if (alertYesOrCancel("图片已存在，确定覆盖下载吗? 文件路径: ${filePath?.path}")) {
                     deleteImageById(activity, imageId)
@@ -229,6 +232,9 @@ fun CircularProgressIndicator.setUpWithTaskStatus(
     lifecycleOwner: LifecycleOwner
 ) {
     val progressCircular = this
+    retryButton.setOnClick {
+        errorRetry()
+    }
     taskStatus.observe(lifecycleOwner) { status ->
         if (status is TaskStatus.NotStart) {
             progressCircular.isVisible = true
@@ -244,9 +250,6 @@ fun CircularProgressIndicator.setUpWithTaskStatus(
             progressCircular.isVisible = false
         }
         errorLayout.isVisible = status is TaskStatus.Error
-        retryButton.setOnClick {
-            errorRetry()
-        }
         if (status is TaskStatus.Error) {
             errorTitle.text = status.exception.getHumanReadableMessage(context)
         }

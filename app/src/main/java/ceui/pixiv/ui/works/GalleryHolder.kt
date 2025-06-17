@@ -41,6 +41,9 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
 
     override fun onBindViewHolder(holder: GalleryHolder, position: Int) {
         super.onBindViewHolder(holder, position)
+        // 清除上一次的图片，避免复用时闪现旧图
+        binding.image.setImageDrawable(null)
+        binding.image.setImageBitmap(null)
         holder.loadUrl()
 
         fun resize(resolution: Pair<Int, Int>) {
@@ -55,15 +58,17 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
 
         if (holder.index == 0) {
             resize(Pair(holder.illust.width, holder.illust.height))
-            Glide.with(context).load(GlideUrlChild(holder.illust.image_urls?.large)).into(binding.image)
+            Glide.with(context).load(GlideUrlChild(holder.illust.image_urls?.large))
+                .into(binding.image)
         } else {
             resize(Pair(screenWidth, 300.ppppx))
         }
 
+        holder.loadTask.result.removeObservers(lifecycleOwner)
         holder.loadTask.result.observe(lifecycleOwner) { file ->
             val resolution = getImageDimensions(file)
             resize(resolution)
-            binding.image.loadImage(file){ }
+            binding.image.loadImage(file) { }
         }
         binding.progressCircular.setUpWithTaskStatus(
             holder.loadTask.status,
