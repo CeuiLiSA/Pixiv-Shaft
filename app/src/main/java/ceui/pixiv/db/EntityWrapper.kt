@@ -14,7 +14,7 @@ import timber.log.Timber
 
 
 class EntityWrapper(
-    private val context: Context
+    private val impl: AppDatabase,
 ) {
 
     private val _blockingIllustIds = mutableSetOf<Long>()
@@ -24,11 +24,15 @@ class EntityWrapper(
     fun initialize() {
         MainScope().launch {
             withContext(Dispatchers.IO) {
-                val database = AppDatabase.getAppDatabase(context)
-
-                _blockingIllustIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_ILLUST))
-                _blockingUserIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_USER))
-                _blockingNovelIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_USER))
+                _blockingIllustIds.addAll(
+                    impl.generalDao().getAllIdsByRecordType(RecordType.BLOCK_ILLUST)
+                )
+                _blockingUserIds.addAll(
+                    impl.generalDao().getAllIdsByRecordType(RecordType.BLOCK_USER)
+                )
+                _blockingNovelIds.addAll(
+                    impl.generalDao().getAllIdsByRecordType(RecordType.BLOCK_USER)
+                )
             }
         }
     }
@@ -36,7 +40,7 @@ class EntityWrapper(
     // 通用插入方法
     private suspend fun insertEntity(context: Context, entity: GeneralEntity) {
         try {
-            AppDatabase.getAppDatabase(context).generalDao().insert(entity)
+            impl.generalDao().insert(entity)
             if (entity.recordType == RecordType.BLOCK_ILLUST) {
                 _blockingIllustIds.add(entity.id)
             } else if (entity.recordType == RecordType.BLOCK_USER) {
@@ -53,7 +57,7 @@ class EntityWrapper(
     // 通用删除方法
     private suspend fun deleteEntity(context: Context, recordType: Int, id: Long) {
         try {
-            AppDatabase.getAppDatabase(context).generalDao().deleteByRecordTypeAndId(recordType, id)
+            impl.generalDao().deleteByRecordTypeAndId(recordType, id)
             if (recordType == RecordType.BLOCK_ILLUST) {
                 _blockingIllustIds.remove(id)
             } else if (recordType == RecordType.BLOCK_USER) {
@@ -68,7 +72,13 @@ class EntityWrapper(
     }
 
     // 插入访问记录
-    private fun visit(context: Context, id: Long, entityJson: String, entityType: Int, recordType: Int) {
+    private fun visit(
+        context: Context,
+        id: Long,
+        entityJson: String,
+        entityType: Int,
+        recordType: Int
+    ) {
         MainScope().launch(Dispatchers.IO) {
             val entity = GeneralEntity(id, entityJson, entityType, recordType)
             insertEntity(context, entity)
@@ -76,7 +86,13 @@ class EntityWrapper(
     }
 
     // 插入或删除块操作
-    private fun block(context: Context, id: Long, entityJson: String, entityType: Int, recordType: Int) {
+    private fun block(
+        context: Context,
+        id: Long,
+        entityJson: String,
+        entityType: Int,
+        recordType: Int
+    ) {
         MainScope().launch(Dispatchers.IO) {
             val entity = GeneralEntity(id, entityJson, entityType, recordType)
             insertEntity(context, entity)

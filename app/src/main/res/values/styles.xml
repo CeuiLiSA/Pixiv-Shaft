@@ -324,6 +324,7 @@
     <style name="YellowShiningButton">
         <item name="android:textColor">@color/buttonTextButtonYellow</item>
         <item name="android:shadowColor">@color/yellow_shadow_color</item>
+        <item name="android:fontFamily">@font/montserrat_bold</item>
         <item name="android:shadowDx">0</item>
         <item name="android:shadowDy">2</item>
         <item name="android:shadowRadius">10</item>
@@ -332,7 +333,6 @@
         <item name="android:textSize">20sp</item>
         <item name="android:maxLines">1</item>
         <item name="android:singleLine">true</item>
-        <item name="android:textStyle">bold</item>
         <item name="android:background">@drawable/bg_yellow_button</item>
         <item name="android:stateListAnimator">@animator/button_press_alpha</item>
     </style>
@@ -340,6 +340,7 @@
     <style name="PurpleShiningButton">
         <item name="android:textColor">@color/buttonTextButtonPurple</item>
         <item name="android:shadowColor">@color/purple_shadow_color</item>
+        <item name="android:fontFamily">@font/montserrat_bold</item>
         <item name="android:shadowDx">0</item>
         <item name="android:shadowDy">2</item>
         <item name="android:shadowRadius">10</item>
@@ -348,7 +349,6 @@
         <item name="android:gravity">center</item>
         <item name="android:maxLines">1</item>
         <item name="android:singleLine">true</item>
-        <item name="android:textStyle">bold</item>
         <item name="android:background">@drawable/bg_purple_button</item>
         <item name="android:stateListAnimator">@animator/button_press_alpha</item>
     </style>
