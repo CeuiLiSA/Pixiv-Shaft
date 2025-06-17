@@ -33,6 +33,11 @@
         <argument
             android:name="keyword"
             app:argType="string" />
+
+        <argument
+            android:name="landing_index"
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 
     <fragment

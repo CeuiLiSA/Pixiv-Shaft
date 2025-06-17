@@ -13,7 +13,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentCircleBinding
-import ceui.loxia.Client
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.findActionReceiverOrNull
@@ -22,14 +21,14 @@ import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.search.SearchIlllustMangaFragment
 import ceui.pixiv.ui.search.SearchNovelFragment
 import ceui.pixiv.ui.search.SearchUserFragment
 import ceui.pixiv.ui.search.SearchViewModel
-import ceui.pixiv.widgets.setUpWith
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.widgets.setUpWith
 import com.blankj.utilcode.util.BarUtils
 import com.scwang.smart.refresh.header.MaterialHeader
 
@@ -49,6 +48,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         searchViewModel
+        val tabLayoutList = binding.tabLayoutList
         binding.naviTitle.text = args.keyword
         binding.refreshLayout.setOnRefreshListener {
             viewModel.refresh(RefreshHint.PullToRefresh)
@@ -86,6 +86,10 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
             }
             if (state is RefreshState.LOADED) {
                 binding.circleRootLayout.isVisible = true
+                tabLayoutList.setUpWith(
+                    binding.circleViewPager, binding.slidingCursor, viewLifecycleOwner
+                ) {
+                }
             }
         }
         viewModel.result.observe(viewLifecycleOwner) { loadResult ->
@@ -126,10 +130,12 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
             ), this
         )
         binding.circleViewPager.adapter = adapter
-        binding.tabLayoutList.setUpWith(
-            binding.circleViewPager, binding.slidingCursor, viewLifecycleOwner
-        ) {
-
+        if (args.landingIndex > 0) {
+            runOnceWithinFragmentLifecycle("setLandingIndex") {
+                binding.circleViewPager.setCurrentItem(args.landingIndex, false)
+            }
         }
+
+
     }
 }

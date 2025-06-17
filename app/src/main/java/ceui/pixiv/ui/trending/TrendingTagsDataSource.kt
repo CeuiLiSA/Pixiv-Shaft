@@ -4,13 +4,12 @@ import ceui.loxia.Client
 import ceui.loxia.TrendingTag
 import ceui.loxia.TrendingTagsResponse
 import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.ResponseStore
 import ceui.pixiv.ui.common.createResponseStore
 
 class TrendingTagsDataSource(
-    private val args: TrendingTagsFragmentArgs,
+    private val objectType: String,
 ) : DataSource<TrendingTag, TrendingTagsResponse>(
-    dataFetcher = { Client.appApi.trendingTags(args.objectType) },
-    responseStore = createResponseStore({ "trending-tags-${args.objectType}-api" }),
+    dataFetcher = { Client.appApi.trendingTags(objectType) },
+    responseStore = createResponseStore({ "trending-tags-${objectType}-api" }),
     itemMapper = { trendingTag -> listOf(TrendingTagHolder(trendingTag)) }
 )
