@@ -39,6 +39,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
+                style="@style/textMontserratBold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{holder.liveUser.name}"
@@ -46,6 +47,7 @@
                 android:textSize="24sp" />
 
             <TextView
+                style="@style/textMontserratMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{`@` + holder.liveUser.account}"

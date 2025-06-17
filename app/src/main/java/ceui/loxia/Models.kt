@@ -270,7 +270,7 @@ data class User(
     val comment: String? = null,
 ) : Serializable, ModelObject {
     override val objectUniqueId: Long
-        get() = id
+        get() = if (id > 0L) id else user_id
     override val objectType: Int
         get() = ObjectSpec.KUser
 

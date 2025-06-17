@@ -36,7 +36,11 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
     }
     private val viewModel by pixivValueViewModel {
         RemoteRepository {
-            Client.appApi.getSelfProfile()
+            val resp = Client.appApi.getSelfProfile()
+            resp.profile.let { user ->
+                Timber.d("getSelfProfile ${user}")
+                ObjectPool.update(user)
+            }
         }
     }
 
