@@ -24,7 +24,8 @@
     <style name="ThemeOverlay.App.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/PixivBottomSheetStyle</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor" tools:ignore="NewApi">@android:color/transparent</item>
+        <item name="android:navigationBarColor" tools:ignore="NewApi">@android:color/transparent
+        </item>
     </style>
 
     <style name="HomeAppTheme" parent="Theme.Material3.Dark.NoActionBar">
@@ -148,7 +149,6 @@
         <item name="android:windowEnterAnimation">@anim/zoom_enter</item>
         <item name="android:windowExitAnimation">@anim/zoom_exit</item>
     </style>
-
 
 
     <style name="dialog_animation" parent="@android:style/Animation.Dialog">
@@ -321,6 +321,38 @@
         <item name="android:stateListAnimator">@animator/button_press_alpha</item>
     </style>
 
+    <style name="YellowShiningButton">
+        <item name="android:textColor">@color/buttonTextButtonYellow</item>
+        <item name="android:shadowColor">@color/yellow_shadow_color</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">2</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/bg_yellow_button</item>
+        <item name="android:stateListAnimator">@animator/button_press_alpha</item>
+    </style>
+
+    <style name="PurpleShiningButton">
+        <item name="android:textColor">@color/buttonTextButtonPurple</item>
+        <item name="android:shadowColor">@color/purple_shadow_color</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">2</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/bg_purple_button</item>
+        <item name="android:stateListAnimator">@animator/button_press_alpha</item>
+    </style>
+
     <style name="textMontserratRegular">
         <item name="fontFamily">@font/montserrat_regular</item>
     </style>
@@ -357,15 +389,15 @@
 
 
     <declare-styleable name="InsetLayout_Layout">
-        <attr name="layout_inset_margin_adjust_target" format="reference"/>
-        <attr name="layout_inset_padding_adjust_target" format="reference"/>
-        <attr name="layout_inset_padding_top_adjust_target" format="reference"/>
-        <attr name="layout_inset_padding_bottom_adjust_target" format="reference"/>
-        <attr name="layout_inset_ignores_keyboard" format="boolean"/>
+        <attr name="layout_inset_margin_adjust_target" format="reference" />
+        <attr name="layout_inset_padding_adjust_target" format="reference" />
+        <attr name="layout_inset_padding_top_adjust_target" format="reference" />
+        <attr name="layout_inset_padding_bottom_adjust_target" format="reference" />
+        <attr name="layout_inset_ignores_keyboard" format="boolean" />
         <attr name="layout_inset_bar_type" format="enum">
-            <enum name="none" value="0"/>
-            <enum name="top" value="1"/>
-            <enum name="bottom" value="2"/>
+            <enum name="none" value="0" />
+            <enum name="top" value="1" />
+            <enum name="bottom" value="2" />
         </attr>
         <attr name="layout_inset_adjust_margin">
             <flag name="top" value="0x01" />
@@ -391,8 +423,7 @@
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
-    <style
-        name="dialog_animation_fade" >
+    <style name="dialog_animation_fade">
         <item name="android:windowEnterAnimation">@anim/dialog_enter_anim</item>
         <item name="android:windowExitAnimation">@anim/dialog_exit_anim</item>
     </style>
