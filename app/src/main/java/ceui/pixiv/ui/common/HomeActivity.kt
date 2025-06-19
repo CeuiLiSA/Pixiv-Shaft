@@ -16,8 +16,10 @@ import ceui.loxia.Client
 import ceui.loxia.IllustResponse
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
+import ceui.loxia.ServicesProvider
 import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
@@ -87,13 +89,25 @@ class HomeActivity : AppCompatActivity() {
             bgViewModel.refresh(RefreshHint.PullToRefresh)
         }
 
-        bgViewModel.result.observe(this) { loadResult ->
-            val resp = loadResult?.data ?: return@observe
-            resp.displayList.getOrNull(0)?.let { illust ->
-                ObjectPool.update(illust)
+        (application as ServicesProvider).appBackground.config.observe(this) { config ->
+            Timber.d("dsaadsadsw23 ${Gson().toJson(config)}")
+            if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
+                bgViewModel.result.observe(this) { loadResult ->
+                    val resp = loadResult?.data ?: return@observe
+                    resp.displayList.getOrNull(0)?.let { illust ->
+                        ObjectPool.update(illust)
+                        binding.dimmer.isVisible = true
+                        Glide.with(this)
+                            .load(GlideUrlChild(illust.image_urls?.large))
+                            .apply(bitmapTransform(BlurTransformation(15, 3)))
+                            .transition(withCrossFade())
+                            .into(binding.pageBackground)
+                    }
+                }
+            } else if (config.type == BackgroundType.SPECIFIC_ILLUST || config.type == BackgroundType.LOCAL_FILE) {
                 binding.dimmer.isVisible = true
                 Glide.with(this)
-                    .load(GlideUrlChild(illust.image_urls?.large))
+                    .load(config.localFileUri)
                     .apply(bitmapTransform(BlurTransformation(15, 3)))
                     .transition(withCrossFade())
                     .into(binding.pageBackground)

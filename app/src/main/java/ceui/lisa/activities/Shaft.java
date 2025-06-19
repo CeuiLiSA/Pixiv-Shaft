@@ -39,6 +39,7 @@ import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.background.AppBackground;
 import ceui.pixiv.utils.NetworkStateManager;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
@@ -78,6 +79,7 @@ public class Shaft extends Application implements ServicesProvider {
     private NetworkStateManager networkStateManager;
     private OkHttpClient mOkHttpClient;
     private EntityWrapper entityWrapper;
+    private AppBackground appBackground;
 
     public static Context getContext() {
         return sContext;
@@ -127,6 +129,7 @@ public class Shaft extends Application implements ServicesProvider {
 
 
         networkStateManager = new NetworkStateManager(this);
+        appBackground = new AppBackground();
         sUserModel = Local.getUser();
 
         sSettings = Local.getSettings();
@@ -254,5 +257,10 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull EntityWrapper getEntityWrapper() {
         return entityWrapper;
+    }
+
+    @Override
+    public @NotNull AppBackground getAppBackground() {
+        return appBackground;
     }
 }

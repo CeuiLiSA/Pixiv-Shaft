@@ -2,13 +2,13 @@ package ceui.pixiv.ui.common
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentImgUrlBinding
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
+
 
 class ImgUrlFragment : ImgDisplayFragment(R.layout.fragment_img_url) {
 

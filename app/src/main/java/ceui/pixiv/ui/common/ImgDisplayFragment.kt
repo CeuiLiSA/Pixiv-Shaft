@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.common
 
+import android.app.Activity
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -8,6 +9,8 @@ import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -22,9 +25,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
+import ceui.loxia.ServicesProvider
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
+import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
+import ceui.pixiv.ui.background.BackgroundConfig
+import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.task.TaskStatus
@@ -39,11 +46,13 @@ import com.blankj.utilcode.util.UriUtils
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.util.Locale
+import java.util.UUID
 
 abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
@@ -56,6 +65,27 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
     abstract fun displayName(): String
     abstract fun contentUrl(): String
+
+    private val requestCropImage =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val intent = result.data
+            if (intent != null) {
+                launchSuspend {
+                    if (result.resultCode == Activity.RESULT_OK) {
+                        UCrop.getOutput(intent)?.let { outputUri ->
+                            (requireActivity().application as ServicesProvider).appBackground.updateConfig(
+                                BackgroundConfig(
+                                    BackgroundType.SPECIFIC_ILLUST,
+                                    localFileUri = outputUri.toString()
+                                )
+                            )
+                        }
+                    } else if (result.resultCode == UCrop.RESULT_ERROR) {
+                        val cropError = UCrop.getError(intent)
+                    }
+                }
+            }
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -89,7 +119,23 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         if (parentFragment is ViewPagerFragment) {
             viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
                 task.result.value?.let { file ->
-                    performDownload(activity, file)
+//                    performDownload(activity, file)
+                    val activity = requireActivity()
+                    val localFileUri = UriUtils.file2Uri(file)
+                    Timber.d("set background localFileUri: $localFileUri")
+
+                    val uuid = UUID.randomUUID().toString()
+                    val destFile = File(activity.cacheDir, "shaft_background_${uuid}.png")
+                    if (!destFile.exists()) {
+                        destFile.createNewFile()
+                    }
+                    val destUri = destFile.toUri()
+                    val intent = UCrop.of(localFileUri, destUri).withAspectRatio(9F, 16F)
+                        .getIntent(requireContext())
+
+                    requestCropImage.launch(intent)
+                    Timber.d("cropImage from: ${localFileUri}, to: ${destUri}")
+
                 }
             }
         }
