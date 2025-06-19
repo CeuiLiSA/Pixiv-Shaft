@@ -53,7 +53,7 @@ open class LoadTask(
             val file = downloadFile()
             if (file != null) {
                 file?.let {
-                    _result.value = it
+                    _result.value = file
                 }
                 _status.value = TaskStatus.Finished
                 onEnd(file)

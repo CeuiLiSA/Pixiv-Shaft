@@ -117,9 +117,8 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
             Common.showLog("sadasd2 cc ${getFileSize(file)}")
         }
         if (parentFragment is ViewPagerFragment) {
-            viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
+            viewPagerViewModel.cropEvent.observeEvent(viewLifecycleOwner) { index ->
                 task.result.value?.let { file ->
-//                    performDownload(activity, file)
                     val activity = requireActivity()
                     val localFileUri = UriUtils.file2Uri(file)
                     Timber.d("set background localFileUri: $localFileUri")
@@ -135,7 +134,12 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
                     requestCropImage.launch(intent)
                     Timber.d("cropImage from: ${localFileUri}, to: ${destUri}")
+                }
+            }
 
+            viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
+                task.result.value?.let { file ->
+                    performDownload(activity, file)
                 }
             }
         }

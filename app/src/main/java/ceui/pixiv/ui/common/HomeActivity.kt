@@ -108,7 +108,6 @@ class HomeActivity : AppCompatActivity() {
                 binding.dimmer.isVisible = true
                 Glide.with(this)
                     .load(config.localFileUri)
-                    .apply(bitmapTransform(BlurTransformation(15, 3)))
                     .transition(withCrossFade())
                     .into(binding.pageBackground)
             }
