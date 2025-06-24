@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
@@ -44,8 +45,10 @@ class RankFragment : TitledViewPagerFragment(R.layout.fragment_rank_viewpager) {
         rankDayViewModal.rankDay.observe(viewLifecycleOwner) { day ->
             if (day?.isNotEmpty() == true) {
                 binding.selectDate.text = day
+                binding.clearDate.isVisible = true
             } else {
-                binding.selectDate.text = "Select Date"
+                binding.selectDate.text = getString(R.string.rank_select_date)
+                binding.clearDate.isVisible = false
             }
         }
 

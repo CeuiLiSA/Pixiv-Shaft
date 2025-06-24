@@ -25,23 +25,31 @@
                 android:id="@+id/option_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="6dp"
                 android:orientation="horizontal">
 
-                <Button
+                <ceui.loxia.ProgressTextButton
                     android:id="@+id/select_date"
+                    style="@style/GreenShiningButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Select Date">
+                    android:layout_marginEnd="4dp"
+                    android:minHeight="40dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="@string/rank_select_date">
 
-                </Button>
+                </ceui.loxia.ProgressTextButton>
 
-                <Button
+                <ceui.loxia.ProgressTextButton
                     android:id="@+id/clear_date"
+                    style="@style/GreenShiningButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Clear Date">
+                    android:minHeight="40dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="@string/rank_clear_date">
 
-                </Button>
+                </ceui.loxia.ProgressTextButton>
 
             </LinearLayout>
 

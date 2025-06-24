@@ -41,7 +41,9 @@ import ceui.pixiv.ui.works.ViewPagerViewModel
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.alertYesOrCancel
+import ceui.pixiv.widgets.showActionMenu
 import com.blankj.utilcode.util.UriUtils
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
@@ -118,22 +120,29 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         }
         if (parentFragment is ViewPagerFragment) {
             viewPagerViewModel.cropEvent.observeEvent(viewLifecycleOwner) { index ->
-                task.result.value?.let { file ->
-                    val activity = requireActivity()
-                    val localFileUri = UriUtils.file2Uri(file)
-                    Timber.d("set background localFileUri: $localFileUri")
+                showActionMenu {
+                    add(MenuItem("设置为软件背景图") {
+                        task.result.value?.let { file ->
+                            val activity = requireActivity()
+                            val localFileUri = UriUtils.file2Uri(file)
+                            Timber.d("set background localFileUri: $localFileUri")
 
-                    val uuid = UUID.randomUUID().toString()
-                    val destFile = File(activity.cacheDir, "shaft_background_${uuid}.png")
-                    if (!destFile.exists()) {
-                        destFile.createNewFile()
-                    }
-                    val destUri = destFile.toUri()
-                    val intent = UCrop.of(localFileUri, destUri).withAspectRatio(9F, 16F)
-                        .getIntent(requireContext())
+                            val uuid = UUID.randomUUID().toString()
+                            val destFile = File(activity.cacheDir, "shaft_background_${uuid}.png")
+                            if (!destFile.exists()) {
+                                destFile.createNewFile()
+                            }
+                            val destUri = destFile.toUri()
+                            val intent = UCrop.of(localFileUri, destUri).withAspectRatio(9F, 16F)
+                                .getIntent(requireContext())
 
-                    requestCropImage.launch(intent)
-                    Timber.d("cropImage from: ${localFileUri}, to: ${destUri}")
+                            requestCropImage.launch(intent)
+                            Timber.d("cropImage from: ${localFileUri}, to: ${destUri}")
+                        }
+                    })
+                    add(MenuItem("设置为系统壁纸") {
+
+                    })
                 }
             }
 

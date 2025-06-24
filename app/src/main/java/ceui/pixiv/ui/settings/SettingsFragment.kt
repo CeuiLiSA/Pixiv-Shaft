@@ -10,6 +10,7 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
+import ceui.loxia.ServicesProvider
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
@@ -66,6 +67,16 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                             WebFragmentArgs("https://www.pixiv.net/settings/viewing").toBundle()
                         )
                     },
+
+                    TabCellHolder(
+                        getString(R.string.app_background),
+                        extraInfo = (context.application as ServicesProvider).appBackground.config.value?.type?.toString()
+                    ).onItemClick {
+                        pushFragment(
+                            R.id.navigation_background_settings,
+                        )
+                    },
+
                     TabCellHolder(
                         getString(R.string.country_and_region),
                         getString(R.string.handle_content_language),

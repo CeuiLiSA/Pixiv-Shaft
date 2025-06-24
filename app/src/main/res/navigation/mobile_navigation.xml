@@ -152,6 +152,11 @@
         tools:layout="@layout/fragment_home_viewpager" />
 
     <fragment
+        android:id="@+id/navigation_background_settings"
+        android:name="ceui.pixiv.ui.background.BackgroundSettingsFragment"
+        tools:layout="@layout/fragment_background_settings" />
+
+    <fragment
         android:id="@+id/navigation_discover_all"
         android:name="ceui.pixiv.ui.discover.DiscoverAllFragment"
         tools:layout="@layout/fragment_pixiv_list" />
