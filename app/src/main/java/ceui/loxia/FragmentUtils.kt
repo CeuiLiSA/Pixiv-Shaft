@@ -1,6 +1,10 @@
 package ceui.loxia
 
 import android.content.Context
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
+import android.view.View
 import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
@@ -26,6 +30,14 @@ fun Context.hideKeyboard(window: Window?) {
 
 fun Fragment.showKeyboard(editText: EditText?) {
     context?.showKeyboard(editText)
+}
+
+fun Window.applyGrayMode(enabled: Boolean) {
+    val matrix = ColorMatrix().apply { setSaturation(if (enabled) 0f else 1f) }
+    val paint = Paint().apply {
+        colorFilter = ColorMatrixColorFilter(matrix)
+    }
+    decorView.setLayerType(View.LAYER_TYPE_HARDWARE, paint)
 }
 
 fun String.isJson(): Boolean {
