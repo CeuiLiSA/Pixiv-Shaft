@@ -768,4 +768,5 @@
     <string name="background_specified_illust">指定的插画作品</string>
     <string name="background_chosen_from_gallary">从相册选择</string>
     <string name="background_random_from_favorites">从我的收藏随机</string>
+    <string name="twice_back_will_close_app">再次返回退出软件</string>
 </resources>
