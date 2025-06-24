@@ -22,3 +22,11 @@ fun Fragment.requireEntityWrapper(): EntityWrapper {
 fun FragmentActivity.requireEntityWrapper(): EntityWrapper {
     return (application as ServicesProvider).entityWrapper
 }
+
+fun Fragment.requireAppBackground(): AppBackground {
+    return requireActivity().requireAppBackground()
+}
+
+fun FragmentActivity.requireAppBackground(): AppBackground {
+    return (application as ServicesProvider).appBackground
+}

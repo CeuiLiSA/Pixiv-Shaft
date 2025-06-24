@@ -10,11 +10,12 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
-import ceui.loxia.ServicesProvider
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
@@ -42,6 +43,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
         val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
         val nameCode = prefStore.getString(SessionManager.CONTENT_LANGUAGE_KEY, "cn") ?: "cn"
         val context = requireActivity()
+        val backgroundType = requireAppBackground().config.value?.type
 
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(
@@ -70,7 +72,15 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
 
                     TabCellHolder(
                         getString(R.string.app_background),
-                        extraInfo = (context.application as ServicesProvider).appBackground.config.value?.type?.toString()
+                        extraInfo = if (backgroundType == BackgroundType.SPECIFIC_ILLUST) {
+                            getString(R.string.background_specified_illust)
+                        } else if (backgroundType == BackgroundType.RANDOM_FROM_FAVORITES) {
+                            getString(R.string.background_random_from_favorites)
+                        } else if (backgroundType == BackgroundType.LOCAL_FILE) {
+                            getString(R.string.background_chosen_from_gallary)
+                        } else {
+                            backgroundType?.toString()
+                        }
                     ).onItemClick {
                         pushFragment(
                             R.id.navigation_background_settings,

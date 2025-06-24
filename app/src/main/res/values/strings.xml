@@ -765,4 +765,7 @@
     <string name="app_background">背景图</string>
     <string name="rank_select_date">Select Date</string>
     <string name="rank_clear_date">Clear Date</string>
+    <string name="background_specified_illust">指定的插画作品</string>
+    <string name="background_chosen_from_gallary">从相册选择</string>
+    <string name="background_random_from_favorites">从我的收藏随机</string>
 </resources>

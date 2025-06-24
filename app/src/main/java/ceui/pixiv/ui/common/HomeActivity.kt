@@ -16,8 +16,8 @@ import ceui.loxia.Client
 import ceui.loxia.IllustResponse
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
-import ceui.loxia.ServicesProvider
 import ceui.loxia.observeEvent
+import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.repo.RemoteRepository
@@ -89,7 +89,7 @@ class HomeActivity : AppCompatActivity() {
             bgViewModel.refresh(RefreshHint.PullToRefresh)
         }
 
-        (application as ServicesProvider).appBackground.config.observe(this) { config ->
+        requireAppBackground().config.observe(this) { config ->
             Timber.d("dsaadsadsw23 ${Gson().toJson(config)}")
             if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
                 bgViewModel.result.observe(this) { loadResult ->
