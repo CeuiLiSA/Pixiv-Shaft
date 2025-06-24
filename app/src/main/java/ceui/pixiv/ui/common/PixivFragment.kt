@@ -56,7 +56,6 @@ import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
-import ceui.pixiv.utils.animateWiggle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -318,7 +317,7 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
             }
         }
         binding.naviMore.setOnClick {
-            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
+//            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
             findActionReceiverOrNull<GrayToggler>()?.toggleGrayMode()
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
