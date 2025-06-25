@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.common
 
+import android.app.WallpaperManager
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -22,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
+import ceui.loxia.copyImageFileToCacheFolder
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
@@ -111,17 +114,28 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
         }
         if (parentFragment is ViewPagerFragment) {
             viewPagerViewModel.cropEvent.observeEvent(viewLifecycleOwner) { index ->
-                showActionMenu {
-                    add(MenuItem("设置为软件背景图") {
-                        task.result.value?.let { file ->
-                            val localFileUri = UriUtils.file2Uri(file)
+                task.result.value?.let { file ->
+                    showActionMenu {
+                        val localFileUri = UriUtils.file2Uri(file)
+                        add(MenuItem("设置为软件背景图") {
                             imageCropper.startCrop(localFileUri)
-                        }
-                    })
-                    add(MenuItem("设置为系统壁纸") {
+                        })
+                        add(MenuItem("设置为系统壁纸") {
+                            val uri = copyImageFileToCacheFolder(
+                                file,
+                                "wallpaper_from_shaft.png"
+                            )
+                            val intent =
+                                Intent(WallpaperManager.ACTION_CROP_AND_SET_WALLPAPER).apply {
+                                    setDataAndType(uri, "image/*")
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
 
-                    })
+                            activity.startActivity(intent)
+                        })
+                    }
                 }
+
             }
 
             viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->

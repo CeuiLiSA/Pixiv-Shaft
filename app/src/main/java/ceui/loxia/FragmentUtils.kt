@@ -1,18 +1,25 @@
 package ceui.loxia
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.net.Uri
 import android.view.View
 import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import androidx.core.content.FileProvider
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import com.blankj.utilcode.util.Utils
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 fun Context.showKeyboard(editText: EditText?) {
     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -39,6 +46,58 @@ fun Window.applyGrayMode(enabled: Boolean) {
     }
     decorView.setLayerType(View.LAYER_TYPE_HARDWARE, paint)
 }
+
+fun copyBitmapToImageCacheFolder(bitmap: Bitmap, fileName: String): Uri? {
+    return try {
+        // 创建缓存目录：<cache>/images
+        val cachePath = File(Utils.getApp().externalCacheDir, "images")
+        cachePath.mkdirs()
+
+        // 创建文件并写入 Bitmap
+        val file = File(cachePath, fileName)
+        FileOutputStream(file).use { outputStream ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        }
+
+        // 返回 FileProvider Uri
+        FileProvider.getUriForFile(
+            Utils.getApp(),
+            "ceui.lisa.pixiv.provider",
+            file
+        )
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
+    }
+}
+
+fun copyImageFileToCacheFolder(originalFile: File, fileName: String): Uri? {
+    return try {
+        // 创建缓存目录：<cache>/images
+        val cachePath = File(Utils.getApp().externalCacheDir, "images").apply { mkdirs() }
+
+        // 创建目标文件
+        val targetFile = File(cachePath, fileName)
+
+        // 拷贝文件内容
+        originalFile.inputStream().use { input ->
+            targetFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        // 返回 FileProvider Uri
+        FileProvider.getUriForFile(
+            Utils.getApp(),
+            "ceui.lisa.pixiv.provider",
+            targetFile
+        )
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
+    }
+}
+
 
 fun String.isJson(): Boolean {
     return try {
