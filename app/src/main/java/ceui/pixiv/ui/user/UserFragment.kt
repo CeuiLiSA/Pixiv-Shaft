@@ -78,6 +78,20 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
                     .into(binding.pageBackground)
             }
         }
+        binding.followingLayout.setOnClick {
+            pushFragment(
+                R.id.navigation_user_following_list, UserFollowingFragmentArgs(
+                    safeArgs.userId,
+                    Params.TYPE_PUBLIC
+                ).toBundle()
+            )
+        }
+        binding.followersLayout.setOnClick {
+            pushFragment(
+                R.id.navigation_user_fans,
+                UserFansFragmentArgs(safeArgs.userId).toBundle()
+            )
+        }
         binding.postFollow.setOnClick {
             followUser(it, safeArgs.userId.toInt(), Params.TYPE_PUBLIC)
         }

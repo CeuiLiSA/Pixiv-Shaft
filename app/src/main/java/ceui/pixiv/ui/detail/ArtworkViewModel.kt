@@ -74,11 +74,17 @@ class ArtworkViewModel(
                     .getByRecordTypeAndId(RecordType.VIEW_ILLUST_HISTORY, illustId)
                 entity?.typedObject<Illust>()?.also {
                     ObjectPool.update(it)
+                    it.user?.let { user ->
+                        ObjectPool.update(user)
+                    }
                 }
             }
         } ?: run {
             Client.appApi.getIllust(illustId).illust?.also {
                 ObjectPool.update(it)
+                it.user?.let { user ->
+                    ObjectPool.update(user)
+                }
             }
         } ?: return
         val result = mutableListOf<ListItemHolder>()
