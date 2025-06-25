@@ -70,11 +70,13 @@ class BackgroundSettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     getString(R.string.background_random_from_favorites),
                     showGreenDone = true,
                     selected = config.map { it.type == BackgroundType.RANDOM_FROM_FAVORITES }).onItemClick {
-                    requireAppBackground().updateConfig(
-                        BackgroundConfig(
-                            BackgroundType.RANDOM_FROM_FAVORITES,
+                    if (config.value?.type != BackgroundType.RANDOM_FROM_FAVORITES) {
+                        requireAppBackground().updateConfig(
+                            BackgroundConfig(
+                                BackgroundType.RANDOM_FROM_FAVORITES,
+                            )
                         )
-                    )
+                    }
                 },
             )
         )
