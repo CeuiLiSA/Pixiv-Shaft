@@ -1,6 +1,5 @@
 package ceui.loxia
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.models.IllustsBean
@@ -9,7 +8,6 @@ import ceui.lisa.models.NovelBean
 import ceui.lisa.models.ObjectSpec
 import ceui.lisa.models.UserBean
 import java.io.Serializable
-import kotlin.collections.set
 import kotlin.reflect.KClass
 
 
@@ -103,11 +101,17 @@ object ObjectPool {
         }) as LiveData<ObjectT>
     }
 
-    inline fun <reified ObjectT : ModelObject> update(obj: ObjectT, isFullVersion: Boolean = false) {
+    inline fun <reified ObjectT : ModelObject> update(
+        obj: ObjectT,
+        isFullVersion: Boolean = false
+    ) {
         return updateObjectPool(obj, isFullVersion)
     }
 
-    inline fun <reified ObjectT : ModelObject> updateObjectPool(obj: ObjectT, isFullVersion: Boolean) {
+    inline fun <reified ObjectT : ModelObject> updateObjectPool(
+        obj: ObjectT,
+        isFullVersion: Boolean
+    ) {
         val key = ObjectKey(obj.objectUniqueId, obj.objectType)
         val storedObject = store[key]
         if (storedObject == null) {
@@ -121,14 +125,13 @@ object ObjectPool {
 //                    if (lastValue != null) {
 //                        storedObject.value = merge(ObjectT::class, lastValue as ObjectT, obj)
 //                    } else {
-                        storedObject.value = obj
+                    storedObject.value = obj
 //                    }
                 }
             } catch (ex: Exception) {
                 storedObject.postValue(obj)
             }
         }
-        Log.d("updateObjectPool", "对象池大小：${store.size}")
     }
 
     private fun <ObjectT : ModelObject> findObjectSpec(objClass: KClass<ObjectT>): Int {
@@ -137,24 +140,31 @@ object ObjectPool {
             "IllustsBean", "Novel" -> {
                 ObjectSpec.POST
             }
+
             "Illust" -> {
                 ObjectSpec.Illust
             }
+
             "UserBean" -> {
                 ObjectSpec.USER
             }
+
             "User" -> {
                 ObjectSpec.KUser
             }
+
             "Article" -> {
                 ObjectSpec.ARTICLE
             }
+
             "GifInfoResponse" -> {
                 ObjectSpec.GIF_INFO
             }
+
             "UserResponse" -> {
                 ObjectSpec.UserProfile
             }
+
             else -> {
                 ObjectSpec.UNKNOWN
             }

@@ -42,10 +42,10 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Series
 import ceui.loxia.Tag
+import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
-import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
@@ -56,7 +56,6 @@ import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
-import ceui.pixiv.utils.animateWiggle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -64,7 +63,6 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
-import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
 
@@ -189,11 +187,17 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
 
     override fun onClickTag(tag: Tag, objectType: String) {
         if (objectType == ObjectType.NOVEL) {
-
+            pushFragment(
+                R.id.navigation_circle, CircleFragmentArgs(
+                    keyword = tag.name ?: "",
+                    landingIndex = 2,
+                ).toBundle()
+            )
         } else {
             pushFragment(
                 R.id.navigation_circle, CircleFragmentArgs(
                     keyword = tag.name ?: "",
+                    landingIndex = 1,
                 ).toBundle()
             )
         }
@@ -270,13 +274,9 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
     }
 }
 
-interface ViewPagerFragment {
+interface ViewPagerFragment
 
-}
-
-interface FitsSystemWindowFragment {
-
-}
+interface FitsSystemWindowFragment
 
 interface ITitledViewPager : ViewPagerFragment {
     fun getTitleLiveData(index: Int): MutableLiveData<String>
@@ -317,7 +317,8 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
             }
         }
         binding.naviMore.setOnClick {
-            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
+//            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
+            findActionReceiverOrNull<GrayToggler>()?.toggleGrayMode()
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -463,7 +464,8 @@ fun FragmentActivity.findCurrentFragmentOrNull(): Fragment? {
             .filterIsInstance<NavHostFragment>()
             .firstOrNull()
 
-        val currentFragment = navigationFragment?.childFragmentManager?.fragments?.firstOrNull { it.isVisible }
+        val currentFragment =
+            navigationFragment?.childFragmentManager?.fragments?.firstOrNull { it.isVisible }
 
         currentFragment?.let {
             Timber.d("Current Fragment Instance: ${it.javaClass.simpleName}")
@@ -495,7 +497,6 @@ fun Fragment.shareIllust(illust: Illust) {
         }
     }
 }
-
 
 
 const val NOVEL_URL_HEAD = "https://www.pixiv.net/novel/show.php?id="

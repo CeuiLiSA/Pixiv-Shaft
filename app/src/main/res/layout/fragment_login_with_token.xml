@@ -34,12 +34,14 @@
                 android:text="@={viewModal.token}"
                 android:textSize="12sp" />
 
-            <Button
+            <ceui.loxia.ProgressTextButton
                 android:id="@+id/login"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="60dp"
+                style="@style/BlueShiningButton"
+                android:layout_width="@dimen/progress_button_width"
+                android:layout_height="50dp"
+                android:layout_marginTop="30dp"
                 android:text="@string/log_in_with_token" />
+
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

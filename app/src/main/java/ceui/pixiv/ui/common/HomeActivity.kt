@@ -1,12 +1,16 @@
 package ceui.pixiv.ui.common
 
 import android.animation.Animator
+import android.animation.ValueAnimator
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import ceui.lisa.R
@@ -18,7 +22,9 @@ import ceui.loxia.IllustResponse
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.observeEvent
+import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
@@ -28,7 +34,7 @@ import com.google.gson.Gson
 import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : AppCompatActivity(), GrayToggler {
 
     private lateinit var binding: ActivityHomeBinding
 
@@ -48,13 +54,12 @@ class HomeActivity : AppCompatActivity() {
             rest.copy(illusts = list.shuffled())
         }
     }
+    private val homeViewModal by viewModels<HomeViewModal>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -90,14 +95,27 @@ class HomeActivity : AppCompatActivity() {
             bgViewModel.refresh(RefreshHint.PullToRefresh)
         }
 
-        bgViewModel.result.observe(this) { loadResult ->
-            val resp = loadResult?.data ?: return@observe
-            resp.displayList.getOrNull(0)?.let { illust ->
-                ObjectPool.update(illust)
+        homeViewModal.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
+
+        requireAppBackground().config.observe(this) { config ->
+            Timber.d("dsaadsadsw23 ${Gson().toJson(config)}")
+            if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
+                bgViewModel.result.observe(this) { loadResult ->
+                    val resp = loadResult?.data ?: return@observe
+                    resp.displayList.getOrNull(0)?.let { illust ->
+                        ObjectPool.update(illust)
+                        binding.dimmer.isVisible = true
+                        Glide.with(this)
+                            .load(GlideUrlChild(illust.image_urls?.large))
+                            .apply(bitmapTransform(BlurTransformation(15, 3)))
+                            .transition(withCrossFade())
+                            .into(binding.pageBackground)
+                    }
+                }
+            } else if (config.type == BackgroundType.SPECIFIC_ILLUST || config.type == BackgroundType.LOCAL_FILE) {
                 binding.dimmer.isVisible = true
                 Glide.with(this)
-                    .load(GlideUrlChild(illust.image_urls?.large))
-                    .apply(bitmapTransform(BlurTransformation(15, 3)))
+                    .load(config.localFileUri)
                     .transition(withCrossFade())
                     .into(binding.pageBackground)
             }
@@ -195,5 +213,27 @@ class HomeActivity : AppCompatActivity() {
             }
         }
         return super.dispatchTouchEvent(event)
+    }
+
+    private fun animateGrayTransition(toGray: Boolean) {
+        val start = if (toGray) 1f else 0f
+        val end = if (toGray) 0f else 1f
+
+        val animator = ValueAnimator.ofFloat(start, end)
+        animator.duration = 400
+        animator.addUpdateListener {
+            val saturation = it.animatedValue as Float
+            val matrix = ColorMatrix().apply { setSaturation(saturation) }
+            val paint = Paint().apply {
+                colorFilter = ColorMatrixColorFilter(matrix)
+            }
+            window.decorView.setLayerType(View.LAYER_TYPE_HARDWARE, paint)
+        }
+        animator.start()
+    }
+
+
+    override fun toggleGrayMode() {
+        homeViewModal.toggleGrayModeImpl()
     }
 }

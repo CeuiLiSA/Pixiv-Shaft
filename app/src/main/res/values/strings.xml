@@ -758,4 +758,15 @@
     <string name="the_latest_pixiv_artworks">平台最新作品</string>
     <string name="created_by_me_artworks">我创作的作品</string>
     <string name="log_in_with_token">Log In With Token</string>
+    <string name="export_refresh_token">导出 Refresh Token</string>
+    <string name="export_logged_in_user_json">导出当前登录用户 JSON</string>
+    <string name="landing_log_in">Log In</string>
+    <string name="landing_sign_up">Sign Up</string>
+    <string name="app_background">背景图</string>
+    <string name="rank_select_date">Select Date</string>
+    <string name="rank_clear_date">Clear Date</string>
+    <string name="background_specified_illust">指定的插画作品</string>
+    <string name="background_chosen_from_gallary">从相册选择</string>
+    <string name="background_random_from_favorites">从我的收藏随机</string>
+    <string name="twice_back_will_close_app">再次返回退出软件</string>
 </resources>

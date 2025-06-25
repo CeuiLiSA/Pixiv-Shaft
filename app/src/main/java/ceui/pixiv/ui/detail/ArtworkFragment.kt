@@ -3,7 +3,6 @@ package ceui.pixiv.ui.detail
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
@@ -43,12 +42,9 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by threadSafeArgs<ArtworkFragmentArgs>()
     private val viewModel by constructVM({
-        Pair(
-            safeArgs.illustId,
-            requireActivity().lifecycleScope
-        )
-    }) { (illustId, lifecycleScope) ->
-        ArtworkViewModel(illustId, lifecycleScope)
+        safeArgs.illustId
+    }) { illustId ->
+        ArtworkViewModel(illustId)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

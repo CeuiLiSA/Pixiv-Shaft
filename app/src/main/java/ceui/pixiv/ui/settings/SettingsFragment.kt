@@ -7,24 +7,24 @@ import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.loxia.Client
+import ceui.lisa.utils.Common
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
-import ceui.pixiv.ui.common.pixivValueViewModel
-import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.widgets.alertYesOrCancel
+import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
-import timber.log.Timber
 
 class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActionReceiver {
 
@@ -32,22 +32,18 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
     private val prefStore: MMKV by lazy {
         MMKV.mmkvWithID("shaft-session")
     }
-    private val viewModel by pixivValueViewModel {
-        RemoteRepository {
-            Client.appApi.getSelfProfile()
-        }
-    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.result.observe(viewLifecycleOwner) {
-            Timber.d("getSelfProfile ${it}")
-        }
+
         val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_TABCELL)
         binding.toolbarLayout.naviTitle.text = getString(R.string.app_settings)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
         val nameCode = prefStore.getString(SessionManager.CONTENT_LANGUAGE_KEY, "cn") ?: "cn"
+        val context = requireActivity()
+        val backgroundType = requireAppBackground().config.value?.type
 
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(
@@ -73,6 +69,24 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                             WebFragmentArgs("https://www.pixiv.net/settings/viewing").toBundle()
                         )
                     },
+
+                    TabCellHolder(
+                        getString(R.string.app_background),
+                        extraInfo = if (backgroundType == BackgroundType.SPECIFIC_ILLUST) {
+                            getString(R.string.background_specified_illust)
+                        } else if (backgroundType == BackgroundType.RANDOM_FROM_FAVORITES) {
+                            getString(R.string.background_random_from_favorites)
+                        } else if (backgroundType == BackgroundType.LOCAL_FILE) {
+                            getString(R.string.background_chosen_from_gallary)
+                        } else {
+                            backgroundType?.toString()
+                        }
+                    ).onItemClick {
+                        pushFragment(
+                            R.id.navigation_background_settings,
+                        )
+                    },
+
                     TabCellHolder(
                         getString(R.string.country_and_region),
                         getString(R.string.handle_content_language),
@@ -91,6 +105,24 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                         pushFragment(
                             R.id.navigation_select_language,
                         )
+                    },
+
+                    TabCellHolder(
+                        getString(R.string.export_refresh_token),
+                        extraInfo = SessionManager.loggedInAccount.value?.refresh_token,
+                    ).onItemClick {
+                        SessionManager.loggedInAccount.value?.refresh_token?.let { token ->
+                            Common.copy(context, token)
+                        }
+                    },
+
+                    TabCellHolder(
+                        getString(R.string.export_logged_in_user_json),
+                        extraInfo = "[JSON FORMATTED]"
+                    ).onItemClick {
+                        SessionManager.loggedInAccount.value?.let { account ->
+                            Common.copy(context, Gson().toJson(account))
+                        }
                     },
 
                     LogOutHolder()

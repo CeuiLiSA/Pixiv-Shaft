@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<!--    <color name="colorPrimary">#56baec</color>-->
-<!--    <color name="colorPrimaryDark">#56baec</color>-->
-<!--    <color name="colorAccent">#D81B60</color>-->
-<!--    <color name="light_primary_color">#B3E5FC</color>-->
+    <!--    <color name="colorPrimary">#56baec</color>-->
+    <!--    <color name="colorPrimaryDark">#56baec</color>-->
+    <!--    <color name="colorAccent">#D81B60</color>-->
+    <!--    <color name="light_primary_color">#B3E5FC</color>-->
 
     <color name="colorAccent">#CDDC39</color>
     <color name="light_new_primary_color">#eceff1</color>
@@ -56,8 +56,7 @@
     <color name="panel_bg">#EAEAEA</color>
 
 
-
-<!--    <color name="new_color_primary">#008BF4</color>-->
+    <!--    <color name="new_color_primary">#008BF4</color>-->
     <color name="novel_holder">#000339</color>
     <color name="rank_title">#333333</color>
     <color name="fragment_right_divider">#f0f0f0</color>
@@ -85,7 +84,6 @@
     <color name="nb.read.font_3">#92918C</color>
     <color name="nb.read.font_4">#383429</color>
     <color name="nb.read.font_5">#627176</color>
-
 
 
     <color name="nb.read.bg.night">#000000</color>
@@ -142,6 +140,8 @@
 
     <color name="buttonTextGreen">#FF94FFDE</color>
     <color name="buttonTextBlue">#00E6FF</color>
+    <color name="buttonTextButtonYellow">#FFD428</color>
+    <color name="buttonTextButtonPurple">#C8CDFF</color>
     <color name="buttonTextRed">#FF3E65</color>
     <color name="buttonSmallStrokeGreen">#FF0DFFCC</color>
     <color name="buttonSmallStrokeBlue">#00E6FF</color>
@@ -158,12 +158,13 @@
     <color name="defaultText">#8A000000</color>
     <color name="green_shadow_color">#00A88C</color>
     <color name="blue_shadow_color">#0088A8</color>
+    <color name="yellow_shadow_color">#FF5800</color>
+    <color name="purple_shadow_color">#7053FF</color>
     <color name="red_shadow_color">#A7002A</color>
     <color name="green_mark_text_color">#00CFA5</color>
     <color name="green_mark_shadow_color">#009262</color>
 
     <color name="red_button_shadow_color">#A7002A</color>
-
 
 
     <color name="event_sample_color_1">#8633FF</color>

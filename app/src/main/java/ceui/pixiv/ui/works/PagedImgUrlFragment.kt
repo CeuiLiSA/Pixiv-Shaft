@@ -51,6 +51,10 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
             viewPagerViewModel.triggerDownloadEvent(binding.pagedViewpager.currentItem)
         }
 
+        binding.toolbarLayout.naviMore.setOnClick {
+            viewPagerViewModel.triggerCropEvent(binding.pagedViewpager.currentItem)
+        }
+
         binding.pagedViewpager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
                 return illust.page_count
@@ -70,7 +74,8 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
                 }
             }
         }
-        binding.pagedViewpager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        binding.pagedViewpager.registerOnPageChangeCallback(object :
+            ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(
                 position: Int,
                 positionOffset: Float,

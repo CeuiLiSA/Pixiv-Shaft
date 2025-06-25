@@ -8,27 +8,33 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="30dp"
         android:gravity="center"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.85">
 
-        <Button
-            android:id="@+id/login"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/now_login" />
-
-        <Button
+        <ceui.loxia.ProgressTextButton
             android:id="@+id/sign_up"
-            android:layout_width="wrap_content"
+            style="@style/YellowShiningButton"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/now_sign" />
+            android:text="@string/landing_sign_up" />
 
-        <Button
-            android:id="@+id/login_with_token"
-            android:layout_width="wrap_content"
+        <ceui.loxia.ProgressTextButton
+            android:id="@+id/login"
+            style="@style/PurpleShiningButton"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="@string/landing_log_in" />
+
+        <ceui.loxia.ProgressTextButton
+            android:id="@+id/login_with_token"
+            style="@style/BlueShiningButton"
+            android:layout_width="@dimen/progress_button_width"
+            android:layout_height="50dp"
+            android:layout_marginTop="30dp"
             android:text="@string/log_in_with_token" />
 
     </LinearLayout>

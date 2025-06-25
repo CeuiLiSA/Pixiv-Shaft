@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -13,6 +14,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
+import ceui.lisa.utils.Common
 import ceui.loxia.pushFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
@@ -28,6 +30,8 @@ import ceui.pixiv.utils.setOnClick
 class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), ViewPagerFragment {
     private val binding by viewBinding(FragmentHomeViewpagerBinding::bind)
     private val viewModel by viewModels<HomeViewPagerViewModel>()
+
+    private var lastBackPressedTime = 0L
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,6 +49,28 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             }
             windowInsets
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    val currentItem = binding.homeViewPager.currentItem
+                    if (currentItem != 0) {
+                        binding.homeViewPager.setCurrentItem(0, false)
+                        return
+                    }
+
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastBackPressedTime < 2000) {
+                        // 取消此 callback，让系统处理（退出）
+                        isEnabled = false
+                        requireActivity().onBackPressedDispatcher.onBackPressed()
+                    } else {
+                        lastBackPressedTime = currentTime
+                        Common.showToast(getString(R.string.twice_back_will_close_app))
+                    }
+                }
+            })
 
         binding.userIcon.setOnClick {
             pushFragment(R.id.navigation_mine_profile)

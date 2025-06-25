@@ -1,5 +1,7 @@
 package ceui.lisa.activities;
 
+import static ceui.lisa.utils.Local.LOCAL_DATA;
+
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
@@ -10,18 +12,20 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.view.Gravity;
 
+import androidx.annotation.NonNull;
+
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 import com.hjq.toast.ToastUtils;
-
 import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.ClassicsHeader;
 import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.tencent.mmkv.MMKV;
 
-import androidx.annotation.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import ceui.lisa.R;
+import ceui.lisa.database.AppDatabase;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
@@ -35,36 +39,27 @@ import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.background.AppBackground;
 import ceui.pixiv.utils.NetworkStateManager;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
 
-import static ceui.lisa.utils.Local.LOCAL_DATA;
-
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Where the app code starts.
- * */
+ */
 public class Shaft extends Application implements ServicesProvider {
 
     public static UserModel sUserModel;
     public static Settings sSettings;
     public static Gson sGson;
     public static SharedPreferences sPreferences;
-    protected NetWorkStateReceiver netWorkStateReceiver;
-    private NetworkStateManager networkStateManager;
-    private OkHttpClient mOkHttpClient;
-    private static MMKV mmkv;
     public static AppLevelViewModel appViewModel;
-
-    private EntityWrapper entityWrapper;
-
     /**
      * 状态栏高度，初始化
      */
     public static int statusHeight = 0, toolbarHeight = 0;
+    private static MMKV mmkv;
     /**
      * 全局context
      */
@@ -80,13 +75,43 @@ public class Shaft extends Application implements ServicesProvider {
                 new ClassicsFooter(context).setDrawableSize(20));
     }
 
+    protected NetWorkStateReceiver netWorkStateReceiver;
+    private NetworkStateManager networkStateManager;
+    private OkHttpClient mOkHttpClient;
+    private EntityWrapper entityWrapper;
+    private AppBackground appBackground;
+
     public static Context getContext() {
         return sContext;
     }
 
+    public static String getThemeColor() {
+        int current = Shaft.sSettings.getThemeIndex();
+        return switch (current) {
+            case 0 -> "#686bdd";
+            case 1 -> "#56baec";
+            case 2 -> "#008BF3";
+            case 3 -> "#03d0bf";
+            case 4 -> "#fee65e";
+            case 5 -> "#fe83a2";
+            case 6 -> "#F44336";
+            case 7 -> "#673AB7";
+            case 8 -> "#4CAF50";
+            case 9 -> "#E91E63";
+            default -> "#686bdd";
+        };
+    }
+
+    public static MMKV getMMKV() {
+        if (mmkv == null) {
+            mmkv = MMKV.defaultMMKV();
+        }
+        return mmkv;
+    }
+
     /**
      * Initialize the whole application.
-     * */
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -104,11 +129,12 @@ public class Shaft extends Application implements ServicesProvider {
 
 
         networkStateManager = new NetworkStateManager(this);
+        appBackground = new AppBackground();
         sUserModel = Local.getUser();
 
         sSettings = Local.getSettings();
 
-        entityWrapper = new EntityWrapper(this);
+        entityWrapper = new EntityWrapper(AppDatabase.getAppDatabase(this));
         entityWrapper.initialize();
 
         SessionManager.INSTANCE.initialize();
@@ -157,7 +183,7 @@ public class Shaft extends Application implements ServicesProvider {
 
     /**
      * Update the theme according to the setting.
-     * */
+     */
     private void updateTheme() {
         int current = Shaft.sSettings.getThemeIndex();
         switch (current) {
@@ -197,23 +223,6 @@ public class Shaft extends Application implements ServicesProvider {
         }
     }
 
-    public static String getThemeColor() {
-        int current = Shaft.sSettings.getThemeIndex();
-        return switch (current) {
-            case 0 -> "#686bdd";
-            case 1 -> "#56baec";
-            case 2 -> "#008BF3";
-            case 3 -> "#03d0bf";
-            case 4 -> "#fee65e";
-            case 5 -> "#fe83a2";
-            case 6 -> "#F44336";
-            case 7 -> "#673AB7";
-            case 8 -> "#4CAF50";
-            case 9 -> "#E91E63";
-            default -> "#686bdd";
-        };
-    }
-
     @Override
     public void unbindService(ServiceConnection conn) {
         try {
@@ -221,13 +230,6 @@ public class Shaft extends Application implements ServicesProvider {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public static MMKV getMMKV() {
-        if (mmkv == null) {
-            mmkv = MMKV.defaultMMKV();
-        }
-        return mmkv;
     }
 
     @Override
@@ -255,5 +257,10 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull EntityWrapper getEntityWrapper() {
         return entityWrapper;
+    }
+
+    @Override
+    public @NotNull AppBackground getAppBackground() {
+        return appBackground;
     }
 }

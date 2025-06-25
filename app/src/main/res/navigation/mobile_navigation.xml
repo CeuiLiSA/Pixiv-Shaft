@@ -33,6 +33,11 @@
         <argument
             android:name="keyword"
             app:argType="string" />
+
+        <argument
+            android:name="landing_index"
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 
     <fragment
@@ -145,6 +150,11 @@
         android:id="@+id/navigation_home_viewpager"
         android:name="ceui.pixiv.ui.home.HomeViewPagerFragment"
         tools:layout="@layout/fragment_home_viewpager" />
+
+    <fragment
+        android:id="@+id/navigation_background_settings"
+        android:name="ceui.pixiv.ui.background.BackgroundSettingsFragment"
+        tools:layout="@layout/fragment_pixiv_list" />
 
     <fragment
         android:id="@+id/navigation_discover_all"

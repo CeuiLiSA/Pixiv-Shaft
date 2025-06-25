@@ -9,9 +9,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentCommonViewpagerBinding
 import ceui.lisa.utils.Params
 import ceui.loxia.ObjectType
+import ceui.loxia.launchSuspend
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.blocking.BlockedItemListFragment
@@ -36,6 +38,8 @@ import ceui.pixiv.ui.user.UserCreatedNovelFragmentArgs
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
 import ceui.pixiv.widgets.setUpWith
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object ViewPagerContentType {
     const val MyBookmarkIllustOrManga = 1
@@ -152,6 +156,27 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
                 )
             )
         } else if (args.contentType == MyViewHistory) {
+            val db = AppDatabase.getAppDatabase(requireContext())
+            launchSuspend {
+                withContext(Dispatchers.IO) {
+                    val illustHistoryCount =
+                        db.generalDao().getCountByRecordType(RecordType.VIEW_ILLUST_HISTORY)
+                    val novelHistoryCount =
+                        db.generalDao().getCountByRecordType(RecordType.VIEW_NOVEL_HISTORY)
+                    val userHistoryCount =
+                        db.generalDao().getCountByRecordType(RecordType.VIEW_USER_HISTORY)
+
+                    withContext(Dispatchers.Main) {
+                        getTitleLiveData(0).value =
+                            "${getString(R.string.string_136)}(${illustHistoryCount})"
+                        getTitleLiveData(1).value =
+                            "${getString(R.string.type_novel)}(${novelHistoryCount})"
+                        getTitleLiveData(2).value =
+                            "${getString(R.string.type_user)}(${userHistoryCount})"
+                    }
+                }
+            }
+
             pagedItems.add(
                 PagedFragmentItem(
                     builder = {
