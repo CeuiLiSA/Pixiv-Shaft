@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.models.ModelObject
 import ceui.loxia.Client
+import ceui.loxia.Event
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
@@ -42,6 +43,9 @@ open class DataSource<Item, T : KListShow<Item>>(
 
     private val _taskMutex = Mutex() // 互斥锁，防止重复刷新
 
+    private val _remoteDataSyncedEvent = MutableLiveData<Event<Long>>()
+    val remoteDataSyncedEventImpl: LiveData<Event<Long>> = _remoteDataSyncedEvent
+
     open suspend fun refreshImpl(hint: RefreshHint) {
         if (!_taskMutex.tryLock()) {
             Timber.e("DataSource refresh tryLock returned")
@@ -68,7 +72,8 @@ open class DataSource<Item, T : KListShow<Item>>(
                 responseStore == null ||
                 responseStore.isCacheExpired()
             ) {
-                if ((hint == RefreshHint.InitialLoad || hint == RefreshHint.FetchingLatest) && _itemHolders.value?.isNotEmpty() == true) {
+                val isCachedDataExisting = _itemHolders.value?.isNotEmpty() == true
+                if ((hint == RefreshHint.InitialLoad || hint == RefreshHint.FetchingLatest) && isCachedDataExisting) {
                     delay(600L)
                     _refreshState.value = RefreshState.FETCHING_LATEST()
                     delay(1000L)
@@ -80,6 +85,10 @@ open class DataSource<Item, T : KListShow<Item>>(
                     }
                 }
                 applyResponse(response, false)
+                if ((hint == RefreshHint.InitialLoad || hint == RefreshHint.PullToRefresh) && isCachedDataExisting) {
+                    delay(30)
+                    _remoteDataSyncedEvent.postValue(Event(System.currentTimeMillis()))
+                }
             }
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)

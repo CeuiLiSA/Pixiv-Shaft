@@ -45,6 +45,7 @@ import ceui.loxia.Tag
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
+import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
@@ -396,7 +397,20 @@ fun Fragment.setUpRefreshState(
         binding.listView.adapter = adapter
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
             adapter.submitList(holders) {
+                Timber.d("_remoteDataSyncedEvent adapter submitList: ${viewModel::class.simpleName}")
                 viewModel.prepareIdMap(fragmentViewModel.fragmentUniqueId)
+            }
+        }
+    }
+
+    if (viewModel is RemoteDataProvider) {
+        val listView = binding.listView
+        viewModel.remoteDataSyncedEvent.observeEvent(viewLifecycleOwner) {
+            launchSuspend {
+                if (view != null) {
+                    Timber.d("_remoteDataSyncedEvent received: ${viewModel::class.simpleName}")
+                    listView.scrollToPosition(0)
+                }
             }
         }
     }
