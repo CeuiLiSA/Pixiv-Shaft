@@ -47,4 +47,7 @@ interface GeneralDao {
 
     @Query("SELECT COUNT(*) FROM general_table WHERE recordType = :recordType")
     fun getCountByRecordType(recordType: Int): Int
+
+    @Query("SELECT COUNT(*) FROM general_table WHERE recordType IN (:recordTypes)")
+    fun getCountByRecordTypes(recordTypes: List<Int>): LiveData<Int>
 }

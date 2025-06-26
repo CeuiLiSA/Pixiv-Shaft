@@ -87,8 +87,4 @@ class HistoryViewModel(
             ArtworksMap.store[fragmentUniqueId] = filteredList
         }
     }
-
-    init {
-        refresh(RefreshHint.InitialLoad)
-    }
 }

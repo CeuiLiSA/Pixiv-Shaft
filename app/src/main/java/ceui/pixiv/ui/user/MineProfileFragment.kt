@@ -47,7 +47,6 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        vm.calc()
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL_TABCELL)
@@ -55,8 +54,12 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             pushFragment(R.id.navigation_notification)
         }
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
-        combineLatest(liveUser, vm.historyCount).observe(viewLifecycleOwner) { (user, count) ->
-            if (user == null || count == null) {
+        combineLatest(
+            liveUser,
+            vm.historyCount,
+            vm.favoriteUserCount
+        ).observe(viewLifecycleOwner) { (user, historyCount, favoriteUserCount) ->
+            if (user == null || historyCount == null || favoriteUserCount == null) {
                 return@observe
             }
 
@@ -92,7 +95,10 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             UserFansFragmentArgs(SessionManager.loggedInUid).toBundle()
                         )
                     },
-                    TabCellHolder("特别关注").onItemClick {
+                    TabCellHolder(
+                        "特别关注",
+                        extraInfo = "共${favoriteUserCount}条记录"
+                    ).onItemClick {
                         pushFragment(
                             R.id.navigation_view_history,
                             ViewHistoryFragmentArgs(RecordType.FAVORITE_USER).toBundle()
@@ -119,7 +125,7 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     },
                     TabCellHolder(
                         getString(R.string.browse_history),
-                        extraInfo = "共${count}条记录"
+                        extraInfo = "共${historyCount}条记录"
                     ).onItemClick {
                         pushFragment(
                             R.id.navigation_common_viewpager,

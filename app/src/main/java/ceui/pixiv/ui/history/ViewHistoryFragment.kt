@@ -2,17 +2,17 @@ package ceui.pixiv.ui.history
 
 import android.os.Bundle
 import android.view.View
-import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.loxia.RefreshHint
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.common.ListMode
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
-import kotlin.getValue
 
 class ViewHistoryFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -34,5 +34,10 @@ class ViewHistoryFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                 ListMode.VERTICAL
             }
         )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.refresh(RefreshHint.PullToRefresh)
     }
 }
