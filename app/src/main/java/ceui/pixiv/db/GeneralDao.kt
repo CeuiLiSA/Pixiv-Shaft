@@ -38,6 +38,9 @@ interface GeneralDao {
     @Query("SELECT COUNT(*) > 0 FROM general_table WHERE recordType = :recordType AND id = :id")
     fun isObjectBlocked(recordType: Int, id: Long): LiveData<Boolean>
 
+    @Query("SELECT COUNT(*) > 0 FROM general_table WHERE recordType = :recordType AND id = :id")
+    fun isUserNowFavorite(recordType: Int, id: Long): LiveData<Boolean>
+
     // 根据 recordType 返回所有 id 列表
     @Query("SELECT id FROM general_table WHERE recordType = :recordType")
     fun getAllIdsByRecordType(recordType: Int): List<Long>

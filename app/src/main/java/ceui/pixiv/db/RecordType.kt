@@ -8,4 +8,6 @@ object RecordType {
     const val BLOCK_ILLUST = 4
     const val BLOCK_NOVEL = 5
     const val BLOCK_USER = 6
+
+    const val FAVORITE_USER = 7
 }

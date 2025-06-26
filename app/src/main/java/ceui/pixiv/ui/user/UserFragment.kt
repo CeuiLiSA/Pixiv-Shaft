@@ -15,14 +15,17 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentUserBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.combineLatest
 import ceui.loxia.pushFragment
 import ceui.loxia.requireEntityWrapper
+import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
@@ -32,6 +35,8 @@ import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.MenuItem
+import ceui.pixiv.widgets.showActionMenu
 import com.blankj.utilcode.util.BarUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -60,12 +65,39 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
             binding.headerContent.updatePaddingRelative(top = insets.top + BarUtils.getActionBarHeight())
             windowInsets
         }
-        viewModel.userLiveData.observe(viewLifecycleOwner) { user ->
+
+        val context = requireContext()
+
+        val isNowFavoriteLiveData = AppDatabase.getAppDatabase(context).generalDao()
+            .isUserNowFavorite(RecordType.FAVORITE_USER, safeArgs.userId)
+
+        combineLatest(
+            viewModel.userLiveData,
+            isNowFavoriteLiveData
+        ).observe(viewLifecycleOwner) { (user, isNowFavorite) ->
+            if (user == null) {
+                return@observe
+            }
+
             runOnceWithinFragmentLifecycle("visit-user-${safeArgs.userId}") {
-                requireEntityWrapper().visitUser(requireContext(), user)
+                requireEntityWrapper().visitUser(context, user)
             }
             binding.iconOfficial.isVisible = user.isOfficial()
             binding.iconVolunteer.isVisible = user.isVolunteer()
+
+            binding.naviMore.setOnClick {
+                showActionMenu {
+                    if (isNowFavorite == true) {
+                        add(MenuItem("移除特别关注") {
+                            requireEntityWrapper().removeFavoriteUser(context, user)
+                        })
+                    } else {
+                        add(MenuItem("添加到特别关注") {
+                            requireEntityWrapper().addUserToFavorite(context, user)
+                        })
+                    }
+                }
+            }
         }
         viewModel.userProfile.observe(viewLifecycleOwner) { profile ->
             binding.iconPrime.isVisible = profile.isPremium()

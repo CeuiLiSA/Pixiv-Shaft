@@ -115,6 +115,20 @@ class EntityWrapper(
         visit(context, user.id, json, EntityType.USER, RecordType.VIEW_USER_HISTORY)
     }
 
+    fun addUserToFavorite(context: Context, user: User) {
+        MainScope().launch(Dispatchers.IO) {
+            val json = Shaft.sGson.toJson(user)
+            val entity = GeneralEntity(user.id, json, EntityType.USER, RecordType.FAVORITE_USER)
+            insertEntity(context, entity)
+        }
+    }
+
+    fun removeFavoriteUser(context: Context, user: User) {
+        MainScope().launch(Dispatchers.IO) {
+            deleteEntity(context, RecordType.FAVORITE_USER, user.id)
+        }
+    }
+
     // 调用 `block` 方法
     fun blockIllust(context: Context, illust: Illust) {
         val json = Shaft.sGson.toJson(illust)

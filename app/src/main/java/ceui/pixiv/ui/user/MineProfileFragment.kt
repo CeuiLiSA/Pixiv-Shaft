@@ -10,6 +10,7 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import ceui.loxia.combineLatest
 import ceui.loxia.pushFragment
+import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.CommonViewPagerFragmentArgs
@@ -22,6 +23,7 @@ import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.history.ViewHistoryFragmentArgs
 import ceui.pixiv.utils.setOnClick
 
 class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
@@ -90,6 +92,13 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             UserFansFragmentArgs(SessionManager.loggedInUid).toBundle()
                         )
                     },
+                    TabCellHolder("特别关注").onItemClick {
+                        pushFragment(
+                            R.id.navigation_view_history,
+                            ViewHistoryFragmentArgs(RecordType.FAVORITE_USER).toBundle()
+                        )
+                    },
+
                     TabCellHolder(getString(R.string.the_latest_pixiv_artworks)).onItemClick {
                         pushFragment(
                             R.id.navigation_common_viewpager,
