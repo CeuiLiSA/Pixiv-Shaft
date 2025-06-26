@@ -29,11 +29,13 @@ class FollowingPostFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         viewModel.typedDataSource<FollowingPostsDataSource>().fetchEvent.observeEvent(
             viewLifecycleOwner
         ) { index ->
-            Common.showToast<String>("更新了${index}条数据")
-            launchSuspend {
-                delay(200L)
-                if (getView() != null) {
-                    listView.smoothScrollToPosition(0)
+            if (index > 0) {
+                Common.showToast("更新了${index}条数据")
+                launchSuspend {
+                    delay(200L)
+                    if (getView() != null) {
+                        listView.smoothScrollToPosition(0)
+                    }
                 }
             }
         }
