@@ -5,9 +5,9 @@ import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import ceui.pixiv.utils.TokenGenerator
 import com.yalantis.ucrop.UCrop
 import java.io.File
-import java.util.UUID
 
 class ImageCropper(
     private val fragment: Fragment,
@@ -28,9 +28,9 @@ class ImageCropper(
         }
 
     fun startCrop(sourceUri: Uri) {
-        val uuid = UUID.randomUUID().toString()
+        val token = TokenGenerator.generateToken()
         val destFile =
-            File(fragment.requireActivity().cacheDir, "shaft_background_$uuid.png").apply {
+            File(fragment.requireActivity().cacheDir, "shaft_background_$token.png").apply {
                 createNewFile()
             }
         val destUri = destFile.toUri()

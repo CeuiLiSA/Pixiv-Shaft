@@ -98,7 +98,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         homeViewModal.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
 
         requireAppBackground().config.observe(this) { config ->
-            Timber.d("dsaadsadsw23 ${Gson().toJson(config)}")
             if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
                 bgViewModel.result.observe(this) { loadResult ->
                     val resp = loadResult?.data ?: return@observe

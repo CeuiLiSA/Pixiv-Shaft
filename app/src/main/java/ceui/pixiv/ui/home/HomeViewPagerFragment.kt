@@ -156,6 +156,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             override fun createFragment(position: Int): Fragment {
                 if (position == 0) {
                     return DiscoverFragment()
+//                    return GLFragment()
                 } else if (position == 1) {
                     return MyCirclesFragment()
                 } else if (position == 2) {

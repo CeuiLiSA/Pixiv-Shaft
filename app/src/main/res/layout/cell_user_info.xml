@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <variable
             name="user"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
@@ -26,16 +27,17 @@
 
         <LinearLayout
             android:layout_width="0dp"
-            app:layout_constraintEnd_toStartOf="@+id/end_layout"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/end_layout"
             app:layout_constraintStart_toEndOf="@+id/user_icon"
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/user_name"
+                style="@style/textMontserratMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
@@ -55,32 +57,32 @@
         <FrameLayout
             android:id="@+id/end_layout"
             android:layout_width="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/user_icon"
+            android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="@+id/user_icon"
-            android:layout_height="wrap_content">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/user_icon">
 
             <ceui.loxia.ProgressTextButton
                 android:id="@+id/follow"
-                visibleOrGone="@{!user.is_followed()}"
                 style="@style/BlueShiningButton"
-                android:visibility="gone"
+                visibleOrGone="@{!user.is_followed()}"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"
                 android:paddingHorizontal="12dp"
                 android:text="@string/follow"
+                android:visibility="gone"
                 app:ptb_progress_stroke_width="3dp"
                 app:ptb_progress_width="14dp" />
 
             <ceui.loxia.ProgressTextButton
                 android:id="@+id/unfollow"
-                visibleOrGone="@{user.is_followed()}"
                 style="@style/RedShiningButton"
-                android:visibility="gone"
+                visibleOrGone="@{user.is_followed()}"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"
                 android:paddingHorizontal="12dp"
                 android:text="@string/unfollow"
+                android:visibility="gone"
                 app:ptb_progress_stroke_width="3dp"
                 app:ptb_progress_width="14dp" />
         </FrameLayout>

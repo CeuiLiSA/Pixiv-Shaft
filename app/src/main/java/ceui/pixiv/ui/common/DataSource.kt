@@ -9,6 +9,7 @@ import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.detail.ArtworksMap
+import ceui.pixiv.utils.TokenGenerator
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -52,7 +53,8 @@ open class DataSource<Item, T : KListShow<Item>>(
             return // 如果当前已有刷新任务在执行，则直接返回
         }
 
-        Timber.e("DataSource refresh tryLock passed")
+        val requestToken = TokenGenerator.generateToken()
+        Timber.e("DataSource refresh tryLock passed: ${requestToken}")
 
         _refreshState.value = RefreshState.LOADING(refreshHint = hint)
         try {
@@ -159,7 +161,11 @@ open class DataSource<Item, T : KListShow<Item>>(
         }
     }
 
-    private fun mapProtoItemsToHolders() {
+    fun updateMapper(mapper: (Item) -> List<ListItemHolder>) {
+        this._variableItemMapper = mapper
+    }
+
+    fun mapProtoItemsToHolders() {
         val mapper = _variableItemMapper ?: return
         val holders = currentProtoItems
             .filter { item ->

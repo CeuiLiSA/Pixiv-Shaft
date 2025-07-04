@@ -22,6 +22,7 @@ import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.works.getGalleryHolders
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -67,6 +68,11 @@ class ArtworkViewModel(
 
     override suspend fun refreshImpl(hint: RefreshHint) {
         super.refreshImpl(hint)
+
+        if (hint == RefreshHint.ErrorRetry) {
+            delay(600L)
+        }
+
         val context = Shaft.getContext()
         val illust = ObjectPool.get<Illust>(illustId).value ?: run {
             withContext(Dispatchers.IO) {
@@ -87,6 +93,13 @@ class ArtworkViewModel(
                 }
             }
         } ?: return
+        if (!illust.isAuthurExist()) {
+            _refreshState.value = RefreshState.LOADED(
+                hasContent = false, hasNext = false
+            )
+            throw RuntimeException("无法访问此内容")
+        }
+
         val result = mutableListOf<ListItemHolder>()
         val images = getGalleryHolders(illust, MainScope())
         result.addAll(images ?: listOf())

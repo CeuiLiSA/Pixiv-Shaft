@@ -42,6 +42,7 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Series
 import ceui.loxia.Tag
+import ceui.loxia.clearItemDecorations
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
@@ -419,6 +420,7 @@ fun Fragment.setUpRefreshState(
 fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode.STAGGERED_GRID) {
     val ctx = requireContext()
     listView.itemAnimator = null
+    listView.clearItemDecorations()
     if (listMode == ListMode.STAGGERED_GRID) {
         listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
         listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
