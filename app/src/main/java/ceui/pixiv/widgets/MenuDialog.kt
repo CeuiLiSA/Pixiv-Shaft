@@ -16,18 +16,19 @@ import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.TokenGenerator
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
-import java.util.UUID
 
 open class MenuDialog : PixivDialog(R.layout.dialog_menu), MenuActionReceiver {
 
     private val args by navArgs<MenuDialogArgs>()
-    private val task: CompletableDeferred<MenuItem>? get() {
-        return viewModel.menuTaskPool[args.taskUuid]
-    }
+    private val task: CompletableDeferred<MenuItem>?
+        get() {
+            return viewModel.menuTaskPool[args.taskUuid]
+        }
 
     private val binding by viewBinding(DialogMenuBinding::bind)
 
@@ -85,16 +86,16 @@ interface MenuActionReceiver {
 
 fun Fragment.showActionMenu(builder: MutableList<MenuItem>.() -> Unit) {
     val dialogViewModel by activityViewModels<DialogViewModel>()
-    val taskUUID = UUID.randomUUID().toString()
+    val token = TokenGenerator.generateToken()
     val menuItems = mutableListOf<MenuItem>().apply(builder)
     val task = CompletableDeferred<MenuItem>()
-    dialogViewModel.menuTaskPool[taskUUID] = task
+    dialogViewModel.menuTaskPool[token] = task
     MenuDialog().apply {
-        arguments = MenuDialogArgs(taskUUID, menuItems = menuItems.toTypedArray()).toBundle()
-    }.show(childFragmentManager, "MenuDialog-${taskUUID}")
+        arguments = MenuDialogArgs(token, menuItems = menuItems.toTypedArray()).toBundle()
+    }.show(childFragmentManager, "MenuDialog-${token}")
     MainScope().launch {
         val menuItem = task.await()
         menuItem.action()
-        dialogViewModel.menuTaskPool.remove(taskUUID)
+        dialogViewModel.menuTaskPool.remove(token)
     }
 }
