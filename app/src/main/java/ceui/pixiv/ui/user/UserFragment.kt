@@ -17,7 +17,6 @@ import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentUserBinding
-import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.ObjectType
 import ceui.loxia.RefreshHint
@@ -38,11 +37,7 @@ import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
 import com.blankj.utilcode.util.BarUtils
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
-import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.scwang.smart.refresh.header.MaterialHeader
-import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
 
 class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, SeeMoreAction,
@@ -102,14 +97,14 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
         viewModel.userProfile.observe(viewLifecycleOwner) { profile ->
             binding.iconPrime.isVisible = profile.isPremium()
         }
-        viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->
-            val url = blurIllust?.image_urls?.large
-            if (url?.isNotEmpty() == true) {
-                Glide.with(this).load(GlideUrlChild(url))
-                    .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
-                    .into(binding.pageBackground)
-            }
-        }
+//        viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->
+//            val url = blurIllust?.image_urls?.large
+//            if (url?.isNotEmpty() == true) {
+//                Glide.with(this).load(GlideUrlChild(url))
+//                    .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
+//                    .into(binding.pageBackground)
+//            }
+//        }
         binding.followingLayout.setOnClick {
             pushFragment(
                 R.id.navigation_user_following_list, UserFollowingFragmentArgs(

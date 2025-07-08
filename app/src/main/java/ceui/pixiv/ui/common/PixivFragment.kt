@@ -30,7 +30,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.ShareIllust
 import ceui.lisa.view.LinearItemDecoration
-import ceui.lisa.view.SpacesItemDecoration
+import ceui.lisa.view.StaggeredGridSpacingItemDecoration
 import ceui.loxia.Article
 import ceui.loxia.Client
 import ceui.loxia.Illust
@@ -409,8 +409,14 @@ fun Fragment.setUpRefreshState(
         viewModel.remoteDataSyncedEvent.observeEvent(viewLifecycleOwner) {
             launchSuspend {
                 if (view != null) {
+                    val layoutManager = binding.listView.layoutManager
+                    if (layoutManager is StaggeredGridLayoutManager) {
+                        layoutManager.invalidateSpanAssignments()
+                        layoutManager.scrollToPositionWithOffset(0, 0)
+                    } else {
+                        listView.scrollToPosition(0)
+                    }
                     Timber.d("_remoteDataSyncedEvent received: ${viewModel::class.simpleName}")
-                    listView.scrollToPosition(0)
                 }
             }
         }
@@ -422,7 +428,7 @@ fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode
     listView.itemAnimator = null
     listView.clearItemDecorations()
     if (listMode == ListMode.STAGGERED_GRID) {
-        listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
+        listView.addItemDecoration(StaggeredGridSpacingItemDecoration(4.ppppx))
         listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
     } else if (listMode == ListMode.VERTICAL) {
         listView.layoutManager = LinearLayoutManager(ctx)

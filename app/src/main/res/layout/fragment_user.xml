@@ -28,15 +28,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <FrameLayout
+        <View
+            android:id="@+id/user_bg_dimmer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/black_overlay" />
-        </FrameLayout>
+            android:layout_height="match_parent"
+            android:background="@color/black_overlay"
+            android:visibility="gone" />
 
         <com.scwang.smart.refresh.layout.SmartRefreshLayout
             android:id="@+id/refresh_layout"

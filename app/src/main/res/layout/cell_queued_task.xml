@@ -3,10 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <import type="ceui.pixiv.ui.task.DownloadTask"/>
+
+        <import type="ceui.pixiv.ui.task.QueuedTaskHolder" />
+
         <variable
-            name="task"
-            type="DownloadTask" />
+            name="holder"
+            type="QueuedTaskHolder" />
     </data>
 
     <FrameLayout
@@ -15,43 +17,55 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@drawable/quened_task_bg"
-            app:isSelected="@{task.isDownloading()}"
             android:padding="12dp"
-            android:layout_height="160dp">
+            app:isSelected="@{holder.downloadTask.isDownloading()}">
 
             <TextView
-                android:textColor="@color/text00"
-                android:text="@{task.content.name}"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/name"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="@{holder.downloadTask.content.name}"
+                android:textColor="@color/text00"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/status_running_bg_not_selected"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:textColor="@color/text00"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:status_desc="@{holder.downloadTask.status}" />
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/iv"
+                loadSquareMedia="@{holder.illust}"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="6dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/name"
+                app:rRadius="6dp" />
+
 
             <ProgressBar
                 android:id="@+id/progress"
-                android:layout_width="match_parent"
-                android:progressDrawable="@drawable/progress_bar_custom"
-                app:visibleOrGone="@{task.isDownloading()}"
-                android:layout_height="4dp"
-                app:status_percentage="@{task.status}"
                 style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:layout_marginTop="6dp"
                 android:max="100"
+                android:progressDrawable="@drawable/progress_bar_custom"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <TextView
-                android:textColor="@color/text00"
-                android:background="@drawable/status_running_bg_not_selected"
-                app:status_desc="@{task.status}"
-                android:paddingVertical="4dp"
-                android:paddingHorizontal="8dp"
-                android:textSize="12sp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                app:layout_constraintTop_toBottomOf="@+id/iv"
+                app:status_percentage="@{holder.downloadTask.status}"
+                app:visibleOrGone="@{holder.downloadTask.isDownloading()}" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
