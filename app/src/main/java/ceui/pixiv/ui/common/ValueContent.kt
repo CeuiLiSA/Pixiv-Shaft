@@ -12,6 +12,7 @@ import ceui.pixiv.ui.common.repo.ResponseStoreRepository
 import ceui.pixiv.utils.NetworkStateManager
 import ceui.pixiv.utils.TokenGenerator
 import ceui.pixiv.utils.VpnNotActiveException
+import ceui.pixiv.utils.VpnRetryHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -75,6 +76,9 @@ open class ValueContent<ValueT>(
                     }
 
                     if (!NetworkStateManager.isVpnActive(Shaft.getContext())) {
+                        VpnRetryHelper.pushRequest(requestToken, {
+                            Timber.d("VpnRetryHelper: found token: ${requestToken}, retry now.")
+                        })
                         throw VpnNotActiveException()
                     }
 

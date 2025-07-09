@@ -27,6 +27,8 @@ import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.repo.RemoteRepository
+import ceui.pixiv.utils.TokenGenerator
+import ceui.pixiv.utils.VpnRetryHelper
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -54,10 +56,9 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             rest.copy(illusts = list.shuffled())
         }
     }
-    private val homeViewModal by viewModels<HomeViewModel>()
-
-    private val navStack = mutableListOf<Int>()
-
+    private val homeViewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory(TokenGenerator.generateToken())
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,7 +89,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                     binding.dimmer.isVisible = true
                 }
 
-                homeViewModal.onDestinationChanged(destId)
+                homeViewModel.onDestinationChanged(destId)
             }
         }
         SessionManager.newTokenEvent.observeEvent(this) {
@@ -98,10 +99,10 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         SessionManager.loggedInAccount.observe(this) {
             bgViewModel.refresh(RefreshHint.PullToRefresh)
         }
-        homeViewModal.currentScale.observe(this) {
+        homeViewModel.currentScale.observe(this) {
             animateBackground(it)
         }
-        homeViewModal.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
+        homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
 
         requireAppBackground().config.observe(this) { config ->
             if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
@@ -247,6 +248,11 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 
 
     override fun toggleGrayMode() {
-        homeViewModal.toggleGrayModeImpl()
+        homeViewModel.toggleGrayModeImpl()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        VpnRetryHelper.onResume()
     }
 }

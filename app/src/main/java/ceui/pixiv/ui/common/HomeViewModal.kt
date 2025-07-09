@@ -3,8 +3,13 @@ package ceui.pixiv.ui.common
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import timber.log.Timber
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(private val tag: String) : ViewModel() {
+
+    init {
+        Timber.d("HomeViewModel($tag) created")
+    }
 
     private val _grayDisplay = MutableLiveData(false)
     val grayDisplay: LiveData<Boolean> = _grayDisplay
