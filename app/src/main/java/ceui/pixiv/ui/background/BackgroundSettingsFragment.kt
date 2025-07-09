@@ -2,6 +2,7 @@ package ceui.pixiv.ui.background
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
@@ -15,11 +16,10 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
-import timber.log.Timber
 
 class BackgroundSettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
-    private lateinit var imageCropper: ImageCropper
+    private lateinit var imageCropper: ImageCropper<BackgroundSettingsFragment>
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val pickImageLauncher =
@@ -37,17 +37,7 @@ class BackgroundSettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
         imageCropper = ImageCropper(
             this,
-            onCropSuccess = { uri ->
-                requireAppBackground().updateConfig(
-                    BackgroundConfig(
-                        BackgroundType.LOCAL_FILE,
-                        localFileUri = uri.toString()
-                    )
-                )
-            },
-            onCropError = { error ->
-                Timber.e(error, "裁剪图片失败")
-            }
+            onCropSuccess = BackgroundSettingsFragment::onCropSuccess,
         )
 
         val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_TABCELL)
@@ -78,6 +68,15 @@ class BackgroundSettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         )
                     }
                 },
+            )
+        )
+    }
+
+    private fun onCropSuccess(uri: Uri) {
+        requireAppBackground().updateConfig(
+            BackgroundConfig(
+                BackgroundType.LOCAL_FILE,
+                localFileUri = uri.toString()
             )
         )
     }

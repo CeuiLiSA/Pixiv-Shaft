@@ -1,147 +1,121 @@
 package ceui.pixiv.ui.opengl
 
 
+import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import timber.log.Timber
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class MyRenderer : GLSurfaceView.Renderer {
+class MyShaderRenderer(private val context: Context) : GLSurfaceView.Renderer {
+
     private var program = 0
-    private var positionHandle = 0
-    private var resolutionHandle = 0
-    private var trailHandle = 0
-
-    private var viewWidth = 1
-    private var viewHeight = 1
-
-    private val maxTrail = 10
-    private val trailPoints = ArrayDeque<Pair<Float, Float>>()
-    private val trailLock = Any()
-
-
-    fun setTouch(x: Float, y: Float, width: Int, height: Int) {
-        viewWidth = width
-        viewHeight = height
-        val normX = x / width.toFloat()
-        val normY = 1f - y / height.toFloat()
-
-        synchronized(trailLock) {
-            trailPoints.addFirst(normX to normY)
-            if (trailPoints.size > maxTrail) trailPoints.removeLast()
-        }
-    }
-
+    private var startTime = System.currentTimeMillis()
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        GLES20.glClearColor(0f, 0f, 0f, 0f)
-        GLES20.glEnable(GLES20.GL_BLEND)
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
-
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
         val vertexShaderCode = """
-            attribute vec4 a_Position;
+            attribute vec4 aPosition;
             void main() {
-                gl_Position = a_Position;
+                gl_Position = aPosition;
             }
         """.trimIndent()
 
         val fragmentShaderCode = """
             precision mediump float;
-            uniform vec2 u_Resolution;
-            uniform vec2 u_Trail[10];
+            uniform vec3 iResolution;
+            uniform float iTime;
+            
+            #define PI 3.14159
+            
+            float vDrop(vec2 uv, float t) {
+                uv.x = uv.x * 80.0;
+                float dx = fract(uv.x);
+                uv.x = floor(uv.x);
+                uv.y *= 0.05;
+                float o = sin(uv.x * 250.0);
+                float s = cos(uv.x * 3.1) * 0.2;
+                float trail = mix(5.0, 15.0, s);
+                float yv = fract(uv.y + t * s + o) * trail;
+                yv = 1.0 / yv;
+                yv = smoothstep(0.0, 1.0, yv * yv);
+                yv = sin(yv * PI) * (s * 2.0);
+                float d2 = sin(dx * PI);
+                return yv * (d2 * d2);
+            }
             
             void main() {
-                vec2 uv = gl_FragCoord.xy / u_Resolution;
-                vec3 color = vec3(0.0);
-                
-                for (int i = 0; i < 10; i++) {
-                    vec2 p = u_Trail[i];
-                    float dist = distance(uv, p);
-                    float glow = 0.02 / (dist + 0.01);
-                    float fade = 1.0 - float(i) / 10.0;
-                    color += vec3(glow * fade, glow * fade * 0.4, glow * fade * 0.2);
-                }
-
-                float alpha = clamp(color.r + color.g + color.b, 0.0, 1.0);
-                gl_FragColor = vec4(color, alpha);
+                vec2 fragCoord = gl_FragCoord.xy;
+                vec2 p = (fragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+                float d = length(p) + 0.1;
+                p = vec2(atan(p.x, p.y) / PI, 1.5 / d);
+                float t = iTime * 0.4;
+            
+                vec3 col = vec3(1.55,0.65,.225) * vDrop(p, t);
+                col += vec3(0.55,0.75,1.225) * vDrop(p, t + 0.33);
+                col += vec3(0.45,1.15,0.425) * vDrop(p, t + 0.66);
+                gl_FragColor = vec4(col * (d * d), 1.0);
             }
         """.trimIndent()
-
-        val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
-        val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode)
-
-        program = GLES20.glCreateProgram().also {
-            GLES20.glAttachShader(it, vertexShader)
-            GLES20.glAttachShader(it, fragmentShader)
-            GLES20.glLinkProgram(it)
-        }
-
-        positionHandle = GLES20.glGetAttribLocation(program, "a_Position")
-        resolutionHandle = GLES20.glGetUniformLocation(program, "u_Resolution")
-        trailHandle = GLES20.glGetUniformLocation(program, "u_Trail")
+        program = createProgram(vertexShaderCode, fragmentShaderCode)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
-        viewWidth = width
-        viewHeight = height
     }
 
     override fun onDrawFrame(gl: GL10?) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+
         GLES20.glUseProgram(program)
 
-        GLES20.glUniform2f(resolutionHandle, viewWidth.toFloat(), viewHeight.toFloat())
+        val iTime = ((System.currentTimeMillis() - startTime) / 1000f) % 60f
+        Timber.d("dsadasads2 iTime: ${iTime}")
+        val resolutionHandle = GLES20.glGetUniformLocation(program, "iResolution")
+        GLES20.glUniform3f(resolutionHandle, 1080f, 1920f, 1f) // use actual size
 
-        // 填充触摸点数组
-        val flatTrail = FloatArray(maxTrail * 2)
+        val timeHandle = GLES20.glGetUniformLocation(program, "iTime")
+        GLES20.glUniform1f(timeHandle, iTime)
 
-        synchronized(trailLock) {
-            trailPoints.forEachIndexed { index, (x, y) ->
-                if (index < maxTrail) {
-                    flatTrail[index * 2] = x
-                    flatTrail[index * 2 + 1] = y
-                }
-            }
-        }
+        drawFullScreenQuad()
+    }
 
-        GLES20.glUniform2fv(trailHandle, maxTrail, flatTrail, 0)
-
-        // 全屏三角形
-        val triangleCoords = floatArrayOf(
-            -1f, -1f,
-            3f, -1f,
-            -1f, 3f
+    private fun drawFullScreenQuad() {
+        val vertices = floatArrayOf(
+            -1f, -1f, 1f, -1f, -1f, 1f,
+            1f, -1f, 1f, 1f, -1f, 1f
         )
-        val vertexBuffer: FloatBuffer = ByteBuffer
-            .allocateDirect(triangleCoords.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .apply {
-                put(triangleCoords)
+
+        val vertexBuffer = ByteBuffer.allocateDirect(vertices.size * 4)
+            .order(ByteOrder.nativeOrder()).asFloatBuffer().apply {
+                put(vertices)
                 position(0)
             }
 
+        val positionHandle = GLES20.glGetAttribLocation(program, "aPosition")
         GLES20.glEnableVertexAttribArray(positionHandle)
         GLES20.glVertexAttribPointer(positionHandle, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer)
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6)
         GLES20.glDisableVertexAttribArray(positionHandle)
     }
+}
 
-    private fun loadShader(type: Int, code: String): Int {
-        return GLES20.glCreateShader(type).also { shader ->
-            GLES20.glShaderSource(shader, code)
-            GLES20.glCompileShader(shader)
-            val compiled = IntArray(1)
-            GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0)
-            if (compiled[0] == 0) {
-                val error = GLES20.glGetShaderInfoLog(shader)
-                GLES20.glDeleteShader(shader)
-                throw RuntimeException("Shader compile error: $error")
-            }
-        }
-    }
+fun createProgram(vertexCode: String, fragmentCode: String): Int {
+    val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexCode)
+    val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentCode)
+    val program = GLES20.glCreateProgram()
+    GLES20.glAttachShader(program, vertexShader)
+    GLES20.glAttachShader(program, fragmentShader)
+    GLES20.glLinkProgram(program)
+    return program
+}
+
+fun loadShader(type: Int, code: String): Int {
+    val shader = GLES20.glCreateShader(type)
+    GLES20.glShaderSource(shader, code)
+    GLES20.glCompileShader(shader)
+    return shader
 }

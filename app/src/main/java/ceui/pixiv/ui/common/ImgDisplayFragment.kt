@@ -56,7 +56,7 @@ import java.util.Locale
 
 abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
-    private lateinit var imageCropper: ImageCropper
+    private lateinit var imageCropper: ImageCropper<ImgDisplayFragment>
 
     protected val viewModel by viewModels<ToggleToolnarViewModel>()
     private val viewPagerViewModel by viewModels<ViewPagerViewModel>(ownerProducer = { requireParentFragment() })
@@ -87,17 +87,7 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
         imageCropper = ImageCropper(
             this,
-            onCropSuccess = { uri ->
-                requireAppBackground().updateConfig(
-                    BackgroundConfig(
-                        BackgroundType.SPECIFIC_ILLUST,
-                        localFileUri = uri.toString()
-                    )
-                )
-            },
-            onCropError = { error ->
-                Timber.e(error, "裁剪图片失败")
-            }
+            onCropSuccess = ImgDisplayFragment::onCropSuccess,
         )
 
         Timber.d("ImgDisplayFragment display img: ${url}")
@@ -145,6 +135,15 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
             }
         }
         progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
+    }
+
+    private fun onCropSuccess(uri: Uri) {
+        requireAppBackground().updateConfig(
+            BackgroundConfig(
+                BackgroundType.SPECIFIC_ILLUST,
+                localFileUri = uri.toString()
+            )
+        )
     }
 
     private fun performDownload(activity: FragmentActivity, file: File) {
