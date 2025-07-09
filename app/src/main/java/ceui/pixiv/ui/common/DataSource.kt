@@ -16,7 +16,9 @@ import ceui.pixiv.utils.VpnNotActiveException
 import ceui.pixiv.utils.VpnRetryHelper
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -88,6 +90,9 @@ open class DataSource<Item, T : KListShow<Item>>(
                 if (!NetworkStateManager.isVpnActive(Shaft.getContext())) {
                     VpnRetryHelper.pushRequest(requestToken, {
                         Timber.d("VpnRetryHelper: found token: ${requestToken}, retry now.")
+                        MainScope().launch {
+                            refreshImpl(RefreshHint.ErrorRetry)
+                        }
                     })
                     throw VpnNotActiveException()
                 }

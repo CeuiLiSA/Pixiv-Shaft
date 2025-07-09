@@ -78,6 +78,7 @@ open class ValueContent<ValueT>(
                     if (!NetworkStateManager.isVpnActive(Shaft.getContext())) {
                         VpnRetryHelper.pushRequest(requestToken, {
                             Timber.d("VpnRetryHelper: found token: ${requestToken}, retry now.")
+                            refresh(RefreshHint.ErrorRetry)
                         })
                         throw VpnNotActiveException()
                     }
