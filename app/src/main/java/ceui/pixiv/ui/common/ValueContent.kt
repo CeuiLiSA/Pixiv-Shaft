@@ -2,13 +2,16 @@ package ceui.pixiv.ui.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.activities.Shaft
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.common.repo.HybridRepository
 import ceui.pixiv.ui.common.repo.LoadResult
 import ceui.pixiv.ui.common.repo.Repository
 import ceui.pixiv.ui.common.repo.ResponseStoreRepository
+import ceui.pixiv.utils.NetworkStateManager
 import ceui.pixiv.utils.TokenGenerator
+import ceui.pixiv.utils.VpnNotActiveException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -69,6 +72,10 @@ open class ValueContent<ValueT>(
                         delay(600L)
                         _refreshState.value = RefreshState.FETCHING_LATEST()
                         delay(1000L)
+                    }
+
+                    if (!NetworkStateManager.isVpnActive(Shaft.getContext())) {
+                        throw VpnNotActiveException()
                     }
 
                     val response = withContext(Dispatchers.IO) {

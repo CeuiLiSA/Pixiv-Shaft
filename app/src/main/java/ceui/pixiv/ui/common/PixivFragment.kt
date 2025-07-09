@@ -47,6 +47,7 @@ import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
+import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
@@ -58,6 +59,7 @@ import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
+import ceui.pixiv.utils.NetworkStateManager
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -386,7 +388,11 @@ fun Fragment.setUpRefreshState(
         }
         binding.errorLayout.isVisible = state is RefreshState.ERROR
         binding.errorRetryButton.setOnClick {
-            viewModel.refresh(RefreshHint.ErrorRetry)
+            if (NetworkStateManager.isVpnActive(ctx)) {
+                viewModel.refresh(RefreshHint.ErrorRetry)
+            } else {
+                openClashApp(ctx)
+            }
         }
         if (state is RefreshState.ERROR) {
             binding.errorText.text = state.exception.getHumanReadableMessage(ctx)

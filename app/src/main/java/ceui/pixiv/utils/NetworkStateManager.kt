@@ -5,16 +5,16 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import android.os.Build
 import ceui.pixiv.utils.NetworkStateManager.NetworkType
 
 interface INetworkState {
     val networkState: LiveData<NetworkType>
 }
 
-class NetworkStateManager(context: Context) : INetworkState {
+class NetworkStateManager(private val context: Context) : INetworkState {
 
     enum class NetworkType {
         WIFI,
@@ -24,6 +24,9 @@ class NetworkStateManager(context: Context) : INetworkState {
 
     private val _networkState = MutableLiveData(NetworkType.NONE)
     override val networkState: LiveData<NetworkType> get() = _networkState
+
+    private val _isVpnActive = MutableLiveData(false)
+    val isVpnActive: LiveData<Boolean> get() = _isVpnActive
 
     private val connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -37,7 +40,10 @@ class NetworkStateManager(context: Context) : INetworkState {
             updateNetworkType(null)
         }
 
-        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
             updateNetworkType(network)
         }
     }
@@ -79,5 +85,18 @@ class NetworkStateManager(context: Context) : INetworkState {
             else -> NetworkType.NONE
         }
         _networkState.postValue(networkType)
+        _isVpnActive.postValue(isVpnActive(context))
+    }
+
+    companion object {
+        fun isVpnActive(context: Context): Boolean {
+            val connectivityManager =
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+            val activeNetwork = connectivityManager.activeNetwork ?: return false
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+            return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+        }
     }
 }

@@ -30,3 +30,11 @@ fun Fragment.requireAppBackground(): AppBackground {
 fun FragmentActivity.requireAppBackground(): AppBackground {
     return (application as ServicesProvider).appBackground
 }
+
+fun Fragment.requireNetworkStateManager(): NetworkStateManager {
+    return requireActivity().requireNetworkStateManager()
+}
+
+fun FragmentActivity.requireNetworkStateManager(): NetworkStateManager {
+    return (application as ServicesProvider).networkStateManager
+}
