@@ -103,6 +103,7 @@ class CommentsDataSource(
                 val existing = (itemHolders.value ?: listOf()).toMutableList()
                 existing.add(0, CommentHolder(it, args.objectArthurId))
                 itemHolders.value = existing
+                updateRefreshState()
             }
         }
         replyToComment.value = null
@@ -128,6 +129,7 @@ class CommentsDataSource(
             val existing = (itemHolders.value ?: listOf()).toMutableList()
             existing.removeIf { it.getItemId() == commentId }
             itemHolders.value = existing
+            updateRefreshState()
         }
     }
 }

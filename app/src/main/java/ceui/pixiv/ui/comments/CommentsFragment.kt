@@ -25,6 +25,7 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.setOnClick
+import kotlinx.coroutines.delay
 
 class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentActionReceiver {
 
@@ -56,6 +57,8 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
         childBinding.send.setOnClick {
             launchSuspend(it) {
                 dataSource.sendComment()
+                delay(50)
+                hideKeyboard()
             }
         }
 

@@ -124,10 +124,7 @@ open class DataSource<Item, T : KListShow<Item>>(
         _nextPageUrl = response.nextPageUrl
         currentProtoItems.addAll(response.displayList)
         mapProtoItemsToHolders()
-        _refreshState.value = RefreshState.LOADED(
-            hasContent = _itemHolders.value?.isNotEmpty() == true,
-            hasNext = hasNext()
-        )
+        updateRefreshState()
     }
 
     fun hasNext(): Boolean {
@@ -197,6 +194,13 @@ open class DataSource<Item, T : KListShow<Item>>(
 
     protected fun pickItemHolders(): MutableLiveData<List<ListItemHolder>> {
         return _itemHolders
+    }
+
+    protected fun updateRefreshState() {
+        _refreshState.value = RefreshState.LOADED(
+            hasContent = _itemHolders.value?.isNotEmpty() == true,
+            hasNext = hasNext()
+        )
     }
 
     open fun initialLoad(): Boolean {
