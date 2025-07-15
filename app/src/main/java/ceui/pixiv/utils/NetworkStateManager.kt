@@ -14,6 +14,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -31,12 +32,7 @@ class NetworkStateManager(private val context: Context) : INetworkState {
         NONE
     }
 
-    init {
-        MainScope().launch {
-            _ipLocationResponse.postValue(fetchLocationInfoFromIp())
-        }
-    }
-
+    private val _taskMutex = Mutex() // 互斥锁，防止重复刷新
     private val _networkState = MutableLiveData(NetworkType.NONE)
     override val networkState: LiveData<NetworkType> get() = _networkState
 
@@ -101,6 +97,14 @@ class NetworkStateManager(private val context: Context) : INetworkState {
         }
         _networkState.postValue(networkType)
         _isVpnActive.postValue(isVpnActive(context))
+        MainScope().launch {
+            if (!_taskMutex.tryLock()) {
+                Timber.e("fetchLocationInfoFromIp refresh tryLock returned")
+                return@launch
+            }
+
+            _ipLocationResponse.postValue(fetchLocationInfoFromIp())
+        }
     }
 
     companion object {
@@ -129,12 +133,14 @@ class NetworkStateManager(private val context: Context) : INetworkState {
                 client.newCall(request).execute().use { response ->
                     val body = response.body?.string() ?: return@withContext null
                     val result = Gson().fromJson(body, IpLocationResponse::class.java)
-                    Timber.d("dasadsadsw2 ${body}")
+                    Timber.d("fetchLocationInfoFromIp ${body}")
                     return@withContext result
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
+            } finally {
+                _taskMutex.unlock() // 释放锁
             }
         }
 }
