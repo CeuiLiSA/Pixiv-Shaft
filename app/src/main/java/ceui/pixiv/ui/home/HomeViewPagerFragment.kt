@@ -16,7 +16,6 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.pushFragment
-import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
 import ceui.pixiv.ui.circles.MyCirclesFragment
@@ -27,7 +26,6 @@ import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import timber.log.Timber
 
 class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), ViewPagerFragment {
     private val binding by viewBinding(FragmentHomeViewpagerBinding::bind)
@@ -50,10 +48,6 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 height = insets.bottom
             }
             windowInsets
-        }
-
-        requireNetworkStateManager().isVpnActive.observe(viewLifecycleOwner) {
-            Timber.d("dasdsaadsd2 isVpnActive: ${it}")
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(

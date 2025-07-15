@@ -8,7 +8,16 @@ import android.net.NetworkRequest
 import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.pixiv.client.IpLocationResponse
 import ceui.pixiv.utils.NetworkStateManager.NetworkType
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import timber.log.Timber
 
 interface INetworkState {
     val networkState: LiveData<NetworkType>
@@ -22,11 +31,17 @@ class NetworkStateManager(private val context: Context) : INetworkState {
         NONE
     }
 
+    init {
+        MainScope().launch {
+            _ipLocationResponse.postValue(fetchLocationInfoFromIp())
+        }
+    }
+
     private val _networkState = MutableLiveData(NetworkType.NONE)
     override val networkState: LiveData<NetworkType> get() = _networkState
 
     private val _isVpnActive = MutableLiveData(false)
-    val isVpnActive: LiveData<Boolean> get() = _isVpnActive
+    private val _ipLocationResponse = MutableLiveData<IpLocationResponse?>(null)
 
     private val connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -99,4 +114,27 @@ class NetworkStateManager(private val context: Context) : INetworkState {
             return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
         }
     }
+
+    fun isInChinaMainland(): Boolean {
+        return _ipLocationResponse.value?.country == "CN"
+    }
+
+    private suspend fun fetchLocationInfoFromIp(): IpLocationResponse? =
+        withContext(Dispatchers.IO) {
+            try {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("https://ipapi.co/json/")
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val body = response.body?.string() ?: return@withContext null
+                    val result = Gson().fromJson(body, IpLocationResponse::class.java)
+                    Timber.d("dasadsadsw2 ${body}")
+                    return@withContext result
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
 }
