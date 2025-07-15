@@ -18,6 +18,7 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadingHolder
+import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.works.getGalleryHolders
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,7 @@ import kotlinx.coroutines.withContext
 
 class ArtworkViewModel(
     private val illustId: Long,
+    private val taskPool: TaskPool
 ) : HoldersViewModel() {
 
     private val _illustLiveData = ObjectPool.get<Illust>(illustId)
@@ -101,7 +103,7 @@ class ArtworkViewModel(
         }
 
         val result = mutableListOf<ListItemHolder>()
-        val images = getGalleryHolders(illust, MainScope())
+        val images = getGalleryHolders(illust, MainScope(), taskPool)
         result.addAll(images ?: listOf())
         result.add(RedSectionHeaderHolder("标题"))
         result.add(ArtworkInfoHolder(illustId))

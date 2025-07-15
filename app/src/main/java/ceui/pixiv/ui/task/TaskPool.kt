@@ -2,9 +2,11 @@ package ceui.pixiv.ui.task
 
 import kotlinx.coroutines.CoroutineScope
 
-object TaskPool {
+class TaskPool {
 
-    private const val MAX_CACHE_SIZE = 256
+    companion object {
+        private const val MAX_CACHE_SIZE = 256
+    }
 
     // 单独的 LoadTask 缓存
     private val loadTaskMap = object : LinkedHashMap<String, LoadTask>(
@@ -41,6 +43,17 @@ object TaskPool {
             downloadTaskMap.getOrPut(namedUrl.url) {
                 DownloadTask(namedUrl, coroutineScope)
             }
+        }
+    }
+
+    fun clearTasks() {
+        synchronized(loadTaskMap) {
+            loadTaskMap.values.forEach { it.cancel() }
+            loadTaskMap.clear()
+        }
+        synchronized(downloadTaskMap) {
+            downloadTaskMap.values.forEach { it.cancel() }
+            downloadTaskMap.clear()
         }
     }
 }

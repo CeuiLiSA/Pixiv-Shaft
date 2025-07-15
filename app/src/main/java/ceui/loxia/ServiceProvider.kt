@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.ui.background.AppBackground
+import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.utils.NetworkStateManager
 import com.tencent.mmkv.MMKV
 
@@ -13,6 +14,7 @@ interface ServicesProvider {
     val networkStateManager: NetworkStateManager
     val entityWrapper: EntityWrapper
     val appBackground: AppBackground
+    val taskPool: TaskPool
 }
 
 fun Fragment.requireEntityWrapper(): EntityWrapper {
@@ -37,4 +39,12 @@ fun Fragment.requireNetworkStateManager(): NetworkStateManager {
 
 fun FragmentActivity.requireNetworkStateManager(): NetworkStateManager {
     return (application as ServicesProvider).networkStateManager
+}
+
+fun Fragment.requireTaskPool(): TaskPool {
+    return requireActivity().requireTaskPool()
+}
+
+fun FragmentActivity.requireTaskPool(): TaskPool {
+    return (application as ServicesProvider).taskPool
 }

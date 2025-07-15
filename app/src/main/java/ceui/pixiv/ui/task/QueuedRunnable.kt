@@ -50,6 +50,10 @@ abstract class QueuedRunnable<ResultT> {
         this._onNext?.invoke()
     }
 
+    open fun cancel() {
+        Timber.d("${this.javaClass.simpleName}-${taskId} cancel")
+    }
+
     open fun onError(ex: Exception?) {
         Timber.d("${this.javaClass.simpleName}-${taskId} handleError")
         if (ex != null) {

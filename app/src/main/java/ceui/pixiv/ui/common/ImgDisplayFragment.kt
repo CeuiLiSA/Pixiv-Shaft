@@ -29,11 +29,11 @@ import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
 import ceui.loxia.requireAppBackground
+import ceui.loxia.requireTaskPool
 import ceui.pixiv.ui.background.BackgroundConfig
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.background.ImageCropper
 import ceui.pixiv.ui.task.NamedUrl
-import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
@@ -92,7 +92,7 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
         Timber.d("ImgDisplayFragment display img: ${url}")
         val namedUrl = NamedUrl(displayName(), url)
-        val task = TaskPool.getLoadTask(namedUrl, activity.lifecycleScope)
+        val task = requireTaskPool().getLoadTask(namedUrl, activity.lifecycleScope)
         task.result.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {

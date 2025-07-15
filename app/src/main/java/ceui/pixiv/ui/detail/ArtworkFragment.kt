@@ -15,6 +15,7 @@ import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.pushFragment
 import ceui.loxia.requireEntityWrapper
+import ceui.loxia.requireTaskPool
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.chats.SeeMoreAction
@@ -42,9 +43,9 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by threadSafeArgs<ArtworkFragmentArgs>()
     private val viewModel by constructVM({
-        safeArgs.illustId
-    }) { illustId ->
-        ArtworkViewModel(illustId)
+        safeArgs.illustId to requireTaskPool()
+    }) { (illustId, taskPool) ->
+        ArtworkViewModel(illustId, taskPool)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
