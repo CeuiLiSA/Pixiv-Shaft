@@ -10,4 +10,6 @@ object RecordType {
     const val BLOCK_USER = 6
 
     const val FAVORITE_USER = 7
+    
+    const val PAGING_DATA = 100
 }
