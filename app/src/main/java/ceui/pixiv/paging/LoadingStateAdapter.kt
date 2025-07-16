@@ -10,6 +10,7 @@ import androidx.core.view.isVisible
 import androidx.paging.LoadState
 import androidx.paging.LoadStateAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 
 class LoadingStateAdapter(
@@ -40,6 +41,9 @@ class LoadingStateAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, loadState: LoadState) {
+        // ⭐ 关键：设置全宽
+        (holder.itemView.layoutParams as? StaggeredGridLayoutManager.LayoutParams)?.isFullSpan =
+            true
         holder.bind(loadState)
     }
 }

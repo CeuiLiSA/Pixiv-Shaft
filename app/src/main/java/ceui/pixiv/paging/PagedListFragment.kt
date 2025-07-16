@@ -5,11 +5,15 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.paging.map
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPagedListBinding
+import ceui.lisa.view.StaggeredGridSpacingItemDecoration
+import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.ppppx
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -29,13 +33,15 @@ class PagedListFragment : PixivFragment(R.layout.fragment_paged_list) {
             footer = footerAdapter
         )
 
-        binding.listView.layoutManager = LinearLayoutManager(requireContext())
+        binding.listView.addItemDecoration(StaggeredGridSpacingItemDecoration(4.ppppx))
+        binding.listView.layoutManager =
+            StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         binding.listView.adapter = concatAdapter
 
         // Paging数据收集
         lifecycleScope.launch {
             viewModel.pager.collectLatest {
-                adapter.submitData(it)
+                adapter.submitData(it.map { illust -> IllustCardHolder(illust) })
             }
         }
 

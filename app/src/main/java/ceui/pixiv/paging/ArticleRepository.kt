@@ -1,18 +1,28 @@
 package ceui.pixiv.paging
 
-import ceui.pixiv.ui.common.ListItemHolder
+import ceui.loxia.Client
+import ceui.loxia.Illust
+import ceui.loxia.IllustResponse
+import ceui.loxia.KListShow
+import ceui.loxia.ObjectType
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 class ArticleRepository {
+    private val gson = Gson()
 
-    suspend fun loadArticles(page: Int, pageSize: Int): List<ListItemHolder> {
-        delay(2000) // 模拟网络延迟
+    suspend fun loadImpl(nextUrl: String?): KListShow<Illust> {
+        if (nextUrl == null) {
+            return Client.appApi.getHomeData(ObjectType.ILLUST)
+        }
 
-        val startId = (page - 1) * pageSize + 1
-        val endId = startId + pageSize - 1
-
-        return (startId..endId).map { id ->
-            PagingItemHolder(PagingArticle(id, "Title $id", "Content of article $id"))
+        return withContext(Dispatchers.IO) {
+            val responseBody = Client.appApi.generalGet(nextUrl)
+            delay(2000L)
+            val responseJson = responseBody.string()
+            gson.fromJson(responseJson, IllustResponse::class.java)
         }
     }
 }
