@@ -10,7 +10,7 @@ class ArticleViewModel : ViewModel() {
     private val repository = ArticleRepository()
 
     val pager = Pager(
-        config = PagingConfig(pageSize = 20),
+        config = PagingConfig(pageSize = 30, initialLoadSize = 30),
         pagingSourceFactory = { ArticlePagingSource(repository) }
     ).flow.cachedIn(viewModelScope)
 }
