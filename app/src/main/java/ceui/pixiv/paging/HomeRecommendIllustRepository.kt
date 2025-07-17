@@ -26,6 +26,11 @@ class HomeRecommendIllustRepository(private val objectType: String) :
     }
 
     override fun mapper(entity: GeneralEntity): List<ListItemHolder> {
-        return listOf(IllustCardHolder(entity.typedObject()))
+        val illust = entity.typedObject<Illust>()
+        return if (illust.isAuthurExist()) {
+            listOf(IllustCardHolder(illust))
+        } else {
+            emptyList()
+        }
     }
 }

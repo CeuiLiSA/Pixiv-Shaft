@@ -169,6 +169,10 @@ object ObjectPool {
                 ObjectSpec.GIF_INFO
             }
 
+            "TrendingTag" -> {
+                ObjectSpec.TRENDING_TAG
+            }
+
             "UserResponse" -> {
                 ObjectSpec.UserProfile
             }

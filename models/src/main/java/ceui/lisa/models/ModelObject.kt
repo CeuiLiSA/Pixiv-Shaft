@@ -19,6 +19,8 @@ object ObjectSpec {
 
     const val UserProfile = 9
 
+    const val TRENDING_TAG = 10
+
     const val ARTICLE = 100
     const val GIF_INFO = 101
 

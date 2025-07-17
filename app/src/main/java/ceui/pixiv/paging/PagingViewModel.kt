@@ -32,6 +32,20 @@ class PagingViewModel<ObjectT : ModelObject>(
     }.cachedIn(viewModelScope)
 }
 
+inline fun <ObjectT : ModelObject> Fragment.pagingViewModel(
+    noinline repositoryProducer: () -> PagingAPIRepository<ObjectT>,
+): Lazy<PagingViewModel<ObjectT>> {
+    return this.viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val database = AppDatabase.getAppDatabase(requireContext())
+                val repository = repositoryProducer()
+                return PagingViewModel(database, repository) as T
+            }
+        }
+    }
+}
+
 
 inline fun <ArgsT, ObjectT : ModelObject> Fragment.pagingViewModel(
     noinline argsProducer: () -> ArgsT,
