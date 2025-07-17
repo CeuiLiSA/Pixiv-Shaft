@@ -22,7 +22,11 @@ class ArticleViewModel(
 
     @OptIn(ExperimentalPagingApi::class)
     val pager = Pager(
-        config = PagingConfig(pageSize = 30, initialLoadSize = 30),
+        config = PagingConfig(
+            pageSize = 30,
+            initialLoadSize = 30,  // 只加载 1 页
+            prefetchDistance = 0   // 滑到底才触发 LoadType.APPEND
+        ),
         remoteMediator = ArticleRemoteMediator(db, repository, recordType, EntityType.ILLUST),
         pagingSourceFactory = { db.generalDao().pagingSource(recordType) },
     ).flow

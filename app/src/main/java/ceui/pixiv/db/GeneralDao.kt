@@ -60,4 +60,7 @@ interface GeneralDao {
 
     @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC")
     fun pagingSource(recordType: Int): PagingSource<Int, GeneralEntity>
+
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC")
+    fun getAllByRecordType(recordType: Int): List<GeneralEntity>
 }

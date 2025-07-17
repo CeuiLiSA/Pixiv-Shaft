@@ -9,6 +9,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RemoteKey
+import timber.log.Timber
 
 @OptIn(ExperimentalPagingApi::class)
 class ArticleRemoteMediator(
@@ -31,6 +32,7 @@ class ArticleRemoteMediator(
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
                     val key = remoteKeyDao.getRemoteKey(recordType)
+                    Timber.d("dsaadsdsaw2 ${key}")
                     key?.nextPageUrl
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
                 }
@@ -47,16 +49,25 @@ class ArticleRemoteMediator(
                     remoteKeyDao.deleteByRecordType(recordType)
                 }
 
-                val entities = illusts.map { item ->
-                    val json = Shaft.sGson.toJson(item)
-                    GeneralEntity(
-                        id = item.id, // 用你提供的 ID
-                        json = json,
-                        entityType = entityType,
-                        recordType = recordType,
-                        updatedTime = System.currentTimeMillis()
-                    )
-                }
+                var indexingCount = 0
+
+                val existingInDB = generalDao.getAllByRecordType(recordType)
+                val entities = mutableListOf<GeneralEntity>()
+                entities.addAll(existingInDB.map {
+                    it.copy(updatedTime = (indexingCount++).toLong())
+                })
+                entities.addAll(
+                    illusts.map { item ->
+                        val json = Shaft.sGson.toJson(item)
+                        GeneralEntity(
+                            id = item.id, // 用你提供的 ID
+                            json = json,
+                            entityType = entityType,
+                            recordType = recordType,
+                            updatedTime = (indexingCount++).toLong()
+                        )
+                    }
+                )
 
                 generalDao.insertAll(entities)
                 remoteKeyDao.insert(RemoteKey(recordType, newNextPageUrl))

@@ -28,18 +28,18 @@ class PagedListFragment : PixivFragment(R.layout.fragment_paged_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val adapter = CommonPagingAdapter(viewLifecycleOwner)
 
-//        val headerAdapter = LoadingStateAdapter { adapter.retry() }
-//        val footerAdapter = LoadingStateAdapter { adapter.retry() }
-//
-//        val concatAdapter = adapter.withLoadStateHeaderAndFooter(
-//            header = headerAdapter,
-//            footer = footerAdapter
-//        )
+        val headerAdapter = LoadingStateAdapter { adapter.retry() }
+        val footerAdapter = LoadingStateAdapter { adapter.retry() }
+
+        val concatAdapter = adapter.withLoadStateHeaderAndFooter(
+            header = headerAdapter,
+            footer = footerAdapter
+        )
 
         binding.listView.addItemDecoration(StaggeredGridSpacingItemDecoration(4.ppppx))
         binding.listView.layoutManager =
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-        binding.listView.adapter = adapter
+        binding.listView.adapter = concatAdapter
 
         // Paging数据收集
         lifecycleScope.launch {
