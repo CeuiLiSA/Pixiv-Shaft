@@ -16,13 +16,13 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.pushFragment
-import ceui.pixiv.paging.PagedListFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
 import ceui.pixiv.ui.circles.MyCirclesFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -155,8 +155,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
 
             override fun createFragment(position: Int): Fragment {
                 if (position == 0) {
-                    return PagedListFragment()
-//                    return DiscoverFragment()
+                    return DiscoverFragment()
 //                    return GLFragment()
                 } else if (position == 1) {
                     return MyCirclesFragment()

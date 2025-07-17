@@ -90,8 +90,6 @@ open class ListItemHolder {
     }
 
     fun getItemViewType(): Int {
-        Timber.d("dsdasadsw2 simpleName ${this::class.java.simpleName}")
-        Timber.d("dsdasadsw2 hashCode ${this::class.java.hashCode()}")
         return this::class.java.hashCode()
     }
 

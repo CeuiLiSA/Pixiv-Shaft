@@ -11,7 +11,6 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.listItemHolderDiffUtil
 import ceui.pixiv.ui.viewholdermap.ViewHolderFactory
-import timber.log.Timber
 
 
 class CommonPagingAdapter(private val viewLifecycleOwner: LifecycleOwner) :
@@ -55,11 +54,8 @@ class CommonPagingAdapter(private val viewLifecycleOwner: LifecycleOwner) :
     override fun getItemViewType(position: Int): Int {
         val item = getItem(position)
         if (item != null) {
-            Timber.d("dsdasadsw2 item != null ${item.getItemViewType()}")
             return item.getItemViewType()
         }
-        val aa = super.getItemViewType(position)
-        Timber.d("dsdasadsw2 item == null ${aa}")
-        return aa
+        return super.getItemViewType(position)
     }
 }

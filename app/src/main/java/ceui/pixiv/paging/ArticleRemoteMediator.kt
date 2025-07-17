@@ -9,7 +9,6 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RemoteKey
-import timber.log.Timber
 
 @OptIn(ExperimentalPagingApi::class)
 class ArticleRemoteMediator(
@@ -32,7 +31,6 @@ class ArticleRemoteMediator(
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
                     val key = remoteKeyDao.getRemoteKey(recordType)
-                    Timber.d("dsaadsdsaw2 ${key}")
                     key?.nextPageUrl
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
                 }

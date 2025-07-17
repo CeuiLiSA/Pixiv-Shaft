@@ -2,7 +2,9 @@ package ceui.pixiv.paging
 
 import android.os.Bundle
 import android.view.View
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
 import androidx.paging.map
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -41,23 +43,23 @@ class PagedListFragment : PixivFragment(R.layout.fragment_paged_list) {
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         binding.listView.adapter = concatAdapter
 
-        // Paging数据收集
-        lifecycleScope.launch {
-            viewModel.pager.collectLatest {
-                adapter.submitData(it.map { illust -> IllustCardHolder(illust) })
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.pager.collectLatest {
+                        adapter.submitData(it.map { illust -> IllustCardHolder(illust) })
+                    }
+                }
+                launch {
+                    adapter.loadStateFlow.collectLatest { loadStates ->
+                        binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
+                    }
+                }
             }
         }
 
-        // 下拉刷新
         binding.refreshLayout.setOnRefreshListener {
             adapter.refresh()
-        }
-
-        // 停止刷新动画
-        lifecycleScope.launch {
-            adapter.loadStateFlow.collectLatest { loadStates ->
-                binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
-            }
         }
     }
 }
