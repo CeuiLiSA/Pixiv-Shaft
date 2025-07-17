@@ -10,6 +10,8 @@ object RecordType {
     const val BLOCK_USER = 6
 
     const val FAVORITE_USER = 7
-    
-    const val PAGING_DATA = 100
+
+    const val PAGING_DATA_HOME_DISCOVER_RECOMMEND_ILLUST = 100
+    const val PAGING_DATA_HOME_DISCOVER_RECOMMEND_MANGA = 101
+    const val PAGING_DATA_HOME_DISCOVER_RECOMMEND_NOVEL = 102
 }

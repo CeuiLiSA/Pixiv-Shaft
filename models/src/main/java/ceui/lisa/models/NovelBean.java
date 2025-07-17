@@ -302,7 +302,7 @@ public class NovelBean implements Serializable, Starable, ModelObject {
         return result;
     }
 
-    public String[] getTagNames(){
+    public String[] getTagNames() {
         return tags.stream().map(TagsBean::getName).toArray(String[]::new);
     }
 
@@ -337,6 +337,6 @@ public class NovelBean implements Serializable, Starable, ModelObject {
 
     @Override
     public int getObjectType() {
-        return ObjectSpec.JNOVEL;
+        return ObjectSpec.JAVA_NOVEL;
     }
 }

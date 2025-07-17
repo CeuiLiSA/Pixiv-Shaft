@@ -114,7 +114,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                                 MenuItem(getString(R.string.flag_artwork)) {
                                     pushFragment(
                                         R.id.navigation_flag_reason, FlagReasonFragmentArgs(
-                                            safeArgs.illustId, ObjectSpec.Illust
+                                            safeArgs.illustId, ObjectSpec.JAVA_ILLUST
                                         ).toBundle()
                                     )
                                 }

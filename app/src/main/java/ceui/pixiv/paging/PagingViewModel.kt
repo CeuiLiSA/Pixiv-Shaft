@@ -6,19 +6,13 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
-import androidx.paging.map
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
-import ceui.pixiv.db.EntityType
-import ceui.pixiv.db.RecordType
-import kotlinx.coroutines.flow.map
+import ceui.lisa.models.ModelObject
 
-class ArticleViewModel(
+class PagingViewModel<ObjectT : ModelObject>(
     private val db: AppDatabase,
+    private val repository: PagingAPIRepository<ObjectT>,
 ) : ViewModel() {
-
-    private val repository = ArticleRepository()
-    private val recordType = RecordType.PAGING_DATA
 
     @OptIn(ExperimentalPagingApi::class)
     val pager = Pager(
@@ -27,13 +21,8 @@ class ArticleViewModel(
             initialLoadSize = 30,  // 只加载 1 页
             prefetchDistance = 0   // 滑到底才触发 LoadType.APPEND
         ),
-        remoteMediator = ArticleRemoteMediator(db, repository, recordType, EntityType.ILLUST),
-        pagingSourceFactory = { db.generalDao().pagingSource(recordType) },
+        remoteMediator = PagingRemoteMediator(db, repository, repository.recordType),
+        pagingSourceFactory = { db.generalDao().pagingSource(repository.recordType) },
     ).flow
-        .map { pagingData ->
-            pagingData.map {
-                it.typedObject<Illust>()
-            }
-        }
         .cachedIn(viewModelScope)
 }

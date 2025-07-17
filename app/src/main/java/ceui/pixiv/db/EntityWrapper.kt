@@ -3,6 +3,7 @@ package ceui.pixiv.db
 import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
+import ceui.lisa.models.ObjectSpec
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.User
@@ -102,23 +103,24 @@ class EntityWrapper(
     // 调用 `visit` 方法
     fun visitIllust(context: Context, illust: Illust) {
         val json = Shaft.sGson.toJson(illust)
-        visit(context, illust.id, json, EntityType.ILLUST, RecordType.VIEW_ILLUST_HISTORY)
+        visit(context, illust.id, json, ObjectSpec.KOTLIN_ILLUST, RecordType.VIEW_ILLUST_HISTORY)
     }
 
     fun visitNovel(context: Context, novel: Novel) {
         val json = Shaft.sGson.toJson(novel)
-        visit(context, novel.id, json, EntityType.NOVEL, RecordType.VIEW_NOVEL_HISTORY)
+        visit(context, novel.id, json, ObjectSpec.KOTLIN_NOVEL, RecordType.VIEW_NOVEL_HISTORY)
     }
 
     fun visitUser(context: Context, user: User) {
         val json = Shaft.sGson.toJson(user)
-        visit(context, user.id, json, EntityType.USER, RecordType.VIEW_USER_HISTORY)
+        visit(context, user.id, json, ObjectSpec.KOTLIN_USER, RecordType.VIEW_USER_HISTORY)
     }
 
     fun addUserToFavorite(context: Context, user: User) {
         MainScope().launch(Dispatchers.IO) {
             val json = Shaft.sGson.toJson(user)
-            val entity = GeneralEntity(user.id, json, EntityType.USER, RecordType.FAVORITE_USER)
+            val entity =
+                GeneralEntity(user.id, json, ObjectSpec.KOTLIN_USER, RecordType.FAVORITE_USER)
             insertEntity(context, entity)
         }
     }
@@ -132,17 +134,17 @@ class EntityWrapper(
     // 调用 `block` 方法
     fun blockIllust(context: Context, illust: Illust) {
         val json = Shaft.sGson.toJson(illust)
-        block(context, illust.id, json, EntityType.ILLUST, RecordType.BLOCK_ILLUST)
+        block(context, illust.id, json, ObjectSpec.KOTLIN_ILLUST, RecordType.BLOCK_ILLUST)
     }
 
     fun blockNovel(context: Context, novel: Novel) {
         val json = Shaft.sGson.toJson(novel)
-        block(context, novel.id, json, EntityType.NOVEL, RecordType.BLOCK_NOVEL)
+        block(context, novel.id, json, ObjectSpec.KOTLIN_NOVEL, RecordType.BLOCK_NOVEL)
     }
 
     fun blockUser(context: Context, user: User) {
         val json = Shaft.sGson.toJson(user)
-        block(context, user.id, json, EntityType.USER, RecordType.BLOCK_USER)
+        block(context, user.id, json, ObjectSpec.KOTLIN_USER, RecordType.BLOCK_USER)
     }
 
     // 调用删除方法

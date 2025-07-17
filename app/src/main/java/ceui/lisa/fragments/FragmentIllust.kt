@@ -180,7 +180,10 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 }
 
                 override fun updateDrawState(ds: TextPaint) {
-                    ds.color = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary)
+                    ds.color = Common.resolveThemeAttribute(
+                        mContext,
+                        androidx.appcompat.R.attr.colorPrimary
+                    )
                 }
             }
             val spannableString: SpannableString
@@ -286,7 +289,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "举报插画")
                 intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
-                intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
+                intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.JAVA_ILLUST)
                 startActivity(intent)
                 return@OnMenuItemClickListener true
             }
@@ -374,8 +377,8 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
-                val v = view ?: return
-                val ctx = context ?: return
+                view ?: return
+                context ?: return
                 val realHeight = baseBind.bottomBar.height +
                         baseBind.viewDivider.height +
                         baseBind.secondLinear.height

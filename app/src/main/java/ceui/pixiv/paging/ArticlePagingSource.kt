@@ -5,7 +5,7 @@ import androidx.paging.PagingState
 import ceui.loxia.Illust
 
 class ArticlePagingSource(
-    private val repository: ArticleRepository
+    private val repository: PagingAPIRepository<Illust>
 ) : PagingSource<String, Illust>() {
 
     override fun getRefreshKey(state: PagingState<String, Illust>): String? {
@@ -16,7 +16,7 @@ class ArticlePagingSource(
         return try {
             val nextPageUrl: String? = params.key // null 表示第一页
 
-            val response = repository.loadImpl(nextPageUrl)
+            val response = repository.load(nextPageUrl)
 
             LoadResult.Page(
                 data = response.displayList,

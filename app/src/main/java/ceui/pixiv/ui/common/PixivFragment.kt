@@ -14,9 +14,14 @@ import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
+import androidx.paging.flatMap
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,8 +29,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
+import ceui.lisa.databinding.FragmentPagedListBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
+import ceui.lisa.models.ModelObject
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.ShareIllust
@@ -49,6 +56,10 @@ import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
 import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
+import ceui.pixiv.db.GeneralEntity
+import ceui.pixiv.paging.CommonPagingAdapter
+import ceui.pixiv.paging.LoadingStateAdapter
+import ceui.pixiv.paging.PagingViewModel
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
@@ -67,6 +78,8 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
@@ -330,6 +343,53 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
             content.updatePadding(0, 0, 0, insets.bottom)
             WindowInsetsCompat.CONSUMED
         }
+    }
+}
+
+fun <ObjectT : ModelObject> Fragment.setUpPagedList(
+    binding: FragmentPagedListBinding,
+    viewModel: PagingViewModel<ObjectT>,
+    mapper: (GeneralEntity) -> List<ListItemHolder>,
+    listMode: Int = ListMode.STAGGERED_GRID
+) {
+    if (this is FitsSystemWindowFragment) {
+        binding.topShadow.isVisible = true
+        val params = binding.refreshLayout.layoutParams as ConstraintLayout.LayoutParams
+        // 将 topToTop 设置为 parent
+        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+        binding.refreshLayout.layoutParams = params
+    }
+    setUpToolbar(binding.toolbarLayout, binding.listView)
+    setUpLayoutManager(binding.listView, listMode)
+
+
+    val adapter = CommonPagingAdapter(viewLifecycleOwner)
+
+    val headerAdapter = LoadingStateAdapter { adapter.retry() }
+    val footerAdapter = LoadingStateAdapter { adapter.retry() }
+    val concatAdapter = adapter.withLoadStateHeaderAndFooter(
+        header = headerAdapter,
+        footer = footerAdapter
+    )
+    binding.listView.adapter = concatAdapter
+
+    viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            launch {
+                viewModel.pager.collectLatest {
+                    adapter.submitData(it.flatMap(mapper))
+                }
+            }
+            launch {
+                adapter.loadStateFlow.collectLatest { loadStates ->
+                    binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
+                }
+            }
+        }
+    }
+
+    binding.refreshLayout.setOnRefreshListener {
+        adapter.refresh()
     }
 }
 

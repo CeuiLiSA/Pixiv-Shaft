@@ -130,16 +130,16 @@ public class UserBean implements Serializable, UserContainer, Starable, ModelObj
         return password;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public boolean isIs_login() {
         return is_login;
     }
 
     public void setIs_login(boolean is_login) {
         this.is_login = is_login;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     @Override
@@ -167,11 +167,11 @@ public class UserBean implements Serializable, UserContainer, Starable, ModelObj
         setIs_followed(isLiked);
     }
 
-    public boolean isR18Enabled(){
+    public boolean isR18Enabled() {
         return x_restrict != 0;
     }
 
-    public boolean isR18GEnabled(){
+    public boolean isR18GEnabled() {
         return x_restrict == 2;
     }
 
@@ -202,6 +202,6 @@ public class UserBean implements Serializable, UserContainer, Starable, ModelObj
 
     @Override
     public int getObjectType() {
-        return ObjectSpec.USER;
+        return ObjectSpec.JAVA_USER;
     }
 }

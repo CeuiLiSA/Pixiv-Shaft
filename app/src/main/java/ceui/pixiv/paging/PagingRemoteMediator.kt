@@ -7,15 +7,15 @@ import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
+import ceui.lisa.models.ModelObject
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RemoteKey
 
 @OptIn(ExperimentalPagingApi::class)
-class ArticleRemoteMediator(
+class PagingRemoteMediator<ObjectT : ModelObject>(
     private val db: AppDatabase,
-    private val repository: ArticleRepository,
-    private val recordType: Int,     // 用于区分不同数据流
-    private val entityType: Int      // Illust、Novel 等
+    private val repository: PagingAPIRepository<ObjectT>,
+    private val recordType: Int,
 ) : RemoteMediator<Int, GeneralEntity>() {
 
     override suspend fun load(
@@ -36,7 +36,7 @@ class ArticleRemoteMediator(
                 }
             }
 
-            val response = repository.loadImpl(nextPageUrl)
+            val response = repository.load(nextPageUrl)
             val illusts = response.displayList
             val newNextPageUrl = response.nextPageUrl
 
@@ -50,9 +50,9 @@ class ArticleRemoteMediator(
                 val entities = illusts.map { item ->
                     val json = Shaft.sGson.toJson(item)
                     GeneralEntity(
-                        id = item.id, // 用你提供的 ID
+                        id = item.objectUniqueId, // 用你提供的 ID
                         json = json,
-                        entityType = entityType,
+                        entityType = item.objectType,
                         recordType = recordType,
                         updatedTime = System.currentTimeMillis()
                     )
