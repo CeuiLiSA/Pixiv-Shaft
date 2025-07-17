@@ -43,11 +43,11 @@ class CommonPagingAdapter(private val viewLifecycleOwner: LifecycleOwner) :
         position: Int
     ) {
         val item = getItem(position)
-        holder.lifecycleOwner = viewLifecycleOwner
-        if (holder.binding is ViewDataBinding) {
-            holder.binding.lifecycleOwner = viewLifecycleOwner
-        }
         if (item != null) {
+            holder.lifecycleOwner = viewLifecycleOwner
+            if (holder.binding is ViewDataBinding) {
+                holder.binding.lifecycleOwner = viewLifecycleOwner
+            }
             holder.onBindViewHolder(item, position)
         }
     }

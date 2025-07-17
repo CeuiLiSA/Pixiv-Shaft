@@ -49,25 +49,16 @@ class ArticleRemoteMediator(
                     remoteKeyDao.deleteByRecordType(recordType)
                 }
 
-                var indexingCount = 0
-
-                val existingInDB = generalDao.getAllByRecordType(recordType)
-                val entities = mutableListOf<GeneralEntity>()
-                entities.addAll(existingInDB.map {
-                    it.copy(updatedTime = (indexingCount++).toLong())
-                })
-                entities.addAll(
-                    illusts.map { item ->
-                        val json = Shaft.sGson.toJson(item)
-                        GeneralEntity(
-                            id = item.id, // 用你提供的 ID
-                            json = json,
-                            entityType = entityType,
-                            recordType = recordType,
-                            updatedTime = (indexingCount++).toLong()
-                        )
-                    }
-                )
+                val entities = illusts.map { item ->
+                    val json = Shaft.sGson.toJson(item)
+                    GeneralEntity(
+                        id = item.id, // 用你提供的 ID
+                        json = json,
+                        entityType = entityType,
+                        recordType = recordType,
+                        updatedTime = System.currentTimeMillis()
+                    )
+                }
 
                 generalDao.insertAll(entities)
                 remoteKeyDao.insert(RemoteKey(recordType, newNextPageUrl))

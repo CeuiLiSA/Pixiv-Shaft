@@ -58,9 +58,6 @@ interface GeneralDao {
     @Query("DELETE FROM general_table WHERE recordType = :recordType")
     fun deleteByRecordType(recordType: Int)
 
-    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC")
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime")
     fun pagingSource(recordType: Int): PagingSource<Int, GeneralEntity>
-
-    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC")
-    fun getAllByRecordType(recordType: Int): List<GeneralEntity>
 }
