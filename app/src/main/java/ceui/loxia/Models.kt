@@ -449,7 +449,12 @@ data class UserPreview(
     val is_muted: Boolean? = null,
     val novels: List<Any>? = null,
     val user: User? = null
-) : Serializable
+) : Serializable, ModelObject {
+    override val objectUniqueId: Long
+        get() = hashCode().toLong()
+    override val objectType: Int
+        get() = ObjectSpec.USER_PREVIEW
+}
 
 data class UserPreviewResponse(
     val user_previews: List<UserPreview> = listOf(),

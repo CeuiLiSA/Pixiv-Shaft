@@ -184,16 +184,6 @@
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_home"
-        android:name="ceui.pixiv.ui.home.RecmdIllustMangaFragment"
-        tools:layout="@layout/fragment_pixiv_list">
-
-        <argument
-            android:name="object_type"
-            app:argType="string" />
-    </fragment>
-
-    <fragment
         android:id="@+id/navigation_home_recommend_illust"
         android:name="ceui.pixiv.ui.discover.HomeRecmdIllustFragment"
         tools:layout="@layout/fragment_paged_list">

@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
@@ -35,6 +36,10 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withC
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.google.gson.Gson
 import jp.wasabeef.glide.transformations.BlurTransformation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class HomeActivity : AppCompatActivity(), GrayToggler {
 
@@ -94,6 +99,15 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         }
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
+        }
+
+        MainScope().launch(Dispatchers.IO) {
+            Gson()
+            val list = AppDatabase.getAppDatabase(this@HomeActivity).generalDao().getAll()
+            list.forEach {
+//                Timber.d("dsadasadsw2 ${gson.toJson(it)}")
+            }
+            Timber.d("dsadasadsw2 count: ${list?.size}")
         }
 
         SessionManager.loggedInAccount.observe(this) {
