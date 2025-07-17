@@ -21,7 +21,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
-import androidx.paging.flatMap
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -56,7 +55,6 @@ import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
 import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
-import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.paging.CommonPagingAdapter
 import ceui.pixiv.paging.LoadingStateAdapter
 import ceui.pixiv.paging.PagingViewModel
@@ -349,7 +347,6 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
 fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     binding: FragmentPagedListBinding,
     viewModel: PagingViewModel<ObjectT>,
-    mapper: (GeneralEntity) -> List<ListItemHolder>,
     listMode: Int = ListMode.STAGGERED_GRID
 ) {
     if (this is FitsSystemWindowFragment) {
@@ -375,15 +372,16 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
 
     viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            launch {
-                viewModel.pager.collectLatest {
-                    adapter.submitData(it.flatMap(mapper))
-                }
+            viewModel.pager.collectLatest {
+                adapter.submitData(it)
             }
-            launch {
-                adapter.loadStateFlow.collectLatest { loadStates ->
-                    binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
-                }
+        }
+    }
+
+    viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            adapter.loadStateFlow.collectLatest { loadStates ->
+                binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
             }
         }
     }
