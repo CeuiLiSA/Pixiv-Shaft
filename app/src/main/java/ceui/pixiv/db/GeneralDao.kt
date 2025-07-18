@@ -46,7 +46,7 @@ interface GeneralDao {
     fun isUserNowFavorite(recordType: Int, id: Long): LiveData<Boolean>
 
     // 根据 recordType 返回所有 id 列表
-    @Query("SELECT id FROM general_table WHERE recordType = :recordType")
+    @Query("SELECT id FROM general_table WHERE recordType = :recordType ORDER BY updatedTime")
     fun getAllIdsByRecordType(recordType: Int): List<Long>
 
     @Query("SELECT COUNT(*) FROM general_table WHERE recordType = :recordType")

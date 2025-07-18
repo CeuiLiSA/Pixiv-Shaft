@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentPagedListBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
@@ -76,8 +77,10 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 
@@ -369,6 +372,19 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
         footer = footerAdapter
     )
     binding.listView.adapter = concatAdapter
+
+    val fragmentViewModel: NavFragmentViewModel by viewModels()
+    val database = AppDatabase.getAppDatabase(requireContext())
+    val seed = fragmentViewModel.fragmentUniqueId
+
+    adapter.addOnPagesUpdatedListener {
+        launchSuspend {
+            withContext(Dispatchers.IO) {
+                val ids = database.generalDao().getAllIdsByRecordType(viewModel.recordType)
+                ArtworksMap.store[seed] = ids
+            }
+        }
+    }
 
     viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {

@@ -30,6 +30,8 @@ class PagingViewModel<ObjectT : ModelObject>(
     ).flow.map { pagingData ->
         pagingData.flatMap(repository::mapper)
     }.cachedIn(viewModelScope)
+
+    val recordType: Int get() = repository.recordType
 }
 
 inline fun <ObjectT : ModelObject> Fragment.pagingViewModel(
