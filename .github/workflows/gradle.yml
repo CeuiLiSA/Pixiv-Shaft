@@ -21,42 +21,39 @@ on:
 env:
   ORIGINAL_PROJECT: "CeuiLiSA/Pixiv-Shaft"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build apk
     runs-on: ubuntu-24.04
     steps:
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.5.0
-        with:
-          access_token: ${{ github.token }}
-
       - name: Clone repo
         uses: actions/checkout@v4
         with:
           submodules: 'true'
           fetch-depth: 0
 
-      - name: set up JDK 21
+      - name: Set up JDK 21
         uses: actions/setup-java@v4.2.2
         with:
           java-version: '21'
           distribution: 'adopt'
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build debug apk
-        uses: eskatos/gradle-command-action@v1
-        with:
-          arguments: assembleDebug
-          distributions-cache-enabled: true
-          dependencies-cache-enabled: true
-          configuration-cache-enabled: true
+        run: ./gradlew assembleDebug
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
         if: ${{ !github.head_ref }}
+        uses: actions/upload-artifact@v4
         with:
           name: apk-debug
           path: app/build/outputs/apk/debug
@@ -73,12 +70,7 @@ jobs:
 
       - name: Build release apk
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
-        uses: eskatos/gradle-command-action@v1
-        with:
-          arguments: assembleRelease
-          distributions-cache-enabled: true
-          dependencies-cache-enabled: true
-          configuration-cache-enabled: true
+        run: ./gradlew assembleRelease
 
       - name: Deal with release apk
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
