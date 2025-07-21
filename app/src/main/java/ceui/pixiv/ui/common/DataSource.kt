@@ -2,7 +2,6 @@ package ceui.pixiv.ui.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import ceui.lisa.activities.Shaft
 import ceui.lisa.models.ModelObject
 import ceui.loxia.Client
 import ceui.loxia.Event
@@ -10,15 +9,10 @@ import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.detail.ArtworksMap
-import ceui.pixiv.utils.NetworkStateManager
 import ceui.pixiv.utils.TokenGenerator
-import ceui.pixiv.utils.VpnNotActiveException
-import ceui.pixiv.utils.VpnRetryHelper
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -85,16 +79,6 @@ open class DataSource<Item, T : KListShow<Item>>(
                     delay(600L)
                     _refreshState.value = RefreshState.FETCHING_LATEST()
                     delay(1000L)
-                }
-
-                if (!NetworkStateManager.isGoogleCanBeAccessed(Shaft.getContext())) {
-                    VpnRetryHelper.pushRequest(requestToken, {
-                        Timber.d("VpnRetryHelper: found token: ${requestToken}, retry now.")
-                        MainScope().launch {
-                            refreshImpl(RefreshHint.ErrorRetry)
-                        }
-                    })
-                    throw VpnNotActiveException()
                 }
 
                 val response = withContext(Dispatchers.IO) {

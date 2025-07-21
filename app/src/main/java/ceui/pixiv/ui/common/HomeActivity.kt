@@ -29,7 +29,6 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.utils.TokenGenerator
-import ceui.pixiv.utils.VpnRetryHelper
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -263,10 +262,5 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 
     override fun toggleGrayMode() {
         homeViewModel.toggleGrayModeImpl()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        VpnRetryHelper.onResume()
     }
 }

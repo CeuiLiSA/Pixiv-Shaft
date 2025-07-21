@@ -106,18 +106,6 @@ class NetworkStateManager(private val context: Context) : INetworkState {
         }
     }
 
-    companion object {
-        fun isGoogleCanBeAccessed(context: Context): Boolean {
-            val connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-            val activeNetwork = connectivityManager.activeNetwork ?: return false
-            val capabilities =
-                connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
-            return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-        }
-    }
-
     private suspend fun canAccessGoogle(): Boolean = withContext(Dispatchers.IO) {
         try {
             val client = OkHttpClient.Builder()
