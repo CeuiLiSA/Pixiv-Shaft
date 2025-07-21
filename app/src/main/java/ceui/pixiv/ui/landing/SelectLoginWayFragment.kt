@@ -12,7 +12,6 @@ import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.web.WebFragmentArgs
-import ceui.pixiv.utils.NetworkStateManager
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
 
@@ -52,18 +51,14 @@ class SelectLoginWayFragment : PixivFragment(R.layout.fragment_select_login_way)
 
     private fun checkVPNAndNext(block: () -> Unit) {
         val context = requireContext()
-        if (requireNetworkStateManager().isInChinaMainland()) {
-            if (NetworkStateManager.isVpnActive(context)) {
-                block()
-            } else {
-                launchSuspend {
-                    if (alertYesOrCancel("请打开VPN后继续")) {
-                        openClashApp(context)
-                    }
+        if (requireNetworkStateManager().canAccessGoogle.value == true) {
+            block()
+        } else {
+            launchSuspend {
+                if (alertYesOrCancel("请打开VPN后继续")) {
+                    openClashApp(context)
                 }
             }
-        } else {
-            block()
         }
     }
 }

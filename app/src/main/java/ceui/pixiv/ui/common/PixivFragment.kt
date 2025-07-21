@@ -56,6 +56,7 @@ import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
 import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
+import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.paging.CommonPagingAdapter
 import ceui.pixiv.paging.LoadingStateAdapter
 import ceui.pixiv.paging.PagingViewModel
@@ -69,7 +70,6 @@ import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
-import ceui.pixiv.utils.NetworkStateManager
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.TagsActionReceiver
@@ -462,7 +462,7 @@ fun Fragment.setUpRefreshState(
         }
         binding.errorLayout.isVisible = state is RefreshState.ERROR
         binding.errorRetryButton.setOnClick {
-            if (NetworkStateManager.isVpnActive(ctx)) {
+            if (requireNetworkStateManager().canAccessGoogle.value == true) {
                 viewModel.refresh(RefreshHint.ErrorRetry)
             } else {
                 openClashApp(ctx)

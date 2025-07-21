@@ -7,7 +7,7 @@ import androidx.lifecycle.LiveData
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.ItemLoadingBinding
-import ceui.pixiv.utils.NetworkStateManager
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.utils.setOnClick
 import retrofit2.HttpException
 import timber.log.Timber
@@ -32,10 +32,12 @@ fun ItemLoadingBinding.setUpHolderRefreshState(
 ) {
     val context = root.context
     emptyActionButton.setOnClick {
-        if (NetworkStateManager.isVpnActive(context)) {
-            retryBlock.invoke()
-        } else {
-            openClashApp(context)
+        it.findFragmentOrNull<PixivFragment>()?.let { fragment ->
+            if (fragment.requireNetworkStateManager().canAccessGoogle.value == true) {
+                retryBlock.invoke()
+            } else {
+                openClashApp(context)
+            }
         }
     }
     refreshState.observe(viewLifecycleOwner) { refreshState ->

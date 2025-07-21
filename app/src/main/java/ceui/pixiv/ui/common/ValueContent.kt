@@ -75,7 +75,7 @@ open class ValueContent<ValueT>(
                         delay(1000L)
                     }
 
-                    if (!NetworkStateManager.isVpnActive(Shaft.getContext())) {
+                    if (!NetworkStateManager.isGoogleCanBeAccessed(Shaft.getContext())) {
                         VpnRetryHelper.pushRequest(requestToken, {
                             Timber.d("VpnRetryHelper: found token: ${requestToken}, retry now.")
                             refresh(RefreshHint.ErrorRetry)

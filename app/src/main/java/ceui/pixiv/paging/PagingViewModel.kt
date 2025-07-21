@@ -12,6 +12,9 @@ import androidx.paging.cachedIn
 import androidx.paging.flatMap
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.ModelObject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 class PagingViewModel<ObjectT : ModelObject>(
@@ -19,17 +22,26 @@ class PagingViewModel<ObjectT : ModelObject>(
     private val repository: PagingAPIRepository<ObjectT>,
 ) : ViewModel() {
 
-    @OptIn(ExperimentalPagingApi::class)
-    val pager = Pager(
-        config = PagingConfig(
-            pageSize = 30, initialLoadSize = 30,  // 只加载 1 页
-            prefetchDistance = 0   // 滑到底才触发 LoadType.APPEND
-        ),
-        remoteMediator = PagingRemoteMediator(db, repository, repository.recordType),
-        pagingSourceFactory = { db.generalDao().pagingSource(repository.recordType) },
-    ).flow.map { pagingData ->
-        pagingData.flatMap(repository::mapper)
+    private val refreshTrigger = MutableStateFlow(0)
+
+    @OptIn(ExperimentalPagingApi::class, ExperimentalCoroutinesApi::class)
+    val pager = refreshTrigger.flatMapLatest {
+        Pager(
+            config = PagingConfig(
+                pageSize = 30,
+                initialLoadSize = 30,
+                prefetchDistance = 0
+            ),
+            remoteMediator = PagingRemoteMediator(db, repository, repository.recordType),
+            pagingSourceFactory = { db.generalDao().pagingSource(repository.recordType) }
+        ).flow.map { pagingData ->
+            pagingData.flatMap(repository::mapper)
+        }
     }.cachedIn(viewModelScope)
+
+    fun refresh() {
+        refreshTrigger.value++
+    }
 
     val recordType: Int get() = repository.recordType
 }

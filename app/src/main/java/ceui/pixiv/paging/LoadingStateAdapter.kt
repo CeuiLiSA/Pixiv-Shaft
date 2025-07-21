@@ -8,10 +8,12 @@ import androidx.paging.LoadStateAdapter
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemLoadingBinding
+import ceui.loxia.findFragmentOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.openClashApp
+import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.LoadingViewHolder
-import ceui.pixiv.utils.NetworkStateManager
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.utils.setOnClick
 
 class LoadingStateAdapter(
@@ -34,10 +36,12 @@ class LoadingStateAdapter(
         with(holder.binding) {
             val context = root.context
             emptyActionButton.setOnClick {
-                if (NetworkStateManager.isVpnActive(context)) {
-                    retry()
-                } else {
-                    openClashApp(context)
+                it.findFragmentOrNull<PixivFragment>()?.let { fragment ->
+                    if (fragment.requireNetworkStateManager().canAccessGoogle.value == true) {
+                        retry()
+                    } else {
+                        openClashApp(context)
+                    }
                 }
             }
 

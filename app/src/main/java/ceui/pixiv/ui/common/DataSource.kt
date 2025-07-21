@@ -87,7 +87,7 @@ open class DataSource<Item, T : KListShow<Item>>(
                     delay(1000L)
                 }
 
-                if (!NetworkStateManager.isVpnActive(Shaft.getContext())) {
+                if (!NetworkStateManager.isGoogleCanBeAccessed(Shaft.getContext())) {
                     VpnRetryHelper.pushRequest(requestToken, {
                         Timber.d("VpnRetryHelper: found token: ${requestToken}, retry now.")
                         MainScope().launch {

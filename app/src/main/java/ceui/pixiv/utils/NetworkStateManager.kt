@@ -8,9 +8,7 @@ import android.net.NetworkRequest
 import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import ceui.pixiv.client.IpLocationResponse
 import ceui.pixiv.utils.NetworkStateManager.NetworkType
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -19,6 +17,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 interface INetworkState {
     val networkState: LiveData<NetworkType>
@@ -36,8 +36,8 @@ class NetworkStateManager(private val context: Context) : INetworkState {
     private val _networkState = MutableLiveData(NetworkType.NONE)
     override val networkState: LiveData<NetworkType> get() = _networkState
 
-    private val _isVpnActive = MutableLiveData(false)
-    private val _ipLocationResponse = MutableLiveData<IpLocationResponse?>(null)
+    private val _canAccessGoogle = MutableLiveData<Boolean>()
+    val canAccessGoogle: LiveData<Boolean> = _canAccessGoogle
 
     private val connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -96,19 +96,18 @@ class NetworkStateManager(private val context: Context) : INetworkState {
             else -> NetworkType.NONE
         }
         _networkState.postValue(networkType)
-        _isVpnActive.postValue(isVpnActive(context))
         MainScope().launch {
             if (!_taskMutex.tryLock()) {
                 Timber.e("fetchLocationInfoFromIp refresh tryLock returned")
                 return@launch
             }
 
-            _ipLocationResponse.postValue(fetchLocationInfoFromIp())
+            _canAccessGoogle.postValue(canAccessGoogle())
         }
     }
 
     companion object {
-        fun isVpnActive(context: Context): Boolean {
+        fun isGoogleCanBeAccessed(context: Context): Boolean {
             val connectivityManager =
                 context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
@@ -119,28 +118,21 @@ class NetworkStateManager(private val context: Context) : INetworkState {
         }
     }
 
-    fun isInChinaMainland(): Boolean {
-        return _ipLocationResponse.value?.country == "CN"
-    }
+    private suspend fun canAccessGoogle(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val client = OkHttpClient.Builder()
+                .callTimeout(2, TimeUnit.SECONDS)
+                .build()
 
-    private suspend fun fetchLocationInfoFromIp(): IpLocationResponse? =
-        withContext(Dispatchers.IO) {
-            try {
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url("https://ipapi.co/json/")
-                    .build()
-                client.newCall(request).execute().use { response ->
-                    val body = response.body?.string() ?: return@withContext null
-                    val result = Gson().fromJson(body, IpLocationResponse::class.java)
-                    Timber.d("fetchLocationInfoFromIp ${body}")
-                    return@withContext result
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            } finally {
-                _taskMutex.unlock() // 释放锁
-            }
+            val request = Request.Builder()
+                .url("https://www.google.com/generate_204")  // ✅ 专门用于网络连通性检测的轻量接口
+                .build()
+
+            val response = client.newCall(request).execute()
+            return@withContext response.code == 204 // Google 返回 204 表示成功连接
+        } catch (e: IOException) {
+            Timber.w("Google connectivity check failed: ${e.message}")
+            return@withContext false
         }
+    }
 }

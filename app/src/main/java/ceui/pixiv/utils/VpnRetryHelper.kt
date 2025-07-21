@@ -6,13 +6,13 @@ import timber.log.Timber
 object VpnRetryHelper {
 
     private val pendingRequests = mutableMapOf<String, () -> Unit>()
-    private var lastVpnState = NetworkStateManager.isVpnActive(Shaft.getContext())
+    private var lastVpnState = NetworkStateManager.isGoogleCanBeAccessed(Shaft.getContext())
 
     /**
      * 添加一个待 VPN 开启后执行的请求，避免重复（通过 token 唯一标识）
      */
     fun pushRequest(requestToken: String, block: () -> Unit) {
-        val vpnActive = NetworkStateManager.isVpnActive(Shaft.getContext())
+        val vpnActive = NetworkStateManager.isGoogleCanBeAccessed(Shaft.getContext())
         Timber.d("VpnRetryHelper: pushRequest($requestToken), vpnActive=$vpnActive")
 
         if (vpnActive) {
@@ -32,7 +32,7 @@ object VpnRetryHelper {
      * 在 onResume 或 app 返回前台时调用
      */
     fun onResume() {
-        val currentVpnState = NetworkStateManager.isVpnActive(Shaft.getContext())
+        val currentVpnState = NetworkStateManager.isGoogleCanBeAccessed(Shaft.getContext())
         Timber.d("VpnRetryHelper: onResume() called, lastVpnState=$lastVpnState, currentVpnState=$currentVpnState")
 
         if (!lastVpnState && currentVpnState) {
