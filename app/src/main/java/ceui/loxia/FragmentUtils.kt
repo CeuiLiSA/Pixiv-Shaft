@@ -10,6 +10,7 @@ import android.view.View
 import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -17,9 +18,11 @@ import com.blankj.utilcode.util.Utils
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.security.MessageDigest
 
 fun Context.showKeyboard(editText: EditText?) {
     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -32,6 +35,28 @@ fun Context.hideKeyboard(window: Window?) {
     if (window != null) {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         imm?.hideSoftInputFromWindow(window.decorView.windowToken, 0)
+    }
+}
+
+
+fun stableHash(input: String): Int {
+    val digest = MessageDigest.getInstance("SHA-256")
+    val hashBytes = digest.digest(input.toByteArray(Charsets.UTF_8))
+    // 使用前两个字节生成 0 ~ 65535 的正整数，然后取模 10000
+    val hashInt = ((hashBytes[0].toInt() and 0xFF) shl 8) or (hashBytes[1].toInt() and 0xFF)
+    val ret = hashInt % 10000
+    Timber.d("sadasdsw2 ${ret}")
+    return ret
+}
+
+
+fun openClashApp(context: Context) {
+    val packageName = "com.github.kr328.clash"
+    val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+    if (launchIntent != null) {
+        context.startActivity(launchIntent)
+    } else {
+        Toast.makeText(context, "未安装 Clash", Toast.LENGTH_SHORT).show()
     }
 }
 

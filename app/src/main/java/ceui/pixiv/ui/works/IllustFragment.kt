@@ -7,10 +7,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
-fun getGalleryHolders(illust: Illust, coroutineScope: CoroutineScope): List<GalleryHolder>? {
+fun getGalleryHolders(
+    illust: Illust,
+    coroutineScope: CoroutineScope,
+    taskPool: TaskPool
+): List<GalleryHolder>? {
     // Helper function to create a GalleryHolder
     fun createGalleryHolder(index: Int, imageUrl: String?): GalleryHolder {
-        val task = TaskPool.getLoadTask(
+        val task = taskPool.getLoadTask(
             NamedUrl(
                 buildPixivWorksFileName(illust.id, index),
                 imageUrl.orEmpty() // Handle null gracefully

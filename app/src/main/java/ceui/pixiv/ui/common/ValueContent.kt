@@ -8,6 +8,7 @@ import ceui.pixiv.ui.common.repo.HybridRepository
 import ceui.pixiv.ui.common.repo.LoadResult
 import ceui.pixiv.ui.common.repo.Repository
 import ceui.pixiv.ui.common.repo.ResponseStoreRepository
+import ceui.pixiv.utils.TokenGenerator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -35,7 +36,9 @@ open class ValueContent<ValueT>(
             return // 如果当前已有刷新任务在执行，则直接返回
         }
 
-        Timber.e("ValueContent refresh tryLock passed")
+        val requestToken = TokenGenerator.generateToken()
+
+        Timber.e("ValueContent refresh tryLock passed: ${requestToken}")
         coroutineScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)

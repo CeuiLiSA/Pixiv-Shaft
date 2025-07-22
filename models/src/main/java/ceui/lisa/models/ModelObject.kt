@@ -7,15 +7,22 @@ interface ModelObject {
 
 object ObjectSpec {
     const val UNKNOWN = 0
-    const val POST = 1
-    const val USER = 2
-    const val ARTICLE = 3
-    const val GIF_INFO = 4
+
+    const val KOTLIN_ILLUST = 1
+    const val KOTLIN_USER = 2
+    const val KOTLIN_NOVEL = 3
 
 
-    const val Illust = 5
-    const val KUser = 6
-    const val JNOVEL = 7
+    const val JAVA_ILLUST = 6
+    const val JAVA_NOVEL = 7
+    const val JAVA_USER = 8
 
-    const val UserProfile = 8
+    const val UserProfile = 9
+
+    const val TRENDING_TAG = 10
+    const val USER_PREVIEW = 11
+
+    const val ARTICLE = 100
+    const val GIF_INFO = 101
+
 }

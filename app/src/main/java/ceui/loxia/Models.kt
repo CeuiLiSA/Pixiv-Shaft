@@ -180,7 +180,7 @@ data class Illust(
     override val objectUniqueId: Long
         get() = id
     override val objectType: Int
-        get() = ObjectSpec.Illust
+        get() = ObjectSpec.KOTLIN_ILLUST
 
     fun displayCreateDate(): String {
         return DateParse.displayCreateDate(create_date)
@@ -272,7 +272,7 @@ data class User(
     override val objectUniqueId: Long
         get() = if (id > 0L) id else user_id
     override val objectType: Int
-        get() = ObjectSpec.KUser
+        get() = ObjectSpec.KOTLIN_USER
 
     fun isOfficial(): Boolean {
         return ConstantUser.officialUsers.contains(id)
@@ -449,7 +449,12 @@ data class UserPreview(
     val is_muted: Boolean? = null,
     val novels: List<Any>? = null,
     val user: User? = null
-) : Serializable
+) : Serializable, ModelObject {
+    override val objectUniqueId: Long
+        get() = hashCode().toLong()
+    override val objectType: Int
+        get() = ObjectSpec.USER_PREVIEW
+}
 
 data class UserPreviewResponse(
     val user_previews: List<UserPreview> = listOf(),
@@ -473,10 +478,15 @@ data class TrendingTag(
     val tag: String? = null,
     val translated_name: String? = null,
     val illust: Illust? = null,
-) : Serializable {
+) : Serializable, ModelObject {
     fun buildTag(): Tag {
         return Tag(name = tag, translated_name = translated_name)
     }
+
+    override val objectUniqueId: Long
+        get() = illust?.id ?: 0L
+    override val objectType: Int
+        get() = ObjectSpec.TRENDING_TAG
 }
 
 data class NotificationResponse(
@@ -741,7 +751,7 @@ data class Novel(
     override val objectUniqueId: Long
         get() = id
     override val objectType: Int
-        get() = ObjectSpec.POST
+        get() = ObjectSpec.KOTLIN_NOVEL
 }
 
 data class Series(

@@ -1,6 +1,7 @@
 package ceui.pixiv.db
 
 import androidx.lifecycle.LiveData
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -13,6 +14,9 @@ interface GeneralDao {
     // ✅  插入数据，Room 正确解析 suspend 方法
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(generalEntity: GeneralEntity): Long  // 返回插入行 ID
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(items: List<GeneralEntity>)
 
     // ✅  查询所有数据，Room 正确解析 suspend 方法
     @Query("SELECT * FROM general_table")
@@ -38,10 +42,22 @@ interface GeneralDao {
     @Query("SELECT COUNT(*) > 0 FROM general_table WHERE recordType = :recordType AND id = :id")
     fun isObjectBlocked(recordType: Int, id: Long): LiveData<Boolean>
 
+    @Query("SELECT COUNT(*) > 0 FROM general_table WHERE recordType = :recordType AND id = :id")
+    fun isUserNowFavorite(recordType: Int, id: Long): LiveData<Boolean>
+
     // 根据 recordType 返回所有 id 列表
-    @Query("SELECT id FROM general_table WHERE recordType = :recordType")
+    @Query("SELECT id FROM general_table WHERE recordType = :recordType ORDER BY updatedTime")
     fun getAllIdsByRecordType(recordType: Int): List<Long>
 
     @Query("SELECT COUNT(*) FROM general_table WHERE recordType = :recordType")
     fun getCountByRecordType(recordType: Int): Int
+
+    @Query("SELECT COUNT(*) FROM general_table WHERE recordType IN (:recordTypes)")
+    fun getCountByRecordTypes(recordTypes: List<Int>): LiveData<Int>
+
+    @Query("DELETE FROM general_table WHERE recordType = :recordType")
+    fun deleteByRecordType(recordType: Int)
+
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime")
+    fun pagingSource(recordType: Int): PagingSource<Int, GeneralEntity>
 }

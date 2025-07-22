@@ -1,10 +1,8 @@
 package ceui.pixiv.ui.history
 
-import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.loxia.Illust
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.User
@@ -16,7 +14,6 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.UserInfoHolder
-import ceui.pixiv.ui.user.UserPostHolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -64,7 +61,7 @@ class HistoryViewModel(
         return if (recordType == RecordType.VIEW_ILLUST_HISTORY || recordType == RecordType.BLOCK_ILLUST) {
             val illust = entity.typedObject<Illust>()
             IllustCardHolder(illust)
-        } else if (recordType == RecordType.VIEW_USER_HISTORY || recordType == RecordType.BLOCK_USER) {
+        } else if (recordType == RecordType.VIEW_USER_HISTORY || recordType == RecordType.BLOCK_USER || recordType == RecordType.FAVORITE_USER) {
             val user = entity.typedObject<User>()
             UserInfoHolder(user.id)
         } else if (recordType == RecordType.VIEW_NOVEL_HISTORY || recordType == RecordType.BLOCK_NOVEL) {
@@ -89,9 +86,5 @@ class HistoryViewModel(
 
             ArtworksMap.store[fragmentUniqueId] = filteredList
         }
-    }
-
-    init {
-        refresh(RefreshHint.InitialLoad)
     }
 }

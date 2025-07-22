@@ -16,6 +16,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.pushFragment
+import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
 import ceui.pixiv.ui.circles.MyCirclesFragment
@@ -26,6 +27,7 @@ import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import timber.log.Timber
 
 class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), ViewPagerFragment {
     private val binding by viewBinding(FragmentHomeViewpagerBinding::bind)
@@ -71,6 +73,11 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                     }
                 }
             })
+
+        val networkManager = requireNetworkStateManager()
+        networkManager.canAccessGoogle.observe(viewLifecycleOwner) {
+            Timber.d("dsasdadsw2 canAccessGoogle: ${it}")
+        }
 
         binding.userIcon.setOnClick {
             pushFragment(R.id.navigation_mine_profile)
@@ -156,6 +163,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             override fun createFragment(position: Int): Fragment {
                 if (position == 0) {
                     return DiscoverFragment()
+//                    return GLFragment()
                 } else if (position == 1) {
                     return MyCirclesFragment()
                 } else if (position == 2) {

@@ -14,9 +14,13 @@ import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,13 +28,16 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
+import ceui.lisa.database.AppDatabase
+import ceui.lisa.databinding.FragmentPagedListBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
+import ceui.lisa.models.ModelObject
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.ShareIllust
 import ceui.lisa.view.LinearItemDecoration
-import ceui.lisa.view.SpacesItemDecoration
+import ceui.lisa.view.StaggeredGridSpacingItemDecoration
 import ceui.loxia.Article
 import ceui.loxia.Client
 import ceui.loxia.Illust
@@ -42,10 +49,17 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.Series
 import ceui.loxia.Tag
+import ceui.loxia.clearItemDecorations
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
+import ceui.loxia.observeEvent
+import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
+import ceui.loxia.requireNetworkStateManager
+import ceui.pixiv.paging.CommonPagingAdapter
+import ceui.pixiv.paging.LoadingStateAdapter
+import ceui.pixiv.paging.PagingViewModel
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
@@ -63,6 +77,10 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 
@@ -329,6 +347,66 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
     }
 }
 
+fun <ObjectT : ModelObject> Fragment.setUpPagedList(
+    binding: FragmentPagedListBinding,
+    viewModel: PagingViewModel<ObjectT>,
+    listMode: Int = ListMode.STAGGERED_GRID
+) {
+    if (this is FitsSystemWindowFragment) {
+        binding.topShadow.isVisible = true
+        val params = binding.refreshLayout.layoutParams as ConstraintLayout.LayoutParams
+        // 将 topToTop 设置为 parent
+        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+        binding.refreshLayout.layoutParams = params
+    }
+    setUpToolbar(binding.toolbarLayout, binding.listView)
+    setUpLayoutManager(binding.listView, listMode)
+
+
+    val adapter = CommonPagingAdapter(viewLifecycleOwner)
+
+    val headerAdapter = LoadingStateAdapter { adapter.retry() }
+    val footerAdapter = LoadingStateAdapter { adapter.retry() }
+    val concatAdapter = adapter.withLoadStateHeaderAndFooter(
+        header = headerAdapter,
+        footer = footerAdapter
+    )
+    binding.listView.adapter = concatAdapter
+
+    val fragmentViewModel: NavFragmentViewModel by viewModels()
+    val database = AppDatabase.getAppDatabase(requireContext())
+    val seed = fragmentViewModel.fragmentUniqueId
+
+    adapter.addOnPagesUpdatedListener {
+        launchSuspend {
+            withContext(Dispatchers.IO) {
+                val ids = database.generalDao().getAllIdsByRecordType(viewModel.recordType)
+                ArtworksMap.store[seed] = ids
+            }
+        }
+    }
+
+    viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.pager.collectLatest {
+                adapter.submitData(it)
+            }
+        }
+    }
+
+    viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            adapter.loadStateFlow.collectLatest { loadStates ->
+                binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
+            }
+        }
+    }
+
+    binding.refreshLayout.setOnRefreshListener {
+        adapter.refresh()
+    }
+}
+
 fun Fragment.setUpRefreshState(
     binding: FragmentPixivListBinding,
     viewModel: RefreshOwner,
@@ -384,7 +462,11 @@ fun Fragment.setUpRefreshState(
         }
         binding.errorLayout.isVisible = state is RefreshState.ERROR
         binding.errorRetryButton.setOnClick {
-            viewModel.refresh(RefreshHint.ErrorRetry)
+            if (requireNetworkStateManager().canAccessGoogle.value == true) {
+                viewModel.refresh(RefreshHint.ErrorRetry)
+            } else {
+                openClashApp(ctx)
+            }
         }
         if (state is RefreshState.ERROR) {
             binding.errorText.text = state.exception.getHumanReadableMessage(ctx)
@@ -396,7 +478,26 @@ fun Fragment.setUpRefreshState(
         binding.listView.adapter = adapter
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
             adapter.submitList(holders) {
+                Timber.d("_remoteDataSyncedEvent adapter submitList: ${viewModel::class.simpleName}")
                 viewModel.prepareIdMap(fragmentViewModel.fragmentUniqueId)
+            }
+        }
+    }
+
+    if (viewModel is RemoteDataProvider) {
+        val listView = binding.listView
+        viewModel.remoteDataSyncedEvent.observeEvent(viewLifecycleOwner) {
+            launchSuspend {
+                if (view != null) {
+                    val layoutManager = binding.listView.layoutManager
+                    if (layoutManager is StaggeredGridLayoutManager) {
+                        layoutManager.invalidateSpanAssignments()
+                        layoutManager.scrollToPositionWithOffset(0, 0)
+                    } else {
+                        listView.scrollToPosition(0)
+                    }
+                    Timber.d("_remoteDataSyncedEvent received: ${viewModel::class.simpleName}")
+                }
             }
         }
     }
@@ -405,8 +506,9 @@ fun Fragment.setUpRefreshState(
 fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode.STAGGERED_GRID) {
     val ctx = requireContext()
     listView.itemAnimator = null
+    listView.clearItemDecorations()
     if (listMode == ListMode.STAGGERED_GRID) {
-        listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
+        listView.addItemDecoration(StaggeredGridSpacingItemDecoration(4.ppppx))
         listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
     } else if (listMode == ListMode.VERTICAL) {
         listView.layoutManager = LinearLayoutManager(ctx)

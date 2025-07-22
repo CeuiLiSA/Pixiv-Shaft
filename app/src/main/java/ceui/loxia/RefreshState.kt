@@ -7,17 +7,19 @@ import androidx.lifecycle.LiveData
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.ItemLoadingBinding
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.utils.setOnClick
 import retrofit2.HttpException
 import timber.log.Timber
 import java.io.Serializable
-import java.lang.Exception
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeoutException
 import javax.net.ssl.SSLHandshakeException
 
-sealed class RefreshState: Serializable {
-    data class LOADING(val title: String = "", val refreshHint: RefreshHint? = null) : RefreshState()
+sealed class RefreshState : Serializable {
+    data class LOADING(val title: String = "", val refreshHint: RefreshHint? = null) :
+        RefreshState()
+
     data class FETCHING_LATEST(val hasContent: Boolean = true) : RefreshState()
     data class LOADED(val hasContent: Boolean = true, val hasNext: Boolean = true) : RefreshState()
     data class ERROR(val exception: Exception, val isInitialLoad: Boolean = false) : RefreshState()
@@ -30,7 +32,13 @@ fun ItemLoadingBinding.setUpHolderRefreshState(
 ) {
     val context = root.context
     emptyActionButton.setOnClick {
-        retryBlock.invoke()
+        it.findFragmentOrNull<PixivFragment>()?.let { fragment ->
+            if (fragment.requireNetworkStateManager().canAccessGoogle.value == true) {
+                retryBlock.invoke()
+            } else {
+                openClashApp(context)
+            }
+        }
     }
     refreshState.observe(viewLifecycleOwner) { refreshState ->
         if (refreshState is RefreshState.LOADED) {
@@ -81,7 +89,7 @@ fun Throwable.getHumanReadableMessage(context: Context): String {
                 try {
                     val obj = Shaft.sGson.fromJson(errorBody, ErrorResp::class.java)
                     obj.error?.user_message ?: errorBody ?: ""
-                } catch (ex: kotlin.Exception) {
+                } catch (ex: Exception) {
                     Timber.e(ex)
                     errorBody ?: ""
                 }

@@ -137,20 +137,28 @@ object ObjectPool {
     private fun <ObjectT : ModelObject> findObjectSpec(objClass: KClass<ObjectT>): Int {
         val classSimpleName = objClass.simpleName ?: return ObjectSpec.UNKNOWN
         return when (classSimpleName) {
-            "IllustsBean", "Novel" -> {
-                ObjectSpec.POST
+            "IllustsBean" -> {
+                ObjectSpec.JAVA_ILLUST
             }
 
             "Illust" -> {
-                ObjectSpec.Illust
+                ObjectSpec.KOTLIN_ILLUST
+            }
+
+            "Novel" -> {
+                ObjectSpec.KOTLIN_NOVEL
+            }
+
+            "NovelBean" -> {
+                ObjectSpec.JAVA_NOVEL
             }
 
             "UserBean" -> {
-                ObjectSpec.USER
+                ObjectSpec.JAVA_USER
             }
 
             "User" -> {
-                ObjectSpec.KUser
+                ObjectSpec.KOTLIN_USER
             }
 
             "Article" -> {
@@ -159,6 +167,10 @@ object ObjectPool {
 
             "GifInfoResponse" -> {
                 ObjectSpec.GIF_INFO
+            }
+
+            "TrendingTag" -> {
+                ObjectSpec.TRENDING_TAG
             }
 
             "UserResponse" -> {

@@ -29,11 +29,11 @@ import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
 import ceui.loxia.requireAppBackground
+import ceui.loxia.requireTaskPool
 import ceui.pixiv.ui.background.BackgroundConfig
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.background.ImageCropper
 import ceui.pixiv.ui.task.NamedUrl
-import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
@@ -56,7 +56,7 @@ import java.util.Locale
 
 abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
-    private lateinit var imageCropper: ImageCropper
+    private lateinit var imageCropper: ImageCropper<ImgDisplayFragment>
 
     protected val viewModel by viewModels<ToggleToolnarViewModel>()
     private val viewPagerViewModel by viewModels<ViewPagerViewModel>(ownerProducer = { requireParentFragment() })
@@ -87,22 +87,12 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
         imageCropper = ImageCropper(
             this,
-            onCropSuccess = { uri ->
-                requireAppBackground().updateConfig(
-                    BackgroundConfig(
-                        BackgroundType.SPECIFIC_ILLUST,
-                        localFileUri = uri.toString()
-                    )
-                )
-            },
-            onCropError = { error ->
-                Timber.e(error, "裁剪图片失败")
-            }
+            onCropSuccess = ImgDisplayFragment::onCropSuccess,
         )
 
         Timber.d("ImgDisplayFragment display img: ${url}")
         val namedUrl = NamedUrl(displayName(), url)
-        val task = TaskPool.getLoadTask(namedUrl, activity.lifecycleScope)
+        val task = requireTaskPool().getLoadTask(namedUrl, activity.lifecycleScope)
         task.result.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {
@@ -145,6 +135,15 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
             }
         }
         progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
+    }
+
+    private fun onCropSuccess(uri: Uri) {
+        requireAppBackground().updateConfig(
+            BackgroundConfig(
+                BackgroundType.SPECIFIC_ILLUST,
+                localFileUri = uri.toString()
+            )
+        )
     }
 
     private fun performDownload(activity: FragmentActivity, file: File) {

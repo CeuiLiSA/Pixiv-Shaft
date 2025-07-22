@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import ceui.loxia.Illust
 import ceui.loxia.KListShow
+import ceui.loxia.requireTaskPool
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.works.buildPixivWorksFileName
 
@@ -31,9 +32,10 @@ class QueuedTaskDataSource(
         }
     }
     items.map { namedUrl ->
-        val task = TaskPool.getDownloadTask(namedUrl, activity.lifecycleScope).also {
-            TaskQueueManager.addTask(it)
-        }
+        val task =
+            activity.requireTaskPool().getDownloadTask(namedUrl, activity.lifecycleScope).also {
+                TaskQueueManager.addTask(it)
+            }
         QueuedTaskHolder(task, illust)
     }
 })

@@ -5,16 +5,26 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import android.os.Build
 import ceui.pixiv.utils.NetworkStateManager.NetworkType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import timber.log.Timber
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 interface INetworkState {
     val networkState: LiveData<NetworkType>
 }
 
-class NetworkStateManager(context: Context) : INetworkState {
+class NetworkStateManager(private val context: Context) : INetworkState {
 
     enum class NetworkType {
         WIFI,
@@ -22,8 +32,12 @@ class NetworkStateManager(context: Context) : INetworkState {
         NONE
     }
 
+    private val _taskMutex = Mutex() // 互斥锁，防止重复刷新
     private val _networkState = MutableLiveData(NetworkType.NONE)
     override val networkState: LiveData<NetworkType> get() = _networkState
+
+    private val _canAccessGoogle = MutableLiveData<Boolean>()
+    val canAccessGoogle: LiveData<Boolean> = _canAccessGoogle
 
     private val connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -37,7 +51,10 @@ class NetworkStateManager(context: Context) : INetworkState {
             updateNetworkType(null)
         }
 
-        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
             updateNetworkType(network)
         }
     }
@@ -79,5 +96,31 @@ class NetworkStateManager(context: Context) : INetworkState {
             else -> NetworkType.NONE
         }
         _networkState.postValue(networkType)
+        MainScope().launch {
+            if (!_taskMutex.tryLock()) {
+                Timber.e("fetchLocationInfoFromIp refresh tryLock returned")
+                return@launch
+            }
+
+            _canAccessGoogle.postValue(canAccessGoogle())
+        }
+    }
+
+    private suspend fun canAccessGoogle(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val client = OkHttpClient.Builder()
+                .callTimeout(2, TimeUnit.SECONDS)
+                .build()
+
+            val request = Request.Builder()
+                .url("https://www.google.com/generate_204")  // ✅ 专门用于网络连通性检测的轻量接口
+                .build()
+
+            val response = client.newCall(request).execute()
+            return@withContext response.code == 204 // Google 返回 204 表示成功连接
+        } catch (e: IOException) {
+            Timber.w("Google connectivity check failed: ${e.message}")
+            return@withContext false
+        }
     }
 }

@@ -11,11 +11,23 @@ class TabCellHolder(
     val showGreenDone: Boolean = false,
     val selected: LiveData<Boolean>? = null
 ) : ListItemHolder() {
+    override fun areItemsTheSame(other: ListItemHolder): Boolean {
+        return other is TabCellHolder &&
+                this.title == other.title
+    }
 
+    override fun areContentsTheSame(other: ListItemHolder): Boolean {
+        return other is TabCellHolder &&
+                this.title == other.title &&
+                this.secondaryTitle == other.secondaryTitle &&
+                this.extraInfo == other.extraInfo &&
+                this.showGreenDone == other.showGreenDone
+    }
 }
 
 @ItemHolder(TabCellHolder::class)
-class TabCellViewHolder(bd: CellTabBinding) : ListItemViewHolder<CellTabBinding, TabCellHolder>(bd) {
+class TabCellViewHolder(bd: CellTabBinding) :
+    ListItemViewHolder<CellTabBinding, TabCellHolder>(bd) {
 
     override fun onBindViewHolder(holder: TabCellHolder, position: Int) {
         super.onBindViewHolder(holder, position)

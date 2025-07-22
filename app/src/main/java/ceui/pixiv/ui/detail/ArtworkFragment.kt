@@ -15,6 +15,7 @@ import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.pushFragment
 import ceui.loxia.requireEntityWrapper
+import ceui.loxia.requireTaskPool
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.chats.SeeMoreAction
@@ -42,9 +43,9 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val safeArgs by threadSafeArgs<ArtworkFragmentArgs>()
     private val viewModel by constructVM({
-        safeArgs.illustId
-    }) { illustId ->
-        ArtworkViewModel(illustId)
+        safeArgs.illustId to requireTaskPool()
+    }) { (illustId, taskPool) ->
+        ArtworkViewModel(illustId, taskPool)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -65,7 +66,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                 return@observe
             }
 
-            if (isBlocked == true) {
+            if (isBlocked) {
                 binding.refreshLayout.isVisible = false
                 binding.toolbarLayout.naviMore.setOnClick {
                     showActionMenu {
@@ -90,38 +91,43 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                     )
                 )
 
-                binding.toolbarLayout.naviMore.setOnClick {
-                    showActionMenu {
-                        add(
-                            MenuItem(getString(R.string.view_comments)) {
-                                pushFragment(
-                                    R.id.navigation_comments_illust, CommentsFragmentArgs(
-                                        safeArgs.illustId, illust.user?.id ?: 0L,
-                                        ObjectType.ILLUST
-                                    ).toBundle()
-                                )
-                            }
-                        )
-                        add(
-                            MenuItem(getString(R.string.string_110)) {
-                                shareIllust(illust)
-                            }
-                        )
-                        add(
-                            MenuItem(getString(R.string.flag_artwork)) {
-                                pushFragment(
-                                    R.id.navigation_flag_reason, FlagReasonFragmentArgs(
-                                        safeArgs.illustId, ObjectSpec.Illust
-                                    ).toBundle()
-                                )
-                            }
-                        )
-                        add(
-                            MenuItem(getString(R.string.add_blocking)) {
-                                requireEntityWrapper().blockIllust(ctx, illust)
-                            }
-                        )
+                if (illust.isAuthurExist()) {
+                    binding.toolbarLayout.naviMore.isVisible = true
+                    binding.toolbarLayout.naviMore.setOnClick {
+                        showActionMenu {
+                            add(
+                                MenuItem(getString(R.string.view_comments)) {
+                                    pushFragment(
+                                        R.id.navigation_comments_illust, CommentsFragmentArgs(
+                                            safeArgs.illustId, illust.user?.id ?: 0L,
+                                            ObjectType.ILLUST
+                                        ).toBundle()
+                                    )
+                                }
+                            )
+                            add(
+                                MenuItem(getString(R.string.string_110)) {
+                                    shareIllust(illust)
+                                }
+                            )
+                            add(
+                                MenuItem(getString(R.string.flag_artwork)) {
+                                    pushFragment(
+                                        R.id.navigation_flag_reason, FlagReasonFragmentArgs(
+                                            safeArgs.illustId, ObjectSpec.JAVA_ILLUST
+                                        ).toBundle()
+                                    )
+                                }
+                            )
+                            add(
+                                MenuItem(getString(R.string.add_blocking)) {
+                                    requireEntityWrapper().blockIllust(ctx, illust)
+                                }
+                            )
+                        }
                     }
+                } else {
+                    binding.toolbarLayout.naviMore.isVisible = false
                 }
             }
         }

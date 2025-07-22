@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import ceui.loxia.Event
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
@@ -15,9 +16,10 @@ import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.RefreshOwner
+import ceui.pixiv.ui.common.RemoteDataProvider
 import kotlinx.coroutines.launch
 
-fun <Item, T : KListShow<Item>, ArgsT: Any> Fragment.pixivListViewModel(
+fun <Item, T : KListShow<Item>, ArgsT : Any> Fragment.pixivListViewModel(
     argsProducer: () -> ArgsT,
     dataSourceProducer: (ArgsT) -> DataSource<Item, T>
 ): Lazy<PixivListViewModel<Item, T>> {
@@ -48,10 +50,13 @@ fun <Item, T : KListShow<Item>> Fragment.pixivListViewModel(
 
 class PixivListViewModel<Item, T : KListShow<Item>>(
     private val _dataSource: DataSource<Item, T>
-) : ViewModel(), RefreshOwner, LoadMoreOwner, HoldersContainer, DataSourceContainer<Item, T> {
+) : ViewModel(), RefreshOwner, LoadMoreOwner, HoldersContainer, DataSourceContainer<Item, T>,
+    RemoteDataProvider {
 
     override val refreshState: LiveData<RefreshState> = _dataSource.refreshStateImpl
     override val holders: LiveData<List<ListItemHolder>> = _dataSource.itemHoldersImpl
+    override val remoteDataSyncedEvent: LiveData<Event<Long>> =
+        _dataSource.remoteDataSyncedEventImpl
 
     override fun prepareIdMap(fragmentUniqueId: String) {
         _dataSource.prepareIdMapImpl(fragmentUniqueId)

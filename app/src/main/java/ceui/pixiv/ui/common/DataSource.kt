@@ -4,10 +4,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.models.ModelObject
 import ceui.loxia.Client
+import ceui.loxia.Event
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.detail.ArtworksMap
+import ceui.pixiv.utils.TokenGenerator
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -42,13 +44,17 @@ open class DataSource<Item, T : KListShow<Item>>(
 
     private val _taskMutex = Mutex() // 互斥锁，防止重复刷新
 
+    private val _remoteDataSyncedEvent = MutableLiveData<Event<Long>>()
+    val remoteDataSyncedEventImpl: LiveData<Event<Long>> = _remoteDataSyncedEvent
+
     open suspend fun refreshImpl(hint: RefreshHint) {
         if (!_taskMutex.tryLock()) {
             Timber.e("DataSource refresh tryLock returned")
             return // 如果当前已有刷新任务在执行，则直接返回
         }
 
-        Timber.e("DataSource refresh tryLock passed")
+        val requestToken = TokenGenerator.generateToken()
+        Timber.e("DataSource refresh tryLock passed: ${requestToken}")
 
         _refreshState.value = RefreshState.LOADING(refreshHint = hint)
         try {
@@ -68,7 +74,8 @@ open class DataSource<Item, T : KListShow<Item>>(
                 responseStore == null ||
                 responseStore.isCacheExpired()
             ) {
-                if ((hint == RefreshHint.InitialLoad || hint == RefreshHint.FetchingLatest) && _itemHolders.value?.isNotEmpty() == true) {
+                val isCachedDataExisting = _itemHolders.value?.isNotEmpty() == true
+                if ((hint == RefreshHint.InitialLoad || hint == RefreshHint.FetchingLatest) && isCachedDataExisting) {
                     delay(600L)
                     _refreshState.value = RefreshState.FETCHING_LATEST()
                     delay(1000L)
@@ -80,6 +87,10 @@ open class DataSource<Item, T : KListShow<Item>>(
                     }
                 }
                 applyResponse(response, false)
+                if ((hint == RefreshHint.InitialLoad || hint == RefreshHint.PullToRefresh) && isCachedDataExisting) {
+                    delay(30)
+                    _remoteDataSyncedEvent.postValue(Event(System.currentTimeMillis()))
+                }
             }
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)
@@ -97,10 +108,7 @@ open class DataSource<Item, T : KListShow<Item>>(
         _nextPageUrl = response.nextPageUrl
         currentProtoItems.addAll(response.displayList)
         mapProtoItemsToHolders()
-        _refreshState.value = RefreshState.LOADED(
-            hasContent = _itemHolders.value?.isNotEmpty() == true,
-            hasNext = hasNext()
-        )
+        updateRefreshState()
     }
 
     fun hasNext(): Boolean {
@@ -150,7 +158,11 @@ open class DataSource<Item, T : KListShow<Item>>(
         }
     }
 
-    private fun mapProtoItemsToHolders() {
+    fun updateMapper(mapper: (Item) -> List<ListItemHolder>) {
+        this._variableItemMapper = mapper
+    }
+
+    fun mapProtoItemsToHolders() {
         val mapper = _variableItemMapper ?: return
         val holders = currentProtoItems
             .filter { item ->
@@ -166,6 +178,13 @@ open class DataSource<Item, T : KListShow<Item>>(
 
     protected fun pickItemHolders(): MutableLiveData<List<ListItemHolder>> {
         return _itemHolders
+    }
+
+    protected fun updateRefreshState() {
+        _refreshState.value = RefreshState.LOADED(
+            hasContent = _itemHolders.value?.isNotEmpty() == true,
+            hasNext = hasNext()
+        )
     }
 
     open fun initialLoad(): Boolean {

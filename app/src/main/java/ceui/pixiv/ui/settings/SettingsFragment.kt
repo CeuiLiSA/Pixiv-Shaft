@@ -14,6 +14,7 @@ import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.loxia.requireAppBackground
+import ceui.loxia.requireTaskPool
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.ListMode
@@ -133,9 +134,11 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
 
     override fun onClickLogOut(sender: ProgressIndicator) {
         launchSuspend(sender) {
+            val taskPool = requireTaskPool()
+            val prefStore = MMKV.mmkvWithID("api-cache-${SessionManager.loggedInUid}")
             if (alertYesOrCancel("确定退出登录吗")) {
-                val prefStore = MMKV.mmkvWithID("api-cache-${SessionManager.loggedInUid}")
                 prefStore.clearAll()
+                taskPool.clearTasks()
                 SessionManager.updateSession(null)
                 findNavController().navigate(
                     R.id.navigation_landing,

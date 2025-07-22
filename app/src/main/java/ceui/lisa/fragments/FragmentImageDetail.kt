@@ -11,9 +11,9 @@ import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
+import ceui.loxia.requireTaskPool
 import ceui.pixiv.ui.common.setUpWithTaskStatus
 import ceui.pixiv.ui.task.NamedUrl
-import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
@@ -59,7 +59,10 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
 
         if (imageUrl?.isNotEmpty() == true) {
-            val task = TaskPool.getLoadTask(NamedUrl("", imageUrl), requireActivity().lifecycleScope)
+            val task = requireTaskPool().getLoadTask(
+                NamedUrl("", imageUrl),
+                requireActivity().lifecycleScope
+            )
             task.result.observe(viewLifecycleOwner) { file ->
                 baseBind.image.loadImage(file)
             }

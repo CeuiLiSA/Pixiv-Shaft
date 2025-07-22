@@ -8,12 +8,14 @@ import android.graphics.Paint
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
@@ -26,12 +28,16 @@ import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.repo.RemoteRepository
+import ceui.pixiv.utils.TokenGenerator
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.google.gson.Gson
 import jp.wasabeef.glide.transformations.BlurTransformation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class HomeActivity : AppCompatActivity(), GrayToggler {
@@ -54,8 +60,9 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             rest.copy(illusts = list.shuffled())
         }
     }
-    private val homeViewModal by viewModels<HomeViewModal>()
-
+    private val homeViewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory(TokenGenerator.generateToken())
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +84,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         if (SessionManager.isLoggedIn) {
             // ✅ 添加监听 currentDestination
             navController.addOnDestinationChangedListener { controller, destination, arguments ->
+                val destId = destination.id
                 if (destination.id == R.id.navigation_img_url || destination.id == R.id.navigation_paged_img_urls) {
                     binding.pageBackground.isVisible = false
                     binding.dimmer.isVisible = false
@@ -84,21 +92,32 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                     binding.pageBackground.isVisible = true
                     binding.dimmer.isVisible = true
                 }
+
+                homeViewModel.onDestinationChanged(destId)
             }
         }
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
         }
 
-        SessionManager.loggedInAccount.observe(this) {
-            Timber.d("loggedInAccount ${it}")
-            bgViewModel.refresh(RefreshHint.PullToRefresh)
+        MainScope().launch(Dispatchers.IO) {
+            Gson()
+            val list = AppDatabase.getAppDatabase(this@HomeActivity).generalDao().getAll()
+            list.forEach {
+//                Timber.d("dsadasadsw2 ${gson.toJson(it)}")
+            }
+            Timber.d("dsadasadsw2 count: ${list?.size}")
         }
 
-        homeViewModal.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
+        SessionManager.loggedInAccount.observe(this) {
+            bgViewModel.refresh(RefreshHint.PullToRefresh)
+        }
+        homeViewModel.currentScale.observe(this) {
+            animateBackground(it)
+        }
+        homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
 
         requireAppBackground().config.observe(this) { config ->
-            Timber.d("dsaadsadsw23 ${Gson().toJson(config)}")
             if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
                 bgViewModel.result.observe(this) { loadResult ->
                     val resp = loadResult?.data ?: return@observe
@@ -120,6 +139,15 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                     .into(binding.pageBackground)
             }
         }
+    }
+
+    private fun animateBackground(scale: Float) {
+        binding.pageBackground.animate()
+            .scaleX(scale)
+            .scaleY(scale)
+            .setDuration(1000)
+            .setInterpolator(OvershootInterpolator(1.1f))
+            .start()
     }
 
     private fun triggerOnce() {
@@ -154,7 +182,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 
     private fun triggerTouchOnce(x1: Int, y1: Int) {
         val lottieView = binding.clickEvent
-        Timber.d("TouchEvent 点击位置: x=$x1, y=$y1")
         val halfWidth = 80.ppppx
         lottieView.x = x1.toFloat() - halfWidth
         lottieView.y = y1.toFloat() - halfWidth
@@ -234,6 +261,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 
 
     override fun toggleGrayMode() {
-        homeViewModal.toggleGrayModeImpl()
+        homeViewModel.toggleGrayModeImpl()
     }
 }

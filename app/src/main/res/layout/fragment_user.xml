@@ -28,15 +28,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <FrameLayout
+        <View
+            android:id="@+id/user_bg_dimmer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/black_overlay" />
-        </FrameLayout>
+            android:layout_height="match_parent"
+            android:background="@color/black_overlay"
+            android:visibility="gone" />
 
         <com.scwang.smart.refresh.layout.SmartRefreshLayout
             android:id="@+id/refresh_layout"
@@ -151,6 +148,7 @@
                                     android:orientation="horizontal">
 
                                     <LinearLayout
+                                        android:id="@+id/following_layout"
                                         android:layout_width="0dp"
                                         android:layout_height="match_parent"
                                         android:layout_weight="1"
@@ -171,12 +169,13 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:includeFontPadding="false"
-                                            android:text="Followers"
+                                            android:text="Following"
                                             android:textColor="@color/text10"
                                             android:textSize="14sp" />
                                     </LinearLayout>
 
                                     <LinearLayout
+                                        android:id="@+id/followers_layout"
                                         android:layout_width="0dp"
                                         android:layout_height="match_parent"
                                         android:layout_weight="1"
@@ -197,7 +196,7 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:includeFontPadding="false"
-                                            android:text="Following"
+                                            android:text="Followers"
                                             android:textColor="@color/text10"
                                             android:textSize="14sp" />
                                     </LinearLayout>

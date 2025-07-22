@@ -2,20 +2,17 @@ package ceui.pixiv.ui.task
 
 import android.graphics.Color
 import android.os.Build
-import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
-import androidx.lifecycle.LiveData
-import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellQueuedTaskBinding
-import ceui.lisa.databinding.CellUsersYoruItemBinding
 import ceui.loxia.Illust
 import ceui.loxia.findActionReceiverOrNull
-import ceui.pixiv.ui.bottom.UsersYoriActionReceiver
+import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.utils.setOnClick
 
 class QueuedTaskHolder(val downloadTask: DownloadTask, val illust: Illust) : ListItemHolder() {
     override fun getItemId(): Long {
@@ -29,7 +26,11 @@ class QueuedTaskViewHolder(bd: CellQueuedTaskBinding) :
 
     override fun onBindViewHolder(holder: QueuedTaskHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        binding.task = holder.downloadTask
+        binding.holder = holder
+        binding.iv.setOnClick {
+            it.findActionReceiverOrNull<IllustCardActionReceiver>()
+                ?.onClickIllustCard(holder.illust)
+        }
     }
 }
 

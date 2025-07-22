@@ -341,7 +341,7 @@ public class IllustsBean implements Serializable, Starable, Deduplicatable, Mode
         isRelated = related;
     }
 
-    public String[] getTagNames(){
+    public String[] getTagNames() {
         return tags.stream().map(TagsBean::getName).toArray(String[]::new);
     }
 
@@ -357,7 +357,7 @@ public class IllustsBean implements Serializable, Starable, Deduplicatable, Mode
 
     @Override
     public int getObjectType() {
-        return ObjectSpec.POST;
+        return ObjectSpec.JAVA_ILLUST;
     }
 
     public int getIllust_ai_type() {

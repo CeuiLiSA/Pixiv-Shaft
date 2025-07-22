@@ -18,15 +18,18 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadingHolder
+import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.works.getGalleryHolders
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ArtworkViewModel(
     private val illustId: Long,
+    private val taskPool: TaskPool
 ) : HoldersViewModel() {
 
     private val _illustLiveData = ObjectPool.get<Illust>(illustId)
@@ -67,6 +70,11 @@ class ArtworkViewModel(
 
     override suspend fun refreshImpl(hint: RefreshHint) {
         super.refreshImpl(hint)
+
+        if (hint == RefreshHint.ErrorRetry) {
+            delay(600L)
+        }
+
         val context = Shaft.getContext()
         val illust = ObjectPool.get<Illust>(illustId).value ?: run {
             withContext(Dispatchers.IO) {
@@ -74,15 +82,28 @@ class ArtworkViewModel(
                     .getByRecordTypeAndId(RecordType.VIEW_ILLUST_HISTORY, illustId)
                 entity?.typedObject<Illust>()?.also {
                     ObjectPool.update(it)
+                    it.user?.let { user ->
+                        ObjectPool.update(user)
+                    }
                 }
             }
         } ?: run {
             Client.appApi.getIllust(illustId).illust?.also {
                 ObjectPool.update(it)
+                it.user?.let { user ->
+                    ObjectPool.update(user)
+                }
             }
         } ?: return
+        if (!illust.isAuthurExist()) {
+            _refreshState.value = RefreshState.LOADED(
+                hasContent = false, hasNext = false
+            )
+            throw RuntimeException("无法访问此内容")
+        }
+
         val result = mutableListOf<ListItemHolder>()
-        val images = getGalleryHolders(illust, MainScope())
+        val images = getGalleryHolders(illust, MainScope(), taskPool)
         result.addAll(images ?: listOf())
         result.add(RedSectionHeaderHolder("标题"))
         result.add(ArtworkInfoHolder(illustId))
