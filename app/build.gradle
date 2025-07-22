@@ -197,8 +197,10 @@ dependencies {
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
     implementation 'com.waynejo:androidndkgif:0.3.3'
+
     implementation 'com.tencent:mmkv-static:2.2.2'
-    implementation 'com.github.tbruyelle:rxpermissions:0.12'
+    implementation 'com.github.tbruyelle:RxPermissions:0.12'
+
 
     implementation 'androidx.webkit:webkit:1.12.1'
     implementation 'org.jsoup:jsoup:1.18.1'
