@@ -10,6 +10,8 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.ModelObject
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RemoteKey
+import kotlinx.coroutines.delay
+import timber.log.Timber
 
 @OptIn(ExperimentalPagingApi::class)
 class PagingRemoteMediator<ObjectT : ModelObject>(
@@ -26,12 +28,28 @@ class PagingRemoteMediator<ObjectT : ModelObject>(
             val generalDao = db.generalDao()
             val remoteKeyDao = db.remoteKeyDao()
 
+            val cacheTimeoutMs = 5 * 60 * 1000L // 5分钟
+            val now = System.currentTimeMillis()
+
+            val remoteKey = remoteKeyDao.getRemoteKey(recordType)
+            val shouldSkipNetwork = if (loadType == LoadType.REFRESH) {
+                remoteKey?.lastUpdatedTime?.let {
+                    now - it < cacheTimeoutMs
+                } ?: false
+            } else {
+                false
+            }
+
+            if (shouldSkipNetwork) {
+                delay(800L)
+                return MediatorResult.Success(endOfPaginationReached = false)
+            }
+
             val nextPageUrl = when (loadType) {
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    val key = remoteKeyDao.getRemoteKey(recordType)
-                    key?.nextPageUrl
+                    remoteKey?.nextPageUrl
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
                 }
             }
@@ -59,7 +77,12 @@ class PagingRemoteMediator<ObjectT : ModelObject>(
                 }
 
                 generalDao.insertAll(entities)
-                remoteKeyDao.insert(RemoteKey(recordType, newNextPageUrl))
+                val newRemoteKey = RemoteKey(
+                    recordType = recordType,
+                    nextPageUrl = newNextPageUrl,
+                    lastUpdatedTime = now
+                )
+                remoteKeyDao.insert(newRemoteKey)
             }
 
             return MediatorResult.Success(endOfPaginationReached = newNextPageUrl == null)

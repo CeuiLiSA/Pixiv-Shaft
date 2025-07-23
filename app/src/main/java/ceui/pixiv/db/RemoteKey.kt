@@ -6,5 +6,6 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "remote_keys")
 data class RemoteKey(
     @PrimaryKey val recordType: Int,
-    val nextPageUrl: String?
+    val nextPageUrl: String?,
+    val lastUpdatedTime: Long,
 )
