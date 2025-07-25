@@ -46,6 +46,7 @@ android {
             minifyEnabled false
             buildConfigField "boolean", "IS_DEBUG_MODE", "true" // 在 debug 模式下为 true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         release {
             minifyEnabled false
