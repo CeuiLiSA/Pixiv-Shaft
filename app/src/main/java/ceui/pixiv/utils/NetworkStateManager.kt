@@ -8,6 +8,7 @@ import android.net.NetworkRequest
 import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.loxia.RefreshState
 import ceui.pixiv.utils.NetworkStateManager.NetworkType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -38,6 +39,9 @@ class NetworkStateManager(private val context: Context) : INetworkState {
 
     private val _canAccessGoogle = MutableLiveData<Boolean>()
     val canAccessGoogle: LiveData<Boolean> = _canAccessGoogle
+
+    private val _refreshState = MutableLiveData<RefreshState>()
+    val refreshState: LiveData<RefreshState> = _refreshState
 
     private val connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -106,21 +110,31 @@ class NetworkStateManager(private val context: Context) : INetworkState {
         }
     }
 
-    private suspend fun canAccessGoogle(): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun canAccessGoogle(): Boolean = withContext(Dispatchers.Main) {
         try {
-            val client = OkHttpClient.Builder()
-                .callTimeout(2, TimeUnit.SECONDS)
-                .build()
+            _refreshState.value = RefreshState.LOADING()
 
-            val request = Request.Builder()
-                .url("https://www.google.com/generate_204")  // ✅ 专门用于网络连通性检测的轻量接口
-                .build()
+            val canAccess = withContext(Dispatchers.IO) {
+                val client = OkHttpClient.Builder()
+                    .callTimeout(2, TimeUnit.SECONDS)
+                    .build()
 
-            val response = client.newCall(request).execute()
-            return@withContext response.code == 204 // Google 返回 204 表示成功连接
-        } catch (e: IOException) {
-            Timber.w("Google connectivity check failed: ${e.message}")
+                val request = Request.Builder()
+                    .url("https://www.google.com/generate_204")  // ✅ 专门用于网络连通性检测的轻量接口
+                    .build()
+
+                val response = client.newCall(request).execute()
+                response.code == 204
+            }
+
+            _refreshState.value = RefreshState.LOADED(hasContent = canAccess, hasNext = false)
+            return@withContext canAccess // Google 返回 204 表示成功连接
+        } catch (ex: IOException) {
+            Timber.w("Google connectivity check failed: ${ex.message}")
+            _refreshState.value = RefreshState.ERROR(ex)
             return@withContext false
+        } finally {
+            _taskMutex.unlock() // 释放锁
         }
     }
 }

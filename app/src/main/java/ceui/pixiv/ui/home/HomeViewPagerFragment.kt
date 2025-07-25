@@ -7,6 +7,7 @@ import android.view.animation.OvershootInterpolator
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,6 +16,8 @@ import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.lisa.utils.Common
+import ceui.loxia.RefreshState
+import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.session.SessionManager
@@ -75,8 +78,9 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             })
 
         val networkManager = requireNetworkStateManager()
-        networkManager.canAccessGoogle.observe(viewLifecycleOwner) {
-            Timber.d("dsasdadsw2 canAccessGoogle: ${it}")
+
+        networkManager.refreshState.observe(viewLifecycleOwner) { state ->
+            binding.networkStateLoading.isVisible = state is RefreshState.LOADING
         }
 
         binding.userIcon.setOnClick {

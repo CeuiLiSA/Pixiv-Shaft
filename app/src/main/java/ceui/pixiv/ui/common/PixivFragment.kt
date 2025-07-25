@@ -394,10 +394,20 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
         }
     }
 
+    binding.openVpn.setOnClick {
+        openClashApp(requireContext())
+    }
+    requireNetworkStateManager().canAccessGoogle.observe(viewLifecycleOwner) { canAccessGoogle ->
+        binding.openVpn.isVisible = !canAccessGoogle
+        binding.errorRetryButton.isVisible = canAccessGoogle
+    }
+
     viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             adapter.loadStateFlow.collectLatest { loadStates ->
                 binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
+                binding.errorLayout.isVisible = loadStates.refresh is LoadState.Error
+                Timber.d("dsadsdsadasaw2 ${loadStates}")
             }
         }
     }
