@@ -165,8 +165,8 @@ dependencies {
     implementation 'io.github.csdn-mobile:RoundView:1.8.0'
 
 
-    implementation 'com.squareup.okhttp3:okhttp:4.4.1'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.4.1'
+    implementation 'com.squareup.okhttp3:okhttp:5.1.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.1.0'
 
 
     def lottieVersion = "3.4.1"
