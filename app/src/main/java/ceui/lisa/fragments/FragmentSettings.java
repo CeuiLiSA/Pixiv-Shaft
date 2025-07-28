@@ -1,6 +1,12 @@
 package ceui.lisa.fragments;
 
-import android.Manifest;
+import static android.app.Activity.RESULT_OK;
+import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
+import static ceui.lisa.helper.ThemeHelper.ThemeType.DARK_MODE;
+import static ceui.lisa.helper.ThemeHelper.ThemeType.DEFAULT_MODE;
+import static ceui.lisa.helper.ThemeHelper.ThemeType.LIGHT_MODE;
+import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
+
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -23,10 +29,8 @@ import com.scwang.smart.refresh.header.FalsifyFooter;
 import com.scwang.smart.refresh.header.FalsifyHeader;
 import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 
-import com.tbruyelle.rxpermissions3.RxPermissions;
-
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -51,13 +55,6 @@ import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.utils.Settings;
 import ceui.lisa.utils.UserFolderNameUtil;
 import ceui.loxia.Client;
-
-import static android.app.Activity.RESULT_OK;
-import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
-import static ceui.lisa.helper.ThemeHelper.ThemeType.DARK_MODE;
-import static ceui.lisa.helper.ThemeHelper.ThemeType.DEFAULT_MODE;
-import static ceui.lisa.helper.ThemeHelper.ThemeType.LIGHT_MODE;
-import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
 public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
@@ -791,8 +788,8 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             });
 
             updateIllustPathUI();
-            if(mActivity instanceof BaseActivity){
-                ((BaseActivity)mActivity).setFeedBack(this::updateIllustPathUI);
+            if (mActivity instanceof BaseActivity) {
+                ((BaseActivity) mActivity).setFeedBack(this::updateIllustPathUI);
             }
             baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -872,7 +869,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
             String[] transformerNames = PageTransformerHelper.getTransformerNames();
             baseBind.transformType.setText(transformerNames[PageTransformerHelper.getCurrentTransformerIndex()]);
-            baseBind.transformTypeRela.setOnClickListener(new View.OnClickListener(){
+            baseBind.transformTypeRela.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     new QMUIDialog.CheckableDialogBuilder(mActivity)
@@ -1018,7 +1015,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     intent.addCategory(Intent.CATEGORY_OPENABLE);//必须
                     intent.setType("*/*");//必须
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        Uri backupFileUri = Uri.parse("content://com.android.externalstorage.documents/document/primary:"+"Download%2fShaftBackups%2fShaft-Backup.json");
+                        Uri backupFileUri = Uri.parse("content://com.android.externalstorage.documents/document/primary:" + "Download%2fShaftBackups%2fShaft-Backup.json");
 //                        Common.showToast(backupFileUri);
                         intent.putExtra(EXTRA_INITIAL_URI, backupFileUri);
                     }
@@ -1029,19 +1026,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-
-        if (!Common.isAndroidQ()) {
-            new RxPermissions(this)
-                    .requestEachCombined(
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    )
-                    .subscribe(permission -> {
-                        if (!permission.granted) {
-                            Common.showToast(getString(R.string.access_denied));
-                            finish();
-                        }
-                    });
-        }
     }
 
     @Override
@@ -1067,13 +1051,9 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.colorSelect.setText(getString(FragmentColors.COLOR_NAME_CODES[index]));
     }
 
-    private void updateIllustPathUI(){
+    private void updateIllustPathUI() {
         if (Shaft.sSettings.getDownloadWay() == 1) {
-            try {
-                baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), StandardCharsets.UTF_8));
         } else {
             baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
         }

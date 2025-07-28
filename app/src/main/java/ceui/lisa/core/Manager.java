@@ -14,16 +14,14 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DownloadLimitTypeUtil;
-import io.reactivex.rxjava3.disposables.Disposable;
 
 public class Manager {
 
     private final Context mContext = Shaft.getContext();
-    private List<DownloadItem> content = new ArrayList<>();
-    private final Disposable handle = null;
-    private boolean isRunning = false;
     private final String uuid;
     private final int currentIllustID;
+    private List<DownloadItem> content = new ArrayList<>();
+    private boolean isRunning = false;
 
     private Manager() {
         uuid = "";
@@ -155,9 +153,6 @@ public class Manager {
             item.setPaused(true);
         }
         isRunning = false;
-        if (handle != null) {
-            handle.dispose();
-        }
         Common.showLog("已经停止");
     }
 
@@ -168,9 +163,6 @@ public class Manager {
                 Common.showLog("已暂停 " + uuid);
                 break;
             }
-        }
-        if (this.uuid.equals(uuid) && handle != null) {
-            handle.dispose();
         }
     }
 
