@@ -152,8 +152,8 @@ dependencies {
     implementation 'com.github.skydoves:transformationlayout:1.1.1'
     implementation 'com.blankj:utilcodex:1.31.1'
     implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
-    implementation 'com.google.firebase:firebase-analytics:22.1.2'
-    implementation 'com.google.firebase:firebase-crashlytics:19.2.1'
+    implementation 'com.google.firebase:firebase-analytics:23.0.0'
+    implementation 'com.google.firebase:firebase-crashlytics:20.0.0'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
 
@@ -208,7 +208,7 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
 
-    implementation("io.github.panpf.zoomimage:zoomimage-view-sketch4:1.1.0-rc03")
+    implementation("io.github.panpf.zoomimage:zoomimage-view-sketch4:1.3.0")
 
     implementation("me.zhanghai.android.fastscroll:library:1.2.0")
 

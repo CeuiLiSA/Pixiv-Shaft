@@ -16,7 +16,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:8.11.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0"
         classpath 'com.google.gms:google-services:4.4.2'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.5'
 
         classpath("org.jmailen.gradle:kotlinter-gradle:3.7.0") {
             exclude group: 'org.jetbrains.kotlin', module: 'kotlin-compiler-embeddable'
