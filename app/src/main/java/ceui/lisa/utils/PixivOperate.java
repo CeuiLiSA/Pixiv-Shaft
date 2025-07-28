@@ -811,10 +811,6 @@ public class PixivOperate {
                 outStream.write(bos.toByteArray());
                 outStream.close();
 
-                if (autoSave) {
-                    OutPut.outPutGif(context, gifFile, illustsBean);
-                }
-
                 Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
                 gifEncodingWorkSet.remove(illustsBean.getId());
 
