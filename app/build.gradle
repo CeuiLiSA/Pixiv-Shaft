@@ -183,6 +183,7 @@ dependencies {
     implementation 'com.github.tbruyelle:RxPermissions:0.12'
 
 
+    implementation("androidx.browser:browser:1.8.0")
     implementation 'androidx.webkit:webkit:1.14.0'
     implementation 'org.jsoup:jsoup:1.21.1'
 
