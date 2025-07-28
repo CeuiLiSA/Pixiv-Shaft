@@ -35,9 +35,19 @@
         tools:ignore="UnusedAttribute">
         <activity
             android:name="ceui.pixiv.ui.common.HomeActivity"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/title_activity_home"
-            android:theme="@style/HomeAppTheme" />
+            android:theme="@style/HomeAppTheme">
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="pixiv" />
+            </intent-filter>
+        </activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"
