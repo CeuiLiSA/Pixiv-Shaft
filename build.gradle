@@ -1,7 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.13.0'
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://repository.jboss.org/maven2" }
@@ -14,13 +13,17 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.7.3'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25"
+        classpath 'com.android.tools.build:gradle:8.11.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0"
         classpath 'com.google.gms:google-services:4.4.2'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
-        classpath "org.jmailen.gradle:kotlinter-gradle:3.7.0"
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.5'
 
-        def nav_version = '2.8.5'
+        classpath("org.jmailen.gradle:kotlinter-gradle:3.7.0") {
+            exclude group: 'org.jetbrains.kotlin', module: 'kotlin-compiler-embeddable'
+        }
+
+
+        def nav_version = '2.9.2'
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -28,8 +31,8 @@ buildscript {
 }
 
 plugins {
-    id 'org.jetbrains.kotlin.android' version '1.9.25' apply false
-    id 'org.jetbrains.kotlin.jvm' version '1.9.25' apply false
+    id 'org.jetbrains.kotlin.android' version '2.2.0' apply false
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0' apply false
 }
 
 allprojects {

@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.R
 import ceui.loxia.asLiveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,8 +13,6 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream
 import java.util.Locale
-import ceui.lisa.R
-import timber.log.Timber
 
 class SelectCountryViewModel : ViewModel() {
 
@@ -122,7 +121,7 @@ data class Country(
 )
 
 fun countryCodeToEmojiFlag(countryCode: String): String {
-    return countryCode.toUpperCase(Locale.US)
+    return countryCode.uppercase(Locale.US)
         .map { char ->
             Character.codePointAt("$char", 0) - 0x41 + 0x1F1E6
         }

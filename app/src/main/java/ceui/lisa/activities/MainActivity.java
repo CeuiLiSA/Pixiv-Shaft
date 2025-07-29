@@ -223,7 +223,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         });
         baseBind.viewPager.setOffscreenPageLimit(baseFragments.length - 1);
         baseBind.viewPager.setCurrentItem(getNavigationInitPosition());
-        Manager.get().restore();
     }
 
     @Override
@@ -405,30 +404,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     public void exit() {
         if ((System.currentTimeMillis() - mExitTime) > 2000) {
-            if (Manager.get().getContent().size() != 0) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle(getString(R.string.shaft_hint));
-                builder.setMessage(mContext.getString(R.string.you_have_download_plan));
-                builder.setPositiveButton(mContext.getString(R.string.sure), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Manager.get().stopAll();
-                        finish();
-                    }
-                });
-                builder.setNegativeButton(mContext.getString(R.string.cancel), null);
-                builder.setNeutralButton(getString(R.string.see_download_task), (dialog, which) -> {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
-                    intent.putExtra("hideStatusBar", true);
-                    startActivity(intent);
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-            } else {
-                Common.showToast(getString(R.string.double_click_finish));
-                mExitTime = System.currentTimeMillis();
-            }
+            Common.showToast(getString(R.string.double_click_finish));
+            mExitTime = System.currentTimeMillis();
         } else {
             finish();
         }

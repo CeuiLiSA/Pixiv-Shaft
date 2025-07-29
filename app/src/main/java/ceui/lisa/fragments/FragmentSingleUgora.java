@@ -1,5 +1,10 @@
 package ceui.lisa.fragments;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
+import static ceui.lisa.utils.SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD;
+import static ceui.lisa.utils.ShareIllust.URL_Head;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -45,16 +50,13 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.core.DownloadItem;
-import ceui.lisa.core.Manager;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentUgoraBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.file.LegacyFile;
-import ceui.lisa.file.OutPut;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.Back;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
@@ -67,12 +69,6 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import jp.wasabeef.glide.transformations.BlurTransformation;
-import rxhttp.wrapper.entity.Progress;
-
-import static ceui.lisa.utils.SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD;
-import static ceui.lisa.utils.ShareIllust.URL_Head;
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
-import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 /**
  * 插画详情
@@ -246,20 +242,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                         Cache.get().saveModel(Params.ILLUST_ID + "_" + illust.getId(), gifResponse);
                         Common.showToast("下载GIF文件");
                         DownloadItem downloadItem = IllustDownload.downloadGif(gifResponse, illust);
-                        Manager.get().setCallback(downloadItem.getUuid(), new Callback<Progress>() {
-                            @Override
-                            public void doSomething(Progress t) {
-                                try {
-                                    if (illust.getId() == Manager.get().getCurrentIllustID()) {
-                                        baseBind.playGif.setVisibility(View.INVISIBLE);
-                                        baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
-                                        baseBind.progressLayout.donutProgress.setProgress(t.getProgress());
-                                    }
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
+
                     }
                 });
             }
@@ -278,23 +261,6 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             baseBind.toolbar.setTitle(R.string.string_206);
             baseBind.refreshLayout.setVisibility(View.INVISIBLE);
             return;
-        }
-
-        if (illust.getId() == Manager.get().getCurrentIllustID()) {
-            Manager.get().setCallback(new Callback<Progress>() {
-                @Override
-                public void doSomething(Progress t) {
-                    try {
-                        if (illust.getId() == Manager.get().getCurrentIllustID()) {
-                            baseBind.playGif.setVisibility(View.INVISIBLE);
-                            baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
-                            baseBind.progressLayout.donutProgress.setProgress(t.getProgress());
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
         }
 
 
@@ -352,8 +318,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.download.setOnClickListener(v -> {
             File gifFile = LegacyFile.gifResultFile(mContext, illust);
             if (gifFile.exists() && gifFile.length() > 1024) {
-                OutPut.outPutGif(mContext, gifFile, illust);
-                if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
+                if (Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()) {
                     PixivOperate.postLikeDefaultStarType(illust);
                 }
             } else {
@@ -476,7 +441,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 //        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
         int currentPrimaryColorId = ColorUtils.getColor(R.color.page_default_background);
         sizeString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
-                sizeString.length()-illust.getSize().length(), sizeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sizeString.length() - illust.getSize().length(), sizeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);
 
         baseBind.illustTag.setAdapter(new TagAdapter<TagsBean>(illust.getTags()) {
@@ -545,7 +510,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
         SpannableString userString = new SpannableString(getString(R.string.string_195, illust.getUser().getId()));
         userString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
-                userString.length()-String.valueOf(illust.getUser().getId()).length(), userString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                userString.length() - String.valueOf(illust.getUser().getId()).length(), userString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.userId.setText(userString);
         baseBind.userId.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -555,7 +520,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         });
         SpannableString illustString = new SpannableString(getString(R.string.string_194, illust.getId()));
         illustString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
-                illustString.length()-String.valueOf(illust.getId()).length(), illustString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                illustString.length() - String.valueOf(illust.getId()).length(), illustString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustId.setText(illustString);
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -589,10 +554,10 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.head.setLayoutParams(headParams);
     }
 
-    private void updateFollowUserUI(int status){
-        if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
+    private void updateFollowUserUI(int status) {
+        if (AppLevelViewModel.FollowUserStatus.isFollowed(status)) {
             baseBind.follow.setText(R.string.string_177);
-        }else{
+        } else {
             baseBind.follow.setText(R.string.string_4);
         }
     }

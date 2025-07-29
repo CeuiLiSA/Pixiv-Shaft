@@ -6,12 +6,12 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentSelectLoginWayBinding
 import ceui.lisa.feature.HostManager
 import ceui.loxia.launchSuspend
+import ceui.loxia.openChromeTab
 import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
 
@@ -24,19 +24,21 @@ class SelectLoginWayFragment : PixivFragment(R.layout.fragment_select_login_way)
 
         binding.login.setOnClick {
             checkVPNAndNext {
-                pushFragment(
-                    R.id.navigation_web_fragment,
-                    WebFragmentArgs(HostManager.get().loginUrl, saveCookies = true).toBundle()
-                )
+                requireContext().openChromeTab(HostManager.get().loginUrl)
+//                pushFragment(
+//                    R.id.navigation_web_fragment,
+//                    WebFragmentArgs(HostManager.get().loginUrl, saveCookies = true).toBundle()
+//                )
             }
         }
 
         binding.signUp.setOnClick {
             checkVPNAndNext {
-                pushFragment(
-                    R.id.navigation_web_fragment,
-                    WebFragmentArgs(HostManager.get().signupUrl, saveCookies = true).toBundle()
-                )
+                requireContext().openChromeTab(HostManager.get().signupUrl)
+//                pushFragment(
+//                    R.id.navigation_web_fragment,
+//                    WebFragmentArgs(HostManager.get().signupUrl, saveCookies = true).toBundle()
+//                )
             }
         }
 

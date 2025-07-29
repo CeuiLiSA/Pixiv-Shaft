@@ -15,8 +15,6 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.core.Manager;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Common;
@@ -27,7 +25,7 @@ import ceui.lisa.utils.MyOnTabSelectedListener;
  */
 public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
-    private final Fragment[] allPages = new Fragment[]{new FragmentDownloading(), new FragmentDownloadFinish()};
+    private final Fragment[] allPages = new Fragment[]{new Fragment(), new FragmentDownloadFinish()};
 
     @Override
     public void initLayout() {
@@ -73,48 +71,6 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                         Common.showToast("没有可删除的记录");
                     }
                     return true;
-                } else if (item.getItemId() == R.id.action_start) {
-                    Manager.get().startAll();
-                    if (allPages[0] instanceof FragmentDownloading){
-                        final BaseAdapter<?, ?> adapter = ((FragmentDownloading) allPages[0]).mAdapter;
-                        if (adapter != null) {
-                            adapter.notifyDataSetChanged();
-                        }
-                    }
-                } else if (item.getItemId() == R.id.action_stop) {
-                    Manager.get().stopAll();
-                    if (allPages[0] instanceof FragmentDownloading){
-                        final BaseAdapter<?, ?> adapter = ((FragmentDownloading) allPages[0]).mAdapter;
-                        if (adapter != null) {
-                            adapter.notifyDataSetChanged();
-                        }
-                    }
-                } else if (item.getItemId() == R.id.action_clear) {
-                    if (allPages[0] instanceof FragmentDownloading &&
-                            ((FragmentDownloading) allPages[0]).getCount() > 0) {
-                        new QMUIDialog.MessageDialogBuilder(mActivity)
-                                .setTitle("提示")
-                                .setMessage("清空所有未完成的任务吗？")
-                                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
-                                .addAction("取消", new QMUIDialogAction.ActionListener() {
-                                    @Override
-                                    public void onClick(QMUIDialog dialog, int index) {
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .addAction(0, "清空", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
-                                    @Override
-                                    public void onClick(QMUIDialog dialog, int index) {
-                                        Manager.get().clearAll();
-                                        ((FragmentDownloading) allPages[0]).clearAndRefresh();
-                                        Common.showToast("下载任务清除成功");
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .show();
-                    } else {
-                        Common.showToast("没有可删除的记录");
-                    }
                 }
                 return false;
             }

@@ -75,7 +75,6 @@ public class IllustDownload {
             if (illust.getPage_count() == 1) {
                 DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
                 Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
-                Manager.get().addTask(item);
             }
         });
     }
@@ -88,7 +87,6 @@ public class IllustDownload {
         if (illust.getPage_count() == 1) {
             DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
             Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
-            Manager.get().addTask(item);
         }
     }
 
@@ -100,7 +98,6 @@ public class IllustDownload {
             } else {
                 DownloadItem item = buildDownloadItem(illust, index);
                 Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
-                Manager.get().addTask(item);
             }
         });
     }
@@ -120,7 +117,6 @@ public class IllustDownload {
                     tempList.add(item);
                 }
                 Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
-                Manager.get().addTasks(tempList);
             }
         });
     }
@@ -137,7 +133,6 @@ public class IllustDownload {
                 tempList.add(item);
             }
             Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
-            Manager.get().addTasks(tempList);
         }
     }
 
@@ -171,7 +166,6 @@ public class IllustDownload {
                 }
             }
             Common.showToast(taskCount + Shaft.getContext().getString(R.string.has_been_added));
-            Manager.get().addTasks(tempList);
         });
     }
 
@@ -184,7 +178,6 @@ public class IllustDownload {
         item.setAutoSave(autoSave);
         item.setUrl(HostManager.get().replaceUrl(response.getUgoira_metadata().getZip_urls().getMedium()));
         item.setShowUrl(HostManager.get().replaceUrl(illust.getImage_urls().getMedium()));
-        Manager.get().addTask(item);
         return item;
     }
 

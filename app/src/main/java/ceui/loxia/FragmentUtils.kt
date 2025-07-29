@@ -1,6 +1,7 @@
 package ceui.loxia
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
@@ -11,7 +12,9 @@ import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.Utils
@@ -38,6 +41,18 @@ fun Context.hideKeyboard(window: Window?) {
     }
 }
 
+fun Context.openChromeTab(url: String) {
+    try {
+        val uri = url.toUri()
+        val builder = CustomTabsIntent.Builder()
+        val customTabsIntent = builder.build()
+        customTabsIntent.launchUrl(this, uri)
+    } catch (e: Exception) {
+        // fallback 使用默认浏览器打开
+        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+        startActivity(intent)
+    }
+}
 
 fun stableHash(input: String): Int {
     val digest = MessageDigest.getInstance("SHA-256")
