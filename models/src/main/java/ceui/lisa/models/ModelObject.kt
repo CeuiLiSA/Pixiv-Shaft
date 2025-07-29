@@ -25,4 +25,6 @@ object ObjectSpec {
     const val ARTICLE = 100
     const val GIF_INFO = 101
 
+    const val USER_TASK = 1001
+
 }

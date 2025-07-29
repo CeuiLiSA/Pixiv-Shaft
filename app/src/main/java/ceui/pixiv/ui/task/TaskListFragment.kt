@@ -3,10 +3,12 @@ package ceui.pixiv.ui.task
 import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Illust
 import ceui.loxia.KListShow
 import ceui.loxia.pushFragment
+import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
@@ -21,41 +23,26 @@ import timber.log.Timber
 
 class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPreviewActionReceiver {
 
-    private val prefStore by lazy { MMKV.mmkvWithID("user-tasks") }
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val viewModel by pixivListViewModel {
+    private val viewModel by pixivListViewModel({ AppDatabase.getAppDatabase(requireContext()) }) { database ->
         val maps = hashMapOf<String, List<Illust>>()
-        DataSource(
-            dataFetcher = {
-                val gson = Gson()
-                val humanReadableTasks = prefStore.allKeys()
-                    ?.mapNotNull { uuid ->
-                        val illusts = loadIllustsFromCache(uuid) ?: listOf()
-                        maps[uuid] = illusts
-                        prefStore.getString(uuid, "")?.let {
-                            try {
-                                val task = gson.fromJson(it, HumanReadableTask::class.java)
-                                Timber.d("task $task")
-                                task
-                            } catch (ex: Exception) {
-                                Timber.e(ex)
-                                null
-                            }
-                        }
-                    }
-                    ?: emptyList()
-
-                object : KListShow<HumanReadableTask> {
-                    override val displayList: List<HumanReadableTask>
-                        get() = humanReadableTasks.sortedByDescending { it.createdTime }
-                    override val nextPageUrl: String?
-                        get() = null
+        DataSource(dataFetcher = {
+            val entities = database.generalDao().getAllByRecordType(RecordType.USER_TASK)
+            val humanReadableTasks = entities.map { entity ->
+                entity.typedObject<HumanReadableTask>().also {
+                    maps[it.taskUUID] = loadIllustsFromCache(it.taskUUID) ?: listOf()
                 }
-            },
-            itemMapper = { task ->
-                listOf(TaskPreviewHolder(task, maps.getOrDefault(task.taskUUID, listOf())))
             }
-        )
+
+            object : KListShow<HumanReadableTask> {
+                override val displayList: List<HumanReadableTask>
+                    get() = humanReadableTasks
+                override val nextPageUrl: String?
+                    get() = null
+            }
+        }, itemMapper = { task ->
+            listOf(TaskPreviewHolder(task, maps.getOrDefault(task.taskUUID, listOf())))
+        })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -67,6 +54,8 @@ class TaskListFragment : PixivFragment(R.layout.fragment_pixiv_list), TaskPrevie
     }
 
     override fun onClickTaskPreview(humanReadableTask: HumanReadableTask) {
-        pushFragment(R.id.navigation_cache_list, CacheFileFragmentArgs(task = humanReadableTask).toBundle())
+        pushFragment(
+            R.id.navigation_cache_list, CacheFileFragmentArgs(task = humanReadableTask).toBundle()
+        )
     }
 }

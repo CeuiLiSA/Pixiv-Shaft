@@ -30,6 +30,12 @@ interface GeneralDao {
         limit: Int = 30
     ): List<GeneralEntity> // 根据 entityType 返回数据，按 updatedTime 降序排列，支持分页
 
+    // ✅ 查询指定 recordType 的所有数据，按 updatedTime 降序排列（不分页）
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC")
+    fun getAllByRecordType(
+        recordType: Int
+    ): List<GeneralEntity>
+
     // 根据 recordType 和 id 查询单条记录，若无匹配则返回 null
     @Query("SELECT * FROM general_table WHERE recordType = :recordType AND id = :id LIMIT 1")
     fun getByRecordTypeAndId(recordType: Int, id: Long): GeneralEntity?
