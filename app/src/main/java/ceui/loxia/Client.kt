@@ -63,7 +63,7 @@ class ClientManager {
 
         const val HEADER_AUTH = "authorization"
 
-        const val REQUIEST_TIME = 10L
+        const val REQUIEST_TIME = 5L
 
         const val TOKEN_ERROR_1 = "Error occurred at the OAuth process"
         const val TOKEN_ERROR_2 = "Invalid refresh token"

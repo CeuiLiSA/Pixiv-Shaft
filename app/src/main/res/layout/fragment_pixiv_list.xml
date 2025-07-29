@@ -110,22 +110,19 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <com.airbnb.lottie.LottieAnimationView
+            <ceui.loxia.ProgressImageButton
                 android:id="@+id/progress_circular"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                app:lottie_rawRes="@raw/renew_token_anim"
-                app:lottie_loop="true"/>
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center" />
 
-<!--            <com.google.android.material.progressindicator.CircularProgressIndicator-->
-<!--                android:id="@+id/progress_circular"-->
-<!--                android:layout_width="40dp"-->
-<!--                android:indeterminate="true"-->
-<!--                android:layout_height="40dp"-->
-<!--                app:trackCornerRadius="20dp"-->
-<!--                app:trackThickness="5dp"-->
-<!--                android:layout_gravity="center"-->
-<!--                app:indicatorColor="?attr/colorPrimary"/>-->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/now_loading"
+                android:textColor="@color/colorWhite80"
+                android:textSize="13sp" />
 
         </LinearLayout>
 
@@ -187,7 +184,6 @@
                 android:layout_width="wrap_content"
                 android:gravity="center"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:text="@string/string_48"
                 android:textColor="@color/text10" />
         </LinearLayout>

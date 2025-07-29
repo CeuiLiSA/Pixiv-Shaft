@@ -7,6 +7,8 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
+import ceui.loxia.RefreshHint
+import ceui.loxia.RefreshState
 import ceui.loxia.User
 import ceui.loxia.combineLatest
 import ceui.loxia.pushFragment
@@ -15,6 +17,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.CommonViewPagerFragmentArgs
 import ceui.pixiv.ui.common.ListMode
+import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.ViewPagerContentType
@@ -57,14 +60,23 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         combineLatest(
             liveUser,
             vm.historyCount,
-            vm.favoriteUserCount
-        ).observe(viewLifecycleOwner) { (user, historyCount, favoriteUserCount) ->
-            if (user == null || historyCount == null || favoriteUserCount == null) {
+            vm.favoriteUserCount,
+            viewModel.refreshState,
+        ).observe(viewLifecycleOwner) { (user, historyCount, favoriteUserCount, state) ->
+            if (user == null || historyCount == null || favoriteUserCount == null || state == null) {
+                return@observe
+            }
+
+            if (state is RefreshState.LOADING) {
                 return@observe
             }
 
             adapter.submitList(
-                listOf(
+                if (state !is RefreshState.LOADED) {
+                    listOf(LoadingHolder(viewModel.refreshState) { viewModel.refresh(RefreshHint.ErrorRetry) })
+                } else {
+                    listOf()
+                } + listOf(
                     MineHeaderHolder(liveUser).onItemClick {
                         pushFragment(
                             R.id.navigation_user,

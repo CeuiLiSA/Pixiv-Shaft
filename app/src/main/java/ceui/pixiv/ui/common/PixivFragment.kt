@@ -432,14 +432,20 @@ fun Fragment.setUpRefreshState(
     setUpToolbar(binding.toolbarLayout, binding.listView)
     setUpLayoutManager(binding.listView, listMode)
     val ctx = requireContext()
-    binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
-    binding.refreshLayout.setOnRefreshListener {
-        viewModel.refresh(RefreshHint.PullToRefresh)
-    }
+
+    binding.refreshLayout.setEnableRefresh(false)
+    binding.refreshLayout.setEnableLoadMore(false)
+
     viewModel.refreshState.observe(viewLifecycleOwner) { state ->
         if (state !is RefreshState.LOADING) {
             binding.refreshLayout.finishRefresh()
             binding.refreshLayout.finishLoadMore()
+
+            binding.refreshLayout.setEnableRefresh(true)
+            binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
+            binding.refreshLayout.setOnRefreshListener {
+                viewModel.refresh(RefreshHint.PullToRefresh)
+            }
         }
         binding.emptyLayout.isVisible = state is RefreshState.LOADED && !state.hasContent
         if (state is RefreshState.LOADED) {
@@ -466,9 +472,9 @@ fun Fragment.setUpRefreshState(
                 )
         binding.loadingLayout.isVisible = shouldShowLoading
         if (shouldShowLoading) {
-            binding.progressCircular.playAnimation()
+            binding.progressCircular.showProgress()
         } else {
-            binding.progressCircular.cancelAnimation()
+            binding.progressCircular.hideProgress()
         }
         binding.errorLayout.isVisible = state is RefreshState.ERROR
         binding.errorRetryButton.setOnClick {
