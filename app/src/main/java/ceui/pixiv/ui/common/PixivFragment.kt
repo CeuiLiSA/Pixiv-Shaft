@@ -77,13 +77,11 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 
@@ -383,13 +381,9 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     val listView = binding.listView
 
     adapter.addOnPagesUpdatedListener {
-        launchSuspend {
-            withContext(Dispatchers.IO) {
-                viewModel.recordType?.let { recordType ->
-                    val ids = database.generalDao().getAllIdsByRecordType(recordType)
-                    ArtworksMap.store[seed] = ids
-                }
-            }
+        viewModel.recordType?.let { recordType ->
+            val ids = database.generalDao().getAllIdsByRecordType(recordType)
+            ArtworksMap.store[seed] = ids
         }
     }
 
@@ -424,7 +418,7 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                 .distinctUntilChangedBy { it.refresh } // 只关心 REFRESH 状态变化
                 .filter { it.refresh is LoadState.NotLoading }
                 .collect {
-                    delay(50L)
+                    delay(30L)
                     if (view != null) {
                         val layoutManager = binding.listView.layoutManager
                         if (layoutManager is StaggeredGridLayoutManager) {
