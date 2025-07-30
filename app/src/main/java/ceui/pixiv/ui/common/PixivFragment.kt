@@ -377,9 +377,16 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     val database = AppDatabase.getAppDatabase(requireContext())
     val seed = fragmentViewModel.fragmentUniqueId
 
+    val listView = binding.listView
+
     adapter.addOnPagesUpdatedListener {
         launchSuspend {
             withContext(Dispatchers.IO) {
+                val layoutManager = listView.layoutManager
+                if (layoutManager is StaggeredGridLayoutManager) {
+                    layoutManager.invalidateSpanAssignments()
+                }
+
                 viewModel.recordType?.let { recordType ->
                     val ids = database.generalDao().getAllIdsByRecordType(recordType)
                     ArtworksMap.store[seed] = ids
