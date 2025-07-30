@@ -10,7 +10,7 @@ import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListItemHolder
 
 class HomeRecommendIllustRepository(private val objectType: String) :
-    PagingAPIRepository<Illust>() {
+    PagingMediatorRepository<Illust>() {
 
     override val recordType: Int
         get() {

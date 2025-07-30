@@ -5,11 +5,11 @@ import ceui.loxia.KListShow
 import ceui.loxia.Novel
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
-import ceui.pixiv.paging.PagingAPIRepository
+import ceui.pixiv.paging.PagingMediatorRepository
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.NovelCardHolder
 
-class HomeRecmdNovelRepository : PagingAPIRepository<Novel>() {
+class HomeRecmdNovelRepository : PagingMediatorRepository<Novel>() {
     override val recordType: Int
         get() = RecordType.PAGING_DATA_HOME_DISCOVER_RECOMMEND_NOVEL
 

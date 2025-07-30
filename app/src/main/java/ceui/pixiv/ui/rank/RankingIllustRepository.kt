@@ -7,14 +7,14 @@ import ceui.loxia.KListShow
 import ceui.loxia.stableHash
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
-import ceui.pixiv.paging.PagingAPIRepository
+import ceui.pixiv.paging.PagingMediatorRepository
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListItemHolder
 
 class RankingIllustRepository(
     private val mode: String,
     private val rankDay: LiveData<String?>,
-) : PagingAPIRepository<Illust>() {
+) : PagingMediatorRepository<Illust>() {
     override val recordType: Int
         get() = RecordType.PAGING_DATA_ILLUST_RANKING + stableHash(mode)
 

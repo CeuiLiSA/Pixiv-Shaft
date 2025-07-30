@@ -25,6 +25,9 @@ object RecordType {
     const val PAGING_DATA_BOOKMARKED_ILLUST_PUBLIC = 108
     const val PAGING_DATA_BOOKMARKED_ILLUST_PRIVATE = 109
 
+
+    const val PAGING_DATA_ARTICLE_ALL = 110
+
     const val PAGING_DATA_ILLUST_RANKING = 10000
 
 

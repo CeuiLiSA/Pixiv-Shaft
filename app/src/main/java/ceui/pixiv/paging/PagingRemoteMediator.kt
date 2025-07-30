@@ -11,12 +11,11 @@ import ceui.lisa.models.ModelObject
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RemoteKey
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 @OptIn(ExperimentalPagingApi::class)
 class PagingRemoteMediator<ObjectT : ModelObject>(
     private val db: AppDatabase,
-    private val repository: PagingAPIRepository<ObjectT>,
+    private val repository: PagingMediatorRepository<ObjectT>,
     private val recordType: Int,
 ) : RemoteMediator<Int, GeneralEntity>() {
 

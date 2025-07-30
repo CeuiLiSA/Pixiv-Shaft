@@ -380,8 +380,10 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     adapter.addOnPagesUpdatedListener {
         launchSuspend {
             withContext(Dispatchers.IO) {
-                val ids = database.generalDao().getAllIdsByRecordType(viewModel.recordType)
-                ArtworksMap.store[seed] = ids
+                viewModel.recordType?.let { recordType ->
+                    val ids = database.generalDao().getAllIdsByRecordType(recordType)
+                    ArtworksMap.store[seed] = ids
+                }
             }
         }
     }

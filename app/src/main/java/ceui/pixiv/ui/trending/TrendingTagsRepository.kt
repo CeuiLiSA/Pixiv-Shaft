@@ -6,10 +6,11 @@ import ceui.loxia.ObjectType
 import ceui.loxia.TrendingTag
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
-import ceui.pixiv.paging.PagingAPIRepository
+import ceui.pixiv.paging.PagingMediatorRepository
 import ceui.pixiv.ui.common.ListItemHolder
 
-class TrendingTagsRepository(private val objectType: String) : PagingAPIRepository<TrendingTag>() {
+class TrendingTagsRepository(private val objectType: String) :
+    PagingMediatorRepository<TrendingTag>() {
     override val recordType: Int
         get() {
             return if (objectType == ObjectType.ILLUST) {

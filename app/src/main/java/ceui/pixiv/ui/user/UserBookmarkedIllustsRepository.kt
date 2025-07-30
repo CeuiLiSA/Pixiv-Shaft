@@ -6,12 +6,12 @@ import ceui.loxia.Illust
 import ceui.loxia.KListShow
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
-import ceui.pixiv.paging.PagingAPIRepository
+import ceui.pixiv.paging.PagingMediatorRepository
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListItemHolder
 
 class UserBookmarkedIllustsRepository(private val args: UserBookmarkedIllustsFragmentArgs) :
-    PagingAPIRepository<Illust>() {
+    PagingMediatorRepository<Illust>() {
     override val recordType: Int
         get() {
             return if (args.restrictType == Params.TYPE_PUBLIC) {

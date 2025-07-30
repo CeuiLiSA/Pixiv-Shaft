@@ -5,11 +5,11 @@ import ceui.loxia.KListShow
 import ceui.loxia.UserPreview
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
-import ceui.pixiv.paging.PagingAPIRepository
+import ceui.pixiv.paging.PagingMediatorRepository
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.user.UserPreviewHolder
 
-class RecommendUsersRepository : PagingAPIRepository<UserPreview>() {
+class RecommendUsersRepository : PagingMediatorRepository<UserPreview>() {
     override val recordType: Int
         get() = RecordType.PAGING_DATA_HOME_RECMMEND_USER
 

@@ -2,16 +2,15 @@ package ceui.pixiv.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import ceui.pixiv.db.GeneralEntity
 
 
-class NoOpPagingSource : PagingSource<String, GeneralEntity>() {
+class NoOpPagingSource<ObjectT : Any> : PagingSource<String, ObjectT>() {
 
-    override fun getRefreshKey(state: PagingState<String, GeneralEntity>): String? {
+    override fun getRefreshKey(state: PagingState<String, ObjectT>): String? {
         return null
     }
 
-    override suspend fun load(params: LoadParams<String>): LoadResult<String, GeneralEntity> {
+    override suspend fun load(params: LoadParams<String>): LoadResult<String, ObjectT> {
         return LoadResult.Error(RuntimeException("Hello world"))
     }
 }
