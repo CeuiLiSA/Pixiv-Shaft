@@ -78,6 +78,7 @@ import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
@@ -423,12 +424,15 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                 .distinctUntilChangedBy { it.refresh } // 只关心 REFRESH 状态变化
                 .filter { it.refresh is LoadState.NotLoading }
                 .collect {
-                    val layoutManager = binding.listView.layoutManager
-                    if (layoutManager is StaggeredGridLayoutManager) {
-                        layoutManager.invalidateSpanAssignments()
-                        layoutManager.scrollToPositionWithOffset(0, 0)
-                    } else {
-                        listView.scrollToPosition(0)
+                    delay(50L)
+                    if (view != null) {
+                        val layoutManager = binding.listView.layoutManager
+                        if (layoutManager is StaggeredGridLayoutManager) {
+                            layoutManager.invalidateSpanAssignments()
+                            layoutManager.scrollToPositionWithOffset(0, 0)
+                        } else {
+                            listView.scrollToPosition(0)
+                        }
                     }
                 }
         }
