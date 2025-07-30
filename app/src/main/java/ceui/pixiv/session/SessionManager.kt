@@ -14,11 +14,16 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.isJson
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -31,6 +36,9 @@ object SessionManager {
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
     private val gson = Gson()
+
+    private val tokenRefreshMutex = Mutex()
+    private var refreshingTokenJob: Deferred<String?>? = null
 
     val loggedInAccount: LiveData<AccountResponse> = _loggedInAccount
 
@@ -107,17 +115,34 @@ object SessionManager {
     fun refreshAccessToken(tokenForThisRequest: String): String? {
         val freshAccessToken = getAccessToken()
         if (!TextUtils.equals(freshAccessToken, tokenForThisRequest)) {
+            Timber.d("sdaasdasdasdw2 用了刚拉下来的 aa ${freshAccessToken}")
             return freshAccessToken
         }
 
         return runBlocking(Dispatchers.IO) {
-            try {
-                val refreshToken = _loggedInAccount.value?.refresh_token
-                    ?: throw RuntimeException("refresh_token not exist")
-                refreshAccessTokenInternal(refreshToken)
-            } catch (ex: Exception) {
-                Timber.e(ex)
-                null
+            tokenRefreshMutex.withLock {
+                // double-check pattern, in case token was already refreshed
+                val currentToken = getAccessToken()
+                if (!TextUtils.equals(currentToken, tokenForThisRequest)) {
+                    Timber.d("sdaasdasdasdw2 用了刚拉下来的 bb ${currentToken}")
+                    return@withLock currentToken
+                }
+
+                if (refreshingTokenJob == null || refreshingTokenJob?.isCompleted == true) {
+                    refreshingTokenJob = CoroutineScope(Dispatchers.IO).async {
+                        try {
+                            val refreshToken = _loggedInAccount.value?.refresh_token
+                                ?: throw RuntimeException("refresh_token not exist")
+                            refreshAccessTokenInternal(refreshToken)
+                        } catch (ex: Exception) {
+                            Timber.e(ex)
+                            null
+                        }
+                    }
+                }
+
+                // wait for refresh to complete
+                refreshingTokenJob?.await()
             }
         }
     }
@@ -131,11 +156,12 @@ object SessionManager {
             refreshToken,
             true
         ).execute().body()
-        delay(500L)
+        delay(200L)
         return if (accountResponse != null) {
             withContext(Dispatchers.Main) {
                 updateSessionWithAccountResponse(accountResponse)
             }
+            Timber.d("sdaasdasdasdw2 真的去拉了一次token ${accountResponse.access_token}")
             accountResponse.access_token
         } else {
             throw RuntimeException("newRefreshToken failed")

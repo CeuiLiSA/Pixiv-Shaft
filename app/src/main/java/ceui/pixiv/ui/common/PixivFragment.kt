@@ -79,6 +79,8 @@ import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -382,11 +384,6 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     adapter.addOnPagesUpdatedListener {
         launchSuspend {
             withContext(Dispatchers.IO) {
-                val layoutManager = listView.layoutManager
-                if (layoutManager is StaggeredGridLayoutManager) {
-                    layoutManager.invalidateSpanAssignments()
-                }
-
                 viewModel.recordType?.let { recordType ->
                     val ids = database.generalDao().getAllIdsByRecordType(recordType)
                     ArtworksMap.store[seed] = ids
@@ -416,8 +413,24 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
             adapter.loadStateFlow.collectLatest { loadStates ->
                 binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
                 binding.errorLayout.isVisible = loadStates.refresh is LoadState.Error
-                Timber.d("dsadsdsadasaw2 ${loadStates}")
             }
+        }
+    }
+
+    viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            adapter.loadStateFlow
+                .distinctUntilChangedBy { it.refresh } // 只关心 REFRESH 状态变化
+                .filter { it.refresh is LoadState.NotLoading }
+                .collect {
+                    val layoutManager = binding.listView.layoutManager
+                    if (layoutManager is StaggeredGridLayoutManager) {
+                        layoutManager.invalidateSpanAssignments()
+                        layoutManager.scrollToPositionWithOffset(0, 0)
+                    } else {
+                        listView.scrollToPosition(0)
+                    }
+                }
         }
     }
 
