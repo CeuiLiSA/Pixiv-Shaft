@@ -3,19 +3,18 @@ package ceui.pixiv.ui.task
 import android.os.Parcelable
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
+import ceui.lisa.models.ModelObject
+import ceui.lisa.models.ObjectSpec
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.KListShow
-import ceui.lisa.R
-import ceui.lisa.database.AppDatabase
-import ceui.lisa.models.ObjectSpec
 import ceui.loxia.Novel
-import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
-import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.findCurrentFragmentOrNull
 import ceui.pixiv.ui.common.getFileSize
 import ceui.pixiv.utils.TokenGenerator
@@ -23,7 +22,6 @@ import com.blankj.utilcode.util.PathUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.hjq.toast.ToastUtils
-import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -36,7 +34,6 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
-import java.util.UUID
 
 object PixivTaskType {
     const val DownloadAll = 1
@@ -50,7 +47,12 @@ data class HumanReadableTask(
     val taskFullName: String,
     val taskType: Int,
     val createdTime: Long,
-) : Parcelable
+) : ModelObject, Parcelable {
+    override val objectUniqueId: Long
+        get() = taskUUID.hashCode().toLong()
+    override val objectType: Int
+        get() = ObjectSpec.HUMAN_READABLE_TASK
+}
 
 open class FetchAllTask<Item, ResponseT : KListShow<Item>>(
     private val activity: FragmentActivity,

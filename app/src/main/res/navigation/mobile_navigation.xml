@@ -401,12 +401,6 @@
 
 
     <fragment
-        android:id="@+id/navigation_task_status"
-        android:name="ceui.pixiv.ui.task.TaskStatusFragment">
-
-    </fragment>
-
-    <fragment
         android:id="@+id/navigation_notification"
         android:name="ceui.pixiv.ui.notification.NotificationsFragment">
         <argument

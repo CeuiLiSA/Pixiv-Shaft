@@ -4,29 +4,37 @@ import android.os.Bundle
 import android.view.View
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.databinding.FragmentPagedListBinding
 import ceui.loxia.Client
-import ceui.pixiv.ui.common.DataSource
+import ceui.loxia.KListShow
+import ceui.loxia.UserPreview
+import ceui.pixiv.paging.PagingAPIRepository
+import ceui.pixiv.paging.pagingViewModel
+import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.setUpRefreshState
-import ceui.pixiv.ui.list.pixivListViewModel
+import ceui.pixiv.ui.common.setUpPagedList
 import ceui.pixiv.ui.common.viewBinding
 
-class UserFansFragment : PixivFragment(R.layout.fragment_pixiv_list) {
+class UserFansFragment : PixivFragment(R.layout.fragment_paged_list) {
 
-    private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val args by navArgs<UserFansFragmentArgs>()
-    private val viewModel by pixivListViewModel {
-        DataSource(
-            dataFetcher = { Client.appApi.getUserFans(args.userId) },
-            itemMapper = { preview -> listOf(UserPreviewHolder(preview)) }
-        )
+    private val binding by viewBinding(FragmentPagedListBinding::bind)
+    private val safeArgs by navArgs<UserFansFragmentArgs>()
+    private val viewModel by pagingViewModel({ safeArgs.userId }) { userId ->
+        object : PagingAPIRepository<UserPreview>() {
+            override suspend fun loadFirst(): KListShow<UserPreview> {
+                return Client.appApi.getUserFans(userId)
+            }
+
+            override fun mapper(entity: UserPreview): List<ListItemHolder> {
+                return listOf(UserPreviewHolder(entity))
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
+        setUpPagedList(binding, viewModel, ListMode.VERTICAL)
         binding.toolbarLayout.naviTitle.text = getString(R.string.string_322)
     }
 }

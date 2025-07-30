@@ -100,7 +100,7 @@ class PagingViewModel<ObjectT : ModelObject>(
 
 
 inline fun <ObjectT : ModelObject> Fragment.pagingViewModel(
-    noinline repositoryProducer: () -> PagingMediatorRepository<ObjectT>,
+    noinline repositoryProducer: () -> PagingRepository<ObjectT>,
 ): Lazy<PagingViewModel<ObjectT>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {
@@ -117,7 +117,7 @@ inline fun <ObjectT : ModelObject> Fragment.pagingViewModel(
 
 inline fun <ArgsT, ObjectT : ModelObject> Fragment.pagingViewModel(
     noinline argsProducer: () -> ArgsT,
-    noinline repositoryProducer: (ArgsT) -> PagingMediatorRepository<ObjectT>,
+    noinline repositoryProducer: (ArgsT) -> PagingRepository<ObjectT>,
 ): Lazy<PagingViewModel<ObjectT>> {
     return this.viewModels {
         object : ViewModelProvider.Factory {

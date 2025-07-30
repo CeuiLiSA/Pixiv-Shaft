@@ -10,7 +10,6 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.ModelObject
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RemoteKey
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalPagingApi::class)
 class PagingRemoteMediator<ObjectT : ModelObject>(
@@ -40,7 +39,6 @@ class PagingRemoteMediator<ObjectT : ModelObject>(
             }
 
             if (shouldSkipNetwork) {
-                delay(800L)
                 return MediatorResult.Success(endOfPaginationReached = false)
             }
 

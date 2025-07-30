@@ -7,29 +7,25 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.databinding.FragmentPagedListBinding
+import ceui.pixiv.paging.pagingViewModel
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.findCurrentFragmentOrNull
-import ceui.pixiv.ui.common.setUpRefreshState
-import ceui.pixiv.ui.list.pixivListViewModel
-import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.setUpPagedList
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.works.buildPixivWorksFileName
-import ceui.pixiv.utils.animateWiggle
+import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
 import com.blankj.utilcode.util.Utils
-import com.google.gson.Gson
-import com.tencent.mmkv.MMKV
 import timber.log.Timber
 import java.io.File
 
-class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
+class CacheFileFragment : PixivFragment(R.layout.fragment_paged_list) {
 
-    private val binding by viewBinding(FragmentPixivListBinding::bind)
+    private val binding by viewBinding(FragmentPagedListBinding::bind)
     private val args by navArgs<CacheFileFragmentArgs>()
-    private val viewModel by pixivListViewModel({
+    private val viewModel by pagingViewModel({
         Pair(
             requireActivity(),
             args.task
@@ -45,7 +41,7 @@ class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
+        setUpPagedList(binding, viewModel, ListMode.VERTICAL)
         binding.toolbarLayout.naviTitle.text = args.task.taskFullName
         binding.toolbarLayout.naviMore.setOnClick {
             showActionMenu {
@@ -80,7 +76,8 @@ class CacheFileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         }
                     }
 
-                    val cacheDir = File(Utils.getApp().externalCacheDir, "images").apply { mkdirs() }
+                    val cacheDir =
+                        File(Utils.getApp().externalCacheDir, "images").apply { mkdirs() }
                     val txtFile = File(cacheDir, "pixiv_download_links_${args.task.taskUUID}.txt")
                     txtFile.writeText(text)
 

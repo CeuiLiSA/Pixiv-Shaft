@@ -507,7 +507,12 @@ data class Notification(
     val view_more: ViewMore? = null,
     val target_url: String? = null,
     val is_read: Boolean? = null
-) : Serializable
+) : ModelObject, Serializable {
+    override val objectUniqueId: Long
+        get() = id
+    override val objectType: Int
+        get() = ObjectSpec.NOTIFICATION
+}
 
 data class NotificationContent(
     val text: String? = null,

@@ -4,29 +4,37 @@ import android.os.Bundle
 import android.view.View
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.databinding.FragmentPagedListBinding
 import ceui.loxia.Client
-import ceui.pixiv.ui.common.DataSource
+import ceui.loxia.Illust
+import ceui.loxia.KListShow
+import ceui.pixiv.paging.PagingAPIRepository
+import ceui.pixiv.paging.pagingViewModel
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.PixivFragment
-import ceui.pixiv.ui.common.setUpRefreshState
+import ceui.pixiv.ui.common.setUpPagedList
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.list.pixivListViewModel
 
-class LatestIllustMangaFragment : PixivFragment(R.layout.fragment_pixiv_list) {
+class LatestIllustMangaFragment : PixivFragment(R.layout.fragment_paged_list) {
 
-    private val binding by viewBinding(FragmentPixivListBinding::bind)
+    private val binding by viewBinding(FragmentPagedListBinding::bind)
     private val safeArgs by navArgs<LatestIllustMangaFragmentArgs>()
-    private val viewModel by pixivListViewModel({ safeArgs }) { args ->
-        DataSource(
-            dataFetcher = { Client.appApi.getLatestIllustManga(args.objectType) },
-            itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
-        )
+    private val viewModel by pagingViewModel({ safeArgs.objectType }) { objectType ->
+        object : PagingAPIRepository<Illust>() {
+            override suspend fun loadFirst(): KListShow<Illust> {
+                return Client.appApi.getLatestIllustManga(objectType)
+            }
+
+            override fun mapper(entity: Illust): List<ListItemHolder> {
+                return listOf(IllustCardHolder(entity))
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel)
+        setUpPagedList(binding, viewModel)
     }
 }
 

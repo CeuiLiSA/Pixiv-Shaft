@@ -2,16 +2,21 @@ package ceui.pixiv.ui.search
 
 import ceui.loxia.Client
 import ceui.loxia.Illust
-import ceui.loxia.IllustResponse
-import ceui.pixiv.ui.common.DataSource
+import ceui.loxia.KListShow
+import ceui.pixiv.paging.PagingAPIRepository
 import ceui.pixiv.ui.common.IllustCardHolder
+import ceui.pixiv.ui.common.ListItemHolder
 
 class SearchIllustMangaDataSource(
     private val provider: () -> SearchConfig
-) : DataSource<Illust, IllustResponse>(
-    dataFetcher = {
+) : PagingAPIRepository<Illust>() {
+//    override fun initialLoad(): Boolean {
+//        return provider().keyword.isNotEmpty()
+//    }
+
+    override suspend fun loadFirst(): KListShow<Illust> {
         val config = provider()
-        if (config.sort == SortType.POPULAR_PREVIEW) {
+        return if (config.sort == SortType.POPULAR_PREVIEW) {
             Client.appApi.popularPreview(
                 word = config.keyword,
                 sort = config.sort,
@@ -33,10 +38,9 @@ class SearchIllustMangaDataSource(
                 include_translated_tag_results = config.include_translated_tag_results,
             )
         }
-    },
-    itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
-) {
-    override fun initialLoad(): Boolean {
-        return provider().keyword.isNotEmpty()
+    }
+
+    override fun mapper(entity: Illust): List<ListItemHolder> {
+        return listOf(IllustCardHolder(entity))
     }
 }
