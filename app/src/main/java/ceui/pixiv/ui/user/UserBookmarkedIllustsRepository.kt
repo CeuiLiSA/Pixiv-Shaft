@@ -4,6 +4,7 @@ import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.KListShow
+import ceui.loxia.stableHash
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.paging.PagingMediatorRepository
@@ -15,9 +16,9 @@ class UserBookmarkedIllustsRepository(private val args: UserBookmarkedIllustsFra
     override val recordType: Int
         get() {
             return if (args.restrictType == Params.TYPE_PUBLIC) {
-                RecordType.PAGING_DATA_BOOKMARKED_ILLUST_PUBLIC
+                RecordType.PAGING_DATA_BOOKMARKED_ILLUST_PUBLIC + stableHash(args.userId.toString())
             } else {
-                RecordType.PAGING_DATA_BOOKMARKED_ILLUST_PRIVATE
+                RecordType.PAGING_DATA_BOOKMARKED_ILLUST_PRIVATE + stableHash(args.userId.toString())
             }
         }
 
