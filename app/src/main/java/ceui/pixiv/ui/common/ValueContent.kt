@@ -9,6 +9,7 @@ import ceui.pixiv.ui.common.repo.LoadResult
 import ceui.pixiv.ui.common.repo.Repository
 import ceui.pixiv.ui.common.repo.ResponseStoreRepository
 import ceui.pixiv.utils.TokenGenerator
+import ceui.pixiv.utils.VpnNotActiveException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -107,10 +108,7 @@ open class ValueContent<ValueT>(
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
                 delay(400L)
-                _refreshState.value = RefreshState.LOADED(
-                    hasContent = true,
-                    hasNext = false
-                )
+                throw VpnNotActiveException()
             } catch (ex: Exception) {
                 _refreshState.value = RefreshState.ERROR(ex)
                 Timber.e(ex)

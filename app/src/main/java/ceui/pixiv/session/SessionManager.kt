@@ -115,7 +115,6 @@ object SessionManager {
     fun refreshAccessToken(tokenForThisRequest: String): String? {
         val freshAccessToken = getAccessToken()
         if (!TextUtils.equals(freshAccessToken, tokenForThisRequest)) {
-            Timber.d("sdaasdasdasdw2 用了刚拉下来的 aa ${freshAccessToken}")
             return freshAccessToken
         }
 
@@ -124,7 +123,6 @@ object SessionManager {
                 // double-check pattern, in case token was already refreshed
                 val currentToken = getAccessToken()
                 if (!TextUtils.equals(currentToken, tokenForThisRequest)) {
-                    Timber.d("sdaasdasdasdw2 用了刚拉下来的 bb ${currentToken}")
                     return@withLock currentToken
                 }
 
@@ -161,7 +159,6 @@ object SessionManager {
             withContext(Dispatchers.Main) {
                 updateSessionWithAccountResponse(accountResponse)
             }
-            Timber.d("sdaasdasdasdw2 真的去拉了一次token ${accountResponse.access_token}")
             accountResponse.access_token
         } else {
             throw RuntimeException("newRefreshToken failed")
