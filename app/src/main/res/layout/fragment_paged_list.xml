@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout">
+        app:layout_constraintTop_toBottomOf="@+id/top_layout">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list_view"
@@ -35,8 +35,8 @@
             android:id="@+id/empty_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="50dp"
             android:layout_gravity="center"
+            android:layout_marginHorizontal="50dp"
             android:gravity="center"
             android:orientation="vertical"
             android:visibility="gone">
@@ -60,8 +60,8 @@
             android:id="@+id/error_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="50dp"
             android:layout_gravity="center"
+            android:layout_marginHorizontal="50dp"
             android:gravity="center"
             android:orientation="vertical"
             android:visibility="gone">
@@ -85,20 +85,20 @@
 
             <ceui.loxia.ProgressTextButton
                 android:id="@+id/open_vpn"
-                android:visibility="gone"
                 style="@style/GreenShiningButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
                 android:layout_gravity="center"
                 android:paddingHorizontal="12dp"
                 android:text="打开VPN"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"/>
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/error_text"
                 android:layout_width="wrap_content"
-                android:gravity="center"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:gravity="center"
                 android:text="@string/string_48"
                 android:textColor="@color/text10" />
         </LinearLayout>
@@ -113,8 +113,22 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-    <include
-        android:id="@+id/toolbar_layout"
-        layout="@layout/layout_toolbar" />
+    <LinearLayout
+        android:id="@+id/top_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <include
+            android:id="@+id/toolbar_layout"
+            layout="@layout/layout_toolbar" />
+
+        <FrameLayout
+            android:id="@+id/list_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
