@@ -4,7 +4,7 @@ import ceui.loxia.KListShow
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import kotlinx.coroutines.CoroutineScope
 
-class KListShowValueContent<ValueT: KListShow<*>>(
+class KListShowValueContent<ValueT : KListShow<*>>(
     coroutineScope: CoroutineScope,
     dataFetcher: suspend () -> ValueT,
 ) : ValueContent<ValueT>(coroutineScope, RemoteRepository(dataFetcher)) {

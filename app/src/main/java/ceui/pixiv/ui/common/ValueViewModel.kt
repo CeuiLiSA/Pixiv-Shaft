@@ -1,13 +1,12 @@
 package ceui.pixiv.ui.common
 
 import androidx.activity.ComponentActivity
-import androidx.activity.viewModels
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
@@ -16,13 +15,10 @@ import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.keyedViewModels
+import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.repo.LoadResult
-import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.common.repo.Repository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import ceui.pixiv.utils.NetworkStateManager
 import timber.log.Timber
 import kotlin.reflect.KClass
 
@@ -32,8 +28,9 @@ fun <T> Fragment.pixivValueViewModel(
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val networkStateManager = requireNetworkStateManager()
                 val repository = repositoryProducer()
-                return ValueViewModel(repository) as T
+                return ValueViewModel(networkStateManager, repository) as T
             }
         }
     }
@@ -46,9 +43,10 @@ inline fun <ArgsT, T> Fragment.pixivValueViewModel(
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val networkStateManager = requireNetworkStateManager()
                 val args = argsProducer()
                 val repository = repositoryProducer(args)
-                return ValueViewModel(repository) as T
+                return ValueViewModel(networkStateManager, repository) as T
             }
         }
     }
@@ -61,8 +59,9 @@ inline fun <T> Fragment.pixivValueViewModel(
     return this.viewModels(ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val networkStateManager = requireNetworkStateManager()
                 val repository = repositoryProducer()
-                return ValueViewModel(repository) as T
+                return ValueViewModel(networkStateManager, repository) as T
             }
         }
     }
@@ -76,21 +75,23 @@ inline fun <T> Fragment.pixivKeyedValueViewModel(
     return this.keyedViewModels(keyPrefixProvider = { keyPrefix }, ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val networkStateManager = requireNetworkStateManager()
                 val repository = repositoryProducer()
-                return ValueViewModel(repository) as T
+                return ValueViewModel(networkStateManager, repository) as T
             }
         }
     }
 }
 
-inline fun <T> ComponentActivity.pixivValueViewModel(
+inline fun <T> FragmentActivity.pixivValueViewModel(
     noinline repositoryProducer: () -> Repository<T>,
 ): Lazy<ValueViewModel<T>> {
     return viewModels(keyPrefixProvider = { "aaa" }) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val networkStateManager = requireNetworkStateManager()
                 val repository = repositoryProducer()
-                return ValueViewModel(repository) as T
+                return ValueViewModel(networkStateManager, repository) as T
             }
         }
     }
@@ -114,12 +115,13 @@ fun <VM : ViewModel> ComponentActivity.createKeyedViewModelLazy(
 inline fun <reified VM : ViewModel> ComponentActivity.viewModels(
     noinline keyPrefixProvider: () -> String,
     noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
-) = createKeyedViewModelLazy(keyPrefixProvider, VM::class, { this.viewModelStore },
+) = createKeyedViewModelLazy(
+    keyPrefixProvider, VM::class, { this.viewModelStore },
     factoryProducer ?: { this.defaultViewModelProviderFactory })
 
 
-
 class ValueViewModel<T>(
+    networkStateManager: NetworkStateManager,
     repository: Repository<T>,
 ) : ViewModel(), RefreshOwner {
 
@@ -130,11 +132,29 @@ class ValueViewModel<T>(
 
     val result: LiveData<LoadResult<T>> get() = valueContent.result
 
+    private val canAccessGoogle: LiveData<Boolean> = networkStateManager.canAccessGoogle
+
+    private val networkObserver = Observer<Boolean> { canAccess ->
+        Timber.d("ValueContent refreshInternal from observer")
+        refreshInternal(canAccess)
+    }
+
     init {
-        refresh(RefreshHint.InitialLoad)
+        canAccessGoogle.observeForever(networkObserver)
     }
 
     override fun refresh(hint: RefreshHint) {
-        valueContent.refresh(hint)
+        Timber.d("ValueContent refreshInternal from manual refresh")
+        refreshInternal(canAccessGoogle.value == true)
+    }
+
+    private fun refreshInternal(canAccessGoogle: Boolean) {
+        if (canAccessGoogle) {
+            valueContent.refresh(RefreshHint.NetworkChanged)
+            Timber.d("ValueContent auto-refresh triggered by InitialLoad")
+        } else {
+            valueContent.noneOpRefresh(RefreshHint.NetworkChanged)
+            Timber.d("ValueContent auto-refresh dont invoke ")
+        }
     }
 }

@@ -486,10 +486,7 @@ fun Fragment.setUpRefreshState(
             binding.refreshLayout.setEnableLoadMore(false)
         }
         binding.cacheApplying.isVisible = state is RefreshState.FETCHING_LATEST
-        val shouldShowLoading = state is RefreshState.LOADING && (
-                state.refreshHint == RefreshHint.InitialLoad ||
-                        state.refreshHint == RefreshHint.ErrorRetry
-                )
+        val shouldShowLoading = state is RefreshState.LOADING
         binding.loadingLayout.isVisible = shouldShowLoading
         if (shouldShowLoading) {
             binding.progressCircular.showProgress()

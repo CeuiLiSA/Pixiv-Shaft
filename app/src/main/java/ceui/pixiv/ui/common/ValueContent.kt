@@ -32,13 +32,13 @@ open class ValueContent<ValueT>(
 
     override fun refresh(hint: RefreshHint) {
         if (!_taskMutex.tryLock()) {
-            Timber.e("ValueContent refresh tryLock returned")
+            Timber.e("ValueContent refresh tryLock returned: ${hint}")
             return // 如果当前已有刷新任务在执行，则直接返回
         }
 
         val requestToken = TokenGenerator.generateToken()
 
-        Timber.e("ValueContent refresh tryLock passed: ${requestToken}")
+        Timber.e("ValueContent refresh tryLock passed: hint: ${hint}, token: ${requestToken}")
         coroutineScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
@@ -92,5 +92,31 @@ open class ValueContent<ValueT>(
 
     open fun hasContent(valueT: ValueT): Boolean {
         return true
+    }
+
+    fun noneOpRefresh(hint: RefreshHint) {
+        if (!_taskMutex.tryLock()) {
+            Timber.e("ValueContent noneOpRefresh tryLock returned: ${hint}")
+            return // 如果当前已有刷新任务在执行，则直接返回
+        }
+
+        val requestToken = TokenGenerator.generateToken()
+
+        Timber.e("ValueContent noneOpRefresh tryLock passed: hint: ${hint}, token: ${requestToken}")
+        coroutineScope.launch {
+            try {
+                _refreshState.value = RefreshState.LOADING(refreshHint = hint)
+                delay(400L)
+                _refreshState.value = RefreshState.LOADED(
+                    hasContent = true,
+                    hasNext = false
+                )
+            } catch (ex: Exception) {
+                _refreshState.value = RefreshState.ERROR(ex)
+                Timber.e(ex)
+            } finally {
+                _taskMutex.unlock() // 释放锁
+            }
+        }
     }
 }

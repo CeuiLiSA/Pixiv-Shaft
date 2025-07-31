@@ -24,6 +24,7 @@ import ceui.loxia.RefreshState
 import ceui.loxia.combineLatest
 import ceui.loxia.pushFragment
 import ceui.loxia.requireEntityWrapper
+import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
@@ -45,9 +46,9 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
 
     private val safeArgs by navArgs<UserFragmentArgs>()
     private val binding by viewBinding(FragmentUserBinding::bind)
-    private val viewModel by constructVM({ safeArgs.userId }) { userId ->
+    private val viewModel by constructVM({ safeArgs.userId to requireNetworkStateManager() }) { (userId, networkStateManager) ->
         Timber.d("userId-${userId}")
-        UserViewModel(userId)
+        UserViewModel(userId, networkStateManager)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
