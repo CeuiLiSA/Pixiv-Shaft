@@ -378,7 +378,7 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     val database = AppDatabase.getAppDatabase(requireContext())
     val seed = fragmentViewModel.fragmentUniqueId
 
-    val listView = binding.listView
+    binding.listView
 
     adapter.addOnPagesUpdatedListener {
         viewModel.recordType?.let { recordType ->
@@ -423,9 +423,9 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                         val layoutManager = binding.listView.layoutManager
                         if (layoutManager is StaggeredGridLayoutManager) {
                             layoutManager.invalidateSpanAssignments()
-                            layoutManager.scrollToPositionWithOffset(0, 0)
+//                            layoutManager.scrollToPositionWithOffset(0, 0)
                         } else {
-                            listView.scrollToPosition(0)
+//                            listView.scrollToPosition(0)
                         }
                     }
                 }

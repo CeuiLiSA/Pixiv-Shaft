@@ -9,8 +9,10 @@ import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPagedListBinding
 import ceui.lisa.databinding.ItemRadioButtonsBinding
+import ceui.loxia.Client
 import ceui.loxia.ObjectType
 import ceui.loxia.observeEvent
+import ceui.pixiv.paging.PagingIllustAPIRepository
 import ceui.pixiv.paging.pagingViewModel
 import ceui.pixiv.ui.bottom.UsersYoriDialogFragment
 import ceui.pixiv.ui.common.PixivFragment
@@ -31,9 +33,31 @@ class SearchIlllustMangaFragment : PixivFragment(R.layout.fragment_paged_list) {
             dialogViewModel
         )
     }) { (vm, dialogVM) ->
-        SearchIllustMangaDataSource {
+        PagingIllustAPIRepository {
             val count = dialogVM.chosenUsersYoriCount.value
-            vm.buildSearchConfig(count, ObjectType.ILLUST)
+            val config = vm.buildSearchConfig(count, ObjectType.ILLUST)
+            if (config.sort == SortType.POPULAR_PREVIEW) {
+                Client.appApi.popularPreview(
+                    word = config.keyword,
+                    sort = config.sort,
+                    search_target = config.search_target,
+                    merge_plain_keyword_results = config.merge_plain_keyword_results,
+                    include_translated_tag_results = config.include_translated_tag_results,
+                )
+            } else {
+                val word = if (config.usersYori.isNotEmpty()) {
+                    config.keyword + " " + config.usersYori
+                } else {
+                    config.keyword
+                }
+                Client.appApi.searchIllustManga(
+                    word = word,
+                    sort = config.sort,
+                    search_target = config.search_target,
+                    merge_plain_keyword_results = config.merge_plain_keyword_results,
+                    include_translated_tag_results = config.include_translated_tag_results,
+                )
+            }
         }
     }
 

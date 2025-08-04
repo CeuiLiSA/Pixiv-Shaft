@@ -14,15 +14,12 @@ import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Illust
-import ceui.loxia.KListShow
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
-import ceui.loxia.UserPreview
 import ceui.loxia.UserResponse
-import ceui.pixiv.paging.PagingAPIRepository
+import ceui.pixiv.paging.PagingUserAPIRepository
 import ceui.pixiv.paging.pagingViewModel
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TitledViewPagerFragment
@@ -43,14 +40,8 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_paged_list) {
     private val binding by viewBinding(FragmentPagedListBinding::bind)
     private val safeArgs by navArgs<UserFollowingFragmentArgs>()
     private val viewModel by pagingViewModel({ safeArgs }) { args ->
-        object : PagingAPIRepository<UserPreview>() {
-            override suspend fun loadFirst(): KListShow<UserPreview> {
-                return Client.appApi.getFollowingUsers(args.userId, args.restrictType)
-            }
-
-            override fun mapper(entity: UserPreview): List<ListItemHolder> {
-                return listOf(UserPreviewHolder(entity))
-            }
+        PagingUserAPIRepository {
+            Client.appApi.getFollowingUsers(args.userId, args.restrictType)
         }
     }
     private val contentViewModel by pixivValueViewModel({ safeArgs }) { args ->
