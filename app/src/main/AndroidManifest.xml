@@ -36,7 +36,8 @@
         <activity
             android:name="ceui.pixiv.ui.common.HomeActivity"
             android:exported="true"
-            android:label="@string/title_activity_home"
+            android:label="@string/string_310"
+            android:launchMode="singleTop"
             android:theme="@style/HomeAppTheme">
 
             <intent-filter android:autoVerify="true">
@@ -102,7 +103,7 @@
         <activity
             android:name=".activities.OutWakeActivity"
             android:exported="true"
-            android:label="@string/string_310"
+            android:label="OutWakeActivity"
             android:theme="@style/SplashTheme">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
