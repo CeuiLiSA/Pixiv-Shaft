@@ -27,6 +27,10 @@ class FollowingPostsRepository(private val args: FollowingPostFragmentArgs) :
     }
 
     override fun mapper(entity: GeneralEntity): List<ListItemHolder> {
-        return listOf(UserPostHolder(entity.typedObject()))
+        val illust = entity.typedObject<Illust>()
+        if (illust.isAuthurExist()) {
+            return listOf(UserPostHolder(illust))
+        }
+        return emptyList()
     }
 }

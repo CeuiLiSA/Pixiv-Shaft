@@ -1,7 +1,6 @@
 package ceui.pixiv.ui.common
 
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -58,7 +57,6 @@ import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.paging.CommonPagingAdapter
-import ceui.pixiv.paging.LoadingStateAdapter
 import ceui.pixiv.paging.PagingViewModel
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
@@ -77,10 +75,7 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -320,20 +315,8 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
         }
     } else {
         binding.toolbarLayout.isVisible = true
-        if (activity is HomeActivity) {
-            binding.naviBack.setOnClick {
-                findNavController().popBackStack()
-            }
-        } else {
-            binding.toolbarLayout.background = ColorDrawable(
-                Common.resolveThemeAttribute(
-                    requireContext(),
-                    androidx.appcompat.R.attr.colorPrimary
-                )
-            )
-            binding.naviBack.setOnClick {
-                requireActivity().finish()
-            }
+        binding.naviBack.setOnClick {
+            findNavController().popBackStack()
         }
         binding.naviMore.setOnClick {
 //            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
@@ -365,14 +348,7 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
 
 
     val adapter = CommonPagingAdapter(viewLifecycleOwner)
-
-    val headerAdapter = LoadingStateAdapter { adapter.retry() }
-    val footerAdapter = LoadingStateAdapter { adapter.retry() }
-    val concatAdapter = adapter.withLoadStateHeaderAndFooter(
-        header = headerAdapter,
-        footer = footerAdapter
-    )
-    binding.listView.adapter = concatAdapter
+    binding.listView.adapter = adapter
 
     val fragmentViewModel: NavFragmentViewModel by viewModels()
     val database = AppDatabase.getAppDatabase(requireContext())
@@ -412,25 +388,25 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
         }
     }
 
-    viewLifecycleOwner.lifecycleScope.launch {
-        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            adapter.loadStateFlow
-                .distinctUntilChangedBy { it.refresh } // 只关心 REFRESH 状态变化
-                .filter { it.refresh is LoadState.NotLoading }
-                .collect {
-                    delay(30L)
-                    if (view != null) {
-                        val layoutManager = binding.listView.layoutManager
-                        if (layoutManager is StaggeredGridLayoutManager) {
-                            layoutManager.invalidateSpanAssignments()
-//                            layoutManager.scrollToPositionWithOffset(0, 0)
-                        } else {
-//                            listView.scrollToPosition(0)
-                        }
-                    }
-                }
-        }
-    }
+//    viewLifecycleOwner.lifecycleScope.launch {
+//        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//            adapter.loadStateFlow
+//                .distinctUntilChangedBy { it.refresh } // 只关心 REFRESH 状态变化
+//                .filter { it.refresh is LoadState.NotLoading }
+//                .collect {
+//                    delay(30L)
+//                    if (view != null) {
+//                        val layoutManager = binding.listView.layoutManager
+//                        if (layoutManager is StaggeredGridLayoutManager) {
+//                            layoutManager.invalidateSpanAssignments()
+////                            layoutManager.scrollToPositionWithOffset(0, 0)
+//                        } else {
+////                            listView.scrollToPosition(0)
+//                        }
+//                    }
+//                }
+//        }
+//    }
 
     binding.refreshLayout.setOnRefreshListener {
         adapter.refresh()
