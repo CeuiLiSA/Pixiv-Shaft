@@ -412,41 +412,12 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                     if (previous is LoadState.Loading && current is LoadState.NotLoading) {
                         val previousItemCount = adapter.itemCount
 
-                        val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
-                            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                                if (view != null && positionStart == 0) {
-                                    scrollToTop()
-                                    adapter.unregisterAdapterDataObserver(this)
-                                }
-                            }
-
-                            override fun onItemRangeChanged(
-                                positionStart: Int,
-                                itemCount: Int,
-                                payloads: Any?
-                            ) {
-                                if (view != null && positionStart == 0) {
-                                    scrollToTop()
-                                    adapter.unregisterAdapterDataObserver(this)
-                                }
-                            }
-
-                            fun scrollToTop() {
-                                val layoutManager = binding.listView.layoutManager
-                                if (layoutManager is StaggeredGridLayoutManager) {
-                                    layoutManager.invalidateSpanAssignments()
-                                    layoutManager.scrollToPositionWithOffset(0, 0)
-                                } else {
-                                    binding.listView.scrollToPosition(0)
-                                }
-                            }
-                        }
-
-                        adapter.registerAdapterDataObserver(adapterDataObserver)
+                        val observer = ScrollToTopObserver(binding.listView, adapter)
+                        adapter.registerAdapterDataObserver(observer)
 
                         if (adapter.itemCount != previousItemCount && adapter.itemCount > 0) {
-                            adapterDataObserver.scrollToTop()
-                            adapter.unregisterAdapterDataObserver(adapterDataObserver)
+                            observer.scrollToTop()
+                            adapter.unregisterAdapterDataObserver(observer)
                         }
                     }
                 }
