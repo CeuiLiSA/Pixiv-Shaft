@@ -108,7 +108,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             list.forEach {
 //                Timber.d("dsadasadsw2 ${gson.toJson(it)}")
             }
-            Timber.d("dsadasadsw2 count: ${list?.size}")
+            Timber.d("dsadasadsw2 count: ${list.size}")
         }
 
         SessionManager.loggedInAccount.observe(this) {
@@ -122,8 +122,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         requireAppBackground().config.observe(this) { config ->
             if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
                 bgViewModel.result.observe(this) { loadResult ->
-                    val resp = loadResult?.data ?: return@observe
-                    resp.displayList.getOrNull(0)?.let { illust ->
+                    loadResult?.data?.displayList?.getOrNull(0)?.let { illust ->
                         ObjectPool.update(illust)
                         binding.dimmer.isVisible = true
                         Glide.with(this)
