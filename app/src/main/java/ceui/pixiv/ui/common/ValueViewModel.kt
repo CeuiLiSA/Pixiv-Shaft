@@ -150,10 +150,10 @@ class ValueViewModel<T>(
 
     private fun refreshInternal(canAccessGoogle: Boolean) {
         if (canAccessGoogle) {
-            valueContent.refresh(RefreshHint.NetworkChanged)
+            valueContent.refresh(RefreshHint.InitialLoad)
             Timber.d("ValueContent auto-refresh triggered by InitialLoad")
         } else {
-            valueContent.noneOpRefresh(RefreshHint.NetworkChanged)
+            valueContent.noneOpRefresh(RefreshHint.InitialLoad)
             Timber.d("ValueContent auto-refresh dont invoke ")
         }
     }
