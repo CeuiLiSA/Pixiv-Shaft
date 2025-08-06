@@ -21,7 +21,6 @@ import ceui.pixiv.utils.NetworkStateManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
@@ -36,9 +35,7 @@ class PagingViewModel<ObjectT : ModelObject>(
     private val canAccessGoogle = networkStateManager.canAccessGoogle.asFlow()
 
     val pager: Flow<PagingData<ListItemHolder>> =
-        combine(refreshTrigger, canAccessGoogle) { _, canAccess ->
-            canAccess
-        }.flatMapLatest { canAccess ->
+        canAccessGoogle.flatMapLatest { canAccess ->
             when (repository) {
                 is PagingMediatorRepository -> createMediatorPager(repository, canAccess)
                 is PagingAPIRepository -> createApiPager(repository, canAccess)

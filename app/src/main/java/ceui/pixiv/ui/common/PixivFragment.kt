@@ -76,6 +76,8 @@ import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -348,13 +350,14 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
 
 
     val adapter = CommonPagingAdapter(viewLifecycleOwner)
+    adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+
     binding.listView.adapter = adapter
 
     val fragmentViewModel: NavFragmentViewModel by viewModels()
     val database = AppDatabase.getAppDatabase(requireContext())
     val seed = fragmentViewModel.fragmentUniqueId
 
-    binding.listView
 
     adapter.addOnPagesUpdatedListener {
         viewModel.recordType?.let { recordType ->
@@ -381,32 +384,54 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
 
     viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            adapter.loadStateFlow.collectLatest { loadStates ->
-                binding.refreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
-                binding.errorLayout.isVisible = loadStates.refresh is LoadState.Error
-            }
+            adapter.loadStateFlow.map { it.refresh }.distinctUntilChanged()
+                .collectLatest { refreshState ->
+                    binding.refreshLayout.isRefreshing = refreshState is LoadState.Loading
+                    binding.errorLayout.isVisible = refreshState is LoadState.Error
+
+                    if (refreshState is LoadState.NotLoading) {
+                        val previousItemCount = adapter.itemCount
+
+                        val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
+                            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                                if (view != null && positionStart == 0) {
+                                    scrollToTop()
+                                    adapter.unregisterAdapterDataObserver(this)
+                                }
+                            }
+
+                            override fun onItemRangeChanged(
+                                positionStart: Int,
+                                itemCount: Int,
+                                payloads: Any?
+                            ) {
+                                if (view != null && positionStart == 0) {
+                                    scrollToTop()
+                                    adapter.unregisterAdapterDataObserver(this)
+                                }
+                            }
+
+                            fun scrollToTop() {
+                                val layoutManager = binding.listView.layoutManager
+                                if (layoutManager is StaggeredGridLayoutManager) {
+                                    layoutManager.invalidateSpanAssignments()
+                                    layoutManager.scrollToPositionWithOffset(0, 0)
+                                } else {
+                                    binding.listView.scrollToPosition(0)
+                                }
+                            }
+                        }
+
+                        adapter.registerAdapterDataObserver(adapterDataObserver)
+
+                        if (adapter.itemCount != previousItemCount && adapter.itemCount > 0) {
+                            adapterDataObserver.scrollToTop()
+                            adapter.unregisterAdapterDataObserver(adapterDataObserver)
+                        }
+                    }
+                }
         }
     }
-
-//    viewLifecycleOwner.lifecycleScope.launch {
-//        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//            adapter.loadStateFlow
-//                .distinctUntilChangedBy { it.refresh } // 只关心 REFRESH 状态变化
-//                .filter { it.refresh is LoadState.NotLoading }
-//                .collect {
-//                    delay(30L)
-//                    if (view != null) {
-//                        val layoutManager = binding.listView.layoutManager
-//                        if (layoutManager is StaggeredGridLayoutManager) {
-//                            layoutManager.invalidateSpanAssignments()
-////                            layoutManager.scrollToPositionWithOffset(0, 0)
-//                        } else {
-////                            listView.scrollToPosition(0)
-//                        }
-//                    }
-//                }
-//        }
-//    }
 
     binding.refreshLayout.setOnRefreshListener {
         adapter.refresh()
