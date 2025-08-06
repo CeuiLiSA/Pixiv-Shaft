@@ -77,7 +77,9 @@ import com.scwang.smart.refresh.header.FalsifyHeader
 import com.scwang.smart.refresh.header.MaterialHeader
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -388,8 +390,26 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                 .collectLatest { refreshState ->
                     binding.refreshLayout.isRefreshing = refreshState is LoadState.Loading
                     binding.errorLayout.isVisible = refreshState is LoadState.Error
+                }
+        }
+    }
 
-                    if (refreshState is LoadState.NotLoading) {
+    viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            adapter.loadStateFlow
+                .map { it.refresh }
+                .distinctUntilChanged()
+                .scan(
+                    Pair<LoadState, LoadState>(
+                        LoadState.NotLoading(endOfPaginationReached = false),
+                        LoadState.NotLoading(endOfPaginationReached = false)
+                    )
+                ) { acc, current ->
+                    acc.second to current
+                }
+                .drop(1)
+                .collectLatest { (previous, current) ->
+                    if (previous is LoadState.Loading && current is LoadState.NotLoading) {
                         val previousItemCount = adapter.itemCount
 
                         val adapterDataObserver = object : RecyclerView.AdapterDataObserver() {
