@@ -386,16 +386,6 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
 
     viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            adapter.loadStateFlow.map { it.refresh }.distinctUntilChanged()
-                .collectLatest { refreshState ->
-                    binding.refreshLayout.isRefreshing = refreshState is LoadState.Loading
-                    binding.errorLayout.isVisible = refreshState is LoadState.Error
-                }
-        }
-    }
-
-    viewLifecycleOwner.lifecycleScope.launch {
-        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             adapter.loadStateFlow
                 .map { it.refresh }
                 .distinctUntilChanged()
@@ -409,6 +399,9 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                 }
                 .drop(1)
                 .collectLatest { (previous, current) ->
+                    binding.refreshLayout.isRefreshing = current is LoadState.Loading
+                    binding.errorLayout.isVisible = current is LoadState.Error
+
                     if (previous is LoadState.Loading && current is LoadState.NotLoading) {
                         val previousItemCount = adapter.itemCount
 
