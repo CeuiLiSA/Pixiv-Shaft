@@ -3,38 +3,40 @@ package ceui.pixiv.ui.landing
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.lisa.databinding.FragmentPixivListBinding.bind
 import ceui.lisa.databinding.FragmentSelectLanguageBinding
+import ceui.lisa.feature.HostManager
 import ceui.lisa.utils.Settings
 import ceui.loxia.launchSuspend
-import ceui.loxia.pushFragment
-import ceui.pixiv.session.SessionManager
+import ceui.loxia.openChromeTab
+import ceui.loxia.openClashApp
+import ceui.loxia.requireNetworkStateManager
+import ceui.loxia.threadSafeArgs
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.CommonAdapter
-import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.constructVM
-import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.utils.animateFadeIn
 import ceui.pixiv.utils.animateFadeInQuickly
+import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import com.tencent.mmkv.MMKV
+import ceui.pixiv.widgets.alertYesOrCancel
 import kotlinx.coroutines.delay
 
 class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) {
 
     private val binding by viewBinding(FragmentSelectLanguageBinding::bind)
+    private val safeArgs by threadSafeArgs<LanguagePickerFragmentArgs>()
 
     private class VM(initLanguage: String) : ViewModel() {
         val currencyLanguage = MutableLiveData<String>()
@@ -44,10 +46,24 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
         }
     }
 
+    private val LANGUAGE_MAP = mapOf(
+        "简体中文" to "zh-CN",
+        "日本語" to "ja",
+        "English" to "en",
+        "繁體中文" to "zh-TW",
+        "русский" to "ru",
+        "한국어" to "ko"
+    )
     private val viewModel by constructVM({ Shaft.sSettings.appLanguage }) { language -> VM(language) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.bottomLayout.updatePadding(bottom = insets.bottom + 12.ppppx)
+            windowInsets
+        }
 
         binding.welcomeLabel.fadeToNextMessage(getString(R.string.language))
 
@@ -77,20 +93,40 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
             }
         }
 
+        binding.back.setOnClick {
+            findNavController().popBackStack()
+        }
 
-        binding.start.setOnClick {
-            pushFragment(R.id.navigation_select_login_way)
-//            val navController = findNavController()
-//
-//            val navOptions = NavOptions.Builder()
-//                // 清除栈中的 A, B, C
-//                .setPopUpTo(R.id.navigation_landing, true) // 设定返回到 A 并移除它以及之后的 fragment
-//                .build()
-//
-//            SessionManager.markLandingPageShown()
-//
-//            // 跳转到 X Fragment，且关闭之前的 fragment
-//            navController.navigate(R.id.navigation_home_walkthrough, null, navOptions)
+        binding.next.setOnClick {
+            checkVPNAndNext {
+
+                val selectedLang = viewModel.currencyLanguage.value
+                val langCode = LANGUAGE_MAP[selectedLang] ?: "en" // fallback to English
+
+                val baseUrl = if (safeArgs.purpose == LandingFragment.PURPOSE_REGISTER) {
+                    HostManager.get().signupUrl
+                } else {
+                    HostManager.get().loginUrl
+                }
+
+                val finalUrl = "$baseUrl?lang=$langCode"
+
+                requireContext().openChromeTab(finalUrl)
+            }
+        }
+    }
+
+
+    private fun checkVPNAndNext(block: () -> Unit) {
+        val context = requireContext()
+        if (requireNetworkStateManager().canAccessGoogle.value == true) {
+            block()
+        } else {
+            launchSuspend {
+                if (alertYesOrCancel("请打开VPN后继续")) {
+                    openClashApp(context)
+                }
+            }
         }
     }
 }

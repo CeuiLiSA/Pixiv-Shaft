@@ -276,6 +276,28 @@
         <attr name="pib_progress_stroke_width" format="dimension" />
     </declare-styleable>
 
+    <style name="SolidWhiteButton">
+        <item name="android:textColor">@color/colorBlack</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/solid_button_white</item>
+        <item name="android:stateListAnimator">@animator/button_press_alpha</item>
+    </style>
+
+    <style name="SolidBlackButton">
+        <item name="android:textColor">@color/colorWhite</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/solid_button_black</item>
+        <item name="android:stateListAnimator">@animator/button_press_alpha</item>
+    </style>
+
     <style name="GreenShiningButton">
         <item name="android:textColor">@color/buttonTextGreen</item>
         <item name="android:shadowColor">@color/green_shadow_color</item>
