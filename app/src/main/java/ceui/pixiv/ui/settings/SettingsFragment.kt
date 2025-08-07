@@ -42,7 +42,8 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
         binding.toolbarLayout.naviTitle.text = getString(R.string.app_settings)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
-        val nameCode = prefStore.getString(SessionManager.CONTENT_LANGUAGE_KEY, "cn") ?: "cn"
+//        val nameCode = prefStore.getString(SessionManager.CONTENT_LANGUAGE_KEY, "cn") ?: "cn"
+        val nameCode = "cn"
         val context = requireActivity()
         val backgroundType = requireAppBackground().config.value?.type
 

@@ -3,6 +3,7 @@ package ceui.pixiv.ui.landing
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -15,12 +16,14 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentSelectLanguageBinding
 import ceui.lisa.feature.HostManager
+import ceui.lisa.helper.LanguageHelper
 import ceui.lisa.utils.Settings
 import ceui.loxia.launchSuspend
 import ceui.loxia.openChromeTab
 import ceui.loxia.openClashApp
 import ceui.loxia.requireNetworkStateManager
 import ceui.loxia.threadSafeArgs
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.PixivFragment
@@ -31,12 +34,17 @@ import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) {
 
     private val binding by viewBinding(FragmentSelectLanguageBinding::bind)
     private val safeArgs by threadSafeArgs<LanguagePickerFragmentArgs>()
+    private val prefStore: MMKV by lazy {
+        MMKV.defaultMMKV()
+    }
 
     private class VM(initLanguage: String) : ViewModel() {
         val currencyLanguage = MutableLiveData<String>()
@@ -46,14 +54,6 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
         }
     }
 
-    private val LANGUAGE_MAP = mapOf(
-        "简体中文" to "zh-CN",
-        "日本語" to "ja",
-        "English" to "en",
-        "繁體中文" to "zh-TW",
-        "русский" to "ru",
-        "한국어" to "ko"
-    )
     private val viewModel by constructVM({ Shaft.sSettings.appLanguage }) { language -> VM(language) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -100,8 +100,10 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
         binding.next.setOnClick {
             checkVPNAndNext {
 
-                val selectedLang = viewModel.currencyLanguage.value
-                val langCode = LANGUAGE_MAP[selectedLang] ?: "en" // fallback to English
+                prefStore.putString(
+                    SessionManager.CONTENT_LANGUAGE_KEY,
+                    viewModel.currencyLanguage.value
+                )
 
                 val baseUrl = if (safeArgs.purpose == LandingFragment.PURPOSE_REGISTER) {
                     HostManager.get().signupUrl
@@ -109,9 +111,16 @@ class LanguagePickerFragment : PixivFragment(R.layout.fragment_select_language) 
                     HostManager.get().loginUrl
                 }
 
-                val finalUrl = "$baseUrl?lang=$langCode"
+                val finalUri = baseUrl.toUri().buildUpon()
+                    .appendQueryParameter(
+                        "lang",
+                        LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage().split("-")[0]
+                    )
+                    .build()
 
-                requireContext().openChromeTab(finalUrl)
+                Timber.d("fdsdasadsfasd2w2 $finalUri")
+
+                requireContext().openChromeTab(finalUri.toString())
             }
         }
     }
