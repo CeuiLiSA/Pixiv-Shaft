@@ -116,15 +116,6 @@
         tools:layout="@layout/fragment_pixiv_list" />
 
     <fragment
-        android:id="@+id/navigation_language_picker"
-        android:name="ceui.pixiv.ui.landing.LanguagePickerFragment"
-        tools:layout="@layout/fragment_select_language">
-        <argument
-            android:name="purpose"
-            app:argType="integer" />
-    </fragment>
-
-    <fragment
         android:id="@+id/navigation_select_login_way"
         android:name="ceui.pixiv.ui.landing.SelectLoginWayFragment"
         tools:layout="@layout/fragment_select_login_way" />

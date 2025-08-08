@@ -5,15 +5,16 @@ import android.text.TextUtils
 import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
-import ceui.pixiv.ui.common.PixivFragment
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Settings
+import ceui.loxia.findLanguageBySystem
 import ceui.loxia.launchSuspend
 import ceui.pixiv.ui.common.ListMode
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
@@ -28,7 +29,9 @@ class SelectLanguageFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbarLayout.naviTitle.text = getString(R.string.language)
-        val currencyLanguage = MutableLiveData(Shaft.sSettings.appLanguage)
+        val currencyLanguage = MutableLiveData(
+            findLanguageBySystem()
+        )
         val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_TABCELL)
         adapter.submitList(
             Settings.ALL_LANGUAGE.mapIndexed { index, language ->

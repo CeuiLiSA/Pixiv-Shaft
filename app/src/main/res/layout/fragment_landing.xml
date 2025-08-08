@@ -5,6 +5,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <LinearLayout
+        android:id="@+id/language_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/language_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white" />
+
+        <ImageView
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:padding="10dp"
+            android:src="@drawable/baseline_language_24"
+            app:tint="@color/white" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/welcome_label"
@@ -38,7 +61,7 @@
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1"
-            android:text="LOG IN" />
+            android:text="@string/landing_log_in" />
 
         <Space
             android:layout_width="10dp"

@@ -4,15 +4,19 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.findFragment
+import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
+import ceui.pixiv.utils.TokenGenerator
 import ceui.pixiv.widgets.alertYesOrCancel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.Serializable
 
 inline fun <reified InterfaceT> Fragment.sendAction(action: (receiver: InterfaceT) -> Boolean) {
     var received = false
@@ -99,6 +103,43 @@ fun Fragment.pushFragment(id: Int, bundle: Bundle? = null) {
         bundle,
         NavOptions.Builder().setHorizontalSlide().build()
     )
+}
+
+inline fun <reified T : Serializable> Fragment.pushFragmentForResult(
+    id: Int,
+    bundle: Bundle? = null,
+    crossinline onResult: (T) -> Unit
+) {
+    val requestKey = TokenGenerator.generateToken()
+
+    // 监听结果
+    setFragmentResultListener(requestKey) { _, result ->
+        val data = result.getSerializable("result-${requestKey}") as? T
+        if (data != null) {
+            onResult(data)
+        }
+    }
+
+    // 传递 requestKey 给下一个 Fragment
+    val args = (bundle ?: Bundle()).apply {
+        putString("requestKey", requestKey)
+    }
+
+    findNavController().navigate(
+        id,
+        args,
+        NavOptions.Builder().setHorizontalSlide().build()
+    )
+}
+
+// 下一个 Fragment 调用这个方法返回数据
+inline fun <reified T : Serializable> Fragment.setResultAndPop(result: T) {
+    val key = arguments?.getString("requestKey") ?: return
+    setFragmentResult(
+        key,
+        Bundle().apply { putSerializable("result-${key}", result) }
+    )
+    findNavController().popBackStack()
 }
 
 fun Fragment.fadeInFragment(id: Int, bundle: Bundle? = null) {

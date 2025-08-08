@@ -17,6 +17,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import ceui.lisa.activities.Shaft
 import com.blankj.utilcode.util.Utils
 import org.json.JSONArray
 import org.json.JSONException
@@ -26,6 +27,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.security.MessageDigest
+import java.util.Locale
 
 fun Context.showKeyboard(editText: EditText?) {
     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -52,6 +54,41 @@ fun Context.openChromeTab(url: String) {
         val intent = Intent(Intent.ACTION_VIEW, url.toUri())
         startActivity(intent)
     }
+}
+
+
+fun findLanguageBySystem(): String {
+    val LANGUAGE_MAP = mapOf(
+        "简体中文" to "zh-CN",
+        "日本語" to "ja",
+        "English" to "en",
+        "繁體中文" to "zh-TW",
+        "русский" to "ru",
+        "한국어" to "ko"
+    )
+
+    val inSettings = Shaft.sSettings.appLanguage
+    if (inSettings?.isNotEmpty() == true && inSettings != "undefined") return inSettings
+
+    val locale = Locale.getDefault()
+    val languageTag = locale.toLanguageTag() // 例如 zh-CN, ja-JP, en-US
+
+    // 先尝试全匹配
+    LANGUAGE_MAP.entries.firstOrNull {
+        it.value.equals(languageTag, ignoreCase = true)
+    }?.let {
+        return it.key
+    }
+
+    // 再尝试只匹配语言部分 (zh, ja, en...)
+    LANGUAGE_MAP.entries.firstOrNull {
+        it.value.substringBefore('-').equals(locale.language, ignoreCase = true)
+    }?.let {
+        return it.key
+    }
+
+    // 如果都匹配不上，默认返回 English
+    return "English"
 }
 
 fun stableHash(input: String): Int {
