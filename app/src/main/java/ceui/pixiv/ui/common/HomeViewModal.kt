@@ -51,4 +51,8 @@ class HomeViewModel(private val tag: String) : ViewModel() {
             }
         }
     }
+
+    fun reset() {
+        _currentScale.value = 1F
+    }
 }

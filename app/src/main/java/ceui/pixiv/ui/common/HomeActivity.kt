@@ -58,9 +58,13 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             }
 
             val list = rest.illusts
-            Timber.d("asdsaddsadaw2 ${list.size}")
-            rest.copy(illusts = list.sortedByDescending { illust -> illust.height / illust.width }
-                .subList(0, 50))
+            if (SessionManager.loggedInUid > 0L) {
+                rest.copy(illusts = list.shuffled())
+            } else {
+                Timber.d("asdsaddsadaw2 ${list.size}")
+                rest.copy(illusts = list.sortedByDescending { illust -> illust.height / illust.width }
+                    .subList(0, 50))
+            }
         }
     }
     private val homeViewModel: HomeViewModel by viewModels {
@@ -114,6 +118,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 
         SessionManager.loggedInAccount.observe(this) {
             bgViewModel.refresh(RefreshHint.PullToRefresh)
+            homeViewModel.reset()
         }
         homeViewModel.currentScale.observe(this) {
             animateBackground(it)
