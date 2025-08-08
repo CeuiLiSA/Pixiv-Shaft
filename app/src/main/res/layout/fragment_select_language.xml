@@ -23,7 +23,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_layout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/welcome_label">
 
         <androidx.recyclerview.widget.RecyclerView
@@ -32,40 +32,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center" />
     </FrameLayout>
-
-    <LinearLayout
-        android:id="@+id/bottom_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/default_content_horizontal_margin"
-        android:paddingTop="16dp"
-        android:paddingBottom="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:id="@+id/back"
-            style="@style/SolidWhiteButton"
-            android:layout_width="0dp"
-            android:layout_height="52dp"
-            android:layout_weight="1"
-            android:text="BACK" />
-
-        <Space
-            android:layout_width="10dp"
-            android:layout_height="10dp" />
-
-        <TextView
-            android:id="@+id/next"
-            style="@style/SolidBlackButton"
-            android:layout_width="0dp"
-            android:layout_height="52dp"
-            android:layout_weight="1"
-            android:text="NEXT" />
-    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

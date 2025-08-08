@@ -32,9 +32,8 @@ class HeaderInterceptor(private val needToken: Boolean) : Interceptor {
 
         before.addHeader(
             "accept-language",
-            LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage().also {
-                Timber.d("fdsdasadsfasd2w2 ${it}")
-            })
+            LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage()
+        )
             .addHeader("app-os", "ios")
             .addHeader("app-version", "7.13.4")
             .addHeader("x-client-time", requestNonce.xClientTime)

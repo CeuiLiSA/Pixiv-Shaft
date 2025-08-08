@@ -60,7 +60,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             val list = rest.illusts
             Timber.d("asdsaddsadaw2 ${list.size}")
             rest.copy(illusts = list.sortedByDescending { illust -> illust.height / illust.width }
-                .subList(0, 30))
+                .subList(0, 20))
         }
     }
     private val homeViewModel: HomeViewModel by viewModels {

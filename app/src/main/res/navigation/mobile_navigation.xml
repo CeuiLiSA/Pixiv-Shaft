@@ -119,9 +119,7 @@
         android:id="@+id/navigation_language_picker"
         android:name="ceui.pixiv.ui.landing.LanguagePickerFragment"
         tools:layout="@layout/fragment_select_language">
-        <argument
-            android:name="purpose"
-            app:argType="integer" />
+
     </fragment>
 
     <fragment

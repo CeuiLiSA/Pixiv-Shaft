@@ -8,9 +8,10 @@ import com.blankj.utilcode.util.PathUtils;
 
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
+
 /**
  * A class about all the application settings.
- * */
+ */
 public class Settings {
 
     public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文", "русский", "한국어"};
@@ -48,10 +49,92 @@ public class Settings {
     private int themeIndex;
 
     private int lineCount = 2;
+    //主页显示R18
+    private boolean mainViewR18 = false;
+    //是否启用 FIREBASE_ANALYTICS_COLLECTION
+    private boolean isFirebaseEnable = true;
+    private long currentProgress = 0L;
+    private boolean trendsForPrivate = false;
+    //浏览历史List点击动画
+    private boolean viewHistoryAnimate = true;
+    //设置页面进场动画
+    private boolean settingsAnimate = true;
+    //屏蔽，不显示已收藏的作品，默认不屏蔽
+    private boolean deleteStarIllust = false;
+    //屏蔽，不显示AI创作的作品，默认不屏蔽
+    private boolean deleteAIIllust = false;
+    //是否自动添加DNS，true开启直连  false自行代理
+    private boolean autoFuckChina = false;
+    private boolean relatedIllustNoLimit = true;
+    //使用pixiv cat 代理 展示图片
+    private boolean usePixivCat = false;
+    //缩略图图片显示大图
+    private boolean showLargeThumbnailImage = false;
+    //一级详情FragmentIllust 图片显示原图
+    private boolean showOriginalPreviewImage = false;
+    //是否显示开屏 dialog
+    private boolean showPixivDialog = true;
+    //默认私人收藏
+    private boolean privateStar = false;
+    //列表页面是否显示收藏按钮
+    private boolean showLikeButton = true;
+    //直接下载单个作品所有P
+    private boolean directDownloadAllImage = true;
+    private boolean saveViewHistory = true;
+    private boolean r18DivideSave = false;
+    //AI作品下载至单独的目录
+    private boolean AIDivideSave = false;
+    //在我的收藏列表，隐藏收藏按钮，默认显示
+    private boolean hideStarButtonAtMyCollection = false;
+    //按标签收藏时全选标签。默认不全选
+    private boolean starWithTagSelectAll = false;
+    //单P作品的文件名是否带P0
+    private boolean hasP0 = false;
+    //作品详情使用新页面
+    private boolean useFragmentIllust = true;
+    //个人中心使用新页面
+    private boolean useNewUserPage = true;
+    private String illustPath = "";
+    private String novelPath = "";
+    private String gifResultPath = "";
+    private String gifZipPath = "";
+    private String gifUnzipPath = "";
+    private String webDownloadPath = "";
+    private int novelHolderColor = 0;
+    private int novelHolderTextColor = 0;
+    private int novelHolderTextSize = 16;
+    private int bottomBarOrder = 0;
+    private boolean reverseDialogNeverShowAgain = false;
+    private String appLanguage = "";
+    private String fileNameJson = "";
+    private String rootPathUri = "";
+    private int downloadWay = 0; //0传统模式，保存到Pictures目录下。    1 SAF模式保存到自选目录下
+    private boolean filterComment = false; // 过滤垃圾评论，默认不开启
+    private int transformerType = 5; // 二级详情转场动画，默认是3D盒子
+    private boolean showRelatedWhenStar = true; // 收藏作品时展示关联作品
+    private boolean illustLongPressDownload = false; // 插画详情长按下载
+    private int saveForSeparateAuthorStatus = 0; // 不同作者单独保存
+    private boolean autoPostLikeWhenDownload = false; // 下载时自动收藏
+    private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
+    private boolean toastDownloadResult = true; // 默认提示下载结果
+    private transient boolean r18FilterTempEnableInitialed = false;
+    private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
+    private String searchDefaultSortType = ""; // 搜索结果默认排序方式
+    private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
+    private int downloadLimitType = 0; // 下载限制类型 0:无限制 1:仅Wifi下自动下载 2:不自动下载
+    private boolean illustDetailKeepScreenOn = false; //插画二级详情保持屏幕常亮
+    private String themeType = "";
+    //收藏量筛选搜索结果
+    private String searchFilter = "";
+
+    public Settings() {
+    }
 
     public int getLineCount() {
         return lineCount;
     }
+
+//    private boolean isDownloadOnlyUseWiFi = false; // 仅通过 Wifi 下载
 
     public void setLineCount(int lineCount) {
         this.lineCount = lineCount;
@@ -65,14 +148,6 @@ public class Settings {
         this.themeIndex = themeIndex;
     }
 
-    //主页显示R18
-    private boolean mainViewR18 = false;
-
-    //是否启用 FIREBASE_ANALYTICS_COLLECTION
-    private boolean isFirebaseEnable = true;
-
-    private long currentProgress = 0L;
-
     public long getCurrentProgress() {
         return currentProgress;
     }
@@ -81,136 +156,16 @@ public class Settings {
         this.currentProgress = currentProgress;
     }
 
-    private boolean trendsForPrivate = false;
-
-    //浏览历史List点击动画
-    private boolean viewHistoryAnimate = true;
-
-    //设置页面进场动画
-    private boolean settingsAnimate = true;
-
-    //屏蔽，不显示已收藏的作品，默认不屏蔽
-    private boolean deleteStarIllust = false;
-
-    //屏蔽，不显示AI创作的作品，默认不屏蔽
-    private boolean deleteAIIllust = false;
-
-    //是否自动添加DNS，true开启直连  false自行代理
-    private boolean autoFuckChina = false;
-
-    private boolean relatedIllustNoLimit = true;
-
-    //使用pixiv cat 代理 展示图片
-    private boolean usePixivCat = false;
-
-    //缩略图图片显示大图
-    private boolean showLargeThumbnailImage = false;
-
-    //一级详情FragmentIllust 图片显示原图
-    private boolean showOriginalPreviewImage = false;
-
-
-    //是否显示开屏 dialog
-    private boolean showPixivDialog = true;
-
-    //默认私人收藏
-    private boolean privateStar = false;
-
-    //列表页面是否显示收藏按钮
-    private boolean showLikeButton = true;
-
-    //直接下载单个作品所有P
-    private boolean directDownloadAllImage = true;
-
-    private boolean saveViewHistory = true;
-
-    private boolean r18DivideSave = false;
-
-    //AI作品下载至单独的目录
-    private boolean AIDivideSave = false;
-
-
-    //在我的收藏列表，隐藏收藏按钮，默认显示
-    private boolean hideStarButtonAtMyCollection = false;
-
-    //按标签收藏时全选标签。默认不全选
-    private boolean starWithTagSelectAll = false;
-
-    //单P作品的文件名是否带P0
-    private boolean hasP0 = false;
-
-    //作品详情使用新页面
-    private boolean useFragmentIllust = true;
-
-    //个人中心使用新页面
-    private boolean useNewUserPage = true;
-
-    private String illustPath = "";
-
-    private String novelPath = "";
-
-    private String gifResultPath = "";
-
-    private String gifZipPath = "";
-
-    private String gifUnzipPath = "";
-
-    private String webDownloadPath = "";
-
-    private int novelHolderColor = 0;
-
-    private int novelHolderTextColor = 0;
-
-    private int novelHolderTextSize = 16;
-
-    private int bottomBarOrder = 0;
-
-    private boolean reverseDialogNeverShowAgain = false;
-
-    private String appLanguage = "";
-
-    private String fileNameJson = "";
-
-    private String rootPathUri = "";
-
-    private int downloadWay = 0; //0传统模式，保存到Pictures目录下。    1 SAF模式保存到自选目录下
-
-    private boolean filterComment = false; // 过滤垃圾评论，默认不开启
-
-    private int transformerType = 5; // 二级详情转场动画，默认是3D盒子
-
-    private boolean showRelatedWhenStar = true; // 收藏作品时展示关联作品
-
-
-    private boolean illustLongPressDownload = false; // 插画详情长按下载
-
-    private int saveForSeparateAuthorStatus = 0; // 不同作者单独保存
-
-    private boolean autoPostLikeWhenDownload = false; // 下载时自动收藏
-
-    private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
-
-    private boolean toastDownloadResult = true; // 默认提示下载结果
-
-    private transient boolean r18FilterTempEnableInitialed = false;
-    private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
-
-    private String searchDefaultSortType = ""; // 搜索结果默认排序方式
-
-    private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
-
-//    private boolean isDownloadOnlyUseWiFi = false; // 仅通过 Wifi 下载
-
-    private int downloadLimitType = 0; // 下载限制类型 0:无限制 1:仅Wifi下自动下载 2:不自动下载
-
-    private boolean illustDetailKeepScreenOn = false; //插画二级详情保持屏幕常亮
-
     public String getAppLanguage() {
-        if(!TextUtils.isEmpty(appLanguage)){
+        if (!TextUtils.isEmpty(appLanguage)) {
             return appLanguage;
         } else {
-            return ALL_LANGUAGE[0];
+            return "undefined";
         }
+    }
+
+    public void setAppLanguage(String appLanguage) {
+        this.appLanguage = appLanguage;
     }
 
     public boolean isToastDownloadResult() {
@@ -257,6 +212,10 @@ public class Settings {
         return TextUtils.isEmpty(novelPath) ? FILE_LOG_PATH : novelPath;
     }
 
+    public void setNovelPath(String novelPath) {
+        this.novelPath = novelPath;
+    }
+
     public boolean isPrivateStar() {
         return privateStar;
     }
@@ -265,18 +224,10 @@ public class Settings {
         this.privateStar = privateStar;
     }
 
-    public void setNovelPath(String novelPath) {
-        this.novelPath = novelPath;
-    }
-
-    public void setAppLanguage(String appLanguage) {
-        this.appLanguage = appLanguage;
-    }
-
     public ThemeHelper.ThemeType getThemeType() {
         try {
             return ThemeHelper.ThemeType.valueOf(themeType);
-        }catch (Exception e){
+        } catch (Exception e) {
             return ThemeHelper.ThemeType.DEFAULT_MODE;
         }
     }
@@ -310,15 +261,6 @@ public class Settings {
         deleteAIIllust = b;
     }
 
-
-    private String themeType = "";
-
-    //收藏量筛选搜索结果
-    private String searchFilter = "";
-
-    public Settings() {
-    }
-
     public boolean isSaveViewHistory() {
         return saveViewHistory;
     }
@@ -331,16 +273,16 @@ public class Settings {
         return TextUtils.isEmpty(searchFilter) ? "" : searchFilter;
     }
 
+    public void setSearchFilter(String searchFilter) {
+        this.searchFilter = searchFilter;
+    }
+
     public boolean isUsePixivCat() {
         return usePixivCat;
     }
 
     public void setUsePixivCat(boolean usePixivCat) {
         this.usePixivCat = usePixivCat;
-    }
-
-    public void setSearchFilter(String searchFilter) {
-        this.searchFilter = searchFilter;
     }
 
     public boolean isRelatedIllustNoLimit() {
@@ -506,7 +448,7 @@ public class Settings {
     public int getNovelHolderTextSize() {
         return novelHolderTextSize;
     }
-    
+
     public void setNovelHolderTextSize(int size) {
         this.novelHolderTextSize = size;
     }
