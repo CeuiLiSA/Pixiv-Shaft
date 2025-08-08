@@ -10,14 +10,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentLandingBinding
 import ceui.lisa.feature.HostManager
 import ceui.lisa.helper.LanguageHelper
+import ceui.loxia.findLanguageBySystem
 import ceui.loxia.launchSuspend
 import ceui.loxia.openChromeTab
 import ceui.loxia.openClashApp
-import ceui.loxia.pushFragmentForResult
+import ceui.loxia.pushFragment
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
@@ -25,7 +25,6 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
-import java.util.Locale
 
 class LandingFragment : PixivFragment(R.layout.fragment_landing) {
     private val binding by viewBinding(FragmentLandingBinding::bind)
@@ -57,9 +56,9 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
             binding.languageName.text = name
         }
         binding.languageLayout.setOnClick {
-            pushFragmentForResult<String>(R.id.navigation_language_picker) { languageName ->
-                landingViewModel.updateLanguage(languageName)
-            }
+            pushFragment(
+                R.id.navigation_select_language,
+            )
         }
 
         binding.logIn.setOnClick {
@@ -105,33 +104,6 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
         }
     }
 
-    private fun findLanguageBySystem(): String {
-        val inSettings = Shaft.sSettings.appLanguage
-        if (inSettings?.isNotEmpty() == true && inSettings != "undefined") {
-            return inSettings
-        }
-
-        val locale = Locale.getDefault()
-        val languageTag = locale.toLanguageTag() // 例如 zh-CN, ja-JP, en-US
-
-        // 先尝试全匹配
-        LANGUAGE_MAP.entries.firstOrNull {
-            it.value.equals(languageTag, ignoreCase = true)
-        }?.let {
-            return it.key
-        }
-
-        // 再尝试只匹配语言部分 (zh, ja, en...)
-        LANGUAGE_MAP.entries.firstOrNull {
-            it.value.substringBefore('-').equals(locale.language, ignoreCase = true)
-        }?.let {
-            return it.key
-        }
-
-        // 如果都匹配不上，默认返回 English
-        return "English"
-    }
-
 
     private val WELCOME_MESSAGES = arrayOf(
         "欢迎使用",         // 简体中文
@@ -141,21 +113,6 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
         "Добро пожаловать", // русский
         "환영합니다"         // 한국어
     )
-
-    private val LANGUAGE_MAP = mapOf(
-        "简体中文" to "zh-CN",
-        "日本語" to "ja",
-        "English" to "en",
-        "繁體中文" to "zh-TW",
-        "русский" to "ru",
-        "한국어" to "ko"
-    )
-
-
-    companion object {
-        const val PURPOSE_LOGIN = 1
-        const val PURPOSE_REGISTER = 2
-    }
 }
 
 
