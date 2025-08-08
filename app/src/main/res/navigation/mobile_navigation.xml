@@ -152,8 +152,8 @@
 
     <fragment
         android:id="@+id/navigation_home_viewpager"
-        android:name="ceui.pixiv.ui.home.HomeViewPagerFragment"
-        tools:layout="@layout/fragment_home_viewpager" />
+        android:name="ceui.pixiv.ui.home.Home2ViewPagerFragment"
+        tools:layout="@layout/fragment_home_2_viewpager" />
 
     <fragment
         android:id="@+id/navigation_background_settings"
