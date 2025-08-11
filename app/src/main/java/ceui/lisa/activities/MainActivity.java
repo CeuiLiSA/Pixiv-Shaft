@@ -1,68 +1,51 @@
 package ceui.lisa.activities;
 
-import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
+import static ceui.lisa.R.id.nav_gallery;
+import static ceui.lisa.R.id.nav_slideshow;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
 
 import com.blankj.utilcode.util.AppUtils;
 import com.bumptech.glide.Glide;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.tbruyelle.rxpermissions3.RxPermissions;
 
 import java.io.File;
 
-import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
-import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentViewPager;
-import ceui.lisa.helper.DrawerLayoutHelper;
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
-import ceui.lisa.view.DrawerLayoutViewPager;
-import ceui.pixiv.ui.common.HomeActivity;
 import ceui.pixiv.session.SessionManager;
-
-import static ceui.lisa.R.id.nav_gallery;
-import static ceui.lisa.R.id.nav_slideshow;
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.ui.common.HomeActivity;
 
 /**
  * 主页
@@ -70,6 +53,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class MainActivity extends BaseActivity<ActivityCoverBinding>
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};
     private ImageView userHead;
     private TextView username;
     private TextView user_email;
@@ -88,109 +72,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initView() {
-        baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
-        baseBind.navView.setNavigationItemSelectedListener(this);
-        userHead = baseBind.navView.getHeaderView(0).findViewById(R.id.user_head);
-        username = baseBind.navView.getHeaderView(0).findViewById(R.id.user_name);
-        user_email = baseBind.navView.getHeaderView(0).findViewById(R.id.user_email);
-        initDrawerHeader();
-        userHead.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Common.showUser(mContext, sUserModel);
-                baseBind.drawerLayout.closeDrawer(GravityCompat.START);
-            }
-        });
-        userHead.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                boolean filterEnable = Shaft.sSettings.isR18FilterTempEnable();
-                Shaft.sSettings.setR18FilterTempEnable(!filterEnable);
-                Common.showToast(filterEnable ? "ԅ(♡﹃♡ԅ)" : "X﹏X");
-                return true;
-            }
-        });
-        baseBind.navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if (item.getItemId() == R.id.action_1) {
-                    baseBind.viewPager.setCurrentItem(0);
-                    return true;
-                } else if (item.getItemId() == R.id.action_2) {
-                    baseBind.viewPager.setCurrentItem(1);
-                    return true;
-                } else if (item.getItemId() == R.id.action_3) {
-                    baseBind.viewPager.setCurrentItem(2);
-                    return true;
-                } else if (item.getItemId() == R.id.action_4) {
-                    baseBind.viewPager.setCurrentItem(3);
-                    return true;
-                }
-                return false;
-            }
-        });
-        baseBind.navigationView.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
-            @Override
-            public void onNavigationItemReselected(@NonNull MenuItem item) {
-                if (item.getItemId() == R.id.action_1) {
-                    for (Fragment baseFragment : baseFragments) {
-                        if (baseFragment instanceof FragmentLeft) {
-                            ((FragmentLeft) baseFragment).forceRefresh();
-                        }
-                    }
-                } else if (item.getItemId() == R.id.action_2) {
-                    for (Fragment baseFragment : baseFragments) {
-                        if (baseFragment instanceof FragmentCenter) {
-                            ((FragmentCenter) baseFragment).forceRefresh();
-                        }
-                    }
-                } else if (item.getItemId() == R.id.action_3) {
-                    for (Fragment baseFragment : baseFragments) {
-                        if (baseFragment instanceof FragmentRight) {
-                            ((FragmentRight) baseFragment).forceRefresh();
-                        }
-                    }
-                } else if (item.getItemId() == R.id.action_4) {
-                    for (Fragment baseFragment : baseFragments) {
-                        if (baseFragment instanceof FragmentViewPager) {
-                            ((FragmentViewPager) baseFragment).forceRefresh();
-                        }
-                    }
-                }
-            }
-        });
-        baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                if (position == 0) {
-                    baseBind.navigationView.setSelectedItemId(R.id.action_1);
-                } else if (position == 1) {
-                    baseBind.navigationView.setSelectedItemId(R.id.action_2);
-                } else if (position == 2) {
-                    baseBind.navigationView.setSelectedItemId(R.id.action_3);
-                } else if (position == 3) {
-                    baseBind.navigationView.setSelectedItemId(R.id.action_4);
-                }
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
-
-        baseBind.viewPager.setTouchEventForwarder(new DrawerLayoutViewPager.IForwardTouchEvent() {
-            @Override
-            public void forwardTouchEvent(MotionEvent ev) {
-                getDrawer().onTouchEvent(ev);
-            }
-        });
-        DrawerLayoutHelper.setCustomLeftEdgeSize(getDrawer(), 1.0f);
     }
 
     private void initFragment() {
@@ -333,8 +214,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         super.onSaveInstanceState(outState);
         outState.clear();
     }
-
-    public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};
 
     private void selectPhoto() {
         new QMUIDialog.CheckableDialogBuilder(mActivity)

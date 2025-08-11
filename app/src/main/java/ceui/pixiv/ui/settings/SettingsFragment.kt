@@ -90,15 +90,6 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                     },
 
                     TabCellHolder(
-                        "Landing Page Preview",
-                    ).onItemClick {
-
-                        pushFragment(
-                            R.id.navigation_landing,
-                        )
-                    },
-
-                    TabCellHolder(
                         getString(R.string.country_and_region),
                         getString(R.string.handle_content_language),
                         nameCode
@@ -134,6 +125,15 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                         SessionManager.loggedInAccount.value?.let { account ->
                             Common.copy(context, Gson().toJson(account))
                         }
+                    },
+
+
+                    TabCellHolder(
+                        "Landing Page Preview",
+                    ).onItemClick {
+                        pushFragment(
+                            R.id.navigation_landing,
+                        )
                     },
 
                     LogOutHolder()
