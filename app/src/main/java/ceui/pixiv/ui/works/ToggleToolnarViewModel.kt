@@ -11,4 +11,6 @@ open class ToggleToolnarViewModel : ViewModel() {
         val current = isFullscreenMode.value ?: false
         isFullscreenMode.value = !current
     }
+
+    var isVendorLanding: Boolean = false
 }

@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
@@ -90,7 +91,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         if (SessionManager.isLoggedIn) {
             // ✅ 添加监听 currentDestination
             navController.addOnDestinationChangedListener { controller, destination, arguments ->
-                val destId = destination.id
+                destination.id
                 if (destination.id == R.id.navigation_img_url || destination.id == R.id.navigation_paged_img_urls) {
                     binding.pageBackground.isVisible = false
                     binding.dimmer.isVisible = false
@@ -99,7 +100,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                     binding.dimmer.isVisible = true
                 }
 
-                homeViewModel.onDestinationChanged(destId)
+//                homeViewModel.onDestinationChanged(destId)
             }
         }
         SessionManager.newTokenEvent.observeEvent(this) {
@@ -119,9 +120,9 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             bgViewModel.refresh(RefreshHint.PullToRefresh)
             homeViewModel.reset()
         }
-        homeViewModel.currentScale.observe(this) {
-            animateBackground(it)
-        }
+//        homeViewModel.currentScale.observe(this) {
+//            animateBackground(it)
+//        }
         homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
 
         requireAppBackground().config.observe(this) { config ->

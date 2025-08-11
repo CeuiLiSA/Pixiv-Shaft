@@ -22,12 +22,14 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import ceui.lisa.R
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.copyImageFileToCacheFolder
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
+import ceui.loxia.pushFragment
 import ceui.loxia.requireAppBackground
 import ceui.loxia.requireTaskPool
 import ceui.pixiv.ui.background.BackgroundConfig
@@ -108,6 +110,7 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
                     showActionMenu {
                         val localFileUri = UriUtils.file2Uri(file)
                         add(MenuItem("设置为软件背景图") {
+                            viewModel.isVendorLanding = false
                             imageCropper.startCrop(localFileUri)
                         })
                         add(MenuItem("设置为系统壁纸") {
@@ -122,6 +125,10 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
                                 }
 
                             activity.startActivity(intent)
+                        })
+                        add(MenuItem("Landing Page Preview") {
+                            viewModel.isVendorLanding = true
+                            imageCropper.startCrop(localFileUri)
                         })
                     }
                 }
@@ -144,6 +151,9 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
                 localFileUri = uri.toString()
             )
         )
+        if (viewModel.isVendorLanding) {
+            pushFragment(R.id.navigation_landing)
+        }
     }
 
     private fun performDownload(activity: FragmentActivity, file: File) {
