@@ -21,16 +21,13 @@ import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.IllustResponse
 import ceui.loxia.ObjectPool
-import ceui.loxia.RefreshHint
 import ceui.loxia.observeEvent
 import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.web.LinkHandler
-import ceui.pixiv.utils.TokenGenerator
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -46,22 +43,16 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 
     private val bgViewModel by pixivValueViewModel {
         RemoteRepository {
-            val rest = if (SessionManager.loggedInUid > 0L) {
-                Client.appApi.getUserBookmarkedIllusts(
-                    SessionManager.loggedInUid, Params.TYPE_PUBLIC
-                )
-            } else {
-                val jsonString =
-                    assets.open("landing_bg.json").bufferedReader().use { it.readText() }
-                Gson().fromJson(jsonString, IllustResponse::class.java)
-            }
+            val rest = Client.appApi.getUserBookmarkedIllusts(
+                SessionManager.loggedInUid, Params.TYPE_PUBLIC
+            )
 
             val list = rest.illusts
             rest.copy(illusts = list.shuffled())
         }
     }
     private val homeViewModel: HomeViewModel by viewModels {
-        HomeViewModelFactory(TokenGenerator.generateToken())
+        HomeViewModelFactory(assets)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,11 +104,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             Timber.d("dsadasadsw2 count: ${list.size}")
         }
 
-        SessionManager.loggedInAccount.observe(this) {
-            bgViewModel.refresh(RefreshHint.PullToRefresh)
-            homeViewModel.reset()
-        }
-
         homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
 
 //        lifecycleScope.launch {
@@ -135,30 +121,47 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 //            TaskQueueManager.startProcessing()
 //        }
 
-        requireAppBackground().config.observe(this) { config ->
-            if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
-                bgViewModel.result.observe(this) { loadResult ->
-                    loadResult?.data?.displayList?.getOrNull(0)?.let { illust ->
-                        ObjectPool.update(illust)
-                        binding.dimmer.isVisible = true
-                        Glide.with(this)
-                            .load(
-                                GlideUrlChild(
-                                    illust.meta_single_page?.original_image_url
-                                        ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
+        if (SessionManager.loggedInUid > 0L) {
+            requireAppBackground().config.observe(this) { config ->
+                if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
+                    bgViewModel.result.observe(this) { loadResult ->
+                        loadResult?.data?.displayList?.getOrNull(0)?.let { illust ->
+                            ObjectPool.update(illust)
+                            binding.dimmer.isVisible = true
+                            Glide.with(this)
+                                .load(
+                                    GlideUrlChild(
+                                        illust.meta_single_page?.original_image_url
+                                            ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
+                                    )
                                 )
-                            )
-//                            .apply(bitmapTransform(BlurTransformation(15, 3)))
-                            .transition(withCrossFade())
-                            .into(binding.pageBackground)
+                                .transition(withCrossFade())
+                                .into(binding.pageBackground)
+                        }
                     }
+                } else if (config.type == BackgroundType.SPECIFIC_ILLUST || config.type == BackgroundType.LOCAL_FILE) {
+                    binding.dimmer.isVisible = true
+                    Glide.with(this)
+                        .load(config.localFileUri)
+                        .transition(withCrossFade())
+                        .into(binding.pageBackground)
                 }
-            } else if (config.type == BackgroundType.SPECIFIC_ILLUST || config.type == BackgroundType.LOCAL_FILE) {
-                binding.dimmer.isVisible = true
-                Glide.with(this)
-                    .load(config.localFileUri)
-                    .transition(withCrossFade())
-                    .into(binding.pageBackground)
+            }
+        } else {
+            homeViewModel.illustResponse.observe(this) { illustResponse ->
+                illustResponse.displayList.getOrNull(0)?.let { illust ->
+                    ObjectPool.update(illust)
+                    binding.dimmer.isVisible = true
+                    Glide.with(this)
+                        .load(
+                            GlideUrlChild(
+                                illust.meta_single_page?.original_image_url
+                                    ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
+                            )
+                        )
+                        .transition(withCrossFade())
+                        .into(binding.pageBackground)
+                }
             }
         }
     }

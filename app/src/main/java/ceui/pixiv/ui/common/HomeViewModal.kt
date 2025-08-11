@@ -1,15 +1,17 @@
 package ceui.pixiv.ui.common
 
+import android.content.res.AssetManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import timber.log.Timber
+import ceui.loxia.IllustResponse
+import com.google.gson.Gson
 
-class HomeViewModel(private val tag: String) : ViewModel() {
+class HomeViewModel(private val assets: AssetManager) : ViewModel() {
 
-    init {
-        Timber.d("HomeViewModel($tag) created")
-    }
+
+    private val _illustResponse = MutableLiveData<IllustResponse>()
+    val illustResponse: LiveData<IllustResponse> = _illustResponse
 
     private val _grayDisplay = MutableLiveData(false)
     val grayDisplay: LiveData<Boolean> = _grayDisplay
@@ -54,5 +56,18 @@ class HomeViewModel(private val tag: String) : ViewModel() {
 
     fun reset() {
         _currentScale.value = 1F
+    }
+
+
+    private fun loadFromLocal() {
+        val jsonString =
+            assets.open("landing_bg.json").bufferedReader().use { it.readText() }
+        val raw = Gson().fromJson(jsonString, IllustResponse::class.java)
+        val list = raw.displayList
+        _illustResponse.value = raw.copy(illusts = list.shuffled())
+    }
+
+    init {
+        loadFromLocal()
     }
 }
