@@ -82,12 +82,22 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         navController.graph = graph
 
         navController.addOnDestinationChangedListener { controller, destination, arguments ->
+            val destId = destination.id
             if (destination.id == R.id.navigation_img_url || destination.id == R.id.navigation_paged_img_urls) {
                 binding.pageBackground.isVisible = false
                 binding.dimmer.isVisible = false
             } else {
                 binding.pageBackground.isVisible = true
                 binding.dimmer.isVisible = true
+            }
+
+            if (!SessionManager.isLoggedIn) {
+                homeViewModel.onDestinationChanged(destId)
+            }
+        }
+        if (!SessionManager.isLoggedIn) {
+            homeViewModel.currentScale.observe(this) {
+                animateBackground(it)
             }
         }
         SessionManager.newTokenEvent.observeEvent(this) {
@@ -107,9 +117,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             bgViewModel.refresh(RefreshHint.PullToRefresh)
             homeViewModel.reset()
         }
-//        homeViewModel.currentScale.observe(this) {
-//            animateBackground(it)
-//        }
+
         homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
 
 //        lifecycleScope.launch {
