@@ -6,7 +6,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
@@ -19,6 +18,7 @@ import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.repo.LoadResult
 import ceui.pixiv.ui.common.repo.Repository
 import ceui.pixiv.utils.NetworkStateManager
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.reflect.KClass
 
@@ -121,7 +121,7 @@ inline fun <reified VM : ViewModel> ComponentActivity.viewModels(
 
 
 class ValueViewModel<T>(
-    networkStateManager: NetworkStateManager,
+    private val networkStateManager: NetworkStateManager,
     repository: Repository<T>,
 ) : ViewModel(), RefreshOwner {
 
@@ -132,20 +132,24 @@ class ValueViewModel<T>(
 
     val result: LiveData<LoadResult<T>> get() = valueContent.result
 
-    private val canAccessGoogle: LiveData<Boolean> = networkStateManager.canAccessGoogle
-
-    private val networkObserver = Observer<Boolean> { canAccess ->
-        Timber.d("ValueContent refreshInternal from observer")
-        refreshInternal(canAccess)
-    }
-
     init {
-        canAccessGoogle.observeForever(networkObserver)
+        // 用 flow 代替 observeForever
+        viewModelScope.launch {
+            networkStateManager.googleAccessRecoveredFlow
+                .collect { recovered ->
+                    if (recovered) {
+                        Timber.d("ValueContent refreshInternal from googleAccessRecoveredFlow")
+                        refreshInternal(true)
+                    }
+                }
+        }
     }
 
     override fun refresh(hint: RefreshHint) {
+        // 手动刷新时依旧用当前状态
+        val canAccessGoogle = (networkStateManager.canAccessGoogle.value == true)
         Timber.d("ValueContent refreshInternal from manual refresh")
-        refreshInternal(canAccessGoogle.value == true)
+        refreshInternal(canAccessGoogle)
     }
 
     private fun refreshInternal(canAccessGoogle: Boolean) {
@@ -154,7 +158,7 @@ class ValueViewModel<T>(
             Timber.d("ValueContent auto-refresh triggered by InitialLoad")
         } else {
             valueContent.noneOpRefresh(RefreshHint.InitialLoad)
-            Timber.d("ValueContent auto-refresh dont invoke ")
+            Timber.d("ValueContent auto-refresh dont invoke")
         }
     }
 }

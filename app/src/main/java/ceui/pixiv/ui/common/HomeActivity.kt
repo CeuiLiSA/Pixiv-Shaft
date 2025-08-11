@@ -21,6 +21,7 @@ import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
+import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.observeEvent
 import ceui.loxia.requireAppBackground
@@ -126,17 +127,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                 if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
                     bgViewModel.result.observe(this) { loadResult ->
                         loadResult?.data?.displayList?.getOrNull(0)?.let { illust ->
-                            ObjectPool.update(illust)
-                            binding.dimmer.isVisible = true
-                            Glide.with(this)
-                                .load(
-                                    GlideUrlChild(
-                                        illust.meta_single_page?.original_image_url
-                                            ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
-                                    )
-                                )
-                                .transition(withCrossFade())
-                                .into(binding.pageBackground)
+                            onBackgroundIllustPrepared(illust)
                         }
                     }
                 } else if (config.type == BackgroundType.SPECIFIC_ILLUST || config.type == BackgroundType.LOCAL_FILE) {
@@ -150,17 +141,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         } else {
             homeViewModel.illustResponse.observe(this) { illustResponse ->
                 illustResponse.displayList.getOrNull(0)?.let { illust ->
-                    ObjectPool.update(illust)
-                    binding.dimmer.isVisible = true
-                    Glide.with(this)
-                        .load(
-                            GlideUrlChild(
-                                illust.meta_single_page?.original_image_url
-                                    ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
-                            )
-                        )
-                        .transition(withCrossFade())
-                        .into(binding.pageBackground)
+                    onBackgroundIllustPrepared(illust)
                 }
             }
         }
@@ -173,6 +154,20 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             .setDuration(1000)
             .setInterpolator(OvershootInterpolator(1.1f))
             .start()
+    }
+
+    private fun onBackgroundIllustPrepared(illust: Illust) {
+        ObjectPool.update(illust)
+        binding.dimmer.isVisible = true
+        Glide.with(this)
+            .load(
+                GlideUrlChild(
+                    illust.meta_single_page?.original_image_url
+                        ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
+                )
+            )
+            .transition(withCrossFade())
+            .into(binding.pageBackground)
     }
 
     private fun triggerOnce() {

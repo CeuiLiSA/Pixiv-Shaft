@@ -4,7 +4,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -32,10 +31,9 @@ class PagingViewModel<ObjectT : ModelObject>(
 ) : ViewModel() {
 
     private val refreshTrigger = MutableStateFlow(0)
-    private val canAccessGoogle = networkStateManager.canAccessGoogle.asFlow()
 
     val pager: Flow<PagingData<ListItemHolder>> =
-        canAccessGoogle.flatMapLatest { canAccess ->
+        networkStateManager.googleAccessRecoveredFlow.flatMapLatest { canAccess ->
             when (repository) {
                 is PagingMediatorRepository -> createMediatorPager(repository, canAccess)
                 is PagingAPIRepository -> createApiPager(repository, canAccess)
