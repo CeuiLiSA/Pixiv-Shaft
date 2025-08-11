@@ -39,7 +39,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import kotlin.random.Random
 
 class HomeActivity : AppCompatActivity(), GrayToggler {
 
@@ -53,18 +52,12 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                 )
             } else {
                 val jsonString =
-                    assets.open("walkthrough.json").bufferedReader().use { it.readText() }
+                    assets.open("landing_bg.json").bufferedReader().use { it.readText() }
                 Gson().fromJson(jsonString, IllustResponse::class.java)
             }
 
             val list = rest.illusts
-            if (SessionManager.loggedInUid > 0L) {
-                rest.copy(illusts = list.shuffled())
-            } else {
-                Timber.d("asdsaddsadaw2 ${list.size}")
-                rest.copy(illusts = list.sortedByDescending { illust -> illust.height / illust.width }
-                    .subList(0, 50))
-            }
+            rest.copy(illusts = list.shuffled())
         }
     }
     private val homeViewModel: HomeViewModel by viewModels {
@@ -125,18 +118,42 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 //        }
         homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
 
+//
+//        lifecycleScope.launch {
+//            delay(5000L)
+//            TaskQueueManager.addTasks(
+//                listOf(
+//                    "133636435",
+//                    "84229388",
+//                    "68698295",
+//                    "92066353",
+//                    "125872428",
+//                    "124929117",
+//                    "132928518",
+//                    "111987291",
+//                    "130698461"
+//                ).mapNotNull {
+//                    it.toLongOrNull()?.let {
+//                        LandingPreviewTask(lifecycleScope, it)
+//                    }
+//                })
+//
+//            TaskQueueManager.startProcessing()
+//        }
+
         requireAppBackground().config.observe(this) { config ->
             if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
                 bgViewModel.result.observe(this) { loadResult ->
-                    loadResult?.data?.displayList?.getOrNull(
-                        if (SessionManager.loggedInUid > 0) 0 else Random.nextInt(
-                            60
-                        )
-                    )?.let { illust ->
+                    loadResult?.data?.displayList?.getOrNull(0)?.let { illust ->
                         ObjectPool.update(illust)
                         binding.dimmer.isVisible = true
                         Glide.with(this)
-                            .load(GlideUrlChild(illust.image_urls?.large))
+                            .load(
+                                GlideUrlChild(
+                                    illust.meta_single_page?.original_image_url
+                                        ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
+                                )
+                            )
 //                            .apply(bitmapTransform(BlurTransformation(15, 3)))
                             .transition(withCrossFade())
                             .into(binding.pageBackground)
