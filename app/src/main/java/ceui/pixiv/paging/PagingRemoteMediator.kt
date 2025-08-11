@@ -27,21 +27,21 @@ class PagingRemoteMediator<ObjectT : ModelObject>(
             val generalDao = db.generalDao()
             val remoteKeyDao = db.remoteKeyDao()
 
-            val cacheTimeoutMs = 5 * 60 * 1000L // 5分钟
-            val now = System.currentTimeMillis()
+//            val cacheTimeoutMs = 5 * 60 * 1000L // 5分钟
+//            val now = System.currentTimeMillis()
 
             val remoteKey = remoteKeyDao.getRemoteKey(recordType)
-            val shouldSkipNetwork = if (loadType == LoadType.REFRESH) {
-                remoteKey?.lastUpdatedTime?.let {
-                    now - it < cacheTimeoutMs
-                } ?: false
-            } else {
-                false
-            }
-
-            if (shouldSkipNetwork) {
-                return MediatorResult.Success(endOfPaginationReached = false)
-            }
+//            val shouldSkipNetwork = if (loadType == LoadType.REFRESH) {
+//                remoteKey?.lastUpdatedTime?.let {
+//                    now - it < cacheTimeoutMs
+//                } ?: false
+//            } else {
+//                false
+//            }
+//
+//            if (shouldSkipNetwork) {
+//                return MediatorResult.Success(endOfPaginationReached = false)
+//            }
 
             val nextPageUrl = when (loadType) {
                 LoadType.REFRESH -> null
