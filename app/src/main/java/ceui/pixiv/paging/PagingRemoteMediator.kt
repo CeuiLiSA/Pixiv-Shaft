@@ -10,6 +10,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.ModelObject
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RemoteKey
+import timber.log.Timber
 
 @OptIn(ExperimentalPagingApi::class)
 class PagingRemoteMediator<ObjectT : ModelObject>(
@@ -46,8 +47,14 @@ class PagingRemoteMediator<ObjectT : ModelObject>(
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    remoteKey?.nextPageUrl
-                        ?: return MediatorResult.Success(endOfPaginationReached = true)
+                    val url = remoteKey?.nextPageUrl
+                    if (url != null) {
+                        Timber.d("sdadsadsadsaw2 bb ${url}")
+                        url
+                    } else {
+                        Timber.d("sdadsadsadsaw2 cc")
+                        return MediatorResult.Success(endOfPaginationReached = true)
+                    }
                 }
             }
 

@@ -81,19 +81,13 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         graph.setStartDestination(startDestination)
         navController.graph = graph
 
-        if (SessionManager.isLoggedIn) {
-            // ✅ 添加监听 currentDestination
-            navController.addOnDestinationChangedListener { controller, destination, arguments ->
-                destination.id
-                if (destination.id == R.id.navigation_img_url || destination.id == R.id.navigation_paged_img_urls) {
-                    binding.pageBackground.isVisible = false
-                    binding.dimmer.isVisible = false
-                } else {
-                    binding.pageBackground.isVisible = true
-                    binding.dimmer.isVisible = true
-                }
-
-//                homeViewModel.onDestinationChanged(destId)
+        navController.addOnDestinationChangedListener { controller, destination, arguments ->
+            if (destination.id == R.id.navigation_img_url || destination.id == R.id.navigation_paged_img_urls) {
+                binding.pageBackground.isVisible = false
+                binding.dimmer.isVisible = false
+            } else {
+                binding.pageBackground.isVisible = true
+                binding.dimmer.isVisible = true
             }
         }
         SessionManager.newTokenEvent.observeEvent(this) {
@@ -118,20 +112,12 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 //        }
         homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
 
-//
 //        lifecycleScope.launch {
-//            delay(5000L)
 //            TaskQueueManager.addTasks(
 //                listOf(
-//                    "133636435",
-//                    "84229388",
-//                    "68698295",
-//                    "92066353",
-//                    "125872428",
-//                    "124929117",
-//                    "132928518",
-//                    "111987291",
-//                    "130698461"
+//                    "128113366",
+//                    "99549359",
+//                    "73205835",
 //                ).mapNotNull {
 //                    it.toLongOrNull()?.let {
 //                        LandingPreviewTask(lifecycleScope, it)

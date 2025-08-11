@@ -10,6 +10,7 @@ import ceui.pixiv.db.RecordType
 import ceui.pixiv.paging.PagingMediatorRepository
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListItemHolder
+import timber.log.Timber
 
 class UserBookmarkedIllustsRepository(private val args: UserBookmarkedIllustsFragmentArgs) :
     PagingMediatorRepository<Illust>() {
@@ -23,10 +24,12 @@ class UserBookmarkedIllustsRepository(private val args: UserBookmarkedIllustsFra
         }
 
     override suspend fun loadFirst(): KListShow<Illust> {
-        return Client.appApi.getUserBookmarkedIllusts(
+        val resp = Client.appApi.getUserBookmarkedIllusts(
             args.userId,
             args.restrictType ?: Params.TYPE_PUBLIC
         )
+        Timber.d("sdadsadsadsaw2 aa ${resp.nextPageUrl}")
+        return resp
     }
 
     override fun mapper(entity: GeneralEntity): List<ListItemHolder> {
