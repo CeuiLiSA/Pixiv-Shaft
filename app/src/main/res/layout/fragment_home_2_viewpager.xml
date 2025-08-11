@@ -166,7 +166,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_marginStart="10dp"
-                        android:src="@drawable/ic_home_new_home"
+                        android:src="@drawable/icon_bottom_tab_v2_discover"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/icon_circles_tab"
                         app:layout_constraintStart_toStartOf="parent" />
@@ -176,7 +176,7 @@
                         isSelected="@{viewModel.selectedTabIndex == 1}"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:src="@drawable/ic_home_new_search"
+                        android:src="@drawable/icon_bottom_tab_v2_circle"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/home_compose"
                         app:layout_constraintStart_toEndOf="@+id/icon_discover_tab" />
@@ -195,7 +195,7 @@
                         isSelected="@{viewModel.selectedTabIndex == 2}"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:src="@drawable/ic_home_new_chat"
+                        android:src="@drawable/icon_bottom_tab_v2_chats"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/icon_friends_tab"
                         app:layout_constraintStart_toEndOf="@+id/home_compose" />
@@ -206,7 +206,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_marginEnd="10dp"
-                        android:src="@drawable/ic_home_new_profile"
+                        android:src="@drawable/icon_bottom_tab_v2_friends"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toEndOf="@+id/icon_chats_tab" />
