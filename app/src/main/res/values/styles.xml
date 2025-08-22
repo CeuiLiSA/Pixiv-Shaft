@@ -401,9 +401,9 @@
 
     <style name="SplashTheme" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <!--        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="s">-->
-        <!--            @drawable/splash_text-->
-        <!--        </item>-->
+        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="s">
+            @drawable/logo
+        </item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/icon_shaft_with_bg</item>
         <item name="windowSplashScreenAnimationDuration">200</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
