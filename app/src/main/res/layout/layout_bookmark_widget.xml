@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="illust"
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.Illust>" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <ceui.loxia.ProgressImageButton
+            android:id="@+id/bookmark"
+            android:layout_width="@dimen/min_widget_size"
+            android:layout_height="@dimen/min_widget_size"
+            android:background="@{illust.is_bookmarked() ? @drawable/round_corner_activated_icon_button : @drawable/round_corner_icon_button}"
+            android:padding="8dp"
+            android:src="@{illust.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:ptb_progress_stroke_width="3dp"
+            app:ptb_progress_width="14dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

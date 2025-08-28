@@ -1,17 +1,21 @@
 package ceui.pixiv.ui.detail
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.databinding.LayoutBookmarkWidgetBinding
 import ceui.lisa.models.ObjectSpec
 import ceui.lisa.view.LinearItemDecorationKt
 import ceui.loxia.ObjectType
 import ceui.loxia.clearItemDecorations
 import ceui.loxia.combineLatest
+import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.flag.FlagReasonFragmentArgs
 import ceui.loxia.pushFragment
 import ceui.loxia.requireEntityWrapper
@@ -22,6 +26,7 @@ import ceui.pixiv.ui.chats.SeeMoreAction
 import ceui.pixiv.ui.chats.SeeMoreType
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
+import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
@@ -57,6 +62,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
             .isObjectBlocked(RecordType.BLOCK_ILLUST, safeArgs.illustId)
 
         binding.listView.layoutManager = LinearLayoutManager(ctx)
+        setUpBookmarkButton()
 
         combineLatest(
             isBlockedLiveData,
@@ -130,6 +136,31 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                     binding.toolbarLayout.naviMore.isVisible = false
                 }
             }
+        }
+    }
+
+    private fun setUpBookmarkButton() {
+        val bookmarkWidget =
+            LayoutBookmarkWidgetBinding.inflate(LayoutInflater.from(requireContext()))
+
+        val params = ConstraintLayout.LayoutParams(
+            ConstraintLayout.LayoutParams.WRAP_CONTENT,
+            ConstraintLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+            endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+            marginEnd = 16.ppppx // 扩展属性或者手动转 px
+            bottomMargin = 40.ppppx
+        }
+
+        bookmarkWidget.root.layoutParams = params
+        binding.root.addView(bookmarkWidget.root)
+
+        bookmarkWidget.lifecycleOwner = viewLifecycleOwner
+        bookmarkWidget.illust = viewModel.illustLiveData
+        bookmarkWidget.bookmark.setOnClick {
+            it.findActionReceiverOrNull<IllustCardActionReceiver>()
+                ?.onClickBookmarkIllust(it, safeArgs.illustId)
         }
     }
 

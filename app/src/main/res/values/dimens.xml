@@ -43,7 +43,7 @@
     <dimen name="tab_layout_cursor_width">10dp</dimen>
 
     <dimen name="user_head_size_feeds">42dp</dimen>
-    <dimen name="tab_layout_neg_height">-48dp</dimen>
+    <dimen name="tab_layout_neg_height">-42dp</dimen>
     <dimen name="min_widget_size">44dp</dimen>
     <dimen name="progress_button_width">200dp</dimen>
 </resources>
