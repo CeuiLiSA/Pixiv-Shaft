@@ -62,7 +62,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
             .isObjectBlocked(RecordType.BLOCK_ILLUST, safeArgs.illustId)
 
         binding.listView.layoutManager = LinearLayoutManager(ctx)
-        setUpBookmarkButton()
+        val bookmarkView = setUpBookmarkButton()
 
         combineLatest(
             isBlockedLiveData,
@@ -72,6 +72,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                 return@observe
             }
 
+            bookmarkView.isVisible = !isBlocked
             if (isBlocked) {
                 binding.refreshLayout.isVisible = false
                 binding.toolbarLayout.naviMore.setOnClick {
@@ -139,7 +140,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
         }
     }
 
-    private fun setUpBookmarkButton() {
+    private fun setUpBookmarkButton(): View {
         val bookmarkWidget =
             LayoutBookmarkWidgetBinding.inflate(LayoutInflater.from(requireContext()))
 
@@ -162,6 +163,8 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
             it.findActionReceiverOrNull<IllustCardActionReceiver>()
                 ?.onClickBookmarkIllust(it, safeArgs.illustId)
         }
+
+        return bookmarkWidget.root
     }
 
     override fun onClickGalleryHolder(index: Int, galleryHolder: GalleryHolder) {
