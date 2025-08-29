@@ -55,19 +55,7 @@ class BackgroundSettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     showGreenDone = true,
                     selected = config.map { it.type == BackgroundType.LOCAL_FILE }).onItemClick {
                     openSystemGallery()
-                },
-                TabCellHolder(
-                    getString(R.string.background_random_from_favorites),
-                    showGreenDone = true,
-                    selected = config.map { it.type == BackgroundType.RANDOM_FROM_FAVORITES }).onItemClick {
-                    if (config.value?.type != BackgroundType.RANDOM_FROM_FAVORITES) {
-                        requireAppBackground().updateConfig(
-                            BackgroundConfig(
-                                BackgroundType.RANDOM_FROM_FAVORITES,
-                            )
-                        )
-                    }
-                },
+                }
             )
         )
     }

@@ -13,19 +13,18 @@ import android.view.animation.OvershootInterpolator
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ActivityHomeBinding
-import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.ObjectPool
 import ceui.loxia.observeEvent
 import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.background.BackgroundConfig
 import ceui.pixiv.ui.background.BackgroundType
 import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.web.LinkHandler
@@ -132,22 +131,16 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             }
         }
 
+        binding.dimmer.isVisible = true
+        val appBackground = requireAppBackground()
+
         if (SessionManager.loggedInUid > 0L) {
             binding.pageBackground2.isVisible = false
-            requireAppBackground().config.observe(this) { config ->
-                if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
-                    bgViewModel.result.observe(this) { loadResult ->
-                        loadResult?.data?.displayList?.getOrNull(0)?.let { illust ->
-                            onBackgroundIllustPrepared(illust)
-                        }
-                    }
-                } else if (config.type == BackgroundType.SPECIFIC_ILLUST || config.type == BackgroundType.LOCAL_FILE) {
-                    binding.dimmer.isVisible = true
-                    Glide.with(this)
-                        .load(config.localFileUri)
-                        .transition(withCrossFade())
-                        .into(binding.pageBackground)
-                }
+            appBackground.config.observe(this) { config ->
+                Glide.with(this)
+                    .load(config.localFileUri)
+                    .transition(withCrossFade())
+                    .into(binding.pageBackground)
             }
         } else {
             binding.pageBackground2.isVisible = true
@@ -158,6 +151,13 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                 } else {
                     binding.pageBackground2 to binding.pageBackground
                 }
+
+                appBackground.updateConfig(
+                    BackgroundConfig(
+                        BackgroundType.SPECIFIC_ILLUST,
+                        localFileUri = file.toUri().toString()
+                    )
+                )
 
                 Glide.with(this)
                     .load(file)
@@ -189,20 +189,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
             .setDuration(1000)
             .setInterpolator(OvershootInterpolator(1.1f))
             .start()
-    }
-
-    private fun onBackgroundIllustPrepared(illust: Illust) {
-        ObjectPool.update(illust)
-        binding.dimmer.isVisible = true
-        Glide.with(this)
-            .load(
-                GlideUrlChild(
-                    illust.meta_single_page?.original_image_url
-                        ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
-                )
-            )
-            .transition(withCrossFade())
-            .into(binding.pageBackground)
     }
 
     private fun triggerOnce() {

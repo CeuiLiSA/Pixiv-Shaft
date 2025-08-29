@@ -76,8 +76,6 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                         getString(R.string.app_background),
                         extraInfo = if (backgroundType == BackgroundType.SPECIFIC_ILLUST) {
                             getString(R.string.background_specified_illust)
-                        } else if (backgroundType == BackgroundType.RANDOM_FROM_FAVORITES) {
-                            getString(R.string.background_random_from_favorites)
                         } else if (backgroundType == BackgroundType.LOCAL_FILE) {
                             getString(R.string.background_chosen_from_gallary)
                         } else {

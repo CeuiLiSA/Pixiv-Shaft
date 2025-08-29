@@ -19,7 +19,7 @@ class AppBackground {
     private fun loadFromMMKV(): BackgroundConfig {
         val typeName = prefStore.decodeString(KEY_TYPE)
         val type =
-            typeName?.let { BackgroundType.valueOf(it) } ?: BackgroundType.RANDOM_FROM_FAVORITES
+            typeName?.let { BackgroundType.valueOf(it) } ?: BackgroundType.SPECIFIC_ILLUST
 
         val fileUri = prefStore.decodeString(KEY_FILE_URI).takeIf { it?.isNotEmpty() == true }
 
