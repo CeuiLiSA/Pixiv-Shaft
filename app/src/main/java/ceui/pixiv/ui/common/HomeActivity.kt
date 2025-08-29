@@ -31,6 +31,7 @@ import ceui.pixiv.ui.common.repo.RemoteRepository
 import ceui.pixiv.ui.web.LinkHandler
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -126,6 +127,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 //        }
 
         if (SessionManager.loggedInUid > 0L) {
+            binding.pageBackground2.isVisible = false
             requireAppBackground().config.observe(this) { config ->
                 if (config.type == BackgroundType.RANDOM_FROM_FAVORITES) {
                     bgViewModel.result.observe(this) { loadResult ->
@@ -142,13 +144,37 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                 }
             }
         } else {
-            homeViewModel.illustResponse.observe(this) { illustResponse ->
-                illustResponse.displayList.getOrNull(0)?.let { illust ->
-                    onBackgroundIllustPrepared(illust)
+            binding.pageBackground2.isVisible = true
+            homeViewModel.startTask()
+            homeViewModel.landingBackgroundFile.observe(this) { file ->
+                val (fadeOutView, fadeInView) = if (showingFirst) {
+                    binding.pageBackground to binding.pageBackground2
+                } else {
+                    binding.pageBackground2 to binding.pageBackground
                 }
+
+                Glide.with(this)
+                    .load(file)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .skipMemoryCache(false)
+                    .into(fadeInView)
+
+                fadeOutView.animate()
+                    .alpha(0f)
+                    .setDuration(2000L)
+                    .start()
+
+                fadeInView.animate()
+                    .alpha(1f)
+                    .setDuration(2000L)
+                    .start()
+
+                showingFirst = !showingFirst
             }
         }
     }
+
+    private var showingFirst = true
 
     private fun animateBackground(scale: Float) {
         binding.pageBackground.animate()
