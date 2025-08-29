@@ -9,7 +9,6 @@ import ceui.lisa.databinding.FragmentPagedListBinding
 import ceui.loxia.Illust
 import ceui.loxia.IllustResponse
 import ceui.loxia.ObjectPool
-import ceui.loxia.launchSuspend
 import ceui.loxia.requireAppBackground
 import ceui.pixiv.paging.PagingIllustAPIRepository
 import ceui.pixiv.paging.pagingViewModel
@@ -59,21 +58,19 @@ class BackgroundPickerFragment : PixivFragment(R.layout.fragment_paged_list) {
     override fun onClickIllust(illustId: Long) {
         showActionMenu {
             add(MenuItem("设置为软件背景图") {
-                launchSuspend {
-                    val illust = ObjectPool.get<Illust>(illustId).value ?: return@launchSuspend
-                    val url = illust.meta_single_page?.original_image_url
-                        ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
+                val illust = ObjectPool.get<Illust>(illustId).value ?: return@MenuItem
+                val url = illust.meta_single_page?.original_image_url
+                    ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
 
-                    if (url != null) {
-                        object : LoadTask(
-                            NamedUrl(buildPixivWorksFileName(illust.id, 0), url),
-                            MainScope(),
-                            true
-                        ) {
-                            override fun onEnd(resultT: File) {
-                                super.onEnd(resultT)
-                                imageCropper.startCrop(resultT.toUri())
-                            }
+                if (url != null) {
+                    object : LoadTask(
+                        NamedUrl(buildPixivWorksFileName(illust.id, 0), url),
+                        MainScope(),
+                        true
+                    ) {
+                        override fun onEnd(resultT: File) {
+                            super.onEnd(resultT)
+                            imageCropper.startCrop(resultT.toUri())
                         }
                     }
                 }
