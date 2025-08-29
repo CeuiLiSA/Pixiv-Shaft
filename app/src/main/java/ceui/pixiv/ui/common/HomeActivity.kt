@@ -106,13 +106,16 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         }
 
         homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
-
+//
 //        lifecycleScope.launch {
 //            TaskQueueManager.addTasks(
 //                listOf(
-//                    "128113366",
-//                    "99549359",
 //                    "73205835",
+//                    "57114102",
+//                    "113558722",
+//                    "100339369",
+//                    "111919854",
+//                    "122170012",
 //                ).mapNotNull {
 //                    it.toLongOrNull()?.let {
 //                        LandingPreviewTask(lifecycleScope, it)

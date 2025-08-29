@@ -103,6 +103,7 @@ class EntityWrapper(
     // 调用 `visit` 方法
     fun visitIllust(context: Context, illust: Illust) {
         val json = Shaft.sGson.toJson(illust)
+        Timber.d("visitIllust ${illust.id}")
         visit(context, illust.id, json, ObjectSpec.KOTLIN_ILLUST, RecordType.VIEW_ILLUST_HISTORY)
     }
 
