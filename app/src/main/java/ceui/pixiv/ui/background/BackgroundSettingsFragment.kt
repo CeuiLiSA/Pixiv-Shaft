@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.map
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.loxia.pushFragment
 import ceui.loxia.requireAppBackground
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
@@ -48,7 +49,7 @@ class BackgroundSettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                     getString(R.string.background_specified_illust),
                     showGreenDone = true,
                     selected = config.map { it.type == BackgroundType.SPECIFIC_ILLUST }).onItemClick {
-
+                    pushFragment(R.id.navigation_background_picker)
                 },
                 TabCellHolder(
                     getString(R.string.background_chosen_from_gallary),
