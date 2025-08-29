@@ -12,6 +12,10 @@
         <variable
             name="profile"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.UserResponse>" />
+
+        <variable
+            name="userBlocked"
+            type="androidx.lifecycle.LiveData&lt;Boolean>" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -50,7 +54,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/view_pager_shoulder"
-                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                    app:visibleOrGone="@{!userBlocked}" />
 
                 <com.google.android.material.appbar.AppBarLayout
                     android:id="@+id/app_bar"
@@ -140,12 +145,18 @@
                                     android:layout_marginTop="8dp"
                                     android:src="@drawable/icon_volunteer" />
 
+
+                                <Space
+                                    android:layout_width="match_parent"
+                                    android:layout_height="20dp" />
+
                                 <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginVertical="20dp"
                                     android:background="@drawable/bg_user_following"
-                                    android:orientation="horizontal">
+                                    android:orientation="horizontal"
+                                    app:visibleOrGone="@{!userBlocked}">
+
 
                                     <LinearLayout
                                         android:id="@+id/following_layout"
@@ -203,12 +214,16 @@
 
                                 </LinearLayout>
 
+                                <Space
+                                    android:layout_width="match_parent"
+                                    android:layout_height="20dp" />
+
                                 <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="30dp"
                                     android:gravity="center"
-                                    android:orientation="horizontal">
+                                    android:orientation="horizontal"
+                                    app:visibleOrGone="@{!userBlocked}">
 
                                     <ceui.loxia.ProgressTextButton
                                         android:id="@+id/post_follow"
@@ -241,6 +256,19 @@
                                         android:layout_height="42dp"
                                         android:text="@string/chat_with_him" />
                                 </LinearLayout>
+
+                                <ceui.loxia.ProgressTextButton
+                                    android:id="@+id/unblock_user"
+                                    style="@style/SolidWhiteButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="50dp"
+                                    android:paddingHorizontal="24dp"
+                                    android:text="取消屏蔽"
+                                    app:visibleOrGone="@{userBlocked}" />
+
+                                <Space
+                                    android:layout_width="match_parent"
+                                    android:layout_height="30dp" />
 
                             </LinearLayout>
 
@@ -313,7 +341,8 @@
                     android:id="@+id/user_view_pager"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                    app:visibleOrGone="@{!userBlocked}" />
 
             </androidx.coordinatorlayout.widget.CoordinatorLayout>
         </com.scwang.smart.refresh.layout.SmartRefreshLayout>

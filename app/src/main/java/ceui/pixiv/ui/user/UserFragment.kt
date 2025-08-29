@@ -67,10 +67,16 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
         val isNowFavoriteLiveData = AppDatabase.getAppDatabase(context).generalDao()
             .isUserNowFavorite(RecordType.FAVORITE_USER, safeArgs.userId)
 
+        val userBlockedLiveData = AppDatabase.getAppDatabase(context).generalDao()
+            .isObjectBlocked(RecordType.BLOCK_USER, safeArgs.userId)
+
+        binding.userBlocked = userBlockedLiveData
+
         combineLatest(
             viewModel.userLiveData,
-            isNowFavoriteLiveData
-        ).observe(viewLifecycleOwner) { (user, isNowFavorite) ->
+            isNowFavoriteLiveData,
+            userBlockedLiveData,
+        ).observe(viewLifecycleOwner) { (user, isNowFavorite, isUserBlocked) ->
             if (user == null) {
                 return@observe
             }
@@ -80,6 +86,11 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
             }
             binding.iconOfficial.isVisible = user.isOfficial()
             binding.iconVolunteer.isVisible = user.isVolunteer()
+
+
+            binding.unblockUser.setOnClick {
+                requireEntityWrapper().unblockUser(context, user)
+            }
 
             binding.naviMore.setOnClick {
                 showActionMenu {
@@ -91,6 +102,17 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
                         add(MenuItem("添加到特别关注") {
                             requireEntityWrapper().addUserToFavorite(context, user)
                         })
+                    }
+
+                    if (isUserBlocked == true) {
+                        add(MenuItem("取消屏蔽此作者") {
+                            requireEntityWrapper().unblockUser(context, user)
+                        })
+                    } else {
+                        add(MenuItem("屏蔽此作者的内容") {
+                            requireEntityWrapper().blockUser(context, user)
+                        })
+
                     }
                 }
             }

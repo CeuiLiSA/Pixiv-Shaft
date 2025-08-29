@@ -730,7 +730,8 @@
     <string name="country_and_region">国家和地区</string>
     <string name="handle_content_language">设置内容展示语言</string>
     <string name="published_on">发布于: %1$s</string>
-    <string name="remove_blocking">取消屏蔽</string>
+    <string name="remove_blocking">取消屏蔽作品</string>
+    <string name="remove_user_blocking">取消屏蔽用户</string>
     <string name="add_blocking">屏蔽作品</string>
     <string name="view_comments">查看评论</string>
     <string name="flag_artwork">举报作品</string>

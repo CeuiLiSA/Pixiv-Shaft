@@ -61,27 +61,47 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
         val isBlockedLiveData = AppDatabase.getAppDatabase(ctx).generalDao()
             .isObjectBlocked(RecordType.BLOCK_ILLUST, safeArgs.illustId)
 
+        val userBlockedLiveData = AppDatabase.getAppDatabase(context).generalDao()
+            .isObjectBlocked(
+                RecordType.BLOCK_USER,
+                viewModel.illustLiveData.value?.user?.id ?: 0L
+            )
+
         binding.listView.layoutManager = LinearLayoutManager(ctx)
         val bookmarkView = setUpBookmarkButton()
 
         combineLatest(
             isBlockedLiveData,
-            viewModel.illustLiveData
-        ).observe(viewLifecycleOwner) { (isBlocked, illust) ->
-            if (isBlocked == null || illust == null) {
+            viewModel.illustLiveData,
+            userBlockedLiveData,
+        ).observe(viewLifecycleOwner) { (isIllustBlocked, illust, isUserBlocked) ->
+            if (isIllustBlocked == null || illust == null || isUserBlocked == null) {
                 return@observe
             }
 
+            val isBlocked = isIllustBlocked || isUserBlocked
+
             bookmarkView.isVisible = !isBlocked
-            if (isBlocked) {
+            if (isBlocked || isUserBlocked) {
                 binding.refreshLayout.isVisible = false
                 binding.toolbarLayout.naviMore.setOnClick {
                     showActionMenu {
-                        add(
-                            MenuItem(getString(R.string.remove_blocking)) {
-                                requireEntityWrapper().unblockIllust(ctx, illust)
+                        if (isIllustBlocked) {
+                            add(
+                                MenuItem(getString(R.string.remove_blocking)) {
+                                    requireEntityWrapper().unblockIllust(ctx, illust)
+                                }
+                            )
+                        }
+                        if (isUserBlocked) {
+                            illust.user?.let { user ->
+                                add(
+                                    MenuItem(getString(R.string.remove_user_blocking)) {
+                                        requireEntityWrapper().unblockUser(ctx, user)
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
                 }
             } else {
