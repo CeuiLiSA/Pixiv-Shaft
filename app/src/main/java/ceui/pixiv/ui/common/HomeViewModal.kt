@@ -13,7 +13,6 @@ import ceui.pixiv.ui.works.buildPixivWorksFileName
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.io.File
 
 class HomeViewModel(private val assets: AssetManager) : ViewModel() {
@@ -77,32 +76,39 @@ class HomeViewModel(private val assets: AssetManager) : ViewModel() {
         _illustResponse.value = raw.copy(illusts = list.shuffled())
     }
 
-    fun startTask() {
-        Timber.d("dsaadsdassda2 startTask")
-        _illustResponse.value?.displayList.orEmpty().randomOrNull()?.let { randomIllust ->
-            ObjectPool.update(randomIllust)
-            val url = randomIllust.meta_single_page?.original_image_url
-                ?: randomIllust.meta_pages?.getOrNull(0)?.image_urls?.original
-            if (url != null) {
-                object : LoadTask(
-                    NamedUrl(buildPixivWorksFileName(randomIllust.id, 0), url),
-                    viewModelScope,
-                    true
-                ) {
-                    override fun onEnd(resultT: File) {
-                        super.onEnd(resultT)
-                        _landingBackgroundFile.postValue(resultT)
+    private var currentIndex = 0
 
-                        // 6 秒后开启下一波任务
-                        viewModelScope.launch {
-                            delay(8000)
-                            startTask()
-                        }
+    fun startTask() {
+        val list = _illustResponse.value?.displayList.orEmpty()
+        if (list.isEmpty()) return
+
+        val illust = list[currentIndex]
+        currentIndex = (currentIndex + 1) % list.size  // 顺序循环
+
+        ObjectPool.update(illust)
+        val url = illust.meta_single_page?.original_image_url
+            ?: illust.meta_pages?.getOrNull(0)?.image_urls?.original
+
+        if (url != null) {
+            object : LoadTask(
+                NamedUrl(buildPixivWorksFileName(illust.id, 0), url),
+                viewModelScope,
+                true
+            ) {
+                override fun onEnd(resultT: File) {
+                    super.onEnd(resultT)
+                    _landingBackgroundFile.postValue(resultT)
+
+                    // 8 秒后开启下一波任务
+                    viewModelScope.launch {
+                        delay(8000)
+                        startTask()
                     }
                 }
             }
         }
     }
+
 
     init {
         loadFromLocal()
