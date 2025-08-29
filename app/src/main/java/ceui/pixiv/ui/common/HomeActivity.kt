@@ -126,6 +126,12 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
 //            TaskQueueManager.startProcessing()
 //        }
 
+        SessionManager.loggedInAccount.observe(this) { account ->
+            if (account.access_token?.isNotEmpty() == true) {
+                homeViewModel.endTask()
+            }
+        }
+
         if (SessionManager.loggedInUid > 0L) {
             binding.pageBackground2.isVisible = false
             requireAppBackground().config.observe(this) { config ->
