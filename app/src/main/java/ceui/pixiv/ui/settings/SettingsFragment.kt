@@ -41,7 +41,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
         val adapter = setUpCustomAdapter(binding, ListMode.VERTICAL_TABCELL)
         binding.toolbarLayout.naviTitle.text = getString(R.string.app_settings)
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
-        val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
+        prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
 //        val nameCode = prefStore.getString(SessionManager.CONTENT_LANGUAGE_KEY, "cn") ?: "cn"
         val nameCode = "cn"
         val context = requireActivity()
@@ -50,18 +50,6 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(
                 listOf(
-                    TabCellHolder(
-                        getString(R.string.sync_cookies_with_pixiv_net),
-                        getString(R.string.can_use_web_features_after_sync),
-                        if (cookies.isNotEmpty()) getString(R.string.cookie_sync_has_been_done) else getString(
-                            R.string.cookie_was_not_synced
-                        )
-                    ).onItemClick {
-                        pushFragment(
-                            R.id.navigation_web_fragment,
-                            WebFragmentArgs("https://www.pixiv.net/", saveCookies = true).toBundle()
-                        )
-                    },
                     TabCellHolder(
                         getString(R.string.view_and_artworks_display),
                         getString(R.string.handle_r18g_displaying)

@@ -1,40 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/cell_root"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cell_root"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools">
+    android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/content_text"
         style="@style/textMontserratBold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="12dp"
-        tools:text="Section Header"
         android:textColor="@color/text00"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Section Header" />
 
     <ImageView
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_section_more"
         app:layout_constraintBottom_toBottomOf="@+id/content_text"
-        app:layout_constraintTop_toTopOf="@+id/content_text"
-        android:layout_height="wrap_content"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/content_text" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rank_illust_list"
+    <ceui.pixiv.widgets.NestedScrollableHost
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        app:layout_constraintTop_toBottomOf="@+id/content_text"
         android:layout_marginBottom="18dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        app:layout_constraintTop_toBottomOf="@+id/content_text">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rank_illust_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </ceui.pixiv.widgets.NestedScrollableHost>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

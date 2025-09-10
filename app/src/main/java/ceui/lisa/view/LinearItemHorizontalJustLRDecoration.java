@@ -17,6 +17,8 @@ public class LinearItemHorizontalJustLRDecoration extends RecyclerView.ItemDecor
                                RecyclerView parent, RecyclerView.State state) {
         if (parent.getChildPosition(view) != 0) {
             outRect.left = space;
+        } else {
+            outRect.left = 2 * space;
         }
     }
 }
