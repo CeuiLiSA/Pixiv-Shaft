@@ -100,83 +100,83 @@
             android:name=".activities.ImageDetailActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:theme="@style/SplashTheme" />
-        <activity
-            android:name=".activities.OutWakeActivity"
-            android:exported="true"
-            android:label="OutWakeActivity"
-            android:theme="@style/SplashTheme">
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
+        <!--        <activity-->
+        <!--            android:name=".activities.OutWakeActivity"-->
+        <!--            android:exported="true"-->
+        <!--            android:label="OutWakeActivity"-->
+        <!--            android:theme="@style/SplashTheme">-->
+        <!--            <intent-filter android:autoVerify="true">-->
+        <!--                <action android:name="android.intent.action.VIEW" />-->
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+        <!--                <category android:name="android.intent.category.DEFAULT" />-->
+        <!--                <category android:name="android.intent.category.BROWSABLE" />-->
 
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="www.pixiv.net" />
-                <data android:host="touch.pixiv.net" />
-                <data android:host="pixiv.net" />
-                <data android:pathPrefix="/member_illust.php" />
-                <data android:pathPrefix="/novel/show.php" />
-                <data android:pathPrefix="/novel/member.php" />
-                <data android:pathPrefix="/member.php" />
-                <data android:pathPrefix="/premium/android" />
-                <data android:pathPrefix="/artworks/" />
-                <data android:pathPrefix="/en/artworks/" />
-                <data android:pathPrefix="/users/" />
-                <data android:pathPrefix="/en/users/" />
-                <data android:pathPrefix="/i/" />
-                <data android:pathPrefix="/u/" />
-                <data android:pathPrefix="/n/" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
+        <!--                <data android:scheme="http" />-->
+        <!--                <data android:scheme="https" />-->
+        <!--                <data android:host="www.pixiv.net" />-->
+        <!--                <data android:host="touch.pixiv.net" />-->
+        <!--                <data android:host="pixiv.net" />-->
+        <!--                <data android:pathPrefix="/member_illust.php" />-->
+        <!--                <data android:pathPrefix="/novel/show.php" />-->
+        <!--                <data android:pathPrefix="/novel/member.php" />-->
+        <!--                <data android:pathPrefix="/member.php" />-->
+        <!--                <data android:pathPrefix="/premium/android" />-->
+        <!--                <data android:pathPrefix="/artworks/" />-->
+        <!--                <data android:pathPrefix="/en/artworks/" />-->
+        <!--                <data android:pathPrefix="/users/" />-->
+        <!--                <data android:pathPrefix="/en/users/" />-->
+        <!--                <data android:pathPrefix="/i/" />-->
+        <!--                <data android:pathPrefix="/u/" />-->
+        <!--                <data android:pathPrefix="/n/" />-->
+        <!--            </intent-filter>-->
+        <!--            <intent-filter android:autoVerify="true">-->
+        <!--                <action android:name="android.intent.action.VIEW" />-->
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+        <!--                <category android:name="android.intent.category.DEFAULT" />-->
+        <!--                <category android:name="android.intent.category.BROWSABLE" />-->
 
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="i.pximg.net" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
+        <!--                <data android:scheme="http" />-->
+        <!--                <data android:scheme="https" />-->
+        <!--                <data android:host="i.pximg.net" />-->
+        <!--            </intent-filter>-->
+        <!--            <intent-filter android:autoVerify="true">-->
+        <!--                <action android:name="android.intent.action.VIEW" />-->
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+        <!--                <category android:name="android.intent.category.DEFAULT" />-->
+        <!--                <category android:name="android.intent.category.BROWSABLE" />-->
 
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="www.pixiv.me" />
-                <data android:host="pixiv.me" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
+        <!--                <data android:scheme="http" />-->
+        <!--                <data android:scheme="https" />-->
+        <!--                <data android:host="www.pixiv.me" />-->
+        <!--                <data android:host="pixiv.me" />-->
+        <!--            </intent-filter>-->
+        <!--            <intent-filter android:autoVerify="true">-->
+        <!--                <action android:name="android.intent.action.VIEW" />-->
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+        <!--                <category android:name="android.intent.category.DEFAULT" />-->
+        <!--                <category android:name="android.intent.category.BROWSABLE" />-->
 
-                <data android:scheme="pixiv" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
+        <!--                <data android:scheme="pixiv" />-->
+        <!--            </intent-filter>-->
+        <!--            <intent-filter android:autoVerify="true">-->
+        <!--                <action android:name="android.intent.action.VIEW" />-->
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+        <!--                <category android:name="android.intent.category.DEFAULT" />-->
+        <!--                <category android:name="android.intent.category.BROWSABLE" />-->
 
-                <data android:scheme="shaftintent" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
+        <!--                <data android:scheme="shaftintent" />-->
+        <!--            </intent-filter>-->
+        <!--            <intent-filter android:autoVerify="true">-->
+        <!--                <action android:name="android.intent.action.VIEW" />-->
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+        <!--                <category android:name="android.intent.category.DEFAULT" />-->
+        <!--                <category android:name="android.intent.category.BROWSABLE" />-->
 
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="www.pixivision.net" />
-            </intent-filter>
-        </activity>
+        <!--                <data android:scheme="http" />-->
+        <!--                <data android:scheme="https" />-->
+        <!--                <data android:host="www.pixivision.net" />-->
+        <!--            </intent-filter>-->
+        <!--        </activity>-->
 
         <meta-data
             android:name="android.max_aspect"
