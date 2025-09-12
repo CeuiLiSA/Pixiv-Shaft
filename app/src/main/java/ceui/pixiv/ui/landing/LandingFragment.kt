@@ -75,6 +75,13 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
             }
         }
 
+        binding.logIn.setOnLongClickListener {
+            checkVPNAndNext {
+                pushFragment(R.id.navigation_login_with_token)
+            }
+            true
+        }
+
         binding.register.setOnClick {
             checkVPNAndNext {
                 val baseUrl = HostManager.get().signupUrl
