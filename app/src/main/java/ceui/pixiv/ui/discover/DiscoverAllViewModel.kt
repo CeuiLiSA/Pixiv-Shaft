@@ -18,10 +18,11 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPostHolder
+import ceui.pixiv.utils.NetworkStateManager
 import com.google.gson.Gson
-import kotlin.collections.mutableListOf
 
-class DiscoverAllViewModel : HoldersViewModel() {
+class DiscoverAllViewModel(private val networkStateManager: NetworkStateManager) :
+    HoldersViewModel() {
 
     private var _nextPageSpec: NextPageSpec? = null
     private val gson = Gson()
@@ -85,7 +86,9 @@ class DiscoverAllViewModel : HoldersViewModel() {
                             }
                         }
                     } else {
-                        val webIllust = gson.fromJson(gson.toJson(spec.thumbnails?.firstOrNull()), WebIllust::class.java)
+                        val webIllust = gson.fromJson(
+                            gson.toJson(spec.thumbnails?.firstOrNull()), WebIllust::class.java
+                        )
                         val page = spec.thumbnails?.firstOrNull()?.pages?.firstOrNull()
                         val urls = page?.urls
                         val illust = webIllust.toIllust().copy(

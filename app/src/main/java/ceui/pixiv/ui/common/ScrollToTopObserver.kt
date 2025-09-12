@@ -2,6 +2,7 @@ package ceui.pixiv.ui.common
 
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import timber.log.Timber
 
 class ScrollToTopObserver(
     private val recyclerView: RecyclerView,
@@ -23,12 +24,18 @@ class ScrollToTopObserver(
     }
 
     fun scrollToTop() {
-        val layoutManager = recyclerView.layoutManager
-        if (layoutManager is StaggeredGridLayoutManager) {
-            layoutManager.invalidateSpanAssignments()
-            layoutManager.scrollToPositionWithOffset(0, 0)
-        } else {
-            recyclerView.scrollToPosition(0)
+        recyclerView.post {
+            try {
+                val layoutManager = recyclerView.layoutManager
+                if (layoutManager is StaggeredGridLayoutManager) {
+                    layoutManager.invalidateSpanAssignments()
+                    layoutManager.scrollToPositionWithOffset(0, 0)
+                } else {
+                    recyclerView.scrollToPosition(0)
+                }
+            } catch (ex: Exception) {
+                Timber.e(ex)
+            }
         }
     }
 }

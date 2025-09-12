@@ -382,6 +382,23 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     requireNetworkStateManager().canAccessGoogle.observe(viewLifecycleOwner) { canAccessGoogle ->
         binding.openVpn.isVisible = !canAccessGoogle
         binding.errorRetryButton.isVisible = canAccessGoogle
+        if (canAccessGoogle) {
+            binding.errorText.text = getString(R.string.string_48)
+        } else {
+            binding.errorText.text = getString(R.string.no_internet_connection)
+        }
+        binding.errorLayout.isVisible = !canAccessGoogle
+    }
+
+    viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            adapter.loadStateFlow
+                .map { it.refresh }
+                .collectLatest { current ->
+                    binding.refreshLayout.isRefreshing = current is LoadState.Loading
+                    binding.errorLayout.isVisible = current is LoadState.Error
+                }
+        }
     }
 
     viewLifecycleOwner.lifecycleScope.launch {
@@ -399,9 +416,6 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                 }
                 .drop(1)
                 .collectLatest { (previous, current) ->
-                    binding.refreshLayout.isRefreshing = current is LoadState.Loading
-                    binding.errorLayout.isVisible = current is LoadState.Error
-
                     if (previous is LoadState.Loading && current is LoadState.NotLoading) {
                         val previousItemCount = adapter.itemCount
 
@@ -440,6 +454,17 @@ fun Fragment.setUpRefreshState(
 
     binding.refreshLayout.setEnableRefresh(false)
     binding.refreshLayout.setEnableLoadMore(false)
+
+    requireNetworkStateManager().canAccessGoogle.observe(viewLifecycleOwner) { canAccessGoogle ->
+        binding.openVpn.isVisible = !canAccessGoogle
+        binding.errorRetryButton.isVisible = canAccessGoogle
+        if (canAccessGoogle) {
+            binding.errorText.text = getString(R.string.string_48)
+        } else {
+            binding.errorText.text = getString(R.string.no_internet_connection)
+        }
+        binding.errorLayout.isVisible = !canAccessGoogle
+    }
 
     viewModel.refreshState.observe(viewLifecycleOwner) { state ->
         if (state !is RefreshState.LOADING) {

@@ -4,15 +4,15 @@ import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentMyChatsBinding
-import ceui.loxia.ObjectType
 import ceui.pixiv.ui.article.ArticlesFragment
 import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.TitledViewPagerFragment
+import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.home.WalkthroughFragment
 import ceui.pixiv.ui.rank.RankPreviewFragment
 import ceui.pixiv.widgets.setUpWith
-import ceui.pixiv.ui.common.viewBinding
 
 class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), HomeTabContainer {
 
@@ -28,34 +28,34 @@ class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), Hom
                     },
                     initialTitle = getString(R.string.ranking_list)
                 ),
-                PagedFragmentItem(
-                    builder = {
-                        SquareFragment().apply {
-                            arguments = SquareFragmentArgs(ObjectType.ILLUST).toBundle()
-                        }
-                    },
-                    initialTitle = "插画"
-                ),
-                PagedFragmentItem(
-                    builder = {
-                        SquareFragment().apply {
-                            arguments = SquareFragmentArgs(ObjectType.MANGA).toBundle()
-                        }
-                    },
-                    initialTitle = "漫画"
-                ),
+//                PagedFragmentItem(
+//                    builder = {
+//                        SquareFragment().apply {
+//                            arguments = SquareFragmentArgs(ObjectType.ILLUST).toBundle()
+//                        }
+//                    },
+//                    initialTitle = "插画"
+//                ),
+//                PagedFragmentItem(
+//                    builder = {
+//                        SquareFragment().apply {
+//                            arguments = SquareFragmentArgs(ObjectType.MANGA).toBundle()
+//                        }
+//                    },
+//                    initialTitle = "漫画"
+//                ),
                 PagedFragmentItem(
                     builder = {
                         ArticlesFragment()
                     },
                     initialTitle = "Pixivision"
                 ),
-//                PagedFragmentItem(
-//                    builder = {
-//                        WalkthroughFragment()
-//                    },
-//                    initialTitle = "画廊"
-//                ),
+                PagedFragmentItem(
+                    builder = {
+                        WalkthroughFragment()
+                    },
+                    initialTitle = "画廊"
+                ),
             ),
             this
         )
