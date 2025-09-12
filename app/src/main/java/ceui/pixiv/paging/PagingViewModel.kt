@@ -20,6 +20,7 @@ import ceui.pixiv.utils.NetworkStateManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
@@ -33,13 +34,18 @@ class PagingViewModel<ObjectT : ModelObject>(
     private val refreshTrigger = MutableStateFlow(0)
 
     val pager: Flow<PagingData<ListItemHolder>> =
-        networkStateManager.googleAccessRecoveredFlow.flatMapLatest { canAccess ->
-            when (repository) {
-                is PagingMediatorRepository -> createMediatorPager(repository, canAccess)
-                is PagingAPIRepository -> createApiPager(repository, canAccess)
-                else -> throw IllegalArgumentException("Unsupported repository type")
+        combine(
+            networkStateManager.googleAccessRecoveredFlow,
+            refreshTrigger
+        ) { canAccess, _ -> canAccess } // refreshTrigger 只用来触发
+            .flatMapLatest { canAccess ->
+                when (repository) {
+                    is PagingMediatorRepository -> createMediatorPager(repository, canAccess)
+                    is PagingAPIRepository -> createApiPager(repository, canAccess)
+                    else -> throw IllegalArgumentException("Unsupported repository type")
+                }
             }
-        }.cachedIn(viewModelScope)
+            .cachedIn(viewModelScope)
 
     private fun createMediatorPager(
         repository: PagingMediatorRepository<ObjectT>,
