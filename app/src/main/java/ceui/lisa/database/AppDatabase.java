@@ -67,11 +67,12 @@ public abstract class AppDatabase extends RoomDatabase {
     private static final Migration MIGRATION_26_27 = new Migration(26, 27) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            // 创建 remote_keys 表
+            // 创建 remote_keys 表，带 lastUpdatedTime 字段
             database.execSQL(
                     "CREATE TABLE IF NOT EXISTS remote_keys (" +
                             "recordType INTEGER NOT NULL PRIMARY KEY, " +
-                            "nextPageUrl TEXT" +
+                            "nextPageUrl TEXT, " +
+                            "lastUpdatedTime INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000)" +
                             ")"
             );
         }
