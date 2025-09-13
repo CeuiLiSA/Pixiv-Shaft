@@ -178,6 +178,9 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                 showingFirst = !showingFirst
             }
         }
+
+
+        handleIntentLink(intent)
     }
 
     private var showingFirst = true

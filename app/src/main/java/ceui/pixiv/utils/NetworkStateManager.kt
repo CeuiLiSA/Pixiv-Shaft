@@ -103,6 +103,10 @@ class NetworkStateManager(private val context: Context) : INetworkState {
             else -> NetworkType.NONE
         }
         _networkState.postValue(networkType)
+        checkIfCanAccessGoogle()
+    }
+
+    fun checkIfCanAccessGoogle() {
         accessGoogleTask.checkIfCanAccessGoogle()
     }
 }

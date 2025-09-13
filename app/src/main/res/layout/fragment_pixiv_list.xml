@@ -180,16 +180,6 @@
                 android:textColor="@color/colorWhite60"
                 android:textSize="15sp" />
 
-            <ceui.loxia.ProgressTextButton
-                android:id="@+id/open_vpn"
-                style="@style/GreenShiningButton"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_gravity="center"
-                android:paddingHorizontal="12dp"
-                android:text="@string/enable_vpn"
-                android:visibility="gone" />
-
             <TextView
                 android:id="@+id/error_text"
                 android:layout_width="wrap_content"
