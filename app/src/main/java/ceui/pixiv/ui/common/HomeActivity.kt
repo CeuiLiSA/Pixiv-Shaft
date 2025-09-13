@@ -180,7 +180,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         }
 
 
-        handleIntentLink(intent)
+        handleIntentLink(intent, "onCreate")
     }
 
     private var showingFirst = true
@@ -308,18 +308,19 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         homeViewModel.toggleGrayModeImpl()
     }
 
-    private fun handleIntentLink(intent: Intent?) {
+    private fun handleIntentLink(intent: Intent?, fromWhere: String) {
         val link = intent?.data?.toString()
         if (link.isNullOrEmpty()) return
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
         val linkHandler = LinkHandler(navController)
+        Timber.d("handleIntentLink: from: ${fromWhere}")
         linkHandler.processLink(link)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
-        handleIntentLink(intent)
+        handleIntentLink(intent, " onNewIntent")
     }
 }
