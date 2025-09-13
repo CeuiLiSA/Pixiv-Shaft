@@ -88,7 +88,7 @@ class PagingViewModel<ObjectT : ModelObject>(
         return PagingConfig(
             pageSize = 30,
             initialLoadSize = 30,
-            prefetchDistance = 0
+            prefetchDistance = 5,
         )
     }
 

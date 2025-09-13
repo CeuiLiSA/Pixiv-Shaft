@@ -7,11 +7,11 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.net.Uri
+import android.provider.Settings
 import android.view.View
 import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -104,11 +104,30 @@ fun stableHash(input: String): Int {
 
 fun openClashApp(context: Context) {
     val packageName = "com.github.kr328.clash"
-    val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
-    if (launchIntent != null) {
-        context.startActivity(launchIntent)
-    } else {
-        Toast.makeText(context, "未安装 Clash", Toast.LENGTH_SHORT).show()
+    try {
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+        if (launchIntent != null) {
+            context.startActivity(launchIntent)
+        } else {
+            // 未安装，跳转 VPN 设置
+            openVpnSettings(context)
+        }
+    } catch (e: Exception) {
+        // 启动失败，跳转 VPN 设置
+        openVpnSettings(context)
+    }
+}
+
+private fun openVpnSettings(context: Context) {
+    try {
+        val intent = Intent("android.net.vpn.SETTINGS")
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        // 如果部分 ROM 不支持 android.net.vpn.SETTINGS，就退回到通用设置
+        val intent = Intent(Settings.ACTION_SETTINGS)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
     }
 }
 
