@@ -7,11 +7,20 @@ import ceui.loxia.Event
 
 class ViewPagerViewModel : ViewModel() {
 
-    private val _downloadEvent = MutableLiveData<Event<Int>>()
-    val downloadEvent: LiveData<Event<Int>> = _downloadEvent
 
-    fun triggerDownloadEvent(index: Int) {
-        _downloadEvent.postValue(Event(index))
+    private val _maps = hashMapOf<String, MutableLiveData<Event<Int>>>()
+
+    fun getDownloadEvent(name: String): LiveData<Event<Int>> {
+        return _maps.getOrPut(name) {
+            MutableLiveData<Event<Int>>()
+        }
+    }
+
+    fun triggerDownloadEvent(index: Int, name: String) {
+        val liveData = _maps.getOrPut(name) {
+            MutableLiveData<Event<Int>>()
+        }
+        liveData.postValue(Event(index))
     }
 
     private val _cropEvent = MutableLiveData<Event<Int>>()

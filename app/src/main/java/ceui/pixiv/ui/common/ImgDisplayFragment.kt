@@ -135,11 +135,12 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
             }
 
-            viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
-                task.result.value?.let { file ->
-                    performDownload(activity, file)
+            viewPagerViewModel.getDownloadEvent(namedUrl.name)
+                .observeEvent(viewLifecycleOwner) { index ->
+                    task.result.value?.let { file ->
+                        performDownload(activity, file)
+                    }
                 }
-            }
         }
         progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
     }
