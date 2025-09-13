@@ -137,7 +137,8 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
             viewPagerViewModel.getDownloadEvent(namedUrl.name)
                 .observeEvent(viewLifecycleOwner) { index ->
-                    task.result.value?.let { file ->
+                    val file = task.result.value
+                    if (file != null) {
                         performDownload(activity, file)
                     }
                 }
