@@ -7,7 +7,6 @@ import android.view.animation.OvershootInterpolator
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -17,10 +16,7 @@ import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHome2ViewpagerBinding
 import ceui.lisa.utils.Common
-import ceui.loxia.RefreshState
-import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
-import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.chats.MyChatsFragment
 import ceui.pixiv.ui.circles.MyCirclesFragment
@@ -31,7 +27,6 @@ import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.widgets.alertYesOrCancel
 
 class Home2ViewPagerFragment : PixivFragment(R.layout.fragment_home_2_viewpager),
     ViewPagerFragment {
@@ -77,16 +72,16 @@ class Home2ViewPagerFragment : PixivFragment(R.layout.fragment_home_2_viewpager)
                 }
             })
 
-        val networkManager = requireNetworkStateManager()
+//        val networkManager = requireNetworkStateManager()
 
-        networkManager.refreshState.observe(viewLifecycleOwner) { state ->
-            binding.networkStateLoading.isVisible = state is RefreshState.LOADING
-            if (state is RefreshState.ERROR) {
-                launchSuspend {
-                    alertYesOrCancel("${state.exception::class.java.simpleName}(${state.exception.message ?: state.exception.toString()})")
-                }
-            }
-        }
+//        networkManager.refreshState.observe(viewLifecycleOwner) { state ->
+//            binding.networkStateLoading.isVisible = state is RefreshState.LOADING
+//            if (state is RefreshState.ERROR) {
+//                launchSuspend {
+//                    alertYesOrCancel("${state.exception::class.java.simpleName}(${state.exception.message ?: state.exception.toString()})")
+//                }
+//            }
+//        }
 
         binding.userIcon.setOnClick {
             pushFragment(R.id.navigation_mine_profile)

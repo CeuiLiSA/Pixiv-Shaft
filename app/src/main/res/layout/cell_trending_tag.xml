@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <import type="ceui.pixiv.ui.trending.TrendingTagHolder"/>
+
+        <import type="ceui.pixiv.ui.trending.TrendingTagHolder" />
+
         <variable
             name="holder"
             type="TrendingTagHolder" />
@@ -15,9 +17,9 @@
 
         <FrameLayout
             android:layout_width="match_parent"
+            android:layout_height="0dp"
             app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_height="0dp">
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/image"
@@ -26,32 +28,34 @@
                 android:scaleType="centerCrop" />
 
             <View
-                android:background="@color/black_overlay"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-            
+                android:layout_height="match_parent"
+                android:background="@color/black_overlay" />
+
             <LinearLayout
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_gravity="bottom"
-                android:padding="6dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:textColor="@color/text00"
-                    android:textSize="13sp"
-                    android:text="@{holder.trendingTag.translated_name}"
-                    android:layout_width="wrap_content"
-                    android:gravity="center"
-                    android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="6dp">
 
                 <TextView
-                    android:textSize="12sp"
-                    android:textColor="@color/text00"
                     android:layout_width="wrap_content"
-                    android:text="@{`#` + holder.trendingTag.tag}"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:layout_height="wrap_content"/>
+                    android:text="@{holder.trendingTag.translated_name}"
+                    android:textColor="@color/text00"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@{`#` + holder.trendingTag.tag}"
+                    android:textColor="@color/text00"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
             </LinearLayout>
         </FrameLayout>
 

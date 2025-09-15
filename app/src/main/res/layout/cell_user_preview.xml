@@ -17,8 +17,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:background="@drawable/cell_background"
         android:layout_height="wrap_content"
+        android:background="@drawable/cell_background"
         android:orientation="vertical">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -39,11 +39,11 @@
 
             <LinearLayout
                 android:layout_width="0dp"
-                app:layout_constraintEnd_toStartOf="@+id/end_layout"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
+                android:layout_marginStart="6dp"
                 android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/end_layout"
                 app:layout_constraintStart_toEndOf="@+id/user_icon"
                 app:layout_constraintTop_toTopOf="parent">
 
@@ -54,10 +54,12 @@
                     android:layout_marginBottom="4dp"
                     android:text="@{holder.userPreview.user.name}"
                     android:textColor="@color/text00"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/user_info"
+                    style="@style/textMontserratSemiBold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@{`@` + holder.userPreview.user.account}"
@@ -68,36 +70,35 @@
             <FrameLayout
                 android:id="@+id/end_layout"
                 android:layout_width="wrap_content"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/user_icon"
+                android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="@+id/user_icon"
-                android:layout_height="wrap_content">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/user_icon">
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/follow"
-                    visibleOrGone="@{!user.is_followed()}"
                     style="@style/BlueShiningButton"
-                    android:visibility="gone"
+                    visibleOrGone="@{!user.is_followed()}"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
                     android:paddingHorizontal="12dp"
                     android:text="@string/follow"
+                    android:visibility="gone"
                     app:ptb_progress_stroke_width="3dp"
                     app:ptb_progress_width="14dp" />
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/unfollow"
-                    visibleOrGone="@{user.is_followed()}"
                     style="@style/RedShiningButton"
-                    android:visibility="gone"
+                    visibleOrGone="@{user.is_followed()}"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
                     android:paddingHorizontal="12dp"
                     android:text="@string/unfollow"
+                    android:visibility="gone"
                     app:ptb_progress_stroke_width="3dp"
                     app:ptb_progress_width="14dp" />
             </FrameLayout>
-
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -107,13 +108,13 @@
             visibleOrGone="@{holder.userPreview.illusts.size() > 0}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:visibility="gone">
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_1"
-                visibleOrInvisible="@{holder.illust0 != null}"
                 loadSquareMedia="@{holder.illust0}"
+                visibleOrInvisible="@{holder.illust0 != null}"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 app:layout_constraintDimensionRatio="1:1"
@@ -123,8 +124,8 @@
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_2"
-                visibleOrInvisible="@{holder.illust1 != null}"
                 loadSquareMedia="@{holder.illust1}"
+                visibleOrInvisible="@{holder.illust1 != null}"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_marginHorizontal="2dp"
@@ -136,8 +137,8 @@
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_3"
-                visibleOrInvisible="@{holder.illust2 != null}"
                 loadSquareMedia="@{holder.illust2}"
+                visibleOrInvisible="@{holder.illust2 != null}"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 app:layout_constraintDimensionRatio="1:1"

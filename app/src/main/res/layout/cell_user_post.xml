@@ -40,12 +40,14 @@
             android:text="@{user.name}"
             android:textColor="@color/text00"
             android:textSize="15sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/end_layout"
             app:layout_constraintStart_toEndOf="@+id/user_icon"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/post_time"
+            style="@style/textMontserratSemiBold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"

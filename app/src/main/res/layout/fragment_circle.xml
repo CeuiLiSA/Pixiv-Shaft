@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <import type="ceui.loxia.CircleResponse"/>
+
+        <import type="ceui.loxia.CircleResponse" />
+
         <variable
             name="circle"
             type="androidx.lifecycle.LiveData&lt;CircleResponse>" />
@@ -18,15 +20,15 @@
             android:layout_height="match_parent">
 
             <ImageView
-                app:loadBlurredMedia="@{circle.body.meta.pixpedia.illust.url}"
                 android:id="@+id/tag_preview"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent"
+                app:loadBlurredMedia="@{circle.body.meta.pixpedia.illust.url}" />
 
             <View
-                android:background="@color/black_overlay"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:background="@color/black_overlay" />
         </FrameLayout>
 
         <com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -58,75 +60,76 @@
                         android:id="@+id/collapsing_toolbar_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:toolbarId="@+id/toolbar"
-                        app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
+                        app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+                        app:toolbarId="@+id/toolbar">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
-                            android:layout_width="match_parent"
                             android:id="@+id/header_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
                             android:paddingHorizontal="18dp"
-                            app:layout_collapseMode="parallax"
-                            app:layout_collapseParallaxMultiplier="0.5"
                             android:paddingBottom="10dp"
-                            android:layout_height="wrap_content">
+                            app:layout_collapseMode="parallax"
+                            app:layout_collapseParallaxMultiplier="0.5">
 
                             <net.csdn.roundview.RoundImageView
                                 android:id="@+id/tag_icon"
-                                app:loadMedia="@{circle.body.meta.pixpedia.illust.url}"
-                                app:rRadius="10dp"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintStart_toStartOf="parent"
                                 android:layout_width="94dp"
-                                android:layout_height="94dp" />
+                                android:layout_height="94dp"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:loadMedia="@{circle.body.meta.pixpedia.illust.url}"
+                                app:rRadius="10dp" />
 
                             <TextView
                                 android:id="@+id/tag_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="@{`#` + circle.body.meta.tag}"
                                 android:textColor="@color/text00"
                                 android:textSize="20sp"
-                                android:text="@{`#` + circle.body.meta.tag}"
+                                android:textStyle="bold"
                                 app:layout_constraintStart_toEndOf="@+id/tag_icon"
-                                app:layout_constraintTop_toTopOf="parent"
-                                android:layout_marginStart="12dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                app:layout_constraintTop_toTopOf="parent" />
 
                             <TextView
                                 android:id="@+id/tag_translated_name"
-                                android:textColor="@color/text20"
-                                android:textSize="15sp"
-                                android:text="@{circle.body.meta.translatedTag}"
-                                app:layout_constraintStart_toEndOf="@+id/tag_icon"
-                                app:layout_constraintTop_toBottomOf="@+id/tag_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_marginStart="12dp"
                                 android:layout_marginTop="6dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:text="@{circle.body.meta.translatedTag}"
+                                android:textColor="@color/text20"
+                                android:textSize="15sp"
+                                app:layout_constraintStart_toEndOf="@+id/tag_icon"
+                                app:layout_constraintTop_toBottomOf="@+id/tag_name" />
 
                             <TextView
                                 android:id="@+id/works_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
                                 android:textColor="@color/text20"
                                 android:textSize="12sp"
-                                app:layout_constraintStart_toEndOf="@+id/tag_icon"
-                                android:layout_marginStart="12dp"
                                 app:layout_constraintBottom_toBottomOf="@+id/tag_icon"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                app:layout_constraintStart_toEndOf="@+id/tag_icon" />
 
                             <TextView
                                 android:id="@+id/tag_abstract"
-                                android:textColor="@color/text00"
-                                android:textSize="12sp"
-                                android:gravity="start|center_vertical"
-                                app:layout_constraintStart_toStartOf="parent"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
                                 android:background="@drawable/round_corner_white08_r8"
+                                android:gravity="start|center_vertical"
                                 android:paddingHorizontal="12dp"
                                 android:paddingVertical="8dp"
-                                app:layout_constraintEnd_toEndOf="parent"
                                 android:text="@{circle.body.meta.meta.title}"
-                                app:layout_constraintTop_toBottomOf="@+id/tag_icon"
-                                android:layout_marginTop="12dp"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content" />
+                                android:textColor="@color/text00"
+                                android:textSize="12sp"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@+id/tag_icon" />
                         </androidx.constraintlayout.widget.ConstraintLayout>
 
                         <androidx.appcompat.widget.Toolbar
@@ -141,46 +144,45 @@
 
                                 <ImageView
                                     android:id="@+id/navi_back"
-                                    app:layout_constraintStart_toStartOf="parent"
-                                    app:layout_constraintTop_toTopOf="parent"
-                                    app:layout_constraintBottom_toBottomOf="parent"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:src="@drawable/icon_navi_back" />
+                                    android:src="@drawable/icon_navi_back"
+                                    app:layout_constraintBottom_toBottomOf="parent"
+                                    app:layout_constraintStart_toStartOf="parent"
+                                    app:layout_constraintTop_toTopOf="parent" />
 
                                 <FrameLayout
                                     android:layout_width="0dp"
+                                    android:layout_height="0dp"
                                     android:paddingHorizontal="10dp"
-                                    app:layout_constraintStart_toEndOf="@+id/navi_back"
-                                    app:layout_constraintEnd_toStartOf="@+id/navi_more"
-                                    app:layout_constraintTop_toTopOf="parent"
                                     app:layout_constraintBottom_toBottomOf="parent"
-                                    android:layout_height="0dp">
+                                    app:layout_constraintEnd_toStartOf="@+id/navi_more"
+                                    app:layout_constraintStart_toEndOf="@+id/navi_back"
+                                    app:layout_constraintTop_toTopOf="parent">
 
                                     <TextView
-                                        android:layout_gravity="center"
-                                        android:textSize="18sp"
-                                        android:maxLines="1"
-                                        android:ellipsize="end"
-                                        android:textColor="@color/text00"
                                         android:id="@+id/navi_title"
                                         android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"/>
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:ellipsize="end"
+                                        android:maxLines="1"
+                                        android:textColor="@color/text00"
+                                        android:textSize="18sp" />
                                 </FrameLayout>
 
                                 <ImageView
                                     android:id="@+id/navi_more"
-                                    android:layout_gravity="end"
-                                    app:layout_constraintEnd_toEndOf="parent"
-                                    app:layout_constraintTop_toTopOf="parent"
-                                    app:layout_constraintBottom_toBottomOf="parent"
-                                    android:layout_marginEnd="18dp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:src="@drawable/icon_navi_more" />
+                                    android:layout_gravity="end"
+                                    android:layout_marginEnd="18dp"
+                                    android:src="@drawable/icon_navi_more"
+                                    app:layout_constraintBottom_toBottomOf="parent"
+                                    app:layout_constraintEnd_toEndOf="parent"
+                                    app:layout_constraintTop_toTopOf="parent" />
 
                             </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 
                         </androidx.appcompat.widget.Toolbar>
@@ -191,8 +193,8 @@
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/tab_layout_list"
                         android:layout_width="match_parent"
-                        android:layout_marginHorizontal="20dp"
                         android:layout_height="@dimen/tab_layout_height"
+                        android:layout_marginHorizontal="20dp"
                         android:orientation="horizontal"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
@@ -213,7 +215,7 @@
                     android:id="@+id/circle_view_pager"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
             </androidx.coordinatorlayout.widget.CoordinatorLayout>
         </com.scwang.smart.refresh.layout.SmartRefreshLayout>
@@ -221,13 +223,13 @@
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/progress_circular"
             android:layout_width="200dp"
-            android:visibility="gone"
             android:layout_height="200dp"
-            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:lottie_rawRes="@raw/renew_token_anim"
-            app:lottie_loop="true"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/renew_token_anim" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

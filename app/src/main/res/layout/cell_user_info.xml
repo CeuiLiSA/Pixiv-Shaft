@@ -28,7 +28,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
+            android:layout_marginStart="6dp"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/end_layout"
@@ -43,10 +43,12 @@
                 android:layout_marginBottom="4dp"
                 android:text="@{user.name}"
                 android:textColor="@color/text00"
-                android:textSize="15sp" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/user_info"
+                style="@style/textMontserratSemiBold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{`@` + user.account}"
