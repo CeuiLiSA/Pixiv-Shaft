@@ -15,8 +15,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 516
-        versionName "5.0.8"
+        versionCode 518
+        versionName "5.0.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -179,7 +179,6 @@ dependencies {
     implementation project(path: ':models')
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
-    implementation 'com.waynejo:androidndkgif:0.3.3'
 
     implementation 'com.tencent:mmkv-static:2.2.2'
     implementation 'com.github.tbruyelle:RxPermissions:0.12'

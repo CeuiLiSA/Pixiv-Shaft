@@ -1,11 +1,13 @@
 package ceui.lisa.utils;
 
 
+import static com.blankj.utilcode.util.ColorUtils.getColor;
+import static com.blankj.utilcode.util.StringUtils.getString;
+import static ceui.lisa.activities.Shaft.sUserModel;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -13,18 +15,12 @@ import android.widget.ImageView;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.ZipUtils;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
-import com.waynejo.androidndkgif.GifEncoder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,27 +30,22 @@ import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
-import ceui.lisa.cache.Cache;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
-import ceui.lisa.core.RxRun;
-import ceui.lisa.core.RxRunnable;
-import ceui.lisa.core.TryCatchObserverImpl;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.file.LegacyFile;
-import ceui.lisa.file.OutPut;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Back;
 import ceui.lisa.model.ListIllust;
-import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.MarkedNovelItem;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
@@ -64,18 +55,12 @@ import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserModel;
-import ceui.lisa.models.IllustsBean;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ObjectPool;
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
-import static com.blankj.utilcode.util.ColorUtils.getColor;
-import static com.blankj.utilcode.util.StringUtils.getString;
 
 /**
  * A class about Pixiv operations.
@@ -556,7 +541,7 @@ public class PixivOperate {
      * @param key
      * @param searchType The type of search.
      * @see ceui.lisa.database.SearchEntity
-     * */
+     */
     public static void insertSearchHistory(String key, int searchType) {
         if (TextUtils.isEmpty(key)) {
             return;
@@ -641,185 +626,11 @@ public class PixivOperate {
     }
 
     public static void encodeGif(Context context, File parentFile, IllustsBean illustsBean) {
-        RxRun.runOn(new RxRunnable<Void>() {
-            @Override
-            public Void execute() throws Exception {
-                Common.showLog("encodeGif 开始生成gif图");
-                final File[] listfile = parentFile.listFiles();
 
-                List<File> allFiles = Arrays.asList(listfile);
-                Collections.sort(allFiles, new Comparator<File>() {
-                    @Override
-                    public int compare(File o1, File o2) {
-                        if (Integer.parseInt(o1.getName().substring(0, o1.getName().length() - 4)) >
-                                Integer.parseInt(o2.getName().substring(0, o2.getName().length() - 4))) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    }
-                });
-
-                File gifFile = LegacyFile.gifResultFile(context, illustsBean);
-                Common.showLog("gifFile " + gifFile.getPath());
-
-                GifEncoder gifEncoder = new GifEncoder();
-
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inJustDecodeBounds = true;//这个参数设置为true才有效，
-                BitmapFactory.decodeFile(allFiles.get(0).getPath(), options);//这里的bitmap是个空
-                int outHeight = options.outHeight;
-                int outWidth = options.outWidth;
-                Common.showLog("通过Options获取到的图片大小" + "width:" + outWidth + " height: " + outHeight);
-
-
-                gifEncoder.init(outWidth, outHeight, gifFile.getPath(),
-                        GifEncoder.EncodingType.ENCODING_TYPE_NORMAL_LOW_MEMORY);
-
-                GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
-                int delayMs = 60;
-                if (gifResponse != null) {
-                    if (allFiles.size() == gifResponse.getUgoira_metadata().getFrames().size()) {
-                        Common.showLog("使用返回的delay 00");
-                        Back back = sBack.get(illustsBean.getId());
-                        for (int i = 0; i < allFiles.size(); i++) {
-                            Common.showLog("编码中 00 " + allFiles.size() + " " + (i + 1));
-                            gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
-                                    gifResponse.getUgoira_metadata().getFrames().get(i).getDelay());
-                            if (back != null) {
-                                float proc = i / (float) (allFiles.size() - 1);
-                                back.invoke(proc);
-                            }
-                        }
-                        sBack.remove(illustsBean.getId());
-                    } else {
-                        delayMs = gifResponse.getDelay();
-                        Common.showLog("使用返回的delay 11");
-                        for (int i = 0; i < allFiles.size(); i++) {
-                            Common.showLog("编码中 00 " + allFiles.size());
-                            gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
-                                    delayMs);
-                        }
-                    }
-
-                } else {
-                    Common.showLog("使用返回的delay 22");
-                    for (int i = 0; i < allFiles.size(); i++) {
-                        Common.showLog("编码中 00 " + allFiles.size());
-                        gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
-                                delayMs);
-                    }
-                }
-
-                Common.showLog("allFiles size " + allFiles.size());
-
-
-                gifEncoder.close();
-
-                Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
-
-                Intent intent = new Intent(Params.PLAY_GIF);
-                intent.putExtra(Params.ID, illustsBean.getId());
-                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                return null;
-            }
-        }, new TryCatchObserverImpl<>());
     }
 
     public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean, boolean autoSave) {
-        RxRun.runOn(new RxRunnable<Void>() {
-            @Override
-            public Void execute() throws Exception {
-                long currentTimeMillis = System.currentTimeMillis();
-                if (gifEncodingWorkSet.containsKey(illustsBean.getId())
-                        && (currentTimeMillis - gifEncodingWorkSet.get(illustsBean.getId())) < reEncodeTimeThresholdMillis) {
-                    return null;
-                }
-                gifEncodingWorkSet.put(illustsBean.getId(), currentTimeMillis);
-                Common.showLog("encodeGif 开始生成gif图");
-                final File[] listfile = parentFile.listFiles();
 
-                List<File> allFiles = Arrays.asList(listfile);
-                Collections.sort(allFiles, new Comparator<File>() {
-                    @Override
-                    public int compare(File o1, File o2) {
-                        if (Integer.parseInt(o1.getName().substring(0, o1.getName().length() - 4)) >
-                                Integer.parseInt(o2.getName().substring(0, o2.getName().length() - 4))) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    }
-                });
-
-                File gifFile = LegacyFile.gifResultFile(context, illustsBean);
-                Common.showLog("gifFile " + gifFile.getPath());
-
-                AnimatedGifEncoder animatedGifEncoder = new AnimatedGifEncoder();
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                animatedGifEncoder.start(bos);
-                animatedGifEncoder.setRepeat(0); // 无限循环
-
-                int frameCount = allFiles.size();
-
-                GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
-                int delayMs = 60;
-                if (gifResponse != null) {
-                    List<FramesBean> framesBeans = gifResponse.getUgoira_metadata().getFrames();
-                    if (frameCount == framesBeans.size()) {
-                        Common.showLog("使用返回的delay 00");
-
-                        for (int i = 0; i < frameCount; i++) {
-                            Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
-                            Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
-                            animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
-                            animatedGifEncoder.addFrame(bitmap);
-
-                            Back back = sBack.get(illustsBean.getId());
-                            if (back != null) {
-                                float proc = i / (float) (frameCount - 1);
-                                back.invoke(proc);
-                            }
-                        }
-                        sBack.remove(illustsBean.getId());
-                    } else {
-                        delayMs = gifResponse.getDelay();
-                        Common.showLog("使用返回的delay 11");
-                        for (int i = 0; i < frameCount; i++) {
-                            Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
-                            Common.showLog("编码中 00 " + frameCount);
-                            animatedGifEncoder.setDelay(delayMs);
-                            animatedGifEncoder.addFrame(bitmap);
-                        }
-                    }
-                } else {
-                    Common.showLog("使用返回的delay 22");
-                    for (int i = 0; i < frameCount; i++) {
-                        Common.showLog("编码中 00 " + frameCount);
-                        Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
-                        animatedGifEncoder.setDelay(delayMs);
-                        animatedGifEncoder.addFrame(bitmap);
-                    }
-                }
-
-                Common.showLog("allFiles size " + frameCount);
-
-                animatedGifEncoder.finish();
-
-                FileOutputStream outStream = new FileOutputStream(gifFile.getPath());
-                outStream.write(bos.toByteArray());
-                outStream.close();
-
-                Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
-                gifEncodingWorkSet.remove(illustsBean.getId());
-
-                Intent intent = new Intent(Params.PLAY_GIF);
-                intent.putExtra(Params.ID, illustsBean.getId());
-                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                return null;
-            }
-        }, new TryCatchObserverImpl<>());
     }
 
     public static void unzipAndPlay(Context context, IllustsBean illustsBean) {
@@ -894,8 +705,8 @@ public class PixivOperate {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void next(NullResponse nullResponse) {
-                            if(view instanceof ImageView){
-                                ((ImageView)view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
+                            if (view instanceof ImageView) {
+                                ((ImageView) view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
                             }
                             Common.showToast(getString(R.string.string_368, page));
                         }
@@ -909,8 +720,8 @@ public class PixivOperate {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void next(NullResponse nullResponse) {
-                            if(view instanceof ImageView){
-                                ((ImageView)view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
+                            if (view instanceof ImageView) {
+                                ((ImageView) view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
                             }
                             Common.showToast(getString(R.string.string_369));
                         }
@@ -923,28 +734,28 @@ public class PixivOperate {
         int seriesId = series.getId();
         if (add) {
             Retro.getAppApi().postWatchlistNovelAdd(
-                    sUserModel.getAccess_token(), seriesId)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new ErrorCtrl<NullResponse>() {
-                @Override
-                public void next(NullResponse nullResponse) {
-                    series.setWatchlist_added(true);
-                    btn.setText(R.string.already_in_your_watchlist);
-                }
-            });
+                            sUserModel.getAccess_token(), seriesId)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void next(NullResponse nullResponse) {
+                            series.setWatchlist_added(true);
+                            btn.setText(R.string.already_in_your_watchlist);
+                        }
+                    });
         } else {
             Retro.getAppApi().postWatchlistNovelDelete(
-                    sUserModel.getAccess_token(), seriesId)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new ErrorCtrl<NullResponse>() {
-                @Override
-                public void next(NullResponse nullResponse) {
-                    series.setWatchlist_added(false);
-                    btn.setText(R.string.add_to_watchlist);
-                }
-            });
+                            sUserModel.getAccess_token(), seriesId)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void next(NullResponse nullResponse) {
+                            series.setWatchlist_added(false);
+                            btn.setText(R.string.add_to_watchlist);
+                        }
+                    });
         }
     }
 }
