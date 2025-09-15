@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.map
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
@@ -66,7 +67,10 @@ class BackgroundSettingsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                 ).onItemClick {
                     ColorPickerDialog.newBuilder()
                         .setDialogId(Params.DIALOG_NOVEL_BG_COLOR)
-                        .setColor(resources.getColor(R.color.novel_holder))
+                        .setColor(
+                            config.value?.colorHexString?.toColorInt()
+                                ?: resources.getColor(R.color.novel_holder)
+                        )
                         .show(requireActivity())
                 },
             )
