@@ -18,6 +18,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHome2ViewpagerBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.RefreshState
+import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.session.SessionManager
@@ -30,6 +31,7 @@ import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.alertYesOrCancel
 
 class Home2ViewPagerFragment : PixivFragment(R.layout.fragment_home_2_viewpager),
     ViewPagerFragment {
@@ -79,6 +81,11 @@ class Home2ViewPagerFragment : PixivFragment(R.layout.fragment_home_2_viewpager)
 
         networkManager.refreshState.observe(viewLifecycleOwner) { state ->
             binding.networkStateLoading.isVisible = state is RefreshState.LOADING
+            if (state is RefreshState.ERROR) {
+                launchSuspend {
+                    alertYesOrCancel("${state.exception::class.java.simpleName}(${state.exception.message ?: state.exception.toString()})")
+                }
+            }
         }
 
         binding.userIcon.setOnClick {

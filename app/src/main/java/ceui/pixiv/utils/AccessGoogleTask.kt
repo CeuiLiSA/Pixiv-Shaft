@@ -36,7 +36,7 @@ class AccessGoogleTask {
             val elapsed = measureTimeMillis {
                 canAccess = withContext(Dispatchers.IO) {
                     val client = OkHttpClient.Builder()
-                        .callTimeout(2, TimeUnit.SECONDS)
+                        .callTimeout(3, TimeUnit.SECONDS)
                         .build()
 
                     val request = Request.Builder()
@@ -44,7 +44,11 @@ class AccessGoogleTask {
                         .build()
 
                     val response = client.newCall(request).execute()
-                    response.code == 204
+                    if (response.code == 204) {
+                        true
+                    } else {
+                        throw RuntimeException(response.peekBody(Long.MAX_VALUE).string())
+                    }
                 }
             }
 
