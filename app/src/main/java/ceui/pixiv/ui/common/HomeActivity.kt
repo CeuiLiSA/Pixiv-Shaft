@@ -14,6 +14,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
@@ -34,12 +36,13 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.google.gson.Gson
+import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class HomeActivity : AppCompatActivity(), GrayToggler {
+class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener {
 
     private lateinit var binding: ActivityHomeBinding
 
@@ -74,6 +77,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         }
         graph.setStartDestination(startDestination)
         navController.graph = graph
+        val appBackground = requireAppBackground()
 
         navController.addOnDestinationChangedListener { controller, destination, arguments ->
             val destId = destination.id
@@ -82,7 +86,7 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
                 binding.dimmer.isVisible = false
             } else {
                 binding.pageBackground.isVisible = true
-                binding.dimmer.isVisible = true
+                binding.dimmer.isVisible = appBackground.config.value?.type != BackgroundType.COLOR
             }
 
             if (!SessionManager.isLoggedIn) {
@@ -134,18 +138,27 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         }
 
         binding.dimmer.isVisible = true
-        val appBackground = requireAppBackground()
 
         if (SessionManager.loggedInUid > 0L) {
             binding.pageBackground2.isVisible = false
             appBackground.config.observe(this) { config ->
-                Glide.with(this)
-                    .load(config.localFileUri)
-                    .transition(withCrossFade())
-                    .into(binding.pageBackground)
+                if (config.type == BackgroundType.COLOR && config.colorHexString !== null) {
+                    Glide.with(this)
+                        .load(config.colorHexString.toColorInt().toDrawable())
+                        .transition(withCrossFade())
+                        .into(binding.pageBackground)
+                    binding.dimmer.isVisible = false
+                } else {
+                    Glide.with(this)
+                        .load(config.localFileUri)
+                        .transition(withCrossFade())
+                        .into(binding.pageBackground)
+                    binding.dimmer.isVisible = true
+                }
             }
         } else {
             binding.pageBackground2.isVisible = true
+            binding.dimmer.isVisible = true
             homeViewModel.startTask()
             homeViewModel.landingBackgroundFile.observe(this) { file ->
                 val (fadeOutView, fadeInView) = if (showingFirst) {
@@ -324,5 +337,20 @@ class HomeActivity : AppCompatActivity(), GrayToggler {
         super.onNewIntent(intent)
 
         handleIntentLink(intent, " onNewIntent")
+    }
+
+    override fun onColorSelected(dialogId: Int, color: Int) {
+        val hex = String.format("#%06X", 0xFFFFFF and color)
+        Timber.d("adsadsdsadsaw2 ${hex}")
+        requireAppBackground().updateConfig(
+            BackgroundConfig(
+                BackgroundType.COLOR,
+                localFileUri = null,
+                colorHexString = hex
+            )
+        )
+    }
+
+    override fun onDialogDismissed(dialogId: Int) {
     }
 }

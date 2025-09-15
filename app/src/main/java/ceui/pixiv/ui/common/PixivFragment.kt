@@ -469,6 +469,13 @@ fun Fragment.setUpRefreshState(
         binding.errorLayout.isVisible = !canAccessGoogle
     }
 
+    binding.errorRetryButton.setOnClick {
+        if (networkStateManager.canAccessGoogle.value == true) {
+            viewModel.refresh(RefreshHint.ErrorRetry)
+        } else {
+            networkStateManager.checkIfCanAccessGoogle()
+        }
+    }
     viewModel.refreshState.observe(viewLifecycleOwner) { state ->
         if (state !is RefreshState.LOADING) {
             binding.refreshLayout.finishRefresh()
@@ -507,13 +514,6 @@ fun Fragment.setUpRefreshState(
             binding.progressCircular.hideProgress()
         }
         binding.errorLayout.isVisible = state is RefreshState.ERROR
-        binding.errorRetryButton.setOnClick {
-            if (networkStateManager.canAccessGoogle.value == true) {
-                viewModel.refresh(RefreshHint.ErrorRetry)
-            } else {
-                networkStateManager.checkIfCanAccessGoogle()
-            }
-        }
         if (state is RefreshState.ERROR) {
             binding.errorText.text = state.exception.getHumanReadableMessage(ctx)
         }

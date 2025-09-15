@@ -6,5 +6,6 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class BackgroundConfig(
     val type: BackgroundType,
-    val localFileUri: String? = null
+    val localFileUri: String? = null,
+    val colorHexString: String? = null,
 ) : Parcelable
