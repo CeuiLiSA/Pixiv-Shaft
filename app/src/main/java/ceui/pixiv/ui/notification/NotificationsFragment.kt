@@ -47,7 +47,7 @@ class NotificationsFragment : PixivFragment(R.layout.fragment_paged_list),
     }
 
     override fun onClickNotification(notification: Notification) {
-        LinkHandler(findNavController()).processLink(notification.target_url)
+        LinkHandler(findNavController(), this).processLink(notification.target_url)
     }
 
     override fun onClickViewMoreNotification(notification: Notification) {

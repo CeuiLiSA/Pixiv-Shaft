@@ -1,9 +1,7 @@
 package ceui.pixiv.ui.web
 
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.webkit.CookieManager
@@ -27,19 +25,6 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.viewBinding
 import com.scwang.smart.refresh.header.MaterialHeader
 import com.tencent.mmkv.MMKV
-import androidx.core.net.toUri
-import androidx.navigation.NavOptions
-import ceui.lisa.feature.HostManager
-import ceui.lisa.fragments.FragmentLogin
-import ceui.loxia.AccountResponse
-import ceui.loxia.Client
-import ceui.loxia.launchSuspend
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.Callback
-import retrofit2.Call
-import retrofit2.Response
-import timber.log.Timber
 
 
 class WebFragment : PixivFragment(R.layout.fragment_web) {
@@ -92,7 +77,7 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         val refreshLayout = binding.refreshLayout
 
         val navController = findNavController()
-        val linkHandler = LinkHandler(navController)
+        val linkHandler = LinkHandler(navController, this)
 
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {

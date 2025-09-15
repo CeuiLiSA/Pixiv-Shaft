@@ -341,7 +341,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener
 
     override fun onColorSelected(dialogId: Int, color: Int) {
         val hex = String.format("#%06X", 0xFFFFFF and color)
-        Timber.d("adsadsdsadsaw2 ${hex}")
         requireAppBackground().updateConfig(
             BackgroundConfig(
                 BackgroundType.COLOR,
