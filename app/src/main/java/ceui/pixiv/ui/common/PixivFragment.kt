@@ -246,6 +246,9 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
             if (novel != null) {
                 ArtworksMap.store[fragmentViewModel.fragmentUniqueId] = listOf(novelId)
                 ObjectPool.update(novel)
+                novel.user?.let { user ->
+                    ObjectPool.update(user)
+                }
                 onClickNovel(novel.id)
             }
         }
@@ -257,6 +260,9 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
             if (illust != null) {
                 ArtworksMap.store[fragmentViewModel.fragmentUniqueId] = listOf(illustId)
                 ObjectPool.update(illust)
+                illust.user?.let { user ->
+                    ObjectPool.update(user)
+                }
                 onClickIllust(illust.id)
             }
         }

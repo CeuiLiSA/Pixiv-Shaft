@@ -339,6 +339,11 @@
 
     </fragment>
 
+
+    <fragment
+        android:id="@+id/navigation_about_app"
+        android:name="ceui.lisa.fragments.FragmentAboutApp" />
+
     <fragment
         android:id="@+id/navigation_user_created_novel"
         android:name="ceui.pixiv.ui.user.UserCreatedNovelFragment">

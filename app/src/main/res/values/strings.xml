@@ -772,4 +772,5 @@
     <string name="twice_back_will_close_app">再次返回退出软件</string>
     <string name="no_internet_connection">无网络连接</string>
     <string name="enable_vpn">Enable VPN</string>
+    <string name="parse_link">解析链接</string>
 </resources>

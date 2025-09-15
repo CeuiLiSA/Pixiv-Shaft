@@ -2,17 +2,12 @@ package ceui.pixiv.ui.search
 
 import android.os.Bundle
 import android.view.View
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
-import androidx.core.view.updatePaddingRelative
+import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentSearchAllBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
-import ceui.loxia.hideKeyboard
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.loxia.showKeyboard
@@ -20,8 +15,8 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.common.viewModels
 import ceui.pixiv.ui.detail.ArtworksMap
+import ceui.pixiv.ui.web.LinkHandler
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
 import kotlinx.coroutines.delay
@@ -75,9 +70,20 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all) {
         }
         binding.keywordSearch.setOnClick { sender ->
             checkAndNext(sender) { word ->
-                pushFragment(R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
-                    keyword = word,
-                ).toBundle())
+                pushFragment(
+                    R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
+                        keyword = word,
+                    ).toBundle()
+                )
+            }
+        }
+        val linkHandler = LinkHandler(findNavController(), this)
+
+        binding.idParseLink.setOnClick { sender ->
+            checkAndNext(sender) { word ->
+                if (!linkHandler.processLink(word)) {
+                    alertYesOrCancel("不认识的链接")
+                }
             }
         }
     }

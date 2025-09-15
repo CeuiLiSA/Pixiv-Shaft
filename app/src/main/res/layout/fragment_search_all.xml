@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <import type="ceui.pixiv.ui.search.SearchViewModel" />
 
         <variable
@@ -20,81 +21,89 @@
 
         <ScrollView
             android:id="@+id/content_group"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/toolbar_layout"
             android:layout_width="match_parent"
-            android:layout_height="0dp">
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar_layout">
 
             <LinearLayout
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
+                android:orientation="vertical">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/round_corner_white08_r8"
+                    android:layout_height="46dp"
                     android:layout_marginHorizontal="20dp"
-                    android:layout_height="46dp">
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/round_corner_white08_r8">
 
                     <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/input_box"
-                        app:layout_constraintStart_toStartOf="parent"
-                        android:paddingStart="6dp"
-                        android:background="@null"
-                        android:textSize="15sp"
-                        android:hint="@string/search_by_id_or_word"
-                        android:text="@={viewModel.inputDraft}"
-                        app:layout_constraintEnd_toStartOf="@+id/clear_search"
                         android:layout_width="0dp"
-                        android:layout_height="match_parent" />
+                        android:layout_height="match_parent"
+                        android:background="@null"
+                        android:hint="@string/search_by_id_or_word"
+                        android:paddingStart="6dp"
+                        android:text="@={viewModel.inputDraft}"
+                        android:textSize="15sp"
+                        app:layout_constraintEnd_toStartOf="@+id/clear_search"
+                        app:layout_constraintStart_toStartOf="parent" />
 
                     <ImageView
                         android:id="@+id/clear_search"
-                        android:layout_width="44dp"
-                        android:padding="10dp"
                         visibleOrGone="@{!viewModel.inputDraft.trim().empty}"
-                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_clear_search"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
-                        android:src="@drawable/ic_clear_search"
-                        android:layout_height="44dp" />
+                        app:layout_constraintTop_toTopOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/id_search_illust"
-                    android:layout_width="200dp"
-                    android:layout_marginTop="40dp"
-                    android:text="@string/string_150"
                     style="@style/GreenShiningButton"
-                    android:layout_height="50dp" />
+                    android:layout_width="200dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="40dp"
+                    android:text="@string/string_150" />
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/id_search_user"
-                    android:layout_width="200dp"
-                    android:layout_marginTop="30dp"
-                    android:text="@string/string_152"
                     style="@style/GreenShiningButton"
-                    android:layout_height="50dp" />
-
+                    android:layout_width="200dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/string_152" />
 
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/id_search_novel"
-                    android:layout_width="200dp"
-                    android:layout_marginTop="30dp"
-                    android:text="@string/string_153"
                     style="@style/GreenShiningButton"
-                    android:layout_height="50dp" />
+                    android:layout_width="200dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/string_153" />
 
 
                 <ceui.loxia.ProgressTextButton
-                    style="@style/BlueShiningButton"
+                    android:id="@+id/id_parse_link"
+                    style="@style/GreenShiningButton"
+                    android:layout_width="200dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/parse_link" />
+
+
+                <ceui.loxia.ProgressTextButton
                     android:id="@+id/keyword_search"
+                    style="@style/BlueShiningButton"
                     android:layout_width="200dp"
                     android:layout_height="50dp"
                     android:layout_marginTop="30dp"

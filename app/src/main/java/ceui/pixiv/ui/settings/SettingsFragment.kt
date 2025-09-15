@@ -122,6 +122,15 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                         )
                     },
 
+
+                    TabCellHolder(
+                        getString(R.string.full_about_app),
+                    ).onItemClick {
+                        pushFragment(
+                            R.id.navigation_about_app,
+                        )
+                    },
+
                     LogOutHolder()
                 )
             )
