@@ -38,6 +38,7 @@ import ceui.pixiv.ui.user.UserCreatedNovelFragmentArgs
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
 import ceui.pixiv.widgets.setUpWith
+import ceui.pixiv.widgets.setupVerticalAwareViewPager2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -68,6 +69,7 @@ class CommonViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_common
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupVerticalAwareViewPager2(binding.commonViewpager)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.rootLayout.updatePadding(0, insets.top, 0, 0)

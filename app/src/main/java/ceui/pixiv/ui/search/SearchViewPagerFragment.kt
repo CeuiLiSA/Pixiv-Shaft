@@ -17,10 +17,11 @@ import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
+import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.DialogViewModel
 import ceui.pixiv.widgets.setUpWith
-import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.widgets.setupVerticalAwareViewPager2
 
 class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search_viewpager) {
 
@@ -42,6 +43,7 @@ class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupVerticalAwareViewPager2(binding.searchViewPager)
         binding.viewModel = searchViewModel
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
@@ -49,7 +51,9 @@ class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search
             binding.searchLayout.updatePaddingRelative(top = insets.top)
             windowInsets
         }
-        combineLatest(searchViewModel.tagList, searchViewModel.inputDraft).observe(viewLifecycleOwner) {
+        combineLatest(searchViewModel.tagList, searchViewModel.inputDraft).observe(
+            viewLifecycleOwner
+        ) {
             val tags = it?.first ?: listOf()
             val inputing = it?.second ?: ""
             binding.search.isEnabled = tags.isNotEmpty() == true || inputing.isNotEmpty() == true
@@ -90,7 +94,11 @@ class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search
             this
         )
         binding.searchViewPager.adapter = adapter
-        binding.tabLayoutList.setUpWith(binding.searchViewPager, binding.slidingCursor, viewLifecycleOwner, {})
+        binding.tabLayoutList.setUpWith(
+            binding.searchViewPager,
+            binding.slidingCursor,
+            viewLifecycleOwner,
+            {})
 
         if (args.landingIndex > 0) {
             binding.searchViewPager.setCurrentItem(args.landingIndex, false)

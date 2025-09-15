@@ -27,6 +27,7 @@ import ceui.pixiv.ui.discover.DiscoverFragment
 import ceui.pixiv.ui.user.following.FollowingViewPagerFragment
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.setupVerticalAwareViewPager2
 
 class Home2ViewPagerFragment : PixivFragment(R.layout.fragment_home_2_viewpager),
     ViewPagerFragment {
@@ -37,6 +38,7 @@ class Home2ViewPagerFragment : PixivFragment(R.layout.fragment_home_2_viewpager)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupVerticalAwareViewPager2(binding.homeViewPager)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())

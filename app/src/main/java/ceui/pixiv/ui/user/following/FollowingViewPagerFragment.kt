@@ -10,16 +10,19 @@ import ceui.pixiv.ui.circles.PagedFragmentItem
 import ceui.pixiv.ui.circles.SmartFragmentPagerAdapter
 import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.TitledViewPagerFragment
-import ceui.pixiv.widgets.setUpWith
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.user.FollowingCreatedNovelFragment
+import ceui.pixiv.widgets.setUpWith
+import ceui.pixiv.widgets.setupVerticalAwareViewPager2
 
-class FollowingViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_my_circles), HomeTabContainer {
+class FollowingViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_my_circles),
+    HomeTabContainer {
 
     private val binding by viewBinding(FragmentMyCirclesBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupVerticalAwareViewPager2(binding.circlesViewpager)
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(

@@ -12,6 +12,7 @@ import ceui.pixiv.ui.common.TitledViewPagerFragment
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.home.RecmdNovelFragment
 import ceui.pixiv.widgets.setUpWith
+import ceui.pixiv.widgets.setupVerticalAwareViewPager2
 
 class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), HomeTabContainer {
 
@@ -19,6 +20,7 @@ class DiscoverFragment : TitledViewPagerFragment(R.layout.fragment_discover), Ho
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupVerticalAwareViewPager2(binding.discoverViewPager)
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(

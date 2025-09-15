@@ -13,6 +13,7 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.home.WalkthroughFragment
 import ceui.pixiv.ui.rank.RankPreviewFragment
 import ceui.pixiv.widgets.setUpWith
+import ceui.pixiv.widgets.setupVerticalAwareViewPager2
 
 class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), HomeTabContainer {
 
@@ -20,6 +21,7 @@ class MyChatsFragment : TitledViewPagerFragment(R.layout.fragment_my_chats), Hom
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupVerticalAwareViewPager2(binding.chatsViewpager)
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(

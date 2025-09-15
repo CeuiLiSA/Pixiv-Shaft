@@ -20,6 +20,7 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.setUpWith
+import ceui.pixiv.widgets.setupVerticalAwareViewPager2
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -33,6 +34,7 @@ class RankFragment : TitledViewPagerFragment(R.layout.fragment_rank_viewpager) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupVerticalAwareViewPager2(binding.rankViewpager)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.optionLayout.updatePadding(0, insets.top, 0, 0)

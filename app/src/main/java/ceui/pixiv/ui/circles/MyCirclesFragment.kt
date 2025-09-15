@@ -7,11 +7,12 @@ import ceui.lisa.databinding.FragmentMyCirclesBinding
 import ceui.loxia.ObjectType
 import ceui.pixiv.ui.common.HomeTabContainer
 import ceui.pixiv.ui.common.TitledViewPagerFragment
+import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.trending.TrendingTagsFragment
 import ceui.pixiv.ui.trending.TrendingTagsFragmentArgs
 import ceui.pixiv.ui.user.recommend.RecommendUsersFragment
 import ceui.pixiv.widgets.setUpWith
-import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.widgets.setupVerticalAwareViewPager2
 
 class MyCirclesFragment : TitledViewPagerFragment(R.layout.fragment_my_circles), HomeTabContainer {
 
@@ -19,6 +20,7 @@ class MyCirclesFragment : TitledViewPagerFragment(R.layout.fragment_my_circles),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupVerticalAwareViewPager2(binding.circlesViewpager)
         val adapter = SmartFragmentPagerAdapter(
             listOf(
                 PagedFragmentItem(
@@ -47,6 +49,10 @@ class MyCirclesFragment : TitledViewPagerFragment(R.layout.fragment_my_circles),
             this
         )
         binding.circlesViewpager.adapter = adapter
-        binding.tabLayoutList.setUpWith(binding.circlesViewpager, binding.slidingCursor, viewLifecycleOwner, {})
+        binding.tabLayoutList.setUpWith(
+            binding.circlesViewpager,
+            binding.slidingCursor,
+            viewLifecycleOwner,
+            {})
     }
 }
