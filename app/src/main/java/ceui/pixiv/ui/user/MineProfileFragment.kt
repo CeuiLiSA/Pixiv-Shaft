@@ -75,6 +75,15 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             UserFragmentArgs(user?.id ?: 0L).toBundle()
                         )
                     },
+                    TabCellHolder(
+                        getString(R.string.browse_history),
+                        extraInfo = "共${historyCount}条记录"
+                    ).onItemClick {
+                        pushFragment(
+                            R.id.navigation_common_viewpager,
+                            CommonViewPagerFragmentArgs(ViewPagerContentType.MyViewHistory).toBundle()
+                        )
+                    },
                     TabCellHolder(getString(R.string.my_bookmarked_illusts)).onItemClick {
                         pushFragment(
                             R.id.navigation_common_viewpager,
@@ -125,15 +134,6 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         pushFragment(
                             R.id.navigation_user_friends,
                             UserFriendsFragmentArgs(SessionManager.loggedInUid).toBundle()
-                        )
-                    },
-                    TabCellHolder(
-                        getString(R.string.browse_history),
-                        extraInfo = "共${historyCount}条记录"
-                    ).onItemClick {
-                        pushFragment(
-                            R.id.navigation_common_viewpager,
-                            CommonViewPagerFragmentArgs(ViewPagerContentType.MyViewHistory).toBundle()
                         )
                     },
                     TabCellHolder(getString(R.string.blocking_list)).onItemClick {

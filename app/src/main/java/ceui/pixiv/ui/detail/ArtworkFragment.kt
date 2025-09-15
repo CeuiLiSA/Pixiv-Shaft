@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
@@ -34,9 +35,11 @@ import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.shareIllust
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.related.RelatedIllustsFragmentArgs
+import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.works.GalleryActionReceiver
 import ceui.pixiv.ui.works.GalleryHolder
 import ceui.pixiv.ui.works.PagedImgUrlFragmentArgs
+import ceui.pixiv.ui.works.buildPixivWorksFileName
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.MenuItem
@@ -61,14 +64,13 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
         val isBlockedLiveData = AppDatabase.getAppDatabase(ctx).generalDao()
             .isObjectBlocked(RecordType.BLOCK_ILLUST, safeArgs.illustId)
 
-        val userBlockedLiveData = AppDatabase.getAppDatabase(context).generalDao()
-            .isObjectBlocked(
-                RecordType.BLOCK_USER,
-                viewModel.illustLiveData.value?.user?.id ?: 0L
-            )
+        val userBlockedLiveData = AppDatabase.getAppDatabase(context).generalDao().isObjectBlocked(
+            RecordType.BLOCK_USER, viewModel.illustLiveData.value?.user?.id ?: 0L
+        )
 
         binding.listView.layoutManager = LinearLayoutManager(ctx)
         val bookmarkView = setUpBookmarkButton()
+        val taskPool = requireTaskPool()
 
         combineLatest(
             isBlockedLiveData,
@@ -90,16 +92,14 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                             add(
                                 MenuItem(getString(R.string.remove_blocking)) {
                                     requireEntityWrapper().unblockIllust(ctx, illust)
-                                }
-                            )
+                                })
                         }
                         if (isUserBlocked) {
                             illust.user?.let { user ->
                                 add(
                                     MenuItem(getString(R.string.remove_user_blocking)) {
                                         requireEntityWrapper().unblockUser(ctx, user)
-                                    }
-                                )
+                                    })
                             }
                         }
                     }
@@ -113,8 +113,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                 binding.listView.clearItemDecorations()
                 binding.listView.addItemDecoration(
                     LinearItemDecorationKt(
-                        16.ppppx,
-                        illust.page_count
+                        16.ppppx, illust.page_count
                     )
                 )
 
@@ -123,20 +122,54 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                     binding.toolbarLayout.naviMore.setOnClick {
                         showActionMenu {
                             add(
-                                MenuItem(getString(R.string.view_comments)) {
-                                    pushFragment(
-                                        R.id.navigation_comments_illust, CommentsFragmentArgs(
-                                            safeArgs.illustId, illust.user?.id ?: 0L,
-                                            ObjectType.ILLUST
-                                        ).toBundle()
-                                    )
+                                MenuItem(getString(R.string.string_7)) {
+                                    when {
+                                        illust.page_count == 1 -> {
+                                            // Single page handling
+                                            val imageUrl =
+                                                illust.meta_single_page?.original_image_url ?: ""
+                                            val downloadTask = taskPool.getDownloadTask(
+                                                NamedUrl(
+                                                    buildPixivWorksFileName(illust.id, 0), imageUrl
+                                                ), requireActivity().lifecycleScope
+                                            )
+                                            downloadTask.start { }
+                                        }
+
+                                        !illust.meta_pages.isNullOrEmpty() -> {
+                                            // Multiple pages handling
+                                            illust.meta_pages.mapIndexed { index, metaPage ->
+                                                val imageUrl = metaPage.image_urls?.original ?: ""
+                                                val downloadTask = taskPool.getDownloadTask(
+                                                    NamedUrl(
+                                                        buildPixivWorksFileName(illust.id, index),
+                                                        imageUrl
+                                                    ), requireActivity().lifecycleScope
+                                                )
+                                                downloadTask.start { }
+                                            }
+                                        }
+
+                                        else -> {
+
+                                        }
+                                    }
                                 }
                             )
                             add(
+                                MenuItem(getString(R.string.view_comments)) {
+                                    pushFragment(
+                                        R.id.navigation_comments_illust, CommentsFragmentArgs(
+                                            safeArgs.illustId,
+                                            illust.user?.id ?: 0L,
+                                            ObjectType.ILLUST
+                                        ).toBundle()
+                                    )
+                                })
+                            add(
                                 MenuItem(getString(R.string.string_110)) {
                                     shareIllust(illust)
-                                }
-                            )
+                                })
                             add(
                                 MenuItem(getString(R.string.flag_artwork)) {
                                     pushFragment(
@@ -144,13 +177,11 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                                             safeArgs.illustId, ObjectSpec.JAVA_ILLUST
                                         ).toBundle()
                                     )
-                                }
-                            )
+                                })
                             add(
                                 MenuItem(getString(R.string.add_blocking)) {
                                     requireEntityWrapper().blockIllust(ctx, illust)
-                                }
-                            )
+                                })
                         }
                     }
                 } else {
@@ -165,8 +196,7 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
             LayoutBookmarkWidgetBinding.inflate(LayoutInflater.from(requireContext()))
 
         val params = ConstraintLayout.LayoutParams(
-            ConstraintLayout.LayoutParams.WRAP_CONTENT,
-            ConstraintLayout.LayoutParams.WRAP_CONTENT
+            ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT
         ).apply {
             bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
             endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
@@ -189,10 +219,8 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
 
     override fun onClickGalleryHolder(index: Int, galleryHolder: GalleryHolder) {
         pushFragment(
-            R.id.navigation_paged_img_urls,
-            PagedImgUrlFragmentArgs(
-                safeArgs.illustId,
-                index
+            R.id.navigation_paged_img_urls, PagedImgUrlFragmentArgs(
+                safeArgs.illustId, index
             ).toBundle()
         )
     }
