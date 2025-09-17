@@ -47,6 +47,9 @@
                         android:layout_height="match_parent"
                         android:background="@null"
                         android:hint="@string/search_by_id_or_word"
+                        android:imeActionLabel="@string/search"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
                         android:paddingStart="6dp"
                         android:text="@={viewModel.inputDraft}"
                         android:textSize="15sp"
@@ -115,6 +118,12 @@
 
         </ScrollView>
 
+        <View
+            android:id="@+id/touch_outside"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
