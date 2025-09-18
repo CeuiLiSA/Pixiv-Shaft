@@ -15,8 +15,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 506
-        versionName "5.0.6"
+        versionCode 540
+        versionName "5.0.12"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -106,7 +106,6 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
 
-
     //=============== Navigation
     def nav_version = "2.8.5"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
@@ -133,11 +132,11 @@ dependencies {
     implementation 'com.github.lzyzsd:circleprogress:1.2.1'
 
     def refresh_version = "2.1.0"
-    implementation  "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖
-    implementation  "io.github.scwang90:refresh-header-classics:$refresh_version"    //经典刷新头
-    implementation  "io.github.scwang90:refresh-header-falsify:$refresh_version"     //虚拟刷新头
-    implementation  "io.github.scwang90:refresh-header-material:$refresh_version"    //谷歌刷新头
-    implementation  "io.github.scwang90:refresh-footer-classics:$refresh_version"    //经典加载
+    implementation "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖
+    implementation "io.github.scwang90:refresh-header-classics:$refresh_version"    //经典刷新头
+    implementation "io.github.scwang90:refresh-header-falsify:$refresh_version"     //虚拟刷新头
+    implementation "io.github.scwang90:refresh-header-material:$refresh_version"    //谷歌刷新头
+    implementation "io.github.scwang90:refresh-footer-classics:$refresh_version"    //经典加载
 
     // okhttp3系列组件版本最高到 4.4.1，参看 RubySSLSocketFactory
     implementation 'com.squareup.okhttp3:logging-interceptor:4.4.1'
