@@ -16,6 +16,13 @@
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary">
 
+            <View
+                android:id="@+id/place_holder"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:visibility="gone"
+                app:layout_scrollFlags="snap" />
+
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
@@ -24,13 +31,13 @@
                 app:layout_scrollFlags="scroll|enterAlways"
                 app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
                 app:title=" "
-                app:titleTextColor="@android:color/white" >
+                app:titleTextColor="@android:color/white">
 
                 <TextView
+                    android:id="@+id/toolbar_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:id="@+id/toolbar_title"
                     android:textColor="@color/white"
                     android:textSize="18sp">
 

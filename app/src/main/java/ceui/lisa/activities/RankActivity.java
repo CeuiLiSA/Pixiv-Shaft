@@ -4,11 +4,14 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.util.Calendar;
@@ -34,6 +37,10 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
     @Override
     protected void initView() {
         setSupportActionBar(baseBind.toolbar);
+        baseBind.placeHolder.setVisibility(View.VISIBLE);
+        ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) baseBind.placeHolder.getLayoutParams();
+        p.height = BarUtils.getStatusBarHeight();
+        baseBind.placeHolder.setLayoutParams(p);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
         baseBind.toolbarTitle.setText(mContext.getString(R.string.ranking_illust));
         dataType = getIntent().getStringExtra("dataType");
