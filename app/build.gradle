@@ -15,8 +15,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 542
-        versionName "5.0.14"
+        versionCode 546
+        versionName "5.0.16"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -33,6 +33,13 @@ android {
     }
 
     signingConfigs {
+        debug {
+            storeFile file("../keystore.jks")
+            storePassword "123456"
+            keyAlias 'CeuiLiSA'
+            keyPassword '123456'
+        }
+
         release {
             storeFile file("../keystore.jks")
             storePassword "123456"

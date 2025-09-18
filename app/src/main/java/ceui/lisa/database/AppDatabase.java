@@ -6,12 +6,13 @@ import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
+
 import ceui.lisa.feature.FeatureEntity;
 import ceui.pixiv.db.GeneralDao;
 import ceui.pixiv.db.GeneralEntity;
+import ceui.pixiv.db.RemoteKey;
 
 @Database(
         entities = {
@@ -26,30 +27,26 @@ import ceui.pixiv.db.GeneralEntity;
                 FeatureEntity.class, //记录用户收藏的精华列表
                 DownloadingEntity.class, //记录用户正在下载中的列表
                 GeneralEntity.class, // 新增的 GeneralEntity
+                RemoteKey.class,
         },
-        version = 26,
+        version = 27,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "roomDemo-database";
-
-    private static AppDatabase INSTANCE;
-
     private static final Migration MIGRATION_23_24 = new Migration(23, 24) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE feature_table ADD COLUMN seriesId INTEGER NOT NULL DEFAULT 0");
         }
     };
-
     private static final Migration MIGRATION_24_25 = new Migration(24, 25) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE search_table ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0");
         }
     };
-
     // 迁移 25 -> 26 (创建 general_table)
     private static final Migration MIGRATION_25_26 = new Migration(25, 26) {
         @Override
@@ -66,7 +63,20 @@ public abstract class AppDatabase extends RoomDatabase {
             );
         }
     };
-
+    private static final Migration MIGRATION_26_27 = new Migration(26, 27) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // 创建 remote_keys 表，带 lastUpdatedTime 字段
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS remote_keys (" +
+                            "recordType INTEGER NOT NULL PRIMARY KEY, " +
+                            "nextPageUrl TEXT, " +
+                            "lastUpdatedTime INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000)" +
+                            ")"
+            );
+        }
+    };
+    private static AppDatabase INSTANCE;
 
     public static AppDatabase getAppDatabase(Context context) {
         if (INSTANCE == null) {
