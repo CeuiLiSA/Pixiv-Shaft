@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdk = 36
+    compileSdk 36
 
     defaultConfig {
         minSdkVersion 23
@@ -17,12 +17,12 @@ android {
         }
     }
     lint {
-        abortOnError = false
+        abortOnError false
         warning 'InvalidPackage'
     }
-    namespace = 'me.jessyan.progressmanager'
+    namespace 'me.jessyan.progressmanager'
 }
 
 dependencies {
-    compileOnly 'com.squareup.okhttp3:okhttp:5.1.0'
+    compileOnly 'com.squareup.okhttp3:okhttp:4.4.1'
 }

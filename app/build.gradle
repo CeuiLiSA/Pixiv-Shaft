@@ -8,7 +8,8 @@ apply plugin: 'org.jmailen.kotlinter'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 android {
-    compileSdk = 36
+    compileSdk 36
+
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
@@ -23,8 +24,8 @@ android {
         release {
             storeFile file("../keystore.jks")
             storePassword "123456"
-            keyAlias = 'CeuiLiSA'
-            keyPassword = '123456'
+            keyAlias 'CeuiLiSA'
+            keyPassword '123456'
         }
     }
 
@@ -33,13 +34,13 @@ android {
             minifyEnabled false
             buildConfigField "boolean", "IS_DEBUG_MODE", "true" // 在 debug 模式下为 true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig = signingConfigs.release
+            signingConfig signingConfigs.release
         }
         release {
             minifyEnabled false
             buildConfigField "boolean", "IS_DEBUG_MODE", "false" // 在 release 模式下为 false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig = signingConfigs.release
+            signingConfig signingConfigs.release
         }
     }
 
@@ -57,8 +58,8 @@ android {
     }
 
     buildFeatures {
-        dataBinding = true
-        viewBinding = true
+        dataBinding true
+        viewBinding true
         buildConfig = true // 启用 BuildConfig
     }
     packagingOptions {
@@ -67,7 +68,7 @@ android {
         }
     }
 
-    namespace = 'ceui.lisa'
+    namespace 'ceui.lisa'
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21
     }

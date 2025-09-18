@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk = 36
+    compileSdk 36
 
     defaultConfig {
         minSdkVersion 23
@@ -24,7 +24,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    namespace = 'ceui.lisa.models'
+    namespace 'ceui.lisa.models'
 }
 
 dependencies {
