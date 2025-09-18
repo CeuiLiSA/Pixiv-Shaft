@@ -69,6 +69,7 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
             val resolution = getImageDimensions(file)
             resize(resolution)
             binding.image.loadImage(file) { }
+            binding.resolution.text = "${resolution.first}x${resolution.second}"
         }
         binding.progressCircular.setUpWithTaskStatus(
             holder.loadTask.status,
