@@ -2,13 +2,13 @@
 
 buildscript {
     repositories {
-        maven { url "https://jitpack.io" }
-        maven { url "https://repository.jboss.org/maven2" }
-        maven { url 'https://jcenter.bintray.com/' }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "https://oss.jfrog.org/libs-snapshot" }
-        maven { url "https://plugins.gradle.org/m2/" }
-        maven { url "https://jsoup.org/" }
+        maven { url = "https://jitpack.io" }
+        maven { url = "https://repository.jboss.org/maven2" }
+        maven { url = 'https://jcenter.bintray.com/' }
+        maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url = "https://oss.jfrog.org/libs-snapshot" }
+        maven { url = "https://plugins.gradle.org/m2/" }
+        maven { url = "https://jsoup.org/" }
         mavenCentral()
         google()
     }
@@ -37,16 +37,16 @@ plugins {
 
 allprojects {
     repositories {
-        maven { url 'https://jitpack.io' }
-        maven { url 'https://jcenter.bintray.com/' }
-        maven { url "https://repository.jboss.org/maven2" }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "https://oss.jfrog.org/libs-snapshot" }
-        maven { url "https://plugins.gradle.org/m2/" }
-        maven { url "https://jsoup.org/" }
+        maven { url = 'https://jitpack.io' }
+        maven { url = 'https://jcenter.bintray.com/' }
+        maven { url = "https://repository.jboss.org/maven2" }
+        maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url = "https://oss.jfrog.org/libs-snapshot" }
+        maven { url = "https://plugins.gradle.org/m2/" }
+        maven { url = "https://jsoup.org/" }
         mavenCentral()
         google()
-        maven { url 'https://maven.aliyun.com/repository/public/' }
+        maven { url = 'https://maven.aliyun.com/repository/public/' }
 //        mavenLocal()
     }
 }
