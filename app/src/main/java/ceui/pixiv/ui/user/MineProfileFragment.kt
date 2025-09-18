@@ -3,13 +3,10 @@ package ceui.pixiv.ui.user
 import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
-import ceui.loxia.SpaceHolder
 import ceui.loxia.User
-import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.CommonAdapter
@@ -21,9 +18,6 @@ import ceui.pixiv.ui.common.ViewPagerContentType
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
-import ceui.pixiv.widgets.alertYesOrCancel
-import com.blankj.utilcode.util.AppUtils
 
 class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -105,14 +99,6 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                         pushFragment(
                             R.id.navigation_settings,
                         )
-                    },
-                    TabCellHolder(getString(R.string.turn_off_v5_ui)).onItemClick {
-                        launchSuspend {
-                            if (alertYesOrCancel(getString(R.string.alert_when_turn_off_v5_ui))) {
-                                Shaft.getMMKV().putBoolean(SessionManager.USE_NEW_UI_KEY, false)
-                                AppUtils.relaunchApp()
-                            }
-                        }
                     },
                 )
             )

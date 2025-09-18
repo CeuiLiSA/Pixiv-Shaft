@@ -1,6 +1,8 @@
 package ceui.lisa.activities;
 
-import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
+import static ceui.lisa.R.id.nav_gallery;
+import static ceui.lisa.R.id.nav_slideshow;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -8,7 +10,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -24,22 +25,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.blankj.utilcode.util.AppUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
-import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.tbruyelle.rxpermissions3.RxPermissions;
 
 import java.io.File;
 
-import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.ActivityCoverBinding;
@@ -52,17 +48,11 @@ import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
-import ceui.pixiv.ui.common.HomeActivity;
 import ceui.pixiv.session.SessionManager;
-
-import static ceui.lisa.R.id.nav_gallery;
-import static ceui.lisa.R.id.nav_slideshow;
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * 主页
@@ -70,6 +60,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class MainActivity extends BaseActivity<ActivityCoverBinding>
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};
     private ImageView userHead;
     private TextView username;
     private TextView user_email;
@@ -232,27 +223,22 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             if (!SessionManager.INSTANCE.isLoggedIn()) {
                 SessionManager.INSTANCE.updateSession(sUserModel);
             }
-            if (Shaft.getMMKV().getBoolean(SessionManager.USE_NEW_UI_KEY, false)) {
-                startActivity(new Intent(this, HomeActivity.class));
-                finish();
-            } else {
-                if (Common.isAndroidQ()) {
-                    initFragment();
+            if (Common.isAndroidQ()) {
+                initFragment();
 //                startActivity(new Intent(this, ListActivity.class));
-                } else {
-                    new RxPermissions(mActivity)
-                            .requestEachCombined(
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            )
-                            .subscribe(permission -> {
-                                if (permission.granted) {
-                                    initFragment();
-                                } else {
-                                    Common.showToast(mActivity.getString(R.string.access_denied));
-                                    finish();
-                                }
-                            });
-                }
+            } else {
+                new RxPermissions(mActivity)
+                        .requestEachCombined(
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        )
+                        .subscribe(permission -> {
+                            if (permission.granted) {
+                                initFragment();
+                            } else {
+                                Common.showToast(mActivity.getString(R.string.access_denied));
+                                finish();
+                            }
+                        });
             }
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -330,26 +316,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             intent.putExtra(Params.URL, "https://www.pixiv.net/upload.php");
             intent.putExtra(Params.TITLE, getString(R.string.string_444));
             intent.putExtra(Params.PREFER_PRESERVE, true);
-        } else if (id == R.id.nav_turn_on_v5) {
-            FragmentActivity activity = this;
-            new QMUIDialog.MessageDialogBuilder(activity)
-                    .setTitle(activity.getResources().getString(R.string.app_name))
-                    .setMessage(activity.getResources().getString(R.string.new_ui_desc))
-                    .setSkinManager(QMUISkinManager.defaultInstance(activity))
-                    .addAction(0, activity.getResources().getString(R.string.string_142),
-                            (dialog, index) -> dialog.dismiss())
-                    .addAction(0, activity.getResources().getString(R.string.use_new_ui),
-                            (dialog, index) -> {
-                                try {
-                                    dialog.dismiss();
-                                    Shaft.getMMKV().putBoolean(SessionManager.USE_NEW_UI_KEY, true);
-                                    AppUtils.relaunchApp();
-                                } catch (Exception e) {
-                                    Common.showToast(e.toString());
-                                    e.printStackTrace();
-                                }
-                            })
-                    .show();
         }
         if (intent != null) {
             startActivity(intent);
@@ -364,8 +330,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         super.onSaveInstanceState(outState);
         outState.clear();
     }
-
-    public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};
 
     private void selectPhoto() {
         new QMUIDialog.CheckableDialogBuilder(mActivity)

@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
-import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.util.Calendar;
@@ -116,7 +115,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
 
     private Fragment[] getFragments(String[] CHINESE_TITLES, String[] CHINESE_TITLES_MANGA, String[] CHINESE_TITLES_NOVEL) {
         final Fragment[] mFragments;
-        if("插画".equals(dataType)){
+        if ("插画".equals(dataType)) {
             mFragments = new Fragment[CHINESE_TITLES.length];
             for (int i = 0; i < CHINESE_TITLES.length; i++) {
                 mFragments[i] = FragmentRankIllust.newInstance(i, queryDate, false);
