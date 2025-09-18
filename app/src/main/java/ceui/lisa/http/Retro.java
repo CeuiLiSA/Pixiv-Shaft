@@ -7,10 +7,7 @@ import com.blankj.utilcode.util.DeviceUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.security.cert.X509Certificate;
 import java.util.Collections;
-
-import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.helper.LanguageHelper;

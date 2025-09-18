@@ -9,8 +9,8 @@ import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.detail.ArtworksMap
+import ceui.pixiv.utils.GSON_DEFAULT
 import ceui.pixiv.utils.TokenGenerator
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -35,7 +35,6 @@ open class DataSource<Item, T : KListShow<Item>>(
     val itemHoldersImpl: LiveData<List<ListItemHolder>> = _itemHolders
 
     private var _nextPageUrl: String? = null
-    private val gson = Gson()
 
     private var responseClass: Class<T>? = null
 
@@ -122,7 +121,7 @@ open class DataSource<Item, T : KListShow<Item>>(
             val response = withContext(Dispatchers.IO) {
                 val responseBody = Client.appApi.generalGet(nextPageUrl)
                 val responseJson = responseBody.string()
-                gson.fromJson(responseJson, responseClass)
+                GSON_DEFAULT.fromJson(responseJson, responseClass)
             }
             applyResponse(response, true)
         } catch (ex: Exception) {
