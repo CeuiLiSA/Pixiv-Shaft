@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
-    id("org.jetbrains.kotlin.jvm")
-    id("kotlin-kapt")
+    kotlin("jvm")
+    kotlin("kapt")
 }
 
 java {
@@ -10,11 +10,6 @@ java {
 }
 
 dependencies {
-    kapt(project(":annotations"))
     compileOnly(project(":annotations"))
-
-    kapt ("com.google.auto.service:auto-service:1.0")
-    implementation ("com.google.auto.service:auto-service:1.0")
-
-
+    kapt("com.google.auto.service:auto-service:1.0")
 }
