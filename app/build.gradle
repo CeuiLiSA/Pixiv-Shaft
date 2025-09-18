@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 36
         versionCode 540
         versionName "5.0.12"
@@ -194,8 +194,8 @@ dependencies {
     implementation project(path: ':models')
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
-    implementation 'com.waynejo:androidndkgif:0.3.3'
-    implementation 'com.tencent:mmkv-static:1.3.9'
+    implementation 'io.github.waynejo:androidndkgif:1.0.1'
+    implementation 'com.tencent:mmkv-static:2.2.3'
     implementation 'com.github.tbruyelle:RxPermissions:0.12'
 
     implementation 'androidx.webkit:webkit:1.12.1'

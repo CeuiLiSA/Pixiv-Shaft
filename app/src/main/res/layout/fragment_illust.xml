@@ -4,6 +4,7 @@
     xmlns:zhy="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="user"
             type="androidx.lifecycle.LiveData&lt;ceui.lisa.models.UserBean>" />
@@ -71,16 +72,16 @@
                     android:id="@+id/core_linear"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:clickable="true"
                     android:elevation="@dimen/six_dp"
+                    android:focusable="true"
                     android:orientation="vertical"
                     app:behavior_peekHeight="180dp"
                     app:layout_behavior="@string/bottom_sheet_behavior"
                     app:qmui_backgroundColor="@color/fragment_center"
                     app:qmui_borderWidth="0dp"
                     app:qmui_radiusTopLeft="20dp"
-                    app:qmui_radiusTopRight="20dp"
-                    android:clickable="true"
-                    android:focusable="true">
+                    app:qmui_radiusTopRight="20dp">
 
                     <LinearLayout
                         android:id="@+id/bottom_bar"
@@ -111,17 +112,17 @@
                             android:layout_height="@dimen/sixteen_dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_marginEnd="56dp"
-                            android:gravity="start|bottom"
                             android:ellipsize="end"
+                            android:gravity="start|bottom"
+                            android:includeFontPadding="false"
                             android:maxLines="1"
                             android:text="@string/string_66"
                             android:textColor="@color/rank_text_color"
-                            android:includeFontPadding="false"
                             android:textSize="20sp"
+                            android:textStyle="bold"
                             app:autoSizeMaxTextSize="20sp"
                             app:autoSizeMinTextSize="6sp"
-                            app:autoSizeTextType="uniform"
-                            android:textStyle="bold">
+                            app:autoSizeTextType="uniform">
 
                         </TextView>
 
@@ -179,8 +180,8 @@
                                 android:layout_marginBottom="@dimen/four_dp"
                                 android:layout_toEndOf="@+id/user_head"
                                 android:ellipsize="end"
-                                android:maxLines="1"
                                 android:includeFontPadding="false"
+                                android:maxLines="1"
                                 android:text="@string/string_68"
                                 android:textColor="#bdbed6"
                                 android:textSize="12sp">
@@ -189,32 +190,32 @@
 
 
                             <FrameLayout
-                                android:layout_width="wrap_content"
                                 android:id="@+id/follow_layout"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="12dp"
                                 android:layout_centerVertical="true"
-                                android:layout_height="wrap_content">
+                                android:layout_marginEnd="12dp">
 
                                 <ceui.loxia.ProgressTextButton
                                     android:id="@+id/follow"
                                     style="@style/BlueShiningButton"
                                     android:layout_width="wrap_content"
-                                    android:visibility="gone"
                                     android:layout_height="32dp"
                                     android:paddingHorizontal="16dp"
                                     android:text="@string/follow"
+                                    android:visibility="gone"
                                     app:ptb_progress_stroke_width="3dp"
                                     app:ptb_progress_width="14dp" />
 
                                 <ceui.loxia.ProgressTextButton
                                     android:id="@+id/unfollow"
                                     style="@style/RedShiningButton"
-                                    android:visibility="gone"
                                     android:layout_width="wrap_content"
                                     android:layout_height="32dp"
                                     android:paddingHorizontal="16dp"
                                     android:text="@string/unfollow"
+                                    android:visibility="gone"
                                     app:ptb_progress_stroke_width="3dp"
                                     app:ptb_progress_width="14dp" />
                             </FrameLayout>
@@ -530,6 +531,12 @@
 
                 </LinearLayout>
 
+                <View
+                    android:id="@+id/bottom_place_holder"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:visibility="gone" />
+
             </LinearLayout>
 
             <androidx.appcompat.widget.Toolbar
@@ -551,44 +558,44 @@
 
         <FrameLayout
             android:id="@+id/abandoned_frame"
-            android:visibility="gone"
-            android:background="@color/black"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@color/black"
+            android:visibility="gone">
 
             <LinearLayout
-                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:orientation="vertical">
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/cancel_mute_illust"
-                    android:text="取消屏蔽该作品"
                     style="@style/BlueShiningButton"
-                    android:paddingHorizontal="20dp"
-                    android:layout_marginBottom="20dp"
                     android:layout_width="wrap_content"
-                    android:layout_height="45dp"/>
+                    android:layout_height="45dp"
+                    android:layout_marginBottom="20dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="取消屏蔽该作品" />
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/cancel_mute_user"
-                    android:text="取消屏蔽该用户"
                     style="@style/BlueShiningButton"
-                    android:paddingHorizontal="20dp"
-                    android:layout_marginBottom="20dp"
                     android:layout_width="wrap_content"
-                    android:layout_height="45dp"/>
+                    android:layout_height="45dp"
+                    android:layout_marginBottom="20dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="取消屏蔽该用户" />
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/leave"
-                    android:text="离开当前页面"
                     style="@style/RedShiningButton"
-                    android:paddingHorizontal="20dp"
-                    android:layout_marginBottom="20dp"
                     android:layout_width="wrap_content"
-                    android:layout_height="45dp"/>
+                    android:layout_height="45dp"
+                    android:layout_marginBottom="20dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="离开当前页面" />
             </LinearLayout>
 
 

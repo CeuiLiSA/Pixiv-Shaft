@@ -19,14 +19,14 @@
             android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:fitsSystemWindows="true"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow">
+            app:navigationIcon="@drawable/baseline_arrow_back_24">
 
             <TextView
+                android:id="@+id/toolbar_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="@string/app_settings"
-                android:id="@+id/toolbar_title"
                 android:textColor="@color/white"
                 android:textSize="18sp">
 
@@ -51,12 +51,12 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/account"/>
+                        android:text="@string/account" />
 
                     <LinearLayout
-                        android:background="@color/white_and_black"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:background="@color/white_and_black"
                         android:orientation="vertical">
 
                         <View style="@style/full_divider" />
@@ -136,7 +136,8 @@
 
                         </RelativeLayout>
 
-                        <View style="@style/half_divider"
+                        <View
+                            style="@style/half_divider"
                             android:visibility="gone" />
 
                         <RelativeLayout
@@ -173,7 +174,7 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/about_network"/>
+                        android:text="@string/about_network" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -188,8 +189,8 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
                                 android:id="@+id/fuck_china_s"
+                                style="@style/setting_text_left"
                                 android:layout_marginBottom="@dimen/six_dp"
                                 android:text="@string/open_direct_connection" />
 
@@ -222,27 +223,27 @@
                             style="@style/ripple_rela">
 
                             <TextView
+                                android:id="@+id/use_pixivcat_mark"
                                 style="@style/setting_text_left"
                                 android:layout_marginBottom="@dimen/six_dp"
-                                android:id="@+id/use_pixivcat_mark"
                                 android:text="@string/string_331" />
 
                             <TextView
                                 android:layout_width="match_parent"
-                                android:layout_toStartOf="@+id/first_detail_origin"
                                 android:layout_height="wrap_content"
                                 android:layout_below="@+id/use_pixivcat_mark"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
-                                android:textColor="?attr/colorPrimary"
+                                android:layout_toStartOf="@+id/first_detail_origin"
                                 android:ellipsize="start"
                                 android:singleLine="true"
                                 android:text="@string/string_333"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="12sp" />
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/first_detail_origin"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -260,20 +261,20 @@
 
                             <TextView
                                 android:layout_width="match_parent"
-                                android:layout_toStartOf="@+id/show_large_thumbnail_image"
                                 android:layout_height="wrap_content"
                                 android:layout_below="@+id/show_large_thumbnail_image_mark"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
-                                android:textColor="?attr/colorPrimary"
+                                android:layout_toStartOf="@+id/show_large_thumbnail_image"
                                 android:ellipsize="start"
                                 android:singleLine="true"
                                 android:text="@string/string_334"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="12sp" />
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/show_large_thumbnail_image"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -291,20 +292,20 @@
 
                             <TextView
                                 android:layout_width="match_parent"
-                                android:layout_toStartOf="@+id/show_original_preview_image"
                                 android:layout_height="wrap_content"
                                 android:layout_below="@+id/show_original_preview_image_mark"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
-                                android:textColor="?attr/colorPrimary"
+                                android:layout_toStartOf="@+id/show_original_preview_image"
                                 android:ellipsize="start"
                                 android:singleLine="true"
                                 android:text="@string/string_334"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="12sp" />
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/show_original_preview_image"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -314,7 +315,7 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/normal"/>
+                        android:text="@string/normal" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -334,7 +335,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/save_history"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -351,7 +352,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/delete_star_illust"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -368,7 +369,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/delete_ai_illust"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -386,7 +387,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/toast_download_result"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -406,12 +407,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text=""
                                 android:textColor="?attr/colorPrimary"
-                                android:textSize="14sp">
-                            </TextView>
+                                android:textSize="14sp"></TextView>
 
                         </RelativeLayout>
 
@@ -430,23 +430,23 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text=""
                                 android:textColor="?attr/colorPrimary"
-                                android:textSize="14sp">
-                            </TextView>
+                                android:textSize="14sp"></TextView>
 
                         </RelativeLayout>
 
 
-                        <View style="@style/half_divider"
+                        <View
+                            style="@style/half_divider"
                             android:visibility="gone" />
 
                         <RelativeLayout
                             android:id="@+id/bottom_bar_order_rela"
-                            android:visibility="gone"
-                            style="@style/ripple_rela">
+                            style="@style/ripple_rela"
+                            android:visibility="gone">
 
                             <TextView
                                 style="@style/setting_text_left"
@@ -457,8 +457,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text="@string/string_325"
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
@@ -479,7 +479,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/filter_comment"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -490,27 +490,27 @@
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
                                 android:id="@+id/r18_filter_default_enable_text"
+                                style="@style/setting_text_left"
                                 android:layout_marginBottom="@dimen/six_dp"
                                 android:text="@string/string_414" />
 
                             <TextView
                                 android:layout_width="match_parent"
-                                android:layout_toStartOf="@+id/r18_filter_default_enable"
                                 android:layout_height="wrap_content"
                                 android:layout_below="@+id/r18_filter_default_enable_text"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
-                                android:textColor="?attr/colorPrimary"
+                                android:layout_toStartOf="@+id/r18_filter_default_enable"
                                 android:ellipsize="start"
                                 android:singleLine="true"
                                 android:text="@string/string_415"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="12sp" />
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/r18_filter_default_enable"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -520,7 +520,7 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/string_376"/>
+                        android:text="@string/string_376" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -540,7 +540,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/main_view_r18"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -559,12 +559,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text="@string/string_426"
                                 android:textColor="?attr/colorPrimary"
-                                android:textSize="14sp">
-                            </TextView>
+                                android:textSize="14sp"></TextView>
 
                         </RelativeLayout>
 
@@ -580,7 +579,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/illust_detail_user_new"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -597,7 +596,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/user_new_user"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -616,8 +615,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text="@string/string_95"
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
@@ -643,12 +642,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text="@string/string_325"
                                 android:textColor="?attr/colorPrimary"
-                                android:textSize="14sp">
-                            </TextView>
+                                android:textSize="14sp"></TextView>
 
 
                         </RelativeLayout>
@@ -668,12 +666,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text="@string/string_95"
                                 android:textColor="?attr/colorPrimary"
-                                android:textSize="14sp">
-                            </TextView>
+                                android:textSize="14sp"></TextView>
 
 
                         </RelativeLayout>
@@ -692,13 +689,12 @@
                                 android:id="@+id/app_language"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
-                                android:layout_centerVertical="true"
                                 android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text="@string/string_97"
                                 android:textColor="?attr/colorPrimary"
-                                android:textSize="14sp">
-                            </TextView>
+                                android:textSize="14sp"></TextView>
 
 
                         </RelativeLayout>
@@ -709,7 +705,7 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/string_377"/>
+                        android:text="@string/string_377" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -729,7 +725,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/r18_divide_save"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -745,7 +741,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/ai_divide_save"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -765,8 +761,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text="@string/string_94"
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
@@ -789,8 +785,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
 
@@ -810,7 +806,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/illust_long_press_download"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -829,8 +825,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
 
@@ -853,8 +849,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text="@string/string_95"
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
@@ -872,8 +868,8 @@
 
                             <TextView
                                 android:id="@+id/illust_path_s"
-                                android:layout_marginBottom="@dimen/six_dp"
                                 style="@style/setting_text_left"
+                                android:layout_marginBottom="@dimen/six_dp"
                                 android:text="@string/illust_download_path" />
 
                             <TextView
@@ -900,8 +896,8 @@
 
                             <TextView
                                 android:id="@+id/novel_path_s"
-                                android:layout_marginBottom="@dimen/six_dp"
                                 style="@style/setting_text_left"
+                                android:layout_marginBottom="@dimen/six_dp"
                                 android:text="@string/string_373" />
 
                             <TextView
@@ -912,8 +908,7 @@
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
                                 android:textColor="?attr/colorPrimary"
-                                android:textSize="13sp">
-                            </TextView>
+                                android:textSize="13sp"></TextView>
 
                         </RelativeLayout>
 
@@ -924,7 +919,7 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/string_370"/>
+                        android:text="@string/string_370" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -944,7 +939,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/show_like_button"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -961,7 +956,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/hide_star_bar"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -978,7 +973,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/select_all_tag"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -998,8 +993,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:text=""
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
@@ -1020,7 +1015,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/show_related_when_star"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
 
                         </RelativeLayout>
@@ -1037,7 +1032,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/download_auto_post_like"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -1053,7 +1048,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/illust_detail_keep_screen_on"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -1069,7 +1064,7 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/is_firebase_enable"
-                                style="@style/setting_right_switch"/>
+                                style="@style/setting_right_switch" />
 
                         </RelativeLayout>
 
@@ -1080,13 +1075,13 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/string_100"/>
+                        android:text="@string/string_100" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:orientation="vertical"
+                        android:layout_height="wrap_content"
                         android:background="@color/white_and_black"
-                        android:layout_height="wrap_content">
+                        android:orientation="vertical">
 
                         <View style="@style/full_divider" />
 
@@ -1100,8 +1095,8 @@
 
                             <TextView
                                 android:id="@+id/image_cache_size"
-                                android:textColor="?attr/colorPrimary"
-                                style="@style/setting_right_arrow" />
+                                style="@style/setting_right_arrow"
+                                android:textColor="?attr/colorPrimary" />
 
                         </RelativeLayout>
 
@@ -1117,8 +1112,8 @@
 
                             <TextView
                                 android:id="@+id/gif_cache_size"
-                                android:textColor="?attr/colorPrimary"
-                                style="@style/setting_right_arrow" />
+                                style="@style/setting_right_arrow"
+                                android:textColor="?attr/colorPrimary" />
 
                         </RelativeLayout>
 
@@ -1128,14 +1123,14 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/string_419"/>
+                        android:text="@string/string_419" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:orientation="vertical"
+                        android:layout_height="wrap_content"
                         android:layout_marginBottom="60dp"
                         android:background="@color/white_and_black"
-                        android:layout_height="wrap_content">
+                        android:orientation="vertical">
 
                         <View style="@style/full_divider" />
 

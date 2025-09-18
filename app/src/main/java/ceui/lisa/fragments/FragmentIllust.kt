@@ -17,23 +17,46 @@ import android.view.View.OnLongClickListener
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
-import ceui.lisa.activities.*
+import ceui.lisa.activities.BaseActivity
+import ceui.lisa.activities.SearchActivity
+import ceui.lisa.activities.Shaft
+import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.activities.UserActivity
+import ceui.lisa.activities.followUser
+import ceui.lisa.activities.unfollowUser
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
 import ceui.lisa.dialogs.MuteDialog
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.*
+import ceui.lisa.models.IllustsBean
+import ceui.lisa.models.ObjectSpec
+import ceui.lisa.models.TagsBean
+import ceui.lisa.models.UserBean
 import ceui.lisa.notification.CallBackReceiver
-import ceui.lisa.utils.*
-import ceui.loxia.*
+import ceui.lisa.utils.Common
+import ceui.lisa.utils.DensityUtil
+import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.utils.GlideUtil
+import ceui.lisa.utils.Params
+import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.SearchTypeUtil
+import ceui.lisa.utils.ShareIllust
+import ceui.loxia.ObjectPool
+import ceui.loxia.ProgressTextButton
+import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagDescFragment
+import ceui.loxia.threadSafeArgs
 import ceui.pixiv.utils.setOnClick
+import com.blankj.utilcode.util.BarUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -70,6 +93,20 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         userLiveData.observe(viewLifecycleOwner) { user ->
             updateUser(user)
             Common.showLog("updateUser invoke ${user.isIs_followed}")
+        }
+
+        BarUtils.transparentNavBar(requireActivity())
+        ViewCompat.setOnApplyWindowInsetsListener(baseBind.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            if (insets.bottom > 0) {
+                baseBind.bottomPlaceHolder.isVisible = true
+                baseBind.bottomPlaceHolder.updateLayoutParams {
+                    height = insets.bottom
+                }
+            } else {
+                baseBind.bottomPlaceHolder.isVisible = false
+            }
+            windowInsets
         }
         val illust = illustLiveData.value ?: return
         baseBind.user = userLiveData
@@ -180,7 +217,10 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 }
 
                 override fun updateDrawState(ds: TextPaint) {
-                    ds.color = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary)
+                    ds.color = Common.resolveThemeAttribute(
+                        mContext,
+                        androidx.appcompat.R.attr.colorPrimary
+                    )
                 }
             }
             val spannableString: SpannableString
@@ -374,8 +414,8 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
-                val v = view ?: return
-                val ctx = context ?: return
+                view ?: return
+                context ?: return
                 val realHeight = baseBind.bottomBar.height +
                         baseBind.viewDivider.height +
                         baseBind.secondLinear.height
