@@ -8,13 +8,13 @@ apply plugin: 'org.jmailen.kotlinter'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 android {
-    compileSdk 34
+    compileSdk 36
 
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode 540
         versionName "5.0.12"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
