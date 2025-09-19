@@ -23,8 +23,8 @@ import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.web.WebFragmentArgs
+import ceui.pixiv.utils.GSON_DEFAULT
 import ceui.pixiv.widgets.alertYesOrCancel
-import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 
 class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActionReceiver {
@@ -109,7 +109,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                         extraInfo = "[JSON FORMATTED]"
                     ).onItemClick {
                         SessionManager.loggedInAccount.value?.let { account ->
-                            Common.copy(context, Gson().toJson(account))
+                            Common.copy(context, GSON_DEFAULT.toJson(account))
                         }
                     },
 

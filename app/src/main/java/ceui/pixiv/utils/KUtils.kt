@@ -8,7 +8,7 @@ import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import ceui.lisa.R
 
-fun <T: View> T.setOnClick(listener: (T) -> Unit) {
+inline fun <T: View> T.setOnClick(crossinline listener: (T) -> Unit) {
     stateListAnimator =
         AnimatorInflater.loadStateListAnimator(context, R.animator.button_press_alpha)
     setOnClickListener {

@@ -2,14 +2,13 @@ package ceui.pixiv.paging
 
 import ceui.loxia.Client
 import ceui.loxia.KListShow
-import com.google.gson.Gson
+import ceui.pixiv.utils.GSON_DEFAULT
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.lang.reflect.Type
 
 abstract class PagingRepository<ObjectT> {
 
-    private val gson: Gson = Gson()
     private var responseType: Type? = null  // 缓存泛型类型信息
 
     suspend fun load(nextUrl: String?): KListShow<ObjectT> {
@@ -31,7 +30,7 @@ abstract class PagingRepository<ObjectT> {
             val type = responseType
                 ?: error("Response type not initialized. Must call load(null) first.")
 
-            gson.fromJson(responseJson, type)
+            GSON_DEFAULT.fromJson(responseJson, type)
         }
     }
 

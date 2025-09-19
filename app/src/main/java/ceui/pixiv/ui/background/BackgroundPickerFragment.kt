@@ -18,9 +18,9 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.works.buildPixivWorksFileName
+import ceui.pixiv.utils.GSON_DEFAULT
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
-import com.google.gson.Gson
 import kotlinx.coroutines.MainScope
 import java.io.File
 
@@ -32,7 +32,7 @@ class BackgroundPickerFragment : PixivFragment(R.layout.fragment_paged_list) {
         PagingIllustAPIRepository({
             val jsonString =
                 assets.open("landing_bg.json").bufferedReader().use { it.readText() }
-            Gson().fromJson(jsonString, IllustResponse::class.java)
+            GSON_DEFAULT.fromJson(jsonString, IllustResponse::class.java)
         })
     }
 

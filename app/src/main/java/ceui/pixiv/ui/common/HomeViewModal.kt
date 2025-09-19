@@ -10,7 +10,7 @@ import ceui.loxia.ObjectPool
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.works.buildPixivWorksFileName
-import com.google.gson.Gson
+import ceui.pixiv.utils.GSON_DEFAULT
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -72,7 +72,7 @@ class HomeViewModel(private val assets: AssetManager) : ViewModel() {
     private fun loadFromLocal() {
         val jsonString =
             assets.open("landing_bg.json").bufferedReader().use { it.readText() }
-        val raw = Gson().fromJson(jsonString, IllustResponse::class.java)
+        val raw = GSON_DEFAULT.fromJson(jsonString, IllustResponse::class.java)
         val list = raw.displayList
         _illustResponse.value = raw.copy(illusts = list.shuffled())
     }
