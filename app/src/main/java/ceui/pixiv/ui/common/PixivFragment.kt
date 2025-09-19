@@ -576,7 +576,7 @@ fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode
         listView.addItemDecoration(LinearItemOnlyTopDecoration(8.ppppx))
     } else if (listMode == ListMode.VERTICAL_NOVEL) {
         listView.layoutManager = LinearLayoutManager(ctx)
-        listView.addItemDecoration(LinearItemDecoration(8.ppppx))
+        listView.addItemDecoration(LinearItemDecoration(6.ppppx))
     } else if (listMode == ListMode.VERTICAL_COMMENT) {
         listView.layoutManager = LinearLayoutManager(requireContext())
         listView.addItemDecoration(

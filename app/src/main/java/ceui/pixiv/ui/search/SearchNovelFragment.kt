@@ -60,7 +60,7 @@ class SearchNovelFragment : PixivFragment(R.layout.fragment_paged_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpPagedList(binding, viewModel, ListMode.VERTICAL)
+        setUpPagedList(binding, viewModel, ListMode.VERTICAL_NOVEL)
         searchViewModel.searchNovelEvent.observeEvent(viewLifecycleOwner) {
             viewModel.refresh()
         }
