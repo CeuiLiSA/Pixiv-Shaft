@@ -6,6 +6,7 @@ import android.view.inputmethod.EditorInfo
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
@@ -23,6 +24,7 @@ import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.web.LinkHandler
+import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
 import kotlinx.coroutines.delay
@@ -55,6 +57,7 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all) {
 
             // 更新 Toolbar 的顶部 padding
             binding.toolbarLayout.root.updatePaddingRelative(top = systemBarsInsets.top)
+            binding.searchRoot.updatePadding(0, 0, 0, systemBarsInsets.bottom + 20.ppppx)
 
             // 确定底部 inset
             binding.touchOutside.isVisible = imeInsets.bottom > 0

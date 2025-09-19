@@ -12,18 +12,16 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/search_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <include
-            android:id="@+id/toolbar_layout"
-            layout="@layout/layout_toolbar" />
 
         <ScrollView
             android:id="@+id/content_group"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/search_ways"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/toolbar_layout">
@@ -38,7 +36,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="46dp"
                     android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/round_corner_white08_r8">
 
                     <androidx.appcompat.widget.AppCompatEditText
@@ -61,7 +59,7 @@
                         visibleOrGone="@{!viewModel.inputDraft.trim().empty}"
                         android:layout_width="44dp"
                         android:layout_height="44dp"
-                        android:padding="10dp"
+                        android:padding="12dp"
                         android:src="@drawable/ic_clear_search"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -69,54 +67,70 @@
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <ceui.loxia.ProgressTextButton
-                    android:id="@+id/id_search_illust"
-                    style="@style/GreenShiningButton"
-                    android:layout_width="200dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="40dp"
-                    android:text="@string/string_150" />
-
-                <ceui.loxia.ProgressTextButton
-                    android:id="@+id/id_search_user"
-                    style="@style/GreenShiningButton"
-                    android:layout_width="200dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="30dp"
-                    android:text="@string/string_152" />
-
-
-                <ceui.loxia.ProgressTextButton
-                    android:id="@+id/id_search_novel"
-                    style="@style/GreenShiningButton"
-                    android:layout_width="200dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="30dp"
-                    android:text="@string/string_153" />
-
-
-                <ceui.loxia.ProgressTextButton
-                    android:id="@+id/id_parse_link"
-                    style="@style/GreenShiningButton"
-                    android:layout_width="200dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="30dp"
-                    android:text="@string/parse_link" />
-
-
-                <ceui.loxia.ProgressTextButton
-                    android:id="@+id/keyword_search"
-                    style="@style/BlueShiningButton"
-                    android:layout_width="200dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="30dp"
-                    android:text="@string/search_by_keyword" />
-
 
             </LinearLayout>
 
 
         </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/search_ways"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/id_search_illust"
+                style="@style/GreenShiningButton"
+                android:layout_width="200dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/string_150"
+                android:textSize="12sp" />
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/id_search_user"
+                style="@style/GreenShiningButton"
+                android:layout_width="200dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/string_152"
+                android:textSize="12sp" />
+
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/id_search_novel"
+                style="@style/GreenShiningButton"
+                android:layout_width="200dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/string_153"
+                android:textSize="12sp" />
+
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/id_parse_link"
+                style="@style/GreenShiningButton"
+                android:layout_width="200dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/parse_link"
+                android:textSize="12sp" />
+
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/keyword_search"
+                style="@style/BlueShiningButton"
+                android:layout_width="200dp"
+                android:layout_height="45dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/search_by_keyword"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <View
             android:id="@+id/touch_outside"
@@ -124,6 +138,10 @@
             android:layout_height="match_parent"
             android:visibility="gone"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <include
+            android:id="@+id/toolbar_layout"
+            layout="@layout/layout_toolbar" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
