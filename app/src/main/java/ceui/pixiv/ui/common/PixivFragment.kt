@@ -59,6 +59,7 @@ import ceui.pixiv.paging.CommonPagingAdapter
 import ceui.pixiv.paging.PagingViewModel
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
+import ceui.pixiv.ui.detail.ArtworkViewPagerFragment
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
 import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.IllustSeriesFragmentArgs
@@ -311,7 +312,7 @@ interface HomeTabContainer : ViewPagerFragment {
 
 fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
     val parentFrag = parentFragment
-    if (parentFrag is ViewPagerFragment) {
+    if (parentFrag is ViewPagerFragment && parentFrag !is ArtworkViewPagerFragment) {
         binding.toolbarLayout.isVisible = false
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
