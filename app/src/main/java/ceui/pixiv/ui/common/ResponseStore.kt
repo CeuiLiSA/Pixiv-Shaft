@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.common
 
 import ceui.pixiv.session.SessionManager
-import com.google.gson.Gson
+import ceui.pixiv.utils.GSON_DEFAULT
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
@@ -10,8 +10,6 @@ class ResponseStore<T> private constructor(
     private val expirationTimeMillis: Long,
     private val typeToken: Class<T>
 ) {
-
-    private val gson = Gson()
 
     private val jsonKey: String
         get() = "json-key-${keyProvider()}"
@@ -25,7 +23,7 @@ class ResponseStore<T> private constructor(
 
     fun writeToCache(data: T) {
         val currentTime = System.currentTimeMillis()
-        preferences.putString(jsonKey, gson.toJson(data))
+        preferences.putString(jsonKey, GSON_DEFAULT.toJson(data))
         preferences.putLong(timeKey, currentTime)
     }
 
@@ -39,7 +37,7 @@ class ResponseStore<T> private constructor(
         return try {
             val json = preferences.getString(jsonKey, null)
             if (json?.isNotEmpty() == true) {
-                gson.fromJson(json, typeToken)
+                GSON_DEFAULT.fromJson(json, typeToken)
             } else {
                 null
             }

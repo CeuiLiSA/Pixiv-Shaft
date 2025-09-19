@@ -35,7 +35,6 @@ import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
-import com.google.gson.Gson
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -103,7 +102,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener
         }
 
         MainScope().launch(Dispatchers.IO) {
-            Gson()
             val list = AppDatabase.getAppDatabase(this@HomeActivity).generalDao().getAll()
             list.forEach {
 //                Timber.d("dsadasadsw2 ${gson.toJson(it)}")

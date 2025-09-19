@@ -12,7 +12,7 @@ import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.isJson
-import com.google.gson.Gson
+import ceui.pixiv.utils.GSON_DEFAULT
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -35,7 +35,7 @@ object SessionManager {
     const val CONTENT_LANGUAGE_KEY = "content-language"
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
-    private val gson = Gson()
+    private val gson = GSON_DEFAULT
 
     private val tokenRefreshMutex = Mutex()
     private var refreshingTokenJob: Deferred<String?>? = null

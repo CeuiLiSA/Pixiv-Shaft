@@ -17,9 +17,9 @@ import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.ui.common.findCurrentFragmentOrNull
 import ceui.pixiv.ui.common.getFileSize
+import ceui.pixiv.utils.GSON_DEFAULT
 import ceui.pixiv.utils.TokenGenerator
 import com.blankj.utilcode.util.PathUtils
-import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.hjq.toast.ToastUtils
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +62,7 @@ open class FetchAllTask<Item, ResponseT : KListShow<Item>>(
 ) {
 
     private val results = mutableListOf<Item>()
-    private val gson = Gson()
+    private val gson = GSON_DEFAULT
 
     init {
         activity.lifecycleScope.launch {
@@ -160,8 +160,7 @@ fun loadIllustsFromCache(taskUUID: String): List<Illust>? {
             ).use { reader ->
                 reader.readText()
             }
-            val type = object : TypeToken<List<Illust>>() {}.type
-            Gson().fromJson<List<Illust>>(json, type)
+            GSON_DEFAULT.fromJson<List<Illust>>(json, object : TypeToken<List<Illust>>() {}.type)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -182,8 +181,7 @@ fun loadNovelsFromCache(taskUUID: String): List<Novel>? {
             ).use { reader ->
                 reader.readText()
             }
-            val type = object : TypeToken<List<Novel>>() {}.type
-            Gson().fromJson<List<Novel>>(json, type)
+            GSON_DEFAULT.fromJson<List<Novel>>(json, object : TypeToken<List<Novel>>() {}.type)
         } catch (e: Exception) {
             e.printStackTrace()
             null

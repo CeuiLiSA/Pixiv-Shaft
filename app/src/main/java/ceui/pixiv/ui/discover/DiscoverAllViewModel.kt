@@ -18,14 +18,13 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPostHolder
+import ceui.pixiv.utils.GSON_DEFAULT
 import ceui.pixiv.utils.NetworkStateManager
-import com.google.gson.Gson
 
 class DiscoverAllViewModel(private val networkStateManager: NetworkStateManager) :
     HoldersViewModel() {
 
     private var _nextPageSpec: NextPageSpec? = null
-    private val gson = Gson()
     private val responseStore = createResponseStore<HomeData>({ "home-all" })
 
     override suspend fun refreshImpl(hint: RefreshHint) {
@@ -86,8 +85,8 @@ class DiscoverAllViewModel(private val networkStateManager: NetworkStateManager)
                             }
                         }
                     } else {
-                        val webIllust = gson.fromJson(
-                            gson.toJson(spec.thumbnails?.firstOrNull()), WebIllust::class.java
+                        val webIllust = GSON_DEFAULT.fromJson(
+                            GSON_DEFAULT.toJson(spec.thumbnails?.firstOrNull()), WebIllust::class.java
                         )
                         val page = spec.thumbnails?.firstOrNull()?.pages?.firstOrNull()
                         val urls = page?.urls
@@ -134,8 +133,8 @@ class DiscoverAllViewModel(private val networkStateManager: NetworkStateManager)
     }
 
     private inline fun <reified T> parseAppModel(app_model: Any?): T? {
-        val json = app_model?.let { gson.toJson(it) }
-        return json?.takeIf { it.isNotEmpty() }?.let { gson.fromJson(it, T::class.java) }
+        val json = app_model?.let { GSON_DEFAULT.toJson(it) }
+        return json?.takeIf { it.isNotEmpty() }?.let { GSON_DEFAULT.fromJson(it, T::class.java) }
     }
 
     init {

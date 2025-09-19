@@ -1,6 +1,5 @@
 package ceui.lisa.fragments
 
-import android.content.Context
 import ceui.lisa.models.NovelDetail
 import ceui.lisa.utils.Common
 import ceui.loxia.PixivHtmlObject
@@ -10,7 +9,7 @@ import ceui.loxia.novel.NovelChapterHolder
 import ceui.loxia.novel.NovelImageHolder
 import ceui.loxia.novel.NovelTextHolder
 import ceui.pixiv.ui.common.ListItemHolder
-import com.google.gson.Gson
+import ceui.pixiv.utils.GSON_DEFAULT
 import okhttp3.ResponseBody
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -59,8 +58,7 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
                     val regex = ",(?=\\s*[}\\]])".toRegex()
                     val pixivJson = scriptContent.substring(start, end).trim().replace(regex, "")
                     // 使用 Gson 将字符串解析为 Kotlin 对象
-                    val gson = Gson()
-                    return gson.fromJson(pixivJson, PixivHtmlObject::class.java)
+                    return GSON_DEFAULT.fromJson(pixivJson, PixivHtmlObject::class.java)
                 }
             }
 
