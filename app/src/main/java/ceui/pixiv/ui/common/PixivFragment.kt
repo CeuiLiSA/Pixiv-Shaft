@@ -407,6 +407,10 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                 .collectLatest { current ->
                     binding.refreshLayout.isRefreshing = current is LoadState.Loading
                     binding.errorLayout.isVisible = current is LoadState.Error
+
+                    val isListEmpty = adapter.itemCount == 0
+                    binding.emptyLayout.isVisible =
+                        current is LoadState.NotLoading && isListEmpty
                 }
         }
     }

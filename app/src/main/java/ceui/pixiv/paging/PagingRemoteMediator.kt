@@ -5,6 +5,7 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.ModelObject
@@ -27,21 +28,21 @@ class PagingRemoteMediator<ObjectT : ModelObject>(
             val generalDao = db.generalDao()
             val remoteKeyDao = db.remoteKeyDao()
 
-//            val cacheTimeoutMs = 5 * 60 * 1000L // 5分钟
-//            val now = System.currentTimeMillis()
+            val cacheTimeoutMs = 5 * 60 * 1000L // 5分钟
+            val now = System.currentTimeMillis()
 
             val remoteKey = remoteKeyDao.getRemoteKey(recordType)
-//            val shouldSkipNetwork = if (loadType == LoadType.REFRESH) {
-//                remoteKey?.lastUpdatedTime?.let {
-//                    now - it < cacheTimeoutMs
-//                } ?: false
-//            } else {
-//                false
-//            }
-//
-//            if (shouldSkipNetwork) {
-//                return MediatorResult.Success(endOfPaginationReached = false)
-//            }
+            val shouldSkipNetwork = if (BuildConfig.DEBUG && loadType == LoadType.REFRESH) {
+                remoteKey?.lastUpdatedTime?.let {
+                    now - it < cacheTimeoutMs
+                } ?: false
+            } else {
+                false
+            }
+
+            if (shouldSkipNetwork) {
+                return MediatorResult.Success(endOfPaginationReached = false)
+            }
 
             val nextPageUrl = when (loadType) {
                 LoadType.REFRESH -> null
