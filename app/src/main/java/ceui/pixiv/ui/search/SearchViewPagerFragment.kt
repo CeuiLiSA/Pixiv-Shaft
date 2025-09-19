@@ -29,7 +29,7 @@ class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search
     private val args by navArgs<SearchViewPagerFragmentArgs>()
     private val dialogViewModel by activityViewModels<DialogViewModel>()
     private val searchViewModel by constructVM({ args.keyword }) { word ->
-        SearchViewModel(word)
+        SearchViewModel(false, word)
     }
 
     override fun onViewFirstCreated(view: View) {

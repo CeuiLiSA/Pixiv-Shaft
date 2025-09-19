@@ -17,7 +17,7 @@
         android:layout_height="match_parent">
 
 
-        <ScrollView
+        <androidx.core.widget.NestedScrollView
             android:id="@+id/content_group"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -68,10 +68,17 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/suggestion_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:nestedScrollingEnabled="false" />
+
+
             </LinearLayout>
 
 
-        </ScrollView>
+        </androidx.core.widget.NestedScrollView>
 
         <LinearLayout
             android:id="@+id/search_ways"
@@ -83,43 +90,64 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-            <ceui.loxia.ProgressTextButton
-                android:id="@+id/id_search_illust"
-                style="@style/GreenShiningButton"
-                android:layout_width="200dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="10dp"
-                android:text="@string/string_150"
-                android:textSize="12sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp">
 
-            <ceui.loxia.ProgressTextButton
-                android:id="@+id/id_search_user"
-                style="@style/GreenShiningButton"
-                android:layout_width="200dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="10dp"
-                android:text="@string/string_152"
-                android:textSize="12sp" />
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/id_search_illust"
+                    style="@style/GreenShiningButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="@string/string_150"
+                    android:textSize="12sp" />
 
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp" />
 
-            <ceui.loxia.ProgressTextButton
-                android:id="@+id/id_search_novel"
-                style="@style/GreenShiningButton"
-                android:layout_width="200dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="10dp"
-                android:text="@string/string_153"
-                android:textSize="12sp" />
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/id_search_user"
+                    style="@style/GreenShiningButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="@string/string_152"
+                    android:textSize="12sp" />
 
+            </LinearLayout>
 
-            <ceui.loxia.ProgressTextButton
-                android:id="@+id/id_parse_link"
-                style="@style/GreenShiningButton"
-                android:layout_width="200dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="10dp"
-                android:text="@string/parse_link"
-                android:textSize="12sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp">
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/id_search_novel"
+                    style="@style/GreenShiningButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_weight="1"
+                    android:text="@string/string_153"
+                    android:textSize="12sp" />
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp" />
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/id_parse_link"
+                    style="@style/GreenShiningButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_weight="1"
+                    android:text="@string/parse_link"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
 
             <ceui.loxia.ProgressTextButton
@@ -127,7 +155,7 @@
                 style="@style/BlueShiningButton"
                 android:layout_width="200dp"
                 android:layout_height="45dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:text="@string/search_by_keyword"
                 android:textSize="12sp" />
         </LinearLayout>

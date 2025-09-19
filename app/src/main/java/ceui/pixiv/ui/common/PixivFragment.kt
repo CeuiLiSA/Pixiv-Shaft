@@ -36,6 +36,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.ShareIllust
 import ceui.lisa.view.LinearItemDecoration
+import ceui.lisa.view.LinearItemOnlyTopDecoration
 import ceui.lisa.view.StaggeredGridSpacingItemDecoration
 import ceui.loxia.Article
 import ceui.loxia.Client
@@ -570,6 +571,12 @@ fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode
     } else if (listMode == ListMode.VERTICAL) {
         listView.layoutManager = LinearLayoutManager(ctx)
         listView.addItemDecoration(LinearItemDecoration(18.ppppx))
+    } else if (listMode == ListMode.VERTICAL_SEARCH_SUGGESTION) {
+        listView.layoutManager = LinearLayoutManager(ctx)
+        listView.addItemDecoration(LinearItemOnlyTopDecoration(8.ppppx))
+    } else if (listMode == ListMode.VERTICAL_NOVEL) {
+        listView.layoutManager = LinearLayoutManager(ctx)
+        listView.addItemDecoration(LinearItemDecoration(8.ppppx))
     } else if (listMode == ListMode.VERTICAL_COMMENT) {
         listView.layoutManager = LinearLayoutManager(requireContext())
         listView.addItemDecoration(

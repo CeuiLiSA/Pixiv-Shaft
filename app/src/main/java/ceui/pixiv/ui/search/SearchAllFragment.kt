@@ -14,12 +14,17 @@ import ceui.lisa.databinding.FragmentSearchAllBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
+import ceui.loxia.Tag
+import ceui.loxia.combineLatest
 import ceui.loxia.hideKeyboard
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.loxia.showKeyboard
+import ceui.pixiv.ui.common.CommonAdapter
+import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
+import ceui.pixiv.ui.common.setUpLayoutManager
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.ArtworksMap
@@ -29,11 +34,11 @@ import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.alertYesOrCancel
 import kotlinx.coroutines.delay
 
-class SearchAllFragment : PixivFragment(R.layout.fragment_search_all) {
+class SearchAllFragment : PixivFragment(R.layout.fragment_search_all), SearchItemActionReceiver {
 
     private val binding by viewBinding(FragmentSearchAllBinding::bind)
     private val searchViewModel by constructVM({ "" }) { word ->
-        SearchViewModel(word)
+        SearchViewModel(true, word)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -44,6 +49,21 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all) {
         binding.clearSearch.setOnClick {
             searchViewModel.inputDraft.value = ""
         }
+
+        val adapter = CommonAdapter(viewLifecycleOwner)
+        binding.suggestionList.adapter = adapter
+        setUpLayoutManager(binding.suggestionList, ListMode.VERTICAL_SEARCH_SUGGESTION)
+        combineLatest(searchViewModel.searchSuggestion, searchViewModel.inputDraft).observe(
+            viewLifecycleOwner
+        ) { (list, draft) ->
+            if (draft?.isNotEmpty() == true && list != null) {
+                adapter.submitList(list.tags.map { SearchItemHolder(it) })
+            } else {
+                adapter.submitList(emptyList())
+            }
+        }
+
+
         // 设置根布局的点击监听
         binding.touchOutside.setOnTouchListener { _, _ ->
             // 隐藏键盘
@@ -142,6 +162,16 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all) {
                     showKeyboard(inputBox)
                 }
             }
+        }
+    }
+
+    override fun onClickSearchItem(tag: Tag) {
+        if (tag.name?.isNotEmpty() == true) {
+            pushFragment(
+                R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
+                    keyword = tag.name,
+                ).toBundle()
+            )
         }
     }
 }

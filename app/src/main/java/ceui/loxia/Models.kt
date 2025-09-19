@@ -560,6 +560,10 @@ data class SingleNovelResponse(
     val novel: Novel? = null,
 ) : Serializable
 
+data class SearchSuggestionResponse(
+    val tags: List<Tag> = emptyList(),
+) : Serializable
+
 data class GifInfoResponse(
     val illustId: Long,
     val ugoira_metadata: UgoiraMetaData? = null,

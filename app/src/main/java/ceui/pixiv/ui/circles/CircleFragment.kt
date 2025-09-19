@@ -38,7 +38,7 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
     private val binding by viewBinding(FragmentCircleBinding::bind)
     private val args by navArgs<CircleFragmentArgs>()
     private val searchViewModel by constructVM({ args.keyword }) { word ->
-        SearchViewModel(word)
+        SearchViewModel(false, word)
     }
     private val viewModel by pixivValueViewModel(
         argsProducer = { args.keyword },

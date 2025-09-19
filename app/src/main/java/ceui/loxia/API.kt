@@ -22,8 +22,12 @@ interface API {
         @Field("message") message: String?
     ): NullResponse
 
-    // https://app-api.pixiv.net/v2/search/autocomplete?merge_plain_keyword_results=true&word=%E4%B8%9C%E6%96%B9
-    // /v2/search/autocomplete?merge_plain_keyword_results=true&word=%E4%B8%9C%E6%96%B9
+    @GET("/v2/search/autocomplete")
+    suspend fun getSearchSuggestions(
+        @Query("merge_plain_keyword_results") merge_plain_keyword_results: Boolean = true,
+        @Query("word") word: String,
+    ): SearchSuggestionResponse
+
     /**
      * {
      * 	"tags": [{

@@ -3,11 +3,20 @@ package ceui.pixiv.ui.search
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.viewModelScope
+import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectType
+import ceui.loxia.SearchSuggestionResponse
 import ceui.loxia.Tag
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
-class SearchViewModel(initialKeyword: String) : ViewModel() {
+class SearchViewModel(showSuggestion: Boolean, initialKeyword: String) : ViewModel() {
 
 
     val tagList = MutableLiveData<List<Tag>>()
@@ -17,10 +26,40 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
 
     val inputDraft = MutableLiveData("")
 
+    private val _searchSuggestion = MutableLiveData<SearchSuggestionResponse>()
+    val searchSuggestion: LiveData<SearchSuggestionResponse> = _searchSuggestion
+
+
     init {
         if (initialKeyword.isNotEmpty()) {
             tagList.value = listOf(Tag(initialKeyword))
         }
+
+        if (showSuggestion) {
+            viewModelScope.launch {
+                inputDraft.asFlow()
+                    .debounce(500)
+                    .distinctUntilChanged()
+                    .filter { it?.isNotEmpty() == true }
+                    .collectLatest { word ->
+                        try {
+                            _searchSuggestion.value = Client.appApi.getSearchSuggestions(true, word)
+                        } catch (ex: Exception) {
+
+                        }
+                    }
+            }
+
+            viewModelScope.launch {
+                inputDraft.asFlow()
+                    .distinctUntilChanged()
+                    .filter { it.isNullOrEmpty() }
+                    .collectLatest {
+                        _searchSuggestion.value = SearchSuggestionResponse()
+                    }
+            }
+        }
+
     }
 
     private val _searchIllustMangaEvent = MutableLiveData<Event<Long>>()
@@ -64,12 +103,15 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
             0 -> {
                 SortType.POPULAR_PREVIEW
             }
+
             1 -> {
                 SortType.DATE_DESC
             }
+
             2 -> {
                 SortType.DATE_ASC
             }
+
             else -> {
                 SortType.POPULAR_DESC
             }
