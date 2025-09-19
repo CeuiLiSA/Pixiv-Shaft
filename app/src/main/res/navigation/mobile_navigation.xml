@@ -218,6 +218,16 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_fancy_artwork"
+        android:name="ceui.pixiv.ui.detail.FancyArtworkFragment"
+        tools:layout="@layout/fragment_fancy_artwork">
+
+        <argument
+            android:name="illust_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_novel_text"
         android:name="ceui.pixiv.ui.novel.NovelTextFragment"
         tools:layout="@layout/fragment_novel_text">

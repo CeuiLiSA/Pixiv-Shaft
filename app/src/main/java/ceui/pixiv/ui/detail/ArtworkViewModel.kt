@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.detail
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -34,6 +35,10 @@ class ArtworkViewModel(
 
     private val _illustLiveData = ObjectPool.get<Illust>(illustId)
     val illustLiveData: LiveData<Illust> = _illustLiveData
+
+
+    val galleryHolders = MutableLiveData<List<ListItemHolder>>()
+
 
     private val _relatedIllustsDataSource = object : DataSource<Illust, IllustResponse>(
         dataFetcher = { Client.appApi.getRelatedIllusts(illustId) },
@@ -102,9 +107,10 @@ class ArtworkViewModel(
             throw RuntimeException("无法访问此内容")
         }
 
+
+        galleryHolders.value = getGalleryHolders(illust, MainScope(), taskPool) ?: listOf()
+
         val result = mutableListOf<ListItemHolder>()
-        val images = getGalleryHolders(illust, MainScope(), taskPool)
-        result.addAll(images ?: listOf())
         result.add(RedSectionHeaderHolder("标题"))
         result.add(ArtworkInfoHolder(illustId))
         result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))

@@ -36,8 +36,8 @@ class ArtworkViewPagerFragment : PixivFragment(R.layout.fragment_artwork_viewpag
                             arguments = NovelTextFragmentArgs(ids[position]).toBundle()
                         }
                     } else {
-                        return ArtworkFragment().apply {
-                            arguments = ArtworkFragmentArgs(ids[position]).toBundle()
+                        return FancyArtworkFragment().apply {
+                            arguments = FancyArtworkFragmentArgs(ids[position]).toBundle()
                         }
                     }
                 }
@@ -58,8 +58,8 @@ class ArtworkViewPagerFragment : PixivFragment(R.layout.fragment_artwork_viewpag
                             arguments = NovelTextFragmentArgs(safeArgs.objectId).toBundle()
                         }
                     } else {
-                        return ArtworkFragment().apply {
-                            arguments = ArtworkFragmentArgs(safeArgs.objectId).toBundle()
+                        return FancyArtworkFragment().apply {
+                            arguments = FancyArtworkFragmentArgs(safeArgs.objectId).toBundle()
                         }
                     }
                 }
