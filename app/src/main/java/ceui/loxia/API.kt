@@ -22,6 +22,44 @@ interface API {
         @Field("message") message: String?
     ): NullResponse
 
+    // https://app-api.pixiv.net/v2/search/autocomplete?merge_plain_keyword_results=true&word=%E4%B8%9C%E6%96%B9
+    // /v2/search/autocomplete?merge_plain_keyword_results=true&word=%E4%B8%9C%E6%96%B9
+    /**
+     * {
+     * 	"tags": [{
+     * 		"name": "\u6771\u65b9",
+     * 		"translated_name": "\u4e1c\u65b9"
+     * 	}, {
+     * 		"name": "\u6771\u65b9Project",
+     * 		"translated_name": "\u4e1c\u65b9Project"
+     * 	}, {
+     * 		"name": "\u6771\u65b94\u30b3\u30de",
+     * 		"translated_name": "\u4e1c\u65b94\u683c\u6f2b\u753b"
+     * 	}, {
+     * 		"name": "\u4e1c\u65b9project",
+     * 		"translated_name": null
+     * 	}, {
+     * 		"name": "\u4e1c\u65b9",
+     * 		"translated_name": null
+     * 	}, {
+     * 		"name": "\u6771\u65b9\u30af\u30ea\u30b9\u30de\u30b9",
+     * 		"translated_name": "\u4e1c\u65b9\u5723\u8bde\u8282"
+     * 	}, {
+     * 		"name": "\u6771\u65b9\u30ed\u30b9\u30c8\u30ef\u30fc\u30c9",
+     * 		"translated_name": "\u4e1c\u65b9LostWord"
+     * 	}, {
+     * 		"name": "\u6771\u65b9Project\u30d5\u30ea\u30fc\u7acb\u3061\u7d75\u30ea\u30f3\u30af",
+     * 		"translated_name": "\u4e1c\u65b9Project\u81ea\u7531\u7acb\u7ed8\u94fe\u63a5"
+     * 	}, {
+     * 		"name": "\u6771\u65b9\u525b\u6b32\u7570\u805e",
+     * 		"translated_name": "\u4e1c\u65b9\u521a\u6b32\u5f02\u95fb"
+     * 	}, {
+     * 		"name": "\u6771\u65b9Project20\u5468\u5e74\u8a18\u5ff5\u30a4\u30e9\u30b9\u30c8",
+     * 		"translated_name": "\u4e1c\u65b9Project20\u5468\u5e74\u7eaa\u5ff5\u63d2\u753b"
+     * 	}]
+     * }
+     */
+
 
     @POST("/v1/home/all")
     suspend fun getHomeAll(@Body body: MainBody = MainBody()): HomeData
