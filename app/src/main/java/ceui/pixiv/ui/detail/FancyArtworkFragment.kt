@@ -47,7 +47,7 @@ class FancyArtworkFragment : PixivFragment(R.layout.fragment_fancy_artwork),
         }
 
         binding.headerContent.updateLayoutParams {
-            height = (screenHeight * 0.75F).roundToInt()
+            height = (screenHeight * 0.7F).roundToInt()
         }
 
 
