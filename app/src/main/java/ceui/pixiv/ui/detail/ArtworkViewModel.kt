@@ -108,9 +108,12 @@ class ArtworkViewModel(
         }
 
 
-        galleryHolders.value = getGalleryHolders(illust, MainScope(), taskPool) ?: listOf()
+//        galleryHolders.value = getGalleryHolders(illust, MainScope(), taskPool) ?: listOf()
 
         val result = mutableListOf<ListItemHolder>()
+
+        result.addAll(getGalleryHolders(illust, MainScope(), taskPool) ?: listOf())
+
         result.add(RedSectionHeaderHolder("标题"))
         result.add(ArtworkInfoHolder(illustId))
         result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
