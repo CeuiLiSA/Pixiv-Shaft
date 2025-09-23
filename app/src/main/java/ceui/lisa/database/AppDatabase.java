@@ -89,6 +89,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             .addMigrations(MIGRATION_23_24)
                             .addMigrations(MIGRATION_24_25)
                             .addMigrations(MIGRATION_25_26) // 注册 25 -> 26 迁移
+                            .addMigrations(MIGRATION_26_27) // 注册 26 -> 27 迁移
                             .build();
         }
         return INSTANCE;
