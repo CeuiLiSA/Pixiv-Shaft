@@ -66,6 +66,7 @@ import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.IllustSeriesFragmentArgs
 import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
 import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
+import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
@@ -233,11 +234,9 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
 
     override fun onClickNovel(novelId: Long) {
         pushFragment(
-            R.id.navigation_viewpager_artwork,
-            ArtworkViewPagerFragmentArgs(
-                fragmentViewModel.fragmentUniqueId,
+            R.id.navigation_novel_text,
+            NovelTextFragmentArgs(
                 novelId,
-                ObjectType.NOVEL
             ).toBundle()
         )
     }
