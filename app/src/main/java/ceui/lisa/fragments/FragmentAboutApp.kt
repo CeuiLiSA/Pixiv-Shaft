@@ -159,10 +159,6 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
         }
 
         run {
-            baseBind.dontCatchMe.setOnClickListener {
-                Common.createDialog(context)
-            }
-
             baseBind.projectWebsite.setOnClickListener {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.addCategory(Intent.CATEGORY_DEFAULT)

@@ -55,7 +55,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
 
-            applicationIdSuffix ".dshaft"
+            applicationIdSuffix ".cshaft"
             resValue "string", "app_name", "Shaft (Classic)"
         }
         release {

@@ -9,7 +9,6 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
@@ -24,7 +23,11 @@ import ceui.lisa.databinding.ActivityLoginBinding
 import ceui.lisa.feature.HostManager
 import ceui.lisa.interfaces.FeedBack
 import ceui.lisa.models.UserModel
-import ceui.lisa.utils.*
+import ceui.lisa.utils.ClipBoardUtils
+import ceui.lisa.utils.Common
+import ceui.lisa.utils.Dev
+import ceui.lisa.utils.Local
+import ceui.lisa.utils.Params
 import ceui.pixiv.session.SessionManager
 import com.facebook.rebound.SimpleSpringListener
 import com.facebook.rebound.Spring
@@ -32,7 +35,6 @@ import com.facebook.rebound.SpringConfig
 import com.facebook.rebound.SpringSystem
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
-import java.util.*
 
 class LandingViewModel : ViewModel() {
 
@@ -115,14 +117,20 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             this.setLinkSpan(matchTOS, hideUnderLine = false) {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-                intent.putExtra(Params.URL, "https://www.pixiv.net/terms/?page=term&appname=pixiv_ios")
+                intent.putExtra(
+                    Params.URL,
+                    "https://www.pixiv.net/terms/?page=term&appname=pixiv_ios"
+                )
                 intent.putExtra(Params.TITLE, getString(R.string.pixiv_use_detail))
                 startActivity(intent)
             }
             this.setLinkSpan(matchPP, hideUnderLine = false) {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-                intent.putExtra(Params.URL,"https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios")
+                intent.putExtra(
+                    Params.URL,
+                    "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios"
+                )
                 intent.putExtra(Params.TITLE, getString(R.string.privacy))
                 startActivity(intent)
             }
@@ -171,18 +179,16 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     override fun initData() {
-        if (Shaft.getMMKV().decodeBool(Params.SHOW_DIALOG, true)) {
-            Common.createDialog(mContext)
-        }
         rotate = springSystem.createSpring()
         rotate?.springConfig = SpringConfig.fromOrigamiTensionAndFriction(15.0, 8.0)
     }
 
-    private fun checkAndNext(block: ()->Unit) {
+    private fun checkAndNext(block: () -> Unit) {
         if (viewModel.isChecked.value == true) {
             block()
         } else {
-            Toast.makeText(requireContext(), getString(R.string.read_agreement), Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.read_agreement), Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -237,7 +243,12 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 }
 
-fun SpannableString.setLinkSpan(text: String, hideUnderLine: Boolean = true, color:Int? = null, action: () -> Unit) {
+fun SpannableString.setLinkSpan(
+    text: String,
+    hideUnderLine: Boolean = true,
+    color: Int? = null,
+    action: () -> Unit
+) {
     val textIndex = this.indexOf(text)
     if (textIndex >= 0) {
         setSpan(

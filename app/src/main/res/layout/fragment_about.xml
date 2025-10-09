@@ -287,21 +287,6 @@
 
                         <View style="@style/full_divider" />
 
-                        <RelativeLayout
-                            android:id="@+id/dont_catch_me"
-                            style="@style/ripple_rela">
-
-                            <TextView
-                                style="@style/setting_text_left_and_center"
-                                android:text="@string/string_28">
-
-                            </TextView>
-
-                            <TextView style="@style/setting_right_arrow" />
-
-                        </RelativeLayout>
-
-                        <View style="@style/half_divider" />
 
                         <RelativeLayout
                             android:id="@+id/project_website"
