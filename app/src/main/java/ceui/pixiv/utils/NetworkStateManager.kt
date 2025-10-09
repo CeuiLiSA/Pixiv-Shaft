@@ -10,10 +10,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.loxia.RefreshState
 import ceui.pixiv.utils.NetworkStateManager.NetworkType
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.flowOf
 
 interface INetworkState {
     val networkState: LiveData<NetworkType>
@@ -38,13 +35,13 @@ class NetworkStateManager(private val context: Context) : INetworkState {
 
     val canAccessGoogle: LiveData<Boolean> = accessGoogleTask.canAccessGoogle
 
-    val googleAccessRecoveredFlow: Flow<Boolean> = accessGoogleTask.canAccessGoogleFlow
-        .scan(false to false) { acc, current ->
-            acc.second to current
-        }
-        .filter { (previous, current) -> !previous && current }
-        .map { true } // 只在 false -> true 时 emit true
-
+    //    val googleAccessRecoveredFlow: Flow<Boolean> = accessGoogleTask.canAccessGoogleFlow
+//        .scan(false to false) { acc, current ->
+//            acc.second to current
+//        }
+//        .filter { (previous, current) -> !previous && current }
+//        .map { true } // 只在 false -> true 时 emit true
+    val googleAccessRecoveredFlow = flowOf(true)
 
     private val connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

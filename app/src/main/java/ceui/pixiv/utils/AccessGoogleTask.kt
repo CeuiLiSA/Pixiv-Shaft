@@ -25,7 +25,7 @@ class AccessGoogleTask {
     val refreshState: LiveData<RefreshState> = _refreshState
 
 
-    val canAccessGoogle = MutableLiveData<Boolean>()
+    val canAccessGoogle = MutableLiveData(true)
     val canAccessGoogleFlow = MutableStateFlow(false)
 
     private suspend fun impl(): Boolean = withContext(Dispatchers.Main) {
@@ -73,7 +73,7 @@ class AccessGoogleTask {
             }
 
             val canAccess = impl()
-            canAccessGoogle.postValue(canAccess)
+//            canAccessGoogle.postValue(canAccess)
             canAccessGoogleFlow.value = canAccess // Flow 监听这里的值
         }
     }
