@@ -3,7 +3,7 @@
     "project_number": "1040768197641",
     "firebase_url": "https://pixiv-shaft.firebaseio.com",
     "project_id": "pixiv-shaft",
-    "storage_bucket": "pixiv-shaft.appspot.com"
+    "storage_bucket": "pixiv-shaft.firebasestorage.app"
   },
   "client": [
     {
@@ -13,12 +13,7 @@
           "package_name": "ceui.lisa.pixiv"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "1040768197641-7fmv4ni176if6e69dgftf7lo5dn5dhgh.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyCvK_F572W8fn4xvzlJAvug6Ji1Z7eZLU8"
@@ -26,12 +21,26 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1040768197641-7fmv4ni176if6e69dgftf7lo5dn5dhgh.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040768197641:android:d19edf6b5b22c1ed55c4d8",
+        "android_client_info": {
+          "package_name": "ceui.pixiv.dshaft"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvK_F572W8fn4xvzlJAvug6Ji1Z7eZLU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
         }
       }
     }

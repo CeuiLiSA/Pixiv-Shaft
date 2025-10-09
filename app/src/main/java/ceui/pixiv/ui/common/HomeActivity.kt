@@ -7,17 +7,10 @@ import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.lifecycleScope
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.utils.INetworkState
-import ceui.pixiv.utils.NetworkStateManager
 import ceui.pixiv.utils.ppppx
-import com.tencent.mmkv.MMKV
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class HomeActivity : AppCompatActivity() {

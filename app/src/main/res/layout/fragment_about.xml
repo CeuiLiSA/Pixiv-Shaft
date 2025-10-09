@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -9,25 +9,25 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:orientation="vertical"
+        android:layout_height="match_parent"
         android:background="@color/f5_to_deep_dark"
-        android:layout_height="match_parent">
+        android:orientation="vertical">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fitsSystemWindows="true"
             android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
+            android:fitsSystemWindows="true"
             app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
             app:titleTextColor="@android:color/white">
 
             <TextView
+                android:id="@+id/toolbar_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:id="@+id/toolbar_title"
                 android:text="@string/about_app"
                 android:textColor="@color/white"
                 android:textSize="18sp">
@@ -37,8 +37,8 @@
         </androidx.appcompat.widget.Toolbar>
 
         <com.scwang.smart.refresh.layout.SmartRefreshLayout
-            android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
+            android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <androidx.core.widget.NestedScrollView
@@ -46,10 +46,10 @@
                 android:layout_height="match_parent">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:orientation="vertical"
                     android:id="@+id/parent_linear"
-                    android:layout_height="match_parent">
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
 
 
                     <RelativeLayout
@@ -59,10 +59,10 @@
 
                         <ImageView
                             android:layout_width="match_parent"
-                            android:src="@drawable/avatar"
+                            android:layout_height="match_parent"
                             android:padding="@dimen/sixteen_dp"
                             android:scaleType="centerInside"
-                            android:layout_height="match_parent">
+                            android:src="@drawable/avatar">
 
                         </ImageView>
 
@@ -70,40 +70,49 @@
 
                     <TextView
                         android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
                         android:text="@string/app_name"
                         android:textColor="?attr/colorPrimary"
                         android:textSize="19sp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:textStyle="bold"
+                        android:textStyle="bold">
+
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/application_id"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:layout_height="wrap_content">
+                        android:layout_marginBottom="@dimen/sixteen_dp"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="13sp">
 
                     </TextView>
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:orientation="vertical"
+                        android:layout_height="wrap_content"
                         android:background="@color/white_and_black"
-                        android:layout_height="wrap_content">
+                        android:orientation="vertical">
 
                         <View style="@style/full_divider" />
 
-                        <RelativeLayout
-                            style="@style/ripple_rela">
+                        <RelativeLayout style="@style/ripple_rela">
 
                             <TextView
                                 style="@style/setting_text_left_and_center"
                                 android:text="@string/string_199" />
 
                             <TextView
-                                android:layout_width="wrap_content"
-                                android:textColor="#7e7e7e"
-                                android:layout_centerVertical="true"
-                                android:textSize="15sp"
-                                android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:id="@+id/app_version"
-                                android:layout_height="wrap_content">
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:textColor="#7e7e7e"
+                                android:textSize="15sp">
 
                             </TextView>
 
@@ -115,13 +124,13 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/string_202"/>
+                        android:text="@string/string_202" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:background="@color/white_and_black"
-                        android:orientation="vertical"
-                        android:layout_height="wrap_content">
+                        android:orientation="vertical">
 
                         <View style="@style/full_divider" />
 
@@ -204,13 +213,13 @@
 
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/string_26"/>
+                        android:text="@string/string_26" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:orientation="vertical"
+                        android:layout_height="wrap_content"
                         android:background="@color/white_and_black"
-                        android:layout_height="wrap_content">
+                        android:orientation="vertical">
 
                         <View style="@style/full_divider" />
 
@@ -271,10 +280,10 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_marginBottom="60dp"
-                        android:orientation="vertical"
                         android:background="@color/white_and_black"
-                        android:layout_height="wrap_content">
+                        android:orientation="vertical">
 
                         <View style="@style/full_divider" />
 
@@ -300,41 +309,41 @@
 
 
                             <ImageView
-                                android:layout_width="36dp"
-                                android:src="@mipmap/github"
                                 android:id="@+id/github_image"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_width="36dp"
                                 android:layout_height="36dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:src="@mipmap/github"
                                 app:tint="@color/black_to_grey">
 
                             </ImageView>
 
                             <TextView
                                 android:id="@+id/github_text"
-                                android:text="@string/string_31"
-                                android:textSize="14sp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_toEndOf="@+id/github_image"
-                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:text="@string/string_31"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="14sp">
 
 
                             </TextView>
 
                             <TextView
-                                android:text="@string/string_32"
-                                android:textSize="12sp"
-                                android:layout_marginTop="2dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_below="@+id/github_text"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginTop="2dp"
                                 android:layout_toEndOf="@+id/github_image"
+                                android:text="@string/string_32"
                                 android:textColor="#777777"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="12sp">
 
 
                             </TextView>

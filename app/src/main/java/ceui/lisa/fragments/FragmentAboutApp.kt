@@ -30,7 +30,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             .format(Common.getAppVersionName(mContext), Common.getAppVersionCode(mContext))
 
         run {
-            baseBind.faq.setOnClickListener{
+            baseBind.faq.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Markdown")
                 intent.putExtra(Params.URL, "FAQ.md")
@@ -46,6 +46,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                     Common.showToast("unable to find market app")
                 }
             }
+            baseBind.applicationId.text = requireContext().applicationInfo.packageName
             baseBind.goWeibo.setOnClickListener {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.addCategory(Intent.CATEGORY_DEFAULT)
@@ -68,7 +69,14 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                 }
             }
             baseBind.goQq.setOnClickListener {
-                val choices = arrayOf(getString(R.string.string_385), getString(R.string.string_386), getString(R.string.string_387), getString(R.string.string_411), getString(R.string.qq_group_5), getString(R.string.qq_group_6))
+                val choices = arrayOf(
+                    getString(R.string.string_385),
+                    getString(R.string.string_386),
+                    getString(R.string.string_387),
+                    getString(R.string.string_411),
+                    getString(R.string.qq_group_5),
+                    getString(R.string.qq_group_6)
+                )
                 MenuDialogBuilder(mActivity)
                     .addItems(choices) { dialog, which ->
                         val intent = Intent()
@@ -78,26 +86,31 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                                     "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_4iHqW5v5XkiRxeLKl3hB0me60VVKD9b"
                                 )
                             }
+
                             1 -> {
                                 intent.data = Uri.parse(
                                     "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "t4_EApMhD08yaYtdTQ40TmrjIx-uuWsk"
                                 )
                             }
+
                             2 -> {
                                 intent.data = Uri.parse(
                                     "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "oDdX8b0zEBsZtZF9QNqoTmamW_hTP1By"
                                 )
                             }
+
                             3 -> {
                                 intent.data = Uri.parse(
                                     "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "8WwEAkjbS4yOYMtNR17TS-Wghwv8xjNK"
                                 )
                             }
+
                             4 -> {
                                 intent.data = Uri.parse(
                                     "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "sWRT0mSWFEiNlkPRtVwK8LmHGStPK9Op"
                                 )
                             }
+
                             5 -> {
                                 intent.data = Uri.parse(
                                     "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "tBP0SrzxprYrVMadXxJq2KouWxDrcdle"
@@ -126,14 +139,20 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             baseBind.pixivUseDetail.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-                intent.putExtra(Params.URL, "https://www.pixiv.net/terms/?page=term&appname=pixiv_ios")
+                intent.putExtra(
+                    Params.URL,
+                    "https://www.pixiv.net/terms/?page=term&appname=pixiv_ios"
+                )
                 intent.putExtra(Params.TITLE, getString(R.string.pixiv_use_detail))
                 startActivity(intent)
             }
             baseBind.pixivPrivacy.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-                intent.putExtra(Params.URL,"https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios")
+                intent.putExtra(
+                    Params.URL,
+                    "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios"
+                )
                 intent.putExtra(Params.TITLE, getString(R.string.privacy))
                 startActivity(intent)
             }
