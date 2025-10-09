@@ -12,7 +12,7 @@ android {
 
 
     defaultConfig {
-        applicationId "ceui.lisa.pixiv"
+        applicationId "ceui.pixiv"
         minSdkVersion 23
         targetSdkVersion 36
         versionCode 550
@@ -32,15 +32,21 @@ android {
     buildTypes {
         debug {
             minifyEnabled false
-            buildConfigField "boolean", "IS_DEBUG_MODE", "true" // 在 debug 模式下为 true
+            buildConfigField "boolean", "IS_DEBUG_MODE", "true"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+
+            applicationIdSuffix ".dshaft"
+            resValue "string", "app_name", "Shaft (Debug)"
         }
         release {
             minifyEnabled false
-            buildConfigField "boolean", "IS_DEBUG_MODE", "false" // 在 release 模式下为 false
+            buildConfigField "boolean", "IS_DEBUG_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+
+            applicationIdSuffix ".shaft"
+            resValue "string", "app_name", "Shaft"
         }
     }
 
