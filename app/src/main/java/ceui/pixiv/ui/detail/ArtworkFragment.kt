@@ -35,6 +35,8 @@ import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.shareIllust
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.related.RelatedIllustsFragmentArgs
+import ceui.pixiv.ui.task.DownloadGifZipTask
+import ceui.pixiv.ui.task.GifResourceTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.works.GalleryActionReceiver
 import ceui.pixiv.ui.works.GalleryHolder
@@ -44,6 +46,8 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment,
     GalleryActionReceiver, SeeMoreAction {
@@ -106,6 +110,15 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                 }
             } else {
                 runOnceWithinFragmentLifecycle("visit-illust-${safeArgs.illustId}") {
+                    if (illust.isGif()) {
+                        activity?.lifecycleScope?.launch {
+                            val gifResponse =
+                                GifResourceTask(safeArgs.illustId).awaitResult()
+                            val zippedFile =
+                                DownloadGifZipTask(safeArgs.illustId, gifResponse).awaitResult()
+                            Timber.d("sadsadasw2 ${zippedFile.path}")
+                        }
+                    }
                     requireEntityWrapper().visitIllust(ctx, illust)
                 }
 

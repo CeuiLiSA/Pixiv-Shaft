@@ -1,5 +1,6 @@
 package ceui.loxia
 
+import ceui.lisa.models.GifResponse
 import ceui.lisa.models.NullResponse
 import ceui.lisa.utils.Params
 import okhttp3.ResponseBody
@@ -233,6 +234,11 @@ interface API {
         @Query("mode") mode: String,
         @Query("date") date: String? = null,
     ): IllustResponse
+
+    @GET("/v1/ugoira/metadata")
+    suspend fun getGifPackage(
+        @Query("illust_id") illust_id: Long,
+    ): GifResponse
 
     @GET("/v1/search/popular-preview/illust?search_ai_type=0&filter=for_ios")
     suspend fun popularPreview(

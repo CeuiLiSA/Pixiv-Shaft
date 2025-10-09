@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import ceui.lisa.activities.Shaft
+import kotlinx.coroutines.CompletableDeferred
 import timber.log.Timber
 import java.util.UUID
 
@@ -16,6 +17,7 @@ abstract class QueuedRunnable<ResultT> {
         }
 
     private var _onNext: (() -> Unit)? = null
+    private val _impl = CompletableDeferred<ResultT>()
 
     protected val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
@@ -33,6 +35,11 @@ abstract class QueuedRunnable<ResultT> {
 
     abstract suspend fun execute()
 
+    suspend fun awaitResult(): ResultT {
+        execute()
+        return _impl.await()
+    }
+
     fun reset() {
         _status.value = TaskStatus.NotStart
     }
@@ -48,6 +55,7 @@ abstract class QueuedRunnable<ResultT> {
     open fun onEnd(resultT: ResultT) {
         Timber.d("${this.javaClass.simpleName}-${taskId} onEnd")
         this._onNext?.invoke()
+        _impl.complete(resultT)
     }
 
     open fun cancel() {
@@ -60,6 +68,7 @@ abstract class QueuedRunnable<ResultT> {
             Timber.e(ex)
             _status.postValue(TaskStatus.Error(ex))
             this._onNext?.invoke()
+            _impl.completeExceptionally(ex)
         }
     }
 }

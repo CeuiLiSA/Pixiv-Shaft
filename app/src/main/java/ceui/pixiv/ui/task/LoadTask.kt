@@ -58,7 +58,9 @@ open class LoadTask(
                 _status.value = TaskStatus.Finished
                 onEnd(file)
             } else {
-                throw IllegalStateException("Unexpected null file")
+                val ex = IllegalStateException("Unexpected null file")
+                onError(ex)
+                throw ex
             }
         } catch (ex: Exception) {
             Timber.d("fdsfdsaas2 aaa")

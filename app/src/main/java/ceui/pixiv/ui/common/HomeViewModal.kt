@@ -107,6 +107,15 @@ class HomeViewModel(private val assets: AssetManager) : ViewModel() {
                             startTask()
                         }
                     }
+
+                    override fun onError(ex: Exception?) {
+                        super.onError(ex)
+
+                        _job = viewModelScope.launch {
+                            delay(8000)
+                            startTask()
+                        }
+                    }
                 }
             }
         }

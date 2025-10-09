@@ -1,11 +1,6 @@
 package ceui.loxia
 
-import android.util.Log
-import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AccountTokenApi
-import ceui.lisa.http.HttpDns
-import ceui.lisa.http.RubySSLSocketFactory
-import ceui.lisa.http.pixivOkHttpClient
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
@@ -19,16 +14,22 @@ object Client {
 
     private var _appApi: API? = null
 
-    val appApi: API get() {
-        val _api = _appApi
-        return if (_api != null) {
-            _api
-        } else {
-            val impl = clientManager.createAPPAPI(API::class.java)
-            _appApi = impl
-            impl
+    val appApi: API
+        get() {
+            val _api = _appApi
+            return if (_api != null) {
+                _api
+            } else {
+                val impl = clientManager.createAPPAPI(API::class.java)
+                _appApi = impl
+                impl
+            }
         }
-    }
+
+    val shaftClient: OkHttpClient
+        get() {
+            return clientManager.shaftClient
+        }
 
     fun reset() {
         _appApi = null
@@ -69,17 +70,25 @@ class ClientManager {
         const val TOKEN_ERROR_2 = "Invalid refresh token"
     }
 
-    fun <T> createAPPAPI(service: Class<T>): T {
+    private var _shaftClient: OkHttpClient? = null
+    val shaftClient: OkHttpClient
+        get() {
+            val theClient = _shaftClient
+            if (theClient != null) {
+                return theClient
+            }
+
+            return appClient().also {
+                _shaftClient = it
+            }
+        }
+
+    private fun appClient(): OkHttpClient {
         val okhttpClientBuilder = OkHttpClient.Builder()
             .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
-
-        if (Shaft.sSettings.isAutoFuckChina) {
-            okhttpClientBuilder.sslSocketFactory(RubySSLSocketFactory(), pixivOkHttpClient())
-            okhttpClientBuilder.dns(HttpDns.getInstance())
-        }
 
         okhttpClientBuilder.addInterceptor(HeaderInterceptor(true))
         okhttpClientBuilder.addInterceptor(TokenFetcherInterceptor())
@@ -87,10 +96,14 @@ class ClientManager {
             setLevel(HttpLoggingInterceptor.Level.BODY)
         })
 
+        return okhttpClientBuilder.build()
+    }
+
+    fun <T> createAPPAPI(service: Class<T>): T {
         return Retrofit.Builder()
             .baseUrl(APP_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(okhttpClientBuilder.build())
+            .client(shaftClient)
             .build()
             .create(service)
     }
