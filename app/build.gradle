@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId "ceui.pixiv"
-        minSdkVersion 23
+        minSdkVersion 24
         targetSdkVersion 36
         versionCode 550
         versionName "5.0.18"
@@ -123,6 +123,8 @@ dependencies {
     kapt 'com.github.bumptech.glide:compiler:4.16.0'
 
     implementation 'com.github.lzyzsd:circleprogress:1.2.1'
+
+    implementation 'com.arthenica:mobile-ffmpeg-min:4.4'
 
     def refresh_version = "3.0.0-alpha"
     implementation "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖

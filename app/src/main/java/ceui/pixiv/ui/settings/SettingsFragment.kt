@@ -140,6 +140,8 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
     override fun onClickLogOut(sender: ProgressIndicator) {
         launchSuspend(sender) {
             val taskPool = requireTaskPool()
+            val aa = MMKV.mmkvWithID("gif-resp")
+            aa.clearAll()
             val prefStore = MMKV.mmkvWithID("api-cache-${SessionManager.loggedInUid}")
             if (alertYesOrCancel("确定退出登录吗")) {
                 prefStore.clearAll()

@@ -39,6 +39,7 @@ class ArtworkViewModel(
     val illustLiveData: LiveData<Illust> = _illustLiveData
 
     private val _gifPack = MutableLiveData<GifPack>()
+    private val _gifProgress = MutableLiveData<Int>()
 
 
     val galleryHolders = MutableLiveData<List<ListItemHolder>>()
@@ -117,15 +118,15 @@ class ArtworkViewModel(
         val result = mutableListOf<ListItemHolder>()
 
         if (illust.isGif()) {
-            result.add(GifHolder(illust, _gifPack))
             viewModelScope.launch {
                 val gifResponse =
                     GifResourceTask(illustId).awaitResult()
-                val unzippedFolder =
-                    DownloadGifZipTask(illustId, gifResponse).awaitResult()
-                Timber.d("sadsadasw2 ${unzippedFolder.path}")
-                _gifPack.postValue(GifPack(gifResponse, unzippedFolder))
+                val rc = DownloadGifZipTask(illustId, gifResponse, _gifProgress)
+                val webpFile = rc.awaitResult()
+                Timber.d("sadsadasw2 ${webpFile.path}")
+                _gifPack.postValue(GifPack(gifResponse, webpFile))
             }
+            result.add(GifHolder(illust, _gifProgress, _gifPack))
         } else {
             result.addAll(getGalleryHolders(illust, taskPool) ?: listOf())
         }
