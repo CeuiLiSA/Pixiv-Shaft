@@ -124,7 +124,7 @@ dependencies {
 
     implementation 'com.github.lzyzsd:circleprogress:1.2.1'
 
-    implementation 'com.arthenica:mobile-ffmpeg-min:4.4'
+    implementation 'com.arthenica:mobile-ffmpeg-video:4.4'
 
     def refresh_version = "3.0.0-alpha"
     implementation "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖

@@ -71,15 +71,15 @@ class DownloadGifZipTask(
                 val rc = com.arthenica.mobileffmpeg.FFmpeg.executeAsync(cmd) { _, returnCode ->
                     if (returnCode == 0) {
                         progressLiveData.postValue(100) // FFmpeg 完成
+
+                        _prefStore.putBoolean(key, true)
+                        onEnd(webpFile)
                     } else {
                         onError(Exception("FFmpeg failed with rc=$returnCode"))
                     }
                 }
 
-                if (rc == 0L) {
-                    _prefStore.putBoolean(key, true)
-                    onEnd(webpFile)
-                }
+
             } catch (ex: Exception) {
                 onError(ex)
             }
