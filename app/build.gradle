@@ -131,6 +131,7 @@ dependencies {
     implementation "io.github.scwang90:refresh-header-material:$refresh_version"    //谷歌刷新头
     implementation "io.github.scwang90:refresh-footer-classics:$refresh_version"    //经典加载
 
+    implementation 'com.github.penfeizhou.android.animation:apng:3.0.5'
 
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'jp.wasabeef:glide-transformations:4.3.0'

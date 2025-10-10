@@ -7,9 +7,10 @@ import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-import okio.buffer
-import okio.sink
 import java.io.File
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 class DownloadGifZipTask(
     private val illustId: Long,
@@ -25,31 +26,52 @@ class DownloadGifZipTask(
         val zipParent = File(Shaft.getContext().filesDir, "ShaftGifZip")
         if (!zipParent.exists()) zipParent.mkdir()
 
-        val zipChild = File(zipParent, "zip_file_${illustId}.zip")
-        if (!zipChild.exists()) zipChild.createNewFile()
+        val unzipFolder = File(zipParent, "zip_file_${illustId}_unzipped")
+        if (!unzipFolder.exists()) unzipFolder.mkdir()
 
         val key = KEY + illustId
-        if (_prefStore.getBoolean(key, false) && zipChild.length() > 100L) {
-            onEnd(zipChild)
+        if (_prefStore.getBoolean(key, false) && unzipFolder.exists() && unzipFolder.listFiles()
+                ?.isNotEmpty() == true
+        ) {
+            onEnd(unzipFolder)
             return
         }
 
         withContext(Dispatchers.IO) {
             try {
-                val request = Request.Builder().url(zipFileUrl)
-                    .header("Referer", "https://www.pixiv.net/artworks/$illustId").build()
-                Client.shaftClient.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw Exception("Download failed: ${response.code}")
+                val request = Request.Builder()
+                    .url(zipFileUrl)
+                    .header("Referer", "https://www.pixiv.net/artworks/$illustId")
+                    .build()
 
-                    response.body.byteStream().use { input ->
-                        zipChild.sink().buffer().use { output ->
-                            input.copyTo(output.outputStream())
+                Client.shaftClient.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        onError(Exception("Download failed: ${response.code}"))
+                        return@use
+                    }
+
+                    ZipInputStream(response.body.byteStream()).use { zis ->
+                        var entry: ZipEntry? = zis.nextEntry
+                        while (entry != null) {
+                            val filePath = File(unzipFolder, entry.name)
+                            if (entry.isDirectory) {
+                                filePath.mkdirs()
+                            } else {
+                                filePath.parentFile?.mkdirs()
+                                FileOutputStream(filePath).use { fos ->
+                                    zis.copyTo(fos)
+                                }
+                            }
+
+                            zis.closeEntry()
+                            entry = zis.nextEntry
                         }
+
+                        _prefStore.putBoolean(key, true)
+                        onEnd(unzipFolder)
                     }
                 }
 
-                onEnd(zipChild)
-                _prefStore.putBoolean(key, true)
             } catch (ex: Exception) {
                 onError(ex)
             }

@@ -19,14 +19,16 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadingHolder
+import ceui.pixiv.ui.task.DownloadGifZipTask
+import ceui.pixiv.ui.task.GifResourceTask
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.works.getGalleryHolders
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class ArtworkViewModel(
     private val illustId: Long,
@@ -35,6 +37,8 @@ class ArtworkViewModel(
 
     private val _illustLiveData = ObjectPool.get<Illust>(illustId)
     val illustLiveData: LiveData<Illust> = _illustLiveData
+
+    private val _gifPack = MutableLiveData<GifPack>()
 
 
     val galleryHolders = MutableLiveData<List<ListItemHolder>>()
@@ -112,7 +116,19 @@ class ArtworkViewModel(
 
         val result = mutableListOf<ListItemHolder>()
 
-        result.addAll(getGalleryHolders(illust, MainScope(), taskPool) ?: listOf())
+        if (illust.isGif()) {
+            result.add(GifHolder(illust, _gifPack))
+            viewModelScope.launch {
+                val gifResponse =
+                    GifResourceTask(illustId).awaitResult()
+                val unzippedFolder =
+                    DownloadGifZipTask(illustId, gifResponse).awaitResult()
+                Timber.d("sadsadasw2 ${unzippedFolder.path}")
+                _gifPack.postValue(GifPack(gifResponse, unzippedFolder))
+            }
+        } else {
+            result.addAll(getGalleryHolders(illust, taskPool) ?: listOf())
+        }
 
         result.add(RedSectionHeaderHolder("标题"))
         result.add(ArtworkInfoHolder(illustId))

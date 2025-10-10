@@ -3,13 +3,12 @@ package ceui.pixiv.ui.works
 import ceui.loxia.Illust
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 
 fun getGalleryHolders(
     illust: Illust,
-    coroutineScope: CoroutineScope,
     taskPool: TaskPool
 ): List<GalleryHolder>? {
     // Helper function to create a GalleryHolder
@@ -19,11 +18,11 @@ fun getGalleryHolders(
                 buildPixivWorksFileName(illust.id, index),
                 imageUrl.orEmpty() // Handle null gracefully
             ),
-            coroutineScope,
+            MainScope(),
             autoStart = false
         )
         return GalleryHolder(illust, index, task) {
-            coroutineScope.launch { task.execute() }
+            MainScope().launch { task.execute() }
         }
     }
 
