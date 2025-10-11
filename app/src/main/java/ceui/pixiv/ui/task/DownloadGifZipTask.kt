@@ -35,6 +35,7 @@ class DownloadGifZipTask(
 
         val key = KEY + illustId
         if (_prefStore.getBoolean(key, false) && webpFile.exists()) {
+            gifState.postValue(GifState.Done(webpFile))
             onEnd(webpFile)
             return
         }
