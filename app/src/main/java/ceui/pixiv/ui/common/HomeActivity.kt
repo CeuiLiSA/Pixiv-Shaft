@@ -32,6 +32,10 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
+import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener {
@@ -81,6 +85,11 @@ class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener
         }
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
+        }
+
+        MainScope().launch(Dispatchers.IO) {
+            val aa = MMKV.mmkvWithID("gif-resp")
+            aa.clearAll()
         }
 
         homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }

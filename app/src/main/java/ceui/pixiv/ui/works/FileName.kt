@@ -7,6 +7,10 @@ fun buildPixivWorksFileName(illustId: Long, index: Int = 0): String {
     return "pixiv_works_${illustId}_p${index}.png"
 }
 
+fun buildUgoraWorksFileName(illustId: Long): String {
+    return "pixiv_works_${illustId}_ugora.webp"
+}
+
 fun buildPixivNovelFileName(novel: Novel): String {
     val title = novel.title
     if (title?.isNotEmpty() == true) {

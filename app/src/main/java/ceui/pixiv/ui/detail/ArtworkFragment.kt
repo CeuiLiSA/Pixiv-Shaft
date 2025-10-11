@@ -31,15 +31,18 @@ import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
+import ceui.pixiv.ui.common.saveImageToGallery
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.shareIllust
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.related.RelatedIllustsFragmentArgs
+import ceui.pixiv.ui.task.GifState
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.works.GalleryActionReceiver
 import ceui.pixiv.ui.works.GalleryHolder
 import ceui.pixiv.ui.works.PagedImgUrlFragmentArgs
 import ceui.pixiv.ui.works.buildPixivWorksFileName
+import ceui.pixiv.ui.works.buildUgoraWorksFileName
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.MenuItem
@@ -124,6 +127,18 @@ class ArtworkFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemW
                             add(
                                 MenuItem(getString(R.string.string_7)) {
                                     when {
+                                        illust.isGif() -> {
+                                            viewModel.gifState.value?.let { state ->
+                                                if (state is GifState.Done) {
+                                                    saveImageToGallery(
+                                                        requireActivity(),
+                                                        state.webpFile,
+                                                        buildUgoraWorksFileName(safeArgs.illustId)
+                                                    )
+                                                }
+                                            }
+                                        }
+
                                         illust.page_count == 1 -> {
                                             // Single page handling
                                             val imageUrl =

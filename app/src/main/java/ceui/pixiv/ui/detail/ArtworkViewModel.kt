@@ -39,6 +39,7 @@ class ArtworkViewModel(
     val illustLiveData: LiveData<Illust> = _illustLiveData
 
     private val _gifState = MutableLiveData<GifState>(GifState.FetchGifResponse)
+    val gifState: LiveData<GifState> = _gifState
 
 
     val galleryHolders = MutableLiveData<List<ListItemHolder>>()

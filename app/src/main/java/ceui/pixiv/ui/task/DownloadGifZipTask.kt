@@ -48,18 +48,20 @@ class DownloadGifZipTask(
                 val imageFiles = unzip(zipFile, unzipFolder)
                 if (imageFiles.isEmpty()) throw Exception("No images in zip")
 
-                // 按顺序排序
-                val sortedFiles = imageFiles.sortedBy { it.name }
-
-                // 生成 FFmpeg concat 文件
                 val listFile = File(unzipFolder, "file_list.txt")
-                listFile.printWriter().use { pw ->
-                    sortedFiles.forEach { f ->
-                        val path = f.absolutePath.replace("'", "'\\''")
-                        pw.println("file '$path'")
-                        pw.println("duration 0.08")
+                gifResponse.ugoira_metadata?.frames?.takeIf { it.isNotEmpty() }?.let { frames ->
+                    listFile.printWriter().use { pw ->
+                        frames.forEach { frame ->
+                            val filePath =
+                                File(unzipFolder, frame.file).absolutePath.replace("'", "'\\''")
+                            pw.println("file '$filePath'")
+                            val durationSec = frame.delay / 1000F
+                            pw.println("duration $durationSec")
+                        }
+                        val lastFilePath =
+                            File(unzipFolder, frames.last().file).absolutePath.replace("'", "'\\''")
+                        pw.println("file '$lastFilePath'")
                     }
-                    pw.println("file '${sortedFiles.last().absolutePath.replace("'", "'\\''")}'")
                 }
 
                 val cmd =
@@ -67,13 +69,10 @@ class DownloadGifZipTask(
 
                 com.arthenica.mobileffmpeg.FFmpeg.executeAsync(cmd) { _, returnCode ->
                     if (returnCode == 0) {
-                        // ✅ 压缩成功
                         _prefStore.putBoolean(key, true)
 
-                        // ✅ 删除临时解压文件夹
                         unzipFolder.deleteRecursively()
 
-                        // ✅ 打印体积信息
                         val sizeKb = webpFile.length() / 1024.0
                         Timber.d("GifTaskAAAA WebP generated: ${webpFile.absolutePath}")
                         Timber.d("GifTaskAAAA ${String.format("File size: %.2f KB", sizeKb)}")

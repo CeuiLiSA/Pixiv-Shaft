@@ -8,6 +8,7 @@
         android:id="@+id/image"
         android:layout_width="match_parent"
         android:layout_height="300dp"
+        android:background="@color/loading_placeholder"
         android:scaleType="centerCrop"
         app:layout_constraintTop_toTopOf="parent" />
 
