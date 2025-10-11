@@ -8,6 +8,7 @@ import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipFile
@@ -15,7 +16,7 @@ import java.util.zip.ZipFile
 class DownloadGifZipTask(
     private val illustId: Long,
     private val gifResponse: GifResponse,
-    private val progressLiveData: MutableLiveData<Int>,
+    private val gifState: MutableLiveData<GifState>,
 ) : QueuedRunnable<File>() {
 
     private val _prefStore by lazy { MMKV.mmkvWithID("gif-resp") }
@@ -34,7 +35,6 @@ class DownloadGifZipTask(
 
         val key = KEY + illustId
         if (_prefStore.getBoolean(key, false) && webpFile.exists()) {
-            progressLiveData.value = 100
             onEnd(webpFile)
             return
         }
@@ -42,9 +42,7 @@ class DownloadGifZipTask(
         withContext(Dispatchers.IO) {
             try {
                 // ✅ 仅下载（更新 0..100）
-                val zipFile = downloadZip(zipFileUrl, zipParent) { p ->
-                    progressLiveData.postValue(p)
-                }
+                val zipFile = downloadZip(zipFileUrl, zipParent)
 
                 // ✅ 解压（不更新进度）
                 val imageFiles = unzip(zipFile, unzipFolder)
@@ -64,21 +62,29 @@ class DownloadGifZipTask(
                     pw.println("file '${sortedFiles.last().absolutePath.replace("'", "'\\''")}'")
                 }
 
-                // ✅ FFmpeg 转 WebP
                 val cmd =
                     "-y -f concat -safe 0 -i ${listFile.absolutePath} -loop 0 ${webpFile.absolutePath}"
 
                 com.arthenica.mobileffmpeg.FFmpeg.executeAsync(cmd) { _, returnCode ->
                     if (returnCode == 0) {
+                        // ✅ 压缩成功
                         _prefStore.putBoolean(key, true)
-                        progressLiveData.postValue(100)
+
                         // ✅ 删除临时解压文件夹
                         unzipFolder.deleteRecursively()
+
+                        // ✅ 打印体积信息
+                        val sizeKb = webpFile.length() / 1024.0
+                        Timber.d("GifTaskAAAA WebP generated: ${webpFile.absolutePath}")
+                        Timber.d("GifTaskAAAA ${String.format("File size: %.2f KB", sizeKb)}")
+
                         onEnd(webpFile)
+                        gifState.postValue(GifState.Done(webpFile))
                     } else {
                         onError(Exception("FFmpeg failed with rc=$returnCode"))
                     }
                 }
+
 
             } catch (ex: Exception) {
                 onError(ex)
@@ -86,53 +92,52 @@ class DownloadGifZipTask(
         }
     }
 
-    /**
-     * 仅负责下载 zip 文件（更新 0..100）
-     */
     private fun downloadZip(
         zipUrl: String,
         targetFolder: File,
-        onProgress: (Int) -> Unit
     ): File {
+        val listener = object : KProgressListener {
+            override fun update(bytesRead: Long, contentLength: Long, done: Boolean) {
+                if (contentLength > 0) {
+                    val percent = ((bytesRead * 100) / contentLength).toInt().coerceIn(0, 100)
+                    gifState.postValue(GifState.DownloadZip(percent))
+                } else {
+                    gifState.postValue(GifState.DownloadZip(0))
+                }
+            }
+        }
+
         val request = Request.Builder()
             .url(zipUrl)
             .header("Referer", "https://www.pixiv.net/artworks/$illustId")
+            .tag(KProgressListener::class.java, listener)
             .build()
 
-        val zipFile = File(targetFolder, "tmp_${illustId}.zip")
-        zipFile.parentFile?.mkdirs()
+        val clientWithProgress = Client.shaftClient.newBuilder()
+            .addNetworkInterceptor(ProgressInterceptor())
+            .build()
 
-        Client.shaftClient.newCall(request).execute().use { response ->
+        val zipFile = File(targetFolder, "tmp_${illustId}.zip").apply { parentFile?.mkdirs() }
+
+        clientWithProgress.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw Exception("Download failed: ${response.code}")
 
             val body = response.body
-            val totalBytes = body.contentLength().takeIf { it > 0 } ?: -1L
-            var downloaded = 0L
-            val buf = ByteArray(4 * 1024)
-
             body.byteStream().use { input ->
                 FileOutputStream(zipFile).use { fos ->
+                    val buf = ByteArray(8 * 1024)
                     var r: Int
                     while (input.read(buf).also { r = it } != -1) {
                         fos.write(buf, 0, r)
-                        downloaded += r
-                        if (totalBytes > 0) {
-                            val percent = ((downloaded * 100) / totalBytes).toInt().coerceIn(0, 99)
-                            onProgress(percent)
-                        }
                     }
                 }
             }
         }
 
-        // 下载完成
-        onProgress(100)
+        gifState.postValue(GifState.Encode)
         return zipFile
     }
 
-    /**
-     * 解压 ZIP，不更新进度
-     */
     private fun unzip(zipFile: File, targetFolder: File): List<File> {
         val files = mutableListOf<File>()
         ZipFile(zipFile).use { zip ->

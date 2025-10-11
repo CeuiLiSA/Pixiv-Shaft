@@ -20,7 +20,6 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import ceui.lisa.R
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
 import ceui.loxia.requireAppBackground
@@ -33,9 +32,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener {
@@ -85,14 +81,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener
         }
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
-        }
-
-        MainScope().launch(Dispatchers.IO) {
-            val list = AppDatabase.getAppDatabase(this@HomeActivity).generalDao().getAll()
-            list.forEach {
-//                Timber.d("dsadasadsw2 ${gson.toJson(it)}")
-            }
-            Timber.d("dsadasadsw2 count: ${list.size}")
         }
 
         homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }

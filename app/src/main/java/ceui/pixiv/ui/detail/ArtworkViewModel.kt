@@ -21,6 +21,7 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.task.DownloadGifZipTask
 import ceui.pixiv.ui.task.GifResourceTask
+import ceui.pixiv.ui.task.GifState
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.ui.works.getGalleryHolders
@@ -28,7 +29,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 class ArtworkViewModel(
     private val illustId: Long,
@@ -38,8 +38,7 @@ class ArtworkViewModel(
     private val _illustLiveData = ObjectPool.get<Illust>(illustId)
     val illustLiveData: LiveData<Illust> = _illustLiveData
 
-    private val _gifPack = MutableLiveData<GifPack>()
-    private val _gifProgress = MutableLiveData<Int>()
+    private val _gifState = MutableLiveData<GifState>(GifState.FetchGifResponse)
 
 
     val galleryHolders = MutableLiveData<List<ListItemHolder>>()
@@ -121,12 +120,9 @@ class ArtworkViewModel(
             viewModelScope.launch {
                 val gifResponse =
                     GifResourceTask(illustId).awaitResult()
-                val rc = DownloadGifZipTask(illustId, gifResponse, _gifProgress)
-                val webpFile = rc.awaitResult()
-                Timber.d("sadsadasw2 ${webpFile.path}")
-                _gifPack.postValue(GifPack(gifResponse, webpFile))
+                DownloadGifZipTask(illustId, gifResponse, _gifState).awaitResult()
             }
-            result.add(GifHolder(illust, _gifProgress, _gifPack))
+            result.add(GifHolder(illust, _gifState))
         } else {
             result.addAll(getGalleryHolders(illust, taskPool) ?: listOf())
         }
