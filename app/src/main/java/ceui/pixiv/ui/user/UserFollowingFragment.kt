@@ -134,6 +134,7 @@ fun ImageView.binding_loadSquareMedia(illust: Illust?) {
     Glide.with(this)
         .load(GlideUrlChild(url))
         .placeholder(R.drawable.image_place_holder_r2)
+        .transition(withCrossFade())
         .into(this)
 }
 
@@ -144,6 +145,7 @@ fun ImageView.binding_loadMedia(displayUrl: String?) {
     Glide.with(this)
         .load(GlideUrlChild(url))
         .placeholder(R.drawable.image_place_holder)
+        .transition(withCrossFade())
         .into(this)
 }
 
