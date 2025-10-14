@@ -7,18 +7,16 @@ import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellIllustCardBinding
 import ceui.lisa.utils.GlideUrlChild
-import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.Series
 import ceui.loxia.findActionReceiverOrNull
-import ceui.loxia.launchSuspend
-import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.screenWidth
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import timber.log.Timber
 import kotlin.math.roundToInt
 
@@ -82,6 +80,7 @@ class IllustCardViewHolder(bd: CellIllustCardBinding) :
         Glide.with(binding.root.context)
             .load(GlideUrlChild(holder.illust.image_urls?.large))
             .placeholder(R.drawable.bg_loading_placeholder)
+            .transition(DrawableTransitionOptions.withCrossFade())
             .into(binding.image)
         binding.image.setOnClick {
             it.findActionReceiverOrNull<IllustCardActionReceiver>()
