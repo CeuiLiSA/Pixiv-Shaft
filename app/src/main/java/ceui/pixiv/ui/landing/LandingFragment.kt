@@ -14,17 +14,13 @@ import ceui.lisa.databinding.FragmentLandingBinding
 import ceui.lisa.feature.HostManager
 import ceui.lisa.helper.LanguageHelper
 import ceui.loxia.findLanguageBySystem
-import ceui.loxia.launchSuspend
 import ceui.loxia.openChromeTab
-import ceui.loxia.openClashApp
 import ceui.loxia.pushFragment
-import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.widgets.alertYesOrCancel
 
 class LandingFragment : PixivFragment(R.layout.fragment_landing) {
     private val binding by viewBinding(FragmentLandingBinding::bind)
@@ -62,55 +58,34 @@ class LandingFragment : PixivFragment(R.layout.fragment_landing) {
         }
 
         binding.logIn.setOnClick {
-            checkVPNAndNext {
-                val baseUrl = HostManager.get().loginUrl
-                val finalUri = baseUrl.toUri().buildUpon()
-                    .appendQueryParameter(
-                        "lang",
-                        LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage().split("-")[0]
-                    )
-                    .build()
+            val baseUrl = HostManager.get().loginUrl
+            val finalUri = baseUrl.toUri().buildUpon()
+                .appendQueryParameter(
+                    "lang",
+                    LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage().split("-")[0]
+                )
+                .build()
 
-                requireContext().openChromeTab(finalUri.toString())
-            }
+            requireContext().openChromeTab(finalUri.toString())
         }
 
         binding.logIn.setOnLongClickListener {
-            checkVPNAndNext {
-                pushFragment(R.id.navigation_login_with_token)
-            }
+            pushFragment(R.id.navigation_login_with_token)
             true
         }
 
         binding.register.setOnClick {
-            checkVPNAndNext {
-                val baseUrl = HostManager.get().signupUrl
-                val finalUri = baseUrl.toUri().buildUpon()
-                    .appendQueryParameter(
-                        "lang",
-                        LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage().split("-")[0]
-                    )
-                    .build()
+            val baseUrl = HostManager.get().signupUrl
+            val finalUri = baseUrl.toUri().buildUpon()
+                .appendQueryParameter(
+                    "lang",
+                    LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage().split("-")[0]
+                )
+                .build()
 
-                requireContext().openChromeTab(finalUri.toString())
-            }
+            requireContext().openChromeTab(finalUri.toString())
         }
     }
-
-
-    private fun checkVPNAndNext(block: () -> Unit) {
-        val context = requireContext()
-        if (requireNetworkStateManager().canAccessGoogle.value == true) {
-            block()
-        } else {
-            launchSuspend {
-                if (alertYesOrCancel("请打开VPN后继续")) {
-                    openClashApp(context)
-                }
-            }
-        }
-    }
-
 
     private val WELCOME_MESSAGES = arrayOf(
         "欢迎使用",         // 简体中文
