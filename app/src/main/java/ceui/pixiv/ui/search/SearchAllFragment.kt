@@ -68,11 +68,11 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all), SearchIte
             viewLifecycleOwner
         ) { (list, draft, history) ->
             if (draft?.isNotEmpty() == true && list != null) {
-                adapter.submitList(list.tags.map { SearchItemHolder(it) })
+                adapter.submitList(list.tags.map { SearchItemHolder(it, false) })
             } else {
                 val tagList =
                     history.orEmpty().map { Shaft.sGson.fromJson(it.json, Tag::class.java) }
-                adapter.submitList(tagList.map { SearchItemHolder(it) })
+                adapter.submitList(tagList.map { SearchItemHolder(it, true) })
             }
         }
 
@@ -187,6 +187,15 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all), SearchIte
                     keyword = tag.name,
                 ).toBundle()
             )
+        }
+    }
+
+    override fun onLongClickHistoryItem(tag: Tag) {
+        launchSuspend {
+            val entityWrapper = requireEntityWrapper()
+            if (alertYesOrCancel("删除此条记录：${tag.translated_name ?: tag.name ?: ""}?")) {
+                entityWrapper.deleteVisitTag(requireContext(), tag)
+            }
         }
     }
 }

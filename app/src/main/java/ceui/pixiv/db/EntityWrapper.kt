@@ -174,6 +174,12 @@ class EntityWrapper(
         }
     }
 
+    fun deleteVisitTag(context: Context, tag: Tag) {
+        MainScope().launch(Dispatchers.IO) {
+            deleteEntity(context, RecordType.VIEW_TAG_HISTORY, tag.objectUniqueId)
+        }
+    }
+
     fun isWorkBlocked(illustId: Long): Boolean {
         return _blockingIllustIds.contains(illustId)
     }

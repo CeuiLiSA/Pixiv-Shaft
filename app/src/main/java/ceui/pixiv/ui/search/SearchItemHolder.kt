@@ -8,9 +8,9 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.utils.setOnClick
 
-class SearchItemHolder(val tag: Tag) : ListItemHolder() {
+class SearchItemHolder(val tag: Tag, val fromHistory: Boolean) : ListItemHolder() {
     override fun getItemId(): Long {
-        return tag.hashCode().toLong()
+        return tag.objectUniqueId
     }
 }
 
@@ -30,9 +30,18 @@ class SearchItemViewHolder(private val bd: CellSearchItemBinding) :
         binding.itemRoot.setOnClick {
             it.findActionReceiverOrNull<SearchItemActionReceiver>()?.onClickSearchItem(holder.tag)
         }
+        if (holder.fromHistory) {
+            binding.itemRoot.setOnLongClickListener {
+                it.findActionReceiverOrNull<SearchItemActionReceiver>()
+                    ?.onLongClickHistoryItem(holder.tag)
+                true
+            }
+        }
     }
 }
 
 interface SearchItemActionReceiver {
     fun onClickSearchItem(tag: Tag)
+
+    fun onLongClickHistoryItem(tag: Tag)
 }
