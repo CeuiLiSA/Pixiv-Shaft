@@ -17,8 +17,13 @@ abstract class PagingRepository<ObjectT> {
 
     suspend fun load(nextUrl: String?): KListShow<ObjectT> {
         if (nextUrl == null) {
-            return loadFirst().also {
-                responseType = getResponseTypeFromInstance(it)
+            return try {
+                loadFirst().also {
+                    responseType = getResponseTypeFromInstance(it)
+                }
+            } catch (ex: Exception) {
+                errorEvent.postValue(Event(ex))
+                throw ex
             }
         }
 
