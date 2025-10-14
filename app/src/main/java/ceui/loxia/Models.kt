@@ -235,11 +235,15 @@ data class WebTag(
 data class Tag(
     val name: String? = null,
     val translated_name: String? = null
-) : Serializable {
+) : Serializable, ModelObject {
     val tagName: String?
         get() {
             return name ?: translated_name
         }
+    override val objectUniqueId: Long
+        get() = stableHash(name + translated_name).toLong()
+    override val objectType: Int
+        get() = ObjectSpec.SIMPLE_TAG
 }
 
 object UserGender {

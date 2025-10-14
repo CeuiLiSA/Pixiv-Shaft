@@ -12,6 +12,7 @@ import androidx.lifecycle.map
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentCircleBinding
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
@@ -37,8 +38,12 @@ class CircleFragment : TitledViewPagerFragment(R.layout.fragment_circle) {
 
     private val binding by viewBinding(FragmentCircleBinding::bind)
     private val args by navArgs<CircleFragmentArgs>()
-    private val searchViewModel by constructVM({ args.keyword }) { word ->
-        SearchViewModel(false, word)
+    private val searchViewModel by constructVM({
+        args.keyword to AppDatabase.getAppDatabase(
+            requireContext()
+        )
+    }) { (word, database) ->
+        SearchViewModel(false, word, database)
     }
     private val viewModel by pixivValueViewModel(
         argsProducer = { args.keyword },

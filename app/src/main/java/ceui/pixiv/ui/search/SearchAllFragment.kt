@@ -10,6 +10,8 @@ import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentSearchAllBinding
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
@@ -19,6 +21,7 @@ import ceui.loxia.combineLatest
 import ceui.loxia.hideKeyboard
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.loxia.requireEntityWrapper
 import ceui.loxia.showKeyboard
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
@@ -37,8 +40,12 @@ import kotlinx.coroutines.delay
 class SearchAllFragment : PixivFragment(R.layout.fragment_search_all), SearchItemActionReceiver {
 
     private val binding by viewBinding(FragmentSearchAllBinding::bind)
-    private val searchViewModel by constructVM({ "" }) { word ->
-        SearchViewModel(true, word)
+    private val searchViewModel by constructVM({
+        "" to AppDatabase.getAppDatabase(
+            requireContext()
+        )
+    }) { (word, database) ->
+        SearchViewModel(true, word, database)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -53,13 +60,19 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all), SearchIte
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.suggestionList.adapter = adapter
         setUpLayoutManager(binding.suggestionList, ListMode.VERTICAL_SEARCH_SUGGESTION)
-        combineLatest(searchViewModel.searchSuggestion, searchViewModel.inputDraft).observe(
+        combineLatest(
+            searchViewModel.searchSuggestion,
+            searchViewModel.inputDraft,
+            searchViewModel.historyLiveData
+        ).observe(
             viewLifecycleOwner
-        ) { (list, draft) ->
+        ) { (list, draft, history) ->
             if (draft?.isNotEmpty() == true && list != null) {
                 adapter.submitList(list.tags.map { SearchItemHolder(it) })
             } else {
-                adapter.submitList(emptyList())
+                val tagList =
+                    history.orEmpty().map { Shaft.sGson.fromJson(it.json, Tag::class.java) }
+                adapter.submitList(tagList.map { SearchItemHolder(it) })
             }
         }
 
@@ -141,6 +154,7 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all), SearchIte
 
     private fun searchByKeyword(sender: ProgressIndicator) {
         checkAndNext(sender) { word ->
+            requireEntityWrapper().visitTag(requireContext(), Tag(word, word))
             pushFragment(
                 R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
                     keyword = word,
@@ -167,6 +181,7 @@ class SearchAllFragment : PixivFragment(R.layout.fragment_search_all), SearchIte
 
     override fun onClickSearchItem(tag: Tag) {
         if (tag.name?.isNotEmpty() == true) {
+            requireEntityWrapper().visitTag(requireContext(), tag)
             pushFragment(
                 R.id.navigation_search_viewpager, SearchViewPagerFragmentArgs(
                     keyword = tag.name,

@@ -36,6 +36,12 @@ interface GeneralDao {
         recordType: Int
     ): List<GeneralEntity>
 
+
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType ORDER BY updatedTime DESC")
+    fun getAllByRecordTypeLiveData(
+        recordType: Int
+    ): LiveData<List<GeneralEntity>>
+
     // 根据 recordType 和 id 查询单条记录，若无匹配则返回 null
     @Query("SELECT * FROM general_table WHERE recordType = :recordType AND id = :id LIMIT 1")
     fun getByRecordTypeAndId(recordType: Int, id: Long): GeneralEntity?

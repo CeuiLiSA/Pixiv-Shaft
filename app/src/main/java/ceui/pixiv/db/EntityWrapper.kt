@@ -6,6 +6,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.ObjectSpec
 import ceui.loxia.Illust
 import ceui.loxia.Novel
+import ceui.loxia.Tag
 import ceui.loxia.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -115,6 +116,12 @@ class EntityWrapper(
     fun visitUser(context: Context, user: User) {
         val json = Shaft.sGson.toJson(user)
         visit(context, user.id, json, ObjectSpec.KOTLIN_USER, RecordType.VIEW_USER_HISTORY)
+    }
+
+    fun visitTag(context: Context, tag: Tag) {
+        val json = Shaft.sGson.toJson(tag)
+        Timber.d("visitTag ${tag}")
+        visit(context, tag.objectUniqueId, json, ObjectSpec.SIMPLE_TAG, RecordType.VIEW_TAG_HISTORY)
     }
 
     fun addUserToFavorite(context: Context, user: User) {

@@ -5,18 +5,24 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.database.AppDatabase
 import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectType
 import ceui.loxia.SearchSuggestionResponse
 import ceui.loxia.Tag
+import ceui.pixiv.db.RecordType
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
-class SearchViewModel(showSuggestion: Boolean, initialKeyword: String) : ViewModel() {
+class SearchViewModel(
+    showSuggestion: Boolean,
+    initialKeyword: String,
+    database: AppDatabase
+) : ViewModel() {
 
 
     val tagList = MutableLiveData<List<Tag>>()
@@ -28,6 +34,11 @@ class SearchViewModel(showSuggestion: Boolean, initialKeyword: String) : ViewMod
 
     private val _searchSuggestion = MutableLiveData<SearchSuggestionResponse>()
     val searchSuggestion: LiveData<SearchSuggestionResponse> = _searchSuggestion
+
+    val historyLiveData = database.generalDao()
+        .getAllByRecordTypeLiveData(
+            RecordType.VIEW_TAG_HISTORY
+        )
 
 
     init {

@@ -173,6 +173,10 @@ object ObjectPool {
                 ObjectSpec.TRENDING_TAG
             }
 
+            "Tag" -> {
+                ObjectSpec.SIMPLE_TAG
+            }
+
             "UserResponse" -> {
                 ObjectSpec.UserProfile
             }

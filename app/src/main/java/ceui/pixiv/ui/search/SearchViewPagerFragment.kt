@@ -9,6 +9,7 @@ import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentSearchViewpagerBinding
 import ceui.loxia.Tag
 import ceui.loxia.combineLatest
@@ -28,8 +29,12 @@ class SearchViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_search
     private val binding by viewBinding(FragmentSearchViewpagerBinding::bind)
     private val args by navArgs<SearchViewPagerFragmentArgs>()
     private val dialogViewModel by activityViewModels<DialogViewModel>()
-    private val searchViewModel by constructVM({ args.keyword }) { word ->
-        SearchViewModel(false, word)
+    private val searchViewModel by constructVM({
+        args.keyword to AppDatabase.getAppDatabase(
+            requireContext()
+        )
+    }) { (word, database) ->
+        SearchViewModel(false, word, database)
     }
 
     override fun onViewFirstCreated(view: View) {

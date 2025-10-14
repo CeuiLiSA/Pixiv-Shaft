@@ -55,6 +55,7 @@ import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
+import ceui.loxia.requireEntityWrapper
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.paging.CommonPagingAdapter
 import ceui.pixiv.paging.PagingViewModel
@@ -222,6 +223,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                 ).toBundle()
             )
         }
+        requireEntityWrapper().visitTag(requireContext(), tag)
     }
 
     override fun onClickArticle(article: Article) {

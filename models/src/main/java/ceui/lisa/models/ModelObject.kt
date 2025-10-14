@@ -22,6 +22,8 @@ object ObjectSpec {
     const val TRENDING_TAG = 10
     const val USER_PREVIEW = 11
 
+    const val SIMPLE_TAG = 12
+
     const val ARTICLE = 100
     const val GIF_INFO = 101
     const val NOTIFICATION = 102
