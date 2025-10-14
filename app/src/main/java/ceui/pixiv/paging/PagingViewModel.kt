@@ -73,6 +73,10 @@ class PagingViewModel<ObjectT : ModelObject>(
     }
 
     val recordType: Int? get() = (repository as? PagingMediatorRepository)?.recordType
+
+    fun repo(): PagingRepository<ObjectT> {
+        return repository
+    }
 }
 
 

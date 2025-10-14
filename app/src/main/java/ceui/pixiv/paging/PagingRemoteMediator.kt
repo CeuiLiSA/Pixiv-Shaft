@@ -9,6 +9,7 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.ModelObject
+import ceui.loxia.Event
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RemoteKey
 import timber.log.Timber
@@ -92,6 +93,7 @@ class PagingRemoteMediator<ObjectT : ModelObject>(
 
             return MediatorResult.Success(endOfPaginationReached = newNextPageUrl == null)
         } catch (e: Exception) {
+            repository.errorEvent.postValue(Event(e))
             return MediatorResult.Error(e)
         }
     }

@@ -2,6 +2,7 @@ package ceui.pixiv.ui.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.loxia.Event
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.pixiv.ui.common.repo.HybridRepository
@@ -28,6 +29,9 @@ open class ValueContent<ValueT>(
 
     private val _refreshState = MutableLiveData<RefreshState>()
     override val refreshState: LiveData<RefreshState> = _refreshState
+
+    private val _errorEvent = MutableLiveData<Event<Throwable>>()
+    val errorEvent: LiveData<Event<Throwable>> = _errorEvent
 
     private val _taskMutex = Mutex() // 互斥锁，防止重复刷新
 
@@ -83,6 +87,7 @@ open class ValueContent<ValueT>(
                     )
                 }
             } catch (ex: Exception) {
+                _errorEvent.postValue(Event(ex))
                 _refreshState.value = RefreshState.ERROR(ex)
                 Timber.e(ex)
             } finally {

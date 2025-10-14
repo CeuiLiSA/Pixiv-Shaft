@@ -9,6 +9,9 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshState
 import ceui.loxia.User
 import ceui.loxia.combineLatest
+import ceui.loxia.getHumanReadableMessage
+import ceui.loxia.launchSuspend
+import ceui.loxia.observeEvent
 import ceui.loxia.pushFragment
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
@@ -25,6 +28,7 @@ import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.history.ViewHistoryFragmentArgs
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.alertYesOrCancel
 
 class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -43,6 +47,12 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL_TABCELL)
+        val context = requireContext()
+        viewModel.errorEvent.observeEvent(viewLifecycleOwner) { ex ->
+            launchSuspend {
+                alertYesOrCancel(ex.getHumanReadableMessage(context))
+            }
+        }
         binding.toolbarLayout.naviMore.setOnClick {
             pushFragment(R.id.navigation_notification)
         }

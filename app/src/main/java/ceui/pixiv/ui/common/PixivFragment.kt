@@ -73,6 +73,7 @@ import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.TagsActionReceiver
+import ceui.pixiv.widgets.alertYesOrCancel
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.FalsifyHeader
@@ -356,6 +357,13 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     setUpToolbar(binding.toolbarLayout, binding.listView)
     setUpLayoutManager(binding.listView, listMode)
 
+    val context = requireContext()
+    viewModel.repo().errorEvent.observeEvent(viewLifecycleOwner) { ex ->
+        launchSuspend {
+            alertYesOrCancel(ex.getHumanReadableMessage(context))
+        }
+    }
+
 
     val adapter = CommonPagingAdapter(viewLifecycleOwner)
     adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
@@ -363,7 +371,7 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
     binding.listView.adapter = adapter
 
     val fragmentViewModel: NavFragmentViewModel by viewModels()
-    val database = AppDatabase.getAppDatabase(requireContext())
+    val database = AppDatabase.getAppDatabase(context)
     val seed = fragmentViewModel.fragmentUniqueId
 
 

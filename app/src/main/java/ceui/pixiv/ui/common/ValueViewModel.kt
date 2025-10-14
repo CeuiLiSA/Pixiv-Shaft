@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
+import ceui.loxia.Event
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.keyedViewModels
@@ -120,6 +121,7 @@ class ValueViewModel<T>(
     override val refreshState: LiveData<RefreshState>
         get() = valueContent.refreshState
 
+    val errorEvent: LiveData<Event<Throwable>> get() = valueContent.errorEvent
     val result: LiveData<LoadResult<T>> get() = valueContent.result
 
     override fun refresh(hint: RefreshHint) {

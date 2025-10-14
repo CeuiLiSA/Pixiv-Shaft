@@ -2,6 +2,7 @@ package ceui.pixiv.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import ceui.loxia.Event
 
 class PagingAPISource<ObjectT : Any>(
     private val repository: PagingAPIRepository<ObjectT>
@@ -23,6 +24,7 @@ class PagingAPISource<ObjectT : Any>(
                 nextKey = response.nextPageUrl
             )
         } catch (e: Exception) {
+            repository.errorEvent.postValue(Event(e))
             LoadResult.Error(e)
         }
     }
