@@ -406,7 +406,13 @@ fun <ObjectT : ModelObject> Fragment.setUpPagedList(
                 .map { it.refresh }
                 .collectLatest { current ->
                     binding.refreshLayout.isRefreshing = current is LoadState.Loading
-                    binding.errorLayout.isVisible = current is LoadState.Error
+
+
+                    if (adapter.snapshot().isNotEmpty()) {
+                        binding.errorLayout.isVisible = false
+                    } else {
+                        binding.errorLayout.isVisible = current is LoadState.Error
+                    }
 
                     val isListEmpty = adapter.itemCount == 0
                     binding.emptyLayout.isVisible =
@@ -516,7 +522,6 @@ fun Fragment.setUpRefreshState(
         } else {
             binding.refreshLayout.setEnableLoadMore(false)
         }
-        binding.cacheApplying.isVisible = state is RefreshState.FETCHING_LATEST
         val shouldShowLoading = state is RefreshState.LOADING
         binding.loadingLayout.isVisible = shouldShowLoading
         if (shouldShowLoading) {
@@ -524,9 +529,14 @@ fun Fragment.setUpRefreshState(
         } else {
             binding.progressCircular.hideProgress()
         }
-        binding.errorLayout.isVisible = state is RefreshState.ERROR
-        if (state is RefreshState.ERROR) {
-            binding.errorText.text = state.exception.getHumanReadableMessage(ctx)
+
+        if ((binding.listView.adapter?.itemCount ?: 0) > 0) {
+            binding.errorLayout.isVisible = false
+        } else {
+            binding.errorLayout.isVisible = state is RefreshState.ERROR
+            if (state is RefreshState.ERROR) {
+                binding.errorText.text = state.exception.getHumanReadableMessage(ctx)
+            }
         }
     }
     if (viewModel is HoldersContainer) {

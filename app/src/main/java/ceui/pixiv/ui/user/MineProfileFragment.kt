@@ -6,7 +6,6 @@ import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.ObjectPool
-import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.User
 import ceui.loxia.combineLatest
@@ -16,7 +15,6 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.CommonViewPagerFragmentArgs
 import ceui.pixiv.ui.common.ListMode
-import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
 import ceui.pixiv.ui.common.ViewPagerContentType
@@ -64,15 +62,11 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             }
 
             adapter.submitList(
-                if (state !is RefreshState.LOADED) {
-                    listOf(LoadingHolder(viewModel.refreshState) { viewModel.refresh(RefreshHint.ErrorRetry) })
-                } else {
-                    listOf()
-                } + listOf(
+                listOf(
                     MineHeaderHolder(liveUser).onItemClick {
                         pushFragment(
                             R.id.navigation_user,
-                            UserFragmentArgs(user?.id ?: 0L).toBundle()
+                            UserFragmentArgs(user.id ?: 0L).toBundle()
                         )
                     },
                     TabCellHolder(
