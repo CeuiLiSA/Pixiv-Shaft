@@ -14,12 +14,8 @@ import androidx.lifecycle.viewModelScope
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.keyedViewModels
-import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.repo.LoadResult
 import ceui.pixiv.ui.common.repo.Repository
-import ceui.pixiv.utils.NetworkStateManager
-import kotlinx.coroutines.launch
-import timber.log.Timber
 import kotlin.reflect.KClass
 
 fun <T> Fragment.pixivValueViewModel(
@@ -28,9 +24,8 @@ fun <T> Fragment.pixivValueViewModel(
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val networkStateManager = requireNetworkStateManager()
                 val repository = repositoryProducer()
-                return ValueViewModel(networkStateManager, repository) as T
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -43,10 +38,9 @@ inline fun <ArgsT, T> Fragment.pixivValueViewModel(
     return this.viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val networkStateManager = requireNetworkStateManager()
                 val args = argsProducer()
                 val repository = repositoryProducer(args)
-                return ValueViewModel(networkStateManager, repository) as T
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -59,9 +53,8 @@ inline fun <T> Fragment.pixivValueViewModel(
     return this.viewModels(ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val networkStateManager = requireNetworkStateManager()
                 val repository = repositoryProducer()
-                return ValueViewModel(networkStateManager, repository) as T
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -75,9 +68,8 @@ inline fun <T> Fragment.pixivKeyedValueViewModel(
     return this.keyedViewModels(keyPrefixProvider = { keyPrefix }, ownerProducer = ownerProducer) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val networkStateManager = requireNetworkStateManager()
                 val repository = repositoryProducer()
-                return ValueViewModel(networkStateManager, repository) as T
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -89,9 +81,8 @@ inline fun <T> FragmentActivity.pixivValueViewModel(
     return viewModels(keyPrefixProvider = { "aaa" }) {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val networkStateManager = requireNetworkStateManager()
                 val repository = repositoryProducer()
-                return ValueViewModel(networkStateManager, repository) as T
+                return ValueViewModel(repository) as T
             }
         }
     }
@@ -121,7 +112,6 @@ inline fun <reified VM : ViewModel> ComponentActivity.viewModels(
 
 
 class ValueViewModel<T>(
-    private val networkStateManager: NetworkStateManager,
     repository: Repository<T>,
 ) : ViewModel(), RefreshOwner {
 
@@ -132,33 +122,11 @@ class ValueViewModel<T>(
 
     val result: LiveData<LoadResult<T>> get() = valueContent.result
 
-    init {
-        // 用 flow 代替 observeForever
-        viewModelScope.launch {
-            networkStateManager.googleAccessRecoveredFlow
-                .collect { recovered ->
-                    if (recovered) {
-                        Timber.d("ValueContent refreshInternal from googleAccessRecoveredFlow")
-                        refreshInternal(true)
-                    }
-                }
-        }
-    }
-
     override fun refresh(hint: RefreshHint) {
-        // 手动刷新时依旧用当前状态
-        val canAccessGoogle = (networkStateManager.canAccessGoogle.value == true)
-        Timber.d("ValueContent refreshInternal from manual refresh")
-        refreshInternal(canAccessGoogle)
+        valueContent.refresh(hint)
     }
 
-    private fun refreshInternal(canAccessGoogle: Boolean) {
-        if (canAccessGoogle) {
-            valueContent.refresh(RefreshHint.InitialLoad)
-            Timber.d("ValueContent auto-refresh triggered by InitialLoad")
-        } else {
-            valueContent.noneOpRefresh(RefreshHint.InitialLoad)
-            Timber.d("ValueContent auto-refresh dont invoke")
-        }
+    init {
+        valueContent.refresh(RefreshHint.InitialLoad)
     }
 }

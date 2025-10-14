@@ -24,11 +24,9 @@ import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.KListShowValueContent
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.detail.ArtworksMap
-import ceui.pixiv.utils.NetworkStateManager
 
 class UserViewModel(
     private val userId: Long,
-    private val networkStateManager: NetworkStateManager
 ) : HoldersViewModel() {
 
     private val _userLiveData = ObjectPool.get<User>(userId)

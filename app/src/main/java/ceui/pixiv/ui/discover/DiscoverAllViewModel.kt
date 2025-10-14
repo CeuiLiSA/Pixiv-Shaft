@@ -19,9 +19,8 @@ import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.user.UserPostHolder
 import ceui.pixiv.utils.GSON_DEFAULT
-import ceui.pixiv.utils.NetworkStateManager
 
-class DiscoverAllViewModel(private val networkStateManager: NetworkStateManager) :
+class DiscoverAllViewModel() :
     HoldersViewModel() {
 
     private var _nextPageSpec: NextPageSpec? = null
@@ -86,7 +85,8 @@ class DiscoverAllViewModel(private val networkStateManager: NetworkStateManager)
                         }
                     } else {
                         val webIllust = GSON_DEFAULT.fromJson(
-                            GSON_DEFAULT.toJson(spec.thumbnails?.firstOrNull()), WebIllust::class.java
+                            GSON_DEFAULT.toJson(spec.thumbnails?.firstOrNull()),
+                            WebIllust::class.java
                         )
                         val page = spec.thumbnails?.firstOrNull()?.pages?.firstOrNull()
                         val urls = page?.urls

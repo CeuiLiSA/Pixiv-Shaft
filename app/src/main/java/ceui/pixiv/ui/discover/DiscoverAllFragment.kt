@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
-import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
@@ -14,8 +13,8 @@ import ceui.pixiv.ui.common.viewBinding
 class DiscoverAllFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
-    private val viewModel by constructVM({ requireNetworkStateManager() }) { networkStateManager ->
-        DiscoverAllViewModel(networkStateManager)
+    private val viewModel by constructVM({ }) { _ ->
+        DiscoverAllViewModel()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
