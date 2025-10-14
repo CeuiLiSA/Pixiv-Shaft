@@ -49,45 +49,48 @@ class DownloadGifZipTask(
                 val imageFiles = unzip(zipFile, unzipFolder)
                 if (imageFiles.isEmpty()) throw Exception("No images in zip")
 
-                val listFile = File(unzipFolder, "file_list.txt")
-                gifResponse.ugoira_metadata?.frames?.takeIf { it.isNotEmpty() }?.let { frames ->
-                    listFile.printWriter().use { pw ->
-                        frames.forEach { frame ->
-                            val filePath =
-                                File(unzipFolder, frame.file).absolutePath.replace("'", "'\\''")
-                            pw.println("file '$filePath'")
-                            val durationSec = frame.delay / 1000F
-                            pw.println("duration $durationSec")
-                        }
-                        val lastFilePath =
-                            File(unzipFolder, frames.last().file).absolutePath.replace("'", "'\\''")
-                        pw.println("file '$lastFilePath'")
-                    }
-                }
-
-                val cmd =
-                    "-y -f concat -safe 0 -i ${listFile.absolutePath} -loop 0 ${webpFile.absolutePath}"
-
-                com.arthenica.mobileffmpeg.FFmpeg.executeAsync(cmd) { _, returnCode ->
-                    if (returnCode == 0) {
-                        _prefStore.putBoolean(key, true)
-
-                        unzipFolder.deleteRecursively()
-
-                        val sizeKb = webpFile.length() / 1024.0
-                        Timber.d("GifTaskAAAA WebP generated: ${webpFile.absolutePath}")
-                        Timber.d("GifTaskAAAA ${String.format("File size: %.2f KB", sizeKb)}")
-
-                        onEnd(webpFile)
-                        gifState.postValue(GifState.Done(webpFile))
-                    } else {
-                        onError(Exception("FFmpeg failed with rc=$returnCode"))
-                    }
-                }
-
-
+                encodeGifByFFmpeg(unzipFolder, webpFile)
             } catch (ex: Exception) {
                 onError(ex)
+            }
+        }
+    }
+
+    private fun encodeGifByFFmpeg(unzipFolder: File, webpFile: File) {
+        val listFile = File(unzipFolder, "file_list.txt")
+        gifResponse.ugoira_metadata?.frames?.takeIf { it.isNotEmpty() }?.let { frames ->
+            listFile.printWriter().use { pw ->
+                frames.forEach { frame ->
+                    val filePath =
+                        File(unzipFolder, frame.file).absolutePath.replace("'", "'\\''")
+                    pw.println("file '$filePath'")
+                    val durationSec = frame.delay / 1000F
+                    pw.println("duration $durationSec")
+                }
+                val lastFilePath =
+                    File(unzipFolder, frames.last().file).absolutePath.replace("'", "'\\''")
+                pw.println("file '$lastFilePath'")
+            }
+        }
+
+        val cmd =
+            "-y -f concat -safe 0 -i ${listFile.absolutePath} -loop 0 ${webpFile.absolutePath}"
+
+        com.arthenica.mobileffmpeg.FFmpeg.executeAsync(cmd) { _, returnCode ->
+            if (returnCode == 0) {
+                val key = KEY + illustId
+                _prefStore.putBoolean(key, true)
+
+                unzipFolder.deleteRecursively()
+
+                val sizeKb = webpFile.length() / 1024.0
+                Timber.d("GifTaskAAAA WebP generated: ${webpFile.absolutePath}")
+                Timber.d("GifTaskAAAA ${String.format("File size: %.2f KB", sizeKb)}")
+
+                onEnd(webpFile)
+                gifState.postValue(GifState.Done(webpFile))
+            } else {
+                onError(Exception("FFmpeg failed with rc=$returnCode"))
             }
         }
     }
