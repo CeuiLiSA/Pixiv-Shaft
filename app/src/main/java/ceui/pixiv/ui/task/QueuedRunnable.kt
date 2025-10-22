@@ -68,7 +68,7 @@ abstract class QueuedRunnable<ResultT> {
             Timber.e(ex)
             _status.postValue(TaskStatus.Error(ex))
             this._onNext?.invoke()
-            _impl.completeExceptionally(ex)
+            _impl.cancel()
         }
     }
 }
