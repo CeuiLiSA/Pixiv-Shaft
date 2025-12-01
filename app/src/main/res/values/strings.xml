@@ -697,16 +697,16 @@
     <string name="show_reply">查看回复</string>
     <string name="comments">评论</string>
     <string name="new_tag">New Tag</string>
-    <string name="date_minute_plurals_zero" targets="widget,app" synced="58038e" platforms="all">Just now</string>
-    <plurals name="date_hour" targets="widget,app" synced_one="f9ed7d" synced_other="56508e" platforms="all">
+    <string name="date_minute_plurals_zero" platforms="all" synced="58038e" targets="widget,app">Just now</string>
+    <plurals name="date_hour" platforms="all" synced_one="f9ed7d" synced_other="56508e" targets="widget,app">
         <item quantity="one">%d hour ago</item>
         <item quantity="other">%d hours ago</item>
     </plurals>
-    <plurals name="recent_visits_date_minute" targets="widget,app" synced_one="ff2e35" synced_other="9085a0" platforms="all">
+    <plurals name="recent_visits_date_minute" platforms="all" synced_one="ff2e35" synced_other="9085a0" targets="widget,app">
         <item quantity="one">%d minute ago</item>
         <item quantity="other">%d minutes ago</item>
     </plurals>
-    <plurals name="date_day" targets="widget,app" synced_one="ece421" synced_other="2ed691" platforms="all">
+    <plurals name="date_day" platforms="all" synced_one="ece421" synced_other="2ed691" targets="widget,app">
         <item quantity="one">%d day ago</item>
         <item quantity="other">%d days ago</item>
     </plurals>
@@ -754,4 +754,5 @@
     <string name="browse_history">浏览历史</string>
     <string name="artwork_link">作品链接：%1$s</string>
     <string name="user_link">作者链接：%1$s</string>
+    <string name="prime_tags">热度标签</string>
 </resources>

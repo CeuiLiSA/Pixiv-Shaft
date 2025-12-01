@@ -269,6 +269,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         } else if (id == R.id.nav_manage) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
+        } else if (id == R.id.nav_prime_tags) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PrimeTagsList");
         } else if (id == R.id.nav_share) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");

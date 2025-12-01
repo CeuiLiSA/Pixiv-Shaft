@@ -2,28 +2,17 @@ package ceui.loxia
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.findFragment
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
-import ceui.lisa.utils.Common
-import ceui.pixiv.widgets.PixivDialog
 import ceui.pixiv.widgets.alertYesOrCancel
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.UUID
 
 inline fun <reified InterfaceT> Fragment.sendAction(action: (receiver: InterfaceT) -> Boolean) {
     var received = false
@@ -64,6 +53,31 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
     }
 }
 
+fun Fragment.launchSpinner(block: suspend CoroutineScope.() -> Unit) {
+    viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
+        val dialog = LoadingDialog.show(this@launchSpinner)
+        try {
+            block()
+            try {
+                dialog.dismissAllowingStateLoss()
+            } catch (e: Exception) {
+                Timber.e(e)
+            }
+        } catch (ex: Exception) {
+            try {
+                dialog.dismissAllowingStateLoss()
+            } catch (e: Exception) {
+                Timber.e(e)
+            }
+            context?.let {
+                alertYesOrCancel(ex.getHumanReadableMessage(it))
+            }
+            Timber.e(ex)
+        }
+    }
+}
+
+
 fun Fragment.launchSuspend(sender: ProgressIndicator, block: suspend CoroutineScope.() -> Unit) {
     viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
         try {
@@ -102,7 +116,6 @@ fun NavOptions.Builder.setFadeIn(): NavOptions.Builder {
         .setPopEnterAnim(R.anim.slow_fade_in)
         .setPopExitAnim(R.anim.slow_fade_out)
 }
-
 
 
 fun Fragment.pushFragment(id: Int, bundle: Bundle? = null) {

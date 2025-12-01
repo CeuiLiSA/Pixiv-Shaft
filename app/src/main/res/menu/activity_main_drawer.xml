@@ -11,6 +11,11 @@
             android:title="@string/user_main_page" />
 
         <item
+            android:id="@+id/nav_prime_tags"
+            android:icon="@drawable/outline_whatshot_24"
+            android:title="@string/prime_tags" />
+
+        <item
             android:id="@+id/nav_gallery"
             android:icon="@drawable/ic_file_download_black_24dp"
             android:title="@string/download_manager" />

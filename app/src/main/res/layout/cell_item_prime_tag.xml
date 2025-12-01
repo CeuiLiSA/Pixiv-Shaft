@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="ceui.pixiv.ui.prime.PrimeTagItemHolder" />
+
+        <variable
+            name="holder"
+            type="PrimeTagItemHolder" />
+
+        <variable
+            name="user"
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/cell_background"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/user_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="@{holder.primeTag.tag.translated_name}"
+                    android:textColor="@color/text00"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/user_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{holder.primeTag.tag.name}"
+                    android:textColor="@color/text20"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/illusts_preview"
+            visibleOrGone="@{holder.primeTag.resp.illusts.size() > 0}"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone">
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/illust_1"
+                loadSquareMedia="@{holder.illust0}"
+                visibleOrInvisible="@{holder.illust0 != null}"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:rRadius="2dp" />
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/illust_2"
+                loadSquareMedia="@{holder.illust1}"
+                visibleOrInvisible="@{holder.illust1 != null}"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginHorizontal="2dp"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toStartOf="@+id/illust_3"
+                app:layout_constraintStart_toEndOf="@+id/illust_1"
+                app:layout_constraintTop_toTopOf="parent"
+                app:rRadius="2dp" />
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/illust_3"
+                loadSquareMedia="@{holder.illust2}"
+                visibleOrInvisible="@{holder.illust2 != null}"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/illust_2"
+                app:layout_constraintTop_toTopOf="parent"
+                app:rRadius="2dp" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+</layout>

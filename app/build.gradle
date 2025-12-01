@@ -15,8 +15,8 @@ android {
         applicationId "ceui.pixiv"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 5000
+        versionName "5.4.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -65,7 +65,7 @@ android {
             signingConfig signingConfigs.release
 
             applicationIdSuffix ".shaft"
-            resValue "string", "app_name", "Shaft"
+            resValue "string", "app_name", "Shaft (Classic)"
         }
     }
 
