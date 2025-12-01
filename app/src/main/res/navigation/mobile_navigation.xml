@@ -61,6 +61,27 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_prime_tag_detail"
+        android:name="ceui.pixiv.ui.prime.PrimeTagDetailFragment"
+        tools:layout="@layout/fragment_pixiv_list">
+
+        <argument
+            android:name="name"
+            app:argType="string" />
+
+        <argument
+            android:name="path"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_prime_tags"
+        android:name="ceui.pixiv.ui.prime.PrimeTagsFragment"
+        tools:layout="@layout/fragment_pixiv_list">
+
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_search_all"
         android:name="ceui.pixiv.ui.search.SearchAllFragment"
         tools:layout="@layout/fragment_search_all" />
