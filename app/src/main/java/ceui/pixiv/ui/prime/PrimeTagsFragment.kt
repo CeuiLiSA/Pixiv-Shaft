@@ -1,16 +1,15 @@
 package ceui.pixiv.ui.prime
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
-import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellItemPrimeTagBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Illust
 import ceui.loxia.findActionReceiverOrNull
+import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.ListMode
@@ -33,11 +32,10 @@ class PrimeTagsFragment : PixivFragment(R.layout.fragment_pixiv_list), PrimeTagA
         primeTag: PrimeTagResult,
         filePath: String
     ) {
-        val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PrimeTagDetail")
-        intent.putExtra("name", primeTag.tag.translated_name)
-        intent.putExtra("path", filePath)
-        startActivity(intent)
+        pushFragment(
+            R.id.navigation_prime_tag_detail,
+            PrimeTagDetailFragmentArgs(primeTag.tag.translated_name ?: "", filePath).toBundle()
+        )
     }
 }
 

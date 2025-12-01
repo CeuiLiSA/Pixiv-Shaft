@@ -112,6 +112,11 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             UserFansFragmentArgs(SessionManager.loggedInUid).toBundle()
                         )
                     },
+                    TabCellHolder(getString(R.string.prime_tags)).onItemClick {
+                        pushFragment(
+                            R.id.navigation_prime_tags,
+                        )
+                    },
                     TabCellHolder(
                         "特别关注",
                         extraInfo = "共${favoriteUserCount}条记录"
