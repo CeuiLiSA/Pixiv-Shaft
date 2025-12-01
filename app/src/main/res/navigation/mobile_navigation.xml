@@ -33,14 +33,11 @@
         <argument
             android:name="keyword"
             app:argType="string" />
-<<<<<<< HEAD
 
         <argument
             android:name="landing_index"
             android:defaultValue="0"
             app:argType="integer" />
-=======
->>>>>>> b156306b (prime tags)
     </fragment>
 
     <fragment
@@ -62,21 +59,6 @@
             android:name="object_type"
             app:argType="string" />
     </fragment>
-
-    <fragment
-        android:id="@+id/navigation_prime_tag_detail"
-        android:name="ceui.pixiv.ui.prime.PrimeTagDetailFragment"
-        tools:layout="@layout/fragment_pixiv_list">
-
-        <argument
-            android:name="name"
-            app:argType="string" />
-
-        <argument
-            android:name="path"
-            app:argType="string" />
-    </fragment>
-
 
     <fragment
         android:id="@+id/navigation_search_all"
@@ -197,15 +179,9 @@
     </fragment>
 
     <fragment
-<<<<<<< HEAD
         android:id="@+id/navigation_home_recommend_illust"
         android:name="ceui.pixiv.ui.discover.HomeRecmdIllustFragment"
         tools:layout="@layout/fragment_paged_list">
-=======
-        android:id="@+id/navigation_home"
-        android:name="ceui.pixiv.ui.home.RecmdIllustMangaFragment"
-        tools:layout="@layout/fragment_pixiv_list">
->>>>>>> b156306b (prime tags)
 
         <argument
             android:name="object_type"
@@ -235,7 +211,6 @@
         android:id="@+id/navigation_artwork"
         android:name="ceui.pixiv.ui.detail.ArtworkFragment"
         tools:layout="@layout/fragment_pixiv_list">
-<<<<<<< HEAD
 
         <argument
             android:name="illust_id"
@@ -246,8 +221,6 @@
         android:id="@+id/navigation_fancy_artwork"
         android:name="ceui.pixiv.ui.detail.FancyArtworkFragment"
         tools:layout="@layout/fragment_fancy_artwork">
-=======
->>>>>>> b156306b (prime tags)
 
         <argument
             android:name="illust_id"
@@ -438,13 +411,8 @@
 
 
     <fragment
-<<<<<<< HEAD
         android:id="@+id/navigation_background_picker"
         android:name="ceui.pixiv.ui.background.BackgroundPickerFragment">
-=======
-        android:id="@+id/navigation_task_status"
-        android:name="ceui.pixiv.ui.task.TaskStatusFragment">
->>>>>>> b156306b (prime tags)
 
     </fragment>
 
