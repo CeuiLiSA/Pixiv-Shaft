@@ -170,11 +170,11 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             };
             baseBind.viewPager.addOnPageChangeListener(listener);
 
-            if(index < pageData.getList().size()){
+            if (index < pageData.getList().size()) {
                 baseBind.viewPager.setCurrentItem(index);
             }
 
-            if(index == 0){
+            if (index == 0) {
                 baseBind.viewPager.post(() -> listener.onPageSelected(baseBind.viewPager.getCurrentItem()));
             }
         } else {

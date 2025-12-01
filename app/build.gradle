@@ -46,7 +46,7 @@ android {
             signingConfig signingConfigs.release
 
             applicationIdSuffix ".shaft"
-            resValue "string", "app_name", "Shaft"
+            resValue "string", "app_name", "Shaft (Classic)"
         }
     }
 

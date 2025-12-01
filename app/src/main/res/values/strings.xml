@@ -773,4 +773,5 @@
     <string name="no_internet_connection">无网络连接</string>
     <string name="enable_vpn">Enable VPN</string>
     <string name="parse_link">解析链接</string>
+    <string name="prime_tags">热度标签</string>
 </resources>

@@ -21,7 +21,6 @@ import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentCollection;
 import ceui.lisa.fragments.FragmentColors;
-import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDoing;
 import ceui.lisa.fragments.FragmentDonate;
 import ceui.lisa.fragments.FragmentDownload;
@@ -75,7 +74,6 @@ import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserBean;
-import ceui.lisa.models.UserModel;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -85,6 +83,8 @@ import ceui.loxia.ObjectType;
 import ceui.loxia.flag.FlagDescFragment;
 import ceui.loxia.flag.FlagReasonFragment;
 import ceui.pixiv.ui.comments.CommentsFragment;
+import ceui.pixiv.ui.prime.PrimeTagDetailFragment;
+import ceui.pixiv.ui.prime.PrimeTagsFragment;
 
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 
@@ -225,6 +225,16 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentFeature();
                 case "我的作业环境":
                     return new FragmentWorkSpace();
+                case "PrimeTagsList":
+                    return new PrimeTagsFragment();
+                case "PrimeTagDetail":
+                    String path = intent.getStringExtra("path");
+                    assert path != null;
+
+                    String name = intent.getStringExtra("name");
+                    assert name != null;
+
+                    return PrimeTagDetailFragment.Companion.newInstance(name, path);
                 case "存储访问":
                     return new FragmentStorage();
                 case "任务中心":
@@ -245,14 +255,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentSAF();
                 case "举报插画":
                     return FlagReasonFragment.Companion.newInstance(
-                        intent.getIntExtra(FlagDescFragment.FlagObjectIdKey, 0),
-                        intent.getIntExtra(FlagDescFragment.FlagObjectTypeKey, 0)
+                            intent.getIntExtra(FlagDescFragment.FlagObjectIdKey, 0),
+                            intent.getIntExtra(FlagDescFragment.FlagObjectTypeKey, 0)
                     );
                 case "填写举报详细信息":
                     return FlagDescFragment.Companion.newInstance(
-                        intent.getIntExtra(FlagDescFragment.FlagReasonIdKey, 0),
-                        intent.getIntExtra(FlagDescFragment.FlagObjectIdKey, 0),
-                        intent.getIntExtra(FlagDescFragment.FlagObjectTypeKey, 0)
+                            intent.getIntExtra(FlagDescFragment.FlagReasonIdKey, 0),
+                            intent.getIntExtra(FlagDescFragment.FlagObjectIdKey, 0),
+                            intent.getIntExtra(FlagDescFragment.FlagObjectTypeKey, 0)
                     );
                 case "相关用户":
                     return FragmentRelatedUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));

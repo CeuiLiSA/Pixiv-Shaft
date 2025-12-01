@@ -57,6 +57,31 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
     }
 }
 
+fun Fragment.launchSpinner(block: suspend CoroutineScope.() -> Unit) {
+    viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
+        val dialog = LoadingDialog.show(this@launchSpinner)
+        try {
+            block()
+            try {
+                dialog.dismissAllowingStateLoss()
+            } catch (e: Exception) {
+                Timber.e(e)
+            }
+        } catch (ex: Exception) {
+            try {
+                dialog.dismissAllowingStateLoss()
+            } catch (e: Exception) {
+                Timber.e(e)
+            }
+            context?.let {
+                alertYesOrCancel(ex.getHumanReadableMessage(it))
+            }
+            Timber.e(ex)
+        }
+    }
+}
+
+
 fun Fragment.launchSuspend(sender: ProgressIndicator, block: suspend CoroutineScope.() -> Unit) {
     viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
         try {
