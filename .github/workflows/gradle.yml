@@ -2,11 +2,15 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - classic
     tags:
       - v*.*.*
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+      - classic
     paths-ignore:
       - '**.md'
       - '**.txt'
@@ -29,6 +33,7 @@ jobs:
   build:
     name: Build apk
     runs-on: ubuntu-24.04
+
     steps:
       - name: Clone repo
         uses: actions/checkout@v4
@@ -48,19 +53,31 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Detect branch
+        if: github.ref_type == 'branch'
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+          if [ "$BRANCH_NAME" = "master" ]; then
+            echo "APK_SUFFIX=master" >> $GITHUB_ENV
+          elif [ "$BRANCH_NAME" = "classic" ]; then
+            echo "APK_SUFFIX=classic" >> $GITHUB_ENV
+          fi
+
       - name: Build debug apk
+        if: github.ref_type == 'branch'
         run: ./gradlew assembleDebug
 
-      - name: Upload artifact
-        if: ${{ !github.head_ref }}
+      - name: Upload debug artifact
+        if: github.ref_type == 'branch'
         uses: actions/upload-artifact@v4
         with:
-          name: apk-debug
+          name: apk-debug-${{ env.APK_SUFFIX }}
           path: app/build/outputs/apk/debug
 
       - name: Get tag name
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
-        id: get_tag_name
         run: |
           set -x
           version_tag=${GITHUB_REF/refs\/tags\//}
@@ -76,7 +93,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
         run: |
           cp app/build/outputs/apk/release/app-release.apk app-release.apk
-          cp app-release.apk PixShaft_$VERSION_TAG_SHORT.apk
+          cp app-release.apk PixShaft_${VERSION_TAG_SHORT}.apk
           sha1=`sha1sum app-release.apk | awk '{ print toupper($1) }'`
           sha256=`sha256sum app-release.apk | awk '{ print toupper($1) }'`
           echo "APK_SHA1=$sha1" >> $GITHUB_ENV
@@ -105,7 +122,7 @@ jobs:
             SHA-256: ${{ env.APK_SHA256 }}
             ```
           files: |
-            PixShaft_${{env.VERSION_TAG_SHORT}}.apk
+            PixShaft_${{ env.VERSION_TAG_SHORT }}.apk
           draft: true
           prerelease: false
         env:

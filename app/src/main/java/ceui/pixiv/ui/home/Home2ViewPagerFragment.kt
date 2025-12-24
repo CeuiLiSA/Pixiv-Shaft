@@ -3,7 +3,6 @@ package ceui.pixiv.ui.home
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.OvershootInterpolator
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -139,25 +138,6 @@ class Home2ViewPagerFragment : PixivFragment(R.layout.fragment_home_2_viewpager)
             }
         }
 
-        viewModel.composeButtonState.observe(viewLifecycleOwner) { state ->
-            if (state == HomeViewPagerViewModel.ComposeButtonState.OPEN) {
-                binding.homeCompose.animate()
-                    .rotation(135f)
-                    .scaleX(0.8f)
-                    .scaleY(0.8f)
-                    .setDuration(300L)
-                    .setInterpolator(OvershootInterpolator(2f))
-                    .start()
-            } else {
-                binding.homeCompose.animate()
-                    .rotation(0f)
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(300L)
-                    .setInterpolator(OvershootInterpolator(2f))
-                    .start()
-            }
-        }
         binding.homeCompose.setOnClick {
             viewModel.toggleComposeButton()
         }

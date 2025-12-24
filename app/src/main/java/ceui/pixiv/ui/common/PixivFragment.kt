@@ -50,7 +50,6 @@ import ceui.loxia.RefreshState
 import ceui.loxia.Series
 import ceui.loxia.Tag
 import ceui.loxia.clearItemDecorations
-import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.observeEvent
@@ -333,7 +332,6 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
         }
         binding.naviMore.setOnClick {
 //            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
-            findActionReceiverOrNull<GrayToggler>()?.toggleGrayMode()
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
