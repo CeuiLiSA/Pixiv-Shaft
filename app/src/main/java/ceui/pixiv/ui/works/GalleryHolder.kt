@@ -12,6 +12,7 @@ import ceui.pixiv.ui.common.getImageDimensions
 import ceui.pixiv.ui.common.setUpWithTaskStatus
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.screenHeight
 import ceui.pixiv.utils.screenWidth
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -46,13 +47,25 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
         binding.image.setImageBitmap(null)
         holder.loadUrl()
 
+        fun defaultSize() = 300.ppppx
+
         fun resize(resolution: Pair<Int, Int>) {
-            Timber.d("resizeRatio: ${resolution.second.toFloat() / resolution.first.toFloat()}")
-            val imgHeight =
-                (screenWidth * resolution.second / resolution.first.toFloat()).roundToInt()
+            var (width, height) = resolution
+            Timber.d("Resize w=$width h=$height ratio=${height.toFloat() / width.toFloat()}")
+
+            if (width <= 0) {
+                Timber.e("Invalid resolution width: $width")
+                width = defaultSize()
+            }
+            if (height <= 0) {
+                Timber.e("Invalid resolution height: $height")
+                height = defaultSize()
+            }
+
+            val imgHeight = (screenWidth.toFloat() * height.toFloat() / width.toFloat()).roundToInt()
             binding.image.updateLayoutParams {
-                width = screenWidth
-                height = imgHeight
+                this.width = screenWidth
+                this.height = imgHeight.coerceAtMost(screenHeight)
             }
         }
 
@@ -61,7 +74,7 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
             Glide.with(context).load(GlideUrlChild(holder.illust.image_urls?.large))
                 .into(binding.image)
         } else {
-            resize(Pair(screenWidth, 300.ppppx))
+            resize(Pair(screenWidth, defaultSize()))
         }
 
         holder.loadTask.result.removeObservers(lifecycleOwner)
