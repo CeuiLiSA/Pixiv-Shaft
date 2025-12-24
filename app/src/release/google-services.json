@@ -27,9 +27,47 @@
     },
     {
       "client_info": {
+        "mobilesdk_app_id": "1:1040768197641:android:9f48f3a09ef8c24755c4d8",
+        "android_client_info": {
+          "package_name": "ceui.pixiv.cshaft"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvK_F572W8fn4xvzlJAvug6Ji1Z7eZLU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:1040768197641:android:d19edf6b5b22c1ed55c4d8",
         "android_client_info": {
           "package_name": "ceui.pixiv.dshaft"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvK_F572W8fn4xvzlJAvug6Ji1Z7eZLU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040768197641:android:8d58cc9f786c153955c4d8",
+        "android_client_info": {
+          "package_name": "ceui.pixiv.pshaft"
         }
       },
       "oauth_client": [],
