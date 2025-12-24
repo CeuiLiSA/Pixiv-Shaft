@@ -23,17 +23,11 @@ class HomeViewModel(private val assets: AssetManager) : ViewModel() {
     private val _landingBackgroundFile = MutableLiveData<File>()
     val landingBackgroundFile: LiveData<File> = _landingBackgroundFile
 
-    private val _grayDisplay = MutableLiveData(false)
-    val grayDisplay: LiveData<Boolean> = _grayDisplay
 
     private val navStack = mutableListOf<Int>()
 
     private val _currentScale = MutableLiveData(1f)
     val currentScale: LiveData<Float> = _currentScale
-
-    fun toggleGrayModeImpl() {
-        _grayDisplay.value = _grayDisplay.value?.not() == true
-    }
 
     fun onDestinationChanged(destId: Int) {
         val lastId = navStack.lastOrNull()

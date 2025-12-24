@@ -1,11 +1,7 @@
 package ceui.pixiv.ui.common
 
 import android.animation.Animator
-import android.animation.ValueAnimator
 import android.content.Intent
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Paint
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -34,7 +30,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withC
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import timber.log.Timber
 
-class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener {
+class HomeActivity : AppCompatActivity(), ColorPickerDialogListener {
 
     private lateinit var binding: ActivityHomeBinding
     private val homeViewModel: HomeViewModel by viewModels {
@@ -83,8 +79,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener
             triggerOnce()
         }
 
-        homeViewModel.grayDisplay.observe(this) { gray -> animateGrayTransition(gray) }
-//
 //        lifecycleScope.launch {
 //            TaskQueueManager.addTasks(
 //                listOf(
@@ -271,28 +265,6 @@ class HomeActivity : AppCompatActivity(), GrayToggler, ColorPickerDialogListener
             }
         }
         return super.dispatchTouchEvent(event)
-    }
-
-    private fun animateGrayTransition(toGray: Boolean) {
-        val start = if (toGray) 1f else 0f
-        val end = if (toGray) 0f else 1f
-
-        val animator = ValueAnimator.ofFloat(start, end)
-        animator.duration = 400
-        animator.addUpdateListener {
-            val saturation = it.animatedValue as Float
-            val matrix = ColorMatrix().apply { setSaturation(saturation) }
-            val paint = Paint().apply {
-                colorFilter = ColorMatrixColorFilter(matrix)
-            }
-            window.decorView.setLayerType(View.LAYER_TYPE_HARDWARE, paint)
-        }
-        animator.start()
-    }
-
-
-    override fun toggleGrayMode() {
-        homeViewModel.toggleGrayModeImpl()
     }
 
     private fun handleIntentLink(intent: Intent?, fromWhere: String) {
