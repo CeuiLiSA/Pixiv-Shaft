@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<resources xmlns:tools="http://schemas.android.com/tools">  
-  <string name="app_name">PixShaft</string>  
-  <string name="navigation_drawer_open">Open navigation drawer</string>  
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <string name="navigation_drawer_open">Open navigation drawer</string>
   <string name="navigation_drawer_close">Close navigation drawer</string>  
   <string name="nav_header_title">Android Studio</string>  
   <string name="nav_header_subtitle">android.studio@android.com</string>  

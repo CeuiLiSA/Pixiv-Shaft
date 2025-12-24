@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<resources> 
-  <string name="app_name">PixShaft</string>  
-  <string name="action_settings">Параметры</string>  
+<resources>
+  <string name="action_settings">Параметры</string>
   <string name="empty_list_1">На самом деле такого элемента не существует</string>  
   <string name="empty_list_2">На самом деле такого элемента не существует</string>  
   <string name="empty_list_3">На самом деле такого элемента не существует</string>  

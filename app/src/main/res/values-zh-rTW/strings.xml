@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <resources>
-  <string name="app_name">PixShaft</string>
   <string name="navigation_drawer_open">打開抽屜式導航欄</string>
   <string name="navigation_drawer_close">關閉導覽</string>
   <string name="nav_header_title">Android Studio</string>

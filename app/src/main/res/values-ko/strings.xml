@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<resources> 
-  <string name="app_name">PixShaft</string>  
-  <string name="navigation_drawer_open">내 비게 이 션 서랍 을 열다</string>  
+<resources>
+  <string name="navigation_drawer_open">내 비게 이 션 서랍 을 열다</string>
   <string name="navigation_drawer_close">내 비게 이 션 서랍 닫 기</string>  
   <string name="nav_header_title">안 드 로 이 드 스튜디오</string>  
   <string name="nav_header_subtitle">안 드 로 이 드 스튜디오@.안 드 로 이 드 닷 컴</string>  
