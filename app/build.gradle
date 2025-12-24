@@ -37,7 +37,7 @@ android {
             signingConfig signingConfigs.release
 
             applicationIdSuffix ".dshaft"
-            resValue "string", "app_name", "Shaft(Debug)"
+            resValue "string", "app_name", "Shaft2(Debug)"
         }
         release {
             minifyEnabled false
