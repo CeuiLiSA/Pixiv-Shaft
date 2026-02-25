@@ -124,7 +124,7 @@ dependencies {
 
     implementation 'com.github.lzyzsd:circleprogress:1.2.1'
 
-    implementation "io.github.tobelogin:native-list2webp:0.1"
+    implementation "io.github.tobelogin:native-list2webp:0.2"
 
     def refresh_version = "3.0.0-alpha"
     implementation "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖
