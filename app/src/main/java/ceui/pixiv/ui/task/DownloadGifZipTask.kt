@@ -73,25 +73,21 @@ class DownloadGifZipTask(
             }
         }
 
-        val cmd =
-            "-y -f concat -safe 0 -i ${listFile.absolutePath} -loop 0 ${webpFile.absolutePath}"
+        val ret = io.github.tobelogin.FormatConverter.list2webp(listFile.absolutePath, webpFile.absolutePath)
+        if (ret == 0) {
+            val key = KEY + illustId
+            _prefStore.putBoolean(key, true)
 
-        com.arthenica.mobileffmpeg.FFmpeg.executeAsync(cmd) { _, returnCode ->
-            if (returnCode == 0) {
-                val key = KEY + illustId
-                _prefStore.putBoolean(key, true)
+            unzipFolder.deleteRecursively()
 
-                unzipFolder.deleteRecursively()
+            val sizeKb = webpFile.length() / 1024.0
+            Timber.d("GifTaskAAAA WebP generated: ${webpFile.absolutePath}")
+            Timber.d("GifTaskAAAA ${String.format("File size: %.2f KB", sizeKb)}")
 
-                val sizeKb = webpFile.length() / 1024.0
-                Timber.d("GifTaskAAAA WebP generated: ${webpFile.absolutePath}")
-                Timber.d("GifTaskAAAA ${String.format("File size: %.2f KB", sizeKb)}")
-
-                onEnd(webpFile)
-                gifState.postValue(GifState.Done(webpFile))
-            } else {
-                onError(Exception("FFmpeg failed with rc=$returnCode"))
-            }
+            onEnd(webpFile)
+            gifState.postValue(GifState.Done(webpFile))
+        } else {
+            onError(Exception("FFmpeg failed with rc=$ret"))
         }
     }
 
