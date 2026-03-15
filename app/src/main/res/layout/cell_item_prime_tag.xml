@@ -5,6 +5,7 @@
     <data>
 
         <import type="ceui.pixiv.ui.prime.PrimeTagItemHolder" />
+        <import type="android.view.View" />
 
         <variable
             name="holder"
@@ -56,11 +57,10 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/illusts_preview"
-            visibleOrGone="@{holder.primeTag.resp.illusts.size() > 0}"
+            android:visibility="@{holder.indexItem.previewSquareUrls.size() > 0 ? View.VISIBLE : View.GONE}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:visibility="gone">
+            android:layout_marginTop="8dp">
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_1"

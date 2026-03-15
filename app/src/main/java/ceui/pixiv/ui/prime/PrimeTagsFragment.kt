@@ -8,6 +8,7 @@ import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellItemPrimeTagBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Illust
+import ceui.loxia.ImageUrls
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.ListItemHolder
@@ -29,34 +30,33 @@ class PrimeTagsFragment : PixivFragment(R.layout.fragment_pixiv_list), PrimeTagA
     }
 
     override fun onClickPrimeTag(
-        primeTag: PrimeTagResult,
-        filePath: String
+        indexItem: PrimeTagIndexItem
     ) {
         pushFragment(
             R.id.navigation_prime_tag_detail,
-            PrimeTagDetailFragmentArgs(primeTag.tag.translated_name ?: "", filePath).toBundle()
+            PrimeTagDetailFragmentArgs(indexItem.tag.translated_name ?: "", indexItem.filePath).toBundle()
         )
     }
 }
 
 
-class PrimeTagItemHolder(val primeTag: PrimeTagResult, val filePath: String) : ListItemHolder() {
+class PrimeTagItemHolder(val indexItem: PrimeTagIndexItem) : ListItemHolder() {
+    val primeTag: PrimeTagIndexItem get() = indexItem
+
     val illust0: Illust?
-        get() {
-            return primeTag.resp.illusts.getOrNull(0)
-        }
+        get() = indexItem.previewSquareUrls.getOrNull(0)?.toPreviewIllust()
     val illust1: Illust?
-        get() {
-            return primeTag.resp.illusts.getOrNull(1)
-        }
+        get() = indexItem.previewSquareUrls.getOrNull(1)?.toPreviewIllust()
     val illust2: Illust?
-        get() {
-            return primeTag.resp.illusts.getOrNull(2)
-        }
+        get() = indexItem.previewSquareUrls.getOrNull(2)?.toPreviewIllust()
 
     override fun getItemId(): Long {
-        return filePath.hashCode().toLong()
+        return indexItem.filePath.hashCode().toLong()
     }
+}
+
+private fun String.toPreviewIllust(): Illust {
+    return Illust(id = 0, image_urls = ImageUrls(square_medium = this))
 }
 
 @ItemHolder(PrimeTagItemHolder::class)
@@ -68,12 +68,11 @@ class PrimeTagItemViewHolder(private val bd: CellItemPrimeTagBinding) :
         binding.holder = holder
         binding.root.setOnClickListener {
             it.findActionReceiverOrNull<PrimeTagActionReceiver>()
-                ?.onClickPrimeTag(holder.primeTag, holder.filePath)
+                ?.onClickPrimeTag(holder.indexItem)
         }
     }
 }
 
 interface PrimeTagActionReceiver {
-    fun onClickPrimeTag(primeTag: PrimeTagResult, filePath: String)
+    fun onClickPrimeTag(indexItem: PrimeTagIndexItem)
 }
-

@@ -482,6 +482,10 @@ fun Fragment.setUpRefreshState(
 
     binding.refreshLayout.setEnableRefresh(false)
     binding.refreshLayout.setEnableLoadMore(false)
+    binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
+    binding.refreshLayout.setOnRefreshListener {
+        viewModel.refresh(RefreshHint.PullToRefresh)
+    }
 
     val networkStateManager = requireNetworkStateManager()
 
@@ -503,14 +507,9 @@ fun Fragment.setUpRefreshState(
     }
     viewModel.refreshState.observe(viewLifecycleOwner) { state ->
         if (state !is RefreshState.LOADING) {
+            binding.refreshLayout.setEnableRefresh(true)
             binding.refreshLayout.finishRefresh()
             binding.refreshLayout.finishLoadMore()
-
-            binding.refreshLayout.setEnableRefresh(true)
-            binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
-            binding.refreshLayout.setOnRefreshListener {
-                viewModel.refresh(RefreshHint.PullToRefresh)
-            }
         }
         binding.emptyLayout.isVisible = state is RefreshState.LOADED && !state.hasContent
         if (state is RefreshState.LOADED) {

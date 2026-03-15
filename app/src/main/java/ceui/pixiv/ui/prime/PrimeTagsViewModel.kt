@@ -5,6 +5,7 @@ import ceui.loxia.RefreshState
 import ceui.pixiv.ui.common.HoldersViewModel
 import com.blankj.utilcode.util.Utils
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -16,12 +17,12 @@ class PrimeTagsViewModel : HoldersViewModel() {
         super.refreshImpl(hint)
         withContext(Dispatchers.IO) {
             val assetManager = Utils.getApp().assets
-            val paths = loadPrimeTxtFullPaths()
+            val json = assetManager.open(INDEX_FILE).bufferedReader().use { it.readText() }
+            val type = object : TypeToken<List<PrimeTagIndexItem>>() {}.type
+            val indexItems: List<PrimeTagIndexItem> = gson.fromJson(json, type)
 
-            val items = paths.map { path ->
-                val json = assetManager.open(path).bufferedReader().use { it.readText() }
-                val result = gson.fromJson(json, PrimeTagResult::class.java)
-                PrimeTagItemHolder(result, path)
+            val items = indexItems.map { entry ->
+                PrimeTagItemHolder(entry)
             }
 
             _itemHolders.postValue(items)
@@ -29,21 +30,11 @@ class PrimeTagsViewModel : HoldersViewModel() {
         _refreshState.value = RefreshState.LOADED(hasContent = true, hasNext = false)
     }
 
-
-    private fun loadPrimeTxtFullPaths(): List<String> {
-        val files =
-            Utils.getApp().applicationContext.assets.list(DIR) ?: return emptyList()
-        return files
-            .filter { it.endsWith(".txt", ignoreCase = true) }
-            .map { "${DIR}/$it" }
-    }
-
     companion object {
-        private const val DIR = "pixiv_prime"
+        private const val INDEX_FILE = "pixiv_prime/prime_index.json"
     }
 
     init {
         refresh(RefreshHint.InitialLoad)
     }
 }
-
