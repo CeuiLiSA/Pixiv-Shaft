@@ -347,6 +347,7 @@ fun Fragment.setUpRefreshState(
     }
     viewModel.refreshState.observe(viewLifecycleOwner) { state ->
         if (state !is RefreshState.LOADING) {
+            binding.refreshLayout.setEnableRefresh(true)
             binding.refreshLayout.finishRefresh()
             binding.refreshLayout.finishLoadMore()
         }
