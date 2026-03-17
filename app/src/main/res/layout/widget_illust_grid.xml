@@ -25,8 +25,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_margin="2dp"
-                android:scaleType="fitXY"
-            android:background="@drawable/widget_image_bg" />
+                android:scaleType="centerCrop" />
 
             <ImageView
                 android:id="@+id/widget_image_2"
@@ -34,8 +33,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_margin="2dp"
-                android:scaleType="fitXY"
-            android:background="@drawable/widget_image_bg" />
+                android:scaleType="centerCrop" />
 
         </LinearLayout>
 
@@ -51,8 +49,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_margin="2dp"
-                android:scaleType="fitXY"
-            android:background="@drawable/widget_image_bg" />
+                android:scaleType="centerCrop" />
 
             <ImageView
                 android:id="@+id/widget_image_4"
@@ -60,8 +57,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_margin="2dp"
-                android:scaleType="fitXY"
-            android:background="@drawable/widget_image_bg" />
+                android:scaleType="centerCrop" />
 
         </LinearLayout>
 
@@ -77,8 +73,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_margin="2dp"
-                android:scaleType="fitXY"
-            android:background="@drawable/widget_image_bg" />
+                android:scaleType="centerCrop" />
 
             <ImageView
                 android:id="@+id/widget_image_6"
@@ -86,8 +81,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_margin="2dp"
-                android:scaleType="fitXY"
-            android:background="@drawable/widget_image_bg" />
+                android:scaleType="centerCrop" />
 
         </LinearLayout>
 

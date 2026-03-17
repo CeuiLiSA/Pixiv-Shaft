@@ -4,12 +4,6 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
-import android.graphics.RectF
 import android.view.View
 import android.widget.RemoteViews
 import androidx.work.CoroutineWorker
@@ -57,14 +51,13 @@ class IllustGridWidgetWorker(
             ComponentName(context, IllustGridWidget::class.java)
         )
 
-        // 计算格子实际像素尺寸，让 bitmap 精确匹配，避免拉伸
         val density = context.resources.displayMetrics.density
         val cellSize = if (widgetIds.isNotEmpty()) {
             val opts = appWidgetManager.getAppWidgetOptions(widgetIds[0])
             val widthDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 200)
             val heightDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 200)
             val paddingPx = (8 * density).toInt()
-            val gapPx = (4 * density).toInt() // 2dp margin * 2 sides
+            val gapPx = (4 * density).toInt()
             val w = ((widthDp * density).toInt() - paddingPx * 2 - gapPx) / 2
             val h = ((heightDp * density).toInt() - paddingPx * 2 - gapPx * 2) / 3
             Pair(w.coerceAtLeast(100), h.coerceAtLeast(100))
@@ -72,18 +65,15 @@ class IllustGridWidgetWorker(
             Pair(300, 200)
         }
 
-        val radiusPx = 10 * density
-
         val bitmaps = withContext(Dispatchers.IO) {
             illusts.mapNotNull { illust ->
                 try {
-                    val raw = Glide.with(context)
+                    Glide.with(context)
                         .asBitmap()
                         .load(GlideUtil.getLargeImage(illust))
                         .apply(RequestOptions().transform(CenterCrop()))
                         .submit(cellSize.first, cellSize.second)
                         .get()
-                    roundBitmap(raw, radiusPx)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     null
@@ -123,18 +113,6 @@ class IllustGridWidgetWorker(
         }
 
         return Result.success()
-    }
-
-    private fun roundBitmap(src: Bitmap, radiusPx: Float): Bitmap {
-        val w = src.width
-        val h = src.height
-        val output = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        canvas.drawRoundRect(RectF(0f, 0f, w.toFloat(), h.toFloat()), radiusPx, radiusPx, paint)
-        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-        canvas.drawBitmap(src, 0f, 0f, paint)
-        return output
     }
 
     companion object {
