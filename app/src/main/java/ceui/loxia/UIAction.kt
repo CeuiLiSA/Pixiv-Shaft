@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.pixiv.utils.TokenGenerator
 import ceui.pixiv.widgets.alertYesOrCancel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -49,6 +50,7 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
         try {
             block()
         } catch (ex: Exception) {
+            if (ex is CancellationException) throw ex
             context?.let {
                 alertYesOrCancel(ex.getHumanReadableMessage(it))
             }
@@ -73,6 +75,7 @@ fun Fragment.launchSpinner(block: suspend CoroutineScope.() -> Unit) {
             } catch (e: Exception) {
                 Timber.e(e)
             }
+            if (ex is CancellationException) throw ex
             context?.let {
                 alertYesOrCancel(ex.getHumanReadableMessage(it))
             }
@@ -88,6 +91,7 @@ fun Fragment.launchSuspend(sender: ProgressIndicator, block: suspend CoroutineSc
             sender.showProgress()
             block()
         } catch (ex: Exception) {
+            if (ex is CancellationException) throw ex
             context?.let {
                 alertYesOrCancel(ex.getHumanReadableMessage(it))
             }
