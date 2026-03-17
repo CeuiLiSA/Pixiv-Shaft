@@ -237,6 +237,18 @@
             android:name=".notification.RecommendAppWidgetProvider$RecommendAppWidgetService"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <receiver
+            android:name="ceui.pixiv.widget.IllustGridWidget"
+            android:exported="false"
+            android:label="@string/illust_grid_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/illust_grid_widget_info" />
+        </receiver>
     </application>
 
 </manifest>
