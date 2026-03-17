@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.widget.RemoteViews
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -14,7 +13,6 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.http.Retro
-import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
@@ -45,12 +43,54 @@ class IllustGridWidgetWorker(
 
         if (illusts.isEmpty()) return Result.success()
 
+        val bitmaps = withContext(Dispatchers.IO) {
+            illusts.mapNotNull { illust ->
+                try {
+                    Glide.with(context)
+                        .asBitmap()
+                        .load(GlideUtil.getLargeImage(illust))
+                        .submit(400, 400)
+                        .get()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+        }
+
         val appWidgetManager = AppWidgetManager.getInstance(context)
         val widgetIds = appWidgetManager.getAppWidgetIds(
             ComponentName(context, IllustGridWidget::class.java)
         )
 
-        updateAllWidgets(context, appWidgetManager, widgetIds, illusts)
+        for (widgetId in widgetIds) {
+            val views = RemoteViews(context.packageName, R.layout.widget_illust_grid)
+
+            bitmaps.forEachIndexed { index, bitmap ->
+                if (index < IMAGE_VIEW_IDS.size) {
+                    views.setImageViewBitmap(IMAGE_VIEW_IDS[index], bitmap)
+
+                    val illust = illusts.getOrNull(index) ?: return@forEachIndexed
+                    val clickIntent = Intent(context, VActivity::class.java)
+                    clickIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    val pageData = PageData(listOf(illust))
+                    Container.get().addPageToMap(pageData)
+                    clickIntent.putExtra(Params.POSITION, 0)
+                    clickIntent.putExtra(Params.PAGE_UUID, pageData.uuid)
+
+                    val pendingIntent = android.app.PendingIntent.getActivity(
+                        context,
+                        widgetId * 10 + index,
+                        clickIntent,
+                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(IMAGE_VIEW_IDS[index], pendingIntent)
+                }
+            }
+
+            appWidgetManager.updateAppWidget(widgetId, views)
+        }
+
         return Result.success()
     }
 
@@ -63,70 +103,5 @@ class IllustGridWidgetWorker(
             R.id.widget_image_5,
             R.id.widget_image_6,
         )
-
-        fun updateAllWidgets(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            appWidgetIds: IntArray,
-            illusts: List<IllustsBean> = emptyList()
-        ) {
-            val token = Shaft.sUserModel?.access_token ?: return
-            val actualIllusts = if (illusts.isEmpty()) {
-                try {
-                    Retro.getAppApi().getRecmdIllust(token, true)
-                        .blockingFirst()
-                        ?.illusts
-                        ?.shuffled()
-                        ?.take(6)
-                        ?: emptyList()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    return
-                }
-            } else illusts
-
-            if (actualIllusts.isEmpty()) return
-
-            val bitmaps = actualIllusts.mapNotNull { illust ->
-                try {
-                    Glide.with(context)
-                        .asBitmap()
-                        .load(GlideUtil.getLargeImage(illust))
-                        .submit(200, 200)
-                        .get()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
-            }
-
-            for (widgetId in appWidgetIds) {
-                val views = RemoteViews(context.packageName, R.layout.widget_illust_grid)
-
-                bitmaps.forEachIndexed { index, bitmap ->
-                    if (index < IMAGE_VIEW_IDS.size) {
-                        views.setImageViewBitmap(IMAGE_VIEW_IDS[index], bitmap)
-
-                        val illust = actualIllusts.getOrNull(index) ?: return@forEachIndexed
-                        val clickIntent = Intent(context, VActivity::class.java)
-                        clickIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        val pageData = PageData(listOf(illust))
-                        Container.get().addPageToMap(pageData)
-                        clickIntent.putExtra(Params.POSITION, 0)
-                        clickIntent.putExtra(Params.PAGE_UUID, pageData.uuid)
-
-                        val pendingIntent = android.app.PendingIntent.getActivity(
-                            context,
-                            widgetId * 10 + index,
-                            clickIntent,
-                            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-                        )
-                        views.setOnClickPendingIntent(IMAGE_VIEW_IDS[index], pendingIntent)
-                    }
-                }
-
-                appWidgetManager.updateAppWidget(widgetId, views)
-            }
-        }
     }
 }
