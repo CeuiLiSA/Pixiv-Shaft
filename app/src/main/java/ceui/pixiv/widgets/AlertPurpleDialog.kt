@@ -48,8 +48,11 @@ suspend fun Fragment.alertYesOrCancel(title: String): Boolean {
         dialogViewModel.alertTaskPool.remove(taskUUID)
     }
     dialogViewModel.alertTaskPool[taskUUID] = task
-    AlertPurpleDialog().apply {
+    val dialog = AlertPurpleDialog().apply {
         arguments = AlertPurpleDialogArgs(taskUUID, title).toBundle()
-    }.show(childFragmentManager, "AlertPurpleDialog-${taskUUID}")
+    }
+    childFragmentManager.beginTransaction()
+        .add(dialog, "AlertPurpleDialog-${taskUUID}")
+        .commitAllowingStateLoss()
     return task.await()
 }
