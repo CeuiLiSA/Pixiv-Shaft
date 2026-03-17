@@ -4,6 +4,12 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.RectF
 import android.view.View
 import android.widget.RemoteViews
 import androidx.work.CoroutineWorker
@@ -17,8 +23,6 @@ import ceui.lisa.http.Retro
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -46,16 +50,17 @@ class IllustGridWidgetWorker(
 
         if (illusts.isEmpty()) return Result.success()
 
+        val radiusPx = 12 * context.resources.displayMetrics.density
+
         val bitmaps = withContext(Dispatchers.IO) {
             illusts.mapNotNull { illust ->
                 try {
-                    val cornerRadiusPx = (8 * context.resources.displayMetrics.density).toInt()
-                    Glide.with(context)
+                    val raw = Glide.with(context)
                         .asBitmap()
                         .load(GlideUtil.getLargeImage(illust))
-                        .apply(RequestOptions().transform(RoundedCorners(cornerRadiusPx)))
                         .submit(400, 400)
                         .get()
+                    roundBitmap(raw, radiusPx)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     null
@@ -100,6 +105,18 @@ class IllustGridWidgetWorker(
         }
 
         return Result.success()
+    }
+
+    private fun roundBitmap(src: Bitmap, radiusPx: Float): Bitmap {
+        val w = src.width
+        val h = src.height
+        val output = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        canvas.drawRoundRect(RectF(0f, 0f, w.toFloat(), h.toFloat()), radiusPx, radiusPx, paint)
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(src, 0f, 0f, paint)
+        return output
     }
 
     companion object {
