@@ -35,6 +35,16 @@ class SmartFragmentPagerAdapter(
         return fragmentItems.size
     }
 
+    override fun getItemId(position: Int): Long {
+        return fragmentItems[position].id ?: position.toLong()
+    }
+
+    override fun containsItem(itemId: Long): Boolean {
+        return fragmentItems.indices.any { pos ->
+            (fragmentItems[pos].id ?: pos.toLong()) == itemId
+        }
+    }
+
     override fun createFragment(position: Int): Fragment {
         return fragmentItems[position].builder()
     }
