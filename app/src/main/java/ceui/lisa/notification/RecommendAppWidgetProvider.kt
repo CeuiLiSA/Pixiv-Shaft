@@ -103,7 +103,8 @@ class RecommendAppWidgetProvider : AppWidgetProvider() {
                     PendingIntent.getBroadcast(context, 880880, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
                 )
 
-                Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.access_token, true)
+                val accessToken = Shaft.sUserModel?.access_token ?: return@launch
+                Retro.getAppApi().getRecmdIllust(accessToken, true)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(object : NullCtrl<ListIllust?>() {
