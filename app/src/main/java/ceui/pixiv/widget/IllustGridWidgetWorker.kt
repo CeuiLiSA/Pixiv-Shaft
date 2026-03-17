@@ -49,10 +49,11 @@ class IllustGridWidgetWorker(
         val bitmaps = withContext(Dispatchers.IO) {
             illusts.mapNotNull { illust ->
                 try {
+                    val cornerRadiusPx = (8 * context.resources.displayMetrics.density).toInt()
                     Glide.with(context)
                         .asBitmap()
                         .load(GlideUtil.getLargeImage(illust))
-                        .apply(RequestOptions().transform(RoundedCorners(24)))
+                        .apply(RequestOptions().transform(RoundedCorners(cornerRadiusPx)))
                         .submit(400, 400)
                         .get()
                 } catch (e: Exception) {
