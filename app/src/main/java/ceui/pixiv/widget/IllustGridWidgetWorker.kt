@@ -23,6 +23,8 @@ import ceui.lisa.http.Retro
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.request.RequestOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -50,7 +52,27 @@ class IllustGridWidgetWorker(
 
         if (illusts.isEmpty()) return Result.success()
 
-        val radiusPx = 12 * context.resources.displayMetrics.density
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val widgetIds = appWidgetManager.getAppWidgetIds(
+            ComponentName(context, IllustGridWidget::class.java)
+        )
+
+        // 计算格子实际像素尺寸，让 bitmap 精确匹配，避免拉伸
+        val density = context.resources.displayMetrics.density
+        val cellSize = if (widgetIds.isNotEmpty()) {
+            val opts = appWidgetManager.getAppWidgetOptions(widgetIds[0])
+            val widthDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 200)
+            val heightDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 200)
+            val paddingPx = (8 * density).toInt()
+            val gapPx = (4 * density).toInt() // 2dp margin * 2 sides
+            val w = ((widthDp * density).toInt() - paddingPx * 2 - gapPx) / 2
+            val h = ((heightDp * density).toInt() - paddingPx * 2 - gapPx * 2) / 3
+            Pair(w.coerceAtLeast(100), h.coerceAtLeast(100))
+        } else {
+            Pair(300, 200)
+        }
+
+        val radiusPx = 10 * density
 
         val bitmaps = withContext(Dispatchers.IO) {
             illusts.mapNotNull { illust ->
@@ -58,7 +80,8 @@ class IllustGridWidgetWorker(
                     val raw = Glide.with(context)
                         .asBitmap()
                         .load(GlideUtil.getLargeImage(illust))
-                        .submit(400, 400)
+                        .apply(RequestOptions().transform(CenterCrop()))
+                        .submit(cellSize.first, cellSize.second)
                         .get()
                     roundBitmap(raw, radiusPx)
                 } catch (e: Exception) {
@@ -67,11 +90,6 @@ class IllustGridWidgetWorker(
                 }
             }
         }
-
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val widgetIds = appWidgetManager.getAppWidgetIds(
-            ComponentName(context, IllustGridWidget::class.java)
-        )
 
         for (widgetId in widgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_illust_grid)
