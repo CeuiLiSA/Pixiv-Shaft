@@ -12,6 +12,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import ceui.lisa.R
+import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.pixiv.session.SessionManager
@@ -102,7 +103,7 @@ class IllustGridWidgetWorker(
         return try {
             Glide.with(appContext)
                 .asBitmap()
-                .load(illust.image_urls?.square_medium)
+                .load(GlideUrlChild(illust.image_urls?.square_medium))
                 .submit(256, 256)
                 .get()
         } catch (e: Exception) {
