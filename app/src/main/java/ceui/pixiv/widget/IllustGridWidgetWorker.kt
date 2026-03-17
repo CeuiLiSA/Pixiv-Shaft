@@ -103,7 +103,7 @@ class IllustGridWidgetWorker(
         return try {
             Glide.with(appContext)
                 .asBitmap()
-                .load(GlideUrlChild(illust.image_urls?.square_medium))
+                .load(GlideUrlChild(illust.image_urls?.large))
                 .submit(256, 256)
                 .get()
         } catch (e: Exception) {
