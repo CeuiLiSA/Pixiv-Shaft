@@ -22,7 +22,11 @@ import ceui.loxia.requireAppBackground
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.background.BackgroundConfig
 import ceui.pixiv.ui.background.BackgroundType
+import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
+import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.web.LinkHandler
+import ceui.pixiv.widget.IllustGridWidgetWorker
+import ceui.loxia.ObjectType
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -268,13 +272,25 @@ class HomeActivity : AppCompatActivity(), ColorPickerDialogListener {
     }
 
     private fun handleIntentLink(intent: Intent?, fromWhere: String) {
-        val link = intent?.data?.toString()
-        if (link.isNullOrEmpty()) return
+        if (intent == null) return
+        Timber.d("handleIntentLink: from: $fromWhere")
 
+        val illustId = intent.getLongExtra(IllustGridWidgetWorker.EXTRA_ILLUST_ID, -1L)
+        if (illustId != -1L) {
+            val navController = findNavController(R.id.nav_host_fragment_activity_main)
+            val seed = "widget_$illustId"
+            ArtworksMap.store[seed] = listOf(illustId)
+            navController.navigate(
+                R.id.navigation_viewpager_artwork,
+                ArtworkViewPagerFragmentArgs(seed, illustId, ObjectType.ILLUST).toBundle()
+            )
+            return
+        }
+
+        val link = intent.data?.toString()
+        if (link.isNullOrEmpty()) return
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        val linkHandler = LinkHandler(navController)
-        Timber.d("handleIntentLink: from: ${fromWhere}")
-        linkHandler.processLink(link)
+        LinkHandler(navController).processLink(link)
     }
 
     override fun onNewIntent(intent: Intent) {

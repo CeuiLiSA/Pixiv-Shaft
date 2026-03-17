@@ -83,21 +83,23 @@ class IllustGridWidgetWorker(
             R.id.widget_image_1, R.id.widget_image_2, R.id.widget_image_3,
             R.id.widget_image_4, R.id.widget_image_5, R.id.widget_image_6
         )
-        val clickPendingIntent = PendingIntent.getActivity(
-            appContext, 0,
-            Intent(appContext, HomeActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
 
         imageViewIds.forEachIndexed { index, viewId ->
             val illust = illusts.getOrNull(index) ?: return@forEachIndexed
             val bitmap = loadBitmap(illust)
             if (bitmap != null) {
                 views.setImageViewBitmap(viewId, bitmap)
-                views.setOnClickPendingIntent(viewId, clickPendingIntent)
-                Timber.d("IllustGridWidget: bitmap set for index $index")
+                val intent = Intent(appContext, HomeActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra(EXTRA_ILLUST_ID, illust.id.toLong())
+                }
+                val pendingIntent = PendingIntent.getActivity(
+                    appContext, illust.id,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(viewId, pendingIntent)
+                Timber.d("IllustGridWidget: bitmap set for index $index, illustId=${illust.id}")
             } else {
                 Timber.w("IllustGridWidget: bitmap null for index $index")
             }
@@ -167,6 +169,8 @@ class IllustGridWidgetWorker(
     }
 
     companion object {
+        const val EXTRA_ILLUST_ID = "widget_illust_id"
+
         fun enqueueImmediate(context: Context) {
             Timber.d("IllustGridWidget: enqueueImmediate")
             WorkManager.getInstance(context).enqueue(
