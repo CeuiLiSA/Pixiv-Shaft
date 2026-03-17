@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.view.View
 import android.widget.RemoteViews
 import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequestBuilder
@@ -94,6 +95,8 @@ class IllustGridWidgetWorker(
             }
         }
 
+        views.setViewVisibility(R.id.widget_loading_container, View.GONE)
+        views.setViewVisibility(R.id.widget_grid_container, View.VISIBLE)
         ids.forEach { id -> manager.updateAppWidget(id, views) }
         Timber.d("IllustGridWidget: updateAppWidget done")
         return Result.success()
