@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.view.View
 import android.widget.RemoteViews
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -65,6 +66,9 @@ class IllustGridWidgetWorker(
 
         for (widgetId in widgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_illust_grid)
+
+            views.setViewVisibility(R.id.widget_loading_container, View.GONE)
+            views.setViewVisibility(R.id.widget_grid_container, View.VISIBLE)
 
             bitmaps.forEachIndexed { index, bitmap ->
                 if (index < IMAGE_VIEW_IDS.size) {
