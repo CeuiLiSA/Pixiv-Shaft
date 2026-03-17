@@ -17,6 +17,8 @@ import ceui.lisa.http.Retro
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -50,6 +52,7 @@ class IllustGridWidgetWorker(
                     Glide.with(context)
                         .asBitmap()
                         .load(GlideUtil.getLargeImage(illust))
+                        .apply(RequestOptions().transform(RoundedCorners(24)))
                         .submit(400, 400)
                         .get()
                 } catch (e: Exception) {
