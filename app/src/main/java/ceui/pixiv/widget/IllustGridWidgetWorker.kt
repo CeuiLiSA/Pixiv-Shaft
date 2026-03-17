@@ -19,6 +19,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
 import ceui.pixiv.ui.common.HomeActivity
 import com.bumptech.glide.Glide
+import timber.log.Timber
 
 class IllustGridWidgetWorker(
     private val appContext: Context,
@@ -26,27 +27,44 @@ class IllustGridWidgetWorker(
 ) : Worker(appContext, workerParams) {
 
     override fun doWork(): Result {
-        val token = Shaft.sUserModel?.access_token ?: return Result.success()
+        Timber.d("IllustGridWidget: doWork started")
+
+        val token = Shaft.sUserModel?.access_token
+        if (token == null) {
+            Timber.w("IllustGridWidget: sUserModel is null, skip")
+            return Result.success()
+        }
+        Timber.d("IllustGridWidget: token acquired")
 
         val illusts = try {
             Retro.getAppApi()
                 .getRecmdIllust(token, true)
                 .blockingFirst()
                 ?.illusts
+                ?.also { Timber.d("IllustGridWidget: fetched ${it.size} illusts") }
                 ?.filter { !it.isR18File }
                 ?.shuffled()
                 ?.take(6)
         } catch (e: Exception) {
+            Timber.e(e, "IllustGridWidget: API call failed")
             return Result.retry()
         }
 
-        if (illusts.isNullOrEmpty()) return Result.success()
+        if (illusts.isNullOrEmpty()) {
+            Timber.w("IllustGridWidget: illusts empty after filter")
+            return Result.success()
+        }
+        Timber.d("IllustGridWidget: using ${illusts.size} illusts after filter")
 
         val manager = AppWidgetManager.getInstance(appContext)
         val ids = manager.getAppWidgetIds(
             ComponentName(appContext, IllustGridWidget::class.java)
         )
-        if (ids.isEmpty()) return Result.success()
+        if (ids.isEmpty()) {
+            Timber.w("IllustGridWidget: no widget ids found")
+            return Result.success()
+        }
+        Timber.d("IllustGridWidget: updating ${ids.size} widget(s)")
 
         val views = RemoteViews(appContext.packageName, R.layout.widget_illust_grid)
 
@@ -69,12 +87,19 @@ class IllustGridWidgetWorker(
 
         imageViewIds.forEachIndexed { index, viewId ->
             val illust = illusts.getOrNull(index) ?: return@forEachIndexed
-            val bitmap = loadBitmap(illust) ?: return@forEachIndexed
-            views.setImageViewBitmap(viewId, bitmap)
-            views.setOnClickPendingIntent(viewId, clickPendingIntent)
+            Timber.d("IllustGridWidget: loading bitmap for index $index, id=${illust.id}")
+            val bitmap = loadBitmap(illust)
+            if (bitmap != null) {
+                views.setImageViewBitmap(viewId, bitmap)
+                views.setOnClickPendingIntent(viewId, clickPendingIntent)
+                Timber.d("IllustGridWidget: bitmap set for index $index")
+            } else {
+                Timber.w("IllustGridWidget: bitmap null for index $index, id=${illust.id}")
+            }
         }
 
         ids.forEach { id -> manager.updateAppWidget(id, views) }
+        Timber.d("IllustGridWidget: updateAppWidget done")
         return Result.success()
     }
 
@@ -86,12 +111,14 @@ class IllustGridWidgetWorker(
                 .submit(256, 256)
                 .get()
         } catch (e: Exception) {
+            Timber.e(e, "IllustGridWidget: Glide load failed for illust ${illust.id}")
             null
         }
     }
 
     companion object {
         fun enqueueImmediate(context: Context) {
+            Timber.d("IllustGridWidget: enqueueImmediate")
             val request = OneTimeWorkRequestBuilder<IllustGridWidgetWorker>().build()
             WorkManager.getInstance(context).enqueue(request)
         }
