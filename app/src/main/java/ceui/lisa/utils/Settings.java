@@ -180,6 +180,8 @@ public class Settings {
 
     private boolean autoPostLikeWhenDownload = false; // 下载时自动收藏
 
+    private boolean autoFollowAfterStar = false; // 收藏后自动关注作者
+
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
     private boolean toastDownloadResult = true; // 默认提示下载结果
@@ -573,6 +575,14 @@ public class Settings {
 
     public void setAutoPostLikeWhenDownload(boolean autoPostLikeWhenDownload) {
         this.autoPostLikeWhenDownload = autoPostLikeWhenDownload;
+    }
+
+    public boolean isAutoFollowAfterStar() {
+        return autoFollowAfterStar;
+    }
+
+    public void setAutoFollowAfterStar(boolean autoFollowAfterStar) {
+        this.autoFollowAfterStar = autoFollowAfterStar;
     }
 
     public boolean isShowOriginalPreviewImage() {

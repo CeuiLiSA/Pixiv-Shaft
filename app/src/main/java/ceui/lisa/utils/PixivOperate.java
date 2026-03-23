@@ -193,6 +193,14 @@ public class PixivOperate {
                             } else {
                                 Common.showToast(getString(R.string.like_novel_success_private));
                             }
+
+                            //收藏后自动关注作者
+                            if (Shaft.sSettings.isAutoFollowAfterStar()
+                                    && illustsBean.getUser() != null
+                                    && !illustsBean.getUser().isIs_followed()) {
+                                postFollowUser(illustsBean.getUser().getId(), Params.TYPE_PUBLIC);
+                                illustsBean.getUser().setIs_followed(true);
+                            }
                         }
                     });
 
@@ -261,6 +269,14 @@ public class PixivOperate {
                                 Common.showToast(getString(R.string.like_novel_success_public));
                             } else {
                                 Common.showToast(getString(R.string.like_novel_success_private));
+                            }
+
+                            //收藏后自动关注作者
+                            if (Shaft.sSettings.isAutoFollowAfterStar()
+                                    && novelBean.getUser() != null
+                                    && !novelBean.getUser().isIs_followed()) {
+                                postFollowUser(novelBean.getUser().getId(), Params.TYPE_PUBLIC);
+                                novelBean.getUser().setIs_followed(true);
                             }
                         }
                     });
