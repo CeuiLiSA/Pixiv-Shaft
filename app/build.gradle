@@ -15,8 +15,8 @@ android {
         applicationId "ceui.pixiv"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 40040
-        versionName "4.4.2"
+        versionCode 40060
+        versionName "4.4.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
