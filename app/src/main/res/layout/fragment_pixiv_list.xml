@@ -75,7 +75,7 @@
                 android:visibility="gone"
                 android:layout_marginEnd="10dp"
                 android:textSize="12sp"
-                android:textColor="@color/text00"
+                android:textColor="@color/always_white"
                 android:id="@+id/users_yori"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -94,7 +94,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 android:layout_margin="20dp"
                 android:textSize="11sp"
-                android:textColor="@color/text00"
+                android:textColor="@color/always_white"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 

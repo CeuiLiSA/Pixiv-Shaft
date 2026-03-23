@@ -11,6 +11,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.Fragment;
@@ -129,11 +132,10 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         if (toolbar == null || !toolbar.getFitsSystemWindows()) {
             return;
         }
-        toolbar.addOnLayoutChangeListener((v, left, top, right, bottom,
-                                           oldLeft, oldTop, oldRight, oldBottom) -> {
-            if (v.getPaddingBottom() > 0) {
-                v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), 0);
-            }
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), 0);
+            return WindowInsetsCompat.CONSUMED;
         });
     }
 

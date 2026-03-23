@@ -33,7 +33,7 @@
             android:textSize="18sp"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textColor="@color/text00"
+            android:textColor="@color/always_white"
             android:id="@+id/navi_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
