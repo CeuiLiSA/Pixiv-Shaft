@@ -135,28 +135,29 @@ jobs:
           echo "APK_SHA1=$sha1" >> $GITHUB_ENV
           echo "APK_SHA256=$sha256" >> $GITHUB_ENV
 
+      - name: Prepare release notes
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+        run: |
+          # Read tag annotated message as release notes
+          TAG_MESSAGE=$(git tag -l --format='%(contents)' "$VERSION_TAG" | sed '/^$/d')
+
+          if [ -z "$TAG_MESSAGE" ]; then
+            TAG_MESSAGE="Release $VERSION_TAG"
+          fi
+
+          # Append SHA checksums
+          RELEASE_BODY=$(printf '%s\n\n```\nSHA-1: %s\nSHA-256: %s\n```' "$TAG_MESSAGE" "$APK_SHA1" "$APK_SHA256")
+
+          # Write to file to preserve formatting
+          echo "$RELEASE_BODY" > release_notes.md
+
       - name: Draft release
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.VERSION_TAG }}
           name: ${{ env.VERSION_TAG }}
-          body: |
-            # 更新内容
-            ### 新增
-            * 
-            * 
-            ### 修改
-            * 
-            * 
-            ### 修复
-            * 
-            * 
-            
-            ```
-            SHA-1: ${{ env.APK_SHA1 }}
-            SHA-256: ${{ env.APK_SHA256 }}
-            ```
+          body_path: release_notes.md
           files: |
             ${{ env.APK_NAME }}
           draft: true
