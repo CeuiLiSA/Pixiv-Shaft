@@ -160,7 +160,7 @@ jobs:
           body_path: release_notes.md
           files: |
             ${{ env.APK_NAME }}
-          draft: true
+          draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
