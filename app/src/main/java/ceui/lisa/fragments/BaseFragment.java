@@ -16,6 +16,8 @@ import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import ceui.lisa.R;
+
 import java.util.UUID;
 
 
@@ -116,9 +118,23 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             } else {
                 horizon();
             }
+            applyToolbarInsets(view);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void applyToolbarInsets(@NonNull View root) {
+        View toolbar = root.findViewById(R.id.toolbar);
+        if (toolbar == null || !toolbar.getFitsSystemWindows()) {
+            return;
+        }
+        toolbar.addOnLayoutChangeListener((v, left, top, right, bottom,
+                                           oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (v.getPaddingBottom() > 0) {
+                v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), 0);
+            }
+        });
     }
 
     protected abstract void initLayout();

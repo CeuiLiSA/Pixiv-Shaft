@@ -14,6 +14,7 @@ import com.blankj.utilcode.util.BarUtils;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentActivity;
@@ -60,12 +61,18 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
                 getWindow().setStatusBarColor(primaryColor);
             }
             BarUtils.setNavBarColor(mActivity, Color.TRANSPARENT);
+            if (!hideStatusBar()) {
+                // 非透明状态栏的 Activity 不需要 edge-to-edge，
+                // 让系统处理 insets，避免 fitsSystemWindows 产生多余 padding
+                WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+            }
             try {
                 baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
 
+            applyToolbarInsets();
             initModel();
             initView();
             initData();
@@ -90,6 +97,22 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
 
     public boolean hideStatusBar() {
         return false;
+    }
+
+    private void applyToolbarInsets() {
+        if (baseBind == null) {
+            return;
+        }
+        View toolbar = baseBind.getRoot().findViewById(R.id.toolbar);
+        if (toolbar == null || !toolbar.getFitsSystemWindows()) {
+            return;
+        }
+        toolbar.addOnLayoutChangeListener((v, left, top, right, bottom,
+                                           oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (v.getPaddingBottom() > 0) {
+                v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), 0);
+            }
+        });
     }
 
     public static void newInstance(Intent intent, Context context) {
