@@ -1,0 +1,2554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pixiv Shaft — UI Mockup</title>
+<style>
+/* =============================================
+   PIXIV SHAFT — INTERACTIVE UI MOCKUP
+   Design System & Prototype
+   ============================================= */
+
+/* --- 1. Design Tokens --- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #686bdd;
+  --primary-dark: #4749a0;
+  --primary-light: #9395e8;
+  --primary-bg: rgba(104,107,221,0.08);
+  --primary-bg-strong: rgba(104,107,221,0.15);
+
+  --bookmark: #FA3A3A;
+  --bookmark-off: #c0c5ca;
+  --success: #4CAF50;
+  --warning: #FF9800;
+  --info: #2196F3;
+  --r18: #FF5252;
+
+  --bg: #f2f2f2;
+  --bg-elevated: #fafafa;
+  --surface: #ffffff;
+  --surface-hover: #f5f5ff;
+
+  --text-00: #1a1a1a;
+  --text-01: #333333;
+  --text-02: #666666;
+  --text-03: #999999;
+  --text-inv: #ffffff;
+
+  --border: #e8e8f2;
+  --border-light: #f0f0f5;
+  --divider: #eeeeee;
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+  --shadow-phone: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.08);
+
+  --r-xs: 4px; --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 24px; --r-full: 9999px;
+
+  --sidebar-w: 272px;
+  --phone-w: 390px;
+  --phone-h: 844px;
+  --phone-r: 50px;
+  --statusbar-h: 54px;
+  --navbar-h: 52px;
+  --tabbar-h: 56px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur: 200ms;
+  --dur-slow: 350ms;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+/* --- 2. Dark Mode --- */
+:root.dark {
+  --bg: #0e0e12;
+  --bg-elevated: #18181f;
+  --surface: #222230;
+  --surface-hover: #2a2a3a;
+  --text-00: #f0f0f5;
+  --text-01: #e0e0e8;
+  --text-02: #9898a8;
+  --text-03: #606070;
+  --text-inv: #111111;
+  --border: #333345;
+  --border-light: #28283a;
+  --divider: #2a2a38;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-phone: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.06);
+  --primary-bg: rgba(104,107,221,0.12);
+  --primary-bg-strong: rgba(104,107,221,0.22);
+}
+
+/* --- 3. Body --- */
+body {
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(circle at top left, rgba(104,107,221,0.18), transparent 24%),
+    radial-gradient(circle at 85% 12%, rgba(255,141,111,0.14), transparent 20%),
+    linear-gradient(180deg, #f6f3ef 0%, #efedf7 42%, #ecebf5 100%);
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+  color: var(--text-01);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- 4. Sidebar --- */
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 20px 0 16px;
+  flex-shrink: 0;
+  transition: transform var(--dur-slow) var(--ease), background var(--dur) var(--ease);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+
+.sb-brand {
+  padding: 0 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sb-logo {
+  width: 36px; height: 36px; border-radius: var(--r-sm);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 16px; font-weight: 800;
+}
+.sb-brand-text { font-size: 15px; font-weight: 700; color: var(--text-00); letter-spacing: -0.3px; }
+.sb-brand-text small { display: block; font-size: 11px; font-weight: 500; color: var(--text-03); letter-spacing: 0; }
+
+.sb-search {
+  margin: 0 16px 12px;
+  position: relative;
+}
+.sb-search input {
+  width: 100%; height: 36px; border-radius: var(--r-sm); border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-01);
+  padding: 0 12px 0 34px; font-size: 12px; font-family: inherit; outline: none;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.sb-search input:focus { border-color: var(--primary); }
+.sb-search input::placeholder { color: var(--text-03); }
+.sb-search .sb-search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text-03); font-size: 14px; pointer-events: none;
+}
+
+.sb-gallery {
+  margin: 0 12px 8px; padding: 9px 12px; border-radius: var(--r-sm);
+  background: var(--primary-bg); color: var(--primary);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: background var(--dur) var(--ease);
+}
+.sb-gallery:hover { background: var(--primary-bg-strong); }
+.sb-gallery .sb-count {
+  margin-left: auto; font-size: 11px; font-weight: 500;
+  background: var(--primary); color: white;
+  padding: 1px 7px; border-radius: var(--r-full);
+}
+
+.sb-nav { flex: 1; overflow-y: auto; }
+.sb-nav::-webkit-scrollbar { display: none; }
+
+.sb-section { margin-bottom: 4px; }
+.sb-section-title {
+  padding: 10px 20px 4px;
+  font-size: 10px; font-weight: 700; color: var(--text-03);
+  text-transform: uppercase; letter-spacing: 1px;
+  cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  user-select: none;
+}
+.sb-section-title:hover { color: var(--text-02); }
+.sb-section-title .chev {
+  font-size: 8px; transition: transform var(--dur) var(--ease);
+  display: inline-block;
+}
+.sb-section.collapsed .chev { transform: rotate(-90deg); }
+.sb-section.collapsed .sb-items { display: none; }
+
+.sb-item {
+  padding: 7px 20px 7px 24px;
+  font-size: 13px; font-weight: 500; color: var(--text-02);
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  border-left: 3px solid transparent;
+  transition: all 120ms var(--ease);
+}
+.sb-item:hover { background: var(--primary-bg); color: var(--text-01); }
+.sb-item.active {
+  background: var(--primary-bg);
+  color: var(--primary); font-weight: 600;
+  border-left-color: var(--primary);
+}
+.sb-item .dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* Sidebar footer */
+.sb-footer {
+  padding: 12px 16px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+.sb-themes {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.sb-theme-dot {
+  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent;
+  padding: 0;
+  appearance: none;
+  transition: transform 120ms var(--ease), border-color 120ms var(--ease);
+  position: relative;
+}
+.sb-theme-dot:hover { transform: scale(1.15); }
+.sb-theme-dot.active { border-color: var(--text-01); }
+.sb-theme-dot.active::after {
+  content: ''; position: absolute; inset: 3px; border-radius: 50%;
+  border: 2px solid var(--bg-elevated);
+}
+.sb-dark-toggle {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 500; color: var(--text-02); cursor: pointer;
+  padding: 6px 0;
+}
+.sb-dark-toggle .toggle-track {
+  width: 36px; height: 20px; border-radius: 10px;
+  background: var(--border); position: relative;
+  transition: background var(--dur) var(--ease);
+}
+.sb-dark-toggle .toggle-thumb {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: white; position: absolute; top: 2px; left: 2px;
+  transition: transform var(--dur) var(--ease);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+:root.dark .sb-dark-toggle .toggle-track { background: var(--primary); }
+:root.dark .sb-dark-toggle .toggle-thumb { transform: translateX(16px); }
+
+.sb-shortcuts {
+  font-size: 10px; color: var(--text-03); padding: 4px 0;
+  line-height: 1.6;
+}
+.sb-shortcuts kbd {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1px 4px; font-family: inherit;
+  font-size: 10px; font-weight: 600;
+}
+
+/* --- 5. Hamburger (mobile) --- */
+#hamburger {
+  display: none; position: fixed; top: 12px; left: 12px; z-index: 300;
+  width: 40px; height: 40px; border-radius: var(--r-sm);
+  background: var(--primary); color: white; border: none;
+  cursor: pointer; font-size: 20px;
+  align-items: center; justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+#sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 199;
+  backdrop-filter: blur(2px);
+}
+@media (max-width: 800px) {
+  #hamburger { display: flex; }
+  #sidebar {
+    position: fixed; top: 0; left: 0; height: 100vh;
+    transform: translateX(-100%);
+  }
+  #sidebar.open { transform: translateX(0); }
+  #sidebar.open ~ #sidebar-overlay { display: block; }
+  #main { width: 100%; }
+}
+
+/* --- 6. Main Area --- */
+#main {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  height: 100vh; overflow: auto; padding: 20px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(104,107,221,0.09), transparent 18%),
+    radial-gradient(circle at 85% 80%, rgba(255,160,120,0.08), transparent 22%);
+  transition: background var(--dur) var(--ease);
+}
+
+/* --- 7. Phone Frame --- */
+.phone {
+  width: var(--phone-w); height: var(--phone-h);
+  border-radius: var(--phone-r); background: var(--bg);
+  box-shadow: var(--shadow-phone);
+  position: relative; flex-shrink: 0;
+  display: none;
+  contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: var(--phone-w) var(--phone-h);
+  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.phone.visible { display: block; animation: phoneIn var(--dur-slow) var(--ease) both; }
+@keyframes phoneIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } }
+
+/* Dynamic Island */
+.phone::before {
+  content: ''; position: absolute;
+  top: 11px; left: 50%; transform: translateX(-50%);
+  width: 126px; height: 36px;
+  background: #000; border-radius: 20px; z-index: 100;
+}
+
+.phone > .screen {
+  height: 100%; display: flex; flex-direction: column;
+  overflow: hidden; border-radius: var(--phone-r);
+  position: relative;
+}
+
+/* Home indicator */
+.phone > .screen::after {
+  content: ''; position: absolute; bottom: 6px; left: 50%;
+  transform: translateX(-50%);
+  width: 134px; height: 5px; border-radius: 3px;
+  background: var(--text-01); opacity: 0.15; z-index: 50;
+}
+
+/* --- 8. Status Bar --- */
+.sbar {
+  height: var(--statusbar-h); display: flex;
+  align-items: flex-end; justify-content: space-between;
+  padding: 0 30px 6px; flex-shrink: 0;
+}
+.sbar-time { font-size: 15px; font-weight: 700; color: var(--text-01); }
+.sbar-icons { display: flex; align-items: center; gap: 5px; }
+.sbar-icons svg { width: 16px; height: 16px; fill: var(--text-01); }
+
+/* --- 9. Navigation Bar --- */
+.navbar {
+  height: var(--navbar-h); display: flex; align-items: center;
+  padding: 0 16px; gap: 12px; flex-shrink: 0;
+}
+.navbar .nav-title {
+  flex: 1; font-size: 22px; font-weight: 800;
+  color: var(--text-00); letter-spacing: -0.5px;
+}
+.nav-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; color: var(--text-01); font-size: 16px;
+  transition: background 120ms, border-color 120ms;
+}
+.nav-btn:hover { background: var(--surface-hover); border-color: var(--primary); }
+
+/* --- 10. Sub Tabs --- */
+.sub-tabs {
+  display: flex; gap: 0; padding: 0 16px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.sub-tab {
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  color: var(--text-03); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 120ms, border-color 120ms;
+}
+.sub-tab:hover { color: var(--text-02); }
+.sub-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* --- 11. Content Area --- */
+.content {
+  flex: 1; overflow-y: auto; padding: 12px 16px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.content::-webkit-scrollbar { display: none; }
+
+/* --- 12. Bottom Tab Bar --- */
+.tab-bar {
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 6px 0 2px;
+  background: var(--surface); border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: background var(--dur) var(--ease);
+}
+.phone.no-tab .tab-bar { display: none; }
+.tab-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  cursor: pointer; padding: 4px 12px;
+  color: var(--text-03);
+  transition: color 120ms;
+}
+.tab-item.active { color: var(--primary); }
+.tab-item .ti-icon { width: 24px; height: 24px; }
+.tab-item .ti-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.tab-item.active .ti-icon svg { stroke-width: 2.2; }
+.tab-item .ti-text { font-size: 10px; font-weight: 600; }
+
+/* --- 13. Cards --- */
+.card {
+  background: var(--surface); border-radius: var(--r-md);
+  box-shadow: var(--shadow-xs); overflow: hidden;
+  transition: background var(--dur) var(--ease), transform 120ms var(--ease);
+  cursor: pointer;
+}
+.card:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+
+/* --- 14. Waterfall Grid --- */
+.waterfall { column-count: 2; column-gap: 10px; }
+.wf-card {
+  break-inside: avoid; margin-bottom: 10px;
+  border-radius: var(--r-sm); overflow: hidden;
+  background: var(--surface); box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  transition: transform 120ms var(--ease);
+}
+.wf-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.wf-img { width: 100%; display: block; position: relative; overflow: hidden; }
+.wf-img .pages {
+  position: absolute; top: 6px; right: 6px;
+  background: rgba(0,0,0,0.55); color: white;
+  font-size: 10px; font-weight: 600; padding: 2px 6px;
+  border-radius: var(--r-xs); z-index: 1;
+  backdrop-filter: blur(4px);
+}
+.wf-img .r18-badge {
+  position: absolute; top: 6px; left: 6px;
+  background: var(--r18); color: white;
+  font-size: 9px; font-weight: 700; padding: 2px 5px;
+  border-radius: var(--r-xs); z-index: 1;
+}
+.wf-body { padding: 8px 10px 10px; }
+.wf-title {
+  font-size: 12px; font-weight: 600; color: var(--text-01);
+  line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wf-meta {
+  display: flex; align-items: center; gap: 6px; margin-top: 6px;
+}
+.wf-avatar {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+}
+.wf-name { font-size: 10px; color: var(--text-03); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wf-heart { font-size: 14px; color: var(--bookmark-off); cursor: pointer; line-height: 1; }
+.wf-heart.liked { color: var(--bookmark); }
+
+/* --- 15. Art Gradients (illustration placeholders) --- */
+.art { position: relative; }
+.g1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+.g2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.g3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+.g4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.g5 { background: linear-gradient(135deg, #fa709a, #fee140); }
+.g6 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+.g7 { background: linear-gradient(135deg, #fccb90, #d57eeb); }
+.g8 { background: linear-gradient(135deg, #e0c3fc, #8ec5fc); }
+.g9 { background: linear-gradient(135deg, #f5576c, #ff9671); }
+.g10 { background: linear-gradient(135deg, #0c3483, #6b8cce); }
+.g11 { background: linear-gradient(135deg, #c471f5, #fa71cd); }
+.g12 { background: linear-gradient(135deg, #48c6ef, #6f86d6); }
+.g13 { background: linear-gradient(135deg, #feada6, #f5efef); }
+.g14 { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
+.g15 { background: linear-gradient(135deg, #d4fc79, #96e6a1); }
+.g16 { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+
+/* Height utilities */
+.h120 { height: 120px; } .h140 { height: 140px; } .h160 { height: 160px; }
+.h180 { height: 180px; } .h200 { height: 200px; } .h220 { height: 220px; }
+.h240 { height: 240px; } .h260 { height: 260px; } .h280 { height: 280px; }
+
+/* --- 16. List Items --- */
+.list-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; background: var(--surface);
+  border-radius: var(--r-sm); margin-bottom: 8px;
+  box-shadow: var(--shadow-xs); cursor: pointer;
+  transition: background 120ms;
+}
+.list-item:hover { background: var(--surface-hover); }
+.list-item .li-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: white; font-weight: 700;
+}
+.list-item .li-body { flex: 1; min-width: 0; }
+.list-item .li-title { font-size: 14px; font-weight: 600; color: var(--text-01); }
+.list-item .li-sub { font-size: 12px; color: var(--text-03); margin-top: 2px; }
+.list-item .li-end { font-size: 12px; color: var(--text-03); flex-shrink: 0; }
+
+/* --- 17. Tags --- */
+.tag-flow { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag {
+  padding: 5px 12px; border-radius: var(--r-full);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  background: var(--primary-bg); color: var(--primary);
+  transition: background 120ms;
+}
+.tag:hover { background: var(--primary-bg-strong); }
+.tag-outline {
+  padding: 5px 12px; border-radius: var(--r-full);
+  font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); color: var(--text-02);
+}
+
+/* --- 18. Progress Bar --- */
+.progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--primary); transition: width var(--dur-slow) var(--ease); }
+
+/* --- 19. Settings Menu --- */
+.menu-group {
+  background: var(--surface); border-radius: var(--r-md);
+  box-shadow: var(--shadow-xs); margin-bottom: 12px; overflow: hidden;
+  transition: background var(--dur) var(--ease);
+}
+.menu-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; cursor: pointer;
+  transition: background 120ms;
+}
+.menu-row:hover { background: var(--surface-hover); }
+.menu-row:not(:last-child) { border-bottom: 1px solid var(--divider); }
+.menu-row .mr-icon {
+  width: 32px; height: 32px; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.menu-row .mr-label { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-01); }
+.menu-row .mr-value { font-size: 13px; color: var(--text-03); }
+.menu-row .mr-arrow { color: var(--text-03); font-size: 14px; }
+
+/* --- 20. Inputs --- */
+.input-field {
+  width: 100%; height: 48px; border-radius: var(--r-md);
+  border: 1.5px solid var(--border); padding: 0 16px;
+  font-size: 15px; font-family: inherit;
+  background: var(--surface); color: var(--text-01);
+  outline: none; transition: border-color var(--dur) var(--ease);
+}
+.input-field:focus { border-color: var(--primary); }
+.input-field::placeholder { color: var(--text-03); }
+.input-label {
+  font-size: 11px; font-weight: 700; color: var(--text-03);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  display: block; margin-bottom: 6px;
+}
+
+/* --- 21. Buttons --- */
+.btn-primary {
+  width: 100%; height: 48px; border-radius: var(--r-xl);
+  background: var(--primary); color: white; border: none;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity 120ms, transform 120ms;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-outline {
+  width: 100%; height: 44px; border-radius: var(--r-xl);
+  background: var(--surface); border: 1.5px solid var(--border);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: inherit; color: var(--text-01);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: border-color 120ms, background 120ms;
+}
+.btn-outline:hover { border-color: var(--primary); background: var(--primary-bg); }
+.btn-sm {
+  height: 32px; padding: 0 16px; border-radius: var(--r-full);
+  background: var(--primary); color: white; border: none;
+  font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.btn-sm-outline {
+  height: 32px; padding: 0 16px; border-radius: var(--r-full);
+  background: transparent; color: var(--primary); border: 1.5px solid var(--primary);
+  font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+
+/* --- 22. Section Label --- */
+.section-label {
+  font-size: 11px; font-weight: 700; color: var(--text-03);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin: 16px 0 8px; padding: 0 2px;
+}
+
+/* --- 23. Horizontal Scroll --- */
+.h-scroll {
+  display: flex; gap: 10px; overflow-x: auto;
+  padding: 4px 2px 4px; margin: 0 -16px; padding-left: 16px; padding-right: 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.h-scroll::-webkit-scrollbar { display: none; }
+
+/* --- 24. Splash / Auth Screen --- */
+.auth-screen {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 28px; flex: 1;
+}
+
+.splash-stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255,255,255,0.18), transparent 20%),
+    radial-gradient(circle at 78% 78%, rgba(255,144,110,0.18), transparent 24%),
+    linear-gradient(145deg, #7978eb 0%, #6260d8 38%, #4b4cb0 100%);
+}
+.splash-stage::before,
+.splash-stage::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(6px);
+}
+.splash-stage::before {
+  width: 240px;
+  height: 240px;
+  top: -82px;
+  right: -86px;
+  background: rgba(255,255,255,0.12);
+}
+.splash-stage::after {
+  width: 220px;
+  height: 220px;
+  left: -96px;
+  bottom: 120px;
+  background: rgba(22,18,81,0.28);
+}
+.splash-orbit {
+  position: absolute;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 50%;
+}
+.splash-orbit.o1 { width: 280px; height: 280px; top: 146px; left: 44px; }
+.splash-orbit.o2 { width: 360px; height: 360px; bottom: -84px; right: -48px; }
+.splash-badge {
+  width: 92px;
+  height: 92px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.26), rgba(255,255,255,0.12));
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 18px 45px rgba(37,30,117,0.35);
+}
+.splash-wordmark {
+  font-size: 18px;
+  letter-spacing: 2.6px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.68);
+  margin-bottom: 12px;
+}
+.splash-title {
+  font-size: 34px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1.2px;
+}
+.splash-subtitle {
+  max-width: 244px;
+  margin-top: 10px;
+  text-align: center;
+  line-height: 1.6;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}
+.splash-loader {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  margin-top: 52px;
+}
+.splash-loader::before,
+.splash-loader::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.splash-loader::before {
+  border: 1px solid rgba(255,255,255,0.22);
+}
+.splash-loader::after {
+  inset: 4px;
+  border: 3px solid rgba(255,255,255,0.16);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+.splash-footer {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.46);
+}
+
+.auth-screen.auth-premium {
+  position: relative;
+  justify-content: flex-start;
+  padding: 18px 22px 28px;
+  background:
+    radial-gradient(circle at 15% 8%, rgba(104,107,221,0.16), transparent 28%),
+    radial-gradient(circle at 100% 0%, rgba(255,161,122,0.18), transparent 30%),
+    linear-gradient(180deg, #fcfbff 0%, #f7f5ff 48%, #f4f4fb 100%);
+}
+.auth-hero {
+  width: 100%;
+  margin-top: 12px;
+  padding: 22px 22px 18px;
+  border-radius: 28px;
+  background: linear-gradient(155deg, rgba(255,255,255,0.78), rgba(255,255,255,0.56));
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow: 0 18px 48px rgba(92,85,180,0.14);
+  backdrop-filter: blur(14px);
+}
+.auth-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(104,107,221,0.1);
+  color: var(--primary-dark);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.auth-chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff9365, #ffd15b);
+}
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+.auth-brand-mark {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: linear-gradient(140deg, var(--primary), #8482ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: 0 14px 28px rgba(104,107,221,0.28);
+}
+.auth-brand-copy small {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+.auth-brand-copy strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  color: var(--text-00);
+}
+.auth-brand-copy p {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-02);
+}
+.auth-panel {
+  width: 100%;
+  margin-top: 18px;
+  padding: 20px 18px 18px;
+  border-radius: 28px;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.84);
+  box-shadow: 0 18px 42px rgba(109,101,198,0.1);
+  backdrop-filter: blur(14px);
+}
+.input-stack { width: 100%; }
+.auth-socials {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+.social-btn {
+  height: 46px;
+  border-radius: 16px;
+  border: 1px solid rgba(115,118,180,0.12);
+  background: rgba(255,255,255,0.78);
+  color: var(--text-01);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.auth-footnote {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 11px;
+  color: var(--text-03);
+}
+
+.recommend-screen,
+.discover-screen,
+.following-screen {
+  position: relative;
+  background:
+    radial-gradient(circle at top left, rgba(110,110,230,0.09), transparent 26%),
+    linear-gradient(180deg, #fcfbff 0%, #f7f6fc 42%, #f5f4fa 100%);
+}
+.content.content-rich {
+  padding: 10px 16px 22px;
+}
+.editorial-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #1d2149 0%, #474dc2 44%, #8f75ea 100%);
+  box-shadow: 0 20px 42px rgba(77,84,191,0.26);
+  color: #fff;
+  margin-bottom: 16px;
+}
+.editorial-hero::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -30px;
+  top: -40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.84);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+}
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffd36f;
+}
+.hero-title {
+  margin-top: 14px;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+.hero-copy {
+  max-width: 230px;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.74);
+}
+.hero-stats {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.hero-stats span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  font-size: 11px;
+  color: rgba(255,255,255,0.82);
+}
+.filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-chip {
+  white-space: nowrap;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(104,107,221,0.08);
+  color: var(--text-02);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 10px 20px rgba(82,90,170,0.06);
+}
+.filter-chip.active {
+  background: linear-gradient(135deg, var(--primary), #8a7af3);
+  color: #fff;
+}
+.glass-panel {
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 0 18px 38px rgba(77,84,191,0.09);
+  backdrop-filter: blur(14px);
+}
+.gallery-hero {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.hero-mini {
+  border-radius: 22px;
+  padding: 16px;
+}
+.hero-mini .label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+.hero-mini .value {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-00);
+  letter-spacing: -0.6px;
+}
+.hero-mini .meta {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-02);
+}
+.editorial-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.editorial-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  min-height: 210px;
+  box-shadow: 0 18px 34px rgba(79,86,178,0.14);
+}
+.editorial-card.tall { min-height: 274px; }
+.editorial-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 16%, rgba(15,16,39,0.68) 100%);
+}
+.editorial-card .card-copy {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1;
+}
+.editorial-card .card-tag {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.84);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.editorial-card .card-title {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.7px;
+}
+.editorial-card .card-meta {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.78);
+  font-size: 11px;
+}
+.orb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.7);
+}
+.discover-banner {
+  padding: 20px 18px;
+  border-radius: 26px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #2f1d63 0%, #6156d7 48%, #4ed7dc 100%);
+  color: #fff;
+  box-shadow: 0 20px 42px rgba(74,87,192,0.24);
+}
+.discover-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.discover-tile {
+  padding: 14px;
+  border-radius: 22px;
+}
+.discover-tile .tile-art {
+  height: 92px;
+  border-radius: 18px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.discover-tile .tile-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.22));
+}
+.discover-tile .tile-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-00);
+}
+.discover-tile .tile-copy {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-02);
+}
+.discover-carousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.discover-carousel::-webkit-scrollbar { display: none; }
+.discover-pill {
+  min-width: 146px;
+  overflow: hidden;
+  border-radius: 20px;
+}
+.discover-pill .cover {
+  height: 102px;
+}
+.discover-pill .body {
+  padding: 12px;
+}
+.discover-pill .body strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-00);
+}
+.discover-pill .body span {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-03);
+}
+.people-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.people-row::-webkit-scrollbar { display: none; }
+.people-card {
+  min-width: 112px;
+  padding: 14px 12px;
+  text-align: center;
+  border-radius: 20px;
+}
+.people-card .avatar {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 10px;
+  border-radius: 18px;
+  box-shadow: 0 10px 22px rgba(88,91,179,0.18);
+}
+.people-card strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-01);
+}
+.people-card span {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-03);
+}
+.feed-card {
+  overflow: hidden;
+  border-radius: 26px;
+  margin-bottom: 14px;
+}
+.feed-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 0;
+}
+.feed-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+.feed-copy strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-00);
+}
+.feed-copy span {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--text-03);
+}
+.feed-cover {
+  margin: 12px 16px 0;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.feed-cover.large { height: 208px; }
+.feed-cover.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  height: 132px;
+}
+.feed-body {
+  padding: 14px 16px 16px;
+}
+.feed-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-00);
+  letter-spacing: -0.6px;
+}
+.feed-desc {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-02);
+}
+.feed-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.feed-stats span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(104,107,221,0.08);
+  color: var(--primary-dark);
+  font-size: 11px;
+  font-weight: 700;
+}
+.novel-panel {
+  margin: 12px 16px 0;
+  padding: 18px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(104,107,221,0.1), rgba(255,255,255,0.72));
+  border: 1px solid rgba(104,107,221,0.08);
+}
+.novel-panel .quote {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-02);
+}
+.search-shell {
+  display: flex;
+  gap: 10px;
+  padding: 8px 16px 6px;
+}
+.search-bar-pro {
+  flex: 1;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.78);
+  border: 1px solid rgba(104,107,221,0.12);
+  box-shadow: 0 14px 28px rgba(84,89,177,0.08);
+}
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.stat-pill {
+  padding: 14px;
+  border-radius: 20px;
+  text-align: center;
+}
+.stat-pill strong {
+  display: block;
+  font-size: 18px;
+  color: var(--text-00);
+  letter-spacing: -0.6px;
+}
+.stat-pill span {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+.profile-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 18px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #24295d 0%, #5b61d8 52%, #ff9a6a 100%);
+  color: #fff;
+  box-shadow: 0 24px 44px rgba(79,86,178,0.22);
+}
+.profile-hero::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -40px;
+  top: -40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+}
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.profile-grid .art {
+  aspect-ratio: 1;
+  border-radius: 18px;
+  box-shadow: 0 14px 26px rgba(84,89,177,0.16);
+}
+.detail-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 16px;
+  min-height: 290px;
+  box-shadow: 0 24px 46px rgba(76,82,170,0.22);
+}
+.detail-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(12,13,32,0.56));
+}
+.detail-overlay {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1;
+}
+.action-row {
+  display: flex;
+  gap: 10px;
+}
+.action-chip {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 16px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(104,107,221,0.08);
+  color: var(--primary-dark);
+}
+.copy-panel {
+  padding: 16px;
+  border-radius: 24px;
+}
+.quote-card {
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(243,241,252,0.94));
+  border: 1px solid rgba(255,255,255,0.84);
+  box-shadow: 0 18px 34px rgba(84,89,177,0.08);
+}
+.rank-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.78);
+  border: 1px solid rgba(255,255,255,0.82);
+  box-shadow: 0 16px 32px rgba(84,89,177,0.08);
+}
+.rank-badge {
+  width: 34px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+}
+.trend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.trend-card {
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow: 0 18px 34px rgba(84,89,177,0.12);
+}
+.download-card {
+  padding: 14px;
+  border-radius: 22px;
+  margin-bottom: 12px;
+}
+.timeline-label {
+  margin: 16px 2px 10px;
+  font-size: 10px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--text-03);
+}
+.settings-hero {
+  padding: 18px;
+  border-radius: 28px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #24295d 0%, #5c62d9 48%, #8bc6ff 100%);
+  color: #fff;
+  box-shadow: 0 24px 46px rgba(84,89,177,0.22);
+}
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.preview-card {
+  padding: 18px;
+  border-radius: 24px;
+}
+
+/* --- 25. Gallery Mode --- */
+#main.gallery .phone {
+  display: block !important;
+  flex-shrink: 0;
+  animation: none;
+}
+#main.gallery {
+  flex-wrap: wrap; align-items: flex-start;
+  justify-content: center; gap: 40px;
+  padding: 40px; overflow: auto;
+}
+#main.gallery .phone { margin-top: 28px; }
+#main.gallery .phone::after {
+  content: attr(data-label);
+  position: absolute; top: -24px; left: 0; right: 0;
+  text-align: center;
+  font-size: 12px; font-weight: 600; color: var(--text-02);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* --- 26. Screen Transition --- */
+.phone .screen-inner {
+  animation: screenFadeIn var(--dur-slow) var(--ease) both;
+}
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- 27. Utility --- */
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-4 { gap: 4px; } .gap-6 { gap: 6px; } .gap-8 { gap: 8px; }
+.gap-10 { gap: 10px; } .gap-12 { gap: 12px; } .gap-16 { gap: 16px; }
+.mt-8 { margin-top: 8px; } .mt-12 { margin-top: 12px; } .mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; } .mb-12 { margin-bottom: 12px; }
+.text-center { text-align: center; }
+.text-primary { color: var(--primary); }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-navigate] { cursor: pointer; }
+
+/* --- 28. Print --- */
+@media print {
+  #sidebar, #hamburger, #sidebar-overlay { display: none !important; }
+  #main { padding: 0; }
+  .phone { box-shadow: 0 0 0 1px #ccc !important; page-break-inside: avoid; margin: 16px; }
+}
+
+/* --- 29. Responsive Gallery Zoom --- */
+#main.gallery.zoom-sm .phone { transform: scale(0.6); transform-origin: top center; }
+#main.gallery.zoom-md .phone { transform: scale(0.8); transform-origin: top center; }
+
+/* --- 30. Global Visual Refresh --- */
+#sidebar {
+  background: linear-gradient(180deg, rgba(255,255,255,0.74), rgba(248,247,252,0.92));
+  backdrop-filter: blur(22px);
+  border-right: 1px solid rgba(255,255,255,0.72);
+  box-shadow: 12px 0 32px rgba(96,94,171,0.08);
+}
+.sb-brand {
+  margin: 0 14px 12px;
+  padding: 14px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(104,107,221,0.12), rgba(255,255,255,0.52));
+  border: 1px solid rgba(255,255,255,0.72);
+}
+.sb-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(96,94,171,0.22);
+}
+.sb-search { margin: 0 16px 12px; }
+.sb-search input {
+  height: 42px;
+  border-radius: 15px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(104,107,221,0.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.sb-gallery {
+  margin: 0 16px 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(104,107,221,0.12), rgba(255,255,255,0.72));
+  border: 1px solid rgba(255,255,255,0.78);
+  box-shadow: 0 10px 26px rgba(96,94,171,0.08);
+}
+.sb-item {
+  margin: 0 10px 4px;
+  border-left: none;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+.sb-item.active {
+  border-left-color: transparent;
+  box-shadow: 0 10px 22px rgba(104,107,221,0.12);
+}
+.sb-footer {
+  margin: 10px 14px 0;
+  border-top: 1px solid rgba(104,107,221,0.08);
+  padding: 14px 0 4px;
+}
+
+.phone {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,247,252,0.98));
+  box-shadow:
+    0 32px 70px rgba(68,66,117,0.16),
+    0 0 0 1px rgba(255,255,255,0.84);
+}
+.phone > .screen {
+  background:
+    radial-gradient(circle at top left, rgba(104,107,221,0.08), transparent 24%),
+    linear-gradient(180deg, #fdfcff 0%, #f6f5fa 100%);
+}
+.sbar {
+  padding: 0 26px 8px;
+}
+.sbar-time {
+  font-size: 16px;
+  letter-spacing: -0.4px;
+}
+.navbar {
+  padding: 6px 16px 10px;
+  gap: 10px;
+}
+.navbar .nav-title {
+  font-size: 24px;
+  letter-spacing: -0.9px;
+}
+.nav-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(104,107,221,0.08);
+  box-shadow: 0 12px 24px rgba(85,91,178,0.08);
+  backdrop-filter: blur(12px);
+}
+.sub-tabs {
+  gap: 8px;
+  margin: 0 16px 10px;
+  padding: 6px;
+  border-bottom: none;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(104,107,221,0.06);
+  box-shadow: 0 12px 26px rgba(76,82,170,0.06);
+}
+.sub-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  border-bottom: none;
+  border-radius: 14px;
+}
+.sub-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), #8a7af3);
+  box-shadow: 0 12px 22px rgba(104,107,221,0.24);
+}
+.content {
+  padding: 10px 16px 22px;
+}
+.tab-bar {
+  margin: 0 12px 12px;
+  padding: 8px 8px 4px;
+  border-top: none;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(104,107,221,0.08);
+  box-shadow: 0 18px 34px rgba(80,87,178,0.1);
+  backdrop-filter: blur(16px);
+}
+.tab-item {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 16px;
+}
+.tab-item.active {
+  background: rgba(104,107,221,0.09);
+}
+.card,
+.wf-card,
+.list-item,
+.menu-group {
+  background: rgba(255,255,255,0.76);
+  border: 1px solid rgba(255,255,255,0.78);
+  box-shadow: 0 16px 34px rgba(84,89,177,0.1);
+  backdrop-filter: blur(14px);
+}
+.card,
+.menu-group { border-radius: 24px; }
+.wf-card,
+.list-item { border-radius: 20px; }
+.wf-card { overflow: hidden; }
+.wf-img::after,
+.art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.15));
+  pointer-events: none;
+}
+.wf-body { padding: 12px; }
+.wf-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.wf-meta { margin-top: 8px; }
+.wf-avatar {
+  width: 20px;
+  height: 20px;
+  box-shadow: 0 6px 14px rgba(78,84,180,0.16);
+}
+.wf-heart {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(104,107,221,0.08);
+}
+.list-item {
+  padding: 14px;
+  gap: 14px;
+}
+.list-item .li-avatar {
+  border-radius: 16px;
+  box-shadow: 0 10px 18px rgba(84,89,177,0.16);
+}
+.section-label {
+  margin: 18px 2px 10px;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+.menu-group { overflow: hidden; }
+.menu-row {
+  padding: 15px 16px;
+}
+.menu-row .mr-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 14px;
+}
+.input-field {
+  height: 52px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(104,107,221,0.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.74);
+}
+.btn-primary {
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--primary), #8b79f3);
+  box-shadow: 0 16px 28px rgba(104,107,221,0.26);
+}
+.btn-outline {
+  border-radius: 18px;
+  background: rgba(255,255,255,0.76);
+  border: 1px solid rgba(104,107,221,0.08);
+}
+.tag,
+.tag-outline {
+  border-radius: 999px;
+  padding: 7px 12px;
+}
+
+#screen-search .screen,
+#screen-illust-detail .screen,
+#screen-user-profile .screen,
+#screen-novel-reader .screen,
+#screen-ranking .screen,
+#screen-trending .screen,
+#screen-bookmarks .screen,
+#screen-downloads .screen,
+#screen-history .screen,
+#screen-settings .screen,
+#screen-theme .screen {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(104,107,221,0.08), transparent 24%),
+    radial-gradient(circle at 100% 10%, rgba(255,160,120,0.08), transparent 22%),
+    linear-gradient(180deg, #fdfcff 0%, #f5f4fa 100%);
+}
+#screen-search .sub-tabs,
+#screen-ranking .sub-tabs,
+#screen-bookmarks .sub-tabs,
+#screen-downloads .sub-tabs,
+#screen-user-profile .sub-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#screen-search .sub-tabs::-webkit-scrollbar,
+#screen-ranking .sub-tabs::-webkit-scrollbar,
+#screen-bookmarks .sub-tabs::-webkit-scrollbar,
+#screen-downloads .sub-tabs::-webkit-scrollbar,
+#screen-user-profile .sub-tabs::-webkit-scrollbar {
+  display: none;
+}
+#screen-illust-detail .art[style*="height:260px"],
+#screen-user-profile .art[style*="height:120px"],
+#screen-trending .art[style*="height:100px"] {
+  box-shadow: 0 18px 34px rgba(84,89,177,0.16);
+}
+#screen-novel-reader .content,
+#screen-settings .content,
+#screen-theme .content {
+  padding-bottom: 26px;
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile hamburger -->
+<button id="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- ==================== SIDEBAR ==================== -->
+<aside id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">S</div>
+    <div class="sb-brand-text">Pixiv Shaft <small>UI Mockup</small></div>
+  </div>
+
+  <div class="sb-search">
+    <span class="sb-search-icon">&#128269;</span>
+    <input type="text" id="sb-filter" placeholder="Filter screens..." oninput="filterScreens(this.value)">
+  </div>
+
+  <div class="sb-gallery" data-screen="__all__">
+    &#9638; Show All Screens <span class="sb-count" id="screen-count"></span>
+  </div>
+
+  <div class="sb-nav" id="sb-nav">
+    <div class="sb-section" data-section="onboarding">
+      <div class="sb-section-title" onclick="toggleSection(this)">Onboarding <span class="chev">&#9660;</span></div>
+      <div class="sb-items">
+        <div class="sb-item active" data-screen="splash"><span class="dot" style="background:var(--primary)"></span> Splash</div>
+        <div class="sb-item" data-screen="login"><span class="dot" style="background:var(--primary)"></span> Login</div>
+      </div>
+    </div>
+    <div class="sb-section" data-section="home">
+      <div class="sb-section-title" onclick="toggleSection(this)">Home <span class="chev">&#9660;</span></div>
+      <div class="sb-items">
+        <div class="sb-item" data-screen="recommend"><span class="dot" style="background:var(--success)"></span> Recommend</div>
+        <div class="sb-item" data-screen="discover"><span class="dot" style="background:var(--success)"></span> Discover</div>
+        <div class="sb-item" data-screen="following"><span class="dot" style="background:var(--success)"></span> Following</div>
+      </div>
+    </div>
+    <div class="sb-section" data-section="browse">
+      <div class="sb-section-title" onclick="toggleSection(this)">Browse <span class="chev">&#9660;</span></div>
+      <div class="sb-items">
+        <div class="sb-item" data-screen="search"><span class="dot" style="background:var(--info)"></span> Search</div>
+        <div class="sb-item" data-screen="ranking"><span class="dot" style="background:var(--info)"></span> Ranking</div>
+        <div class="sb-item" data-screen="trending"><span class="dot" style="background:var(--info)"></span> Trending Tags</div>
+      </div>
+    </div>
+    <div class="sb-section" data-section="content">
+      <div class="sb-section-title" onclick="toggleSection(this)">Content <span class="chev">&#9660;</span></div>
+      <div class="sb-items">
+        <div class="sb-item" data-screen="illust-detail"><span class="dot" style="background:var(--warning)"></span> Illust Detail</div>
+        <div class="sb-item" data-screen="user-profile"><span class="dot" style="background:var(--warning)"></span> User Profile</div>
+        <div class="sb-item" data-screen="novel-reader"><span class="dot" style="background:var(--warning)"></span> Novel Reader</div>
+      </div>
+    </div>
+    <div class="sb-section" data-section="library">
+      <div class="sb-section-title" onclick="toggleSection(this)">Library <span class="chev">&#9660;</span></div>
+      <div class="sb-items">
+        <div class="sb-item" data-screen="bookmarks"><span class="dot" style="background:#E91E63"></span> Bookmarks</div>
+        <div class="sb-item" data-screen="downloads"><span class="dot" style="background:#E91E63"></span> Downloads</div>
+        <div class="sb-item" data-screen="history"><span class="dot" style="background:#E91E63"></span> History</div>
+      </div>
+    </div>
+    <div class="sb-section" data-section="prefs">
+      <div class="sb-section-title" onclick="toggleSection(this)">Preferences <span class="chev">&#9660;</span></div>
+      <div class="sb-items">
+        <div class="sb-item" data-screen="settings"><span class="dot" style="background:var(--text-03)"></span> Settings</div>
+        <div class="sb-item" data-screen="theme"><span class="dot" style="background:var(--text-03)"></span> Theme Picker</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-themes" id="theme-dots"></div>
+    <div class="sb-dark-toggle" id="dark-toggle" onclick="toggleDark()">
+      <span id="dark-label">Dark Mode</span>
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="sb-shortcuts">
+      <kbd>&#8592;</kbd><kbd>&#8594;</kbd> Navigate &nbsp; <kbd>D</kbd> Dark mode &nbsp; <kbd>G</kbd> Gallery
+    </div>
+  </div>
+</aside>
+
+<!-- ==================== MAIN ==================== -->
+<main id="main">
+
+<!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="0.5" fill="currentColor"/><circle cx="17.5" cy="10.5" r="0.5" fill="currentColor"/><circle cx="8.5" cy="7.5" r="0.5" fill="currentColor"/><circle cx="6.5" cy="12" r="0.5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+</svg>
+
+<!-- Status bar template reused via JS -->
+
+<!-- ========== SCREEN: SPLASH ========== -->
+<div class="phone no-tab visible" id="screen-splash" data-label="Splash">
+  <div class="screen">
+    <div class="splash-stage">
+      <div class="splash-orbit o1"></div>
+      <div class="splash-orbit o2"></div>
+      <div class="splash-wordmark">Illustration Engine</div>
+      <div class="splash-badge"><span style="font-size:40px;font-weight:800;color:#fff;">S</span></div>
+      <div class="splash-title">Pixiv Shaft</div>
+      <div class="splash-subtitle">Collect, discover and read through a richer Pixiv client experience with a more editorial visual tone.</div>
+      <div class="splash-loader"></div>
+      <div class="splash-footer"><span>v4.4.3</span><span>Launching</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: LOGIN ========== -->
+<div class="phone no-tab" id="screen-login" data-label="Login">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="content auth-screen auth-premium">
+      <div class="auth-hero">
+        <div class="auth-chip">Private Beta Access</div>
+        <div class="auth-brand">
+          <div class="auth-brand-mark">S</div>
+          <div class="auth-brand-copy">
+            <small>Welcome back</small>
+            <strong>Log Into Your Gallery</strong>
+            <p>Sync bookmarks, curated follows and reading history across your Pixiv workflow.</p>
+          </div>
+        </div>
+      </div>
+      <div class="auth-panel">
+        <div class="input-stack" style="margin-bottom:14px;">
+          <label class="input-label">Email or Pixiv ID</label>
+          <input class="input-field" placeholder="user@example.com">
+        </div>
+        <div class="input-stack" style="margin-bottom:8px;">
+          <label class="input-label">Password</label>
+          <input class="input-field" type="password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" value="password123">
+        </div>
+        <div style="text-align:right;margin-bottom:18px;">
+          <span style="font-size:12px;color:var(--primary);font-weight:700;cursor:pointer;">Forgot Password?</span>
+        </div>
+        <button class="btn-primary" data-navigate="recommend">Sign In</button>
+        <div style="text-align:center;color:var(--text-03);font-size:12px;margin:18px 0 14px;position:relative;">
+          <span style="background:rgba(255,255,255,0.9);padding:0 12px;position:relative;z-index:1;">or continue with</span>
+          <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(104,107,221,0.1);"></div>
+        </div>
+        <div class="auth-socials">
+          <button class="social-btn">Google</button>
+          <button class="social-btn">Apple</button>
+        </div>
+        <div class="auth-footnote"><span>Encrypted sign-in</span><span>v4.4.3</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: RECOMMEND ========== -->
+<div class="phone" id="screen-recommend" data-label="Recommend">
+  <div class="screen recommend-screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar">
+      <h1 class="nav-title" style="font-size:26px;">&#25512;&#33616;</h1>
+      <div class="nav-btn" data-navigate="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-search"/></svg></div>
+    </div>
+    <div class="content content-rich">
+      <div class="editorial-hero">
+        <div class="eyebrow">Curated For You</div>
+        <div class="hero-title">A More Cinematic Daily Feed</div>
+        <div class="hero-copy">Hand-picked illustrations, soft-ranked tags and artists that match your reading, download and bookmark patterns.</div>
+        <div class="hero-stats"><span>24 picks</span><span>98% match</span><span>3 new artists</span></div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-chip active">&#25554;&#30011;</div>
+        <div class="filter-chip">&#28459;&#30011;</div>
+        <div class="filter-chip">&#23567;&#35828;</div>
+        <div class="filter-chip">&#28909;&#38376;&#26631;&#31614;</div>
+      </div>
+      <div class="gallery-hero">
+        <div class="hero-mini glass-panel">
+          <div class="label">Today Spotlight</div>
+          <div class="value">&#26143;&#31354;&#12398;&#24444;&#26041;</div>
+          <div class="meta">A luminous editorial selection mixing sci-fi atmospheres, city dusk palettes and melodic character work.</div>
+        </div>
+        <div class="hero-mini glass-panel">
+          <div class="label">Fresh Drop</div>
+          <div class="value">+126</div>
+          <div class="meta">New works aligned to your follows and saved tags in the last 8 hours.</div>
+        </div>
+      </div>
+      <div class="editorial-grid">
+        <div class="editorial-card tall art g1" data-navigate="illust-detail">
+          <div class="card-copy"><span class="card-tag">3P Story</span><div class="card-title">&#26143;&#31354;&#12398;&#24444;&#26041;</div><div class="card-meta"><div class="orb"></div><span>sakura_art</span></div></div>
+        </div>
+        <div class="editorial-card art g6" data-navigate="illust-detail">
+          <div class="card-copy"><span class="card-tag">Landscape</span><div class="card-title">&#39080;&#26223; Sunset Valley</div><div class="card-meta"><div class="orb"></div><span>landscape_jp</span></div></div>
+        </div>
+        <div class="editorial-card art g2" data-navigate="illust-detail">
+          <div class="card-copy"><span class="card-tag">Color Burst</span><div class="card-title">&#22799;&#12398;&#32066;&#12431;&#12426;</div><div class="card-meta"><div class="orb"></div><span>pixel_master</span></div></div>
+        </div>
+        <div class="editorial-card tall art g10" data-navigate="illust-detail">
+          <div class="card-copy"><span class="card-tag">Series</span><div class="card-title">&#33457;&#12392;&#22818; Flowers and Dreams</div><div class="card-meta"><div class="orb"></div><span>yuki_illust</span></div></div>
+        </div>
+        <div class="editorial-card art g4" data-navigate="illust-detail">
+          <div class="card-copy"><span class="card-tag">Vocaloid</span><div class="card-title">&#21021;&#38899;&#12511;&#12463; Neon</div><div class="card-meta"><div class="orb"></div><span>&#26143;&#37326;&#12417;&#12368;&#12415;</span></div></div>
+        </div>
+        <div class="editorial-card art g14" data-navigate="illust-detail">
+          <div class="card-copy"><span class="card-tag">Night Walk</span><div class="card-title">&#22812;&#12398;&#34903;&#35282;</div><div class="card-meta"><div class="orb"></div><span>night_city</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item active" data-navigate="recommend"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-star"/></svg></div><div class="ti-text">&#25512;&#33616;</div></div>
+      <div class="tab-item" data-navigate="discover"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-compass"/></svg></div><div class="ti-text">&#21457;&#29616;</div></div>
+      <div class="tab-item" data-navigate="following"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-users"/></svg></div><div class="ti-text">&#21160;&#24577;</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: DISCOVER ========== -->
+<div class="phone" id="screen-discover" data-label="Discover">
+  <div class="screen discover-screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar">
+      <h1 class="nav-title" style="font-size:26px;">&#21457;&#29616;</h1>
+      <div class="nav-btn" data-navigate="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-search"/></svg></div>
+    </div>
+    <div class="content content-rich">
+      <div class="discover-banner" data-navigate="trending">
+        <div class="eyebrow">PixiVision</div>
+        <div class="hero-title" style="font-size:24px;">Weekly Illustration Spotlight</div>
+        <div class="hero-copy">Trend maps, themed rankings and a more story-led route into the ecosystem.</div>
+      </div>
+      <div class="discover-grid">
+        <div class="discover-tile glass-panel">
+          <div class="tile-art art g2 flex-center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><use href="#i-image"/></svg></div>
+          <div class="tile-title">&#25554;&#30011; Selections</div>
+          <div class="tile-copy">Curated image collections and hand-picked visual moods.</div>
+        </div>
+        <div class="discover-tile glass-panel">
+          <div class="tile-art art g4 flex-center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><use href="#i-book"/></svg></div>
+          <div class="tile-title">&#23567;&#35828; Stories</div>
+          <div class="tile-copy">Reader-oriented picks with stronger editorial framing.</div>
+        </div>
+        <div class="discover-tile glass-panel" data-navigate="ranking">
+          <div class="tile-art art g6 flex-center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><use href="#i-trophy"/></svg></div>
+          <div class="tile-title">&#25490;&#34892;&#27036; Ranking</div>
+          <div class="tile-copy">Daily, weekly and themed lists in one cleaner surface.</div>
+        </div>
+        <div class="discover-tile glass-panel">
+          <div class="tile-art art g8 flex-center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><use href="#i-grid"/></svg></div>
+          <div class="tile-title">&#30011;&#24266; Gallery</div>
+          <div class="tile-copy">Browse moods, formats and color-driven collections.</div>
+        </div>
+      </div>
+      <div class="section-label">&#28909;&#38376;&#26631;&#31614; Trending Tags</div>
+      <div class="discover-carousel">
+        <div class="discover-pill glass-panel" data-navigate="trending"><div class="cover art g9"></div><div class="body"><strong>&#12458;&#12522;&#12472;&#12490;&#12523;</strong><span>Original / rising</span></div></div>
+        <div class="discover-pill glass-panel" data-navigate="trending"><div class="cover art g3"></div><div class="body"><strong>&#21021;&#38899;&#12511;&#12463;</strong><span>Music visuals</span></div></div>
+        <div class="discover-pill glass-panel" data-navigate="trending"><div class="cover art g11"></div><div class="body"><strong>&#26481;&#26041;Project</strong><span>Fan favorite</span></div></div>
+        <div class="discover-pill glass-panel" data-navigate="trending"><div class="cover art g15"></div><div class="body"><strong>&#39080;&#26223;</strong><span>Landscape edits</span></div></div>
+      </div>
+      <div class="section-label">&#25512;&#33616;&#29992;&#25143; Recommended Users</div>
+      <div class="people-row">
+        <div class="people-card glass-panel" data-navigate="user-profile"><div class="avatar art g1"></div><strong>sakura</strong><span>Dream palettes</span></div>
+        <div class="people-card glass-panel" data-navigate="user-profile"><div class="avatar art g5"></div><strong>mizuki</strong><span>Warm gradients</span></div>
+        <div class="people-card glass-panel" data-navigate="user-profile"><div class="avatar art g10"></div><strong>hiro_art</strong><span>Urban concept</span></div>
+        <div class="people-card glass-panel" data-navigate="user-profile"><div class="avatar art g7"></div><strong>yuki_d</strong><span>Character focus</span></div>
+        <div class="people-card glass-panel" data-navigate="user-profile"><div class="avatar art g12"></div><strong>night_px</strong><span>City moods</span></div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item" data-navigate="recommend"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-star"/></svg></div><div class="ti-text">&#25512;&#33616;</div></div>
+      <div class="tab-item active" data-navigate="discover"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-compass"/></svg></div><div class="ti-text">&#21457;&#29616;</div></div>
+      <div class="tab-item" data-navigate="following"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-users"/></svg></div><div class="ti-text">&#21160;&#24577;</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: FOLLOWING ========== -->
+<div class="phone" id="screen-following" data-label="Following">
+  <div class="screen following-screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar">
+      <h1 class="nav-title" style="font-size:26px;">&#21160;&#24577;</h1>
+      <div class="nav-btn" data-navigate="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-search"/></svg></div>
+    </div>
+    <div class="content content-rich">
+      <div class="filter-row">
+        <div class="filter-chip active">Latest</div>
+        <div class="filter-chip">Illustrations</div>
+        <div class="filter-chip">Novels</div>
+        <div class="filter-chip">Friends</div>
+      </div>
+      <div class="feed-card glass-panel" data-navigate="illust-detail">
+        <div class="feed-head">
+          <div class="feed-avatar art g1" data-navigate="user-profile"></div>
+          <div class="feed-copy"><strong>sakura_art</strong><span>Posted new illustration · 2h ago</span></div>
+        </div>
+        <div class="feed-cover large art g5"></div>
+        <div class="feed-body">
+          <div class="feed-title">&#26149;&#12398;&#35370;&#12428; Spring Arrival</div>
+          <div class="feed-desc">A soft seasonal scene with a warmer palette and stronger cinematic contrast than your average feed card.</div>
+          <div class="feed-stats"><span>&#9829; 1,284</span><span>&#128065; 5,621</span><span>&#128278; 342</span></div>
+        </div>
+      </div>
+      <div class="feed-card glass-panel" data-navigate="illust-detail">
+        <div class="feed-head">
+          <div class="feed-avatar art g10"></div>
+          <div class="feed-copy"><strong>hiro_concept</strong><span>Posted 3 illustrations · 5h ago</span></div>
+        </div>
+        <div class="feed-cover grid">
+          <div class="art g3"></div>
+          <div class="art g12"></div>
+          <div class="art g7" style="position:relative;"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800;">+1</div></div>
+        </div>
+        <div class="feed-body">
+          <div class="feed-title">Cyberpunk Cityscape Series</div>
+          <div class="feed-desc">A tighter multi-card composition with cleaner spacing and more gallery-like rhythm.</div>
+          <div class="feed-stats"><span>&#9829; 892</span><span>&#128065; 3,104</span></div>
+        </div>
+      </div>
+      <div class="feed-card glass-panel" data-navigate="novel-reader">
+        <div class="feed-head">
+          <div class="feed-avatar art g6"></div>
+          <div class="feed-copy"><strong>&#26376;&#35501;&#12415;</strong><span>Published new novel chapter · 8h ago</span></div>
+        </div>
+        <div class="novel-panel">
+          <div class="feed-title" style="font-size:15px;">&#22812;&#26126;&#12369;&#12398;&#29289;&#35486; Ch.12</div>
+          <div class="quote">&#12300;&#12354;&#12394;&#12383;&#12399;&#12393;&#12371;&#12395;&#12418;&#34892;&#12363;&#12394;&#12356;&#12301;&#12392;&#24444;&#22899;&#12399;&#35328;&#12387;&#12383;...</div>
+        </div>
+        <div class="feed-body" style="padding-top:12px;">
+          <div class="feed-stats"><span>&#9829; 256</span><span>&#128278; 89</span><span>4,200 words</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item" data-navigate="recommend"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-star"/></svg></div><div class="ti-text">&#25512;&#33616;</div></div>
+      <div class="tab-item" data-navigate="discover"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-compass"/></svg></div><div class="ti-text">&#21457;&#29616;</div></div>
+      <div class="tab-item active" data-navigate="following"><div class="ti-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-users"/></svg></div><div class="ti-text">&#21160;&#24577;</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: SEARCH ========== -->
+<div class="phone no-tab" id="screen-search" data-label="Search">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="search-shell">
+      <div class="nav-btn" data-navigate="recommend"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div>
+      <div class="search-bar-pro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-03)" stroke-width="2" stroke-linecap="round"><use href="#i-search"/></svg><span style="font-size:14px;font-weight:700;color:var(--text-01);">&#21021;&#38899;&#12511;&#12463;</span><span style="margin-left:auto;font-size:12px;color:var(--primary);font-weight:700;">&#215;</span></div>
+    </div>
+    <div class="content content-rich">
+      <div class="editorial-hero">
+        <div class="eyebrow">Search Result</div>
+        <div class="hero-title" style="font-size:24px;">Miku Universe</div>
+        <div class="hero-copy">Neon vocaloid studies, glossy performance posters and cooler night palettes gathered into one result stream.</div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-chip active">&#25554;&#30011;</div>
+        <div class="filter-chip">&#23567;&#35828;</div>
+        <div class="filter-chip">&#29992;&#25143;</div>
+        <div class="filter-chip">Trending</div>
+      </div>
+      <div class="editorial-grid">
+        <div class="editorial-card tall art g3" data-navigate="illust-detail"><div class="card-copy"><span class="card-tag">Append</span><div class="card-title">&#21021;&#38899;&#12511;&#12463; Append</div><div class="card-meta"><div class="orb"></div><span>miku_love39</span></div></div></div>
+        <div class="editorial-card art g8" data-navigate="illust-detail"><div class="card-copy"><span class="card-tag">Track Art</span><div class="card-title">&#38651;&#23376;&#12398;&#27468;</div><div class="card-meta"><div class="orb"></div><span>vocaloid_art</span></div></div></div>
+        <div class="editorial-card art g11" data-navigate="illust-detail"><div class="card-copy"><span class="card-tag">4P</span><div class="card-title">&#12511;&#12463; Neon Night</div><div class="card-meta"><div class="orb"></div><span>neon_draw</span></div></div></div>
+        <div class="editorial-card tall art g14" data-navigate="illust-detail"><div class="card-copy"><span class="card-tag">Seasonal</span><div class="card-title">Snow Miku 2025</div><div class="card-meta"><div class="orb"></div><span>snow_miku</span></div></div></div>
+        <div class="editorial-card art g5" data-navigate="illust-detail"><div class="card-copy"><span class="card-tag">V4X</span><div class="card-title">&#39173;&#38899;&#12511;&#12463; V4X</div><div class="card-meta"><div class="orb"></div><span>v4x_fan</span></div></div></div>
+        <div class="editorial-card art g7" data-navigate="illust-detail"><div class="card-copy"><span class="card-tag">Future</span><div class="card-title">&#26410;&#26469;&#12398;&#38899;</div><div class="card-meta"><div class="orb"></div><span>future_snd</span></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: ILLUST DETAIL ========== -->
+<div class="phone no-tab" id="screen-illust-detail" data-label="Illust Detail">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="recommend"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">Illustration</h1><div class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-more"/></svg></div></div>
+    <div class="content content-rich">
+      <div class="detail-hero art g1"><div class="detail-overlay"><span class="eyebrow">1 / 3 Story Frame</span><div class="hero-title" style="font-size:24px;">&#26143;&#31354;&#12398;&#24444;&#26041;</div><div class="hero-copy">A cinematic sky-study with soft bloom, distant city light and layered midnight gradients.</div></div></div>
+      <div class="copy-panel glass-panel" style="margin-top:16px;" data-navigate="user-profile"><div class="flex gap-12"><div class="art g5" style="width:52px;height:52px;border-radius:18px;flex-shrink:0;"></div><div style="flex:1;"><div style="font-size:16px;font-weight:800;color:var(--text-00);">sakura_art</div><div style="font-size:12px;color:var(--text-03);margin-top:4px;">Tokyo illustrator · 1,234 followers · commissions open</div></div><button class="btn-sm">Follow</button></div></div>
+      <div class="action-row" style="margin-top:12px;"><div class="action-chip">&#9829; 12.8K Likes</div><div class="action-chip">&#128278; 342 Saves</div><div class="action-chip">&#128065; 56K Views</div></div>
+      <div class="quote-card" style="margin-top:14px;"><div class="section-label" style="margin-top:0;">Artist Note</div><div style="font-size:14px;font-weight:800;color:var(--text-00);">Flowers and city lights meeting at the edge of dawn.</div><div style="font-size:13px;line-height:1.7;color:var(--text-02);margin-top:8px;">Built as a three-page sequence: wide establishing frame, character silhouette, then a warmer atmospheric close-up.</div></div>
+      <div class="tag-flow" style="margin-top:14px;"><span class="tag">#original</span><span class="tag">#nightscape</span><span class="tag">#cinematic</span><span class="tag">#3pages</span></div>
+      <div class="editorial-grid" style="margin-top:14px;"><div class="editorial-card art g10"><div class="card-copy"><span class="card-tag">Preview 02</span><div class="card-title">Quiet City Frame</div></div></div><div class="editorial-card art g6"><div class="card-copy"><span class="card-tag">Preview 03</span><div class="card-title">Warm Bloom</div></div></div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,0.84);border-top:1px solid rgba(104,107,221,0.08);"><div style="flex:1;height:40px;border-radius:999px;background:rgba(104,107,221,0.06);display:flex;align-items:center;padding:0 14px;font-size:13px;color:var(--text-03);">Add comment...</div><div class="nav-btn" style="background:var(--bookmark);border-color:var(--bookmark);color:white;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><use href="#i-heart"/></svg></div><div class="nav-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-download"/></svg></div><div class="nav-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-share"/></svg></div></div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: USER PROFILE ========== -->
+<div class="phone no-tab" id="screen-user-profile" data-label="User Profile">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="recommend"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">Creator</h1><div class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-more"/></svg></div></div>
+    <div class="content content-rich">
+      <div class="profile-hero"><div class="flex gap-12" style="align-items:flex-end;position:relative;z-index:1;"><div class="art g5" style="width:76px;height:76px;border-radius:24px;"></div><div style="flex:1;"><div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.72);">Tokyo Illustrator</div><div style="font-size:26px;font-weight:800;letter-spacing:-0.9px;">sakura_art</div><div style="font-size:13px;line-height:1.6;color:rgba(255,255,255,0.8);margin-top:6px;">Dream-lit city scenes, atmospheric color studies and commissioned concept work.</div></div></div></div>
+      <div class="stat-row"><div class="stat-pill glass-panel"><strong>342</strong><span>Works</span></div><div class="stat-pill glass-panel"><strong>1.2K</strong><span>Followers</span></div><div class="stat-pill glass-panel"><strong>89</strong><span>Following</span></div></div>
+      <div class="filter-row" style="margin-top:14px;"><div class="filter-chip active">&#25554;&#30011;</div><div class="filter-chip">&#28459;&#30011;</div><div class="filter-chip">&#23567;&#35828;</div><div class="filter-chip">&#25910;&#34255;</div></div>
+      <div class="copy-panel glass-panel"><div style="font-size:13px;font-weight:700;color:var(--text-00);">About</div><div style="font-size:12px;line-height:1.7;color:var(--text-02);margin-top:6px;">Commissions open. Focused on twilight cityscapes, music-key visual work and emotionally charged original series.</div></div>
+      <div class="profile-grid"><div class="art g1"></div><div class="art g2"></div><div class="art g7"></div><div class="art g4"></div><div class="art g10"></div><div class="art g5"></div><div class="art g6"></div><div class="art g14"></div><div class="art g3"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: NOVEL READER ========== -->
+<div class="phone no-tab" id="screen-novel-reader" data-label="Novel Reader">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="following"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:14px;">Ch.12 &#22812;&#26126;&#12369;&#12398;&#29289;&#35486;</h1><div class="nav-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-settings"/></svg></div></div>
+    <div class="progress" style="margin:0 16px;"><div class="progress-fill" style="width:42%;"></div></div>
+    <div class="content content-rich" style="padding-left:22px;padding-right:22px;">
+      <div class="quote-card">
+        <div class="eyebrow" style="background:rgba(104,107,221,0.08);color:var(--primary-dark);">Reading Session</div>
+        <div style="font-size:14px;font-weight:800;color:var(--text-00);margin-top:14px;">Ch.12 &#22812;&#26126;&#12369;&#12398;&#29289;&#35486;</div>
+        <div style="font-size:14px;line-height:2.05;color:var(--text-01);margin-top:12px;text-align:justify;">&#12288;&#31379;&#12398;&#22806;&#12395;&#12399;&#12289;&#12414;&#12384;&#26263;&#12356;&#31354;&#12364;&#24195;&#12364;&#12387;&#12390;&#12356;&#12383;&#12290;&#26143;&#12383;&#12385;&#12399;&#23569;&#12375;&#12378;&#12388;&#28040;&#12360;&#22987;&#12417;&#12289;&#26481;&#12398;&#31354;&#12395;&#12399;&#28129;&#12356;&#34180;&#32043;&#12398;&#20809;&#12364;&#24046;&#12375;&#36796;&#12435;&#12391;&#12356;&#12383;&#12290;</div>
+        <div style="font-size:14px;line-height:2.05;color:var(--text-01);margin-top:16px;text-align:justify;">&#12288;&#12300;&#12354;&#12394;&#12383;&#12399;&#12393;&#12371;&#12395;&#12418;&#34892;&#12363;&#12394;&#12356;&#12301;&#12392;&#24444;&#22899;&#12399;&#38745;&#12363;&#12395;&#35328;&#12387;&#12383;&#12290;&#12381;&#12398;&#22768;&#12399;&#12289;&#22805;&#26286;&#12428;&#12398;&#39080;&#12398;&#12424;&#12358;&#12395;&#26580;&#12425;&#12363;&#12367;&#12289;&#12375;&#12363;&#12375;&#12393;&#12371;&#12363;&#23490;&#12375;&#12370;&#12384;&#12387;&#12383;&#12290;</div>
+        <div style="font-size:14px;line-height:2.05;color:var(--text-01);margin-top:16px;text-align:justify;">&#12288;&#31169;&#12399;&#31572;&#12360;&#12394;&#12363;&#12387;&#12383;&#12290;&#31572;&#12360;&#12427;&#24517;&#35201;&#12364;&#12394;&#12356;&#12371;&#12392;&#12434;&#12289;&#20108;&#20154;&#12392;&#12418;&#30693;&#12387;&#12390;&#12356;&#12383;&#12363;&#12425;&#12384;&#12290;&#22823;&#20999;&#12394;&#12398;&#12399;&#35328;&#33865;&#12391;&#12399;&#12394;&#12367;&#12289;&#12371;&#12398;&#22580;&#25152;&#12395;&#12356;&#12427;&#12371;&#12392;&#12384;&#12387;&#12383;&#12290;</div>
+      </div>
+      <div class="action-row" style="margin-top:14px;"><div class="action-chip">&#128214; 4,200 words</div><div class="action-chip">42% complete</div><div class="action-chip">18 min left</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.84);border-top:1px solid rgba(104,107,221,0.08);"><button class="btn-sm-outline" style="font-size:11px;padding:0 12px;">&#8592; Ch.11</button><div style="flex:1;text-align:center;font-size:12px;color:var(--text-03);">42% &middot; 4,200 words</div><button class="btn-sm" style="font-size:11px;padding:0 12px;">Ch.13 &#8594;</button></div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: RANKING ========== -->
+<div class="phone no-tab" id="screen-ranking" data-label="Ranking">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="discover"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">&#25490;&#34892;&#27036;</h1><div style="font-size:13px;color:var(--primary);font-weight:700;">2026-03-22</div></div>
+    <div class="filter-row" style="padding:0 16px 2px;"><div class="filter-chip active">Daily</div><div class="filter-chip">Weekly</div><div class="filter-chip">Monthly</div><div class="filter-chip">AI</div><div class="filter-chip">Original</div></div>
+    <div class="content content-rich">
+      <div class="editorial-hero"><div class="eyebrow">Top Of The Day</div><div class="hero-title" style="font-size:24px;">Ranking Highlights</div><div class="hero-copy">A more premium leaderboard with stronger emphasis on cover art, category mood and visual hierarchy.</div></div>
+      <div class="rank-card" data-navigate="illust-detail"><div class="rank-badge" style="color:#f4a629;">1</div><div class="art g2" style="width:64px;height:64px;border-radius:18px;flex-shrink:0;"></div><div class="li-body"><div class="li-title">&#26149;&#38642;&#12398;&#31354; Spring Cloud</div><div class="li-sub">mizuki_draw · &#9829; 8,234</div></div></div>
+      <div class="rank-card" data-navigate="illust-detail"><div class="rank-badge" style="color:#93a0b3;">2</div><div class="art g10" style="width:64px;height:64px;border-radius:18px;flex-shrink:0;"></div><div class="li-body"><div class="li-title">Cyberpunk Street</div><div class="li-sub">neon_art · &#9829; 6,891</div></div></div>
+      <div class="rank-card" data-navigate="illust-detail"><div class="rank-badge" style="color:#cd7f32;">3</div><div class="art g4" style="width:64px;height:64px;border-radius:18px;flex-shrink:0;"></div><div class="li-body"><div class="li-title">&#26862;&#12398;&#31070;&#27583;</div><div class="li-sub">nature_jp · &#9829; 5,412</div></div></div>
+      <div class="rank-card" data-navigate="illust-detail"><div class="rank-badge">4</div><div class="art g6" style="width:64px;height:64px;border-radius:18px;flex-shrink:0;"></div><div class="li-body"><div class="li-title">&#21021;&#38899;&#12511;&#12463; Birthday</div><div class="li-sub">voca_fan · &#9829; 4,892</div></div></div>
+      <div class="rank-card" data-navigate="illust-detail"><div class="rank-badge">5</div><div class="art g11" style="width:64px;height:64px;border-radius:18px;flex-shrink:0;"></div><div class="li-body"><div class="li-title">Rainy Afternoon</div><div class="li-sub">rain_art · &#9829; 4,321</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: TRENDING ========== -->
+<div class="phone no-tab" id="screen-trending" data-label="Trending Tags">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="discover"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">&#28909;&#38376;&#26631;&#31614;</h1></div>
+    <div class="content content-rich">
+      <div class="trend-grid">
+        <div class="trend-card art g1"><div class="card-copy" style="position:relative;padding:68px 14px 14px;color:#fff;font-weight:800;">&#12458;&#12522;&#12472;&#12490;&#12523;</div></div>
+        <div class="trend-card art g3"><div class="card-copy" style="position:relative;padding:68px 14px 14px;color:#fff;font-weight:800;">&#21021;&#38899;&#12511;&#12463;</div></div>
+        <div class="trend-card art g11"><div class="card-copy" style="position:relative;padding:68px 14px 14px;color:#fff;font-weight:800;">&#26481;&#26041;Project</div></div>
+        <div class="trend-card art g4"><div class="card-copy" style="position:relative;padding:68px 14px 14px;color:#fff;font-weight:800;">&#39080;&#26223;</div></div>
+        <div class="trend-card art g5"><div class="card-copy" style="position:relative;padding:68px 14px 14px;color:#fff;font-weight:800;">&#22899;&#12398;&#23376;</div></div>
+        <div class="trend-card art g10"><div class="card-copy" style="position:relative;padding:68px 14px 14px;color:#fff;font-weight:800;">Cyberpunk</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: BOOKMARKS ========== -->
+<div class="phone no-tab" id="screen-bookmarks" data-label="Bookmarks">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="recommend"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">&#25105;&#30340;&#25910;&#34255;</h1></div>
+    <div class="content content-rich">
+      <div class="hero-mini glass-panel" style="margin-bottom:14px;"><div class="label">Saved Collection</div><div class="value">1,284 items</div><div class="meta">Your strongest visual archive, curated from likes, references and long-term mood boards.</div></div>
+      <div class="editorial-grid">
+        <div class="editorial-card art g2"><div class="card-copy"><span class="card-tag">Saved</span><div class="card-title">Cherry Blossom Night</div></div></div>
+        <div class="editorial-card tall art g10"><div class="card-copy"><span class="card-tag">Saved</span><div class="card-title">&#22812;&#26223;&#37117;&#24066;</div></div></div>
+        <div class="editorial-card tall art g4"><div class="card-copy"><span class="card-tag">Saved</span><div class="card-title">&#32209;&#12398;&#24237;</div></div></div>
+        <div class="editorial-card art g6"><div class="card-copy"><span class="card-tag">Saved</span><div class="card-title">Fantasy Dragon</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: DOWNLOADS ========== -->
+<div class="phone no-tab" id="screen-downloads" data-label="Downloads">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">&#19979;&#36733;&#31649;&#29702;</h1></div>
+    <div class="content content-rich">
+      <div class="hero-mini glass-panel" style="margin-bottom:14px;"><div class="label">Storage Used</div><div class="value">2.4 GB / 8 GB</div><div class="progress mt-12"><div class="progress-fill" style="width:30%;"></div></div></div>
+      <div class="download-card glass-panel"><div class="flex gap-12"><div class="art g1" style="width:52px;height:52px;border-radius:18px;flex-shrink:0;"></div><div style="flex:1;"><div class="li-title">&#26143;&#31354;&#12398;&#24444;&#26041;</div><div class="progress mt-8"><div class="progress-fill" style="width:73%;"></div></div><div class="li-sub" style="margin-top:6px;">2.1 MB / 2.9 MB · 73%</div></div></div></div>
+      <div class="download-card glass-panel"><div class="flex gap-12"><div class="art g3" style="width:52px;height:52px;border-radius:18px;flex-shrink:0;"></div><div style="flex:1;"><div class="li-title">&#21021;&#38899;&#12511;&#12463; Append</div><div class="progress mt-8"><div class="progress-fill" style="width:45%;"></div></div><div class="li-sub" style="margin-top:6px;">1.8 MB / 4.0 MB · 45%</div></div></div></div>
+      <div class="download-card glass-panel"><div class="flex gap-12"><div class="art g5" style="width:52px;height:52px;border-radius:18px;flex-shrink:0;"></div><div style="flex:1;"><div class="li-title">Spring Arrival (3 pages)</div><div class="progress mt-8"><div class="progress-fill" style="width:12%;background:var(--warning);"></div></div><div class="li-sub" style="margin-top:6px;">0.8 MB / 6.5 MB · Queued</div></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: HISTORY ========== -->
+<div class="phone no-tab" id="screen-history" data-label="History">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">&#27983;&#35272;&#35760;&#24405;</h1><span style="font-size:13px;color:var(--bookmark);font-weight:700;">Clear</span></div>
+    <div class="content content-rich">
+      <div class="timeline-label">Today</div>
+      <div class="rank-card" data-navigate="illust-detail"><div class="art g1" style="width:56px;height:56px;border-radius:18px;flex-shrink:0;"></div><div class="li-body"><div class="li-title">&#26143;&#31354;&#12398;&#24444;&#26041;</div><div class="li-sub">sakura_art · 10 min ago</div></div></div>
+      <div class="rank-card" data-navigate="illust-detail"><div class="art g5" style="width:56px;height:56px;border-radius:18px;flex-shrink:0;"></div><div class="li-body"><div class="li-title">&#26149;&#12398;&#35370;&#12428;</div><div class="li-sub">sakura_art · 25 min ago</div></div></div>
+      <div class="timeline-label">Yesterday</div>
+      <div class="rank-card" data-navigate="illust-detail"><div class="art g7" style="width:56px;height:56px;border-radius:18px;flex-shrink:0;"></div><div class="li-body"><div class="li-title">&#39080;&#26223; Sunset Valley</div><div class="li-sub">landscape_jp · Yesterday</div></div></div>
+      <div class="rank-card" data-navigate="novel-reader"><div style="width:56px;height:56px;border-radius:18px;flex-shrink:0;background:var(--primary-bg);display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><use href="#i-book"/></svg></div><div class="li-body"><div class="li-title">&#22812;&#26126;&#12369;&#12398;&#29289;&#35486; Ch.11</div><div class="li-sub">&#26376;&#35501;&#12415; · Yesterday</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: SETTINGS ========== -->
+<div class="phone no-tab" id="screen-settings" data-label="Settings">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="recommend"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">&#35774;&#32622;</h1></div>
+    <div class="content content-rich">
+      <div class="settings-hero"><div class="eyebrow">Workspace Control</div><div class="hero-title" style="font-size:24px;">Shape The App Around Your Taste</div><div class="hero-copy">Tune browsing, storage and appearance with clearer hierarchy and more premium grouping.</div></div>
+      <div class="menu-group">
+        <div class="menu-row"><div class="mr-icon" style="background:var(--primary-bg);color:var(--primary);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-user"/></svg></div><span class="mr-label">Pixiv Account</span><span class="mr-value">sakura_art</span><span class="mr-arrow">&#8250;</span></div>
+        <div class="menu-row" data-navigate="theme"><div class="mr-icon" style="background:rgba(233,30,99,0.1);color:#E91E63;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-palette"/></svg></div><span class="mr-label">Theme Color</span><div style="width:16px;height:16px;border-radius:50%;background:var(--primary);"></div><span class="mr-arrow">&#8250;</span></div>
+        <div class="menu-row" data-navigate="downloads"><div class="mr-icon" style="background:rgba(76,175,80,0.1);color:var(--success);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-download"/></svg></div><span class="mr-label">Downloads</span><span class="mr-value">2.4 GB</span><span class="mr-arrow">&#8250;</span></div>
+        <div class="menu-row" data-navigate="history"><div class="mr-icon" style="background:rgba(33,150,243,0.1);color:var(--info);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-clock"/></svg></div><span class="mr-label">View History</span><span class="mr-value">324 items</span><span class="mr-arrow">&#8250;</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: THEME PICKER ========== -->
+<div class="phone no-tab" id="screen-theme" data-label="Theme Picker">
+  <div class="screen">
+    <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-icons"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/><rect x="6" y="4" width="3" height="14" rx="1" fill="currentColor" opacity=".5"/><rect x="11" y="2" width="3" height="16" rx="1" fill="currentColor" opacity=".7"/><rect x="16" y="0" width="3" height="18" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M1 7l10 10L22 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><svg viewBox="0 0 28 14"><rect x="0" y="0" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="16" height="10" rx="1.5" fill="currentColor"/><rect x="25.5" y="4" width="2.5" height="6" rx="1" fill="currentColor" opacity=".4"/></svg></span></div>
+    <div class="navbar"><div class="nav-btn" data-navigate="settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-back"/></svg></div><h1 class="nav-title" style="font-size:16px;">&#20027;&#39064;&#33394;&#24425;</h1></div>
+    <div class="content content-rich">
+      <div class="hero-mini glass-panel" style="margin-bottom:14px;"><div class="label">Accent System</div><div class="value">Choose A Signature Tone</div><div class="meta">Theme color now behaves more like a brand decision than a tiny settings toggle.</div></div>
+      <div class="theme-grid">
+        <div class="theme-circle" style="background:#686bdd;" data-color="#686bdd" data-dark="#4749a0" onclick="setThemeFromPhone(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><use href="#i-check"/></svg></div>
+        <div class="theme-circle" style="background:#56baec;" data-color="#56baec" data-dark="#4ba2ce" onclick="setThemeFromPhone(this)"></div>
+        <div class="theme-circle" style="background:#008BF3;" data-color="#008BF3" data-dark="#0277cf" onclick="setThemeFromPhone(this)"></div>
+        <div class="theme-circle" style="background:#03d0bf;" data-color="#03d0bf" data-dark="#04a598" onclick="setThemeFromPhone(this)"></div>
+        <div class="theme-circle" style="background:#fee65e;" data-color="#fee65e" data-dark="#dbc650" onclick="setThemeFromPhone(this)"></div>
+        <div class="theme-circle" style="background:#fe83a2;" data-color="#fe83a2" data-dark="#d67089" onclick="setThemeFromPhone(this)"></div>
+        <div class="theme-circle" style="background:#F44336;" data-color="#F44336" data-dark="#D32F2F" onclick="setThemeFromPhone(this)"></div>
+        <div class="theme-circle" style="background:#673AB7;" data-color="#673AB7" data-dark="#512DA8" onclick="setThemeFromPhone(this)"></div>
+        <div class="theme-circle" style="background:#4CAF50;" data-color="#4CAF50" data-dark="#689F38" onclick="setThemeFromPhone(this)"></div>
+        <div class="theme-circle" style="background:#E91E63;" data-color="#E91E63" data-dark="#C2185B" onclick="setThemeFromPhone(this)"></div>
+      </div>
+      <div class="preview-card glass-panel" style="margin-top:18px;"><div class="flex gap-12 mb-12"><div style="width:44px;height:44px;border-radius:16px;background:var(--primary);display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><use href="#i-star"/></svg></div><div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text-01);">Live Preview</div><div style="font-size:12px;color:var(--text-03);">Buttons, tags and progress respond instantly.</div></div></div><div class="flex gap-8 mb-12"><button class="btn-sm" style="flex:1;">Primary</button><button class="btn-sm-outline" style="flex:1;">Outline</button></div><div class="tag-flow"><span class="tag">Tag One</span><span class="tag">Tag Two</span><span class="tag">Tag Three</span></div><div class="progress mt-12"><div class="progress-fill" style="width:65%;"></div></div></div>
+      <div class="menu-group" style="margin-top:16px;"><div class="menu-row" onclick="toggleDark()"><div class="mr-icon" style="background:var(--primary-bg);color:var(--primary);">&#127769;</div><span class="mr-label">Dark Mode</span><div class="toggle-track" style="width:44px;height:24px;border-radius:12px;background:var(--border);position:relative;"><div class="toggle-thumb" style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div></div></div></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .theme-circle {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; margin: 0 auto;
+    transition: transform 120ms var(--ease), box-shadow 120ms;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .theme-circle:hover { transform: scale(1.1); }
+  .theme-circle svg { display: none; }
+  .theme-circle.active svg { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+</main><!-- end #main -->
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+(function() {
+  'use strict';
+
+  var DEFAULT = 'splash';
+  var SPLASH_REDIRECT_MIN = 800;
+  var SPLASH_REDIRECT_MAX = 1500;
+  var SPLASH_REDIRECT_TARGET = 'login';
+  var THEMES = [
+    { c: '#686bdd', d: '#4749a0' },
+    { c: '#56baec', d: '#4ba2ce' },
+    { c: '#008BF3', d: '#0277cf' },
+    { c: '#03d0bf', d: '#04a598' },
+    { c: '#fee65e', d: '#dbc650' },
+    { c: '#fe83a2', d: '#d67089' },
+    { c: '#F44336', d: '#D32F2F' },
+    { c: '#673AB7', d: '#512DA8' },
+    { c: '#4CAF50', d: '#689F38' },
+    { c: '#E91E63', d: '#C2185B' }
+  ];
+  var currentTheme = 0;
+  var root = document.documentElement;
+  var main = document.getElementById('main');
+  var sidebar = document.getElementById('sidebar');
+  var galleryBtn = document.querySelector('.sb-gallery');
+  var dotsEl = document.getElementById('theme-dots');
+  var sidebarItems = Array.prototype.slice.call(document.querySelectorAll('.sb-item'));
+  var phones = Array.prototype.slice.call(document.querySelectorAll('#main .phone[id]'));
+  var themeCircles = Array.prototype.slice.call(document.querySelectorAll('.theme-circle'));
+  var screenIds = phones.map(function(phone) {
+    return phone.id.replace('screen-', '');
+  });
+  var screenMap = phones.reduce(function(map, phone) {
+    map[phone.id.replace('screen-', '')] = phone;
+    return map;
+  }, {});
+  var itemMap = sidebarItems.reduce(function(map, item) {
+    map[item.getAttribute('data-screen')] = item;
+    return map;
+  }, {});
+  var activeScreen = DEFAULT;
+  var activeSidebarItem = itemMap[DEFAULT] || null;
+  var splashRedirectTimer = null;
+  var idle = window.requestIdleCallback || function(cb) {
+    return window.setTimeout(cb, 1);
+  };
+
+  var countEl = document.getElementById('screen-count');
+  if (countEl) countEl.textContent = screenIds.length;
+
+  idle(function() {
+    var fragment = document.createDocumentFragment();
+    THEMES.forEach(function(t, i) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'sb-theme-dot' + (i === 0 ? ' active' : '');
+      dot.style.background = t.c;
+      dot.setAttribute('data-index', i);
+      dot.setAttribute('aria-label', 'Switch theme ' + (i + 1));
+      fragment.appendChild(dot);
+    });
+    dotsEl.appendChild(fragment);
+  });
+
+  function setTheme(idx) {
+    currentTheme = idx;
+    var t = THEMES[idx];
+    root.style.setProperty('--primary', t.c);
+    root.style.setProperty('--primary-dark', t.d);
+
+    // Compute lighter version
+    root.style.setProperty('--primary-light', t.c);
+    root.style.setProperty('--primary-bg', t.c + '14');
+    root.style.setProperty('--primary-bg-strong', t.c + '28');
+
+    // Update sidebar dots
+    Array.prototype.forEach.call(dotsEl.children, function(d, i) {
+      d.classList.toggle('active', i === idx);
+    });
+    themeCircles.forEach(function(c) {
+      c.classList.toggle('active', c.dataset.color === t.c);
+    });
+  }
+
+  // Navigation
+  function navigateTo(screen) {
+    location.hash = '#' + screen;
+  }
+
+  function clearSplashRedirect() {
+    if (splashRedirectTimer !== null) {
+      window.clearTimeout(splashRedirectTimer);
+      splashRedirectTimer = null;
+    }
+  }
+
+  function scheduleSplashRedirect(screen) {
+    clearSplashRedirect();
+    if (screen !== DEFAULT) return;
+
+    var delay = SPLASH_REDIRECT_MIN + Math.floor(Math.random() * (SPLASH_REDIRECT_MAX - SPLASH_REDIRECT_MIN + 1));
+    splashRedirectTimer = window.setTimeout(function() {
+      if (activeScreen === DEFAULT) navigateTo(SPLASH_REDIRECT_TARGET);
+    }, delay);
+  }
+
+  function showScreen(screen) {
+    if (screen === '__all__') {
+      main.classList.add('gallery');
+      phones.forEach(function(p) {
+        p.classList.add('visible');
+      });
+    } else {
+      main.classList.remove('gallery');
+      main.classList.remove('zoom-sm');
+      main.classList.remove('zoom-md');
+      if (activeScreen !== '__all__' && screenMap[activeScreen]) {
+        screenMap[activeScreen].classList.remove('visible');
+      } else {
+        phones.forEach(function(p) {
+          p.classList.remove('visible');
+        });
+      }
+      var target = screenMap[screen];
+      if (target) {
+        target.classList.add('visible');
+      } else {
+        var fallback = screenMap[DEFAULT];
+        if (fallback) fallback.classList.add('visible');
+        screen = DEFAULT;
+      }
+    }
+
+    if (activeSidebarItem && activeSidebarItem.getAttribute('data-screen') !== screen) {
+      activeSidebarItem.classList.remove('active');
+    }
+    activeSidebarItem = itemMap[screen] || null;
+    if (activeSidebarItem) activeSidebarItem.classList.add('active');
+    activeScreen = screen;
+
+    if (galleryBtn) galleryBtn.style.background = screen === '__all__' ? 'var(--primary-bg-strong)' : '';
+    scheduleSplashRedirect(screen);
+  }
+
+  function onHashChange() {
+    var hash = location.hash.replace('#', '') || DEFAULT;
+    showScreen(hash);
+  }
+
+  window.addEventListener('hashchange', onHashChange);
+
+  // Click delegation for data-navigate
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('[data-navigate]');
+    if (el) {
+      e.preventDefault();
+      e.stopPropagation();
+      navigateTo(el.getAttribute('data-navigate'));
+      closeSidebar();
+      return;
+    }
+
+    var dot = e.target.closest('.sb-theme-dot');
+    if (dot) {
+      setTheme(Number(dot.getAttribute('data-index')));
+      return;
+    }
+
+    var item = e.target.closest('.sb-item');
+    if (item) {
+      navigateTo(item.getAttribute('data-screen'));
+      closeSidebar();
+    }
+  });
+
+  // Gallery click
+  if (galleryBtn) {
+    galleryBtn.addEventListener('click', function() {
+      navigateTo('__all__');
+      closeSidebar();
+    });
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    var current = location.hash.replace('#', '') || DEFAULT;
+    var idx = screenIds.indexOf(current);
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (idx < screenIds.length - 1) navigateTo(screenIds[idx + 1]);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (idx > 0) navigateTo(screenIds[idx - 1]);
+    } else if (e.key === 'd' || e.key === 'D') {
+      toggleDark();
+    } else if (e.key === 'g' || e.key === 'G') {
+      navigateTo('__all__');
+    } else if (e.key === 'Escape') {
+      navigateTo(DEFAULT);
+    } else if (e.key === '/') {
+      e.preventDefault();
+      document.getElementById('sb-filter').focus();
+    }
+  });
+
+  // Init
+  onHashChange();
+
+  // Mark initial theme circle active
+  var defaultThemeCircle = document.querySelector('.theme-circle[data-color="#686bdd"]');
+  if (defaultThemeCircle) defaultThemeCircle.classList.add('active');
+})();
+
+// Dark mode toggle
+function toggleDark() {
+  document.documentElement.classList.toggle('dark');
+}
+
+// Section toggle
+function toggleSection(titleEl) {
+  titleEl.closest('.sb-section').classList.toggle('collapsed');
+}
+
+// Sidebar toggle (mobile)
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// Filter screens
+function filterScreens(query) {
+  query = query.toLowerCase().trim();
+  document.querySelectorAll('.sb-item').forEach(function(item) {
+    var text = item.textContent.toLowerCase();
+    var screen = (item.getAttribute('data-screen') || '').toLowerCase();
+    var match = !query || text.indexOf(query) !== -1 || screen.indexOf(query) !== -1;
+    item.style.display = match ? '' : 'none';
+  });
+}
+
+// Theme from phone screen
+function setThemeFromPhone(el) {
+  var color = el.dataset.color;
+  var dark = el.dataset.dark;
+  var r = document.documentElement;
+  r.style.setProperty('--primary', color);
+  r.style.setProperty('--primary-dark', dark);
+  r.style.setProperty('--primary-bg', color + '14');
+  r.style.setProperty('--primary-bg-strong', color + '28');
+
+  document.querySelectorAll('.theme-circle').forEach(function(c) {
+    c.classList.toggle('active', c.dataset.color === color);
+  });
+  document.querySelectorAll('.sb-theme-dot').forEach(function(d) {
+    d.classList.toggle('active', d.style.background === color);
+  });
+}
+</script>
+
+</body>
+</html>
