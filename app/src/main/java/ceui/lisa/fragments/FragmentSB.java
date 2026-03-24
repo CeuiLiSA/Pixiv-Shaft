@@ -15,6 +15,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import android.view.ViewGroup;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import ceui.lisa.R;
@@ -260,6 +264,15 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     public void initView() {
         super.initView();
         baseBind.isPrivate.setChecked(Shaft.sSettings.isPrivateStar());
+        ViewCompat.setOnApplyWindowInsetsListener(baseBind.getRoot(), (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
+            ViewGroup.LayoutParams layoutParams = baseBind.bottomRela.getLayoutParams();
+            if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
+                ((ViewGroup.MarginLayoutParams) layoutParams).bottomMargin = insets.bottom;
+                baseBind.bottomRela.setLayoutParams(layoutParams);
+            }
+            return windowInsets;
+        });
         baseBind.submitArea.setOnClickListener(v -> submitStar());
     }
 

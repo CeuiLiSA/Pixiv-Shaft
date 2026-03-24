@@ -132,6 +132,10 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         if (toolbar == null || !toolbar.getFitsSystemWindows()) {
             return;
         }
+        if (mActivity instanceof ceui.lisa.activities.BaseActivity
+                && !((ceui.lisa.activities.BaseActivity<?>) mActivity).hideStatusBar()) {
+            return;
+        }
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), 0);
