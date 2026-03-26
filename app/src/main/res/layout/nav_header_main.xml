@@ -4,14 +4,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:background="@drawable/side_nav_bar"
-    android:layout_height="220dp">
+    android:layout_height="200dp">
 
     <ImageView
         android:layout_width="match_parent"
         android:id="@+id/pika_bg"
         android:src="@drawable/user_bg_main"
         android:scaleType="centerCrop"
-        android:alpha="0.4"
+        android:alpha="0.35"
         android:layout_height="match_parent" />
 
     <View
@@ -24,29 +24,29 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="24dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="20dp">
 
         <FrameLayout
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="68dp"
+            android:layout_height="68dp"
             android:layout_marginBottom="12dp">
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/user_head"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
                 android:layout_gravity="center"
                 android:src="@drawable/avatar"
                 android:elevation="4dp"
-                app:civ_border_width="2dp"
-                app:civ_border_color="#B0FFFFFF"
+                app:civ_border_width="2.5dp"
+                app:civ_border_color="#CCFFFFFF"
                 android:contentDescription="@string/nav_header_desc" />
 
             <View
-                android:layout_width="72dp"
-                android:layout_height="72dp"
+                android:layout_width="68dp"
+                android:layout_height="68dp"
                 android:background="@drawable/nav_header_avatar_ring" />
 
         </FrameLayout>
@@ -55,14 +55,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/user_name"
-            android:textSize="18sp"
+            android:textSize="17sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:shadowColor="#40000000"
+            android:textColor="#FFFFFFFF"
+            android:shadowColor="#55000000"
             android:shadowDx="0"
             android:shadowDy="1"
-            android:shadowRadius="3"
-            android:letterSpacing="0.02" />
+            android:shadowRadius="4" />
 
         <TextView
             android:id="@+id/user_email"
@@ -70,7 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:textSize="12sp"
-            android:textColor="#B0FFFFFF"
+            android:textColor="#AAFFFFFF"
             android:text="@string/nav_header_subtitle" />
 
     </LinearLayout>
