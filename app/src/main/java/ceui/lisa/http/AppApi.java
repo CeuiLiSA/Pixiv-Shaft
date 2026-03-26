@@ -18,6 +18,7 @@ import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.model.ListTag;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.model.ListUser;
+import ceui.lisa.model.ListWatchlistManga;
 import ceui.lisa.model.ListWatchlistNovel;
 import ceui.lisa.model.RecmdIllust;
 import ceui.lisa.models.CommentHolder;
@@ -572,6 +573,25 @@ public interface AppApi {
     @FormUrlEncoded
     @POST("v1/watchlist/novel/delete")
     Observable<NullResponse> postWatchlistNovelDelete(@Header("Authorization") String token,
+                                                      @Field("series_id") int series_id);
+
+    // 漫画追更列表
+    @GET("v1/watchlist/illust")
+    Observable<ListWatchlistManga> getWatchlistManga(@Header("Authorization") String token);
+
+    @GET
+    Observable<ListWatchlistManga> getNextWatchlistManga(@Header("Authorization") String token,
+                                                         @Url String next_url);
+
+    // 加入/取消追更漫画
+    @FormUrlEncoded
+    @POST("v1/watchlist/illust/add")
+    Observable<NullResponse> postWatchlistMangaAdd(@Header("Authorization") String token,
+                                                   @Field("series_id") int series_id);
+
+    @FormUrlEncoded
+    @POST("v1/watchlist/illust/delete")
+    Observable<NullResponse> postWatchlistMangaDelete(@Header("Authorization") String token,
                                                       @Field("series_id") int series_id);
 
     // 小说书签

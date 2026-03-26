@@ -31,7 +31,7 @@ class IllustSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
-        binding.toolbarLayout.naviTitle.text = getString(R.string.novel_series)
+        binding.toolbarLayout.naviTitle.text = getString(R.string.manga_series)
         binding.toolbarLayout.naviMore.setOnClick {
             showActionMenu {
                 add(

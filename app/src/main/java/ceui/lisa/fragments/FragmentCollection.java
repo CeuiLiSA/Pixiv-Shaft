@@ -88,12 +88,13 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                     Shaft.getContext().getString(R.string.private_like_user)
             };
         } else if (type == 3) {
-            // TODO: manga watchlist
             allPages = new Fragment[]{
-                    new FragmentWatchlistNovel()
+                    new FragmentWatchlistNovel(),
+                    new FragmentWatchlistManga()
             };
             CHINESE_TITLES = new String[]{
-                    Shaft.getContext().getString(R.string.type_novel)
+                    Shaft.getContext().getString(R.string.type_novel),
+                    Shaft.getContext().getString(R.string.type_manga)
             };
         }
 

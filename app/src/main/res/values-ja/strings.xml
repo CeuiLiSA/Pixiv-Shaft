@@ -172,6 +172,7 @@
   <string name="file_path">パス：</string>  
   <string name="add_account">アカウントを追加</string>
   <string name="read_latest_episode">最新話を読む</string>
+  <string name="view_latest_episode">最新話を見る</string>
   <string name="watchlist">ウォッチリスト</string>
   <string name="episode_number">%d話</string>
   <string name="add_to_watchlist">ウォッチリストに追加</string>
@@ -695,6 +696,7 @@
   <string name="add_blocking">ミュートする</string>
   <string name="view_comments">コメントを見る</string>
   <string name="novel_series">シリーズ小説</string>
+  <string name="manga_series">シリーズ漫画</string>
   <string name="download_all_artworks">シリーズ内の作品を一括ダウンロード</string>
   <string name="total_works_count">シリーズ数：%1$d</string>
   <string name="turn_on_v5_ui">新UIに切り替える</string>
