@@ -15,8 +15,11 @@
             android:id="@+id/head"
             android:layout_width="match_parent"
             android:layout_height="1dp"
+            android:layout_gravity=""
             android:background="?attr/colorPrimary"
-            android:elevation="@dimen/four_dp" />
+            android:elevation="@dimen/four_dp">
+
+        </ImageView>
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -38,275 +41,201 @@
 
         </androidx.appcompat.widget.Toolbar>
 
-        <com.scwang.smart.refresh.layout.SmartRefreshLayout
-            android:id="@+id/refreshLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.core.widget.NestedScrollView
+            <com.scwang.smart.refresh.layout.SmartRefreshLayout
+                android:id="@+id/refreshLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <LinearLayout
+                <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
-                    android:orientation="vertical"
                     android:layout_height="match_parent">
 
-                    <!-- PixiVision Banner -->
-                    <FrameLayout
-                        android:id="@+id/fragment_pivision"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
-                    <!-- Section Label -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="12dp"
-                        android:text="@string/string_76"
-                        android:textColor="@color/rank_text_color"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <!-- Discover Grid: 2x2 -->
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:paddingHorizontal="16dp">
+                        android:layout_height="match_parent">
 
-                        <!-- Row 1 -->
-                        <LinearLayout
+                        <FrameLayout
+                            android:id="@+id/fragment_pivision"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:layout_height="wrap_content">
 
-                            <!-- Tile: 漫画 -->
-                            <LinearLayout
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:text="@string/string_76"
+                            android:textColor="@color/rank_text_color"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <GridLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="268dp"
+                            android:columnCount="2"
+                            android:orientation="horizontal"
+                            android:rowCount="2">
+
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                app:qmui_radius="10dp"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
                                 android:id="@+id/manga"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginEnd="6dp"
-                                android:layout_marginBottom="12dp"
-                                android:background="@drawable/discover_tile_bg"
-                                android:elevation="2dp"
-                                android:orientation="vertical"
-                                android:padding="14dp"
-                                android:stateListAnimator="@animator/button_press_scale">
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:layout_rowWeight="1"
+                                android:layout_columnWeight="1"
+                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/six_dp"
+                                android:layout_marginBottom="@dimen/six_dp">
 
-                                <FrameLayout
+                                <ImageView
                                     android:layout_width="match_parent"
-                                    android:layout_height="88dp"
-                                    android:layout_marginBottom="12dp">
-
-                                    <View
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:background="@drawable/discover_icon_manga" />
-
-                                    <ImageView
-                                        android:layout_width="28dp"
-                                        android:layout_height="28dp"
-                                        android:layout_gravity="center"
-                                        android:src="@drawable/ic_baseline_palette_24"
-                                        app:tint="@color/always_white" />
-                                </FrameLayout>
+                                    android:layout_height="match_parent"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/main_novel"
+                                    android:background="@drawable/shape_round_outline"
+                                    android:outlineProvider="background" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_margin="10dp"
+                                    android:shadowColor="#FF000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="2"
                                     android:text="@string/type_manga"
-                                    android:textColor="@color/rank_text_color"
-                                    android:textSize="14sp"
+                                    android:textColor="@color/always_white"
+                                    android:textSize="16sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="@string/discover_manga_desc"
-                                    android:textColor="@color/view_history_title"
-                                    android:textSize="12sp"
-                                    android:lineSpacingMultiplier="1.3"
-                                    android:maxLines="2"
-                                    android:ellipsize="end" />
-                            </LinearLayout>
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
-                            <!-- Tile: 小说 -->
-                            <LinearLayout
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                app:qmui_radius="10dp"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_rowWeight="1"
                                 android:id="@+id/novel"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginStart="6dp"
-                                android:layout_marginBottom="12dp"
-                                android:background="@drawable/discover_tile_bg"
-                                android:elevation="2dp"
-                                android:orientation="vertical"
-                                android:padding="14dp"
-                                android:stateListAnimator="@animator/button_press_scale">
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:layout_columnWeight="1"
+                                android:layout_marginStart="@dimen/six_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/six_dp">
 
-                                <FrameLayout
+                                <ImageView
                                     android:layout_width="match_parent"
-                                    android:layout_height="88dp"
-                                    android:layout_marginBottom="12dp">
-
-                                    <View
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:background="@drawable/discover_icon_novel" />
-
-                                    <ImageView
-                                        android:layout_width="28dp"
-                                        android:layout_height="28dp"
-                                        android:layout_gravity="center"
-                                        android:src="@drawable/ic_baseline_menu_book_24"
-                                        app:tint="@color/always_white" />
-                                </FrameLayout>
+                                    android:layout_height="match_parent"
+                                    android:background="@drawable/shape_round_outline"
+                                    android:outlineProvider="background"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/main_manga" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_alignParentBottom="true"
+                                    android:layout_margin="10dp"
+                                    android:shadowColor="#FF000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="2"
                                     android:text="@string/type_novel"
-                                    android:textColor="@color/rank_text_color"
-                                    android:textSize="14sp"
+                                    android:textColor="@color/always_white"
+                                    android:textSize="16sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="@string/discover_novel_desc"
-                                    android:textColor="@color/view_history_title"
-                                    android:textSize="12sp"
-                                    android:lineSpacingMultiplier="1.3"
-                                    android:maxLines="2"
-                                    android:ellipsize="end" />
-                            </LinearLayout>
-                        </LinearLayout>
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
-                        <!-- Row 2 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <!-- Tile: 画廊 -->
-                            <LinearLayout
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                app:qmui_radius="10dp"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_rowWeight="1"
+                                android:layout_columnWeight="1"
+                                android:layout_marginStart="@dimen/twelve_dp"
                                 android:id="@+id/walk_through"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginEnd="6dp"
-                                android:layout_marginBottom="12dp"
-                                android:background="@drawable/discover_tile_bg"
-                                android:elevation="2dp"
-                                android:orientation="vertical"
-                                android:padding="14dp"
-                                android:stateListAnimator="@animator/button_press_scale">
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:layout_marginTop="@dimen/six_dp"
+                                android:layout_marginEnd="@dimen/six_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp">
 
-                                <FrameLayout
+                                <ImageView
                                     android:layout_width="match_parent"
-                                    android:layout_height="88dp"
-                                    android:layout_marginBottom="12dp">
-
-                                    <View
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:background="@drawable/discover_icon_gallery" />
-
-                                    <ImageView
-                                        android:layout_width="28dp"
-                                        android:layout_height="28dp"
-                                        android:layout_gravity="center"
-                                        android:src="@drawable/ic_collections_black_24dp"
-                                        app:tint="@color/always_white" />
-                                </FrameLayout>
+                                    android:layout_height="match_parent"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/center_1"
+                                    android:background="@drawable/shape_round_outline"
+                                    android:outlineProvider="background" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_alignParentBottom="true"
+                                    android:layout_margin="10dp"
+                                    android:shadowColor="#FF000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="2"
                                     android:text="@string/type_walk_through"
-                                    android:textColor="@color/rank_text_color"
-                                    android:textSize="14sp"
+                                    android:textColor="@color/always_white"
+                                    android:textSize="16sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="@string/discover_gallery_desc"
-                                    android:textColor="@color/view_history_title"
-                                    android:textSize="12sp"
-                                    android:lineSpacingMultiplier="1.3"
-                                    android:maxLines="2"
-                                    android:ellipsize="end" />
-                            </LinearLayout>
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
-                            <!-- Tile: 关注者的小说 -->
-                            <LinearLayout
-                                android:id="@+id/follow_novels"
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                app:qmui_radius="10dp"
                                 android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginStart="6dp"
-                                android:layout_marginBottom="12dp"
-                                android:background="@drawable/discover_tile_bg"
-                                android:elevation="2dp"
-                                android:orientation="vertical"
-                                android:padding="14dp"
-                                android:stateListAnimator="@animator/button_press_scale">
+                                android:layout_height="0dp"
+                                android:layout_rowWeight="1"
+                                android:layout_columnWeight="1"
+                                android:id="@+id/follow_novels"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:layout_marginStart="@dimen/six_dp"
+                                android:layout_marginTop="@dimen/six_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp">
 
-                                <FrameLayout
+                                <ImageView
                                     android:layout_width="match_parent"
-                                    android:layout_height="88dp"
-                                    android:layout_marginBottom="12dp">
-
-                                    <View
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:background="@drawable/discover_icon_follow_novel" />
-
-                                    <ImageView
-                                        android:layout_width="28dp"
-                                        android:layout_height="28dp"
-                                        android:layout_gravity="center"
-                                        android:src="@drawable/ic_fiber_new_black_24dp"
-                                        app:tint="@color/always_white" />
-                                </FrameLayout>
+                                    android:layout_height="match_parent"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/center_2"
+                                    android:background="@drawable/shape_round_outline"
+                                    android:outlineProvider="background"/>
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_alignParentBottom="true"
+                                    android:layout_margin="10dp"
+                                    android:shadowColor="#FF000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="2"
                                     android:text="@string/string_196"
-                                    android:textColor="@color/rank_text_color"
-                                    android:textSize="14sp"
+                                    android:textColor="@color/always_white"
+                                    android:textSize="16sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="@string/discover_follow_novel_desc"
-                                    android:textColor="@color/view_history_title"
-                                    android:textSize="12sp"
-                                    android:lineSpacingMultiplier="1.3"
-                                    android:maxLines="2"
-                                    android:ellipsize="end" />
-                            </LinearLayout>
-                        </LinearLayout>
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+                        </GridLayout>
 
                     </LinearLayout>
 
-                </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
 
-            </androidx.core.widget.NestedScrollView>
-
-        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+            </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
     </LinearLayout>
 
 </layout>
+

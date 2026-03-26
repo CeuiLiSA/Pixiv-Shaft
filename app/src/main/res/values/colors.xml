@@ -201,8 +201,5 @@
 
     <color name="view_pager_shoulder">#59FFFFFF</color>
 
-    <color name="surface_card">#B8FFFFFF</color>
-    <color name="surface_card_border">#CCffffff</color>
-
 </resources>
 
