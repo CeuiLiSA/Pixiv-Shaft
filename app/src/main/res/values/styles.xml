@@ -27,16 +27,6 @@
         <item name="android:navigationBarColor" tools:ignore="NewApi">@android:color/transparent</item>
     </style>
 
-    <style name="NavDrawerItemShape" parent="">
-        <item name="cornerSize">12dp</item>
-    </style>
-
-    <style name="NavDrawerSubheader" parent="TextAppearance.MaterialComponents.Overline">
-        <item name="android:textSize">11sp</item>
-        <item name="android:letterSpacing">0.08</item>
-        <item name="android:textAllCaps">true</item>
-    </style>
-
     <style name="HomeAppTheme" parent="Theme.Material3.Dark.NoActionBar">
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
         <!-- 自定义 motionDurationLong2 和 motionDurationMedium4 的值 -->
