@@ -89,12 +89,12 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             };
         } else if (type == 3) {
             allPages = new Fragment[]{
-                    new FragmentWatchlistNovel(),
-                    new FragmentWatchlistManga()
+                    new FragmentWatchlistManga(),
+                    new FragmentWatchlistNovel()
             };
             CHINESE_TITLES = new String[]{
-                    Shaft.getContext().getString(R.string.type_novel),
-                    Shaft.getContext().getString(R.string.type_manga)
+                    Shaft.getContext().getString(R.string.type_manga),
+                    Shaft.getContext().getString(R.string.type_novel)
             };
         }
 
