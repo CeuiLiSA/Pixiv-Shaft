@@ -576,7 +576,7 @@ public interface AppApi {
                                                       @Field("series_id") int series_id);
 
     // 漫画追更列表
-    @GET("v1/watchlist/illust")
+    @GET("v1/watchlist/manga")
     Observable<ListWatchlistManga> getWatchlistManga(@Header("Authorization") String token);
 
     @GET
@@ -585,12 +585,12 @@ public interface AppApi {
 
     // 加入/取消追更漫画
     @FormUrlEncoded
-    @POST("v1/watchlist/illust/add")
+    @POST("v1/watchlist/manga/add")
     Observable<NullResponse> postWatchlistMangaAdd(@Header("Authorization") String token,
                                                    @Field("series_id") int series_id);
 
     @FormUrlEncoded
-    @POST("v1/watchlist/illust/delete")
+    @POST("v1/watchlist/manga/delete")
     Observable<NullResponse> postWatchlistMangaDelete(@Header("Authorization") String token,
                                                       @Field("series_id") int series_id);
 
