@@ -79,7 +79,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initView() {
-        baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
+        baseBind.drawerLayout.setScrimColor(Color.parseColor("#40000000"));
         baseBind.navView.setNavigationItemSelectedListener(this);
         userHead = baseBind.navView.getHeaderView(0).findViewById(R.id.user_head);
         username = baseBind.navView.getHeaderView(0).findViewById(R.id.user_name);

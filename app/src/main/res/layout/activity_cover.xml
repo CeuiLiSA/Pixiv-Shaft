@@ -43,6 +43,15 @@
             app:insetForeground="@android:color/transparent"
             android:layout_gravity="start"
             android:fitsSystemWindows="true"
+            android:background="@drawable/nav_drawer_background"
+            app:itemTextColor="@color/nav_drawer_item_text"
+            app:itemIconTint="@color/nav_drawer_item_icon"
+            app:itemShapeFillColor="@android:color/transparent"
+            app:itemShapeAppearance="@style/NavDrawerItemShape"
+            app:subheaderColor="#80FFFFFF"
+            app:subheaderTextAppearance="@style/NavDrawerSubheader"
+            app:dividerInsetStart="24dp"
+            app:dividerInsetEnd="24dp"
             app:headerLayout="@layout/nav_header_main"
             app:menu="@menu/activity_main_drawer" />
 
