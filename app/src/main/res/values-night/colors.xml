@@ -83,4 +83,7 @@
     <color name="page_default_background">#0A001A</color>
 
     <color name="view_pager_shoulder">#4D000000</color>
+
+    <color name="surface_card">#B8222230</color>
+    <color name="surface_card_border">#33ffffff</color>
 </resources>

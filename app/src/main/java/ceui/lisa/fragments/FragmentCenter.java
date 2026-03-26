@@ -58,11 +58,6 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
             }
         });
 
-        baseBind.manga.setClipToOutline(true);
-        baseBind.novel.setClipToOutline(true);
-        baseBind.walkThrough.setClipToOutline(true);
-        baseBind.followNovels.setClipToOutline(true);
-
         baseBind.manga.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
