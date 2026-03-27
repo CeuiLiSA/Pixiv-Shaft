@@ -50,6 +50,13 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             performUpdateCheck(manual = true)
         }
 
+        // Version history
+        baseBind.versionHistory.setOnClickListener {
+            val intent = Intent(mContext, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "版本历史")
+            startActivity(intent)
+        }
+
         // Auto-check for github builds
         if (AppUpdateChecker.shouldAutoCheck()) {
             performUpdateCheck(manual = false)

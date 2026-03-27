@@ -269,6 +269,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "Markdown":
                     String url = intent.getStringExtra(Params.URL);
                     return FragmentMarkdown.newInstance(url);
+                case "版本历史":
+                    return new ceui.lisa.update.FragmentVersionHistory();
                 default:
                     return new Fragment();
             }

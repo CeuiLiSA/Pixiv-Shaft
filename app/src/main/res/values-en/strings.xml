@@ -661,5 +661,9 @@
   <string name="update_version_skipped">This version has been skipped</string>
   <string name="update_enable_install_permission">Please allow installing from unknown sources</string>
   <string name="update_found_new">Found %1$s</string>
+  <string name="update_current_version">Current</string>
+  <string name="update_latest_label">Latest</string>
+  <string name="version_history">Version History</string>
+  <string name="version_history_empty">No releases found</string>
   <string name="update_channel_google">Google Play version, please update via the store</string>
 </resources>

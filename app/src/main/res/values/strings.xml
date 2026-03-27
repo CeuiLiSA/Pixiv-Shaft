@@ -780,5 +780,9 @@
     <string name="update_version_skipped">已跳过此版本</string>
     <string name="update_enable_install_permission">请允许安装未知来源应用</string>
     <string name="update_found_new">发现 %1$s</string>
+    <string name="update_current_version">当前版本</string>
+    <string name="update_latest_label">最新</string>
+    <string name="version_history">版本历史</string>
+    <string name="version_history_empty">暂无版本记录</string>
     <string name="update_channel_google">Google Play 版本，请通过商店更新</string>
 </resources>

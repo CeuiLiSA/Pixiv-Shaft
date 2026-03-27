@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/sixteen_dp"
+        android:paddingEnd="@dimen/sixteen_dp">
+
+        <!-- Timeline column -->
+        <LinearLayout
+            android:layout_width="32dp"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- Top line -->
+            <View
+                android:id="@+id/line_top"
+                android:layout_width="2dp"
+                android:layout_height="16dp"
+                android:background="#E0E0E0" />
+
+            <!-- Dot -->
+            <View
+                android:id="@+id/dot"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:background="@drawable/timeline_dot" />
+
+            <!-- Bottom line (fills remaining space) -->
+            <View
+                android:id="@+id/line_bottom"
+                android:layout_width="2dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="#E0E0E0" />
+
+        </LinearLayout>
+
+        <!-- Content card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/release_card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/eight_dp"
+            android:layout_marginTop="@dimen/four_dp"
+            android:layout_marginBottom="@dimen/eight_dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/twelve_dp">
+
+                <!-- Header row: version tag + date -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Version badge -->
+                    <TextView
+                        android:id="@+id/version_badge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/badge_version"
+                        android:paddingStart="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="v4.4.3" />
+
+                    <!-- "Current" label -->
+                    <TextView
+                        android:id="@+id/label_current"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/badge_current"
+                        android:paddingStart="6dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="2dp"
+                        android:text="@string/update_current_version"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="11sp"
+                        android:visibility="gone" />
+
+                    <!-- "Latest" label -->
+                    <TextView
+                        android:id="@+id/label_latest"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/badge_latest"
+                        android:paddingStart="6dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="2dp"
+                        android:text="@string/update_latest_label"
+                        android:textColor="#FF6D00"
+                        android:textSize="11sp"
+                        android:visibility="gone" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <!-- Date -->
+                    <TextView
+                        android:id="@+id/release_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#999999"
+                        android:textSize="12sp"
+                        tools:text="2024-03-27" />
+
+                </LinearLayout>
+
+                <!-- Release title -->
+                <TextView
+                    android:id="@+id/release_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:textColor="@color/rank_text_color"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    tools:text="Release v4.4.3" />
+
+                <!-- Changelog preview (Markdown) -->
+                <TextView
+                    android:id="@+id/release_body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingMultiplier="1.25"
+                    android:maxLines="6"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    tools:text="- Fix bug\n- Add feature" />
+
+                <!-- Asset info -->
+                <LinearLayout
+                    android:id="@+id/asset_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/asset_info"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:drawablePadding="4dp"
+                        android:textColor="#999999"
+                        android:textSize="12sp"
+                        tools:text="app-release.apk (45.6 MB)" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</layout>

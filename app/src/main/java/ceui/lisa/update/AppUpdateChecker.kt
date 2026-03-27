@@ -35,6 +35,10 @@ object AppUpdateChecker {
             .create(GitHubApi::class.java)
     }
 
+    fun fetchAllReleases(): Observable<List<GitHubRelease>> {
+        return api.getReleases(GitHubApi.OWNER, GitHubApi.REPO)
+    }
+
     fun checkForUpdate(): Observable<UpdateResult> {
         return api.getLatestRelease(GitHubApi.OWNER, GitHubApi.REPO)
             .map { release ->
