@@ -3,6 +3,7 @@ package ceui.lisa.fragments
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.view.View
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
@@ -213,7 +214,8 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                     }
 
                     is AppUpdateChecker.UpdateResult.NoUpdate -> {
-                        baseBind.updateStatus.text = getString(R.string.update_already_latest, result.remoteVersion)
+                        baseBind.updateStatus.text =
+                            getString(R.string.update_already_latest, result.remoteVersion)
                     }
                 }
             }, { _ ->
