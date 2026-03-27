@@ -48,6 +48,18 @@ android {
         }
     }
 
+    flavorDimensions += "channel"
+    productFlavors {
+        google {
+            dimension "channel"
+            buildConfigField "String", "UPDATE_CHANNEL", '"google"'
+        }
+        github {
+            dimension "channel"
+            buildConfigField "String", "UPDATE_CHANNEL", '"github"'
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false

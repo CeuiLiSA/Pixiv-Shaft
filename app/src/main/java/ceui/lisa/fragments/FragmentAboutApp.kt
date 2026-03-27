@@ -3,17 +3,23 @@ package ceui.lisa.fragments
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentAboutBinding
+import ceui.lisa.update.AppUpdateChecker
+import ceui.lisa.update.UpdateBottomSheet
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PackageUtils
 import ceui.lisa.utils.Params
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import io.reactivex.disposables.Disposable
 
 class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
+
+    private var updateDisposable: Disposable? = null
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_about
@@ -28,6 +34,25 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
 
         baseBind.appVersion.text = "%s (%s) "
             .format(Common.getAppVersionName(mContext), Common.getAppVersionCode(mContext))
+
+        // Check for updates
+        baseBind.checkUpdate.setOnClickListener {
+            if (BuildConfig.UPDATE_CHANNEL == "google") {
+                val uri = Uri.parse("market://details?id=" + mContext.packageName)
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, uri))
+                } catch (e: ActivityNotFoundException) {
+                    Common.showToast(getString(R.string.update_channel_google))
+                }
+                return@setOnClickListener
+            }
+            performUpdateCheck(manual = true)
+        }
+
+        // Auto-check for github builds
+        if (AppUpdateChecker.shouldAutoCheck()) {
+            performUpdateCheck(manual = false)
+        }
 
         run {
             baseBind.faq.setOnClickListener {
@@ -167,5 +192,49 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                 startActivity(intent)
             }
         }
+    }
+
+    private fun performUpdateCheck(manual: Boolean) {
+        if (manual) {
+            baseBind.updateStatus.setText(R.string.update_checking)
+        }
+
+        updateDisposable?.dispose()
+        updateDisposable = AppUpdateChecker.checkForUpdate()
+            .subscribe({ result ->
+                AppUpdateChecker.markChecked()
+                when (result) {
+                    is AppUpdateChecker.UpdateResult.UpdateAvailable -> {
+                        val version = result.release.tagName.removePrefix("v").removePrefix("V")
+                        if (!manual && AppUpdateChecker.isVersionSkipped(version)) {
+                            baseBind.updateStatus.text = ""
+                            return@subscribe
+                        }
+                        baseBind.updateStatus.text = version
+                        showUpdateDialog(result.release)
+                    }
+                    is AppUpdateChecker.UpdateResult.NoUpdate -> {
+                        if (manual) {
+                            Common.showToast(getString(R.string.update_no_update))
+                        }
+                        baseBind.updateStatus.text = ""
+                    }
+                }
+            }, { error ->
+                if (manual) {
+                    Common.showToast(getString(R.string.update_check_failed))
+                }
+                baseBind.updateStatus.text = ""
+            })
+    }
+
+    private fun showUpdateDialog(release: GitHubRelease) {
+        val dialog = UpdateBottomSheet.newInstance(release)
+        dialog.show(childFragmentManager, "update_dialog")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        updateDisposable?.dispose()
     }
 }

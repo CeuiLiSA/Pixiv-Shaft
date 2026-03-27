@@ -640,4 +640,24 @@
   <string name="unfollow">UnFollow</string>
   <string name="core_string_novel_marker">Markers</string>
   <string name="string_font_size">Font size</string>
+
+  <string name="check_for_updates">Check for updates</string>
+  <string name="update_checking">Checking for updates…</string>
+  <string name="update_new_version_available">New Version Available</string>
+  <string name="update_no_update">Already up to date</string>
+  <string name="update_version_format">%1$s → %2$s</string>
+  <string name="update_changelog_title">Changelog</string>
+  <string name="update_no_changelog">No changelog available</string>
+  <string name="update_download">Download</string>
+  <string name="update_downloading">Downloading…</string>
+  <string name="update_install">Install</string>
+  <string name="update_later">Later</string>
+  <string name="update_skip_version">Skip this version</string>
+  <string name="update_retry">Retry</string>
+  <string name="update_download_failed">Download failed</string>
+  <string name="update_check_failed">Failed to check for updates</string>
+  <string name="update_download_title">Shaft Update</string>
+  <string name="update_version_skipped">This version has been skipped</string>
+  <string name="update_enable_install_permission">Please allow installing from unknown sources</string>
+  <string name="update_channel_google">Google Play version, please update via the store</string>
 </resources>

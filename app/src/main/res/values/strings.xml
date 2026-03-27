@@ -759,4 +759,24 @@
     <string name="artwork_link">作品链接：%1$s</string>
     <string name="user_link">作者链接：%1$s</string>
     <string name="prime_tags">热度标签</string>
+
+    <string name="check_for_updates">检查更新</string>
+    <string name="update_checking">正在检查更新…</string>
+    <string name="update_new_version_available">发现新版本</string>
+    <string name="update_no_update">已是最新版本</string>
+    <string name="update_version_format">%1$s → %2$s</string>
+    <string name="update_changelog_title">更新日志</string>
+    <string name="update_no_changelog">暂无更新说明</string>
+    <string name="update_download">下载更新</string>
+    <string name="update_downloading">下载中…</string>
+    <string name="update_install">安装更新</string>
+    <string name="update_later">稍后</string>
+    <string name="update_skip_version">跳过此版本</string>
+    <string name="update_retry">重试</string>
+    <string name="update_download_failed">下载失败</string>
+    <string name="update_check_failed">检查更新失败</string>
+    <string name="update_download_title">Shaft 更新</string>
+    <string name="update_version_skipped">已跳过此版本</string>
+    <string name="update_enable_install_permission">请允许安装未知来源应用</string>
+    <string name="update_channel_google">Google Play 版本，请通过商店更新</string>
 </resources>

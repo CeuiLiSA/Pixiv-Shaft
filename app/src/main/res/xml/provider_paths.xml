@@ -2,4 +2,5 @@
 <paths>
     <external-cache-path name="gif cache" path="."/>
     <external-cache-path name="shared_images" path="images/"/>
+    <external-files-path name="apk_downloads" path="Download/"/>
 </paths>
