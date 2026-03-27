@@ -1,11 +1,15 @@
 package ceui.lisa.update
 
 import ceui.lisa.BuildConfig
-import ceui.lisa.http.Retro
+import com.google.gson.GsonBuilder
 import com.tencent.mmkv.MMKV
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 
 object AppUpdateChecker {
 
@@ -14,7 +18,21 @@ object AppUpdateChecker {
     private const val CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L
 
     private val api: GitHubApi by lazy {
-        Retro.create(GitHubApi.BASE_URL, GitHubApi::class.java)
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .header("Accept", "application/vnd.github+json")
+                    .build()
+                chain.proceed(request)
+            }
+            .build()
+        Retrofit.Builder()
+            .baseUrl(GitHubApi.BASE_URL)
+            .client(client)
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setLenient().create()))
+            .build()
+            .create(GitHubApi::class.java)
     }
 
     fun checkForUpdate(): Observable<UpdateResult> {
