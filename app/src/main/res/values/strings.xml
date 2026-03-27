@@ -778,5 +778,6 @@
     <string name="update_download_title">Shaft 更新</string>
     <string name="update_version_skipped">已跳过此版本</string>
     <string name="update_enable_install_permission">请允许安装未知来源应用</string>
+    <string name="update_found_new">发现 %1$s</string>
     <string name="update_channel_google">Google Play 版本，请通过商店更新</string>
 </resources>

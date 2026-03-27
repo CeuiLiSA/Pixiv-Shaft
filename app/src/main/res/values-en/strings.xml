@@ -659,5 +659,6 @@
   <string name="update_download_title">Shaft Update</string>
   <string name="update_version_skipped">This version has been skipped</string>
   <string name="update_enable_install_permission">Please allow installing from unknown sources</string>
+  <string name="update_found_new">Found %1$s</string>
   <string name="update_channel_google">Google Play version, please update via the store</string>
 </resources>

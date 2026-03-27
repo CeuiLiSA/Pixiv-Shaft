@@ -195,9 +195,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
     }
 
     private fun performUpdateCheck(manual: Boolean) {
-        if (manual) {
-            baseBind.updateStatus.setText(R.string.update_checking)
-        }
+        baseBind.updateStatus.setText(R.string.update_checking)
 
         updateDisposable?.dispose()
         updateDisposable = AppUpdateChecker.checkForUpdate()
@@ -206,25 +204,18 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                 when (result) {
                     is AppUpdateChecker.UpdateResult.UpdateAvailable -> {
                         val version = result.release.tagName.removePrefix("v").removePrefix("V")
+                        baseBind.updateStatus.text = getString(R.string.update_found_new, version)
                         if (!manual && AppUpdateChecker.isVersionSkipped(version)) {
-                            baseBind.updateStatus.text = ""
                             return@subscribe
                         }
-                        baseBind.updateStatus.text = version
                         showUpdateDialog(result.release)
                     }
                     is AppUpdateChecker.UpdateResult.NoUpdate -> {
-                        if (manual) {
-                            Common.showToast(getString(R.string.update_no_update))
-                        }
-                        baseBind.updateStatus.text = ""
+                        baseBind.updateStatus.setText(R.string.update_no_update)
                     }
                 }
-            }, { error ->
-                if (manual) {
-                    Common.showToast(getString(R.string.update_check_failed))
-                }
-                baseBind.updateStatus.text = ""
+            }, { _ ->
+                baseBind.updateStatus.setText(R.string.update_check_failed)
             })
     }
 
