@@ -19,7 +19,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
@@ -37,6 +37,18 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
     private val handler = Handler(Looper.getMainLooper())
     private var progressRunnable: Runnable? = null
     private var downloadReceiver: BroadcastReceiver? = null
+    private var pendingInstallFile: File? = null
+
+    private val installPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        val file = pendingInstallFile ?: return@registerForActivityResult
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            requireContext().packageManager.canRequestPackageInstalls()
+        ) {
+            doInstall(file)
+        }
+    }
 
     companion object {
         private const val APK_FILE_NAME = "shaft-update.apk"
@@ -228,19 +240,22 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun installApk(apkFile: File) {
-        val ctx = requireContext()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (!ctx.packageManager.canRequestPackageInstalls()) {
+            if (!requireContext().packageManager.canRequestPackageInstalls()) {
+                pendingInstallFile = apkFile
                 val intent = Intent(
                     android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                    Uri.parse("package:${ctx.packageName}")
+                    Uri.parse("package:${requireContext().packageName}")
                 )
-                startActivity(intent)
-                Common.showToast(getString(R.string.update_enable_install_permission))
+                installPermissionLauncher.launch(intent)
                 return
             }
         }
+        doInstall(apkFile)
+    }
 
+    private fun doInstall(apkFile: File) {
+        val ctx = requireContext()
         val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.provider", apkFile)
         val intent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
             setDataAndType(uri, "application/vnd.android.package-archive")

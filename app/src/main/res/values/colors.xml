@@ -201,5 +201,8 @@
 
     <color name="view_pager_shoulder">#59FFFFFF</color>
 
+    <color name="secondary_text_color">#888888</color>
+    <color name="divider_color">#1F000000</color>
+
 </resources>
 

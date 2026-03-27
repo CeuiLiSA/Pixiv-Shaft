@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:textColor="#888888"
+        android:textColor="@color/secondary_text_color"
         android:textSize="14sp"
         tools:text="4.4.3 → 4.5.0" />
 
@@ -31,7 +31,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="12dp"
-        android:background="#1F000000" />
+        android:background="@color/divider_color" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -84,7 +84,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginTop="4dp"
-            android:textColor="#888888"
+            android:textColor="@color/secondary_text_color"
             android:textSize="12sp"
             tools:text="12.3MB / 45.6MB (27%)" />
 
@@ -103,7 +103,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/update_skip_version"
-            android:textColor="#888888"
+            android:textColor="@color/secondary_text_color"
             android:textSize="14sp" />
 
         <View
