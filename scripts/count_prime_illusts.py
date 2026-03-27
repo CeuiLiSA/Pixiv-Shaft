@@ -14,7 +14,7 @@ def main():
     file_stats = []
 
     for f in sorted(glob.glob(os.path.join(ASSET_DIR, "*.txt"))):
-        with open(f, "r") as fp:
+        with open(f, "r", encoding="utf-8") as fp:
             data = json.load(fp)
 
         tag = data.get("tag", {})
