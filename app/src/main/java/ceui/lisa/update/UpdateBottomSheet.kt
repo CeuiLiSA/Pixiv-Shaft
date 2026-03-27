@@ -22,6 +22,8 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.utils.Common
@@ -130,9 +132,17 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
 
         // Expand the bottom sheet fully
-        (dialog as? BottomSheetDialog)?.behavior?.apply {
-            state = BottomSheetBehavior.STATE_EXPANDED
-            skipCollapsed = true
+        (dialog as? BottomSheetDialog)?.apply {
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.skipCollapsed = true
+            // Apply navigation bar padding for safe area
+            window?.let { window ->
+                ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+                    val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+                    v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, navBar.bottom)
+                    insets
+                }
+            }
         }
     }
 
