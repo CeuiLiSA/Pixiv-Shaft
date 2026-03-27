@@ -65,7 +65,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             }
 
             baseBind.rateThisApp.setOnClickListener {
-                val uri = Uri.parse("https://play.google.com/store/apps/details?id=ceui.pixiv.pshaft")
+                val uri = Uri.parse("market://details?id=ceui.pixiv.pshaft")
                 try {
                     startActivity(Intent(Intent.ACTION_VIEW, uri))
                 } catch (e: ActivityNotFoundException) {
