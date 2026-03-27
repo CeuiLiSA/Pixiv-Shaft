@@ -125,7 +125,7 @@
                         android:id="@+id/release_date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#999999"
+                        android:textColor="@color/secondary_text_color"
                         android:textSize="12sp"
                         tools:text="2024-03-27" />
 
@@ -152,7 +152,7 @@
                     android:layout_marginTop="6dp"
                     android:lineSpacingMultiplier="1.25"
                     android:maxLines="6"
-                    android:textColor="#666666"
+                    android:textColor="@color/rank_text_color"
                     android:textSize="13sp"
                     tools:text="- Fix bug\n- Add feature" />
 
@@ -172,7 +172,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:drawablePadding="4dp"
-                        android:textColor="#999999"
+                        android:textColor="@color/secondary_text_color"
                         android:textSize="12sp"
                         tools:text="app-release.apk (45.6 MB)" />
 

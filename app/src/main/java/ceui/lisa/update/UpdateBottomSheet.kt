@@ -20,6 +20,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
@@ -27,7 +28,9 @@ import ceui.lisa.utils.Common
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
+import io.noties.markwon.core.MarkwonTheme
 import java.io.File
 
 class UpdateBottomSheet : BottomSheetDialogFragment() {
@@ -85,7 +88,15 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         val remoteVersion = rel.tagName.removePrefix("v").removePrefix("V")
         versionText.text = getString(R.string.update_version_format, BuildConfig.VERSION_NAME, remoteVersion)
 
-        val markwon = Markwon.create(requireContext())
+        val textColor = ContextCompat.getColor(requireContext(), R.color.rank_text_color)
+        val markwon = Markwon.builder(requireContext())
+            .usePlugin(object : AbstractMarkwonPlugin() {
+                override fun configureTheme(builder: MarkwonTheme.Builder) {
+                    builder.headingTextSizeMultipliers(floatArrayOf(1.3f, 1.15f, 1.05f, 1f, 0.9f, 0.85f))
+                    builder.linkColor(ContextCompat.getColor(requireContext(), R.color.user_name_horizontal))
+                }
+            })
+            .build()
         val body = rel.body
         if (!body.isNullOrBlank()) {
             markwon.setMarkdown(changelogText, body)

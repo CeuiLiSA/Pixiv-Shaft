@@ -2,20 +2,30 @@ package ceui.lisa.update
 
 import android.content.Context
 import android.view.View
+import androidx.core.content.ContextCompat
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.adapters.BaseAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.ItemReleaseTimelineBinding
 import ceui.lisa.utils.Common
+import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
+import io.noties.markwon.core.MarkwonTheme
 
 class ReleaseHistoryAdapter(
     targetList: List<GitHubRelease>,
     context: Context
 ) : BaseAdapter<GitHubRelease, ItemReleaseTimelineBinding>(targetList, context) {
 
-    private val markwon = Markwon.create(context)
+    private val markwon = Markwon.builder(context)
+        .usePlugin(object : AbstractMarkwonPlugin() {
+            override fun configureTheme(builder: MarkwonTheme.Builder) {
+                builder.headingTextSizeMultipliers(floatArrayOf(1.2f, 1.1f, 1.05f, 1f, 0.9f, 0.85f))
+                builder.linkColor(ContextCompat.getColor(context, R.color.user_name_horizontal))
+            }
+        })
+        .build()
     private val currentVersion = BuildConfig.VERSION_NAME
 
     override fun initLayout() {
