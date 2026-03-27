@@ -63,6 +63,8 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    override fun getTheme(): Int = R.style.Theme_Update_BottomSheetDialog
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -73,9 +75,6 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Override the 9-patch header background with a plain rounded shape
-        (view.parent as? View)?.setBackgroundResource(R.drawable.bg_update_bottom_sheet)
 
         val rel = release ?: run { dismiss(); return }
 

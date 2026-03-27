@@ -27,6 +27,14 @@
         <item name="android:navigationBarColor" tools:ignore="NewApi">@android:color/transparent</item>
     </style>
 
+    <style name="UpdateBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_update_bottom_sheet</item>
+    </style>
+
+    <style name="Theme.Update.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/UpdateBottomSheetStyle</item>
+    </style>
+
     <style name="HomeAppTheme" parent="Theme.Material3.Dark.NoActionBar">
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
         <!-- 自定义 motionDurationLong2 和 motionDurationMedium4 的值 -->
