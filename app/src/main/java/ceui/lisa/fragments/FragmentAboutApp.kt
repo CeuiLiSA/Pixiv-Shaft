@@ -65,10 +65,9 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             }
 
             baseBind.rateThisApp.setOnClickListener {
-                val uri = Uri.parse("market://details?id=" + mContext.packageName)
-                val myAppLinkToMarket = Intent(Intent.ACTION_VIEW, uri)
+                val uri = Uri.parse("https://play.google.com/store/apps/details?id=ceui.pixiv.pshaft")
                 try {
-                    startActivity(myAppLinkToMarket)
+                    startActivity(Intent(Intent.ACTION_VIEW, uri))
                 } catch (e: ActivityNotFoundException) {
                     Common.showToast("unable to find market app")
                 }
