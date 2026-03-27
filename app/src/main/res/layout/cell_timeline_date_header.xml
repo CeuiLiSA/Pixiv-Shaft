@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <!-- Timeline rail aligned with posts -->
+        <LinearLayout
+            android:layout_width="24dp"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <View
+                android:id="@+id/line_top"
+                android:layout_width="1.5dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="#33686bdd" />
+
+            <View
+                android:id="@+id/header_dot"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:background="@drawable/timeline_dot_date" />
+
+            <View
+                android:id="@+id/line_bottom"
+                android:layout_width="1.5dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="#33686bdd" />
+        </LinearLayout>
+
+        <!-- Date label -->
+        <TextView
+            android:id="@+id/date_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="@color/text20"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            tools:text="Today" />
+
+    </LinearLayout>
+
+</layout>

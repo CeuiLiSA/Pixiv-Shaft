@@ -341,6 +341,21 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_timeline_following_post"
+        android:name="ceui.pixiv.ui.user.following.TimelineFollowingPostFragment">
+
+        <argument
+            android:name="object_type"
+            app:argType="string" />
+
+        <argument
+            android:name="restrict_type"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_user_fans"
         android:name="ceui.pixiv.ui.user.UserFansFragment">
 

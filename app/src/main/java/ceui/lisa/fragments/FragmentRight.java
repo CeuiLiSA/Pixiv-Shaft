@@ -24,6 +24,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.adapters.TimelineAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.RxRun;
 import ceui.lisa.core.RxRunnable;
@@ -40,10 +41,12 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.view.OnCheckChangeListener;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.DynamicIllustModel;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 public class FragmentRight extends NetListFragment<FragmentNewRightBinding, ListIllust, IllustsBean> {
 
     private FragmentRecmdUserHorizontal headerFragment;
+    private boolean isTimelineMode = false;
 
     @Override
     public void initLayout() {
@@ -126,6 +129,28 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                 scrollToTop();
             }
         });
+        baseBind.timelineToggle.setOnClickListener(v -> toggleTimelineMode());
+    }
+
+    private void toggleTimelineMode() {
+        isTimelineMode = !isTimelineMode;
+        int primaryColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
+        int unselectedColor = mContext.getResources().getColor(R.color.glare_unselected_text);
+        baseBind.timelineToggle.setColorFilter(isTimelineMode ? primaryColor : unselectedColor);
+
+        mRecyclerView.setItemAnimator(null);
+        while (mRecyclerView.getItemDecorationCount() > 0) {
+            mRecyclerView.removeItemDecorationAt(0);
+        }
+
+        if (isTimelineMode) {
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+            mAdapter = new TimelineAdapter(allItems, mContext);
+        } else {
+            staggerRecyclerView();
+            mAdapter = new IAdapter(allItems, mContext);
+        }
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     @Override

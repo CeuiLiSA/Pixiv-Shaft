@@ -24,6 +24,17 @@ class FollowingViewPagerFragment : TitledViewPagerFragment(R.layout.fragment_my_
             listOf(
                 PagedFragmentItem(
                     builder = {
+                        TimelineFollowingPostFragment().apply {
+                            arguments = FollowingPostFragmentArgs(
+                                ObjectType.ILLUST,
+                                Params.TYPE_ALL
+                            ).toBundle()
+                        }
+                    },
+                    initialTitle = getString(R.string.timeline_tab)
+                ),
+                PagedFragmentItem(
+                    builder = {
                         FollowingPostFragment().apply {
                             arguments = FollowingPostFragmentArgs(
                                 ObjectType.ILLUST,

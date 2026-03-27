@@ -666,4 +666,7 @@
   <string name="version_history">Version History</string>
   <string name="version_history_empty">No releases found</string>
   <string name="update_channel_google">Google Play version, please update via the store</string>
+  <string name="timeline_today">Today</string>
+  <string name="timeline_yesterday">Yesterday</string>
+  <string name="timeline_tab">Timeline</string>
 </resources>

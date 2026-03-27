@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="ceui.pixiv.ui.user.following.TimelinePostHolder" />
+
+        <variable
+            name="user"
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
+
+        <variable
+            name="holder"
+            type="TimelinePostHolder" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <!-- Timeline rail -->
+        <LinearLayout
+            android:layout_width="24dp"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- Top line -->
+            <View
+                android:id="@+id/line_top"
+                android:layout_width="1.5dp"
+                android:layout_height="20dp"
+                android:background="#33686bdd" />
+
+            <!-- Dot -->
+            <View
+                android:id="@+id/dot"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:background="@drawable/timeline_dot_accent" />
+
+            <!-- Bottom line -->
+            <View
+                android:id="@+id/line_bottom"
+                android:layout_width="1.5dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="#33686bdd" />
+        </LinearLayout>
+
+        <!-- Content card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="6dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardBackgroundColor="@color/white_to_deep_dark"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Header: avatar + name + time + follow -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="14dp"
+                    android:paddingTop="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="10dp">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/user_icon"
+                        userIcon="@{user}"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:scaleType="centerCrop"
+                        app:civ_border_color="@color/colorWhite40"
+                        app:civ_border_width="0.5dp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/user_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@{user.name}"
+                        android:textColor="@color/text00"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toTopOf="@+id/post_time"
+                        app:layout_constraintEnd_toStartOf="@+id/end_layout"
+                        app:layout_constraintStart_toEndOf="@+id/user_icon"
+                        app:layout_constraintTop_toTopOf="@+id/user_icon"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        tools:text="Artist Name" />
+
+                    <TextView
+                        android:id="@+id/post_time"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="1dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/text20"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/user_icon"
+                        app:layout_constraintEnd_toStartOf="@+id/end_layout"
+                        app:layout_constraintStart_toEndOf="@+id/user_icon"
+                        app:layout_constraintTop_toBottomOf="@+id/user_name"
+                        tools:text="3 hours ago" />
+
+                    <FrameLayout
+                        android:id="@+id/end_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintBottom_toBottomOf="@+id/user_icon"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/user_icon">
+
+                        <ceui.loxia.ProgressTextButton
+                            android:id="@+id/follow"
+                            style="@style/BlueShiningButton"
+                            visibleOrGone="@{!user.is_followed()}"
+                            android:layout_width="wrap_content"
+                            android:layout_height="28dp"
+                            android:paddingHorizontal="10dp"
+                            android:text="@string/follow"
+                            android:textSize="12sp"
+                            android:visibility="gone"
+                            app:ptb_progress_stroke_width="2dp"
+                            app:ptb_progress_width="12dp" />
+
+                        <ceui.loxia.ProgressTextButton
+                            android:id="@+id/unfollow"
+                            style="@style/RedShiningButton"
+                            visibleOrGone="@{user.is_followed()}"
+                            android:layout_width="wrap_content"
+                            android:layout_height="28dp"
+                            android:paddingHorizontal="10dp"
+                            android:text="@string/unfollow"
+                            android:textSize="12sp"
+                            android:visibility="gone"
+                            app:ptb_progress_stroke_width="2dp"
+                            app:ptb_progress_width="12dp" />
+                    </FrameLayout>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Image content -->
+                <FrameLayout
+                    android:id="@+id/image_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <net.csdn.roundview.RoundImageView
+                        android:id="@+id/image"
+                        loadMedia="@{holder.illust.image_urls.large}"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scaleType="centerCrop" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/image_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone" />
+
+                    <!-- Page count badge -->
+                    <TextView
+                        android:id="@+id/page_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/badge_page_count"
+                        android:paddingStart="6dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="2dp"
+                        android:textColor="@android:color/white"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:text="3P" />
+                </FrameLayout>
+
+                <!-- Bottom section: title + stats -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="14dp">
+
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:text="@{holder.illust.title}"
+                        android:textColor="@color/text00"
+                        android:textSize="15sp"
+                        tools:text="Illustration Title" />
+
+                    <!-- Stats row: views + bookmarks -->
+                    <LinearLayout
+                        android:id="@+id/stats_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_baseline_remove_red_eye_24"
+                            android:tint="@color/text20"
+                            app:tint="@color/text20" />
+
+                        <TextView
+                            android:id="@+id/view_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textColor="@color/text20"
+                            android:textSize="12sp"
+                            tools:text="1,234" />
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_marginStart="16dp"
+                            android:src="@drawable/ic_baseline_bookmark_24"
+                            android:tint="@color/text20"
+                            app:tint="@color/text20" />
+
+                        <TextView
+                            android:id="@+id/bookmark_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textColor="@color/text20"
+                            android:textSize="12sp"
+                            tools:text="567" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</layout>

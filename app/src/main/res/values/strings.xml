@@ -785,4 +785,7 @@
     <string name="version_history">版本历史</string>
     <string name="version_history_empty">暂无版本记录</string>
     <string name="update_channel_google">Google Play 版本，请通过商店更新</string>
+    <string name="timeline_today">今天</string>
+    <string name="timeline_yesterday">昨天</string>
+    <string name="timeline_tab">时间线</string>
 </resources>
