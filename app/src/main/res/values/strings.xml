@@ -764,6 +764,7 @@
     <string name="update_checking">正在检查更新…</string>
     <string name="update_new_version_available">发现新版本</string>
     <string name="update_no_update">已是最新版本</string>
+    <string name="update_already_latest">%1$s 已是最新</string>
     <string name="update_version_format">%1$s → %2$s</string>
     <string name="update_changelog_title">更新日志</string>
     <string name="update_no_changelog">暂无更新说明</string>

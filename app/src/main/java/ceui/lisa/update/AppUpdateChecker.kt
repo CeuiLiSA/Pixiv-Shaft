@@ -43,7 +43,7 @@ object AppUpdateChecker {
                 if (isNewerVersion(remoteVersion, currentVersion)) {
                     UpdateResult.UpdateAvailable(release)
                 } else {
-                    UpdateResult.NoUpdate
+                    UpdateResult.NoUpdate(remoteVersion)
                 }
             }
             .subscribeOn(Schedulers.io())
@@ -95,6 +95,6 @@ object AppUpdateChecker {
 
     sealed class UpdateResult {
         data class UpdateAvailable(val release: GitHubRelease) : UpdateResult()
-        data object NoUpdate : UpdateResult()
+        data class NoUpdate(val remoteVersion: String) : UpdateResult()
     }
 }

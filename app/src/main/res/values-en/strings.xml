@@ -645,6 +645,7 @@
   <string name="update_checking">Checking for updates…</string>
   <string name="update_new_version_available">New Version Available</string>
   <string name="update_no_update">Already up to date</string>
+  <string name="update_already_latest">%1$s is latest</string>
   <string name="update_version_format">%1$s → %2$s</string>
   <string name="update_changelog_title">Changelog</string>
   <string name="update_no_changelog">No changelog available</string>

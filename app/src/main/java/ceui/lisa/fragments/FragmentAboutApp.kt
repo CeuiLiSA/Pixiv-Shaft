@@ -211,7 +211,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                         showUpdateDialog(result.release)
                     }
                     is AppUpdateChecker.UpdateResult.NoUpdate -> {
-                        baseBind.updateStatus.setText(R.string.update_no_update)
+                        baseBind.updateStatus.text = getString(R.string.update_already_latest, result.remoteVersion)
                     }
                 }
             }, { _ ->
