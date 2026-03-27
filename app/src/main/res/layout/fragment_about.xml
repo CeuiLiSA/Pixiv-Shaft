@@ -118,41 +118,49 @@
 
                         </RelativeLayout>
 
-                        <View style="@style/half_divider" />
+                        <LinearLayout
+                            android:id="@+id/github_update_section"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
-                        <RelativeLayout
-                            android:id="@+id/check_update"
-                            style="@style/ripple_rela">
+                            <View style="@style/half_divider" />
 
-                            <TextView
-                                style="@style/setting_text_left_and_center"
-                                android:text="@string/check_for_updates" />
+                            <RelativeLayout
+                                android:id="@+id/check_update"
+                                style="@style/ripple_rela">
 
-                            <TextView
-                                android:id="@+id/update_status"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
-                                android:textColor="#7e7e7e"
-                                android:textSize="14sp" />
+                                <TextView
+                                    style="@style/setting_text_left_and_center"
+                                    android:text="@string/check_for_updates" />
 
-                        </RelativeLayout>
+                                <TextView
+                                    android:id="@+id/update_status"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_centerVertical="true"
+                                    android:layout_marginEnd="@dimen/sixteen_dp"
+                                    android:textColor="#7e7e7e"
+                                    android:textSize="14sp" />
 
-                        <View style="@style/half_divider" />
+                            </RelativeLayout>
 
-                        <RelativeLayout
-                            android:id="@+id/version_history"
-                            style="@style/ripple_rela">
+                            <View style="@style/half_divider" />
 
-                            <TextView
-                                style="@style/setting_text_left_and_center"
-                                android:text="@string/version_history" />
+                            <RelativeLayout
+                                android:id="@+id/version_history"
+                                style="@style/ripple_rela">
 
-                            <TextView style="@style/setting_right_arrow" />
+                                <TextView
+                                    style="@style/setting_text_left_and_center"
+                                    android:text="@string/version_history" />
 
-                        </RelativeLayout>
+                                <TextView style="@style/setting_right_arrow" />
+
+                            </RelativeLayout>
+
+                        </LinearLayout>
 
                         <View style="@style/full_divider" />
 
