@@ -36,25 +36,18 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
         baseBind.appVersion.text = "%s (%s) "
             .format(Common.getAppVersionName(mContext), Common.getAppVersionCode(mContext))
 
-        // Check for updates
-        baseBind.checkUpdate.setOnClickListener {
-            if (BuildConfig.UPDATE_CHANNEL == "google") {
-                val uri = Uri.parse("market://details?id=" + mContext.packageName)
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW, uri))
-                } catch (e: ActivityNotFoundException) {
-                    Common.showToast(getString(R.string.update_channel_google))
-                }
-                return@setOnClickListener
+        if (BuildConfig.UPDATE_CHANNEL == "github") {
+            baseBind.githubUpdateSection.visibility = View.VISIBLE
+            baseBind.checkUpdate.setOnClickListener {
+                performUpdateCheck(manual = true)
             }
-            performUpdateCheck(manual = true)
-        }
-
-        // Version history
-        baseBind.versionHistory.setOnClickListener {
-            val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "版本历史")
-            startActivity(intent)
+            baseBind.versionHistory.setOnClickListener {
+                val intent = Intent(mContext, TemplateActivity::class.java)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "版本历史")
+                startActivity(intent)
+            }
+        } else {
+            baseBind.githubUpdateSection.visibility = View.GONE
         }
 
         // Auto-check for github builds
