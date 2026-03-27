@@ -8,6 +8,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentAboutBinding
 import ceui.lisa.update.AppUpdateChecker
+import ceui.lisa.update.GitHubRelease
 import ceui.lisa.update.UpdateBottomSheet
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PackageUtils
@@ -210,6 +211,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                         }
                         showUpdateDialog(result.release)
                     }
+
                     is AppUpdateChecker.UpdateResult.NoUpdate -> {
                         baseBind.updateStatus.text = getString(R.string.update_already_latest, result.remoteVersion)
                     }
