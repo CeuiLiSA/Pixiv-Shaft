@@ -138,18 +138,22 @@ jobs:
       - name: Prepare release notes
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
         run: |
-          # Read tag annotated message as release notes
-          TAG_MESSAGE=$(git tag -l --format='%(contents)' "$VERSION_TAG" | sed '/^$/d')
+          # Read tag annotated message via git cat-file to preserve lines starting with #
+          TAG_MESSAGE=$(git cat-file tag "$VERSION_TAG" | sed '1,/^$/d')
 
           if [ -z "$TAG_MESSAGE" ]; then
             TAG_MESSAGE="Release $VERSION_TAG"
           fi
 
-          # Append SHA checksums
-          RELEASE_BODY=$(printf '%s\n\n```\nSHA-1: %s\nSHA-256: %s\n```' "$TAG_MESSAGE" "$APK_SHA1" "$APK_SHA256")
-
-          # Write to file to preserve formatting
-          echo "$RELEASE_BODY" > release_notes.md
+          # Write release notes with SHA checksums
+          {
+            echo "$TAG_MESSAGE"
+            echo ""
+            echo '```'
+            echo "SHA-1: $APK_SHA1"
+            echo "SHA-256: $APK_SHA256"
+            echo '```'
+          } > release_notes.md
 
       - name: Draft release
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
