@@ -127,6 +127,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             public void onClick(View v) {
                 holder.baseBind.reload.setVisibility(View.GONE);
                 holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+                holder.baseBind.progressLayout.donutProgress.setProgress(0);
                 loadIllust(holder, position, changeSize);
             }
         });
@@ -140,8 +141,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override
             public void onProgress(ProgressInfo progressInfo) {
-                holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent(), true);
+                } else {
+                    holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
+                }
                 if(progressInfo.isFinish()){
+                    holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                     ProgressManager.getInstance().removeResponseListener(imageUrl,this);
                 }
             }
@@ -163,14 +169,14 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
                         holder.baseBind.reload.setVisibility(View.VISIBLE);
-                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                         return false;
                     }
 
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
                         holder.baseBind.reload.setVisibility(View.GONE);
-                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                         if (isLoadOriginalImage) {
                             Shaft.getMMKV().encode(imageUrl, true);
                         }

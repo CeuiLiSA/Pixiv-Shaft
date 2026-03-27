@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <data>
+    <data />
 
-    </data>
-
-    <com.github.lzyzsd.circleprogress.DonutProgress
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/donut_progress"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        app:donut_circle_starting_degree="-90"
-        app:donut_finished_color="?attr/colorPrimary"
-        app:donut_finished_stroke_width="@dimen/four_dp"
-        app:donut_text_color="?attr/colorPrimary"
-        app:donut_text_size="13sp"
-        app:donut_unfinished_stroke_width="@dimen/four_dp"
+        app:indicatorColor="@color/white"
+        app:indicatorSize="30dp"
+        app:trackColor="@color/voice_record_track_color"
+        app:trackCornerRadius="4dp"
+        app:trackThickness="5dp"
         tools:ignore="ObsoleteLayoutParam" />
+
 </layout>
