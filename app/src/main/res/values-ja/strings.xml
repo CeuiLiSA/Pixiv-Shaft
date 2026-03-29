@@ -591,6 +591,8 @@
   <string name="string_431">検索</string>
   <string name="string_432">ユーザー</string>
   <string name="string_64_1">人気順</string>
+  <string name="string_trending_builtin">内蔵人気順ソート</string>
+  <string name="string_token_refreshing">ログイン期限切れ、再ログイン中~</string>
   <string name="string_433">人気順について</string>
   <string name="string_434">人気順を利用するには右上からフィルタメニューを開き、並び替えから人気順を選択してください。選択後にフィルターメニューをタップすると並び順設定が保存されます。</string>
   <string name="string_435">検索オプションはイラスト・小説にのみ有効です</string>

@@ -590,6 +590,8 @@
   <string name="string_431">Search</string>
   <string name="string_432">Illustrator</string>
   <string name="string_64_1">Sort by popularity (Restrictions for non-premium users)</string>
+  <string name="string_trending_builtin">Built-in popularity sort</string>
+  <string name="string_token_refreshing">Session expired, logging you back in~</string>
   <string name="string_433">Where is the order of popularity?</string>
   <string name="string_434">Popularity ranking is now located in the search options/sorting method in the sliding bar on the right. You can set it through the setting button in the upper right corner. Please save after setting.</string>
   <string name="string_435">Search options are only valid for illustrations and novels</string>

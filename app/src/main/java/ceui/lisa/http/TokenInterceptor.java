@@ -32,6 +32,7 @@ public class TokenInterceptor implements Interceptor {
 
         if (isTokenExpired(response)) {
             Common.showLog("getNewToken 检测到是过期Token ");
+            Common.showToast(R.string.string_token_refreshing);
             response.close();
             String newToken = getNewToken(request.header("Authorization"));
             Request newRequest = chain.request()

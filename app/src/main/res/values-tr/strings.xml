@@ -584,6 +584,8 @@
   <string name="string_431">Ara</string>
   <string name="string_432">Illustratör</string>
   <string name="string_64_1">Popülerliğe göre sırala (Premium olmayan kullanıcılara kısıtlıdır)</string>
+  <string name="string_trending_builtin">Yerleşik popülerlik sıralaması</string>
+  <string name="string_token_refreshing">Oturum süresi doldu, tekrar giriş yapılıyor~</string>
   <string name="string_433">Popülerliğin sıralaması nerede?</string>
   <string name="string_434">Popularity ranking is now located in the search options/sorting method in the sliding bar on the right. You can set it through the setting button in the upper right corner. Please save after setting.</string>
   <string name="string_435">Arama seçenekleri yalnızca resimler ve novel\'ler için geçerlidir</string>
