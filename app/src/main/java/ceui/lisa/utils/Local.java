@@ -24,7 +24,7 @@ public class Local {
             editor.putString(USER, userString);
             editor.commit();
             // Update SessionManager as the single source of truth
-            SessionManager.INSTANCE.updateSession(userModel);
+            SessionManager.INSTANCE.postUpdateSession(userModel);
         }
     }
 
