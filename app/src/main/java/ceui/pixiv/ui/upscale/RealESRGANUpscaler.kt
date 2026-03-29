@@ -14,7 +14,7 @@ object RealESRGANUpscaler {
     private const val MODEL_ASSET_DIR = "Real-ESRGANv3-anime"
     private const val MODEL_EXTRACT_DIR = "models-Real-ESRGANv3-anime"
     private const val MODEL_NAME = "x2"
-    private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%""")
+    private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA""")
 
     /**
      * Upscale using the best anime 4x model.
@@ -24,7 +24,7 @@ object RealESRGANUpscaler {
     suspend fun upscale(
         context: Context,
         inputFile: File,
-        onProgress: ((Float) -> Unit)? = null
+        onProgress: ((percent: Float, etaSeconds: Float) -> Unit)? = null
     ): File? = withContext(Dispatchers.IO) {
         try {
             val modelDir = ensureModelFiles(context)
@@ -53,7 +53,7 @@ object RealESRGANUpscaler {
                 "-i", pngInput.absolutePath,
                 "-o", outputFile.absolutePath,
                 "-m", modelDir.absolutePath,
-                "-t", "100",
+                "-t", "64",
                 "-g", "0"
             )
             pb.environment()["LD_LIBRARY_PATH"] = nativeDir
@@ -64,7 +64,8 @@ object RealESRGANUpscaler {
                 Timber.d("RealESRGAN: $line")
                 PROGRESS_REGEX.find(line)?.let { match ->
                     val percent = match.groupValues[1].toFloatOrNull() ?: return@let
-                    onProgress?.invoke(percent / 100f)
+                    val eta = match.groupValues[2].toFloatOrNull() ?: 0f
+                    onProgress?.invoke(percent / 100f, eta)
                 }
             }
             val exitCode = process.waitFor()

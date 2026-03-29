@@ -589,6 +589,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         mReceiver?.let {
             LocalBroadcastManager.getInstance(mContext).registerReceiver(it, intentFilter)
         }
+        restoreUpscaleIfRunning()
     }
 
     override fun onDestroy() {
@@ -620,28 +621,71 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
 
-        val overlay = baseBind.enhanceOverlay
-        overlay.showEnhancing()
-
-        val task = TaskPool.getLoadTask(NamedUrl("", imageUrl))
-        task.result.observe(viewLifecycleOwner) { file ->
+        val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
+        loadTask.result.observe(viewLifecycleOwner) { file ->
             if (file != null) {
-                lifecycleScope.launch {
-                    val result = ceui.pixiv.ui.upscale.RealESRGANUpscaler.upscale(
-                        requireContext(), file
-                    ) { progress ->
-                        overlay.post { overlay.setEnhanceProgress(progress) }
+                val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.startTask(
+                    illust.id, requireContext(), file, file.absolutePath
+                )
+                observeUpscaleTask(task)
+            }
+        }
+    }
+
+    private fun observeUpscaleTask(task: ceui.pixiv.ui.upscale.UpscaleTask) {
+        val overlayRoot = baseBind.root.findViewById<View>(R.id.ai_overlay_root)
+        val progressRing = baseBind.root.findViewById<com.google.android.material.progressindicator.CircularProgressIndicator>(R.id.ai_progress_ring)
+        val progressText = baseBind.root.findViewById<TextView>(R.id.ai_progress_text)
+        val statusText = baseBind.root.findViewById<TextView>(R.id.ai_status_text)
+        val etaText = baseBind.root.findViewById<TextView>(R.id.ai_eta_text)
+
+        task.status.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                ceui.pixiv.ui.upscale.UpscaleStatus.Running -> {
+                    if (overlayRoot.visibility != View.VISIBLE) {
+                        overlayRoot.visibility = View.VISIBLE
+                        overlayRoot.alpha = 0f
+                        overlayRoot.animate().alpha(1f).setDuration(300).start()
                     }
-                    overlay.hideEnhancing()
+                    statusText.text = getString(R.string.string_ai_upscale_running)
+                }
+                ceui.pixiv.ui.upscale.UpscaleStatus.Done -> {
+                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                        overlayRoot.visibility = View.GONE
+                    }.start()
+                    val result = task.resultFile.value
                     if (result != null) {
-                        val fileName = "upscale_${illust.id}_${System.currentTimeMillis()}.png"
-                        ceui.pixiv.ui.common.saveImageToGallery(requireContext(), result, fileName)
-                        Common.showToast(R.string.string_ai_upscale_done)
-                    } else {
-                        Common.showToast(R.string.string_ai_upscale_failed)
+                        val intent = Intent(mContext, TemplateActivity::class.java)
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
+                        intent.putExtra("upscaled_path", result.absolutePath)
+                        intent.putExtra("original_path", task.originalFilePath)
+                        startActivity(intent)
                     }
                 }
+                ceui.pixiv.ui.upscale.UpscaleStatus.Failed -> {
+                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                        overlayRoot.visibility = View.GONE
+                    }.start()
+                    Common.showToast(R.string.string_ai_upscale_failed)
+                }
+                else -> {}
             }
+        }
+        task.progress.observe(viewLifecycleOwner) { percent ->
+            val p = (percent * 100).toInt()
+            progressRing.setProgressCompat(p, true)
+            progressText.text = "$p%"
+        }
+        task.eta.observe(viewLifecycleOwner) { eta ->
+            etaText.text = if (eta > 0) "预计 ${String.format("%.0f", eta)} 秒后完成" else ""
+        }
+    }
+
+    private fun restoreUpscaleIfRunning() {
+        val illustId = safeArgs.illustId
+        val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.getTask(illustId) ?: return
+        if (task.status.value == ceui.pixiv.ui.upscale.UpscaleStatus.Running) {
+            observeUpscaleTask(task)
         }
     }
 

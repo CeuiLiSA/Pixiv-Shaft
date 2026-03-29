@@ -64,6 +64,18 @@
             android:visibility="gone" />
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/enhance_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/white"
+            app:indicatorSize="30dp"
+            app:trackColor="@color/voice_record_track_color"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="5dp" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress_circular"
             android:layout_width="wrap_content"
             android:visibility="gone"
@@ -75,6 +87,21 @@
             app:trackColor="@color/voice_record_track_color"
             app:trackCornerRadius="4dp"
             app:trackThickness="5dp" />
+
+        <TextView
+            android:id="@+id/debug_shader_button"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="80dp"
+            android:background="@drawable/refresh_button_background"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="Shader"
+            android:textColor="@color/colorWhite60"
+            android:textSize="13sp" />
 
     </RelativeLayout>
 </layout>

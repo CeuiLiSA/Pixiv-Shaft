@@ -16,15 +16,11 @@ import javax.microedition.khronos.opengles.GL10
 import timber.log.Timber
 
 /**
- * AI画质增强过程中的炫酷Shader动画覆盖层。
- *
- * 半透明覆盖在原图上方，展示流光扫描线、极光等离子体、六边形网格、
- * 边缘辉光、粒子闪烁、数据流、进度环等效果。
+ * AI画质增强过程中的Shader波纹动画覆盖层 (AOSP Pixel充电波纹移植)。
  *
  * 用法:
  * - showEnhancing()  开始增强时调用，淡入动画
  * - hideEnhancing()  增强完成时调用，淡出并隐藏
- * - setEnhanceProgress(0f..1f)  更新进度
  */
 class EnhanceShaderOverlayView @JvmOverloads constructor(
     context: Context,
@@ -34,11 +30,9 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
     private var program = 0
     private var uTime = -1
     private var uResolution = -1
-    private var uProgress = -1
     private var uAlpha = -1
 
     private var startTime = System.nanoTime()
-    @Volatile private var progress = 0f
     @Volatile private var overlayAlpha = 0f
 
     private var surfaceW = 1f
@@ -74,7 +68,6 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
         if (program != 0) {
             uTime = GLES20.glGetUniformLocation(program, "u_time")
             uResolution = GLES20.glGetUniformLocation(program, "u_resolution")
-            uProgress = GLES20.glGetUniformLocation(program, "u_progress")
             uAlpha = GLES20.glGetUniformLocation(program, "u_alpha")
             glReady = true
         }
@@ -97,7 +90,6 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
 
         GLES20.glUniform1f(uTime, (System.nanoTime() - startTime) / 1e9f)
         GLES20.glUniform2f(uResolution, surfaceW, surfaceH)
-        GLES20.glUniform1f(uProgress, progress)
         GLES20.glUniform1f(uAlpha, overlayAlpha)
 
         val pos = GLES20.glGetAttribLocation(program, "a_position")
@@ -112,7 +104,6 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
     /** 开始AI增强时调用，淡入覆盖层动画 */
     fun showEnhancing() {
         startTime = System.nanoTime()
-        progress = 0f
         overlayAlpha = 0f
         visibility = VISIBLE
 
@@ -137,11 +128,6 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
             })
             start()
         }
-    }
-
-    /** 更新增强进度 [0..1]，进度环会实时反映 */
-    fun setEnhanceProgress(p: Float) {
-        progress = p.coerceIn(0f, 1f)
     }
 
     override fun onDetachedFromWindow() {
@@ -209,11 +195,7 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
             "precision mediump float;\n" +
             "uniform float u_time;\n" +
             "uniform vec2  u_resolution;\n" +
-            "uniform float u_progress;\n" +
             "uniform float u_alpha;\n" +
-            "\n" +
-            "#define PI  3.14159265\n" +
-            "#define TAU 6.28318530\n" +
             "\n" +
             "float triangleNoise(vec2 n) {\n" +
             "    n = fract(n * vec2(5.3987, 5.4421));\n" +
@@ -271,24 +253,6 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
             "    }\n" +
             "    rip = min(rip, 1.);\n" +
             "    vec3 col = vec3(.7,.85,1.) * rip;\n" +
-            "\n" +
-            "    float asp = u_resolution.x/u_resolution.y;\n" +
-            "    vec2  cu = (gl_FragCoord.xy/u_resolution-.5)*vec2(asp,1.);\n" +
-            "    float cd = length(cu);\n" +
-            "    float ca = atan(cu.y,cu.x);\n" +
-            "    float na = mod((PI*.5-ca)/TAU, 1.);\n" +
-            "    float rr=.08, rd=abs(cd-rr);\n" +
-            "    float rm = smoothstep(.002,0.,rd);\n" +
-            "    float rg = exp(-300.*rd*rd)*.25;\n" +
-            "    float filled = 1.-smoothstep(u_progress-.005,u_progress+.005,na);\n" +
-            "    vec3 pc = vec3(.7,.85,1.);\n" +
-            "    col += pc*(rm+rg)*filled;\n" +
-            "    col += vec3(.3)*rm*(1.-filled)*.15;\n" +
-            "    float ta2 = u_progress*TAU-PI*.5;\n" +
-            "    vec2  tp = vec2(cos(ta2),sin(ta2))*rr;\n" +
-            "    float tg = exp(-800.*dot(cu-tp,cu-tp));\n" +
-            "    col += pc*tg*1.5;\n" +
-            "\n" +
             "    float brightness = max(max(col.r,col.g),col.b);\n" +
             "    float al = clamp(brightness, 0., .55)*u_alpha;\n" +
             "    gl_FragColor = vec4(col, al);\n" +

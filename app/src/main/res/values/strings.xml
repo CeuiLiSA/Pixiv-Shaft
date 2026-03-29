@@ -620,7 +620,7 @@
     <string name="string_64_1">热度排序(非会员仅显示部分)</string>
     <string name="string_trending_builtin">机内自带热度排序</string>
     <string name="string_token_refreshing">登录过期了，帮你重新登录中~</string>
-    <string name="string_ai_upscale">AI 画质增强 (4x)</string>
+    <string name="string_ai_upscale">AI 画质增强 (2x)</string>
     <string name="string_ai_upscale_running">AI 画质增强中，请稍候…</string>
     <string name="string_ai_upscale_done">画质增强完成</string>
     <string name="string_ai_upscale_failed">画质增强失败</string>
