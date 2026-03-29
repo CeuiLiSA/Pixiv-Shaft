@@ -83,6 +83,21 @@
 
                             </ImageButton>
 
+                            <TextView
+                                android:id="@+id/gif_status_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerHorizontal="true"
+                                android:layout_below="@+id/play_gif"
+                                android:layout_marginTop="8dp"
+                                android:textColor="@android:color/white"
+                                android:textSize="12sp"
+                                android:shadowColor="@android:color/black"
+                                android:shadowDx="1"
+                                android:shadowDy="1"
+                                android:shadowRadius="3"
+                                android:visibility="gone" />
+
                             <include
                                 android:id="@+id/progress_layout"
                                 android:visibility="gone"

@@ -182,6 +182,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                    baseBind.gifStatusText.setVisibility(View.GONE);
                     Bundle bundle = intent.getExtras();
                     if (bundle != null) {
                         int id = bundle.getInt(Params.ID);
@@ -236,8 +237,6 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
     }
 
     public void nowPlayGif() {
-        stopFrameAnimation();
-
         File gifFile = LegacyFile.gifResultFile(mContext, illust);
         PixivOperate.setBack(illust.getId(), new Back() {
             @Override
@@ -248,22 +247,27 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         Common.showLog("nowPlayGif " + gifFile.getPath());
         if (gifFile.exists() && gifFile.length() > 1024) {
             Common.showLog("GIF文件已存在，直接播放");
+            stopFrameAnimation();
             baseBind.playGif.setVisibility(View.INVISIBLE);
             baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
+            baseBind.gifStatusText.setVisibility(View.GONE);
             Glide.with(mContext)
                     .asGif()
                     .load(gifFile)
                     .placeholder(baseBind.illustImage.getDrawable())
                     .into(baseBind.illustImage);
         } else {
-            // Try playing frames directly from unzipped folder
+            // If frame animation is already running, keep it
             File unzipFolder = LegacyFile.gifUnzipFolder(mContext, illust);
             File[] frameFiles = unzipFolder.listFiles();
             if (frameFiles != null && frameFiles.length > 0) {
-                startFrameAnimation(unzipFolder);
+                if (frameHandler == null) {
+                    startFrameAnimation(unzipFolder);
+                }
                 return;
             }
 
+            stopFrameAnimation();
             boolean hasDownload = Shaft.getMMKV().decodeBool(Params.ILLUST_ID + "_" + illust.getId());
             File zipFile = LegacyFile.gifZipFile(mContext, illust);
             if (hasDownload && zipFile.exists() && zipFile.length() > 1024) {
@@ -271,14 +275,15 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
                 PixivOperate.unzipAndPlay(mContext, illust);
             } else {
-                Common.showToast("获取GIF信息");
+                baseBind.gifStatusText.setText("获取GIF信息...");
+                baseBind.gifStatusText.setVisibility(View.VISIBLE);
                 baseBind.progress.setVisibility(View.VISIBLE);
                 PixivOperate.getGifInfo(illust, new ErrorCtrl<GifResponse>() {
                     @Override
                     public void next(GifResponse gifResponse) {
                         baseBind.progress.setVisibility(View.INVISIBLE);
                         Cache.get().saveModel(Params.ILLUST_ID + "_" + illust.getId(), gifResponse);
-                        Common.showToast("下载GIF文件");
+                        baseBind.gifStatusText.setText("下载GIF文件...");
                         DownloadItem downloadItem = IllustDownload.downloadGif(gifResponse, illust);
                         Manager.get().setCallback(downloadItem.getUuid(), new Callback<Progress>() {
                             @Override
@@ -327,6 +332,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
         baseBind.playGif.setVisibility(View.INVISIBLE);
         baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
+        baseBind.gifStatusText.setVisibility(View.GONE);
 
         frameHandler = new Handler(Looper.getMainLooper());
         final int[] index = {0};
@@ -334,7 +340,11 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         frameRunnable = new Runnable() {
             @Override
             public void run() {
-                if (!isAdded() || getContext() == null) return;
+                if (frameHandler == null) return;
+                if (!isAdded() || getContext() == null) {
+                    frameHandler.postDelayed(this, 200);
+                    return;
+                }
                 int i = index[0] % sortedFrames.size();
                 Bitmap bitmap = BitmapFactory.decodeFile(sortedFrames.get(i).getPath());
                 if (bitmap != null) {
@@ -454,7 +464,8 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                     pendingSave = true;
                     baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
                     baseBind.progressLayout.donutProgress.setProgress(0);
-                    Common.showToast("正在生成GIF，完成后自动保存");
+                    baseBind.gifStatusText.setText("正在生成GIF，完成后自动保存...");
+                    baseBind.gifStatusText.setVisibility(View.VISIBLE);
                     PixivOperate.setBack(illust.getId(), new Back() {
                         @Override
                         public void invoke(float progress) {

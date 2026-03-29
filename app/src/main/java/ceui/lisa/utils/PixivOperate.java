@@ -752,6 +752,7 @@ public class PixivOperate {
         RxRun.runOn(new RxRunnable<Void>() {
             @Override
             public Void execute() throws Exception {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 long currentTimeMillis = System.currentTimeMillis();
                 if (gifEncodingWorkSet.containsKey(illustsBean.getId())
                         && (currentTimeMillis - gifEncodingWorkSet.get(illustsBean.getId())) < reEncodeTimeThresholdMillis) {
