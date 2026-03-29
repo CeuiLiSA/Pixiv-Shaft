@@ -28,7 +28,8 @@ class SearchNovelRepo(
             else -> " ${PixivSearchParamUtil.R18_RESTRICTION_VALUE[r18Restriction!!]}"
         }).trim()
 
-        return if (sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE && (isPremium != true)) {
+        return if ((sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE ||
+                    sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE) && (isPremium != true)) {
             Retro.getAppApi().popularNovelPreview(
                 assembledKeyword,
                 startDate,

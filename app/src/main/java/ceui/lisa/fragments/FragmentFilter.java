@@ -108,7 +108,11 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
             }
         });
-        baseBind.sortTypeSpinner.setSelection(PixivSearchParamUtil.getSortTypeIndex(Shaft.sSettings.getSearchDefaultSortType()));
+        searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
+        String initialSort = searchModel.getSortType().getValue();
+        baseBind.sortTypeSpinner.setSelection(
+                PixivSearchParamUtil.getSortTypeIndex(
+                        initialSort != null ? initialSort : Shaft.sSettings.getSearchDefaultSortType()));
 
         baseBind.startDate.setOnClickListener(new View.OnClickListener() {
             @Override

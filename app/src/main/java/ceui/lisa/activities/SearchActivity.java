@@ -39,9 +39,11 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.utils.SearchTypeUtil;
 import ceui.lisa.viewmodel.SearchModel;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.prime.PrimeIllustLoader;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
@@ -63,6 +65,10 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
         isPremium = SessionManager.INSTANCE.isPremium();
         searchModel.getIsPremium().setValue(isPremium);
+
+        if (PrimeIllustLoader.INSTANCE.matchesKeyword(keyWord)) {
+            searchModel.getSortType().setValue(PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE);
+        }
 
 //        searchModel.getNowGo().observe(this, new Observer<String>() {
 //            @Override
