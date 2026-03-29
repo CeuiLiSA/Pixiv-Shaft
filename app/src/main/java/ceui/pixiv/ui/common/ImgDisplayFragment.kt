@@ -76,7 +76,7 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
         Timber.d("ImgDisplayFragment display img: ${url}")
         val namedUrl = NamedUrl(displayName(), url)
-        val task = TaskPool.getLoadTask(namedUrl, activity.lifecycleScope)
+        val task = TaskPool.getLoadTask(namedUrl)
         task.result.observe(viewLifecycleOwner) { file ->
             displayImg.loadImage(file)
             downloadButton.setOnClick {

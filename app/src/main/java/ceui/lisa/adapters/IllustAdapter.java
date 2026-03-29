@@ -36,17 +36,15 @@ import ceui.pixiv.ui.task.LoadTask;
 import ceui.pixiv.ui.task.NamedUrl;
 import ceui.pixiv.ui.task.TaskPool;
 import ceui.pixiv.ui.task.TaskStatus;
-import kotlinx.coroutines.CoroutineScope;
 
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
     private final int maxHeight;
     private final FragmentActivity mActivity;
     private final Fragment mFragment;
-    private final CoroutineScope mScope;
     private static final boolean longPressDownload = Shaft.sSettings.isIllustLongPressDownload();
 
-    public IllustAdapter(FragmentActivity activity, Fragment fragment, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal, CoroutineScope scope) {
+    public IllustAdapter(FragmentActivity activity, Fragment fragment, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mActivity = activity;
         mContext = fragment.requireContext();
@@ -55,7 +53,6 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         imageSize = mContext.getResources().getDisplayMetrics().widthPixels;
         this.isForceOriginal = isForceOriginal;
         this.mFragment = fragment;
-        this.mScope = scope;
     }
 
     @NonNull
@@ -143,7 +140,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         });
 
         LifecycleOwner lifecycleOwner = mFragment.getViewLifecycleOwner();
-        LoadTask task = TaskPool.INSTANCE.getLoadTask(new NamedUrl("", imageUrl), mScope, true);
+        LoadTask task = TaskPool.INSTANCE.getLoadTask(new NamedUrl("", imageUrl), true);
         Common.showLog("一级详情页 loadIllust: taskId=" + task.getTaskId() + ", url=" + imageUrl);
 
         task.getStatus().observe(lifecycleOwner, status -> {

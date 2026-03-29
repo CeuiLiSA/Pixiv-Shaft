@@ -60,7 +60,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
 
         if (imageUrl?.isNotEmpty() == true) {
-            val task = TaskPool.getLoadTask(NamedUrl("", imageUrl), requireActivity().lifecycleScope)
+            val task = TaskPool.getLoadTask(NamedUrl("", imageUrl))
             Timber.d("二级详情页 loadImage: taskId=${task.taskId}, status=${task.status.value}, url=$imageUrl")
             task.result.observe(viewLifecycleOwner) { file ->
                 baseBind.image.loadImage(file)

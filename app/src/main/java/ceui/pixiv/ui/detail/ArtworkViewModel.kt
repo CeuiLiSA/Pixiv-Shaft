@@ -90,7 +90,7 @@ class ArtworkViewModel(
             }
         } ?: return
         val result = mutableListOf<ListItemHolder>()
-        val images = getGalleryHolders(illust, activityCoroutineScope)
+        val images = getGalleryHolders(illust)
         result.addAll(images ?: listOf())
         result.add(RedSectionHeaderHolder("标题"))
         result.add(ArtworkInfoHolder(illustId))

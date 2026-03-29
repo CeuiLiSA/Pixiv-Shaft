@@ -31,7 +31,7 @@ class QueuedTaskDataSource(
         }
     }
     items.map { namedUrl ->
-        val task = TaskPool.getDownloadTask(namedUrl, activity.lifecycleScope).also {
+        val task = TaskPool.getDownloadTask(namedUrl).also {
             TaskQueueManager.addTask(it)
         }
         QueuedTaskHolder(task, illust)

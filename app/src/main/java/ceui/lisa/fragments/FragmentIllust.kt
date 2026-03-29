@@ -316,7 +316,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             } else if (menuItem.itemId == R.id.action_show_original) {
                 baseBind.recyclerView.adapter = IllustAdapter(
                     mActivity, this@FragmentIllust, illust,
-                    recyHeight, true, lifecycleScope
+                    recyHeight, true
                 )
                 return@OnMenuItemClickListener true
             } else if (menuItem.itemId == R.id.action_mute_illust) {
@@ -441,7 +441,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 baseBind.recyclerView.layoutManager = LinearLayoutManager(mContext)
                 recyHeight = baseBind.recyclerView.height
                 val adapter =
-                    IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false, lifecycleScope)
+                    IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
                 baseBind.recyclerView.adapter = adapter
                 baseBind.coreLinear.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }

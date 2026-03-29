@@ -12,11 +12,10 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import jp.wasabeef.glide.transformations.BlurTransformation
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
-fun getGalleryHolders(illust: Illust, coroutineScope: CoroutineScope): List<GalleryHolder>? {
+fun getGalleryHolders(illust: Illust): List<GalleryHolder>? {
     // Helper function to create a GalleryHolder
     fun createGalleryHolder(index: Int, imageUrl: String?): GalleryHolder {
         val task = TaskPool.getLoadTask(
@@ -24,11 +23,10 @@ fun getGalleryHolders(illust: Illust, coroutineScope: CoroutineScope): List<Gall
                 buildPixivWorksFileName(illust.id, index),
                 imageUrl.orEmpty() // Handle null gracefully
             ),
-            coroutineScope,
             autoStart = false
         )
         return GalleryHolder(illust, index, task) {
-            coroutineScope.launch { task.execute() }
+            TaskPool.scope.launch { task.execute() }
         }
     }
 
