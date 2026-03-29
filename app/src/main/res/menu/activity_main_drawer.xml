@@ -96,6 +96,11 @@
                 android:icon="@mipmap/jinhua"
                 android:title="@string/string_248" />
 
+            <item
+                android:id="@+id/debug_destroy_token"
+                android:icon="@drawable/ic_error_black_24dp"
+                android:title="debug destroy access token" />
+
         </menu>
     </item>
 

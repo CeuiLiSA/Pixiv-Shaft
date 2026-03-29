@@ -317,6 +317,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             intent.putExtra(Params.URL, "https://www.pixiv.net/upload.php");
             intent.putExtra(Params.TITLE, getString(R.string.string_444));
             intent.putExtra(Params.PREFER_PRESERVE, true);
+        } else if (id == R.id.debug_destroy_token) {
+            ceui.lisa.models.UserModel user = ceui.lisa.utils.Local.getUser();
+            if (user != null) {
+                user.setAccess_token("invalid_token_for_debug");
+                ceui.lisa.utils.Local.saveUser(user);
+                Common.showToast("access token 已销毁");
+            }
         }
         if (intent != null) {
             startActivity(intent);
