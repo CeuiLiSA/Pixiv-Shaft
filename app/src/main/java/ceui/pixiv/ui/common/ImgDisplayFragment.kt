@@ -209,11 +209,7 @@ fun CircularProgressIndicator.setUpWithTaskStatus(
             progressCircular.progress = 0
         } else if (status is TaskStatus.Executing) {
             progressCircular.isVisible = true
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                progressCircular.setProgress(status.percentage, true)
-            } else {
-                progressCircular.progress = status.percentage
-            }
+            progressCircular.progress = status.percentage
         } else {
             progressCircular.isVisible = false
         }
@@ -235,11 +231,7 @@ fun CircularProgressIndicator.setUpWithTaskStatus(
             progressCircular.progress = 0
         } else if (status is TaskStatus.Executing) {
             progressCircular.isVisible = true
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                progressCircular.setProgress(status.percentage, true)
-            } else {
-                progressCircular.progress = status.percentage
-            }
+            progressCircular.progress = status.percentage
         } else {
             progressCircular.isVisible = false
         }

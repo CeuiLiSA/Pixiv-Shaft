@@ -141,11 +141,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override
             public void onProgress(ProgressInfo progressInfo) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                    holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent(), true);
-                } else {
-                    holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
-                }
+                holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
                 if(progressInfo.isFinish()){
                     holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                     ProgressManager.getInstance().removeResponseListener(imageUrl,this);

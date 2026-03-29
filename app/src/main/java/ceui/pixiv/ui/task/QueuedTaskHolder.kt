@@ -60,14 +60,7 @@ fun TextView.binding_setStatusDesc(taskStatus: TaskStatus?) {
 fun ProgressBar.binding_setStatusPercentage(taskStatus: TaskStatus?) {
     if (taskStatus != null) {
         if (taskStatus is TaskStatus.Executing) {
-            // 兼容不同版本的 setProgress 调用
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // 对于 Android 7.0 及以上版本，使用 setProgress 的第二个参数进行动画
-                setProgress(taskStatus.percentage, true)
-            } else {
-                // 对于 Android 7.0 以下的版本，使用 setProgress 不带动画
-                progress = taskStatus.percentage
-            }
+            progress = taskStatus.percentage
         }
     }
 }
