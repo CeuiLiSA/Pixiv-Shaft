@@ -65,11 +65,11 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             }
 
             baseBind.rateThisApp.setOnClickListener {
-                val uri = Uri.parse("market://details?id=ceui.pixiv.pshaft")
                 try {
-                    startActivity(Intent(Intent.ACTION_VIEW, uri))
-                } catch (e: ActivityNotFoundException) {
-                    Common.showToast("unable to find market app")
+                    timber.log.Timber.d("RateThisApp clicked, showing RateAppDialog")
+                    ceui.pixiv.widgets.RateAppDialog().show(parentFragmentManager, "RateAppDialog")
+                } catch (e: Exception) {
+                    timber.log.Timber.e(e, "Failed to show RateAppDialog")
                 }
             }
             baseBind.applicationId.text = requireContext().applicationInfo.packageName
