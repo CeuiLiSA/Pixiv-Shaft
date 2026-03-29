@@ -24,11 +24,16 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
         boolean shouldHidAiIllusts = Shaft.sSettings.isDeleteAIIllust();
         for (Object o : t.getList()) {
             if (o instanceof IllustsBean) {
-                boolean isTagBanned = IllustNovelFilter.judgeTag((IllustsBean) o);
-                boolean isIdBanned = IllustNovelFilter.judgeID((IllustsBean) o);
-                boolean isUserBanned = IllustNovelFilter.judgeUserID((IllustsBean) o);
-                boolean isR18FilterBanned = IllustNovelFilter.judgeR18Filter((IllustsBean) o);
-                boolean isCreatedByAI = ((IllustsBean) o).isCreatedByAI();
+                IllustsBean illust = (IllustsBean) o;
+                if (!illust.isVisible()) {
+                    dash.add(o);
+                    continue;
+                }
+                boolean isTagBanned = IllustNovelFilter.judgeTag(illust);
+                boolean isIdBanned = IllustNovelFilter.judgeID(illust);
+                boolean isUserBanned = IllustNovelFilter.judgeUserID(illust);
+                boolean isR18FilterBanned = IllustNovelFilter.judgeR18Filter(illust);
+                boolean isCreatedByAI = illust.isCreatedByAI();
                 if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned) {
                     dash.add(o);
                 }

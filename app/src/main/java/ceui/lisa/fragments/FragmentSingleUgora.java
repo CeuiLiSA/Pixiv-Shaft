@@ -42,6 +42,15 @@ import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.os.Looper;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.SearchActivity;
@@ -60,6 +69,7 @@ import ceui.lisa.file.OutPut;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.Back;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
@@ -81,6 +91,9 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
     private IllustsBean illust;
     private CallBackReceiver mReceiver, mPlayReceiver;
+    private Handler frameHandler;
+    private Runnable frameRunnable;
+    private boolean pendingSave = false;
 
     public static FragmentSingleUgora newInstance(IllustsBean illust) {
         Bundle args = new Bundle();
@@ -173,6 +186,16 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                     if (bundle != null) {
                         int id = bundle.getInt(Params.ID);
                         if (illust.getId() == id) {
+                            if (pendingSave) {
+                                pendingSave = false;
+                                File gifFile = LegacyFile.gifResultFile(mContext, illust);
+                                if (gifFile.exists() && gifFile.length() > 1024) {
+                                    OutPut.outPutGif(mContext, gifFile, illust);
+                                    if (Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()) {
+                                        PixivOperate.postLikeDefaultStarType(illust);
+                                    }
+                                }
+                            }
                             nowPlayGif();
                         }
                     }
@@ -202,6 +225,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
     @Override
     public void onDestroy() {
+        stopFrameAnimation();
         try {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mPlayReceiver);
@@ -212,6 +236,8 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
     }
 
     public void nowPlayGif() {
+        stopFrameAnimation();
+
         File gifFile = LegacyFile.gifResultFile(mContext, illust);
         PixivOperate.setBack(illust.getId(), new Back() {
             @Override
@@ -230,6 +256,14 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                     .placeholder(baseBind.illustImage.getDrawable())
                     .into(baseBind.illustImage);
         } else {
+            // Try playing frames directly from unzipped folder
+            File unzipFolder = LegacyFile.gifUnzipFolder(mContext, illust);
+            File[] frameFiles = unzipFolder.listFiles();
+            if (frameFiles != null && frameFiles.length > 0) {
+                startFrameAnimation(unzipFolder);
+                return;
+            }
+
             boolean hasDownload = Shaft.getMMKV().decodeBool(Params.ILLUST_ID + "_" + illust.getId());
             File zipFile = LegacyFile.gifZipFile(mContext, illust);
             if (hasDownload && zipFile.exists() && zipFile.length() > 1024) {
@@ -264,6 +298,62 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 });
             }
         }
+    }
+
+    private void startFrameAnimation(File unzipFolder) {
+        stopFrameAnimation();
+
+        File[] files = unzipFolder.listFiles();
+        if (files == null || files.length == 0) return;
+
+        List<File> sortedFrames = new ArrayList<>(Arrays.asList(files));
+        Collections.sort(sortedFrames, (o1, o2) -> {
+            try {
+                int n1 = Integer.parseInt(o1.getName().substring(0, o1.getName().length() - 4));
+                int n2 = Integer.parseInt(o2.getName().substring(0, o2.getName().length() - 4));
+                return Integer.compare(n1, n2);
+            } catch (NumberFormatException e) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
+        List<Integer> delays = new ArrayList<>();
+        GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illust.getId(), GifResponse.class);
+        if (gifResponse != null && gifResponse.getUgoira_metadata() != null) {
+            for (FramesBean frame : gifResponse.getUgoira_metadata().getFrames()) {
+                delays.add(frame.getDelay());
+            }
+        }
+
+        baseBind.playGif.setVisibility(View.INVISIBLE);
+        baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
+
+        frameHandler = new Handler(Looper.getMainLooper());
+        final int[] index = {0};
+
+        frameRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isAdded() || getContext() == null) return;
+                int i = index[0] % sortedFrames.size();
+                Bitmap bitmap = BitmapFactory.decodeFile(sortedFrames.get(i).getPath());
+                if (bitmap != null) {
+                    baseBind.illustImage.setImageBitmap(bitmap);
+                }
+                int delay = (i < delays.size()) ? delays.get(i) : 60;
+                index[0]++;
+                frameHandler.postDelayed(this, delay);
+            }
+        };
+        frameHandler.post(frameRunnable);
+    }
+
+    private void stopFrameAnimation() {
+        if (frameHandler != null) {
+            frameHandler.removeCallbacksAndMessages(null);
+            frameHandler = null;
+        }
+        frameRunnable = null;
     }
 
     @Override
@@ -357,8 +447,26 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                     PixivOperate.postLikeDefaultStarType(illust);
                 }
             } else {
-                IllustDownload.downloadGif(illust);
-                Common.showToast('1' + requireContext().getString(R.string.has_been_added));
+                // Check if unzipped frames exist — encoding may be in progress or not yet started
+                File unzipFolder = LegacyFile.gifUnzipFolder(mContext, illust);
+                File[] frames = unzipFolder.listFiles();
+                if (frames != null && frames.length > 0) {
+                    pendingSave = true;
+                    baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+                    baseBind.progressLayout.donutProgress.setProgress(0);
+                    Common.showToast("正在生成GIF，完成后自动保存");
+                    PixivOperate.setBack(illust.getId(), new Back() {
+                        @Override
+                        public void invoke(float progress) {
+                            baseBind.progressLayout.donutProgress.setProgress(Math.round(progress * 100));
+                        }
+                    });
+                    // Trigger encoding if not already running
+                    PixivOperate.encodeGifV2(mContext, unzipFolder, illust, true);
+                } else {
+                    IllustDownload.downloadGif(illust);
+                    Common.showToast('1' + requireContext().getString(R.string.has_been_added));
+                }
             }
         });
         baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {

@@ -31,13 +31,16 @@ import ceui.lisa.helper.StaggeredManager;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.loxia.ObjectPool;
+import ceui.loxia.RefreshStateKt;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
+import timber.log.Timber;
 
 public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         extends BaseLazyFragment<Layout> {
@@ -107,10 +110,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
                 mModel.getBaseRepo().getFooter(mContext) : new FalsifyFooter(mContext));
 
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
-            /**
-             * The method was called when refreshing the page
-             * @param refreshLayout (In doubt)
-             */
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 try {
@@ -121,7 +120,9 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
                     clear();
                     fresh();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Timber.e(e, "onRefresh failed");
+                    mRefreshLayout.finishRefresh(false);
+                    showError(e);
                 }
             }
         });
@@ -140,7 +141,9 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
                         mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Timber.e(e, "onLoadMore failed");
+                    mRefreshLayout.finishLoadMore(false);
+                    showError(e);
                 }
             }
         });
@@ -189,7 +192,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
                 }
             }, animateDuration);
         } catch (Exception e) {
-            e.printStackTrace();
+            Timber.e(e, "scrollToTop failed");
         }
     }
 
@@ -322,5 +325,13 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
     public int getCount() {
         return allItems == null ? 0 : allItems.size();
+    }
+
+    protected void showError(Exception e) {
+        String message = RefreshStateKt.getHumanReadableMessage(e, mContext);
+        Common.showToast(message);
+        if (allItems == null || allItems.isEmpty()) {
+            emptyRela.setVisibility(View.VISIBLE);
+        }
     }
 }

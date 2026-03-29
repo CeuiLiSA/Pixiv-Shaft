@@ -42,6 +42,8 @@ import ceui.lisa.view.OnCheckChangeListener;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.DynamicIllustModel;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import ceui.pixiv.ui.common.BottomDividerDecoration;
+import ceui.lisa.utils.DensityUtil;
 
 public class FragmentRight extends NetListFragment<FragmentNewRightBinding, ListIllust, IllustsBean> {
 
@@ -145,6 +147,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
         if (isTimelineMode) {
             mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+            mRecyclerView.addItemDecoration(new BottomDividerDecoration(mContext, R.drawable.list_divider_full, 0, 0));
             mAdapter = new TimelineAdapter(allItems, mContext);
         } else {
             staggerRecyclerView();

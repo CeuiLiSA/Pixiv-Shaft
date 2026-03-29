@@ -38,6 +38,7 @@ import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.notification.CommonReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
+import timber.log.Timber;
 
 /**
  * 联网获取xx列表，
@@ -215,7 +216,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         try {
             onResponse(response);
         } catch (Exception e) {
-            e.printStackTrace();
+            Timber.e(e, "onResponse failed");
         }
     }
 
@@ -395,7 +396,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                                 }
                             }, 200L);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            Timber.e(e, "scrollToPosition failed");
                         }
                     }
                 }
