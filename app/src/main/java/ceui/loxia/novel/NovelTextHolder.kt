@@ -1,7 +1,6 @@
 package ceui.loxia.novel
 
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelChapterBinding
 import ceui.lisa.databinding.CellNovelImageBinding
@@ -94,7 +93,7 @@ class NovelImageViewHolder(private val bd: CellNovelImageBinding) : ListItemView
                 holder.webNovel.illusts?.get("${holder.id}-${holder.indexInIllust}")?.illust?.images?.medium
             }
             binding.novelImage.setOnClick {
-                PixivOperate.getIllustByID(Shaft.sUserModel, holder.id, binding.novelImage.context)
+                PixivOperate.getIllustByID(holder.id, binding.novelImage.context)
             }
             Glide.with(binding.novelImage).load(GlideUrlChild(urls)).placeholder(R.drawable.image_place_holder).into(binding.novelImage)
         }

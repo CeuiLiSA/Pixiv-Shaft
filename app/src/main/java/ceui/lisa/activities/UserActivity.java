@@ -37,7 +37,8 @@ import ceui.loxia.ObjectPool;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
+
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 /**
@@ -75,7 +76,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 invoke(userDetailResponse);
             }
         });
-        Retro.getAppApi().getUserDetail(sUserModel.getAccess_token(), userID)
+        Retro.getAppApi().getUserDetail(SessionManager.INSTANCE.getBearerToken(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
@@ -156,7 +157,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
-        if (currentUser.getUser().getId() != sUserModel.getUser().getId()) {
+        if (currentUser.getUser().getId() != (int) SessionManager.INSTANCE.getLoggedInUid()) {
             //如果看的是自己的主页，先展示收藏
             //如果看的是别人的主页，先展示作品
             if (currentUser.getProfile().getTotal_illusts() > 0) {

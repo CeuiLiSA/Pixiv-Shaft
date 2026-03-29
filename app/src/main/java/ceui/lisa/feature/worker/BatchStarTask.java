@@ -9,10 +9,9 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.utils.Params;
+import ceui.pixiv.session.SessionManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class BatchStarTask extends AbstractTask {
 
@@ -32,7 +31,7 @@ public class BatchStarTask extends AbstractTask {
     @Override
     public void run(IEnd end) {
         if (starType == 0) {
-            Retro.getAppApi().postLikeIllust(Shaft.sUserModel.getAccess_token(), illustID, Params.TYPE_PUBLIC)
+            Retro.getAppApi().postLikeIllust(SessionManager.INSTANCE.getBearerToken(), illustID, Params.TYPE_PUBLIC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -50,7 +49,7 @@ public class BatchStarTask extends AbstractTask {
                         }
                     });
         } else {
-            Retro.getAppApi().postDislikeIllust(sUserModel.getAccess_token(), illustID)
+            Retro.getAppApi().postDislikeIllust(SessionManager.INSTANCE.getBearerToken(), illustID)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {

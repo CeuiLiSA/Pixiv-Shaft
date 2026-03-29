@@ -17,8 +17,8 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
+import ceui.pixiv.session.SessionManager
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.helper.AppLevelViewModelHelper
@@ -103,8 +103,9 @@ class RecommendAppWidgetProvider : AppWidgetProvider() {
                     PendingIntent.getBroadcast(context, 880880, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
                 )
 
-                val accessToken = Shaft.sUserModel?.access_token ?: return@launch
-                Retro.getAppApi().getRecmdIllust(accessToken, true)
+                val bearerToken = SessionManager.getBearerTokenOrEmpty()
+                if (bearerToken.isEmpty()) return@launch
+                Retro.getAppApi().getRecmdIllust(bearerToken, true)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(object : NullCtrl<ListIllust?>() {
@@ -191,10 +192,10 @@ class RecommendAppWidgetProvider : AppWidgetProvider() {
                     .build()
                 startForeground(1, notification)
             }
-            if (Shaft.sUserModel == null) {
+            if (!SessionManager.isLoggedIn) {
                 return START_STICKY
             }
-            Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.access_token, true)
+            Retro.getAppApi().getRecmdIllust(SessionManager.getBearerToken(), true)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : NullCtrl<ListIllust?>() {

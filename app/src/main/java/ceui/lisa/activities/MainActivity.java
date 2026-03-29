@@ -2,7 +2,6 @@ package ceui.lisa.activities;
 
 import static ceui.lisa.R.id.nav_gallery;
 import static ceui.lisa.R.id.nav_slideshow;
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -88,7 +87,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Common.showUser(mContext, sUserModel);
+                Intent userIntent = new Intent(mContext, UserActivity.class);
+                userIntent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
+                startActivity(userIntent);
                 baseBind.drawerLayout.closeDrawer(GravityCompat.START);
             }
         });
@@ -219,10 +220,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (SessionManager.INSTANCE.isLoggedIn() || (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login())) {
-            if (!SessionManager.INSTANCE.isLoggedIn()) {
-                SessionManager.INSTANCE.updateSession(sUserModel);
-            }
+        if (SessionManager.INSTANCE.isLoggedIn()) {
             if (Common.isAndroidQ()) {
                 initFragment();
 //                startActivity(new Intent(this, ListActivity.class));
@@ -277,7 +275,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
         } else if (id == R.id.main_page) {
             intent = new Intent(mContext, UserActivity.class);
-            intent.putExtra(Params.USER_ID, sUserModel.getUser().getId());
+            intent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
         } else if (id == R.id.nav_reverse) {
             selectPhoto();
         } else if (id == R.id.nav_new_work) {
@@ -356,13 +354,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     private void initDrawerHeader() {
-        if (sUserModel != null && sUserModel.getUser() != null) {
+        if (SessionManager.INSTANCE.isLoggedIn() && SessionManager.INSTANCE.getLoggedInUser() != null) {
             Glide.with(mContext)
-                    .load(GlideUtil.getHead(sUserModel.getUser()))
+                    .load(GlideUtil.getHead(SessionManager.INSTANCE.getLoggedInUser()))
                     .into(userHead);
-            username.setText(sUserModel.getUser().getName());
-            user_email.setText(TextUtils.isEmpty(sUserModel.getUser().getMail_address()) ?
-                    mContext.getString(R.string.no_mail_address) : sUserModel.getUser().getMail_address());
+            username.setText(SessionManager.INSTANCE.getLoggedInUser().getName());
+            String mailAddress = SessionManager.INSTANCE.getMailAddress();
+            user_email.setText(TextUtils.isEmpty(mailAddress) ?
+                    mContext.getString(R.string.no_mail_address) : mailAddress);
         }
     }
 

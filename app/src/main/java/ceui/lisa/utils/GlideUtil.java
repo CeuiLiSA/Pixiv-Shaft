@@ -7,6 +7,8 @@ import com.bumptech.glide.load.model.GlideUrl;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserBean;
+import ceui.loxia.ImageUrls;
+import ceui.loxia.User;
 
 
 public class GlideUtil {
@@ -43,6 +45,31 @@ public class GlideUtil {
         }
     }
 
+
+    public static GlideUrl getHead(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        ImageUrls urls = user.getProfile_image_urls();
+        if (urls == null) {
+            return null;
+        }
+
+        String image = urls.getPx_170x170();
+        if (image == null) {
+            image = urls.getMedium();
+        }
+        if (image == null) {
+            return null;
+        }
+
+        if (TextUtils.equals(image, DEFAULT_HEAD_IMAGE)) {
+            return new GlideUrlChild(image);
+        } else {
+            return new GlideUrlChild(HostManager.get().replaceUrl(image));
+        }
+    }
 
     public static GlideUrl getSquare(IllustsBean illustsBean) {
         return new GlideUrlChild(HostManager.get().replaceUrl(illustsBean.getImage_urls().getSquare_medium()));

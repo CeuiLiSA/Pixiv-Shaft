@@ -1,6 +1,6 @@
 package ceui.lisa.fragments;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -160,7 +160,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             @Override
             public void onClick(View v) {
                 Common.showLog(className + "getNovel 111");
-                PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
+                PixivOperate.postLikeNovel(mNovelBean,
                         Params.TYPE_PUBLIC, baseBind.like);
             }
         });
@@ -258,7 +258,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             refreshDetail(mNovelDetail);
         } else {
             baseBind.progressRela.setVisibility(View.VISIBLE);
-            Retro.getAppApi().getNovelDetailV2(Shaft.sUserModel.getAccess_token(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+            Retro.getAppApi().getNovelDetailV2(SessionManager.INSTANCE.getBearerToken(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     baseBind.progressRela.setVisibility(View.INVISIBLE);
@@ -310,7 +310,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     baseBind.transformationLayout.finishTransform();
-                    Retro.getAppApi().getNovelByID(sUserModel.getAccess_token(), novelDetail.getSeries_prev().getId())
+                    Retro.getAppApi().getNovelByID(SessionManager.INSTANCE.getBearerToken(), novelDetail.getSeries_prev().getId())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<NovelSearchResponse>() {
@@ -330,7 +330,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     baseBind.transformationLayout.finishTransform();
-                    Retro.getAppApi().getNovelByID(sUserModel.getAccess_token(), novelDetail.getSeries_next().getId())
+                    Retro.getAppApi().getNovelByID(SessionManager.INSTANCE.getBearerToken(), novelDetail.getSeries_next().getId())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<NovelSearchResponse>() {

@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
@@ -44,13 +43,6 @@ public class TokenInterceptor implements Interceptor {
         return response;
     }
 
-
-    /**
-     * 根据Response，判断Token是否失效
-     *
-     * @param response
-     * @return
-     */
     private boolean isTokenExpired(Response response) {
         final String body = Common.getResponseBody(response);
         Common.showLog("isTokenExpired body " + body);
@@ -59,8 +51,6 @@ public class TokenInterceptor implements Interceptor {
                 Common.showLog("isTokenExpired 000");
                 return true;
             } else if(body.contains(TOKEN_ERROR_2)){
-                Shaft.sUserModel.getUser().setIs_login(false);
-                Local.saveUser(Shaft.sUserModel);
                 SessionManager.INSTANCE.postUpdateSession(null);
                 Common.showToast(R.string.string_340);
                 Common.restart();
@@ -76,37 +66,33 @@ public class TokenInterceptor implements Interceptor {
         }
     }
 
-    /**
-     * 同步请求方式，获取最新的Token，解决多并发请求多次刷新token的问题
-     *
-     * @return
-     */
     private synchronized String getNewToken(String tokenForThisRequest) throws IOException {
-        if (Shaft.sUserModel.getAccess_token().equals(tokenForThisRequest) ||
+        String currentBearerToken = SessionManager.INSTANCE.getBearerToken();
+        if (currentBearerToken.equals(tokenForThisRequest) ||
                 tokenForThisRequest.length() != TOKEN_LENGTH ||
-                Shaft.sUserModel.getAccess_token().length() != TOKEN_LENGTH) {
-            Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getAccess_token());
-            UserModel userModel = Local.getUser();
+                currentBearerToken.length() != TOKEN_LENGTH) {
+            Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + currentBearerToken);
+            String refreshToken = SessionManager.INSTANCE.getRefreshToken();
+            if (refreshToken == null) {
+                throw new IOException("refresh_token not exist");
+            }
             Call<UserModel> call = Retro.getAccountTokenApi().newRefreshToken(
                     FragmentLogin.CLIENT_ID,
                     FragmentLogin.CLIENT_SECRET,
                     FragmentLogin.REFRESH_TOKEN,
-                    userModel.getRefresh_token(),
+                    refreshToken,
                     Boolean.TRUE);
             UserModel newUser = call.execute().body();
             if (newUser != null) {
-                newUser.getUser().setPassword(
-                        Shaft.sUserModel.getUser().getPassword()
-                );
                 newUser.getUser().setIs_login(true);
             }
             Local.saveUser(newUser);
-            SessionManager.INSTANCE.postUpdateSession(newUser);
-            Common.showLog("getNewToken 获取到了最新的 token:" + newUser.getAccess_token());
-            return newUser.getAccess_token();
+            String newBearerToken = SessionManager.INSTANCE.getBearerToken();
+            Common.showLog("getNewToken 获取到了最新的 token:" + newBearerToken);
+            return newBearerToken;
         } else {
-            Common.showLog("getNewToken 使用最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getAccess_token());
-            return Shaft.sUserModel.getAccess_token();
+            Common.showLog("getNewToken 使用最新的token old:" + tokenForThisRequest + " new:" + currentBearerToken);
+            return currentBearerToken;
         }
     }
 }

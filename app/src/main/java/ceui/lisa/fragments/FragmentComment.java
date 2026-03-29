@@ -44,7 +44,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
 
 public class FragmentComment extends NetListFragment<FragmentCommentBinding,
         ListComment, ReplyCommentBean> implements FragmentBackHandler {
@@ -224,7 +224,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 getString(R.string.string_174)
         };
         baseBind.post.setOnClickListener(v -> {
-            if (!sUserModel.getUser().isIs_mail_authorized()) {
+            if (SessionManager.INSTANCE.isLoggedIn() && !SessionManager.INSTANCE.isMailAuthorized()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setMessage(R.string.string_158);
                 builder.setPositiveButton(R.string.string_159, (dialog, which) -> {
@@ -346,15 +346,15 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     private Observable<CommentHolder> getCommentHolder() {
         if (dataType == Params.TYPE_ILLUST) {
             return parentCommentID != 0 ?
-                    Retro.getAppApi().postIllustComment(sUserModel.getAccess_token(), workId,
+                    Retro.getAppApi().postIllustComment(SessionManager.INSTANCE.getBearerToken(), workId,
                             baseBind.inputBox.getText().toString(), parentCommentID) :
-                    Retro.getAppApi().postIllustComment(sUserModel.getAccess_token(), workId,
+                    Retro.getAppApi().postIllustComment(SessionManager.INSTANCE.getBearerToken(), workId,
                             baseBind.inputBox.getText().toString());
         } else {
             return parentCommentID != 0 ?
-                    Retro.getAppApi().postNovelComment(sUserModel.getAccess_token(), workId,
+                    Retro.getAppApi().postNovelComment(SessionManager.INSTANCE.getBearerToken(), workId,
                             baseBind.inputBox.getText().toString(), parentCommentID) :
-                    Retro.getAppApi().postNovelComment(sUserModel.getAccess_token(), workId,
+                    Retro.getAppApi().postNovelComment(SessionManager.INSTANCE.getBearerToken(), workId,
                             baseBind.inputBox.getText().toString());
         }
     }

@@ -52,7 +52,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static android.app.Activity.RESULT_OK;
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
 
 public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> implements Display<Preset>, DatePickerDialog.OnDateSetListener {
 
@@ -65,13 +65,13 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
 
     @Override
     protected void initData() {
-        if (sUserModel == null) {
+        if (!SessionManager.INSTANCE.isLoggedIn()) {
             Common.showToast(getString(R.string.string_260));
             mActivity.finish();
             return;
         }
         Glide.with(mContext)
-                .load(GlideUtil.getHead(sUserModel.getUser()))
+                .load(GlideUtil.getHead(SessionManager.INSTANCE.getLoggedInUser()))
                 .into(baseBind.userHead);
         baseBind.submit.setOnClickListener(v -> submit());
         baseBind.changeHead.setOnClickListener(new View.OnClickListener() {
@@ -93,7 +93,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
         baseBind.toolbar.toolbarTitle.setText(R.string.string_92);
         baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
 
-        Retro.getAppApi().getPresets(sUserModel.getAccess_token())
+        Retro.getAppApi().getPresets(SessionManager.INSTANCE.getBearerToken())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<Preset>() {
@@ -141,7 +141,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
         parts.add(comment);
         parts.add(birthdayPart);
 
-        Retro.getAppApi().updateUserProfile(sUserModel.getAccess_token(), parts)
+        Retro.getAppApi().updateUserProfile(SessionManager.INSTANCE.getBearerToken(), parts)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<NullResponse>() {
@@ -149,13 +149,12 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
                     public void success(NullResponse nullResponse) {
                         Common.showToast(getString(R.string.string_261));
                         //修改好了之后刷新用户信息
-                        PixivOperate.refreshUserData(sUserModel, new Callback<UserModel>() {
+                        PixivOperate.refreshUserData(new Callback<UserModel>() {
                             @Override
                             public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                                 if (response != null) {
                                     UserModel newUser = response.body();
                                     if (newUser != null) {
-                                        newUser.getUser().setPassword(sUserModel.getUser().getPassword());
                                         newUser.getUser().setIs_login(true);
                                         Local.saveUser(newUser);
                                         Dev.refreshUser = true;
@@ -272,7 +271,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
 
 
         //加载预设信息
-        Retro.getAppApi().getUserDetail(sUserModel.getAccess_token(), sUserModel.getUserId())
+        Retro.getAppApi().getUserDetail(SessionManager.INSTANCE.getBearerToken(), (int) SessionManager.INSTANCE.getLoggedInUid())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<UserDetailResponse>() {

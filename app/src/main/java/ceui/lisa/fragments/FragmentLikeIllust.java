@@ -13,6 +13,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.pixiv.session.SessionManager;
 import ceui.lisa.adapters.IAdapterWithStar;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.database.AppDatabase;
@@ -92,7 +93,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        boolean isOwnPage = Shaft.sUserModel.getUser().getUserId() == userID;
+        boolean isOwnPage = (int) SessionManager.INSTANCE.getLoggedInUid() == userID;
         return new IAdapterWithStar(allItems, mContext).setHideStarIcon(
                 isOwnPage && Shaft.sSettings.isHideStarButtonAtMyCollection()
         );

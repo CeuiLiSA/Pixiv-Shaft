@@ -33,6 +33,7 @@ import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.ProgressTextButton
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.github.ybq.android.spinkit.style.Wave
@@ -121,7 +122,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
 
     override fun initData() {
         baseBind.progress.visibility = View.VISIBLE
-        Retro.getAppApi().getUserDetail(Shaft.sUserModel.access_token, userId)
+        Retro.getAppApi().getUserDetail(SessionManager.getBearerToken(), userId)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserDetailResponse>() {
@@ -141,7 +142,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                     baseBind.progress.visibility = View.INVISIBLE
                 }
             })
-        Retro.getAppApi().getFollowDetail(Shaft.sUserModel.access_token, userId)
+        Retro.getAppApi().getFollowDetail(SessionManager.getBearerToken(), userId)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserFollowDetail>() {
@@ -169,12 +170,12 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .beginTransaction()
             .replace(R.id.fragment_container, newInstance())
             .commitNowAllowingStateLoss()
-        if (userId.toLong() == Shaft.sUserModel.userId.toLong()) {
-            Common.showLog("saasdasdaw2 aa ${userId.toLong()}, ${Shaft.sUserModel.userId.toLong()}, ${userId.toLong() == Shaft.sUserModel.userId.toLong()}")
+        if (userId.toLong() == SessionManager.loggedInUid) {
+            Common.showLog("saasdasdaw2 aa ${userId.toLong()}, ${SessionManager.loggedInUid}, ${userId.toLong() == SessionManager.loggedInUid}")
             baseBind.followLayout.visibility = View.GONE
             baseBind.moreAction.visibility = View.GONE
         } else {
-            Common.showLog("saasdasdaw2 bb ${userId.toLong()}, ${Shaft.sUserModel.userId.toLong()}, ${userId.toLong() == Shaft.sUserModel.userId.toLong()}")
+            Common.showLog("saasdasdaw2 bb ${userId.toLong()}, ${SessionManager.loggedInUid}, ${userId.toLong() == SessionManager.loggedInUid}")
             baseBind.followLayout.visibility = View.VISIBLE
             baseBind.moreAction.visibility = View.VISIBLE
             baseBind.moreAction.setOnClickListener { v: View? ->

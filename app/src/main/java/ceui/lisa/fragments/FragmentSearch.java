@@ -58,7 +58,7 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
@@ -196,7 +196,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         } else if (searchType == 1) {
             if (Common.isNumeric(trimmedKeyword)) {
                 PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
-                PixivOperate.getIllustByID(sUserModel, tryParseId(trimmedKeyword), mContext);
+                PixivOperate.getIllustByID(tryParseId(trimmedKeyword), mContext);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
@@ -212,7 +212,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         } else if (searchType == 3) {
             if (Common.isNumeric(trimmedKeyword)) {
                 PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_NOVELID);
-                PixivOperate.getNovelByID(sUserModel, tryParseId(trimmedKeyword), mContext, null);
+                PixivOperate.getNovelByID(tryParseId(trimmedKeyword), mContext, null);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
@@ -249,7 +249,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                         .create();
                 tipDialog.show();
                 //先假定为作品id
-                PixivOperate.getIllustByID(sUserModel, tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
+                PixivOperate.getIllustByID(tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
                     @Override
                     public void doSomething(Void t) {
                         PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
@@ -278,7 +278,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void completeWord(String key) {
-        Retro.getAppApi().searchCompleteWord(sUserModel.getAccess_token(), key)
+        Retro.getAppApi().searchCompleteWord(SessionManager.INSTANCE.getBearerToken(), key)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<ListTrendingtag>() {
@@ -328,7 +328,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void getHotTags() {
-        Retro.getAppApi().getHotTags(sUserModel.getAccess_token(), Params.TYPE_ILLUST)
+        Retro.getAppApi().getHotTags(SessionManager.INSTANCE.getBearerToken(), Params.TYPE_ILLUST)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<ListTrendingtag>() {
@@ -455,7 +455,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
-                    PixivOperate.getIllustByID(sUserModel, tryParseId(history.get(position).getKeyword()), mContext);
+                    PixivOperate.getIllustByID(tryParseId(history.get(position).getKeyword()), mContext);
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_USERKEYWORD) {
                     baseBind.hintList.setVisibility(View.INVISIBLE);
                     Intent intent = new Intent(mContext, SearchActivity.class);
@@ -471,7 +471,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_NOVELID) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
-                    PixivOperate.getNovelByID(sUserModel, tryParseId(history.get(position).getKeyword()), mContext, null);
+                    PixivOperate.getNovelByID(tryParseId(history.get(position).getKeyword()), mContext, null);
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_URL) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));

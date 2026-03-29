@@ -1,7 +1,7 @@
 package ceui.lisa.fragments
 
 import androidx.recyclerview.widget.GridLayoutManager
-import ceui.lisa.activities.Shaft.sUserModel
+import ceui.pixiv.session.SessionManager
 import ceui.lisa.adapters.BaseAdapter
 import ceui.lisa.adapters.LiveAdapter
 import ceui.lisa.core.RemoteRepo
@@ -19,7 +19,7 @@ class FragmentLive : NetListFragment<FragmentBaseListBinding, ListLive, Live>() 
     override fun repository(): RemoteRepo<ListLive> {
         return object : RemoteRepo<ListLive>() {
             override fun initApi(): Observable<ListLive> {
-                return Retro.getAppApi().getLiveList(sUserModel.access_token, "popular")
+                return Retro.getAppApi().getLiveList(SessionManager.getBearerToken(), "popular")
             }
 
             override fun initNextApi(): Observable<ListLive>? {

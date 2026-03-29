@@ -55,6 +55,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.pixiv.session.SessionManager;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
@@ -106,15 +107,14 @@ public class Common {
     }
 
     public static void logOut(Context context, boolean deleteUser) {
-        if (Shaft.sUserModel != null) {
-            Shaft.sUserModel.getUser().setIs_login(false);
-            Local.saveUser(Shaft.sUserModel);
+        if (SessionManager.INSTANCE.isLoggedIn()) {
             if(deleteUser){
                 UserEntity userEntity = new UserEntity();
-                userEntity.setUserID(Shaft.sUserModel.getUserId());
+                userEntity.setUserID((int) SessionManager.INSTANCE.getLoggedInUid());
                 AppDatabase.getAppDatabase(context)
                         .downloadDao().deleteUser(userEntity);
             }
+            SessionManager.INSTANCE.updateSession(null);
             Intent intent = new Intent(context, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);

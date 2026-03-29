@@ -6,7 +6,6 @@ import android.view.View
 import ceui.lisa.databinding.RecyWatchlistNovelBinding
 import ceui.lisa.models.WatchlistNovelItem
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UserActivity
 import ceui.lisa.utils.GlideUtil
@@ -50,7 +49,7 @@ class WatchlistNovelAdapter(
                 mContext.startActivity(intent)
             }
             bindView.baseBind.readLatest.setOnClickListener {
-                PixivOperate.getNovelByID(Shaft.sUserModel, target.latest_content_id!!.toLong(), mContext, null)
+                PixivOperate.getNovelByID(target.latest_content_id!!.toLong(), mContext, null)
             }
             bindView.baseBind.author.setOnClickListener {
                 val intent = Intent(mContext, UserActivity::class.java)

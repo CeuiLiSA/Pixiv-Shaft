@@ -148,9 +148,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private fun performLogin(userJson: String) {
         val exportUser = Shaft.sGson.fromJson(userJson, UserModel::class.java)
         Local.saveUser(exportUser)
-        SessionManager.updateSession(exportUser)
         Dev.refreshUser = true
-        Shaft.sUserModel = exportUser
         val userEntity = UserEntity()
         userEntity.loginTime = System.currentTimeMillis()
         userEntity.userID = exportUser.user.id

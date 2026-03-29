@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.models.UserModel;
+import ceui.pixiv.session.SessionManager;
 import timber.log.Timber;
 
 /**
@@ -17,12 +18,13 @@ public class Local {
 
     public static void saveUser(UserModel userModel) {
         if (userModel != null) {
+            // Keep SharedPreferences write for legacy compatibility (user switching, database entities)
             String userString = Shaft.sGson.toJson(userModel, UserModel.class);
             SharedPreferences.Editor editor = Shaft.sPreferences.edit();
             editor.putString(USER, userString);
-            if (editor.commit()) {
-                Shaft.sUserModel = userModel;
-            }
+            editor.commit();
+            // Update SessionManager as the single source of truth
+            SessionManager.INSTANCE.updateSession(userModel);
         }
     }
 

@@ -29,8 +29,6 @@ import ceui.pixiv.session.SessionManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
-
 public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
     public static final String HOST_ME = "pixiv.me";
@@ -71,7 +69,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             List<String> pathArray = uri.getPathSegments();
                             String illustID = pathArray.get(pathArray.size() - 1);
                             if (!TextUtils.isEmpty(illustID)) {
-                                PixivOperate.getIllustByID(Shaft.sUserModel, tryParseId(illustID), mContext, new Callback<Void>() {
+                                PixivOperate.getIllustByID(tryParseId(illustID), mContext, new Callback<Void>() {
                                     @Override
                                     public void doSomething(Void t) {
                                         finish();
@@ -95,7 +93,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 List<String> pathArray = uri.getPathSegments();
                                 novelId = pathArray.get(pathArray.size() - 1);
                             }
-                            PixivOperate.getNovelByID(sUserModel, tryParseId(novelId), mContext, new Callback<Void>() {
+                            PixivOperate.getNovelByID(tryParseId(novelId), mContext, new Callback<Void>() {
                                 @Override
                                 public void doSomething(Void t) {
                                     finish();
@@ -128,7 +126,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 String idString = end.split("_")[0];
 
                                 Common.showLog("end " + end + " idString " + idString);
-                                PixivOperate.getIllustByID(Shaft.sUserModel, tryParseId(idString), mContext, new Callback<Void>() {
+                                PixivOperate.getIllustByID(tryParseId(idString), mContext, new Callback<Void>() {
                                     @Override
                                     public void doSomething(Void t) {
                                         finish();
@@ -160,7 +158,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                         String illustID = uri.getQueryParameter("illust_id");
                         if (!TextUtils.isEmpty(illustID)) {
-                            PixivOperate.getIllustByID(Shaft.sUserModel, tryParseId(illustID), mContext, new Callback<Void>() {
+                            PixivOperate.getIllustByID(tryParseId(illustID), mContext, new Callback<Void>() {
                                 @Override
                                 public void doSomething(Void t) {
                                     finish();
@@ -266,14 +264,14 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                             if (host.contains("illusts")) {
                                 String path = uri.getPath();
-                                PixivOperate.getIllustByID(Shaft.sUserModel, tryParseId(path.substring(1)),
+                                PixivOperate.getIllustByID(tryParseId(path.substring(1)),
                                         mContext, t -> finish(),null);
                                 return;
                             }
 
                             if (host.contains("novels")) {
                                 String path = uri.getPath();
-                                PixivOperate.getNovelByID(Shaft.sUserModel, tryParseId(path.substring(1)),
+                                PixivOperate.getNovelByID(tryParseId(path.substring(1)),
                                         mContext, t -> finish());
                                 return;
                             }
@@ -283,7 +281,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
             }
         }
 
-        if (sUserModel != null && sUserModel.getUser().isIs_login()) {
+        if (SessionManager.INSTANCE.isLoggedIn()) {
             Intent i = new Intent(mContext, MainActivity.class);
             mActivity.startActivity(i);
             mActivity.finish();

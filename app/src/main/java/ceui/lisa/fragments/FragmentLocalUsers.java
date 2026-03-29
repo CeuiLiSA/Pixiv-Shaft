@@ -30,7 +30,7 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
 
 public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
 
@@ -96,8 +96,8 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         binding.loginTime.setText(TextUtils.isEmpty(userModel.getUser().getMail_address()) ?
                 "未绑定邮箱" : userModel.getUser().getMail_address());
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getUser())).into(binding.userHead);
-        if (sUserModel != null && sUserModel.getUser() != null && userModel.getUser().getId() ==
-                sUserModel.getUser().getId()) {
+        if (SessionManager.INSTANCE.isLoggedIn() && userModel.getUser().getId() ==
+                (int) SessionManager.INSTANCE.getLoggedInUid()) {
             binding.currentUser.setVisibility(View.VISIBLE);
         } else {
             binding.currentUser.setVisibility(View.GONE);
@@ -117,7 +117,6 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
             public void onClick(View v) {
                 Local.saveUser(userModel);
                 Dev.refreshUser = true;
-                Shaft.sUserModel = userModel;
                 Common.restart();
                 mActivity.finish();
             }

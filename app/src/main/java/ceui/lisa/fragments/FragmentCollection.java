@@ -24,7 +24,7 @@ import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Params;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
 
 public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
@@ -56,9 +56,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     public void initView() {
         if (type == 0) {
             allPages = new Fragment[]{
-                    FragmentLikeIllust.newInstance(sUserModel.getUser().getId(),
+                    FragmentLikeIllust.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PUBLIC),
-                    FragmentLikeIllust.newInstance(sUserModel.getUser().getId(),
+                    FragmentLikeIllust.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PRIVATE)
             };
             CHINESE_TITLES = new String[]{
@@ -67,9 +67,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             };
         } else if (type == 1) {
             allPages = new Fragment[]{
-                    FragmentLikeNovel.newInstance(sUserModel.getUser().getId(),
+                    FragmentLikeNovel.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PUBLIC, false),
-                    FragmentLikeNovel.newInstance(sUserModel.getUser().getId(),
+                    FragmentLikeNovel.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PRIVATE, false)
             };
             CHINESE_TITLES = new String[]{
@@ -78,9 +78,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             };
         } else if (type == 2) {
             allPages = new Fragment[]{
-                    FragmentFollowUser.newInstance(sUserModel.getUser().getId(),
+                    FragmentFollowUser.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PUBLIC, false),
-                    FragmentFollowUser.newInstance(sUserModel.getUser().getId(),
+                    FragmentFollowUser.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PRIVATE, false)
             };
             CHINESE_TITLES = new String[]{

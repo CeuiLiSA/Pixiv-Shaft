@@ -25,7 +25,6 @@ import ceui.lisa.R;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
-import ceui.lisa.models.UserModel;
 import ceui.lisa.notification.NetWorkStateReceiver;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;
@@ -49,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
  * */
 public class Shaft extends Application implements ServicesProvider {
 
-    public static UserModel sUserModel;
     public static Settings sSettings;
     public static Gson sGson;
     public static SharedPreferences sPreferences;
@@ -102,8 +100,6 @@ public class Shaft extends Application implements ServicesProvider {
 
         MMKV.initialize(this);
         networkStateManager = new NetworkStateManager(this);
-        sUserModel = Local.getUser();
-
         sSettings = Local.getSettings();
 
         entityWrapper = new EntityWrapper(this);

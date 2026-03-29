@@ -3,12 +3,14 @@ package ceui.pixiv.session
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.FragmentLogin
 import ceui.lisa.models.UserModel
 import ceui.loxia.AccountResponse
 import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
+import ceui.loxia.User
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
@@ -41,11 +43,35 @@ object SessionManager {
     }
 
     val isLoggedIn: Boolean get() {
-        return _loggedInAccount.value != null
+        return _loggedInAccount.value?.access_token != null
     }
 
     val loggedInUid: Long get() {
         return _loggedInAccount.value?.user?.id ?: 0L
+    }
+
+    val loggedInUser: User? get() {
+        return _loggedInAccount.value?.user
+    }
+
+    val isPremium: Boolean get() {
+        return _loggedInAccount.value?.user?.is_premium == true
+    }
+
+    val mailAddress: String? get() {
+        return _loggedInAccount.value?.user?.mail_address
+    }
+
+    val accountName: String? get() {
+        return _loggedInAccount.value?.user?.account
+    }
+
+    val isMailAuthorized: Boolean get() {
+        return _loggedInAccount.value?.user?.is_mail_authorized == true
+    }
+
+    val refreshToken: String? get() {
+        return _loggedInAccount.value?.refresh_token
     }
 
     fun initialize() {
@@ -57,9 +83,30 @@ object SessionManager {
                 accountResponse.user?.let {
                     ObjectPool.update(it)
                 }
+                return
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
+        }
+
+        // Migration: if MMKV has no data, try loading from legacy SharedPreferences
+        migrateFromLegacyIfNeeded()
+    }
+
+    /**
+     * Migrate user data from old SharedPreferences (Local.getUser()) to MMKV.
+     * Only migrates when SessionManager has no data AND SharedPreferences has data.
+     */
+    private fun migrateFromLegacyIfNeeded() {
+        try {
+            val legacyJson = Shaft.sPreferences?.getString("user", "") ?: return
+            if (legacyJson.isEmpty()) return
+
+            val userModel = gson.fromJson(legacyJson, UserModel::class.java) ?: return
+            Timber.d("Migrating user data from SharedPreferences to SessionManager (MMKV)")
+            updateSession(userModel)
+        } catch (ex: Exception) {
+            Timber.e(ex, "Failed to migrate legacy user data")
         }
     }
 
@@ -87,6 +134,24 @@ object SessionManager {
         }
     }
 
+    /**
+     * Returns "Bearer xxx" format token for API Authorization header.
+     * This replaces the old UserModel.getAccess_token() which added "Bearer " prefix.
+     */
+    fun getBearerToken(): String {
+        return "Bearer " + getAccessToken()
+    }
+
+    /**
+     * Returns "Bearer xxx" or empty string if not logged in.
+     */
+    fun getBearerTokenOrEmpty(): String {
+        return try {
+            getBearerToken()
+        } catch (e: Exception) {
+            ""
+        }
+    }
 
     fun refreshAccessToken(tokenForThisRequest: String): String? {
         val freshAccessToken = getAccessToken()
@@ -125,7 +190,4 @@ object SessionManager {
         val account = _loggedInAccount.value ?: throw RuntimeException("account not found")
         return account.access_token ?: throw RuntimeException("access_token not exist")
     }
-
-
-
 }

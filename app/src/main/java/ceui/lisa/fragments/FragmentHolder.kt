@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentHolderBinding
+import ceui.pixiv.session.SessionManager
 import ceui.lisa.utils.MyOnTabSelectedListener
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel
@@ -39,7 +40,7 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
         val items: Array<Fragment>
 
         when {
-            data.userId == Shaft.sUserModel.user.id -> {
+            data.userId.toLong() == SessionManager.loggedInUid -> {
                 titles = arrayOf(getString(R.string.userTab_collection), getString(R.string.userTab_other))
                 items = arrayOf<Fragment>(
                         FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLIC),

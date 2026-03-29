@@ -35,7 +35,7 @@ import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
 import static ceui.lisa.fragments.ListFragment.animateDuration;
 
 public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
@@ -133,13 +133,13 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
     protected void initData() {
         Observable<ListIllust> api = null;
         if (type == 1) {
-            api = Retro.getAppApi().getUserLikeIllust(sUserModel.getAccess_token(),
+            api = Retro.getAppApi().getUserLikeIllust(SessionManager.INSTANCE.getBearerToken(),
                     mUserDetailResponse.getUser().getId(), Params.TYPE_PUBLIC);
         } else if (type == 2) {
-            api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getAccess_token(),
+            api = Retro.getAppApi().getUserSubmitIllust(SessionManager.INSTANCE.getBearerToken(),
                     mUserDetailResponse.getUser().getId(), Params.TYPE_ILLUST);
         } else if (type == 3) {
-            api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getAccess_token(),
+            api = Retro.getAppApi().getUserSubmitIllust(SessionManager.INSTANCE.getBearerToken(),
                     mUserDetailResponse.getUser().getId(), Params.TYPE_MANGA);
         }
 

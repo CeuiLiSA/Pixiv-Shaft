@@ -6,6 +6,7 @@ import android.widget.EditText
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentWorkSpaceBinding
+import ceui.pixiv.session.SessionManager
 import ceui.lisa.http.NullCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.Display
@@ -28,7 +29,7 @@ class FragmentWorkSpace : SwipeFragment<FragmentWorkSpaceBinding>(), Display<Use
 
     public override fun initData() {
         Retro.getAppApi()
-            .getUserDetail(Shaft.sUserModel.access_token, Shaft.sUserModel.userId)
+            .getUserDetail(SessionManager.getBearerToken(), SessionManager.loggedInUid.toInt())
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserDetailResponse>() {
@@ -104,7 +105,7 @@ class FragmentWorkSpace : SwipeFragment<FragmentWorkSpaceBinding>(), Display<Use
             map["chair"] = Common.checkEmpty(baseBind.chair)
             map["comment"] = Common.checkEmpty(baseBind.otherText)
 
-            Retro.getAppApi().editWorkSpace(Shaft.sUserModel.access_token, map)
+            Retro.getAppApi().editWorkSpace(SessionManager.getBearerToken(), map)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : NullCtrl<NullResponse>() {

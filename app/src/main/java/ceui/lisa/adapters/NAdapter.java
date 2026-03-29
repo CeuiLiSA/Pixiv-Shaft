@@ -17,7 +17,6 @@ import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.SearchActivity;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.databinding.RecyNovelBinding;
@@ -162,7 +161,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     intent.putExtra("hideStatusBar", true);
                     mContext.startActivity(intent);
                 } else if (viewType == 1) {
-                    PixivOperate.postLikeNovel(allItems.get(position), Shaft.sUserModel,
+                    PixivOperate.postLikeNovel(allItems.get(position),
                             Params.TYPE_PUBLIC, v);
                 } else if (viewType == 2) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);

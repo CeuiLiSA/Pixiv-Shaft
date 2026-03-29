@@ -41,8 +41,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.SearchTypeUtil;
 import ceui.lisa.viewmodel.SearchModel;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
+import ceui.pixiv.session.SessionManager;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
@@ -62,7 +61,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         searchModel.getKeyword().setValue(keyWord);
         searchModel.getIsNovel().setValue(index == 1);
 
-        isPremium = Shaft.sUserModel.getUser().isIs_premium();
+        isPremium = SessionManager.INSTANCE.isPremium();
         searchModel.getIsPremium().setValue(isPremium);
 
 //        searchModel.getNowGo().observe(this, new Observer<String>() {
@@ -233,7 +232,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                             .create();
                     tipDialog.show();
                     //先假定为作品id
-                    PixivOperate.getIllustByID(sUserModel, tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
+                    PixivOperate.getIllustByID(tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
                         @Override
                         public void doSomething(Void t) {
                             PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);

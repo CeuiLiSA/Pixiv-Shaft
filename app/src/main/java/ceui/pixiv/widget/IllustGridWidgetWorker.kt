@@ -9,8 +9,8 @@ import android.widget.RemoteViews
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
+import ceui.pixiv.session.SessionManager
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.http.Retro
@@ -28,7 +28,8 @@ class IllustGridWidgetWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val token = Shaft.sUserModel?.access_token ?: return Result.success()
+        val token = SessionManager.getBearerTokenOrEmpty()
+        if (token.isEmpty()) return Result.success()
 
         val illusts = try {
             withContext(Dispatchers.IO) {
