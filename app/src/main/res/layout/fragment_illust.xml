@@ -52,6 +52,12 @@
 
                             </androidx.recyclerview.widget.RecyclerView>
 
+                            <ceui.lisa.view.EnhanceShaderOverlayView
+                                android:id="@+id/enhance_overlay"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:visibility="gone" />
+
 
                         </RelativeLayout>
 

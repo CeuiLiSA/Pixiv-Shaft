@@ -620,12 +620,19 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
 
-        Common.showToast(R.string.string_ai_upscale_running)
+        val overlay = baseBind.enhanceOverlay
+        overlay.showEnhancing()
+
         val task = TaskPool.getLoadTask(NamedUrl("", imageUrl))
         task.result.observe(viewLifecycleOwner) { file ->
             if (file != null) {
                 lifecycleScope.launch {
-                    val result = ceui.pixiv.ui.upscale.RealESRGANUpscaler.upscale(requireContext(), file)
+                    val result = ceui.pixiv.ui.upscale.RealESRGANUpscaler.upscale(
+                        requireContext(), file
+                    ) { progress ->
+                        overlay.post { overlay.setEnhanceProgress(progress) }
+                    }
+                    overlay.hideEnhancing()
                     if (result != null) {
                         val fileName = "upscale_${illust.id}_${System.currentTimeMillis()}.png"
                         ceui.pixiv.ui.common.saveImageToGallery(requireContext(), result, fileName)

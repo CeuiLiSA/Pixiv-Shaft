@@ -29,7 +29,7 @@ import timber.log.Timber
 class EnhanceShaderOverlayView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
-) : GLSurfaceView(context, attrs), Renderer {
+) : GLSurfaceView(context, attrs), GLSurfaceView.Renderer {
 
     private var program = 0
     private var uTime = -1
@@ -203,19 +203,10 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
             "void main() { gl_Position = a_position; }\n"
 
         // ───────── fragment shader ─────────
-        //
-        // Effects:
-        //  1. Scanning beams      — cyan / purple / mint 横向扫描光带
-        //  2. Aurora plasma       — FBM 噪声驱动的极光等离子体
-        //  3. Hexagonal grid      — 扫描线附近浮现的六边形网格 + 脉冲cell
-        //  4. Edge glow           — 边缘呼吸辉光
-        //  5. Sparkle particles   — 随机闪烁粒子
-        //  6. Data streams        — 垂直下落的数据流线
-        //  7. Progress ring       — 中央进度环 + 尖端辉光
-        //  8. Completion wave     — 完成阶段的绿色波纹
-        //
+        // AOSP Pixel charging ripple — lightweight version
+        // Removed distort (atan+4trig), reuse ring for sparkle, 2 ripples
         private const val FRAG_SRC =
-            "precision highp float;\n" +
+            "precision mediump float;\n" +
             "uniform float u_time;\n" +
             "uniform vec2  u_resolution;\n" +
             "uniform float u_progress;\n" +
@@ -224,152 +215,82 @@ class EnhanceShaderOverlayView @JvmOverloads constructor(
             "#define PI  3.14159265\n" +
             "#define TAU 6.28318530\n" +
             "\n" +
-            // ---- hash & noise ----
-            "float hash21(vec2 p) {\n" +
-            "    p = fract(p * vec2(123.34, 456.21));\n" +
-            "    p += dot(p, p + 45.32);\n" +
-            "    return fract(p.x * p.y);\n" +
+            "float triangleNoise(vec2 n) {\n" +
+            "    n = fract(n * vec2(5.3987, 5.4421));\n" +
+            "    n += dot(n.yx, n.xy + vec2(21.5351, 14.3137));\n" +
+            "    float xy = n.x * n.y;\n" +
+            "    return fract(xy * 95.4307) + fract(xy * 75.04961) - 1.0;\n" +
             "}\n" +
             "\n" +
-            "float noise(vec2 p) {\n" +
-            "    vec2 i = floor(p), f = fract(p);\n" +
-            "    f = f * f * (3.0 - 2.0 * f);\n" +
-            "    float a = hash21(i), b = hash21(i + vec2(1.0, 0.0)),\n" +
-            "          c = hash21(i + vec2(0.0, 1.0)), d = hash21(i + vec2(1.0, 1.0));\n" +
-            "    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);\n" +
-            "}\n" +
-            "\n" +
-            "float fbm(vec2 p) {\n" +
-            "    float v = 0.0, a = 0.5;\n" +
-            "    mat2 R = mat2(0.8776, 0.4794, -0.4794, 0.8776);\n" +
-            "    for (int i = 0; i < 5; i++) {\n" +
-            "        v += a * noise(p);\n" +
-            "        p = R * p * 2.0 + vec2(100.0);\n" +
-            "        a *= 0.5;\n" +
+            "float sparkles(vec2 uv, float t) {\n" +
+            "    float n = triangleNoise(uv);\n" +
+            "    float s = 0.0;\n" +
+            "    for(int i = 0; i < 2; i++) {\n" +
+            "        float fi = float(i);\n" +
+            "        float l = fi * 0.01;\n" +
+            "        float o = smoothstep(n - l, l + 0.1, n);\n" +
+            "        o *= abs(sin(PI * o * (t + 0.55 * fi)));\n" +
+            "        s += o;\n" +
             "    }\n" +
-            "    return v;\n" +
+            "    return s;\n" +
             "}\n" +
             "\n" +
-            // ---- main ----
+            // single distance → derive circle + ring, no sqrt recompute
+            "float rippleWave(vec2 p, vec2 ctr, float prog, float maxR, float t) {\n" +
+            "    float ip = 1.-prog;\n" +
+            "    float radius = (1.-ip*ip*ip) * maxR;\n" +
+            "    if(radius < 1.) return 0.;\n" +
+            "    float blur = mix(1.25, .5, prog);\n" +
+            "    float bh = blur*.5;\n" +
+            "    float d = distance(p, ctr);\n" +
+            // softCircle (filled)
+            "    float circ = 1.-smoothstep(1.-bh, 1.+bh, d/(radius*1.2));\n" +
+            // softRing (compute once, reuse for sparkle)
+            "    float th = radius*.25;\n" +
+            "    float outer = 1.-smoothstep(1.-bh, 1.+bh, d/(radius+th));\n" +
+            "    float inner = 1.-smoothstep(1.-bh, 1.+bh, d/(radius-th));\n" +
+            "    float ring = outer - inner;\n" +
+            // fading
+            "    float fadeIn = smoothstep(0., .1, prog);\n" +
+            "    float fadeRing = min(fadeIn, 1.-smoothstep(.3, 1., prog));\n" +
+            "    float fadeCirc = 1.-smoothstep(0., .2, prog);\n" +
+            "    float fadeSp = min(fadeIn, 1.-smoothstep(.4, 1., prog));\n" +
+            "    float sp = sparkles(p - mod(p, vec2(2.)), t*.00175) * ring * fadeSp * .3;\n" +
+            "    return max(circ*fadeCirc, ring*fadeRing)*.45 + sp;\n" +
+            "}\n" +
+            "\n" +
             "void main() {\n" +
-            "    vec2  uv = gl_FragCoord.xy / u_resolution;\n" +
-            "    float t = u_time;\n" +
-            "    float asp = u_resolution.x / u_resolution.y;\n" +
-            "    vec3  col = vec3(0.0);\n" +
-            "    float al = 0.0;\n" +
-            "\n" +
-            // 1. scanning beams
-            "    float b1 = exp(-60.0 * pow(uv.y - fract(t * 0.18), 2.0));\n" +
-            "    float b2 = exp(-40.0 * pow(uv.y - fract(1.0 - t * 0.14), 2.0));\n" +
-            "    float b3 = exp(-30.0 * pow(uv.y - uv.x * 0.3 - fract(t * 0.1), 2.0)) * 0.5;\n" +
-            "    col += vec3(0.2, 0.7, 1.0) * b1 * 0.7\n" +
-            "         + vec3(0.7, 0.3, 1.0) * b2 * 0.5\n" +
-            "         + vec3(0.3, 1.0, 0.7) * b3 * 0.4;\n" +
-            "    al += b1 * 0.45 + b2 * 0.35 + b3 * 0.2;\n" +
-            "\n" +
-            // 2. aurora plasma
-            "    vec2 q = vec2(fbm(uv * 3.0 + t * 0.25),\n" +
-            "                  fbm(uv * 3.0 + vec2(1.7, 9.2)));\n" +
-            "    vec2 r = vec2(fbm(uv * 3.0 + q + vec2(1.7, 9.2) + 0.15 * t),\n" +
-            "                  fbm(uv * 3.0 + q + vec2(8.3, 2.8) + 0.12 * t));\n" +
-            "    float f = fbm(uv * 3.0 + r);\n" +
-            "    vec3 au = mix(vec3(0.05, 0.4, 0.9), vec3(0.9, 0.1, 0.7),\n" +
-            "                 clamp(f * f * 4.0, 0.0, 1.0));\n" +
-            "    au = mix(au, vec3(0.1, 0.9, 0.8), clamp(length(q), 0.0, 1.0) * 0.6);\n" +
-            "    au = mix(au, vec3(0.95, 0.6, 0.1), clamp(r.x, 0.0, 1.0) * 0.2);\n" +
-            "    float aA = smoothstep(0.15, 0.85, f) * 0.3;\n" +
-            "    col += au * aA;\n" +
-            "    al += aA * 0.5;\n" +
-            "\n" +
-            // 3. hex grid
-            "    vec2 hu = uv * 12.0 * vec2(asp, 1.0);\n" +
-            "    vec2 hs = vec2(1.0, 1.732);\n" +
-            "    vec2 ha = mod(hu, hs) - hs * 0.5;\n" +
-            "    vec2 hb = mod(hu + hs * 0.5, hs) - hs * 0.5;\n" +
-            "    float da = length(ha), db = length(hb);\n" +
-            "    float he = smoothstep(0.08, 0.0, abs(da - db));\n" +
-            "    float hr = max(\n" +
-            "        smoothstep(0.25, 0.0, abs(uv.y - fract(t * 0.18))),\n" +
-            "        smoothstep(0.20, 0.0, abs(uv.y - fract(1.0 - t * 0.14))) * 0.6\n" +
-            "    );\n" +
-            "    he *= hr;\n" +
-            "    vec2 cid = da < db ? floor(hu / hs) : floor((hu + hs * 0.5) / hs);\n" +
-            "    float cr = hash21(cid);\n" +
-            "    float cp = pow(sin(t * 2.0 + cr * TAU) * 0.5 + 0.5, 3.0) * 0.25 * hr;\n" +
-            "    float cdist = da < db ? da : db;\n" +
-            "    float cg = smoothstep(0.3, 0.0, cdist) * cp;\n" +
-            "    vec3 hc = mix(vec3(0.2, 0.6, 1.0), vec3(0.6, 0.2, 1.0), cr);\n" +
-            "    col += hc * (he * 0.4 + cg);\n" +
-            "    al += he * 0.25 + cg * 0.2;\n" +
-            "\n" +
-            // 4. edge glow
-            "    float ed = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));\n" +
-            "    float eg = exp(-10.0 * ed) * (0.5 + 0.3 * sin(t * 1.5) + 0.2 * sin(t * 2.7));\n" +
-            "    vec3 ec = mix(vec3(0.1, 0.5, 1.0), vec3(0.8, 0.15, 0.9),\n" +
-            "                 sin(t * 0.7 + uv.x * 3.0 + uv.y * 2.0) * 0.5 + 0.5);\n" +
-            "    col += ec * eg * 0.6;\n" +
-            "    al += eg * 0.35;\n" +
-            "\n" +
-            // 5. sparkles
-            "    float sp = 0.0;\n" +
-            "    for (int i = 0; i < 15; i++) {\n" +
-            "        float fi = float(i);\n" +
-            "        vec2 spos = vec2(hash21(vec2(fi * 17.3, fi * 3.1)),\n" +
-            "                         hash21(vec2(fi * 7.7, fi * 13.9)));\n" +
-            "        spos.y = fract(spos.y + t * 0.02 * hash21(vec2(fi, 0.0)));\n" +
-            "        spos.x += sin(t * 0.5 + fi) * 0.02;\n" +
-            "        float ph = hash21(vec2(fi * 3.1, fi * 7.7));\n" +
-            "        float br = pow(max(sin(t * (2.0 + ph * 3.0) + ph * TAU), 0.0), 12.0);\n" +
-            "        float sd = length((uv - spos) * vec2(asp, 1.0));\n" +
-            "        sp += br * exp(-400.0 * sd * sd);\n" +
+            "    vec2 p = gl_FragCoord.xy;\n" +
+            "    vec2 ctr = u_resolution * .5;\n" +
+            "    float maxR = length(u_resolution) * .5;\n" +
+            "    float tMs = u_time * 1000.;\n" +
+            "    float rip = 0.;\n" +
+            "    for(int i = 0; i < 2; i++) {\n" +
+            "        float phase = fract(u_time / 4.0 + float(i) * .5);\n" +
+            "        rip += rippleWave(p, ctr, phase, maxR, tMs);\n" +
             "    }\n" +
-            "    col += vec3(0.9, 0.95, 1.0) * sp;\n" +
-            "    al += sp * 0.9;\n" +
+            "    rip = min(rip, 1.);\n" +
+            "    vec3 col = vec3(.7,.85,1.) * rip;\n" +
             "\n" +
-            // 6. data streams
-            "    for (int i = 0; i < 6; i++) {\n" +
-            "        float fi = float(i);\n" +
-            "        float xp = hash21(vec2(fi * 11.3, 0.0));\n" +
-            "        float spd = 0.3 + hash21(vec2(fi * 7.1, fi * 3.3)) * 0.5;\n" +
-            "        float yp = fract(t * spd + hash21(vec2(fi, 1.0)));\n" +
-            "        float ll = 0.05 + hash21(vec2(fi, 2.0)) * 0.1;\n" +
-            "        float lx = exp(-500.0 * pow(uv.x - xp, 2.0));\n" +
-            "        float ly = smoothstep(0.0, 0.01, uv.y - yp)\n" +
-            "                 * smoothstep(0.0, 0.01, yp + ll - uv.y);\n" +
-            "        col += vec3(0.3, 0.8, 1.0) * lx * ly * 0.5;\n" +
-            "        al += lx * ly * 0.2;\n" +
-            "    }\n" +
-            "\n" +
-            // 7. progress ring
-            "    vec2  cu = (uv - 0.5) * vec2(asp, 1.0);\n" +
+            "    float asp = u_resolution.x/u_resolution.y;\n" +
+            "    vec2  cu = (gl_FragCoord.xy/u_resolution-.5)*vec2(asp,1.);\n" +
             "    float cd = length(cu);\n" +
-            "    float ca = atan(cu.y, cu.x);\n" +
-            "    float na = mod((PI * 0.5 - ca) / TAU, 1.0);\n" +
-            "    float rr = 0.1, rd = abs(cd - rr);\n" +
-            "    float rm = smoothstep(0.003, 0.0, rd);\n" +
-            "    float rg = exp(-200.0 * rd * rd) * 0.4;\n" +
-            "    float filled = 1.0 - smoothstep(u_progress - 0.005,\n" +
-            "                                     u_progress + 0.005, na);\n" +
-            "    vec3 pc = mix(vec3(0.2, 0.6, 1.0), vec3(0.2, 1.0, 0.5), u_progress);\n" +
-            "    col += pc * (rm + rg) * filled;\n" +
-            "    al += (rm * 0.8 + rg * 0.5) * filled;\n" +
-            "    col += vec3(0.4, 0.5, 0.6) * rm * (1.0 - filled) * 0.3;\n" +
-            "    al += rm * (1.0 - filled) * 0.12;\n" +
-            // tip glow
-            "    float ta2 = u_progress * TAU - PI * 0.5;\n" +
-            "    vec2  tp  = vec2(cos(ta2), sin(ta2)) * rr;\n" +
-            "    float tg  = exp(-600.0 * dot(cu - tp, cu - tp));\n" +
-            "    col += pc * tg * 2.0;\n" +
-            "    al += tg * 0.7;\n" +
+            "    float ca = atan(cu.y,cu.x);\n" +
+            "    float na = mod((PI*.5-ca)/TAU, 1.);\n" +
+            "    float rr=.08, rd=abs(cd-rr);\n" +
+            "    float rm = smoothstep(.002,0.,rd);\n" +
+            "    float rg = exp(-300.*rd*rd)*.25;\n" +
+            "    float filled = 1.-smoothstep(u_progress-.005,u_progress+.005,na);\n" +
+            "    vec3 pc = vec3(.7,.85,1.);\n" +
+            "    col += pc*(rm+rg)*filled;\n" +
+            "    col += vec3(.3)*rm*(1.-filled)*.15;\n" +
+            "    float ta2 = u_progress*TAU-PI*.5;\n" +
+            "    vec2  tp = vec2(cos(ta2),sin(ta2))*rr;\n" +
+            "    float tg = exp(-800.*dot(cu-tp,cu-tp));\n" +
+            "    col += pc*tg*1.5;\n" +
             "\n" +
-            // 8. progress brightness & completion wave
-            "    col *= 1.0 + smoothstep(0.0, 1.0, u_progress) * 0.3;\n" +
-            "    if (u_progress > 0.9) {\n" +
-            "        float cw = sin((uv.y + uv.x * 0.5) * 20.0 - t * 5.0) * 0.5 + 0.5;\n" +
-            "        col += vec3(0.3, 0.9, 0.5) * cw * 0.2 * (u_progress - 0.9) * 10.0;\n" +
-            "    }\n" +
-            "\n" +
-            "    al = clamp(al, 0.0, 0.65) * u_alpha;\n" +
+            "    float brightness = max(max(col.r,col.g),col.b);\n" +
+            "    float al = clamp(brightness, 0., .55)*u_alpha;\n" +
             "    gl_FragColor = vec4(col, al);\n" +
             "}\n"
     }

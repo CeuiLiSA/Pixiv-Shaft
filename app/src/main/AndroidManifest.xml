@@ -25,6 +25,7 @@
     <application
         android:name=".activities.Shaft"
         android:allowBackup="true"
+        android:extractNativeLibs="true"
         android:fullBackupOnly="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
