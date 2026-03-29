@@ -617,4 +617,10 @@
   <string name="string_455">AI 작품 을 다른 디 렉 터 리 에 다운로드</string>
   <string name="core_string_novel_marker">책갈피</string>
   <string name="string_font_size">글자 크기</string>
+
+  <string name="rate_dialog_title">Shaft가 마음에 드시나요?</string>
+  <string name="rate_dialog_subtitle">Shaft를 즐겨 사용하신다면 잠시 시간을 내어 평가해 주세요. 여러분의 응원이 큰 힘이 됩니다</string>
+  <string name="rate_dialog_rate_now">평가하기</string>
+  <string name="rate_dialog_maybe_later">나중에</string>
+  <string name="rate_dialog_never">다시 묻지 않기</string>
 </resources>

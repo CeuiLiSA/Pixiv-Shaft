@@ -11,6 +11,7 @@ import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.loxia.observeEvent
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.ppppx
+import ceui.pixiv.widgets.RateAppDialog
 import timber.log.Timber
 
 class HomeActivity : AppCompatActivity() {
@@ -29,6 +30,11 @@ class HomeActivity : AppCompatActivity() {
         SessionManager.newTokenEvent.observeEvent(this) {
             triggerOnce()
         }
+
+        // Show rate dialog after a short delay to avoid disrupting app startup
+        binding.root.postDelayed({
+            RateAppDialog.showIfNeeded(supportFragmentManager)
+        }, 2000)
     }
 
     private fun triggerOnce() {

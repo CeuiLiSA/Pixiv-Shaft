@@ -720,4 +720,10 @@
   <string name="browse_history">瀏覽紀錄</string>
   <string name="artwork_link">作品連結：%1$s</string>
   <string name="user_link">作者連結：%1$s</string>
+
+  <string name="rate_dialog_title">喜歡 Shaft 嗎？</string>
+  <string name="rate_dialog_subtitle">如果你覺得 Shaft 還不錯，花一點時間給我們評個分吧，你的支持對我們幫助很大</string>
+  <string name="rate_dialog_rate_now">去評分</string>
+  <string name="rate_dialog_maybe_later">以後再說</string>
+  <string name="rate_dialog_never">不再提醒</string>
 </resources>

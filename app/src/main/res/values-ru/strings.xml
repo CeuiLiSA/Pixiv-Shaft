@@ -610,4 +610,10 @@
   <string name="string_454">Поделитесь первой картинкой</string>
   <string name="string_455">работа AI загружена в другой каталог</string>
   <string name="string_font_size">Размер шрифта</string>
+
+  <string name="rate_dialog_title">Нравится Shaft?</string>
+  <string name="rate_dialog_subtitle">Если вам нравится Shaft, уделите минутку и оцените нас. Ваша поддержка очень важна для нас</string>
+  <string name="rate_dialog_rate_now">Оценить</string>
+  <string name="rate_dialog_maybe_later">Позже</string>
+  <string name="rate_dialog_never">Больше не спрашивать</string>
 </resources>

@@ -707,4 +707,10 @@
   <string name="new_ui_desc">新しいUIへの準備は終わり、機能の移植もほぼ完了しました。先行体験を始めましょう！（新バージョンはまだプロキシに対応していないので、中国大陸で使用するにはVPNが必要です。）</string>
   <string name="alert_when_turn_off_v5_ui">既存のUIに切り替えますか？</string>
   <string name="blocking_list">ミュート設定</string>
+
+  <string name="rate_dialog_title">Shaft を気に入りましたか？</string>
+  <string name="rate_dialog_subtitle">Shaft をお楽しみいただけているなら、ぜひ評価をお願いします。皆さまのご支援が大きな力になります</string>
+  <string name="rate_dialog_rate_now">評価する</string>
+  <string name="rate_dialog_maybe_later">あとで</string>
+  <string name="rate_dialog_never">今後表示しない</string>
 </resources>

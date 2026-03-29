@@ -610,4 +610,10 @@
   <string name="string_454">İlk resmi paylaş</string>
   <string name="string_455">AI çalışmalarını başka bir dizine kaydet</string>
   <string name="string_font_size">Yazı tipi boyutu</string>
+
+  <string name="rate_dialog_title">Shaft hoşunuza gidiyor mu?</string>
+  <string name="rate_dialog_subtitle">Shaft\'ı beğendiyseniz, lütfen bizi değerlendirmek için bir dakikanızı ayırın. Desteğiniz bizim için çok değerli</string>
+  <string name="rate_dialog_rate_now">Değerlendir</string>
+  <string name="rate_dialog_maybe_later">Daha sonra</string>
+  <string name="rate_dialog_never">Bir daha sorma</string>
 </resources>

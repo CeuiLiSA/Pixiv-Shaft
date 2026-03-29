@@ -671,4 +671,10 @@
   <string name="timeline_today">Today</string>
   <string name="timeline_yesterday">Yesterday</string>
   <string name="timeline_tab">Timeline</string>
+
+  <string name="rate_dialog_title">Enjoying Shaft?</string>
+  <string name="rate_dialog_subtitle">If you like using Shaft, please take a moment to rate us. Your support means a lot!</string>
+  <string name="rate_dialog_rate_now">Rate Now</string>
+  <string name="rate_dialog_maybe_later">Maybe Later</string>
+  <string name="rate_dialog_never">Don\'t ask again</string>
 </resources>

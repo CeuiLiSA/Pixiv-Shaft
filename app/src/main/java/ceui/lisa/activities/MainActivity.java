@@ -216,6 +216,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         baseBind.viewPager.setOffscreenPageLimit(baseFragments.length - 1);
         baseBind.viewPager.setCurrentItem(getNavigationInitPosition());
         Manager.get().restore();
+
+        // Show rate dialog after a short delay to avoid disrupting app startup
+        baseBind.viewPager.postDelayed(() ->
+                ceui.pixiv.widgets.RateAppDialog.Companion.showIfNeeded(getSupportFragmentManager()),
+                2000
+        );
     }
 
     @Override
