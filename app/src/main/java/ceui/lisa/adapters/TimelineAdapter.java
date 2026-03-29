@@ -83,8 +83,13 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
             int cellSize = (cardWidth - (int) ((spanCount - 1) * 2 * density)) / spanCount;
 
             bindView.baseBind.imageGrid.setLayoutManager(new GridLayoutManager(mContext, spanCount));
+            View.OnClickListener gridClick = view -> {
+                if (mOnItemClickListener != null) {
+                    mOnItemClickListener.onItemClick(view, position, 0);
+                }
+            };
             bindView.baseBind.imageGrid.setAdapter(
-                    new GridImageAdapter(mContext, target, showCount, cellSize, hasMore, remaining));
+                    new GridImageAdapter(mContext, target, showCount, cellSize, hasMore, remaining, gridClick));
         } else {
             // Single image — preserve aspect ratio with elegant constraints
             bindView.baseBind.illustImage.setVisibility(View.VISIBLE);
@@ -130,11 +135,14 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
             bindView.baseBind.pageCount.setVisibility(View.GONE);
         }
 
-        bindView.baseBind.card.setOnClickListener(view -> {
+        View.OnClickListener cardClick = view -> {
             if (mOnItemClickListener != null) {
                 mOnItemClickListener.onItemClick(view, position, 0);
             }
-        });
+        };
+        bindView.baseBind.card.setOnClickListener(cardClick);
+        bindView.baseBind.illustImage.setOnClickListener(cardClick);
+        bindView.baseBind.imageGrid.setOnClickListener(cardClick);
     }
 
     private void handleClick() {
@@ -160,15 +168,18 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
         private final int cellSize;
         private final boolean hasMore;
         private final int remaining;
+        private final View.OnClickListener itemClickListener;
 
         GridImageAdapter(Context context, IllustsBean illust, int showCount,
-                         int cellSize, boolean hasMore, int remaining) {
+                         int cellSize, boolean hasMore, int remaining,
+                         View.OnClickListener itemClickListener) {
             this.context = context;
             this.illust = illust;
             this.showCount = showCount;
             this.cellSize = cellSize;
             this.hasMore = hasMore;
             this.remaining = remaining;
+            this.itemClickListener = itemClickListener;
         }
 
         @NonNull
@@ -197,6 +208,7 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
             } else {
                 holder.overlay.setVisibility(View.GONE);
             }
+            holder.itemView.setOnClickListener(itemClickListener);
         }
 
         @Override
