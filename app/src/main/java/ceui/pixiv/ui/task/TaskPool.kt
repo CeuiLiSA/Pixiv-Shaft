@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.task
 
-import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.CoroutineScope
+import timber.log.Timber
 
 object TaskPool {
 
@@ -20,9 +20,19 @@ object TaskPool {
         }
 
     fun getLoadTask(namedUrl: NamedUrl, coroutineScope: CoroutineScope, autoStart: Boolean = true): LoadTask {
-        return _taskMap.getOrPut(namedUrl.url) {
-            LoadTask(namedUrl, coroutineScope, autoStart)
+        val existing = _taskMap[namedUrl.url]
+        if (existing != null) {
+            Timber.d("TaskPool 复用已有任务: taskId=${existing.taskId}, status=${existing.status.value}, url=${namedUrl.url}")
+            return existing
         }
+        val newTask = LoadTask(namedUrl, coroutineScope, autoStart)
+        _taskMap[namedUrl.url] = newTask
+        Timber.d("TaskPool 创建新任务: taskId=${newTask.taskId}, url=${namedUrl.url}")
+        return newTask
+    }
+
+    fun removeTask(url: String) {
+        _taskMap.remove(url)
     }
 
     fun getDownloadTask(namedUrl: NamedUrl, coroutineScope: CoroutineScope): DownloadTask {

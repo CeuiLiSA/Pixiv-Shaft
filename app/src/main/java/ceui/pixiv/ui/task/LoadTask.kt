@@ -40,10 +40,12 @@ open class LoadTask(
         // 防止重复执行任务
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
             if (_result.value != null) {
+                Timber.d("LoadTask 跳过重复执行: taskId=$taskId, status=${_status.value}, url=${content.url}")
                 onIgnore()
                 return
             }
         }
+        Timber.d("LoadTask 开始下载: taskId=$taskId, url=${content.url}")
 
         try {
             onStart()

@@ -17,6 +17,7 @@ import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
+import timber.log.Timber
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var mIllustsBean: IllustsBean? = null
@@ -60,6 +61,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
         if (imageUrl?.isNotEmpty() == true) {
             val task = TaskPool.getLoadTask(NamedUrl("", imageUrl), requireActivity().lifecycleScope)
+            Timber.d("二级详情页 loadImage: taskId=${task.taskId}, status=${task.status.value}, url=$imageUrl")
             task.result.observe(viewLifecycleOwner) { file ->
                 baseBind.image.loadImage(file)
             }

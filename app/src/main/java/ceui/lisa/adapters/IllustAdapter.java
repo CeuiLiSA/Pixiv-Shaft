@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
@@ -29,21 +30,23 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import me.jessyan.progressmanager.ProgressListener;
-import me.jessyan.progressmanager.ProgressManager;
-import me.jessyan.progressmanager.body.ProgressInfo;
+import ceui.pixiv.ui.task.LoadTask;
+import ceui.pixiv.ui.task.NamedUrl;
+import ceui.pixiv.ui.task.TaskPool;
+import ceui.pixiv.ui.task.TaskStatus;
+import kotlinx.coroutines.CoroutineScope;
 
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
     private final int maxHeight;
     private final FragmentActivity mActivity;
     private final Fragment mFragment;
+    private final CoroutineScope mScope;
     private static final boolean longPressDownload = Shaft.sSettings.isIllustLongPressDownload();
 
-    public IllustAdapter(FragmentActivity activity, Fragment fragment, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
+    public IllustAdapter(FragmentActivity activity, Fragment fragment, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal, CoroutineScope scope) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mActivity = activity;
         mContext = fragment.requireContext();
@@ -52,6 +55,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         imageSize = mContext.getResources().getDisplayMetrics().widthPixels;
         this.isForceOriginal = isForceOriginal;
         this.mFragment = fragment;
+        this.mScope = scope;
     }
 
     @NonNull
@@ -122,15 +126,6 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * @param changeSize 是否自动计算宽高
      */
     private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
-        holder.baseBind.reload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                holder.baseBind.reload.setVisibility(View.GONE);
-                holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
-                holder.baseBind.progressLayout.donutProgress.setProgress(0);
-                loadIllust(holder, position, changeSize);
-            }
-        });
         final String imageUrl;
         boolean isLoadOriginalImage = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
         if (isLoadOriginalImage) {
@@ -138,47 +133,64 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         } else {
             imageUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
         }
-        ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
-            @Override
-            public void onProgress(ProgressInfo progressInfo) {
-                holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
-                if(progressInfo.isFinish()){
-                    holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
-                    ProgressManager.getInstance().removeResponseListener(imageUrl,this);
-                }
-            }
 
-            @Override
-            public void onError(long id, Exception e) {
+        holder.baseBind.reload.setOnClickListener(v -> {
+            holder.baseBind.reload.setVisibility(View.GONE);
+            holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+            holder.baseBind.progressLayout.donutProgress.setProgress(0);
+            TaskPool.INSTANCE.removeTask(imageUrl);
+            loadIllust(holder, position, changeSize);
+        });
 
+        LifecycleOwner lifecycleOwner = mFragment.getViewLifecycleOwner();
+        LoadTask task = TaskPool.INSTANCE.getLoadTask(new NamedUrl("", imageUrl), mScope, true);
+        Common.showLog("一级详情页 loadIllust: taskId=" + task.getTaskId() + ", url=" + imageUrl);
+
+        task.getStatus().observe(lifecycleOwner, status -> {
+            if (status instanceof TaskStatus.Executing) {
+                holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+                holder.baseBind.progressLayout.donutProgress.setProgress(
+                        ((TaskStatus.Executing) status).getPercentage()
+                );
+            } else if (status instanceof TaskStatus.Finished) {
+                holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+            } else if (status instanceof TaskStatus.Error) {
+                holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                holder.baseBind.reload.setVisibility(View.VISIBLE);
             }
         });
 
-        RequestManager requestManager = this.mFragment != null ? Glide.with(this.mFragment) : Glide.with(mContext);
+        task.getResult().observe(lifecycleOwner, file -> {
+            if (file != null) {
+                holder.baseBind.reload.setVisibility(View.GONE);
+                holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
 
-        requestManager
-                .asBitmap()
-                .load(new GlideUrlChild(imageUrl))
-                .transform(new LargeBitmapScaleTransformer())
-                .transition(BitmapTransitionOptions.withCrossFade())
-                .listener(new RequestListener<Bitmap>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-                        holder.baseBind.reload.setVisibility(View.VISIBLE);
-                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
-                        return false;
-                    }
+                RequestManager requestManager = mFragment != null ? Glide.with(mFragment) : Glide.with(mContext);
+                requestManager
+                        .asBitmap()
+                        .load(file)
+                        .transform(new LargeBitmapScaleTransformer())
+                        .transition(BitmapTransitionOptions.withCrossFade())
+                        .listener(new RequestListener<Bitmap>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                                holder.baseBind.reload.setVisibility(View.VISIBLE);
+                                holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                                return false;
+                            }
 
-                    @Override
-                    public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                        holder.baseBind.reload.setVisibility(View.GONE);
-                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
-                        if (isLoadOriginalImage) {
-                            Shaft.getMMKV().encode(imageUrl, true);
-                        }
-                        return false;
-                    }
-                })
-                .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
+                            @Override
+                            public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                                holder.baseBind.reload.setVisibility(View.GONE);
+                                holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                                if (isLoadOriginalImage) {
+                                    Shaft.getMMKV().encode(imageUrl, true);
+                                }
+                                return false;
+                            }
+                        })
+                        .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
+            }
+        });
     }
 }
