@@ -627,39 +627,66 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.startTask(
                     illust.id, requireContext(), file, file.absolutePath
                 )
-                observeUpscaleTask(task)
+                observeUpscaleTask(task, autoNavigate = true)
             }
         }
     }
 
-    private fun observeUpscaleTask(task: ceui.pixiv.ui.upscale.UpscaleTask) {
+    private fun observeUpscaleTask(task: ceui.pixiv.ui.upscale.UpscaleTask, autoNavigate: Boolean) {
         val overlayRoot = baseBind.root.findViewById<View>(R.id.ai_overlay_root)
+        val loadingState = baseBind.root.findViewById<View>(R.id.ai_loading_state)
+        val doneState = baseBind.root.findViewById<View>(R.id.ai_done_state)
+        val viewCompare = baseBind.root.findViewById<View>(R.id.ai_view_compare)
+        val dismiss = baseBind.root.findViewById<View>(R.id.ai_dismiss)
         val progressRing = baseBind.root.findViewById<com.google.android.material.progressindicator.CircularProgressIndicator>(R.id.ai_progress_ring)
         val progressText = baseBind.root.findViewById<TextView>(R.id.ai_progress_text)
         val statusText = baseBind.root.findViewById<TextView>(R.id.ai_status_text)
         val etaText = baseBind.root.findViewById<TextView>(R.id.ai_eta_text)
 
+        fun navigateToCompare() {
+            val result = task.resultFile.value ?: return
+            val intent = Intent(mContext, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
+            intent.putExtra("upscaled_path", result.absolutePath)
+            intent.putExtra("original_path", task.originalFilePath)
+            startActivity(intent)
+        }
+
+        viewCompare.setOnClickListener {
+            navigateToCompare()
+            overlayRoot.visibility = View.GONE
+            ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.illustId)
+        }
+        dismiss.setOnClickListener {
+            overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                overlayRoot.visibility = View.GONE
+            }.start()
+            ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.illustId)
+        }
+
         task.status.observe(viewLifecycleOwner) { status ->
             when (status) {
                 ceui.pixiv.ui.upscale.UpscaleStatus.Running -> {
-                    if (overlayRoot.visibility != View.VISIBLE) {
-                        overlayRoot.visibility = View.VISIBLE
+                    overlayRoot.visibility = View.VISIBLE
+                    loadingState.visibility = View.VISIBLE
+                    doneState.visibility = View.GONE
+                    if (overlayRoot.alpha < 1f) {
                         overlayRoot.alpha = 0f
                         overlayRoot.animate().alpha(1f).setDuration(300).start()
                     }
                     statusText.text = getString(R.string.string_ai_upscale_running)
                 }
                 ceui.pixiv.ui.upscale.UpscaleStatus.Done -> {
-                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                        overlayRoot.visibility = View.GONE
-                    }.start()
-                    val result = task.resultFile.value
-                    if (result != null) {
-                        val intent = Intent(mContext, TemplateActivity::class.java)
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
-                        intent.putExtra("upscaled_path", result.absolutePath)
-                        intent.putExtra("original_path", task.originalFilePath)
-                        startActivity(intent)
+                    if (autoNavigate) {
+                        overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                            overlayRoot.visibility = View.GONE
+                        }.start()
+                        navigateToCompare()
+                    } else {
+                        loadingState.visibility = View.GONE
+                        doneState.visibility = View.VISIBLE
+                        overlayRoot.visibility = View.VISIBLE
+                        overlayRoot.alpha = 1f
                     }
                 }
                 ceui.pixiv.ui.upscale.UpscaleStatus.Failed -> {
@@ -667,6 +694,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                         overlayRoot.visibility = View.GONE
                     }.start()
                     Common.showToast(R.string.string_ai_upscale_failed)
+                    ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.illustId)
                 }
                 else -> {}
             }
@@ -684,8 +712,16 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
     private fun restoreUpscaleIfRunning() {
         val illustId = safeArgs.illustId
         val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.getTask(illustId) ?: return
-        if (task.status.value == ceui.pixiv.ui.upscale.UpscaleStatus.Running) {
-            observeUpscaleTask(task)
+        when (task.status.value) {
+            ceui.pixiv.ui.upscale.UpscaleStatus.Running,
+            ceui.pixiv.ui.upscale.UpscaleStatus.Done -> {
+                observeUpscaleTask(task, autoNavigate = false)
+            }
+            ceui.pixiv.ui.upscale.UpscaleStatus.Failed -> {
+                Common.showToast(R.string.string_ai_upscale_failed)
+                ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(illustId)
+            }
+            else -> {}
         }
     }
 
