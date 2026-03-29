@@ -25,6 +25,8 @@ import ceui.lisa.databinding.FragmentFilterBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.viewmodel.SearchModel;
 
+import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.PixivSearchParamUtil;
 
 public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
@@ -158,6 +160,15 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             public void onValueChanged(int value) {
                 searchModel.getR18Restriction().setValue(value);
                 performSearch();
+            }
+        });
+
+        baseBind.debugDestroyToken.setOnClickListener(v -> {
+            UserModel user = Local.getUser();
+            if (user != null) {
+                user.setAccess_token("invalid_token_for_debug");
+                Local.saveUser(user);
+                Common.showToast("access token 已销毁");
             }
         });
     }

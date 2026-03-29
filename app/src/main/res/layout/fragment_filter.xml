@@ -281,6 +281,17 @@
             android:text="@string/string_65"
             android:visibility="gone"/>
 
+        <Button
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/debug_destroy_token"
+            android:textColor="#FF5722"
+            android:layout_gravity="start"
+            android:layout_marginTop="@dimen/sixteen_dp"
+            android:text="debug destroy access token"
+            android:textAllCaps="false"/>
+
     </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

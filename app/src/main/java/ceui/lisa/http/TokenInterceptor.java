@@ -88,7 +88,8 @@ public class TokenInterceptor implements Interceptor {
                 newUser.getUser().setIs_login(true);
             }
             Local.saveUser(newUser);
-            String newBearerToken = SessionManager.INSTANCE.getBearerToken();
+            // postValue is async — read token directly from response
+            String newBearerToken = newUser.getAccess_token();
             Common.showLog("getNewToken 获取到了最新的 token:" + newBearerToken);
             return newBearerToken;
         } else {
