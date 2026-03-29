@@ -132,7 +132,8 @@ public class Shaft extends Application implements ServicesProvider {
 
         //Init Toast utils
         ToastUtils.init(this);
-        ToastUtils.setGravity(Gravity.BOTTOM, 0, 0);
+        int bottomOffset = ceui.lisa.page.ScreenUtils.getNavigationBarHeight() + (int) (48 * getResources().getDisplayMetrics().density);
+        ToastUtils.setGravity(Gravity.BOTTOM, 0, bottomOffset);
 
         FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
                 sSettings.isFirebaseEnable()
