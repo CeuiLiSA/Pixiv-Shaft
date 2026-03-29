@@ -18,6 +18,9 @@ android {
         versionCode 40180
         versionName "4.5.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -189,6 +192,10 @@ dependencies {
     implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
     implementation 'com.google.firebase:firebase-analytics:22.1.2'
     implementation 'com.google.firebase:firebase-crashlytics:19.2.1'
+
+    // Google Play In-App Review
+    implementation 'com.google.android.play:review:2.0.2'
+    implementation 'com.google.android.play:review-ktx:2.0.2'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
 

@@ -9,4 +9,6 @@
 .externalNativeBuild
 /app/release/
 .idea/misc.xml
-/.kotlin
+/.kotlin3rdparty/
+*.zip
+ncnn.zip

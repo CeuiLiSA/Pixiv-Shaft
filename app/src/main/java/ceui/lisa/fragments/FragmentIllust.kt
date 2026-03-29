@@ -55,6 +55,8 @@ import ceui.loxia.ProgressTextButton
 import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagDescFragment
 import ceui.loxia.threadSafeArgs
+import ceui.pixiv.ui.task.NamedUrl
+import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.utils.setOnClick
 import com.blankj.utilcode.util.BarUtils
 import com.bumptech.glide.Glide
@@ -328,6 +330,9 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
                 intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
                 startActivity(intent)
+                return@OnMenuItemClickListener true
+            } else if (menuItem.itemId == R.id.action_ai_upscale) {
+                performAiUpscale(illust)
                 return@OnMenuItemClickListener true
             }
             false
@@ -609,6 +614,28 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     override fun getSmartRefreshLayout(): SmartRefreshLayout {
         return baseBind.refreshLayout
+    }
+
+    private fun performAiUpscale(illust: IllustsBean) {
+        val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
+            ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
+
+        Common.showToast(R.string.string_ai_upscale_running)
+        val task = TaskPool.getLoadTask(NamedUrl("", imageUrl))
+        task.result.observe(viewLifecycleOwner) { file ->
+            if (file != null) {
+                lifecycleScope.launch {
+                    val result = ceui.pixiv.ui.upscale.RealESRGANUpscaler.upscale(requireContext(), file)
+                    if (result != null) {
+                        val fileName = "upscale_${illust.id}_${System.currentTimeMillis()}.png"
+                        ceui.pixiv.ui.common.saveImageToGallery(requireContext(), result, fileName)
+                        Common.showToast(R.string.string_ai_upscale_done)
+                    } else {
+                        Common.showToast(R.string.string_ai_upscale_failed)
+                    }
+                }
+            }
+        }
     }
 
     companion object {

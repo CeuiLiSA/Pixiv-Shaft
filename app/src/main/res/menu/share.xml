@@ -45,4 +45,10 @@
         android:title="@string/string_0"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_ai_upscale"
+        android:orderInCategory="100"
+        android:title="@string/string_ai_upscale"
+        app:showAsAction="never" />
+
 </menu>

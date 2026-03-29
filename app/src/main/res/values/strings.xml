@@ -620,6 +620,10 @@
     <string name="string_64_1">热度排序(非会员仅显示部分)</string>
     <string name="string_trending_builtin">机内自带热度排序</string>
     <string name="string_token_refreshing">登录过期了，帮你重新登录中~</string>
+    <string name="string_ai_upscale">AI 画质增强 (4x)</string>
+    <string name="string_ai_upscale_running">AI 画质增强中，请稍候…</string>
+    <string name="string_ai_upscale_done">画质增强完成</string>
+    <string name="string_ai_upscale_failed">画质增强失败</string>
     <string name="string_433">按热度排序去哪儿了？</string>
     <string name="string_434">热度排序现在位于右边滑动栏的搜索选项/排序方式中，你可以通过右上角的设置键进行设置，设置完毕后请保存。</string>
     <string name="string_435">搜索选项仅对插画/小说有效</string>
@@ -790,4 +794,10 @@
     <string name="timeline_today">今天</string>
     <string name="timeline_yesterday">昨天</string>
     <string name="timeline_tab">时间线</string>
+
+    <string name="rate_dialog_title">喜欢 Shaft 吗？</string>
+    <string name="rate_dialog_subtitle">如果你觉得 Shaft 还不错，花一点时间给我们评个分吧，你的支持对我们帮助很大</string>
+    <string name="rate_dialog_rate_now">去评分</string>
+    <string name="rate_dialog_maybe_later">以后再说</string>
+    <string name="rate_dialog_never">不再提醒</string>
 </resources>
