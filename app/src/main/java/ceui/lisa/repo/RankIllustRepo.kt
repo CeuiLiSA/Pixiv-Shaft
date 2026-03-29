@@ -20,7 +20,7 @@ class RankIllustRepo(
     override fun initApi(): Observable<ListIllust> {
         //for debug usage
         //var debug = Retro.getLofterApi().getLofterRank(LOFTER_HEADER, LOFTER_APICOOKIE)
-        return Retro.getAppApi().getRank(token(), mode, date)
+        return Retro.getAppApi().getRank(mode, date)
     }
 //
 //    override fun initLofterApi(): Observable<ListIllust> {
@@ -32,6 +32,6 @@ class RankIllustRepo(
 //    }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), nextUrl)
+        return Retro.getAppApi().getNextIllust(nextUrl)
     }
 }

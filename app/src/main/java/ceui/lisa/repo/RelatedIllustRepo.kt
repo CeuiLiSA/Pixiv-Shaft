@@ -9,11 +9,11 @@ import io.reactivex.Observable
 class RelatedIllustRepo(private val illustID: Int) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
-        return Retro.getAppApi().relatedIllust(token(), illustID)
+        return Retro.getAppApi().relatedIllust(illustID)
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), getNextUrl())
+        return Retro.getAppApi().getNextIllust(getNextUrl())
     }
 
     override fun hasNext(): Boolean {

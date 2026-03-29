@@ -9,10 +9,10 @@ import io.reactivex.Observable
 class UserMangaRepo(private val userID: Int) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getUserSubmitIllust(token(), userID, Params.TYPE_MANGA)
+        return Retro.getAppApi().getUserSubmitIllust(userID, Params.TYPE_MANGA)
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), nextUrl)
+        return Retro.getAppApi().getNextIllust(nextUrl)
     }
 }

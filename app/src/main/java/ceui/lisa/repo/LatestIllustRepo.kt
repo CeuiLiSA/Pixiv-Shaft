@@ -10,10 +10,10 @@ class LatestIllustRepo(
 ) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNewWorks(token(), workType)
+        return Retro.getAppApi().getNewWorks(workType)
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), nextUrl)
+        return Retro.getAppApi().getNextIllust(nextUrl)
     }
 }

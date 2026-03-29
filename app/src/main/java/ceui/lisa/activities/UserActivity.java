@@ -76,7 +76,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 invoke(userDetailResponse);
             }
         });
-        Retro.getAppApi().getUserDetail(SessionManager.INSTANCE.getBearerToken(), userID)
+        Retro.getAppApi().getUserDetail(userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {

@@ -58,7 +58,6 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-import ceui.pixiv.session.SessionManager;
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
@@ -278,7 +277,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void completeWord(String key) {
-        Retro.getAppApi().searchCompleteWord(SessionManager.INSTANCE.getBearerToken(), key)
+        Retro.getAppApi().searchCompleteWord(key)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<ListTrendingtag>() {
@@ -328,7 +327,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void getHotTags() {
-        Retro.getAppApi().getHotTags(SessionManager.INSTANCE.getBearerToken(), Params.TYPE_ILLUST)
+        Retro.getAppApi().getHotTags(Params.TYPE_ILLUST)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<ListTrendingtag>() {

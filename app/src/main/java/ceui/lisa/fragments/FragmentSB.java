@@ -24,7 +24,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.pixiv.session.SessionManager;
 import ceui.lisa.adapters.SAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.databinding.FragmentSelectTagBinding;
@@ -114,7 +113,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
             boolean isPrivate = baseBind.isPrivate.isChecked();
             String toastMsg = isPrivate ? getString(R.string.like_novel_success_private) : getString(R.string.like_novel_success_public);
             if(type.equals(Params.TYPE_ILLUST)){
-                Retro.getAppApi().postLikeIllust(SessionManager.INSTANCE.getBearerToken(), illustID,
+                Retro.getAppApi().postLikeIllust(illustID,
                         isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -126,7 +125,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
                             }
                         });
             }else if(type.equals(Params.TYPE_NOVEL)){
-                Retro.getAppApi().postLikeNovel(SessionManager.INSTANCE.getBearerToken(), illustID,
+                Retro.getAppApi().postLikeNovel(illustID,
                         isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -145,7 +144,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
             tempList.toArray(strings);
 
             if(type.equals(Params.TYPE_ILLUST)){
-                Retro.getAppApi().postLikeIllustWithTags(SessionManager.INSTANCE.getBearerToken(), illustID,
+                Retro.getAppApi().postLikeIllustWithTags(illustID,
                         isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC, strings)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -157,7 +156,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
                             }
                         });
             }else if(type.equals(Params.TYPE_NOVEL)){
-                Retro.getAppApi().postLikeNovelWithTags(SessionManager.INSTANCE.getBearerToken(), illustID,
+                Retro.getAppApi().postLikeNovelWithTags(illustID,
                         isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC, strings)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())

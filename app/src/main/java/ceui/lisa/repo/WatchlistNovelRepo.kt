@@ -7,10 +7,10 @@ import io.reactivex.Observable
 
 class WatchlistNovelRepo: RemoteRepo<ListWatchlistNovel>() {
     override fun initApi(): Observable<out ListWatchlistNovel> {
-        return Retro.getAppApi().getWatchlistNovel(token())
+        return Retro.getAppApi().getWatchlistNovel()
     }
 
     override fun initNextApi(): Observable<out ListWatchlistNovel> {
-        return Retro.getAppApi().getNextWatchlistNovel(token(), nextUrl)
+        return Retro.getAppApi().getNextWatchlistNovel(nextUrl)
     }
 }

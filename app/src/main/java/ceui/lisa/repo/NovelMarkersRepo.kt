@@ -7,10 +7,10 @@ import io.reactivex.Observable
 
 class NovelMarkersRepo: RemoteRepo<ListNovelMarkers>() {
     override fun initApi(): Observable<out ListNovelMarkers> {
-        return Retro.getAppApi().getNovelMarkers(token())
+        return Retro.getAppApi().getNovelMarkers()
     }
 
     override fun initNextApi(): Observable<out ListNovelMarkers> {
-        return Retro.getAppApi().getNextNovelMarkers(token(), nextUrl)
+        return Retro.getAppApi().getNextNovelMarkers(nextUrl)
     }
 }

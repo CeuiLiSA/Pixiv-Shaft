@@ -38,7 +38,6 @@ class SearchIllustRepo(
 
         return if (sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE && (isPremium != true)) {
             Retro.getAppApi().popularPreview(
-                token(),
                 assembledKeyword,
                 startDate,
                 endDate,
@@ -46,7 +45,6 @@ class SearchIllustRepo(
             )
         } else {
             Retro.getAppApi().searchIllust(
-                token(),
                 assembledKeyword,
                 sortType,
                 startDate,
@@ -57,7 +55,7 @@ class SearchIllustRepo(
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), nextUrl)
+        return Retro.getAppApi().getNextIllust(nextUrl)
     }
 
     override fun mapper(): Function<in ListIllust, ListIllust> {

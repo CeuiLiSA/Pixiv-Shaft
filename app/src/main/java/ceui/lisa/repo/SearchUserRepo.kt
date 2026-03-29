@@ -8,11 +8,11 @@ import io.reactivex.Observable
 class SearchUserRepo(private var word: String?) : RemoteRepo<ListUser>() {
 
     override fun initApi(): Observable<ListUser> {
-        return Retro.getAppApi().searchUser(token(), word)
+        return Retro.getAppApi().searchUser(word)
     }
 
     override fun initNextApi(): Observable<ListUser> {
-        return Retro.getAppApi().getNextUser(token(), nextUrl)
+        return Retro.getAppApi().getNextUser(nextUrl)
     }
 
     fun update(keyWord: String){

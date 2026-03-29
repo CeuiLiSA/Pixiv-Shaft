@@ -122,7 +122,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
 
     override fun initData() {
         baseBind.progress.visibility = View.VISIBLE
-        Retro.getAppApi().getUserDetail(SessionManager.getBearerToken(), userId)
+        Retro.getAppApi().getUserDetail(userId)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserDetailResponse>() {
@@ -142,7 +142,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                     baseBind.progress.visibility = View.INVISIBLE
                 }
             })
-        Retro.getAppApi().getFollowDetail(SessionManager.getBearerToken(), userId)
+        Retro.getAppApi().getFollowDetail(userId)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserFollowDetail>() {

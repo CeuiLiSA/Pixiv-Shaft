@@ -154,6 +154,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             mAdapter = new IAdapter(allItems, mContext);
         }
         mRecyclerView.setAdapter(mAdapter);
+        onAdapterPrepared();
     }
 
     @Override

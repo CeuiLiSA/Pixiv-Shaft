@@ -8,10 +8,10 @@ import io.reactivex.Observable
 class MangaSeriesRepo(private val userID: Int) : RemoteRepo<ListMangaSeries>() {
 
     override fun initApi(): Observable<ListMangaSeries> {
-        return Retro.getAppApi().getUserMangaSeries(token(), userID)
+        return Retro.getAppApi().getUserMangaSeries(userID)
     }
 
     override fun initNextApi(): Observable<ListMangaSeries>? {
-        return Retro.getAppApi().getNextUserMangaSeries(token(), nextUrl)
+        return Retro.getAppApi().getNextUserMangaSeries(nextUrl)
     }
 }

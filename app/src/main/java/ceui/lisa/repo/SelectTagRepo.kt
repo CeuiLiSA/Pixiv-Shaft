@@ -23,12 +23,12 @@ class SelectTagRepo(
 
         when(type){
             Params.TYPE_ILLUST -> {
-                api1 = Retro.getAppApi().getIllustBookmarkTags(token(), id)
-                api2 = Retro.getAppApi().getAllIllustBookmarkTags(token(), currentUserID(), Params.TYPE_PUBLIC)
+                api1 = Retro.getAppApi().getIllustBookmarkTags(id)
+                api2 = Retro.getAppApi().getAllIllustBookmarkTags(currentUserID(), Params.TYPE_PUBLIC)
             }
             Params.TYPE_NOVEL -> {
-                api1 = Retro.getAppApi().getNovelBookmarkTags(token(), id)
-                api2 = Retro.getAppApi().getAllNovelBookmarkTags(token(), currentUserID(), Params.TYPE_PUBLIC)
+                api1 = Retro.getAppApi().getNovelBookmarkTags(id)
+                api2 = Retro.getAppApi().getAllNovelBookmarkTags(currentUserID(), Params.TYPE_PUBLIC)
             }
         }
 

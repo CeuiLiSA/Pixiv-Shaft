@@ -13,6 +13,7 @@ import java.util.Collections;
 import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
+import ceui.pixiv.session.SessionManager;
 import ceui.lisa.helper.LanguageHelper;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
@@ -106,8 +107,17 @@ public class Retro {
     private static Retrofit buildRetrofit(String baseUrl, boolean autoFuckChina) {
         OkHttpClient.Builder builder = getLogClient();
         try {
-            builder.addInterceptor(chain ->
-                    chain.proceed(addHeader(chain.request().newBuilder()).build()));
+            builder.addInterceptor(chain -> {
+                Request original = chain.request();
+                Request.Builder reqBuilder = addHeader(original.newBuilder());
+                if (original.header("Authorization") == null) {
+                    String bearerToken = SessionManager.INSTANCE.getBearerTokenOrEmpty();
+                    if (!bearerToken.isEmpty()) {
+                        reqBuilder.addHeader("Authorization", bearerToken);
+                    }
+                }
+                return chain.proceed(reqBuilder.build());
+            });
             builder.addInterceptor(new TokenInterceptor());
         } catch (Exception e) {
             e.printStackTrace();

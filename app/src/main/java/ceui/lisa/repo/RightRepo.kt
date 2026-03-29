@@ -17,11 +17,11 @@ import io.reactivex.functions.Function
 class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getFollowUserIllust(token(), restrict)
+        return Retro.getAppApi().getFollowUserIllust(restrict)
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), nextUrl)
+        return Retro.getAppApi().getNextIllust(nextUrl)
     }
 
     override fun getFooter(context: Context): RefreshFooter {

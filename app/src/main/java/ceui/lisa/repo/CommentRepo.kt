@@ -16,16 +16,16 @@ class CommentRepo(
     override fun initApi(): Observable<ListComment> {
         return when (dataType) {
             Params.TYPE_ILLUST -> {
-                Retro.getAppApi().getIllustComment(token(), workId)
+                Retro.getAppApi().getIllustComment(workId)
             }
             else -> {
-                Retro.getAppApi().getNovelComment(token(), workId)
+                Retro.getAppApi().getNovelComment(workId)
             }
         }
     }
 
     override fun initNextApi(): Observable<ListComment> {
-        return Retro.getAppApi().getNextComment(token(), nextUrl)
+        return Retro.getAppApi().getNextComment(nextUrl)
     }
 
     override fun mapper(): Function<in ListComment, ListComment> {

@@ -9,7 +9,6 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.utils.Params;
-import ceui.pixiv.session.SessionManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -32,7 +31,7 @@ public class BatchFollowTask extends AbstractTask {
     public void run(IEnd end) {
         if (starType == 0) {
             Retro.getAppApi().postFollow(
-                    SessionManager.INSTANCE.getBearerToken(), userID, Params.TYPE_PUBLIC)
+                    userID, Params.TYPE_PUBLIC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -51,7 +50,7 @@ public class BatchFollowTask extends AbstractTask {
                     });
         } else {
             Retro.getAppApi().postUnFollow(
-                    SessionManager.INSTANCE.getBearerToken(), userID)
+                    userID)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {

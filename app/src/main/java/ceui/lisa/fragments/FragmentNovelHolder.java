@@ -1,7 +1,5 @@
 package ceui.lisa.fragments;
 
-import ceui.pixiv.session.SessionManager;
-
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
@@ -258,7 +256,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             refreshDetail(mNovelDetail);
         } else {
             baseBind.progressRela.setVisibility(View.VISIBLE);
-            Retro.getAppApi().getNovelDetailV2(SessionManager.INSTANCE.getBearerToken(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+            Retro.getAppApi().getNovelDetailV2(novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     baseBind.progressRela.setVisibility(View.INVISIBLE);
@@ -310,7 +308,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     baseBind.transformationLayout.finishTransform();
-                    Retro.getAppApi().getNovelByID(SessionManager.INSTANCE.getBearerToken(), novelDetail.getSeries_prev().getId())
+                    Retro.getAppApi().getNovelByID(novelDetail.getSeries_prev().getId())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<NovelSearchResponse>() {
@@ -330,7 +328,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     baseBind.transformationLayout.finishTransform();
-                    Retro.getAppApi().getNovelByID(SessionManager.INSTANCE.getBearerToken(), novelDetail.getSeries_next().getId())
+                    Retro.getAppApi().getNovelByID(novelDetail.getSeries_next().getId())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<NovelSearchResponse>() {

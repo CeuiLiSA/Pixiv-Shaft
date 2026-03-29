@@ -346,15 +346,15 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     private Observable<CommentHolder> getCommentHolder() {
         if (dataType == Params.TYPE_ILLUST) {
             return parentCommentID != 0 ?
-                    Retro.getAppApi().postIllustComment(SessionManager.INSTANCE.getBearerToken(), workId,
+                    Retro.getAppApi().postIllustComment(workId,
                             baseBind.inputBox.getText().toString(), parentCommentID) :
-                    Retro.getAppApi().postIllustComment(SessionManager.INSTANCE.getBearerToken(), workId,
+                    Retro.getAppApi().postIllustComment(workId,
                             baseBind.inputBox.getText().toString());
         } else {
             return parentCommentID != 0 ?
-                    Retro.getAppApi().postNovelComment(SessionManager.INSTANCE.getBearerToken(), workId,
+                    Retro.getAppApi().postNovelComment(workId,
                             baseBind.inputBox.getText().toString(), parentCommentID) :
-                    Retro.getAppApi().postNovelComment(SessionManager.INSTANCE.getBearerToken(), workId,
+                    Retro.getAppApi().postNovelComment(workId,
                             baseBind.inputBox.getText().toString());
         }
     }

@@ -8,10 +8,10 @@ import io.reactivex.Observable
 class WhoFollowThisUserRepo(private val userID: Int) : RemoteRepo<ListUser>() {
 
     override fun initApi(): Observable<ListUser> {
-        return Retro.getAppApi().getWhoFollowThisUser(token(), userID)
+        return Retro.getAppApi().getWhoFollowThisUser(userID)
     }
 
     override fun initNextApi(): Observable<ListUser> {
-        return Retro.getAppApi().getNextUser(token(), nextUrl)
+        return Retro.getAppApi().getNextUser(nextUrl)
     }
 }

@@ -40,7 +40,6 @@ import retrofit2.http.Field;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
@@ -56,52 +55,45 @@ public interface AppApi {
     /**
      * 获取排行榜
      * @param mode The type of rank:day/week/.../
-     * @param token Token of current user
      * @return ListIllust Observable<ListIllust>{@link ListIllust}
      */
     @GET("v1/illust/ranking?filter=for_android")
-    Observable<ListIllust> getRank(@Header("Authorization") String token,
-                                   @Query("mode") String mode,
+    Observable<ListIllust> getRank(@Query("mode") String mode,
                                    @Query("date") String date);
     @GET("v1/novel/ranking?filter=for_android")
-    Observable<ListNovel> getRankNovel(@Header("Authorization") String token,
-                                       @Query("mode") String mode,
+    Observable<ListNovel> getRankNovel(@Query("mode") String mode,
                                        @Query("date") String date);
 
     /**
      * 推荐榜单
-     * @param token Token of current user
      * @param include_ranking_illusts (indoubt)
      * @return RecmdIllust Observable<RecmdIllust>{@link RecmdIllust}
      */
     @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android")
-    Observable<RecmdIllust> getRecmdIllust(@Header("Authorization") String token, @Query("include_ranking_illusts") boolean include_ranking_illusts);
+    Observable<RecmdIllust> getRecmdIllust(@Query("include_ranking_illusts") boolean include_ranking_illusts);
 
 
     @GET("v1/manga/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
-    Observable<RecmdIllust> getRecmdManga(@Header("Authorization") String token);
+    Observable<RecmdIllust> getRecmdManga();
 
     @GET("v1/novel/recommended?include_privacy_policy=true&filter=for_android&include_ranking_novels=true")
-    Observable<ListNovel> getRecmdNovel(@Header("Authorization") String token);
+    Observable<ListNovel> getRecmdNovel();
 
     @GET("v1/novel/follow")
-    Observable<ListNovel> getBookedUserSubmitNovel(@Header("Authorization") String token,
-                                                   @Query("restrict") String restrict);
+    Observable<ListNovel> getBookedUserSubmitNovel(@Query("restrict") String restrict);
 
 
     @GET("v1/trending-tags/{type}?filter=for_android&include_translated_tag_results=true")
-    Observable<ListTrendingtag> getHotTags(@Header("Authorization") String token,
-                                           @Path("type") String type);
+    Observable<ListTrendingtag> getHotTags(@Path("type") String type);
 
 
     /**
      * 原版app登录时候的背景墙
      *
-     * @param token
      * @return
      */
     @GET("v1/walkthrough/illusts?filter=for_android")
-    Observable<ListIllust> getLoginBg(@Header("Authorization") String token);
+    Observable<ListIllust> getLoginBg();
 
 
     /**
@@ -118,8 +110,7 @@ public interface AppApi {
      * end_date 结束时间
      */
     @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
-    Observable<ListIllust> searchIllust(@Header("Authorization") String token,
-                                        @Query("word") String word,
+    Observable<ListIllust> searchIllust(@Query("word") String word,
                                         @Query("sort") String sort,
                                         @Query("start_date") String startDate,
                                         @Query("end_date") String endDate,
@@ -129,8 +120,7 @@ public interface AppApi {
      * search_target=exact_match_for_tags,partial_match_for_tags,text(文本),keyword(关键词)
      */
     @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
-    Observable<ListNovel> searchNovel(@Header("Authorization") String token,
-                                      @Query("word") String word,
+    Observable<ListNovel> searchNovel(@Query("word") String word,
                                       @Query("sort") String sort,
                                       @Query("start_date") String startDate,
                                       @Query("end_date") String endDate,
@@ -138,206 +128,171 @@ public interface AppApi {
 
 
     @GET("v2/illust/related?filter=for_android")
-    Observable<ListIllust> relatedIllust(@Header("Authorization") String token,
-                                         @Query("illust_id") int illust_id);
+    Observable<ListIllust> relatedIllust(@Query("illust_id") int illust_id);
 
 
     /**
      * 推荐用户
      *
-     * @param token
      * @return
      */
     @GET("v1/user/recommended?filter=for_android")
-    Observable<ListUser> getRecmdUser(@Header("Authorization") String token);
+    Observable<ListUser> getRecmdUser();
 
 
     @GET("v1/user/bookmarks/illust")
-    Observable<ListIllust> getUserLikeIllust(@Header("Authorization") String token,
-                                             @Query("user_id") int user_id,
+    Observable<ListIllust> getUserLikeIllust(@Query("user_id") int user_id,
                                              @Query("restrict") String restrict,
                                              @Query("tag") String tag);
 
     @GET("v1/user/bookmarks/illust")
-    Observable<ListIllust> getUserLikeIllust(@Header("Authorization") String token,
-                                             @Query("user_id") int user_id,
+    Observable<ListIllust> getUserLikeIllust(@Query("user_id") int user_id,
                                              @Query("restrict") String restrict);
 
     @GET("v1/user/bookmarks/novel")
-    Observable<ListNovel> getUserLikeNovel(@Header("Authorization") String token,
-                                           @Query("user_id") int user_id,
+    Observable<ListNovel> getUserLikeNovel(@Query("user_id") int user_id,
                                            @Query("restrict") String restrict,
                                            @Query("tag") String tag);
 
     @GET("v1/user/bookmarks/novel")
-    Observable<ListNovel> getUserLikeNovel(@Header("Authorization") String token,
-                                           @Query("user_id") int user_id,
+    Observable<ListNovel> getUserLikeNovel(@Query("user_id") int user_id,
                                            @Query("restrict") String restrict);
 
     @GET("v1/user/illusts?filter=for_android")
-    Observable<ListIllust> getUserSubmitIllust(@Header("Authorization") String token,
-                                               @Query("user_id") int user_id,
+    Observable<ListIllust> getUserSubmitIllust(@Query("user_id") int user_id,
                                                @Query("type") String type);
 
     @GET("v1/user/novels")
-    Observable<ListNovel> getUserSubmitNovel(@Header("Authorization") String token,
-                                             @Query("user_id") int user_id);
+    Observable<ListNovel> getUserSubmitNovel(@Query("user_id") int user_id);
 
 
     @GET("v2/illust/follow")
-    Observable<ListIllust> getFollowUserIllust(@Header("Authorization") String token,
-                                               @Query("restrict") String restrict);
+    Observable<ListIllust> getFollowUserIllust(@Query("restrict") String restrict);
 
 
     @GET("v1/spotlight/articles?filter=for_android")
-    Observable<ListArticle> getArticles(@Header("Authorization") String token,
-                                        @Query("category") String category);
+    Observable<ListArticle> getArticles(@Query("category") String category);
 
 
     ///v1/user/detail?filter=for_android&user_id=24218478
     @GET("v1/user/detail?filter=for_android")
-    Observable<UserDetailResponse> getUserDetail(@Header("Authorization") String token,
-                                                 @Query("user_id") int user_id);
+    Observable<UserDetailResponse> getUserDetail(@Query("user_id") int user_id);
 
 
     //  /v1/ugoira/metadata?illust_id=47297805
     @GET("v1/ugoira/metadata")
-    Observable<GifResponse> getGifPackage(@Header("Authorization") String token,
-                                          @Query("illust_id") int illust_id);
+    Observable<GifResponse> getGifPackage(@Query("illust_id") int illust_id);
 
 
     @FormUrlEncoded
     @POST("v1/user/follow/add")
-    Observable<NullResponse> postFollow(@Header("Authorization") String token,
-                                        @Field("user_id") int user_id,
+    Observable<NullResponse> postFollow(@Field("user_id") int user_id,
                                         @Field("restrict") String followType);
 
     @FormUrlEncoded
     @POST("v1/user/follow/delete")
-    Observable<NullResponse> postUnFollow(@Header("Authorization") String token,
-                                          @Field("user_id") int user_id);
+    Observable<NullResponse> postUnFollow(@Field("user_id") int user_id);
 
     @GET("v1/user/follow/detail")
-    Observable<UserFollowDetail> getFollowDetail(@Header("Authorization") String token,
-                                                 @Query("user_id") int user_id);
+    Observable<UserFollowDetail> getFollowDetail(@Query("user_id") int user_id);
 
 
     /**
      * 获取userid 所关注的人
      *
-     * @param token
      * @param user_id
      * @param restrict
      * @return
      */
     @GET("v1/user/following?filter=for_android")
-    Observable<ListUser> getFollowUser(@Header("Authorization") String token,
-                                       @Query("user_id") int user_id,
+    Observable<ListUser> getFollowUser(@Query("user_id") int user_id,
                                        @Query("restrict") String restrict);
 
 
     //获取关注 这个userid 的人
     @GET("v1/user/follower?filter=for_android")
-    Observable<ListUser> getWhoFollowThisUser(@Header("Authorization") String token,
-                                              @Query("user_id") int user_id);
+    Observable<ListUser> getWhoFollowThisUser(@Query("user_id") int user_id);
 
 
     @GET("/v3/illust/comments")
-    Observable<ListComment> getIllustComment(@Header("Authorization") String token,
-                                             @Query("illust_id") int illust_id);
+    Observable<ListComment> getIllustComment(@Query("illust_id") int illust_id);
 
     @GET("v3/novel/comments")
-    Observable<ListComment> getNovelComment(@Header("Authorization") String token,
-                                       @Query("novel_id") int novel_id);
+    Observable<ListComment> getNovelComment(@Query("novel_id") int novel_id);
 
     @GET
-    Observable<ListComment> getNextComment(@Header("Authorization") String token,
-                                           @Url String nextUrl);
+    Observable<ListComment> getNextComment(@Url String nextUrl);
 
 
     @FormUrlEncoded
     @POST("v1/illust/comment/add")
-    Observable<CommentHolder> postIllustComment(@Header("Authorization") String token,
-                                                @Field("illust_id") int illust_id,
+    Observable<CommentHolder> postIllustComment(@Field("illust_id") int illust_id,
                                                 @Field("comment") String comment);
 
     @FormUrlEncoded
     @POST("v1/illust/comment/add")
-    Observable<CommentHolder> postIllustComment(@Header("Authorization") String token,
-                                                @Field("illust_id") int illust_id,
+    Observable<CommentHolder> postIllustComment(@Field("illust_id") int illust_id,
                                                 @Field("comment") String comment,
                                                 @Field("parent_comment_id") int parent_comment_id);
 
     @FormUrlEncoded
     @POST("v1/novel/comment/add")
-    Observable<CommentHolder> postNovelComment(@Header("Authorization") String token,
-                                          @Field("novel_id") int novel_id,
+    Observable<CommentHolder> postNovelComment(@Field("novel_id") int novel_id,
                                           @Field("comment") String comment);
 
     @FormUrlEncoded
     @POST("v1/novel/comment/add")
-    Observable<CommentHolder> postNovelComment(@Header("Authorization") String token,
-                                          @Field("novel_id") int novel_id,
+    Observable<CommentHolder> postNovelComment(@Field("novel_id") int novel_id,
                                           @Field("comment") String comment,
                                           @Field("parent_comment_id") int parent_comment_id);
 
     @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
-    Observable<NullResponse> postLikeIllust(@Header("Authorization") String token,
-                                            @Field("illust_id") int illust_id,
+    Observable<NullResponse> postLikeIllust(@Field("illust_id") int illust_id,
                                             @Field("restrict") String restrict);
 
     @FormUrlEncoded
     @POST("v2/novel/bookmark/add")
-    Observable<NullResponse> postLikeNovel(@Header("Authorization") String token,
-                                           @Field("novel_id") int novel_id,
+    Observable<NullResponse> postLikeNovel(@Field("novel_id") int novel_id,
                                            @Field("restrict") String restrict);
 
     @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
-    Observable<NullResponse> postLikeIllustWithTags(@Header("Authorization") String token,
-                                                    @Field("illust_id") int illust_id,
+    Observable<NullResponse> postLikeIllustWithTags(@Field("illust_id") int illust_id,
                                                     @Field("restrict") String restrict,
                                                     @Field("tags[]") String... tags);
 
     @FormUrlEncoded
     @POST("v2/novel/bookmark/add")
-    Observable<NullResponse> postLikeNovelWithTags(@Header("Authorization") String token,
-                                                    @Field("novel_id") int novel_id,
+    Observable<NullResponse> postLikeNovelWithTags(@Field("novel_id") int novel_id,
                                                     @Field("restrict") String restrict,
                                                     @Field("tags[]") String... tags);
 
     @FormUrlEncoded
     @POST("v1/illust/bookmark/delete")
-    Observable<NullResponse> postDislikeIllust(@Header("Authorization") String token,
-                                               @Field("illust_id") int illust_id);
+    Observable<NullResponse> postDislikeIllust(@Field("illust_id") int illust_id);
 
     @FormUrlEncoded
     @POST("v1/novel/bookmark/delete")
-    Observable<NullResponse> postDislikeNovel(@Header("Authorization") String token,
-                                              @Field("novel_id") int novel_id);
+    Observable<NullResponse> postDislikeNovel(@Field("novel_id") int novel_id);
 
 
     @GET("v1/illust/detail?filter=for_android")
-    Observable<IllustSearchResponse> getIllustByID(@Header("Authorization") String token,
-                                                   @Query("illust_id") long illust_id);
+    Observable<IllustSearchResponse> getIllustByID(@Query("illust_id") long illust_id);
 
 
     @GET("v1/search/user?filter=for_android")
-    Observable<ListUser> searchUser(@Header("Authorization") String token,
-                                    @Query("word") String word);
+    Observable<ListUser> searchUser(@Query("word") String word);
 
 
     @GET("v1/search/popular-preview/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
-    Observable<ListIllust> popularPreview(@Header("Authorization") String token,
-                                          @Query("word") String word,
+    Observable<ListIllust> popularPreview(@Query("word") String word,
                                           @Query("start_date") String startDate,
                                           @Query("end_date") String endDate,
                                           @Query("search_target") String search_target);
 
     @GET("v1/search/popular-preview/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
-    Observable<ListNovel> popularNovelPreview(@Header("Authorization") String token,
-                                          @Query("word") String word,
+    Observable<ListNovel> popularNovelPreview(@Query("word") String word,
                                           @Query("start_date") String startDate,
                                           @Query("end_date") String endDate,
                                           @Query("search_target") String search_target);
@@ -367,8 +322,7 @@ public interface AppApi {
      */
     // v2/search/autocomplete?merge_plain_keyword_results=true&word=%E5%A5%B3%E4%BD%93 HTTP/1.1
     @GET("v2/search/autocomplete?merge_plain_keyword_results=true")
-    Observable<ListTrendingtag> searchCompleteWord(@Header("Authorization") String token,
-                                                   @Query("word") String word);
+    Observable<ListTrendingtag> searchCompleteWord(@Query("word") String word);
 
 
     /**
@@ -376,8 +330,7 @@ public interface AppApi {
      */
     //GET v1/user/bookmark-tags/illust?user_id=41531382&restrict=public HTTP/1.1
     @GET("v1/user/bookmark-tags/illust")
-    Observable<ListTag> getAllIllustBookmarkTags(@Header("Authorization") String token,
-                                                 @Query("user_id") int user_id,
+    Observable<ListTag> getAllIllustBookmarkTags(@Query("user_id") int user_id,
                                                  @Query("restrict") String restrict);
 
     /**
@@ -385,27 +338,23 @@ public interface AppApi {
      */
     //GET v1/user/bookmark-tags/novel?user_id=41531382&restrict=public HTTP/1.1
     @GET("v1/user/bookmark-tags/novel")
-    Observable<ListTag> getAllNovelBookmarkTags(@Header("Authorization") String token,
-                                                @Query("user_id") int user_id,
+    Observable<ListTag> getAllNovelBookmarkTags(@Query("user_id") int user_id,
                                                 @Query("restrict") String restrict);
 
 
     @GET
-    Observable<ListTag> getNextTags(@Header("Authorization") String token,
-                                    @Url String nextUrl);
+    Observable<ListTag> getNextTags(@Url String nextUrl);
 
     /**
      * 获取单个插画收藏的标签
      */
     @GET("v2/illust/bookmark/detail")
-    Observable<ListBookmarkTag> getIllustBookmarkTags(@Header("Authorization") String token,
-                                                      @Query("illust_id") int illust_id);
+    Observable<ListBookmarkTag> getIllustBookmarkTags(@Query("illust_id") int illust_id);
     /**
      * 获取单个小说收藏的标签
      */
     @GET("v2/novel/bookmark/detail")
-    Observable<ListBookmarkTag> getNovelBookmarkTags(@Header("Authorization") String token,
-                                                      @Query("novel_id") int novel_id);
+    Observable<ListBookmarkTag> getNovelBookmarkTags(@Query("novel_id") int novel_id);
 
 
     /**
@@ -415,121 +364,100 @@ public interface AppApi {
      * <p>
      * 你屏蔽了一个用户，就不能再屏蔽标签，屏蔽了标签，就不能屏蔽用户，而且都只能屏蔽一个，擦
      *
-     * @param token
      * @return
      */
     @GET("v1/mute/list")
-    Observable<MutedHistory> getMutedHistory(@Header("Authorization") String token);
+    Observable<MutedHistory> getMutedHistory();
 
 
     //获取好P友
     @GET("v1/user/mypixiv?filter=for_android")
-    Observable<ListUser> getNiceFriend(@Header("Authorization") String token,
-                                       @Query("user_id") int user_id);
+    Observable<ListUser> getNiceFriend(@Query("user_id") int user_id);
 
     //获取最新作品
     @GET("v1/illust/new?filter=for_android")
-    Observable<ListIllust> getNewWorks(@Header("Authorization") String token,
-                                       @Query("content_type") String content_type);
+    Observable<ListIllust> getNewWorks(@Query("content_type") String content_type);
 
     //获取最新作品
     @GET("v1/novel/new")
-    Observable<ListNovel> getNewNovels(@Header("Authorization") String token);
+    Observable<ListNovel> getNewNovels();
 
 
     @GET("/webview/v2/novel")
-    Call<ResponseBody> getNovelDetailV2(@Header("Authorization") String token,
-                                        @Query("id") long id);
+    Call<ResponseBody> getNovelDetailV2(@Query("id") long id);
 
 
     //获取好P友
     @GET("v1/user/me/state")
-    Observable<UserState> getAccountState(@Header("Authorization") String token);
+    Observable<UserState> getAccountState();
 
     @Multipart
     @POST("v1/user/profile/edit")
-    Observable<NullResponse> updateUserProfile(@Header("Authorization") String token,
-                                               @Part List<MultipartBody.Part> parts);
+    Observable<NullResponse> updateUserProfile(@Part List<MultipartBody.Part> parts);
 
 
     @GET("v1/live/list")
-    Observable<ListLive> getLiveList(@Header("Authorization") String token,
-                                     @Query("list_type") String list_type);
+    Observable<ListLive> getLiveList(@Query("list_type") String list_type);
 
     @GET("v1/illust/bookmark/users?filter=for_android")
-    Observable<ListSimpleUser> getUsersWhoLikeThisIllust(@Header("Authorization") String token,
-                                                         @Query("illust_id") int illust_id);
+    Observable<ListSimpleUser> getUsersWhoLikeThisIllust(@Query("illust_id") int illust_id);
 
     @GET("v2/novel/series")
-    Observable<ListNovelOfSeries> getNovelSeries(@Header("Authorization") String token,
-                                                 @Query("series_id") int series_id);
+    Observable<ListNovelOfSeries> getNovelSeries(@Query("series_id") int series_id);
 
     @GET("v2/novel/detail")
-    Observable<NovelSearchResponse> getNovelByID(@Header("Authorization") String token,
-                                                 @Query("novel_id") long novel_id);
+    Observable<NovelSearchResponse> getNovelByID(@Query("novel_id") long novel_id);
 
     @GET("v1/illust/series?filter=for_android")
-    Observable<ListMangaOfSeries> getMangaSeriesById(@Header("Authorization") String token,
-                                                     @Query("illust_series_id") int illust_series_id);
+    Observable<ListMangaOfSeries> getMangaSeriesById(@Query("illust_series_id") int illust_series_id);
 
 
     @GET("v1/user/illust-series")
-    Observable<ListMangaSeries> getUserMangaSeries(@Header("Authorization") String token,
-                                                   @Query("user_id") int user_id);
+    Observable<ListMangaSeries> getUserMangaSeries(@Query("user_id") int user_id);
 
 
     @GET("v1/user/novel-series")
-    Observable<ListNovelSeries> getUserNovelSeries(@Header("Authorization") String token,
-                                                   @Query("user_id") int user_id);
+    Observable<ListNovelSeries> getUserNovelSeries(@Query("user_id") int user_id);
 
     @FormUrlEncoded
     @POST("v1/user/workspace/edit")
-    Observable<NullResponse> editWorkSpace(@Header("Authorization") String token,
-                                           @FieldMap HashMap<String, String> fields);
+    Observable<NullResponse> editWorkSpace(@FieldMap HashMap<String, String> fields);
 
 
     @GET("v1/user/profile/presets")
-    Observable<Preset> getPresets(@Header("Authorization") String token);
+    Observable<Preset> getPresets();
 
     @GET("v2/illust/mypixiv")
-    Observable<ListIllust> getNiceFriendIllust(@Header("Authorization") String token);
+    Observable<ListIllust> getNiceFriendIllust();
 
     @GET("v1/novel/mypixiv")
-    Observable<ListNovel> getNiceFriendNovel(@Header("Authorization") String token);
+    Observable<ListNovel> getNiceFriendNovel();
 
 
     @GET
-    Observable<ListNovelSeries> getNextUserNovelSeries(@Header("Authorization") String token,
-                                                       @Url String next_url);
+    Observable<ListNovelSeries> getNextUserNovelSeries(@Url String next_url);
 
     @GET
-    Observable<ListMangaSeries> getNextUserMangaSeries(@Header("Authorization") String token,
-                                                       @Url String next_url);
+    Observable<ListMangaSeries> getNextUserMangaSeries(@Url String next_url);
 
     @GET
-    Observable<ListUser> getNextUser(@Header("Authorization") String token,
-                                     @Url String next_url);
+    Observable<ListUser> getNextUser(@Url String next_url);
 
     @GET
-    Observable<ListSimpleUser> getNextSimpleUser(@Header("Authorization") String token,
-                                                 @Url String next_url);
+    Observable<ListSimpleUser> getNextSimpleUser(@Url String next_url);
 
 
     @GET
-    Observable<ListIllust> getNextIllust(@Header("Authorization") String token,
-                                         @Url String next_url);
+    Observable<ListIllust> getNextIllust(@Url String next_url);
 
     @GET
-    Observable<ListNovel> getNextNovel(@Header("Authorization") String token,
-                                       @Url String next_url);
+    Observable<ListNovel> getNextNovel(@Url String next_url);
 
     @GET
-    Observable<ListNovelOfSeries> getNextSeriesNovel(@Header("Authorization") String token,
-                                                     @Url String next_url);
+    Observable<ListNovelOfSeries> getNextSeriesNovel(@Url String next_url);
 
     @GET
-    Observable<ListArticle> getNextArticles(@Header("Authorization") String token,
-                                            @Url String next_url);
+    Observable<ListArticle> getNextArticles(@Url String next_url);
 
 
     //https://app-api.pixiv.net/web/v1/login?code_challenge=
@@ -541,64 +469,54 @@ public interface AppApi {
     // 添加小说书签 相同id只能有1个 不同页数会直接覆盖
     @FormUrlEncoded
     @POST("v1/novel/marker/add")
-    Observable<NullResponse> postAddNovelMarker(@Header("Authorization") String token,
-                                           @Field("novel_id") int novel_id,
+    Observable<NullResponse> postAddNovelMarker(@Field("novel_id") int novel_id,
                                            @Field("page") int page);
 
     // 删除小说书签
     @FormUrlEncoded
     @POST("v1/novel/marker/delete")
-    Observable<NullResponse> postDeleteNovelMarker(@Header("Authorization") String token,
-                                                @Field("novel_id") int novel_id);
+    Observable<NullResponse> postDeleteNovelMarker(@Field("novel_id") int novel_id);
 
     // 推荐用户
     @GET("v1/user/related?filter=for_android")
-    Observable<ListUser> getRelatedUsers(@Header("Authorization") String token,
-                                             @Query("seed_user_id") int seed_user_id);
+    Observable<ListUser> getRelatedUsers(@Query("seed_user_id") int seed_user_id);
 
     // 小说追更列表
     @GET("v1/watchlist/novel")
-    Observable<ListWatchlistNovel> getWatchlistNovel(@Header("Authorization") String token);
+    Observable<ListWatchlistNovel> getWatchlistNovel();
 
     @GET
-    Observable<ListWatchlistNovel> getNextWatchlistNovel(@Header("Authorization") String token,
-                                                         @Url String next_url);
+    Observable<ListWatchlistNovel> getNextWatchlistNovel(@Url String next_url);
 
     // 加入/取消追更小说
     @FormUrlEncoded
     @POST("v1/watchlist/novel/add")
-    Observable<NullResponse> postWatchlistNovelAdd(@Header("Authorization") String token,
-                                                   @Field("series_id") int series_id);
+    Observable<NullResponse> postWatchlistNovelAdd(@Field("series_id") int series_id);
 
     @FormUrlEncoded
     @POST("v1/watchlist/novel/delete")
-    Observable<NullResponse> postWatchlistNovelDelete(@Header("Authorization") String token,
-                                                      @Field("series_id") int series_id);
+    Observable<NullResponse> postWatchlistNovelDelete(@Field("series_id") int series_id);
 
     // 漫画追更列表
     @GET("v1/watchlist/manga")
-    Observable<ListWatchlistManga> getWatchlistManga(@Header("Authorization") String token);
+    Observable<ListWatchlistManga> getWatchlistManga();
 
     @GET
-    Observable<ListWatchlistManga> getNextWatchlistManga(@Header("Authorization") String token,
-                                                         @Url String next_url);
+    Observable<ListWatchlistManga> getNextWatchlistManga(@Url String next_url);
 
     // 加入/取消追更漫画
     @FormUrlEncoded
     @POST("v1/watchlist/manga/add")
-    Observable<NullResponse> postWatchlistMangaAdd(@Header("Authorization") String token,
-                                                   @Field("series_id") int series_id);
+    Observable<NullResponse> postWatchlistMangaAdd(@Field("series_id") int series_id);
 
     @FormUrlEncoded
     @POST("v1/watchlist/manga/delete")
-    Observable<NullResponse> postWatchlistMangaDelete(@Header("Authorization") String token,
-                                                      @Field("series_id") int series_id);
+    Observable<NullResponse> postWatchlistMangaDelete(@Field("series_id") int series_id);
 
     // 小说书签
     @GET("v2/novel/markers")
-    Observable<ListNovelMarkers> getNovelMarkers(@Header("Authorization") String token);
+    Observable<ListNovelMarkers> getNovelMarkers();
 
     @GET
-    Observable<ListNovelMarkers> getNextNovelMarkers(@Header("Authorization") String token,
-                                                     @Url String next_url);
+    Observable<ListNovelMarkers> getNextNovelMarkers(@Url String next_url);
 }

@@ -8,10 +8,10 @@ import io.reactivex.Observable
 class NiceFriendIllustRepo : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNiceFriendIllust(token())
+        return Retro.getAppApi().getNiceFriendIllust()
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), nextUrl)
+        return Retro.getAppApi().getNextIllust(nextUrl)
     }
 }

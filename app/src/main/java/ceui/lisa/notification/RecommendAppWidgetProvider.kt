@@ -105,7 +105,7 @@ class RecommendAppWidgetProvider : AppWidgetProvider() {
 
                 val bearerToken = SessionManager.getBearerTokenOrEmpty()
                 if (bearerToken.isEmpty()) return@launch
-                Retro.getAppApi().getRecmdIllust(bearerToken, true)
+                Retro.getAppApi().getRecmdIllust(true)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(object : NullCtrl<ListIllust?>() {
@@ -195,7 +195,7 @@ class RecommendAppWidgetProvider : AppWidgetProvider() {
             if (!SessionManager.isLoggedIn) {
                 return START_STICKY
             }
-            Retro.getAppApi().getRecmdIllust(SessionManager.getBearerToken(), true)
+            Retro.getAppApi().getRecmdIllust(true)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : NullCtrl<ListIllust?>() {

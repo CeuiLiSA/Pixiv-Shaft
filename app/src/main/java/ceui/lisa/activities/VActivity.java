@@ -30,7 +30,6 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.loxia.ObjectPool;
-import ceui.pixiv.session.SessionManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -121,7 +120,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         if (!TextUtils.isEmpty(nextUrl)) {
                             if (!Container.get().isNetworking()) {
                                 Common.showLog("Container 去请求下一页 " + nextUrl);
-                                Retro.getAppApi().getNextIllust(SessionManager.INSTANCE.getBearerToken(), nextUrl)
+                                Retro.getAppApi().getNextIllust(nextUrl)
                                         .subscribeOn(Schedulers.newThread())
                                         .observeOn(AndroidSchedulers.mainThread())
                                         .subscribe(new NullCtrl<ListIllust>() {

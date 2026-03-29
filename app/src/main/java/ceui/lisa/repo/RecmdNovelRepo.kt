@@ -8,10 +8,10 @@ import io.reactivex.Observable
 class RecmdNovelRepo : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
-        return Retro.getAppApi().getRecmdNovel(token())
+        return Retro.getAppApi().getRecmdNovel()
     }
 
     override fun initNextApi(): Observable<ListNovel> {
-        return Retro.getAppApi().getNextNovel(token(), nextUrl)
+        return Retro.getAppApi().getNextNovel(nextUrl)
     }
 }

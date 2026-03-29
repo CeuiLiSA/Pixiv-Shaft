@@ -21,7 +21,6 @@ import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.pixiv.session.SessionManager;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.cache.Cache;
@@ -79,7 +78,7 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                         if (novelBean.isLocalSaved()) {
                             saveNovelToDownload(novelBean, Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class));
                         } else {
-                            Retro.getAppApi().getNovelDetailV2(SessionManager.INSTANCE.getBearerToken(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+                            Retro.getAppApi().getNovelDetailV2(novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
                                 @Override
                                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                                     new WebNovelParser(response) {
@@ -122,7 +121,7 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                             }
                         } else {
                             int finalCount = count;
-                            Retro.getAppApi().getNovelDetailV2(SessionManager.INSTANCE.getBearerToken(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+                            Retro.getAppApi().getNovelDetailV2(novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
 
                                 @Override
                                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {

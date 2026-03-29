@@ -33,7 +33,7 @@ class IllustGridWidgetWorker(
 
         val illusts = try {
             withContext(Dispatchers.IO) {
-                Retro.getAppApi().getRecmdIllust(token, true)
+                Retro.getAppApi().getRecmdIllust(true)
                     .blockingFirst()
                     ?.illusts
                     ?.shuffled()

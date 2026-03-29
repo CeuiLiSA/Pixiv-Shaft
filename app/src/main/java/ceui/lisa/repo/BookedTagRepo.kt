@@ -12,12 +12,12 @@ class BookedTagRepo(
 
     override fun initApi(): Observable<ListTag> {
         if (type == 1) {
-            return Retro.getAppApi().getAllNovelBookmarkTags(token(), currentUserID(), starType)
+            return Retro.getAppApi().getAllNovelBookmarkTags(currentUserID(), starType)
         }
-        return Retro.getAppApi().getAllIllustBookmarkTags(token(), currentUserID(), starType)
+        return Retro.getAppApi().getAllIllustBookmarkTags(currentUserID(), starType)
     }
 
     override fun initNextApi(): Observable<ListTag> {
-        return Retro.getAppApi().getNextTags(token(), nextUrl)
+        return Retro.getAppApi().getNextTags(nextUrl)
     }
 }

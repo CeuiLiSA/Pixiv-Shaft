@@ -8,7 +8,7 @@ import io.reactivex.Observable
 class WalkThroughRepo : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getLoginBg(token())
+        return Retro.getAppApi().getLoginBg()
     }
 
     override fun initNextApi(): Observable<ListIllust>? {

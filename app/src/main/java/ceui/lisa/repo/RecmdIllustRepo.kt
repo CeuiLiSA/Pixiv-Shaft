@@ -14,14 +14,14 @@ open class RecmdIllustRepo(
 
     override fun initApi(): Observable<RecmdIllust> {
         return if ("漫画" == dataType) {//DOUBT:Why use hardcoded string here
-            Retro.getAppApi().getRecmdManga(token())
+            Retro.getAppApi().getRecmdManga()
         } else {
-            Retro.getAppApi().getRecmdIllust(token(), true)
+            Retro.getAppApi().getRecmdIllust(true)
         }
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), nextUrl)
+        return Retro.getAppApi().getNextIllust(nextUrl)
     }
 
     companion object {

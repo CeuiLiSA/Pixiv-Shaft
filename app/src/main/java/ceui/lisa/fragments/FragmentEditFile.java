@@ -93,7 +93,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
         baseBind.toolbar.toolbarTitle.setText(R.string.string_92);
         baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
 
-        Retro.getAppApi().getPresets(SessionManager.INSTANCE.getBearerToken())
+        Retro.getAppApi().getPresets()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<Preset>() {
@@ -141,7 +141,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
         parts.add(comment);
         parts.add(birthdayPart);
 
-        Retro.getAppApi().updateUserProfile(SessionManager.INSTANCE.getBearerToken(), parts)
+        Retro.getAppApi().updateUserProfile(parts)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<NullResponse>() {
@@ -271,7 +271,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
 
 
         //加载预设信息
-        Retro.getAppApi().getUserDetail(SessionManager.INSTANCE.getBearerToken(), (int) SessionManager.INSTANCE.getLoggedInUid())
+        Retro.getAppApi().getUserDetail((int) SessionManager.INSTANCE.getLoggedInUid())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<UserDetailResponse>() {

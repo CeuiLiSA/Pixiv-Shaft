@@ -10,7 +10,7 @@ class HotTagRepo(
 ) : RemoteRepo<ListTrendingtag>() {
 
     override fun initApi(): Observable<ListTrendingtag> {
-        return Retro.getAppApi().getHotTags(token(), contentType)
+        return Retro.getAppApi().getHotTags(contentType)
     }
 
     override fun initNextApi(): Observable<ListTrendingtag>? {

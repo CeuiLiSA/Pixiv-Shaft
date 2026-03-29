@@ -29,14 +29,13 @@ class SearchNovelRepo(
         }).trim()
 
         return if (sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE && (isPremium != true)) {
-            Retro.getAppApi().popularNovelPreview(token(),
+            Retro.getAppApi().popularNovelPreview(
                 assembledKeyword,
                 startDate,
                 endDate,
                 searchType)
         } else {
             Retro.getAppApi().searchNovel(
-                token(),
                 assembledKeyword,
                 sortType,
                 startDate,
@@ -47,7 +46,7 @@ class SearchNovelRepo(
     }
 
     override fun initNextApi(): Observable<ListNovel> {
-        return Retro.getAppApi().getNextNovel(token(), nextUrl)
+        return Retro.getAppApi().getNextNovel(nextUrl)
     }
 
     fun update(searchModel: SearchModel) {

@@ -8,10 +8,10 @@ import io.reactivex.Observable
 class SimpleUserRepo(private val illustID: Int) : RemoteRepo<ListSimpleUser>() {
 
     override fun initApi(): Observable<ListSimpleUser> {
-        return Retro.getAppApi().getUsersWhoLikeThisIllust(token(), illustID)
+        return Retro.getAppApi().getUsersWhoLikeThisIllust(illustID)
     }
 
     override fun initNextApi(): Observable<ListSimpleUser> {
-        return Retro.getAppApi().getNextSimpleUser(token(), nextUrl)
+        return Retro.getAppApi().getNextSimpleUser(nextUrl)
     }
 }

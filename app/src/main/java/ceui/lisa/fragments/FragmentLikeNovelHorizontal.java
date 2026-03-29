@@ -30,7 +30,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import ceui.pixiv.session.SessionManager;
 
 public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
 
@@ -123,10 +122,10 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
     protected void initData() {
         Observable<ListNovel> mApi;
         if (type == 0) {
-            mApi = Retro.getAppApi().getUserLikeNovel(SessionManager.INSTANCE.getBearerToken(),
+            mApi = Retro.getAppApi().getUserLikeNovel(
                     userID, Params.TYPE_PUBLIC);
         } else {
-            mApi = Retro.getAppApi().getUserSubmitNovel(SessionManager.INSTANCE.getBearerToken(),
+            mApi = Retro.getAppApi().getUserSubmitNovel(
                     userID);
         }
         mApi.subscribeOn(Schedulers.newThread())

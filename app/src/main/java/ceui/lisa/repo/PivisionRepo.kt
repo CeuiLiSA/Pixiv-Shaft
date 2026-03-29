@@ -12,13 +12,13 @@ open class PivisionRepo(
 ) : RemoteRepo<ListArticle>() {
 
     override fun initApi(): Observable<ListArticle> {
-        return Retro.getAppApi().getArticles(token(), dataType)
+        return Retro.getAppApi().getArticles(dataType)
     }
 
     override fun initNextApi(): Observable<ListArticle>? {
         if (isHorizontal) {
             return null
         }
-        return Retro.getAppApi().getNextArticles(token(), nextUrl)
+        return Retro.getAppApi().getNextArticles(nextUrl)
     }
 }

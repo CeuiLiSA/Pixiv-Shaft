@@ -9,13 +9,13 @@ import io.reactivex.Observable
 class RecmdUserRepo(private val isHorizontal: Boolean) : RemoteRepo<ListUser>() {
 
     override fun initApi(): Observable<ListUser> {
-        return Retro.getAppApi().getRecmdUser(token())
+        return Retro.getAppApi().getRecmdUser()
     }
 
     override fun initNextApi(): Observable<ListUser>? {
         if (isHorizontal) {
             return null
         }
-        return Retro.getAppApi().getNextUser(token(), nextUrl)
+        return Retro.getAppApi().getNextUser(nextUrl)
     }
 }

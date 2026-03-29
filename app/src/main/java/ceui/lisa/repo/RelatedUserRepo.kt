@@ -10,10 +10,10 @@ class RelatedUserRepo(
 ) : RemoteRepo<ListUser>() {
 
     override fun initApi(): Observable<ListUser> {
-        return Retro.getAppApi().getRelatedUsers(token(), userID)
+        return Retro.getAppApi().getRelatedUsers(userID)
     }
 
     override fun initNextApi(): Observable<ListUser> {
-        return Retro.getAppApi().getNextUser(token(), nextUrl)
+        return Retro.getAppApi().getNextUser(nextUrl)
     }
 }

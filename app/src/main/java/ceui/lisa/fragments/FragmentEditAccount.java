@@ -39,7 +39,7 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
         }
         baseBind.toolbar.toolbarTitle.setText(R.string.string_250);
         baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
-        Retro.getAppApi().getAccountState(SessionManager.INSTANCE.getBearerToken())
+        Retro.getAppApi().getAccountState()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<UserState>() {

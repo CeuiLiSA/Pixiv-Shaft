@@ -11,10 +11,10 @@ class FollowUserRepo(
 ) : RemoteRepo<ListUser>() {
 
     override fun initApi(): Observable<ListUser> {
-        return Retro.getAppApi().getFollowUser(token(), userID, starType)
+        return Retro.getAppApi().getFollowUser(userID, starType)
     }
 
     override fun initNextApi(): Observable<ListUser> {
-        return Retro.getAppApi().getNextUser(token(), nextUrl)
+        return Retro.getAppApi().getNextUser(nextUrl)
     }
 }

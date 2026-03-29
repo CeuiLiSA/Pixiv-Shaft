@@ -8,10 +8,10 @@ import io.reactivex.Observable
 class NovelSeriesDetailRepo constructor(private val seriesID: Int) : RemoteRepo<ListNovelOfSeries>() {
 
     override fun initApi(): Observable<ListNovelOfSeries> {
-        return Retro.getAppApi().getNovelSeries(token(), seriesID)
+        return Retro.getAppApi().getNovelSeries(seriesID)
     }
 
     override fun initNextApi(): Observable<ListNovelOfSeries> {
-        return Retro.getAppApi().getNextSeriesNovel(token(), nextUrl)
+        return Retro.getAppApi().getNextSeriesNovel(nextUrl)
     }
 }

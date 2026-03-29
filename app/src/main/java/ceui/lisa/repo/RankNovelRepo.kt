@@ -11,10 +11,10 @@ class RankNovelRepo(
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
-        return Retro.getAppApi().getRankNovel(token(), mode, queryDate)
+        return Retro.getAppApi().getRankNovel(mode, queryDate)
     }
 
     override fun initNextApi(): Observable<ListNovel> {
-        return Retro.getAppApi().getNextNovel(token(), nextUrl)
+        return Retro.getAppApi().getNextNovel(nextUrl)
     }
 }

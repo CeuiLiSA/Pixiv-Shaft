@@ -14,13 +14,13 @@ class LikeIllustRepo(
 
     override fun initApi(): Observable<ListIllust> {
         return if (TextUtils.isEmpty(tag)) {
-            Retro.getAppApi().getUserLikeIllust(token(), userID, starType)
+            Retro.getAppApi().getUserLikeIllust(userID, starType)
         } else {
-            Retro.getAppApi().getUserLikeIllust(token(), userID, starType, tag)
+            Retro.getAppApi().getUserLikeIllust(userID, starType, tag)
         }
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(token(), nextUrl)
+        return Retro.getAppApi().getNextIllust(nextUrl)
     }
 }
