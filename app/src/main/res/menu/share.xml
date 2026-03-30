@@ -51,4 +51,10 @@
         android:title="@string/string_ai_upscale"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_ai_ocr"
+        android:orderInCategory="100"
+        android:title="@string/string_ai_ocr"
+        app:showAsAction="never" />
+
 </menu>

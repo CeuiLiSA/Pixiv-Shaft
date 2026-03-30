@@ -649,6 +649,13 @@
     <string name="string_save_original">保存原图</string>
     <string name="string_save_enhanced">保存增强</string>
     <string name="string_cancel">取消</string>
+    <string name="string_ai_ocr">漫画文字识别</string>
+    <string name="string_ai_ocr_running">文字识别中，请稍候…</string>
+    <string name="string_ai_ocr_done">识别完成</string>
+    <string name="string_ai_ocr_failed">识别失败</string>
+    <string name="string_ai_ocr_empty">未识别到文字</string>
+    <string name="string_ocr_result">OCR 识别结果</string>
+    <string name="string_tap_to_copy">点击复制</string>
     <string name="string_433">按热度排序去哪儿了？</string>
     <string name="string_434">热度排序现在位于右边滑动栏的搜索选项/排序方式中，你可以通过右上角的设置键进行设置，设置完毕后请保存。</string>
     <string name="string_435">搜索选项仅对插画/小说有效</string>

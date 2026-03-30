@@ -2,6 +2,8 @@ package ceui.lisa.fragments
 
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
@@ -336,6 +338,9 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                     performAiUpscale(illust, model)
                 }
                 return@OnMenuItemClickListener true
+            } else if (menuItem.itemId == R.id.action_ai_ocr) {
+                performAiOcr(illust)
+                return@OnMenuItemClickListener true
             }
             false
         })
@@ -617,6 +622,32 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     override fun getSmartRefreshLayout(): SmartRefreshLayout {
         return baseBind.refreshLayout
+    }
+
+    private fun performAiOcr(illust: IllustsBean) {
+        val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
+            ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
+
+        Common.showToast(R.string.string_ai_ocr_running)
+        val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
+        loadTask.result.observe(viewLifecycleOwner) { file ->
+            if (file != null) {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val results = ceui.pixiv.ui.upscale.MangaOcr.recognize(requireContext(), file)
+                    if (results != null && results.isNotEmpty()) {
+                        val texts = ArrayList(results.map { it.text })
+                        val intent = Intent(mContext, TemplateActivity::class.java)
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "OCR结果")
+                        intent.putStringArrayListExtra("ocr_texts", texts)
+                        startActivity(intent)
+                    } else if (results != null && results.isEmpty()) {
+                        Common.showToast(R.string.string_ai_ocr_empty)
+                    } else {
+                        Common.showToast(R.string.string_ai_ocr_failed)
+                    }
+                }
+            }
+        }
     }
 
     private fun performAiUpscale(illust: IllustsBean, model: ceui.pixiv.ui.upscale.UpscaleModel = ceui.pixiv.ui.upscale.UpscaleModel.REAL_ESRGAN) {
