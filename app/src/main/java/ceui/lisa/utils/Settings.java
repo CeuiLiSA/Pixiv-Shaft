@@ -670,4 +670,14 @@ public class Settings {
     public void setDefaultUpscaleModel(String defaultUpscaleModel) {
         this.defaultUpscaleModel = defaultUpscaleModel;
     }
+
+    private String defaultRembgModel = "";
+
+    public String getDefaultRembgModel() {
+        return defaultRembgModel == null ? "" : defaultRembgModel;
+    }
+
+    public void setDefaultRembgModel(String defaultRembgModel) {
+        this.defaultRembgModel = defaultRembgModel;
+    }
 }

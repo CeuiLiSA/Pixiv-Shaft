@@ -57,8 +57,7 @@ import ceui.loxia.ProgressTextButton
 import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagDescFragment
 import ceui.loxia.threadSafeArgs
-import ceui.pixiv.ui.task.NamedUrl
-import ceui.pixiv.ui.task.TaskPool
+import ceui.pixiv.ui.upscale.IllustAiHelper
 import ceui.pixiv.utils.setOnClick
 import com.blankj.utilcode.util.BarUtils
 import com.bumptech.glide.Glide
@@ -82,6 +81,9 @@ import kotlinx.coroutines.withContext
 class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     private val safeArgs by threadSafeArgs<FragmentIllustArgs>()
+    private var mReceiver: CallBackReceiver? = null
+    private var recyHeight = 0
+    private lateinit var aiHelper: IllustAiHelper
 
     public override fun initLayout() {
         mLayoutID = R.layout.fragment_illust
@@ -114,6 +116,10 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         }
         val illust = illustLiveData.value ?: return
         baseBind.user = userLiveData
+        observeMuteStatus(illust)
+    }
+
+    private fun observeMuteStatus(illust: IllustsBean) {
         viewLifecycleOwner.lifecycleScope.launch {
             val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
             val muteIllust = withContext(Dispatchers.IO) {
@@ -211,6 +217,20 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             }
         }
 
+        setupTitle(illust)
+        setupToolbarMenu(illust)
+        setupLikeButton(illust)
+        setupTags(illust)
+        setupInfo(illust)
+        setupBottomSheet(illust)
+        setupActionButtons(illust)
+        setupDescription(illust)
+        setupStats(illust)
+        setupDownloadButton(illust)
+        loadUserAvatar(illust)
+    }
+
+    private fun setupTitle(illust: IllustsBean) {
         if (illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
             val clickableSpan: ClickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
@@ -227,13 +247,9 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                     )
                 }
             }
-            val spannableString: SpannableString
             val seriesString = getString(R.string.string_229)
-            spannableString = SpannableString(
-                String.format(
-                    "@%s %s",
-                    seriesString, illust.title
-                )
+            val spannableString = SpannableString(
+                String.format("@%s %s", seriesString, illust.title)
             )
             spannableString.setSpan(
                 clickableSpan, 0, seriesString.length + 1,
@@ -248,102 +264,100 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             Common.copy(mContext, illust.title)
             true
         }
+    }
+
+    private fun setupToolbarMenu(illust: IllustsBean) {
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
-        baseBind.toolbar.setNavigationOnClickListener { v: View? -> mActivity.finish() }
+        baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
         baseBind.toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { menuItem ->
-            if (menuItem.itemId == R.id.action_share) {
-                object : ShareIllust(mContext, illust) {
-                    override fun onPrepare() {}
-                }.execute()
-                return@OnMenuItemClickListener true
-            } else if (menuItem.itemId == R.id.action_share_image) {
-                Glide.with(mContext)
-                    .asBitmap()
-                    .load(
-                        GlideUrlChild(
-                            IllustDownload.getUrl(
-                                illust,
-                                0,
-                                Params.IMAGE_RESOLUTION_LARGE
-                            )
-                        )
-                    )
-                    .listener(object : RequestListener<Bitmap?> {
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<Bitmap?>,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            return false
-                        }
-
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            model: Any,
-                            target: Target<Bitmap?>?,
-                            dataSource: DataSource,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            val uri = Common.copyBitmapToImageCacheFolder(
-                                resource,
-                                illust.id.toString() + ".png"
-                            )
-                            if (uri != null) {
-                                val shareIntent = Intent()
-                                shareIntent.action = Intent.ACTION_SEND
-                                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                shareIntent.setDataAndType(
-                                    uri,
-                                    mContext.contentResolver.getType(uri)
-                                )
-                                shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
-                                startActivity(
-                                    Intent.createChooser(
-                                        shareIntent,
-                                        getString(R.string.share)
-                                    )
-                                )
-                            }
-                            return true
-                        }
-                    }).submit()
-            } else if (menuItem.itemId == R.id.action_dislike) {
-                val muteDialog = MuteDialog.newInstance(illust)
-                muteDialog.show(childFragmentManager, "MuteDialog")
-                return@OnMenuItemClickListener true
-            } else if (menuItem.itemId == R.id.action_copy_link) {
-                val url = ShareIllust.URL_Head + illust.id
-                Common.copy(mContext, url)
-                return@OnMenuItemClickListener true
-            } else if (menuItem.itemId == R.id.action_show_original) {
-                baseBind.recyclerView.adapter = IllustAdapter(
-                    mActivity, this@FragmentIllust, illust,
-                    recyHeight, true
-                )
-                return@OnMenuItemClickListener true
-            } else if (menuItem.itemId == R.id.action_mute_illust) {
-                PixivOperate.muteIllust(illust)
-                return@OnMenuItemClickListener true
-            } else if (menuItem.itemId == R.id.action_flag_illust) {
-                val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "举报插画")
-                intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
-                intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
-                startActivity(intent)
-                return@OnMenuItemClickListener true
-            } else if (menuItem.itemId == R.id.action_ai_upscale) {
-                ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                    performAiUpscale(illust, model)
+            when (menuItem.itemId) {
+                R.id.action_share -> {
+                    object : ShareIllust(mContext, illust) {
+                        override fun onPrepare() {}
+                    }.execute()
+                    true
                 }
-                return@OnMenuItemClickListener true
-            } else if (menuItem.itemId == R.id.action_ai_ocr) {
-                performAiOcr(illust)
-                return@OnMenuItemClickListener true
+                R.id.action_share_image -> {
+                    shareImage(illust)
+                    false
+                }
+                R.id.action_dislike -> {
+                    MuteDialog.newInstance(illust).show(childFragmentManager, "MuteDialog")
+                    true
+                }
+                R.id.action_copy_link -> {
+                    Common.copy(mContext, ShareIllust.URL_Head + illust.id)
+                    true
+                }
+                R.id.action_show_original -> {
+                    baseBind.recyclerView.adapter = IllustAdapter(
+                        mActivity, this@FragmentIllust, illust, recyHeight, true
+                    )
+                    true
+                }
+                R.id.action_mute_illust -> {
+                    PixivOperate.muteIllust(illust)
+                    true
+                }
+                R.id.action_flag_illust -> {
+                    val intent = Intent(mContext, TemplateActivity::class.java)
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "举报插画")
+                    intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
+                    intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
+                    startActivity(intent)
+                    true
+                }
+                R.id.action_ai_upscale -> {
+                    ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                        aiHelper.performUpscale(illust, model)
+                    }
+                    true
+                }
+                R.id.action_ai_rembg -> {
+                    ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                        aiHelper.performRembg(illust, model)
+                    }
+                    true
+                }
+                R.id.action_ai_ocr -> {
+                    aiHelper.performOcr(illust)
+                    true
+                }
+                else -> false
             }
-            false
         })
+    }
+
+    private fun shareImage(illust: IllustsBean) {
+        Glide.with(mContext)
+            .asBitmap()
+            .load(GlideUrlChild(IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE)))
+            .listener(object : RequestListener<Bitmap?> {
+                override fun onLoadFailed(
+                    e: GlideException?, model: Any?, target: Target<Bitmap?>, isFirstResource: Boolean
+                ): Boolean = false
+
+                override fun onResourceReady(
+                    resource: Bitmap, model: Any, target: Target<Bitmap?>?,
+                    dataSource: DataSource, isFirstResource: Boolean
+                ): Boolean {
+                    val uri = Common.copyBitmapToImageCacheFolder(resource, illust.id.toString() + ".png")
+                    if (uri != null) {
+                        val shareIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            setDataAndType(uri, mContext.contentResolver.getType(uri))
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                        }
+                        startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
+                    }
+                    return true
+                }
+            }).submit()
+    }
+
+    private fun setupLikeButton(illust: IllustsBean) {
         if (illust.isIs_bookmarked) {
             baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp)
         } else {
@@ -369,13 +383,13 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 return true
             }
         })
-        baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(
-            illust.tags
-        ) {
+    }
+
+    private fun setupTags(illust: IllustsBean) {
+        baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(illust.tags) {
             override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
                 val tv = LayoutInflater.from(mContext).inflate(
-                    R.layout.recy_single_line_text_new,
-                    parent, false
+                    R.layout.recy_single_line_text_new, parent, false
                 ) as TextView
                 var tag = s.name
                 if (!TextUtils.isEmpty(s.translated_name)) {
@@ -392,7 +406,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             startActivity(intent)
             true
         }
-        baseBind.illustTag.setOnTagLongClickListener { view, position, parent -> // 弹出菜单：固定+复制
+        baseBind.illustTag.setOnTagLongClickListener { view, position, parent ->
             val tagName = illust.tags[position].name
             val searchEntity =
                 PixivOperate.getSearchHistory(tagName, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD)
@@ -402,9 +416,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                 .addAction(if (isPinned) getString(R.string.string_443) else getString(R.string.string_442)) { dialog, index ->
                     PixivOperate.insertPinnedSearchHistory(
-                        tagName,
-                        SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD,
-                        !isPinned
+                        tagName, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD, !isPinned
                     )
                     Common.showToast(R.string.operate_success)
                     dialog.dismiss()
@@ -417,12 +429,18 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 .show()
             true
         }
+    }
+
+    private fun setupInfo(illust: IllustsBean) {
         baseBind.illustSize.text = getString(R.string.string_193, illust.width, illust.height)
         baseBind.illustId.text = getString(R.string.string_194, illust.id)
         baseBind.userId.text = getString(R.string.string_195, illust.user.id)
-        val sheetBehavior: BottomSheetBehavior<*> = BottomSheetBehavior.from(
-            baseBind.coreLinear
-        )
+        baseBind.illustId.setOnClick { Common.copy(mContext, illust.id.toString()) }
+        baseBind.userId.setOnClick { Common.copy(mContext, illust.user.id.toString()) }
+    }
+
+    private fun setupBottomSheet(illust: IllustsBean) {
+        val sheetBehavior: BottomSheetBehavior<*> = BottomSheetBehavior.from(baseBind.coreLinear)
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
@@ -440,7 +458,6 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 val deltaY = slideMaxHeight - baseBind.bottomBar.height
                 sheetBehavior.setPeekHeight(bottomCardHeight, true)
 
-                //设置占位view大小
                 val headParams = baseBind.helperView.layoutParams
                 headParams.height = bottomCardHeight - DensityUtil.dp2px(16.0f)
                 baseBind.helperView.layoutParams = headParams
@@ -452,12 +469,14 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 })
                 baseBind.recyclerView.layoutManager = LinearLayoutManager(mContext)
                 recyHeight = baseBind.recyclerView.height
-                val adapter =
-                    IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
+                val adapter = IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
                 baseBind.recyclerView.adapter = adapter
                 baseBind.coreLinear.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
         })
+    }
+
+    private fun setupActionButtons(illust: IllustsBean) {
         baseBind.related.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品")
@@ -478,19 +497,26 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "喜欢这个作品的用户")
             startActivity(intent)
         }
+    }
+
+    private fun setupDescription(illust: IllustsBean) {
         if (!TextUtils.isEmpty(illust.caption)) {
             baseBind.description.visibility = View.VISIBLE
             baseBind.description.setHtml(illust.caption)
         } else {
             baseBind.description.visibility = View.GONE
         }
+    }
+
+    private fun setupStats(illust: IllustsBean) {
         baseBind.postTime.text = String.format(
-            "%s投递", Common.getLocalYYYYMMDDHHMMString(
-                illust.create_date
-            )
+            "%s投递", Common.getLocalYYYYMMDDHHMMString(illust.create_date)
         )
         baseBind.totalView.text = illust.total_view.toString()
         baseBind.totalLike.text = illust.total_bookmarks.toString()
+    }
+
+    private fun setupDownloadButton(illust: IllustsBean) {
         baseBind.download.setChangeAlphaWhenPress(true)
         baseBind.related.setChangeAlphaWhenPress(true)
         baseBind.comment.setChangeAlphaWhenPress(true)
@@ -523,15 +549,11 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 .addItems(IMG_RESOLUTION_TITLE) { dialog, which ->
                     if (illust.page_count == 1) {
                         IllustDownload.downloadIllustFirstPageWithResolution(
-                            illust,
-                            IMG_RESOLUTION[which],
-                            mContext as BaseActivity<*>
+                            illust, IMG_RESOLUTION[which], mContext as BaseActivity<*>
                         )
                     } else {
                         IllustDownload.downloadIllustAllPagesWithResolution(
-                            illust,
-                            IMG_RESOLUTION[which],
-                            mContext as BaseActivity<*>
+                            illust, IMG_RESOLUTION[which], mContext as BaseActivity<*>
                         )
                     }
                     dialog.dismiss()
@@ -540,21 +562,20 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 .show()
             true
         }
-        baseBind.illustId.setOnClick { Common.copy(mContext, illust.id.toString()) }
-        baseBind.userId.setOnClick { Common.copy(mContext, illust.user.id.toString()) }
+    }
+
+    private fun loadUserAvatar(illust: IllustsBean) {
         Glide.with(mContext)
             .load(GlideUtil.getUrl(illust.user?.profile_image_urls?.medium))
             .error(R.drawable.no_profile)
             .into(baseBind.userHead)
     }
 
-    private var mReceiver: CallBackReceiver? = null
     override fun onResume() {
         super.onResume()
         checkDownload()
     }
 
-    private var recyHeight = 0
     private fun checkDownload() {
         val illust = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return
         if (Common.isIllustDownloaded(illust)) {
@@ -566,6 +587,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        aiHelper = IllustAiHelper(this, baseBind.root)
         val intentFilter = IntentFilter()
         val illust = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return
         mReceiver = CallBackReceiver { context, intent ->
@@ -577,15 +599,13 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                     if (isLiked) {
                         illust.isIs_bookmarked = true
                         baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp)
-                        val beforeStarCount = illust.total_bookmarks
-                        val afterStarCount = beforeStarCount + 1
+                        val afterStarCount = illust.total_bookmarks + 1
                         illust.total_bookmarks = afterStarCount
                         baseBind.totalLike.text = afterStarCount.toString()
                     } else {
                         illust.isIs_bookmarked = false
                         baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp)
-                        val beforeStarCount = illust.total_bookmarks
-                        val afterStarCount = beforeStarCount - 1
+                        val afterStarCount = illust.total_bookmarks - 1
                         illust.total_bookmarks = afterStarCount
                         baseBind.totalLike.text = afterStarCount.toString()
                     }
@@ -596,7 +616,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         mReceiver?.let {
             LocalBroadcastManager.getInstance(mContext).registerReceiver(it, intentFilter)
         }
-        restoreUpscaleIfRunning()
+        aiHelper.restoreUpscaleIfRunning(safeArgs.illustId)
     }
 
     override fun onDestroy() {
@@ -616,151 +636,11 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
     }
 
     override fun vertical() {
-        //竖屏
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
     }
 
     override fun getSmartRefreshLayout(): SmartRefreshLayout {
         return baseBind.refreshLayout
-    }
-
-    private fun performAiOcr(illust: IllustsBean) {
-        val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
-            ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
-
-        Common.showToast(R.string.string_ai_ocr_running)
-        val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
-        loadTask.result.observe(viewLifecycleOwner) { file ->
-            if (file != null) {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    val results = ceui.pixiv.ui.upscale.MangaOcr.recognize(requireContext(), file)
-                    if (results != null && results.isNotEmpty()) {
-                        val texts = ArrayList(results.map { it.text })
-                        val intent = Intent(mContext, TemplateActivity::class.java)
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "OCR结果")
-                        intent.putStringArrayListExtra("ocr_texts", texts)
-                        startActivity(intent)
-                    } else if (results != null && results.isEmpty()) {
-                        Common.showToast(R.string.string_ai_ocr_empty)
-                    } else {
-                        Common.showToast(R.string.string_ai_ocr_failed)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun performAiUpscale(illust: IllustsBean, model: ceui.pixiv.ui.upscale.UpscaleModel = ceui.pixiv.ui.upscale.UpscaleModel.REAL_ESRGAN) {
-        val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
-            ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
-
-        val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
-        loadTask.result.observe(viewLifecycleOwner) { file ->
-            if (file != null) {
-                val key = ceui.pixiv.ui.upscale.UpscaleTask.illustKey(illust.id)
-                val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.startTask(
-                    key, requireContext(), file, file.absolutePath, model
-                )
-                observeUpscaleTask(task)
-            }
-        }
-    }
-
-    private fun observeUpscaleTask(task: ceui.pixiv.ui.upscale.UpscaleTask) {
-        val overlayRoot = baseBind.root.findViewById<View>(R.id.ai_overlay_root)
-        val loadingState = baseBind.root.findViewById<View>(R.id.ai_loading_state)
-        val doneState = baseBind.root.findViewById<View>(R.id.ai_done_state)
-        val viewCompare = baseBind.root.findViewById<View>(R.id.ai_view_compare)
-        val dismiss = baseBind.root.findViewById<View>(R.id.ai_dismiss)
-        val progressRing = baseBind.root.findViewById<com.google.android.material.progressindicator.CircularProgressIndicator>(R.id.ai_progress_ring)
-        val progressText = baseBind.root.findViewById<TextView>(R.id.ai_progress_text)
-        val statusText = baseBind.root.findViewById<TextView>(R.id.ai_status_text)
-        val etaText = baseBind.root.findViewById<TextView>(R.id.ai_eta_text)
-
-        fun navigateToCompare() {
-            val result = task.resultFile.value ?: return
-            val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
-            intent.putExtra("upscaled_path", result.absolutePath)
-            intent.putExtra("original_path", task.originalFilePath)
-            startActivity(intent)
-        }
-
-        fun showDoneState() {
-            loadingState.visibility = View.GONE
-            doneState.visibility = View.VISIBLE
-            overlayRoot.visibility = View.VISIBLE
-            overlayRoot.alpha = 1f
-        }
-
-        viewCompare.setOnClickListener {
-            navigateToCompare()
-            overlayRoot.visibility = View.GONE
-            ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.taskKey)
-        }
-        dismiss.setOnClickListener {
-            overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                overlayRoot.visibility = View.GONE
-            }.start()
-            ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.taskKey)
-        }
-
-        task.status.observe(viewLifecycleOwner) { status ->
-            when (status) {
-                ceui.pixiv.ui.upscale.UpscaleStatus.Running -> {
-                    overlayRoot.visibility = View.VISIBLE
-                    loadingState.visibility = View.VISIBLE
-                    doneState.visibility = View.GONE
-                    if (overlayRoot.alpha < 1f) {
-                        overlayRoot.alpha = 0f
-                        overlayRoot.animate().alpha(1f).setDuration(300).start()
-                    }
-                    statusText.text = getString(R.string.string_ai_upscale_running, task.model.displayName)
-                }
-                ceui.pixiv.ui.upscale.UpscaleStatus.Done -> {
-                    if (isResumed) {
-                        overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                            overlayRoot.visibility = View.GONE
-                        }.start()
-                        navigateToCompare()
-                    } else {
-                        showDoneState()
-                    }
-                }
-                ceui.pixiv.ui.upscale.UpscaleStatus.Failed -> {
-                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                        overlayRoot.visibility = View.GONE
-                    }.start()
-                    Common.showToast(R.string.string_ai_upscale_failed)
-                    ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.taskKey)
-                }
-                else -> {}
-            }
-        }
-        task.progress.observe(viewLifecycleOwner) { percent ->
-            val p = (percent * 100).toInt()
-            progressRing.setProgressCompat(p, true)
-            progressText.text = "$p%"
-        }
-        task.eta.observe(viewLifecycleOwner) { eta ->
-            etaText.text = if (eta > 0) "预计 ${String.format("%.0f", eta)} 秒后完成" else ""
-        }
-    }
-
-    private fun restoreUpscaleIfRunning() {
-        val key = ceui.pixiv.ui.upscale.UpscaleTask.illustKey(safeArgs.illustId)
-        val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.getTask(key) ?: return
-        when (task.status.value) {
-            ceui.pixiv.ui.upscale.UpscaleStatus.Running,
-            ceui.pixiv.ui.upscale.UpscaleStatus.Done -> {
-                observeUpscaleTask(task)
-            }
-            ceui.pixiv.ui.upscale.UpscaleStatus.Failed -> {
-                Common.showToast(R.string.string_ai_upscale_failed)
-                ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(key)
-            }
-            else -> {}
-        }
     }
 
     companion object {

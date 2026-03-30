@@ -210,6 +210,16 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "OCR结果":
                     return ceui.pixiv.ui.upscale.OcrResultFragment.newInstance(
                             intent.getStringArrayListExtra("ocr_texts"));
+                case "主体高亮":
+                    return ceui.pixiv.ui.upscale.RembgHighlightFragment.newInstance(
+                            intent.getStringExtra("original_path"),
+                            intent.getStringExtra("rembg_path"));
+                case "抠图预览":
+                    return ceui.pixiv.ui.upscale.RembgPreviewFragment.newInstance(
+                            intent.getStringExtra("rembg_path"));
+                case "模型下载":
+                    return ceui.pixiv.ui.upscale.RembgModelDownloadFragment.newInstance(
+                            intent.getStringExtra("model_name"));
                 case "绑定邮箱":
                     return new FragmentEditAccount();
                 case "编辑个人资料":
