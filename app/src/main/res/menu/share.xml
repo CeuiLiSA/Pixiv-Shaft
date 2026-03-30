@@ -51,4 +51,10 @@
         android:title="@string/string_ai_upscale"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_ai_rembg"
+        android:orderInCategory="100"
+        android:title="@string/string_ai_rembg"
+        app:showAsAction="never" />
+
 </menu>

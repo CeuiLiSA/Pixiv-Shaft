@@ -336,6 +336,11 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                     performAiUpscale(illust, model)
                 }
                 return@OnMenuItemClickListener true
+            } else if (menuItem.itemId == R.id.action_ai_rembg) {
+                ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                    performAiRembg(illust, model)
+                }
+                return@OnMenuItemClickListener true
             }
             false
         })
@@ -617,6 +622,56 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     override fun getSmartRefreshLayout(): SmartRefreshLayout {
         return baseBind.refreshLayout
+    }
+
+    private fun performAiRembg(illust: IllustsBean, model: ceui.pixiv.ui.upscale.RembgModel) {
+        val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
+            ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
+
+        val overlayRoot = baseBind.root.findViewById<View>(R.id.ai_overlay_root)
+        val loadingState = baseBind.root.findViewById<View>(R.id.ai_loading_state)
+        val doneState = baseBind.root.findViewById<View>(R.id.ai_done_state)
+        val progressRing = baseBind.root.findViewById<com.google.android.material.progressindicator.CircularProgressIndicator>(R.id.ai_progress_ring)
+        val progressText = baseBind.root.findViewById<android.widget.TextView>(R.id.ai_progress_text)
+        val statusText = baseBind.root.findViewById<android.widget.TextView>(R.id.ai_status_text)
+
+        overlayRoot.visibility = View.VISIBLE
+        loadingState.visibility = View.VISIBLE
+        doneState.visibility = View.GONE
+        overlayRoot.alpha = 0f
+        overlayRoot.animate().alpha(1f).setDuration(300).start()
+        statusText.text = getString(R.string.string_ai_rembg_running)
+        progressRing.isIndeterminate = true
+        progressText.visibility = View.GONE
+
+        val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
+        loadTask.result.observe(viewLifecycleOwner) { file ->
+            if (file != null) {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val result = ceui.pixiv.ui.upscale.BackgroundRemover.removeBackground(requireContext(), file, model) { percent ->
+                        baseBind.root.post {
+                            progressRing.isIndeterminate = false
+                            progressText.visibility = View.VISIBLE
+                            val p = (percent * 100).toInt()
+                            progressRing.setProgressCompat(p, true)
+                            progressText.text = "$p%"
+                        }
+                    }
+                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                        overlayRoot.visibility = View.GONE
+                    }.start()
+                    if (result != null) {
+                        val intent = Intent(mContext, TemplateActivity::class.java)
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主体高亮")
+                        intent.putExtra("original_path", file.absolutePath)
+                        intent.putExtra("rembg_path", result.absolutePath)
+                        startActivity(intent)
+                    } else {
+                        Common.showToast(R.string.string_ai_rembg_failed)
+                    }
+                }
+            }
+        }
     }
 
     private fun performAiUpscale(illust: IllustsBean, model: ceui.pixiv.ui.upscale.UpscaleModel = ceui.pixiv.ui.upscale.UpscaleModel.REAL_ESRGAN) {

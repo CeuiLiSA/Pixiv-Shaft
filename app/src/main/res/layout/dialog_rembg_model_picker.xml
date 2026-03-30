@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:background="@drawable/bg_rate_dialog"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="16dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="20dp">
+
+        <!-- Icon -->
+        <ImageView
+            android:id="@+id/hero_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/baseline_auto_awesome_24"
+            android:tint="#FF6B9D"
+            tools:ignore="ContentDescription" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/dialog_title"
+            style="@style/textMontserratBold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="@string/string_rembg_picker_title"
+            android:textColor="@color/text00"
+            android:textSize="20sp" />
+
+        <!-- Subtitle -->
+        <TextView
+            style="@style/textMontserratMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="@string/string_rembg_picker_subtitle"
+            android:textColor="@color/text20"
+            android:textSize="13sp" />
+
+        <!-- Model Card: ISNet-Anime (推荐) -->
+        <LinearLayout
+            android:id="@+id/card_isnet_anime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_model_card_anime"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="16dp"
+            android:stateListAnimator="@animator/button_press_alpha">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/textMontserratBold"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="ISNet-Anime"
+                    android:textColor="@color/text00"
+                    android:textSize="15sp" />
+
+                <TextView
+                    style="@style/textMontserratMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_rate_button_primary"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="@string/string_model_tag_recommend"
+                    android:textColor="@color/always_white"
+                    android:textSize="10sp" />
+
+                <TextView
+                    style="@style/textMontserratMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_upscale_resolution_badge"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="84MB"
+                    android:textColor="#7B6CF6"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/textMontserratRegular"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/string_rembg_isnet_desc"
+                android:textColor="@color/text20"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Model Card: U2Net-P -->
+        <LinearLayout
+            android:id="@+id/card_u2netp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_model_card_esrgan"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="16dp"
+            android:stateListAnimator="@animator/button_press_alpha">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/textMontserratBold"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="U2Net-P"
+                    android:textColor="@color/text00"
+                    android:textSize="15sp" />
+
+                <TextView
+                    style="@style/textMontserratMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_upscale_resolution_badge"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="@string/string_model_tag_fast"
+                    android:textColor="#7B6CF6"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/textMontserratRegular"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/string_rembg_u2netp_desc"
+                android:textColor="@color/text20"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Cancel -->
+        <TextView
+            android:id="@+id/btn_cancel"
+            style="@style/textMontserratRegular"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:padding="8dp"
+            android:stateListAnimator="@animator/button_press_alpha"
+            android:text="@string/string_cancel"
+            android:textColor="@color/secondary_text_color"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+</FrameLayout>
