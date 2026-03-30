@@ -1,12 +1,15 @@
 package ceui.pixiv.ui.upscale
 
+import android.content.Intent
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
 import androidx.fragment.app.FragmentManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.DialogRembgModelPickerBinding
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.setOnClick
@@ -29,14 +32,14 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
     override fun onViewFirstCreated(view: View) {
         super.onViewFirstCreated(view)
 
+        updateModelStatus()
+
         binding.cardIsnetAnime.setOnClick {
-            onModelSelected?.invoke(RembgModel.ISNET_ANIME)
-            dismissAllowingStateLoss()
+            selectModel(RembgModel.ISNET_ANIME)
         }
 
         binding.cardU2netp.setOnClick {
-            onModelSelected?.invoke(RembgModel.U2NETP)
-            dismissAllowingStateLoss()
+            selectModel(RembgModel.U2NETP)
         }
 
         binding.btnCancel.setOnClick {
@@ -56,6 +59,35 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
         }
     }
 
+    private fun updateModelStatus() {
+        val ctx = context ?: return
+        val isnetReady = RembgModelManager.isModelReady(ctx, RembgModel.ISNET_ANIME)
+        binding.isnetStatusBadge.visibility = View.VISIBLE
+        if (isnetReady) {
+            binding.isnetStatusBadge.text = getString(R.string.string_rembg_model_ready)
+            binding.isnetStatusBadge.setBackgroundResource(R.drawable.bg_upscale_resolution_badge)
+            binding.isnetStatusBadge.setTextColor(0xFF7B6CF6.toInt())
+        } else {
+            binding.isnetStatusBadge.text = getString(R.string.string_rembg_model_needs_download)
+            binding.isnetStatusBadge.setBackgroundResource(R.drawable.bg_rate_button_primary)
+            binding.isnetStatusBadge.setTextColor(0xFFFFFFFF.toInt())
+        }
+    }
+
+    private fun selectModel(model: RembgModel) {
+        val ctx = context ?: return
+        if (!model.bundledInApk && !RembgModelManager.isModelReady(ctx, model)) {
+            dismissAllowingStateLoss()
+            val intent = Intent(ctx, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "模型下载")
+            intent.putExtra("model_name", model.name)
+            ctx.startActivity(intent)
+        } else {
+            onModelSelected?.invoke(model)
+            dismissAllowingStateLoss()
+        }
+    }
+
     companion object {
         private const val TAG = "RembgModelPickerDialog"
 
@@ -72,7 +104,7 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
 
         fun pickOrUseDefault(fragmentManager: FragmentManager, onReady: (RembgModel) -> Unit) {
             val saved = getSavedModel()
-            if (saved != null) {
+            if (saved != null && (saved.bundledInApk || RembgModelManager.isModelReady(Shaft.getContext(), saved))) {
                 onReady(saved)
             } else {
                 if (fragmentManager.findFragmentByTag(TAG) != null) return

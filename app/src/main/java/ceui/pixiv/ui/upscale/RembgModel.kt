@@ -6,7 +6,9 @@ enum class RembgModel(
     val profileArg: String,
     val assetDir: String,
     val modelFiles: List<String>,
-    val sizeLabel: String
+    val sizeLabel: String,
+    val downloadUrl: String? = null,
+    val bundledInApk: Boolean = true
 ) {
     U2NETP(
         displayName = "U2Net-P",
@@ -22,6 +24,8 @@ enum class RembgModel(
         profileArg = "isnet-anime",
         assetDir = "isnet-anime",
         modelFiles = listOf("isnet-anime.param", "isnet-anime.bin"),
-        sizeLabel = "84MB"
+        sizeLabel = "84MB",
+        downloadUrl = "https://github.com/CeuiLiSA/Pixiv-Shaft/releases/download/v4.5.1/isnet-anime.zip",
+        bundledInApk = false
     );
 }

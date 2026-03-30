@@ -100,6 +100,18 @@
                     android:text="84MB"
                     android:textColor="#7B6CF6"
                     android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/isnet_status_badge"
+                    style="@style/textMontserratMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_upscale_resolution_badge"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <TextView

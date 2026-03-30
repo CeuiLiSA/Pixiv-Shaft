@@ -108,9 +108,13 @@ object BackgroundRemover {
     }
 
     private fun ensureModelFiles(context: Context, model: RembgModel): File {
-        val modelDir = File(context.filesDir, "rembg-models/${model.assetDir}")
+        val modelDir = RembgModelManager.modelDir(context, model)
         val firstFile = File(modelDir, model.modelFiles.first())
         if (firstFile.exists()) return modelDir
+
+        if (!model.bundledInApk) {
+            throw IllegalStateException("Model ${model.assetDir} not downloaded. Call RembgModelManager.downloadModel first.")
+        }
 
         modelDir.mkdirs()
         for (name in model.modelFiles) {

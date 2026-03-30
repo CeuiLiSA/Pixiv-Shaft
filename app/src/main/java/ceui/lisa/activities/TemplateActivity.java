@@ -214,6 +214,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "抠图预览":
                     return ceui.pixiv.ui.upscale.RembgPreviewFragment.newInstance(
                             intent.getStringExtra("rembg_path"));
+                case "模型下载":
+                    return ceui.pixiv.ui.upscale.RembgModelDownloadFragment.newInstance(
+                            intent.getStringExtra("model_name"));
                 case "绑定邮箱":
                     return new FragmentEditAccount();
                 case "编辑个人资料":
