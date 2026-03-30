@@ -78,7 +78,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="B站动漫专用，画质好"
+                    android:text="@string/string_chip_cugan_desc"
                     android:textColor="@color/colorWhite40"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -109,7 +109,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="通用超分，速度快"
+                    android:text="@string/string_chip_esrgan_desc"
                     android:textColor="@color/colorWhite25"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -205,7 +205,7 @@
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp"
                         android:stateListAnimator="@animator/button_press_alpha"
-                        android:text="更换"
+                        android:text="@string/string_repick"
                         android:textAllCaps="false"
                         android:textColor="@color/colorWhite60"
                         android:textSize="12sp" />

@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="选择 AI 模型"
+            android:text="@string/string_model_picker_title"
             android:textColor="@color/text00"
             android:textSize="20sp" />
 
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
-            android:text="不同模型擅长不同风格，选一个试试吧"
+            android:text="@string/string_model_picker_subtitle"
             android:textColor="@color/text20"
             android:textSize="13sp" />
 
@@ -86,7 +86,7 @@
                     android:background="@drawable/bg_rate_button_primary"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
-                    android:text="推荐"
+                    android:text="@string/string_model_tag_recommend"
                     android:textColor="@color/always_white"
                     android:textSize="10sp" />
 
@@ -97,7 +97,7 @@
                     android:background="@drawable/bg_upscale_resolution_badge"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
-                    android:text="画质好"
+                    android:text="@string/string_model_tag_quality"
                     android:textColor="#7B6CF6"
                     android:textSize="10sp" />
             </LinearLayout>
@@ -108,7 +108,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:lineSpacingExtra="3dp"
-                android:text="B站专为动漫/插画打造的模型。线条更锐利、色块更干净，特别适合 Pixiv 上的插画和漫画。画质天花板更高，推荐追求极致效果时使用。"
+                android:text="@string/string_model_cugan_desc"
                 android:textColor="@color/text20"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -147,7 +147,7 @@
                     android:background="@drawable/bg_upscale_resolution_badge"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
-                    android:text="速度快"
+                    android:text="@string/string_model_tag_fast"
                     android:textColor="#7B6CF6"
                     android:textSize="10sp" />
             </LinearLayout>
@@ -158,7 +158,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:lineSpacingExtra="3dp"
-                android:text="通用型超分辨率模型，适合各种类型的图片。处理速度较快，能看到逐步进度。如果你不确定选哪个，也可以试试这个。"
+                android:text="@string/string_model_esrgan_desc"
                 android:textColor="@color/text20"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -172,7 +172,7 @@
             android:layout_marginTop="14dp"
             android:padding="8dp"
             android:stateListAnimator="@animator/button_press_alpha"
-            android:text="取消"
+            android:text="@string/string_cancel"
             android:textColor="@color/secondary_text_color"
             android:textSize="12sp" />
 

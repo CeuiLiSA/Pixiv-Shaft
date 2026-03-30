@@ -276,7 +276,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         overlayRoot.alpha = 0f
                         overlayRoot.animate().alpha(1f).setDuration(300).start()
                     }
-                    statusText.text = getString(R.string.string_ai_upscale_running)
+                    statusText.text = getString(R.string.string_ai_upscale_running, task.model.displayName)
                 }
                 UpscaleStatus.Done -> {
                     val result = task.resultFile.value
