@@ -660,4 +660,14 @@ public class Settings {
     public void setIllustDetailKeepScreenOn(boolean illustDetailKeepScreenOn) {
         this.illustDetailKeepScreenOn = illustDetailKeepScreenOn;
     }
+
+    private String defaultUpscaleModel = "";
+
+    public String getDefaultUpscaleModel() {
+        return defaultUpscaleModel == null ? "" : defaultUpscaleModel;
+    }
+
+    public void setDefaultUpscaleModel(String defaultUpscaleModel) {
+        this.defaultUpscaleModel = defaultUpscaleModel;
+    }
 }

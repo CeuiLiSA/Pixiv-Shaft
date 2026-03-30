@@ -332,7 +332,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 startActivity(intent)
                 return@OnMenuItemClickListener true
             } else if (menuItem.itemId == R.id.action_ai_upscale) {
-                ceui.pixiv.ui.upscale.ModelPickerDialog.show(childFragmentManager) { model ->
+                ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
                     performAiUpscale(illust, model)
                 }
                 return@OnMenuItemClickListener true

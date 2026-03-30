@@ -27,7 +27,7 @@ class FragmentAiUpscale : Fragment() {
     private var imageWidth = 0
     private var imageHeight = 0
     private var currentTaskKey: String? = null
-    private var selectedModel: UpscaleModel = UpscaleModel.REAL_CUGAN
+    private var selectedModel: UpscaleModel = ModelPickerDialog.getSavedModel() ?: UpscaleModel.REAL_CUGAN
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { onImagePicked(it) }

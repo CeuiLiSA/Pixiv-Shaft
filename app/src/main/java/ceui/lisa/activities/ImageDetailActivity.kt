@@ -93,7 +93,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             findViewById<View>(R.id.btn_ai_upscale).setOnClickListener {
                 val illust = mIllustsBean ?: return@setOnClickListener
                 val pageIndex = baseBind!!.viewPager.currentItem
-                ModelPickerDialog.show(supportFragmentManager) { model ->
+                ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
                     performAiUpscale(illust, pageIndex, model)
                 }
             }

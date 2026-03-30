@@ -632,6 +632,8 @@
     <string name="string_ai_upscale_pick_hint">从相册选择一张图片\n体验 AI 画质提升</string>
     <string name="string_ai_upscale_ready">图片已就绪，点击开始增强</string>
     <string name="string_ai_upscale_resolution">%1$d × %2$d  →  %3$d × %4$d</string>
+    <string name="string_default_upscale_model">默认 AI 增强模型</string>
+    <string name="string_not_set">未设置</string>
     <string name="string_433">按热度排序去哪儿了？</string>
     <string name="string_434">热度排序现在位于右边滑动栏的搜索选项/排序方式中，你可以通过右上角的设置键进行设置，设置完毕后请保存。</string>
     <string name="string_435">搜索选项仅对插画/小说有效</string>

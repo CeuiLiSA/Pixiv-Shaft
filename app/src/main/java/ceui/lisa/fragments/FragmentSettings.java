@@ -970,6 +970,20 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             });
         }
 
+        // AI 增强模型
+        {
+            ceui.pixiv.ui.upscale.UpscaleModel saved = ceui.pixiv.ui.upscale.ModelPickerDialog.Companion.getSavedModel();
+            baseBind.defaultUpscaleModel.setText(saved != null ? saved.getDisplayName() : getString(R.string.string_not_set));
+            baseBind.defaultUpscaleModelRela.setOnClickListener(v -> {
+                ceui.pixiv.ui.upscale.ModelPickerDialog.Companion.show(getChildFragmentManager(), model -> {
+                    Shaft.sSettings.setDefaultUpscaleModel(model.name());
+                    Local.setSettings(Shaft.sSettings);
+                    baseBind.defaultUpscaleModel.setText(model.getDisplayName());
+                    return kotlin.Unit.INSTANCE;
+                });
+            });
+        }
+
         // 缓存
         {
             baseBind.imageCacheSize.setText(FileUtils.getSize(LegacyFile.imageCacheFolder(mContext)));

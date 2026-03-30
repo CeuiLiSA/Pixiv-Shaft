@@ -1084,6 +1084,23 @@
 
                         </RelativeLayout>
 
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/default_upscale_model_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left_and_center"
+                                android:text="@string/string_default_upscale_model" />
+
+                            <TextView
+                                android:id="@+id/default_upscale_model"
+                                style="@style/setting_right_arrow"
+                                android:text="@string/string_not_set" />
+
+                        </RelativeLayout>
+
                         <View style="@style/full_divider" />
 
                     </LinearLayout>
