@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:background="@drawable/bg_rate_dialog"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="16dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="20dp">
+
+        <!-- Icon -->
+        <ImageView
+            android:id="@+id/hero_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/baseline_auto_awesome_24"
+            android:tint="#7B6CF6"
+            tools:ignore="ContentDescription" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/dialog_title"
+            style="@style/textMontserratBold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="选择 AI 模型"
+            android:textColor="@color/text00"
+            android:textSize="20sp" />
+
+        <!-- Subtitle -->
+        <TextView
+            style="@style/textMontserratMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="不同模型擅长不同风格，选一个试试吧"
+            android:textColor="@color/text20"
+            android:textSize="13sp" />
+
+        <!-- Model Card: Real-CUGAN (推荐) -->
+        <LinearLayout
+            android:id="@+id/card_cugan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_model_card_cugan"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="16dp"
+            android:stateListAnimator="@animator/button_press_alpha">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/textMontserratBold"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Real-CUGAN"
+                    android:textColor="@color/text00"
+                    android:textSize="15sp" />
+
+                <TextView
+                    style="@style/textMontserratMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_rate_button_primary"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="推荐"
+                    android:textColor="@color/always_white"
+                    android:textSize="10sp" />
+
+                <TextView
+                    style="@style/textMontserratMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_upscale_resolution_badge"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="画质好"
+                    android:textColor="#7B6CF6"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/textMontserratRegular"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="3dp"
+                android:text="B站专为动漫/插画打造的模型。线条更锐利、色块更干净，特别适合 Pixiv 上的插画和漫画。画质天花板更高，推荐追求极致效果时使用。"
+                android:textColor="@color/text20"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Model Card: Real-ESRGAN -->
+        <LinearLayout
+            android:id="@+id/card_esrgan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_model_card_esrgan"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="16dp"
+            android:stateListAnimator="@animator/button_press_alpha">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/textMontserratBold"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Real-ESRGAN"
+                    android:textColor="@color/text00"
+                    android:textSize="15sp" />
+
+                <TextView
+                    style="@style/textMontserratMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_upscale_resolution_badge"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="速度快"
+                    android:textColor="#7B6CF6"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/textMontserratRegular"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="3dp"
+                android:text="通用型超分辨率模型，适合各种类型的图片。处理速度较快，能看到逐步进度。如果你不确定选哪个，也可以试试这个。"
+                android:textColor="@color/text20"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Cancel -->
+        <TextView
+            android:id="@+id/btn_cancel"
+            style="@style/textMontserratRegular"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:padding="8dp"
+            android:stateListAnimator="@animator/button_press_alpha"
+            android:text="取消"
+            android:textColor="@color/secondary_text_color"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+</FrameLayout>

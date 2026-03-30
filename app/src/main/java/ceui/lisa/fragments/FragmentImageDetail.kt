@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentImageDetailBinding
@@ -17,9 +16,6 @@ import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
@@ -27,7 +23,6 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var index = 0
     private var url: String? = null
     private val viewModel by viewModels<ToggleToolnarViewModel>(ownerProducer = { requireActivity() })
-    private var shaderDemoJob: Job? = null
 
     public override fun initBundle(bundle: Bundle) {
         url = bundle.getString(Params.URL)
@@ -47,27 +42,6 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
         baseBind.image.setOnClick {
             viewModel.toggleFullscreen()
-        }
-        baseBind.enhanceProgress.max = 100
-        baseBind.debugShaderButton.setOnClick {
-            if (shaderDemoJob?.isActive == true) {
-                shaderDemoJob?.cancel()
-                baseBind.enhanceOverlay.hideEnhancing()
-                baseBind.enhanceProgress.visibility = View.GONE
-            } else {
-                baseBind.enhanceOverlay.showEnhancing()
-                baseBind.enhanceProgress.visibility = View.VISIBLE
-                baseBind.enhanceProgress.progress = 0
-                shaderDemoJob = viewLifecycleOwner.lifecycleScope.launch {
-                    for (i in 1..100) {
-                        delay(80)
-                        baseBind.enhanceProgress.progress = i
-                    }
-                    delay(500)
-                    baseBind.enhanceOverlay.hideEnhancing()
-                    baseBind.enhanceProgress.visibility = View.GONE
-                }
-            }
         }
     }
 

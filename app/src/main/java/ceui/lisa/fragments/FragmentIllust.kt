@@ -332,7 +332,9 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 startActivity(intent)
                 return@OnMenuItemClickListener true
             } else if (menuItem.itemId == R.id.action_ai_upscale) {
-                performAiUpscale(illust)
+                ceui.pixiv.ui.upscale.ModelPickerDialog.show(childFragmentManager) { model ->
+                    performAiUpscale(illust, model)
+                }
                 return@OnMenuItemClickListener true
             }
             false
@@ -617,15 +619,16 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         return baseBind.refreshLayout
     }
 
-    private fun performAiUpscale(illust: IllustsBean) {
+    private fun performAiUpscale(illust: IllustsBean, model: ceui.pixiv.ui.upscale.UpscaleModel = ceui.pixiv.ui.upscale.UpscaleModel.REAL_ESRGAN) {
         val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
 
         val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
         loadTask.result.observe(viewLifecycleOwner) { file ->
             if (file != null) {
+                val key = ceui.pixiv.ui.upscale.UpscaleTask.illustKey(illust.id)
                 val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.startTask(
-                    illust.id, requireContext(), file, file.absolutePath
+                    key, requireContext(), file, file.absolutePath, model
                 )
                 observeUpscaleTask(task, autoNavigate = true)
             }
@@ -655,13 +658,13 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         viewCompare.setOnClickListener {
             navigateToCompare()
             overlayRoot.visibility = View.GONE
-            ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.illustId)
+            ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.taskKey)
         }
         dismiss.setOnClickListener {
             overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                 overlayRoot.visibility = View.GONE
             }.start()
-            ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.illustId)
+            ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.taskKey)
         }
 
         task.status.observe(viewLifecycleOwner) { status ->
@@ -694,7 +697,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                         overlayRoot.visibility = View.GONE
                     }.start()
                     Common.showToast(R.string.string_ai_upscale_failed)
-                    ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.illustId)
+                    ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(task.taskKey)
                 }
                 else -> {}
             }
@@ -710,8 +713,8 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
     }
 
     private fun restoreUpscaleIfRunning() {
-        val illustId = safeArgs.illustId
-        val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.getTask(illustId) ?: return
+        val key = ceui.pixiv.ui.upscale.UpscaleTask.illustKey(safeArgs.illustId)
+        val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.getTask(key) ?: return
         when (task.status.value) {
             ceui.pixiv.ui.upscale.UpscaleStatus.Running,
             ceui.pixiv.ui.upscale.UpscaleStatus.Done -> {
@@ -719,7 +722,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             }
             ceui.pixiv.ui.upscale.UpscaleStatus.Failed -> {
                 Common.showToast(R.string.string_ai_upscale_failed)
-                ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(illustId)
+                ceui.pixiv.ui.upscale.UpscaleTaskPool.removeTask(key)
             }
             else -> {}
         }

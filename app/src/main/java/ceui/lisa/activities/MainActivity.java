@@ -282,6 +282,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         } else if (id == R.id.main_page) {
             intent = new Intent(mContext, UserActivity.class);
             intent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
+        } else if (id == R.id.nav_ai_upscale) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "AI画质提升");
         } else if (id == R.id.nav_reverse) {
             selectPhoto();
         } else if (id == R.id.nav_new_work) {

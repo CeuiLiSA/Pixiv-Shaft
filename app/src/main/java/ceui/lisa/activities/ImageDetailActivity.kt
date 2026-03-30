@@ -18,8 +18,17 @@ import ceui.lisa.fragments.FragmentImageDetail
 import ceui.lisa.helper.PageTransformerHelper
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
+import ceui.pixiv.ui.task.NamedUrl
+import ceui.pixiv.ui.task.TaskPool
+import ceui.pixiv.ui.upscale.ModelPickerDialog
+import ceui.pixiv.ui.upscale.UpscaleStatus
+import ceui.pixiv.ui.upscale.UpscaleTaskPool
+import ceui.pixiv.ui.upscale.UpscaleTask
+import ceui.pixiv.ui.upscale.UpscaleModel
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import java.io.UnsupportedEncodingException
@@ -81,6 +90,13 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             if (mIllustsBean == null) {
                 return
             }
+            findViewById<View>(R.id.btn_ai_upscale).setOnClickListener {
+                val illust = mIllustsBean ?: return@setOnClickListener
+                val pageIndex = baseBind!!.viewPager.currentItem
+                ModelPickerDialog.show(supportFragmentManager) { model ->
+                    performAiUpscale(illust, pageIndex, model)
+                }
+            }
             baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
                 supportFragmentManager
             ) {
@@ -136,6 +152,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 )
             }
         } else if ("下载详情" == dataType) {
+            findViewById<View>(R.id.btn_ai_upscale).visibility = View.GONE
             currentPage = findViewById(R.id.current_page)
             downloadSingle = findViewById(R.id.download_this_one)
             localIllust = intent.getSerializableExtra("illust") as List<String>?
@@ -204,6 +221,86 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             super.onBackPressed()
         } else {
             mActivity.finish()
+        }
+    }
+
+    private fun performAiUpscale(illust: IllustsBean, pageIndex: Int, model: UpscaleModel) {
+        val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
+            ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
+
+        val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
+        loadTask.result.observe(this) { file ->
+            if (file != null) {
+                val key = UpscaleTask.illustKey(illust.id * 100 + pageIndex)
+                val task = UpscaleTaskPool.startTask(key, this, file, file.absolutePath, model)
+                observeUpscaleTask(task)
+            }
+        }
+    }
+
+    private fun observeUpscaleTask(task: UpscaleTask) {
+        val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return
+        val loadingState = findViewById<View>(R.id.ai_loading_state)
+        val doneState = findViewById<View>(R.id.ai_done_state)
+        val viewCompare = findViewById<View>(R.id.ai_view_compare)
+        val dismiss = findViewById<View>(R.id.ai_dismiss)
+        val progressRing = findViewById<CircularProgressIndicator>(R.id.ai_progress_ring)
+        val progressText = findViewById<TextView>(R.id.ai_progress_text)
+        val statusText = findViewById<TextView>(R.id.ai_status_text)
+        val etaText = findViewById<TextView>(R.id.ai_eta_text)
+
+        viewCompare.setOnClickListener {
+            val result = task.resultFile.value ?: return@setOnClickListener
+            val intent = android.content.Intent(this, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
+            intent.putExtra("upscaled_path", result.absolutePath)
+            intent.putExtra("original_path", task.originalFilePath)
+            startActivity(intent)
+            overlayRoot.visibility = View.GONE
+            UpscaleTaskPool.removeTask(task.taskKey)
+        }
+        dismiss.setOnClickListener {
+            overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                overlayRoot.visibility = View.GONE
+            }.start()
+            UpscaleTaskPool.removeTask(task.taskKey)
+        }
+
+        task.status.observe(this) { status ->
+            when (status) {
+                UpscaleStatus.Running -> {
+                    overlayRoot.visibility = View.VISIBLE
+                    loadingState.visibility = View.VISIBLE
+                    doneState.visibility = View.GONE
+                    if (overlayRoot.alpha < 1f) {
+                        overlayRoot.alpha = 0f
+                        overlayRoot.animate().alpha(1f).setDuration(300).start()
+                    }
+                    statusText.text = getString(R.string.string_ai_upscale_running)
+                }
+                UpscaleStatus.Done -> {
+                    loadingState.visibility = View.GONE
+                    doneState.visibility = View.VISIBLE
+                    overlayRoot.visibility = View.VISIBLE
+                    overlayRoot.alpha = 1f
+                }
+                UpscaleStatus.Failed -> {
+                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                        overlayRoot.visibility = View.GONE
+                    }.start()
+                    Common.showToast(R.string.string_ai_upscale_failed)
+                    UpscaleTaskPool.removeTask(task.taskKey)
+                }
+                else -> {}
+            }
+        }
+        task.progress.observe(this) { percent ->
+            val p = (percent * 100).toInt()
+            progressRing.setProgressCompat(p, true)
+            progressText.text = "$p%"
+        }
+        task.eta.observe(this) { eta ->
+            etaText.text = if (eta > 0) "预计 ${String.format("%.0f", eta)} 秒后完成" else ""
         }
     }
 

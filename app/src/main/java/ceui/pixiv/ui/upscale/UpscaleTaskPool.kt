@@ -10,10 +10,11 @@ import java.io.File
 enum class UpscaleStatus { Idle, Running, Done, Failed }
 
 class UpscaleTask(
-    val illustId: Int,
+    val taskKey: String,
     private val context: Context,
     private val inputFile: File,
-    private val originalPath: String
+    private val originalPath: String,
+    val model: UpscaleModel = UpscaleModel.REAL_ESRGAN
 ) {
     private val _progress = MutableLiveData(0f)
     val progress: LiveData<Float> = _progress
@@ -35,7 +36,7 @@ class UpscaleTask(
         _progress.value = 0f
 
         TaskPool.scope.launch {
-            val result = RealESRGANUpscaler.upscale(context, inputFile) { percent, etaSeconds ->
+            val result = NcnnUpscaler.upscale(context, inputFile, model) { percent, etaSeconds ->
                 _progress.postValue(percent)
                 _eta.postValue(etaSeconds)
             }
@@ -47,25 +48,36 @@ class UpscaleTask(
             }
         }
     }
+
+    companion object {
+        fun illustKey(illustId: Int): String = "illust_$illustId"
+        fun galleryKey(): String = "gallery_${System.currentTimeMillis()}"
+    }
 }
 
 object UpscaleTaskPool {
 
-    private val _tasks = mutableMapOf<Int, UpscaleTask>()
+    private val _tasks = mutableMapOf<String, UpscaleTask>()
 
-    fun getTask(illustId: Int): UpscaleTask? = _tasks[illustId]
+    fun getTask(key: String): UpscaleTask? = _tasks[key]
 
-    fun startTask(illustId: Int, context: Context, inputFile: File, originalPath: String): UpscaleTask {
-        val existing = _tasks[illustId]
+    fun startTask(
+        key: String,
+        context: Context,
+        inputFile: File,
+        originalPath: String,
+        model: UpscaleModel = UpscaleModel.REAL_ESRGAN
+    ): UpscaleTask {
+        val existing = _tasks[key]
         if (existing != null && existing.status.value == UpscaleStatus.Running) return existing
 
-        val task = UpscaleTask(illustId, context.applicationContext, inputFile, originalPath)
-        _tasks[illustId] = task
+        val task = UpscaleTask(key, context.applicationContext, inputFile, originalPath, model)
+        _tasks[key] = task
         task.start()
         return task
     }
 
-    fun removeTask(illustId: Int) {
-        _tasks.remove(illustId)
+    fun removeTask(key: String) {
+        _tasks.remove(key)
     }
 }

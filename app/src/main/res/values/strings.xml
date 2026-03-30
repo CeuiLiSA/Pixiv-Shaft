@@ -624,6 +624,14 @@
     <string name="string_ai_upscale_running">AI 画质增强中，请稍候…</string>
     <string name="string_ai_upscale_done">画质增强完成</string>
     <string name="string_ai_upscale_failed">画质增强失败</string>
+    <string name="string_ai_upscale_standalone">AI 画质提升</string>
+    <string name="string_ai_upscale_hero_title">AI 超分辨率</string>
+    <string name="string_ai_upscale_hero_subtitle">Real-ESRGAN · 2x 画质提升</string>
+    <string name="string_ai_upscale_pick_image">选择图片</string>
+    <string name="string_ai_upscale_start">开始增强</string>
+    <string name="string_ai_upscale_pick_hint">从相册选择一张图片\n体验 AI 画质提升</string>
+    <string name="string_ai_upscale_ready">图片已就绪，点击开始增强</string>
+    <string name="string_ai_upscale_resolution">%1$d × %2$d  →  %3$d × %4$d</string>
     <string name="string_433">按热度排序去哪儿了？</string>
     <string name="string_434">热度排序现在位于右边滑动栏的搜索选项/排序方式中，你可以通过右上角的设置键进行设置，设置完毕后请保存。</string>
     <string name="string_435">搜索选项仅对插画/小说有效</string>

@@ -41,20 +41,41 @@
                     android:singleLine="true"
                     android:textColor="@android:color/white" />
 
-                <ceui.loxia.ProgressTextButton
-                    android:id="@+id/download_this_one"
-                    style="@style/GreenShiningButton"
+                <LinearLayout
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
-                    android:text="@string/string_7"
-                    android:ellipsize="middle"
-                    android:gravity="center"
-                    android:layout_height="32dp"
-                    android:layout_gravity="bottom|center_horizontal"
                     android:layout_marginBottom="40dp"
-                    android:paddingHorizontal="16dp"
-                    app:ptb_progress_stroke_width="3dp"
-                    app:ptb_progress_width="14dp" />
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btn_ai_upscale"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/refresh_button_background"
+                        android:gravity="center"
+                        android:paddingHorizontal="14dp"
+                        android:stateListAnimator="@animator/button_press_alpha"
+                        android:text="@string/string_ai_upscale"
+                        android:textAllCaps="false"
+                        android:textColor="@color/colorWhite60"
+                        android:textSize="13sp" />
+
+                    <ceui.loxia.ProgressTextButton
+                        android:id="@+id/download_this_one"
+                        style="@style/GreenShiningButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:ellipsize="middle"
+                        android:gravity="center"
+                        android:paddingHorizontal="16dp"
+                        android:text="@string/string_7"
+                        app:ptb_progress_stroke_width="3dp"
+                        app:ptb_progress_width="14dp" />
+
+                </LinearLayout>
 
 
                 <TextView
