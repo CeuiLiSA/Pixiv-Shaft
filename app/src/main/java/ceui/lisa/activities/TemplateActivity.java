@@ -207,6 +207,13 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             intent.getStringExtra("original_path"));
                 case "AI画质提升":
                     return new ceui.pixiv.ui.upscale.FragmentAiUpscale();
+                case "主体高亮":
+                    return ceui.pixiv.ui.upscale.RembgHighlightFragment.newInstance(
+                            intent.getStringExtra("original_path"),
+                            intent.getStringExtra("rembg_path"));
+                case "抠图预览":
+                    return ceui.pixiv.ui.upscale.RembgPreviewFragment.newInstance(
+                            intent.getStringExtra("rembg_path"));
                 case "绑定邮箱":
                     return new FragmentEditAccount();
                 case "编辑个人资料":

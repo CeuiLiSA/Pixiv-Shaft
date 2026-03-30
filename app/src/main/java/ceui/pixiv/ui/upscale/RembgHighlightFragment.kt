@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.upscale
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -59,11 +60,30 @@ class RembgHighlightFragment : Fragment() {
         val highlightView = view.findViewById<SubjectHighlightView>(R.id.subject_highlight)
         val hintText = view.findViewById<TextView>(R.id.hint_text)
 
-        // Load bitmaps off main thread
+        // Load bitmaps off main thread, downsampled to screen size
         viewLifecycleOwner.lifecycleScope.launch {
             val (original, subject) = withContext(Dispatchers.IO) {
-                val orig = BitmapFactory.decodeFile(originalPath)
-                val subj = BitmapFactory.decodeFile(rembgPath)
+                val screenW = resources.displayMetrics.widthPixels
+                val screenH = resources.displayMetrics.heightPixels
+                val maxEdge = maxOf(screenW, screenH)
+
+                // Decode bounds first
+                val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(originalPath, boundsOpts)
+                val imgW = boundsOpts.outWidth
+                val imgH = boundsOpts.outHeight
+
+                var sampleSize = 1
+                while (imgW / sampleSize > maxEdge * 2 || imgH / sampleSize > maxEdge * 2) {
+                    sampleSize *= 2
+                }
+
+                val opts = BitmapFactory.Options().apply {
+                    inSampleSize = sampleSize
+                    inPreferredConfig = Bitmap.Config.ARGB_8888
+                }
+                val orig = BitmapFactory.decodeFile(originalPath, opts)
+                val subj = BitmapFactory.decodeFile(rembgPath, opts)
                 orig to subj
             }
             if (original != null && subject != null) {
