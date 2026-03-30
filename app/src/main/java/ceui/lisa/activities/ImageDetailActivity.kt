@@ -279,10 +279,23 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     statusText.text = getString(R.string.string_ai_upscale_running)
                 }
                 UpscaleStatus.Done -> {
-                    loadingState.visibility = View.GONE
-                    doneState.visibility = View.VISIBLE
-                    overlayRoot.visibility = View.VISIBLE
-                    overlayRoot.alpha = 1f
+                    val result = task.resultFile.value
+                    if (result != null && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+                        overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                            overlayRoot.visibility = View.GONE
+                        }.start()
+                        val intent = android.content.Intent(this@ImageDetailActivity, TemplateActivity::class.java)
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
+                        intent.putExtra("upscaled_path", result.absolutePath)
+                        intent.putExtra("original_path", task.originalFilePath)
+                        startActivity(intent)
+                        UpscaleTaskPool.removeTask(task.taskKey)
+                    } else {
+                        loadingState.visibility = View.GONE
+                        doneState.visibility = View.VISIBLE
+                        overlayRoot.visibility = View.VISIBLE
+                        overlayRoot.alpha = 1f
+                    }
                 }
                 UpscaleStatus.Failed -> {
                     overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {

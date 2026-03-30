@@ -203,7 +203,7 @@ class FragmentAiUpscale : Fragment() {
         currentTaskKey = key
         val task = UpscaleTaskPool.startTask(key, requireContext(), inputFile, inputFile.absolutePath, selectedModel)
 
-        observeTask(task, rootView, autoNavigate = true)
+        observeTask(task, rootView)
     }
 
     private fun enableStartButton(rootView: View) {
@@ -216,7 +216,7 @@ class FragmentAiUpscale : Fragment() {
         )
     }
 
-    private fun observeTask(task: UpscaleTask, rootView: View, autoNavigate: Boolean) {
+    private fun observeTask(task: UpscaleTask, rootView: View) {
         val overlayRoot = rootView.findViewById<View>(R.id.ai_overlay_root)
         val loadingState = rootView.findViewById<View>(R.id.ai_loading_state)
         val doneState = rootView.findViewById<View>(R.id.ai_done_state)
@@ -259,7 +259,7 @@ class FragmentAiUpscale : Fragment() {
                     statusText.text = getString(R.string.string_ai_upscale_running)
                 }
                 UpscaleStatus.Done -> {
-                    if (autoNavigate) {
+                    if (isResumed) {
                         val result = task.resultFile.value
                         if (result != null) {
                             overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
@@ -315,7 +315,7 @@ class FragmentAiUpscale : Fragment() {
         val task = UpscaleTaskPool.getTask(key) ?: return
         when (task.status.value) {
             UpscaleStatus.Running, UpscaleStatus.Done -> {
-                observeTask(task, rootView, autoNavigate = false)
+                observeTask(task, rootView)
             }
             UpscaleStatus.Failed -> {
                 Common.showToast(R.string.string_ai_upscale_failed)

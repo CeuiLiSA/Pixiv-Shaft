@@ -7,12 +7,36 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.security.MessageDigest
 
 object NcnnUpscaler {
 
     private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA""")
     private val TILE_REGEX = Regex("""TILE (\d+)""")
+
+    private fun cacheDir(context: Context): File {
+        return File(context.filesDir, "upscale-cache").also { it.mkdirs() }
+    }
+
+    private fun md5(file: File): String {
+        val digest = MessageDigest.getInstance("MD5")
+        FileInputStream(file).use { fis ->
+            val buf = ByteArray(8192)
+            var n: Int
+            while (fis.read(buf).also { n = it } != -1) {
+                digest.update(buf, 0, n)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
+
+    private fun getCached(context: Context, inputFile: File, model: UpscaleModel): File? {
+        val hash = md5(inputFile)
+        val cached = File(cacheDir(context), "${hash}_${model.name}.png")
+        return if (cached.exists() && cached.length() > 0) cached else null
+    }
 
     suspend fun upscale(
         context: Context,
@@ -21,7 +45,16 @@ object NcnnUpscaler {
         onProgress: ((percent: Float, etaSeconds: Float) -> Unit)? = null
     ): File? = withContext(Dispatchers.IO) {
         val tag = model.displayName
+
+        // Check cache first
+        getCached(context, inputFile, model)?.let { cached ->
+            Timber.d("$tag: cache hit → ${cached.absolutePath}")
+            onProgress?.invoke(1f, 0f)
+            return@withContext cached
+        }
+
         try {
+            val inputHash = md5(inputFile)
             val modelDir = ensureModelFiles(context, model)
             val nativeDir = context.applicationInfo.nativeLibraryDir
             val executablePath = "$nativeDir/${model.executableName}"
@@ -49,7 +82,7 @@ object NcnnUpscaler {
 
             bitmap.recycle()
 
-            val outputFile = File(context.cacheDir, "upscaled_${System.currentTimeMillis()}.png")
+            val outputFile = File(cacheDir(context), "${inputHash}_${model.name}.png")
 
             val args = mutableListOf(
                 executablePath,

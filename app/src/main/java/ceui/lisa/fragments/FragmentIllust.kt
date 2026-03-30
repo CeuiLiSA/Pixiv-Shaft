@@ -630,12 +630,12 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 val task = ceui.pixiv.ui.upscale.UpscaleTaskPool.startTask(
                     key, requireContext(), file, file.absolutePath, model
                 )
-                observeUpscaleTask(task, autoNavigate = true)
+                observeUpscaleTask(task)
             }
         }
     }
 
-    private fun observeUpscaleTask(task: ceui.pixiv.ui.upscale.UpscaleTask, autoNavigate: Boolean) {
+    private fun observeUpscaleTask(task: ceui.pixiv.ui.upscale.UpscaleTask) {
         val overlayRoot = baseBind.root.findViewById<View>(R.id.ai_overlay_root)
         val loadingState = baseBind.root.findViewById<View>(R.id.ai_loading_state)
         val doneState = baseBind.root.findViewById<View>(R.id.ai_done_state)
@@ -653,6 +653,13 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             intent.putExtra("upscaled_path", result.absolutePath)
             intent.putExtra("original_path", task.originalFilePath)
             startActivity(intent)
+        }
+
+        fun showDoneState() {
+            loadingState.visibility = View.GONE
+            doneState.visibility = View.VISIBLE
+            overlayRoot.visibility = View.VISIBLE
+            overlayRoot.alpha = 1f
         }
 
         viewCompare.setOnClickListener {
@@ -680,16 +687,13 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                     statusText.text = getString(R.string.string_ai_upscale_running)
                 }
                 ceui.pixiv.ui.upscale.UpscaleStatus.Done -> {
-                    if (autoNavigate) {
+                    if (isResumed) {
                         overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                             overlayRoot.visibility = View.GONE
                         }.start()
                         navigateToCompare()
                     } else {
-                        loadingState.visibility = View.GONE
-                        doneState.visibility = View.VISIBLE
-                        overlayRoot.visibility = View.VISIBLE
-                        overlayRoot.alpha = 1f
+                        showDoneState()
                     }
                 }
                 ceui.pixiv.ui.upscale.UpscaleStatus.Failed -> {
@@ -718,7 +722,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         when (task.status.value) {
             ceui.pixiv.ui.upscale.UpscaleStatus.Running,
             ceui.pixiv.ui.upscale.UpscaleStatus.Done -> {
-                observeUpscaleTask(task, autoNavigate = false)
+                observeUpscaleTask(task)
             }
             ceui.pixiv.ui.upscale.UpscaleStatus.Failed -> {
                 Common.showToast(R.string.string_ai_upscale_failed)
