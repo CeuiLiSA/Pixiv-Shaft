@@ -1,96 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black"
-    android:orientation="vertical">
+    android:background="@android:color/black">
 
-    <!-- Top half: Original -->
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <com.github.panpf.zoomimage.SketchZoomImageView
-            android:id="@+id/image_original"
+        <!-- Top half: Original -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/chip_original"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|start"
-            android:layout_marginStart="12dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_rate_dialog"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:text="原图"
-            android:textColor="@android:color/black"
-            android:textSize="11sp" />
+            <com.github.panpf.zoomimage.SketchZoomImageView
+                android:id="@+id/image_original"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/chip_original"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_marginStart="12dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_rate_dialog"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="原图"
+                android:textColor="@android:color/black"
+                android:textSize="11sp" />
+        </FrameLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#33FFFFFF" />
+
+        <!-- Bottom half: Enhanced -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.github.panpf.zoomimage.SketchZoomImageView
+                android:id="@+id/image_enhanced"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/chip_enhanced"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="12dp"
+                android:background="@drawable/bg_rate_button_primary"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="AI 增强"
+                android:textColor="@color/always_white"
+                android:textSize="11sp" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <!-- Save buttons at bottom, above safe area -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="40dp"
+        android:gravity="center"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/save_original"
+            style="@style/GreenShiningButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|end"
-            android:layout_margin="12dp"
-            android:background="@drawable/refresh_button_background"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:stateListAnimator="@animator/button_press_alpha"
-            android:text="保存"
-            android:textAllCaps="false"
-            android:textColor="@color/colorWhite60"
-            android:textSize="11sp" />
-    </FrameLayout>
-
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#33FFFFFF" />
-
-    <!-- Bottom half: Enhanced -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <com.github.panpf.zoomimage.SketchZoomImageView
-            android:id="@+id/image_enhanced"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <TextView
-            android:id="@+id/chip_enhanced"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|start"
-            android:layout_margin="12dp"
-            android:background="@drawable/bg_rate_button_primary"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:text="AI 增强"
-            android:textColor="@color/always_white"
-            android:textSize="11sp" />
+            android:layout_height="32dp"
+            android:layout_marginEnd="10dp"
+            android:paddingHorizontal="16dp"
+            android:text="保存原图" />
 
         <TextView
             android:id="@+id/save_enhanced"
+            style="@style/GreenShiningButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|end"
-            android:layout_margin="12dp"
-            android:background="@drawable/refresh_button_background"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:stateListAnimator="@animator/button_press_alpha"
-            android:text="保存"
-            android:textAllCaps="false"
-            android:textColor="@color/colorWhite60"
-            android:textSize="11sp" />
-    </FrameLayout>
+            android:layout_height="32dp"
+            android:paddingHorizontal="16dp"
+            android:text="保存增强" />
 
-</LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>
