@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/fragment_center"
-    android:fitsSystemWindows="true">
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar_layout" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,7 +19,8 @@
         android:clipToPadding="false"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:paddingHorizontal="40dp">
+        android:paddingHorizontal="40dp"
+        android:paddingTop="30dp">
 
         <!-- Hero icon -->
         <ImageView
@@ -192,4 +197,4 @@
 
     </LinearLayout>
 
-</FrameLayout>
+</LinearLayout>

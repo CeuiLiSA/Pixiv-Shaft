@@ -58,9 +58,9 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_ai_ocr"
+        android:id="@+id/action_ai_manga_translate"
         android:orderInCategory="100"
-        android:title="@string/string_ai_ocr"
+        android:title="@string/string_ai_manga_translate"
         app:showAsAction="never" />
 
 </menu>

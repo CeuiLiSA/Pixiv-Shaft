@@ -220,6 +220,22 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "模型下载":
                     return ceui.pixiv.ui.upscale.RembgModelDownloadFragment.newInstance(
                             intent.getStringExtra("model_name"));
+                case "翻译模型下载":
+                    return ceui.pixiv.ui.translate.TranslationModelDownloadFragment.newInstance(
+                            intent.getStringExtra("translation_model_name"));
+                case "漫画翻译":
+                    return ceui.pixiv.ui.translate.MangaTranslationFragment.newInstance(
+                            intent.getStringExtra("translated_path"),
+                            intent.getStringExtra("original_path"));
+                case "漫画OCR模型下载":
+                    return ceui.pixiv.ui.translate.MangaOcrDownloadFragment.newInstance(
+                            intent.getStringExtra("manga_ocr_model_name"));
+                case "NLLB翻译模型下载":
+                    return ceui.pixiv.ui.translate.NllbDownloadFragment.newInstance(
+                            intent.getStringExtra("nllb_model_name"));
+                case "Sakura翻译模型下载":
+                    return ceui.pixiv.ui.translate.SakuraDownloadFragment.newInstance(
+                            intent.getStringExtra("sakura_model_name"));
                 case "绑定邮箱":
                     return new FragmentEditAccount();
                 case "编辑个人资料":

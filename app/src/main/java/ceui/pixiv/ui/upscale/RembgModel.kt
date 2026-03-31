@@ -1,15 +1,17 @@
 package ceui.pixiv.ui.upscale
 
+import ceui.pixiv.ui.common.DownloadableModel
+
 enum class RembgModel(
-    val displayName: String,
-    val description: String,
+    override val displayName: String,
+    override val description: String,
     val profileArg: String,
-    val assetDir: String,
-    val modelFiles: List<String>,
-    val sizeLabel: String,
-    val downloadUrl: String? = null,
+    override val assetDir: String,
+    override val modelFiles: List<String>,
+    override val sizeLabel: String,
+    override val downloadUrl: String? = null,
     val bundledInApk: Boolean = true
-) {
+) : DownloadableModel {
     U2NETP(
         displayName = "U2Net-P",
         description = "通用快速抠图，体积小",

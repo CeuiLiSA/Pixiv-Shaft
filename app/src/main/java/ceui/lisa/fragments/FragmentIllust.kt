@@ -320,8 +320,8 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                     }
                     true
                 }
-                R.id.action_ai_ocr -> {
-                    aiHelper.performOcr(illust)
+                R.id.action_ai_manga_translate -> {
+                    aiHelper.performMangaTranslation(illust)
                     true
                 }
                 else -> false

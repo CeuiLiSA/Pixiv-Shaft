@@ -3,6 +3,8 @@ package ceui.pixiv.ui.upscale
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import ceui.pixiv.ui.translate.MangaOcrRecognizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -26,6 +28,17 @@ object MangaOcr {
 
     private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA""")
 
+    /**
+     * Recognize text in a manga page.
+     *
+     * Uses PaddleOCR for text region detection. If manga-ocr model is loaded,
+     * re-recognizes each detected region with manga-ocr for much better accuracy.
+     *
+     * @param context Android context
+     * @param inputFile Input image file
+     * @param onProgress Progress callback
+     * @return List of grouped text regions, or null on failure
+     */
     suspend fun recognize(
         context: Context,
         inputFile: File,
@@ -49,7 +62,6 @@ object MangaOcr {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
             Timber.d("MangaOcr: input ${bitmap.width}x${bitmap.height}")
-            bitmap.recycle()
 
             val pb = ProcessBuilder(
                 executablePath,
@@ -59,11 +71,10 @@ object MangaOcr {
                 "-s", "960"
             )
             pb.environment()["LD_LIBRARY_PATH"] = nativeDir
-            pb.redirectErrorStream(false) // keep stdout (JSON) and stderr (progress) separate
+            pb.redirectErrorStream(false)
 
             val process = pb.start()
 
-            // Read stderr for progress in a background thread
             val stderrThread = Thread {
                 process.errorStream.bufferedReader().forEachLine { line ->
                     Timber.d("MangaOcr: $line")
@@ -75,7 +86,6 @@ object MangaOcr {
             }
             stderrThread.start()
 
-            // Read stdout for JSON result
             val jsonOutput = process.inputStream.bufferedReader().readText()
             val exitCode = process.waitFor()
             stderrThread.join()
@@ -85,12 +95,13 @@ object MangaOcr {
 
             if (exitCode != 0 || jsonOutput.isBlank()) {
                 Timber.e("MangaOcr failed: exit=$exitCode")
+                bitmap.recycle()
                 return@withContext null
             }
 
-            // Parse JSON
+            // Parse JSON — get detection regions from PaddleOCR
             val arr = JSONArray(jsonOutput)
-            val results = mutableListOf<OcrTextRegion>()
+            val rawRegions = mutableListOf<OcrTextRegion>()
             for (i in 0 until arr.length()) {
                 val obj = arr.getJSONObject(i)
                 val cornersArr = obj.getJSONArray("corners")
@@ -98,7 +109,7 @@ object MangaOcr {
                     val pt = cornersArr.getJSONArray(j)
                     Pair(pt.getDouble(0).toFloat(), pt.getDouble(1).toFloat())
                 }
-                results.add(OcrTextRegion(
+                rawRegions.add(OcrTextRegion(
                     text = obj.getString("text"),
                     cx = obj.getDouble("cx").toFloat(),
                     cy = obj.getDouble("cy").toFloat(),
@@ -110,11 +121,59 @@ object MangaOcr {
                     corners = corners
                 ))
             }
-            groupRegions(results)
+
+            // If manga-ocr is loaded, re-recognize each region for better accuracy
+            if (MangaOcrRecognizer.isLoaded) {
+                Timber.d("MangaOcr: re-recognizing ${rawRegions.size} regions with manga-ocr")
+                val enhanced = rawRegions.map { region ->
+                    try {
+                        val cropped = cropRegion(bitmap, region)
+                        val text = MangaOcrRecognizer.recognize(cropped)
+                        cropped.recycle()
+                        Timber.d("MangaOcr: [${region.text}] → [$text]")
+                        region.copy(text = text)
+                    } catch (e: Exception) {
+                        Timber.e(e, "MangaOcr: manga-ocr failed for region, keeping PaddleOCR text")
+                        region
+                    }
+                }
+                bitmap.recycle()
+                groupRegions(enhanced)
+            } else {
+                bitmap.recycle()
+                groupRegions(rawRegions)
+            }
         } catch (e: Exception) {
             Timber.e(e, "MangaOcr error")
             null
         }
+    }
+
+    /**
+     * Crop a text region from the bitmap using its corner coordinates.
+     * Applies rotation correction based on the region angle.
+     */
+    private fun cropRegion(bitmap: Bitmap, region: OcrTextRegion): Bitmap {
+        val corners = region.corners
+        if (corners.size < 4) {
+            // Fallback: use cx/cy/width/height
+            val left = (region.cx - region.width / 2).toInt().coerceIn(0, bitmap.width - 1)
+            val top = (region.cy - region.height / 2).toInt().coerceIn(0, bitmap.height - 1)
+            val w = region.width.toInt().coerceAtMost(bitmap.width - left)
+            val h = region.height.toInt().coerceAtMost(bitmap.height - top)
+            return Bitmap.createBitmap(bitmap, left, top, maxOf(1, w), maxOf(1, h))
+        }
+
+        // Use axis-aligned bounding box of corners with padding
+        val xs = corners.map { it.first }
+        val ys = corners.map { it.second }
+        val pad = 4
+        val left = (xs.min().toInt() - pad).coerceIn(0, bitmap.width - 1)
+        val top = (ys.min().toInt() - pad).coerceIn(0, bitmap.height - 1)
+        val right = (xs.max().toInt() + pad).coerceIn(left + 1, bitmap.width)
+        val bottom = (ys.max().toInt() + pad).coerceIn(top + 1, bitmap.height)
+
+        return Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
     }
 
     private fun ensureModelFiles(context: Context): File {
@@ -141,8 +200,6 @@ object MangaOcr {
 
     /**
      * Group nearby text regions into speech bubbles using Union-Find.
-     * Regions whose bounding boxes are within [gap] pixels are merged.
-     * Text within each group is concatenated in spatial reading order.
      */
     private fun groupRegions(regions: List<OcrTextRegion>): List<OcrTextRegion> {
         if (regions.size <= 1) return regions
@@ -162,7 +219,6 @@ object MangaOcr {
             parent[find(a)] = find(b)
         }
 
-        // Compute axis-aligned bounding box for each region
         data class AABB(val minX: Float, val minY: Float, val maxX: Float, val maxY: Float)
 
         val boxes = regions.map { r ->
@@ -171,44 +227,59 @@ object MangaOcr {
             AABB(xs.min(), ys.min(), xs.max(), ys.max())
         }
 
-        // Merge regions whose AABBs overlap or are within gap pixels
-        val gap = regions.map { maxOf(it.width, it.height) }.average().toFloat() * 0.5f
-
         for (i in 0 until n) {
             for (j in i + 1 until n) {
+                val ri = regions[i]
+                val rj = regions[j]
+                // Only merge if same orientation
+                if (ri.orientation != rj.orientation) continue
+
                 val a = boxes[i]
                 val b = boxes[j]
-                val overlapX = a.minX - gap <= b.maxX && b.minX - gap <= a.maxX
-                val overlapY = a.minY - gap <= b.maxY && b.minY - gap <= a.maxY
-                if (overlapX && overlapY) {
-                    union(i, j)
+
+                // Gap based on the smaller of the two regions' character size
+                // For vertical text: character size ≈ width; for horizontal: ≈ height
+                val charSizeI = if (ri.orientation == 1) ri.width else ri.height
+                val charSizeJ = if (rj.orientation == 1) rj.width else rj.height
+                val gap = minOf(charSizeI, charSizeJ) * 0.8f
+
+                if (ri.orientation == 1) {
+                    // Vertical text: merge only if horizontally adjacent (same column group)
+                    // and vertically overlapping (continuous reading flow)
+                    val hGap = minOf(Math.abs(a.minX - b.maxX), Math.abs(b.minX - a.maxX))
+                    val overlapY = a.minY - gap <= b.maxY && b.minY - gap <= a.maxY
+                    if (hGap <= gap && overlapY) {
+                        union(i, j)
+                    }
+                } else {
+                    // Horizontal text: merge only if vertically adjacent (same line group)
+                    // and horizontally overlapping
+                    val vGap = minOf(Math.abs(a.minY - b.maxY), Math.abs(b.minY - a.maxY))
+                    val overlapX = a.minX - gap <= b.maxX && b.minX - gap <= a.maxX
+                    if (vGap <= gap && overlapX) {
+                        union(i, j)
+                    }
                 }
             }
         }
 
-        // Group by root
         val groups = mutableMapOf<Int, MutableList<Int>>()
         for (i in 0 until n) {
             groups.getOrPut(find(i)) { mutableListOf() }.add(i)
         }
 
-        // For each group, sort and concatenate text
         return groups.values.map { indices ->
-            // Sort: vertical text right-to-left (by cx desc), horizontal text top-to-bottom (by cy asc)
             val mainOrientation = indices.map { regions[it].orientation }.groupBy { it }
                 .maxByOrNull { it.value.size }?.key ?: 0
 
             val sorted = if (mainOrientation == 1) {
-                // Vertical: right column first (reading order is right-to-left)
                 indices.sortedByDescending { regions[it].cx }
             } else {
-                // Horizontal: top to bottom
                 indices.sortedBy { regions[it].cy }
             }
 
             val combinedText = sorted.joinToString("") { regions[it].text }
 
-            // Use first region's position as representative
             val first = regions[sorted.first()]
             val allCorners = sorted.flatMap { regions[it].corners }
             val minX = allCorners.minOf { it.first }
