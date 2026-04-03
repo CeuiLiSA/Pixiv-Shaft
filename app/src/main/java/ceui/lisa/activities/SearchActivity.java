@@ -66,10 +66,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         isPremium = SessionManager.INSTANCE.isPremium();
         searchModel.getIsPremium().setValue(isPremium);
 
-        if (PrimeIllustLoader.INSTANCE.matchesKeyword(keyWord)) {
-            searchModel.getSortType().setValue(PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE);
-        }
-
 //        searchModel.getNowGo().observe(this, new Observer<String>() {
 //            @Override
 //            public void onChanged(String s) {
