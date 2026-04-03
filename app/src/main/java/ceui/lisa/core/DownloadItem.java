@@ -22,6 +22,8 @@ public class DownloadItem implements Serializable {
     private int state = DownloadState.INIT;
     private boolean paused = false;
     private int nonius = 0;
+    private transient long currentSize = 0;
+    private transient long totalSize = 0;
 
     public DownloadItem(IllustsBean illustsBean, int index) {
         this.illust = illustsBean;
@@ -119,6 +121,22 @@ public class DownloadItem implements Serializable {
 
     public void setNonius(int nonius) {
         this.nonius = nonius;
+    }
+
+    public long getCurrentSize() {
+        return currentSize;
+    }
+
+    public void setCurrentSize(long currentSize) {
+        this.currentSize = currentSize;
+    }
+
+    public long getTotalSize() {
+        return totalSize;
+    }
+
+    public void setTotalSize(long totalSize) {
+        this.totalSize = totalSize;
     }
 
     public boolean shouldStartNewDownload() {

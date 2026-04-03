@@ -8,19 +8,19 @@ import org.jetbrains.annotations.Nullable;
 
 import androidx.documentfile.provider.DocumentFile;
 import ceui.lisa.core.DownloadItem;
+import ceui.lisa.download.DownloadFileFactory;
 import ceui.lisa.file.SAFile;
-import okhttp3.Response;
-import rxhttp.wrapper.callback.UriFactory;
 
-public class SAFactory extends UriFactory {
+public class SAFactory implements DownloadFileFactory {
 
+    private final Context mContext;
     private final DownloadItem mItem;
     private Uri mUri;
 
     public SAFactory(@NotNull Context context, DownloadItem item) {
-        super(context);
+        this.mContext = context;
         this.mItem = item;
-        DocumentFile file = SAFile.getDocument(getContext(), mItem.getIllust(), mItem.getIndex(), mItem.shouldStartNewDownload());
+        DocumentFile file = SAFile.getDocument(mContext, mItem.getIllust(), mItem.getIndex(), mItem.shouldStartNewDownload());
         mUri = file.getUri();
     }
 
@@ -32,11 +32,13 @@ public class SAFactory extends UriFactory {
 
     @NotNull
     @Override
-    public Uri insert(@NotNull Response response) {
+    public Uri insert() {
         return mUri;
     }
 
-    public Uri getUri() {
+    @NotNull
+    @Override
+    public Uri getFileUri() {
         return mUri;
     }
 

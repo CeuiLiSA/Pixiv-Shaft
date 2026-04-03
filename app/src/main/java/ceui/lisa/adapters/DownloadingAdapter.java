@@ -20,7 +20,7 @@ import ceui.lisa.download.DownloadHolder;
 import ceui.lisa.download.FileSizeUtil;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.GlideUtil;
-import rxhttp.wrapper.entity.Progress;
+import ceui.lisa.download.DownloadProgress;
 
 //正在下载
 public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTaskBinding> {
@@ -58,9 +58,9 @@ public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTa
 
         final Manager manager = Manager.get();
         // 回调
-        manager.setCallback(target.getUuid(), new Callback<Progress>() {
+        manager.setCallback(target.getUuid(), new Callback<DownloadProgress>() {
             @Override
-            public void doSomething(Progress t) {
+            public void doSomething(DownloadProgress t) {
                 if (manager.getUuid().equals(target.getUuid())) {
                     bindView.baseBind.progress.setProgress(t.getProgress());
                     bindView.baseBind.currentSize.setText(String.format("%s / %s",
@@ -99,7 +99,13 @@ public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTa
 
     private void setDefaultView(DownloadItem target, ViewHolder<RecyDownloadTaskBinding> bindView, int position) {
         bindView.baseBind.progress.setProgress(target.getNonius());
-        bindView.baseBind.currentSize.setText(mContext.getString(R.string.string_115));
+        if (target.getTotalSize() > 0) {
+            bindView.baseBind.currentSize.setText(String.format("%s / %s",
+                    FileSizeUtil.formatFileSize(target.getCurrentSize()),
+                    FileSizeUtil.formatFileSize(target.getTotalSize())));
+        } else {
+            bindView.baseBind.currentSize.setText(mContext.getString(R.string.string_115));
+        }
 
         switch (target.getState()){
             case DownloadItem.DownloadState.INIT:

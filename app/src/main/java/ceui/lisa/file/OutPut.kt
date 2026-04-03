@@ -9,7 +9,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.PathUtils
-import rxhttp.wrapper.utils.query
+import ceui.lisa.download.MediaStoreUtil
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -22,7 +22,7 @@ object OutPut {
     fun outPutGif(context: Context, from: File, illust: IllustsBean) {
         if (Common.isAndroidQ()) {
             val relativePath = FileStorageHelper.getIllustRelativePathQ(illust)
-            var uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, from.name, relativePath)
+            var uri = MediaStoreUtil.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, context, from.name, relativePath)
             if (uri != null) {
                 val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
                 outputStream.write(ByteArray(0))
@@ -89,7 +89,7 @@ object OutPut {
     fun outPutToDownload(context: Context, from: File, path: String, fileName: String) {
         if (Common.isAndroidQ()) {
             val relativePath = PathUtils.join(Environment.DIRECTORY_DOWNLOADS, path)
-            var uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI.query(context, fileName, relativePath)
+            var uri = MediaStoreUtil.query(MediaStore.Downloads.EXTERNAL_CONTENT_URI, context, fileName, relativePath)
             if (uri != null) {
                 val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
                 outputStream.write(ByteArray(0))
