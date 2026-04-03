@@ -25,10 +25,10 @@ public class HttpDns implements Dns {
             "oauth.secure.pixiv.net",
     };
 
-    // Pixiv API/OAuth 已迁移至 Cloudflare CDN (2026-04)
+    // Pixiv API/OAuth 已迁移至 Cloudflare CDN (2026-04)，与 CronetInterceptor 共享
     private static final String[] FALLBACK_API_IPS = {
-            "104.18.42.239",
-            "172.64.145.17",
+            CronetInterceptor.CF_IP_PRIMARY,
+            CronetInterceptor.CF_IP_SECONDARY,
     };
 
     // 图片服务器还在旧 Pixiv 基础设施

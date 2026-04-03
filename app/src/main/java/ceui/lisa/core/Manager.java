@@ -269,6 +269,7 @@ public class Manager {
         long passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
         //Common.showLog("Resume Size: beanSize=" + beanSize + ",fileSize=" + fileSize + ",uri="+factory.query());
         handle = RxHttp.get(downloadItem.getUrl())
+                .setOkClient(((Shaft) Shaft.getContext()).getOkHttpClient())
                 .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER)
                 .setRangeHeader(passSize, true)
                 .asDownload(factory, AndroidSchedulers.mainThread(), new Consumer<Progress>() {
