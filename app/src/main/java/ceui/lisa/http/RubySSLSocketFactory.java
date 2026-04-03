@@ -35,17 +35,25 @@ public final class RubySSLSocketFactory extends SSLSocketFactory {
         }
     }
 
-    @Nullable
-    public Socket createSocket(@Nullable String host, int port) { return null; }
+    @NotNull
+    public Socket createSocket(@Nullable String host, int port) {
+        throw new UnsupportedOperationException("Use createSocket(Socket, String, int, boolean)");
+    }
 
-    @Nullable
-    public Socket createSocket(@Nullable String host, int port, @Nullable InetAddress localAddr, int localPort) { return null; }
+    @NotNull
+    public Socket createSocket(@Nullable String host, int port, @Nullable InetAddress localAddr, int localPort) {
+        throw new UnsupportedOperationException("Use createSocket(Socket, String, int, boolean)");
+    }
 
-    @Nullable
-    public Socket createSocket(@Nullable InetAddress addr, int port) { return null; }
+    @NotNull
+    public Socket createSocket(@Nullable InetAddress addr, int port) {
+        throw new UnsupportedOperationException("Use createSocket(Socket, String, int, boolean)");
+    }
 
-    @Nullable
-    public Socket createSocket(@Nullable InetAddress addr, int port, @Nullable InetAddress localAddr, int localPort) { return null; }
+    @NotNull
+    public Socket createSocket(@Nullable InetAddress addr, int port, @Nullable InetAddress localAddr, int localPort) {
+        throw new UnsupportedOperationException("Use createSocket(Socket, String, int, boolean)");
+    }
 
     @NotNull
     public Socket createSocket(@Nullable Socket socket, @Nullable String host, int port, boolean autoClose) throws IOException {

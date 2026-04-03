@@ -65,7 +65,11 @@ public class HttpDns implements Dns {
 
     public static HttpDns getInstance() {
         if (sHttpDns == null) {
-            sHttpDns = new HttpDns();
+            synchronized (HttpDns.class) {
+                if (sHttpDns == null) {
+                    sHttpDns = new HttpDns();
+                }
+            }
         }
         return sHttpDns;
     }

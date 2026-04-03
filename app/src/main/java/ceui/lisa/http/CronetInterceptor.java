@@ -13,8 +13,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -96,7 +94,6 @@ public class CronetInterceptor implements Interceptor {
 
         CountDownLatch latch = new CountDownLatch(1);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        WritableByteChannel channel = Channels.newChannel(bos);
         final Throwable[] error = {null};
         final UrlResponseInfo[] responseInfo = {null};
         final long[] ttfb = {0};
@@ -121,16 +118,15 @@ public class CronetInterceptor implements Interceptor {
             @Override
             public void onReadCompleted(UrlRequest req, UrlResponseInfo info, ByteBuffer buf) {
                 buf.flip();
-                try {
-                    if (bos.size() + buf.remaining() > MAX_RESPONSE_BYTES) {
-                        throw new IOException("Response exceeds " + MAX_RESPONSE_BYTES + " bytes");
-                    }
-                    channel.write(buf);
-                } catch (IOException e) {
-                    error[0] = e;
+                int remaining = buf.remaining();
+                if (bos.size() + remaining > MAX_RESPONSE_BYTES) {
+                    error[0] = new IOException("Response exceeds " + MAX_RESPONSE_BYTES + " bytes");
                     req.cancel();
                     return;
                 }
+                byte[] tmp = new byte[remaining];
+                buf.get(tmp);
+                bos.write(tmp, 0, remaining);
                 buf.clear();
                 req.read(buf);
             }

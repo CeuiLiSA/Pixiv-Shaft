@@ -123,8 +123,6 @@ public class Shaft extends Application implements ServicesProvider {
             // 3. 强制 HTTP/1.1 避免 H2 复用连接被 GFW 整体干扰
             try {
                 ceui.lisa.http.pixivOkHttpClient trustManager = new ceui.lisa.http.pixivOkHttpClient();
-                javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("TLS");
-                sslContext.init(null, new javax.net.ssl.TrustManager[]{trustManager}, null);
                 glideBuilder.sslSocketFactory(new ceui.lisa.http.RubySSLSocketFactory(), trustManager);
                 glideBuilder.hostnameVerifier((hostname, session) -> true);
             } catch (Exception e) {
