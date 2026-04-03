@@ -68,7 +68,7 @@ public class Manager {
                     DownloadItem downloadItem = Shaft.sGson.fromJson(entity.getTaskGson(), DownloadItem.class);
                     content.add(downloadItem);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    Common.showLog("Manager restore error: " + ex.getMessage());
                 }
             }
             Common.showToast("下载记录恢复成功");
@@ -345,7 +345,7 @@ public class Manager {
                                         c.doSomething(dp);
                                     }
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    Common.showLog("Manager progress callback error: " + e.getMessage());
                                 }
                             });
                         }
@@ -421,7 +421,7 @@ public class Manager {
             complete(downloadItem, true);
         }, throwable -> {
             //下载失败，处理相关逻辑
-            throwable.printStackTrace();
+            Common.showLog("Manager download error: " + throwable.getMessage());
             if (Shaft.sSettings.isToastDownloadResult()) {
                 Common.showToast("下载失败，原因：" + throwable.toString());
             }

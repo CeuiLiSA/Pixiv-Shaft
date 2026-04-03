@@ -28,7 +28,7 @@ public final class RubySSLSocketFactory extends SSLSocketFactory {
     public RubySSLSocketFactory() {
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{new pixivOkHttpClient()}, null);
+            sslContext.init(null, new TrustManager[]{new TrustAllCertManager()}, null);
             delegate = sslContext.getSocketFactory();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new RuntimeException(e);

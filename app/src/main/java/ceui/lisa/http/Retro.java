@@ -79,8 +79,8 @@ public class Retro {
         return before;
     }
 
-    private static OkHttpClient.Builder fuckChinaWithConfig(OkHttpClient.Builder before, boolean enable) {
-        if (enable && Shaft.sSettings.isAutoFuckChina()) {
+    private static OkHttpClient.Builder applyDirectConnect(OkHttpClient.Builder before, boolean enable) {
+        if (enable && Shaft.sSettings.isDirectConnect()) {
             before.addInterceptor(new CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())));
         }
         return before;
@@ -102,9 +102,9 @@ public class Retro {
      * Retrofit: A Type-Safe HTTP Client for Android and JVM
      * Retrofit is a popular and powerful type-safe HTTP client library for Android and Java Virtual Machine (JVM) applications. It simplifies the process of making network requests by converting your REST API endpoints into Java interfaces.
      * @param baseUrl   The base URL
-     * @param autoFuckChina auto
+     * @param directConnect auto
      * */
-    private static Retrofit buildRetrofit(String baseUrl, boolean autoFuckChina) {
+    private static Retrofit buildRetrofit(String baseUrl, boolean directConnect) {
         OkHttpClient.Builder builder = getLogClient();
         try {
             builder.addInterceptor(chain -> {
@@ -120,9 +120,9 @@ public class Retro {
             });
             builder.addInterceptor(new TokenInterceptor());
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("Retro", "buildRetrofit interceptor error", e);
         }
-        fuckChinaWithConfig(builder, autoFuckChina);
+        applyDirectConnect(builder, directConnect);
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         return new Retrofit.Builder()

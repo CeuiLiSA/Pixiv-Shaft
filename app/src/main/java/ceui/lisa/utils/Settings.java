@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.PathUtils;
+import com.google.gson.annotations.SerializedName;
 
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
@@ -87,8 +88,9 @@ public class Settings {
     //屏蔽，不显示AI创作的作品，默认不屏蔽
     private boolean deleteAIIllust = false;
 
-    //是否自动添加DNS，true开启直连  false自行代理
-    private boolean autoFuckChina = false;
+    //是否开启直连模式，true 开启  false 自行代理
+    @SerializedName("autoFuckChina")
+    private boolean directConnect = false;
 
     private boolean relatedIllustNoLimit = true;
 
@@ -345,12 +347,12 @@ public class Settings {
         this.relatedIllustNoLimit = relatedIllustNoLimit;
     }
 
-    public boolean isAutoFuckChina() {
-        return autoFuckChina;
+    public boolean isDirectConnect() {
+        return directConnect;
     }
 
-    public void setAutoFuckChina(boolean autoFuckChina) {
-        this.autoFuckChina = autoFuckChina;
+    public void setDirectConnect(boolean directConnect) {
+        this.directConnect = directConnect;
     }
 
     public boolean isMainViewR18() {

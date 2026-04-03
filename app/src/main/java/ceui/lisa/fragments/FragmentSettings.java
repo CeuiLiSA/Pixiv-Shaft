@@ -161,12 +161,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
         // 网络
         {
-            baseBind.autoDns.setChecked(Shaft.sSettings.isAutoFuckChina());
+            baseBind.autoDns.setChecked(Shaft.sSettings.isDirectConnect());
             baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    boolean changed = isChecked != Shaft.sSettings.isAutoFuckChina();
-                    Shaft.sSettings.setAutoFuckChina(isChecked);
+                    boolean changed = isChecked != Shaft.sSettings.isDirectConnect();
+                    Shaft.sSettings.setDirectConnect(isChecked);
                     Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                     if (changed) {
@@ -175,7 +175,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     }
                 }
             });
-            baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {
+            baseBind.directConnectLink.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -185,7 +185,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     startActivity(intent);
                 }
             });
-            baseBind.fuckChinaRela.setOnClickListener(new View.OnClickListener() {
+            baseBind.directConnectRela.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     baseBind.autoDns.performClick();
