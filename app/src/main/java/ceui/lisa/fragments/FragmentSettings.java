@@ -191,23 +191,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     baseBind.autoDns.performClick();
                 }
             });
-
-            baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isUsePixivCat());
-            baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Shaft.sSettings.setUsePixivCat(isChecked);
-                    Common.showToast(getString(R.string.string_428));
-                    Local.setSettings(Shaft.sSettings);
-                }
-            });
-            baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    baseBind.firstDetailOrigin.performClick();
-                }
-            });
-
             //缩略图是否显示大图
             baseBind.showLargeThumbnailImage.setChecked(Shaft.sSettings.isShowLargeThumbnailImage());
             baseBind.showLargeThumbnailImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -1123,4 +1106,5 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         }
     }
+
 }

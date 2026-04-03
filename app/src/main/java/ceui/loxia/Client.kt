@@ -1,11 +1,10 @@
 package ceui.loxia
 
+import android.text.TextUtils
 import android.util.Log
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AccountTokenApi
-import ceui.lisa.http.HttpDns
-import ceui.lisa.http.RubySSLSocketFactory
-import ceui.lisa.http.pixivOkHttpClient
+import ceui.lisa.http.CronetInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
@@ -67,6 +66,13 @@ class ClientManager {
 
         const val TOKEN_ERROR_1 = "Error occurred at the OAuth process"
         const val TOKEN_ERROR_2 = "Invalid refresh token"
+
+    }
+
+    private fun applyDirectConnect(builder: OkHttpClient.Builder) {
+        if (Shaft.sSettings.isAutoFuckChina) {
+            builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+        }
     }
 
     fun <T> createAPPAPI(service: Class<T>): T {
@@ -74,21 +80,19 @@ class ClientManager {
             .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .protocols(listOf(Protocol.HTTP_1_1))
-
-        if (Shaft.sSettings.isAutoFuckChina) {
-            okhttpClientBuilder.sslSocketFactory(RubySSLSocketFactory(), pixivOkHttpClient())
-            okhttpClientBuilder.dns(HttpDns.getInstance())
-        }
+            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
         okhttpClientBuilder.addInterceptor(TokenFetcherInterceptor())
         okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
             setLevel(HttpLoggingInterceptor.Level.BODY)
         })
+        applyDirectConnect(okhttpClientBuilder)
+
+        val baseUrl = APP_API_HOST
 
         return Retrofit.Builder()
-            .baseUrl(APP_API_HOST)
+            .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(okhttpClientBuilder.build())
             .build()
@@ -106,12 +110,12 @@ class ClientManager {
         okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
             setLevel(HttpLoggingInterceptor.Level.BODY)
         })
-        okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BODY)
-        })
+        applyDirectConnect(okhttpClientBuilder)
+
+        val baseUrl = OAUTH_HOST
 
         return Retrofit.Builder()
-            .baseUrl(OAUTH_HOST)
+            .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(okhttpClientBuilder.build())
             .build()

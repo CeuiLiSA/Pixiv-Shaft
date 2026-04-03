@@ -10,6 +10,24 @@ import java.security.SecureRandom;
 
 public class PkceUtil {
 
+    private static PKCEItem sPkce;
+
+    public static PKCEItem getPkce() {
+        if (sPkce == null) {
+            try {
+                String verify = generateCodeVerifier();
+                String challenge = generateCodeChallenge(verify);
+                sPkce = new PKCEItem(verify, challenge);
+            } catch (Exception e) {
+                e.printStackTrace();
+                sPkce = new PKCEItem(
+                        "-29P7XEuFCNdG-1aiYZ9tTeYrABWRHxS9ZVNr6yrdcI",
+                        "usItTkssolVsmIbxrf0o-O_FsdvZFANVPCf9jP4jP_0");
+            }
+        }
+        return sPkce;
+    }
+
     public static String generateCodeVerifier() throws UnsupportedEncodingException {
         SecureRandom secureRandom = new SecureRandom();
         byte[] codeVerifier = new byte[32];

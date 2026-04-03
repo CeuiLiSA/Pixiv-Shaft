@@ -20,7 +20,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.UserEntity
 import ceui.lisa.databinding.ActivityLoginBinding
-import ceui.lisa.feature.HostManager
+import ceui.lisa.feature.PkceUtil
 import ceui.lisa.interfaces.FeedBack
 import ceui.lisa.models.UserModel
 import ceui.lisa.utils.ClipBoardUtils
@@ -84,7 +84,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         baseBind.login.setOnClickListener {
             checkAndNext {
                 openProxyHint {
-                    val url = LOGIN_HEAD + HostManager.get().pkce.challenge + LOGIN_END
+                    val url = LOGIN_HEAD + PkceUtil.getPkce().challenge + LOGIN_END
                     val intent = Intent(mContext, TemplateActivity::class.java)
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
                     intent.putExtra(Params.URL, url)
@@ -97,7 +97,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         baseBind.sign.setOnClickListener {
             checkAndNext {
                 openProxyHint {
-                    val url = SIGN_HEAD + HostManager.get().pkce.challenge + SIGN_END
+                    val url = SIGN_HEAD + PkceUtil.getPkce().challenge + SIGN_END
                     val intent = Intent(mContext, TemplateActivity::class.java)
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
                     intent.putExtra(Params.URL, url)

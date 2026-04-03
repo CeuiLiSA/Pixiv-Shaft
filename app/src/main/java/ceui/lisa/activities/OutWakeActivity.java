@@ -14,7 +14,7 @@ import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
-import ceui.lisa.feature.HostManager;
+
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -120,7 +120,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                     if (scheme.contains("http")) {
                         try {
                             String uriString = uri.toString();
-                            if (uriString.toLowerCase().contains(HostManager.HOST_OLD)) {
+                            if (uriString.toLowerCase().contains("i.pximg.net")) {
                                 int index = uriString.lastIndexOf("/");
                                 String end = uriString.substring(index + 1);
                                 String idString = end.split("_")[0];
@@ -196,7 +196,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                         FragmentLogin.CLIENT_SECRET,
                                         FragmentLogin.AUTH_CODE,
                                         code,
-                                        HostManager.get().getPkce().getVerify(),
+                                        ceui.lisa.feature.PkceUtil.getPkce().getVerify(),
                                         FragmentLogin.CALL_BACK,
                                         true
                                 ).subscribeOn(Schedulers.newThread())

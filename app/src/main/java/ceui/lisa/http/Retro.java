@@ -13,6 +13,7 @@ import java.util.Collections;
 import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
+import ceui.loxia.ClientManager;
 import ceui.pixiv.session.SessionManager;
 import ceui.lisa.helper.LanguageHelper;
 import okhttp3.OkHttpClient;
@@ -79,9 +80,8 @@ public class Retro {
     }
 
     private static OkHttpClient.Builder fuckChinaWithConfig(OkHttpClient.Builder before, boolean enable) {
-        if(enable && Shaft.sSettings.isAutoFuckChina()){
-            before.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
-            before.dns(HttpDns.getInstance());
+        if (enable && Shaft.sSettings.isAutoFuckChina()) {
+            before.addInterceptor(new CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())));
         }
         return before;
     }

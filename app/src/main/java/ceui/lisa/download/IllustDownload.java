@@ -25,7 +25,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
-import ceui.lisa.feature.HostManager;
+
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.OutPut;
 import ceui.lisa.file.SAFile;
@@ -182,8 +182,8 @@ public class IllustDownload {
     public static DownloadItem downloadGif(GifResponse response, IllustsBean illust, boolean autoSave) {
         DownloadItem item = new DownloadItem(illust, 0);
         item.setAutoSave(autoSave);
-        item.setUrl(HostManager.get().replaceUrl(response.getUgoira_metadata().getZip_urls().getMedium()));
-        item.setShowUrl(HostManager.get().replaceUrl(illust.getImage_urls().getMedium()));
+        item.setUrl((response.getUgoira_metadata().getZip_urls().getMedium()));
+        item.setShowUrl((illust.getImage_urls().getMedium()));
         Manager.get().addTask(item);
         return item;
     }
@@ -320,7 +320,7 @@ public class IllustDownload {
     }
 
     public static String getUrl(IllustsBean illust, int index, String imageResolution) {
-        return HostManager.get().replaceUrl(getImageUrlByResolution(illust, index, imageResolution));
+        return (getImageUrlByResolution(illust, index, imageResolution));
     }
 
     private static String getImageUrlByResolution(IllustsBean illust, int index, String imageResolution) {

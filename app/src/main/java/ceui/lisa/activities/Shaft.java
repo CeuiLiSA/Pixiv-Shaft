@@ -24,7 +24,7 @@ import com.tencent.mmkv.MMKV;
 import androidx.annotation.NonNull;
 
 import ceui.lisa.R;
-import ceui.lisa.feature.HostManager;
+
 import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.notification.NetWorkStateReceiver;
@@ -115,7 +115,27 @@ public class Shaft extends Application implements ServicesProvider {
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
-        this.mOkHttpClient = ProgressManager.getInstance().with(new OkHttpClient.Builder()).build();
+        OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(new OkHttpClient.Builder());
+        if (sSettings.isAutoFuckChina()) {
+            // 图片走 https://i.pximg.net 原始 URL，在 OkHttp 层面：
+            // 1. 自定义 DNS 绕过 DNS 污染
+            // 2. 无 SNI 的 TLS 绕过 GFW（图片服务器不要求 SNI）
+            // 3. 强制 HTTP/1.1 避免 H2 复用连接被 GFW 整体干扰
+            try {
+                ceui.lisa.http.pixivOkHttpClient trustManager = new ceui.lisa.http.pixivOkHttpClient();
+                javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("TLS");
+                sslContext.init(null, new javax.net.ssl.TrustManager[]{trustManager}, null);
+                glideBuilder.sslSocketFactory(new ceui.lisa.http.RubySSLSocketFactory(), trustManager);
+                glideBuilder.hostnameVerifier((hostname, session) -> true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            glideBuilder.dns(ceui.lisa.http.HttpDns.getInstance());
+            glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
+            glideBuilder.connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS);
+            glideBuilder.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
+        }
+        this.mOkHttpClient = glideBuilder.build();
 
         //计算状态栏高度并赋值
         statusHeight = 0;
@@ -129,8 +149,6 @@ public class Shaft extends Application implements ServicesProvider {
         if (netWorkStateReceiver == null) {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
-
-        HostManager.get().init();
 
         //Init Toast utils
         ToastUtils.init(this);
