@@ -115,15 +115,26 @@ public class HttpDns implements Dns {
 
     @Override
     public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+        long start = System.nanoTime();
         // 优先用 DoH 解析的结果
         List<InetAddress> cached = resolvedHosts.get(hostname);
         if (cached != null && !cached.isEmpty()) {
+            long elapsed = (System.nanoTime() - start) / 1_000_000;
+            Common.showLog("HttpDns lookup " + hostname + " → DoH cached " + cached + " [" + elapsed + "ms]");
             return cached;
         }
         // 图片域名用旧 Pixiv 服务器 IP，API 域名用 Cloudflare IP
+        List<InetAddress> result;
+        String source;
         if (hostname.endsWith("pximg.net")) {
-            return fallbackImageAddresses;
+            result = fallbackImageAddresses;
+            source = "fallback-image";
+        } else {
+            result = fallbackApiAddresses;
+            source = "fallback-api";
         }
-        return fallbackApiAddresses;
+        long elapsed = (System.nanoTime() - start) / 1_000_000;
+        Common.showLog("HttpDns lookup " + hostname + " → " + source + " " + result + " [" + elapsed + "ms]");
+        return result;
     }
 }

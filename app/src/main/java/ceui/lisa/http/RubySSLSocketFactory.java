@@ -50,10 +50,16 @@ public final class RubySSLSocketFactory extends SSLSocketFactory {
     @NotNull
     public Socket createSocket(@Nullable Socket socket, @Nullable String host, int port, boolean autoClose) throws IOException {
         if (socket == null) throw new NullPointerException("socket is null");
-        Log.d("RubySSL", "No-SNI connect to " + socket.getInetAddress().getHostAddress());
+        String ip = socket.getInetAddress().getHostAddress();
+        long start = System.nanoTime();
+        Log.d("RubySSL", "──→ No-SNI TLS handshake to " + ip + ":" + port);
         // 传 null hostname → Java TLS 不在 ClientHello 中包含 SNI 扩展
         SSLSocket sslSocket = (SSLSocket) delegate.createSocket(socket, null, port, autoClose);
         sslSocket.setEnabledProtocols(sslSocket.getSupportedProtocols());
+        long elapsed = (System.nanoTime() - start) / 1_000_000;
+        Log.d("RubySSL", "←── TLS handshake done " + ip + ":" + port
+                + " [" + elapsed + "ms] protocol=" + sslSocket.getSession().getProtocol()
+                + " cipher=" + sslSocket.getSession().getCipherSuite());
         return sslSocket;
     }
 

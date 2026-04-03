@@ -86,23 +86,35 @@ public class CronetInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         String url = request.url().toString();
+        String method = request.method();
+        String path = request.url().encodedPath();
+        String query = request.url().encodedQuery();
+        String shortUrl = path + (query != null ? "?" + query : "");
+
+        long startTime = System.nanoTime();
+        Log.d(TAG, "──→ " + method + " " + shortUrl);
 
         CountDownLatch latch = new CountDownLatch(1);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         WritableByteChannel channel = Channels.newChannel(bos);
         final Throwable[] error = {null};
         final UrlResponseInfo[] responseInfo = {null};
+        final long[] ttfb = {0};
 
         UrlRequest.Builder builder = engine.newUrlRequestBuilder(url, new UrlRequest.Callback() {
             @Override
             public void onRedirectReceived(UrlRequest req, UrlResponseInfo info, String newUrl) {
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.d(TAG, "  ↳ redirect [" + elapsed + "ms] → " + newUrl);
                 req.followRedirect();
             }
 
             @Override
             public void onResponseStarted(UrlRequest req, UrlResponseInfo info) {
                 responseInfo[0] = info;
-                Log.d(TAG, "Protocol: " + info.getNegotiatedProtocol() + " Status: " + info.getHttpStatusCode());
+                ttfb[0] = (System.nanoTime() - startTime) / 1_000_000;
+                Log.d(TAG, "  ↳ response started [TTFB " + ttfb[0] + "ms] "
+                        + info.getHttpStatusCode() + " " + info.getNegotiatedProtocol());
                 req.read(ByteBuffer.allocateDirect(32768));
             }
 
@@ -130,12 +142,16 @@ public class CronetInterceptor implements Interceptor {
 
             @Override
             public void onFailed(UrlRequest req, UrlResponseInfo info, CronetException e) {
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.e(TAG, "  ✗ failed [" + elapsed + "ms] " + e.getMessage());
                 error[0] = e;
                 latch.countDown();
             }
 
             @Override
             public void onCanceled(UrlRequest req, UrlResponseInfo info) {
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.w(TAG, "  ✗ cancelled [" + elapsed + "ms]");
                 if (error[0] == null) {
                     error[0] = new IOException("Request cancelled");
                 }
@@ -150,7 +166,6 @@ public class CronetInterceptor implements Interceptor {
         }
 
         // 设置 HTTP method 和 body
-        String method = request.method();
         if (request.body() != null) {
             Buffer buf = new Buffer();
             request.body().writeTo(buf);
@@ -174,20 +189,30 @@ public class CronetInterceptor implements Interceptor {
         try {
             if (!latch.await(30, TimeUnit.SECONDS)) {
                 urlRequest.cancel();
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.e(TAG, "←── " + method + " " + shortUrl + " TIMEOUT [" + elapsed + "ms]");
                 throw new IOException("Cronet request timed out: " + url);
             }
         } catch (InterruptedException e) {
             urlRequest.cancel();
+            long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+            Log.e(TAG, "←── " + method + " " + shortUrl + " INTERRUPTED [" + elapsed + "ms]");
             throw new IOException("Cronet request interrupted", e);
         }
 
         if (error[0] != null) {
+            long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+            Log.e(TAG, "←── " + method + " " + shortUrl + " FAILED [" + elapsed + "ms] " + error[0].getMessage());
             throw new IOException("Cronet failed: " + error[0].getMessage(), error[0]);
         }
 
         if (responseInfo[0] == null) {
+            long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+            Log.e(TAG, "←── " + method + " " + shortUrl + " NO_RESPONSE [" + elapsed + "ms]");
             throw new IOException("No response received");
         }
+
+        long totalTime = (System.nanoTime() - startTime) / 1_000_000;
 
         // 构建 OkHttp Response
         UrlResponseInfo info = responseInfo[0];
@@ -213,6 +238,11 @@ public class CronetInterceptor implements Interceptor {
         }
 
         byte[] body = bos.toByteArray();
+        long bodyReadTime = totalTime - ttfb[0];
+        Log.d(TAG, "←── " + method + " " + shortUrl + " " + info.getHttpStatusCode()
+                + " " + protocol + " [total " + totalTime + "ms | TTFB " + ttfb[0]
+                + "ms | body " + bodyReadTime + "ms | " + body.length + " bytes]");
+
         return new Response.Builder()
                 .request(request)
                 .protocol(okProtocol)
