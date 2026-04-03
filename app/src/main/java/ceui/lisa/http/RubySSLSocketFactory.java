@@ -1,7 +1,5 @@
 package ceui.lisa.http;
 
-
-import android.net.SSLCertificateSocketFactory;
 import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
@@ -10,82 +8,58 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
-import javax.net.SocketFactory;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 
-import kotlin.TypeCastException;
-import kotlin.jvm.internal.Intrinsics;
-
+/**
+ * 不发送 SNI 的 SSLSocketFactory。
+ * 用于图片服务器 (i.pximg.net)：GFW 按 SNI 封锁，不发 SNI 则 GFW 看不到域名。
+ * 图片服务器不要求 SNI（基于 IP 路由）。
+ */
 public final class RubySSLSocketFactory extends SSLSocketFactory {
 
-    private final HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+    private final SSLSocketFactory delegate;
 
-    @Nullable
-    public Socket createSocket(@Nullable String paramString, int paramInt) {
-        return null;
-    }
-
-    @Nullable
-    public Socket createSocket(@Nullable String paramString, int paramInt1, @Nullable InetAddress paramInetAddress, int paramInt2) {
-        return null;
-    }
-
-    @Nullable
-    public Socket createSocket(@Nullable InetAddress paramInetAddress, int paramInt) {
-        return null;
-    }
-
-    @Nullable
-    public Socket createSocket(@Nullable InetAddress paramInetAddress1, int paramInt1, @Nullable InetAddress paramInetAddress2, int paramInt2) {
-        return null;
-    }
-
-    @NotNull
-    public Socket createSocket(@Nullable Socket paramSocket, @Nullable String paramString, int paramInt, boolean paramBoolean) throws IOException {
-        if (paramSocket == null) {
-            Intrinsics.throwNpe();
+    public RubySSLSocketFactory() {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[]{new pixivOkHttpClient()}, null);
+            delegate = sslContext.getSocketFactory();
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException(e);
         }
-        InetAddress inetAddress = paramSocket.getInetAddress();
-        Intrinsics.checkExpressionValueIsNotNull(inetAddress, "address");
-        Log.d("createSocket address1", inetAddress.getHostAddress());
-        // okhttp3 4.5.0 版本引入修改，okhttp3.internal.connection.RealConnection->isHealthy中，检查了rawSocket.isClosed状态，如果需要更新到高版本依然可用，注释下方2行
-        if (paramBoolean)
-            paramSocket.close();
-        SocketFactory socketFactory = SSLCertificateSocketFactory.getDefault(0);
-        if (socketFactory != null) {
-            Socket socket = socketFactory.createSocket(inetAddress, paramInt);
-            if (socket != null) {
-                ((SSLSocket) socket).setEnabledProtocols(((SSLSocket) socket).getSupportedProtocols());
-                Log.i("X", "Setting SNI hostname");
-                SSLSession sSLSession = ((SSLSocket) socket).getSession();
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("Established ");
-                Intrinsics.checkExpressionValueIsNotNull(sSLSession, "session");
-                stringBuilder.append(sSLSession.getProtocol());
-                stringBuilder.append(" connection with ");
-                stringBuilder.append(sSLSession.getPeerHost());
-                stringBuilder.append(" using ");
-                stringBuilder.append(sSLSession.getCipherSuite());
-                Log.d("X", stringBuilder.toString());
-                return socket;
-            }
-            throw new TypeCastException("null cannot be cast to non-null type javax.net.ssl.SSLSocket");
-        }
-        throw new TypeCastException("null cannot be cast to non-null type android.net.SSLCertificateSocketFactory");
+    }
+
+    @Nullable
+    public Socket createSocket(@Nullable String host, int port) { return null; }
+
+    @Nullable
+    public Socket createSocket(@Nullable String host, int port, @Nullable InetAddress localAddr, int localPort) { return null; }
+
+    @Nullable
+    public Socket createSocket(@Nullable InetAddress addr, int port) { return null; }
+
+    @Nullable
+    public Socket createSocket(@Nullable InetAddress addr, int port, @Nullable InetAddress localAddr, int localPort) { return null; }
+
+    @NotNull
+    public Socket createSocket(@Nullable Socket socket, @Nullable String host, int port, boolean autoClose) throws IOException {
+        if (socket == null) throw new NullPointerException("socket is null");
+        Log.d("RubySSL", "No-SNI connect to " + socket.getInetAddress().getHostAddress());
+        // 传 null hostname → Java TLS 不在 ClientHello 中包含 SNI 扩展
+        SSLSocket sslSocket = (SSLSocket) delegate.createSocket(socket, null, port, autoClose);
+        sslSocket.setEnabledProtocols(sslSocket.getSupportedProtocols());
+        return sslSocket;
     }
 
     @NotNull
-    public String[] getDefaultCipherSuites() {
-        return new String[0];
-    }
+    public String[] getDefaultCipherSuites() { return delegate.getDefaultCipherSuites(); }
 
     @NotNull
-    public String[] getSupportedCipherSuites() {
-        return new String[0];
-    }
+    public String[] getSupportedCipherSuites() { return delegate.getSupportedCipherSuites(); }
 }

@@ -162,6 +162,8 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         // 网络
         {
             baseBind.autoDns.setChecked(Shaft.sSettings.isAutoFuckChina());
+            updateWorkerUrlVisibility();
+            updateWorkerUrlDisplay();
             baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -169,6 +171,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     Shaft.sSettings.setAutoFuckChina(isChecked);
                     Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
+                    updateWorkerUrlVisibility();
                     if (changed) {
                         Retro.refreshAppApi();
                         Client.INSTANCE.reset();
@@ -191,20 +194,37 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     baseBind.autoDns.performClick();
                 }
             });
-
-            baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isUsePixivCat());
-            baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Shaft.sSettings.setUsePixivCat(isChecked);
-                    Common.showToast(getString(R.string.string_428));
-                    Local.setSettings(Shaft.sSettings);
-                }
-            });
-            baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
+            baseBind.workerUrlRela.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    baseBind.firstDetailOrigin.performClick();
+                    final QMUIDialog.EditTextDialogBuilder builder =
+                            new QMUIDialog.EditTextDialogBuilder(mActivity);
+                    builder.setTitle(getString(R.string.worker_url_title))
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .setPlaceholder(getString(R.string.worker_url_hint))
+                            .setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_URI)
+                            .setDefaultText(Shaft.sSettings.getWorkerUrl())
+                            .addAction(getString(R.string.string_cancel), new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .addAction(getString(R.string.sure), new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    CharSequence text = builder.getEditText().getText();
+                                    String url = text != null ? text.toString().trim() : "";
+                                    Shaft.sSettings.setWorkerUrl(url);
+                                    Local.setSettings(Shaft.sSettings);
+                                    updateWorkerUrlDisplay();
+                                    Retro.refreshAppApi();
+                                    Client.INSTANCE.reset();
+                                    Common.showToast(getString(R.string.string_428), 2);
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
                 }
             });
 
@@ -1179,6 +1199,20 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void updateWorkerUrlVisibility() {
+        baseBind.workerUrlRela.setVisibility(
+                Shaft.sSettings.isAutoFuckChina() ? View.VISIBLE : View.GONE);
+    }
+
+    private void updateWorkerUrlDisplay() {
+        String url = Shaft.sSettings.getWorkerUrl();
+        if (TextUtils.isEmpty(url)) {
+            baseBind.workerUrlValue.setText(getString(R.string.worker_url_not_set));
+        } else {
+            baseBind.workerUrlValue.setText(url);
         }
     }
 }

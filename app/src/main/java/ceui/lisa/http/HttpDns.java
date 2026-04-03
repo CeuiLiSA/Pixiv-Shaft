@@ -4,42 +4,64 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import ceui.lisa.utils.Common;
 import okhttp3.Dns;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HttpDns implements Dns {
 
-    /**
-     * 210.129.120.55 pixiv.net
-     * 210.129.120.44 accounts.pixiv.net
-     * 210.140.131.145 source.pixiv.net
-     * 210.140.131.160 d.pixiv.org
-     * 210.140.131.144 imagaz.pixiv.net
-     * 210.129.120.55 www.pixiv.net
-     */
-
-    private static final String[] addresses = {
-            "210.140.139.155",
-            "210.140.139.156",
-            "210.140.139.157",
-            "210.140.139.158"
+    private static final String[] DOH_ENDPOINTS = {
+            CloudFlareDNSService.Companion.getCLOUDFLARE_DOH_POINT(),
+            CloudFlareDNSService.Companion.getDNSSB_DOH_POINT(),
     };
-    public static List<InetAddress> newDns = new ArrayList<>();
-    private static HttpDns sHttpDns = null;
+
+    private static final String[] DOMAINS = {
+            "app-api.pixiv.net",
+            "oauth.secure.pixiv.net",
+    };
+
+    // Pixiv API/OAuth 已迁移至 Cloudflare CDN (2026-04)
+    private static final String[] FALLBACK_API_IPS = {
+            "104.18.42.239",
+            "172.64.145.17",
+    };
+
+    // 图片服务器还在旧 Pixiv 基础设施
+    private static final String[] FALLBACK_IMAGE_IPS = {
+            "210.140.139.134",
+            "210.140.139.133",
+            "210.140.139.131",
+    };
+
+    private final Map<String, List<InetAddress>> resolvedHosts = new ConcurrentHashMap<>();
+    private static volatile HttpDns sHttpDns = null;
+    private List<InetAddress> fallbackApiAddresses;
+    private List<InetAddress> fallbackImageAddresses;
 
     private HttpDns() {
-        for (String address : addresses) {
+        fallbackApiAddresses = new ArrayList<>();
+        for (String ip : FALLBACK_API_IPS) {
             try {
-                newDns.add(InetAddress.getByName(address));
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
+                fallbackApiAddresses.add(InetAddress.getByName(ip));
+            } catch (UnknownHostException ignored) {
             }
         }
+        fallbackImageAddresses = new ArrayList<>();
+        for (String ip : FALLBACK_IMAGE_IPS) {
+            try {
+                fallbackImageAddresses.add(InetAddress.getByName(ip));
+            } catch (UnknownHostException ignored) {
+            }
+        }
+        for (String domain : DOMAINS) {
+            resolveViaDoH(domain, 0);
+        }
     }
-
-
-    /*private static final String[] addresses = {"123.207.56.160", "123.207.252.208", "202.141.162.123",
-            "40.73.101.101", "123.207.5.191", "210.129.120.45"};*/
 
     public static HttpDns getInstance() {
         if (sHttpDns == null) {
@@ -48,51 +70,60 @@ public class HttpDns implements Dns {
         return sHttpDns;
     }
 
-    /*著作权归作者所有。
-    商业转载请联系作者获得授权，非商业转载请注明出处。
-    Mashiro
-    链接：https://2heng.xin/2017/09/19/pixiv/
-    来源：樱花庄的白猫
-    #Pixiv Start
-    210.129.120.49  pixiv.net
-    210.129.120.49  www.pixiv.net
-    210.140.92.134  i.pximg.net
-    210.140.131.146 source.pixiv.net
-    210.129.120.56  accounts.pixiv.net
-    210.129.120.56  touch.pixiv.net
-    210.140.131.147 imgaz.pixiv.net
-    210.129.120.44  app-api.pixiv.net
-    210.129.120.48  oauth.secure.pixiv.net
-    210.129.120.41  dic.pixiv.net
-    210.140.131.153 comic.pixiv.net
-    210.129.120.43  factory.pixiv.net
-    74.120.148.207  g-client-proxy.pixiv.net
-    210.140.174.37  sketch.pixiv.net
-    210.129.120.43  payment.pixiv.net
-    210.129.120.41  sensei.pixiv.net
-    210.140.131.144 novel.pixiv.net
-    210.129.120.44  en-dic.pixiv.net
-    210.140.131.145 i1.pixiv.net
-    210.140.131.145 i2.pixiv.net
-    210.140.131.145 i3.pixiv.net
-    210.140.131.145 i4.pixiv.net
-    210.140.131.159 d.pixiv.org
-    210.140.92.141  s.pximg.net
-    210.140.92.135  pixiv.pximg.net
-    210.129.120.56  fanbox.pixiv.net
-    #Pixiv End*/
-
-    public List<InetAddress> lookup(String paramString)
-            throws UnknownHostException {
-        try {
-            return newDns;
-        } catch (Exception localException) {
-            localException.printStackTrace();
+    private void resolveViaDoH(String hostname, int endpointIndex) {
+        if (endpointIndex >= DOH_ENDPOINTS.length) {
+            Common.showLog("HttpDns all DoH failed for " + hostname + ", will use fallback IPs");
+            return;
         }
-        return Dns.SYSTEM.lookup(paramString);
+        try {
+            CloudFlareDNSService service = CloudFlareDNSService.Companion.invoke(DOH_ENDPOINTS[endpointIndex]);
+            service.query(hostname, "A").enqueue(new Callback<CloudFlareDNSResponse>() {
+                @Override
+                public void onResponse(Call<CloudFlareDNSResponse> call, Response<CloudFlareDNSResponse> response) {
+                    CloudFlareDNSResponse body = response.body();
+                    if (body != null && !Common.isEmpty(body.getAnswer())) {
+                        List<InetAddress> addresses = new ArrayList<>();
+                        for (CloudFlareDNSResponse.DNSAnswer answer : body.getAnswer()) {
+                            try {
+                                if (answer.getType() == 1) {
+                                    addresses.add(InetAddress.getByName(answer.getData()));
+                                }
+                            } catch (Exception ignored) {
+                            }
+                        }
+                        if (!addresses.isEmpty()) {
+                            resolvedHosts.put(hostname, addresses);
+                            Common.showLog("HttpDns resolved " + hostname + " -> " + addresses);
+                        } else {
+                            resolveViaDoH(hostname, endpointIndex + 1);
+                        }
+                    } else {
+                        resolveViaDoH(hostname, endpointIndex + 1);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<CloudFlareDNSResponse> call, Throwable t) {
+                    Common.showLog("HttpDns DoH failed for " + hostname + ": " + t.getMessage());
+                    resolveViaDoH(hostname, endpointIndex + 1);
+                }
+            });
+        } catch (Exception e) {
+            resolveViaDoH(hostname, endpointIndex + 1);
+        }
     }
-    //private static final String[] addresses = {"210.140.131.147", "210.129.120.50", "210.140.92.135", "210.140.131.144", "210.129.120.46", "210.140.131.144"};
-    //private static final String[] addresses = {"210.129.120.55", "210.129.120.44", "210.140.131.145", "210.140.131.160", "210.140.131.144"};
-    //private static final String[] addresses = {"210.129.120.49", "210.140.131.146", "210.129.120.56", "210.129.120.44", "210.129.120.48"};
-    //private static final String[] addresses = {"123.207.137.88", "202.141.162.123", "123.207.56.160", "115.159.220.214"};
+
+    @Override
+    public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+        // 优先用 DoH 解析的结果
+        List<InetAddress> cached = resolvedHosts.get(hostname);
+        if (cached != null && !cached.isEmpty()) {
+            return cached;
+        }
+        // 图片域名用旧 Pixiv 服务器 IP，API 域名用 Cloudflare IP
+        if (hostname.endsWith("pximg.net")) {
+            return fallbackImageAddresses;
+        }
+        return fallbackApiAddresses;
+    }
 }

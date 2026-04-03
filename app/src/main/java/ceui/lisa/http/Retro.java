@@ -13,6 +13,7 @@ import java.util.Collections;
 import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
+import ceui.loxia.ClientManager;
 import ceui.pixiv.session.SessionManager;
 import ceui.lisa.helper.LanguageHelper;
 import okhttp3.OkHttpClient;
@@ -79,11 +80,28 @@ public class Retro {
     }
 
     private static OkHttpClient.Builder fuckChinaWithConfig(OkHttpClient.Builder before, boolean enable) {
-        if(enable && Shaft.sSettings.isAutoFuckChina()){
-            before.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
-            before.dns(HttpDns.getInstance());
+        // Worker relay 模式下不需要 DNS 绕过，请求已经走 Worker
+        if (enable && Shaft.sSettings.isAutoFuckChina() && !ClientManager.Companion.isWorkerRelay()) {
+            // GFW 对 pixiv SNI 做了全端口 TCP RST，走 Cronet (QUIC/UDP) 绕过
+            before.addInterceptor(new CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())));
         }
         return before;
+    }
+
+    /**
+     * 将原始 Pixiv base URL 转换为 Worker 中继 URL
+     */
+    private static String resolveBaseUrl(String originalBaseUrl) {
+        if (!ClientManager.Companion.isWorkerRelay()) {
+            return originalBaseUrl;
+        }
+        String workerBase = ClientManager.Companion.getWorkerBaseUrl();
+        if (API_BASE_URL.equals(originalBaseUrl)) {
+            return workerBase + "/app-api/";
+        } else if (ACCOUNT_BASE_URL.equals(originalBaseUrl)) {
+            return workerBase + "/oauth/";
+        }
+        return originalBaseUrl;
     }
 
     /**
@@ -123,13 +141,16 @@ public class Retro {
             e.printStackTrace();
         }
         fuckChinaWithConfig(builder, autoFuckChina);
+        if (autoFuckChina && ClientManager.Companion.isWorkerRelay()) {
+            builder.protocols(java.util.Arrays.asList(Protocol.HTTP_2, Protocol.HTTP_1_1));
+        }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         return new Retrofit.Builder()
                 .client(client)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
-                .baseUrl(baseUrl)
+                .baseUrl(resolveBaseUrl(baseUrl))
                 .build();
     }
 

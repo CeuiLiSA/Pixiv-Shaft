@@ -171,8 +171,7 @@ dependencies {
     implementation "io.github.scwang90:refresh-header-material:$refresh_version"    //谷歌刷新头
     implementation "io.github.scwang90:refresh-footer-classics:$refresh_version"    //经典加载
 
-    // okhttp3系列组件版本最高到 4.4.1，参看 RubySSLSocketFactory
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.4.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
@@ -215,8 +214,10 @@ dependencies {
 
 
     implementation 'com.github.liujingxing.rxhttp:rxhttp:2.7.3'
-    // okhttp3系列组件版本最高到 4.4.1，参看 RubySSLSocketFactory
-    implementation 'com.squareup.okhttp3:okhttp:4.4.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // Cronet (Chromium 网络栈) 提供 QUIC/HTTP3 支持，绕过 GFW 的 TCP RST
+    implementation 'org.chromium.net:cronet-embedded:119.6045.31'
     kapt 'com.github.liujingxing.rxhttp:rxhttp-compiler:2.7.3'
 
     implementation 'io.reactivex.rxjava3:rxjava:3.1.3'
