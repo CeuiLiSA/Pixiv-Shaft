@@ -1,5 +1,30 @@
 # Pixiv-Shaft 直连方案技术说明
 
+## Cronet 是什么？（通俗版）
+
+Cronet 就是 **Chrome 浏览器的网络引擎，单独拆出来给 APP 用**。
+
+你用 Chrome 打开网页时，Chrome 内部有一套网络代码负责发请求、处理 HTTPS、支持 HTTP/2、HTTP/3 等协议。Google 把这套代码打包成了一个库叫 Cronet，任何 Android APP 都能引入它。
+
+**为什么要用它？**
+
+普通 Android APP 发网络请求用的是 OkHttp，它底层走的是 **TCP + TLS**。问题是 GFW 可以在 TCP 层注入 RST 包把连接掐断。
+
+Cronet 支持 **QUIC/HTTP3**，这个协议跑在 **UDP** 上，不走 TCP。GFW 的 TCP RST 对 UDP 无效，就像你堵了公路，但人家走的是河道。
+
+```
+传统请求：APP → OkHttp → TCP → TLS → 被 GFW RST 掐断 ❌
+Cronet ：APP → Cronet → UDP → QUIC → GFW 管不了 ✅
+```
+
+打个比方：
+- **OkHttp** = 你自己开车上高速（TCP），收费站（GFW）看到你车牌（SNI）直接拦下
+- **Cronet** = 你坐直升机走空中（UDP/QUIC），收费站只管公路，管不了天上的
+
+代价是 APP 体积会大几 MB（因为把 Chrome 的网络引擎打包进去了），但换来了稳定的直连。
+
+---
+
 ## 背景
 
 2026 年 4 月起，Pixiv 将 API 服务（app-api.pixiv.net、oauth.secure.pixiv.net）迁移至 Cloudflare CDN。原有的直连方案因以下两点同时失效：
