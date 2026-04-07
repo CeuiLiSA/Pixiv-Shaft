@@ -31,7 +31,9 @@ class NovelChapterViewHolder(bd: CellNovelChapterBinding) : ListItemViewHolder<C
     override fun onBindViewHolder(holder: NovelChapterHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         binding.novelText.text = holder.text
-        binding.novelText.setTextColor(holder.textColor)
+        if (holder.textColor != 0) {
+            binding.novelText.setTextColor(holder.textColor)
+        }
     }
 }
 
@@ -48,7 +50,9 @@ class NovelTextViewHolder(bd: CellNovelTextBinding) : ListItemViewHolder<CellNov
     override fun onBindViewHolder(holder: NovelTextHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         binding.novelText.text = holder.text
-        binding.novelText.setTextColor(holder.textColor)
+        if (holder.textColor != 0) {
+            binding.novelText.setTextColor(holder.textColor)
+        }
     }
 }
 
