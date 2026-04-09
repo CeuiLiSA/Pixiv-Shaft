@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
@@ -95,14 +96,22 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             }
         });
         baseBind.seeMore.setOnClickListener(v -> {
-            // Do NOT hand the horizontal preview's data through Intent extras:
-            // List<UserPreviewsBean> carries full IllustsBean graphs and easily
-            // exceeds the ~1MB binder transaction limit, which on Android 15
-            // reliably triggers TransactionTooLargeException and crashes the
-            // whole process (#820). The target fragment already refetches via
-            // RecmdUserRepo when started empty, so just open it clean.
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐用户");
+            if (headerFragment != null && headerFragment.allItems != null && !headerFragment.allItems.isEmpty()) {
+                // Hand off via in-memory map rather than Intent extras: the
+                // full UserPreviewsBean graph easily exceeds the ~1MB binder
+                // transaction limit and crashes on Android 15 (#820). We
+                // still want the detail page to show the same batch the
+                // user was just looking at, so stash a snapshot under a
+                // unique key and pass only the key.
+                String handoffKey = UUID.randomUUID().toString();
+                RecmdUserMap.store.put(handoffKey, new RecmdUserSnapshot(
+                        new ArrayList<>(headerFragment.allItems),
+                        headerFragment.mRemoteRepo.getNextUrl()
+                ));
+                intent.putExtra(Params.USER_MODEL, handoffKey);
+            }
             startActivity(intent);
         });
         baseBind.glareLayout.setListener(new OnCheckChangeListener() {
