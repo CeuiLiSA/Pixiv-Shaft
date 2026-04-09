@@ -67,6 +67,7 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
             return null
         }
 
+        @JvmOverloads
         fun buildNovelHolders(mWebNovel: WebNovel?, s: String, textColor: Int = Common.getNovelTextColor()): List<ListItemHolder> {
             if (mWebNovel == null) {
                 return listOf()
