@@ -212,10 +212,29 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                                 }
                             } else if(destiny.contains(ACCOUNT_URL)){
                                 try {
-                                    String urlForThisAPP = destiny.replace("intent", "shaftintent");
-                                    Common.showLog(className + "destiny new " + urlForThisAPP);
-                                    Intent intent = new Intent(mContext, OutWakeActivity.class);
-                                    intent.setData(Uri.parse(urlForThisAPP));
+                                    // Pixiv's login page redirects to
+                                    //   intent://account/login?code=XYZ#Intent;scheme=pixiv;...;end
+                                    // Historically this rewrote the scheme to "shaftintent" and
+                                    // started OutWakeActivity explicitly. OutWakeActivity is no
+                                    // longer registered in the manifest (and "shaftintent" has no
+                                    // handler), so that threw ActivityNotFoundException and the
+                                    // login callback was silently dropped — user ended up back on
+                                    // the landing screen after the web login (#823).
+                                    //
+                                    // Route via the pixiv:// scheme that HomeActivity now claims:
+                                    // replace the scheme, drop any #Intent;...;end fragment, and
+                                    // fire an implicit VIEW intent scoped to our own package so
+                                    // Android delivers it to HomeActivity -> LinkHandler ->
+                                    // SessionManager.loginWithUrl.
+                                    String pixivUrl = destiny.replace("intent://", "pixiv://");
+                                    int fragmentIdx = pixivUrl.indexOf('#');
+                                    if (fragmentIdx != -1) {
+                                        pixivUrl = pixivUrl.substring(0, fragmentIdx);
+                                    }
+                                    Common.showLog(className + "destiny new " + pixivUrl);
+                                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(pixivUrl));
+                                    intent.setPackage(mContext.getPackageName());
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                                     startActivity(intent);
                                     if (!preferPreserve) {
                                         finish();
