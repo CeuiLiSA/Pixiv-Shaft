@@ -42,6 +42,10 @@ public class FileStorageHelper {
             absolutePath += getShaftIllustDirWithInnerAIFolder(true);
         } else if (isSaveToR18Dir(illustsBean)) {
             absolutePath += getShaftIllustDirWithInnerR18Folder(true);
+        } else {
+            // Normal SFW illusts still need the "ShaftImages" root; fixes #822
+            // where images fell back to Pictures/<author>/ directly.
+            absolutePath += "ShaftImages";
         }
         absolutePath += getAuthorPathPart(illustsBean);
         return absolutePath;
@@ -57,6 +61,10 @@ public class FileStorageHelper {
             relativePath += getShaftIllustDirWithInnerAIFolder(true);
         } else if (isSaveToR18Dir(illustsBean)) {
             relativePath += getShaftIllustDirWithInnerR18Folder(true);
+        } else {
+            // Normal SFW illusts still need the "ShaftImages" root; fixes #822
+            // where images fell back to Pictures/<author>/ directly.
+            relativePath += "ShaftImages";
         }
         relativePath += getAuthorPathPart(illustsBean);
         return relativePath;
