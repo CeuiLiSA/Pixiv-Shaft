@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
-import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -55,13 +54,13 @@ class NovelTextViewModel(
         wNovel?.let {
             (wNovel.text?.split("\n") ?: listOf()).forEach { oneLineText ->
                 result.addAll(
-                    WebNovelParser.buildNovelHolders(wNovel, oneLineText)
+                    WebNovelParser.buildNovelHolders(wNovel, oneLineText, 0)
                 )
             }
             _webNovel.value = it
         }
         result.add(SpaceHolder())
-        result.add(NovelTextHolder("<===== End =====>", Common.getNovelTextColor()))
+        result.add(NovelTextHolder("<===== End =====>", 0))
         result.add(SpaceHolder())
 
         _itemHolders.value = result
