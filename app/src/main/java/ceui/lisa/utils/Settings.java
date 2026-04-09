@@ -113,6 +113,9 @@ public class Settings {
     //列表页面是否显示收藏按钮
     private boolean showLikeButton = true;
 
+    //小说卡片是否显示标签
+    private boolean showNovelCardTags = true;
+
     //直接下载单个作品所有P
     private boolean directDownloadAllImage = true;
 
@@ -653,6 +656,14 @@ public class Settings {
 
     public void setShowLargeThumbnailImage(boolean showLargeThumbnailImage) {
         this.showLargeThumbnailImage = showLargeThumbnailImage;
+    }
+
+    public boolean isShowNovelCardTags() {
+        return showNovelCardTags;
+    }
+
+    public void setShowNovelCardTags(boolean showNovelCardTags) {
+        this.showNovelCardTags = showNovelCardTags;
     }
 
     public boolean isIllustDetailKeepScreenOn() {

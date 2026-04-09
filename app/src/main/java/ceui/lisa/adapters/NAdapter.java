@@ -12,11 +12,13 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.SearchActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.databinding.RecyNovelBinding;
@@ -77,7 +79,15 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
         } else {
             bindView.baseBind.title.setText(target.getTitle());
         }
-        bindView.baseBind.novelTag.setAdapter(new TagAdapter<TagsBean>(target.getTags()) {
+        // Respect the user's "show tags on novel cards" setting. Feed
+        // an empty list into the TagAdapter when disabled so the
+        // TagFlowLayout collapses to zero height and the rows anchored
+        // to @id/novel_tag in RelativeLayout stay in the right place
+        // (forcing View.GONE here would orphan those anchors).
+        List<TagsBean> tagsToShow = Shaft.sSettings.isShowNovelCardTags()
+                ? target.getTags()
+                : Collections.<TagsBean>emptyList();
+        bindView.baseBind.novelTag.setAdapter(new TagAdapter<TagsBean>(tagsToShow) {
             @Override
             public View getView(FlowLayout parent, int position, TagsBean s) {
                 TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text_new,

@@ -754,4 +754,6 @@
   <string name="string_save_original">儲存原圖</string>
   <string name="string_save_enhanced">儲存增強</string>
   <string name="string_cancel">取消</string>
+
+  <string name="show_novel_card_tags_setting">小說列表顯示標籤</string>
 </resources>

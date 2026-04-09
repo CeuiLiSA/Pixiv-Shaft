@@ -855,4 +855,6 @@
     <string name="rate_dialog_rate_now">去评分</string>
     <string name="rate_dialog_maybe_later">以后再说</string>
     <string name="rate_dialog_never">不再提醒</string>
+
+    <string name="show_novel_card_tags_setting">小说列表显示标签</string>
 </resources>

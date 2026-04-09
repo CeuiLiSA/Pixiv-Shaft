@@ -821,6 +821,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.showNovelCardTags.setChecked(Shaft.sSettings.isShowNovelCardTags());
+            baseBind.showNovelCardTags.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setShowNovelCardTags(isChecked);
+                    Common.showToast(getString(R.string.string_428));
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.showNovelCardTagsRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.showNovelCardTags.performClick();
+                }
+            });
+
             baseBind.hideStarBar.setChecked(Shaft.sSettings.isHideStarButtonAtMyCollection());
             baseBind.hideStarBar.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
