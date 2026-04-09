@@ -101,6 +101,9 @@ android {
         buildConfig = true // 启用 BuildConfig
     }
     packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
         resources {
             excludes += ['META-INF/MANIFEST.MF']
         }
