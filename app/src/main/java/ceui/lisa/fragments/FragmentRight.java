@@ -1,13 +1,11 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,14 +95,14 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             }
         });
         baseBind.seeMore.setOnClickListener(v -> {
+            // Do NOT hand the horizontal preview's data through Intent extras:
+            // List<UserPreviewsBean> carries full IllustsBean graphs and easily
+            // exceeds the ~1MB binder transaction limit, which on Android 15
+            // reliably triggers TransactionTooLargeException and crashes the
+            // whole process (#820). The target fragment already refetches via
+            // RecmdUserRepo when started empty, so just open it clean.
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐用户");
-            if (headerFragment != null && headerFragment.allItems != null && headerFragment.allItems.size() > 0) {
-                Bundle bundle = new Bundle();
-                bundle.putSerializable(Params.USER_MODEL, (Serializable) headerFragment.allItems);
-                intent.putExtra(Params.USER_MODEL, bundle);
-                intent.putExtra(Params.URL, headerFragment.mRemoteRepo.getNextUrl());
-            }
             startActivity(intent);
         });
         baseBind.glareLayout.setListener(new OnCheckChangeListener() {
