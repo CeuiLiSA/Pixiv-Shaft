@@ -41,6 +41,10 @@ class NovelTextViewModel(
         val html = Client.appApi.getNovelText(novelId).string()
         val wNovel = WebNovelParser.parsePixivObject(html)?.novel
 
+        // Respect the user's custom color set from the legacy UI; 0 means
+        // "unset" and lets the cell layout's theme-aware textColorPrimary apply.
+        val userTextColor = Shaft.sSettings.novelHolderTextColor
+
         val result = mutableListOf<ListItemHolder>()
         result.add(SpaceHolder())
         result.add(NovelHeaderHolder(novelId))
@@ -54,13 +58,13 @@ class NovelTextViewModel(
         wNovel?.let {
             (wNovel.text?.split("\n") ?: listOf()).forEach { oneLineText ->
                 result.addAll(
-                    WebNovelParser.buildNovelHolders(wNovel, oneLineText, 0)
+                    WebNovelParser.buildNovelHolders(wNovel, oneLineText, userTextColor)
                 )
             }
             _webNovel.value = it
         }
         result.add(SpaceHolder())
-        result.add(NovelTextHolder("<===== End =====>", 0))
+        result.add(NovelTextHolder("<===== End =====>", userTextColor))
         result.add(SpaceHolder())
 
         _itemHolders.value = result
