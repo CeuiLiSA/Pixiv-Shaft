@@ -780,7 +780,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (Shaft.sSettings.getDownloadWay() == 0) {
+                    if (Shaft.sSettings.getDownloadWay() == 0 && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                         Common.showToast(getString(R.string.string_329), true);
                     } else {
                         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
