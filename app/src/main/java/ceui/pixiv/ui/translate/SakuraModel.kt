@@ -16,6 +16,6 @@ enum class SakuraModel(
         assetDir = "sakura-1.5b",
         modelFiles = listOf("sakura-1.5b-q3_k_m.gguf"),
         sizeLabel = "876MB",
-        downloadUrl = "https://github.com/CeuiLiSA/Pixiv-Shaft/releases/download/v4.5.1/sakura-1.5b-q3_k_m.gguf",
+        downloadUrl = "https://github.com/CeuiLiSA/Pixiv-Shaft/releases/download/sakura-1.5b-v1/sakura-1.5b-q3_k_m.zip",
     );
 }

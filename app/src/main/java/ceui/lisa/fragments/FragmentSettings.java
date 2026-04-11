@@ -228,6 +228,15 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.sakuraDemoRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Sakura翻译");
+                    startActivity(intent);
+                }
+            });
+
             //缩略图是否显示大图
             baseBind.showLargeThumbnailImage.setChecked(Shaft.sSettings.isShowLargeThumbnailImage());
             baseBind.showLargeThumbnailImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
