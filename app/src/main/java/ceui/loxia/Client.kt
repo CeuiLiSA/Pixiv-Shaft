@@ -67,10 +67,18 @@ class ClientManager {
         const val TOKEN_ERROR_1 = "Error occurred at the OAuth process"
         const val TOKEN_ERROR_2 = "Invalid refresh token"
 
+        fun getWorkerBaseUrl(): String {
+            val url = Shaft.sSettings.workerUrl
+            return if (!TextUtils.isEmpty(url)) url.trimEnd('/') else ""
+        }
+
+        fun isWorkerRelay(): Boolean {
+            return Shaft.sSettings.isDirectConnect && !TextUtils.isEmpty(getWorkerBaseUrl())
+        }
     }
 
     private fun applyDirectConnect(builder: OkHttpClient.Builder) {
-        if (Shaft.sSettings.isDirectConnect) {
+        if (Shaft.sSettings.isDirectConnect && !isWorkerRelay()) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }
     }
@@ -89,7 +97,13 @@ class ClientManager {
         })
         applyDirectConnect(okhttpClientBuilder)
 
-        val baseUrl = APP_API_HOST
+        val baseUrl = if (isWorkerRelay()) {
+            val url = getWorkerBaseUrl() + "/app-api"
+            Log.d("ClientManager", "Using Worker relay: $url")
+            url
+        } else {
+            APP_API_HOST
+        }
 
         return Retrofit.Builder()
             .baseUrl(baseUrl)
@@ -112,7 +126,13 @@ class ClientManager {
         })
         applyDirectConnect(okhttpClientBuilder)
 
-        val baseUrl = OAUTH_HOST
+        val baseUrl = if (isWorkerRelay()) {
+            val url = getWorkerBaseUrl() + "/oauth"
+            Log.d("ClientManager", "Using Worker relay for OAuth: $url")
+            url
+        } else {
+            OAUTH_HOST
+        }
 
         return Retrofit.Builder()
             .baseUrl(baseUrl)

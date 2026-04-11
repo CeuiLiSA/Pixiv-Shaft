@@ -17,10 +17,32 @@
         <TextView
             android:id="@+id/caption"
             android:textSize="15sp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="4dp"
             android:layout_width="match_parent"
             android:textColor="@color/text00"
             android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/btn_translate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="@string/string_translate_caption"
+            android:textColor="#7B6CF6"
+            android:textSize="13sp"
+            android:background="@drawable/bg_upscale_resolution_badge"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/caption_translated"
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text20"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/publish_time"

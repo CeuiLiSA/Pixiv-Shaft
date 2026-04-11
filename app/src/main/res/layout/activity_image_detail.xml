@@ -15,83 +15,68 @@
         <ceui.lisa.view.FixedViewPager
             android:id="@+id/view_pager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent" />
 
+        <!-- Top-right AI menu button -->
+        <ImageView
+            android:id="@+id/btn_ai_menu"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="10dp"
+            android:src="@drawable/baseline_auto_awesome_24"
+            android:tint="@android:color/white"
+            android:visibility="gone" />
 
-        </ceui.lisa.view.FixedViewPager>
+        <RelativeLayout
+            android:id="@+id/bottom_rela"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:paddingHorizontal="20dp">
 
-
-            <RelativeLayout
-                android:id="@+id/bottom_rela"
-                android:layout_alignParentBottom="true"
-                android:paddingHorizontal="20dp"
+            <TextView
+                android:id="@+id/current_size"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/download_this_one"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_marginBottom="5dp"
+                android:layout_toStartOf="@+id/download_this_one"
+                android:ellipsize="end"
+                android:gravity="start"
+                android:singleLine="true"
+                android:textColor="@android:color/white" />
 
-                <TextView
-                    android:id="@+id/current_size"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/download_this_one"
-                    android:layout_marginEnd="@dimen/eight_dp"
-                    android:layout_marginBottom="5dp"
-                    android:layout_toStartOf="@+id/download_this_one"
-                    android:ellipsize="end"
-                    android:gravity="start"
-                    android:singleLine="true"
-                    android:textColor="@android:color/white" />
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/download_this_one"
+                style="@style/GreenShiningButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="40dp"
+                android:ellipsize="middle"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:text="@string/string_7"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp" />
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="40dp"
-                    android:gravity="center"
-                    android:orientation="horizontal">
+            <TextView
+                android:id="@+id/current_page"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/download_this_one"
+                android:layout_marginBottom="5dp"
+                android:layout_toEndOf="@+id/download_this_one"
+                android:gravity="end"
+                android:shadowColor="@android:color/black"
+                android:shadowRadius="3"
+                android:textColor="@android:color/white" />
 
-                    <TextView
-                        android:id="@+id/btn_ai_upscale"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="10dp"
-                        android:background="@drawable/refresh_button_background"
-                        android:gravity="center"
-                        android:paddingHorizontal="14dp"
-                        android:stateListAnimator="@animator/button_press_alpha"
-                        android:text="@string/string_ai_upscale"
-                        android:textAllCaps="false"
-                        android:textColor="@color/colorWhite60"
-                        android:textSize="13sp" />
-
-                    <ceui.loxia.ProgressTextButton
-                        android:id="@+id/download_this_one"
-                        style="@style/GreenShiningButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:ellipsize="middle"
-                        android:gravity="center"
-                        android:paddingHorizontal="16dp"
-                        android:text="@string/string_7"
-                        app:ptb_progress_stroke_width="3dp"
-                        app:ptb_progress_width="14dp" />
-
-                </LinearLayout>
-
-
-                <TextView
-                    android:id="@+id/current_page"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/download_this_one"
-                    android:layout_marginBottom="5dp"
-                    android:layout_toEndOf="@+id/download_this_one"
-                    android:gravity="end"
-                    android:shadowColor="@android:color/black"
-                    android:shadowRadius="3"
-                    android:textColor="@android:color/white" />
-
-
-            </RelativeLayout>
+        </RelativeLayout>
 
     </RelativeLayout>
 </layout>

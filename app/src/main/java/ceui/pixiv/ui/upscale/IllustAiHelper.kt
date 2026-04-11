@@ -15,6 +15,11 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
+import ceui.pixiv.ui.translate.MangaOcrModel
+import ceui.pixiv.ui.translate.MangaOcrModelManager
+import ceui.pixiv.ui.translate.MangaTranslator
+import ceui.pixiv.ui.translate.SakuraModel
+import ceui.pixiv.ui.translate.SakuraModelManager
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.launch
 
@@ -72,6 +77,93 @@ class IllustAiHelper(
                         fragment.startActivity(intent)
                     } else {
                         Common.showToast(R.string.string_ai_rembg_failed)
+                    }
+                }
+            }
+        }
+    }
+
+    fun performOcr(illust: IllustsBean) {
+        val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
+            ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
+
+        Common.showToast(R.string.string_ai_ocr_running)
+        val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
+        loadTask.result.observe(lifecycleOwner) { file ->
+            if (file != null) {
+                lifecycleOwner.lifecycleScope.launch {
+                    val results = MangaOcr.recognize(context, file)
+                    if (results != null && results.isNotEmpty()) {
+                        val texts = ArrayList(results.map { it.text })
+                        val intent = Intent(context, TemplateActivity::class.java)
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "OCR结果")
+                        intent.putStringArrayListExtra("ocr_texts", texts)
+                        fragment.startActivity(intent)
+                    } else if (results != null && results.isEmpty()) {
+                        Common.showToast(R.string.string_ai_ocr_empty)
+                    } else {
+                        Common.showToast(R.string.string_ai_ocr_failed)
+                    }
+                }
+            }
+        }
+    }
+
+    fun performMangaTranslation(illust: IllustsBean) {
+        // Check manga-ocr model
+        val ocrModel = MangaOcrModel.MANGA_OCR_BASE
+        if (!MangaOcrModelManager.isModelReady(context, ocrModel)) {
+            Common.showToast(R.string.string_manga_ocr_model_needed)
+            val intent = Intent(context, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画OCR模型下载")
+            intent.putExtra("manga_ocr_model_name", ocrModel.name)
+            fragment.startActivity(intent)
+            return
+        }
+
+        // Check Sakura translation model
+        val sakuraModel = SakuraModel.SAKURA_1_5B
+        if (!SakuraModelManager.isModelReady(context, sakuraModel)) {
+            Common.showToast(R.string.string_sakura_model_needed)
+            val intent = Intent(context, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Sakura翻译模型下载")
+            intent.putExtra("sakura_model_name", sakuraModel.name)
+            fragment.startActivity(intent)
+            return
+        }
+
+        val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
+            ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
+
+        overlayRoot.visibility = View.VISIBLE
+        loadingState.visibility = View.VISIBLE
+        doneState.visibility = View.GONE
+        overlayRoot.alpha = 0f
+        overlayRoot.animate().alpha(1f).setDuration(300).start()
+        statusText.text = context.getString(R.string.string_ai_manga_translating)
+        progressRing.isIndeterminate = true
+        progressText.visibility = View.GONE
+
+        val loadTask = TaskPool.getLoadTask(NamedUrl("", imageUrl))
+        loadTask.result.observe(lifecycleOwner) { file ->
+            if (file != null) {
+                lifecycleOwner.lifecycleScope.launch {
+                    val result = MangaTranslator.translate(context, file) { stage, detail ->
+                        rootView.post {
+                            statusText.text = detail
+                        }
+                    }
+                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                        overlayRoot.visibility = View.GONE
+                    }.start()
+                    if (result != null) {
+                        val intent = Intent(context, TemplateActivity::class.java)
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画翻译")
+                        intent.putExtra("translated_path", result.outputFile.absolutePath)
+                        intent.putExtra("original_path", file.absolutePath)
+                        fragment.startActivity(intent)
+                    } else {
+                        Common.showToast(R.string.string_ai_manga_translate_failed)
                     }
                 }
             }

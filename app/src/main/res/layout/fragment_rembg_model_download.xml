@@ -1,195 +1,220 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/fragment_center"
-    android:fitsSystemWindows="true">
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:paddingHorizontal="40dp">
+        android:layout_height="match_parent"
+        android:background="@color/fragment_center"
+        android:orientation="vertical">
 
-        <!-- Hero icon -->
-        <ImageView
-            android:id="@+id/hero_icon"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:src="@drawable/baseline_auto_awesome_24"
-            android:tint="#7B6CF6"
-            tools:ignore="ContentDescription" />
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_layout" />
 
-        <!-- Title -->
-        <TextView
-            android:id="@+id/title"
-            style="@style/textMontserratBold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="center"
-            android:text="@string/string_rembg_model_download_title"
-            android:textColor="@color/text00"
-            android:textSize="22sp" />
-
-        <!-- Subtitle -->
-        <TextView
-            android:id="@+id/subtitle"
-            style="@style/textMontserratMedium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:textColor="@color/text20"
-            android:textSize="14sp"
-            tools:text="ISNet-Anime 模型需要额外下载才能使用" />
-
-        <!-- Model card -->
-        <LinearLayout
-            android:id="@+id/model_card"
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
+            android:id="@+id/refreshLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:background="@drawable/bg_model_card_anime"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="24dp">
+            android:layout_height="match_parent">
 
-            <!-- Model name row -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/model_name"
-                    style="@style/textMontserratBold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/text00"
-                    android:textSize="16sp"
-                    tools:text="ISNet-Anime" />
-
-                <TextView
-                    android:id="@+id/model_size_badge"
-                    style="@style/textMontserratMedium"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:background="@drawable/bg_upscale_resolution_badge"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
-                    android:textColor="#7B6CF6"
-                    android:textSize="11sp"
-                    tools:text="84MB" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/model_desc"
-                style="@style/textMontserratRegular"
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:lineSpacingExtra="3dp"
-                android:textColor="@color/text20"
-                android:textSize="12sp"
-                tools:text="动漫角色专用，Danbooru 训练，效果最佳" />
-        </LinearLayout>
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:fillViewport="true">
 
-        <!-- Progress area -->
-        <FrameLayout
-            android:id="@+id/progress_area"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="36dp"
-            android:visibility="gone"
-            tools:visibility="visible">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="40dp"
+                    android:paddingTop="30dp"
+                    android:paddingBottom="40dp">
 
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/progress_ring"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_gravity="center"
-                app:indicatorColor="#7B6CF6"
-                app:indicatorSize="120dp"
-                app:trackColor="#1A7B6CF6"
-                app:trackThickness="6dp" />
+                    <!-- Hero icon -->
+                    <ImageView
+                        android:id="@+id/hero_icon"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:src="@drawable/baseline_auto_awesome_24"
+                        android:tint="#7B6CF6"
+                        tools:ignore="ContentDescription" />
 
-            <TextView
-                android:id="@+id/progress_percent"
-                style="@style/textMontserratBold"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textColor="@color/text00"
-                android:textSize="28sp"
-                tools:text="78%" />
-        </FrameLayout>
+                    <!-- Title -->
+                    <TextView
+                        android:id="@+id/title"
+                        style="@style/textMontserratBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:gravity="center"
+                        android:text="@string/string_rembg_model_download_title"
+                        android:textColor="@color/text00"
+                        android:textSize="22sp" />
 
-        <!-- Size text -->
-        <TextView
-            android:id="@+id/progress_size_text"
-            style="@style/textMontserratMedium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textColor="@color/text20"
-            android:textSize="13sp"
-            android:visibility="gone"
-            tools:text="56.2 MB / 84.0 MB"
-            tools:visibility="visible" />
+                    <!-- Subtitle -->
+                    <TextView
+                        android:id="@+id/subtitle"
+                        style="@style/textMontserratMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:textColor="@color/text20"
+                        android:textSize="14sp"
+                        tools:text="ISNet-Anime 模型需要额外下载才能使用" />
 
-        <!-- Status text -->
-        <TextView
-            android:id="@+id/status_text"
-            style="@style/textMontserratMedium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/text20"
-            android:textSize="13sp"
-            android:visibility="gone"
-            tools:text="正在下载模型…"
-            tools:visibility="visible" />
+                    <!-- Model card -->
+                    <LinearLayout
+                        android:id="@+id/model_card"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:background="@drawable/bg_model_card_anime"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="24dp"
+                        android:paddingVertical="24dp">
 
-        <!-- Primary button -->
-        <TextView
-            android:id="@+id/btn_primary"
-            style="@style/textMontserratBold"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="36dp"
-            android:background="@drawable/bg_model_download_button"
-            android:gravity="center"
-            android:stateListAnimator="@animator/button_press_alpha"
-            android:text="@string/string_rembg_model_start_download"
-            android:textColor="@color/always_white"
-            android:textSize="15sp" />
+                        <!-- Model name row -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-        <!-- Secondary button -->
-        <TextView
-            android:id="@+id/btn_secondary"
-            style="@style/textMontserratRegular"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:padding="12dp"
-            android:stateListAnimator="@animator/button_press_alpha"
-            android:textColor="@color/secondary_text_color"
-            android:textSize="13sp"
-            android:visibility="gone"
-            tools:text="取消下载"
-            tools:visibility="visible" />
+                            <TextView
+                                android:id="@+id/model_name"
+                                style="@style/textMontserratBold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/text00"
+                                android:textSize="16sp"
+                                tools:text="ISNet-Anime" />
 
+                            <TextView
+                                android:id="@+id/model_size_badge"
+                                style="@style/textMontserratMedium"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:background="@drawable/bg_upscale_resolution_badge"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="3dp"
+                                android:textColor="#7B6CF6"
+                                android:textSize="11sp"
+                                tools:text="84MB" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/model_desc"
+                            style="@style/textMontserratRegular"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:lineSpacingExtra="3dp"
+                            android:textColor="@color/text20"
+                            android:textSize="12sp"
+                            tools:text="动漫角色专用，Danbooru 训练，效果最佳" />
+                    </LinearLayout>
+
+                    <!-- Progress area -->
+                    <FrameLayout
+                        android:id="@+id/progress_area"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="36dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/progress_ring"
+                            android:layout_width="120dp"
+                            android:layout_height="120dp"
+                            android:layout_gravity="center"
+                            app:indicatorColor="#7B6CF6"
+                            app:indicatorSize="120dp"
+                            app:trackColor="#1A7B6CF6"
+                            app:trackThickness="6dp" />
+
+                        <TextView
+                            android:id="@+id/progress_percent"
+                            style="@style/textMontserratBold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:textColor="@color/text00"
+                            android:textSize="28sp"
+                            tools:text="78%" />
+                    </FrameLayout>
+
+                    <!-- Size text -->
+                    <TextView
+                        android:id="@+id/progress_size_text"
+                        style="@style/textMontserratMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:textColor="@color/text20"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:text="56.2 MB / 84.0 MB"
+                        tools:visibility="visible" />
+
+                    <!-- Status text -->
+                    <TextView
+                        android:id="@+id/status_text"
+                        style="@style/textMontserratMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/text20"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:text="正在下载模型…"
+                        tools:visibility="visible" />
+
+                    <!-- Primary button -->
+                    <TextView
+                        android:id="@+id/btn_primary"
+                        style="@style/textMontserratBold"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="36dp"
+                        android:background="@drawable/bg_model_download_button"
+                        android:gravity="center"
+                        android:stateListAnimator="@animator/button_press_alpha"
+                        android:text="@string/string_rembg_model_start_download"
+                        android:textColor="@color/always_white"
+                        android:textSize="15sp" />
+
+                    <!-- Secondary button -->
+                    <TextView
+                        android:id="@+id/btn_secondary"
+                        style="@style/textMontserratRegular"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:padding="12dp"
+                        android:stateListAnimator="@animator/button_press_alpha"
+                        android:textColor="@color/secondary_text_color"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:text="取消下载"
+                        tools:visibility="visible" />
+
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
     </LinearLayout>
-
-</FrameLayout>
+</layout>

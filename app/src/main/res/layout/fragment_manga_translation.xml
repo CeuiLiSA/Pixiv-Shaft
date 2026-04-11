@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Top half: Original -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.github.panpf.zoomimage.SketchZoomImageView
+                android:id="@+id/image_original"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_marginStart="12dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_rate_dialog"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="@string/string_manga_translate_original"
+                android:textColor="@android:color/black"
+                android:textSize="11sp" />
+        </FrameLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#33FFFFFF" />
+
+        <!-- Bottom half: Translated -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.github.panpf.zoomimage.SketchZoomImageView
+                android:id="@+id/image_translated"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="12dp"
+                android:background="@drawable/bg_rate_button_primary"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="@string/string_manga_translate_translated"
+                android:textColor="@color/always_white"
+                android:textSize="11sp" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <!-- Save button -->
+    <TextView
+        android:id="@+id/save_translated"
+        style="@style/GreenShiningButton"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="40dp"
+        android:paddingHorizontal="16dp"
+        android:text="@string/string_manga_translate_save" />
+
+</FrameLayout>

@@ -2,6 +2,8 @@ package ceui.lisa.fragments
 
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler

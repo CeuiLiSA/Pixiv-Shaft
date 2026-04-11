@@ -191,6 +191,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     baseBind.autoDns.performClick();
                 }
             });
+
             //缩略图是否显示大图
             baseBind.showLargeThumbnailImage.setChecked(Shaft.sSettings.isShowLargeThumbnailImage());
             baseBind.showLargeThumbnailImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -969,7 +970,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             });
         }
 
-        // AI 增强模型
+        // AI 超分辨率模型
         {
             ceui.pixiv.ui.upscale.UpscaleModel saved = ceui.pixiv.ui.upscale.ModelPickerDialog.Companion.getSavedModel();
             baseBind.defaultUpscaleModel.setText(saved != null ? saved.getDisplayName() : getString(R.string.string_not_set));
@@ -980,6 +981,43 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     baseBind.defaultUpscaleModel.setText(model.getDisplayName());
                     return kotlin.Unit.INSTANCE;
                 });
+            });
+        }
+
+        // AI 抠图模型
+        {
+            ceui.pixiv.ui.upscale.RembgModel savedRembg = ceui.pixiv.ui.upscale.RembgModelPickerDialog.Companion.getSavedModel();
+            baseBind.defaultRembgModel.setText(savedRembg != null ? savedRembg.getDisplayName() : getString(R.string.string_not_set));
+            baseBind.defaultRembgModelRela.setOnClickListener(v -> {
+                if (getChildFragmentManager().findFragmentByTag("RembgModelPickerDialog") != null) return;
+                ceui.pixiv.ui.upscale.RembgModelPickerDialog dialog = new ceui.pixiv.ui.upscale.RembgModelPickerDialog();
+                dialog.setOnModelSelected(model -> {
+                    Shaft.sSettings.setDefaultRembgModel(model.name());
+                    Local.setSettings(Shaft.sSettings);
+                    baseBind.defaultRembgModel.setText(model.getDisplayName());
+                    return kotlin.Unit.INSTANCE;
+                });
+                dialog.show(getChildFragmentManager(), "RembgModelPickerDialog");
+            });
+        }
+
+        // OCR 模型
+        {
+            baseBind.ocrModelRela.setOnClickListener(v -> {
+                Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
+                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "漫画OCR模型下载");
+                intent.putExtra("manga_ocr_model_name", ceui.pixiv.ui.translate.MangaOcrModel.MANGA_OCR_BASE.name());
+                startActivity(intent);
+            });
+        }
+
+        // 翻译模型 (Sakura — ACG 日中翻译，漫画翻译和翻译 demo 都用它)
+        {
+            baseBind.translationModelRela.setOnClickListener(v -> {
+                Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
+                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "Sakura翻译模型下载");
+                intent.putExtra("sakura_model_name", ceui.pixiv.ui.translate.SakuraModel.SAKURA_1_5B.name());
+                startActivity(intent);
             });
         }
 
@@ -1106,6 +1144,28 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         } else {
             baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateModelStatus();
+    }
+
+    private void updateModelStatus() {
+        if (baseBind == null) return;
+        boolean ocrReady = ceui.pixiv.ui.translate.MangaOcrModelManager.INSTANCE.isModelReady(
+                mContext, ceui.pixiv.ui.translate.MangaOcrModel.MANGA_OCR_BASE);
+        baseBind.ocrModelStatus.setText(ocrReady
+                ? ceui.pixiv.ui.translate.MangaOcrModel.MANGA_OCR_BASE.getDisplayName()
+                : getString(R.string.string_model_not_ready, "91MB"));
+
+        boolean sakuraReady = ceui.pixiv.ui.translate.SakuraModelManager.INSTANCE.isModelReady(
+                mContext, ceui.pixiv.ui.translate.SakuraModel.SAKURA_1_5B);
+        baseBind.translationModelStatus.setText(sakuraReady
+                ? ceui.pixiv.ui.translate.SakuraModel.SAKURA_1_5B.getDisplayName()
+                : getString(R.string.string_model_not_ready,
+                        ceui.pixiv.ui.translate.SakuraModel.SAKURA_1_5B.getSizeLabel()));
     }
 
     @Override
