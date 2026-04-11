@@ -61,6 +61,23 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         if (imageUrl?.isNotEmpty() == true) {
             val task = TaskPool.getLoadTask(NamedUrl("", imageUrl))
             Timber.d("二级详情页 loadImage: taskId=${task.taskId}, status=${task.status.value}, url=$imageUrl")
+
+            // 原图尚未加载完时，若一级详情页的大图已在 Glide 缓存，先用大图占位
+            if (mIllustsBean != null && task.result.value == null) {
+                val largeUrl = IllustDownload.getUrl(
+                    mIllustsBean, index, Params.IMAGE_RESOLUTION_LARGE
+                )
+                if (!largeUrl.isNullOrEmpty() && largeUrl != imageUrl) {
+                    val largeFile = TaskPool.peekCachedFile(largeUrl)
+                    if (largeFile != null) {
+                        Timber.d("二级详情页 占位大图 HIT path=${largeFile.absolutePath} size=${largeFile.length()}")
+                        baseBind.image.loadImage(largeFile)
+                    } else {
+                        Timber.d("二级详情页 占位大图 MISS largeUrl=$largeUrl")
+                    }
+                }
+            }
+
             task.result.observe(viewLifecycleOwner) { file ->
                 baseBind.image.loadImage(file)
             }
