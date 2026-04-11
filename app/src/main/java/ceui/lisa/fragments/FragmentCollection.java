@@ -3,6 +3,8 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,6 +14,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.blankj.utilcode.util.BarUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -54,6 +57,11 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
 
     @Override
     public void initView() {
+        baseBind.placeHolder.setVisibility(View.VISIBLE);
+        ViewGroup.LayoutParams p = baseBind.placeHolder.getLayoutParams();
+        p.height = BarUtils.getStatusBarHeight();
+        baseBind.placeHolder.setLayoutParams(p);
+
         if (type == 0) {
             allPages = new Fragment[]{
                     FragmentLikeIllust.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
