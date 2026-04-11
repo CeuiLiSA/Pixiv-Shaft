@@ -67,7 +67,8 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
             return null
         }
 
-        fun buildNovelHolders(mWebNovel: WebNovel?, s: String): List<ListItemHolder> {
+        @JvmOverloads
+        fun buildNovelHolders(mWebNovel: WebNovel?, s: String, textColor: Int = Common.getNovelTextColor()): List<ListItemHolder> {
             if (mWebNovel == null) {
                 return listOf()
             }
@@ -123,9 +124,9 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
             } else if (s.contains("[newpage]")) {
                 holderList.add(SpaceHolder())
             } else if (s.contains("[chapter:")) {
-                holderList.add(NovelChapterHolder(extractChapterContent(s) ?: "", Common.getNovelTextColor()))
+                holderList.add(NovelChapterHolder(extractChapterContent(s) ?: "", textColor))
             } else {
-                holderList.add(NovelTextHolder(s, Common.getNovelTextColor()))
+                holderList.add(NovelTextHolder(s, textColor))
             }
             return holderList
         }

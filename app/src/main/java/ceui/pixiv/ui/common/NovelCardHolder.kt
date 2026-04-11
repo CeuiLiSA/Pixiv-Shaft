@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.common
 
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
 import ceui.loxia.DateParse
@@ -31,6 +32,12 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) : ListItemViewHolder<CellNov
     override fun onBindViewHolder(holder: NovelCardHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         binding.novel = ObjectPool.get<Novel>(holder.novel.id)
+        // Respect the user setting that hides tags on novel cards. This
+        // has to be a layout binding variable rather than a post-bind
+        // View.visibility override: `novel` is a LiveData and any future
+        // emission would otherwise re-evaluate visibleOrGone and flip the
+        // view back to VISIBLE.
+        binding.showTags = Shaft.sSettings.isShowNovelCardTags
         binding.userLayout.setOnClick { sender ->
             holder.novel.user?.id?.let {
                 sender.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(it)

@@ -741,4 +741,6 @@
   <string name="string_save_original">元画像を保存</string>
   <string name="string_save_enhanced">強化画像を保存</string>
   <string name="string_cancel">キャンセル</string>
+
+  <string name="show_novel_card_tags_setting">小説カードにタグを表示</string>
 </resources>

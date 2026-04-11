@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
-import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -42,6 +41,10 @@ class NovelTextViewModel(
         val html = Client.appApi.getNovelText(novelId).string()
         val wNovel = WebNovelParser.parsePixivObject(html)?.novel
 
+        // Respect the user's custom color set from the legacy UI; 0 means
+        // "unset" and lets the cell layout's theme-aware textColorPrimary apply.
+        val userTextColor = Shaft.sSettings.novelHolderTextColor
+
         val result = mutableListOf<ListItemHolder>()
         result.add(SpaceHolder())
         result.add(NovelHeaderHolder(novelId))
@@ -55,13 +58,13 @@ class NovelTextViewModel(
         wNovel?.let {
             (wNovel.text?.split("\n") ?: listOf()).forEach { oneLineText ->
                 result.addAll(
-                    WebNovelParser.buildNovelHolders(wNovel, oneLineText)
+                    WebNovelParser.buildNovelHolders(wNovel, oneLineText, userTextColor)
                 )
             }
             _webNovel.value = it
         }
         result.add(SpaceHolder())
-        result.add(NovelTextHolder("<===== End =====>", Common.getNovelTextColor()))
+        result.add(NovelTextHolder("<===== End =====>", userTextColor))
         result.add(SpaceHolder())
 
         _itemHolders.value = result

@@ -28,32 +28,46 @@ public final class RubySSLSocketFactory extends SSLSocketFactory {
     public RubySSLSocketFactory() {
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{new pixivOkHttpClient()}, null);
+            sslContext.init(null, new TrustManager[]{new TrustAllCertManager()}, null);
             delegate = sslContext.getSocketFactory();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Nullable
-    public Socket createSocket(@Nullable String host, int port) { return null; }
+    @NotNull
+    public Socket createSocket(@Nullable String host, int port) {
+        throw new UnsupportedOperationException("Use createSocket(Socket, String, int, boolean)");
+    }
 
-    @Nullable
-    public Socket createSocket(@Nullable String host, int port, @Nullable InetAddress localAddr, int localPort) { return null; }
+    @NotNull
+    public Socket createSocket(@Nullable String host, int port, @Nullable InetAddress localAddr, int localPort) {
+        throw new UnsupportedOperationException("Use createSocket(Socket, String, int, boolean)");
+    }
 
-    @Nullable
-    public Socket createSocket(@Nullable InetAddress addr, int port) { return null; }
+    @NotNull
+    public Socket createSocket(@Nullable InetAddress addr, int port) {
+        throw new UnsupportedOperationException("Use createSocket(Socket, String, int, boolean)");
+    }
 
-    @Nullable
-    public Socket createSocket(@Nullable InetAddress addr, int port, @Nullable InetAddress localAddr, int localPort) { return null; }
+    @NotNull
+    public Socket createSocket(@Nullable InetAddress addr, int port, @Nullable InetAddress localAddr, int localPort) {
+        throw new UnsupportedOperationException("Use createSocket(Socket, String, int, boolean)");
+    }
 
     @NotNull
     public Socket createSocket(@Nullable Socket socket, @Nullable String host, int port, boolean autoClose) throws IOException {
         if (socket == null) throw new NullPointerException("socket is null");
-        Log.d("RubySSL", "No-SNI connect to " + socket.getInetAddress().getHostAddress());
+        String ip = socket.getInetAddress().getHostAddress();
+        long start = System.nanoTime();
+        Log.d("RubySSL", "──→ No-SNI TLS handshake to " + ip + ":" + port);
         // 传 null hostname → Java TLS 不在 ClientHello 中包含 SNI 扩展
         SSLSocket sslSocket = (SSLSocket) delegate.createSocket(socket, null, port, autoClose);
         sslSocket.setEnabledProtocols(sslSocket.getSupportedProtocols());
+        long elapsed = (System.nanoTime() - start) / 1_000_000;
+        Log.d("RubySSL", "←── TLS handshake done " + ip + ":" + port
+                + " [" + elapsed + "ms] protocol=" + sslSocket.getSession().getProtocol()
+                + " cipher=" + sslSocket.getSession().getCipherSuite());
         return sslSocket;
     }
 

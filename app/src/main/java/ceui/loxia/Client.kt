@@ -73,12 +73,12 @@ class ClientManager {
         }
 
         fun isWorkerRelay(): Boolean {
-            return Shaft.sSettings.isAutoFuckChina && !TextUtils.isEmpty(getWorkerBaseUrl())
+            return Shaft.sSettings.isDirectConnect && !TextUtils.isEmpty(getWorkerBaseUrl())
         }
     }
 
     private fun applyDirectConnect(builder: OkHttpClient.Builder) {
-        if (Shaft.sSettings.isAutoFuckChina && !isWorkerRelay()) {
+        if (Shaft.sSettings.isDirectConnect && !isWorkerRelay()) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }
     }

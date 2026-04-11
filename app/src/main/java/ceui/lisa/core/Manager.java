@@ -8,6 +8,9 @@ import android.net.Uri;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +23,10 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
+import ceui.lisa.download.DownloadFileFactory;
+import ceui.lisa.download.DownloadProgress;
 import ceui.lisa.download.ImageSaver;
+import ceui.lisa.download.MediaStoreUtil;
 import ceui.lisa.helper.Android10DownloadFactory22;
 import ceui.lisa.helper.SAFactory;
 import ceui.lisa.interfaces.Callback;
@@ -32,12 +38,11 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Action;
-import io.reactivex.rxjava3.functions.Consumer;
-import rxhttp.RxHttp;
-import rxhttp.wrapper.callback.UriFactory;
-import rxhttp.wrapper.entity.Progress;
-import rxhttp.wrapper.utils.UriUtil;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class Manager {
 
@@ -63,7 +68,7 @@ public class Manager {
                     DownloadItem downloadItem = Shaft.sGson.fromJson(entity.getTaskGson(), DownloadItem.class);
                     content.add(downloadItem);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    Common.showLog("Manager restore error: " + ex.getMessage());
                 }
             }
             Common.showToast("下载记录恢复成功");
@@ -255,7 +260,7 @@ public class Manager {
             return;
         }
 
-        UriFactory factory;
+        DownloadFileFactory factory;
         if (Shaft.sSettings.getDownloadWay() == 0 || downloadItem.getIllust().isGif()) {
             factory = new Android10DownloadFactory22(context, downloadItem);
         } else {
@@ -264,110 +269,175 @@ public class Manager {
         currentIllustID = downloadItem.getIllust().getId();
         Common.showLog("Manager 下载单个 当前进度" + downloadItem.getNonius());
         uuid = downloadItem.getUuid();
-        // long beanSize = downloadItem.getTransferredBytes();
-        long fileSize = UriUtil.length(factory.query(), context);
+        long fileSize = MediaStoreUtil.length(factory.query(), context);
         long passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
-        //Common.showLog("Resume Size: beanSize=" + beanSize + ",fileSize=" + fileSize + ",uri="+factory.query());
-        handle = RxHttp.get(downloadItem.getUrl())
-                .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER)
-                .setRangeHeader(passSize, true)
-                .asDownload(factory, AndroidSchedulers.mainThread(), new Consumer<Progress>() {
-                    @Override
-                    public void accept(Progress progress) {
-                        //downloadItem.setTransferredBytes(progress.getCurrentSize());
-                        final int currentProgress = progress.getProgress();
-                        downloadItem.setNonius(currentProgress);
-                        downloadItem.setState(DownloadItem.DownloadState.DOWNLOADING);
-                        Common.showLog("currentProgress " + currentProgress);
-                        try {
-                            Callback<Progress> c = getCallback(uuid);
-                            if (c != null) {
-                                c.doSomething(progress);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+
+        // 准备目标文件
+        Uri targetUri = factory.insert();
+
+        OkHttpClient client = ((Shaft) Shaft.getContext()).getOkHttpClient();
+        Request.Builder reqBuilder = new Request.Builder()
+                .url(downloadItem.getUrl())
+                .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER);
+        if (passSize > 0) {
+            reqBuilder.addHeader("Range", "bytes=" + passSize + "-");
+        }
+        Request request = reqBuilder.build();
+
+        handle = io.reactivex.rxjava3.core.Observable.<String>create(emitter -> {
+            Response response = null;
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+            try {
+                response = client.newCall(request).execute();
+                if (!response.isSuccessful()) {
+                    emitter.onError(new IOException("HTTP " + response.code()));
+                    return;
+                }
+                ResponseBody body = response.body();
+                if (body == null) {
+                    emitter.onError(new IOException("Empty response body"));
+                    return;
+                }
+
+                long contentLength = body.contentLength();
+                long totalSize = contentLength > 0 ? contentLength + passSize : 0;
+
+                inputStream = body.byteStream();
+                if ("file".equals(targetUri.getScheme())) {
+                    String path = targetUri.getPath();
+                    java.io.FileOutputStream fos = new java.io.FileOutputStream(path, passSize > 0);
+                    outputStream = fos;
+                } else {
+                    outputStream = context.getContentResolver().openOutputStream(targetUri, passSize > 0 ? "wa" : "w");
+                }
+                if (outputStream == null) {
+                    emitter.onError(new IOException("Cannot open output stream for " + targetUri));
+                    return;
+                }
+
+                byte[] buffer = new byte[8192];
+                long downloaded = passSize;
+                int lastProgress = 0;
+                int len;
+                while ((len = inputStream.read(buffer)) != -1) {
+                    if (emitter.isDisposed()) {
+                        return;
+                    }
+                    outputStream.write(buffer, 0, len);
+                    downloaded += len;
+                    if (totalSize > 0) {
+                        int progress = (int) (downloaded * 100 / totalSize);
+                        if (progress != lastProgress) {
+                            lastProgress = progress;
+                            long finalDownloaded = downloaded;
+                            long finalTotal = totalSize;
+                            AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                                DownloadProgress dp = new DownloadProgress(progress, finalDownloaded, finalTotal);
+                                downloadItem.setNonius(progress);
+                                downloadItem.setCurrentSize(finalDownloaded);
+                                downloadItem.setTotalSize(finalTotal);
+                                downloadItem.setState(DownloadItem.DownloadState.DOWNLOADING);
+                                Common.showLog("currentProgress " + progress);
+                                try {
+                                    Callback<DownloadProgress> c = getCallback(uuid);
+                                    if (c != null) {
+                                        c.doSomething(dp);
+                                    }
+                                } catch (Exception e) {
+                                    Common.showLog("Manager progress callback error: " + e.getMessage());
+                                }
+                            });
                         }
                     }
-                }) //指定主线程回调
-                .doFinally(new Action() {
-                    @Override
-                    public void run() throws Throwable {
-                        //下载完成，处理相关逻辑
-                        currentIllustID = 0;
-                        loop();
-                        Common.showLog("doFinally ");
-                    }
-                })
-                .subscribe(s -> {
-                    //s为String类型，这里为文件存储路径
-                    Common.showLog("downloadOne " + s);
+                }
+                outputStream.flush();
+                emitter.onNext(targetUri.toString());
+                emitter.onComplete();
+            } catch (Exception e) {
+                if (!emitter.isDisposed()) {
+                    emitter.onError(e);
+                }
+            } finally {
+                if (inputStream != null) try { inputStream.close(); } catch (Exception ignored) {}
+                if (outputStream != null) try { outputStream.close(); } catch (Exception ignored) {}
+                if (response != null) try { response.close(); } catch (Exception ignored) {}
+            }
+        })
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .doFinally(() -> {
+            //下载完成，处理相关逻辑
+            currentIllustID = 0;
+            loop();
+            Common.showLog("doFinally ");
+        })
+        .subscribe(s -> {
+            //s为String类型，这里为文件存储路径
+            Common.showLog("downloadOne " + s);
 
-                    if(downloadItem.getIllust().isGif()){
-                        Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + downloadItem.getIllust().getId(), true);
-                        PixivOperate.unzipAndPlay(context, downloadItem.getIllust(), downloadItem.isAutoSave());
-                    }
+            if(downloadItem.getIllust().isGif()){
+                Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + downloadItem.getIllust().getId(), true);
+                PixivOperate.unzipAndPlay(context, downloadItem.getIllust(), downloadItem.isAutoSave());
+            }
 
-                    //通知 DOWNLOAD_ING 下载完成
-                    {
-                        Intent intent = new Intent(Params.DOWNLOAD_ING);
-                        Holder holder = new Holder();
-                        holder.setCode(Params.DOWNLOAD_SUCCESS);
-                        holder.setIndex(content.indexOf(downloadItem));
-                        holder.setDownloadItem(downloadItem);
-                        intent.putExtra(Params.CONTENT, holder);
-                        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                    }
+            //通知 DOWNLOAD_ING 下载完成
+            {
+                Intent intent = new Intent(Params.DOWNLOAD_ING);
+                Holder holder = new Holder();
+                holder.setCode(Params.DOWNLOAD_SUCCESS);
+                holder.setIndex(content.indexOf(downloadItem));
+                holder.setDownloadItem(downloadItem);
+                intent.putExtra(Params.CONTENT, holder);
+                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+            }
 
-                    //通知 DOWNLOAD_FINISH 下载完成
-                    {
-                        DownloadEntity downloadEntity = new DownloadEntity();
-                        downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
-                        downloadEntity.setFileName(downloadItem.getName());
-                        downloadEntity.setDownloadTime(System.currentTimeMillis());
-                        if (factory instanceof SAFactory) {
-                            downloadEntity.setFilePath(((SAFactory) factory).getUri().toString());
-                        } else {
-                            downloadEntity.setFilePath(((Android10DownloadFactory22) factory).getFileUri().toString());
-                        }
-                        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
-                        //通知FragmentDownloadFinish 添加这一项
-                        Intent intent = new Intent(Params.DOWNLOAD_FINISH);
-                        intent.putExtra(Params.CONTENT, downloadEntity);
-                        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                    }
+            //通知 DOWNLOAD_FINISH 下载完成
+            {
+                DownloadEntity downloadEntity = new DownloadEntity();
+                downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
+                downloadEntity.setFileName(downloadItem.getName());
+                downloadEntity.setDownloadTime(System.currentTimeMillis());
+                downloadEntity.setFilePath(factory.getFileUri().toString());
+                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
+                //通知FragmentDownloadFinish 添加这一项
+                Intent intent = new Intent(Params.DOWNLOAD_FINISH);
+                intent.putExtra(Params.CONTENT, downloadEntity);
+                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+            }
 
-                    // 通知相册下载完成
-                    new ImageSaver(){
-                        @Override
-                        public File whichFile() {
-                            Uri uri = factory.query();
-                            if (uri == null || uri.getPath() == null) {
-                                return null;
-                            }
-                            return new File(uri.getPath());
-                        }
-                    }.execute();
+            // 通知相册下载完成
+            new ImageSaver(){
+                @Override
+                public File whichFile() {
+                    Uri uri = factory.query();
+                    if (uri == null || uri.getPath() == null) {
+                        return null;
+                    }
+                    return new File(uri.getPath());
+                }
+            }.execute();
 
-                    complete(downloadItem, true);
-                }, throwable -> {
-                    //下载失败，处理相关逻辑
-                    throwable.printStackTrace();
-                    if (Shaft.sSettings.isToastDownloadResult()) {
-                        Common.showToast("下载失败，原因：" + throwable.toString());
-                    }
-                    Common.showLog("下载失败，原因：" + throwable.toString());
-                    complete(downloadItem, false);
-                    {
-                        //通知 DOWNLOAD_ING 有一项下载失败
-                        Intent intent = new Intent(Params.DOWNLOAD_ING);
-                        Holder holder = new Holder();
-                        holder.setCode(Params.DOWNLOAD_FAILED);
-                        holder.setIndex(content.indexOf(downloadItem));
-                        holder.setDownloadItem(downloadItem);
-                        intent.putExtra(Params.CONTENT, holder);
-                        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                    }
-                });
+            complete(downloadItem, true);
+        }, throwable -> {
+            //下载失败，处理相关逻辑
+            Common.showLog("Manager download error: " + throwable.getMessage());
+            if (Shaft.sSettings.isToastDownloadResult()) {
+                Common.showToast("下载失败，原因：" + throwable.toString());
+            }
+            Common.showLog("下载失败，原因：" + throwable.toString());
+            complete(downloadItem, false);
+            {
+                //通知 DOWNLOAD_ING 有一项下载失败
+                Intent intent = new Intent(Params.DOWNLOAD_ING);
+                Holder holder = new Holder();
+                holder.setCode(Params.DOWNLOAD_FAILED);
+                holder.setIndex(content.indexOf(downloadItem));
+                holder.setDownloadItem(downloadItem);
+                intent.putExtra(Params.CONTENT, holder);
+                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+            }
+        });
     }
 
     private String uuid;
@@ -381,9 +451,9 @@ public class Manager {
         return uuid;
     }
 
-    private final Map<String, Callback<Progress>> mCallback = new HashMap<>();
+    private final Map<String, Callback<DownloadProgress>> mCallback = new HashMap<>();
 
-    public Callback<Progress> getCallback(String uuid) {
+    public Callback<DownloadProgress> getCallback(String uuid) {
         return mCallback.getOrDefault(uuid, null);
     }
 
@@ -391,11 +461,11 @@ public class Manager {
         mCallback.clear();
     }
 
-    public void setCallback(Callback<Progress> callback) {
+    public void setCallback(Callback<DownloadProgress> callback) {
         mCallback.put("", callback);
     }
 
-    public void setCallback(String uuid, Callback<Progress> callback) {
+    public void setCallback(String uuid, Callback<DownloadProgress> callback) {
         mCallback.put(uuid, callback);
     }
 

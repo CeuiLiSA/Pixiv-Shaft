@@ -705,4 +705,6 @@
   <string name="string_save_original">Save Original</string>
   <string name="string_save_enhanced">Save Enhanced</string>
   <string name="string_cancel">Cancel</string>
+
+  <string name="show_novel_card_tags_setting">Show tags on novel cards</string>
 </resources>

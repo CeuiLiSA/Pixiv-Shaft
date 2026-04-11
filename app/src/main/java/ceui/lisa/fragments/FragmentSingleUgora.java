@@ -82,7 +82,7 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import jp.wasabeef.glide.transformations.BlurTransformation;
-import rxhttp.wrapper.entity.Progress;
+import ceui.lisa.download.DownloadProgress;
 
 /**
  * 插画详情
@@ -285,9 +285,9 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                         Cache.get().saveModel(Params.ILLUST_ID + "_" + illust.getId(), gifResponse);
                         baseBind.gifStatusText.setText("下载GIF文件...");
                         DownloadItem downloadItem = IllustDownload.downloadGif(gifResponse, illust);
-                        Manager.get().setCallback(downloadItem.getUuid(), new Callback<Progress>() {
+                        Manager.get().setCallback(downloadItem.getUuid(), new Callback<DownloadProgress>() {
                             @Override
-                            public void doSomething(Progress t) {
+                            public void doSomething(DownloadProgress t) {
                                 try {
                                     if (illust.getId() == Manager.get().getCurrentIllustID()) {
                                         baseBind.playGif.setVisibility(View.INVISIBLE);
@@ -381,9 +381,9 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         }
 
         if (illust.getId() == Manager.get().getCurrentIllustID()) {
-            Manager.get().setCallback(new Callback<Progress>() {
+            Manager.get().setCallback(new Callback<DownloadProgress>() {
                 @Override
-                public void doSomething(Progress t) {
+                public void doSomething(DownloadProgress t) {
                     try {
                         if (illust.getId() == Manager.get().getCurrentIllustID()) {
                             baseBind.playGif.setVisibility(View.INVISIBLE);

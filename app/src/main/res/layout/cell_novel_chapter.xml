@@ -15,7 +15,7 @@
         android:layout_marginBottom="6dp"
         android:lineSpacingExtra="@dimen/six_dp"
         android:textIsSelectable="true"
-        android:textColor="@color/white_to_gray"
+        android:textColor="?android:attr/textColorPrimary"
         android:textColorHighlight="?attr/colorPrimary"
         android:layout_height="wrap_content">
 

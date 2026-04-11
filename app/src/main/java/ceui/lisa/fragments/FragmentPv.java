@@ -1,8 +1,14 @@
 package ceui.lisa.fragments;
 
+import android.view.View;
+import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+
+import com.blankj.utilcode.util.BarUtils;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
@@ -18,6 +24,13 @@ public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     @Override
     public void initView() {
+        // Size the status-bar spacer in viewpager_with_tablayout.xml so the
+        // toolbar sits below the translucent status bar (RankActivity pattern).
+        baseBind.placeHolder.setVisibility(View.VISIBLE);
+        ViewGroup.LayoutParams p = baseBind.placeHolder.getLayoutParams();
+        p.height = BarUtils.getStatusBarHeight();
+        baseBind.placeHolder.setLayoutParams(p);
+
         final String[] CHINESE_TITLES = new String[]{
                 Shaft.getContext().getString(R.string.type_illust),
                 Shaft.getContext().getString(R.string.type_manga)

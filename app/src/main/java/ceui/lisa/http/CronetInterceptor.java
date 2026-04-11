@@ -10,14 +10,13 @@ import org.chromium.net.UrlRequest;
 import org.chromium.net.UrlResponseInfo;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -37,14 +36,14 @@ import okio.Buffer;
 public class CronetInterceptor implements Interceptor {
 
     private static final String TAG = "CronetInterceptor";
-    private final CronetEngine engine;
-    private final Executor executor = Executors.newFixedThreadPool(4);
+    private static final int MAX_RESPONSE_BYTES = 10 * 1024 * 1024; // 10MB
 
-    public CronetInterceptor(CronetEngine engine) {
-        this.engine = engine;
-    }
+    // Cloudflare Anycast IPs for Pixiv API — shared with HttpDns
+    public static final String CF_IP_PRIMARY = "104.18.42.239";
+    public static final String CF_IP_SECONDARY = "172.64.145.17";
 
     private static volatile CronetEngine sEngine;
+    private static final ExecutorService sExecutor = Executors.newFixedThreadPool(4);
 
     public static CronetEngine getEngine(Context context) {
         if (sEngine == null) {
@@ -57,14 +56,24 @@ public class CronetInterceptor implements Interceptor {
         return sEngine;
     }
 
-    public static CronetEngine buildEngine(Context context) {
-        // 绕过被污染的系统 DNS，将 Pixiv API 域名直接映射到 Cloudflare IP
-        String rules = "MAP app-api.pixiv.net 104.18.42.239,"
-                + " MAP oauth.secure.pixiv.net 104.18.42.239";
+    private final CronetEngine engine;
+
+    public CronetInterceptor(CronetEngine engine) {
+        this.engine = engine;
+    }
+
+    private static CronetEngine buildEngine(Context context) {
+        String rules = "MAP app-api.pixiv.net " + CF_IP_PRIMARY + ","
+                + " MAP oauth.secure.pixiv.net " + CF_IP_PRIMARY;
         String experimental = "{\"HostResolverRules\":{\"host_resolver_rules\":\"" + rules + "\"}}";
+
+        File cacheDir = new File(context.getCacheDir(), "cronet");
+        if (!cacheDir.exists()) cacheDir.mkdirs();
+
         return new ExperimentalCronetEngine.Builder(context)
                 .enableQuic(true)
                 .enableHttp2(true)
+                .setStoragePath(cacheDir.getAbsolutePath())
                 .addQuicHint("app-api.pixiv.net", 443, 443)
                 .addQuicHint("oauth.secure.pixiv.net", 443, 443)
                 .setExperimentalOptions(experimental)
@@ -75,35 +84,49 @@ public class CronetInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         String url = request.url().toString();
+        String method = request.method();
+        String path = request.url().encodedPath();
+        String query = request.url().encodedQuery();
+        String shortUrl = path + (query != null ? "?" + query : "");
 
-        // 构建 Cronet 请求
+        long startTime = System.nanoTime();
+        Log.d(TAG, "──→ " + method + " " + shortUrl);
+
         CountDownLatch latch = new CountDownLatch(1);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        WritableByteChannel channel = Channels.newChannel(bos);
         final Throwable[] error = {null};
         final UrlResponseInfo[] responseInfo = {null};
+        final long[] ttfb = {0};
 
         UrlRequest.Builder builder = engine.newUrlRequestBuilder(url, new UrlRequest.Callback() {
             @Override
             public void onRedirectReceived(UrlRequest req, UrlResponseInfo info, String newUrl) {
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.d(TAG, "  ↳ redirect [" + elapsed + "ms] → " + newUrl);
                 req.followRedirect();
             }
 
             @Override
             public void onResponseStarted(UrlRequest req, UrlResponseInfo info) {
                 responseInfo[0] = info;
-                Log.d(TAG, "Protocol: " + info.getNegotiatedProtocol() + " Status: " + info.getHttpStatusCode());
-                req.read(ByteBuffer.allocateDirect(65536));
+                ttfb[0] = (System.nanoTime() - startTime) / 1_000_000;
+                Log.d(TAG, "  ↳ response started [TTFB " + ttfb[0] + "ms] "
+                        + info.getHttpStatusCode() + " " + info.getNegotiatedProtocol());
+                req.read(ByteBuffer.allocateDirect(32768));
             }
 
             @Override
             public void onReadCompleted(UrlRequest req, UrlResponseInfo info, ByteBuffer buf) {
                 buf.flip();
-                try {
-                    channel.write(buf);
-                } catch (IOException e) {
-                    error[0] = e;
+                int remaining = buf.remaining();
+                if (bos.size() + remaining > MAX_RESPONSE_BYTES) {
+                    error[0] = new IOException("Response exceeds " + MAX_RESPONSE_BYTES + " bytes");
+                    req.cancel();
+                    return;
                 }
+                byte[] tmp = new byte[remaining];
+                buf.get(tmp);
+                bos.write(tmp, 0, remaining);
                 buf.clear();
                 req.read(buf);
             }
@@ -115,10 +138,22 @@ public class CronetInterceptor implements Interceptor {
 
             @Override
             public void onFailed(UrlRequest req, UrlResponseInfo info, CronetException e) {
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.e(TAG, "  ✗ failed [" + elapsed + "ms] " + e.getMessage());
                 error[0] = e;
                 latch.countDown();
             }
-        }, executor);
+
+            @Override
+            public void onCanceled(UrlRequest req, UrlResponseInfo info) {
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.w(TAG, "  ✗ cancelled [" + elapsed + "ms]");
+                if (error[0] == null) {
+                    error[0] = new IOException("Request cancelled");
+                }
+                latch.countDown();
+            }
+        }, sExecutor);
 
         // 转发 OkHttp headers
         Headers headers = request.headers();
@@ -127,7 +162,6 @@ public class CronetInterceptor implements Interceptor {
         }
 
         // 设置 HTTP method 和 body
-        String method = request.method();
         if (request.body() != null) {
             Buffer buf = new Buffer();
             request.body().writeTo(buf);
@@ -135,7 +169,7 @@ public class CronetInterceptor implements Interceptor {
             MediaType contentType = request.body().contentType();
             builder.setUploadDataProvider(
                     org.chromium.net.UploadDataProviders.create(bodyBytes),
-                    executor
+                    sExecutor
             );
             if (contentType != null) {
                 builder.addHeader("Content-Type", contentType.toString());
@@ -145,29 +179,41 @@ public class CronetInterceptor implements Interceptor {
             builder.setHttpMethod(method);
         }
 
-        builder.build().start();
+        UrlRequest urlRequest = builder.build();
+        urlRequest.start();
 
         try {
             if (!latch.await(30, TimeUnit.SECONDS)) {
+                urlRequest.cancel();
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.e(TAG, "←── " + method + " " + shortUrl + " TIMEOUT [" + elapsed + "ms]");
                 throw new IOException("Cronet request timed out: " + url);
             }
         } catch (InterruptedException e) {
+            urlRequest.cancel();
+            long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+            Log.e(TAG, "←── " + method + " " + shortUrl + " INTERRUPTED [" + elapsed + "ms]");
             throw new IOException("Cronet request interrupted", e);
         }
 
         if (error[0] != null) {
+            long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+            Log.e(TAG, "←── " + method + " " + shortUrl + " FAILED [" + elapsed + "ms] " + error[0].getMessage());
             throw new IOException("Cronet failed: " + error[0].getMessage(), error[0]);
         }
 
         if (responseInfo[0] == null) {
+            long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+            Log.e(TAG, "←── " + method + " " + shortUrl + " NO_RESPONSE [" + elapsed + "ms]");
             throw new IOException("No response received");
         }
+
+        long totalTime = (System.nanoTime() - startTime) / 1_000_000;
 
         // 构建 OkHttp Response
         UrlResponseInfo info = responseInfo[0];
         Headers.Builder responseHeaders = new Headers.Builder();
         for (Map.Entry<String, List<String>> entry : info.getAllHeaders().entrySet()) {
-            // Cronet 已自动解压 gzip/brotli，去掉这些 header 防止 OkHttp 再次解压
             String key = entry.getKey();
             if ("content-encoding".equalsIgnoreCase(key) || "content-length".equalsIgnoreCase(key)) {
                 continue;
@@ -182,12 +228,17 @@ public class CronetInterceptor implements Interceptor {
         if ("h3".equals(protocol) || "quic".equals(protocol)) {
             okProtocol = Protocol.QUIC;
         } else if ("h2".equals(protocol)) {
-            okProtocol = Protocol.H2_PRIOR_KNOWLEDGE;
+            okProtocol = Protocol.HTTP_2;
         } else {
             okProtocol = Protocol.HTTP_1_1;
         }
 
         byte[] body = bos.toByteArray();
+        long bodyReadTime = totalTime - ttfb[0];
+        Log.d(TAG, "←── " + method + " " + shortUrl + " " + info.getHttpStatusCode()
+                + " " + protocol + " [total " + totalTime + "ms | TTFB " + ttfb[0]
+                + "ms | body " + bodyReadTime + "ms | " + body.length + " bytes]");
+
         return new Response.Builder()
                 .request(request)
                 .protocol(okProtocol)

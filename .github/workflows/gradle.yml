@@ -127,7 +127,7 @@ jobs:
 
       - name: Build release apk
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
-        run: ./gradlew assembleGithubRelease
+        run: ./gradlew assembleGithubRelease --stacktrace
 
       - name: Deal with release apk
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT

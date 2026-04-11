@@ -79,10 +79,9 @@ public class Retro {
         return before;
     }
 
-    private static OkHttpClient.Builder fuckChinaWithConfig(OkHttpClient.Builder before, boolean enable) {
+    private static OkHttpClient.Builder applyDirectConnect(OkHttpClient.Builder before, boolean enable) {
         // Worker relay 模式下不需要 DNS 绕过，请求已经走 Worker
-        if (enable && Shaft.sSettings.isAutoFuckChina() && !ClientManager.Companion.isWorkerRelay()) {
-            // GFW 对 pixiv SNI 做了全端口 TCP RST，走 Cronet (QUIC/UDP) 绕过
+        if (enable && Shaft.sSettings.isDirectConnect() && !ClientManager.Companion.isWorkerRelay()) {
             before.addInterceptor(new CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())));
         }
         return before;
@@ -120,9 +119,9 @@ public class Retro {
      * Retrofit: A Type-Safe HTTP Client for Android and JVM
      * Retrofit is a popular and powerful type-safe HTTP client library for Android and Java Virtual Machine (JVM) applications. It simplifies the process of making network requests by converting your REST API endpoints into Java interfaces.
      * @param baseUrl   The base URL
-     * @param autoFuckChina auto
+     * @param directConnect auto
      * */
-    private static Retrofit buildRetrofit(String baseUrl, boolean autoFuckChina) {
+    private static Retrofit buildRetrofit(String baseUrl, boolean directConnect) {
         OkHttpClient.Builder builder = getLogClient();
         try {
             builder.addInterceptor(chain -> {
@@ -138,10 +137,10 @@ public class Retro {
             });
             builder.addInterceptor(new TokenInterceptor());
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("Retro", "buildRetrofit interceptor error", e);
         }
-        fuckChinaWithConfig(builder, autoFuckChina);
-        if (autoFuckChina && ClientManager.Companion.isWorkerRelay()) {
+        applyDirectConnect(builder, directConnect);
+        if (directConnect && ClientManager.Companion.isWorkerRelay()) {
             builder.protocols(java.util.Arrays.asList(Protocol.HTTP_2, Protocol.HTTP_1_1));
         }
         OkHttpClient client = builder.build();

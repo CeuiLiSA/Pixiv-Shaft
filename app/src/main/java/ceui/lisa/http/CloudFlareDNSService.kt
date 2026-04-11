@@ -1,11 +1,15 @@
 package ceui.lisa.http
 
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Query
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 interface CloudFlareDNSService {
 
@@ -23,13 +27,25 @@ interface CloudFlareDNSService {
         val DNSSB_DOH_POINT : String = "https://185.222.222.222/"
         val ALIDNS_DOH_POINT : String = "https://223.5.5.5/"
 
-        operator fun invoke(point: String): CloudFlareDNSService {
-            return Retrofit.Builder()
-                .baseUrl(point)
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(Retro.getLogClient().build())
+        private val serviceCache = ConcurrentHashMap<String, CloudFlareDNSService>()
+
+        private val dohClient: OkHttpClient by lazy {
+            OkHttpClient.Builder()
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                .connectTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
                 .build()
-                .create(CloudFlareDNSService::class.java)
+        }
+
+        operator fun invoke(point: String): CloudFlareDNSService {
+            return serviceCache.getOrPut(point) {
+                Retrofit.Builder()
+                    .baseUrl(point)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(dohClient)
+                    .build()
+                    .create(CloudFlareDNSService::class.java)
+            }
         }
     }
 }

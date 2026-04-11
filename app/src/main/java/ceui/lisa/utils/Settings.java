@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.PathUtils;
+import com.google.gson.annotations.SerializedName;
 
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
@@ -87,8 +88,12 @@ public class Settings {
     //屏蔽，不显示AI创作的作品，默认不屏蔽
     private boolean deleteAIIllust = false;
 
-    //是否自动添加DNS，true开启直连  false自行代理
-    private boolean autoFuckChina = false;
+    //是否开启直连模式，true 开启  false 自行代理
+    @SerializedName("autoFuckChina")
+    private boolean directConnect = false;
+
+    //Worker 中继地址，启用直连时优先走此地址
+    private String workerUrl = "";
 
     private boolean relatedIllustNoLimit = true;
 
@@ -110,6 +115,9 @@ public class Settings {
 
     //列表页面是否显示收藏按钮
     private boolean showLikeButton = true;
+
+    //小说卡片是否显示标签
+    private boolean showNovelCardTags = true;
 
     //直接下载单个作品所有P
     private boolean directDownloadAllImage = true;
@@ -345,12 +353,20 @@ public class Settings {
         this.relatedIllustNoLimit = relatedIllustNoLimit;
     }
 
-    public boolean isAutoFuckChina() {
-        return autoFuckChina;
+    public boolean isDirectConnect() {
+        return directConnect;
     }
 
-    public void setAutoFuckChina(boolean autoFuckChina) {
-        this.autoFuckChina = autoFuckChina;
+    public void setDirectConnect(boolean directConnect) {
+        this.directConnect = directConnect;
+    }
+
+    public String getWorkerUrl() {
+        return workerUrl == null ? "" : workerUrl;
+    }
+
+    public void setWorkerUrl(String workerUrl) {
+        this.workerUrl = workerUrl;
     }
 
     public boolean isMainViewR18() {
@@ -651,6 +667,14 @@ public class Settings {
 
     public void setShowLargeThumbnailImage(boolean showLargeThumbnailImage) {
         this.showLargeThumbnailImage = showLargeThumbnailImage;
+    }
+
+    public boolean isShowNovelCardTags() {
+        return showNovelCardTags;
+    }
+
+    public void setShowNovelCardTags(boolean showNovelCardTags) {
+        this.showNovelCardTags = showNovelCardTags;
     }
 
     public boolean isIllustDetailKeepScreenOn() {

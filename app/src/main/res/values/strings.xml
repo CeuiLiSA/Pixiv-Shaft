@@ -126,6 +126,9 @@
     <string name="login_out">退出登录</string>
     <string name="normal">常规</string>
     <string name="open_direct_connection">开启直连(自行代理或在墙外，可以关闭)</string>
+    <string name="worker_url_title">Worker 中继地址</string>
+    <string name="worker_url_hint">https://your-worker.workers.dev</string>
+    <string name="worker_url_not_set">未设置（直连 Pixiv）</string>
     <string name="see_pixiv_ez">详见 Notsfsssf/Pix-EzViewer</string>
     <string name="show_original_image">图片详情展示原图</string>
     <string name="delete_star_illust">搜索结果过滤已收藏</string>
@@ -508,7 +511,7 @@
     <string name="string_326">开始</string>
     <string name="string_327">暂停</string>
     <string name="string_328">清空任务</string>
-    <string name="string_329">传统模式暂时不支持自定义文件夹</string>
+    <string name="string_329">系统版本低于 Android 10，无法自定义文件夹</string>
     <string name="string_330">暂未设置</string>
     <string name="string_331">使用 PixivCat 代理</string>
     <string name="string_332">二级详情页面显示原图</string>
@@ -887,4 +890,6 @@
     <string name="rate_dialog_rate_now">去评分</string>
     <string name="rate_dialog_maybe_later">以后再说</string>
     <string name="rate_dialog_never">不再提醒</string>
+
+    <string name="show_novel_card_tags_setting">小说列表显示标签</string>
 </resources>

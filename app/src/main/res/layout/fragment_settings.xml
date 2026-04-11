@@ -185,20 +185,20 @@
                         <View style="@style/full_divider" />
 
                         <RelativeLayout
-                            android:id="@+id/fuck_china_rela"
+                            android:id="@+id/direct_connect_rela"
                             style="@style/ripple_rela">
 
                             <TextView
-                                android:id="@+id/fuck_china_s"
+                                android:id="@+id/direct_connect_title"
                                 style="@style/setting_text_left"
                                 android:layout_marginBottom="@dimen/six_dp"
                                 android:text="@string/open_direct_connection" />
 
                             <TextView
-                                android:id="@+id/fuck_china"
+                                android:id="@+id/direct_connect_link"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_below="@+id/fuck_china_s"
+                                android:layout_below="@+id/direct_connect_title"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
                                 android:ellipsize="start"
@@ -242,9 +242,6 @@
                                 android:textSize="12sp" />
 
                         </RelativeLayout>
-
-                        <View style="@style/half_divider" />
-
 
                         <View style="@style/half_divider" />
 
@@ -938,6 +935,23 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/show_like_button"
+                                style="@style/setting_right_switch" />
+
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/show_novel_card_tags_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left_and_center"
+                                android:text="@string/show_novel_card_tags_setting" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/show_novel_card_tags"
                                 style="@style/setting_right_switch" />
 
 

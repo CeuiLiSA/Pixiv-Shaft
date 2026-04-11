@@ -12,9 +12,6 @@ import androidx.fragment.app.FragmentManager;
 
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
@@ -53,6 +50,8 @@ import ceui.lisa.fragments.FragmentPopularNovel;
 import ceui.lisa.fragments.FragmentPv;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentRecmdUser;
+import ceui.lisa.fragments.RecmdUserMap;
+import ceui.lisa.fragments.RecmdUserSnapshot;
 import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentRelatedUser;
 import ceui.lisa.fragments.FragmentSAF;
@@ -74,7 +73,6 @@ import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserBean;
-import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
@@ -119,14 +117,21 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 }
                 case "设置":
                     return new FragmentSettings();
-                case "推荐用户":
-                    Bundle bundleExtra = intent.getBundleExtra(Params.USER_MODEL);
-                    if (bundleExtra == null) {
+                case "推荐用户": {
+                    // Paired with FragmentRight#seeMore: the producer stashes
+                    // the Feed horizontal preview's snapshot under a random
+                    // key in RecmdUserMap and passes the key here. We remove
+                    // it on consume so the map doesn't leak.
+                    String recmdKey = intent.getStringExtra(Params.USER_MODEL);
+                    if (recmdKey == null) {
                         return new FragmentRecmdUser();
                     }
-                    List<UserPreviewsBean> userPreviewsBeans = (ArrayList<UserPreviewsBean>) bundleExtra.getSerializable(Params.USER_MODEL);
-                    String nextUrl = intent.getStringExtra(Params.URL);
-                    return new FragmentRecmdUser(userPreviewsBeans, nextUrl);
+                    RecmdUserSnapshot snapshot = RecmdUserMap.store.remove(recmdKey);
+                    if (snapshot == null) {
+                        return new FragmentRecmdUser();
+                    }
+                    return new FragmentRecmdUser(snapshot.items, snapshot.nextUrl);
+                }
                 case "特辑":
                     return new FragmentPv();
                 case "搜索用户": {

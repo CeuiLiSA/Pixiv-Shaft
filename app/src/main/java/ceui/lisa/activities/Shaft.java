@@ -116,19 +116,17 @@ public class Shaft extends Application implements ServicesProvider {
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
         OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(new OkHttpClient.Builder());
-        if (sSettings.isAutoFuckChina()) {
+        if (sSettings.isDirectConnect()) {
             // 图片走 https://i.pximg.net 原始 URL，在 OkHttp 层面：
             // 1. 自定义 DNS 绕过 DNS 污染
             // 2. 无 SNI 的 TLS 绕过 GFW（图片服务器不要求 SNI）
             // 3. 强制 HTTP/1.1 避免 H2 复用连接被 GFW 整体干扰
             try {
-                ceui.lisa.http.pixivOkHttpClient trustManager = new ceui.lisa.http.pixivOkHttpClient();
-                javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("TLS");
-                sslContext.init(null, new javax.net.ssl.TrustManager[]{trustManager}, null);
+                ceui.lisa.http.TrustAllCertManager trustManager = new ceui.lisa.http.TrustAllCertManager();
                 glideBuilder.sslSocketFactory(new ceui.lisa.http.RubySSLSocketFactory(), trustManager);
                 glideBuilder.hostnameVerifier((hostname, session) -> true);
             } catch (Exception e) {
-                e.printStackTrace();
+                Timber.e(e, "Direct-connect SSL init error");
             }
             glideBuilder.dns(ceui.lisa.http.HttpDns.getInstance());
             glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));

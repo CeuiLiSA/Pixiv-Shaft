@@ -161,14 +161,14 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
         // 网络
         {
-            baseBind.autoDns.setChecked(Shaft.sSettings.isAutoFuckChina());
+            baseBind.autoDns.setChecked(Shaft.sSettings.isDirectConnect());
             updateWorkerUrlVisibility();
             updateWorkerUrlDisplay();
             baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    boolean changed = isChecked != Shaft.sSettings.isAutoFuckChina();
-                    Shaft.sSettings.setAutoFuckChina(isChecked);
+                    boolean changed = isChecked != Shaft.sSettings.isDirectConnect();
+                    Shaft.sSettings.setDirectConnect(isChecked);
                     Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                     updateWorkerUrlVisibility();
@@ -178,7 +178,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     }
                 }
             });
-            baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {
+            baseBind.directConnectLink.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -188,7 +188,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     startActivity(intent);
                 }
             });
-            baseBind.fuckChinaRela.setOnClickListener(new View.OnClickListener() {
+            baseBind.directConnectRela.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     baseBind.autoDns.performClick();
@@ -817,7 +817,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (Shaft.sSettings.getDownloadWay() == 0) {
+                    if (Shaft.sSettings.getDownloadWay() == 0 && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                         Common.showToast(getString(R.string.string_329), true);
                     } else {
                         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -855,6 +855,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onClick(View v) {
                     baseBind.showLikeButton.performClick();
+                }
+            });
+
+            baseBind.showNovelCardTags.setChecked(Shaft.sSettings.isShowNovelCardTags());
+            baseBind.showNovelCardTags.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setShowNovelCardTags(isChecked);
+                    Common.showToast(getString(R.string.string_428));
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.showNovelCardTagsRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.showNovelCardTags.performClick();
                 }
             });
 
@@ -1204,7 +1220,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
     private void updateWorkerUrlVisibility() {
         baseBind.workerUrlRela.setVisibility(
-                Shaft.sSettings.isAutoFuckChina() ? View.VISIBLE : View.GONE);
+                Shaft.sSettings.isDirectConnect() ? View.VISIBLE : View.GONE);
     }
 
     private void updateWorkerUrlDisplay() {
