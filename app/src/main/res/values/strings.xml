@@ -716,6 +716,10 @@
     <string name="string_sakura_model_needed">需要先下载 Sakura 翻译模型</string>
     <string name="sakura_demo_entry">Sakura 翻译 (日→中)</string>
     <string name="sakura_demo_entry_desc">粘贴日文文本，用 Sakura 模型翻成中文</string>
+    <string name="sakura_demo_hero_title">Sakura-1.5B 离线翻译</string>
+    <string name="sakura_demo_hero_subtitle">专为轻小说 / 漫画 / Galgame 调教的 ACG 日中翻译模型</string>
+    <string name="sakura_demo_optional">可选</string>
+    <string name="sakura_demo_line_count_fmt">%1$d 行</string>
     <string name="sakura_demo_input_label">日文原文</string>
     <string name="sakura_demo_input_hint">一行一句，支持多行</string>
     <string name="sakura_demo_glossary_label">术语表 (可选)</string>

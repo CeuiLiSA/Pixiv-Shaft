@@ -228,15 +228,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
-            baseBind.sakuraDemoRela.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Sakura翻译");
-                    startActivity(intent);
-                }
-            });
-
             //缩略图是否显示大图
             baseBind.showLargeThumbnailImage.setChecked(Shaft.sSettings.isShowLargeThumbnailImage());
             baseBind.showLargeThumbnailImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -1056,12 +1047,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             });
         }
 
-        // 翻译模型
+        // 翻译模型 (Sakura — ACG 日中翻译，漫画翻译和翻译 demo 都用它)
         {
             baseBind.translationModelRela.setOnClickListener(v -> {
                 Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
-                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "NLLB翻译模型下载");
-                intent.putExtra("nllb_model_name", ceui.pixiv.ui.translate.NllbTranslationModel.NLLB_600M.name());
+                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "Sakura翻译模型下载");
+                intent.putExtra("sakura_model_name", ceui.pixiv.ui.translate.SakuraModel.SAKURA_1_5B.name());
                 startActivity(intent);
             });
         }
@@ -1205,11 +1196,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 ? ceui.pixiv.ui.translate.MangaOcrModel.MANGA_OCR_BASE.getDisplayName()
                 : getString(R.string.string_model_not_ready, "91MB"));
 
-        boolean nllbReady = ceui.pixiv.ui.translate.NllbModelManager.INSTANCE.isModelReady(
-                mContext, ceui.pixiv.ui.translate.NllbTranslationModel.NLLB_600M);
-        baseBind.translationModelStatus.setText(nllbReady
-                ? ceui.pixiv.ui.translate.NllbTranslationModel.NLLB_600M.getDisplayName()
-                : getString(R.string.string_model_not_ready, "200MB"));
+        boolean sakuraReady = ceui.pixiv.ui.translate.SakuraModelManager.INSTANCE.isModelReady(
+                mContext, ceui.pixiv.ui.translate.SakuraModel.SAKURA_1_5B);
+        baseBind.translationModelStatus.setText(sakuraReady
+                ? ceui.pixiv.ui.translate.SakuraModel.SAKURA_1_5B.getDisplayName()
+                : getString(R.string.string_model_not_ready,
+                        ceui.pixiv.ui.translate.SakuraModel.SAKURA_1_5B.getSizeLabel()));
     }
 
     @Override

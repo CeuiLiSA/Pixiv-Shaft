@@ -285,6 +285,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         } else if (id == R.id.nav_ai_upscale) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "AI画质提升");
+        } else if (id == R.id.nav_sakura_translate) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Sakura翻译");
         } else if (id == R.id.nav_reverse) {
             selectPhoto();
         } else if (id == R.id.nav_new_work) {

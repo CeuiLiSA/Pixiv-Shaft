@@ -83,6 +83,11 @@
                 android:title="@string/string_ai_upscale_standalone" />
 
             <item
+                android:id="@+id/nav_sakura_translate"
+                android:icon="@drawable/ic_baseline_translate_24"
+                android:title="@string/sakura_demo_entry" />
+
+            <item
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_error_black_24dp"
                 android:title="@string/about_app" />

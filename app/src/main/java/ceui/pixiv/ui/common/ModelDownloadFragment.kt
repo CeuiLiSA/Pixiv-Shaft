@@ -1,24 +1,16 @@
 package ceui.pixiv.ui.common
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.annotation.StringRes
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentRembgModelDownloadBinding
+import ceui.lisa.fragments.SwipeFragment
 import ceui.pixiv.utils.setOnClick
+import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-abstract class ModelDownloadFragment : Fragment() {
-
-    private var _binding: FragmentRembgModelDownloadBinding? = null
-    protected val binding get() = _binding!!
+abstract class ModelDownloadFragment : SwipeFragment<FragmentRembgModelDownloadBinding>() {
 
     private var downloadJob: Job? = null
     private var downloadStartTime = 0L
@@ -34,29 +26,25 @@ abstract class ModelDownloadFragment : Fragment() {
 
     private val model: DownloadableModel by lazy { resolveModel() }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentRembgModelDownloadBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun initLayout() {
+        mLayoutID = R.layout.fragment_rembg_model_download
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun getSmartRefreshLayout(): SmartRefreshLayout = baseBind.refreshLayout
 
-        binding.toolbar.toolbarTitle.text = getString(titleRes())
-        binding.toolbar.toolbar.setNavigationOnClickListener { activity?.finish() }
-        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar.toolbar) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(v.paddingLeft, insets.top, v.paddingRight, 0)
-            WindowInsetsCompat.CONSUMED
-        }
+    override fun enableRefresh(): Boolean = false
 
-        binding.title.text = getString(titleRes())
-        binding.subtitle.text = getString(subtitleRes(), model.displayName)
-        binding.modelName.text = model.displayName
-        binding.modelSizeBadge.text = model.sizeLabel
-        binding.modelDesc.text = model.description
+    override fun enableLoadMore(): Boolean = false
+
+    override fun initData() {
+        baseBind.toolbar.toolbarTitle.text = getString(titleRes())
+        baseBind.toolbar.toolbar.setNavigationOnClickListener { activity?.finish() }
+
+        baseBind.title.text = getString(titleRes())
+        baseBind.subtitle.text = getString(subtitleRes(), model.displayName)
+        baseBind.modelName.text = model.displayName
+        baseBind.modelSizeBadge.text = model.sizeLabel
+        baseBind.modelDesc.text = model.description
 
         if (getManager().isModelReady(requireContext(), model)) {
             showDoneState()
@@ -66,13 +54,14 @@ abstract class ModelDownloadFragment : Fragment() {
     }
 
     private fun showInitState() {
-        binding.progressArea.visibility = View.GONE
-        binding.progressSizeText.visibility = View.GONE
-        binding.statusText.visibility = View.GONE
-        binding.btnPrimary.text = getString(R.string.string_rembg_model_start_download)
-        binding.btnSecondary.visibility = View.GONE
+        baseBind.progressArea.visibility = android.view.View.GONE
+        baseBind.progressSizeText.visibility = android.view.View.GONE
+        baseBind.statusText.visibility = android.view.View.GONE
+        baseBind.btnPrimary.visibility = android.view.View.VISIBLE
+        baseBind.btnPrimary.text = getString(R.string.string_rembg_model_start_download)
+        baseBind.btnSecondary.visibility = android.view.View.GONE
 
-        binding.btnPrimary.setOnClick { startDownload() }
+        baseBind.btnPrimary.setOnClick { startDownload() }
     }
 
     private fun showDownloadingState() {
@@ -81,71 +70,72 @@ abstract class ModelDownloadFragment : Fragment() {
         lastSpeedBytes = 0L
         smoothedSpeed = 0.0
 
-        binding.progressArea.visibility = View.VISIBLE
+        baseBind.progressArea.visibility = android.view.View.VISIBLE
 
-        binding.progressRing.isIndeterminate = true
-        binding.progressPercent.text = "0%"
-        binding.progressSizeText.visibility = View.VISIBLE
-        binding.progressSizeText.text = getString(
+        baseBind.progressRing.isIndeterminate = true
+        baseBind.progressPercent.text = "0%"
+        baseBind.progressSizeText.visibility = android.view.View.VISIBLE
+        baseBind.progressSizeText.text = getString(
             R.string.string_rembg_model_download_size, "0 MB", model.sizeLabel
         )
-        binding.statusText.visibility = View.VISIBLE
-        binding.statusText.text = getString(R.string.string_rembg_model_downloading)
+        baseBind.statusText.visibility = android.view.View.VISIBLE
+        baseBind.statusText.text = getString(R.string.string_rembg_model_downloading)
 
-        binding.btnPrimary.visibility = View.GONE
-        binding.btnSecondary.visibility = View.VISIBLE
-        binding.btnSecondary.text = getString(R.string.string_rembg_model_cancel)
-        binding.btnSecondary.setOnClick { cancelDownload() }
+        baseBind.btnPrimary.visibility = android.view.View.GONE
+        baseBind.btnSecondary.visibility = android.view.View.VISIBLE
+        baseBind.btnSecondary.text = getString(R.string.string_rembg_model_cancel)
+        baseBind.btnSecondary.setOnClick { cancelDownload() }
     }
 
     private fun showDoneState() {
-        binding.progressArea.visibility = View.VISIBLE
-        binding.progressRing.isIndeterminate = false
-        binding.progressRing.setProgressCompat(100, true)
-        binding.progressPercent.text = "100%"
-        binding.progressSizeText.visibility = View.GONE
-        binding.statusText.visibility = View.VISIBLE
-        binding.statusText.text = getString(doneTextRes())
+        baseBind.progressArea.visibility = android.view.View.VISIBLE
+        baseBind.progressRing.isIndeterminate = false
+        baseBind.progressRing.setProgressCompat(100, true)
+        baseBind.progressPercent.text = "100%"
+        baseBind.progressSizeText.visibility = android.view.View.GONE
+        baseBind.statusText.visibility = android.view.View.VISIBLE
+        baseBind.statusText.text = getString(doneTextRes())
 
-        binding.btnPrimary.visibility = View.VISIBLE
-        binding.btnPrimary.text = getString(R.string.string_rembg_model_start_use)
-        binding.btnPrimary.setOnClick { activity?.finish() }
+        baseBind.btnPrimary.visibility = android.view.View.VISIBLE
+        baseBind.btnPrimary.text = getString(R.string.string_rembg_model_start_use)
+        baseBind.btnPrimary.setOnClick { activity?.finish() }
 
-        binding.btnSecondary.visibility = View.GONE
+        baseBind.btnSecondary.visibility = android.view.View.GONE
     }
 
     private fun showErrorState() {
-        binding.progressRing.isIndeterminate = false
-        binding.progressRing.setProgressCompat(0, false)
-        binding.progressPercent.text = "--"
-        binding.statusText.text = getString(R.string.string_rembg_model_download_failed)
+        baseBind.progressRing.isIndeterminate = false
+        baseBind.progressRing.setProgressCompat(0, false)
+        baseBind.progressPercent.text = "--"
+        baseBind.statusText.text = getString(R.string.string_rembg_model_download_failed)
 
-        binding.btnPrimary.visibility = View.VISIBLE
-        binding.btnPrimary.text = getString(R.string.string_rembg_model_retry)
-        binding.btnPrimary.setOnClick { startDownload() }
+        baseBind.btnPrimary.visibility = android.view.View.VISIBLE
+        baseBind.btnPrimary.text = getString(R.string.string_rembg_model_retry)
+        baseBind.btnPrimary.setOnClick { startDownload() }
 
-        binding.btnSecondary.visibility = View.VISIBLE
-        binding.btnSecondary.text = getString(R.string.string_cancel)
-        binding.btnSecondary.setOnClick { activity?.finish() }
+        baseBind.btnSecondary.visibility = android.view.View.VISIBLE
+        baseBind.btnSecondary.text = getString(R.string.string_cancel)
+        baseBind.btnSecondary.setOnClick { activity?.finish() }
     }
 
     private fun startDownload() {
         showDownloadingState()
         downloadJob = viewLifecycleOwner.lifecycleScope.launch {
             val success = getManager().downloadModel(requireContext(), model) { bytesRead, totalBytes ->
-                binding.root.post {
-                    if (_binding == null) return@post
+                val root = view ?: return@downloadModel
+                root.post {
+                    if (!isAdded || view == null) return@post
                     val percent = if (totalBytes > 0) (bytesRead * 100 / totalBytes).toInt() else 0
-                    binding.progressRing.isIndeterminate = false
-                    binding.progressRing.setProgressCompat(percent, true)
-                    binding.progressPercent.text = "$percent%"
+                    baseBind.progressRing.isIndeterminate = false
+                    baseBind.progressRing.setProgressCompat(percent, true)
+                    baseBind.progressPercent.text = "$percent%"
                     val readMB = String.format("%.1f MB", bytesRead / 1_048_576.0)
                     val totalMB = if (totalBytes > 0) {
                         String.format("%.1f MB", totalBytes / 1_048_576.0)
                     } else {
                         model.sizeLabel
                     }
-                    binding.progressSizeText.text = getString(
+                    baseBind.progressSizeText.text = getString(
                         R.string.string_rembg_model_download_size, readMB, totalMB
                     )
 
@@ -169,7 +159,7 @@ abstract class ModelDownloadFragment : Fragment() {
                         } else {
                             null
                         }
-                        binding.statusText.text = if (etaText != null) {
+                        baseBind.statusText.text = if (etaText != null) {
                             "$speedText · $etaText"
                         } else {
                             speedText
@@ -177,6 +167,7 @@ abstract class ModelDownloadFragment : Fragment() {
                     }
                 }
             }
+            if (!isAdded || view == null) return@launch
             if (success) {
                 showDoneState()
             } else {
@@ -208,10 +199,5 @@ abstract class ModelDownloadFragment : Fragment() {
         downloadJob = null
         getManager().deleteModel(requireContext(), model)
         showInitState()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

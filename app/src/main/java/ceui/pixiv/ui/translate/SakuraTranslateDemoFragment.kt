@@ -4,45 +4,43 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import android.text.Editable
+import android.text.TextWatcher
+import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.databinding.FragmentSakuraTranslateDemoBinding
+import ceui.lisa.fragments.SwipeFragment
 import ceui.lisa.utils.Common
-import kotlinx.coroutines.launch
+import com.scwang.smart.refresh.layout.SmartRefreshLayout
 
-class SakuraTranslateDemoFragment : Fragment() {
+class SakuraTranslateDemoFragment : SwipeFragment<FragmentSakuraTranslateDemoBinding>() {
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return inflater.inflate(R.layout.fragment_sakura_translate_demo, container, false)
+    private val viewModel by viewModels<SakuraTranslateDemoViewModel>()
+
+    override fun initLayout() {
+        mLayoutID = R.layout.fragment_sakura_translate_demo
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun getSmartRefreshLayout(): SmartRefreshLayout = baseBind.refreshLayout
 
-        val inputText = view.findViewById<EditText>(R.id.input_text)
-        val glossaryText = view.findViewById<EditText>(R.id.glossary_text)
-        val translateButton = view.findViewById<Button>(R.id.translate_button)
-        val progressBar = view.findViewById<ProgressBar>(R.id.progress_bar)
-        val progressText = view.findViewById<TextView>(R.id.progress_text)
-        val outputText = view.findViewById<TextView>(R.id.output_text)
-        val metaText = view.findViewById<TextView>(R.id.meta_text)
-        val copyButton = view.findViewById<TextView>(R.id.copy_button)
+    override fun enableRefresh(): Boolean = false
 
-        copyButton.setOnClickListener {
-            val text = outputText.text?.toString().orEmpty()
+    override fun enableLoadMore(): Boolean = false
+
+    override fun initData() {
+        baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
+
+        refreshCounter()
+        baseBind.inputText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) = refreshCounter()
+        })
+
+        baseBind.copyButton.setOnClickListener {
+            val text = baseBind.outputText.text?.toString().orEmpty()
             if (text.isNotEmpty()) {
                 val cm = requireContext()
                     .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -51,63 +49,72 @@ class SakuraTranslateDemoFragment : Fragment() {
             }
         }
 
-        translateButton.setOnClickListener {
-            val ctx = context ?: return@setOnClickListener
-            val raw = inputText.text?.toString().orEmpty()
-            val lines = raw.split('\n').map { it.trim() }.filter { it.isNotEmpty() }
-            if (lines.isEmpty()) {
-                Common.showToast(getString(R.string.sakura_demo_empty_input))
-                return@setOnClickListener
+        baseBind.translateButton.setOnClickListener { onTranslateClicked() }
+
+        observeViewModel()
+    }
+
+    private fun refreshCounter() {
+        val lines = baseBind.inputText.text?.toString()
+            ?.split('\n')
+            ?.count { it.isNotBlank() }
+            ?: 0
+        baseBind.inputCounter.text = getString(R.string.sakura_demo_line_count_fmt, lines)
+    }
+
+    private fun observeViewModel() {
+        viewModel.isTranslating.observe(viewLifecycleOwner) { translating ->
+            val running = translating == true
+            baseBind.translateButton.isEnabled = !running
+            baseBind.translateButton.alpha = if (running) 0.5f else 1f
+            baseBind.progressRow.isVisible = running
+            if (running && viewModel.progress.value == null) {
+                baseBind.progressText.text = getString(R.string.sakura_demo_progress_loading)
             }
+        }
 
-            val model = SakuraModel.SAKURA_1_5B
-            if (!SakuraModelManager.isModelReady(ctx, model)) {
-                Common.showToast(getString(R.string.string_sakura_model_needed))
-                val intent = Intent(ctx, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Sakura翻译模型下载")
-                intent.putExtra("sakura_model_name", model.name)
-                startActivity(intent)
-                return@setOnClickListener
-            }
-
-            val glossary = glossaryText.text?.toString()?.trim().orEmpty()
-
-            translateButton.isEnabled = false
-            progressBar.visibility = View.VISIBLE
-            progressText.text = getString(R.string.sakura_demo_progress_loading)
-            outputText.text = ""
-            metaText.text = ""
-
-            val startMs = System.currentTimeMillis()
-
-            viewLifecycleOwner.lifecycleScope.launch {
-                val results = SakuraTranslator.translateBatch(
-                    context = ctx,
-                    texts = lines,
-                    glossary = glossary.ifEmpty { null },
-                    onProgress = { done, total ->
-                        view.post {
-                            progressText.text = getString(
-                                R.string.sakura_demo_progress_fmt, done, total
-                            )
-                        }
-                    }
+        viewModel.progress.observe(viewLifecycleOwner) { pair ->
+            if (pair != null) {
+                baseBind.progressText.text = getString(
+                    R.string.sakura_demo_progress_fmt, pair.first, pair.second
                 )
+            }
+        }
 
-                val elapsedMs = System.currentTimeMillis() - startMs
-                val rendered = results.joinToString("\n") { it ?: "⟨翻译失败⟩" }
-                outputText.text = rendered
-                progressBar.visibility = View.GONE
-                progressText.text = ""
-                translateButton.isEnabled = true
-                val failed = results.count { it == null }
-                metaText.text = getString(
+        viewModel.output.observe(viewLifecycleOwner) { text ->
+            baseBind.outputText.text = text.orEmpty()
+            baseBind.outputCard.isVisible = !text.isNullOrEmpty()
+        }
+
+        viewModel.meta.observe(viewLifecycleOwner) { meta ->
+            baseBind.metaText.text = meta?.let {
+                getString(
                     R.string.sakura_demo_meta_fmt,
-                    lines.size,
-                    failed,
-                    elapsedMs / 1000.0
+                    it.total,
+                    it.failed,
+                    it.elapsedMs / 1000.0
                 )
-            }
+            }.orEmpty()
+        }
+    }
+
+    private fun onTranslateClicked() {
+        val ctx = context ?: return
+        val raw = baseBind.inputText.text?.toString().orEmpty()
+        val lines = raw.split('\n').map { it.trim() }.filter { it.isNotEmpty() }
+        if (lines.isEmpty()) {
+            Common.showToast(getString(R.string.sakura_demo_empty_input))
+            return
+        }
+        val glossary = baseBind.glossaryText.text?.toString()?.trim().orEmpty()
+        val started = viewModel.translate(ctx, lines, glossary.ifEmpty { null })
+        if (!started) {
+            Common.showToast(getString(R.string.string_sakura_model_needed))
+            val model = SakuraModel.SAKURA_1_5B
+            val intent = Intent(ctx, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Sakura翻译模型下载")
+            intent.putExtra("sakura_model_name", model.name)
+            startActivity(intent)
         }
     }
 }
