@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import timber.log.Timber
+import java.io.File
 
 object TaskPool {
 
@@ -37,6 +38,28 @@ object TaskPool {
 
     fun removeTask(url: String) {
         _taskMap.remove(url)
+    }
+
+    @JvmStatic
+    fun peekCachedFile(url: String): File? {
+        val task = _taskMap[url]
+        if (task == null) {
+            Timber.d("[DL-CACHE] peekCachedFile no LoadTask for url=$url (pool size=${_taskMap.size})")
+            return null
+        }
+        val file = task.result.value
+        if (file == null) {
+            Timber.d("[DL-CACHE] peekCachedFile LoadTask found but result is null, status=${task.status.value} url=$url")
+            return null
+        }
+        val exists = file.exists()
+        val size = if (exists) file.length() else -1
+        if (!exists || size <= 0) {
+            Timber.d("[DL-CACHE] peekCachedFile file stale path=${file.absolutePath} exists=$exists size=$size url=$url")
+            return null
+        }
+        Timber.d("[DL-CACHE] peekCachedFile OK path=${file.absolutePath} size=$size url=$url")
+        return file
     }
 
     fun getDownloadTask(namedUrl: NamedUrl): DownloadTask {

@@ -36,6 +36,7 @@ import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.DownloadLimitTypeUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.pixiv.ui.task.TaskPool;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -254,6 +255,8 @@ public class Manager {
     }
 
     private void downloadOne(Context context, DownloadItem downloadItem) {
+        Common.showLog("[DL-CACHE] downloadOne enter uuid=" + downloadItem.getUuid()
+                + " name=" + downloadItem.getName() + " url=" + downloadItem.getUrl());
         // check network status, if setting don't download when mobile data, stop all task
         if(!DownloadLimitTypeUtil.canDownloadNow()){
             stopAll();
@@ -275,6 +278,28 @@ public class Manager {
         // 准备目标文件
         Uri targetUri = factory.insert();
 
+        // 若二级详情页已经通过 Glide 缓存了原图，直接复制，避免重复网络请求
+        final String dlUrl = downloadItem.getUrl();
+        final boolean isGif = downloadItem.getIllust().isGif();
+        final File cachedFile;
+        if (passSize != 0) {
+            Common.showLog("[DL-CACHE] skip peek, passSize=" + passSize + " (resume), url=" + dlUrl);
+            cachedFile = null;
+        } else if (isGif) {
+            Common.showLog("[DL-CACHE] skip peek, illust isGif, url=" + dlUrl);
+            cachedFile = null;
+        } else {
+            File peeked = TaskPool.peekCachedFile(dlUrl);
+            if (peeked != null) {
+                Common.showLog("[DL-CACHE] HIT path=" + peeked.getAbsolutePath()
+                        + " size=" + peeked.length() + " url=" + dlUrl);
+                cachedFile = peeked;
+            } else {
+                Common.showLog("[DL-CACHE] MISS url=" + dlUrl);
+                cachedFile = null;
+            }
+        }
+
         OkHttpClient client = ((Shaft) Shaft.getContext()).getOkHttpClient();
         Request.Builder reqBuilder = new Request.Builder()
                 .url(downloadItem.getUrl())
@@ -289,21 +314,36 @@ public class Manager {
             InputStream inputStream = null;
             OutputStream outputStream = null;
             try {
-                response = client.newCall(request).execute();
-                if (!response.isSuccessful()) {
-                    emitter.onError(new IOException("HTTP " + response.code()));
-                    return;
-                }
-                ResponseBody body = response.body();
-                if (body == null) {
-                    emitter.onError(new IOException("Empty response body"));
-                    return;
+                long contentLength;
+                long copyStartNs = System.nanoTime();
+                if (cachedFile != null) {
+                    Common.showLog("[DL-CACHE] begin local copy, src=" + cachedFile.getAbsolutePath()
+                            + " dst=" + targetUri);
+                    inputStream = new java.io.FileInputStream(cachedFile);
+                    contentLength = cachedFile.length();
+                } else {
+                    Common.showLog("[DL-CACHE] begin network fetch, url=" + dlUrl
+                            + " passSize=" + passSize + " dst=" + targetUri);
+                    response = client.newCall(request).execute();
+                    if (!response.isSuccessful()) {
+                        Common.showLog("[DL-CACHE] network HTTP " + response.code() + " url=" + dlUrl);
+                        emitter.onError(new IOException("HTTP " + response.code()));
+                        return;
+                    }
+                    ResponseBody body = response.body();
+                    if (body == null) {
+                        Common.showLog("[DL-CACHE] network empty body url=" + dlUrl);
+                        emitter.onError(new IOException("Empty response body"));
+                        return;
+                    }
+                    inputStream = body.byteStream();
+                    contentLength = body.contentLength();
                 }
 
-                long contentLength = body.contentLength();
                 long totalSize = contentLength > 0 ? contentLength + passSize : 0;
+                Common.showLog("[DL-CACHE] contentLength=" + contentLength + " totalSize=" + totalSize
+                        + " source=" + (cachedFile != null ? "cache" : "network"));
 
-                inputStream = body.byteStream();
                 if ("file".equals(targetUri.getScheme())) {
                     String path = targetUri.getPath();
                     java.io.FileOutputStream fos = new java.io.FileOutputStream(path, passSize > 0);
@@ -352,6 +392,9 @@ public class Manager {
                     }
                 }
                 outputStream.flush();
+                long elapsedMs = (System.nanoTime() - copyStartNs) / 1_000_000L;
+                Common.showLog("[DL-CACHE] write done source=" + (cachedFile != null ? "cache" : "network")
+                        + " bytes=" + downloaded + " elapsedMs=" + elapsedMs + " dst=" + targetUri);
                 emitter.onNext(targetUri.toString());
                 emitter.onComplete();
             } catch (Exception e) {
@@ -400,6 +443,8 @@ public class Manager {
                 downloadEntity.setDownloadTime(System.currentTimeMillis());
                 downloadEntity.setFilePath(factory.getFileUri().toString());
                 AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
+                Common.showLog("[DL-CACHE] db inserted DownloadEntity fileName=" + downloadEntity.getFileName()
+                        + " filePath=" + downloadEntity.getFilePath());
                 //通知FragmentDownloadFinish 添加这一项
                 Intent intent = new Intent(Params.DOWNLOAD_FINISH);
                 intent.putExtra(Params.CONTENT, downloadEntity);
