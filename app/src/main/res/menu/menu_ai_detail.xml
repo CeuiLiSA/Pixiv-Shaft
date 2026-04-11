@@ -9,8 +9,4 @@
         android:id="@+id/action_ai_rembg"
         android:title="@string/string_ai_rembg" />
 
-    <item
-        android:id="@+id/action_ai_manga_translate"
-        android:title="@string/string_ai_manga_translate" />
-
 </menu>

@@ -40,6 +40,7 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import android.content.Intent
+import android.view.ContextThemeWrapper
 import android.widget.ImageView
 import android.widget.PopupMenu
 import androidx.core.view.ViewCompat
@@ -116,7 +117,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
-                val popup = PopupMenu(this, anchor)
+                val popup = PopupMenu(
+                    ContextThemeWrapper(this, R.style.AppTheme_PopupOverlay),
+                    anchor
+                )
                 popup.menuInflater.inflate(R.menu.menu_ai_detail, popup.menu)
                 popup.setOnMenuItemClickListener { menuItem ->
                     val illust = mIllustsBean ?: return@setOnMenuItemClickListener false
@@ -132,10 +136,6 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                             RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
                                 performAiRembg(illust, pageIndex, model)
                             }
-                            true
-                        }
-                        R.id.action_ai_manga_translate -> {
-                            performAiMangaTranslation(illust, pageIndex)
                             true
                         }
                         else -> false
