@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -78,10 +79,11 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
             @Override
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
-                    int i = ContextCompat.checkSelfPermission(mContext, permissions[0]);
-                    if (i != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(mActivity, permissions, 1);
+                    String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                            ? Manifest.permission.READ_MEDIA_IMAGES
+                            : Manifest.permission.READ_EXTERNAL_STORAGE;
+                    if (ContextCompat.checkSelfPermission(mContext, permission) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(mActivity, new String[]{permission}, 1);
                     } else {
                         selectPhoto();
                     }
@@ -172,6 +174,14 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
                         });
                     }
                 });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            selectPhoto();
+        }
     }
 
     private void selectPhoto() {
