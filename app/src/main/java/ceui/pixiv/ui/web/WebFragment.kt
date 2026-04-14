@@ -122,6 +122,17 @@ class WebFragment : PixivFragment(R.layout.fragment_web) {
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true// -> 是否节点缓存
 
+        // 注入已同步的 Cookie，确保 pixiv 设置页等需要登录的页面能正常加载
+        val savedCookies = prefStore.getString(SessionManager.COOKIE_KEY, "")
+        if (!savedCookies.isNullOrEmpty()) {
+            val cookieManager = CookieManager.getInstance()
+            cookieManager.setAcceptCookie(true)
+            for (cookie in savedCookies.split(";")) {
+                cookieManager.setCookie(args.url, cookie.trim())
+            }
+            cookieManager.flush()
+        }
+
         // 加载 URL
         binding.webView.loadUrl(args.url)
         requireActivity().onBackPressedDispatcher.addCallback(onBackPressedCallback)
