@@ -24,6 +24,7 @@ on:
 
 env:
   ORIGINAL_PROJECT: "CeuiLiSA/Pixiv-Shaft"
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
