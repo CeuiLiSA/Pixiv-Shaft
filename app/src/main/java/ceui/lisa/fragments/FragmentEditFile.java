@@ -1,20 +1,17 @@
 package ceui.lisa.fragments;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
-import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
@@ -59,6 +56,16 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
 
     private File imageFile = null;
 
+    private final ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
+            registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+                if (uri != null) {
+                    imageFile = UriUtils.uri2File(uri);
+                    Glide.with(mContext)
+                            .load(imageFile)
+                            .into(baseBind.userHead);
+                }
+            });
+
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_edit_file;
@@ -75,23 +82,11 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
                 .load(GlideUtil.getHead(SessionManager.INSTANCE.getLoggedInUser()))
                 .into(baseBind.userHead);
         baseBind.submit.setOnClickListener(v -> submit());
-        baseBind.changeHead.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                            ? Manifest.permission.READ_MEDIA_IMAGES
-                            : Manifest.permission.READ_EXTERNAL_STORAGE;
-                    if (ContextCompat.checkSelfPermission(mContext, permission) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(mActivity, new String[]{permission}, 1);
-                    } else {
-                        selectPhoto();
-                    }
-                } else {
-                    selectPhoto();
-                }
-            }
-        });
+        baseBind.changeHead.setOnClickListener(v ->
+                pickMedia.launch(new PickVisualMediaRequest.Builder()
+                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                        .build())
+        );
         baseBind.toolbar.toolbarTitle.setText(R.string.string_92);
         baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
 
@@ -176,38 +171,6 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
                 });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            selectPhoto();
-        }
-    }
-
-    private void selectPhoto() {
-        Intent intentToPickPic = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
-        startActivityForResult(intentToPickPic, Params.REQUEST_CODE_CHOOSE);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        Common.showLog(className + "activity result");
-        if (resultCode == RESULT_OK
-                && requestCode == Params.REQUEST_CODE_CHOOSE
-                && data != null) {
-            Uri imageUri = data.getData();
-
-            if (imageUri == null) {
-                Common.showToast(getString(R.string.string_262));
-                return;
-            }
-            imageFile = UriUtils.uri2File(imageUri);
-            Glide.with(mContext)
-                    .load(imageFile)
-                    .into(baseBind.userHead);
-        }
-    }
 
     @Override
     public void invoke(Preset preset) {
