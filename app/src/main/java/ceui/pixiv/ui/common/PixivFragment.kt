@@ -46,6 +46,7 @@ import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
+import ceui.pixiv.widgets.RateAppManager
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
@@ -130,6 +131,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                     Common.showToast(getString(R.string.cancel_like_illust))
                 } else {
                     Client.appApi.postBookmark(illustId)
+                    RateAppManager.onUserEngaged()
                     ObjectPool.update(
                         illust.copy(
                             is_bookmarked = true,
@@ -158,6 +160,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                     Common.showToast(getString(R.string.cancel_like_illust))
                 } else {
                     Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
+                    RateAppManager.onUserEngaged()
                     ObjectPool.update(
                         novel.copy(
                             is_bookmarked = true,

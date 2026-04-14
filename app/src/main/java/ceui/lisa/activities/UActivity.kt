@@ -34,6 +34,7 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.ProgressTextButton
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.widgets.RateAppManager
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.github.ybq.android.spinkit.style.Wave
@@ -253,6 +254,7 @@ fun FragmentActivity.followUser(sender: ProgressIndicator, userId: Int, followTy
             }
             sender.showProgress()
             Client.appApi.postFollow(userId.toLong(), pendingFollowType)
+            RateAppManager.onUserEngaged()
             delay(500L)
             ObjectPool.followUser(userId.toLong())
             if (pendingFollowType == Params.TYPE_PUBLIC) {

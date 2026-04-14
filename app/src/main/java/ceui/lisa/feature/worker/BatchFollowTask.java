@@ -9,6 +9,7 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.utils.Params;
+import ceui.pixiv.widgets.RateAppManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -37,6 +38,7 @@ public class BatchFollowTask extends AbstractTask {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void next(NullResponse nullResponse) {
+                            RateAppManager.INSTANCE.onUserEngaged();
                             Intent intent = new Intent(Params.LIKED_USER);
                             intent.putExtra(Params.ID, userID);
                             intent.putExtra(Params.IS_LIKED, true);

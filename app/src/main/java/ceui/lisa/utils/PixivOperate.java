@@ -76,6 +76,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.widgets.RateAppManager;
 
 import static com.blankj.utilcode.util.ColorUtils.getColor;
 import static com.blankj.utilcode.util.StringUtils.getString;
@@ -111,6 +112,7 @@ public class PixivOperate {
 
                     @Override
                     public void next(NullResponse nullResponse) {
+                        RateAppManager.INSTANCE.onUserEngaged();
                         Intent intent = new Intent(Params.LIKED_USER);
                         intent.putExtra(Params.ID, userID);
                         intent.putExtra(Params.IS_LIKED, true);
@@ -188,6 +190,7 @@ public class PixivOperate {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void next(NullResponse nullResponse) {
+                            RateAppManager.INSTANCE.onUserEngaged();
                             Intent intent = new Intent(Params.LIKED_ILLUST);
                             intent.putExtra(Params.ID, illustsBean.getId());
                             intent.putExtra(Params.IS_LIKED, true);
@@ -262,6 +265,7 @@ public class PixivOperate {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void next(NullResponse nullResponse) {
+                            RateAppManager.INSTANCE.onUserEngaged();
                             Intent intent = new Intent(Params.LIKED_NOVEL);
                             intent.putExtra(Params.ID, novelBean.getId());
                             intent.putExtra(Params.IS_LIKED, true);

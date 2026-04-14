@@ -2,6 +2,7 @@ package ceui.pixiv.ui.task
 
 import ceui.loxia.Client
 import ceui.loxia.ObjectType
+import ceui.pixiv.widgets.RateAppManager
 
 class BookmarkTask(
     private val objectId: Long,
@@ -22,6 +23,7 @@ class BookmarkTask(
             } else {
                 Client.appApi.postBookmark(objectId)
             }
+            RateAppManager.onUserEngaged()
             _status.value = TaskStatus.Finished
             onEnd(Unit)
         } catch (ex: Exception) {

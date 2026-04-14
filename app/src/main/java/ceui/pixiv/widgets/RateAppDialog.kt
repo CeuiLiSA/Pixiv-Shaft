@@ -37,13 +37,6 @@ class RateAppDialog : PixivDialog(R.layout.dialog_rate_app) {
 
         binding.btnMaybeLater.setOnClick {
             Timber.d("RateAppDialog btnMaybeLater clicked")
-            RateAppManager.onUserChoseLater()
-            dismissAllowingStateLoss()
-        }
-
-        binding.btnNever.setOnClick {
-            Timber.d("RateAppDialog btnNever clicked")
-            RateAppManager.onUserChoseNever()
             dismissAllowingStateLoss()
         }
 
@@ -65,7 +58,7 @@ class RateAppDialog : PixivDialog(R.layout.dialog_rate_app) {
                 val flow = manager.launchReviewFlow(activity, task.result)
                 flow.addOnCompleteListener {
                     Timber.d("RateAppDialog launchReviewFlow completed")
-                    RateAppManager.onUserRated()
+
                     dismissAllowingStateLoss()
                 }
             } else {
@@ -93,7 +86,6 @@ class RateAppDialog : PixivDialog(R.layout.dialog_rate_app) {
                 Common.showToast("Unable to open Play Store")
             }
         }
-        RateAppManager.onUserRated()
         dismissAllowingStateLoss()
     }
 
@@ -149,6 +141,7 @@ class RateAppDialog : PixivDialog(R.layout.dialog_rate_app) {
         fun showIfNeeded(fragmentManager: FragmentManager) {
             if (!RateAppManager.shouldShowRateDialog()) return
             if (fragmentManager.findFragmentByTag(TAG) != null) return
+            RateAppManager.onAutoShown()
             RateAppDialog().show(fragmentManager, TAG)
         }
     }

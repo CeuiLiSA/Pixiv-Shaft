@@ -104,8 +104,6 @@ public class Shaft extends Application implements ServicesProvider {
         networkStateManager = new NetworkStateManager(this);
         sSettings = Local.getSettings();
 
-        ceui.pixiv.widgets.RateAppManager.INSTANCE.onAppLaunched();
-
         entityWrapper = new EntityWrapper(this);
         entityWrapper.initialize();
 

@@ -137,19 +137,6 @@
             android:textColor="@color/text20"
             android:textSize="14sp" />
 
-        <!-- Don't ask again -->
-        <TextView
-            android:id="@+id/btn_never"
-            style="@style/textMontserratRegular"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:padding="8dp"
-            android:stateListAnimator="@animator/button_press_alpha"
-            android:text="@string/rate_dialog_never"
-            android:textColor="@color/secondary_text_color"
-            android:textSize="12sp" />
-
     </LinearLayout>
 
 </FrameLayout>
