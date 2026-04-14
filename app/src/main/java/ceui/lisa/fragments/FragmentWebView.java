@@ -51,6 +51,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import ceui.lisa.R;
+import android.webkit.CookieManager;
 import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.feature.WeissUtil;
@@ -62,6 +63,8 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.ContextMenuTitleView;
+import ceui.pixiv.session.SessionManager;
+import com.tencent.mmkv.MMKV;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -194,7 +197,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                             String destiny = request.getUrl().toString();
                             Common.showLog(className + "destiny " + destiny);
                             if (destiny.contains(PIXIV_HEAD)) {
-                                if (destiny.contains("logout.php") || destiny.contains("settings.php") || destiny.contains("/settings/") || destiny.contains("upload.php")) {
+                                if (destiny.contains("logout.php") || destiny.contains("login.php") || destiny.contains("settings.php") || destiny.contains("/settings/") || destiny.contains("upload.php")) {
                                     return false;
                                 } else {
                                     try {
@@ -245,6 +248,17 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 })
                 .createAgentWeb()
                 .ready();
+
+        // 注入已同步的 Cookie，确保 pixiv 设置页等需要登录的页面能正常加载
+        String savedCookies = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "");
+        if (savedCookies != null && !savedCookies.isEmpty()) {
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.setAcceptCookie(true);
+            for (String cookie : savedCookies.split(";")) {
+                cookieManager.setCookie(url, cookie.trim());
+            }
+            cookieManager.flush();
+        }
 
         if (response == null) {
             mAgentWeb = ready.go(url);
