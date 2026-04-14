@@ -2,8 +2,10 @@ package ceui.pixiv.ui.user
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
@@ -18,6 +20,10 @@ import ceui.pixiv.ui.common.ViewPagerContentType
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+import com.bumptech.glide.request.RequestOptions.bitmapTransform
+import jp.wasabeef.glide.transformations.BlurTransformation
 
 class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -38,6 +44,16 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         val adapter = CommonAdapter(viewLifecycleOwner)
         binding.listView.adapter = adapter
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL_TABCELL)
+        viewModel.result.observe(viewLifecycleOwner) { resp ->
+            val bannerUrl = resp.profile?.background_image_url
+
+            if (!bannerUrl.isNullOrEmpty()) {
+                binding.dimmer.isVisible = true
+                Glide.with(this).load(GlideUrlChild(bannerUrl))
+                    .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
+                    .into(binding.pageBackground)
+            }
+        }
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(

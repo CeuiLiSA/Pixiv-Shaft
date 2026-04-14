@@ -240,7 +240,24 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
 
         transaction.commitNowAllowingStateLoss();
 
-        if (!TextUtils.isEmpty(currentUser.getWorkspace().getWorkspace_image_url())) {
+        String bannerUrl = currentUser.getProfile().getBackground_image_url();
+        Common.showLog("UserActivity bannerUrl=" + bannerUrl);
+        if (!TextUtils.isEmpty(bannerUrl)) {
+            Glide.with(mContext)
+                    .load(GlideUtil.getUrl(bannerUrl))
+                    .transition(withCrossFade())
+                    .into(baseBind.userBackground);
+
+            baseBind.userBackground.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.URL, bannerUrl);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情");
+                    mContext.startActivity(intent);
+                }
+            });
+        } else if (!TextUtils.isEmpty(currentUser.getWorkspace().getWorkspace_image_url())) {
             Glide.with(mContext)
                     .load(GlideUtil.getUrl(currentUser.getWorkspace().getWorkspace_image_url()))
                     .transition(withCrossFade())

@@ -77,13 +77,21 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
         }
         viewModel.userProfile.observe(viewLifecycleOwner) { profile ->
             binding.iconPrime.isVisible = profile.isPremium()
-        }
-        viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->
-            val url = blurIllust?.image_urls?.large
-            if (url?.isNotEmpty() == true) {
-                Glide.with(this).load(GlideUrlChild(url))
+            val bannerUrl = profile.profile?.background_image_url
+            if (!bannerUrl.isNullOrEmpty()) {
+                Glide.with(this).load(GlideUrlChild(bannerUrl))
                     .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
                     .into(binding.pageBackground)
+            }
+        }
+        viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->
+            if (viewModel.userProfile.value?.profile?.background_image_url.isNullOrEmpty()) {
+                val url = blurIllust?.image_urls?.large
+                if (url?.isNotEmpty() == true) {
+                    Glide.with(this).load(GlideUrlChild(url))
+                        .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
+                        .into(binding.pageBackground)
+                }
             }
         }
         binding.postFollow.setOnClick {

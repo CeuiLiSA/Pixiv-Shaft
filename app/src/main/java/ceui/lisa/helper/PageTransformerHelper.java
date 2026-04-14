@@ -3,7 +3,7 @@ package ceui.lisa.helper;
 import com.ToxicBakery.viewpager.transforms.ABaseTransformer;
 import com.ToxicBakery.viewpager.transforms.AccordionTransformer;
 import com.ToxicBakery.viewpager.transforms.BackgroundToForegroundTransformer;
-import com.ToxicBakery.viewpager.transforms.CubeInTransformer;
+import ceui.lisa.transformer.CubeInTransformer;
 import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
 import com.ToxicBakery.viewpager.transforms.DefaultTransformer;
 import com.ToxicBakery.viewpager.transforms.DepthPageTransformer;
