@@ -35,6 +35,15 @@
                     app:layout_collapseMode="parallax"
                     app:layout_collapseParallaxMultiplier="0.7" />
 
+                <View
+                    android:id="@+id/banner_overlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:background="@color/colorBlack40"
+                    android:visibility="gone"
+                    app:layout_collapseMode="parallax"
+                    app:layout_collapseParallaxMultiplier="0.7" />
+
                 <LinearLayout
                     android:id="@+id/center_header"
                     android:visibility="invisible"

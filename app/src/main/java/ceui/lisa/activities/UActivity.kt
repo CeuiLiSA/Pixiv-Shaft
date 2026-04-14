@@ -212,6 +212,11 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         } else {
             baseBind.vipImage.visibility = View.GONE
         }
+        val bannerUrl = data.profile.background_image_url
+        if (!bannerUrl.isNullOrEmpty()) {
+            Glide.with(mContext).load(GlideUtil.getUrl(bannerUrl)).into(baseBind.imageview)
+            baseBind.bannerOverlay.visibility = View.VISIBLE
+        }
         Glide.with(mContext).load(GlideUtil.getHead(data.user)).into(baseBind.userHead)
         baseBind.userName.text = data.user.name
         baseBind.userName.setOnClickListener { Common.copy(mContext, data.user.id.toString()) }
