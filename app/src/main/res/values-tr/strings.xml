@@ -81,7 +81,7 @@
   <string name="full_about_app">Uygulama Hakkında</string>  
   <string name="no_mail_address">Bağlı e-posta yok</string>  
   <string name="shaft_hint">Shaft İpucu</string>  
-  <string name="you_have_download_plan">Devam eden indirme var, yine de çıkayım mı?</string>  
+  <string name="you_have_download_plan">Devam eden indirme var, yine de çıkılsın mı?</string>  
   <string name="sure">Evet</string>  
   <string name="cancel">İptal</string>  
   <string name="now_downloading">İndiriliyor</string>  
