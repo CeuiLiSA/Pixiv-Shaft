@@ -8,6 +8,8 @@
 /captures
 .externalNativeBuild
 /app/release/
+/app/github/
+/app/google/
 .idea/misc.xml
 /.kotlin3rdparty/
 *.zip
