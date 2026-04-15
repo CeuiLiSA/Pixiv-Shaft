@@ -210,6 +210,10 @@ public class PixivOperate {
                                 Common.showToast(getString(R.string.like_novel_success_private));
                             }
 
+                            // 收藏行为更新画像：提升画师和标签偏好，让后续推荐更精准
+                            Common.showLog("Discovery/Hook bookmarkIllust id=" + illustsBean.getId());
+                            ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onBookmarkIllust(illustsBean);
+
                             //收藏后自动关注作者
                             if (Shaft.sSettings.isAutoFollowAfterStar()
                                     && illustsBean.getUser() != null

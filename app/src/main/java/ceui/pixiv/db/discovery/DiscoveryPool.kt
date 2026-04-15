@@ -6,14 +6,15 @@ import ceui.lisa.models.IllustsBean
 import ceui.pixiv.db.DiscoveryEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.LinkedList
 import java.util.Random
 import kotlin.math.ln
 import kotlin.math.pow
-import kotlin.math.sqrt
 
 object DiscoveryPool {
 
@@ -25,6 +26,7 @@ object DiscoveryPool {
     private val pooledIds = mutableSetOf<Long>()
     private val seenIds = mutableSetOf<Long>()
     private var initialized = false
+    private var rescoreJob: Job? = null
 
     fun initialize() {
         Timber.d("$TAG initialize called")
@@ -168,18 +170,19 @@ object DiscoveryPool {
                 matchedLifts.add(it)
             }
         }
-        // 归一化：除以 sqrt(匹配数)，避免标签多的作品天然得分过高
-        if (matched > 1) tagScore /= sqrt(matched.toFloat())
-        // 标签协同加分：3+ 个高 lift(>2) 标签同时命中，说明这张图和用户口味高度吻合
-        val highLiftCount = matchedLifts.count { it > 2f }
-        val synergyBonus = if (highLiftCount >= 3) (highLiftCount - 2) * 1.5f else 0f
+        // 归一化：matched^0.4 替代 sqrt，减少对多标签匹配作品的惩罚
+        if (matched > 1) tagScore /= matched.toDouble().pow(0.4).toFloat()
+        // 标签协同加分：2+ 个偏好标签(lift>1.8)同时命中，说明口味高度吻合
+        val highLiftCount = matchedLifts.count { it > 1.8f }
+        val synergyBonus = if (highLiftCount >= 2) (highLiftCount - 1) * 1.2f else 0f
 
-        // 画师亲和度：关注/多次下载的画师给予更高权重
+        // 画师亲和度：smoothstep 平滑过渡，消除 score=3 处的断崖
         var authorScore = 0f
         val authorRaw = profile.authorScores[illust.user?.id?.toLong() ?: 0]
         if (authorRaw != null) {
-            // 强信号(>=3, 即关注/多次下载)画师加权 1.0x，弱信号(浏览过)加权 0.3x
-            authorScore = if (authorRaw >= 3f) authorRaw * 1.0f else authorRaw * 0.3f
+            val t = ((authorRaw - 1f) / 3f).coerceIn(0f, 1f)
+            val multiplier = 0.3f + 0.7f * t * t * (3f - 2f * t)
+            authorScore = authorRaw * multiplier
         }
 
         // 质量分：bookmark rate 对数缩放，避免极端值主导
@@ -189,15 +192,12 @@ object DiscoveryPool {
             qualityScore = (ln((rate * 100).toDouble().coerceAtLeast(1.0)) * 3f).toFloat()
         }
 
-        // 新鲜度：渐进式而非二值，view 越少且有一定收藏越鼓励曝光
+        // 新鲜度：连续对数曲线替代阶梯函数，消除 500/2000/5000 处的跳变
         var freshScore = 0f
         if (illust.total_bookmarks > 5) {
-            freshScore = when {
-                illust.total_view < 500 -> 3f
-                illust.total_view < 2000 -> 1.5f
-                illust.total_view < 5000 -> 0.5f
-                else -> 0f
-            }
+            val views = illust.total_view.toFloat().coerceAtLeast(1f)
+            freshScore = (3f * (1f - ln(views.toDouble().coerceAtLeast(1.0)) / ln(5000.0)))
+                .toFloat().coerceIn(0f, 3f)
         }
 
         val total = tagScore + synergyBonus + authorScore + qualityScore + freshScore
@@ -276,13 +276,13 @@ object DiscoveryPool {
         val result = mutableListOf<DiscoveryEntity>()
         val authorCount = mutableMapOf<Long, Int>()
         val remaining = candidates.toMutableList()
-        val maxPerAuthor = 3
+        val maxPerAuthor = 2
         var retries = 0
         val maxRetries = limit * 2
 
         while (result.size < limit && remaining.isNotEmpty() && retries < maxRetries) {
-            // score^0.7 软化分布，让中低分作品也有出现机会
-            val weights = remaining.map { it.score.coerceAtLeast(0.1f).toDouble().pow(0.7) }
+            // score^0.85 适度软化：高分作品保持优势，中低分也有机会
+            val weights = remaining.map { it.score.coerceAtLeast(0.1f).toDouble().pow(0.85) }
             val totalWeight = weights.sum()
             if (totalWeight <= 0) break
 
@@ -309,11 +309,14 @@ object DiscoveryPool {
     }
 
     /**
-     * 当用户画像重建后，对池中未展示的作品重新打分。
-     * 让新发现的兴趣立刻影响推荐结果。
+     * 对池中未展示的作品重新打分。
+     * @param debounceMs 防抖延迟。收藏等高频操作传 >0 值，避免连续收藏时重复全量打分；
+     *                   buildProfile 等一次性调用传 0 立即执行。
      */
-    fun rescorePool() {
-        scope.launch {
+    fun rescorePool(debounceMs: Long = 0L) {
+        rescoreJob?.cancel()
+        rescoreJob = scope.launch {
+            if (debounceMs > 0) delay(debounceMs)
             try {
                 val profile = ProfileManager.cached() ?: return@launch
                 val db = AppDatabase.getAppDatabase(Shaft.getContext())

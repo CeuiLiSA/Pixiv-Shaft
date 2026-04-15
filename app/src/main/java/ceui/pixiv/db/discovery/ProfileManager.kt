@@ -39,6 +39,39 @@ object ProfileManager {
         Timber.d("$TAG onUnfollowUser userId=$userId")
     }
 
+    /**
+     * 收藏作品时实时更新画像：提升该画师亲和度 + 强化匹配标签的偏好分。
+     * 让收藏行为立刻影响后续推荐，形成正反馈循环。
+     */
+    fun onBookmarkIllust(illust: IllustsBean) {
+        val profile = cachedProfile ?: return
+        val userId = illust.user?.id?.toLong() ?: 0
+
+        val newAuthorScores = profile.authorScores.toMutableMap()
+        if (userId > 0) {
+            newAuthorScores[userId] = (newAuthorScores[userId] ?: 0f) + 1.5f
+        }
+
+        val newTagScores = profile.tagScores.toMutableMap()
+        illust.tags?.forEach { tag ->
+            val name = tag.name ?: return@forEach
+            val current = newTagScores[name]
+            if (current != null) {
+                newTagScores[name] = current + 0.3f
+            } else {
+                // 被收藏作品的新标签：加入为轻度偏好（刚过 lift>1.5 门槛）
+                newTagScores[name] = 1.6f
+            }
+        }
+
+        cachedProfile = profile.copy(
+            authorScores = newAuthorScores,
+            tagScores = newTagScores
+        )
+        Timber.d("$TAG onBookmarkIllust illustId=${illust.id}, author=$userId")
+        DiscoveryPool.rescorePool(debounceMs = 2000L)
+    }
+
     fun buildProfile(): UserProfile {
         val startTime = System.currentTimeMillis()
         Timber.d("$TAG buildProfile >>> started")
