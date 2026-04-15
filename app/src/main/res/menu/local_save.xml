@@ -9,6 +9,13 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_jump"
+        android:orderInCategory="110"
+        android:icon="@drawable/ic_date_range_black_24dp"
+        android:title="跳转到…"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_add"
         android:orderInCategory="100"
         android:title="@string/string_315"

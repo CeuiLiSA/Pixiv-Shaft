@@ -14,6 +14,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.feature.FeatureEntity;
+import ceui.lisa.helper.UserIllustJumpHelper;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.UserMangaRepo;
@@ -26,13 +27,21 @@ import ceui.lisa.utils.Params;
 public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
         ListIllust, IllustsBean> {
 
+    private static final String ARG_INITIAL_OFFSET = "initial_offset";
+
     private int userID;
     private boolean showToolbar = false;
+    private int initialOffset = 0;
 
     public static FragmentUserManga newInstance(int userID, boolean paramShowToolbar) {
+        return newInstance(userID, paramShowToolbar, 0);
+    }
+
+    public static FragmentUserManga newInstance(int userID, boolean paramShowToolbar, int initialOffset) {
         Bundle args = new Bundle();
         args.putInt(Params.USER_ID, userID);
         args.putBoolean(Params.FLAG, paramShowToolbar);
+        args.putInt(ARG_INITIAL_OFFSET, initialOffset);
         FragmentUserManga fragment = new FragmentUserManga();
         fragment.setArguments(args);
         return fragment;
@@ -42,6 +51,7 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
     public void initBundle(Bundle bundle) {
         userID = bundle.getInt(Params.USER_ID);
         showToolbar = bundle.getBoolean(Params.FLAG);
+        initialOffset = bundle.getInt(ARG_INITIAL_OFFSET, 0);
     }
 
     @Override
@@ -63,6 +73,19 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
                     Common.showToast("已收藏到精华");
                     return true;
                 }
+                if (item.getItemId() == R.id.action_jump) {
+                    UserIllustJumpHelper.showJumpDialog(
+                            mActivity, userID, UserIllustJumpHelper.Kind.MANGA,
+                            offset -> {
+                                if (isAdded() && !isStateSaved()) {
+                                    getParentFragmentManager().beginTransaction()
+                                            .replace(getId(), newInstance(userID, showToolbar, offset))
+                                            .commit();
+                                }
+                                return kotlin.Unit.INSTANCE;
+                            });
+                    return true;
+                }
                 return false;
             }
         });
@@ -70,7 +93,7 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new UserMangaRepo(userID);
+        return new UserMangaRepo(userID, initialOffset);
     }
 
     @Override
