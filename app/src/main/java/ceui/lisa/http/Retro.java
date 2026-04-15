@@ -1,21 +1,22 @@
 package ceui.lisa.http;
 
-import android.annotation.SuppressLint;
-import android.util.Log;
+import static ceui.lisa.http.AccountApi.ACCOUNT_BASE_URL;
+import static ceui.lisa.http.AppApi.API_BASE_URL;
+import static ceui.lisa.http.ResourceApi.JSDELIVR_BASE_URL;
+import static ceui.lisa.http.SignApi.SIGN_API;
+
+import timber.log.Timber;
 
 import com.blankj.utilcode.util.DeviceUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.security.cert.X509Certificate;
 import java.util.Collections;
 
-import javax.net.ssl.X509TrustManager;
-
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.helper.LanguageHelper;
 import ceui.loxia.ClientManager;
 import ceui.pixiv.session.SessionManager;
-import ceui.lisa.helper.LanguageHelper;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -23,11 +24,6 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-
-import static ceui.lisa.http.AccountApi.ACCOUNT_BASE_URL;
-import static ceui.lisa.http.AppApi.API_BASE_URL;
-import static ceui.lisa.http.ResourceApi.JSDELIVR_BASE_URL;
-import static ceui.lisa.http.SignApi.SIGN_API;
 
 public class Retro {
 
@@ -37,7 +33,7 @@ public class Retro {
      * Configued in {@link AppApi}
      * </p>
      * <p>
-     *     get() returns a Java interface to HTTP calls,and then it .create(),creates the AppApi
+     * get() returns a Java interface to HTTP calls,and then it .create(),creates the AppApi
      * </p>
      */
     public static AppApi getAppApi() {
@@ -60,11 +56,11 @@ public class Retro {
         return buildRetrofit(ACCOUNT_BASE_URL, false).create(AccountApi.class);
     }
 
-    public static AccountTokenApi getAccountTokenApi(){
+    public static AccountTokenApi getAccountTokenApi() {
         return buildRetrofit(ACCOUNT_BASE_URL).create(AccountTokenApi.class);
     }
 
-    public static ResourceApi getResourceApi(){
+    public static ResourceApi getResourceApi() {
         return buildPlainRetrofit(JSDELIVR_BASE_URL).create(ResourceApi.class);
     }
 
@@ -109,18 +105,22 @@ public class Retro {
      *                For example:
      *                </p>
      *                <p>
-     *     String API_BASE_URL = "https://app-api.pixiv.net/";in {@link AppApi}
+     *                String API_BASE_URL = "https://app-api.pixiv.net/";in {@link AppApi}
      *                </p>
-     * */
+     *
+     */
     private static Retrofit buildRetrofit(String baseUrl) {
         return buildRetrofit(baseUrl, true);
     }
+
     /**
      * Retrofit: A Type-Safe HTTP Client for Android and JVM
      * Retrofit is a popular and powerful type-safe HTTP client library for Android and Java Virtual Machine (JVM) applications. It simplifies the process of making network requests by converting your REST API endpoints into Java interfaces.
-     * @param baseUrl   The base URL
+     *
+     * @param baseUrl       The base URL
      * @param directConnect auto
-     * */
+     *
+     */
     private static Retrofit buildRetrofit(String baseUrl, boolean directConnect) {
         OkHttpClient.Builder builder = getLogClient();
         try {
@@ -137,12 +137,16 @@ public class Retro {
             });
             builder.addInterceptor(new TokenInterceptor());
         } catch (Exception e) {
-            Log.e("Retro", "buildRetrofit interceptor error", e);
+            Timber.e(e, "buildRetrofit interceptor error");
         }
         applyDirectConnect(builder, directConnect);
         if (directConnect && ClientManager.Companion.isWorkerRelay()) {
             builder.protocols(java.util.Arrays.asList(Protocol.HTTP_2, Protocol.HTTP_1_1));
         }
+        HttpLoggingInterceptor l = new HttpLoggingInterceptor(
+                message -> Timber.i(message));
+        l.setLevel(HttpLoggingInterceptor.Level.BODY);
+        builder.addInterceptor(l);
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         return new Retrofit.Builder()
@@ -153,7 +157,7 @@ public class Retro {
                 .build();
     }
 
-    private static Retrofit buildPlainRetrofit(String baseUrl){
+    private static Retrofit buildPlainRetrofit(String baseUrl) {
         OkHttpClient.Builder builder = getLogClient();
         OkHttpClient client = builder.build();
         return new Retrofit.Builder()
@@ -183,12 +187,6 @@ public class Retro {
         return retrofit.create(service);
     }
 
-
-
-
-    private static class Holder {
-        private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
-    }
     /**
      * @return The static Retrofit
      * <p>
@@ -200,11 +198,11 @@ public class Retro {
     }
 
     public static OkHttpClient.Builder getLogClient() {
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
-                message -> Log.i("RetroLog", message));
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         return new OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
+    }
+
+    private static class Holder {
+        private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
     }
 }

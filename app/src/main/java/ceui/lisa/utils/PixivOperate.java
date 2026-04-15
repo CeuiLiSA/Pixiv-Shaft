@@ -18,7 +18,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.ZipUtils;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
-import com.waynejo.androidndkgif.GifEncoder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -680,93 +679,6 @@ public class PixivOperate {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public static void encodeGif(Context context, File parentFile, IllustsBean illustsBean) {
-        RxRun.runOn(new RxRunnable<Void>() {
-            @Override
-            public Void execute() throws Exception {
-                Common.showLog("encodeGif 开始生成gif图");
-                final File[] listfile = parentFile.listFiles();
-
-                List<File> allFiles = Arrays.asList(listfile);
-                Collections.sort(allFiles, new Comparator<File>() {
-                    @Override
-                    public int compare(File o1, File o2) {
-                        if (Integer.parseInt(o1.getName().substring(0, o1.getName().length() - 4)) >
-                                Integer.parseInt(o2.getName().substring(0, o2.getName().length() - 4))) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    }
-                });
-
-                File gifFile = LegacyFile.gifResultFile(context, illustsBean);
-                Common.showLog("gifFile " + gifFile.getPath());
-
-                GifEncoder gifEncoder = new GifEncoder();
-
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inJustDecodeBounds = true;//这个参数设置为true才有效，
-                BitmapFactory.decodeFile(allFiles.get(0).getPath(), options);//这里的bitmap是个空
-                int outHeight = options.outHeight;
-                int outWidth = options.outWidth;
-                Common.showLog("通过Options获取到的图片大小" + "width:" + outWidth + " height: " + outHeight);
-
-
-                gifEncoder.init(outWidth, outHeight, gifFile.getPath(),
-                        GifEncoder.EncodingType.ENCODING_TYPE_NORMAL_LOW_MEMORY);
-
-                GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
-                int delayMs = 60;
-                if (gifResponse != null) {
-                    if (allFiles.size() == gifResponse.getUgoira_metadata().getFrames().size()) {
-                        Common.showLog("使用返回的delay 00");
-                        Back back = sBack.get(illustsBean.getId());
-                        for (int i = 0; i < allFiles.size(); i++) {
-                            Common.showLog("编码中 00 " + allFiles.size() + " " + (i + 1));
-                            gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
-                                    gifResponse.getUgoira_metadata().getFrames().get(i).getDelay());
-                            if (back != null) {
-                                float proc = i / (float) (allFiles.size() - 1);
-                                back.invoke(proc);
-                            }
-                        }
-                        sBack.remove(illustsBean.getId());
-                    } else {
-                        delayMs = gifResponse.getDelay();
-                        Common.showLog("使用返回的delay 11");
-                        for (int i = 0; i < allFiles.size(); i++) {
-                            Common.showLog("编码中 00 " + allFiles.size());
-                            gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
-                                    delayMs);
-                        }
-                    }
-
-                } else {
-                    Common.showLog("使用返回的delay 22");
-                    for (int i = 0; i < allFiles.size(); i++) {
-                        Common.showLog("编码中 00 " + allFiles.size());
-                        gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
-                                delayMs);
-                    }
-                }
-
-                Common.showLog("allFiles size " + allFiles.size());
-
-
-                gifEncoder.close();
-
-                Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
-
-                Intent intent = new Intent(Params.PLAY_GIF);
-                intent.putExtra(Params.ID, illustsBean.getId());
-                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                return null;
-            }
-        }, new TryCatchObserverImpl<>());
     }
 
     public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean, boolean autoSave) {
