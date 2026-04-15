@@ -197,8 +197,9 @@ object ProfileManager {
         for ((tag, likedFreq) in likedTagCount) {
             val viewedFreq = viewedTagCount[tag] ?: 1
             val lift = (likedFreq / totalLiked) / (viewedFreq / totalViewed)
-            if (lift > 1.5f) tagScores[tag] = lift
-            else if (lift < 0.3f) avoidedTags.add(tag)
+            // 至少喜欢过 2 次的标签才作为正向信号，减少低频噪声
+            if (likedFreq >= 2 && lift > 1.5f) tagScores[tag] = lift
+            else if (lift < 0.3f && viewedFreq >= 3) avoidedTags.add(tag)
         }
         for ((tag, viewedFreq) in viewedTagCount) {
             if (tag !in likedTagCount && viewedFreq >= 5) avoidedTags.add(tag)

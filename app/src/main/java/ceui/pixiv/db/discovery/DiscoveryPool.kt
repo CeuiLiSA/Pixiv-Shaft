@@ -9,6 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Random
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 object DiscoveryPool {
 
@@ -88,7 +91,9 @@ object DiscoveryPool {
                         if (tags.any { it in profile.mutedTags }) { skipMutedTag++; continue }
                         if (tags.count { it in profile.avoidedTags } >= 2) { skipAvoided++; continue }
                         val views = illust.total_view
-                        if (views > 100 && illust.total_bookmarks.toFloat() / views < profile.avgBookmarkRate * 0.2f) {
+                        // 阈值加上限 1.5%，保护小众优质内容不被误杀
+                        val qualityThreshold = minOf(profile.avgBookmarkRate * 0.2f, 0.015f)
+                        if (views > 100 && illust.total_bookmarks.toFloat() / views < qualityThreshold) {
                             skipLowQuality++; continue
                         }
                     }
@@ -135,6 +140,9 @@ object DiscoveryPool {
             val name = tag.name ?: return@forEach
             profile.tagScores[name]?.let { tagScore += it; matched++ }
         }
+        // 归一化：除以 sqrt(匹配数)，避免标签多的作品天然得分过高
+        if (matched > 1) tagScore /= sqrt(matched.toFloat())
+
         var authorScore = 0f
         profile.authorScores[illust.user?.id?.toLong() ?: 0]?.let { authorScore = it * 0.5f }
         var qualityScore = 0f
@@ -161,6 +169,80 @@ object DiscoveryPool {
         } catch (e: Exception) {
             Timber.e(e, "$TAG getDiscoveryFeed failed"); emptyList()
         }
+    }
+
+    private val recentlyReturnedIds = mutableSetOf<Long>()
+    private val feedRandom = Random()
+
+    /**
+     * 多样化推荐 feed：从候选池加权随机采样 + 画师去重，
+     * 打破纯 score DESC 的信息茧房。
+     */
+    fun getDiscoveryFeedDiversified(limit: Int = 50): List<DiscoveryEntity> {
+        return try {
+            val candidateSize = limit * 4
+            val dao = AppDatabase.getAppDatabase(Shaft.getContext()).discoveryDao()
+            val candidates = dao.getUnshown(candidateSize, 0)
+                .filter { it.illustId !in recentlyReturnedIds }
+
+            if (candidates.isEmpty()) {
+                Timber.d("$TAG diversifiedFeed: no candidates")
+                return emptyList()
+            }
+            if (candidates.size <= limit) {
+                Timber.d("$TAG diversifiedFeed: only ${candidates.size} candidates, returning all")
+                candidates.forEach { recentlyReturnedIds.add(it.illustId) }
+                return candidates
+            }
+
+            val result = weightedDiverseSample(candidates, limit)
+            result.forEach { recentlyReturnedIds.add(it.illustId) }
+            if (recentlyReturnedIds.size > MAX_POOL_SIZE) recentlyReturnedIds.clear()
+
+            Timber.d("$TAG diversifiedFeed: sampled ${result.size} from ${candidates.size} candidates")
+            result
+        } catch (e: Exception) {
+            Timber.e(e, "$TAG diversifiedFeed failed"); emptyList()
+        }
+    }
+
+    private fun weightedDiverseSample(candidates: List<DiscoveryEntity>, limit: Int): List<DiscoveryEntity> {
+        val gson = Shaft.sGson
+        val result = mutableListOf<DiscoveryEntity>()
+        val authorCount = mutableMapOf<Long, Int>()
+        val remaining = candidates.toMutableList()
+        val maxPerAuthor = 3
+        var retries = 0
+        val maxRetries = limit * 2
+
+        while (result.size < limit && remaining.isNotEmpty() && retries < maxRetries) {
+            // score^0.7 软化分布，让中低分作品也有出现机会
+            val weights = remaining.map { it.score.coerceAtLeast(0.1f).toDouble().pow(0.7) }
+            val totalWeight = weights.sum()
+            if (totalWeight <= 0) break
+
+            var r = feedRandom.nextDouble() * totalWeight
+            var pickedIdx = remaining.size - 1
+            for (i in remaining.indices) {
+                r -= weights[i]
+                if (r <= 0) { pickedIdx = i; break }
+            }
+            val picked = remaining.removeAt(pickedIdx)
+
+            // 画师多样性：同一画师最多出现 maxPerAuthor 次
+            val authorId = try {
+                gson.fromJson(picked.illustJson, IllustsBean::class.java)?.user?.id?.toLong() ?: 0L
+            } catch (_: Exception) { 0L }
+
+            if (authorId > 0 && (authorCount[authorId] ?: 0) >= maxPerAuthor) {
+                retries++
+                continue
+            }
+            if (authorId > 0) authorCount[authorId] = (authorCount[authorId] ?: 0) + 1
+            result.add(picked)
+        }
+
+        return result
     }
 
     fun markShown(illustId: Long) {

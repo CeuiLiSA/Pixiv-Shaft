@@ -10,7 +10,6 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.LocalRepo;
-import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.pixiv.db.DiscoveryEntity;
@@ -64,8 +63,7 @@ public class FragmentDiscovery extends LocalListFragment<FragmentBaseListBinding
             @Override
             public List<IllustsBean> first() {
                 Timber.d("%s first() >>>", TAG);
-                List<DiscoveryEntity> entities = AppDatabase.getAppDatabase(mContext)
-                        .discoveryDao().getUnshown(PAGE_SIZE, 0);
+                List<DiscoveryEntity> entities = DiscoveryPool.INSTANCE.getDiscoveryFeedDiversified(PAGE_SIZE);
                 List<IllustsBean> result = convertAndMark(entities);
                 Timber.d("%s first() <<< %d entities -> %d illusts", TAG, entities.size(), result.size());
                 return result;
@@ -73,10 +71,9 @@ public class FragmentDiscovery extends LocalListFragment<FragmentBaseListBinding
 
             @Override
             public List<IllustsBean> next() {
-                int offset = allItems != null ? allItems.size() : 0;
-                Timber.d("%s next() >>> offset=%d", TAG, offset);
-                List<DiscoveryEntity> entities = AppDatabase.getAppDatabase(mContext)
-                        .discoveryDao().getUnshown(PAGE_SIZE, offset);
+                Timber.d("%s next() >>>", TAG);
+                // 不再使用 offset：markShown + recentlyReturnedIds 已确保不会重复
+                List<DiscoveryEntity> entities = DiscoveryPool.INSTANCE.getDiscoveryFeedDiversified(PAGE_SIZE);
                 List<IllustsBean> result = convertAndMark(entities);
                 Timber.d("%s next() <<< %d entities -> %d illusts", TAG, entities.size(), result.size());
                 return result;
