@@ -143,6 +143,18 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/import_txt_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:paddingHorizontal="@dimen/eight_dp"
+                            android:paddingVertical="4dp"
+                            android:text="@string/sakura_demo_import_txt"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
                             android:id="@+id/input_counter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

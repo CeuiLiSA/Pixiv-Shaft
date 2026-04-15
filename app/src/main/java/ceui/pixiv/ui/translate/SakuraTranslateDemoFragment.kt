@@ -4,8 +4,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.text.Editable
 import android.text.TextWatcher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
@@ -18,6 +20,24 @@ import com.scwang.smart.refresh.layout.SmartRefreshLayout
 class SakuraTranslateDemoFragment : SwipeFragment<FragmentSakuraTranslateDemoBinding>() {
 
     private val viewModel by viewModels<SakuraTranslateDemoViewModel>()
+
+    private val pickTxtLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                val text = requireContext().contentResolver.openInputStream(uri)?.use {
+                    it.bufferedReader().readText()
+                }
+                if (!text.isNullOrEmpty()) {
+                    baseBind.inputText.setText(text)
+                    baseBind.inputText.setSelection(text.length)
+                }
+            } catch (e: Exception) {
+                Common.showToast("读取文件失败")
+            }
+        }
+    }
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_sakura_translate_demo
@@ -47,6 +67,10 @@ class SakuraTranslateDemoFragment : SwipeFragment<FragmentSakuraTranslateDemoBin
                 cm.setPrimaryClip(ClipData.newPlainText("sakura_translation", text))
                 Common.showToast(getString(R.string.sakura_demo_copied))
             }
+        }
+
+        baseBind.importTxtButton.setOnClickListener {
+            pickTxtLauncher.launch(arrayOf("text/plain"))
         }
 
         baseBind.translateButton.setOnClickListener { onTranslateClicked() }

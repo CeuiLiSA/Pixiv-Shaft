@@ -729,6 +729,7 @@
     <string name="sakura_demo_output_label">中文翻译</string>
     <string name="sakura_demo_copy">复制</string>
     <string name="sakura_demo_copied">已复制到剪贴板</string>
+    <string name="sakura_demo_import_txt">选择txt</string>
     <string name="sakura_demo_empty_input">请输入要翻译的日文</string>
     <string name="sakura_demo_progress_loading">正在加载模型…</string>
     <string name="sakura_demo_progress_fmt">翻译中 %1$d / %2$d</string>
