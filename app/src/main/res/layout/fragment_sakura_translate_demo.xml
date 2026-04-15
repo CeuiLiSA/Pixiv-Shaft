@@ -142,17 +142,18 @@
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
-                        <TextView
+                        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
                             android:id="@+id/import_txt_button"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:paddingHorizontal="@dimen/eight_dp"
-                            android:paddingVertical="4dp"
+                            android:layout_height="28dp"
+                            android:paddingHorizontal="@dimen/twelve_dp"
                             android:text="@string/sakura_demo_import_txt"
                             android:textColor="?attr/colorPrimary"
                             android:textSize="12sp"
-                            android:textStyle="bold" />
+                            app:qmui_backgroundColor="@android:color/transparent"
+                            app:qmui_borderColor="?attr/colorPrimary"
+                            app:qmui_borderWidth="1dp"
+                            app:qmui_radius="14dp" />
 
                         <TextView
                             android:id="@+id/input_counter"
