@@ -57,23 +57,46 @@ public class Manager {
         currentIllustID = 0;
     }
 
+    /**
+     * 恢复未完成的下载任务。每条记录的 taskGson 内嵌完整 IllustsBean (~80KB)，
+     * 过去全表加载在主线程触发过 OOM (CursorWindow.nativeGetString)。改为：
+     *   1) 后台线程执行，避免阻塞 UI 启动；
+     *   2) 限制条数，并先 trim 历史堆积条目；
+     *   3) 包一层 try/catch，OOM/DB 异常时静默跳过而不让启动崩溃。
+     */
+    private static final int MAX_RESTORE_ITEMS = 100;
+
     public void restore() {
-        List<DownloadingEntity> downloadingEntities = AppDatabase.getAppDatabase(mContext).downloadDao().getAllDownloading();
-        if (!Common.isEmpty(downloadingEntities)) {
-            Common.showLog("downloadingEntities " + downloadingEntities.size());
-            if (content != null) {
-                content = new ArrayList<>();
-            }
-            for (DownloadingEntity entity : downloadingEntities) {
-                try {
-                    DownloadItem downloadItem = Shaft.sGson.fromJson(entity.getTaskGson(), DownloadItem.class);
-                    content.add(downloadItem);
-                } catch (Exception ex) {
-                    Common.showLog("Manager restore error: " + ex.getMessage());
+        Schedulers.io().scheduleDirect(() -> {
+            try {
+                AppDatabase db = AppDatabase.getAppDatabase(mContext);
+                db.downloadDao().trimDownloading(MAX_RESTORE_ITEMS);
+                List<DownloadingEntity> downloadingEntities =
+                        db.downloadDao().getRecentDownloading(MAX_RESTORE_ITEMS);
+                if (Common.isEmpty(downloadingEntities)) {
+                    return;
                 }
+                Common.showLog("downloadingEntities " + downloadingEntities.size());
+                List<DownloadItem> restored = new ArrayList<>();
+                for (DownloadingEntity entity : downloadingEntities) {
+                    try {
+                        DownloadItem downloadItem = Shaft.sGson.fromJson(entity.getTaskGson(), DownloadItem.class);
+                        if (downloadItem != null) {
+                            restored.add(downloadItem);
+                        }
+                    } catch (Exception ex) {
+                        Common.showLog("Manager restore parse error: " + ex.getMessage());
+                    }
+                }
+                synchronized (this) {
+                    content = restored;
+                }
+                AndroidSchedulers.mainThread().scheduleDirect(() ->
+                        Common.showToast("下载记录恢复成功"));
+            } catch (Throwable t) {
+                Common.showLog("Manager restore failed: " + t.getMessage());
             }
-            Common.showToast("下载记录恢复成功");
-        }
+        });
     }
 
     public static Manager get() {

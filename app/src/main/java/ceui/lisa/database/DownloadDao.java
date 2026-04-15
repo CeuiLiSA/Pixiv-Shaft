@@ -49,6 +49,12 @@ public interface DownloadDao {
     @Query("SELECT * FROM illust_downloading_table")
     List<DownloadingEntity> getAllDownloading();
 
+    @Query("SELECT * FROM illust_downloading_table ORDER BY rowid DESC LIMIT :limit")
+    List<DownloadingEntity> getRecentDownloading(int limit);
+
+    @Query("DELETE FROM illust_downloading_table WHERE rowid NOT IN (SELECT rowid FROM illust_downloading_table ORDER BY rowid DESC LIMIT :keep)")
+    void trimDownloading(int keep);
+
     /**
      *
      */
