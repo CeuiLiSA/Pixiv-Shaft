@@ -18,6 +18,7 @@ import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentCollection;
 import ceui.lisa.fragments.FragmentColors;
+import ceui.lisa.fragments.FragmentDiscovery;
 import ceui.lisa.fragments.FragmentDoing;
 import ceui.lisa.fragments.FragmentDonate;
 import ceui.lisa.fragments.FragmentDownload;
@@ -313,6 +314,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentMarkdown.newInstance(url);
                 case "版本历史":
                     return new ceui.lisa.update.FragmentVersionHistory();
+                case "发现":
+                    return FragmentDiscovery.newInstance();
                 default:
                     return new Fragment();
             }

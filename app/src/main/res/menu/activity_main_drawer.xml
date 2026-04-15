@@ -11,6 +11,11 @@
             android:title="@string/user_main_page" />
 
         <item
+            android:id="@+id/nav_discovery"
+            android:icon="@drawable/ic_baseline_explore_24"
+            android:title="@string/string_discovery" />
+
+        <item
             android:id="@+id/nav_prime_tags"
             android:icon="@drawable/outline_whatshot_24"
             android:title="@string/prime_tags" />

@@ -126,6 +126,10 @@ public class PixivOperate {
                             Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE);
                             Common.showToast(getString(R.string.like_success_private));
                         }
+
+                        // 关注行为更新画像
+                        Common.showLog("Discovery/Hook followUser userId=" + userID);
+                        ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onFollowUser((long) userID);
                     }
                 });
     }
@@ -145,6 +149,10 @@ public class PixivOperate {
                         Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
                         ObjectPool.INSTANCE.unFollowUser(userID);
                         Common.showToast(getString(R.string.cancel_like));
+
+                        // 取消关注更新画像
+                        Common.showLog("Discovery/Hook unfollowUser userId=" + userID);
+                        ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onUnfollowUser((long) userID);
                     }
                 });
     }
@@ -224,6 +232,11 @@ public class PixivOperate {
                                 intent.putExtra(Params.CONTENT, listIllust);
                                 intent.putExtra(Params.INDEX, index);
                                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+
+                                // 寄生收集：收藏时的相关作品进发现池
+                                Common.showLog("Discovery/Hook postLike star_related illust=" + illustsBean.getId() + " got " + (listIllust.getIllusts() != null ? listIllust.getIllusts().size() : 0) + " related");
+                                ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.collect(
+                                        listIllust.getIllusts(), "star_related:" + illustsBean.getId());
                             }
                         });
             }

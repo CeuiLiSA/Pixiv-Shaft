@@ -10,6 +10,8 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import ceui.lisa.feature.FeatureEntity;
+import ceui.pixiv.db.DiscoveryDao;
+import ceui.pixiv.db.DiscoveryEntity;
 import ceui.pixiv.db.GeneralDao;
 import ceui.pixiv.db.GeneralEntity;
 import ceui.pixiv.db.RemoteKey;
@@ -28,8 +30,9 @@ import ceui.pixiv.db.RemoteKey;
                 DownloadingEntity.class, //记录用户正在下载中的列表
                 GeneralEntity.class, // 新增的 GeneralEntity
                 RemoteKey.class,
+                DiscoveryEntity.class, // 发现池候选作品
         },
-        version = 27,
+        version = 28,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -76,6 +79,22 @@ public abstract class AppDatabase extends RoomDatabase {
             );
         }
     };
+    private static final Migration MIGRATION_27_28 = new Migration(27, 28) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // 创建 discovery_table 发现池表
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS discovery_table (" +
+                            "illustId INTEGER NOT NULL PRIMARY KEY, " +
+                            "illustJson TEXT NOT NULL, " +
+                            "score REAL NOT NULL, " +
+                            "source TEXT NOT NULL, " +
+                            "collectedTime INTEGER NOT NULL, " +
+                            "shown INTEGER NOT NULL DEFAULT 0" +
+                            ")"
+            );
+        }
+    };
     private static AppDatabase INSTANCE;
 
     public static AppDatabase getAppDatabase(Context context) {
@@ -90,6 +109,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             .addMigrations(MIGRATION_24_25)
                             .addMigrations(MIGRATION_25_26) // 注册 25 -> 26 迁移
                             .addMigrations(MIGRATION_26_27) // 注册 26 -> 27 迁移
+                            .addMigrations(MIGRATION_27_28) // 注册 27 -> 28 迁移 (discovery_table)
                             .build();
         }
         return INSTANCE;
@@ -106,6 +126,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract SearchDao searchDao();
 
     public abstract GeneralDao generalDao();
+
+    public abstract DiscoveryDao discoveryDao();
 
 }
 
