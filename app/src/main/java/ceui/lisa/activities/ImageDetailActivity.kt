@@ -54,7 +54,8 @@ import java.util.Locale
  * 图片二级详情
  */
 class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
-    private var mIllustsBean: IllustsBean? = null
+    var mIllustsBean: IllustsBean? = null
+        private set
     private var localIllust: List<String>? = ArrayList()
     private var currentPage: TextView? = null
     private var downloadSingle: TextView? = null
@@ -147,7 +148,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 supportFragmentManager
             ) {
                 override fun getItem(i: Int): Fragment {
-                    return FragmentImageDetail.newInstance(mIllustsBean, i)
+                    return FragmentImageDetail.newInstance(i)
                 }
 
                 override fun getCount(): Int {

@@ -5,6 +5,7 @@ import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
+import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.IllustDownload
@@ -19,14 +20,17 @@ import com.github.panpf.sketch.loadImage
 import timber.log.Timber
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
-    private var mIllustsBean: IllustsBean? = null
     private var index = 0
     private var url: String? = null
     private val viewModel by viewModels<ToggleToolnarViewModel>(ownerProducer = { requireActivity() })
 
+    // 不再放进 arguments / savedInstanceState，避免每个 Fragment 重复持久化 80KB IllustsBean
+    // 导致 TransactionTooLargeException。统一向 ImageDetailActivity 取。
+    private val mIllustsBean: IllustsBean?
+        get() = (activity as? ImageDetailActivity)?.mIllustsBean
+
     public override fun initBundle(bundle: Bundle) {
         url = bundle.getString(Params.URL)
-        mIllustsBean = bundle.getSerializable(Params.CONTENT) as IllustsBean?
         index = bundle.getInt(Params.INDEX)
     }
 
@@ -85,17 +89,11 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putSerializable("mIllustsBean", mIllustsBean)
-        outState.putInt("index", index)
-    }
-
     companion object {
+        // IllustsBean 由 ImageDetailActivity 持有，Fragment 运行时读取，避免放进 Bundle
         @JvmStatic
-        fun newInstance(illustsBean: IllustsBean?, index: Int): FragmentImageDetail {
+        fun newInstance(index: Int): FragmentImageDetail {
             val args = Bundle()
-            args.putSerializable(Params.CONTENT, illustsBean)
             args.putInt(Params.INDEX, index)
             val fragment = FragmentImageDetail()
             fragment.arguments = args
