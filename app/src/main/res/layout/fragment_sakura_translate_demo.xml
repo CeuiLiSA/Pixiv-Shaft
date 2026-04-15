@@ -46,326 +46,319 @@
                 android:clipToPadding="false"
                 android:fillViewport="true">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="@dimen/sixteen_dp"
-            android:paddingTop="@dimen/sixteen_dp"
-            android:paddingEnd="@dimen/sixteen_dp"
-            android:paddingBottom="32dp">
-
-            <!-- Hero header card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/white_and_black"
-                app:cardCornerRadius="@dimen/sixteen_dp"
-                app:cardElevation="0dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="@dimen/sixteen_dp">
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/sixteen_dp"
+                    android:paddingTop="@dimen/sixteen_dp"
+                    android:paddingEnd="@dimen/sixteen_dp"
+                    android:paddingBottom="32dp">
 
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center_vertical"
-                        android:src="@drawable/ic_baseline_translate_24"
-                        app:tint="?attr/colorPrimary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <!-- Hero header card -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginStart="@dimen/twelve_dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        app:cardBackgroundColor="@color/white_and_black"
+                        app:cardCornerRadius="@dimen/sixteen_dp"
+                        app:cardElevation="0dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/sakura_demo_hero_title"
-                            android:textColor="?attr/colorPrimary"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="@string/sakura_demo_hero_subtitle"
+                            android:orientation="horizontal"
+                            android:padding="@dimen/sixteen_dp">
+
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:layout_gravity="center_vertical"
+                                android:src="@drawable/ic_baseline_translate_24"
+                                app:tint="?attr/colorPrimary" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/sakura_demo_hero_title"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/sakura_demo_hero_subtitle"
+                                    android:textColor="?android:attr/textColorSecondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Input card -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/sixteen_dp"
+                        app:cardBackgroundColor="@color/white_and_black"
+                        app:cardCornerRadius="@dimen/sixteen_dp"
+                        app:cardElevation="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingStart="@dimen/sixteen_dp"
+                            android:paddingTop="@dimen/twelve_dp"
+                            android:paddingEnd="@dimen/sixteen_dp"
+                            android:paddingBottom="@dimen/twelve_dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <View
+                                    android:layout_width="3dp"
+                                    android:layout_height="14dp"
+                                    android:background="?attr/colorPrimary" />
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:layout_weight="1"
+                                    android:text="@string/sakura_demo_input_label"
+                                    android:textColor="?android:attr/textColorPrimary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                                    android:id="@+id/import_txt_button"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="28dp"
+                                    android:paddingHorizontal="@dimen/twelve_dp"
+                                    android:text="@string/sakura_demo_import_txt"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="12sp"
+                                    app:qmui_backgroundColor="@android:color/transparent"
+                                    app:qmui_borderColor="?attr/colorPrimary"
+                                    app:qmui_borderWidth="1dp"
+                                    app:qmui_radius="14dp" />
+
+                            </LinearLayout>
+
+                            <com.rengwuxian.materialedittext.MaterialEditText
+                                android:id="@+id/input_text"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:background="@null"
+                                android:gravity="top|start"
+                                android:hint="@string/sakura_demo_input_hint"
+                                android:inputType="textMultiLine"
+                                android:minLines="5"
+                                android:textSize="14sp"
+                                app:met_baseColor="?android:attr/textColorPrimary"
+                                app:met_floatingLabel="none"
+                                app:met_primaryColor="?attr/colorPrimary" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Glossary card -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/twelve_dp"
+                        app:cardBackgroundColor="@color/white_and_black"
+                        app:cardCornerRadius="@dimen/sixteen_dp"
+                        app:cardElevation="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingStart="@dimen/sixteen_dp"
+                            android:paddingTop="@dimen/twelve_dp"
+                            android:paddingEnd="@dimen/sixteen_dp"
+                            android:paddingBottom="@dimen/twelve_dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <View
+                                    android:layout_width="3dp"
+                                    android:layout_height="14dp"
+                                    android:background="?attr/colorPrimary" />
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:layout_weight="1"
+                                    android:text="@string/sakura_demo_glossary_label"
+                                    android:textColor="?android:attr/textColorPrimary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/sakura_demo_optional"
+                                    android:textColor="?android:attr/textColorTertiary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <com.rengwuxian.materialedittext.MaterialEditText
+                                android:id="@+id/glossary_text"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:background="@null"
+                                android:gravity="top|start"
+                                android:hint="@string/sakura_demo_glossary_hint"
+                                android:inputType="textMultiLine"
+                                android:minLines="2"
+                                android:textSize="13sp"
+                                app:met_baseColor="?android:attr/textColorPrimary"
+                                app:met_floatingLabel="none"
+                                app:met_primaryColor="?attr/colorPrimary" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Translate button -->
+                    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                        android:id="@+id/translate_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:text="@string/sakura_demo_translate"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:qmui_backgroundColor="?attr/colorPrimary"
+                        app:qmui_borderWidth="0dp"
+                        app:qmui_radius="@dimen/twelve_dp" />
+
+                    <LinearLayout
+                        android:id="@+id/progress_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/twelve_dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <ProgressBar
+                            android:id="@+id/progress_bar"
+                            style="?android:attr/progressBarStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:id="@+id/progress_text"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/eight_dp"
+                            android:layout_weight="1"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Input card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/sixteen_dp"
-                app:cardBackgroundColor="@color/white_and_black"
-                app:cardCornerRadius="@dimen/sixteen_dp"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingStart="@dimen/sixteen_dp"
-                    android:paddingTop="@dimen/twelve_dp"
-                    android:paddingEnd="@dimen/sixteen_dp"
-                    android:paddingBottom="@dimen/twelve_dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <View
-                            android:layout_width="3dp"
-                            android:layout_height="14dp"
-                            android:background="?attr/colorPrimary" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/eight_dp"
-                            android:layout_weight="1"
-                            android:text="@string/sakura_demo_input_label"
-                            android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                            android:id="@+id/import_txt_button"
-                            android:layout_width="wrap_content"
-                            android:layout_height="28dp"
-                            android:paddingHorizontal="@dimen/twelve_dp"
-                            android:text="@string/sakura_demo_import_txt"
-                            android:textColor="?attr/colorPrimary"
                             android:textSize="12sp"
-                            app:qmui_backgroundColor="@android:color/transparent"
-                            app:qmui_borderColor="?attr/colorPrimary"
-                            app:qmui_borderWidth="1dp"
-                            app:qmui_radius="14dp" />
-
-                        <TextView
-                            android:id="@+id/input_counter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="?android:attr/textColorTertiary"
-                            android:textSize="11sp"
-                            tools:text="0 行" />
+                            tools:text="翻译中 1 / 5" />
                     </LinearLayout>
 
-                    <com.rengwuxian.materialedittext.MaterialEditText
-                        android:id="@+id/input_text"
+                    <!-- Output card -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/output_card"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:background="@null"
-                        android:gravity="top|start"
-                        android:hint="@string/sakura_demo_input_hint"
-                        android:inputType="textMultiLine"
-                        android:minLines="5"
-                        android:textSize="14sp"
-                        app:met_baseColor="?android:attr/textColorPrimary"
-                        app:met_floatingLabel="none"
-                        app:met_primaryColor="?attr/colorPrimary" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                        android:layout_marginTop="@dimen/twenty_dp"
+                        android:visibility="gone"
+                        app:cardBackgroundColor="@color/white_and_black"
+                        app:cardCornerRadius="@dimen/sixteen_dp"
+                        app:cardElevation="0dp">
 
-            <!-- Glossary card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/twelve_dp"
-                app:cardBackgroundColor="@color/white_and_black"
-                app:cardCornerRadius="@dimen/sixteen_dp"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingStart="@dimen/sixteen_dp"
-                    android:paddingTop="@dimen/twelve_dp"
-                    android:paddingEnd="@dimen/sixteen_dp"
-                    android:paddingBottom="@dimen/twelve_dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <View
-                            android:layout_width="3dp"
-                            android:layout_height="14dp"
-                            android:background="?attr/colorPrimary" />
-
-                        <TextView
-                            android:layout_width="0dp"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/eight_dp"
-                            android:layout_weight="1"
-                            android:text="@string/sakura_demo_glossary_label"
-                            android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
+                            android:orientation="vertical"
+                            android:paddingStart="@dimen/sixteen_dp"
+                            android:paddingTop="@dimen/twelve_dp"
+                            android:paddingEnd="@dimen/sixteen_dp"
+                            android:paddingBottom="@dimen/sixteen_dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/sakura_demo_optional"
-                            android:textColor="?android:attr/textColorTertiary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
 
-                    <com.rengwuxian.materialedittext.MaterialEditText
-                        android:id="@+id/glossary_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:background="@null"
-                        android:gravity="top|start"
-                        android:hint="@string/sakura_demo_glossary_hint"
-                        android:inputType="textMultiLine"
-                        android:minLines="2"
-                        android:textSize="13sp"
-                        app:met_baseColor="?android:attr/textColorPrimary"
-                        app:met_floatingLabel="none"
-                        app:met_primaryColor="?attr/colorPrimary" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                                <View
+                                    android:layout_width="3dp"
+                                    android:layout_height="14dp"
+                                    android:background="?attr/colorPrimary" />
 
-            <!-- Translate button -->
-            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                android:id="@+id/translate_button"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="@dimen/sixteen_dp"
-                android:text="@string/sakura_demo_translate"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                app:qmui_backgroundColor="?attr/colorPrimary"
-                app:qmui_borderWidth="0dp"
-                app:qmui_radius="@dimen/twelve_dp" />
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:layout_weight="1"
+                                    android:text="@string/sakura_demo_output_label"
+                                    android:textColor="?android:attr/textColorPrimary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
 
-            <LinearLayout
-                android:id="@+id/progress_row"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/twelve_dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:visibility="gone">
+                                <TextView
+                                    android:id="@+id/copy_button"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:drawablePadding="4dp"
+                                    android:paddingHorizontal="@dimen/eight_dp"
+                                    android:paddingVertical="4dp"
+                                    android:text="@string/sakura_demo_copy"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
 
-                <ProgressBar
-                    android:id="@+id/progress_bar"
-                    style="?android:attr/progressBarStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:alpha="0.15"
+                                android:background="?android:attr/textColorPrimary" />
 
-                <TextView
-                    android:id="@+id/progress_text"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/eight_dp"
-                    android:layout_weight="1"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp"
-                    tools:text="翻译中 1 / 5" />
-            </LinearLayout>
+                            <TextView
+                                android:id="@+id/output_text"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:lineSpacingExtra="4dp"
+                                android:textColor="?android:attr/textColorPrimary"
+                                android:textIsSelectable="true"
+                                android:textSize="15sp" />
 
-            <!-- Output card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/output_card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/twenty_dp"
-                android:visibility="gone"
-                app:cardBackgroundColor="@color/white_and_black"
-                app:cardCornerRadius="@dimen/sixteen_dp"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingStart="@dimen/sixteen_dp"
-                    android:paddingTop="@dimen/twelve_dp"
-                    android:paddingEnd="@dimen/sixteen_dp"
-                    android:paddingBottom="@dimen/sixteen_dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <View
-                            android:layout_width="3dp"
-                            android:layout_height="14dp"
-                            android:background="?attr/colorPrimary" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/eight_dp"
-                            android:layout_weight="1"
-                            android:text="@string/sakura_demo_output_label"
-                            android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/copy_button"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:drawablePadding="4dp"
-                            android:paddingHorizontal="@dimen/eight_dp"
-                            android:paddingVertical="4dp"
-                            android:text="@string/sakura_demo_copy"
-                            android:textColor="?attr/colorPrimary"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="@dimen/twelve_dp"
-                        android:alpha="0.15"
-                        android:background="?android:attr/textColorPrimary" />
-
-                    <TextView
-                        android:id="@+id/output_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/twelve_dp"
-                        android:lineSpacingExtra="4dp"
-                        android:textColor="?android:attr/textColorPrimary"
-                        android:textIsSelectable="true"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:id="@+id/meta_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/twelve_dp"
-                        android:textColor="?android:attr/textColorTertiary"
-                        android:textSize="11sp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                            <TextView
+                                android:id="@+id/meta_text"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:textColor="?android:attr/textColorTertiary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
         </com.scwang.smart.refresh.layout.SmartRefreshLayout>

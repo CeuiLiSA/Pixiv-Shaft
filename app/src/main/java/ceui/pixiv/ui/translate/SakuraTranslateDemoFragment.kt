@@ -5,8 +5,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.text.Editable
-import android.text.TextWatcher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -52,13 +50,6 @@ class SakuraTranslateDemoFragment : SwipeFragment<FragmentSakuraTranslateDemoBin
     override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
 
-        refreshCounter()
-        baseBind.inputText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) = refreshCounter()
-        })
-
         baseBind.copyButton.setOnClickListener {
             val text = baseBind.outputText.text?.toString().orEmpty()
             if (text.isNotEmpty()) {
@@ -76,14 +67,6 @@ class SakuraTranslateDemoFragment : SwipeFragment<FragmentSakuraTranslateDemoBin
         baseBind.translateButton.setOnClickListener { onTranslateClicked() }
 
         observeViewModel()
-    }
-
-    private fun refreshCounter() {
-        val lines = baseBind.inputText.text?.toString()
-            ?.split('\n')
-            ?.count { it.isNotBlank() }
-            ?: 0
-        baseBind.inputCounter.text = getString(R.string.sakura_demo_line_count_fmt, lines)
     }
 
     private fun observeViewModel() {
