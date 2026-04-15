@@ -20,6 +20,7 @@ import ceui.lisa.adapters.LAdapter;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
+import ceui.lisa.helper.UserIllustJumpHelper;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -126,6 +127,27 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
                 startActivity(intent);
             }
         });
+
+        // 仅为"插画作品"(2) 和 "漫画作品"(3) 显示跳转入口；"插画/漫画收藏"(1) 用的是 max_bookmark_id 游标，不能按 offset 跳
+        if (type == 2 || type == 3) {
+            baseBind.jumpAction.setVisibility(View.VISIBLE);
+            baseBind.jumpAction.setOnClickListener(v -> {
+                int userID = mUserDetailResponse.getUser().getId();
+                UserIllustJumpHelper.Kind kind = (type == 3)
+                        ? UserIllustJumpHelper.Kind.MANGA
+                        : UserIllustJumpHelper.Kind.ILLUST;
+                String fragmentTag = (type == 3) ? "漫画作品" : "插画作品";
+                UserIllustJumpHelper.showJumpDialog(mActivity, userID, kind, offset -> {
+                    if (!isAdded()) return kotlin.Unit.INSTANCE;
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, fragmentTag);
+                    intent.putExtra(Params.USER_ID, userID);
+                    intent.putExtra(Params.INITIAL_OFFSET, offset);
+                    startActivity(intent);
+                    return kotlin.Unit.INSTANCE;
+                });
+            });
+        }
     }
 
     @Override

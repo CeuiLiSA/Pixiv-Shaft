@@ -71,6 +71,20 @@
 
                 </TextView>
 
+                <ImageView
+                    android:id="@+id/jump_action"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_toStartOf="@id/how_many"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="@dimen/eight_dp"
+                    android:padding="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="跳转到…"
+                    android:src="@drawable/ic_date_range_black_24dp"
+                    app:tint="?attr/colorPrimary"
+                    android:visibility="gone" />
+
             </RelativeLayout>
 
             <androidx.recyclerview.widget.RecyclerView

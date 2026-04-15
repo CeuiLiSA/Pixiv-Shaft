@@ -10,10 +10,10 @@
 
     <item
         android:id="@+id/action_jump"
-        android:orderInCategory="110"
+        android:orderInCategory="90"
         android:icon="@drawable/ic_date_range_black_24dp"
         android:title="跳转到…"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_add"
