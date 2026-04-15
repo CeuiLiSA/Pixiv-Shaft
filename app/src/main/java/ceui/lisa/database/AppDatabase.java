@@ -32,7 +32,7 @@ import ceui.pixiv.db.RemoteKey;
                 RemoteKey.class,
                 DiscoveryEntity.class, // 发现池候选作品
         },
-        version = 28,
+        version = 29,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -95,6 +95,15 @@ public abstract class AppDatabase extends RoomDatabase {
             );
         }
     };
+    private static final Migration MIGRATION_28_29 = new Migration(28, 29) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // discovery_table 新增 authorId 列，用于采样时的画师去重（避免逐条 JSON 反序列化）
+            database.execSQL(
+                    "ALTER TABLE discovery_table ADD COLUMN authorId INTEGER NOT NULL DEFAULT 0"
+            );
+        }
+    };
     private static AppDatabase INSTANCE;
 
     public static AppDatabase getAppDatabase(Context context) {
@@ -110,6 +119,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             .addMigrations(MIGRATION_25_26) // 注册 25 -> 26 迁移
                             .addMigrations(MIGRATION_26_27) // 注册 26 -> 27 迁移
                             .addMigrations(MIGRATION_27_28) // 注册 27 -> 28 迁移 (discovery_table)
+                            .addMigrations(MIGRATION_28_29) // 注册 28 -> 29 迁移 (discovery_table + authorId)
                             .build();
         }
         return INSTANCE;

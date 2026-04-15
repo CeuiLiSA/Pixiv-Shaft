@@ -9,7 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.LinkedList
 import java.util.Random
+import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -17,6 +19,7 @@ object DiscoveryPool {
 
     private const val TAG = "Discovery/Pool"
     private const val MAX_POOL_SIZE = 2000
+    private const val MAX_RECENT_IDS = 800
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val pooledIds = mutableSetOf<Long>()
@@ -84,17 +87,23 @@ object DiscoveryPool {
                     if (illustId in pooledIds) { skipPooled++; continue }
                     if (illust.isIs_bookmarked) { skipBookmarked++; continue }
 
+                    val userId = illust.user?.id?.toLong() ?: 0
+
                     if (profile != null) {
-                        val userId = illust.user?.id?.toLong() ?: 0
                         if (userId in profile.mutedAuthors) { skipMutedAuthor++; continue }
                         val tags = illust.tags?.mapNotNull { it.name } ?: emptyList()
                         if (tags.any { it in profile.mutedTags }) { skipMutedTag++; continue }
                         if (tags.count { it in profile.avoidedTags } >= 2) { skipAvoided++; continue }
+
+                        // 计算亲和度：tag/author 高匹配的内容不受 quality filter 限制
+                        val affinity = quickAffinity(illust, profile)
                         val views = illust.total_view
-                        // 阈值加上限 1.5%，保护小众优质内容不被误杀
-                        val qualityThreshold = minOf(profile.avgBookmarkRate * 0.2f, 0.015f)
-                        if (views > 100 && illust.total_bookmarks.toFloat() / views < qualityThreshold) {
-                            skipLowQuality++; continue
+                        // 只对低亲和度内容执行质量过滤
+                        if (affinity < 2f) {
+                            val qualityThreshold = minOf(profile.avgBookmarkRate * 0.2f, 0.015f)
+                            if (views > 100 && illust.total_bookmarks.toFloat() / views < qualityThreshold) {
+                                skipLowQuality++; continue
+                            }
                         }
                     }
 
@@ -111,7 +120,7 @@ object DiscoveryPool {
                     Timber.d("$TAG collect [%s] + id=%d '%s' by '%s' score=%.2f [%s]",
                         source, illustId, illust.title ?: "?", illust.user?.name ?: "?", score, detail)
 
-                    entities.add(DiscoveryEntity(illustId, gson.toJson(illust), score, source))
+                    entities.add(DiscoveryEntity(illustId, gson.toJson(illust), score, source, authorId = userId))
                     pooledIds.add(illustId)
                     accepted++
                 }
@@ -132,26 +141,68 @@ object DiscoveryPool {
         }
     }
 
+    /**
+     * 快速计算亲和度，用于决定是否跳过 quality filter。
+     * 不需要完整的 scoreDetailed，只看 tag 和 author 强信号。
+     */
+    private fun quickAffinity(illust: IllustsBean, profile: UserProfile): Float {
+        var aff = 0f
+        illust.tags?.forEach { tag ->
+            val name = tag.name ?: return@forEach
+            profile.tagScores[name]?.let { if (it > 2f) aff += 1f }
+        }
+        val userId = illust.user?.id?.toLong() ?: 0
+        profile.authorScores[userId]?.let { if (it >= 3f) aff += 2f }
+        return aff
+    }
+
     private data class ScoreBreakdown(val total: Float, val detail: String)
 
     private fun scoreDetailed(illust: IllustsBean, profile: UserProfile): ScoreBreakdown {
         var tagScore = 0f; var matched = 0
+        val matchedLifts = mutableListOf<Float>()
         illust.tags?.forEach { tag ->
             val name = tag.name ?: return@forEach
-            profile.tagScores[name]?.let { tagScore += it; matched++ }
+            profile.tagScores[name]?.let {
+                tagScore += it; matched++
+                matchedLifts.add(it)
+            }
         }
         // 归一化：除以 sqrt(匹配数)，避免标签多的作品天然得分过高
         if (matched > 1) tagScore /= sqrt(matched.toFloat())
+        // 标签协同加分：3+ 个高 lift(>2) 标签同时命中，说明这张图和用户口味高度吻合
+        val highLiftCount = matchedLifts.count { it > 2f }
+        val synergyBonus = if (highLiftCount >= 3) (highLiftCount - 2) * 1.5f else 0f
 
+        // 画师亲和度：关注/多次下载的画师给予更高权重
         var authorScore = 0f
-        profile.authorScores[illust.user?.id?.toLong() ?: 0]?.let { authorScore = it * 0.5f }
+        val authorRaw = profile.authorScores[illust.user?.id?.toLong() ?: 0]
+        if (authorRaw != null) {
+            // 强信号(>=3, 即关注/多次下载)画师加权 1.0x，弱信号(浏览过)加权 0.3x
+            authorScore = if (authorRaw >= 3f) authorRaw * 1.0f else authorRaw * 0.3f
+        }
+
+        // 质量分：bookmark rate 对数缩放，避免极端值主导
         var qualityScore = 0f
-        if (illust.total_view > 100) qualityScore = illust.total_bookmarks.toFloat() / illust.total_view * 20f
+        if (illust.total_view > 100) {
+            val rate = illust.total_bookmarks.toFloat() / illust.total_view
+            qualityScore = (ln((rate * 100).toDouble().coerceAtLeast(1.0)) * 3f).toFloat()
+        }
+
+        // 新鲜度：渐进式而非二值，view 越少且有一定收藏越鼓励曝光
         var freshScore = 0f
-        if (illust.total_view < 1000 && illust.total_bookmarks > 10) freshScore = 2f
-        val total = tagScore + authorScore + qualityScore + freshScore
-        return ScoreBreakdown(total, "tag=%.1f(%d) author=%.1f quality=%.1f fresh=%.1f".format(
-            tagScore, matched, authorScore, qualityScore, freshScore))
+        if (illust.total_bookmarks > 5) {
+            freshScore = when {
+                illust.total_view < 500 -> 3f
+                illust.total_view < 2000 -> 1.5f
+                illust.total_view < 5000 -> 0.5f
+                else -> 0f
+            }
+        }
+
+        val total = tagScore + synergyBonus + authorScore + qualityScore + freshScore
+        return ScoreBreakdown(total, "tag=%.1f(%d) syn=%.1f author=%.1f quality=%.1f fresh=%.1f".format(
+            tagScore, matched, synergyBonus, authorScore, qualityScore, freshScore))
     }
 
     private fun scoreColdStart(illust: IllustsBean): Float {
@@ -171,8 +222,23 @@ object DiscoveryPool {
         }
     }
 
-    private val recentlyReturnedIds = mutableSetOf<Long>()
+    // 使用有界 LinkedList 替代 mutableSet + 全量清除，避免 cliff-drop 重复
+    private val recentLock = Any()
+    private val recentlyReturnedIds = LinkedList<Long>()
+    private val recentlyReturnedSet = mutableSetOf<Long>()
     private val feedRandom = Random()
+
+    private fun addRecentId(id: Long) {
+        synchronized(recentLock) {
+            if (recentlyReturnedSet.add(id)) {
+                recentlyReturnedIds.addLast(id)
+                while (recentlyReturnedIds.size > MAX_RECENT_IDS) {
+                    val evicted = recentlyReturnedIds.removeFirst()
+                    recentlyReturnedSet.remove(evicted)
+                }
+            }
+        }
+    }
 
     /**
      * 多样化推荐 feed：从候选池加权随机采样 + 画师去重，
@@ -182,8 +248,9 @@ object DiscoveryPool {
         return try {
             val candidateSize = limit * 4
             val dao = AppDatabase.getAppDatabase(Shaft.getContext()).discoveryDao()
+            val snapshot = synchronized(recentLock) { recentlyReturnedSet.toSet() }
             val candidates = dao.getUnshown(candidateSize, 0)
-                .filter { it.illustId !in recentlyReturnedIds }
+                .filter { it.illustId !in snapshot }
 
             if (candidates.isEmpty()) {
                 Timber.d("$TAG diversifiedFeed: no candidates")
@@ -191,13 +258,12 @@ object DiscoveryPool {
             }
             if (candidates.size <= limit) {
                 Timber.d("$TAG diversifiedFeed: only ${candidates.size} candidates, returning all")
-                candidates.forEach { recentlyReturnedIds.add(it.illustId) }
+                candidates.forEach { addRecentId(it.illustId) }
                 return candidates
             }
 
             val result = weightedDiverseSample(candidates, limit)
-            result.forEach { recentlyReturnedIds.add(it.illustId) }
-            if (recentlyReturnedIds.size > MAX_POOL_SIZE) recentlyReturnedIds.clear()
+            result.forEach { addRecentId(it.illustId) }
 
             Timber.d("$TAG diversifiedFeed: sampled ${result.size} from ${candidates.size} candidates")
             result
@@ -207,7 +273,6 @@ object DiscoveryPool {
     }
 
     private fun weightedDiverseSample(candidates: List<DiscoveryEntity>, limit: Int): List<DiscoveryEntity> {
-        val gson = Shaft.sGson
         val result = mutableListOf<DiscoveryEntity>()
         val authorCount = mutableMapOf<Long, Int>()
         val remaining = candidates.toMutableList()
@@ -229,10 +294,8 @@ object DiscoveryPool {
             }
             val picked = remaining.removeAt(pickedIdx)
 
-            // 画师多样性：同一画师最多出现 maxPerAuthor 次
-            val authorId = try {
-                gson.fromJson(picked.illustJson, IllustsBean::class.java)?.user?.id?.toLong() ?: 0L
-            } catch (_: Exception) { 0L }
+            // 直接使用存储的 authorId，不再反序列化 JSON
+            val authorId = picked.authorId
 
             if (authorId > 0 && (authorCount[authorId] ?: 0) >= maxPerAuthor) {
                 retries++
@@ -243,6 +306,44 @@ object DiscoveryPool {
         }
 
         return result
+    }
+
+    /**
+     * 当用户画像重建后，对池中未展示的作品重新打分。
+     * 让新发现的兴趣立刻影响推荐结果。
+     */
+    fun rescorePool() {
+        scope.launch {
+            try {
+                val profile = ProfileManager.cached() ?: return@launch
+                val db = AppDatabase.getAppDatabase(Shaft.getContext())
+                val dao = db.discoveryDao()
+                val gson = Shaft.sGson
+                val unshown = dao.getAllUnshown()
+                val pendingUpdates = mutableListOf<Pair<Long, Float>>()
+
+                for (entity in unshown) {
+                    try {
+                        val illust = gson.fromJson(entity.illustJson, IllustsBean::class.java) ?: continue
+                        val newScore = scoreDetailed(illust, profile).total
+                        if (kotlin.math.abs(newScore - entity.score) > 0.5f) {
+                            pendingUpdates.add(entity.illustId to newScore)
+                        }
+                    } catch (_: Exception) {}
+                }
+
+                if (pendingUpdates.isNotEmpty()) {
+                    db.runInTransaction {
+                        for ((id, score) in pendingUpdates) {
+                            dao.updateScore(id, score)
+                        }
+                    }
+                }
+                Timber.d("$TAG rescorePool: checked=${unshown.size}, updated=${pendingUpdates.size}")
+            } catch (e: Exception) {
+                Timber.e(e, "$TAG rescorePool failed")
+            }
+        }
     }
 
     fun markShown(illustId: Long) {

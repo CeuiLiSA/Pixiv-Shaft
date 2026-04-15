@@ -292,6 +292,8 @@ object ProfileManager {
         )
         cachedProfile = profile
         broadcastReady()
+        // 画像重建后，用新画像重新给候选池打分
+        DiscoveryPool.rescorePool()
 
         val elapsed = System.currentTimeMillis() - startTime
         Timber.d("$TAG buildProfile <<< DONE in ${elapsed}ms")

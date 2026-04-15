@@ -10,5 +10,6 @@ data class DiscoveryEntity(
     val score: Float,
     val source: String,
     val collectedTime: Long = System.currentTimeMillis(),
-    val shown: Boolean = false
+    val shown: Boolean = false,
+    val authorId: Long = 0
 )

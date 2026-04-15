@@ -37,4 +37,10 @@ interface DiscoveryDao {
 
     @Query("DELETE FROM discovery_table")
     fun deleteAll()
+
+    @Query("UPDATE discovery_table SET score = :score WHERE illustId = :illustId")
+    fun updateScore(illustId: Long, score: Float)
+
+    @Query("SELECT * FROM discovery_table WHERE shown = 0")
+    fun getAllUnshown(): List<DiscoveryEntity>
 }
