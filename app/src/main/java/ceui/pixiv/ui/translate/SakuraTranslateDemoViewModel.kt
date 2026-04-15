@@ -15,7 +15,6 @@ class SakuraTranslateDemoViewModel : ViewModel() {
     private val _isTranslating = MutableLiveData(false)
     val isTranslating: LiveData<Boolean> get() = _isTranslating.asLiveData()
 
-    /** (done, total) while running, null before any batch starts / while model loads */
     private val _progress = MutableLiveData<Pair<Int, Int>?>(null)
     val progress: LiveData<Pair<Int, Int>?> get() = _progress.asLiveData()
 
@@ -25,12 +24,6 @@ class SakuraTranslateDemoViewModel : ViewModel() {
     private val _meta = MutableLiveData<Meta?>(null)
     val meta: LiveData<Meta?> get() = _meta.asLiveData()
 
-    /**
-     * Start a translation batch. Caller is responsible for trimming/splitting input.
-     *
-     * @return false if Sakura model is not downloaded yet — caller should trigger download.
-     *         true if the batch was enqueued (already-running case is also true: we just no-op).
-     */
     fun translate(
         context: Context,
         lines: List<String>,
@@ -62,7 +55,9 @@ class SakuraTranslateDemoViewModel : ViewModel() {
             )
 
             val elapsedMs = System.currentTimeMillis() - startMs
-            val rendered = results.joinToString("\n") { it ?: "⟨翻译失败⟩" }
+            val rendered = results.mapIndexed { i, translated ->
+                translated ?: "⟨${lines[i].take(20)}… 翻译失败⟩"
+            }.joinToString("\n")
             val failed = results.count { it == null }
 
             _output.postValue(rendered)

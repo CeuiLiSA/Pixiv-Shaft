@@ -9,48 +9,126 @@ import java.io.File
 /**
  * Sakura-1.5B translator — ACG-specialized Japanese→Chinese translation.
  *
- * Batch mode: loads model once, translates all lines, outputs one per line.
+ * 支持长文本（小说级别）：
+ * 1. 长段落按句号自动分句
+ * 2. 分批调用进程（每批 BATCH_SIZE 个 chunk），避免内存爆掉
+ * 3. 单批失败不影响其他批次，已翻译的结果保留
  */
 object SakuraTranslator {
 
-    /**
-     * Translate multiple Japanese texts to Chinese in one batch.
-     * Model is loaded once for all texts — much faster than per-text calls.
-     *
-     * @param context Android context
-     * @param texts List of Japanese texts to translate
-     * @param glossary Optional glossary string
-     * @param onProgress Callback with (completedCount, totalCount)
-     * @return List of translated texts (same order as input), null entries on failure
-     */
+    private const val MAX_CHARS_PER_LINE = 200
+    private const val BATCH_SIZE = 20
+    private const val MAX_TOKENS = 512
+
     suspend fun translateBatch(
         context: Context,
         texts: List<String>,
         glossary: String? = null,
         onProgress: ((Int, Int) -> Unit)? = null
     ): List<String?> = withContext(Dispatchers.IO) {
-        try {
-            val nativeDir = context.applicationInfo.nativeLibraryDir
-            val executablePath = "$nativeDir/libsakura_translate.so"
+        val nativeDir = context.applicationInfo.nativeLibraryDir
+        val executablePath = "$nativeDir/libsakura_translate.so"
 
-            val model = SakuraModel.SAKURA_1_5B
-            val modelDir = SakuraModelManager.modelDir(context, model)
-            val modelFile = File(modelDir, "sakura-1.5b-q3_k_m.gguf")
+        val model = SakuraModel.SAKURA_1_5B
+        val modelDir = SakuraModelManager.modelDir(context, model)
+        val modelFile = File(modelDir, "sakura-1.5b-q3_k_m.gguf")
 
-            if (!modelFile.exists()) {
-                Timber.e("SakuraTranslator: model not found")
-                return@withContext texts.map { null }
+        if (!modelFile.exists()) {
+            Timber.e("SakuraTranslator: model not found at ${modelFile.absolutePath}")
+            return@withContext texts.map { null }
+        }
+
+        // ====== 1. 分句：长段落按句号拆开 ======
+        val chunks = mutableListOf<String>()
+        val chunkOriginIndex = mutableListOf<Int>()
+        for ((i, text) in texts.withIndex()) {
+            if (text.length <= MAX_CHARS_PER_LINE) {
+                chunks.add(text)
+                chunkOriginIndex.add(i)
+            } else {
+                val sentences = text.split(Regex("(?<=。)|(?<=！)|(?<=？)|(?<=」)"))
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                for (s in sentences) {
+                    chunks.add(s)
+                    chunkOriginIndex.add(i)
+                }
             }
+        }
+        val totalChunks = chunks.size
+        Timber.d("SakuraTranslator: ${texts.size} texts -> $totalChunks chunks, batch=$BATCH_SIZE")
 
-            // Write input texts to temp file (one per line)
-            val inputFile = File(context.cacheDir, "sakura_input_${System.currentTimeMillis()}.txt")
-            inputFile.writeText(texts.joinToString("\n"))
+        // ====== 2. 分批翻译 ======
+        val allResults = arrayOfNulls<String>(totalChunks)
+        var completedChunks = 0
+
+        val batches = chunks.chunked(BATCH_SIZE)
+        Timber.d("SakuraTranslator: ${batches.size} batches to process")
+
+        for ((batchIdx, batch) in batches.withIndex()) {
+            val batchStart = batchIdx * BATCH_SIZE
+            Timber.d("SakuraTranslator: batch ${batchIdx + 1}/${batches.size}, chunks ${batchStart + 1}-${batchStart + batch.size}/$totalChunks")
+
+            try {
+                val batchResults = runSakuraProcess(
+                    executablePath, modelFile, nativeDir, batch, glossary
+                ) { done, _ ->
+                    onProgress?.invoke(completedChunks + done, totalChunks)
+                }
+
+                for ((j, result) in batchResults.withIndex()) {
+                    allResults[batchStart + j] = result
+                }
+                completedChunks += batch.size
+                onProgress?.invoke(completedChunks, totalChunks)
+                Timber.d("SakuraTranslator: batch ${batchIdx + 1} done, ${batchResults.count { it != null }}/${batch.size} succeeded")
+            } catch (e: Exception) {
+                Timber.e(e, "SakuraTranslator: batch ${batchIdx + 1} failed, skipping")
+                completedChunks += batch.size
+                onProgress?.invoke(completedChunks, totalChunks)
+            }
+        }
+
+        // ====== 3. 合并分句结果回原始段落 ======
+        val merged = Array<StringBuilder?>(texts.size) { null }
+        for (ci in chunks.indices) {
+            val origIdx = chunkOriginIndex[ci]
+            val translated = allResults[ci]
+            if (translated != null) {
+                if (merged[origIdx] == null) {
+                    merged[origIdx] = StringBuilder(translated)
+                } else {
+                    merged[origIdx]!!.append(translated)
+                }
+            }
+        }
+
+        val finalResults = texts.indices.map { merged[it]?.toString() }
+        val succeeded = finalResults.count { it != null }
+        Timber.d("SakuraTranslator: all done, $succeeded/${texts.size} texts translated")
+        finalResults
+    }
+
+    /**
+     * 单次进程调用，翻译一个 batch 的 chunks。
+     */
+    private fun runSakuraProcess(
+        executablePath: String,
+        modelFile: File,
+        nativeDir: String,
+        lines: List<String>,
+        glossary: String?,
+        onBatchProgress: ((Int, Int) -> Unit)? = null
+    ): List<String?> {
+        val inputFile = File(modelFile.parentFile, "sakura_input_${System.currentTimeMillis()}.txt")
+        try {
+            inputFile.writeText(lines.joinToString("\n"))
 
             val args = mutableListOf(
                 executablePath,
                 "-m", modelFile.absolutePath,
                 "-f", inputFile.absolutePath,
-                "-n", "256",
+                "-n", MAX_TOKENS.toString(),
                 "-j", "4"
             )
             if (!glossary.isNullOrBlank()) {
@@ -63,39 +141,33 @@ object SakuraTranslator {
 
             val process = pb.start()
 
-            // Read stderr for progress
             val stderrThread = Thread {
                 process.errorStream.bufferedReader().forEachLine { line ->
                     Timber.d("Sakura: %s", line)
-                    // Parse "Translating [3/8]..."
                     val match = Regex("""Translating \[(\d+)/(\d+)]""").find(line)
                     if (match != null) {
                         val done = match.groupValues[1].toIntOrNull() ?: 0
-                        val total = match.groupValues[2].toIntOrNull() ?: texts.size
-                        onProgress?.invoke(done, total)
+                        val total = match.groupValues[2].toIntOrNull() ?: lines.size
+                        onBatchProgress?.invoke(done, total)
                     }
                 }
             }
             stderrThread.start()
 
-            // Read stdout — one translated line per input line
             val resultLines = process.inputStream.bufferedReader().readLines()
             val exitCode = process.waitFor()
             stderrThread.join()
-            inputFile.delete()
 
             if (exitCode != 0) {
-                Timber.e("SakuraTranslator: exit code $exitCode")
-                return@withContext texts.map { null }
+                Timber.e("SakuraTranslator: process exit code $exitCode")
+                return lines.map { null }
             }
 
-            // Map results back
-            texts.indices.map { i ->
+            return lines.indices.map { i ->
                 resultLines.getOrNull(i)?.takeIf { it.isNotBlank() }
             }
-        } catch (e: Exception) {
-            Timber.e(e, "SakuraTranslator: error")
-            texts.map { null }
+        } finally {
+            inputFile.delete()
         }
     }
 }
