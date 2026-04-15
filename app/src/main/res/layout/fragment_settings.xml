@@ -328,6 +328,23 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/filter_rank_bookmarked_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left_and_center"
+                                android:text="@string/filter_rank_bookmarked" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/filter_rank_bookmarked"
+                                style="@style/setting_right_switch" />
+
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/delete_ai_illust_rela"
                             style="@style/ripple_rela">
 

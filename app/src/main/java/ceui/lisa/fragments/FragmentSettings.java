@@ -261,6 +261,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.filterRankBookmarked.setChecked(Shaft.sSettings.isFilterRankBookmarked());
+            baseBind.filterRankBookmarked.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setFilterRankBookmarked(isChecked);
+                    Common.showToast(getString(R.string.string_428), 2);
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.filterRankBookmarkedRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.filterRankBookmarked.performClick();
+                }
+            });
+
             baseBind.deleteAiIllust.setChecked(Shaft.sSettings.isDeleteAIIllust());
             baseBind.deleteAiIllust.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
