@@ -57,10 +57,12 @@ object ProfileManager {
             val name = tag.name ?: return@forEach
             val current = newTagScores[name]
             if (current != null) {
-                newTagScores[name] = current + 0.3f
-            } else {
-                // 被收藏作品的新标签：加入为轻度偏好（刚过 lift>1.5 门槛）
-                newTagScores[name] = 1.6f
+                // 已知偏好标签：适度强化
+                newTagScores[name] = current + 0.4f
+            } else if (name !in profile.avoidedTags) {
+                // 新标签：保守初始化（低于 lift>1.5 构建门槛），需多次收藏才能成为稳定偏好
+                // 避免通用标签（女の子、イラスト等）通过单次收藏快速膨胀
+                newTagScores[name] = 1.3f
             }
         }
 
@@ -252,11 +254,7 @@ object ProfileManager {
             val decay = recencyDecay(record.timestamp, now)
             authorScores[userId] = (authorScores[userId] ?: 0f) + record.weight * decay
         }
-        for ((_, illust) in viewedIllusts) {
-            val userId = illust.user?.id?.toLong() ?: continue
-            if (userId <= 0 || userId in authorScores) continue
-            authorScores[userId] = 1f
-        }
+        // 仅浏览过但未喜欢的画师不再给予基础分，避免引入大量噪声稀释正向信号
         for (followedId in remoteFollowedAuthorIds) {
             authorScores[followedId] = (authorScores[followedId] ?: 0f) + FOLLOW_WEIGHT
         }
@@ -332,7 +330,7 @@ object ProfileManager {
         Timber.d("$TAG buildProfile <<< DONE in ${elapsed}ms")
         Timber.d("$TAG buildProfile   data: downloads=${downloads.size}, localBookmarks=${bookmarks.size}, remoteBookmarks=${remoteBookmarks.size}, views=${viewHistoryLegacy.size + viewHistoryNew.size}")
         Timber.d("$TAG buildProfile   result: ${tagScores.size} tags, $strongAuthors strong authors, ${seedIllusts.size} seeds")
-        Timber.d("$TAG buildProfile   isReady=${profile.isReady()} (tags=${tagScores.size}/15, seeds=${seedIllusts.size}/5, strongAuthors=$strongAuthors/10)")
+        Timber.d("$TAG buildProfile   isReady=${profile.isReady()} (tags=${tagScores.size}/8, seeds=${seedIllusts.size}/2, strongAuthors=$strongAuthors/5)")
 
         return profile
     }

@@ -100,9 +100,9 @@ object DiscoveryPool {
                         // 计算亲和度：tag/author 高匹配的内容不受 quality filter 限制
                         val affinity = quickAffinity(illust, profile)
                         val views = illust.total_view
-                        // 只对低亲和度内容执行质量过滤
-                        if (affinity < 2f) {
-                            val qualityThreshold = minOf(profile.avgBookmarkRate * 0.2f, 0.015f)
+                        // 只对低亲和度内容执行质量过滤（降低门槛，让更多匹配口味的小众内容通过）
+                        if (affinity < 1.5f) {
+                            val qualityThreshold = minOf(profile.avgBookmarkRate * 0.15f, 0.01f)
                             if (views > 100 && illust.total_bookmarks.toFloat() / views < qualityThreshold) {
                                 skipLowQuality++; continue
                             }
@@ -146,12 +146,17 @@ object DiscoveryPool {
     /**
      * 快速计算亲和度，用于决定是否跳过 quality filter。
      * 不需要完整的 scoreDetailed，只看 tag 和 author 强信号。
+     * 强偏好标签(lift>2) 贡献 1.0，中偏好标签(lift>1.5) 贡献 0.5，
+     * 使多个中等匹配可以累积触发 bypass（如 3 个中偏好 tag → aff=1.5）。
      */
     private fun quickAffinity(illust: IllustsBean, profile: UserProfile): Float {
         var aff = 0f
         illust.tags?.forEach { tag ->
             val name = tag.name ?: return@forEach
-            profile.tagScores[name]?.let { if (it > 2f) aff += 1f }
+            profile.tagScores[name]?.let {
+                if (it > 2f) aff += 1f
+                else if (it > 1.5f) aff += 0.5f
+            }
         }
         val userId = illust.user?.id?.toLong() ?: 0
         profile.authorScores[userId]?.let { if (it >= 3f) aff += 2f }
@@ -170,11 +175,11 @@ object DiscoveryPool {
                 matchedLifts.add(it)
             }
         }
-        // 归一化：matched^0.4 替代 sqrt，减少对多标签匹配作品的惩罚
-        if (matched > 1) tagScore /= matched.toDouble().pow(0.4).toFloat()
-        // 标签协同加分：2+ 个偏好标签(lift>1.8)同时命中，说明口味高度吻合
-        val highLiftCount = matchedLifts.count { it > 1.8f }
-        val synergyBonus = if (highLiftCount >= 2) (highLiftCount - 1) * 1.2f else 0f
+        // 归一化：matched^0.3 更平缓，保留多标签匹配作品的优势
+        if (matched > 1) tagScore /= matched.toDouble().pow(0.3).toFloat()
+        // 标签协同加分：2+ 个偏好标签(lift>1.6)同时命中，说明口味高度吻合
+        val highLiftCount = matchedLifts.count { it > 1.6f }
+        val synergyBonus = if (highLiftCount >= 2) (highLiftCount - 1) * 1.5f else 0f
 
         // 画师亲和度：smoothstep 平滑过渡，消除 score=3 处的断崖
         var authorScore = 0f
