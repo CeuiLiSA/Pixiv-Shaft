@@ -140,6 +140,7 @@ class RateAppDialog : PixivDialog(R.layout.dialog_rate_app) {
 
         fun showIfNeeded(fragmentManager: FragmentManager) {
             if (!RateAppManager.shouldShowRateDialog()) return
+            if (fragmentManager.isStateSaved || fragmentManager.isDestroyed) return
             if (fragmentManager.findFragmentByTag(TAG) != null) return
             RateAppManager.onAutoShown()
             RateAppDialog().show(fragmentManager, TAG)
