@@ -96,6 +96,11 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                         }
                     }
                 } else if (item.getItemId() == R.id.batch_download_as_one) {
+                    // 网络请求未返回前 mResponse 为 null，提前点击会 NPE 闪退
+                    if (mResponse == null || mResponse.getNovel_series_detail() == null) {
+                        Common.showToast("小说系列信息尚未加载完成，请稍候再试");
+                        return true;
+                    }
                     Map<Integer, String> taskContainer = new HashMap<>();
                     String lineSeparator = System.lineSeparator();
 
