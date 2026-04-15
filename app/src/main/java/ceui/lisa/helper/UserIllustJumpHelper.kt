@@ -32,12 +32,17 @@ object UserIllustJumpHelper {
 
     enum class Kind { ILLUST, MANGA, NOVEL }
 
+    /** callback: (offset, targetDate ISO string 或 null) */
+    fun interface OnJumpPicked {
+        fun onPicked(offset: Int, targetDate: String?)
+    }
+
     @JvmStatic
     fun showJumpDialog(
         activity: Activity,
         userID: Int,
         kind: Kind,
-        onOffsetPicked: (Int) -> Unit
+        onJump: OnJumpPicked
     ) {
         if (userID <= 0) return
         val loading = QMUITipDialog.Builder(activity)
@@ -63,7 +68,7 @@ object UserIllustJumpHelper {
                         Common.showToast("ta 没有这个类型的作品")
                         return
                     }
-                    showChoiceDialog(activity, userID, kind, total, onOffsetPicked)
+                    showChoiceDialog(activity, userID, kind, total, onJump)
                 }
 
                 override fun must(isSuccess: Boolean) {
@@ -79,35 +84,32 @@ object UserIllustJumpHelper {
         userID: Int,
         kind: Kind,
         total: Int,
-        onOffsetPicked: (Int) -> Unit
+        onJump: OnJumpPicked
     ) {
         if (!activity.isAlive()) return
         val totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE
-        val message = "共 $total 件作品，$totalPages 页"
         val choices = if (kind == Kind.NOVEL) {
-            // Novel 没测过任意 offset 是否可用，但按页码/跳到最早都只靠单次请求，风险可控；时间跳转依赖 create_date 排序未知，暂不提供
             arrayOf("跳到最早作品", "按页码跳转")
         } else {
             arrayOf("跳到最早作品", "按时间跳转", "按页码跳转")
         }
         AlertDialog.Builder(activity)
-            .setTitle("跳转到…")
-            .setMessage(message)
+            .setTitle("跳转到… (共 $total 件，$totalPages 页)")
             .setItems(choices) { _, which ->
                 when (choices[which]) {
                     "跳到最早作品" -> {
                         val offset = ((total - 1) / PAGE_SIZE) * PAGE_SIZE
-                        onOffsetPicked(offset)
+                        onJump.onPicked(offset, null)
                     }
-                    "按时间跳转" -> pickDate(activity, userID, kind, total, onOffsetPicked)
-                    "按页码跳转" -> pickPage(activity, totalPages, onOffsetPicked)
+                    "按时间跳转" -> pickDate(activity, userID, kind, total, onJump)
+                    "按页码跳转" -> pickPage(activity, totalPages, onJump)
                 }
             }
             .setNegativeButton(R.string.string_142, null)
             .show()
     }
 
-    private fun pickPage(activity: Activity, totalPages: Int, onOffsetPicked: (Int) -> Unit) {
+    private fun pickPage(activity: Activity, totalPages: Int, onJump: OnJumpPicked) {
         val edit = EditText(activity).apply {
             inputType = InputType.TYPE_CLASS_NUMBER
             gravity = Gravity.CENTER
@@ -130,7 +132,7 @@ object UserIllustJumpHelper {
                     Common.showToast("页码需要在 1 到 $totalPages 之间")
                     return@setPositiveButton
                 }
-                onOffsetPicked((page - 1) * PAGE_SIZE)
+                onJump.onPicked((page - 1) * PAGE_SIZE, null)
             }
             .setNegativeButton(R.string.string_142, null)
             .show()
@@ -141,12 +143,12 @@ object UserIllustJumpHelper {
         userID: Int,
         kind: Kind,
         total: Int,
-        onOffsetPicked: (Int) -> Unit
+        onJump: OnJumpPicked
     ) {
         val now = Calendar.getInstance()
         val listener = DatePickerDialog.OnDateSetListener { _, year, month0, day ->
             val target = LocalDate.of(year, month0 + 1, day)
-            locateByDate(activity, userID, kind, total, target, onOffsetPicked)
+            locateByDate(activity, userID, kind, total, target, onJump)
         }
         val dpd = DatePickerDialog.newInstance(
             listener,
@@ -175,11 +177,12 @@ object UserIllustJumpHelper {
         kind: Kind,
         total: Int,
         target: LocalDate,
-        onOffsetPicked: (Int) -> Unit
+        onJump: OnJumpPicked
     ) {
         val totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE
+        val targetIso = target.toString()
         if (totalPages <= 1) {
-            onOffsetPicked(0)
+            onJump.onPicked(0, targetIso)
             return
         }
         val tip = QMUITipDialog.Builder(activity)
@@ -192,8 +195,10 @@ object UserIllustJumpHelper {
             onDone = { pageIndex ->
                 if (tip.isShowing && activity.isAlive()) tip.dismiss()
                 if (!activity.isAlive()) return@binarySearch
+                // 目标日期落在 page (pageIndex-1) 内（因为该页的 first_date > target 而 page pageIndex 的 first_date ≤ target）
+                // 落到这一页后，Fragment 侧用 targetIso 继续 scrollToPosition 到具体 item
                 val landing = ((pageIndex - 1).coerceAtLeast(0)) * PAGE_SIZE
-                onOffsetPicked(landing)
+                onJump.onPicked(landing, targetIso)
             },
             onFail = { err ->
                 if (tip.isShowing && activity.isAlive()) tip.dismiss()

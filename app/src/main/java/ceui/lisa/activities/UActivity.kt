@@ -16,6 +16,7 @@ import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ActivityNewUserBinding
 import ceui.lisa.fragments.FragmentHolder.Companion.newInstance
+import ceui.lisa.helper.UserIllustJumpHelper
 import ceui.lisa.http.NullCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.Display
@@ -171,37 +172,54 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .beginTransaction()
             .replace(R.id.fragment_container, newInstance())
             .commitNowAllowingStateLoss()
-        if (userId.toLong() == SessionManager.loggedInUid) {
-            Common.showLog("saasdasdaw2 aa ${userId.toLong()}, ${SessionManager.loggedInUid}, ${userId.toLong() == SessionManager.loggedInUid}")
+        val isSelf = userId.toLong() == SessionManager.loggedInUid
+        if (isSelf) {
             baseBind.followLayout.visibility = View.GONE
-            baseBind.moreAction.visibility = View.GONE
         } else {
-            Common.showLog("saasdasdaw2 bb ${userId.toLong()}, ${SessionManager.loggedInUid}, ${userId.toLong() == SessionManager.loggedInUid}")
             baseBind.followLayout.visibility = View.VISIBLE
-            baseBind.moreAction.visibility = View.VISIBLE
-            baseBind.moreAction.setOnClickListener { v: View? ->
-                val isMuted = java.lang.Boolean.TRUE == mUserViewModel.isUserMuted.value
-                val OPTIONS = arrayOf(
-                    if (isMuted) getString(R.string.cancel_block_this_users_work) else getString(R.string.block_this_users_work)
-                )
-                MenuDialogBuilder(mActivity)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
-                    .addItems(OPTIONS) { dialog: DialogInterface, which: Int ->
-                        if (which == 0) {
-                            if (isMuted) {
-                                PixivOperate.unMuteUser(data.user)
-                                mUserViewModel.isUserMuted.setValue(false)
-                            } else {
-                                PixivOperate.muteUser(data.user)
-                                mUserViewModel.isUserMuted.setValue(true)
-                            }
-                            mUserViewModel.refreshEvent.setValue(Event(100, 0L))
-                        } else if (which == 1) {
-                        }
-                        dialog.dismiss()
-                    }
-                    .show()
+        }
+        baseBind.moreAction.visibility = View.VISIBLE
+        baseBind.moreAction.setOnClickListener { _: View? ->
+            val isMuted = java.lang.Boolean.TRUE == mUserViewModel.isUserMuted.value
+            val totalIllusts = data.profile.total_illusts
+            val totalManga = data.profile.total_manga
+
+            val labels = mutableListOf<String>()
+            val actions = mutableListOf<() -> Unit>()
+
+            if (totalIllusts > 0) {
+                labels.add("跳转到插画…")
+                actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
             }
+            if (totalManga > 0) {
+                labels.add("跳转到漫画…")
+                actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
+            }
+            if (!isSelf) {
+                labels.add(
+                    if (isMuted) getString(R.string.cancel_block_this_users_work)
+                    else getString(R.string.block_this_users_work)
+                )
+                actions.add {
+                    if (isMuted) {
+                        PixivOperate.unMuteUser(data.user)
+                        mUserViewModel.isUserMuted.setValue(false)
+                    } else {
+                        PixivOperate.muteUser(data.user)
+                        mUserViewModel.isUserMuted.setValue(true)
+                    }
+                    mUserViewModel.refreshEvent.setValue(Event(100, 0L))
+                }
+            }
+            if (labels.isEmpty()) return@setOnClickListener
+
+            MenuDialogBuilder(mActivity)
+                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                .addItems(labels.toTypedArray()) { dialog: DialogInterface, which: Int ->
+                    dialog.dismiss()
+                    actions.getOrNull(which)?.invoke()
+                }
+                .show()
         }
         baseBind.centerHeader.visibility = View.VISIBLE
         val animation: Animation = AlphaAnimation(0.0f, 1.0f)
@@ -242,6 +260,18 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         }
         baseBind.followCount.setOnClickListener(follow)
         baseBind.followS.setOnClickListener(follow)
+    }
+
+    private fun jumpTo(userID: Int, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {
+        UserIllustJumpHelper.showJumpDialog(this, userID, kind) { offset, pickedDate ->
+            if (isFinishing || isDestroyed) return@showJumpDialog
+            val intent = Intent(this, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, fragmentTag)
+            intent.putExtra(Params.USER_ID, userID)
+            intent.putExtra(Params.INITIAL_OFFSET, offset)
+            if (pickedDate != null) intent.putExtra(Params.TARGET_DATE, pickedDate)
+            startActivity(intent)
+        }
     }
 }
 

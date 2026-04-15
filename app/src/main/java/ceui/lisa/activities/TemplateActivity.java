@@ -183,10 +183,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentNovelSeriesDetail.newInstance(intent.getIntExtra(Params.ID, 0));
                 case "插画作品":
                     return FragmentUserIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
-                            true, intent.getIntExtra(Params.INITIAL_OFFSET, 0));
+                            true, intent.getIntExtra(Params.INITIAL_OFFSET, 0),
+                            intent.getStringExtra(Params.TARGET_DATE));
                 case "漫画作品":
                     return FragmentUserManga.newInstance(intent.getIntExtra(Params.USER_ID, 0),
-                            true, intent.getIntExtra(Params.INITIAL_OFFSET, 0));
+                            true, intent.getIntExtra(Params.INITIAL_OFFSET, 0),
+                            intent.getStringExtra(Params.TARGET_DATE));
                 case "插画/漫画收藏":
                     return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             Params.TYPE_PUBLIC, true);

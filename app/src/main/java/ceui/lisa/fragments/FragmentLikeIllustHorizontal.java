@@ -137,14 +137,14 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
                         ? UserIllustJumpHelper.Kind.MANGA
                         : UserIllustJumpHelper.Kind.ILLUST;
                 String fragmentTag = (type == 3) ? "漫画作品" : "插画作品";
-                UserIllustJumpHelper.showJumpDialog(mActivity, userID, kind, offset -> {
-                    if (!isAdded()) return kotlin.Unit.INSTANCE;
+                UserIllustJumpHelper.showJumpDialog(mActivity, userID, kind, (offset, pickedDate) -> {
+                    if (!isAdded()) return;
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, fragmentTag);
                     intent.putExtra(Params.USER_ID, userID);
                     intent.putExtra(Params.INITIAL_OFFSET, offset);
+                    if (pickedDate != null) intent.putExtra(Params.TARGET_DATE, pickedDate);
                     startActivity(intent);
-                    return kotlin.Unit.INSTANCE;
                 });
             });
         }
