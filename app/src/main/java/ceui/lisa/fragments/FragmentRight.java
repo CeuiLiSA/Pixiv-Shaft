@@ -98,6 +98,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
         baseBind.seeMore.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐用户");
+            String handoffKey = null;
             if (headerFragment != null && headerFragment.allItems != null && !headerFragment.allItems.isEmpty()) {
                 // Hand off via in-memory map rather than Intent extras: the
                 // full UserPreviewsBean graph easily exceeds the ~1MB binder
@@ -105,14 +106,25 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                 // still want the detail page to show the same batch the
                 // user was just looking at, so stash a snapshot under a
                 // unique key and pass only the key.
-                String handoffKey = UUID.randomUUID().toString();
+                handoffKey = UUID.randomUUID().toString();
                 RecmdUserMap.store.put(handoffKey, new RecmdUserSnapshot(
                         new ArrayList<>(headerFragment.allItems),
                         headerFragment.mRemoteRepo.getNextUrl()
                 ));
                 intent.putExtra(Params.USER_MODEL, handoffKey);
             }
-            startActivity(intent);
+            // 即便我们的 intent 自身只装了 2 个 String，部分机型/系统版本会在
+            // startActivity 的 binder 事务里附带调用方 Activity 的状态快照，
+            // 仍可能触发 TransactionTooLargeException。兜底捕获，避免崩溃。
+            try {
+                startActivity(intent);
+            } catch (RuntimeException e) {
+                Common.showLog("FragmentRight seeMore startActivity failed: " + e.getMessage());
+                if (handoffKey != null) {
+                    RecmdUserMap.store.remove(handoffKey);
+                }
+                Common.showToast("打开页面失败，请稍后重试");
+            }
         });
         baseBind.glareLayout.setListener(new OnCheckChangeListener() {
             final String[] types = {Params.TYPE_ALL, Params.TYPE_PUBLIC, Params.TYPE_PRIVATE};
