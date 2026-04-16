@@ -59,7 +59,7 @@ import ceui.loxia.flag.FlagDescFragment
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.ui.upscale.IllustAiHelper
 import ceui.pixiv.utils.setOnClick
-import com.blankj.utilcode.util.BarUtils
+
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -101,7 +101,6 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             Common.showLog("updateUser invoke ${user.isIs_followed}")
         }
 
-        BarUtils.transparentNavBar(requireActivity())
         ViewCompat.setOnApplyWindowInsetsListener(baseBind.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
             if (insets.bottom > 0) {

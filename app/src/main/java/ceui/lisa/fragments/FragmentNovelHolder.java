@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -18,7 +19,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.PathUtils;
 import com.bumptech.glide.Glide;
 import com.jaredrummler.android.colorpicker.ColorPickerDialog;
@@ -111,7 +111,9 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.viewPager.setScrollbarFadingEnabled(false);
         FastScroller fb = new FastScrollerBuilder(baseBind.viewPager).build();
 
-        BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            mActivity.getWindow().setNavigationBarColor(getResources().getColor(R.color.hito_bg));
+        }
         if (Shaft.sSettings.getNovelHolderColor() != 0) {
             setBackgroundColor(Shaft.sSettings.getNovelHolderColor());
         }

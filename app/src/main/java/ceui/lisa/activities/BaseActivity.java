@@ -10,8 +10,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 
-import com.blankj.utilcode.util.BarUtils;
-
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -59,12 +59,11 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
 
             int primaryColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
             if (hideStatusBar()) {
-                BarUtils.transparentStatusBar(this);
+                EdgeToEdge.enable(this);
             } else {
-                getWindow().setStatusBarColor(primaryColor);
-            }
-            BarUtils.setNavBarColor(mActivity, Color.TRANSPARENT);
-            if (!hideStatusBar()) {
+                EdgeToEdge.enable(this,
+                        SystemBarStyle.auto(primaryColor, primaryColor),
+                        SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT));
                 // 非透明状态栏的 Activity 不需要 edge-to-edge，
                 // 让系统处理 insets，避免 fitsSystemWindows 产生多余 padding
                 WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
