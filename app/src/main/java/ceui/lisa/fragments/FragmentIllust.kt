@@ -574,7 +574,10 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     private fun checkDownload() {
         val illust = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return
-        if (Common.isIllustDownloaded(illust)) {
+        val hasLocalFile = Common.isIllustDownloaded(illust)
+        val hasRecord = !hasLocalFile && AppDatabase.getAppDatabase(mContext)
+                .downloadDao().hasDownloadRecordByIllustId(illust.id.toLong())
+        if (hasLocalFile || hasRecord) {
             baseBind.download.setText(R.string.string_337)
         } else {
             baseBind.download.setText(R.string.string_72)

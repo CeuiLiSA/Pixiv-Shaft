@@ -644,4 +644,13 @@
   <string name="string_save_original">Сохранить оригинал</string>
   <string name="string_save_enhanced">Сохранить улучшенное</string>
   <string name="string_cancel">Отмена</string>
+
+  <string name="download_records_export">Экспорт истории загрузок</string>
+  <string name="download_records_import">Импорт истории загрузок</string>
+  <string name="download_records_export_empty">Нет записей для экспорта</string>
+  <string name="download_records_export_success">Экспортировано записей: %1$d</string>
+  <string name="download_records_import_no_file">Ошибка импорта: файл не выбран</string>
+  <string name="download_records_import_invalid">Ошибка импорта: файл пуст или имеет неверный формат</string>
+  <string name="download_records_import_success">Импортировано записей: %1$d</string>
+  <string name="download_records_import_failed">Ошибка импорта: %1$s</string>
 </resources>

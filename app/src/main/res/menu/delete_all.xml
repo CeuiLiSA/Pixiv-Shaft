@@ -7,4 +7,16 @@
         android:icon="@drawable/ic_delete_black_24dp"
         android:title="@string/delete_all"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_export_downloads"
+        android:orderInCategory="200"
+        android:title="@string/download_records_export"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_import_downloads"
+        android:orderInCategory="201"
+        android:title="@string/download_records_import"
+        app:showAsAction="never" />
 </menu>

@@ -18,4 +18,16 @@
         android:orderInCategory="100"
         android:title="@string/string_328"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_export_downloads"
+        android:orderInCategory="200"
+        android:title="@string/download_records_export"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_import_downloads"
+        android:orderInCategory="201"
+        android:title="@string/download_records_import"
+        app:showAsAction="never" />
 </menu>

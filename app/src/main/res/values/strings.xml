@@ -914,4 +914,13 @@
     <string name="show_novel_card_tags_setting">小说列表显示标签</string>
 
     <string name="string_discovery">发现</string>
+
+    <string name="download_records_export">导出下载记录</string>
+    <string name="download_records_import">导入下载记录</string>
+    <string name="download_records_export_empty">没有可导出的下载记录</string>
+    <string name="download_records_export_success">下载记录已导出，共 %1$d 条</string>
+    <string name="download_records_import_no_file">导入失败：未选择文件</string>
+    <string name="download_records_import_invalid">导入失败：文件为空或格式不正确</string>
+    <string name="download_records_import_success">导入成功，共 %1$d 条记录</string>
+    <string name="download_records_import_failed">导入失败：%1$s</string>
 </resources>

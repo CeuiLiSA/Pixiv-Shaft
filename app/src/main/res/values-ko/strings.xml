@@ -651,4 +651,13 @@
   <string name="string_save_original">원본 저장</string>
   <string name="string_save_enhanced">향상 저장</string>
   <string name="string_cancel">취소</string>
+
+  <string name="download_records_export">다운로드 기록 내보내기</string>
+  <string name="download_records_import">다운로드 기록 가져오기</string>
+  <string name="download_records_export_empty">내보낼 다운로드 기록이 없습니다</string>
+  <string name="download_records_export_success">다운로드 기록을 내보냈습니다 (%1$d개)</string>
+  <string name="download_records_import_no_file">가져오기 실패: 파일이 선택되지 않았습니다</string>
+  <string name="download_records_import_invalid">가져오기 실패: 파일이 비어있거나 형식이 올바르지 않습니다</string>
+  <string name="download_records_import_success">%1$d개의 기록을 가져왔습니다</string>
+  <string name="download_records_import_failed">가져오기 실패: %1$s</string>
 </resources>

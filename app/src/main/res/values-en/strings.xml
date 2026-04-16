@@ -707,4 +707,13 @@
   <string name="string_cancel">Cancel</string>
 
   <string name="show_novel_card_tags_setting">Show tags on novel cards</string>
+
+  <string name="download_records_export">Export download records</string>
+  <string name="download_records_import">Import download records</string>
+  <string name="download_records_export_empty">No download records to export</string>
+  <string name="download_records_export_success">Exported %1$d download records</string>
+  <string name="download_records_import_no_file">Import failed: no file selected</string>
+  <string name="download_records_import_invalid">Import failed: file is empty or malformed</string>
+  <string name="download_records_import_success">Imported %1$d records successfully</string>
+  <string name="download_records_import_failed">Import failed: %1$s</string>
 </resources>

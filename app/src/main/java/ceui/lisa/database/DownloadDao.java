@@ -46,6 +46,15 @@ public interface DownloadDao {
     @Query("SELECT * FROM illust_download_table ORDER BY downloadTime DESC LIMIT :limit OFFSET :offset")
     List<DownloadEntity> getAll(int limit, int offset);
 
+    /**
+     * 判断是否存在指定插画 id 的下载记录（通过 illustGson 中的 "id":xxx 片段匹配）。
+     * 兼容 id 作为最后一个字段（以 `}` 结尾）和非末尾字段（以 `,` 结尾）两种 Gson 序列化顺序。
+     */
+    @Query("SELECT COUNT(*) > 0 FROM illust_download_table WHERE " +
+            "illustGson LIKE '%\"id\":' || :illustId || ',%' OR " +
+            "illustGson LIKE '%\"id\":' || :illustId || '}%'")
+    boolean hasDownloadRecordByIllustId(long illustId);
+
     @Query("SELECT * FROM illust_downloading_table")
     List<DownloadingEntity> getAllDownloading();
 

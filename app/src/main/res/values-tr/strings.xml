@@ -642,4 +642,13 @@
   <string name="string_save_original">Orijinali Kaydet</string>
   <string name="string_save_enhanced">İyileştirilmişi Kaydet</string>
   <string name="string_cancel">İptal</string>
+
+  <string name="download_records_export">İndirme kayıtlarını dışa aktar</string>
+  <string name="download_records_import">İndirme kayıtlarını içe aktar</string>
+  <string name="download_records_export_empty">Dışa aktarılacak indirme kaydı yok</string>
+  <string name="download_records_export_success">%1$d indirme kaydı dışa aktarıldı</string>
+  <string name="download_records_import_no_file">İçe aktarma başarısız: dosya seçilmedi</string>
+  <string name="download_records_import_invalid">İçe aktarma başarısız: dosya boş veya geçersiz biçim</string>
+  <string name="download_records_import_success">%1$d kayıt başarıyla içe aktarıldı</string>
+  <string name="download_records_import_failed">İçe aktarma başarısız: %1$s</string>
 </resources>
