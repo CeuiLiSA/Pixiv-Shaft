@@ -651,4 +651,38 @@
   <string name="download_records_import_invalid">İçe aktarma başarısız: dosya boş veya geçersiz biçim</string>
   <string name="download_records_import_success">%1$d kayıt başarıyla içe aktarıldı</string>
   <string name="download_records_import_failed">İçe aktarma başarısız: %1$s</string>
+
+  <!-- V3 illust detail -->
+  <string name="v3_label_views">Görüntüleme</string>
+  <string name="v3_label_likes">Beğeni</string>
+  <string name="v3_label_bookmarks">Yer İşaretleri</string>
+  <string name="v3_label_comments">Yorumlar</string>
+  <string name="v3_label_tags">Etiketler</string>
+  <string name="v3_label_series">Seri</string>
+  <string name="v3_label_related">İlgili</string>
+  <string name="v3_label_artwork_details">Eser Detayları</string>
+  <string name="v3_type_illustration">İllüstrasyon</string>
+  <string name="v3_type_manga">Manga</string>
+  <string name="v3_type_ugoira">Ugoira</string>
+  <string name="v3_page_count_one">1 sayfa</string>
+  <string name="v3_page_count_many">%d sayfa</string>
+  <string name="v3_detail_artwork_id">Eser ID</string>
+  <string name="v3_detail_user_id">Kullanıcı ID</string>
+  <string name="v3_detail_type">Tür</string>
+  <string name="v3_detail_resolution">Çözünürlük</string>
+  <string name="v3_detail_pages">Sayfalar</string>
+  <string name="v3_detail_ai">AI</string>
+  <string name="v3_detail_ai_yes">Evet (AI)</string>
+  <string name="v3_detail_ai_no">Hayır (İnsan)</string>
+  <string name="v3_detail_restriction">Kısıtlama</string>
+  <string name="v3_detail_all_ages">Tüm Yaşlar</string>
+  <string name="v3_detail_published">Yayınlanma</string>
+  <string name="v3_author_works">%s Eserleri</string>
+
+  <!-- V3 user detail -->
+  <string name="v3_label_following">Takip</string>
+  <string name="v3_label_mypixiv">My Pixiv</string>
+  <string name="v3_label_navigate">Gezinti</string>
+  <string name="v3_label_profile_details">Profil Detayları</string>
+  <string name="v3_label_workspace">Çalışma Alanı</string>
 </resources>

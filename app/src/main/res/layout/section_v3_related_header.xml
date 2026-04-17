@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:letterSpacing="0.12"
-        android:text="RELATED"
+        android:text="@string/v3_label_related"
         android:textAllCaps="true"
         android:textColor="@color/v3_text_3"
         android:textSize="10sp"

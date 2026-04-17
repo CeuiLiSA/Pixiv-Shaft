@@ -716,4 +716,38 @@
   <string name="download_records_import_invalid">Import failed: file is empty or malformed</string>
   <string name="download_records_import_success">Imported %1$d records successfully</string>
   <string name="download_records_import_failed">Import failed: %1$s</string>
+
+  <!-- V3 illust detail -->
+  <string name="v3_label_views">Views</string>
+  <string name="v3_label_likes">Likes</string>
+  <string name="v3_label_bookmarks">Bookmarks</string>
+  <string name="v3_label_comments">Comments</string>
+  <string name="v3_label_tags">Tags</string>
+  <string name="v3_label_series">Series</string>
+  <string name="v3_label_related">Related</string>
+  <string name="v3_label_artwork_details">Artwork Details</string>
+  <string name="v3_type_illustration">Illustration</string>
+  <string name="v3_type_manga">Manga</string>
+  <string name="v3_type_ugoira">Ugoira</string>
+  <string name="v3_page_count_one">1 page</string>
+  <string name="v3_page_count_many">%d pages</string>
+  <string name="v3_detail_artwork_id">Artwork ID</string>
+  <string name="v3_detail_user_id">User ID</string>
+  <string name="v3_detail_type">Type</string>
+  <string name="v3_detail_resolution">Resolution</string>
+  <string name="v3_detail_pages">Pages</string>
+  <string name="v3_detail_ai">AI</string>
+  <string name="v3_detail_ai_yes">Yes (AI)</string>
+  <string name="v3_detail_ai_no">No (Human)</string>
+  <string name="v3_detail_restriction">Restriction</string>
+  <string name="v3_detail_all_ages">All Ages</string>
+  <string name="v3_detail_published">Published</string>
+  <string name="v3_author_works">%s\'s Works</string>
+
+  <!-- V3 user detail -->
+  <string name="v3_label_following">Following</string>
+  <string name="v3_label_mypixiv">My Pixiv</string>
+  <string name="v3_label_navigate">Navigate</string>
+  <string name="v3_label_profile_details">Profile Details</string>
+  <string name="v3_label_workspace">Workspace</string>
 </resources>

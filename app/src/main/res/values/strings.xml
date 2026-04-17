@@ -924,4 +924,38 @@
     <string name="download_records_import_invalid">导入失败：文件为空或格式不正确</string>
     <string name="download_records_import_success">导入成功，共 %1$d 条记录</string>
     <string name="download_records_import_failed">导入失败：%1$s</string>
+
+    <!-- V3 illust detail -->
+    <string name="v3_label_views">浏览</string>
+    <string name="v3_label_likes">点赞</string>
+    <string name="v3_label_bookmarks">收藏</string>
+    <string name="v3_label_comments">评论</string>
+    <string name="v3_label_tags">标签</string>
+    <string name="v3_label_series">系列</string>
+    <string name="v3_label_related">相关作品</string>
+    <string name="v3_label_artwork_details">作品详情</string>
+    <string name="v3_type_illustration">插画</string>
+    <string name="v3_type_manga">漫画</string>
+    <string name="v3_type_ugoira">动图</string>
+    <string name="v3_page_count_one">1 页</string>
+    <string name="v3_page_count_many">%d 页</string>
+    <string name="v3_detail_artwork_id">作品 ID</string>
+    <string name="v3_detail_user_id">用户 ID</string>
+    <string name="v3_detail_type">类型</string>
+    <string name="v3_detail_resolution">分辨率</string>
+    <string name="v3_detail_pages">页数</string>
+    <string name="v3_detail_ai">AI</string>
+    <string name="v3_detail_ai_yes">是 (AI)</string>
+    <string name="v3_detail_ai_no">否 (人工)</string>
+    <string name="v3_detail_restriction">限制</string>
+    <string name="v3_detail_all_ages">全年龄</string>
+    <string name="v3_detail_published">发布时间</string>
+    <string name="v3_author_works">%s 的作品</string>
+
+    <!-- V3 user detail -->
+    <string name="v3_label_following">关注</string>
+    <string name="v3_label_mypixiv">好P友</string>
+    <string name="v3_label_navigate">导航</string>
+    <string name="v3_label_profile_details">个人资料</string>
+    <string name="v3_label_workspace">工作环境</string>
 </resources>

@@ -653,4 +653,38 @@
   <string name="download_records_import_invalid">Ошибка импорта: файл пуст или имеет неверный формат</string>
   <string name="download_records_import_success">Импортировано записей: %1$d</string>
   <string name="download_records_import_failed">Ошибка импорта: %1$s</string>
+
+  <!-- V3 illust detail -->
+  <string name="v3_label_views">Просмотры</string>
+  <string name="v3_label_likes">Лайки</string>
+  <string name="v3_label_bookmarks">Закладки</string>
+  <string name="v3_label_comments">Комментарии</string>
+  <string name="v3_label_tags">Теги</string>
+  <string name="v3_label_series">Серия</string>
+  <string name="v3_label_related">Похожее</string>
+  <string name="v3_label_artwork_details">Детали работы</string>
+  <string name="v3_type_illustration">Иллюстрация</string>
+  <string name="v3_type_manga">Манга</string>
+  <string name="v3_type_ugoira">Угоира</string>
+  <string name="v3_page_count_one">1 стр.</string>
+  <string name="v3_page_count_many">%d стр.</string>
+  <string name="v3_detail_artwork_id">ID работы</string>
+  <string name="v3_detail_user_id">ID пользователя</string>
+  <string name="v3_detail_type">Тип</string>
+  <string name="v3_detail_resolution">Разрешение</string>
+  <string name="v3_detail_pages">Страницы</string>
+  <string name="v3_detail_ai">AI</string>
+  <string name="v3_detail_ai_yes">Да (AI)</string>
+  <string name="v3_detail_ai_no">Нет (человек)</string>
+  <string name="v3_detail_restriction">Ограничение</string>
+  <string name="v3_detail_all_ages">Для всех</string>
+  <string name="v3_detail_published">Опубликовано</string>
+  <string name="v3_author_works">Работы %s</string>
+
+  <!-- V3 user detail -->
+  <string name="v3_label_following">Подписки</string>
+  <string name="v3_label_mypixiv">Мой Pixiv</string>
+  <string name="v3_label_navigate">Навигация</string>
+  <string name="v3_label_profile_details">Профиль</string>
+  <string name="v3_label_workspace">Рабочее место</string>
 </resources>

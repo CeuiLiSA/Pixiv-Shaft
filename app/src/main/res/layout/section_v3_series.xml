@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:alpha="0.7"
             android:letterSpacing="0.1"
-            android:text="SERIES"
+            android:text="@string/v3_label_series"
             android:textAllCaps="true"
             android:textColor="@color/v3_tag_locked_text"
             android:textSize="9sp"

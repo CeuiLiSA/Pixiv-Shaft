@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:letterSpacing="0.12"
-        android:text="TAGS"
+        android:text="@string/v3_label_tags"
         android:textAllCaps="true"
         android:textColor="@color/v3_text_3"
         android:textSize="10sp"

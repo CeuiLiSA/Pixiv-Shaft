@@ -660,4 +660,38 @@
   <string name="download_records_import_invalid">가져오기 실패: 파일이 비어있거나 형식이 올바르지 않습니다</string>
   <string name="download_records_import_success">%1$d개의 기록을 가져왔습니다</string>
   <string name="download_records_import_failed">가져오기 실패: %1$s</string>
+
+  <!-- V3 illust detail -->
+  <string name="v3_label_views">조회수</string>
+  <string name="v3_label_likes">좋아요</string>
+  <string name="v3_label_bookmarks">북마크</string>
+  <string name="v3_label_comments">댓글</string>
+  <string name="v3_label_tags">태그</string>
+  <string name="v3_label_series">시리즈</string>
+  <string name="v3_label_related">관련 작품</string>
+  <string name="v3_label_artwork_details">작품 상세</string>
+  <string name="v3_type_illustration">일러스트</string>
+  <string name="v3_type_manga">만화</string>
+  <string name="v3_type_ugoira">움직이는 일러스트</string>
+  <string name="v3_page_count_one">1 페이지</string>
+  <string name="v3_page_count_many">%d 페이지</string>
+  <string name="v3_detail_artwork_id">작품 ID</string>
+  <string name="v3_detail_user_id">사용자 ID</string>
+  <string name="v3_detail_type">유형</string>
+  <string name="v3_detail_resolution">해상도</string>
+  <string name="v3_detail_pages">페이지 수</string>
+  <string name="v3_detail_ai">AI</string>
+  <string name="v3_detail_ai_yes">예 (AI)</string>
+  <string name="v3_detail_ai_no">아니오 (사람)</string>
+  <string name="v3_detail_restriction">제한</string>
+  <string name="v3_detail_all_ages">전연령</string>
+  <string name="v3_detail_published">게시일</string>
+  <string name="v3_author_works">%s의 작품</string>
+
+  <!-- V3 user detail -->
+  <string name="v3_label_following">팔로잉</string>
+  <string name="v3_label_mypixiv">마이픽</string>
+  <string name="v3_label_navigate">탐색</string>
+  <string name="v3_label_profile_details">프로필 상세</string>
+  <string name="v3_label_workspace">작업 환경</string>
 </resources>

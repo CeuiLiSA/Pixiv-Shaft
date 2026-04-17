@@ -19,7 +19,8 @@ sealed class ArtworkDetailItem {
 
     data class Artist(
         val illust: IllustsBean,
-        val fullUser: UserBean?
+        val fullUser: UserBean?,
+        val isFollowed: Boolean = fullUser?.isIs_followed ?: false
     ) : ArtworkDetailItem()
 
     data class DetailPanel(val illust: IllustsBean) : ArtworkDetailItem()

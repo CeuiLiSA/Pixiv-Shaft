@@ -46,7 +46,8 @@ class ArtworkV3ViewModel(
     private val _isBookmarked = MutableLiveData<Boolean>()
     val isBookmarked: LiveData<Boolean> = _isBookmarked
 
-    private var relatedNextUrl: String? = null
+    var relatedNextUrl: String? = null
+        private set
     private val _isLoadingRelated = MutableLiveData(false)
     val isLoadingRelated: LiveData<Boolean> = _isLoadingRelated
     private var isLoadingMore = false
