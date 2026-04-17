@@ -14,6 +14,7 @@
             android:id="@+id/illust"
             android:layout_width="match_parent"
             android:layout_height="240dp"
+            android:background="@color/loading_placeholder"
             android:scaleType="fitCenter">
 
         </ImageView>
