@@ -353,12 +353,20 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                         LayoutInflater.from(mContext), parent, false
                     )
                     binding.tagName.text = item?.first ?: ""
+                    // Themed pill border
+                    val dp = resources.displayMetrics.density
+                    binding.root.background = android.graphics.drawable.GradientDrawable().apply {
+                        shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                        cornerRadius = 999f * dp
+                        setColor(0x08FFFFFF)
+                        setStroke((1 * dp).toInt(), palette.alpha20)
+                    }
                     val count = counts.getOrNull(position) ?: 0
                     if (count > 0) {
                         binding.tagCount.visibility = View.VISIBLE
                         binding.tagCount.text = NumberFormat.getInstance().format(count)
                         binding.tagCount.setTextColor(palette.textAccent)
-                        binding.tagCount.background = palette.tagCountBg(999f * resources.displayMetrics.density)
+                        binding.tagCount.background = palette.tagCountBg(999f * dp)
                     }
                     return binding.root
                 }
