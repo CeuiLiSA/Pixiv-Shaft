@@ -114,6 +114,12 @@ public interface DownloadDao {
     @Query("SELECT * FROM illust_table")
     List<IllustHistoryEntity> getAllViewHistoryEntities();
 
+    /**
+     * 浏览历史总条数
+     */
+    @Query("SELECT COUNT(*) FROM illust_table")
+    int getViewHistoryCount();
+
 
     /**
      * 新增一个用户

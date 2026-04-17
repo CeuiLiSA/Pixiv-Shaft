@@ -15,6 +15,7 @@ import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.FragmentHistoryV3Binding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.V3Palette
 import ceui.loxia.ObjectPool
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
@@ -32,6 +33,7 @@ class FragmentHistoryV3 : Fragment() {
 
     private val items: MutableList<IllustHistoryEntity> = mutableListOf()
     private val illusts: MutableList<IllustsBean> = mutableListOf()
+    private var totalCount: Int = 0
 
     private lateinit var listAdapter: HistoryV3Adapter
 
@@ -47,6 +49,11 @@ class FragmentHistoryV3 : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val palette = V3Palette.from(requireContext())
+        binding.bannerPlaceholder.background = palette.bannerPlaceholder()
+        binding.historySubtitle.setTextColor(palette.textAccent)
+
+        binding.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
         binding.toolbar.setNavigationOnClickListener { activity?.finish() }
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.action_delete) {
@@ -77,13 +84,13 @@ class FragmentHistoryV3 : Fragment() {
 
     private fun loadFirst() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val data = withContext(Dispatchers.IO) {
-                AppDatabase.getAppDatabase(requireContext())
-                    .downloadDao()
-                    .getAllViewHistory(PAGE_SIZE, 0)
+            val (data, count) = withContext(Dispatchers.IO) {
+                val dao = AppDatabase.getAppDatabase(requireContext()).downloadDao()
+                dao.getAllViewHistory(PAGE_SIZE, 0) to dao.getViewHistoryCount()
             }
             items.clear()
             items.addAll(data)
+            totalCount = count
             rebuildIllustList()
             listAdapter.submit(data)
             binding.refreshLayout.finishRefresh()
@@ -94,15 +101,15 @@ class FragmentHistoryV3 : Fragment() {
     private fun loadMore() {
         viewLifecycleOwner.lifecycleScope.launch {
             val offset = items.size
-            val data = withContext(Dispatchers.IO) {
-                AppDatabase.getAppDatabase(requireContext())
-                    .downloadDao()
-                    .getAllViewHistory(PAGE_SIZE, offset)
+            val (data, count) = withContext(Dispatchers.IO) {
+                val dao = AppDatabase.getAppDatabase(requireContext()).downloadDao()
+                dao.getAllViewHistory(PAGE_SIZE, offset) to dao.getViewHistoryCount()
             }
             if (data.isNotEmpty()) {
                 listAdapter.append(data)
                 appendIllusts(data)
             }
+            totalCount = count
             binding.refreshLayout.finishLoadMore()
             updateSubtitleAndEmpty()
         }
@@ -130,7 +137,7 @@ class FragmentHistoryV3 : Fragment() {
     }
 
     private fun updateSubtitleAndEmpty() {
-        binding.historySubtitle.text = getString(R.string.history_count_format, items.size)
+        binding.historySubtitle.text = getString(R.string.history_count_format, totalCount)
         binding.emptyLayout.isVisible = items.isEmpty()
     }
 
@@ -160,6 +167,7 @@ class FragmentHistoryV3 : Fragment() {
                             illusts.removeAll { it.id == entity.illustID }
                         }
                     }
+                    totalCount = (totalCount - 1).coerceAtLeast(0)
                     Common.showToast(getString(R.string.string_220))
                     dialog.dismiss()
                     updateSubtitleAndEmpty()
@@ -191,6 +199,7 @@ class FragmentHistoryV3 : Fragment() {
                     items.clear()
                     illusts.clear()
                     listAdapter.clear()
+                    totalCount = 0
                     Common.showToast(getString(R.string.string_220))
                     dialog.dismiss()
                     updateSubtitleAndEmpty()

@@ -7,30 +7,29 @@
         android:id="@+id/root_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:fitsSystemWindows="true">
+        android:background="@color/v3_bg">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
-            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay"
             app:elevation="0dp">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:id="@+id/collapsing_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fitsSystemWindows="true"
                 app:contentScrim="@color/v3_bg"
                 app:statusBarScrim="@android:color/transparent"
                 app:titleEnabled="false"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
 
                 <FrameLayout
+                    android:id="@+id/banner_placeholder"
                     android:layout_width="match_parent"
-                    android:layout_height="220dp"
+                    android:layout_height="260dp"
                     android:background="@drawable/bg_v3_banner_placeholder"
                     app:layout_collapseMode="parallax"
                     app:layout_collapseParallaxMultiplier="0.7" />
@@ -67,9 +66,11 @@
                         android:id="@+id/history_subtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
+                        android:letterSpacing="0.08"
                         android:textColor="@color/v3_text_3"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
                         tools:text="共 0 条" />
                 </LinearLayout>
 
