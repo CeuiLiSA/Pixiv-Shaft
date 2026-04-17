@@ -25,6 +25,8 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UserActivity
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
+import ceui.lisa.adapters.IllustAdapter
+import androidx.fragment.app.FragmentActivity
 import ceui.lisa.databinding.SectionV3ArtistBinding
 import ceui.lisa.databinding.SectionV3AuthorWorksBinding
 import ceui.lisa.databinding.SectionV3CommentsBinding
@@ -184,14 +186,6 @@ class ArtworkDetailAdapter(
 
     inner class HeroVH(private val b: SectionV3HeroBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(illust: IllustsBean) {
-            val imageUrl = illust.image_urls?.large ?: illust.image_urls?.medium
-            if (imageUrl != null) {
-                Glide.with(ctx)
-                    .load(GlideUrlChild(imageUrl))
-                    .placeholder(R.drawable.bg_loading_placeholder)
-                    .centerCrop()
-                    .into(b.heroImage)
-            }
             b.heroTitle.text = illust.title
             b.metaType.text = when (illust.type) {
                 "manga" -> ctx.getString(R.string.v3_type_manga)
@@ -201,10 +195,6 @@ class ArtworkDetailAdapter(
             b.metaDate.text = Common.getLocalYYYYMMDDHHMMString(illust.create_date)
             b.metaPages.text = if (illust.page_count == 1) ctx.getString(R.string.v3_page_count_one)
                 else ctx.getString(R.string.v3_page_count_many, illust.page_count)
-            b.badgeAi.isVisible = illust.illust_ai_type == 2
-            b.badgePages.isVisible = illust.page_count > 1
-            if (illust.page_count > 1) b.badgePages.text = "${illust.page_count}P"
-            b.badgeDimensions.text = "${illust.width} × ${illust.height}"
         }
     }
 

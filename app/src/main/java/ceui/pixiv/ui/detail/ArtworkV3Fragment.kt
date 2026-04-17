@@ -37,6 +37,7 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         }
     }
 
+    private var illustAdapter: ceui.lisa.adapters.IllustAdapter? = null
     private lateinit var headerAdapter: ArtworkDetailAdapter
     private lateinit var relatedAdapter: IAdapter
     private lateinit var loadingFooter: LoadingFooterAdapter
@@ -62,22 +63,50 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         }
         loadingFooter = LoadingFooterAdapter()
 
+        val concatConfig = ConcatAdapter.Config.Builder().setIsolateViewTypes(true).build()
         val concatAdapter = ConcatAdapter(
-            ConcatAdapter.Config.Builder().setIsolateViewTypes(true).build(),
+            concatConfig,
             headerAdapter,
             relatedAdapter,
             loadingFooter
         )
 
-        baseBind.recyclerView.layoutManager =
-            StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        val layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        baseBind.recyclerView.layoutManager = layoutManager
         baseBind.recyclerView.adapter = concatAdapter
         baseBind.recyclerView.addItemDecoration(RelatedOnlySpaceDecoration(4.ppppx))
+
+        // IllustAdapter items must be fullSpan in the 2-column grid
+        baseBind.recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
+            override fun onChildViewAttachedToWindow(view: View) {
+                val lp = view.layoutParams
+                if (lp is StaggeredGridLayoutManager.LayoutParams) {
+                    val pos = baseBind.recyclerView.getChildAdapterPosition(view)
+                    val illustCount = illustAdapter?.itemCount ?: 0
+                    if (pos < illustCount) {
+                        lp.isFullSpan = true
+                    }
+                }
+            }
+            override fun onChildViewDetachedFromWindow(view: View) {}
+        })
 
         setupNavBar(illustId)
         setupScrollProgress()
         setupInfiniteScroll()
         handleSystemInsets()
+
+        // When illust data arrives, insert IllustAdapter at the front for all pages
+        ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
+            if (illust != null && illustAdapter == null) {
+                val rvHeight = baseBind.recyclerView.height.takeIf { it > 0 }
+                    ?: resources.displayMetrics.heightPixels
+                illustAdapter = ceui.lisa.adapters.IllustAdapter(
+                    mActivity, this@ArtworkV3Fragment, illust, rvHeight, false
+                )
+                concatAdapter.addAdapter(0, illustAdapter!!)
+            }
+        }
 
         viewModel.headerItems.observe(viewLifecycleOwner) { items ->
             headerAdapter.submitItems(items)
