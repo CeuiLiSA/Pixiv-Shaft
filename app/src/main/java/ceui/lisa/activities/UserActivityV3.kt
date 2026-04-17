@@ -209,10 +209,13 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.moreAction.visibility = View.VISIBLE
         baseBind.moreAction.setOnClickListener { showMoreMenu(data, isSelf) }
 
-        // Bio
+        // Bio (render HTML — comment may contain <a>, <br> etc.)
         if (!TextUtils.isEmpty(user.comment)) {
             baseBind.bio.visibility = View.VISIBLE
-            baseBind.bio.text = user.comment
+            baseBind.bio.text = androidx.core.text.HtmlCompat.fromHtml(
+                user.comment, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+            )
+            baseBind.bio.movementMethod = android.text.method.LinkMovementMethod.getInstance()
         }
 
         // Stats row (following + mypixiv)
