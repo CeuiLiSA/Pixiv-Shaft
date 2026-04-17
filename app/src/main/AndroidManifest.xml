@@ -178,6 +178,10 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:theme="@style/SplashTheme" />
         <activity
+            android:name=".activities.UserActivityV3"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:theme="@style/SplashTheme" />
+        <activity
             android:name=".activities.OutReversActivity"
             android:exported="true"
             android:label="@string/string_311"

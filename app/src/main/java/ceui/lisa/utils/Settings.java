@@ -145,6 +145,9 @@ public class Settings {
     //作品详情使用新页面
     private boolean useFragmentIllust = true;
 
+    //作品详情使用V3沉浸式页面
+    private boolean useArtworkV3 = false;
+
     //个人中心使用新页面
     private boolean useNewUserPage = true;
 
@@ -394,6 +397,14 @@ public class Settings {
 
     public void setUseFragmentIllust(boolean useFragmentIllust) {
         this.useFragmentIllust = useFragmentIllust;
+    }
+
+    public boolean isUseArtworkV3() {
+        return useArtworkV3;
+    }
+
+    public void setUseArtworkV3(boolean useArtworkV3) {
+        this.useArtworkV3 = useArtworkV3;
     }
 
     public boolean isViewHistoryAnimate() {

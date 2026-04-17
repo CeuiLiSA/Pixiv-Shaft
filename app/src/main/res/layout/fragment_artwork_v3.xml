@@ -1,0 +1,920 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ===== HERO SECTION ===== -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/hero_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false">
+
+                <!-- Hero image -->
+                <ImageView
+                    android:id="@+id/hero_image"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:maxHeight="560dp"
+                    android:scaleType="centerCrop"
+                    android:background="@color/v3_bg"
+                    android:contentDescription="@null"
+                    app:layout_constraintDimensionRatio="H,3:4"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- Cinematic gradient overlay -->
+                <View
+                    android:id="@+id/hero_gradient"
+                    android:layout_width="0dp"
+                    android:layout_height="200dp"
+                    android:background="@drawable/v3_hero_gradient"
+                    app:layout_constraintBottom_toBottomOf="@id/hero_image"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <!-- Nav bar: back + bookmark + menu -->
+                <FrameLayout
+                    android:id="@+id/nav_bar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="12dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/nav_back"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_gravity="start"
+                        android:background="@drawable/v3_nav_btn_bg"
+                        android:contentDescription="@null"
+                        android:padding="9dp"
+                        android:src="@drawable/icon_navi_back"
+                        app:tint="@color/white" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/nav_bookmark"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/v3_nav_btn_bg"
+                            android:contentDescription="@null"
+                            android:padding="9dp"
+                            android:src="@drawable/ic_favorite_border_black_24dp"
+                            app:tint="@color/white" />
+
+                        <ImageView
+                            android:id="@+id/nav_more"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:background="@drawable/v3_nav_btn_bg"
+                            android:contentDescription="@null"
+                            android:padding="9dp"
+                            android:src="@drawable/icon_navi_more"
+                            app:tint="@color/white" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <!-- AI Badge (conditional) -->
+                <TextView
+                    android:id="@+id/badge_ai"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginTop="60dp"
+                    android:background="@drawable/v3_badge_ai_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="5dp"
+                    android:text="AI"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:visibility="visible" />
+
+                <!-- Pages Badge (conditional) -->
+                <TextView
+                    android:id="@+id/badge_pages"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="60dp"
+                    android:layout_marginEnd="14dp"
+                    android:background="@drawable/v3_badge_pages_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="5dp"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="3P"
+                    tools:visibility="visible" />
+
+                <!-- Dimensions Badge -->
+                <TextView
+                    android:id="@+id/badge_dimensions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="14dp"
+                    android:layout_marginBottom="56dp"
+                    android:background="@drawable/v3_badge_dimen_bg"
+                    android:fontFamily="monospace"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="5dp"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="10sp"
+                    app:layout_constraintBottom_toBottomOf="@id/hero_image"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    tools:text="1378 x 2039" />
+
+                <!-- Title overlay in gradient zone -->
+                <LinearLayout
+                    android:id="@+id/title_overlay"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="20dp"
+                    app:layout_constraintBottom_toBottomOf="@id/hero_image"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
+
+                    <TextView
+                        android:id="@+id/hero_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:shadowColor="#80000000"
+                        android:shadowDx="0"
+                        android:shadowDy="2"
+                        android:shadowRadius="20"
+                        android:textColor="@color/white"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="-0.03"
+                        android:lineSpacingMultiplier="1.2"
+                        tools:text="アナイクス" />
+
+                    <LinearLayout
+                        android:id="@+id/meta_row"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/meta_type"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#8CFFFFFF"
+                            android:textSize="11sp"
+                            tools:text="Illustration" />
+
+                        <View
+                            android:layout_width="3dp"
+                            android:layout_height="3dp"
+                            android:layout_marginHorizontal="8dp"
+                            android:background="@drawable/v3_nav_btn_bg" />
+
+                        <TextView
+                            android:id="@+id/meta_date"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#8CFFFFFF"
+                            android:textSize="11sp"
+                            tools:text="2026-04-15 18:00" />
+
+                        <View
+                            android:layout_width="3dp"
+                            android:layout_height="3dp"
+                            android:layout_marginHorizontal="8dp"
+                            android:background="@drawable/v3_nav_btn_bg" />
+
+                        <TextView
+                            android:id="@+id/meta_pages"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#8CFFFFFF"
+                            android:textSize="11sp"
+                            tools:text="1 page" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- ===== CONTENT COLUMN ===== -->
+            <LinearLayout
+                android:id="@+id/content_column"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="24dp"
+                android:clipToPadding="false">
+
+                <!-- Series Strip (conditional) -->
+                <LinearLayout
+                    android:id="@+id/series_strip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp"
+                    android:background="@drawable/v3_series_strip_bg"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <FrameLayout
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/v3_series_icon_bg"
+                        android:layout_marginEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_collections_black_24dp"
+                            app:tint="@color/white" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.1"
+                            android:text="SERIES"
+                            android:textAllCaps="true"
+                            android:textColor="@color/v3_tag_locked_text"
+                            android:textSize="9sp"
+                            android:textStyle="bold"
+                            android:alpha="0.7" />
+
+                        <TextView
+                            android:id="@+id/series_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            tools:text="崩壊スターレイル まとめ #12" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="›"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <!-- Description (conditional) -->
+                <org.sufficientlysecure.htmltextview.HtmlTextView
+                    android:id="@+id/description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp"
+                    android:lineSpacingMultiplier="1.75"
+                    android:textColor="@color/v3_text_2"
+                    android:textColorLink="@color/v3_blue"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
+                <!-- Stats Row -->
+                <FrameLayout
+                    android:id="@+id/stats_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp"
+                    android:background="@drawable/v3_glass_surface">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal"
+                        android:paddingVertical="16dp"
+                        android:paddingHorizontal="8dp">
+
+                        <!-- Views -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical">
+
+                            <ceui.pixiv.ui.detail.GradientTextView
+                                android:id="@+id/stat_views"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="-0.03"
+                                app:gtv_startColor="@color/v3_stat_views_start"
+                                app:gtv_endColor="@color/v3_stat_views_end"
+                                tools:text="1,627" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:letterSpacing="0.1"
+                                android:text="VIEWS"
+                                android:textAllCaps="true"
+                                android:textColor="@color/v3_text_3"
+                                android:textSize="9sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginVertical="4dp"
+                            android:background="#0FFFFFFF" />
+
+                        <!-- Likes -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical">
+
+                            <ceui.pixiv.ui.detail.GradientTextView
+                                android:id="@+id/stat_likes"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="-0.03"
+                                app:gtv_startColor="@color/v3_stat_likes_start"
+                                app:gtv_endColor="@color/v3_stat_likes_end"
+                                tools:text="220" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:letterSpacing="0.1"
+                                android:text="LIKES"
+                                android:textAllCaps="true"
+                                android:textColor="@color/v3_text_3"
+                                android:textSize="9sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginVertical="4dp"
+                            android:background="#0FFFFFFF" />
+
+                        <!-- Bookmarks -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical">
+
+                            <ceui.pixiv.ui.detail.GradientTextView
+                                android:id="@+id/stat_bookmarks"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="-0.03"
+                                app:gtv_startColor="@color/v3_stat_bookmarks_start"
+                                app:gtv_endColor="@color/v3_stat_bookmarks_end"
+                                tools:text="298" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:letterSpacing="0.1"
+                                android:text="BOOKMARKS"
+                                android:textAllCaps="true"
+                                android:textColor="@color/v3_text_3"
+                                android:textSize="9sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginVertical="4dp"
+                            android:background="#0FFFFFFF" />
+
+                        <!-- Comments -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical">
+
+                            <ceui.pixiv.ui.detail.GradientTextView
+                                android:id="@+id/stat_comments"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="-0.03"
+                                app:gtv_startColor="@color/v3_stat_comments_start"
+                                app:gtv_endColor="@color/v3_stat_comments_end"
+                                tools:text="2" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:letterSpacing="0.1"
+                                android:text="COMMENTS"
+                                android:textAllCaps="true"
+                                android:textColor="@color/v3_text_3"
+                                android:textSize="9sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Shimmer overlay -->
+                    <ceui.pixiv.ui.detail.ShimmerOverlayView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </FrameLayout>
+
+                <!-- Tags -->
+                <LinearLayout
+                    android:id="@+id/tags_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:letterSpacing="0.12"
+                        android:text="TAGS"
+                        android:textAllCaps="true"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.flexbox.FlexboxLayout
+                        android:id="@+id/tags_flow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:flexWrap="wrap"
+                        app:alignItems="flex_start">
+                        <!-- Tags added programmatically -->
+                    </com.google.android.flexbox.FlexboxLayout>
+                </LinearLayout>
+
+                <!-- Artist Card -->
+                <FrameLayout
+                    android:id="@+id/artist_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp"
+                    android:background="@drawable/v3_glass_surface_xl"
+                    android:clipChildren="false">
+
+                    <!-- Accent line at top -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginHorizontal="40dp"
+                        android:background="@drawable/v3_accent_line" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Banner -->
+                        <View
+                            android:id="@+id/artist_banner"
+                            android:layout_width="match_parent"
+                            android:layout_height="72dp"
+                            android:background="@drawable/v3_artist_banner_bg" />
+
+                        <!-- Content below banner -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="18dp"
+                            android:paddingBottom="18dp"
+                            android:clipChildren="false">
+
+                            <!-- Avatar row (overlaps banner by -30dp) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="-30dp"
+                                android:gravity="bottom"
+                                android:orientation="horizontal">
+
+                                <FrameLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content">
+
+                                    <de.hdodenhof.circleimageview.CircleImageView
+                                        android:id="@+id/artist_avatar"
+                                        android:layout_width="58dp"
+                                        android:layout_height="58dp"
+                                        android:scaleType="centerCrop"
+                                        app:civ_border_color="#1A08080C"
+                                        app:civ_border_width="3dp" />
+
+                                    <!-- Premium badge -->
+                                    <FrameLayout
+                                        android:id="@+id/premium_badge"
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="bottom|end"
+                                        android:layout_marginEnd="-2dp"
+                                        android:layout_marginBottom="-2dp"
+                                        android:background="@drawable/v3_premium_badge_bg"
+                                        android:elevation="2dp"
+                                        android:visibility="gone">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center"
+                                            android:text="★"
+                                            android:textColor="#1A1A2E"
+                                            android:textSize="9sp" />
+                                    </FrameLayout>
+                                </FrameLayout>
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="14dp"
+                                    android:layout_marginBottom="4dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:id="@+id/artist_name"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:ellipsize="end"
+                                        android:maxLines="1"
+                                        android:textColor="@color/v3_text_1"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold"
+                                        android:letterSpacing="-0.01"
+                                        tools:text="ひとはﾁｬﾝ" />
+
+                                    <TextView
+                                        android:id="@+id/artist_handle"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="2dp"
+                                        android:textColor="@color/v3_text_3"
+                                        android:textSize="11sp"
+                                        tools:text="@hitohachan" />
+                                </LinearLayout>
+
+                                <ceui.loxia.ProgressTextButton
+                                    android:id="@+id/follow_btn"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="32dp"
+                                    android:layout_marginBottom="4dp"
+                                    android:background="@drawable/v3_follow_btn_primary"
+                                    android:paddingHorizontal="20dp"
+                                    android:text="@string/follow"
+                                    android:textColor="@color/white"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    app:ptb_progress_stroke_width="3dp"
+                                    app:ptb_progress_width="14dp" />
+                            </LinearLayout>
+
+                            <!-- Bio -->
+                            <TextView
+                                android:id="@+id/artist_bio"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="14dp"
+                                android:ellipsize="end"
+                                android:lineSpacingMultiplier="1.65"
+                                android:maxLines="2"
+                                android:textColor="@color/v3_text_2"
+                                android:textSize="12sp"
+                                android:visibility="gone"
+                                tools:text="FANBOX: hitohachan.fanbox.cc" />
+
+                            <!-- Social chips -->
+                            <com.google.android.flexbox.FlexboxLayout
+                                android:id="@+id/artist_socials"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:visibility="gone"
+                                app:flexWrap="wrap"
+                                app:alignItems="flex_start" />
+
+                            <!-- Following count -->
+                            <TextView
+                                android:id="@+id/artist_following"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:textColor="@color/v3_text_3"
+                                android:textSize="12sp"
+                                android:visibility="gone"
+                                tools:text="16 Following" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </FrameLayout>
+
+                <!-- Detail Panel -->
+                <FrameLayout
+                    android:id="@+id/detail_panel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp"
+                    android:background="@drawable/v3_detail_panel_bg">
+
+                    <!-- Accent line -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginHorizontal="40dp"
+                        android:background="@drawable/v3_accent_line" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <!-- Header -->
+                        <LinearLayout
+                            android:id="@+id/detail_header"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:letterSpacing="0.12"
+                                android:text="ARTWORK DETAILS"
+                                android:textAllCaps="true"
+                                android:textColor="@color/v3_text_3"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/detail_arrow"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="▾"
+                                android:textColor="@color/v3_text_3"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+
+                        <!-- Chip grid (rows added programmatically) -->
+                        <LinearLayout
+                            android:id="@+id/detail_grid"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:orientation="vertical">
+                        </LinearLayout>
+                    </LinearLayout>
+                </FrameLayout>
+
+                <!-- Comments Section -->
+                <LinearLayout
+                    android:id="@+id/comments_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp"
+                    android:orientation="vertical">
+
+                    <!-- Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:letterSpacing="0.12"
+                            android:text="COMMENTS"
+                            android:textAllCaps="true"
+                            android:textColor="@color/v3_text_3"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/comments_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@color/v3_surface_2"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="3dp"
+                            android:textColor="@color/v3_text_3"
+                            android:textSize="11sp"
+                            tools:text="2" />
+                    </LinearLayout>
+
+                    <!-- Comments list (max 3 shown inline) -->
+                    <LinearLayout
+                        android:id="@+id/comments_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <!-- View all comments button -->
+                    <TextView
+                        android:id="@+id/comments_more"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/v3_comments_more_bg"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:text="@string/view_comments"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- Author Works -->
+                <LinearLayout
+                    android:id="@+id/author_works_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/author_works_label"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:letterSpacing="0.12"
+                            android:textAllCaps="true"
+                            android:textColor="@color/v3_text_3"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            tools:text="ARTIST'S WORKS" />
+
+                        <TextView
+                            android:id="@+id/author_works_see_all"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/see_more"
+                            android:textColor="@color/v3_ambient_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/author_works_rv"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="-20dp"
+                        android:clipToPadding="false"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never"
+                        android:paddingHorizontal="20dp" />
+                </LinearLayout>
+
+                <!-- Related Works -->
+                <LinearLayout
+                    android:id="@+id/related_works_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:letterSpacing="0.12"
+                            android:text="RELATED"
+                            android:textAllCaps="true"
+                            android:textColor="@color/v3_text_3"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/related_see_more"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/see_more"
+                            android:textColor="@color/v3_ambient_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/related_works_rv"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never" />
+
+                    <TextView
+                        android:id="@+id/load_more_related"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/v3_load_more_bg"
+                        android:gravity="center"
+                        android:padding="14dp"
+                        android:text="Load More"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Scroll progress bar -->
+    <View
+        android:id="@+id/scroll_progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_gravity="top"
+        android:background="@drawable/v3_scroll_progress"
+        android:elevation="10dp"
+        android:scaleX="0"
+        android:transformPivotX="0dp" />
+
+</FrameLayout>

@@ -144,6 +144,7 @@
     <string name="theme_mode">主题模式</string>
     <string name="custom_file_name">自定义下载文件名</string>
     <string name="illust_detail">作品详情使用新界面</string>
+    <string name="illust_detail_v3">作品详情使用V3沉浸式界面</string>
     <string name="user_detail">个人中心使用新界面</string>
     <string name="file_name_type">文件命名格式</string>
     <string name="download_path">下载路径</string>

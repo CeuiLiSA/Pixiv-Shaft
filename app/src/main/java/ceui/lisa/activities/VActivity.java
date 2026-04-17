@@ -21,6 +21,7 @@ import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.fragments.FragmentSingleUgora;
+import ceui.pixiv.ui.detail.ArtworkV3Fragment;
 import ceui.lisa.helper.DeduplicateArrayList;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -64,7 +65,13 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     } else if (illustsBean.isGif()) {
                         return FragmentSingleUgora.newInstance(illustsBean);
                     } else {
-                        if (Shaft.sSettings.isUseFragmentIllust()) {
+                        if (Shaft.sSettings.isUseArtworkV3()) {
+                            IllustsBean exist = ObjectPool.INSTANCE.getIllust(illustsBean.getId()).getValue();
+                            if (exist == null) {
+                                ObjectPool.INSTANCE.updateIllust(illustsBean);
+                            }
+                            return ArtworkV3Fragment.Companion.newInstance(illustsBean.getId());
+                        } else if (Shaft.sSettings.isUseFragmentIllust()) {
                             IllustsBean exist = ObjectPool.INSTANCE.getIllust(illustsBean.getId()).getValue();
                             if (exist == null) {
                                 ObjectPool.INSTANCE.updateIllust(illustsBean);

@@ -63,7 +63,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
         if (Shaft.sSettings.isUseNewUserPage()) {
-            Intent intent = new Intent(mContext, UActivity.class);
+            Intent intent = new Intent(mContext, UserActivityV3.class);
             intent.putExtra(Params.USER_ID, userID);
             startActivity(intent);
             finish();

@@ -18,4 +18,10 @@
         <attr name="tfv_max_lines" format="integer"/>
     </declare-styleable>
 
+    <declare-styleable name="GradientTextView">
+        <attr name="gtv_startColor" format="color" />
+        <attr name="gtv_endColor" format="color" />
+        <attr name="gtv_angle" format="float" />
+    </declare-styleable>
+
 </resources>
