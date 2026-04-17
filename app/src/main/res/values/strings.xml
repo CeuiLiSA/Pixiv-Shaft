@@ -253,6 +253,7 @@
     <string name="string_46">桌子：</string>
     <string name="string_47">椅子：</string>
     <string name="string_48">暂无内容</string>
+    <string name="history_count_format">共 %1$d 条</string>
     <string name="string_49">留下你的评论吧</string>
     <string name="string_50">捐赠</string>
     <string name="string_51">pixiv ID (限小写英文和数字)</string>

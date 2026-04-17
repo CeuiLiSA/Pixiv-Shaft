@@ -27,7 +27,7 @@ import ceui.lisa.fragments.FragmentEditFile;
 import ceui.lisa.fragments.FragmentFeature;
 import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentFollowUser;
-import ceui.lisa.fragments.FragmentHistory;
+import ceui.lisa.fragments.FragmentHistoryV3;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeNovel;
@@ -109,7 +109,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentRelatedIllust.newInstance(id, title);
                 }
                 case "浏览记录":
-                    return new FragmentHistory();
+                    return new FragmentHistoryV3();
                 case "网页链接": {
                     String url = intent.getStringExtra(Params.URL);
                     String title = intent.getStringExtra(Params.TITLE);
