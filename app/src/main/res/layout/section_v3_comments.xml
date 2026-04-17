@@ -16,27 +16,14 @@
         android:orientation="horizontal">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:letterSpacing="0.12"
             android:text="@string/v3_label_comments"
             android:textAllCaps="true"
             android:textColor="@color/v3_text_3"
             android:textSize="10sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/comments_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/v3_surface_2"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="3dp"
-            android:textColor="@color/v3_text_2"
-            android:textStyle="bold"
-            android:textSize="11sp"
-            tools:text="2" />
     </LinearLayout>
 
     <!-- Comments list -->
