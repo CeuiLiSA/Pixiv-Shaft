@@ -14,8 +14,7 @@
         android:layout_width="22dp"
         android:layout_height="22dp"
         android:layout_marginEnd="16dp"
-        android:contentDescription="@null"
-        app:tint="@color/v3_text_2" />
+        android:contentDescription="@null" />
 
     <TextView
         android:id="@+id/menu_label"

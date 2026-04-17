@@ -63,7 +63,11 @@ class V3MenuDialog : DialogFragment() {
 
         items.forEach { item ->
             val row = inflater.inflate(R.layout.item_v3_menu_row, container, false)
-            row.findViewById<ImageView>(R.id.menu_icon).setImageResource(item.icon)
+            val icon = row.findViewById<ImageView>(R.id.menu_icon)
+            icon.setImageResource(item.icon)
+            icon.imageTintList = android.content.res.ColorStateList.valueOf(
+                requireContext().getColor(R.color.v3_text_2)
+            )
             row.findViewById<TextView>(R.id.menu_label).text = item.label
             row.setOnClickListener {
                 item.onClick()
