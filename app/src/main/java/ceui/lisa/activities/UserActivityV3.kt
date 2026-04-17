@@ -26,6 +26,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.V3Palette
 import android.net.Uri
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
@@ -48,6 +49,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private var userId = 0
     private lateinit var mUserViewModel: UserViewModel
+    private lateinit var palette: V3Palette
 
     override fun initLayout(): Int = R.layout.activity_user_v3
 
@@ -70,8 +72,15 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     }
 
     override fun initView() {
+        palette = V3Palette.from(this)
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
         baseBind.toolbar.setNavigationOnClickListener { finish() }
+
+        // Apply theme-colored drawables to follow/unfollow buttons
+        val density = resources.displayMetrics.density
+        baseBind.follow.background = palette.pillPrimary(999f * density)
+        baseBind.unfollow.background = palette.pillSecondary(999f * density, (1 * density).toInt())
+        baseBind.unfollow.setTextColor(palette.textSecondary)
 
         // Toolbar alpha transition on scroll
         baseBind.toolbarLayout.viewTreeObserver.addOnGlobalLayoutListener(object :
@@ -257,6 +266,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private fun setupSocialChips(profile: ceui.lisa.models.ProfileBean) {
         var hasAny = false
+        val strokeColor = android.content.res.ColorStateList.valueOf(palette.alpha20)
+        val textColor = resources.getColor(R.color.colorWhite60, theme)
 
         if (!TextUtils.isEmpty(profile.twitter_url)) {
             hasAny = true
@@ -264,12 +275,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 text = if (!TextUtils.isEmpty(profile.twitter_account))
                     "@${profile.twitter_account}" else "Twitter"
                 setChipBackgroundColorResource(R.color.colorWhite08)
-                setTextColor(resources.getColor(R.color.colorWhite60, theme))
-                chipStrokeColor = android.content.res.ColorStateList.valueOf(0x331DA1F2.toInt())
+                setTextColor(textColor)
+                chipStrokeColor = strokeColor
                 chipStrokeWidth = 1f
-                setOnClickListener {
-                    openUrl(profile.twitter_url)
-                }
+                setOnClickListener { openUrl(profile.twitter_url) }
             }
             baseBind.socialsGroup.addView(chip)
         }
@@ -279,12 +288,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             val chip = Chip(this).apply {
                 text = "Website"
                 setChipBackgroundColorResource(R.color.colorWhite08)
-                setTextColor(resources.getColor(R.color.colorWhite60, theme))
-                chipStrokeColor = android.content.res.ColorStateList.valueOf(0x332DD4A8.toInt())
+                setTextColor(textColor)
+                chipStrokeColor = strokeColor
                 chipStrokeWidth = 1f
-                setOnClickListener {
-                    openUrl(profile.webpage)
-                }
+                setOnClickListener { openUrl(profile.webpage) }
             }
             baseBind.socialsGroup.addView(chip)
         }
@@ -294,12 +301,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             val chip = Chip(this).apply {
                 text = "Pawoo"
                 setChipBackgroundColorResource(R.color.colorWhite08)
-                setTextColor(resources.getColor(R.color.colorWhite60, theme))
-                chipStrokeColor = android.content.res.ColorStateList.valueOf(0x339F7AEA.toInt())
+                setTextColor(textColor)
+                chipStrokeColor = strokeColor
                 chipStrokeWidth = 1f
-                setOnClickListener {
-                    openUrl(profile.pawoo_url)
-                }
+                setOnClickListener { openUrl(profile.pawoo_url) }
             }
             baseBind.socialsGroup.addView(chip)
         }
@@ -357,6 +362,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     if (count > 0) {
                         binding.tagCount.visibility = View.VISIBLE
                         binding.tagCount.text = NumberFormat.getInstance().format(count)
+                        binding.tagCount.setTextColor(palette.textAccent)
+                        binding.tagCount.background = palette.tagCountBg(999f * resources.displayMetrics.density)
                     }
                     return binding.root
                 }
@@ -375,6 +382,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         val profile = data.profile
         val user = data.user
         baseBind.profileCard.visibility = View.VISIBLE
+        val d = resources.displayMetrics.density
+        baseBind.profileCard.background = palette.glassCardBg(28f * d)
 
         val chips = mutableListOf<Triple<String, String, Boolean>>()  // label, value, isMono
         chips.add(Triple("User ID", user.id.toString(), true))
@@ -478,6 +487,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         if (items.isEmpty()) return
 
         baseBind.workspaceCard.visibility = View.VISIBLE
+        val d = resources.displayMetrics.density
+        baseBind.workspaceCard.background = palette.glassCardBg(28f * d)
         val grid = baseBind.workspaceGrid
         grid.removeAllViews()
         val density = resources.displayMetrics.density

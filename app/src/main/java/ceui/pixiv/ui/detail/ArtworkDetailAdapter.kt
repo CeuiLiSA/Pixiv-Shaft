@@ -41,6 +41,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
+import ceui.lisa.utils.V3Palette
 import ceui.loxia.ProgressTextButton
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -53,6 +54,7 @@ class ArtworkDetailAdapter(
     private val fragment: androidx.fragment.app.Fragment
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    val palette: V3Palette = V3Palette.from(fragment.requireContext())
     private val items = mutableListOf<ArtworkDetailItem>()
     private val animatedViewTypes = mutableSetOf<Int>()
 
@@ -192,10 +194,13 @@ class ArtworkDetailAdapter(
             }
             b.heroTitle.text = illust.title
             b.metaType.text = when (illust.type) {
-                "manga" -> "Manga"; "ugoira" -> "Ugoira"; else -> "Illustration"
+                "manga" -> ctx.getString(R.string.v3_type_manga)
+                "ugoira" -> ctx.getString(R.string.v3_type_ugoira)
+                else -> ctx.getString(R.string.v3_type_illustration)
             }
             b.metaDate.text = Common.getLocalYYYYMMDDHHMMString(illust.create_date)
-            b.metaPages.text = if (illust.page_count == 1) "1 page" else "${illust.page_count} pages"
+            b.metaPages.text = if (illust.page_count == 1) ctx.getString(R.string.v3_page_count_one)
+                else ctx.getString(R.string.v3_page_count_many, illust.page_count)
             b.badgeAi.isVisible = illust.illust_ai_type == 2
             b.badgePages.isVisible = illust.page_count > 1
             if (illust.page_count > 1) b.badgePages.text = "${illust.page_count}P"
@@ -207,6 +212,9 @@ class ArtworkDetailAdapter(
         fun bind(illust: IllustsBean) {
             val series = illust.series ?: return
             b.seriesName.text = series.title
+            // Apply themed series strip
+            val d = ctx.resources.displayMetrics.density
+            b.seriesStrip.background = palette.seriesStripBg(20f * d)
             b.root.setOnClickListener {
                 val intent = Intent(ctx, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
@@ -246,8 +254,8 @@ class ArtworkDetailAdapter(
                         }
                     }
                     textSize = 13f
-                    setTextColor(ctx.getColor(R.color.v3_tag_locked_text))
-                    setBackgroundResource(R.drawable.v3_tag_locked_bg)
+                    setTextColor(palette.textTag)
+                    background = palette.tagLockedBg(999f * resources.displayMetrics.density)
                     setPadding(14.ppppx, 7.ppppx, 14.ppppx, 7.ppppx)
                     layoutParams = FlexboxLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -283,13 +291,18 @@ class ArtworkDetailAdapter(
             }
             applyTouchScale(b.artistCard)
 
+            // Apply themed accent + card background
+            b.accentLine.background = palette.accentLine()
+            val d = ctx.resources.displayMetrics.density
+            b.artistCard.background = palette.glassCardBg(28f * d)
+
             if (fullUser != null) {
                 bindFollowState(fullUser)
                 b.artistBio.isVisible = !fullUser.comment.isNullOrBlank()
                 if (b.artistBio.isVisible) b.artistBio.text = fullUser.comment
             } else {
                 b.followBtn.text = ctx.getString(R.string.follow)
-                b.followBtn.setBackgroundResource(R.drawable.v3_follow_btn_primary)
+                palette.applyFollowBtn(b.followBtn)
                 b.followBtn.setTextColor(Color.WHITE)
                 b.artistBio.isVisible = false
             }
@@ -298,12 +311,11 @@ class ArtworkDetailAdapter(
         private fun bindFollowState(user: UserBean) {
             if (user.isIs_followed) {
                 b.followBtn.text = ctx.getString(R.string.unfollow)
-                b.followBtn.setBackgroundResource(R.drawable.v3_follow_btn_secondary)
-                b.followBtn.setTextColor(ctx.getColor(R.color.v3_tag_locked_text))
+                palette.applyUnfollowBtn(b.followBtn)
                 b.followBtn.setOnClick { fragment.unfollowUser(it as ProgressTextButton, user.id) }
             } else {
                 b.followBtn.text = ctx.getString(R.string.follow)
-                b.followBtn.setBackgroundResource(R.drawable.v3_follow_btn_primary)
+                palette.applyFollowBtn(b.followBtn)
                 b.followBtn.setTextColor(Color.WHITE)
                 b.followBtn.setOnClick { fragment.followUser(it as ProgressTextButton, user.id, Params.TYPE_PUBLIC) }
                 b.followBtn.setOnLongClickListener {
@@ -320,6 +332,10 @@ class ArtworkDetailAdapter(
 
         fun bind(illust: IllustsBean) {
             b.detailGrid.removeAllViews()
+            // Apply themed accent line + card
+            b.detailAccent.background = palette.accentLine()
+            val d = ctx.resources.displayMetrics.density
+            b.detailCard.background = palette.glassCardBg(28f * d)
             buildChips(illust)
             b.detailHeader.setOnClickListener {
                 expanded = !expanded
@@ -339,15 +355,24 @@ class ArtworkDetailAdapter(
         }
 
         private fun buildChips(illust: IllustsBean) {
+            fun s(resId: Int) = ctx.getString(resId)
             val chips = listOf(
-                "Artwork ID" to illust.id.toString(),
-                "User ID" to (illust.user?.id?.toString() ?: "--"),
-                "Type" to when (illust.type) { "manga" -> "Manga"; "ugoira" -> "Ugoira"; else -> "Illustration" },
-                "Resolution" to "${illust.width} × ${illust.height}",
-                "Pages" to illust.page_count.toString(),
-                "AI" to if (illust.illust_ai_type == 2) "Yes (AI)" else "No (Human)",
-                "Restriction" to when { illust.x_restrict == 1 -> "R-18"; illust.x_restrict == 2 -> "R-18G"; else -> "All Ages" },
-                "Published" to Common.getLocalYYYYMMDDHHMMString(illust.create_date)
+                s(R.string.v3_detail_artwork_id) to illust.id.toString(),
+                s(R.string.v3_detail_user_id) to (illust.user?.id?.toString() ?: "--"),
+                s(R.string.v3_detail_type) to when (illust.type) {
+                    "manga" -> s(R.string.v3_type_manga)
+                    "ugoira" -> s(R.string.v3_type_ugoira)
+                    else -> s(R.string.v3_type_illustration)
+                },
+                s(R.string.v3_detail_resolution) to "${illust.width} × ${illust.height}",
+                s(R.string.v3_detail_pages) to illust.page_count.toString(),
+                s(R.string.v3_detail_ai) to if (illust.illust_ai_type == 2) s(R.string.v3_detail_ai_yes) else s(R.string.v3_detail_ai_no),
+                s(R.string.v3_detail_restriction) to when {
+                    illust.x_restrict == 1 -> "R-18"
+                    illust.x_restrict == 2 -> "R-18G"
+                    else -> s(R.string.v3_detail_all_ages)
+                },
+                s(R.string.v3_detail_published) to Common.getLocalYYYYMMDDHHMMString(illust.create_date)
             )
             for (i in chips.indices step 2) {
                 val row = LinearLayout(ctx).apply {
@@ -375,17 +400,21 @@ class ArtworkDetailAdapter(
                     text = label.uppercase(); textSize = 9f
                     setTextColor(ctx.getColor(R.color.v3_text_3)); letterSpacing = 0.08f; alpha = 0.7f
                 })
+                val artworkIdLabel = ctx.getString(R.string.v3_detail_artwork_id)
+                val userIdLabel = ctx.getString(R.string.v3_detail_user_id)
+                val aiLabel = ctx.getString(R.string.v3_detail_ai)
+                val restrictionLabel = ctx.getString(R.string.v3_detail_restriction)
                 addView(TextView(ctx).apply {
                     text = value; textSize = 13f; maxLines = 1; ellipsize = TextUtils.TruncateAt.END
                     setTextColor(when {
-                        label == "Artwork ID" || label == "User ID" -> ctx.getColor(R.color.v3_detail_chip_ambient)
-                        label == "AI" && illust.illust_ai_type == 2 -> ctx.getColor(R.color.v3_purple)
-                        label == "AI" -> ctx.getColor(R.color.v3_green)
-                        label == "Restriction" && illust.x_restrict > 0 -> ctx.getColor(R.color.v3_pink)
-                        label == "Restriction" -> ctx.getColor(R.color.v3_blue)
+                        label == artworkIdLabel || label == userIdLabel -> palette.textAccent
+                        label == aiLabel && illust.illust_ai_type == 2 -> ctx.getColor(R.color.v3_purple)
+                        label == aiLabel -> ctx.getColor(R.color.v3_green)
+                        label == restrictionLabel && illust.x_restrict > 0 -> ctx.getColor(R.color.v3_pink)
+                        label == restrictionLabel -> ctx.getColor(R.color.v3_blue)
                         else -> ctx.getColor(R.color.v3_text_2)
                     })
-                    if (label == "Artwork ID" || label == "User ID") typeface = Typeface.MONOSPACE
+                    if (label == artworkIdLabel || label == userIdLabel) typeface = Typeface.MONOSPACE
                 })
                 setOnClickListener { Common.copy(ctx, value) }
             }
@@ -462,7 +491,8 @@ class ArtworkDetailAdapter(
         RecyclerView.ViewHolder(b.root) {
         private var adapter: AuthorWorksAdapter? = null
         fun bind(item: ArtworkDetailItem.AuthorWorks) {
-            b.authorWorksLabel.text = "${item.authorName}'s Works".uppercase()
+            b.authorWorksLabel.text = ctx.getString(R.string.v3_author_works, item.authorName).uppercase()
+            b.authorWorksSeeAll.setTextColor(palette.textAccent)
             if (adapter == null) {
                 adapter = AuthorWorksAdapter { illust -> Common.copy(ctx, illust.id.toString()) }
                 b.authorWorksRv.layoutManager = LinearLayoutManager(ctx, LinearLayoutManager.HORIZONTAL, false)
@@ -475,6 +505,7 @@ class ArtworkDetailAdapter(
     inner class RelatedHeaderVH(private val b: SectionV3RelatedHeaderBinding) :
         RecyclerView.ViewHolder(b.root) {
         fun bind(item: ArtworkDetailItem.RelatedHeader) {
+            b.relatedSeeMore.setTextColor(palette.textAccent)
             b.relatedSeeMore.setOnClick {
                 val intent = Intent(ctx, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品")

@@ -50,7 +50,16 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         val illustId = safeArgs.illustId.toLong()
 
         headerAdapter = ArtworkDetailAdapter(this)
-        relatedAdapter = IAdapter(relatedList, mContext)
+
+        // Apply themed scroll progress gradient
+        val p = headerAdapter.palette
+        baseBind.scrollProgressBar.background = android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(p.scrollProgressStart, p.scrollProgressMid, p.scrollProgressEnd)
+        )
+        relatedAdapter = IAdapter(relatedList, mContext).apply {
+            setUuid("artwork_v3_related_$illustId")
+        }
         loadingFooter = LoadingFooterAdapter()
 
         val concatAdapter = ConcatAdapter(
@@ -75,6 +84,8 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         }
 
         viewModel.relatedIllusts.observe(viewLifecycleOwner) { illusts ->
+            // Sync nextUrl so IAdapter's click handler can build PageData for VActivity
+            relatedAdapter.setNextUrl(viewModel.relatedNextUrl)
             // Post to avoid notifying adapter during RecyclerView layout/scroll
             baseBind.recyclerView.post {
                 val oldSize = relatedList.size
