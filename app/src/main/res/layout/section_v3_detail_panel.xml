@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="12dp"
     android:layout_marginBottom="6dp"
-    android:background="@drawable/v3_detail_panel_bg">
+    android:background="@drawable/v3_glass_surface_xl">
 
     <View
         android:id="@+id/detail_accent"

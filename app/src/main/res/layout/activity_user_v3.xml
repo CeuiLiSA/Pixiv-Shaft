@@ -368,7 +368,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    android:background="@drawable/bg_v3_card"
+                    android:background="@drawable/v3_glass_surface_xl"
                     android:orientation="vertical"
                     android:padding="18dp"
                     android:visibility="gone">
@@ -414,7 +414,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_v3_card"
+                    android:background="@drawable/v3_glass_surface_xl"
                     android:orientation="vertical"
                     android:padding="18dp"
                     android:visibility="gone">
