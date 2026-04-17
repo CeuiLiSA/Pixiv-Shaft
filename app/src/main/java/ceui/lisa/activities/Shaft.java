@@ -91,6 +91,23 @@ public class Shaft extends Application implements ServicesProvider {
     public void onCreate() {
         super.onCreate();
 
+        // Suppress GMS "Unknown calling package name" SecurityException.
+        // This crash occurs when GMS can't verify the sideloaded app's package
+        // and is thrown asynchronously on the main thread — a try-catch won't help.
+        final Thread.UncaughtExceptionHandler originalHandler =
+                Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            if (throwable instanceof SecurityException
+                    && throwable.getMessage() != null
+                    && throwable.getMessage().contains("Unknown calling package name")) {
+                Timber.w(throwable, "Suppressed GMS SecurityException");
+                return;
+            }
+            if (originalHandler != null) {
+                originalHandler.uncaughtException(thread, throwable);
+            }
+        });
+
         //初始化context
         sContext = this;
         sGson = new Gson();
@@ -164,9 +181,13 @@ public class Shaft extends Application implements ServicesProvider {
         int bottomOffset = ceui.lisa.page.ScreenUtils.getNavigationBarHeight() + (int) (48 * getResources().getDisplayMetrics().density);
         ToastUtils.setGravity(Gravity.BOTTOM, 0, bottomOffset);
 
-        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
-                sSettings.isFirebaseEnable()
-        );
+        try {
+            FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
+                    sSettings.isFirebaseEnable()
+            );
+        } catch (Exception e) {
+            Timber.w(e, "Failed to initialize Firebase Analytics");
+        }
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
