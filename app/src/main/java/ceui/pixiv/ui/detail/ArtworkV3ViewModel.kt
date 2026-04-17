@@ -18,7 +18,7 @@ import ceui.pixiv.db.RecordType
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -147,8 +147,6 @@ class ArtworkV3ViewModel(
                 _isLoadingRelated.value = true
                 val relatedD = async(Dispatchers.IO) {
                     runCatching {
-                        delay(2000) // TODO: remove after testing loading indicator
-                        // Parse as ListIllust to get List<IllustsBean> directly
                         val body = Client.appApi.generalGet(
                             "https://app-api.pixiv.net/v2/illust/related?illust_id=$illustId"
                         )
@@ -203,7 +201,6 @@ class ArtworkV3ViewModel(
         viewModelScope.launch(Dispatchers.Main) {
             try {
                 val resp = withContext(Dispatchers.IO) {
-                    delay(2000) // TODO: remove after testing loading indicator
                     val body = Client.appApi.generalGet(url)
                     gson.fromJson(body.string(), ListIllust::class.java)
                 }

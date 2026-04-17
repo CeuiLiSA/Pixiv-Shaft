@@ -3,6 +3,7 @@ package ceui.pixiv.ui.detail
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
+import android.widget.PopupMenu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
@@ -12,11 +13,15 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.adapters.IAdapter
 import ceui.lisa.databinding.FragmentArtworkV3Binding
+import ceui.lisa.dialogs.MuteDialog
+import ceui.lisa.download.IllustDownload
 import ceui.lisa.fragments.BaseFragment
 import ceui.lisa.fragments.FragmentIllustArgs
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
 import ceui.loxia.ObjectPool
@@ -76,24 +81,28 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         baseBind.recyclerView.adapter = concatAdapter
         baseBind.recyclerView.addItemDecoration(RelatedOnlySpaceDecoration(4.ppppx))
 
-        // IllustAdapter items must be fullSpan in the 2-column grid
-        baseBind.recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
-            override fun onChildViewAttachedToWindow(view: View) {
-                val lp = view.layoutParams
-                if (lp is StaggeredGridLayoutManager.LayoutParams) {
-                    val pos = baseBind.recyclerView.getChildAdapterPosition(view)
-                    val illustCount = illustAdapter?.itemCount ?: 0
-                    if (pos < illustCount) {
-                        lp.isFullSpan = true
+        // Single scroll listener for both progress bar and infinite scroll
+        baseBind.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                // Scroll progress
+                val offset = recyclerView.computeVerticalScrollOffset()
+                val range = recyclerView.computeVerticalScrollRange() -
+                        recyclerView.computeVerticalScrollExtent()
+                baseBind.scrollProgressBar.scaleX = if (range > 0) offset.toFloat() / range else 0f
+
+                // Infinite scroll
+                if (dy > 0) {
+                    val lm = recyclerView.layoutManager as StaggeredGridLayoutManager
+                    val lastPositions = lm.findLastVisibleItemPositions(null)
+                    val lastVisible = lastPositions.maxOrNull() ?: return
+                    if (lastVisible >= lm.itemCount - 4 && viewModel.hasMoreRelated) {
+                        viewModel.loadMoreRelated()
                     }
                 }
             }
-            override fun onChildViewDetachedFromWindow(view: View) {}
         })
 
         setupNavBar(illustId)
-        setupScrollProgress()
-        setupInfiniteScroll()
         handleSystemInsets()
 
         // When illust data arrives, insert IllustAdapter at the front for all pages
@@ -102,9 +111,17 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                 // Use 70% of screen height as max — not full screen, so single-page
                 // images don't stretch to fill the entire viewport
                 val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
-                illustAdapter = ceui.lisa.adapters.IllustAdapter(
+                illustAdapter = object : ceui.lisa.adapters.IllustAdapter(
                     mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
-                )
+                ) {
+                    override fun onViewAttachedToWindow(holder: ceui.lisa.adapters.ViewHolder<ceui.lisa.databinding.RecyIllustDetailBinding>) {
+                        super.onViewAttachedToWindow(holder)
+                        val lp = holder.itemView.layoutParams
+                        if (lp is StaggeredGridLayoutManager.LayoutParams) {
+                            lp.isFullSpan = true
+                        }
+                    }
+                }
                 concatAdapter.addAdapter(0, illustAdapter!!)
             }
         }
@@ -135,26 +152,13 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         }
 
         viewModel.isBookmarked.observe(viewLifecycleOwner) { bookmarked ->
-            baseBind.navBookmark.setImageResource(
-                if (bookmarked) R.drawable.ic_favorite_red_24dp
-                else R.drawable.ic_favorite_grey_24dp
+            baseBind.navBookmark.imageTintList = android.content.res.ColorStateList.valueOf(
+                if (bookmarked) mContext.getColor(R.color.has_bookmarked)
+                else android.graphics.Color.WHITE
             )
         }
     }
 
-    private fun setupInfiniteScroll() {
-        baseBind.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy <= 0) return
-                val lm = recyclerView.layoutManager as StaggeredGridLayoutManager
-                val lastPositions = lm.findLastVisibleItemPositions(null)
-                val lastVisible = lastPositions.maxOrNull() ?: return
-                if (lastVisible >= lm.itemCount - 4 && viewModel.hasMoreRelated) {
-                    viewModel.loadMoreRelated()
-                }
-            }
-        })
-    }
 
     private fun handleSystemInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(baseBind.navBar) { v, windowInsets ->
@@ -166,28 +170,60 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
 
     private fun setupNavBar(illustId: Long) {
         baseBind.navBack.setOnClick { mActivity.finish() }
-        baseBind.navMore.setOnClick {
+
+        // Download button
+        baseBind.navDownload.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
-            object : ShareIllust(mContext, illust) {
-                override fun onPrepare() {}
-            }.execute()
+            val baseAct = mActivity as? ceui.lisa.activities.BaseActivity<*>
+            if (illust.page_count == 1) {
+                IllustDownload.downloadIllustFirstPage(illust, baseAct)
+            } else {
+                IllustDownload.downloadIllustAllPages(illust, baseAct)
+            }
+            if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
+                PixivOperate.postLikeDefaultStarType(illust)
+            }
         }
+
+        // Bookmark button
         baseBind.navBookmark.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
             PixivOperate.postLikeDefaultStarType(illust)
         }
+
+        // More menu
+        baseBind.navMore.setOnClick {
+            val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
+            val popup = PopupMenu(mContext, baseBind.navMore)
+            popup.menuInflater.inflate(R.menu.share, popup.menu)
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.action_share -> {
+                        object : ShareIllust(mContext, illust) {
+                            override fun onPrepare() {}
+                        }.execute()
+                        true
+                    }
+                    R.id.action_copy_link -> {
+                        Common.copy(mContext, ShareIllust.URL_Head + illust.id)
+                        true
+                    }
+                    R.id.action_dislike -> {
+                        MuteDialog.newInstance(illust)
+                            .show(childFragmentManager, "MuteDialog")
+                        true
+                    }
+                    R.id.action_mute_illust -> {
+                        PixivOperate.muteIllust(illust)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
     }
 
-    private fun setupScrollProgress() {
-        baseBind.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                val offset = recyclerView.computeVerticalScrollOffset()
-                val range = recyclerView.computeVerticalScrollRange() -
-                        recyclerView.computeVerticalScrollExtent()
-                baseBind.scrollProgressBar.scaleX = if (range > 0) offset.toFloat() / range else 0f
-            }
-        })
-    }
 
     override fun vertical() {}
 

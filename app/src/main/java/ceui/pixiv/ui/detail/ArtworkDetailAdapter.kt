@@ -220,6 +220,7 @@ class ArtworkDetailAdapter(
     }
 
     private val ctx: Context get() = fragment.requireContext()
+    private val glide get() = Glide.with(fragment)
 
     // =================== ViewHolders ===================
 
@@ -307,8 +308,7 @@ class ArtworkDetailAdapter(
             val user = illust.user ?: return
             b.artistName.text = user.name
             b.artistHandle.text = "@${user.account ?: ""}"
-            Glide.with(ctx)
-                .load(GlideUtil.getUrl(user.profile_image_urls?.medium))
+            glide.load(GlideUtil.getUrl(user.profile_image_urls?.medium))
                 .error(R.drawable.no_profile)
                 .into(b.artistAvatar)
 
@@ -476,7 +476,7 @@ class ArtworkDetailAdapter(
                         LinearLayout.LayoutParams(36.ppppx, 36.ppppx).apply { marginEnd = 12.ppppx }
                 }
                 comment.user.profile_image_urls?.medium?.let {
-                    Glide.with(ctx).load(GlideUrlChild(it)).circleCrop().into(avatar)
+                    glide.load(GlideUrlChild(it)).circleCrop().into(avatar)
                 }
                 row.addView(avatar)
                 val content = LinearLayout(ctx).apply {
@@ -516,7 +516,7 @@ class ArtworkDetailAdapter(
                             .setAllCornerSizes(8.ppppx.toFloat())
                             .build()
                     }
-                    Glide.with(ctx).load(GlideUrlChild(comment.stamp!!.stamp_url!!)).into(sv)
+                    glide.load(GlideUrlChild(comment.stamp!!.stamp_url!!)).into(sv)
                     content.addView(sv)
                 }
                 row.addView(content)
