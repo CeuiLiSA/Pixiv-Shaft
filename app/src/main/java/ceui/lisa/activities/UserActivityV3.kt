@@ -207,44 +207,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             baseBind.bio.text = user.comment
         }
 
-        // Stats row
-        baseBind.statsRow.visibility = View.VISIBLE
+        // Stats row (following + mypixiv)
         val fmt = NumberFormat.getInstance()
-        baseBind.statIllustsNum.text = fmt.format(profile.total_illusts)
-        if (profile.total_manga > 0) {
-            baseBind.statManga.visibility = View.VISIBLE
-            baseBind.statMangaNum.text = fmt.format(profile.total_manga)
-        }
-        if (profile.total_novels > 0) {
-            baseBind.statNovels.visibility = View.VISIBLE
-            baseBind.statNovelsNum.text = fmt.format(profile.total_novels)
-        }
         baseBind.statFollowingNum.text = fmt.format(profile.total_follow_users)
         baseBind.statMypixivNum.text = fmt.format(profile.total_mypixiv_users)
 
-        // Stat click listeners
-        baseBind.statIllusts.setOnClickListener {
-            val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(Params.USER_ID, user.id)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
-            startActivity(intent)
-        }
-        if (profile.total_manga > 0) {
-            baseBind.statManga.setOnClickListener {
-                val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(Params.USER_ID, user.id)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画作品")
-                startActivity(intent)
-            }
-        }
-        if (profile.total_novels > 0) {
-            baseBind.statNovels.setOnClickListener {
-                val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(Params.USER_ID, user.id)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说作品")
-                startActivity(intent)
-            }
-        }
         baseBind.statFollowing.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id)

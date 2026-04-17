@@ -22,15 +22,15 @@
                 android:id="@+id/toolbar_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:contentScrim="#08080C"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
                 app:statusBarScrim="@android:color/transparent"
-                app:contentScrim="#08080C"
                 app:titleEnabled="false">
 
                 <!-- Banner image -->
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="280dp"
+                    android:layout_height="300dp"
                     app:layout_collapseMode="parallax"
                     app:layout_collapseParallaxMultiplier="0.7">
 
@@ -49,7 +49,8 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_gravity="bottom"
                         android:background="@drawable/bg_v3_banner_gradient" />
                 </FrameLayout>
 
@@ -170,6 +171,7 @@
                     <!-- Name -->
                     <TextView
                         android:id="@+id/user_name"
+                        style="@style/textMontserratSemiBold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
@@ -181,6 +183,7 @@
                     <!-- Handle + ID -->
                     <TextView
                         android:id="@+id/user_handle"
+                        style="@style/textMontserratMedium"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
@@ -254,7 +257,7 @@
                     android:id="@+id/bio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
+                    android:layout_marginBottom="16dp"
                     android:autoLink="all"
                     android:lineSpacingMultiplier="1.6"
                     android:textColor="@color/colorWhite60"
@@ -263,97 +266,14 @@
                     android:textSize="14sp"
                     android:visibility="gone" />
 
-                <!-- Stats Row -->
+                <!-- Stats Row (following + mypixiv only) -->
                 <LinearLayout
                     android:id="@+id/stats_row"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     android:background="@drawable/bg_v3_surface"
                     android:orientation="horizontal"
-                    android:paddingVertical="16dp"
-                    android:visibility="gone">
-
-                    <LinearLayout
-                        android:id="@+id/stat_illusts"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/stat_illusts_num"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="#C084FC"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            tools:text="342" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="ILLUSTS"
-                            android:textAllCaps="true"
-                            android:textColor="@color/colorWhite30"
-                            android:textSize="9sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/stat_manga"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:id="@+id/stat_manga_num"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="#F472B6"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="MANGA"
-                            android:textAllCaps="true"
-                            android:textColor="@color/colorWhite30"
-                            android:textSize="9sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/stat_novels"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:id="@+id/stat_novels_num"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="#818CF8"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="NOVELS"
-                            android:textAllCaps="true"
-                            android:textColor="@color/colorWhite30"
-                            android:textSize="9sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                    android:paddingVertical="16dp">
 
                     <LinearLayout
                         android:id="@+id/stat_following"
@@ -365,6 +285,7 @@
 
                         <TextView
                             android:id="@+id/stat_following_num"
+                            style="@style/textMontserratBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#A5B4FC"
@@ -392,6 +313,7 @@
 
                         <TextView
                             android:id="@+id/stat_mypixiv_num"
+                            style="@style/textMontserratBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#2DD4A8"
@@ -426,12 +348,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
+                    android:letterSpacing="0.12"
                     android:text="NAVIGATE"
                     android:textAllCaps="true"
                     android:textColor="@color/colorWhite30"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:letterSpacing="0.12"
                     android:visibility="gone" />
 
                 <com.zhy.view.flowlayout.TagFlowLayout
@@ -548,10 +470,10 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="@string/block_this_users_work"
                         android:textColor="@color/colorWhite60"
-                        android:textSize="13sp"
-                        android:layout_weight="1" />
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/mute_switch"
