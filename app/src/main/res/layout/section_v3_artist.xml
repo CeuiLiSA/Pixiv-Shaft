@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="18dp"
+        android:paddingHorizontal="12dp"
         android:paddingTop="18dp"
         android:paddingBottom="18dp">
 
@@ -22,7 +22,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="bottom"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <FrameLayout
@@ -61,8 +61,7 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_marginBottom="4dp"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -92,7 +91,6 @@
                 android:id="@+id/follow_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"
-                android:layout_marginBottom="4dp"
                 android:background="@drawable/v3_follow_btn_primary"
                 android:paddingHorizontal="20dp"
                 android:text="@string/follow"

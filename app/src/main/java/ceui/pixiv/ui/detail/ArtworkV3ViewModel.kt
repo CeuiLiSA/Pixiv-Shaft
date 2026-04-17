@@ -98,23 +98,31 @@ class ArtworkV3ViewModel(
 
         list.add(ArtworkDetailItem.Hero(illust))
 
-        if (illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
-            list.add(ArtworkDetailItem.Series(illust))
-        }
         if (!TextUtils.isEmpty(illust.caption)) {
             list.add(ArtworkDetailItem.Desc(illust.caption))
         }
 
-        list.add(ArtworkDetailItem.Stats(illust))
-        list.add(ArtworkDetailItem.Tags(illust))
+
+        if (illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
+            list.add(ArtworkDetailItem.Series(illust))
+        }
+
         list.add(ArtworkDetailItem.Artist(illust, fullUser))
+        list.add(ArtworkDetailItem.Tags(illust))
+        list.add(ArtworkDetailItem.Stats(illust))
         list.add(ArtworkDetailItem.DetailPanel(illust))
 
         comments?.let {
             list.add(ArtworkDetailItem.Comments(it, illust.id, illust.title ?: ""))
         }
         authorWorks?.takeIf { it.isNotEmpty() }?.let {
-            list.add(ArtworkDetailItem.AuthorWorks(it, illust.user?.name ?: "", illust.user?.id ?: 0))
+            list.add(
+                ArtworkDetailItem.AuthorWorks(
+                    it,
+                    illust.user?.name ?: "",
+                    illust.user?.id ?: 0
+                )
+            )
         }
         if (relatedList.isNotEmpty()) {
             list.add(ArtworkDetailItem.RelatedHeader(illust.id, illust.title ?: ""))

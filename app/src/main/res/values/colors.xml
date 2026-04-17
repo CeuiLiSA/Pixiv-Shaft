@@ -211,6 +211,7 @@
     <color name="v3_surface_3">#14000000</color>
     <color name="v3_border_1">#0A000000</color>
     <color name="v3_border_2">#0F000000</color>
+    <color name="v3_menu_bg">#F5F5F5</color>
     <color name="v3_text_1">#1A1A2E</color>
     <color name="v3_text_2">#991A1A2E</color>
     <color name="v3_text_3">#551A1A2E</color>

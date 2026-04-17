@@ -3,7 +3,6 @@ package ceui.pixiv.ui.detail
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
-import android.widget.PopupMenu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
@@ -194,36 +193,79 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         // More menu
         baseBind.navMore.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
-            val popup = PopupMenu(mContext, baseBind.navMore)
-            popup.menuInflater.inflate(R.menu.share, popup.menu)
-            popup.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.action_share -> {
-                        object : ShareIllust(mContext, illust) {
-                            override fun onPrepare() {}
-                        }.execute()
-                        true
-                    }
-                    R.id.action_copy_link -> {
-                        Common.copy(mContext, ShareIllust.URL_Head + illust.id)
-                        true
-                    }
-                    R.id.action_dislike -> {
-                        MuteDialog.newInstance(illust)
-                            .show(childFragmentManager, "MuteDialog")
-                        true
-                    }
-                    R.id.action_mute_illust -> {
-                        PixivOperate.muteIllust(illust)
-                        true
-                    }
-                    else -> false
+            V3MenuDialog().apply {
+                addItem(getString(R.string.share), R.drawable.ic_share_black_24dp) {
+                    object : ShareIllust(mContext, illust) {
+                        override fun onPrepare() {}
+                    }.execute()
                 }
-            }
-            popup.show()
+                addItem(getString(R.string.string_454), R.drawable.ic_share_black_24dp) {
+                    shareImage(illust)
+                }
+                addItem(getString(R.string.string_355_2), R.drawable.ic_baseline_launch_24) {
+                    Common.copy(mContext, ShareIllust.URL_Head + illust.id)
+                }
+                addItem(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
+                    MuteDialog.newInstance(illust)
+                        .show(this@ArtworkV3Fragment.childFragmentManager, "MuteDialog")
+                }
+                addItem(getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
+                    PixivOperate.muteIllust(illust)
+                }
+                addItem(getString(R.string.flag_post), R.drawable.ic_baseline_remove_red_eye_24) {
+                    val intent = android.content.Intent(mContext, ceui.lisa.activities.TemplateActivity::class.java)
+                    intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "举报插画")
+                    intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
+                    intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectTypeKey, ceui.lisa.models.ObjectSpec.POST)
+                    startActivity(intent)
+                }
+                addItem(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
+                    ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(
+                        this@ArtworkV3Fragment.childFragmentManager
+                    ) { model ->
+                        // AI upscale requires IllustAiHelper — delegate to activity if possible
+                    }
+                }
+            }.show(childFragmentManager, "V3Menu")
         }
     }
 
+
+    private fun shareImage(illust: IllustsBean) {
+        com.bumptech.glide.Glide.with(mContext)
+            .asBitmap()
+            .load(ceui.lisa.utils.GlideUrlChild(
+                ceui.lisa.download.IllustDownload.getUrl(illust, 0, ceui.lisa.utils.Params.IMAGE_RESOLUTION_LARGE)
+            ))
+            .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.Bitmap?> {
+                override fun onLoadFailed(
+                    e: com.bumptech.glide.load.engine.GlideException?,
+                    model: Any?,
+                    target: com.bumptech.glide.request.target.Target<android.graphics.Bitmap?>,
+                    isFirstResource: Boolean
+                ) = false
+
+                override fun onResourceReady(
+                    resource: android.graphics.Bitmap,
+                    model: Any,
+                    target: com.bumptech.glide.request.target.Target<android.graphics.Bitmap?>?,
+                    dataSource: com.bumptech.glide.load.DataSource,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    val uri = Common.copyBitmapToImageCacheFolder(resource, illust.id.toString() + ".png")
+                    if (uri != null) {
+                        val shareIntent = android.content.Intent().apply {
+                            action = android.content.Intent.ACTION_SEND
+                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            setDataAndType(uri, mContext.contentResolver.getType(uri))
+                            putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                        }
+                        startActivity(android.content.Intent.createChooser(shareIntent, getString(R.string.share)))
+                    }
+                    return true
+                }
+            }).submit()
+    }
 
     override fun vertical() {}
 

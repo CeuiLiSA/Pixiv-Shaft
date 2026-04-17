@@ -94,6 +94,7 @@
     <color name="v3_surface_3">#14FFFFFF</color>
     <color name="v3_border_1">#0AFFFFFF</color>
     <color name="v3_border_2">#0FFFFFFF</color>
+    <color name="v3_menu_bg">#1A1A2E</color>
     <color name="v3_text_1">#F4F4F8</color>
     <color name="v3_text_2">#9EF4F4F8</color>
     <color name="v3_text_3">#5CF4F4F8</color>
