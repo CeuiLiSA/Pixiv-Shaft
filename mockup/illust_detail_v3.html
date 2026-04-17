@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pixiv-Shaft — Illust Detail V3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+/*
+ * PIXIV-SHAFT 2026 — ILLUST DETAIL V3
+ *
+ * V3 upgrades over V2:
+ *  - Floating glass action capsule (merged buttons)
+ *  - Hero with cinematic title overlay + page dots
+ *  - Artist card with blurred banner + avatar overlap
+ *  - Animated shimmer on stats row
+ *  - Tags with inline translation
+ *  - Scroll progress indicator
+ *  - Staggered related grid
+ *  - Spring-based micro-animations
+ */
+
+:root {
+  --ambient-h: 245;
+  --ambient-s: 60%;
+  --ambient-primary: hsl(var(--ambient-h), var(--ambient-s), 55%);
+  --ambient-glow: hsl(var(--ambient-h), var(--ambient-s), 40%);
+  --ambient-muted: hsl(var(--ambient-h), 30%, 18%);
+  --ambient-surface: hsl(var(--ambient-h), 20%, 10%);
+
+  --bg: #08080c;
+  --surface-1: rgba(255,255,255,0.03);
+  --surface-2: rgba(255,255,255,0.055);
+  --surface-3: rgba(255,255,255,0.08);
+  --glass: rgba(12,12,18,0.72);
+  --glass-heavy: rgba(8,8,12,0.88);
+
+  --text-1: #f4f4f8;
+  --text-2: rgba(244,244,248,0.62);
+  --text-3: rgba(244,244,248,0.36);
+
+  --pink: #ff2d78;
+  --gold: #ffc233;
+  --blue: #3d8bfd;
+  --green: #2dd4a8;
+  --purple: #9f7aea;
+  --orange: #ff6f3c;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { font-size:16px; scroll-behavior:smooth; }
+body {
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === PHONE SHELL === */
+.shell {
+  max-width: 414px;
+  margin: 0 auto;
+  position: relative;
+  min-height: 100dvh;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+@media(min-width:500px){
+  body{background:#030306;padding:24px 0}
+  .shell{
+    border-radius:44px;
+    border:1.5px solid rgba(255,255,255,0.06);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.02) inset,
+      0 40px 120px -20px rgba(0,0,0,0.8),
+      0 0 60px -10px hsla(var(--ambient-h),60%,40%,0.12);
+    min-height:896px;
+    max-height:96vh;
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  .shell::-webkit-scrollbar{display:none}
+}
+
+/* === SCROLL PROGRESS === */
+.scroll-progress {
+  position:fixed; top:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:414px;
+  height:2px; z-index:200;
+  background:transparent;
+  pointer-events:none;
+}
+.scroll-progress-bar {
+  height:100%; width:0%;
+  background: linear-gradient(90deg, var(--ambient-primary), var(--pink), var(--gold));
+  border-radius:0 2px 2px 0;
+  transition: width 0.1s linear;
+}
+
+/* === IMMERSIVE HERO === */
+.hero {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Ambient glow — softer, multi-layered */
+.hero::before {
+  content:'';
+  position:absolute;
+  inset: -40%;
+  background:
+    radial-gradient(ellipse at 30% 70%, hsla(var(--ambient-h), 80%, 35%, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 40%, hsla(calc(var(--ambient-h)+40), 60%, 30%, 0.2) 0%, transparent 50%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-img-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-height: 560px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-in;
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.8s var(--ease-out-expo);
+}
+.hero-img-container:active .hero-img { transform: scale(1.03); }
+
+/* Placeholder */
+.hero-placeholder {
+  width: 100%;
+  height: 540px;
+  background:
+    linear-gradient(145deg,
+      hsl(250,45%,12%) 0%,
+      hsl(280,40%,16%) 25%,
+      hsl(260,50%,14%) 50%,
+      hsl(230,45%,18%) 75%,
+      hsl(250,40%,10%) 100%
+    );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.hero-placeholder::after {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsla(260,80%,60%,0.12), transparent 70%);
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-20px) scale(1.1)}
+}
+.hero-placeholder-text {
+  position: relative; z-index:1;
+  text-align:center;
+  color:rgba(255,255,255,0.07);
+  font-size:56px; font-weight:900;
+  letter-spacing:-3px; line-height:1;
+}
+.hero-placeholder-sub {
+  font-size:12px; font-weight:400; letter-spacing:4px; text-transform:uppercase;
+  margin-top:12px; color:rgba(255,255,255,0.05);
+}
+
+/* Hero badges */
+.hero-badge {
+  position:absolute; z-index:5;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.hero-badge.ai-tag {
+  top:14px; left:14px;
+  background: linear-gradient(135deg, rgba(159,122,234,0.6), rgba(61,139,253,0.6));
+  color:#fff;
+  letter-spacing:0.08em;
+}
+.hero-badge.pages {
+  top:14px; right:14px;
+  background:rgba(0,0,0,0.5);
+  color:#fff;
+}
+.hero-badge.dimensions {
+  bottom:56px; right:14px;
+  background:rgba(0,0,0,0.4);
+  color:rgba(255,255,255,0.7);
+  font-family: 'SF Mono','JetBrains Mono', monospace;
+  font-size:10px; font-weight:500;
+}
+
+/* Page dots (for multi-page) */
+.hero-page-dots {
+  position:absolute;
+  bottom:50px; left:50%;
+  transform:translateX(-50%);
+  z-index:5;
+  display:flex; gap:6px;
+  align-items:center;
+}
+.hero-dot {
+  width:6px; height:6px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.3);
+  transition:all 0.3s;
+}
+.hero-dot.active {
+  width:20px;
+  border-radius:3px;
+  background:#fff;
+}
+
+/* Cinematic gradient — extended */
+.hero-gradient {
+  position:absolute; bottom:0; left:0; right:0; z-index:2;
+  height:200px;
+  background: linear-gradient(
+    to top,
+    var(--bg) 0%,
+    rgba(8,8,12,0.92) 20%,
+    rgba(8,8,12,0.6) 50%,
+    transparent 100%
+  );
+  pointer-events:none;
+}
+
+/* Title overlay inside hero gradient */
+.hero-title-overlay {
+  position:absolute;
+  bottom:0; left:0; right:0; z-index:3;
+  padding: 0 20px 52px;
+}
+.hero-title {
+  font-size:26px;
+  font-weight:800;
+  letter-spacing:-0.03em;
+  line-height:1.2;
+  color:#fff;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+}
+.hero-meta-row {
+  margin-top:8px;
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.hero-meta-pill {
+  font-size:11px; font-weight:500;
+  color:rgba(255,255,255,0.55);
+}
+.hero-meta-sep {
+  width:3px; height:3px; border-radius:50%;
+  background:rgba(255,255,255,0.25);
+}
+.hero-badge-original {
+  font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--green);
+  background:rgba(45,212,168,0.15);
+  border:1px solid rgba(45,212,168,0.25);
+  padding:2px 8px;
+  border-radius:var(--r-pill);
+}
+
+/* === NAV BAR === */
+.nav-bar {
+  position:absolute; top:0; left:0; right:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 16px;
+}
+
+.nav-btn {
+  width:38px; height:38px;
+  border-radius:50%;
+  border:none;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color:#fff;
+  font-size:18px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition: all 0.25s;
+}
+.nav-btn:active { transform:scale(0.88); background:rgba(0,0,0,0.5); }
+.nav-right { display:flex; gap:8px; }
+
+
+/* === CONTENT === */
+.content {
+  padding: 10px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  display:flex; flex-direction:column;
+  gap: 22px;
+}
+
+/* --- Series Strip (between hero and stats) --- */
+.series-inline {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 16px;
+  border-radius:var(--r-lg);
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform 0.2s;
+}
+.series-inline:active { transform:scale(0.97); }
+
+/* Glass bg with ambient tint */
+.series-inline-bg {
+  position:absolute; inset:0; z-index:0;
+  background:
+    linear-gradient(135deg,
+      hsla(var(--ambient-h), 40%, 18%, 0.7),
+      hsla(calc(var(--ambient-h)+30), 30%, 12%, 0.7)
+    );
+  border:1px solid hsla(var(--ambient-h), 40%, 50%, 0.12);
+  border-radius:var(--r-lg);
+}
+/* Shimmer accent */
+.series-inline-bg::before {
+  content:'';
+  position:absolute; top:0; left:10%; right:10%;
+  height:1px;
+  background: linear-gradient(90deg,
+    transparent,
+    hsla(var(--ambient-h),60%,65%,0.35),
+    hsla(calc(var(--ambient-h)+50),60%,65%,0.35),
+    transparent
+  );
+}
+
+.series-inline .si-icon {
+  position:relative; z-index:1;
+  width:32px; height:32px;
+  border-radius:var(--r-sm);
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px;
+  flex-shrink:0;
+}
+.series-inline .si-body {
+  position:relative; z-index:1;
+  flex:1; min-width:0;
+}
+.series-inline .si-label {
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:hsl(var(--ambient-h),60%,70%);
+  opacity:0.7;
+}
+.series-inline .si-name {
+  font-size:14px; font-weight:600;
+  color:var(--text-1);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  margin-top:1px;
+}
+.series-inline .si-arrow {
+  position:relative; z-index:1;
+  font-size:16px;
+  color:var(--text-3);
+  flex-shrink:0;
+}
+
+/* --- Description Block --- */
+.desc-block {
+  font-size:14px;
+  line-height:1.75;
+  color: var(--text-2);
+}
+.desc-block a { color: var(--blue); text-decoration:none; }
+
+/* --- Stats Row --- */
+.stats-row {
+  display:flex;
+  background: var(--surface-1);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius: var(--r-lg);
+  padding:16px 8px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Animated shimmer sweep */
+.stats-row::before {
+  content:'';
+  position:absolute;
+  top:0; left:-100%; bottom:0;
+  width:100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsla(var(--ambient-h),60%,55%,0.04) 40%,
+    hsla(var(--ambient-h),60%,55%,0.06) 50%,
+    hsla(var(--ambient-h),60%,55%,0.04) 60%,
+    transparent 100%
+  );
+  animation: shimmer 4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes shimmer {
+  0%{left:-100%} 50%{left:100%} 100%{left:100%}
+}
+
+.stat {
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  position:relative;
+}
+.stat + .stat::before {
+  content:'';
+  position:absolute; left:0; top:15%; bottom:15%;
+  width:1px;
+  background:rgba(255,255,255,0.06);
+}
+
+.stat-num {
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:-0.03em;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.stat-num.views  { background-image: linear-gradient(135deg, #c084fc, #e879a8); }
+.stat-num.likes  { background-image: linear-gradient(135deg, #f472b6, #c084fc); }
+.stat-num.bookmarks { background-image: linear-gradient(135deg, #818cf8, #a78bfa); }
+.stat-num.comments  { background-image: linear-gradient(135deg, #a5b4fc, #c4b5fd); }
+
+.stat-lbl {
+  font-size:9px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-3);
+}
+
+/* --- Tags Cloud --- */
+.tags-block {}
+.block-label {
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.12em; color:var(--text-3);
+  margin-bottom:10px;
+}
+
+.tags-wrap {
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+
+.tag {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:7px 14px;
+  border-radius:var(--r-pill);
+  font-size:13px; font-weight:500;
+  text-decoration:none;
+  transition: all 0.2s;
+  cursor:pointer;
+  position:relative;
+}
+.tag:active { transform:scale(0.94); }
+
+.tag.locked {
+  background: hsla(var(--ambient-h), 50%, 50%, 0.08);
+  border: 1px solid hsla(var(--ambient-h), 50%, 50%, 0.15);
+  color: hsl(var(--ambient-h), 70%, 72%);
+}
+.tag.locked::before {
+  content:'#';
+  font-weight:700;
+  opacity:0.5;
+}
+
+.tag.open {
+  background: var(--surface-2);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-2);
+}
+.tag.open::before {
+  content:'#';
+  font-weight:600;
+  opacity:0.3;
+}
+
+.tag-tl {
+  font-size:10px;
+  color: var(--text-3);
+  font-weight:400;
+  margin-left:2px;
+}
+
+/* --- Artist Card — Banner + Avatar Overlap --- */
+.artist-card {
+  position:relative;
+  border-radius: var(--r-xl);
+  overflow:hidden;
+  cursor:pointer;
+  transition: transform 0.3s;
+}
+.artist-card:active { transform:scale(0.97); }
+
+.artist-card-bg {
+  position:absolute; inset:0;
+  background:
+    linear-gradient(160deg,
+      hsla(var(--ambient-h), 30%, 14%, 0.95),
+      hsla(var(--ambient-h), 20%, 8%, 0.98)
+    );
+  z-index:0;
+}
+.artist-card-bg::after {
+  content:'';
+  position:absolute; inset:0;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--r-xl);
+  pointer-events:none;
+}
+
+/* Mini banner at top of card */
+.artist-banner {
+  position:relative; z-index:1;
+  height:72px;
+  background:
+    linear-gradient(135deg,
+      hsla(var(--ambient-h), 50%, 25%, 0.6),
+      hsla(calc(var(--ambient-h)+40), 40%, 20%, 0.6)
+    );
+  overflow:hidden;
+}
+.artist-banner::after {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 30% 50%, hsla(var(--ambient-h),70%,50%,0.15), transparent 60%),
+    radial-gradient(circle at 80% 30%, hsla(calc(var(--ambient-h)+60),60%,40%,0.1), transparent 50%);
+}
+
+/* Accent line at top */
+.artist-accent {
+  position:absolute; top:0; left:15%; right:15%; z-index:2;
+  height:1.5px;
+  background: linear-gradient(90deg,
+    transparent,
+    hsla(var(--ambient-h),70%,65%,0.5),
+    hsla(calc(var(--ambient-h)+40),70%,65%,0.5),
+    transparent
+  );
+}
+
+.artist-inner {
+  position:relative; z-index:2;
+  padding: 0 18px 18px;
+}
+
+.artist-avatar-row {
+  display:flex; align-items:flex-end; gap:14px;
+  margin-top:-30px;
+}
+
+.artist-avatar-wrap {
+  position:relative;
+  flex-shrink:0;
+}
+
+.artist-avatar {
+  width:58px; height:58px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid hsl(var(--ambient-h),20%,10%);
+  background: hsl(var(--ambient-h),20%,12%);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.premium-badge {
+  position:absolute; bottom:-2px; right:-2px;
+  width:20px; height:20px;
+  border-radius:50%;
+  background: linear-gradient(135deg, #ffc233, #ffaa00);
+  border:2.5px solid hsl(var(--ambient-h),20%,10%);
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:#1a1a2e;
+}
+
+.artist-info-col {
+  flex:1; min-width:0;
+  padding-bottom:4px;
+}
+.artist-name {
+  font-size:16px; font-weight:700;
+  letter-spacing:-0.01em;
+  line-height:1.2;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.artist-handle {
+  font-size:11px; color:var(--text-3); margin-top:2px;
+}
+
+.follow-btn {
+  flex-shrink:0;
+  padding:8px 20px;
+  border-radius:var(--r-pill);
+  border:none;
+  font-size:12px; font-weight:700;
+  cursor:pointer;
+  transition: all 0.3s var(--ease-spring);
+  letter-spacing:-0.01em;
+  margin-bottom:4px;
+}
+.follow-btn:active { transform:scale(0.9); }
+.follow-btn.primary {
+  background: var(--ambient-primary);
+  color:#fff;
+  box-shadow: 0 4px 20px hsla(var(--ambient-h),60%,40%,0.35);
+}
+.follow-btn.secondary {
+  background: hsla(var(--ambient-h),40%,50%,0.12);
+  color: hsl(var(--ambient-h),70%,72%);
+  border:1px solid hsla(var(--ambient-h),40%,50%,0.2);
+}
+
+.artist-bio {
+  margin-top:14px;
+  font-size:12.5px; line-height:1.65; color:var(--text-2);
+  display:-webkit-box;
+  -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.artist-socials {
+  margin-top:12px;
+  display:flex; gap:6px; flex-wrap:wrap;
+}
+
+.social-chip {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:5px 12px;
+  border-radius:var(--r-pill);
+  font-size:11px; font-weight:500;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  color:var(--text-2);
+  text-decoration:none;
+  transition: all 0.2s;
+}
+.social-chip:active { background:rgba(255,255,255,0.08); }
+.social-chip .ico { font-size:13px; }
+
+.artist-stat-row {
+  margin-top:10px;
+  display:flex; gap:16px;
+  font-size:12px; color:var(--text-3);
+}
+.artist-stat-row strong { color:var(--text-2); font-weight:600; }
+
+/* --- Detail Panel --- */
+.detail-panel {
+  border-radius:var(--r-xl);
+  position:relative;
+  overflow:hidden;
+}
+
+/* Glass background with ambient tint */
+.detail-panel-bg {
+  position:absolute; inset:0; z-index:0;
+  background:
+    linear-gradient(160deg,
+      hsla(var(--ambient-h), 25%, 13%, 0.9),
+      hsla(var(--ambient-h), 15%, 7%, 0.95)
+    );
+}
+.detail-panel-bg::after {
+  content:'';
+  position:absolute; inset:0;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--r-xl);
+  pointer-events:none;
+}
+
+/* Top accent line */
+.detail-accent {
+  position:absolute; top:0; left:20%; right:20%; z-index:1;
+  height:1px;
+  background: linear-gradient(90deg,
+    transparent,
+    hsla(var(--ambient-h),50%,60%,0.3),
+    hsla(calc(var(--ambient-h)+60),50%,60%,0.3),
+    transparent
+  );
+}
+
+.detail-panel-inner {
+  position:relative; z-index:2;
+  padding:18px;
+}
+
+.detail-panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px;
+  cursor:pointer;
+}
+.detail-panel-header .d-label {
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.12em; color:var(--text-3);
+}
+.detail-panel-header .d-arrow {
+  font-size:14px; color:var(--text-3);
+  transition:transform 0.35s var(--ease-out-expo);
+}
+
+/* Chip grid */
+.detail-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.detail-chip {
+  padding:10px 12px;
+  border-radius:var(--r-md);
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;
+  transition:all 0.2s;
+  display:flex; flex-direction:column; gap:3px;
+  overflow:hidden;
+}
+.detail-chip:active {
+  background:rgba(255,255,255,0.06);
+  transform:scale(0.97);
+}
+
+/* Full-width chip for long values */
+.detail-chip.full {
+  grid-column:1/-1;
+}
+
+.detail-chip .dc-label {
+  font-size:9px; font-weight:600; text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--text-3);
+  opacity:0.7;
+}
+
+.detail-chip .dc-value {
+  font-size:13px; font-weight:600;
+  color:var(--text-2);
+  font-feature-settings:'tnum';
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+.detail-chip .dc-value.mono {
+  font-family:'SF Mono','JetBrains Mono','Menlo',monospace;
+  font-size:12px;
+  color:hsl(var(--ambient-h),50%,70%);
+}
+
+/* Special badge-style chip */
+.detail-chip.badge-human .dc-value {
+  color:var(--green);
+}
+.detail-chip.badge-ai .dc-value {
+  color:var(--purple);
+}
+.detail-chip.badge-safe .dc-value {
+  color:var(--blue);
+}
+.detail-chip.badge-r18 .dc-value {
+  color:var(--pink);
+}
+
+/* Translate button */
+.translate-strip {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 16px;
+  background:var(--surface-1);
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:var(--r-lg);
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.translate-strip:active { background:var(--surface-2); }
+.translate-strip .ico { font-size:16px; }
+.translate-strip .txt { font-size:12px; font-weight:500; color:var(--text-2); }
+
+/* --- Conditional Sections --- */
+
+/* Series Nav */
+.series-strip {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 16px;
+  background:var(--surface-1);
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:var(--r-lg);
+}
+.series-badge {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--purple);
+  background:rgba(159,122,234,0.1);
+  padding:3px 10px; border-radius:var(--r-pill);
+  white-space:nowrap;
+}
+.series-name { flex:1; font-size:13px; font-weight:500; }
+.series-navs { display:flex; gap:4px; }
+.series-navs button {
+  width:30px; height:30px; border-radius:50%;
+  border:1px solid rgba(255,255,255,0.08);
+  background:none; color:var(--text-3);
+  font-size:14px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* Promo cards */
+.promo-row { display:flex; gap:10px; }
+.promo-chip {
+  flex:1;
+  display:flex; align-items:center; gap:10px;
+  padding:12px 14px;
+  background:var(--surface-1);
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:var(--r-lg);
+  cursor:pointer;
+  transition:all 0.2s;
+  text-decoration:none;
+}
+.promo-chip:active { background:var(--surface-2); transform:scale(0.97); }
+.promo-chip .p-ico {
+  width:36px; height:36px; border-radius:var(--r-sm);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; flex-shrink:0;
+}
+.promo-chip .p-ico.fanbox { background:rgba(61,139,253,0.12); color:var(--blue); }
+.promo-chip .p-ico.booth { background:rgba(255,45,120,0.1); color:var(--pink); }
+.promo-chip .p-ico.yt { background:rgba(255,59,59,0.1); color:#ff3b3b; }
+.promo-chip .p-txt { font-size:12px; font-weight:600; color:var(--text-2); }
+
+/* Request badge */
+.request-strip {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 16px;
+  background:rgba(45,212,168,0.06);
+  border:1px solid rgba(45,212,168,0.12);
+  border-radius:var(--r-lg);
+  font-size:12px; font-weight:600; color:var(--green);
+}
+
+/* Contest banner */
+.contest-strip {
+  display:flex; align-items:center; gap:12px;
+  padding:14px 16px;
+  border-radius:var(--r-lg);
+  background: linear-gradient(135deg, rgba(159,122,234,0.08), rgba(61,139,253,0.08));
+  border:1px solid rgba(159,122,234,0.12);
+  cursor:pointer;
+}
+.contest-strip .c-ico {
+  width:40px; height:40px; border-radius:var(--r-sm);
+  background:linear-gradient(135deg, var(--purple), var(--blue));
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0;
+}
+.contest-strip .c-info { flex:1; }
+.contest-strip .c-title { font-size:13px; font-weight:600; }
+.contest-strip .c-sub { font-size:11px; color:var(--text-3); margin-top:2px; }
+
+/* Poll widget */
+.poll-box {
+  background:var(--surface-1);
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:var(--r-lg);
+  padding:16px;
+}
+.poll-q { font-size:14px; font-weight:600; margin-bottom:12px; }
+.poll-opt {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--r-md);
+  margin-bottom:8px;
+  cursor:pointer;
+  position:relative; overflow:hidden;
+  transition:all 0.2s;
+}
+.poll-opt:active { border-color:var(--ambient-primary); }
+.poll-fill {
+  position:absolute; left:0; top:0; bottom:0;
+  background:hsla(var(--ambient-h),50%,50%,0.08);
+  border-radius:var(--r-md);
+  transition:width 0.6s ease;
+}
+.poll-opt-text { flex:1; font-size:13px; position:relative; z-index:1; }
+.poll-opt-pct { font-size:13px; font-weight:700; color:var(--ambient-primary); position:relative; z-index:1; }
+
+/* Image Response */
+.response-box {
+  background:var(--surface-1);
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:var(--r-lg);
+  padding:14px 16px;
+}
+.response-label {
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.1em; color:var(--purple); margin-bottom:10px;
+}
+.response-row { display:flex; gap:8px; }
+.response-thumb {
+  width:60px; height:60px;
+  border-radius:var(--r-sm);
+  object-fit:cover;
+  border:1px solid rgba(255,255,255,0.06);
+  background:var(--surface-2);
+}
+
+/* Unlisted banner */
+.unlisted-strip {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 16px;
+  background:rgba(255,194,51,0.06);
+  border:1px solid rgba(255,194,51,0.12);
+  border-radius:var(--r-lg);
+  font-size:12px; font-weight:500; color:var(--gold);
+}
+
+/* --- Comments --- */
+.comments-block {}
+
+.comments-top {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:14px;
+}
+.comments-cnt {
+  font-size:11px; color:var(--text-3);
+  background:var(--surface-2);
+  padding:3px 10px; border-radius:var(--r-pill);
+}
+
+.comment {
+  display:flex; gap:12px;
+  padding:14px 0;
+}
+.comment + .comment { border-top:1px solid rgba(255,255,255,0.04); }
+
+.comment-ava {
+  width:36px; height:36px; border-radius:50%;
+  object-fit:cover; flex-shrink:0;
+  background:var(--surface-2);
+}
+
+.comment-main { flex:1; min-width:0; }
+
+.comment-head {
+  display:flex; align-items:baseline; gap:8px; margin-bottom:4px;
+}
+.comment-name { font-size:13px; font-weight:600; }
+.comment-time { font-size:11px; color:var(--text-3); }
+
+.comment-txt {
+  font-size:13px; line-height:1.65; color:var(--text-2);
+}
+
+.comment-footer {
+  display:flex; align-items:center; gap:16px; margin-top:8px;
+}
+.comment-action {
+  font-size:11px; color:var(--text-3);
+  background:none; border:none; cursor:pointer; padding:0;
+  display:flex; align-items:center; gap:4px;
+  transition:color 0.2s;
+}
+.comment-action:active { color:var(--text-2); }
+.comment-action .act-ico { font-size:13px; }
+
+/* Nested reply preview */
+.comment-reply-preview {
+  margin-top:10px;
+  padding:10px 12px;
+  background:var(--surface-1);
+  border-radius:var(--r-md);
+  border-left:2px solid hsla(var(--ambient-h),50%,50%,0.3);
+}
+.reply-author {
+  font-size:11px; font-weight:600; color:var(--text-2);
+}
+.reply-text {
+  font-size:12px; color:var(--text-3); margin-top:2px;
+  display:-webkit-box;
+  -webkit-line-clamp:1; -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.reply-more {
+  font-size:11px; color:var(--ambient-primary); margin-top:4px;
+  cursor:pointer;
+}
+
+.comments-more {
+  display:flex; align-items:center; justify-content:center;
+  gap:6px;
+  width:100%; padding:12px;
+  margin-top:8px;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--r-md);
+  background:none;
+  color:var(--text-2); font-size:13px; font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.comments-more:active { background:var(--surface-1); }
+
+/* --- Author Works Scroll --- */
+.works-block {}
+
+.works-top {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:12px;
+}
+
+.see-all {
+  font-size:12px; font-weight:500; color:var(--ambient-primary);
+  background:none; border:none; cursor:pointer;
+}
+
+.works-scroll {
+  display:flex; gap:10px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  margin:0 -20px;
+  padding:0 20px 8px;
+  scrollbar-width:none;
+}
+.works-scroll::-webkit-scrollbar { display:none; }
+
+.work-card {
+  flex-shrink:0;
+  width:120px;
+  scroll-snap-align:start;
+  cursor:pointer;
+  transition:transform 0.2s;
+}
+.work-card:active { transform:scale(0.94); }
+
+.work-img-wrap {
+  position:relative;
+  width:120px; height:120px;
+  border-radius:var(--r-md);
+  overflow:hidden;
+  background:var(--surface-1);
+}
+
+.work-img {
+  width:100%; height:100%;
+  object-fit:cover;
+}
+
+.work-pages-badge {
+  position:absolute; top:6px; right:6px;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(4px);
+  color:#fff;
+  font-size:9px; font-weight:600;
+  padding:2px 6px; border-radius:var(--r-sm);
+}
+
+.work-ai-dot {
+  position:absolute; top:6px; left:6px;
+  width:7px; height:7px;
+  border-radius:50%;
+  background:var(--purple);
+  box-shadow:0 0 6px rgba(159,122,234,0.5);
+}
+
+/* Bookmark overlay on work card */
+.work-bm-btn {
+  position:absolute; bottom:6px; right:6px;
+  width:26px; height:26px; border-radius:50%;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(6px);
+  border:none; color:rgba(255,255,255,0.6);
+  font-size:11px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  opacity:0;
+  transition:opacity 0.2s;
+}
+.work-card:hover .work-bm-btn,
+.work-bm-btn.show { opacity:1; }
+.work-bm-btn.active { color:var(--gold); opacity:1; }
+
+.work-name {
+  margin-top:6px;
+  font-size:11px; font-weight:500; color:var(--text-2);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* --- Related — Staggered Grid --- */
+.related-block {}
+
+.related-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.rel-card {
+  border-radius:var(--r-md);
+  overflow:hidden;
+  background:var(--surface-1);
+  border:1px solid rgba(255,255,255,0.03);
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.rel-card:active { transform:scale(0.96); }
+
+/* Stagger: odd taller, even shorter */
+.rel-card:nth-child(odd) .rel-img-wrap { aspect-ratio:3/4; }
+.rel-card:nth-child(even) .rel-img-wrap { aspect-ratio:1; }
+
+.rel-img-wrap {
+  position:relative;
+  width:100%;
+  overflow:hidden;
+  background:var(--surface-2);
+}
+
+.rel-img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.rel-bm-btn {
+  position:absolute; bottom:6px; right:6px;
+  width:30px; height:30px; border-radius:50%;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(8px);
+  border:none; color:rgba(255,255,255,0.7); font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.rel-bm-btn:active { transform:scale(0.85); }
+.rel-bm-btn.bookmarked { color:var(--gold); }
+
+.rel-info { padding:8px 10px 10px; }
+.rel-title {
+  font-size:12px; font-weight:500;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.rel-author {
+  margin-top:3px;
+  font-size:11px; color:var(--text-3);
+  display:flex; align-items:center; gap:4px;
+}
+.rel-author img {
+  width:14px; height:14px; border-radius:50%;
+}
+
+.load-more {
+  grid-column:1/-1;
+  padding:14px;
+  border:1px dashed rgba(255,255,255,0.08);
+  border-radius:var(--r-md);
+  background:none;
+  color:var(--text-3);
+  font-size:13px; font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.load-more:active { background:var(--surface-1); color:var(--text-2); }
+
+
+/* === ENTRANCE ANIMATIONS === */
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(24px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.content > * {
+  animation: slideUp 0.55s var(--ease-out-expo) both;
+}
+.content > *:nth-child(1)  { animation-delay:0.05s }
+.content > *:nth-child(2)  { animation-delay:0.09s }
+.content > *:nth-child(3)  { animation-delay:0.13s }
+.content > *:nth-child(4)  { animation-delay:0.17s }
+.content > *:nth-child(5)  { animation-delay:0.21s }
+.content > *:nth-child(6)  { animation-delay:0.25s }
+.content > *:nth-child(7)  { animation-delay:0.29s }
+.content > *:nth-child(8)  { animation-delay:0.33s }
+.content > *:nth-child(9)  { animation-delay:0.37s }
+.content > *:nth-child(10) { animation-delay:0.41s }
+.content > *:nth-child(11) { animation-delay:0.45s }
+.content > *:nth-child(12) { animation-delay:0.49s }
+
+/* Hero entrance */
+@keyframes heroFade {
+  from { opacity:0; transform:scale(1.03); }
+  to { opacity:1; transform:scale(1); }
+}
+.hero { animation: heroFade 0.7s var(--ease-out-expo) both; }
+
+/* Placeholder colors */
+.c1{background:linear-gradient(135deg,#1e1a3a,#2a1a4e)!important}
+.c2{background:linear-gradient(135deg,#3a1a2e,#2e1a3a)!important}
+.c3{background:linear-gradient(135deg,#1a3a2e,#1a2e3a)!important}
+.c4{background:linear-gradient(135deg,#2e2a1a,#3a2e1a)!important}
+.c5{background:linear-gradient(135deg,#1a2a3e,#2a1a3e)!important}
+.c6{background:linear-gradient(135deg,#3e1a2a,#2a3e1a)!important}
+.c7{background:linear-gradient(135deg,#1a3e2e,#2e1a2a)!important}
+</style>
+</head>
+<body>
+
+<!-- Scroll progress bar -->
+<div class="scroll-progress">
+  <div class="scroll-progress-bar" id="progressBar"></div>
+</div>
+
+<div class="shell" id="shell">
+
+  <!-- ===== HERO ===== -->
+  <div class="hero">
+    <div class="nav-bar">
+      <button class="nav-btn">&#x2190;</button>
+      <div class="nav-right">
+        <button class="nav-btn">&#x2606;</button>
+        <button class="nav-btn">&#x22EF;</button>
+      </div>
+    </div>
+
+    <div class="hero-img-container">
+      <div class="hero-placeholder">
+        <div>
+          <div class="hero-placeholder-text">ARTWORK</div>
+          <div class="hero-placeholder-sub">tap to view full</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <!-- <div class="hero-badge ai-tag">AI GENERATED</div> -->
+    <!-- <div class="hero-badge pages">&#x25A3; 3</div> -->
+    <div class="hero-badge dimensions">1378 &times; 2039</div>
+
+    <!-- Page dots (multi-page only) -->
+    <!--
+    <div class="hero-page-dots">
+      <div class="hero-dot active"></div>
+      <div class="hero-dot"></div>
+      <div class="hero-dot"></div>
+    </div>
+    -->
+
+    <div class="hero-gradient"></div>
+
+    <!-- Title in hero gradient zone -->
+    <div class="hero-title-overlay">
+      <h1 class="hero-title">アナイクス</h1>
+      <div class="hero-meta-row">
+        <span class="hero-meta-pill">Illustration</span>
+        <span class="hero-meta-sep"></span>
+        <span class="hero-meta-pill">2026-04-15 18:00</span>
+        <span class="hero-meta-sep"></span>
+        <span class="hero-meta-pill">1 page</span>
+        <!-- <span class="hero-badge-original">ORIGINAL</span> -->
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== CONTENT ===== -->
+  <div class="content">
+
+    <!-- Series (show when seriesNavData !== null; remove this block if no series) -->
+    <div class="series-inline">
+      <div class="series-inline-bg"></div>
+      <div class="si-icon">&#x1F4DA;</div>
+      <div class="si-body">
+        <div class="si-label">Illustration Series</div>
+        <div class="si-name">崩壊スターレイル まとめ #12</div>
+      </div>
+      <span class="si-arrow">&#x203A;</span>
+    </div>
+
+    <!-- Description (show when illustComment is non-empty) -->
+    <!--
+    <div class="desc-block">
+      Artwork description with <a href="#">links</a> supported...
+    </div>
+    -->
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-num views">1,627</span>
+        <span class="stat-lbl">Views</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num likes">220</span>
+        <span class="stat-lbl">Likes</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num bookmarks">298</span>
+        <span class="stat-lbl">Bookmarks</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num comments">2</span>
+        <span class="stat-lbl">Comments</span>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="tags-block">
+      <div class="block-label">Tags</div>
+      <div class="tags-wrap">
+        <a class="tag locked">アナイクス</a>
+        <a class="tag locked">崩壊スターレイル <span class="tag-tl">崩坏：星穹铁道</span></a>
+        <a class="tag locked">HonkaiStarRail</a>
+        <a class="tag locked">崩壊:スターレイル</a>
+        <a class="tag locked">アナイクス(スターレイル) <span class="tag-tl">Anaxa</span></a>
+        <a class="tag locked">Anaxa</a>
+        <a class="tag open">崩壊:スターレイル100users入り</a>
+      </div>
+    </div>
+
+    <!-- Artist Card -->
+    <div class="artist-card">
+      <div class="artist-card-bg"></div>
+      <div class="artist-accent"></div>
+      <div class="artist-banner"></div>
+      <div class="artist-inner">
+        <div class="artist-avatar-row">
+          <div class="artist-avatar-wrap">
+            <img class="artist-avatar"
+                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='58' height='58'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%234f8fff'/%3E%3Cstop offset='100%25' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='58' height='58' rx='29' fill='url(%23g)'/%3E%3Ctext x='29' y='37' text-anchor='middle' fill='white' font-size='22' font-family='sans-serif' font-weight='700'%3EH%3C/text%3E%3C/svg%3E"
+                 alt="ひとはﾁｬﾝ">
+            <div class="premium-badge">&#x2605;</div>
+          </div>
+          <div class="artist-info-col">
+            <div class="artist-name">ひとはﾁｬﾝ</div>
+            <div class="artist-handle">@hitohachan</div>
+          </div>
+          <button class="follow-btn primary" onclick="
+            if(this.classList.contains('primary')){
+              this.classList.remove('primary');
+              this.classList.add('secondary');
+              this.textContent='Following';
+            } else {
+              this.classList.remove('secondary');
+              this.classList.add('primary');
+              this.textContent='Follow';
+            }
+          ">Follow</button>
+        </div>
+        <div class="artist-bio">
+          FANBOX: hitohachan.fanbox.cc &mdash; 【企業様】snhth1214@gmail.com / 【個人様】lit.link/hitohachan
+        </div>
+        <div class="artist-socials">
+          <a class="social-chip" href="#"><span class="ico">&#x1D54F;</span> Twitter</a>
+          <a class="social-chip" href="#"><span class="ico">&#x2601;</span> Bluesky</a>
+          <a class="social-chip" href="#"><span class="ico">&#x1F517;</span> Website</a>
+          <a class="social-chip" href="#"><span class="ico">&#x2709;</span> Message</a>
+        </div>
+        <div class="artist-stat-row">
+          <span><strong>16</strong> Following</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Translate (when caption exists) -->
+    <!--
+    <div class="translate-strip">
+      <span class="ico">&#x1F310;</span>
+      <span class="txt">Translate to Chinese</span>
+    </div>
+    -->
+
+    <!-- Detail Info -->
+    <div class="detail-panel">
+      <div class="detail-panel-bg"></div>
+      <div class="detail-accent"></div>
+      <div class="detail-panel-inner">
+        <div class="detail-panel-header" onclick="
+          const g=this.nextElementSibling;
+          const a=this.querySelector('.d-arrow');
+          if(g.style.display==='none'){g.style.display='grid';a.style.transform='rotate(180deg)'}
+          else{g.style.display='none';a.style.transform=''}
+        ">
+          <span class="d-label">Artwork Details</span>
+          <span class="d-arrow" style="transform:rotate(180deg)">&#x25BE;</span>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-chip">
+            <span class="dc-label">Artwork ID</span>
+            <span class="dc-value mono">143583951</span>
+          </div>
+          <div class="detail-chip">
+            <span class="dc-label">User ID</span>
+            <span class="dc-value mono">62059105</span>
+          </div>
+          <div class="detail-chip">
+            <span class="dc-label">Type</span>
+            <span class="dc-value">Illustration</span>
+          </div>
+          <div class="detail-chip">
+            <span class="dc-label">Resolution</span>
+            <span class="dc-value mono">1378 &times; 2039</span>
+          </div>
+          <div class="detail-chip">
+            <span class="dc-label">Pages</span>
+            <span class="dc-value">1</span>
+          </div>
+          <div class="detail-chip badge-human">
+            <span class="dc-label">AI Generated</span>
+            <span class="dc-value">No (Human)</span>
+          </div>
+          <div class="detail-chip badge-safe">
+            <span class="dc-label">Restriction</span>
+            <span class="dc-value">All Ages</span>
+          </div>
+          <div class="detail-chip">
+            <span class="dc-label">Published</span>
+            <span class="dc-value">2026-04-15 18:00</span>
+          </div>
+          <div class="detail-chip full">
+            <span class="dc-label">URL</span>
+            <span class="dc-value mono">pixiv.net/artworks/143583951</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CONDITIONAL SECTIONS ===== -->
+
+    <!-- (Series moved to top of content as .series-inline) -->
+
+    <!-- Promos -->
+    <!--
+    <div class="promo-row">
+      <a class="promo-chip" href="#">
+        <div class="p-ico fanbox">&#x2661;</div>
+        <span class="p-txt">FANBOX</span>
+      </a>
+      <a class="promo-chip" href="#">
+        <div class="p-ico booth">&#x1F6D2;</div>
+        <span class="p-txt">BOOTH</span>
+      </a>
+    </div>
+    -->
+
+    <!-- YouTube -->
+    <!--
+    <a class="promo-chip" href="#" style="width:100%">
+      <div class="p-ico yt">&#x25B6;</div>
+      <span class="p-txt">Watch on YouTube</span>
+    </a>
+    -->
+
+    <!-- Request -->
+    <!--
+    <div class="request-strip">&#x270F; Created via Request</div>
+    -->
+
+    <!-- Contest -->
+    <!--
+    <div class="contest-strip">
+      <div class="c-ico">&#x1F3C6;</div>
+      <div class="c-info">
+        <div class="c-title">Spring Illustration Contest 2026</div>
+        <div class="c-sub">Participating in this event</div>
+      </div>
+    </div>
+    -->
+
+    <!-- Poll -->
+    <!--
+    <div class="poll-box">
+      <div class="poll-q">Which version do you prefer?</div>
+      <div class="poll-opt">
+        <div class="poll-fill" style="width:65%"></div>
+        <span class="poll-opt-text">Version A</span>
+        <span class="poll-opt-pct">65%</span>
+      </div>
+      <div class="poll-opt">
+        <div class="poll-fill" style="width:35%"></div>
+        <span class="poll-opt-text">Version B</span>
+        <span class="poll-opt-pct">35%</span>
+      </div>
+    </div>
+    -->
+
+    <!-- Image Response -->
+    <!--
+    <div class="response-box">
+      <div class="response-label">Inspired By</div>
+      <div class="response-row">
+        <div class="response-thumb c1"></div>
+        <div class="response-thumb c2"></div>
+      </div>
+    </div>
+    -->
+
+    <!-- Unlisted -->
+    <!--
+    <div class="unlisted-strip">&#x1F517; Unlisted — only accessible via link</div>
+    -->
+
+    <!-- ===== END CONDITIONAL ===== -->
+
+    <!-- Comments -->
+    <div class="comments-block">
+      <div class="comments-top">
+        <span class="block-label" style="margin-bottom:0">Comments</span>
+        <span class="comments-cnt">2</span>
+      </div>
+
+      <div class="comment">
+        <img class="comment-ava" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Crect width='36' height='36' rx='18' fill='%233d8bfd'/%3E%3Ctext x='18' y='23' text-anchor='middle' fill='white' font-size='14' font-family='sans-serif' font-weight='600'%3EV%3C/text%3E%3C/svg%3E" alt="">
+        <div class="comment-main">
+          <div class="comment-head">
+            <span class="comment-name">Valeria</span>
+            <span class="comment-time">22:21</span>
+          </div>
+          <div class="comment-txt">Cool Anaxa art but "weaver of gold" is wrong</div>
+          <div class="comment-footer">
+            <button class="comment-action"><span class="act-ico">&#x2665;</span> 3</button>
+            <button class="comment-action">Reply</button>
+            <button class="comment-action">Report</button>
+          </div>
+          <!-- Nested reply preview -->
+          <div class="comment-reply-preview">
+            <span class="reply-author">ひとはﾁｬﾝ</span>
+            <div class="reply-text">I see it now, will fix in future works...</div>
+            <div class="reply-more">View 1 reply</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comment">
+        <img class="comment-ava" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Crect width='36' height='36' rx='18' fill='%23ff2d78'/%3E%3Ctext x='18' y='23' text-anchor='middle' fill='white' font-size='12' font-family='sans-serif' font-weight='600'%3E%E4%B9%8C%3C/text%3E%3C/svg%3E" alt="">
+        <div class="comment-main">
+          <div class="comment-head">
+            <span class="comment-name">乌尔mashom loser</span>
+            <span class="comment-time">18:03</span>
+          </div>
+          <div class="comment-txt">&#x2764;&#x2764;&#x2764;&#x2764;</div>
+          <div class="comment-footer">
+            <button class="comment-action"><span class="act-ico">&#x2665;</span> 1</button>
+            <button class="comment-action">Reply</button>
+            <button class="comment-action">Report</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="comments-more">View all comments &#x203A;</button>
+    </div>
+
+    <!-- Author Works -->
+    <div class="works-block">
+      <div class="works-top">
+        <span class="block-label" style="margin-bottom:0">ひとはﾁｬﾝ's Works</span>
+        <button class="see-all">See All &#x203A;</button>
+      </div>
+      <div class="works-scroll">
+        <div class="work-card">
+          <div class="work-img-wrap">
+            <div class="work-img c1"></div>
+            <button class="work-bm-btn show active">&#x2605;</button>
+          </div>
+          <div class="work-name">アナイクス</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c2"></div></div>
+          <div class="work-name">月見ヤチヨ</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap">
+            <div class="work-img c3"></div>
+            <div class="work-pages-badge">&#x25A3; 3</div>
+          </div>
+          <div class="work-name">海の少女</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c4"></div></div>
+          <div class="work-name">モーディス</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c5"></div></div>
+          <div class="work-name">キュレネ</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c6"></div></div>
+          <div class="work-name">粟</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap">
+            <div class="work-img c7"></div>
+            <div class="work-ai-dot"></div>
+          </div>
+          <div class="work-name">花</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Works -->
+    <div class="related-block">
+      <div class="works-top">
+        <span class="block-label" style="margin-bottom:0">Related</span>
+        <button class="see-all">More &#x203A;</button>
+      </div>
+      <div class="related-grid">
+        <div class="rel-card">
+          <div class="rel-img-wrap">
+            <div class="rel-img c1"></div>
+            <button class="rel-bm-btn">&#x2606;</button>
+          </div>
+          <div class="rel-info">
+            <div class="rel-title">アナイクスの微笑み</div>
+            <div class="rel-author">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Crect width='14' height='14' rx='7' fill='%239f7aea'/%3E%3C/svg%3E">
+              Artist A
+            </div>
+          </div>
+        </div>
+        <div class="rel-card">
+          <div class="rel-img-wrap">
+            <div class="rel-img c3"></div>
+            <button class="rel-bm-btn">&#x2606;</button>
+          </div>
+          <div class="rel-info">
+            <div class="rel-title">崩壊スターレイル</div>
+            <div class="rel-author">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Crect width='14' height='14' rx='7' fill='%233d8bfd'/%3E%3C/svg%3E">
+              Artist B
+            </div>
+          </div>
+        </div>
+        <div class="rel-card">
+          <div class="rel-img-wrap">
+            <div class="rel-img c4"></div>
+            <button class="rel-bm-btn bookmarked">&#x2605;</button>
+          </div>
+          <div class="rel-info">
+            <div class="rel-title">Honkai: Star Rail</div>
+            <div class="rel-author">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Crect width='14' height='14' rx='7' fill='%23ff2d78'/%3E%3C/svg%3E">
+              Artist C
+            </div>
+          </div>
+        </div>
+        <div class="rel-card">
+          <div class="rel-img-wrap">
+            <div class="rel-img c5"></div>
+            <button class="rel-bm-btn">&#x2606;</button>
+          </div>
+          <div class="rel-info">
+            <div class="rel-title">Anaxa Portrait</div>
+            <div class="rel-author">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Crect width='14' height='14' rx='7' fill='%232dd4a8'/%3E%3C/svg%3E">
+              Artist D
+            </div>
+          </div>
+        </div>
+        <button class="load-more">Load More</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+
+</div><!-- /shell -->
+
+<script>
+// Scroll progress bar
+(function(){
+  const shell = document.getElementById('shell');
+  const bar = document.getElementById('progressBar');
+  const target = shell.scrollHeight > window.innerHeight ? shell : document.documentElement;
+
+  function update(){
+    const el = shell.scrollTop !== undefined && shell.scrollHeight > shell.clientHeight ? shell : document.documentElement;
+    const scrollTop = el === shell ? shell.scrollTop : (window.pageYOffset || document.documentElement.scrollTop);
+    const scrollHeight = el.scrollHeight - el.clientHeight;
+    const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    bar.style.width = pct + '%';
+  }
+
+  shell.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('scroll', update, {passive:true});
+  update();
+})();
+</script>
+
+<!--
+  ========================================
+  V3 ELEMENT CHECKLIST — ALL PIXIV FIELDS
+  ========================================
+
+  ALWAYS PRESENT:
+  [x] Hero image (zoom) — .hero
+  [x] Multi-page badge — .hero-badge.pages
+  [x] Multi-page dots — .hero-page-dots
+  [x] AI generated badge — .hero-badge.ai-tag
+  [x] Image dimensions — .hero-badge.dimensions
+  [x] Like + count — .cap-btn #likeBtn
+  [x] Bookmark + count — .cap-btn #bmBtn
+  [x] Share — .cap-btn share
+  [x] Download/Save — .cap-btn download
+  [x] Title — .hero-title
+  [x] Description — .desc-block
+  [x] Type / Date / PageCount meta — .hero-meta-row
+  [x] Original badge — .hero-badge-original
+  [x] Stats: views, likes, bookmarks, comments — .stats-row
+  [x] Tags (author-locked vs user, with translation) — .tags-block
+  [x] Artist card: banner, avatar, name, handle, premium, bio — .artist-card
+  [x] Follow button — .follow-btn
+  [x] Social links (Twitter, Bluesky, website) — .artist-socials
+  [x] Message button — .artist-socials
+  [x] Following count — .artist-stat-row
+  [x] Detail info (ID, type, resolution, pages, AI, restrict, dates, URLs, UID) — .detail-panel
+  [x] Translate button — .translate-strip
+  [x] Comments (avatar, name, text, stamp, time, like, reply, report) — .comments-block
+  [x] Comment reply preview — .comment-reply-preview
+  [ ] Comment input + sticker — removed (not fixed bottom bar)
+  [ ] Bottom bar quick-actions — removed
+  [x] Author's works scroll — .works-block
+  [x] Related works staggered grid + load more — .related-block
+  [x] Report/menu — .nav-bar
+  [x] Scroll progress — .scroll-progress
+
+  CONDITIONAL:
+  [x] Series nav — .series-strip
+  [x] Fanbox promo — .promo-row .fanbox
+  [x] Booth promo — .promo-row .booth
+  [x] YouTube embed — .promo-chip .yt
+  [x] Request/commission — .request-strip
+  [x] Contest banner — .contest-strip
+  [x] Poll/vote — .poll-box
+  [x] Image response — .response-box
+  [x] Unlisted indicator — .unlisted-strip
+  [x] Title/caption translation — translate-strip
+-->
+
+</body>
+</html>

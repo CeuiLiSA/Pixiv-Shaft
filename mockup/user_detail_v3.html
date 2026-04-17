@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pixiv-Shaft — User Detail V3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+/*
+ * PIXIV-SHAFT 2026 — USER DETAIL V3
+ *
+ * Matches illust_detail_v3 design language:
+ *  - Ambient-tinted glass surfaces
+ *  - Cinematic banner with avatar overlap
+ *  - Stats row with shimmer
+ *  - Staggered works grid
+ *  - Spring-based micro-animations
+ */
+
+:root {
+  --ambient-h: 245;
+  --ambient-s: 60%;
+  --ambient-primary: hsl(var(--ambient-h), var(--ambient-s), 55%);
+  --ambient-glow: hsl(var(--ambient-h), var(--ambient-s), 40%);
+  --ambient-muted: hsl(var(--ambient-h), 30%, 18%);
+  --ambient-surface: hsl(var(--ambient-h), 20%, 10%);
+
+  --bg: #08080c;
+  --surface-1: rgba(255,255,255,0.03);
+  --surface-2: rgba(255,255,255,0.055);
+  --surface-3: rgba(255,255,255,0.08);
+  --glass: rgba(12,12,18,0.72);
+  --glass-heavy: rgba(8,8,12,0.88);
+
+  --text-1: #f4f4f8;
+  --text-2: rgba(244,244,248,0.62);
+  --text-3: rgba(244,244,248,0.36);
+
+  --pink: #ff2d78;
+  --gold: #ffc233;
+  --blue: #3d8bfd;
+  --green: #2dd4a8;
+  --purple: #9f7aea;
+  --orange: #ff6f3c;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { font-size:16px; scroll-behavior:smooth; }
+body {
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === PHONE SHELL === */
+.shell {
+  max-width: 414px;
+  margin: 0 auto;
+  position: relative;
+  min-height: 100dvh;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+@media(min-width:500px){
+  body{background:#030306;padding:24px 0}
+  .shell{
+    border-radius:44px;
+    border:1.5px solid rgba(255,255,255,0.06);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.02) inset,
+      0 40px 120px -20px rgba(0,0,0,0.8),
+      0 0 60px -10px hsla(var(--ambient-h),60%,40%,0.12);
+    min-height:896px;
+    max-height:96vh;
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  .shell::-webkit-scrollbar{display:none}
+}
+
+/* === SCROLL PROGRESS === */
+.scroll-progress {
+  position:fixed; top:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:414px;
+  height:2px; z-index:200;
+  background:transparent;
+  pointer-events:none;
+}
+.scroll-progress-bar {
+  height:100%; width:0%;
+  background: linear-gradient(90deg, var(--ambient-primary), var(--pink), var(--gold));
+  border-radius:0 2px 2px 0;
+  transition: width 0.1s linear;
+}
+
+/* === BANNER HERO === */
+.banner-hero {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+}
+
+/* Ambient glow */
+.banner-hero::before {
+  content:'';
+  position:absolute;
+  inset: -40%;
+  background:
+    radial-gradient(ellipse at 30% 70%, hsla(var(--ambient-h), 80%, 35%, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 40%, hsla(calc(var(--ambient-h)+40), 60%, 30%, 0.2) 0%, transparent 50%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.banner-img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.banner-placeholder {
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(145deg,
+      hsl(250,45%,12%) 0%,
+      hsl(280,40%,16%) 25%,
+      hsl(260,50%,14%) 50%,
+      hsl(230,45%,18%) 75%,
+      hsl(250,40%,10%) 100%
+    );
+  position: relative;
+}
+.banner-placeholder::after {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, hsla(260,80%,60%,0.08), transparent 70%);
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-55%) scale(1.1)}
+}
+
+/* Cinematic gradient */
+.banner-gradient {
+  position:absolute; bottom:0; left:0; right:0; z-index:2;
+  height:200px;
+  background: linear-gradient(
+    to top,
+    var(--bg) 0%,
+    rgba(8,8,12,0.92) 25%,
+    rgba(8,8,12,0.5) 55%,
+    transparent 100%
+  );
+  pointer-events:none;
+}
+
+/* === NAV BAR === */
+.nav-bar {
+  position:absolute; top:0; left:0; right:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 16px;
+}
+
+.nav-btn {
+  width:38px; height:38px;
+  border-radius:50%;
+  border:none;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color:#fff;
+  font-size:18px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition: all 0.25s;
+}
+.nav-btn:active { transform:scale(0.88); background:rgba(0,0,0,0.5); }
+.nav-right { display:flex; gap:8px; }
+
+/* === PROFILE HEADER (overlaps banner) === */
+.profile-header {
+  position: relative;
+  z-index: 10;
+  margin-top: -64px;
+  padding: 0 20px;
+}
+
+.avatar-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--bg);
+  background: hsl(var(--ambient-h), 20%, 12%);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+.premium-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffc233, #ffaa00, #ffd700);
+  z-index: -1;
+  opacity: 0;
+}
+.avatar-wrap.premium .premium-ring { opacity: 1; }
+.avatar-wrap.premium .avatar { border-color: transparent; }
+
+.premium-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffc233, #ffaa00);
+  border: 3px solid var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #1a1a2e;
+}
+
+.profile-actions {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.follow-btn {
+  padding: 10px 28px;
+  border-radius: var(--r-pill);
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-spring);
+  letter-spacing: -0.01em;
+}
+.follow-btn:active { transform: scale(0.9); }
+.follow-btn.primary {
+  background: var(--ambient-primary);
+  color: #fff;
+  box-shadow: 0 4px 20px hsla(var(--ambient-h),60%,40%,0.35);
+}
+.follow-btn.secondary {
+  background: hsla(var(--ambient-h),40%,50%,0.12);
+  color: hsl(var(--ambient-h),70%,72%);
+  border: 1px solid hsla(var(--ambient-h),40%,50%,0.2);
+}
+
+.msg-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.msg-btn:active { background: var(--surface-3); transform: scale(0.9); }
+
+/* Name & handle */
+.name-block {
+  margin-top: 14px;
+  padding: 0 20px;
+}
+
+.user-name {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-handle {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* === CONTENT === */
+.content {
+  padding: 16px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- Bio --- */
+.bio-block {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-2);
+}
+.bio-block a { color: var(--blue); text-decoration: none; }
+
+/* --- Stats Row --- */
+.stats-row {
+  display: flex;
+  background: var(--surface-1);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: var(--r-lg);
+  padding: 16px 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-row::before {
+  content:'';
+  position:absolute;
+  top:0; left:-100%; bottom:0;
+  width:100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsla(var(--ambient-h),60%,55%,0.04) 40%,
+    hsla(var(--ambient-h),60%,55%,0.06) 50%,
+    hsla(var(--ambient-h),60%,55%,0.04) 60%,
+    transparent 100%
+  );
+  animation: shimmer 4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes shimmer {
+  0%{left:-100%} 50%{left:100%} 100%{left:100%}
+}
+
+.stat {
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  position:relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.stat:active { transform: scale(0.95); }
+.stat + .stat::before {
+  content:'';
+  position:absolute; left:0; top:15%; bottom:15%;
+  width:1px;
+  background:rgba(255,255,255,0.06);
+}
+
+.stat-num {
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:-0.03em;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.stat-num.illusts  { background-image: linear-gradient(135deg, #c084fc, #e879a8); }
+.stat-num.manga    { background-image: linear-gradient(135deg, #f472b6, #c084fc); }
+.stat-num.novels   { background-image: linear-gradient(135deg, #818cf8, #a78bfa); }
+.stat-num.following{ background-image: linear-gradient(135deg, #a5b4fc, #c4b5fd); }
+.stat-num.mypixiv  { background-image: linear-gradient(135deg, #2dd4a8, #3d8bfd); }
+.stat-num.bookmarks{ background-image: linear-gradient(135deg, #ffc233, #ff6f3c); }
+
+.stat-lbl {
+  font-size:9px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-3);
+}
+
+/* --- Social Links --- */
+.socials-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.social-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface-1);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-2);
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.social-chip:active { background: var(--surface-2); transform: scale(0.95); }
+.social-chip .ico { font-size: 14px; }
+.social-chip.twitter { border-color: rgba(29,161,242,0.2); }
+.social-chip.twitter .ico { color: #1da1f2; }
+.social-chip.website { border-color: rgba(45,212,168,0.2); }
+.social-chip.website .ico { color: var(--green); }
+.social-chip.pawoo { border-color: rgba(159,122,234,0.2); }
+.social-chip.pawoo .ico { color: var(--purple); }
+
+/* --- Profile Info Card --- */
+.profile-card {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+
+.profile-card-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    linear-gradient(160deg,
+      hsla(var(--ambient-h), 25%, 13%, 0.9),
+      hsla(var(--ambient-h), 15%, 7%, 0.95)
+    );
+}
+.profile-card-bg::after {
+  content:'';
+  position:absolute; inset:0;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--r-xl);
+  pointer-events:none;
+}
+
+.profile-accent {
+  position:absolute; top:0; left:20%; right:20%; z-index:1;
+  height:1px;
+  background: linear-gradient(90deg,
+    transparent,
+    hsla(var(--ambient-h),50%,60%,0.3),
+    hsla(calc(var(--ambient-h)+60),50%,60%,0.3),
+    transparent
+  );
+}
+
+.profile-card-inner {
+  position: relative; z-index: 2;
+  padding: 18px;
+}
+
+.profile-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+.profile-card-header .d-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text-3);
+}
+.profile-card-header .d-arrow {
+  font-size: 14px; color: var(--text-3);
+  transition: transform 0.35s var(--ease-out-expo);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.profile-chip {
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.profile-chip.full { grid-column: 1/-1; }
+
+.profile-chip .pc-label {
+  font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  opacity: 0.7;
+}
+
+.profile-chip .pc-value {
+  font-size: 13px; font-weight: 600;
+  color: var(--text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.profile-chip .pc-value.mono {
+  font-family: 'SF Mono','JetBrains Mono','Menlo',monospace;
+  font-size: 12px;
+  color: hsl(var(--ambient-h),50%,70%);
+}
+
+.profile-chip .pc-value.premium-text { color: var(--gold); }
+.profile-chip .pc-value.normal-text  { color: var(--text-3); }
+
+/* --- Workspace Card --- */
+.workspace-card {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+
+.workspace-card-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    linear-gradient(160deg,
+      hsla(calc(var(--ambient-h)+20), 20%, 12%, 0.9),
+      hsla(calc(var(--ambient-h)+20), 12%, 6%, 0.95)
+    );
+}
+.workspace-card-bg::after {
+  content:'';
+  position:absolute; inset:0;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--r-xl);
+  pointer-events:none;
+}
+
+.workspace-accent {
+  position:absolute; top:0; left:20%; right:20%; z-index:1;
+  height:1px;
+  background: linear-gradient(90deg,
+    transparent,
+    hsla(calc(var(--ambient-h)+20),50%,60%,0.25),
+    hsla(calc(var(--ambient-h)+80),50%,60%,0.25),
+    transparent
+  );
+}
+
+.workspace-inner {
+  position: relative; z-index: 2;
+  padding: 18px;
+}
+
+.workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.workspace-header .w-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text-3);
+}
+.workspace-header .w-arrow {
+  font-size: 14px; color: var(--text-3);
+  transition: transform 0.35s var(--ease-out-expo);
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ws-chip {
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ws-chip.full { grid-column: 1/-1; }
+.ws-chip .ws-label {
+  font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3); opacity: 0.7;
+}
+.ws-chip .ws-value {
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ws-chip .ws-icon {
+  font-size: 14px; margin-bottom: 2px;
+}
+
+/* --- Quick Nav Tags --- */
+.block-label {
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.12em; color:var(--text-3);
+  margin-bottom:10px;
+}
+
+.nav-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nav-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--surface-1);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.nav-tag:active { background: var(--surface-2); transform: scale(0.95); }
+.nav-tag .nt-icon { font-size: 14px; opacity: 0.7; }
+.nav-tag .nt-count {
+  font-size: 11px; font-weight: 700;
+  color: var(--ambient-primary);
+  background: hsla(var(--ambient-h),50%,50%,0.1);
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+}
+
+/* --- Works Sections --- */
+.works-block {}
+
+.works-top {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:12px;
+}
+
+.see-all {
+  font-size:12px; font-weight:500; color:var(--ambient-primary);
+  background:none; border:none; cursor:pointer;
+}
+
+/* Horizontal scroll */
+.works-scroll {
+  display:flex; gap:10px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  margin:0 -20px;
+  padding:0 20px 8px;
+  scrollbar-width:none;
+}
+.works-scroll::-webkit-scrollbar { display:none; }
+
+.work-card {
+  flex-shrink:0;
+  width:130px;
+  scroll-snap-align:start;
+  cursor:pointer;
+  transition:transform 0.2s;
+}
+.work-card:active { transform:scale(0.94); }
+
+.work-img-wrap {
+  position:relative;
+  width:130px; height:130px;
+  border-radius:var(--r-md);
+  overflow:hidden;
+  background:var(--surface-1);
+}
+
+.work-img {
+  width:100%; height:100%;
+  object-fit:cover;
+}
+
+.work-pages-badge {
+  position:absolute; top:6px; right:6px;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(4px);
+  color:#fff;
+  font-size:9px; font-weight:600;
+  padding:2px 6px; border-radius:var(--r-sm);
+}
+
+.work-bm-btn {
+  position:absolute; bottom:6px; right:6px;
+  width:26px; height:26px; border-radius:50%;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(6px);
+  border:none; color:rgba(255,255,255,0.6);
+  font-size:11px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  opacity:0;
+  transition:opacity 0.2s;
+}
+.work-card:hover .work-bm-btn,
+.work-bm-btn.show { opacity:1; }
+.work-bm-btn.active { color:var(--gold); opacity:1; }
+
+.work-name {
+  margin-top:6px;
+  font-size:11px; font-weight:500; color:var(--text-2);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* Staggered grid for featured works */
+.works-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.grid-card {
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface-1);
+  border: 1px solid rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.grid-card:active { transform: scale(0.96); }
+
+.grid-card:nth-child(odd) .grid-img-wrap { aspect-ratio: 3/4; }
+.grid-card:nth-child(even) .grid-img-wrap { aspect-ratio: 1; }
+
+.grid-img-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.grid-img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.grid-bm-btn {
+  position:absolute; bottom:6px; right:6px;
+  width:30px; height:30px; border-radius:50%;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(8px);
+  border:none; color:rgba(255,255,255,0.7); font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.grid-bm-btn:active { transform:scale(0.85); }
+.grid-bm-btn.bookmarked { color:var(--gold); }
+
+.grid-info { padding:8px 10px 10px; }
+.grid-title {
+  font-size:12px; font-weight:500;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.grid-meta {
+  margin-top:3px;
+  font-size:11px; color:var(--text-3);
+  display:flex; align-items:center; gap:6px;
+}
+
+.load-more {
+  grid-column:1/-1;
+  padding:14px;
+  border:1px dashed rgba(255,255,255,0.08);
+  border-radius:var(--r-md);
+  background:none;
+  color:var(--text-3);
+  font-size:13px; font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.load-more:active { background:var(--surface-1); color:var(--text-2); }
+
+/* --- Related Users --- */
+.related-users-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -20px;
+  padding: 0 20px 8px;
+  scrollbar-width: none;
+}
+.related-users-scroll::-webkit-scrollbar { display:none; }
+
+.related-user-card {
+  flex-shrink: 0;
+  width: 120px;
+  scroll-snap-align: start;
+  cursor: pointer;
+  transition: transform 0.2s;
+  text-align: center;
+}
+.related-user-card:active { transform: scale(0.94); }
+
+.ru-avatar-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+}
+
+.ru-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-2);
+  border: 2px solid rgba(255,255,255,0.06);
+}
+
+.ru-name {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ru-follow-btn {
+  margin-top: 6px;
+  padding: 4px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid hsla(var(--ambient-h),40%,50%,0.3);
+  background: transparent;
+  color: var(--ambient-primary);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ru-follow-btn:active { background: hsla(var(--ambient-h),40%,50%,0.12); }
+
+/* --- Mute/Block Strip --- */
+.mute-strip {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 16px;
+  background:rgba(255,45,120,0.05);
+  border:1px solid rgba(255,45,120,0.1);
+  border-radius:var(--r-lg);
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.mute-strip:active { background:rgba(255,45,120,0.1); }
+.mute-strip .m-ico { font-size:16px; color:var(--pink); }
+.mute-strip .m-txt { font-size:12px; font-weight:500; color:var(--text-2); flex:1; }
+.mute-strip .m-toggle {
+  width:40px; height:22px;
+  border-radius:11px;
+  background:rgba(255,255,255,0.1);
+  position:relative;
+  transition:background 0.3s;
+  cursor:pointer;
+}
+.mute-strip .m-toggle::after {
+  content:'';
+  position:absolute;
+  top:2px; left:2px;
+  width:18px; height:18px;
+  border-radius:50%;
+  background:#fff;
+  transition:transform 0.3s var(--ease-spring);
+}
+.mute-strip .m-toggle.active {
+  background:var(--pink);
+}
+.mute-strip .m-toggle.active::after {
+  transform:translateX(18px);
+}
+
+
+/* === ENTRANCE ANIMATIONS === */
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(24px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.content > * {
+  animation: slideUp 0.55s var(--ease-out-expo) both;
+}
+.content > *:nth-child(1)  { animation-delay:0.05s }
+.content > *:nth-child(2)  { animation-delay:0.09s }
+.content > *:nth-child(3)  { animation-delay:0.13s }
+.content > *:nth-child(4)  { animation-delay:0.17s }
+.content > *:nth-child(5)  { animation-delay:0.21s }
+.content > *:nth-child(6)  { animation-delay:0.25s }
+.content > *:nth-child(7)  { animation-delay:0.29s }
+.content > *:nth-child(8)  { animation-delay:0.33s }
+.content > *:nth-child(9)  { animation-delay:0.37s }
+.content > *:nth-child(10) { animation-delay:0.41s }
+.content > *:nth-child(11) { animation-delay:0.45s }
+.content > *:nth-child(12) { animation-delay:0.49s }
+
+/* Banner entrance */
+@keyframes heroFade {
+  from { opacity:0; transform:scale(1.03); }
+  to { opacity:1; transform:scale(1); }
+}
+.banner-hero { animation: heroFade 0.7s var(--ease-out-expo) both; }
+
+/* Profile header entrance */
+@keyframes profileSlide {
+  from { opacity:0; transform:translateY(30px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.profile-header { animation: profileSlide 0.6s var(--ease-out-expo) 0.15s both; }
+.name-block { animation: profileSlide 0.6s var(--ease-out-expo) 0.2s both; }
+
+/* Placeholder colors */
+.c1{background:linear-gradient(135deg,#1e1a3a,#2a1a4e)!important}
+.c2{background:linear-gradient(135deg,#3a1a2e,#2e1a3a)!important}
+.c3{background:linear-gradient(135deg,#1a3a2e,#1a2e3a)!important}
+.c4{background:linear-gradient(135deg,#2e2a1a,#3a2e1a)!important}
+.c5{background:linear-gradient(135deg,#1a2a3e,#2a1a3e)!important}
+.c6{background:linear-gradient(135deg,#3e1a2a,#2a3e1a)!important}
+.c7{background:linear-gradient(135deg,#1a3e2e,#2e1a2a)!important}
+</style>
+</head>
+<body>
+
+<!-- Scroll progress bar -->
+<div class="scroll-progress">
+  <div class="scroll-progress-bar" id="progressBar"></div>
+</div>
+
+<div class="shell" id="shell">
+
+  <!-- ===== BANNER HERO ===== -->
+  <div class="banner-hero">
+    <div class="nav-bar">
+      <button class="nav-btn">&#x2190;</button>
+      <div class="nav-right">
+        <button class="nav-btn">&#x22EF;</button>
+      </div>
+    </div>
+
+    <div class="banner-img">
+      <div class="banner-placeholder"></div>
+    </div>
+
+    <div class="banner-gradient"></div>
+  </div>
+
+
+  <!-- ===== PROFILE HEADER (overlapping banner) ===== -->
+  <div class="profile-header">
+    <div class="avatar-row">
+      <div class="avatar-wrap premium">
+        <div class="premium-ring"></div>
+        <img class="avatar"
+             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%234f8fff'/%3E%3Cstop offset='100%25' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='88' height='88' rx='44' fill='url(%23g)'/%3E%3Ctext x='44' y='56' text-anchor='middle' fill='white' font-size='34' font-family='sans-serif' font-weight='700'%3EH%3C/text%3E%3C/svg%3E"
+             alt="ひとはﾁｬﾝ">
+        <div class="premium-badge">&#x2605;</div>
+      </div>
+      <div class="profile-actions">
+        <button class="msg-btn">&#x2709;</button>
+        <button class="follow-btn primary" onclick="
+          if(this.classList.contains('primary')){
+            this.classList.remove('primary');
+            this.classList.add('secondary');
+            this.textContent='Following';
+          } else {
+            this.classList.remove('secondary');
+            this.classList.add('primary');
+            this.textContent='Follow';
+          }
+        ">Follow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Name & handle -->
+  <div class="name-block">
+    <div class="user-name">ひとはﾁｬﾝ</div>
+    <div class="user-handle">@hitohachan &middot; ID: 62059105</div>
+  </div>
+
+
+  <!-- ===== CONTENT ===== -->
+  <div class="content">
+
+    <!-- Bio -->
+    <div class="bio-block">
+      FANBOX: <a href="#">hitohachan.fanbox.cc</a> &mdash; 【企業様】snhth1214@gmail.com / 【個人様】<a href="#">lit.link/hitohachan</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-num illusts">342</span>
+        <span class="stat-lbl">Illusts</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num manga">28</span>
+        <span class="stat-lbl">Manga</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num novels">5</span>
+        <span class="stat-lbl">Novels</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num following">16</span>
+        <span class="stat-lbl">Following</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num mypixiv">3</span>
+        <span class="stat-lbl">MyPixiv</span>
+      </div>
+    </div>
+
+    <!-- Social Links -->
+    <div class="socials-row">
+      <a class="social-chip twitter" href="#"><span class="ico">&#x1D54F;</span> @hitohachan</a>
+      <a class="social-chip website" href="#"><span class="ico">&#x1F517;</span> Website</a>
+      <a class="social-chip pawoo" href="#"><span class="ico">&#x1F418;</span> Pawoo</a>
+    </div>
+
+    <!-- Quick Navigation Tags -->
+    <div class="nav-tags-block">
+      <div class="block-label">Navigate</div>
+      <div class="nav-tags-wrap">
+        <a class="nav-tag">
+          <span class="nt-icon">&#x1F5BC;</span>
+          Illustrations
+          <span class="nt-count">342</span>
+        </a>
+        <a class="nav-tag">
+          <span class="nt-icon">&#x1F4D6;</span>
+          Manga
+          <span class="nt-count">28</span>
+        </a>
+        <a class="nav-tag">
+          <span class="nt-icon">&#x1F4DA;</span>
+          Illust Series
+          <span class="nt-count">3</span>
+        </a>
+        <a class="nav-tag">
+          <span class="nt-icon">&#x270D;</span>
+          Novels
+          <span class="nt-count">5</span>
+        </a>
+        <a class="nav-tag">
+          <span class="nt-icon">&#x1F4D1;</span>
+          Novel Series
+          <span class="nt-count">2</span>
+        </a>
+        <a class="nav-tag">
+          <span class="nt-icon">&#x2B50;</span>
+          Bookmarks
+          <span class="nt-count">1,856</span>
+        </a>
+        <a class="nav-tag">
+          <span class="nt-icon">&#x1F4D6;</span>
+          Novel Bookmarks
+        </a>
+      </div>
+    </div>
+
+    <!-- User's Illustrations -->
+    <div class="works-block">
+      <div class="works-top">
+        <span class="block-label" style="margin-bottom:0">Illustrations</span>
+        <button class="see-all">See All &#x203A;</button>
+      </div>
+      <div class="works-scroll">
+        <div class="work-card">
+          <div class="work-img-wrap">
+            <div class="work-img c1"></div>
+            <button class="work-bm-btn show active">&#x2605;</button>
+          </div>
+          <div class="work-name">アナイクス</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c2"></div></div>
+          <div class="work-name">月見ヤチヨ</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap">
+            <div class="work-img c3"></div>
+            <div class="work-pages-badge">&#x25A3; 3</div>
+          </div>
+          <div class="work-name">海の少女</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c4"></div></div>
+          <div class="work-name">モーディス</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c5"></div></div>
+          <div class="work-name">キュレネ</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c6"></div></div>
+          <div class="work-name">粟</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c7"></div></div>
+          <div class="work-name">花</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User's Manga (conditional) -->
+    <div class="works-block">
+      <div class="works-top">
+        <span class="block-label" style="margin-bottom:0">Manga</span>
+        <button class="see-all">See All &#x203A;</button>
+      </div>
+      <div class="works-scroll">
+        <div class="work-card">
+          <div class="work-img-wrap">
+            <div class="work-img c3"></div>
+            <div class="work-pages-badge">&#x25A3; 12</div>
+          </div>
+          <div class="work-name">漫画まとめ vol.1</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap">
+            <div class="work-img c5"></div>
+            <div class="work-pages-badge">&#x25A3; 8</div>
+          </div>
+          <div class="work-name">崩壊コミック</div>
+        </div>
+        <div class="work-card">
+          <div class="work-img-wrap"><div class="work-img c7"></div></div>
+          <div class="work-name">4コマ漫画</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bookmarked Works (staggered grid) -->
+    <div class="works-block">
+      <div class="works-top">
+        <span class="block-label" style="margin-bottom:0">Bookmarks</span>
+        <button class="see-all">See All &#x203A;</button>
+      </div>
+      <div class="works-grid">
+        <div class="grid-card">
+          <div class="grid-img-wrap">
+            <div class="grid-img c1"></div>
+            <button class="grid-bm-btn bookmarked">&#x2605;</button>
+          </div>
+          <div class="grid-info">
+            <div class="grid-title">夜明けの花</div>
+            <div class="grid-meta">
+              <span>&#x2665; 2.4k</span>
+              <span>&#x25A3; 1</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid-card">
+          <div class="grid-img-wrap">
+            <div class="grid-img c4"></div>
+            <button class="grid-bm-btn bookmarked">&#x2605;</button>
+          </div>
+          <div class="grid-info">
+            <div class="grid-title">崩壊スターレイル</div>
+            <div class="grid-meta">
+              <span>&#x2665; 5.1k</span>
+              <span>&#x25A3; 3</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid-card">
+          <div class="grid-img-wrap">
+            <div class="grid-img c6"></div>
+            <button class="grid-bm-btn bookmarked">&#x2605;</button>
+          </div>
+          <div class="grid-info">
+            <div class="grid-title">Anaxa Portrait</div>
+            <div class="grid-meta">
+              <span>&#x2665; 890</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid-card">
+          <div class="grid-img-wrap">
+            <div class="grid-img c2"></div>
+            <button class="grid-bm-btn bookmarked">&#x2605;</button>
+          </div>
+          <div class="grid-info">
+            <div class="grid-title">Honkai: Star Rail</div>
+            <div class="grid-meta">
+              <span>&#x2665; 3.2k</span>
+              <span>&#x25A3; 5</span>
+            </div>
+          </div>
+        </div>
+        <button class="load-more">Load More</button>
+      </div>
+    </div>
+
+    <!-- Profile Info -->
+    <div class="profile-card">
+      <div class="profile-card-bg"></div>
+      <div class="profile-accent"></div>
+      <div class="profile-card-inner">
+        <div class="profile-card-header" onclick="
+          const g=this.nextElementSibling;
+          const a=this.querySelector('.d-arrow');
+          if(g.style.display==='none'){g.style.display='grid';a.style.transform='rotate(180deg)'}
+          else{g.style.display='none';a.style.transform=''}
+        ">
+          <span class="d-label">Profile Details</span>
+          <span class="d-arrow" style="transform:rotate(180deg)">&#x25BE;</span>
+        </div>
+        <div class="profile-grid">
+          <div class="profile-chip">
+            <span class="pc-label">User ID</span>
+            <span class="pc-value mono">62059105</span>
+          </div>
+          <div class="profile-chip">
+            <span class="pc-label">Account</span>
+            <span class="pc-value">hitohachan</span>
+          </div>
+          <div class="profile-chip">
+            <span class="pc-label">Gender</span>
+            <span class="pc-value">Female</span>
+          </div>
+          <div class="profile-chip">
+            <span class="pc-label">Region</span>
+            <span class="pc-value">Japan</span>
+          </div>
+          <div class="profile-chip">
+            <span class="pc-label">Birthday</span>
+            <span class="pc-value">12-14</span>
+          </div>
+          <div class="profile-chip">
+            <span class="pc-label">Job</span>
+            <span class="pc-value">Illustrator</span>
+          </div>
+          <div class="profile-chip">
+            <span class="pc-label">Premium</span>
+            <span class="pc-value premium-text">&#x2605; Premium User</span>
+          </div>
+          <div class="profile-chip">
+            <span class="pc-label">Content</span>
+            <span class="pc-value">All Ages</span>
+          </div>
+          <div class="profile-chip full">
+            <span class="pc-label">Pixiv URL</span>
+            <span class="pc-value mono">pixiv.net/users/62059105</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workspace (conditional — show when workspace data exists) -->
+    <div class="workspace-card">
+      <div class="workspace-card-bg"></div>
+      <div class="workspace-accent"></div>
+      <div class="workspace-inner">
+        <div class="workspace-header" onclick="
+          const g=this.nextElementSibling;
+          const a=this.querySelector('.w-arrow');
+          if(g.style.display==='none'){g.style.display='grid';a.style.transform='rotate(180deg)'}
+          else{g.style.display='none';a.style.transform=''}
+        ">
+          <span class="w-label">&#x1F3A8; Workspace</span>
+          <span class="w-arrow" style="transform:rotate(180deg)">&#x25BE;</span>
+        </div>
+        <div class="workspace-grid">
+          <div class="ws-chip">
+            <span class="ws-label">PC</span>
+            <span class="ws-value">Mac Studio M2 Ultra</span>
+          </div>
+          <div class="ws-chip">
+            <span class="ws-label">Monitor</span>
+            <span class="ws-value">Apple Studio Display</span>
+          </div>
+          <div class="ws-chip">
+            <span class="ws-label">Tablet</span>
+            <span class="ws-value">Wacom Cintiq Pro 24</span>
+          </div>
+          <div class="ws-chip">
+            <span class="ws-label">Tool</span>
+            <span class="ws-value">CLIP STUDIO PAINT</span>
+          </div>
+          <div class="ws-chip">
+            <span class="ws-label">Mouse</span>
+            <span class="ws-value">Logicool MX Master 3</span>
+          </div>
+          <div class="ws-chip">
+            <span class="ws-label">Chair</span>
+            <span class="ws-value">Herman Miller Aeron</span>
+          </div>
+          <div class="ws-chip full">
+            <span class="ws-label">Music</span>
+            <span class="ws-value">Lo-fi beats, anime OST</span>
+          </div>
+          <div class="ws-chip full">
+            <span class="ws-label">Comment</span>
+            <span class="ws-value">お仕事募集中です！お気軽にご連絡ください。</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Users -->
+    <div class="works-block">
+      <div class="works-top">
+        <span class="block-label" style="margin-bottom:0">Related Users</span>
+        <button class="see-all">More &#x203A;</button>
+      </div>
+      <div class="related-users-scroll">
+        <div class="related-user-card">
+          <div class="ru-avatar-wrap">
+            <img class="ru-avatar"
+                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='32' fill='%239f7aea'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='white' font-size='24' font-family='sans-serif' font-weight='700'%3EA%3C/text%3E%3C/svg%3E" alt="">
+          </div>
+          <div class="ru-name">Artist A</div>
+          <button class="ru-follow-btn">Follow</button>
+        </div>
+        <div class="related-user-card">
+          <div class="ru-avatar-wrap">
+            <img class="ru-avatar"
+                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='32' fill='%233d8bfd'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='white' font-size='24' font-family='sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" alt="">
+          </div>
+          <div class="ru-name">Artist B</div>
+          <button class="ru-follow-btn">Follow</button>
+        </div>
+        <div class="related-user-card">
+          <div class="ru-avatar-wrap">
+            <img class="ru-avatar"
+                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='32' fill='%23ff2d78'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='white' font-size='24' font-family='sans-serif' font-weight='700'%3EC%3C/text%3E%3C/svg%3E" alt="">
+          </div>
+          <div class="ru-name">Artist C</div>
+          <button class="ru-follow-btn">Follow</button>
+        </div>
+        <div class="related-user-card">
+          <div class="ru-avatar-wrap">
+            <img class="ru-avatar"
+                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='32' fill='%232dd4a8'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='white' font-size='24' font-family='sans-serif' font-weight='700'%3ED%3C/text%3E%3C/svg%3E" alt="">
+          </div>
+          <div class="ru-name">Artist D</div>
+          <button class="ru-follow-btn">Follow</button>
+        </div>
+        <div class="related-user-card">
+          <div class="ru-avatar-wrap">
+            <img class="ru-avatar"
+                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='32' fill='%23ffc233'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='white' font-size='24' font-family='sans-serif' font-weight='700'%3EE%3C/text%3E%3C/svg%3E" alt="">
+          </div>
+          <div class="ru-name">Artist E</div>
+          <button class="ru-follow-btn">Follow</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mute / Block User -->
+    <div class="mute-strip">
+      <span class="m-ico">&#x1F6AB;</span>
+      <span class="m-txt">Mute this user's works</span>
+      <div class="m-toggle" onclick="this.classList.toggle('active')"></div>
+    </div>
+
+  </div><!-- /content -->
+
+
+</div><!-- /shell -->
+
+<script>
+// Scroll progress bar
+(function(){
+  const shell = document.getElementById('shell');
+  const bar = document.getElementById('progressBar');
+
+  function update(){
+    const el = shell.scrollTop !== undefined && shell.scrollHeight > shell.clientHeight ? shell : document.documentElement;
+    const scrollTop = el === shell ? shell.scrollTop : (window.pageYOffset || document.documentElement.scrollTop);
+    const scrollHeight = el.scrollHeight - el.clientHeight;
+    const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    bar.style.width = pct + '%';
+  }
+
+  shell.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('scroll', update, {passive:true});
+  update();
+})();
+</script>
+
+<!--
+  ========================================
+  V3 USER DETAIL — ELEMENT CHECKLIST
+  ========================================
+
+  ALWAYS PRESENT:
+  [x] Banner image (background_image_url) — .banner-hero
+  [x] Avatar with premium ring — .avatar-wrap
+  [x] Premium badge — .premium-badge
+  [x] User name — .user-name
+  [x] Account handle + ID — .user-handle
+  [x] Follow / Unfollow button — .follow-btn
+  [x] Message button — .msg-btn
+  [x] Bio / Comment — .bio-block
+  [x] Stats: illusts, manga, novels, following, mypixiv — .stats-row
+  [x] Social links (Twitter, website, Pawoo) — .socials-row
+  [x] Quick nav tags (illusts, manga, series, novels, bookmarks) — .nav-tags-block
+  [x] Profile details (ID, account, gender, region, birthday, job, premium, content rating) — .profile-card
+  [x] Mute/block user — .mute-strip
+  [x] Scroll progress — .scroll-progress
+  [x] Nav bar (back, more menu) — .nav-bar
+
+  CONDITIONAL:
+  [x] User's illustrations scroll — .works-block (show when total_illusts > 0)
+  [x] User's manga scroll — .works-block (show when total_manga > 0)
+  [x] Bookmarked works grid — .works-block (show when total_illust_bookmarks_public > 0)
+  [x] Workspace details — .workspace-card (show when workspace data exists)
+  [x] Related users — .related-users-scroll (always show for non-self)
+  [ ] Novel works scroll — could add similar to manga
+  [ ] Illust series — could add as horizontal scroll
+  [ ] Novel series — could add as horizontal scroll
+
+  DATA MAPPING (UserDetailResponse):
+  - user.name → .user-name
+  - user.account → .user-handle @account part
+  - user.id → .user-handle ID part, profile-chip
+  - user.comment → .bio-block
+  - user.is_premium → premium badge/ring, profile chip
+  - user.is_followed → follow button state
+  - user.profile_image_urls.px_170x170 → .avatar
+  - user.x_restrict → content rating chip
+  - profile.background_image_url → .banner-img
+  - profile.total_illusts → stats + nav tags
+  - profile.total_manga → stats + nav tags
+  - profile.total_novels → stats + nav tags
+  - profile.total_follow_users → stats
+  - profile.total_mypixiv_users → stats
+  - profile.total_illust_bookmarks_public → nav tags
+  - profile.total_illust_series → nav tags
+  - profile.total_novel_series → nav tags
+  - profile.gender → profile chip
+  - profile.birth / birth_day → profile chip
+  - profile.region → profile chip
+  - profile.job → profile chip
+  - profile.webpage → social chip
+  - profile.twitter_account / twitter_url → social chip
+  - profile.pawoo_url → social chip
+  - workspace.* → workspace card chips
+-->
+
+</body>
+</html>
