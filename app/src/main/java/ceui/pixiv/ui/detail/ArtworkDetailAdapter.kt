@@ -556,9 +556,12 @@ class ArtworkDetailAdapter(
                 }
                 b.authorWorksRv.layoutManager =
                     LinearLayoutManager(ctx, LinearLayoutManager.HORIZONTAL, false)
-                b.authorWorksRv.addItemDecoration(
-                    ceui.lisa.view.LinearItemHorizontalDecoration(8.ppppx)
-                )
+                b.authorWorksRv.addItemDecoration(object : RecyclerView.ItemDecoration() {
+                    override fun getItemOffsets(outRect: android.graphics.Rect, view: View,
+                        parent: RecyclerView, state: RecyclerView.State) {
+                        outRect.right = 8.ppppx
+                    }
+                })
                 b.authorWorksRv.adapter = lAdapter
                 val lp = b.authorWorksRv.layoutParams
                 lp.height = lAdapter!!.imageSize +
