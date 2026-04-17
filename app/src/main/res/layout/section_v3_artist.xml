@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/artist_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginBottom="6dp"
+    android:background="@drawable/v3_glass_surface_xl"
+    android:clipChildren="false">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="40dp"
+        android:background="@drawable/v3_accent_line" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="18dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="18dp">
+
+        <!-- Avatar row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/artist_avatar"
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:scaleType="centerCrop"
+                    app:civ_border_color="#1A08080C"
+                    app:civ_border_width="3dp" />
+
+                <FrameLayout
+                    android:id="@+id/premium_badge"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="bottom|end"
+                    android:layout_marginEnd="-2dp"
+                    android:layout_marginBottom="-2dp"
+                    android:background="@drawable/v3_premium_badge_bg"
+                    android:elevation="2dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="★"
+                        android:textColor="#1A1A2E"
+                        android:textSize="9sp" />
+                </FrameLayout>
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_marginBottom="4dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/artist_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:letterSpacing="-0.01"
+                    android:maxLines="1"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="ひとはﾁｬﾝ" />
+
+                <TextView
+                    android:id="@+id/artist_handle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="11sp"
+                    tools:text="\@hitohachan" />
+            </LinearLayout>
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/follow_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/v3_follow_btn_primary"
+                android:paddingHorizontal="20dp"
+                android:text="@string/follow"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp" />
+        </LinearLayout>
+
+        <!-- Bio -->
+        <TextView
+            android:id="@+id/artist_bio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:ellipsize="end"
+            android:lineSpacingMultiplier="1.65"
+            android:maxLines="2"
+            android:textColor="@color/v3_text_2"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="FANBOX: hitohachan.fanbox.cc" />
+    </LinearLayout>
+</FrameLayout>

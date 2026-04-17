@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<org.sufficientlysecure.htmltextview.HtmlTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/description"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="20dp"
+    android:paddingBottom="6dp"
+    android:lineSpacingMultiplier="1.75"
+    android:textColor="@color/v3_text_2"
+    android:textColorLink="@color/v3_blue"
+    android:textSize="14sp" />

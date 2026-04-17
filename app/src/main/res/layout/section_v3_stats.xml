@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginBottom="6dp"
+    android:background="@drawable/v3_glass_surface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="16dp">
+
+        <!-- Views -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ceui.pixiv.ui.detail.GradientTextView
+                android:id="@+id/stat_views"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="-0.03"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:gtv_endColor="@color/v3_stat_views_end"
+                app:gtv_startColor="@color/v3_stat_views_start"
+                tools:text="1,627" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:letterSpacing="0.1"
+                android:text="VIEWS"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="4dp"
+            android:background="#0FFFFFFF" />
+
+        <!-- Likes -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ceui.pixiv.ui.detail.GradientTextView
+                android:id="@+id/stat_likes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="-0.03"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:gtv_endColor="@color/v3_stat_likes_end"
+                app:gtv_startColor="@color/v3_stat_likes_start"
+                tools:text="220" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:letterSpacing="0.1"
+                android:text="LIKES"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="4dp"
+            android:background="#0FFFFFFF" />
+
+        <!-- Bookmarks -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ceui.pixiv.ui.detail.GradientTextView
+                android:id="@+id/stat_bookmarks"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="-0.03"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:gtv_endColor="@color/v3_stat_bookmarks_end"
+                app:gtv_startColor="@color/v3_stat_bookmarks_start"
+                tools:text="298" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:letterSpacing="0.1"
+                android:text="BOOKMARKS"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="4dp"
+            android:background="#0FFFFFFF" />
+
+        <!-- Comments -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ceui.pixiv.ui.detail.GradientTextView
+                android:id="@+id/stat_comments"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="-0.03"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:gtv_endColor="@color/v3_stat_comments_end"
+                app:gtv_startColor="@color/v3_stat_comments_start"
+                tools:text="2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:letterSpacing="0.1"
+                android:text="COMMENTS"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ceui.pixiv.ui.detail.ShimmerOverlayView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</FrameLayout>

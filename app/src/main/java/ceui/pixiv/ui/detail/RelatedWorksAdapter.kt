@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.detail
 
+import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -16,7 +18,12 @@ class RelatedWorksAdapter(
     private val onClickBookmark: (Illust, Int) -> Unit
 ) : RecyclerView.Adapter<RelatedWorksAdapter.VH>() {
 
+    companion object {
+        private const val TAG = "RelatedWorksAdapter"
+    }
+
     private val items = mutableListOf<Illust>()
+    private var createCount = 0
 
     fun submitList(list: List<Illust>) {
         items.clear()
@@ -33,14 +40,21 @@ class RelatedWorksAdapter(
     override fun getItemCount() = items.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val t = SystemClock.elapsedRealtime()
         val binding = CellV3RelatedWorkBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
+        Log.d(TAG, "onCreateVH ${SystemClock.elapsedRealtime() - t}ms (total created: ${++createCount})")
         return VH(binding)
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
+        val t = SystemClock.elapsedRealtime()
         holder.bind(items[position], position)
+        val elapsed = SystemClock.elapsedRealtime() - t
+        if (elapsed > 1) {
+            Log.d(TAG, "onBindVH pos=$position ${elapsed}ms")
+        }
     }
 
     inner class VH(private val binding: CellV3RelatedWorkBinding) :

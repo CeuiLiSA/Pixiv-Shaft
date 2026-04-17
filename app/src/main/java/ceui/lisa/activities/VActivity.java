@@ -70,7 +70,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                             if (exist == null) {
                                 ObjectPool.INSTANCE.updateIllust(illustsBean);
                             }
-                            return ArtworkV3Fragment.Companion.newInstance(illustsBean.getId());
+                            return ArtworkV3Fragment.newInstance(illustsBean.getId());
                         } else if (Shaft.sSettings.isUseFragmentIllust()) {
                             IllustsBean exist = ObjectPool.INSTANCE.getIllust(illustsBean.getId()).getValue();
                             if (exist == null) {

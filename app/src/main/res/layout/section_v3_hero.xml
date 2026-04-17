@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Hero image area -->
+    <FrameLayout
+        android:id="@+id/hero_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false">
+
+        <ImageView
+            android:id="@+id/hero_image"
+            android:layout_width="match_parent"
+            android:layout_height="480dp"
+            android:background="@color/v3_bg"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/badge_ai"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|top"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="60dp"
+            android:background="@drawable/v3_badge_ai_bg"
+            android:letterSpacing="0.08"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="5dp"
+            android:text="AI"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/badge_pages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="14dp"
+            android:background="@drawable/v3_badge_pages_bg"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="5dp"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="3P"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/badge_dimensions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_marginEnd="14dp"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/v3_badge_dimen_bg"
+            android:fontFamily="monospace"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="5dp"
+            android:textColor="#B3FFFFFF"
+            android:textSize="10sp"
+            tools:text="1378 x 2039" />
+    </FrameLayout>
+
+    <!-- Title & Meta -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="6dp">
+
+        <TextView
+            android:id="@+id/hero_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="-0.03"
+            android:lineSpacingMultiplier="1.2"
+            android:textColor="@color/v3_text_1"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            tools:text="アナイクス" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/meta_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="Illustration" />
+
+            <View
+                android:layout_width="3dp"
+                android:layout_height="3dp"
+                android:layout_marginHorizontal="8dp"
+                android:background="@drawable/v3_nav_btn_bg" />
+
+            <TextView
+                android:id="@+id/meta_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="2026-04-15 18:00" />
+
+            <View
+                android:layout_width="3dp"
+                android:layout_height="3dp"
+                android:layout_marginHorizontal="8dp"
+                android:background="@drawable/v3_nav_btn_bg" />
+
+            <TextView
+                android:id="@+id/meta_pages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="1 page" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
