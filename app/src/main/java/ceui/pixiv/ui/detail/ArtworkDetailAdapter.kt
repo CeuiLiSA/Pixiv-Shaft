@@ -556,6 +556,9 @@ class ArtworkDetailAdapter(
                 }
                 b.authorWorksRv.layoutManager =
                     LinearLayoutManager(ctx, LinearLayoutManager.HORIZONTAL, false)
+                b.authorWorksRv.addItemDecoration(
+                    ceui.lisa.view.LinearItemHorizontalDecoration(8.ppppx)
+                )
                 b.authorWorksRv.adapter = lAdapter
                 val lp = b.authorWorksRv.layoutParams
                 lp.height = lAdapter!!.imageSize +
