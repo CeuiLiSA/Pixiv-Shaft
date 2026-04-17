@@ -202,6 +202,7 @@
 
                     <TextView
                         android:id="@+id/toolbar_title"
+                        style="@style/textMontserratBold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
@@ -209,8 +210,7 @@
                         android:ellipsize="end"
                         android:singleLine="true"
                         android:textColor="@color/v3_text_1"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textSize="18sp" />
 
                     <ImageView
                         android:id="@+id/more_action"
@@ -258,10 +258,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
+                    android:alpha="0.78"
                     android:autoLink="all"
                     android:lineSpacingMultiplier="1.6"
                     android:textColor="@color/v3_text_1"
-                    android:alpha="0.78"
                     android:textColorLink="#3D8BFD"
                     android:textIsSelectable="true"
                     android:textSize="14sp"
@@ -297,11 +297,11 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:letterSpacing="0.1"
                             android:text="@string/v3_label_following"
                             android:textAllCaps="true"
                             android:textColor="@color/v3_text_3"
                             android:textSize="9sp"
-                            android:letterSpacing="0.1"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -326,11 +326,11 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:letterSpacing="0.1"
                             android:text="@string/v3_label_mypixiv"
                             android:textAllCaps="true"
                             android:textColor="@color/v3_text_3"
                             android:textSize="9sp"
-                            android:letterSpacing="0.1"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>

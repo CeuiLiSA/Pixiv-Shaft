@@ -2,6 +2,7 @@ package ceui.lisa.activities
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -27,7 +28,6 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.V3Palette
-import android.net.Uri
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.loxia.Event
@@ -88,7 +88,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.toolbarLayout.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
-                val offset = baseBind.toolbarLayout.height - Shaft.statusHeight - Shaft.toolbarHeight
+                val offset =
+                    baseBind.toolbarLayout.height - Shaft.statusHeight - Shaft.toolbarHeight
                 baseBind.appBar.addOnOffsetChangedListener { _, verticalOffset ->
                     val abs = Math.abs(verticalOffset)
                     when {
@@ -96,10 +97,12 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                             baseBind.profileHeader.alpha = 1.0f
                             baseBind.toolbarTitle.alpha = 0.0f
                         }
+
                         offset - abs < 15 -> {
                             baseBind.profileHeader.alpha = 0.0f
                             baseBind.toolbarTitle.alpha = 1.0f
                         }
+
                         else -> {
                             baseBind.profileHeader.alpha = 1 + verticalOffset.toFloat() / offset
                             baseBind.toolbarTitle.alpha = -verticalOffset.toFloat() / offset
@@ -194,7 +197,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
         // Name, handle
         baseBind.userName.text = user.name
-        baseBind.userHandle.text = "@${user.account} · ID: ${user.id}"
+        baseBind.userHandle.text = "@${user.account}"
         baseBind.toolbarTitle.text = user.name
 
         baseBind.userName.setOnClickListener { Common.copy(mContext, user.id.toString()) }
@@ -351,7 +354,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             baseBind.navTags.visibility = View.VISIBLE
 
             baseBind.navTags.adapter = object : TagAdapter<Pair<String, String>>(tags) {
-                override fun getView(parent: FlowLayout, position: Int, item: Pair<String, String>?): View {
+                override fun getView(
+                    parent: FlowLayout,
+                    position: Int,
+                    item: Pair<String, String>?
+                ): View {
                     val binding = ItemV3NavTagBinding.inflate(
                         LayoutInflater.from(mContext), parent, false
                     )
@@ -434,18 +441,21 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             val isFullWidth = chips[i].first == "Pixiv URL"
 
             if (isFullWidth || isLastSingle) {
-                chip1.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                chip1.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 row.addView(chip1)
             } else {
-                chip1.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginEnd = chipGap
-                }
+                chip1.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        marginEnd = chipGap
+                    }
                 row.addView(chip1)
 
                 val chip2 = createProfileChip(chips[i + 1])
-                chip2.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = chipGap
-                }
+                chip2.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        marginStart = chipGap
+                    }
                 row.addView(chip2)
                 i++
             }
@@ -511,18 +521,21 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             val chip1 = createWorkspaceChip(items[i])
 
             if (isLastSingle) {
-                chip1.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                chip1.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 row.addView(chip1)
             } else {
-                chip1.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginEnd = chipGap
-                }
+                chip1.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        marginEnd = chipGap
+                    }
                 row.addView(chip1)
 
                 val chip2 = createWorkspaceChip(items[i + 1])
-                chip2.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = chipGap
-                }
+                chip2.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        marginStart = chipGap
+                    }
                 row.addView(chip2)
                 i++
             }
