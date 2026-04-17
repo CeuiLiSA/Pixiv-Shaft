@@ -266,8 +266,6 @@ class ArtworkDetailAdapter(
             val fmt = NumberFormat.getNumberInstance()
             b.statViews.text = fmt.format(illust.total_view)
             b.statBookmarks.text = fmt.format(illust.total_bookmarks)
-            b.statLikes.text = "--"
-            b.statComments.text = "--"
         }
     }
 
@@ -510,10 +508,13 @@ class ArtworkDetailAdapter(
                     })
                 }
                 if (comment.stamp?.stamp_url != null) {
-                    val sv = android.widget.ImageView(ctx).apply {
+                    val sv = com.google.android.material.imageview.ShapeableImageView(ctx).apply {
                         layoutParams = LinearLayout.LayoutParams(80.ppppx, 80.ppppx)
-                            .apply { topMargin = 4.ppppx }
+                            .apply { topMargin = 6.ppppx }
                         scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                        shapeAppearanceModel = shapeAppearanceModel.toBuilder()
+                            .setAllCornerSizes(8.ppppx.toFloat())
+                            .build()
                     }
                     Glide.with(ctx).load(GlideUrlChild(comment.stamp!!.stamp_url!!)).into(sv)
                     content.addView(sv)
@@ -523,7 +524,7 @@ class ArtworkDetailAdapter(
                     b.commentsList.addView(View(ctx).apply {
                         layoutParams =
                             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1)
-                        setBackgroundColor(0x0AFFFFFF)
+                        setBackgroundColor(ctx.getColor(R.color.v3_border_1))
                     })
                 }
                 b.commentsList.addView(row)

@@ -12,7 +12,7 @@
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
         android:paddingTop="10dp"
-        android:paddingBottom="6dp">
+        android:paddingBottom="16dp">
 
         <TextView
             android:id="@+id/hero_title"

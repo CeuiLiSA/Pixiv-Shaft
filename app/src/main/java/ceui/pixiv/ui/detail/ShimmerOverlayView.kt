@@ -6,6 +6,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
@@ -20,6 +22,8 @@ class ShimmerOverlayView @JvmOverloads constructor(
     private val shimmerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var shimmerOffset = -1f
     private val shimmerColor = 0x0F8B7BDB.toInt()
+    private val clipPath = Path()
+    private var cornerRadius = 20f * resources.displayMetrics.density
 
     private val animator = ValueAnimator.ofFloat(-1f, 2f).apply {
         duration = 4000L
@@ -31,9 +35,21 @@ class ShimmerOverlayView @JvmOverloads constructor(
         }
     }
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        clipPath.reset()
+        clipPath.addRoundRect(
+            RectF(0f, 0f, w.toFloat(), h.toFloat()),
+            cornerRadius, cornerRadius, Path.Direction.CW
+        )
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (width <= 0 || height <= 0) return
+
+        canvas.save()
+        canvas.clipPath(clipPath)
 
         val startX = width * shimmerOffset
         val endX = width * (shimmerOffset + 0.5f)
@@ -45,6 +61,8 @@ class ShimmerOverlayView @JvmOverloads constructor(
         )
         shimmerPaint.shader = gradient
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), shimmerPaint)
+
+        canvas.restore()
     }
 
     override fun onAttachedToWindow() {

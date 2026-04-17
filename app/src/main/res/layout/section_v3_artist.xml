@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="12dp"
-    android:layout_marginBottom="6dp"
+    android:layout_marginBottom="18dp"
     android:background="@drawable/v3_glass_surface_xl"
     android:clipChildren="false">
 

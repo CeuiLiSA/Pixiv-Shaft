@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="12dp"
-    android:layout_marginBottom="6dp"
+    android:layout_marginBottom="18dp"
     android:background="@drawable/v3_glass_surface">
 
     <LinearLayout
@@ -51,44 +51,7 @@
             android:layout_width="1dp"
             android:layout_height="match_parent"
             android:layout_marginVertical="4dp"
-            android:background="#0FFFFFFF" />
-
-        <!-- Likes -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <ceui.pixiv.ui.detail.GradientTextView
-                android:id="@+id/stat_likes"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:letterSpacing="-0.03"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                app:gtv_endColor="@color/v3_stat_likes_end"
-                app:gtv_startColor="@color/v3_stat_likes_start"
-                tools:text="220" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:letterSpacing="0.1"
-                android:text="@string/v3_label_likes"
-                android:textAllCaps="true"
-                android:textColor="@color/v3_text_3"
-                android:textSize="9sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="4dp"
-            android:background="#0FFFFFFF" />
+            android:background="@color/v3_border_1" />
 
         <!-- Bookmarks -->
         <LinearLayout
@@ -115,43 +78,6 @@
                 android:layout_marginTop="3dp"
                 android:letterSpacing="0.1"
                 android:text="@string/v3_label_bookmarks"
-                android:textAllCaps="true"
-                android:textColor="@color/v3_text_3"
-                android:textSize="9sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="4dp"
-            android:background="#0FFFFFFF" />
-
-        <!-- Comments -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <ceui.pixiv.ui.detail.GradientTextView
-                android:id="@+id/stat_comments"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:letterSpacing="-0.03"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                app:gtv_endColor="@color/v3_stat_comments_end"
-                app:gtv_startColor="@color/v3_stat_comments_start"
-                tools:text="2" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:letterSpacing="0.1"
-                android:text="@string/v3_label_comments"
                 android:textAllCaps="true"
                 android:textColor="@color/v3_text_3"
                 android:textSize="9sp"
