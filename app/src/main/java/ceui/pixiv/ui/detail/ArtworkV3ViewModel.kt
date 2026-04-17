@@ -18,6 +18,7 @@ import ceui.pixiv.db.RecordType
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -46,6 +47,8 @@ class ArtworkV3ViewModel(
     val isBookmarked: LiveData<Boolean> = _isBookmarked
 
     private var relatedNextUrl: String? = null
+    private val _isLoadingRelated = MutableLiveData(false)
+    val isLoadingRelated: LiveData<Boolean> = _isLoadingRelated
     private var isLoadingMore = false
     val hasMoreRelated: Boolean get() = !relatedNextUrl.isNullOrEmpty() && !isLoadingMore
 
@@ -140,8 +143,10 @@ class ArtworkV3ViewModel(
                     runCatching { Client.appApi.getIllustComments(illustId).comments.take(3) }
                         .getOrElse { Timber.e(it); emptyList() }
                 }
+                _isLoadingRelated.value = true
                 val relatedD = async(Dispatchers.IO) {
                     runCatching {
+                        delay(2000) // TODO: remove after testing loading indicator
                         // Parse as ListIllust to get List<IllustsBean> directly
                         val body = Client.appApi.generalGet(
                             "https://app-api.pixiv.net/v2/illust/related?illust_id=$illustId"
@@ -167,6 +172,7 @@ class ArtworkV3ViewModel(
                     relatedList.addAll(resp.list ?: emptyList())
                     relatedNextUrl = resp.next_url
                     _relatedIllusts.value = relatedList.toList()
+                    _isLoadingRelated.value = false
                 }
 
                 authorWorks = authorD.await().ifEmpty { null }
@@ -190,10 +196,12 @@ class ArtworkV3ViewModel(
         val url = relatedNextUrl
         if (url.isNullOrEmpty() || isLoadingMore) return
         isLoadingMore = true
+        _isLoadingRelated.value = true
 
         viewModelScope.launch(Dispatchers.Main) {
             try {
                 val resp = withContext(Dispatchers.IO) {
+                    delay(2000) // TODO: remove after testing loading indicator
                     val body = Client.appApi.generalGet(url)
                     gson.fromJson(body.string(), ListIllust::class.java)
                 }
@@ -206,6 +214,7 @@ class ArtworkV3ViewModel(
                 Timber.e(e)
             } finally {
                 isLoadingMore = false
+                _isLoadingRelated.value = false
             }
         }
     }

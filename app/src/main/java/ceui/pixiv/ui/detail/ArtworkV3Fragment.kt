@@ -1,6 +1,8 @@
 package ceui.pixiv.ui.detail
 
+import android.graphics.Rect
 import android.os.Bundle
+import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
@@ -37,6 +39,7 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
 
     private lateinit var headerAdapter: ArtworkDetailAdapter
     private lateinit var relatedAdapter: IAdapter
+    private lateinit var loadingFooter: LoadingFooterAdapter
     private val relatedList = mutableListOf<IllustsBean>()
 
     override fun initLayout() {
@@ -48,16 +51,19 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
 
         headerAdapter = ArtworkDetailAdapter(this)
         relatedAdapter = IAdapter(relatedList, mContext)
+        loadingFooter = LoadingFooterAdapter()
 
         val concatAdapter = ConcatAdapter(
             ConcatAdapter.Config.Builder().setIsolateViewTypes(true).build(),
             headerAdapter,
-            relatedAdapter
+            relatedAdapter,
+            loadingFooter
         )
 
         baseBind.recyclerView.layoutManager =
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         baseBind.recyclerView.adapter = concatAdapter
+        baseBind.recyclerView.addItemDecoration(RelatedOnlySpaceDecoration(4.ppppx))
 
         setupNavBar(illustId)
         setupScrollProgress()
@@ -81,6 +87,10 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                     relatedAdapter.notifyDataSetChanged()
                 }
             }
+        }
+
+        viewModel.isLoadingRelated.observe(viewLifecycleOwner) { loading ->
+            if (loading) loadingFooter.show() else loadingFooter.hide()
         }
 
         viewModel.isBookmarked.observe(viewLifecycleOwner) { bookmarked ->
@@ -139,6 +149,26 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     }
 
     override fun vertical() {}
+
+    /**
+     * Spacing decoration that only applies to non-fullSpan items (IAdapter's related cards).
+     * Header items and loading footer are fullSpan and get zero offset.
+     */
+    private class RelatedOnlySpaceDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
+        override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+            val lp = view.layoutParams
+            if (lp !is StaggeredGridLayoutManager.LayoutParams || lp.isFullSpan) return
+
+            outRect.bottom = space
+            if (lp.spanIndex == 0) {
+                outRect.left = space
+                outRect.right = space / 2
+            } else {
+                outRect.left = space / 2
+                outRect.right = space
+            }
+        }
+    }
 
     companion object {
         @JvmStatic
