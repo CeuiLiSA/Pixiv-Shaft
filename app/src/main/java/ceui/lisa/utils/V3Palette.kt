@@ -111,6 +111,19 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
             intArrayOf(0x00000000, alpha50, hueShift(alpha50, 30f), 0x00000000)
         )
 
+    /** Banner placeholder — subtle ambient gradient matching theme color */
+    fun bannerPlaceholder(): GradientDrawable {
+        val base = desaturate(primary, 0.6f)
+        return GradientDrawable(
+            GradientDrawable.Orientation.BL_TR,
+            intArrayOf(
+                if (isDark) darken(base, 0.12f) else lighten(base, 0.88f),
+                if (isDark) darken(hueShift(base, 20f), 0.10f) else lighten(hueShift(base, 20f), 0.90f),
+                if (isDark) darken(hueShift(base, -15f), 0.14f) else lighten(hueShift(base, -15f), 0.86f)
+            )
+        )
+    }
+
     /** Artist banner overlay gradient */
     fun artistBannerBg(): GradientDrawable =
         GradientDrawable(
@@ -211,6 +224,23 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
             val shifted = ColorUtils.HSLToColor(hsl)
             // preserve original alpha
             return ColorUtils.setAlphaComponent(shifted, (color ushr 24) and 0xFF)
+        }
+
+        /** Set lightness to a specific value */
+        @ColorInt
+        private fun darken(@ColorInt color: Int, lightness: Float): Int {
+            val hsl = FloatArray(3)
+            ColorUtils.colorToHSL(color, hsl)
+            hsl[2] = lightness
+            return ColorUtils.HSLToColor(hsl)
+        }
+
+        @ColorInt
+        private fun lighten(@ColorInt color: Int, lightness: Float): Int {
+            val hsl = FloatArray(3)
+            ColorUtils.colorToHSL(color, hsl)
+            hsl[2] = lightness
+            return ColorUtils.HSLToColor(hsl)
         }
 
         /** Reduce saturation towards gray */
