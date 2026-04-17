@@ -67,6 +67,7 @@
 
                 <TextView
                     android:id="@+id/artist_name"
+                    style="@style/textMontserratSemiBold"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
@@ -79,6 +80,7 @@
 
                 <TextView
                     android:id="@+id/artist_handle"
+                    style="@style/textMontserratMedium"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
