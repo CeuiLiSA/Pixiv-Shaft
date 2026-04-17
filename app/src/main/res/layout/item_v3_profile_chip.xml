@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_v3_chip"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="12dp">
 
     <TextView
         android:id="@+id/chip_label"

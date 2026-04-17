@@ -29,6 +29,7 @@ import ceui.lisa.utils.PixivOperate
 import android.net.Uri
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
+import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
 import ceui.pixiv.session.SessionManager
@@ -60,6 +61,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
         val entity = AppDatabase.getAppDatabase(this).searchDao().getUserMuteEntityByID(userId)
         mUserViewModel.isUserMuted.value = entity != null
+        val block = AppDatabase.getAppDatabase(this).searchDao().getBlockMuteEntityByID(userId)
+        mUserViewModel.isUserBlocked.value = block != null
 
         ObjectPool.get<UserBean>(userId.toLong()).observe(this) { user ->
             updateFollowState(user)
@@ -220,6 +223,28 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.statMypixivNum.text = fmt.format(profile.total_mypixiv_users)
 
         // Stat click listeners
+        baseBind.statIllusts.setOnClickListener {
+            val intent = Intent(mContext, TemplateActivity::class.java)
+            intent.putExtra(Params.USER_ID, user.id)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
+            startActivity(intent)
+        }
+        if (profile.total_manga > 0) {
+            baseBind.statManga.setOnClickListener {
+                val intent = Intent(mContext, TemplateActivity::class.java)
+                intent.putExtra(Params.USER_ID, user.id)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画作品")
+                startActivity(intent)
+            }
+        }
+        if (profile.total_novels > 0) {
+            baseBind.statNovels.setOnClickListener {
+                val intent = Intent(mContext, TemplateActivity::class.java)
+                intent.putExtra(Params.USER_ID, user.id)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说作品")
+                startActivity(intent)
+            }
+        }
         baseBind.statFollowing.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id)
@@ -258,6 +283,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     PixivOperate.unMuteUser(user)
                     mUserViewModel.isUserMuted.value = false
                 }
+                mUserViewModel.refreshEvent.value = Event(100, 0L)
             }
         }
     }
@@ -410,6 +436,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // Build the grid: 2 chips per row
         val grid = baseBind.profileGrid
         grid.removeAllViews()
+        val density = resources.displayMetrics.density
+        val rowGap = (10 * density).toInt()
+        val chipGap = (5 * density).toInt()
         var i = 0
         while (i < chips.size) {
             val row = LinearLayout(this).apply {
@@ -417,7 +446,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { bottomMargin = 8 }
+                ).apply { bottomMargin = rowGap }
             }
 
             val chip1 = createProfileChip(chips[i])
@@ -429,13 +458,13 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 row.addView(chip1)
             } else {
                 chip1.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginEnd = 4
+                    marginEnd = chipGap
                 }
                 row.addView(chip1)
 
                 val chip2 = createProfileChip(chips[i + 1])
                 chip2.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = 4
+                    marginStart = chipGap
                 }
                 row.addView(chip2)
                 i++
@@ -484,6 +513,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.workspaceCard.visibility = View.VISIBLE
         val grid = baseBind.workspaceGrid
         grid.removeAllViews()
+        val density = resources.displayMetrics.density
+        val rowGap = (10 * density).toInt()
+        val chipGap = (5 * density).toInt()
 
         var i = 0
         while (i < items.size) {
@@ -492,7 +524,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { bottomMargin = 8 }
+                ).apply { bottomMargin = rowGap }
             }
 
             val isLastSingle = i + 1 >= items.size
@@ -503,13 +535,13 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 row.addView(chip1)
             } else {
                 chip1.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginEnd = 4
+                    marginEnd = chipGap
                 }
                 row.addView(chip1)
 
                 val chip2 = createWorkspaceChip(items[i + 1])
                 chip2.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = 4
+                    marginStart = chipGap
                 }
                 row.addView(chip2)
                 i++
@@ -561,6 +593,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     mUserViewModel.isUserMuted.value = true
                     baseBind.muteSwitch.isChecked = true
                 }
+                mUserViewModel.refreshEvent.value = Event(100, 0L)
             }
         }
         if (labels.isEmpty()) return

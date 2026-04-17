@@ -254,6 +254,7 @@
                     android:id="@+id/bio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
                     android:autoLink="all"
                     android:lineSpacingMultiplier="1.6"
                     android:textColor="@color/colorWhite60"
@@ -414,10 +415,10 @@
                     android:id="@+id/socials_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="20dp"
                     android:visibility="gone"
-                    app:chipSpacingHorizontal="8dp"
-                    app:chipSpacingVertical="8dp" />
+                    app:chipSpacingHorizontal="10dp"
+                    app:chipSpacingVertical="10dp" />
 
                 <!-- Quick Navigation Tags -->
                 <TextView
@@ -437,7 +438,7 @@
                     android:id="@+id/nav_tags"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="12dp"
                     android:visibility="gone" />
 
                 <!-- Profile Details Card -->
