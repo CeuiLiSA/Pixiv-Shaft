@@ -111,14 +111,15 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
             intArrayOf(0x00000000, alpha50, hueShift(alpha50, 30f), 0x00000000)
         )
 
-    /** Banner placeholder — vivid ambient gradient matching theme color */
+    /** Banner placeholder — ambient gradient matching theme color */
     fun bannerPlaceholder(): GradientDrawable {
+        val base = desaturate(primary, 0.85f)
         return GradientDrawable(
             GradientDrawable.Orientation.BL_TR,
             intArrayOf(
-                if (isDark) darken(primary, 0.18f) else lighten(primary, 0.82f),
-                if (isDark) darken(hueShift(primary, 30f), 0.14f) else lighten(hueShift(primary, 30f), 0.86f),
-                if (isDark) darken(hueShift(primary, -20f), 0.20f) else lighten(hueShift(primary, -20f), 0.80f)
+                if (isDark) darken(base, 0.15f) else lighten(base, 0.85f),
+                if (isDark) darken(hueShift(base, 25f), 0.12f) else lighten(hueShift(base, 25f), 0.88f),
+                if (isDark) darken(hueShift(base, -15f), 0.17f) else lighten(hueShift(base, -15f), 0.83f)
             )
         )
     }
