@@ -291,10 +291,8 @@ class ArtworkDetailAdapter(
             }
             applyTouchScale(b.artistCard)
 
-            // Apply themed accent + card background
+            // Apply themed accent line
             b.accentLine.background = palette.accentLine()
-            val d = ctx.resources.displayMetrics.density
-            b.artistCard.background = palette.glassCardBg(28f * d)
 
             if (fullUser != null) {
                 bindFollowState(fullUser)
@@ -332,10 +330,8 @@ class ArtworkDetailAdapter(
 
         fun bind(illust: IllustsBean) {
             b.detailGrid.removeAllViews()
-            // Apply themed accent line + card
+            // Apply themed accent line
             b.detailAccent.background = palette.accentLine()
-            val d = ctx.resources.displayMetrics.density
-            b.detailCard.background = palette.glassCardBg(28f * d)
             buildChips(illust)
             b.detailHeader.setOnClickListener {
                 expanded = !expanded

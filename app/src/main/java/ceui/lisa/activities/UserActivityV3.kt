@@ -385,8 +385,6 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         val profile = data.profile
         val user = data.user
         baseBind.profileCard.visibility = View.VISIBLE
-        val d = resources.displayMetrics.density
-        baseBind.profileCard.background = palette.glassCardBg(28f * d)
 
         val chips = mutableListOf<Triple<String, String, Boolean>>()  // label, value, isMono
         chips.add(Triple("User ID", user.id.toString(), true))
@@ -490,8 +488,6 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         if (items.isEmpty()) return
 
         baseBind.workspaceCard.visibility = View.VISIBLE
-        val d = resources.displayMetrics.density
-        baseBind.workspaceCard.background = palette.glassCardBg(28f * d)
         val grid = baseBind.workspaceGrid
         grid.removeAllViews()
         val density = resources.displayMetrics.density
