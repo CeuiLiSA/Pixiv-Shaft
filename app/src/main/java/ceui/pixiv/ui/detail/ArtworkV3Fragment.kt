@@ -99,10 +99,11 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         // When illust data arrives, insert IllustAdapter at the front for all pages
         ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
             if (illust != null && illustAdapter == null) {
-                val rvHeight = baseBind.recyclerView.height.takeIf { it > 0 }
-                    ?: resources.displayMetrics.heightPixels
+                // Use 70% of screen height as max — not full screen, so single-page
+                // images don't stretch to fill the entire viewport
+                val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
                 illustAdapter = ceui.lisa.adapters.IllustAdapter(
-                    mActivity, this@ArtworkV3Fragment, illust, rvHeight, false
+                    mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
                 )
                 concatAdapter.addAdapter(0, illustAdapter!!)
             }
