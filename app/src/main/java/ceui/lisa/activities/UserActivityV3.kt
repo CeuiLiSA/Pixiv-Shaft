@@ -67,6 +67,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     }
 
     override fun initView() {
+        baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
         baseBind.toolbar.setNavigationOnClickListener { finish() }
 
         // Toolbar alpha transition on scroll

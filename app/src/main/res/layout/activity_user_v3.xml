@@ -193,8 +193,7 @@
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:fitsSystemWindows="true"
+                    android:layout_height="wrap_content"
                     app:layout_collapseMode="pin"
                     app:navigationIcon="@drawable/ic_arrow_back_white_shadow">
 
