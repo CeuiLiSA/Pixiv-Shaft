@@ -333,14 +333,13 @@
                 </LinearLayout>
 
                 <!-- Social Links -->
-                <com.google.android.material.chip.ChipGroup
+                <com.google.android.flexbox.FlexboxLayout
                     android:id="@+id/socials_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:visibility="gone"
-                    app:chipSpacingHorizontal="10dp"
-                    app:chipSpacingVertical="10dp" />
+                    app:flexWrap="wrap" />
 
                 <!-- Quick Navigation Tags -->
                 <TextView

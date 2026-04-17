@@ -36,7 +36,6 @@ import ceui.loxia.ProgressTextButton
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
-import com.google.android.material.chip.Chip
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
 import com.zhy.view.flowlayout.FlowLayout
@@ -266,48 +265,41 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private fun setupSocialChips(profile: ceui.lisa.models.ProfileBean) {
         var hasAny = false
-        val strokeColor = android.content.res.ColorStateList.valueOf(palette.alpha20)
         val textColor = resources.getColor(R.color.colorWhite60, theme)
+        val dp = resources.displayMetrics.density
 
-        if (!TextUtils.isEmpty(profile.twitter_url)) {
+        fun addChip(label: String, url: String?) {
+            if (url.isNullOrEmpty()) return
             hasAny = true
-            val chip = Chip(this).apply {
-                text = if (!TextUtils.isEmpty(profile.twitter_account))
-                    "@${profile.twitter_account}" else "Twitter"
-                setChipBackgroundColorResource(R.color.colorWhite08)
-                setTextColor(textColor)
-                chipStrokeColor = strokeColor
-                chipStrokeWidth = 1f
-                setOnClickListener { openUrl(profile.twitter_url) }
+            val bg = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                cornerRadius = 999f * dp
+                setColor(0x14FFFFFF)
+                setStroke((1 * dp).toInt(), palette.alpha20)
             }
-            baseBind.socialsGroup.addView(chip)
+            val tv = android.widget.TextView(this).apply {
+                text = label
+                setTextColor(textColor)
+                textSize = 12f
+                background = bg
+                setPadding((14 * dp).toInt(), (8 * dp).toInt(), (14 * dp).toInt(), (8 * dp).toInt())
+                layoutParams = com.google.android.flexbox.FlexboxLayout.LayoutParams(
+                    com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                    com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, (10 * dp).toInt(), (10 * dp).toInt())
+                }
+                setOnClickListener { openUrl(url) }
+            }
+            baseBind.socialsGroup.addView(tv)
         }
 
-        if (!TextUtils.isEmpty(profile.webpage)) {
-            hasAny = true
-            val chip = Chip(this).apply {
-                text = "Website"
-                setChipBackgroundColorResource(R.color.colorWhite08)
-                setTextColor(textColor)
-                chipStrokeColor = strokeColor
-                chipStrokeWidth = 1f
-                setOnClickListener { openUrl(profile.webpage) }
-            }
-            baseBind.socialsGroup.addView(chip)
-        }
-
-        if (!TextUtils.isEmpty(profile.pawoo_url)) {
-            hasAny = true
-            val chip = Chip(this).apply {
-                text = "Pawoo"
-                setChipBackgroundColorResource(R.color.colorWhite08)
-                setTextColor(textColor)
-                chipStrokeColor = strokeColor
-                chipStrokeWidth = 1f
-                setOnClickListener { openUrl(profile.pawoo_url) }
-            }
-            baseBind.socialsGroup.addView(chip)
-        }
+        addChip(
+            if (!TextUtils.isEmpty(profile.twitter_account)) "@${profile.twitter_account}" else "Twitter",
+            profile.twitter_url
+        )
+        addChip("Website", profile.webpage)
+        addChip("Pawoo", profile.pawoo_url)
 
         if (hasAny) {
             baseBind.socialsGroup.visibility = View.VISIBLE
