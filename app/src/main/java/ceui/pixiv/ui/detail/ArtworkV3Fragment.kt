@@ -193,37 +193,39 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         // More menu
         baseBind.navMore.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
+            val frag = this@ArtworkV3Fragment
+            fun s(resId: Int) = frag.getString(resId)
             V3MenuDialog().apply {
-                addItem(getString(R.string.share), R.drawable.ic_share_black_24dp) {
+                addItem(s(R.string.share), R.drawable.ic_share_black_24dp) {
                     object : ShareIllust(mContext, illust) {
                         override fun onPrepare() {}
                     }.execute()
                 }
-                addItem(getString(R.string.string_454), R.drawable.ic_share_black_24dp) {
+                addItem(s(R.string.string_454), R.drawable.ic_share_black_24dp) {
                     shareImage(illust)
                 }
-                addItem(getString(R.string.string_355_2), R.drawable.ic_baseline_launch_24) {
+                addItem(s(R.string.string_355_2), R.drawable.ic_baseline_launch_24) {
                     Common.copy(mContext, ShareIllust.URL_Head + illust.id)
                 }
-                addItem(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
+                addItem(s(R.string.string_1), R.drawable.ic_baseline_settings_24) {
                     MuteDialog.newInstance(illust)
                         .show(this@ArtworkV3Fragment.childFragmentManager, "MuteDialog")
                 }
-                addItem(getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
+                addItem(s(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
                     PixivOperate.muteIllust(illust)
                 }
-                addItem(getString(R.string.flag_post), R.drawable.ic_baseline_remove_red_eye_24) {
+                addItem(s(R.string.flag_post), R.drawable.ic_baseline_remove_red_eye_24) {
                     val intent = android.content.Intent(mContext, ceui.lisa.activities.TemplateActivity::class.java)
                     intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "举报插画")
                     intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
                     intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectTypeKey, ceui.lisa.models.ObjectSpec.POST)
                     startActivity(intent)
                 }
-                addItem(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
+                addItem(s(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
                     ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(
                         this@ArtworkV3Fragment.childFragmentManager
                     ) { model ->
-                        // AI upscale requires IllustAiHelper — delegate to activity if possible
+                        // AI upscale requires IllustAiHelper
                     }
                 }
             }.show(childFragmentManager, "V3Menu")
