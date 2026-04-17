@@ -3,7 +3,6 @@ package ceui.pixiv.ui.detail
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.UserBean
 import ceui.loxia.Comment
-import ceui.loxia.Illust
 
 sealed class ArtworkDetailItem {
 
@@ -32,8 +31,9 @@ sealed class ArtworkDetailItem {
     ) : ArtworkDetailItem()
 
     data class AuthorWorks(
-        val works: List<Illust>,
-        val authorName: String
+        val works: List<IllustsBean>,
+        val authorName: String,
+        val userId: Int
     ) : ArtworkDetailItem()
 
     data class RelatedHeader(

@@ -31,7 +31,7 @@ class ArtworkV3ViewModel(
     private var illustBean: IllustsBean? = null
     private var fullUser: ceui.lisa.models.UserBean? = null
     private var comments: List<Comment>? = null
-    private var authorWorks: List<Illust>? = null
+    private var authorWorks: List<IllustsBean>? = null
     private val gson = Gson()
 
     // ── output: header sections ──
@@ -114,7 +114,7 @@ class ArtworkV3ViewModel(
             list.add(ArtworkDetailItem.Comments(it, illust.id, illust.title ?: ""))
         }
         authorWorks?.takeIf { it.isNotEmpty() }?.let {
-            list.add(ArtworkDetailItem.AuthorWorks(it, illust.user?.name ?: ""))
+            list.add(ArtworkDetailItem.AuthorWorks(it, illust.user?.name ?: "", illust.user?.id ?: 0))
         }
         if (relatedList.isNotEmpty()) {
             list.add(ArtworkDetailItem.RelatedHeader(illust.id, illust.title ?: ""))
@@ -157,8 +157,9 @@ class ArtworkV3ViewModel(
                 }
                 val authorD = async(Dispatchers.IO) {
                     runCatching {
-                        Client.appApi.getUserCreatedIllusts(userId, "illust").illusts
-                            .filter { it.id != illustId }.take(10)
+                        val resp = ceui.lisa.http.Retro.getAppApi()
+                            .getUserSubmitIllust(userId.toInt(), "illust").blockingFirst()
+                        resp.list?.filter { it.id != illustId.toInt() }?.take(10) ?: emptyList()
                     }.getOrElse { Timber.e(it); emptyList() }
                 }
                 val profileD = async(Dispatchers.IO) {

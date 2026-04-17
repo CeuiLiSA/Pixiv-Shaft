@@ -23,10 +23,12 @@ import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UserActivity
+import ceui.lisa.activities.VActivity
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
-import ceui.lisa.adapters.IllustAdapter
-import androidx.fragment.app.FragmentActivity
+import ceui.lisa.adapters.LAdapter
+import ceui.lisa.core.Container
+import ceui.lisa.core.PageData
 import ceui.lisa.databinding.SectionV3ArtistBinding
 import ceui.lisa.databinding.SectionV3AuthorWorksBinding
 import ceui.lisa.databinding.SectionV3CommentsBinding
@@ -76,7 +78,10 @@ class ArtworkDetailAdapter(
                     changedCount++
                 }
             }
-            Log.d(TAG, "submitItems: same structure, $changedCount changed, ${SystemClock.elapsedRealtime() - t}ms")
+            Log.d(
+                TAG,
+                "submitItems: same structure, $changedCount changed, ${SystemClock.elapsedRealtime() - t}ms"
+            )
         } else if (oldItems.size < newItems.size &&
             oldItems.indices.all { viewTypeOf(oldItems[it]) == viewTypeOf(newItems[it]) }
         ) {
@@ -85,10 +90,16 @@ class ArtworkDetailAdapter(
                 if (oldItems[i] != newItems[i]) notifyItemChanged(i)
             }
             notifyItemRangeInserted(oldItems.size, newItems.size - oldItems.size)
-            Log.d(TAG, "submitItems: appended ${newItems.size - oldItems.size} items, ${SystemClock.elapsedRealtime() - t}ms")
+            Log.d(
+                TAG,
+                "submitItems: appended ${newItems.size - oldItems.size} items, ${SystemClock.elapsedRealtime() - t}ms"
+            )
         } else {
             notifyDataSetChanged()
-            Log.d(TAG, "submitItems: structural change ${oldItems.size}->${newItems.size}, ${SystemClock.elapsedRealtime() - t}ms")
+            Log.d(
+                TAG,
+                "submitItems: structural change ${oldItems.size}->${newItems.size}, ${SystemClock.elapsedRealtime() - t}ms"
+            )
         }
     }
 
@@ -129,10 +140,31 @@ class ArtworkDetailAdapter(
             TYPE_STATS -> StatsVH(SectionV3StatsBinding.inflate(inflater, parent, false))
             TYPE_TAGS -> TagsVH(SectionV3TagsBinding.inflate(inflater, parent, false))
             TYPE_ARTIST -> ArtistVH(SectionV3ArtistBinding.inflate(inflater, parent, false))
-            TYPE_DETAIL -> DetailPanelVH(SectionV3DetailPanelBinding.inflate(inflater, parent, false))
+            TYPE_DETAIL -> DetailPanelVH(
+                SectionV3DetailPanelBinding.inflate(
+                    inflater,
+                    parent,
+                    false
+                )
+            )
+
             TYPE_COMMENTS -> CommentsVH(SectionV3CommentsBinding.inflate(inflater, parent, false))
-            TYPE_AUTHOR_WORKS -> AuthorWorksVH(SectionV3AuthorWorksBinding.inflate(inflater, parent, false))
-            TYPE_RELATED_HEADER -> RelatedHeaderVH(SectionV3RelatedHeaderBinding.inflate(inflater, parent, false))
+            TYPE_AUTHOR_WORKS -> AuthorWorksVH(
+                SectionV3AuthorWorksBinding.inflate(
+                    inflater,
+                    parent,
+                    false
+                )
+            )
+
+            TYPE_RELATED_HEADER -> RelatedHeaderVH(
+                SectionV3RelatedHeaderBinding.inflate(
+                    inflater,
+                    parent,
+                    false
+                )
+            )
+
             else -> throw IllegalArgumentException("Unknown viewType $viewType")
         }
     }
@@ -146,7 +178,11 @@ class ArtworkDetailAdapter(
             holder is DescVH && item is ArtworkDetailItem.Desc -> holder.bind(item.caption)
             holder is StatsVH && item is ArtworkDetailItem.Stats -> holder.bind(item.illust)
             holder is TagsVH && item is ArtworkDetailItem.Tags -> holder.bind(item.illust)
-            holder is ArtistVH && item is ArtworkDetailItem.Artist -> holder.bind(item.illust, item.fullUser)
+            holder is ArtistVH && item is ArtworkDetailItem.Artist -> holder.bind(
+                item.illust,
+                item.fullUser
+            )
+
             holder is DetailPanelVH && item is ArtworkDetailItem.DetailPanel -> holder.bind(item.illust)
             holder is CommentsVH && item is ArtworkDetailItem.Comments -> holder.bind(item)
             holder is AuthorWorksVH && item is ArtworkDetailItem.AuthorWorks -> holder.bind(item)
@@ -154,7 +190,10 @@ class ArtworkDetailAdapter(
         }
         val elapsed = SystemClock.elapsedRealtime() - t
         if (elapsed > 2) {
-            Log.d(TAG, "onBindViewHolder pos=$position type=${getItemViewType(position)} took ${elapsed}ms")
+            Log.d(
+                TAG,
+                "onBindViewHolder pos=$position type=${getItemViewType(position)} took ${elapsed}ms"
+            )
         }
 
         // Entrance animation: only the first time each view type appears
@@ -194,7 +233,7 @@ class ArtworkDetailAdapter(
             }
             b.metaDate.text = Common.getLocalYYYYMMDDHHMMString(illust.create_date)
             b.metaPages.text = if (illust.page_count == 1) ctx.getString(R.string.v3_page_count_one)
-                else ctx.getString(R.string.v3_page_count_many, illust.page_count)
+            else ctx.getString(R.string.v3_page_count_many, illust.page_count)
         }
     }
 
@@ -215,7 +254,8 @@ class ArtworkDetailAdapter(
         }
     }
 
-    inner class DescVH(private val b: SectionV3DescriptionBinding) : RecyclerView.ViewHolder(b.root) {
+    inner class DescVH(private val b: SectionV3DescriptionBinding) :
+        RecyclerView.ViewHolder(b.root) {
         fun bind(caption: String) {
             b.description.setHtml(caption)
         }
@@ -281,9 +321,6 @@ class ArtworkDetailAdapter(
             }
             applyTouchScale(b.artistCard)
 
-            // Apply themed accent line
-            b.accentLine.background = palette.accentLine()
-
             if (fullUser != null) {
                 bindFollowState(fullUser)
                 b.artistBio.isVisible = !fullUser.comment.isNullOrBlank()
@@ -305,7 +342,13 @@ class ArtworkDetailAdapter(
                 b.followBtn.text = ctx.getString(R.string.follow)
                 palette.applyFollowBtn(b.followBtn)
                 b.followBtn.setTextColor(Color.WHITE)
-                b.followBtn.setOnClick { fragment.followUser(it as ProgressTextButton, user.id, Params.TYPE_PUBLIC) }
+                b.followBtn.setOnClick {
+                    fragment.followUser(
+                        it as ProgressTextButton,
+                        user.id,
+                        Params.TYPE_PUBLIC
+                    )
+                }
                 b.followBtn.setOnLongClickListener {
                     fragment.followUser(b.followBtn, user.id, Params.TYPE_PRIVATE); true
                 }
@@ -320,12 +363,11 @@ class ArtworkDetailAdapter(
 
         fun bind(illust: IllustsBean) {
             b.detailGrid.removeAllViews()
-            // Apply themed accent line
-            b.detailAccent.background = palette.accentLine()
             buildChips(illust)
             b.detailHeader.setOnClickListener {
                 expanded = !expanded
-                val grid = b.detailGrid; val arrow = b.detailArrow
+                val grid = b.detailGrid;
+                val arrow = b.detailArrow
                 if (!expanded) {
                     grid.animate().alpha(0f).translationY(-12.ppppx.toFloat()).setDuration(250)
                         .setInterpolator(DecelerateInterpolator(2f))
@@ -352,7 +394,9 @@ class ArtworkDetailAdapter(
                 },
                 s(R.string.v3_detail_resolution) to "${illust.width} × ${illust.height}",
                 s(R.string.v3_detail_pages) to illust.page_count.toString(),
-                s(R.string.v3_detail_ai) to if (illust.illust_ai_type == 2) s(R.string.v3_detail_ai_yes) else s(R.string.v3_detail_ai_no),
+                s(R.string.v3_detail_ai) to if (illust.illust_ai_type == 2) s(R.string.v3_detail_ai_yes) else s(
+                    R.string.v3_detail_ai_no
+                ),
                 s(R.string.v3_detail_restriction) to when {
                     illust.x_restrict == 1 -> "R-18"
                     illust.x_restrict == 2 -> "R-18G"
@@ -369,14 +413,20 @@ class ArtworkDetailAdapter(
                 }
                 row.addView(createDetailChip(chips[i].first, chips[i].second, illust))
                 if (i + 1 < chips.size) {
-                    row.addView(View(ctx).apply { layoutParams = LinearLayout.LayoutParams(8.ppppx, 1) })
+                    row.addView(View(ctx).apply {
+                        layoutParams = LinearLayout.LayoutParams(8.ppppx, 1)
+                    })
                     row.addView(createDetailChip(chips[i + 1].first, chips[i + 1].second, illust))
                 }
                 b.detailGrid.addView(row)
             }
         }
 
-        private fun createDetailChip(label: String, value: String, illust: IllustsBean): LinearLayout {
+        private fun createDetailChip(
+            label: String,
+            value: String,
+            illust: IllustsBean
+        ): LinearLayout {
             return LinearLayout(ctx).apply {
                 orientation = LinearLayout.VERTICAL
                 setBackgroundResource(R.drawable.v3_detail_chip_bg)
@@ -384,7 +434,8 @@ class ArtworkDetailAdapter(
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                 addView(TextView(ctx).apply {
                     text = label.uppercase(); textSize = 9f
-                    setTextColor(ctx.getColor(R.color.v3_text_3)); letterSpacing = 0.08f; alpha = 0.7f
+                    setTextColor(ctx.getColor(R.color.v3_text_3)); letterSpacing = 0.08f; alpha =
+                    0.7f
                 })
                 val artworkIdLabel = ctx.getString(R.string.v3_detail_artwork_id)
                 val userIdLabel = ctx.getString(R.string.v3_detail_user_id)
@@ -392,15 +443,18 @@ class ArtworkDetailAdapter(
                 val restrictionLabel = ctx.getString(R.string.v3_detail_restriction)
                 addView(TextView(ctx).apply {
                     text = value; textSize = 13f; maxLines = 1; ellipsize = TextUtils.TruncateAt.END
-                    setTextColor(when {
-                        label == artworkIdLabel || label == userIdLabel -> palette.textAccent
-                        label == aiLabel && illust.illust_ai_type == 2 -> ctx.getColor(R.color.v3_purple)
-                        label == aiLabel -> ctx.getColor(R.color.v3_green)
-                        label == restrictionLabel && illust.x_restrict > 0 -> ctx.getColor(R.color.v3_pink)
-                        label == restrictionLabel -> ctx.getColor(R.color.v3_blue)
-                        else -> ctx.getColor(R.color.v3_text_2)
-                    })
-                    if (label == artworkIdLabel || label == userIdLabel) typeface = Typeface.MONOSPACE
+                    setTextColor(
+                        when {
+                            label == artworkIdLabel || label == userIdLabel -> palette.textAccent
+                            label == aiLabel && illust.illust_ai_type == 2 -> ctx.getColor(R.color.v3_purple)
+                            label == aiLabel -> ctx.getColor(R.color.v3_green)
+                            label == restrictionLabel && illust.x_restrict > 0 -> ctx.getColor(R.color.v3_pink)
+                            label == restrictionLabel -> ctx.getColor(R.color.v3_blue)
+                            else -> ctx.getColor(R.color.v3_text_2)
+                        }
+                    )
+                    if (label == artworkIdLabel || label == userIdLabel) typeface =
+                        Typeface.MONOSPACE
                 })
                 setOnClickListener { Common.copy(ctx, value) }
             }
@@ -417,7 +471,8 @@ class ArtworkDetailAdapter(
                     orientation = LinearLayout.HORIZONTAL; setPadding(0, 14.ppppx, 0, 14.ppppx)
                 }
                 val avatar = CircleImageView(ctx).apply {
-                    layoutParams = LinearLayout.LayoutParams(36.ppppx, 36.ppppx).apply { marginEnd = 12.ppppx }
+                    layoutParams =
+                        LinearLayout.LayoutParams(36.ppppx, 36.ppppx).apply { marginEnd = 12.ppppx }
                 }
                 comment.user.profile_image_urls?.medium?.let {
                     Glide.with(ctx).load(GlideUrlChild(it)).circleCrop().into(avatar)
@@ -425,14 +480,18 @@ class ArtworkDetailAdapter(
                 row.addView(avatar)
                 val content = LinearLayout(ctx).apply {
                     orientation = LinearLayout.VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                    layoutParams =
+                        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                 }
                 val header = LinearLayout(ctx).apply {
                     orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
                 }
                 header.addView(TextView(ctx).apply {
                     text = comment.user.name; textSize = 13f
-                    setTextColor(ctx.getColor(R.color.v3_text_1)); setTypeface(typeface, Typeface.BOLD)
+                    setTextColor(ctx.getColor(R.color.v3_text_1)); setTypeface(
+                    typeface,
+                    Typeface.BOLD
+                )
                 })
                 header.addView(TextView(ctx).apply {
                     text = comment.displayCommentDate(); textSize = 11f
@@ -448,7 +507,8 @@ class ArtworkDetailAdapter(
                 }
                 if (comment.stamp?.stamp_url != null) {
                     val sv = android.widget.ImageView(ctx).apply {
-                        layoutParams = LinearLayout.LayoutParams(80.ppppx, 80.ppppx).apply { topMargin = 4.ppppx }
+                        layoutParams = LinearLayout.LayoutParams(80.ppppx, 80.ppppx)
+                            .apply { topMargin = 4.ppppx }
                         scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                     }
                     Glide.with(ctx).load(GlideUrlChild(comment.stamp!!.stamp_url!!)).into(sv)
@@ -457,7 +517,8 @@ class ArtworkDetailAdapter(
                 row.addView(content)
                 if (b.commentsList.childCount > 0) {
                     b.commentsList.addView(View(ctx).apply {
-                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1)
+                        layoutParams =
+                            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1)
                         setBackgroundColor(0x0AFFFFFF)
                     })
                 }
@@ -475,16 +536,45 @@ class ArtworkDetailAdapter(
 
     inner class AuthorWorksVH(private val b: SectionV3AuthorWorksBinding) :
         RecyclerView.ViewHolder(b.root) {
-        private var adapter: AuthorWorksAdapter? = null
+        private var lAdapter: LAdapter? = null
+        private val worksList = mutableListOf<IllustsBean>()
+
         fun bind(item: ArtworkDetailItem.AuthorWorks) {
-            b.authorWorksLabel.text = ctx.getString(R.string.v3_author_works, item.authorName).uppercase()
+            b.authorWorksLabel.text =
+                ctx.getString(R.string.v3_author_works, item.authorName).uppercase()
             b.authorWorksSeeAll.setTextColor(palette.textAccent)
-            if (adapter == null) {
-                adapter = AuthorWorksAdapter { illust -> Common.copy(ctx, illust.id.toString()) }
-                b.authorWorksRv.layoutManager = LinearLayoutManager(ctx, LinearLayoutManager.HORIZONTAL, false)
-                b.authorWorksRv.adapter = adapter
+
+            if (lAdapter == null) {
+                lAdapter = LAdapter(worksList, ctx)
+                lAdapter!!.setOnItemClickListener { _, position, _ ->
+                    val pageData = PageData(worksList)
+                    Container.get().addPageToMap(pageData)
+                    val intent = Intent(ctx, VActivity::class.java)
+                    intent.putExtra(Params.POSITION, position)
+                    intent.putExtra(Params.PAGE_UUID, pageData.uuid)
+                    ctx.startActivity(intent)
+                }
+                b.authorWorksRv.layoutManager =
+                    LinearLayoutManager(ctx, LinearLayoutManager.HORIZONTAL, false)
+                b.authorWorksRv.adapter = lAdapter
+                val lp = b.authorWorksRv.layoutParams
+                lp.height = lAdapter!!.imageSize +
+                    ctx.resources.getDimensionPixelSize(R.dimen.sixteen_dp)
+                b.authorWorksRv.layoutParams = lp
             }
-            adapter?.submitList(item.works)
+
+            if (worksList != item.works) {
+                worksList.clear()
+                worksList.addAll(item.works)
+                lAdapter?.notifyDataSetChanged()
+            }
+
+            b.authorWorksSeeAll.setOnClickListener {
+                val intent = Intent(ctx, TemplateActivity::class.java)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
+                intent.putExtra(Params.USER_ID, item.userId)
+                ctx.startActivity(intent)
+            }
         }
     }
 
@@ -507,8 +597,11 @@ class ArtworkDetailAdapter(
     private fun applyTouchScale(view: View, scale: Float = 0.97f) {
         view.setOnTouchListener { v, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> v.animate().scaleX(scale).scaleY(scale).setDuration(200).start()
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+                MotionEvent.ACTION_DOWN -> v.animate().scaleX(scale).scaleY(scale).setDuration(200)
+                    .start()
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.animate().scaleX(1f)
+                    .scaleY(1f).setDuration(200).start()
             }
             false
         }
