@@ -16,7 +16,7 @@ import androidx.core.graphics.ColorUtils
  *   followBtn.background = p.pillPrimary(...)
  *   tagCount.setTextColor(p.textAccent)
  */
-class V3Palette(@ColorInt val primary: Int) {
+class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
 
     // ── derived alphas ──────────────────────────────────────────────
 
@@ -43,17 +43,23 @@ class V3Palette(@ColorInt val primary: Int) {
 
     // ── text colors ─────────────────────────────────────────────────
 
-    /** Primary accent text — lightened for dark-bg readability */
-    @ColorInt val textAccent: Int = ensureLightEnough(primary, minL = 0.60f)
+    /** Primary accent text — adjusted for background readability */
+    @ColorInt val textAccent: Int = if (isDark) ensureLightEnough(primary, 0.60f)
+        else ensureDarkEnough(primary, 0.40f)
 
-    /** Brighter variant for secondary button label */
-    @ColorInt val textSecondary: Int = withAlpha(ensureLightEnough(primary, minL = 0.72f), 0.90f)
+    /** Variant for secondary button label */
+    @ColorInt val textSecondary: Int = if (isDark)
+        withAlpha(ensureLightEnough(primary, 0.72f), 0.90f)
+    else withAlpha(ensureDarkEnough(primary, 0.35f), 0.90f)
 
-    /** Tag locked text — highly lightened */
-    @ColorInt val textTag: Int = ensureLightEnough(primary, minL = 0.70f)
+    /** Tag locked text */
+    @ColorInt val textTag: Int = if (isDark) ensureLightEnough(primary, 0.70f)
+        else ensureDarkEnough(primary, 0.38f)
 
     /** Series label text */
-    @ColorInt val textSeries: Int = withAlpha(ensureLightEnough(primary, minL = 0.68f), 0.70f)
+    @ColorInt val textSeries: Int = if (isDark)
+        withAlpha(ensureLightEnough(primary, 0.68f), 0.70f)
+    else withAlpha(ensureDarkEnough(primary, 0.35f), 0.70f)
 
     // ── scroll progress gradient ────────────────────────────────────
 
@@ -169,7 +175,10 @@ class V3Palette(@ColorInt val primary: Int) {
             val primary = Common.resolveThemeAttribute(
                 context, androidx.appcompat.R.attr.colorPrimary
             )
-            return V3Palette(primary)
+            val nightMode = context.resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK
+            val isDark = nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES
+            return V3Palette(primary, isDark)
         }
 
         @ColorInt
@@ -181,6 +190,15 @@ class V3Palette(@ColorInt val primary: Int) {
             val hsl = FloatArray(3)
             ColorUtils.colorToHSL(color, hsl)
             if (hsl[2] < minL) hsl[2] = minL
+            return ColorUtils.HSLToColor(hsl)
+        }
+
+        /** For light mode — darken a color so it's readable on white backgrounds */
+        @ColorInt
+        private fun ensureDarkEnough(@ColorInt color: Int, maxL: Float = 0.40f): Int {
+            val hsl = FloatArray(3)
+            ColorUtils.colorToHSL(color, hsl)
+            if (hsl[2] > maxL) hsl[2] = maxL
             return ColorUtils.HSLToColor(hsl)
         }
 

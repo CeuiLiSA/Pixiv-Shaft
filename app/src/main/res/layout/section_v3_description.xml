@@ -5,7 +5,8 @@
     android:layout_height="wrap_content"
     android:paddingHorizontal="20dp"
     android:paddingBottom="6dp"
-    android:lineSpacingMultiplier="1.75"
-    android:textColor="@color/v3_text_2"
+    android:lineSpacingMultiplier="1.65"
+    android:textColor="@color/v3_text_1"
     android:textColorLink="@color/v3_blue"
-    android:textSize="14sp" />
+    android:textSize="14sp"
+    android:alpha="0.78" />

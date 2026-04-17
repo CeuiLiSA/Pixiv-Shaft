@@ -33,7 +33,8 @@
             android:background="@color/v3_surface_2"
             android:paddingHorizontal="10dp"
             android:paddingVertical="3dp"
-            android:textColor="@color/v3_text_3"
+            android:textColor="@color/v3_text_2"
+            android:textStyle="bold"
             android:textSize="11sp"
             tools:text="2" />
     </LinearLayout>
@@ -56,5 +57,6 @@
         android:padding="12dp"
         android:text="@string/view_comments"
         android:textColor="@color/v3_text_2"
-        android:textSize="13sp" />
+        android:textSize="13sp"
+        android:textStyle="bold" />
 </LinearLayout>

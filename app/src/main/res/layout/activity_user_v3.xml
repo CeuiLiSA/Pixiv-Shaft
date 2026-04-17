@@ -8,7 +8,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#08080C">
+        android:background="@color/v3_bg">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
@@ -22,7 +22,7 @@
                 android:id="@+id/toolbar_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:contentScrim="#08080C"
+                app:contentScrim="@color/v3_bg"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
                 app:statusBarScrim="@android:color/transparent"
                 app:titleEnabled="false">
@@ -91,7 +91,7 @@
                                 android:layout_height="88dp"
                                 android:layout_gravity="center"
                                 android:scaleType="centerCrop"
-                                app:civ_border_color="#08080C"
+                                app:civ_border_color="@color/v3_bg"
                                 app:civ_border_width="3dp" />
 
                             <FrameLayout
@@ -128,7 +128,7 @@
                             android:padding="10dp"
                             android:src="@drawable/ic_baseline_mail_outline_24"
                             android:visibility="gone"
-                            app:tint="@color/colorWhite60" />
+                            app:tint="@color/v3_text_2" />
 
                         <FrameLayout
                             android:id="@+id/follow_layout"
@@ -144,7 +144,7 @@
                                 android:gravity="center"
                                 android:paddingHorizontal="28dp"
                                 android:text="@string/follow"
-                                android:textColor="@color/colorWhite"
+                                android:textColor="@color/v3_text_1"
                                 android:textSize="13sp"
                                 android:textStyle="bold"
                                 android:visibility="gone"
@@ -175,7 +175,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:textColor="@color/colorWhite"
+                        android:textColor="@color/v3_text_1"
                         android:textSize="24sp"
                         android:textStyle="bold"
                         tools:text="ひとはﾁｬﾝ" />
@@ -187,7 +187,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:textColor="@color/colorWhite40"
+                        android:textColor="@color/v3_text_3"
                         android:textSize="13sp"
                         tools:text="@hitohachan · ID: 62059105" />
                 </LinearLayout>
@@ -208,7 +208,7 @@
                         android:alpha="0.0"
                         android:ellipsize="end"
                         android:singleLine="true"
-                        android:textColor="@color/colorWhite"
+                        android:textColor="@color/v3_text_1"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -220,7 +220,7 @@
                         android:padding="10dp"
                         android:src="@drawable/ic_more_vert_black_24dp"
                         android:visibility="gone"
-                        app:tint="@color/colorWhite" />
+                        app:tint="@color/v3_text_1" />
                 </androidx.appcompat.widget.Toolbar>
 
                 <!-- Loading indicator -->
@@ -229,7 +229,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:indeterminateTint="@color/colorWhite"
+                    android:indeterminateTint="@color/v3_text_1"
                     android:visibility="invisible" />
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
@@ -240,7 +240,7 @@
             android:id="@+id/scroll_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#08080C"
+            android:background="@color/v3_bg"
             android:clipToPadding="false"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
@@ -260,7 +260,8 @@
                     android:layout_marginBottom="16dp"
                     android:autoLink="all"
                     android:lineSpacingMultiplier="1.6"
-                    android:textColor="@color/colorWhite60"
+                    android:textColor="@color/v3_text_1"
+                    android:alpha="0.78"
                     android:textColorLink="#3D8BFD"
                     android:textIsSelectable="true"
                     android:textSize="14sp"
@@ -298,8 +299,9 @@
                             android:layout_height="wrap_content"
                             android:text="@string/v3_label_following"
                             android:textAllCaps="true"
-                            android:textColor="@color/colorWhite30"
+                            android:textColor="@color/v3_text_3"
                             android:textSize="9sp"
+                            android:letterSpacing="0.1"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -326,8 +328,9 @@
                             android:layout_height="wrap_content"
                             android:text="@string/v3_label_mypixiv"
                             android:textAllCaps="true"
-                            android:textColor="@color/colorWhite30"
+                            android:textColor="@color/v3_text_3"
                             android:textSize="9sp"
+                            android:letterSpacing="0.1"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
@@ -350,7 +353,7 @@
                     android:letterSpacing="0.12"
                     android:text="@string/v3_label_navigate"
                     android:textAllCaps="true"
-                    android:textColor="@color/colorWhite30"
+                    android:textColor="@color/v3_text_3"
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
@@ -387,7 +390,7 @@
                             android:letterSpacing="0.12"
                             android:text="@string/v3_label_profile_details"
                             android:textAllCaps="true"
-                            android:textColor="@color/colorWhite30"
+                            android:textColor="@color/v3_text_3"
                             android:textSize="10sp"
                             android:textStyle="bold" />
 
@@ -397,7 +400,7 @@
                             android:layout_height="20dp"
                             android:rotation="180"
                             android:src="@drawable/ic_arrow_right_little"
-                            app:tint="@color/colorWhite30" />
+                            app:tint="@color/v3_text_3" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -433,7 +436,7 @@
                             android:letterSpacing="0.12"
                             android:text="@string/v3_label_workspace"
                             android:textAllCaps="true"
-                            android:textColor="@color/colorWhite30"
+                            android:textColor="@color/v3_text_3"
                             android:textSize="10sp"
                             android:textStyle="bold" />
 
@@ -443,7 +446,7 @@
                             android:layout_height="20dp"
                             android:rotation="180"
                             android:src="@drawable/ic_arrow_right_little"
-                            app:tint="@color/colorWhite30" />
+                            app:tint="@color/v3_text_3" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -471,8 +474,9 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/block_this_users_work"
-                        android:textColor="@color/colorWhite60"
-                        android:textSize="13sp" />
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/mute_switch"

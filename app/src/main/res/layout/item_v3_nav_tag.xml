@@ -14,7 +14,7 @@
         android:id="@+id/tag_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/colorWhite60"
+        android:textColor="@color/v3_text_2"
         android:textSize="13sp" />
 
     <TextView

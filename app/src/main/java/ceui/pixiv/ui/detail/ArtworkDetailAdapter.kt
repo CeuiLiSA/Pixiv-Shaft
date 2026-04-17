@@ -443,6 +443,10 @@ class ArtworkDetailAdapter(
                 val restrictionLabel = ctx.getString(R.string.v3_detail_restriction)
                 addView(TextView(ctx).apply {
                     text = value; textSize = 13f; maxLines = 1; ellipsize = TextUtils.TruncateAt.END
+                    setTypeface(
+                        if (label == artworkIdLabel || label == userIdLabel) Typeface.MONOSPACE else typeface,
+                        Typeface.BOLD
+                    )
                     setTextColor(
                         when {
                             label == artworkIdLabel || label == userIdLabel -> palette.textAccent
@@ -450,11 +454,10 @@ class ArtworkDetailAdapter(
                             label == aiLabel -> ctx.getColor(R.color.v3_green)
                             label == restrictionLabel && illust.x_restrict > 0 -> ctx.getColor(R.color.v3_pink)
                             label == restrictionLabel -> ctx.getColor(R.color.v3_blue)
-                            else -> ctx.getColor(R.color.v3_text_2)
+                            else -> ctx.getColor(R.color.v3_text_1)
                         }
                     )
-                    if (label == artworkIdLabel || label == userIdLabel) typeface =
-                        Typeface.MONOSPACE
+                    alpha = if (label == artworkIdLabel || label == userIdLabel) 1f else 0.8f
                 })
                 setOnClickListener { Common.copy(ctx, value) }
             }
@@ -501,7 +504,8 @@ class ArtworkDetailAdapter(
                 if (!comment.comment.isNullOrBlank()) {
                     content.addView(TextView(ctx).apply {
                         text = comment.comment; textSize = 13f
-                        setTextColor(ctx.getColor(R.color.v3_text_2))
+                        setTextColor(ctx.getColor(R.color.v3_text_1))
+                        alpha = 0.72f
                         setPadding(0, 4.ppppx, 0, 0); setLineSpacing(0f, 1.65f)
                     })
                 }

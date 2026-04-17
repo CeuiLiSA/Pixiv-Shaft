@@ -13,7 +13,7 @@
         android:alpha="0.7"
         android:letterSpacing="0.08"
         android:textAllCaps="true"
-        android:textColor="@color/colorWhite30"
+        android:textColor="@color/v3_text_3"
         android:textSize="9sp"
         android:textStyle="bold" />
 
@@ -24,7 +24,8 @@
         android:layout_marginTop="3dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="@color/colorWhite60"
+        android:textColor="@color/v3_text_1"
+        android:alpha="0.82"
         android:textSize="13sp"
         android:textStyle="bold" />
 </LinearLayout>

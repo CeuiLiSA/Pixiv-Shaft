@@ -268,7 +268,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private fun setupSocialChips(profile: ceui.lisa.models.ProfileBean) {
         var hasAny = false
-        val textColor = resources.getColor(R.color.colorWhite60, theme)
+        val textColor = resources.getColor(R.color.v3_text_2, theme)
         val dp = resources.displayMetrics.density
 
         fun addChip(label: String, url: String?) {

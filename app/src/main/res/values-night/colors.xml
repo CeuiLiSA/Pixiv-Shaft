@@ -86,4 +86,52 @@
 
     <color name="secondary_text_color">#999999</color>
     <color name="divider_color">#1FFFFFFF</color>
+
+    <!-- V3 Detail — Dark Mode -->
+    <color name="v3_bg">#08080C</color>
+    <color name="v3_surface_1">#08FFFFFF</color>
+    <color name="v3_surface_2">#0EFFFFFF</color>
+    <color name="v3_surface_3">#14FFFFFF</color>
+    <color name="v3_border_1">#0AFFFFFF</color>
+    <color name="v3_border_2">#0FFFFFFF</color>
+    <color name="v3_text_1">#F4F4F8</color>
+    <color name="v3_text_2">#9EF4F4F8</color>
+    <color name="v3_text_3">#5CF4F4F8</color>
+    <color name="v3_pink">#FF2D78</color>
+    <color name="v3_gold">#FFC233</color>
+    <color name="v3_blue">#3D8BFD</color>
+    <color name="v3_green">#2DD4A8</color>
+    <color name="v3_purple">#9F7AEA</color>
+    <color name="v3_orange">#FF6F3C</color>
+    <color name="v3_ambient_primary">#7C6BC4</color>
+    <color name="v3_ambient_glow">#664D3F9E</color>
+    <color name="v3_nav_btn_bg">#59000000</color>
+    <color name="v3_hero_gradient_start">#08080C</color>
+    <color name="v3_hero_gradient_mid">#EB08080C</color>
+    <color name="v3_hero_gradient_end">#0008080C</color>
+    <color name="v3_stat_views_start">#C084FC</color>
+    <color name="v3_stat_views_end">#E879A8</color>
+    <color name="v3_stat_likes_start">#F472B6</color>
+    <color name="v3_stat_likes_end">#C084FC</color>
+    <color name="v3_stat_bookmarks_start">#818CF8</color>
+    <color name="v3_stat_bookmarks_end">#A78BFA</color>
+    <color name="v3_stat_comments_start">#A5B4FC</color>
+    <color name="v3_stat_comments_end">#C4B5FD</color>
+    <color name="v3_tag_locked_bg">#143F3BA0</color>
+    <color name="v3_tag_locked_border">#263F3BA0</color>
+    <color name="v3_tag_locked_text">#B3A0E8</color>
+    <color name="v3_artist_banner_start">#993F3BA0</color>
+    <color name="v3_artist_banner_end">#993A2B6B</color>
+    <color name="v3_detail_chip_ambient">#B3A0E8</color>
+    <color name="v3_scroll_progress_start">#9F7AEA</color>
+    <color name="v3_scroll_progress_mid">#FF2D78</color>
+    <color name="v3_scroll_progress_end">#FFC233</color>
+    <color name="v3_shimmer_color">#0F8B7BDB</color>
+    <color name="v3_premium_gold_start">#FFC233</color>
+    <color name="v3_premium_gold_end">#FFAA00</color>
+    <color name="v3_accent_line_purple">#807C6BC4</color>
+    <color name="v3_accent_line_pink">#80C46BB7</color>
+    <color name="v3_banner_placeholder_start">#1E1840</color>
+    <color name="v3_banner_placeholder_center">#2A1440</color>
+    <color name="v3_banner_placeholder_end">#161A38</color>
 </resources>
