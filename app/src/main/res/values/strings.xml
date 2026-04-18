@@ -138,6 +138,7 @@
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜索结果收藏量筛选</string>
     <string name="language">语言</string>
+    <string name="language_follow_system">跟随系统</string>
     <string name="theme_mode">主题模式</string>
     <string name="custom_file_name">自定义下载文件名</string>
     <string name="illust_detail">作品详情使用新界面</string>

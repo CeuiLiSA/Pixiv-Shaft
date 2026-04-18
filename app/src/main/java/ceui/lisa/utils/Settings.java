@@ -14,8 +14,6 @@ import ceui.lisa.helper.ThemeHelper;
  * */
 public class Settings {
 
-    public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文", "русский", "한국어"};
-
     //只包含1P图片的下载路径
     public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";
     public static final String FILE_PATH_NOVEL = PathUtils.getExternalDownloadsPath() + "/ShaftNovels";
@@ -210,12 +208,10 @@ public class Settings {
 
     private boolean illustDetailKeepScreenOn = false; //插画二级详情保持屏幕常亮
 
+    /** @deprecated legacy display-name language；仅供 AppLocalesBootstrap 一次性迁移读取，请使用 {@link ceui.pixiv.i18n.AppLocales}。 */
+    @Deprecated
     public String getAppLanguage() {
-        if(!TextUtils.isEmpty(appLanguage)){
-            return appLanguage;
-        } else {
-            return ALL_LANGUAGE[0];
-        }
+        return appLanguage == null ? "" : appLanguage;
     }
 
     public boolean isToastDownloadResult() {
@@ -274,6 +270,8 @@ public class Settings {
         this.novelPath = novelPath;
     }
 
+    /** @deprecated 仅供迁移使用，见 {@link ceui.pixiv.i18n.AppLocales}。 */
+    @Deprecated
     public void setAppLanguage(String appLanguage) {
         this.appLanguage = appLanguage;
     }

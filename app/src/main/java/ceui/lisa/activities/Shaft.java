@@ -133,6 +133,9 @@ public class Shaft extends Application implements ServicesProvider {
         networkStateManager = new NetworkStateManager(this);
         sSettings = Local.getSettings();
 
+        // 语言：迁旧字段 + 首启 fallback。必须在任何 UI 拉起前。
+        ceui.pixiv.i18n.AppLocalesBootstrap.INSTANCE.bootstrap(sSettings);
+
         entityWrapper = new EntityWrapper(this);
         entityWrapper.initialize();
 

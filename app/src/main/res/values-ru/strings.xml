@@ -128,7 +128,8 @@
   <string name="slide_down_endless">бесконечное падение (Возможный повтор)</string>  
   <string name="other_settings">Прочее</string>  
   <string name="search_result_filter">поиск результатов</string>  
-  <string name="language">язык</string>  
+  <string name="language">язык</string>
+  <string name="language_follow_system">Как в системе</string>
   <string name="theme_mode">тематический режим</string>  
   <string name="custom_file_name">Пользовательское имя файла для загрузки</string>  
   <string name="illust_detail">новый интерфейс</string>  

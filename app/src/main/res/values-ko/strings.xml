@@ -128,7 +128,8 @@
   <string name="slide_down_endless">관련 작품 은 무한 한 하락 세 를 보일 수 있다.</string>  
   <string name="other_settings">기타.</string>  
   <string name="search_result_filter">검색 결과 저장량 선별</string>  
-  <string name="language">언어.</string>  
+  <string name="language">언어.</string>
+  <string name="language_follow_system">시스템 설정 따르기</string>
   <string name="theme_mode">테마 패턴</string>  
   <string name="custom_file_name">사용자 정의 다운로드 파일 이름</string>  
   <string name="illust_detail">작품 상세 사용 새 화면</string>  

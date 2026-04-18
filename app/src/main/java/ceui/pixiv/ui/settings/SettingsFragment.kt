@@ -7,6 +7,7 @@ import androidx.navigation.fragment.findNavController
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.pixiv.i18n.AppLocales
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
@@ -83,7 +84,11 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                     TabCellHolder(
                         getString(R.string.language),
                         getString(R.string.handle_content_language),
-                        Shaft.sSettings.appLanguage
+                        if (AppLocales.isFollowingSystem()) {
+                            getString(R.string.language_follow_system)
+                        } else {
+                            AppLocales.displayName(AppLocales.currentLocale().toLanguageTag())
+                        }
                     ).onItemClick {
                         pushFragment(
                             R.id.navigation_select_language,

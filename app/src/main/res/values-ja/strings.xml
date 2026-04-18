@@ -128,7 +128,8 @@
   <string name="slide_down_endless">関連作品を無限に表示（重複する可能性あり）</string>
   <string name="other_settings">その他</string>  
   <string name="search_result_filter">すき！の数で検索結果をフィルター</string>  
-  <string name="language">言語</string>  
+  <string name="language">言語</string>
+  <string name="language_follow_system">システムに従う</string>
   <string name="theme_mode">テーマ</string>
   <string name="custom_file_name">ファイル名の形式の編集</string>
   <string name="illust_detail">作品詳細ページで新しいUIを使用</string>

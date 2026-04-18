@@ -1,29 +1,27 @@
 package ceui.lisa.helper;
 
-import java.util.Arrays;
+import java.util.Locale;
 
-import ceui.lisa.activities.Shaft;
-import ceui.lisa.utils.Settings;
+import ceui.pixiv.i18n.AppLocales;
 
-public class LanguageHelper {
+/**
+ * 把当前 app locale 转成 Pixiv API 的 `accept-language` 值。
+ * Pixiv 用下划线形式（`zh_CN` / `zh_TW`），其它标准 ISO-639-1 下划线单段。
+ */
+public final class LanguageHelper {
+
+    private LanguageHelper() {}
+
     public static String getRequestHeaderAcceptLanguageFromAppLanguage() {
-        String[] allLanguages = Settings.ALL_LANGUAGE;
-        String currentLanguage = Shaft.sSettings.getAppLanguage();
-        int index = Arrays.asList(allLanguages).indexOf(currentLanguage);
-
-        switch (index) {
-            case 0:
-                return "zh_CN";
-            case 1:
-                return "ja";
-            case 3:
+        Locale locale = AppLocales.INSTANCE.currentLocale();
+        String language = locale.getLanguage();
+        if ("zh".equals(language)) {
+            String country = locale.getCountry();
+            if ("TW".equalsIgnoreCase(country) || "HK".equalsIgnoreCase(country) || "MO".equalsIgnoreCase(country)) {
                 return "zh_TW";
-            case 5:
-                return "ko";
-            case 2:
-            case 4:
-            default:
-                return "en";
+            }
+            return "zh_CN";
         }
+        return language.isEmpty() ? "en" : language;
     }
 }

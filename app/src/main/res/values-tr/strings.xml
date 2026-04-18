@@ -127,7 +127,8 @@
   <string name="slide_down_endless">Sonsuz ilgili eser göster</string>  
   <string name="other_settings">Diğer</string>  
   <string name="search_result_filter">Arama yaparken favori sayısına göre filtrele</string>  
-  <string name="language">Dil</string>  
+  <string name="language">Dil</string>
+  <string name="language_follow_system">Sistem ayarı</string>
   <string name="theme_mode">Tema</string>  
   <string name="custom_file_name">Özel dosya adı</string>  
   <string name="illust_detail">İllüstrasyon detay sayfasında yeni tasarım</string>  

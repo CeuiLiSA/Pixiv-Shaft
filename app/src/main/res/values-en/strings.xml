@@ -128,8 +128,9 @@
   <string name="slide_down_endless">show infinite Related works (possible duplication)</string>  
   <string name="other_settings">other</string>  
   <string name="search_result_filter">Filter by number of Bookmarkes when searching</string>  
-  <string name="language">Language</string>  
-  <string name="theme_mode">Theme</string>  
+  <string name="language">Language</string>
+  <string name="language_follow_system">Follow system</string>
+  <string name="theme_mode">Theme</string>
   <string name="custom_file_name">Custom filename</string>  
   <string name="illust_detail">Illust details use new UI</string>  
   <string name="user_detail">Personal center use new UI</string>  

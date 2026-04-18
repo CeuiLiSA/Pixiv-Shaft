@@ -115,6 +115,7 @@
   <string name="other_settings">其他</string>
   <string name="search_result_filter">搜尋結果收藏量篩選</string>
   <string name="language">語言</string>
+  <string name="language_follow_system">跟隨系統</string>
   <string name="download_path">下載路徑</string>
   <string name="illust_download_path">圖片下載路徑</string>
   <string name="gif_unzip_path">GIF 壓縮包解壓路徑</string>

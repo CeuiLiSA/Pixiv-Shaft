@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.FileUtils;
-import com.blankj.utilcode.util.LanguageUtils;
 import com.blankj.utilcode.util.UriUtils;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
@@ -57,7 +56,6 @@ import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.DARK_MODE;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.DEFAULT_MODE;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.LIGHT_MODE;
-import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
 public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
@@ -614,36 +612,26 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             });
 
             // 语言
-            baseBind.appLanguage.setText(Shaft.sSettings.getAppLanguage());
-            baseBind.appLanguageRela.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    new QMUIDialog.CheckableDialogBuilder(getActivity())
-                            .addItems(ALL_LANGUAGE, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
-                                    baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
-                                    Common.showToast(getString(R.string.string_428), 2);
-                                    Local.setSettings(Shaft.sSettings);
-                                    if (which == 0) {
-                                        LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, true);
-                                    } else if (which == 1) {
-                                        LanguageUtils.applyLanguage(Locale.JAPAN, true);
-                                    } else if (which == 2) {
-                                        LanguageUtils.applyLanguage(Locale.US, true);
-                                    } else if (which == 3) {
-                                        LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, true);
-                                    } else if (which == 4) {
-                                        LanguageUtils.applyLanguage(new Locale("RU", "ru", ""), true);
-                                    } else if (which == 5) {
-                                        LanguageUtils.applyLanguage(Locale.KOREA, true);
-                                    }
-                                    dialog.dismiss();
-                                }
-                            })
-                            .show();
+            baseBind.appLanguage.setText(currentLanguageDisplay());
+            baseBind.appLanguageRela.setOnClickListener(v -> {
+                // "跟随系统" 放在首位
+                java.util.List<String> labels = new java.util.ArrayList<>();
+                java.util.List<String> tags = new java.util.ArrayList<>();
+                labels.add(getString(R.string.language_follow_system));
+                tags.add(null);
+                for (String tag : ceui.pixiv.i18n.AppLocales.INSTANCE.getSupportedTags()) {
+                    labels.add(ceui.pixiv.i18n.AppLocales.INSTANCE.displayName(tag));
+                    tags.add(tag);
                 }
+                new QMUIDialog.CheckableDialogBuilder(getActivity())
+                        .addItems(labels.toArray(new String[0]), (dialog, which) -> {
+                            String tag = tags.get(which);
+                            ceui.pixiv.i18n.AppLocales.INSTANCE.apply(tag);
+                            baseBind.appLanguage.setText(labels.get(which));
+                            Common.showToast(getString(R.string.string_428), 2);
+                            dialog.dismiss();
+                        })
+                        .show();
             });
         }
 
@@ -1216,4 +1204,11 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         }
     }
 
+    private String currentLanguageDisplay() {
+        if (ceui.pixiv.i18n.AppLocales.INSTANCE.isFollowingSystem()) {
+            return getString(R.string.language_follow_system);
+        }
+        Locale loc = ceui.pixiv.i18n.AppLocales.INSTANCE.currentLocale();
+        return ceui.pixiv.i18n.AppLocales.INSTANCE.displayName(loc.toLanguageTag());
+    }
 }
