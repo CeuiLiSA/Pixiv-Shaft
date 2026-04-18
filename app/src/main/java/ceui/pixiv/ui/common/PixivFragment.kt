@@ -24,7 +24,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.R
-import ceui.lisa.activities.UserActivity
+import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
@@ -180,7 +180,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
             Timber.e(ex)
             val userIntent = Intent(
                 requireContext(),
-                UserActivity::class.java
+                UActivity::class.java
             )
             userIntent.putExtra(
                 Params.USER_ID, id.toInt()

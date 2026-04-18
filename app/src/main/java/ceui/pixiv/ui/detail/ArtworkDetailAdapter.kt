@@ -22,7 +22,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.activities.UserActivity
+import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.VActivity
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
@@ -313,7 +313,7 @@ class ArtworkDetailAdapter(
                 .into(b.artistAvatar)
 
             b.artistCard.setOnClickListener {
-                val intent = Intent(ctx, UserActivity::class.java)
+                val intent = Intent(ctx, UActivity::class.java)
                 intent.putExtra(Params.USER_ID, user.id)
                 ctx.startActivity(intent)
             }

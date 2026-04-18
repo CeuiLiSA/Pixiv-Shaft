@@ -12,7 +12,7 @@ import java.util.List;
 
 import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UserActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.DownloadedAdapter;
 import ceui.lisa.core.BaseRepo;
@@ -48,7 +48,7 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
                     intent.putExtra("index", position);
                     startActivity(intent);
                 } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UserActivity.class);
+                    Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra(Params.USER_ID, all.get(position).getUser().getId());
                     startActivity(intent);
                 } else if (viewType == 2) {

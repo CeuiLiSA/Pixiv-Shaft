@@ -31,7 +31,7 @@ import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.activities.UserActivity
+import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.adapters.IllustAdapter
@@ -183,12 +183,12 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             }
         }
         baseBind.relaIllustBrief.setOnClick {
-            val intent = Intent(mContext, UserActivity::class.java)
+            val intent = Intent(mContext, UActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id)
             startActivity(intent)
         }
         baseBind.userName.setOnClick {
-            val intent = Intent(mContext, UserActivity::class.java)
+            val intent = Intent(mContext, UActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id)
             startActivity(intent)
         }

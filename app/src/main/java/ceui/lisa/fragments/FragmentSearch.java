@@ -34,7 +34,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UserActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
@@ -202,7 +202,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         }  else if (searchType == 2) {
             if (Common.isNumeric(trimmedKeyword)) {
                 PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_USERID);
-                Intent intent = new Intent(mContext, UserActivity.class);
+                Intent intent = new Intent(mContext, UActivity.class);
                 intent.putExtra(Params.USER_ID, Integer.valueOf(trimmedKeyword));
                 startActivity(intent);
             } else {
@@ -259,7 +259,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     public void doSomething(Void t) {
                         tipDialog.dismiss();
                         PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_USERID);
-                        Intent intent = new Intent(mContext, UserActivity.class);
+                        Intent intent = new Intent(mContext, UActivity.class);
                         intent.putExtra(Params.USER_ID, Integer.valueOf(trimmedKeyword));
                         startActivity(intent);
                     }
@@ -464,7 +464,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_USERID) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
-                    Intent intent = new Intent(mContext, UserActivity.class);
+                    Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra(Params.USER_ID, Integer.valueOf(history.get(position).getKeyword()));
                     startActivity(intent);
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_NOVELID) {

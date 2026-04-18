@@ -105,7 +105,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent userIntent = new Intent(mContext, UserActivity.class);
+                Intent userIntent = new Intent(mContext, UActivity.class);
                 userIntent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
                 startActivity(userIntent);
                 baseBind.drawerLayout.closeDrawer(GravityCompat.START);
@@ -325,7 +325,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
         } else if (id == R.id.main_page) {
-            intent = new Intent(mContext, UserActivity.class);
+            intent = new Intent(mContext, UActivity.class);
             intent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
         } else if (id == R.id.nav_ai_upscale) {
             intent = new Intent(mContext, TemplateActivity.class);

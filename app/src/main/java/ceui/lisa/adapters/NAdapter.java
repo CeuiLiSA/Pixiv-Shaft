@@ -20,7 +20,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.UserActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.NovelBean;
@@ -179,7 +179,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情");
                     mContext.startActivity(intent);
                 } else if (viewType == 3) {
-                    Intent intent = new Intent(mContext, UserActivity.class);
+                    Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                     mContext.startActivity(intent);
                 }

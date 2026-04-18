@@ -104,7 +104,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             List<String> pathArray = uri.getPathSegments();
                             String userID = pathArray.get(pathArray.size() - 1);
                             if (!TextUtils.isEmpty(userID)) {
-                                Intent userIntent = new Intent(mContext, UserActivity.class);
+                                Intent userIntent = new Intent(mContext, UActivity.class);
                                 userIntent.putExtra(Params.USER_ID, Integer.valueOf(userID));
                                 startActivity(userIntent);
                                 finish();
@@ -167,7 +167,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                         String userID = uri.getQueryParameter("id");
                         if (!TextUtils.isEmpty(userID)) {
-                            Intent userIntent = new Intent(mContext, UserActivity.class);
+                            Intent userIntent = new Intent(mContext, UActivity.class);
                             userIntent.putExtra(Params.USER_ID, Integer.valueOf(userID));
                             startActivity(userIntent);
                             finish();
@@ -250,7 +250,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                             if (host.contains("users")) {
                                 String path = uri.getPath();
-                                Intent userIntent = new Intent(mContext, UserActivity.class);
+                                Intent userIntent = new Intent(mContext, UActivity.class);
                                 userIntent.putExtra(Params.USER_ID, Integer.valueOf(path.substring(1)));
                                 startActivity(userIntent);
                                 finish();

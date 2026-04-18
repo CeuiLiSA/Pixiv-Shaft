@@ -186,9 +186,6 @@
             android:value="GlideModule" />
 
         <activity
-            android:name=".activities.UserActivity"
-            android:theme="@style/SplashTheme" />
-        <activity
             android:name=".activities.SearchActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:theme="@style/SplashTheme" />

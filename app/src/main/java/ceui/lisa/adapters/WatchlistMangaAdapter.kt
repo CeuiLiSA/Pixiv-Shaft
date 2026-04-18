@@ -7,7 +7,7 @@ import ceui.lisa.databinding.RecyWatchlistMangaBinding
 import ceui.lisa.models.WatchlistMangaItem
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.activities.UserActivity
+import ceui.lisa.activities.UActivity
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
@@ -54,12 +54,12 @@ class WatchlistMangaAdapter(
                 mContext.startActivity(intent)
             }
             bindView.baseBind.author.setOnClickListener {
-                val intent = Intent(mContext, UserActivity::class.java)
+                val intent = Intent(mContext, UActivity::class.java)
                 intent.putExtra(Params.USER_ID, target.user!!.id)
                 mContext.startActivity(intent)
             }
             bindView.baseBind.userHead.setOnClickListener {
-                val intent = Intent(mContext, UserActivity::class.java)
+                val intent = Intent(mContext, UActivity::class.java)
                 intent.putExtra(Params.USER_ID, target.user!!.id)
                 mContext.startActivity(intent)
             }

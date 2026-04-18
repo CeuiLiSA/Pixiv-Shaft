@@ -18,7 +18,7 @@ import java.util.Locale;
 import ceui.lisa.R;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.UserActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.databinding.RecyNovelMarkersBinding;
 import ceui.lisa.models.MarkedNovelItem;
 import ceui.lisa.models.TagsBean;
@@ -87,13 +87,13 @@ public class NovelMarkersAdapter extends BaseAdapter<MarkedNovelItem, RecyNovelM
         });
 
         bindView.baseBind.userHead.setOnClickListener(v -> {
-            Intent intent = new Intent(mContext, UserActivity.class);
+            Intent intent = new Intent(mContext, UActivity.class);
             intent.putExtra(Params.USER_ID, target.getNovel().getUser().getId());
             mContext.startActivity(intent);
         });
 
         bindView.baseBind.author.setOnClickListener(v -> {
-            Intent intent = new Intent(mContext, UserActivity.class);
+            Intent intent = new Intent(mContext, UActivity.class);
             intent.putExtra(Params.USER_ID, target.getNovel().getUser().getId());
             mContext.startActivity(intent);
         });

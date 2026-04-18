@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.activities.UserActivity
+import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
@@ -209,7 +209,7 @@ class HistoryV3Adapter(
     }
 
     private fun openUser(userId: Int) {
-        val intent = Intent(context, UserActivity::class.java).apply {
+        val intent = Intent(context, UActivity::class.java).apply {
             putExtra(Params.USER_ID, userId)
         }
         context.startActivity(intent)

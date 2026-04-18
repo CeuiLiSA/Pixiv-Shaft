@@ -14,7 +14,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UserActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.HistoryAdapter;
@@ -65,7 +65,7 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
                         mContext.startActivity(intent);
                     }
                 } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UserActivity.class);
+                    Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra(Params.USER_ID, (int) v.getTag());
                     mContext.startActivity(intent);
                 } else if (viewType == 2) {

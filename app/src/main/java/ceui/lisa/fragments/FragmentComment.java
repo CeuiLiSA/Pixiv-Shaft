@@ -18,7 +18,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.UserActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.CommentAdapter;
 import ceui.lisa.adapters.EmojiAdapter;
@@ -122,7 +122,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                                 } else if (which == 1) {
                                     Common.copy(mContext, allItems.get(position).getComment());
                                 } else if (which == 2) {
-                                    Intent userIntent = new Intent(mContext, UserActivity.class);
+                                    Intent userIntent = new Intent(mContext, UActivity.class);
                                     userIntent.putExtra(Params.USER_ID, allItems.get(position)
                                             .getUser().getId());
                                     startActivity(userIntent);
@@ -132,7 +132,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                         })
                         .show();
             } else if (viewType == 1) {
-                Intent userIntent = new Intent(mContext, UserActivity.class);
+                Intent userIntent = new Intent(mContext, UActivity.class);
                 userIntent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                 startActivity(userIntent);
             } else if (viewType == 2) {
@@ -150,7 +150,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                                 } else if (which == 1) {
                                     Common.copy(mContext, allItems.get(position).getParent_comment().getComment());
                                 } else if (which == 2) {
-                                    Intent userIntent = new Intent(mContext, UserActivity.class);
+                                    Intent userIntent = new Intent(mContext, UActivity.class);
                                     userIntent.putExtra(Params.USER_ID, allItems.get(position)
                                             .getParent_comment().getUser().getId());
                                     startActivity(userIntent);
@@ -160,7 +160,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                         })
                         .show();
             } else if (viewType == 3) {
-                Intent userIntent = new Intent(mContext, UserActivity.class);
+                Intent userIntent = new Intent(mContext, UActivity.class);
                 userIntent.putExtra(Params.USER_ID, allItems.get(position).getParent_comment().getUser().getId());
                 startActivity(userIntent);
             }
