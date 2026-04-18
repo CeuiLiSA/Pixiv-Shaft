@@ -1,6 +1,5 @@
 package ceui.lisa.http;
 
-import static ceui.lisa.http.AccountApi.ACCOUNT_BASE_URL;
 import static ceui.lisa.http.AppApi.API_BASE_URL;
 import static ceui.lisa.http.ResourceApi.JSDELIVR_BASE_URL;
 import static ceui.lisa.http.SignApi.SIGN_API;
@@ -51,12 +50,8 @@ public class Retro {
         return buildRetrofit(SIGN_API).create(SignApi.class);
     }
 
-    public static AccountApi getAccountApi() {
-        return buildRetrofit(ACCOUNT_BASE_URL, false).create(AccountApi.class);
-    }
-
     public static AccountTokenApi getAccountTokenApi() {
-        return buildRetrofit(ACCOUNT_BASE_URL).create(AccountTokenApi.class);
+        return buildRetrofit(AccountTokenApi.ACCOUNT_BASE_URL).create(AccountTokenApi.class);
     }
 
     public static ResourceApi getResourceApi() {

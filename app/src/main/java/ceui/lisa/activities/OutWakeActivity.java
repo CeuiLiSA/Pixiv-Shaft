@@ -14,19 +14,16 @@ import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
-
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import ceui.loxia.AccountResponse;
 import ceui.pixiv.login.PixivLogin;
-import ceui.pixiv.login.PixivOAuthConfig;
+import ceui.pixiv.login.PixivOAuthResult;
 import ceui.pixiv.session.SessionManager;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -191,76 +188,62 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                             if (host.equals("account")) {
                                 Common.showToast(getString(R.string.trying_login));
-                                String code = uri.getQueryParameter("code");
-                                String verifier = PixivLogin.INSTANCE.loadVerifier();
-                                if (TextUtils.isEmpty(code) || TextUtils.isEmpty(verifier)) {
-                                    Common.showToast("登录已过期，请重试");
-                                    Intent i = new Intent(mContext, TemplateActivity.class);
-                                    i.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
-                                    startActivity(i);
-                                    finish();
-                                    return;
-                                }
-                                Retro.getAccountApi().newLogin(
-                                        PixivOAuthConfig.PIXIV_ANDROID.getClientId(),
-                                        PixivOAuthConfig.PIXIV_ANDROID.getClientSecret(),
-                                        PixivLogin.GRANT_TYPE_AUTH_CODE,
-                                        code,
-                                        verifier,
-                                        PixivOAuthConfig.PIXIV_ANDROID.getRedirectUri(),
-                                        true
-                                ).subscribeOn(Schedulers.newThread())
+                                Observable.fromCallable(() -> PixivLogin.INSTANCE.handleCallback(uri))
+                                .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new NullCtrl<UserModel>() {
-                                    @Override
-                                    public void success(UserModel userModel) {
-
-                                        Common.showLog(userModel.toString());
-                                        Common.showToast("登录成功");
-
-                                        PixivLogin.INSTANCE.clearVerifier();
-
-                                        userModel.getUser().setIs_login(true);
-                                        Local.saveUser(userModel);
-                                        SessionManager.INSTANCE.updateSession(userModel);
-
-                                        UserEntity userEntity = new UserEntity();
-                                        userEntity.setLoginTime(System.currentTimeMillis());
-                                        userEntity.setUserID(userModel.getUser().getId());
-                                        userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
-
-                                        AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
-
-                                        // 检测是否打开R18并提示开启，新注册未验证邮箱用户不提示，严格来说只有设置过密码(has_password)才能进设置页，考虑到网页注册只能使用邮箱，故如此限制
-                                        if (userModel.getUser().isR18Enabled() || !userModel.getUser().isIs_mail_authorized()) {
-                                            mActivity.finish();
-                                            Common.restart();
-                                        } else {
-                                            new QMUIDialog.MessageDialogBuilder(mActivity)
-                                                    .setTitle(R.string.string_216)
-                                                    .setMessage(R.string.string_400)
-                                                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                                                    .addAction(R.string.string_401, new QMUIDialogAction.ActionListener() {
-                                                        @Override
-                                                        public void onClick(QMUIDialog dialog, int index) {
-                                                            dialog.dismiss();
-                                                            mActivity.finish();
-                                                            Common.restart();
-                                                        }
-                                                    })
-                                                    .addAction(R.string.string_402, new QMUIDialogAction.ActionListener() {
-                                                        @Override
-                                                        public void onClick(QMUIDialog dialog, int index) {
-                                                            Intent intent = new Intent(mContext, TemplateActivity.class);
-                                                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                                                            intent.putExtra(Params.URL, Params.URL_R18_SETTING);
-                                                            startActivity(intent);
-                                                        }
-                                                    })
-                                                    .create()
-                                                    .show();
-                                        }
+                                .subscribe(result -> {
+                                    if (result instanceof PixivOAuthResult.Failure) {
+                                        Common.showToast("登录失败: " + ((PixivOAuthResult.Failure) result).getMessage());
+                                        return;
                                     }
+                                    PixivOAuthResult.Success success = (PixivOAuthResult.Success) result;
+                                    UserModel userModel = Shaft.sGson.fromJson(success.getRawBody(), UserModel.class);
+
+                                    Common.showLog(userModel.toString());
+                                    Common.showToast("登录成功");
+
+                                    userModel.getUser().setIs_login(true);
+                                    Local.saveUser(userModel);
+                                    SessionManager.INSTANCE.updateSession(userModel);
+
+                                    UserEntity userEntity = new UserEntity();
+                                    userEntity.setLoginTime(System.currentTimeMillis());
+                                    userEntity.setUserID(userModel.getUser().getId());
+                                    userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
+
+                                    AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
+
+                                    // 检测是否打开R18并提示开启，新注册未验证邮箱用户不提示
+                                    if (userModel.getUser().isR18Enabled() || !userModel.getUser().isIs_mail_authorized()) {
+                                        mActivity.finish();
+                                        Common.restart();
+                                    } else {
+                                        new QMUIDialog.MessageDialogBuilder(mActivity)
+                                                .setTitle(R.string.string_216)
+                                                .setMessage(R.string.string_400)
+                                                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                                                .addAction(R.string.string_401, new QMUIDialogAction.ActionListener() {
+                                                    @Override
+                                                    public void onClick(QMUIDialog dialog, int index) {
+                                                        dialog.dismiss();
+                                                        mActivity.finish();
+                                                        Common.restart();
+                                                    }
+                                                })
+                                                .addAction(R.string.string_402, new QMUIDialogAction.ActionListener() {
+                                                    @Override
+                                                    public void onClick(QMUIDialog dialog, int index) {
+                                                        Intent intent1 = new Intent(mContext, TemplateActivity.class);
+                                                        intent1.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                                                        intent1.putExtra(Params.URL, Params.URL_R18_SETTING);
+                                                        startActivity(intent1);
+                                                    }
+                                                })
+                                                .create()
+                                                .show();
+                                    }
+                                }, throwable -> {
+                                    Common.showToast("登录失败");
                                 });
                                 return;
                             }

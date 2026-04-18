@@ -460,12 +460,6 @@ public interface AppApi {
     Observable<ListArticle> getNextArticles(@Url String next_url);
 
 
-    //https://app-api.pixiv.net/web/v1/login?code_challenge=
-    // BpI4XJUk4nHHBwbhTNdunQDhB4Ca0M3yBcC_v7E0lUw&
-
-    @GET("web/v1/login?code_challenge_method=S256&client=pixiv-android")
-    Observable<String> tryLogin(@Query("code_challenge") String code_challenge);
-
     // 添加小说书签 相同id只能有1个 不同页数会直接覆盖
     @FormUrlEncoded
     @POST("v1/novel/marker/add")

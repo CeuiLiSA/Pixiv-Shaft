@@ -8,6 +8,8 @@ import retrofit2.http.POST;
 
 public interface AccountTokenApi {
 
+    String ACCOUNT_BASE_URL = "https://oauth.secure.pixiv.net/";
+
     @FormUrlEncoded
     @POST("/auth/token")
     Call<UserModel> newRefreshToken(@Field("client_id") String client_id,

@@ -1,95 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
-        style="@style/textMontserratBold"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingStart="20dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="16dp"
-        android:shadowColor="#80000000"
-        android:shadowDx="4"
-        android:shadowDy="8"
-        android:shadowRadius="16"
-        android:text="@string/app_name"
-        android:textColor="@color/white"
-        android:textSize="35sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15" />
+    <data />
 
-    <LinearLayout
-        android:id="@+id/bottom_linear"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:id="@+id/login_button"
-            style="@style/textMontserratSemiBold"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginHorizontal="30dp"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/round_corner_white_r20"
-            android:gravity="center"
-            android:text="@string/now_login"
-            android:textColor="@color/black"
-            android:textSize="18sp" />
-
-        <TextView
-            android:id="@+id/sign_button"
-            style="@style/textMontserratSemiBold"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginHorizontal="30dp"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/round_corner_white_r20"
-            android:gravity="center"
-            android:text="@string/now_sign"
-            android:textColor="@color/black"
-            android:textSize="18sp" />
+        android:layout_height="match_parent">
 
         <LinearLayout
-            android:id="@+id/checkbox_one"
+            android:id="@+id/bottom_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="34dp">
-
-            <FrameLayout
-                android:layout_width="40dp"
-                android:layout_height="40dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="12dp"
-                    android:src="@drawable/terms_checkbox" />
-
-            </FrameLayout>
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <TextView
-                android:id="@+id/first_text"
+                android:id="@+id/login_button"
+                style="@style/textMontserratSemiBold"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginHorizontal="30dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/round_corner_white_r20"
+                android:gravity="center"
+                android:text="@string/now_login"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/sign_button"
+                style="@style/textMontserratSemiBold"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginHorizontal="30dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/round_corner_white_r20"
+                android:gravity="center"
+                android:text="@string/now_sign"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+
+            <LinearLayout
+                android:id="@+id/checkbox_one"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="34dp">
+
+                <FrameLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginTop="12dp"
+                        android:src="@drawable/terms_checkbox" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/first_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
         </LinearLayout>
 
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

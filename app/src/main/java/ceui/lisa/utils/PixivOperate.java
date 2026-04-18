@@ -47,7 +47,7 @@ import ceui.lisa.database.MuteEntity;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.OutPut;
-import ceui.pixiv.login.PixivLogin;
+
 import ceui.pixiv.login.PixivOAuthConfig;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
@@ -96,7 +96,7 @@ public class PixivOperate {
         Call<UserModel> call = Retro.getAccountTokenApi().newRefreshToken(
                 PixivOAuthConfig.PIXIV_ANDROID.getClientId(),
                 PixivOAuthConfig.PIXIV_ANDROID.getClientSecret(),
-                PixivLogin.GRANT_TYPE_REFRESH_TOKEN,
+                "refresh_token",
                 refreshToken,
                 Boolean.TRUE);
         call.enqueue(callback);

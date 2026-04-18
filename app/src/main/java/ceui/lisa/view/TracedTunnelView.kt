@@ -1,6 +1,5 @@
 package ceui.lisa.view
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.BitmapShader
@@ -14,7 +13,6 @@ import android.os.Build
 import android.util.AttributeSet
 import android.view.Choreographer
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.annotation.RequiresApi
 import timber.log.Timber
 import java.util.concurrent.Executors
@@ -49,10 +47,11 @@ class TracedTunnelView @JvmOverloads constructor(
     private var fallbackGradientHeight = 0f
 
     private var impl: TunnelImpl? = null
+    var onReadyListener: (() -> Unit)? = null
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            impl = TunnelImpl(this)
+            impl = TunnelImpl(this) { onReadyListener?.invoke() }
         }
     }
 
@@ -100,10 +99,9 @@ class TracedTunnelView @JvmOverloads constructor(
 private const val ATLAS_COLS = 28
 private const val ATLAS_ROWS = 16
 private const val IMAGE_TILE_SIZE = 200
-private const val FADE_DURATION_MS = 1500L
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-private class TunnelImpl(private val view: View) {
+private class TunnelImpl(private val view: View, private val onReady: () -> Unit) {
 
     private val shader = RuntimeShader(SHADER_TRACED_TUNNEL_IMAGE)
     private val paint = Paint().apply { this.shader = this@TunnelImpl.shader }
@@ -120,7 +118,6 @@ private class TunnelImpl(private val view: View) {
     private var resolutionW = 0f
     private var resolutionH = 0f
 
-    private var fadeAnimator: ValueAnimator? = null
     private var loadExecutor: java.util.concurrent.ExecutorService? = null
 
     private val choreographerCallback = object : Choreographer.FrameCallback {
@@ -151,6 +148,7 @@ private class TunnelImpl(private val view: View) {
                         shader.setInputShader("tileImage", data.shader)
                         atlasLoaded = true
                         startAnimation()
+                        onReady()
                     }
                 }
                 executor.shutdown()
@@ -163,7 +161,6 @@ private class TunnelImpl(private val view: View) {
     fun stop() {
         running = false
         stopAnimation()
-        fadeAnimator?.cancel()
         loadExecutor?.shutdownNow()
         loadExecutor = null
     }
@@ -202,26 +199,13 @@ private class TunnelImpl(private val view: View) {
         if (animating) return
         animating = true
         startNanos = 0L
-        shader.setFloatUniform("iAlpha", 0f)
+        shader.setFloatUniform("iAlpha", 1f)
         Choreographer.getInstance().postFrameCallback(choreographerCallback)
-        startFadeIn()
     }
 
     private fun stopAnimation() {
         animating = false
         Choreographer.getInstance().removeFrameCallback(choreographerCallback)
-    }
-
-    private fun startFadeIn() {
-        fadeAnimator?.cancel()
-        fadeAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = FADE_DURATION_MS
-            interpolator = AccelerateDecelerateInterpolator()
-            addUpdateListener {
-                shader.setFloatUniform("iAlpha", it.animatedValue as Float)
-            }
-            start()
-        }
     }
 
     private fun loadAtlas(context: Context): AtlasData? {
