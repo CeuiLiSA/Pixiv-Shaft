@@ -30,8 +30,6 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Dev
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
-import ceui.pixiv.login.PixivLogin
-import com.facebook.rebound.SimpleSpringListener
 import com.facebook.rebound.Spring
 import com.facebook.rebound.SpringConfig
 import com.facebook.rebound.SpringSystem
@@ -82,19 +80,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             }
             false
         })
-        baseBind.title.text = getString(R.string.app_name)
-        baseBind.login.setOnClickListener {
-            checkAndNext {
-                openProxyHint { openOAuthTab(PixivLogin.startLoginUrl()) }
-            }
-        }
-        baseBind.sign.setOnClickListener {
-            checkAndNext {
-                openProxyHint { openOAuthTab(PixivLogin.startSignUrl()) }
-            }
-        }
-        baseBind.hasNoAccount.setOnClickListener { showSignCard() }
-        baseBind.goToLogin.setOnClickListener { showLoginCard() }
         baseBind.firstText.movementMethod = LinkMovementMethod.getInstance()
         val matchTOS = getString(R.string.terms_of_service)
         val matchPP = getString(R.string.privacy_policy)
@@ -182,36 +167,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             Toast.makeText(requireContext(), getString(R.string.read_agreement), Toast.LENGTH_SHORT)
                 .show()
         }
-    }
-
-    private fun showSignCard() {
-        baseBind.fragmentLogin.visibility = View.INVISIBLE
-        baseBind.fragmentSign.visibility = View.VISIBLE
-        rotate?.currentValue = 0.0
-        baseBind.fragmentSign.cameraDistance = 80000.0f
-        rotate?.addListener(object : SimpleSpringListener() {
-            override fun onSpringUpdate(spring: Spring) {
-                baseBind.fragmentSign.rotationY = spring.currentValue.toFloat()
-            }
-
-            override fun onSpringAtRest(spring: Spring) {}
-        })
-        rotate?.endValue = 360.0
-    }
-
-    private fun showLoginCard() {
-        baseBind.fragmentSign.visibility = View.INVISIBLE
-        baseBind.fragmentLogin.visibility = View.VISIBLE
-        rotate?.currentValue = 0.0
-        baseBind.fragmentLogin.cameraDistance = 80000.0f
-        rotate?.addListener(object : SimpleSpringListener() {
-            override fun onSpringUpdate(spring: Spring) {
-                baseBind.fragmentLogin.rotationY = spring.currentValue.toFloat()
-            }
-
-            override fun onSpringAtRest(spring: Spring) {}
-        })
-        rotate?.endValue = 360.0
     }
 
     companion object {

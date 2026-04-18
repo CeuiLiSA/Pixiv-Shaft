@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -16,243 +15,91 @@
             android:id="@+id/tunnel_background"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <View
             android:id="@+id/gradient_scrim"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@drawable/login_scrim_gradient"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:id="@+id/fragment_login"
-            android:layout_height="match_parent">
-
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:id="@+id/card_login"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="@dimen/twelve_dp"
-                app:cardElevation="@dimen/twelve_dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintHeight_percent="0.4"
-                app:layout_constraintWidth_percent="0.7">
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/title"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_centerHorizontal="true"
-                        android:gravity="center"
-                        android:padding="@dimen/sixteen_dp"
-                        android:text="@string/app_name"
-                        android:textColor="?attr/colorPrimary"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_below="@+id/title"
-                        android:layout_centerInParent="true"
-                        android:id="@+id/center_rela"
-                        android:gravity="center"
-                        android:layout_height="wrap_content">
-
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="match_parent"
-                            android:layout_height="40dp"
-                            android:layout_centerInParent="true"
-                            android:id="@+id/login"
-                            android:clickable="true"
-                            android:foreground="?attr/selectableItemBackground"
-                            android:layout_marginStart="@dimen/twenty_four_dp"
-                            android:layout_marginEnd="@dimen/twenty_four_dp"
-                            android:layout_marginBottom="@dimen/sixteen_dp"
-                            app:cardBackgroundColor="?attr/colorPrimary">
-
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="@string/now_login"
-                                android:textColor="@android:color/white"
-                                android:textSize="13sp" />
-
-                        </androidx.cardview.widget.CardView>
-
-                    </RelativeLayout>
-
-
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:layout_alignParentBottom="true"
-                        android:background="#f6f6f6"
-                        android:layout_marginTop="@dimen/sixteen_dp"
-                        android:gravity="center"
-                        android:id="@+id/has_no_account"
-                        android:text="@string/has_no_account"
-                        android:textColor="?attr/colorPrimary"
-                        android:textSize="12sp" />
-
-
-                </RelativeLayout>
-            </androidx.cardview.widget.CardView>
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:visibility="invisible"
-            android:id="@+id/fragment_sign"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                android:id="@+id/card_sign"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="@dimen/twelve_dp"
-                app:cardElevation="@dimen/twelve_dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.4"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.7">
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <TextView
-                        android:id="@+id/sign_title"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_centerHorizontal="true"
-                        android:gravity="center"
-                        android:padding="@dimen/sixteen_dp"
-                        android:text="@string/app_name"
-                        android:textColor="?attr/colorPrimary"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
-
-
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:id="@+id/sign"
-                        android:layout_centerInParent="true"
-                        android:clickable="true"
-                        android:foreground="?attr/selectableItemBackground"
-                        android:layout_marginStart="@dimen/twenty_four_dp"
-                        android:layout_marginEnd="@dimen/twenty_four_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        app:cardBackgroundColor="?attr/colorPrimary">
-
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="@string/now_sign"
-                            android:textColor="@android:color/white"
-                            android:textSize="13sp" />
-
-                    </androidx.cardview.widget.CardView>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:layout_alignParentBottom="true"
-                        android:background="#f6f6f6"
-                        android:gravity="center"
-                        android:id="@+id/go_to_login"
-                        android:text="@string/go_to_login"
-                        android:textColor="?attr/colorPrimary"
-                        android:textSize="12sp" />
-
-                </RelativeLayout>
-            </androidx.cardview.widget.CardView>
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:id="@+id/progress"
-            android:visibility="invisible"
-            android:layout_height="wrap_content"
-            android:indeterminateTint="@color/always_white"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="48dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            style="@style/textMontserratBold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="16dp"
+            android:shadowColor="#80000000"
+            android:shadowDx="4"
+            android:shadowDy="8"
+            android:shadowRadius="16"
+            android:text="@string/app_name"
+            android:textColor="@color/white"
+            android:textSize="35sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.15" />
 
 
         <androidx.appcompat.widget.Toolbar
-            android:layout_width="match_parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:title=" "
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
             android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@android:color/transparent"
-            android:layout_height="wrap_content">
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:layout_constraintTop_toTopOf="parent"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title=" ">
 
 
         </androidx.appcompat.widget.Toolbar>
 
+        <TextView
+            style="@style/textMontserratSemiBold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="30dp"
+            android:layout_marginBottom="10dp"
+            android:height="56dp"
+            android:background="@drawable/round_corner_white_r20"
+            android:gravity="center"
+            android:text="Start"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/checkbox_one" />
+
         <LinearLayout
             android:id="@+id/checkbox_one"
-            android:layout_marginBottom="60dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:layout_marginEnd="34dp">
+            android:layout_marginEnd="34dp"
+            android:layout_marginBottom="40dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <FrameLayout
                 android:layout_width="40dp"
                 android:layout_height="40dp">
 
                 <ImageView
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginStart="4dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="12dp"
                     android:src="@drawable/terms_checkbox" />
 
             </FrameLayout>
@@ -261,24 +108,11 @@
             <TextView
                 android:id="@+id/first_text"
                 android:layout_width="match_parent"
-                android:layout_marginTop="10dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:textColor="@color/white"
                 android:textSize="12sp" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/version_text"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="20dp"
-            android:textColor="@color/colorWhite80"
-            android:textSize="14sp"
-            tools:text="Version 1.2.1-3456" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
