@@ -10,14 +10,31 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/colorPrimary">
+        android:background="@android:color/black">
 
+        <ceui.lisa.view.TracedTunnelView
+            android:id="@+id/tunnel_background"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <View
+            android:id="@+id/gradient_scrim"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/login_scrim_gradient"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:id="@+id/fragment_login"
-            android:layout_height="match_parent"
-            android:background="?attr/colorPrimary">
+            android:layout_height="match_parent">
 
 
             <androidx.cardview.widget.CardView
@@ -112,8 +129,7 @@
             android:visibility="invisible"
             android:id="@+id/fragment_sign"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?attr/colorPrimary">
+            android:layout_height="match_parent">
 
 
             <androidx.cardview.widget.CardView
@@ -210,7 +226,7 @@
             android:theme="@style/AppTheme.AppBarOverlay"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             android:id="@+id/toolbar"
-            android:background="?attr/colorPrimary"
+            android:background="@android:color/transparent"
             android:layout_height="wrap_content">
 
 
