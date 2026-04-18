@@ -20,6 +20,15 @@
 
     <queries>
         <package android:name="com.sina.weibo" />
+        <!-- Chrome Custom Tabs：Android 11+ 包可见性要求 -->
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
     </queries>
 
     <application

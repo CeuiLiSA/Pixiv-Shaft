@@ -4,13 +4,15 @@ import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.activities.Shaft
-import ceui.lisa.fragments.FragmentLogin
 import ceui.lisa.models.UserModel
 import ceui.loxia.AccountResponse
-import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
+import ceui.lisa.R
+import ceui.lisa.utils.Common
+import ceui.pixiv.login.InvalidRefreshTokenException
+import ceui.pixiv.login.PixivLogin
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
@@ -162,28 +164,40 @@ object SessionManager {
         return runBlocking(Dispatchers.IO) {
             try {
                 _newTokenEvent.postValue(Event(System.currentTimeMillis()))
-                val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
-                val userModel = Client.authApi.newRefreshToken(
-                    FragmentLogin.CLIENT_ID,
-                    FragmentLogin.CLIENT_SECRET,
-                    FragmentLogin.REFRESH_TOKEN,
-                    refreshToken,
-                    true
-                ).execute().body()
+                val refreshToken = _loggedInAccount.value?.refresh_token
+                    ?: throw RuntimeException("refresh_token not exist")
+                val response = PixivLogin.refreshTokenBlocking(refreshToken)
                 delay(500L)
-                if (userModel != null) {
-                    withContext(Dispatchers.Main) {
-                        updateSession(userModel)
-                    }
-                    userModel.rawAccessToken
-                } else {
-                    throw RuntimeException("newRefreshToken failed")
+                withContext(Dispatchers.Main) {
+                    applyTokenRefresh(response.accessToken, response.refreshToken, response.expiresIn)
                 }
+                response.accessToken
+            } catch (ex: InvalidRefreshTokenException) {
+                Timber.w(ex, "refresh_token 被吊销，登出")
+                postUpdateSession(null)
+                Common.showToast(R.string.string_340)
+                Common.restart()
+                null
             } catch (ex: Exception) {
                 Timber.e(ex)
                 null
             }
         }
+    }
+
+    /**
+     * 只更新 tokens，保留既有的 UserModel metadata（mail/R18/is_premium 等）。
+     * 用于 token 刷新完成后同步到 LiveData + 磁盘。
+     */
+    fun applyTokenRefresh(accessToken: String, refreshToken: String, expiresIn: Int) {
+        val existing = _loggedInAccount.value ?: AccountResponse()
+        val updated = existing.copy(
+            access_token = accessToken,
+            refresh_token = refreshToken,
+            expires_in = expiresIn,
+        )
+        prefStore.putString(USER_KEY, gson.toJson(updated))
+        _loggedInAccount.value = updated
     }
 
     fun getAccessToken(): String {

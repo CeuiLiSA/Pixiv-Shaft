@@ -5,24 +5,26 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 import ceui.lisa.R;
-import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.login.InvalidRefreshTokenException;
+import ceui.pixiv.login.PixivLogin;
+import ceui.pixiv.login.PixivOAuthResponse;
 import ceui.pixiv.session.SessionManager;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
-import retrofit2.Call;
+import timber.log.Timber;
 
 /**
- * 全局自动刷新Token的拦截器
+ * 检测到 400 OAuth 过期时自动用 refresh_token 换新 access_token，并重放原请求。
+ * Token 交换走 {@link PixivLogin}（内部使用共享的 OkHttp + Worker relay 配置）。
  */
 public class TokenInterceptor implements Interceptor {
 
     private static final String TOKEN_ERROR_1 = "Error occurred at the OAuth process";
     private static final String TOKEN_ERROR_2 = "Invalid refresh token";
-    private static final int TOKEN_LENGTH = 50;
 
     @NotNull
     @Override
@@ -31,12 +33,12 @@ public class TokenInterceptor implements Interceptor {
         Response response = chain.proceed(request);
 
         if (isTokenExpired(response)) {
-            Common.showLog("getNewToken 检测到是过期Token ");
+            Timber.i("TokenInterceptor: access_token 过期，正在刷新");
             response.close();
-            String newToken = getNewToken(request.header("Authorization"));
+            String newBearer = getNewToken(request.header("Authorization"));
             Request newRequest = chain.request()
                     .newBuilder()
-                    .header("Authorization", newToken)
+                    .header("Authorization", newBearer)
                     .build();
             return chain.proceed(newRequest);
         }
@@ -44,56 +46,59 @@ public class TokenInterceptor implements Interceptor {
     }
 
     private boolean isTokenExpired(Response response) {
-        final String body = Common.getResponseBody(response);
-        Common.showLog("isTokenExpired body " + body);
-        if (response.code() == 400) {
-            if (body.contains(TOKEN_ERROR_1)) {
-                Common.showLog("isTokenExpired 000");
-                return true;
-            } else if(body.contains(TOKEN_ERROR_2)){
-                SessionManager.INSTANCE.postUpdateSession(null);
-                Common.showToast(R.string.string_340);
-                Common.restart();
-                Common.showLog("isTokenExpired 111");
-                return false;
-            } else {
-                Common.showLog("isTokenExpired 222");
-                return false;
-            }
-        } else {
-            Common.showLog("isTokenExpired 333");
+        // 只有 400 才可能是 OAuth 错误；其它状态短路，避免把所有响应体都 buffer 到内存。
+        if (response.code() != 400) {
             return false;
         }
+        final String body = Common.getResponseBody(response);
+        if (body.contains(TOKEN_ERROR_1)) {
+            return true;
+        }
+        if (body.contains(TOKEN_ERROR_2)) {
+            logoutAndRestart();
+        }
+        return false;
     }
 
     private synchronized String getNewToken(String tokenForThisRequest) throws IOException {
-        String currentBearerToken = SessionManager.INSTANCE.getBearerToken();
-        if (currentBearerToken.equals(tokenForThisRequest) ||
-                tokenForThisRequest.length() != TOKEN_LENGTH ||
-                currentBearerToken.length() != TOKEN_LENGTH) {
-            Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + currentBearerToken);
-            String refreshToken = SessionManager.INSTANCE.getRefreshToken();
-            if (refreshToken == null) {
-                throw new IOException("refresh_token not exist");
-            }
-            Call<UserModel> call = Retro.getAccountTokenApi().newRefreshToken(
-                    FragmentLogin.CLIENT_ID,
-                    FragmentLogin.CLIENT_SECRET,
-                    FragmentLogin.REFRESH_TOKEN,
-                    refreshToken,
-                    Boolean.TRUE);
-            UserModel newUser = call.execute().body();
-            if (newUser != null) {
-                newUser.getUser().setIs_login(true);
-            }
-            Local.saveUser(newUser);
-            // postValue is async — read token directly from response
-            String newBearerToken = newUser.getAccess_token();
-            Common.showLog("getNewToken 获取到了最新的 token:" + newBearerToken);
-            return newBearerToken;
-        } else {
-            Common.showLog("getNewToken 使用最新的token old:" + tokenForThisRequest + " new:" + currentBearerToken);
-            return currentBearerToken;
+        String currentBearer = SessionManager.INSTANCE.getBearerToken();
+        // 如果别的线程已经刷过了（当前缓存 ≠ 本请求头），直接复用，避免重复刷新。
+        if (!currentBearer.equals(tokenForThisRequest)) {
+            return currentBearer;
         }
+        String refreshToken = SessionManager.INSTANCE.getRefreshToken();
+        if (refreshToken == null) {
+            throw new IOException("refresh_token not exist");
+        }
+        try {
+            PixivOAuthResponse response = PixivLogin.INSTANCE.refreshTokenBlocking(refreshToken);
+            UserModel cached = Local.getUser();
+            if (cached != null) {
+                cached.setAccess_token(response.getAccessToken());
+                cached.setRefresh_token(response.getRefreshToken());
+                cached.setExpires_in(response.getExpiresIn());
+                if (cached.getUser() != null) {
+                    cached.getUser().setIs_login(true);
+                }
+                Local.saveUser(cached);
+            } else {
+                SessionManager.INSTANCE.applyTokenRefresh(
+                        response.getAccessToken(),
+                        response.getRefreshToken(),
+                        response.getExpiresIn());
+            }
+            return "Bearer " + response.getAccessToken();
+        } catch (InvalidRefreshTokenException ex) {
+            logoutAndRestart();
+            throw new IOException("refresh_token revoked", ex);
+        } catch (Exception ex) {
+            throw new IOException("Token refresh failed", ex);
+        }
+    }
+
+    private static void logoutAndRestart() {
+        SessionManager.INSTANCE.postUpdateSession(null);
+        Common.showToast(R.string.string_340);
+        Common.restart();
     }
 }

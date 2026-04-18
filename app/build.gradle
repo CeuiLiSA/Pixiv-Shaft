@@ -4,7 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
-apply plugin: 'org.jmailen.kotlinter'
+// apply plugin: 'org.jmailen.kotlinter'  // 临时停用，见根 build.gradle
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 android {
@@ -141,7 +141,7 @@ dependencies {
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.25"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "androidx.core:core-ktx:1.13.1"
 
     api 'com.squareup.retrofit2:retrofit:2.11.0'
@@ -231,6 +231,10 @@ dependencies {
     implementation 'com.github.tbruyelle:RxPermissions:0.12'
 
     implementation 'androidx.webkit:webkit:1.12.1'
+    implementation 'androidx.browser:browser:1.8.0'
+
+    // Pixiv OAuth 2.0 PKCE 登录（自家库，支持 Chrome Custom Tab）
+    implementation 'com.github.SoxiaLiSA:pixiv-login:1.0.0'
     implementation 'org.jsoup:jsoup:1.18.1'
 
     implementation 'com.hjq:toast:8.8'

@@ -16,7 +16,7 @@ class CountryViewHolder(bd: CellCountryBinding) : ListItemViewHolder<CellCountry
     override fun onBindViewHolder(holder: CountryHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         binding.countryCodeInfo.text =
-            holder.country.name + " (${holder.country.nameCode.toUpperCase()})"
+            holder.country.name + " (${holder.country.nameCode.uppercase()})"
         binding.countryCodeNumber.text = "+" + holder.country.phoneCode
         binding.countryFlag.text = holder.country.flag
         binding.root.setOnClick {

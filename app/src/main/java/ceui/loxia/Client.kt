@@ -3,7 +3,6 @@ package ceui.loxia
 import android.text.TextUtils
 import android.util.Log
 import ceui.lisa.activities.Shaft
-import ceui.lisa.http.AccountTokenApi
 import ceui.lisa.http.CronetInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -34,10 +33,6 @@ object Client {
         _appApi = clientManager.createAPPAPI(API::class.java)
     }
 
-    val authApi: AccountTokenApi by lazy {
-        clientManager.createOAuthAPI(AccountTokenApi::class.java)
-    }
-
     val webApi: PixivWebApi by lazy {
         clientManager.createWebAPIService(PixivWebApi::class.java)
     }
@@ -47,16 +42,8 @@ class ClientManager {
 
     companion object {
         const val APP_API_HOST = "https://app-api.pixiv.net"
-        const val OAUTH_HOST = "https://oauth.secure.pixiv.net"
         const val WEB_API_HOST = "https://www.pixiv.net"
         const val NETEASY_API_HOST = "http://192.243.123.124:3000"
-
-        const val CLIENT_ID = "KzEZED7aC0vird8jWyHM38mXjNTY"
-        const val CLIENT_SECRET = "W9JZoJe00qPvJsiyCGT3CCtC6ZUtdpKpzMbNlUGP"
-        const val GRANT_REFRESH_TOKEN = "refresh_token"
-        const val GRANT_AUTH_CODE = "authorization_code"
-
-        const val CALLBACK_LINK = "https://app-api.pixiv.net/web/v1/users/auth/pixiv/callback"
 
         const val TOKEN_HEAD = "Bearer "
 
@@ -103,35 +90,6 @@ class ClientManager {
             url
         } else {
             APP_API_HOST
-        }
-
-        return Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(okhttpClientBuilder.build())
-            .build()
-            .create(service)
-    }
-
-    fun <T> createOAuthAPI(service: Class<T>): T {
-        val okhttpClientBuilder = OkHttpClient.Builder()
-            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .protocols(listOf(Protocol.HTTP_1_1))
-
-        okhttpClientBuilder.addInterceptor(HeaderInterceptor())
-        okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BODY)
-        })
-        applyDirectConnect(okhttpClientBuilder)
-
-        val baseUrl = if (isWorkerRelay()) {
-            val url = getWorkerBaseUrl() + "/oauth"
-            Log.d("ClientManager", "Using Worker relay for OAuth: $url")
-            url
-        } else {
-            OAUTH_HOST
         }
 
         return Retrofit.Builder()

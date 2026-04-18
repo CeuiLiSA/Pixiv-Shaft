@@ -1,6 +1,8 @@
 package ceui.lisa.fragments
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
@@ -10,6 +12,7 @@ import android.text.style.ClickableSpan
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,7 +23,6 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.UserEntity
 import ceui.lisa.databinding.ActivityLoginBinding
-import ceui.lisa.feature.PkceUtil
 import ceui.lisa.interfaces.FeedBack
 import ceui.lisa.models.UserModel
 import ceui.lisa.utils.ClipBoardUtils
@@ -28,7 +30,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Dev
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
-import ceui.pixiv.session.SessionManager
+import ceui.pixiv.login.PixivLogin
 import com.facebook.rebound.SimpleSpringListener
 import com.facebook.rebound.Spring
 import com.facebook.rebound.SpringConfig
@@ -83,28 +85,12 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         baseBind.title.text = getString(R.string.app_name)
         baseBind.login.setOnClickListener {
             checkAndNext {
-                openProxyHint {
-                    val url = LOGIN_HEAD + PkceUtil.getPkce().challenge + LOGIN_END
-                    val intent = Intent(mContext, TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-                    intent.putExtra(Params.URL, url)
-                    intent.putExtra(Params.TITLE, getString(R.string.now_login))
-                    intent.putExtra(Params.PREFER_PRESERVE, true)
-                    startActivity(intent)
-                }
+                openProxyHint { openOAuthTab(PixivLogin.startLoginUrl()) }
             }
         }
         baseBind.sign.setOnClickListener {
             checkAndNext {
-                openProxyHint {
-                    val url = SIGN_HEAD + PkceUtil.getPkce().challenge + SIGN_END
-                    val intent = Intent(mContext, TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-                    intent.putExtra(Params.URL, url)
-                    intent.putExtra(Params.TITLE, getString(R.string.now_sign))
-                    intent.putExtra(Params.PREFER_PRESERVE, true)
-                    startActivity(intent)
-                }
+                openProxyHint { openOAuthTab(PixivLogin.startSignUrl()) }
             }
         }
         baseBind.hasNoAccount.setOnClickListener { showSignCard() }
@@ -158,6 +144,14 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         val intent = Intent(mContext, MainActivity::class.java)
         MainActivity.newInstance(intent, mContext)
         mActivity.finish()
+    }
+
+    private fun openOAuthTab(url: String) {
+        try {
+            CustomTabsIntent.Builder().build().launchUrl(requireContext(), Uri.parse(url))
+        } catch (_: ActivityNotFoundException) {
+            Common.showToast("未找到浏览器")
+        }
     }
 
     private fun openProxyHint(feedBack: FeedBack) {
@@ -221,22 +215,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     companion object {
-        const val IOS_CLIENT_ID = "KzEZED7aC0vird8jWyHM38mXjNTY"
-        const val IOS_CLIENT_SECRET = "W9JZoJe00qPvJsiyCGT3CCtC6ZUtdpKpzMbNlUGP"
-        const val CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT"
-        const val CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj"
-        const val DEVICE_TOKEN = "pixiv"
-        const val TYPE_PASSWORD = "password"
-        const val REFRESH_TOKEN = "refresh_token"
-        const val AUTH_CODE = "authorization_code"
-        const val CALL_BACK = "https://app-api.pixiv.net/web/v1/users/auth/pixiv/callback"
-        private const val SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8"
-        private const val SIGN_REF = "pixiv_android_app_provisional_account"
-        private const val LOGIN_HEAD = "https://app-api.pixiv.net/web/v1/login?code_challenge="
-        private const val LOGIN_END = "&code_challenge_method=S256&client=pixiv-android"
-        private const val SIGN_HEAD =
-            "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge="
-        private const val SIGN_END = "&code_challenge_method=S256&client=pixiv-android"
         private const val TAPS_TO_BE_A_DEVELOPER = 7
     }
 }

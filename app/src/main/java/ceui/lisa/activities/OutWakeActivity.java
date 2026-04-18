@@ -15,7 +15,6 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
 
-import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
@@ -25,6 +24,8 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.loxia.AccountResponse;
+import ceui.pixiv.login.PixivLogin;
+import ceui.pixiv.login.PixivOAuthConfig;
 import ceui.pixiv.session.SessionManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -191,13 +192,22 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             if (host.equals("account")) {
                                 Common.showToast(getString(R.string.trying_login));
                                 String code = uri.getQueryParameter("code");
+                                String verifier = PixivLogin.INSTANCE.loadVerifier();
+                                if (TextUtils.isEmpty(code) || TextUtils.isEmpty(verifier)) {
+                                    Common.showToast("登录已过期，请重试");
+                                    Intent i = new Intent(mContext, TemplateActivity.class);
+                                    i.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
+                                    startActivity(i);
+                                    finish();
+                                    return;
+                                }
                                 Retro.getAccountApi().newLogin(
-                                        FragmentLogin.CLIENT_ID,
-                                        FragmentLogin.CLIENT_SECRET,
-                                        FragmentLogin.AUTH_CODE,
+                                        PixivOAuthConfig.PIXIV_ANDROID.getClientId(),
+                                        PixivOAuthConfig.PIXIV_ANDROID.getClientSecret(),
+                                        PixivLogin.GRANT_TYPE_AUTH_CODE,
                                         code,
-                                        ceui.lisa.feature.PkceUtil.getPkce().getVerify(),
-                                        FragmentLogin.CALL_BACK,
+                                        verifier,
+                                        PixivOAuthConfig.PIXIV_ANDROID.getRedirectUri(),
                                         true
                                 ).subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -207,6 +217,8 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                                         Common.showLog(userModel.toString());
                                         Common.showToast("登录成功");
+
+                                        PixivLogin.INSTANCE.clearVerifier();
 
                                         userModel.getUser().setIs_login(true);
                                         Local.saveUser(userModel);
