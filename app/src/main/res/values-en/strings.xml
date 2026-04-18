@@ -718,6 +718,15 @@
   <string name="download_records_import_success">Imported %1$d records successfully</string>
   <string name="download_records_import_failed">Import failed: %1$s</string>
 
+  <string name="mute_records_export">Export mute records</string>
+  <string name="mute_records_import">Import mute records</string>
+  <string name="mute_records_export_empty">No mute records to export</string>
+  <string name="mute_records_export_success">Exported %1$d mute records</string>
+  <string name="mute_records_import_no_file">Import failed: no file selected</string>
+  <string name="mute_records_import_invalid">Import failed: file is empty or malformed</string>
+  <string name="mute_records_import_success">Imported %1$d mute records successfully</string>
+  <string name="mute_records_import_failed">Import failed: %1$s</string>
+
   <!-- V3 illust detail -->
   <string name="v3_label_views">Views</string>
   <string name="v3_label_likes">Likes</string>

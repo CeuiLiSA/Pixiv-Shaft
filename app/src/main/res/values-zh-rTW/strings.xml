@@ -767,6 +767,15 @@
   <string name="download_records_import_success">匯入成功，共 %1$d 條記錄</string>
   <string name="download_records_import_failed">匯入失敗：%1$s</string>
 
+  <string name="mute_records_export">匯出屏蔽記錄</string>
+  <string name="mute_records_import">匯入屏蔽記錄</string>
+  <string name="mute_records_export_empty">沒有可匯出的屏蔽記錄</string>
+  <string name="mute_records_export_success">屏蔽記錄已匯出，共 %1$d 條</string>
+  <string name="mute_records_import_no_file">匯入失敗：未選擇檔案</string>
+  <string name="mute_records_import_invalid">匯入失敗：檔案為空或格式不正確</string>
+  <string name="mute_records_import_success">匯入成功，共 %1$d 條記錄</string>
+  <string name="mute_records_import_failed">匯入失敗：%1$s</string>
+
   <!-- V3 illust detail -->
   <string name="v3_label_views">瀏覽</string>
   <string name="v3_label_likes">按讚</string>

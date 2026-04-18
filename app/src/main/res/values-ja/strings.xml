@@ -754,6 +754,15 @@
   <string name="download_records_import_success">%1$d 件のレコードをインポートしました</string>
   <string name="download_records_import_failed">インポートに失敗しました：%1$s</string>
 
+  <string name="mute_records_export">ミュート履歴をエクスポート</string>
+  <string name="mute_records_import">ミュート履歴をインポート</string>
+  <string name="mute_records_export_empty">エクスポート可能なミュート履歴がありません</string>
+  <string name="mute_records_export_success">ミュート履歴をエクスポートしました（%1$d 件）</string>
+  <string name="mute_records_import_no_file">インポートに失敗しました：ファイルが選択されていません</string>
+  <string name="mute_records_import_invalid">インポートに失敗しました：ファイルが空または形式が正しくありません</string>
+  <string name="mute_records_import_success">%1$d 件のミュート記録をインポートしました</string>
+  <string name="mute_records_import_failed">インポートに失敗しました：%1$s</string>
+
   <!-- V3 illust detail -->
   <string name="v3_label_views">閲覧数</string>
   <string name="v3_label_likes">いいね</string>

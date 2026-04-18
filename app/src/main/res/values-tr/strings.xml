@@ -653,6 +653,15 @@
   <string name="download_records_import_success">%1$d kayıt başarıyla içe aktarıldı</string>
   <string name="download_records_import_failed">İçe aktarma başarısız: %1$s</string>
 
+  <string name="mute_records_export">Sessize alma kayıtlarını dışa aktar</string>
+  <string name="mute_records_import">Sessize alma kayıtlarını içe aktar</string>
+  <string name="mute_records_export_empty">Dışa aktarılacak sessize alma kaydı yok</string>
+  <string name="mute_records_export_success">%1$d sessize alma kaydı dışa aktarıldı</string>
+  <string name="mute_records_import_no_file">İçe aktarma başarısız: dosya seçilmedi</string>
+  <string name="mute_records_import_invalid">İçe aktarma başarısız: dosya boş veya geçersiz biçim</string>
+  <string name="mute_records_import_success">%1$d kayıt başarıyla içe aktarıldı</string>
+  <string name="mute_records_import_failed">İçe aktarma başarısız: %1$s</string>
+
   <!-- V3 illust detail -->
   <string name="v3_label_views">Görüntüleme</string>
   <string name="v3_label_likes">Beğeni</string>

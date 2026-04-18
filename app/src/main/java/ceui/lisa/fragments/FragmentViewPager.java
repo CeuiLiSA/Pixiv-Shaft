@@ -1,5 +1,8 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -13,14 +16,33 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+
+import com.blankj.utilcode.util.UriUtils;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.MuteEntity;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
+import ceui.lisa.download.IllustDownload;
+import ceui.lisa.interfaces.Callback;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Params;
 
+import static android.app.Activity.RESULT_OK;
+import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
+
 public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBinding> {
+
+    private static final int REQUEST_CODE_IMPORT_MUTE = 20082;
+    private static final String MUTE_RECORDS_FILE_NAME = "Shaft-MuteRecords.json";
 
     private String title;
     private ListFragment[] mFragments = null;
@@ -65,7 +87,7 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                     new FragmentMutedObjects(),
             };
             baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
-            baseBind.toolbar.setOnMenuItemClickListener((Toolbar.OnMenuItemClickListener) mFragments[0]);
+            setMuteMenuListener(mFragments[0]);
             baseBind.toolbarTitle.setText(R.string.muted_history);
             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
                 @NonNull
@@ -93,7 +115,7 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
 
                 @Override
                 public void onPageSelected(int position) {
-                    baseBind.toolbar.setOnMenuItemClickListener((Toolbar.OnMenuItemClickListener) mFragments[position]);
+                    setMuteMenuListener(mFragments[position]);
                     if (position == 0) {
                         baseBind.toolbar.getMenu().clear();
                         baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
@@ -158,6 +180,93 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
             mFragments[baseBind.viewPager.getCurrentItem()].forceRefresh();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void setMuteMenuListener(ListFragment delegate) {
+        baseBind.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_export_mute) {
+                exportMuteRecords();
+                return true;
+            } else if (item.getItemId() == R.id.action_import_mute) {
+                pickMuteRecordsFile();
+                return true;
+            }
+            return ((Toolbar.OnMenuItemClickListener) delegate).onMenuItemClick(item);
+        });
+    }
+
+    private void exportMuteRecords() {
+        new Thread(() -> {
+            List<MuteEntity> all = AppDatabase.getAppDatabase(mContext)
+                    .searchDao().getAllMuteEntities();
+            if (all == null || all.isEmpty()) {
+                mActivity.runOnUiThread(() ->
+                        Common.showToast(getString(R.string.mute_records_export_empty)));
+                return;
+            }
+            String json = Shaft.sGson.toJson(all);
+            mActivity.runOnUiThread(() ->
+                    IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity,
+                            MUTE_RECORDS_FILE_NAME, json, new Callback<Uri>() {
+                                @Override
+                                public void doSomething(Uri t) {
+                                    Common.showToast(getString(R.string.mute_records_export_success, all.size()));
+                                }
+                            }));
+        }).start();
+    }
+
+    private void pickMuteRecordsFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Uri initialUri = Uri.parse("content://com.android.externalstorage.documents/document/primary:"
+                    + "Download%2fShaftBackups%2f" + MUTE_RECORDS_FILE_NAME);
+            intent.putExtra(EXTRA_INITIAL_URI, initialUri);
+        }
+        startActivityForResult(intent, REQUEST_CODE_IMPORT_MUTE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_IMPORT_MUTE && resultCode == RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri == null) {
+                Common.showToast(getString(R.string.mute_records_import_no_file));
+                return;
+            }
+            new Thread(() -> {
+                try {
+                    String fileString = new String(UriUtils.uri2Bytes(uri));
+                    Type listType = new TypeToken<List<MuteEntity>>() {}.getType();
+                    List<MuteEntity> entities = Shaft.sGson.fromJson(fileString, listType);
+                    if (entities == null || entities.isEmpty()) {
+                        mActivity.runOnUiThread(() ->
+                                Common.showToast(getString(R.string.mute_records_import_invalid)));
+                        return;
+                    }
+                    int imported = 0;
+                    for (MuteEntity entity : entities) {
+                        if (entity == null || entity.getTagJson() == null || entity.getTagJson().isEmpty()) {
+                            continue;
+                        }
+                        AppDatabase.getAppDatabase(mContext).searchDao().insertMuteTag(entity);
+                        imported++;
+                    }
+                    int finalImported = imported;
+                    mActivity.runOnUiThread(() -> {
+                        forceRefresh();
+                        Common.showToast(getString(R.string.mute_records_import_success, finalImported));
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mActivity.runOnUiThread(() ->
+                            Common.showToast(getString(R.string.mute_records_import_failed, String.valueOf(e.getMessage()))));
+                }
+            }).start();
         }
     }
 }

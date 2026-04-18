@@ -14,4 +14,16 @@
         android:icon="@drawable/ic_add_black_24dp"
         android:title="@string/add"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_export_mute"
+        android:orderInCategory="200"
+        android:title="@string/mute_records_export"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_import_mute"
+        android:orderInCategory="201"
+        android:title="@string/mute_records_import"
+        app:showAsAction="never" />
 </menu>
