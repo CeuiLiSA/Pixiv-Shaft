@@ -11,8 +11,6 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -83,19 +81,26 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         setupInsets()
         setupToolbar()
 
-        // Tunnel background: hidden until atlas ready, then fade in + hide spinner
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // On API 33+, wait for shader to compile before showing content
+        val waitForShader = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+        if (waitForShader) {
             baseBind.tunnelBackground.alpha = 0f
+            baseBind.gradientScrim.alpha = 0f
+            baseBind.toolbar.alpha = 0f
             baseBind.tunnelBackground.onReadyListener = {
-                baseBind.tunnelBackground.animate()
-                    .alpha(1f)
-                    .setDuration(1200)
-                    .start()
+                val dur = 800L
+                baseBind.tunnelBackground.animate().alpha(1f).setDuration(1200).start()
+                baseBind.gradientScrim.animate().alpha(1f).setDuration(dur).start()
+                baseBind.toolbar.animate().alpha(1f).setDuration(dur).start()
                 baseBind.loadingSpinner.animate()
                     .alpha(0f)
                     .setDuration(300)
                     .withEndAction { baseBind.loadingSpinner.visibility = View.GONE }
                     .start()
+                val activePage = if (baseBind.languagePage.root.visibility != View.GONE)
+                    baseBind.languagePage.root else baseBind.loginPage.root
+                activePage.animate().alpha(1f).setDuration(dur).start()
             }
         } else {
             baseBind.loadingSpinner.visibility = View.GONE
@@ -103,8 +108,17 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
 
         if (AppLocales.hasUserConfigured) {
             baseBind.languagePage.root.visibility = View.GONE
-            baseBind.loginPage.root.visibility = View.VISIBLE
+            baseBind.loginPage.root.apply {
+                visibility = View.VISIBLE
+                alpha = 0f
+                if (!waitForShader) {
+                    animate().alpha(1f).setDuration(500).start()
+                }
+            }
         } else {
+            if (waitForShader) {
+                baseBind.languagePage.root.alpha = 0f
+            }
             setupLanguagePage()
         }
         setupLoginPage()
@@ -269,35 +283,10 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
 
     private fun transitionToLogin() {
         greetingCycleJob?.cancel()
-
-        val langRoot = baseBind.languagePage.root
-        val loginRoot = baseBind.loginPage.root
-        val offset = dp(60f).toFloat()
-
-        loginRoot.alpha = 0f
-        loginRoot.translationY = offset
-        loginRoot.visibility = View.VISIBLE
-
-        langRoot.animate()
-            .alpha(0f)
-            .translationY(-offset)
-            .setDuration(350)
-            .setInterpolator(AccelerateInterpolator())
-            .start()
-
-        loginRoot.animate()
-            .alpha(1f)
-            .translationY(0f)
-            .setDuration(400)
-            .setStartDelay(100)
-            .setInterpolator(DecelerateInterpolator())
-            .withEndAction {
-                langRoot.visibility = View.GONE
-                // Apply locale AFTER animation — setApplicationLocales() triggers
-                // Activity recreation, calling it earlier kills the animation.
-                AppLocales.apply(selectedTag)
-            }
-            .start()
+        // Apply locale immediately — triggers Activity recreation.
+        // After recreation, hasUserConfigured=true → login page shows
+        // directly with correct locale strings + fade-in animation.
+        AppLocales.apply(selectedTag)
     }
 
     // ── Login page ──
