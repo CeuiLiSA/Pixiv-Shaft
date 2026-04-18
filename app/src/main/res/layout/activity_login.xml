@@ -30,27 +30,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            style="@style/textMontserratBold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingStart="20dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="16dp"
-            android:shadowColor="#80000000"
-            android:shadowDx="4"
-            android:shadowDy="8"
-            android:shadowRadius="16"
-            android:text="@string/app_name"
-            android:textColor="@color/white"
-            android:textSize="35sp"
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/landing_pager"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.15" />
-
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -60,60 +47,7 @@
             android:theme="@style/AppTheme.AppBarOverlay"
             app:layout_constraintTop_toTopOf="parent"
             app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" ">
-
-
-        </androidx.appcompat.widget.Toolbar>
-
-        <TextView
-            style="@style/textMontserratSemiBold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="30dp"
-            android:layout_marginBottom="10dp"
-            android:height="56dp"
-            android:background="@drawable/round_corner_white_r20"
-            android:gravity="center"
-            android:text="Start"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            app:layout_constraintBottom_toTopOf="@+id/checkbox_one" />
-
-        <LinearLayout
-            android:id="@+id/checkbox_one"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="34dp"
-            android:layout_marginBottom="40dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <FrameLayout
-                android:layout_width="40dp"
-                android:layout_height="40dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="12dp"
-                    android:src="@drawable/terms_checkbox" />
-
-            </FrameLayout>
-
-
-            <TextView
-                android:id="@+id/first_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
-        </LinearLayout>
+            app:title=" " />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
-

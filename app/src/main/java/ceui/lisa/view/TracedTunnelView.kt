@@ -58,6 +58,9 @@ class TracedTunnelView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            impl?.updateResolution(w, h)
+        }
         if (impl == null && h > 0 && fallbackGradientHeight != h.toFloat()) {
             fallbackGradientHeight = h.toFloat()
             fallbackPaint.shader = LinearGradient(
@@ -111,16 +114,18 @@ private class TunnelImpl(private val view: View) {
 
     private var startNanos = 0L
     private var currentTime = 0f
-    private var fadeAlpha = 0f
     @Volatile private var running = false
+    private var animating = false
     private var atlasLoaded = false
+    private var resolutionW = 0f
+    private var resolutionH = 0f
 
     private var fadeAnimator: ValueAnimator? = null
     private var loadExecutor: java.util.concurrent.ExecutorService? = null
 
     private val choreographerCallback = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
-            if (!running) return
+            if (!animating) return
             if (startNanos == 0L) startNanos = frameTimeNanos
             currentTime = (frameTimeNanos - startNanos) / 1_000_000_000f
             view.invalidate()
@@ -132,8 +137,6 @@ private class TunnelImpl(private val view: View) {
         if (running) return
         running = true
         startNanos = 0L
-
-        Choreographer.getInstance().postFrameCallback(choreographerCallback)
 
         if (!atlasLoaded) {
             val executor = Executors.newSingleThreadExecutor()
@@ -147,17 +150,19 @@ private class TunnelImpl(private val view: View) {
                         shader.setFloatUniform("iAtlasSize", data.width, data.height)
                         shader.setInputShader("tileImage", data.shader)
                         atlasLoaded = true
-                        startFadeIn()
+                        startAnimation()
                     }
                 }
                 executor.shutdown()
             }
+        } else {
+            startAnimation()
         }
     }
 
     fun stop() {
         running = false
-        Choreographer.getInstance().removeFrameCallback(choreographerCallback)
+        stopAnimation()
         fadeAnimator?.cancel()
         loadExecutor?.shutdownNow()
         loadExecutor = null
@@ -169,7 +174,16 @@ private class TunnelImpl(private val view: View) {
         atlasShader = null
         atlasBitmap?.recycle()
         atlasBitmap = null
-        fadeAlpha = 0f
+    }
+
+    fun updateResolution(w: Int, h: Int) {
+        val fw = w.toFloat()
+        val fh = h.toFloat()
+        if (fw != resolutionW || fh != resolutionH) {
+            resolutionW = fw
+            resolutionH = fh
+            shader.setFloatUniform("iResolution", fw, fh)
+        }
     }
 
     fun draw(canvas: Canvas, w: Int, h: Int) {
@@ -178,12 +192,24 @@ private class TunnelImpl(private val view: View) {
             return
         }
 
-        shader.setFloatUniform("iResolution", w.toFloat(), h.toFloat())
         shader.setFloatUniform("iTime", currentTime)
 
-        paint.alpha = (fadeAlpha * 255).toInt()
         drawRect.set(0f, 0f, w.toFloat(), h.toFloat())
         canvas.drawRect(drawRect, paint)
+    }
+
+    private fun startAnimation() {
+        if (animating) return
+        animating = true
+        startNanos = 0L
+        shader.setFloatUniform("iAlpha", 0f)
+        Choreographer.getInstance().postFrameCallback(choreographerCallback)
+        startFadeIn()
+    }
+
+    private fun stopAnimation() {
+        animating = false
+        Choreographer.getInstance().removeFrameCallback(choreographerCallback)
     }
 
     private fun startFadeIn() {
@@ -191,7 +217,9 @@ private class TunnelImpl(private val view: View) {
         fadeAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = FADE_DURATION_MS
             interpolator = AccelerateDecelerateInterpolator()
-            addUpdateListener { fadeAlpha = it.animatedValue as Float }
+            addUpdateListener {
+                shader.setFloatUniform("iAlpha", it.animatedValue as Float)
+            }
             start()
         }
     }
@@ -259,6 +287,7 @@ private class TunnelImpl(private val view: View) {
 private const val SHADER_TRACED_TUNNEL_IMAGE = """
 uniform float2 iResolution;
 uniform float  iTime;
+uniform float  iAlpha;
 uniform float2 iAtlasSize;
 uniform shader tileImage;
 
@@ -351,6 +380,7 @@ half4 main(float2 fragCoord) {
     sampleCol *= 1.0 / (1.0 + d * d * 0.02);
 
     // Gamma correction
-    return half4(half3(pow(max(sampleCol, float3(0.0)), float3(0.4545))), 1.0);
+    float3 gc = pow(max(sampleCol, float3(0.0)), float3(0.4545));
+    return half4(half3(gc), iAlpha);
 }
 """

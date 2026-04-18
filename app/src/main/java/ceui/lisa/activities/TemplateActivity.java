@@ -51,8 +51,6 @@ import ceui.lisa.fragments.FragmentPopularNovel;
 import ceui.lisa.fragments.FragmentPv;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentRecmdUser;
-import ceui.lisa.fragments.RecmdUserMap;
-import ceui.lisa.fragments.RecmdUserSnapshot;
 import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentRelatedUser;
 import ceui.lisa.fragments.FragmentSAF;
@@ -70,6 +68,8 @@ import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.fragments.FragmentWorkSpace;
+import ceui.lisa.fragments.RecmdUserMap;
+import ceui.lisa.fragments.RecmdUserSnapshot;
 import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
@@ -102,11 +102,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
         if (!TextUtils.isEmpty(dataType)) {
             switch (dataType) {
                 case "登录注册":
-                    // 首启且用户从未显式选过语言：先插一页 fancy 语言选择，选完后 AppCompat 触发
-                    // Activity 重建，二次进来这里时 hasUserConfigured=true 直接进登录。
-                    if (!ceui.pixiv.i18n.AppLocales.INSTANCE.getHasUserConfigured()) {
-                        return new ceui.pixiv.i18n.FragmentLanguageOnboarding();
-                    }
                     return new FragmentLogin();
                 case "相关作品": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
