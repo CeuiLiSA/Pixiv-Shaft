@@ -472,23 +472,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
-            // 新版个人中心
-            baseBind.userNewUser.setChecked(Shaft.sSettings.isUseNewUserPage());
-            baseBind.userNewUser.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Shaft.sSettings.setUseNewUserPage(isChecked);
-                    Common.showToast(getString(R.string.string_428), 2);
-                    Local.setSettings(Shaft.sSettings);
-                }
-            });
-            baseBind.userNewUserRela.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    baseBind.userNewUser.performClick();
-                }
-            });
-
             // 主题模式
             baseBind.themeMode.setText(Shaft.sSettings.getThemeType().toDisplayString(mContext));
             baseBind.themeModeRela.setOnClickListener(new View.OnClickListener() {

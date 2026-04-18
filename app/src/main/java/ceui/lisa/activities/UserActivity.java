@@ -62,13 +62,16 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
     @Override
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
-        if (Shaft.sSettings.isUseNewUserPage()) {
-            Intent intent = new Intent(mContext, UserActivityV3.class);
-            intent.putExtra(Params.USER_ID, userID);
-            startActivity(intent);
-            finish();
-            return;
+        if (Shaft.sSettings.isUseArtworkV3()) {
+            Intent v3 = new Intent(mContext, UserActivityV3.class);
+            v3.putExtra(Params.USER_ID, userID);
+            startActivity(v3);
+        } else {
+            Intent u = new Intent(mContext, UActivity.class);
+            u.putExtra(Params.USER_ID, userID);
+            startActivity(u);
         }
+        finish();
         mUserViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         mUserViewModel.getUser().observe(this, new Observer<UserDetailResponse>() {
             @Override

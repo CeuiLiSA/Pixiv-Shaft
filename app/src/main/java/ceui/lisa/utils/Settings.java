@@ -143,9 +143,6 @@ public class Settings {
     //作品详情使用V3沉浸式页面
     private boolean useArtworkV3 = false;
 
-    //个人中心使用新页面
-    private boolean useNewUserPage = true;
-
     private String illustPath = "";
 
     private String novelPath = "";
@@ -536,14 +533,6 @@ public class Settings {
 
     public void setBottomBarOrder(int bottomBarOrder) {
         this.bottomBarOrder = bottomBarOrder;
-    }
-
-    public boolean isUseNewUserPage() {
-        return useNewUserPage;
-    }
-
-    public void setUseNewUserPage(boolean useNewUserPage) {
-        this.useNewUserPage = useNewUserPage;
     }
 
     public boolean isHideStarButtonAtMyCollection() {
