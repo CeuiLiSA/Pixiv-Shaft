@@ -606,7 +606,14 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     labels.add(ceui.pixiv.i18n.AppLocales.INSTANCE.displayName(tag));
                     tags.add(tag);
                 }
+                int checkedIndex = 0; // default: follow system
+                if (!ceui.pixiv.i18n.AppLocales.INSTANCE.isFollowingSystem()) {
+                    String currentTag = ceui.pixiv.i18n.AppLocales.INSTANCE.currentLocale().toLanguageTag();
+                    int idx = tags.indexOf(currentTag);
+                    if (idx >= 0) checkedIndex = idx;
+                }
                 new QMUIDialog.CheckableDialogBuilder(getActivity())
+                        .setCheckedIndex(checkedIndex)
                         .addItems(labels.toArray(new String[0]), (dialog, which) -> {
                             String tag = tags.get(which);
                             ceui.pixiv.i18n.AppLocales.INSTANCE.apply(tag);
