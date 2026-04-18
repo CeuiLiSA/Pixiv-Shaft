@@ -7,6 +7,9 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -43,6 +46,13 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
 
     @Override
     public void initView() {
+        // EdgeToEdge: push AppBarLayout below the status bar
+        ViewCompat.setOnApplyWindowInsetsListener(baseBind.appBar, (v, windowInsets) -> {
+            Insets bars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(0, bars.top, 0, 0);
+            return windowInsets;
+        });
+
         if (TextUtils.equals(title, Params.VIEW_PAGER_MUTED)) {
             String[] CHINESE_TITLES = new String[]{
                     Shaft.getContext().getString(R.string.string_353),
@@ -100,11 +110,6 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
             });
 
         } else if (TextUtils.equals(title, Params.VIEW_PAGER_R18)) {
-
-            if (Dev.hideMainActivityStatus) {
-                baseBind.appBar.setPadding(0, Shaft.statusHeight, 0, 0);
-            }
-
             baseBind.toolbar.setVisibility(View.GONE);
             String[] CHINESE_TITLES = new String[]{
                     Shaft.getContext().getString(R.string.r_eighteen),
