@@ -11,6 +11,9 @@ import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
+import ceui.pixiv.ui.common.deleteImageById
+import ceui.pixiv.ui.common.getImageIdInGallery
+import ceui.pixiv.ui.common.saveImageToGallery
 import ceui.pixiv.ui.common.setUpWithTaskStatus
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
@@ -22,6 +25,7 @@ import timber.log.Timber
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var index = 0
     private var url: String? = null
+    private var saveName: String? = null
     private val viewModel by viewModels<ToggleToolnarViewModel>(ownerProducer = { requireActivity() })
 
     // 不再放进 arguments / savedInstanceState，避免每个 Fragment 重复持久化 80KB IllustsBean
@@ -32,6 +36,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     public override fun initBundle(bundle: Bundle) {
         url = bundle.getString(Params.URL)
         index = bundle.getInt(Params.INDEX)
+        saveName = bundle.getString(Params.TITLE)
     }
 
     public override fun initLayout() {
@@ -56,7 +61,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     private fun loadImage() {
         baseBind.emptyFrame.visibility = View.GONE
-        val imageUrl: String? = if (mIllustsBean == null && !TextUtils.isEmpty(url)) {
+        val isUrlMode = mIllustsBean == null && !TextUtils.isEmpty(url)
+        val imageUrl: String? = if (isUrlMode) {
             url
         } else {
             IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL)
@@ -84,6 +90,23 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
             task.result.observe(viewLifecycleOwner) { file ->
                 baseBind.image.loadImage(file)
+                if (isUrlMode) {
+                    baseBind.downloadButton.visibility = View.VISIBLE
+                    baseBind.downloadButton.setOnClick {
+                        val ext = imageUrl.substringAfterLast('.', "jpg")
+                        val displayName = if (!saveName.isNullOrEmpty()) {
+                            "$saveName.$ext"
+                        } else {
+                            imageUrl.substringAfterLast('/')
+                        }
+                        val ctx = requireActivity()
+                        val imageId = getImageIdInGallery(ctx, displayName)
+                        if (imageId != null) {
+                            deleteImageById(ctx, imageId)
+                        }
+                        saveImageToGallery(ctx, file, displayName)
+                    }
+                }
             }
             baseBind.progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
         }
@@ -101,9 +124,13 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
 
         @JvmStatic
-        fun newInstance(pUrl: String?): FragmentImageDetail {
+        @JvmOverloads
+        fun newInstance(pUrl: String?, pSaveName: String? = null): FragmentImageDetail {
             val args = Bundle()
             args.putString(Params.URL, pUrl)
+            if (pSaveName != null) {
+                args.putString(Params.TITLE, pSaveName)
+            }
             val fragment = FragmentImageDetail()
             fragment.arguments = args
             return fragment

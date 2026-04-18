@@ -241,8 +241,17 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         if (!bannerUrl.isNullOrEmpty()) {
             Glide.with(mContext).load(GlideUtil.getUrl(bannerUrl)).into(baseBind.imageview)
             baseBind.bannerOverlay.visibility = View.VISIBLE
+            baseBind.imageview.setOnClickListener {
+                openImageDetail(bannerUrl, "user_${data.user.id}_profile_banner")
+            }
         }
         Glide.with(mContext).load(GlideUtil.getHead(data.user)).into(baseBind.userHead)
+        val avatarUrl = data.user.profile_image_urls?.getMaxImage()
+        if (!avatarUrl.isNullOrEmpty()) {
+            baseBind.userHead.setOnClickListener {
+                openImageDetail(avatarUrl, "user_${data.user.id}_avatar")
+            }
+        }
         baseBind.userName.text = data.user.name
         baseBind.userName.setOnClickListener { Common.copy(mContext, data.user.id.toString()) }
         baseBind.userName.setOnLongClickListener {
@@ -267,6 +276,14 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         }
         baseBind.followCount.setOnClickListener(follow)
         baseBind.followS.setOnClickListener(follow)
+    }
+
+    private fun openImageDetail(imageUrl: String, saveName: String) {
+        startActivity(Intent(mContext, TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情")
+            putExtra(Params.URL, imageUrl)
+            putExtra(Params.TITLE, saveName)
+        })
     }
 
     private fun jumpTo(userID: Int, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {

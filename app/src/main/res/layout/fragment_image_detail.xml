@@ -72,5 +72,19 @@
             app:trackCornerRadius="4dp"
             app:trackThickness="5dp" />
 
+        <ceui.loxia.ProgressTextButton
+            android:id="@+id/download_button"
+            style="@style/GreenShiningButton"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="40dp"
+            android:paddingHorizontal="16dp"
+            android:text="@string/string_7"
+            android:visibility="gone"
+            app:ptb_progress_stroke_width="3dp"
+            app:ptb_progress_width="14dp" />
+
     </RelativeLayout>
 </layout>

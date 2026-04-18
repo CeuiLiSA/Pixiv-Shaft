@@ -208,7 +208,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "小说详情":
                     return FragmentNovelHolder.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
                 case "图片详情":
-                    return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL));
+                    return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL), intent.getStringExtra(Params.TITLE));
                 case "画质增强对比":
                     return ceui.pixiv.ui.upscale.UpscaleCompareFragment.newInstance(
                             intent.getStringExtra("upscaled_path"),
