@@ -17,6 +17,11 @@ public class SAFile {
 
     public static DocumentFile getDocument(Context context, IllustsBean illust, int index, boolean deleteOld) {
         DocumentFile root = rootFolder(context);
+        if (root == null) {
+            throw new IllegalStateException(
+                    "Download root directory is not set or inaccessible. "
+                            + "Please reselect the download folder in settings.");
+        }
         String displayName = FileCreator.customFileName(illust, index);
         String id = DocumentsContract.getTreeDocumentId(root.getUri());
         String subDirectoryName = FileStorageHelper.getShaftIllustR18DirNameWithInnerR18Folder(illust);

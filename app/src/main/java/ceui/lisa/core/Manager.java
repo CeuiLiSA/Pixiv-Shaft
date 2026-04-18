@@ -287,10 +287,23 @@ public class Manager {
         }
 
         DownloadFileFactory factory;
-        if (Shaft.sSettings.getDownloadWay() == 0 || downloadItem.getIllust().isGif()) {
-            factory = new Android10DownloadFactory22(context, downloadItem);
-        } else {
-            factory = new SAFactory(context, downloadItem);
+        try {
+            if (Shaft.sSettings.getDownloadWay() == 0 || downloadItem.getIllust().isGif()) {
+                factory = new Android10DownloadFactory22(context, downloadItem);
+            } else {
+                factory = new SAFactory(context, downloadItem);
+            }
+        } catch (Exception e) {
+            Common.showLog("[DL] factory init failed: " + e);
+            e.printStackTrace();
+            Common.showToast(mContext.getString(R.string.string_365));
+            complete(downloadItem, false);
+            // Halt the queue instead of looping: the most common cause is a lost
+            // or revoked SAF root — every subsequent SAF item would fail the same
+            // way and spam the user with duplicate toasts. Let them fix the
+            // folder and re-start manually.
+            stopAll();
+            return;
         }
         currentIllustID = downloadItem.getIllust().getId();
         Common.showLog("Manager 下载单个 当前进度" + downloadItem.getNonius());
