@@ -95,9 +95,6 @@ public class Settings {
     @SerializedName("autoFuckChina")
     private boolean directConnect = false;
 
-    //Worker 中继地址，启用直连时优先走此地址
-    private String workerUrl = "";
-
     private boolean relatedIllustNoLimit = true;
 
     //使用pixiv cat 代理 展示图片
@@ -373,14 +370,6 @@ public class Settings {
 
     public void setDirectConnect(boolean directConnect) {
         this.directConnect = directConnect;
-    }
-
-    public String getWorkerUrl() {
-        return workerUrl == null ? "" : workerUrl;
-    }
-
-    public void setWorkerUrl(String workerUrl) {
-        this.workerUrl = workerUrl;
     }
 
     public boolean isMainViewR18() {

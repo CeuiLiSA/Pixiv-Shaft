@@ -15,7 +15,6 @@ import java.util.Collections;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.helper.LanguageHelper;
-import ceui.loxia.ClientManager;
 import ceui.pixiv.session.SessionManager;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
@@ -76,27 +75,10 @@ public class Retro {
     }
 
     private static OkHttpClient.Builder applyDirectConnect(OkHttpClient.Builder before, boolean enable) {
-        // Worker relay 模式下不需要 DNS 绕过，请求已经走 Worker
-        if (enable && Shaft.sSettings.isDirectConnect() && !ClientManager.Companion.isWorkerRelay()) {
+        if (enable && Shaft.sSettings.isDirectConnect()) {
             before.addInterceptor(new CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())));
         }
         return before;
-    }
-
-    /**
-     * 将原始 Pixiv base URL 转换为 Worker 中继 URL
-     */
-    private static String resolveBaseUrl(String originalBaseUrl) {
-        if (!ClientManager.Companion.isWorkerRelay()) {
-            return originalBaseUrl;
-        }
-        String workerBase = ClientManager.Companion.getWorkerBaseUrl();
-        if (API_BASE_URL.equals(originalBaseUrl)) {
-            return workerBase + "/app-api/";
-        } else if (ACCOUNT_BASE_URL.equals(originalBaseUrl)) {
-            return workerBase + "/oauth/";
-        }
-        return originalBaseUrl;
     }
 
     /**
@@ -140,9 +122,6 @@ public class Retro {
             Timber.e(e, "buildRetrofit interceptor error");
         }
         applyDirectConnect(builder, directConnect);
-        if (directConnect && ClientManager.Companion.isWorkerRelay()) {
-            builder.protocols(java.util.Arrays.asList(Protocol.HTTP_2, Protocol.HTTP_1_1));
-        }
         HttpLoggingInterceptor l = new HttpLoggingInterceptor(
                 message -> Timber.i(message));
         l.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -153,7 +132,7 @@ public class Retro {
                 .client(client)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
-                .baseUrl(resolveBaseUrl(baseUrl))
+                .baseUrl(baseUrl)
                 .build();
     }
 

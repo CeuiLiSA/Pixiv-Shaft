@@ -1,7 +1,5 @@
 package ceui.loxia
 
-import android.text.TextUtils
-import android.util.Log
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CronetInterceptor
 import okhttp3.OkHttpClient
@@ -53,19 +51,10 @@ class ClientManager {
 
         const val TOKEN_ERROR_1 = "Error occurred at the OAuth process"
         const val TOKEN_ERROR_2 = "Invalid refresh token"
-
-        fun getWorkerBaseUrl(): String {
-            val url = Shaft.sSettings.workerUrl
-            return if (!TextUtils.isEmpty(url)) url.trimEnd('/') else ""
-        }
-
-        fun isWorkerRelay(): Boolean {
-            return Shaft.sSettings.isDirectConnect && !TextUtils.isEmpty(getWorkerBaseUrl())
-        }
     }
 
     private fun applyDirectConnect(builder: OkHttpClient.Builder) {
-        if (Shaft.sSettings.isDirectConnect && !isWorkerRelay()) {
+        if (Shaft.sSettings.isDirectConnect) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }
     }
@@ -84,16 +73,8 @@ class ClientManager {
         })
         applyDirectConnect(okhttpClientBuilder)
 
-        val baseUrl = if (isWorkerRelay()) {
-            val url = getWorkerBaseUrl() + "/app-api"
-            Log.d("ClientManager", "Using Worker relay: $url")
-            url
-        } else {
-            APP_API_HOST
-        }
-
         return Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(APP_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())
             .client(okhttpClientBuilder.build())
             .build()

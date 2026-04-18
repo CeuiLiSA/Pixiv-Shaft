@@ -3,7 +3,6 @@ package ceui.pixiv.login
 import android.net.Uri
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CronetInterceptor
-import ceui.loxia.ClientManager
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
@@ -15,9 +14,8 @@ import java.util.concurrent.TimeUnit
  * - PKCE verifier 持久化在 MMKV，抗进程被杀。
  * - OkHttp 共用 [OAuthHeaderInterceptor]（app-os / x-client-hash 等 Pixiv 必需头，不含 Authorization），
  *   DirectConnect 模式下接入 Cronet。
- * - Worker relay 开启时把 `oauthBaseUrl` 换成 `{worker}/oauth/`。
  *
- * 懒单例；Shaft 现有约定是改 relay/直连设置要重启，因此不做运行期重建。
+ * 懒单例；Shaft 约定改直连设置要重启，因此不做运行期重建。
  */
 object PixivLogin {
 
@@ -76,13 +74,6 @@ object PixivLogin {
     }
 
     private fun buildClient(): PixivOAuthClient {
-        val baseUrl = if (ClientManager.isWorkerRelay()) {
-            ClientManager.getWorkerBaseUrl() + "/oauth/"
-        } else {
-            "https://oauth.secure.pixiv.net/"
-        }
-        val config = PixivOAuthConfig.PIXIV_ANDROID.copy(oauthBaseUrl = baseUrl)
-
         val builder = OkHttpClient.Builder()
             .protocols(listOf(Protocol.HTTP_1_1))
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -94,11 +85,11 @@ object PixivLogin {
                 HttpLoggingInterceptor { message -> Timber.i(message) }
                     .apply { level = HttpLoggingInterceptor.Level.BASIC },
             )
-        if (Shaft.sSettings.isDirectConnect && !ClientManager.isWorkerRelay()) {
+        if (Shaft.sSettings.isDirectConnect) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }
         return PixivOAuthClient(
-            config = config,
+            config = PixivOAuthConfig.PIXIV_ANDROID,
             baseClient = builder.build(),
             verifierStore = verifierStore,
         )
