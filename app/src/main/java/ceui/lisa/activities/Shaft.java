@@ -10,6 +10,8 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -91,20 +93,30 @@ public class Shaft extends Application implements ServicesProvider {
     public void onCreate() {
         super.onCreate();
 
-        // Suppress GMS "Unknown calling package name" SecurityException.
-        // This crash occurs when GMS can't verify the sideloaded app's package
-        // and is thrown asynchronously on the main thread — a try-catch won't help.
-        final Thread.UncaughtExceptionHandler originalHandler =
-                Thread.getDefaultUncaughtExceptionHandler();
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-            if (throwable instanceof SecurityException
-                    && throwable.getMessage() != null
-                    && throwable.getMessage().contains("Unknown calling package name")) {
-                Timber.w(throwable, "Suppressed GMS SecurityException");
-                return;
-            }
-            if (originalHandler != null) {
-                originalHandler.uncaughtException(thread, throwable);
+        // Keep the main Looper alive across the GMS "Unknown calling package name"
+        // SecurityException. GMS delivers it on the main thread's Handler, which
+        // otherwise unwinds Looper.loop() and kills the process. Re-entering the
+        // loop from a catch block is the only way to actually suppress it — a
+        // Thread.defaultUncaughtExceptionHandler runs too late.
+        new Handler(Looper.getMainLooper()).postAtFrontOfQueue(() -> {
+            while (true) {
+                try {
+                    Looper.loop();
+                    return;
+                } catch (Throwable t) {
+                    if (t instanceof SecurityException
+                            && t.getMessage() != null
+                            && t.getMessage().contains("Unknown calling package name")) {
+                        Timber.w(t, "Suppressed GMS SecurityException on main thread");
+                        continue;
+                    }
+                    Thread.UncaughtExceptionHandler h =
+                            Thread.getDefaultUncaughtExceptionHandler();
+                    if (h != null) {
+                        h.uncaughtException(Thread.currentThread(), t);
+                    }
+                    return;
+                }
             }
         });
 
