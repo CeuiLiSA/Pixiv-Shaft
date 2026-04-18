@@ -34,22 +34,25 @@ object PixivLogin {
     fun refreshTokenBlocking(refreshToken: String): PixivOAuthResponse {
         return when (val result = client.refreshToken(refreshToken)) {
             is PixivOAuthResult.Success -> result.response
-            is PixivOAuthResult.Failure -> {
+            is PixivOAuthResult.Failure.ServerRejected -> {
                 if (result.httpCode == 400 && result.message.contains("Invalid refresh token")) {
                     throw InvalidRefreshTokenException(result.message)
                 }
                 throw RuntimeException(
-                    "Token refresh failed (http=${result.httpCode}): ${result.message}",
+                    "Token refresh failed (HTTP ${result.httpCode}): ${result.message}",
                     result.cause,
                 )
             }
+            is PixivOAuthResult.Failure -> throw RuntimeException(
+                "Token refresh failed: ${result.message}",
+                result.cause,
+            )
         }
     }
 
     private fun buildClient(): PixivOAuthClient {
         val builder = OkHttpClient.Builder()
             .protocols(listOf(Protocol.HTTP_1_1))
-            .addInterceptor(OAuthHeaderInterceptor())
         if (Shaft.sSettings.isDirectConnect) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }

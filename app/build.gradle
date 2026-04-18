@@ -234,7 +234,7 @@ dependencies {
     implementation 'androidx.browser:browser:1.8.0'
 
     // Pixiv OAuth 2.0 PKCE 登录（自家库，支持 Chrome Custom Tab）
-    implementation 'com.github.SoxiaLiSA:pixiv-login:1.1.0'
+    implementation 'com.github.SoxiaLiSA:pixiv-login:1.2.0'
     implementation 'org.jsoup:jsoup:1.18.1'
 
     implementation 'com.hjq:toast:8.8'
