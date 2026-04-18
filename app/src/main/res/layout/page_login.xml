@@ -28,7 +28,7 @@
                 android:gravity="center"
                 android:text="@string/now_login"
                 android:textColor="@color/black"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/sign_button"
@@ -41,7 +41,7 @@
                 android:gravity="center"
                 android:text="@string/now_sign"
                 android:textColor="@color/black"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
             <LinearLayout
                 android:id="@+id/checkbox_one"
