@@ -31,8 +31,14 @@ import ceui.pixiv.db.RemoteKey;
                 GeneralEntity.class, // 新增的 GeneralEntity
                 RemoteKey.class,
                 DiscoveryEntity.class, // 发现池候选作品
+                NovelBookmarkEntity.class, // V3 阅读器书签
+                NovelAnnotationEntity.class, // V3 阅读器划线/笔记
+                NovelReadingStatsEntity.class, // V3 阅读器单本统计
+                DailyReadingStatsEntity.class, // V3 阅读器每日统计
+                NovelCustomThemeEntity.class, // V3 阅读器自定义主题
+                NovelCustomFontEntity.class, // V3 阅读器自定义字体
         },
-        version = 29,
+        version = 30,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -104,6 +110,106 @@ public abstract class AppDatabase extends RoomDatabase {
             );
         }
     };
+    // 迁移 29 -> 30：V3 阅读器新增 6 张表（书签、划线/笔记、单本统计、每日统计、自定义主题、自定义字体）
+    private static final Migration MIGRATION_29_30 = new Migration(29, 30) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS novel_bookmark_table (" +
+                            "bookmarkId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                            "novelId INTEGER NOT NULL, " +
+                            "charIndex INTEGER NOT NULL, " +
+                            "pageIndex INTEGER NOT NULL, " +
+                            "preview TEXT NOT NULL, " +
+                            "note TEXT NOT NULL DEFAULT '', " +
+                            "createdTime INTEGER NOT NULL" +
+                            ")"
+            );
+            database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_novel_bookmark_table_novelId ON novel_bookmark_table(novelId)"
+            );
+            database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_novel_bookmark_table_createdTime ON novel_bookmark_table(createdTime)"
+            );
+
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS novel_annotation_table (" +
+                            "annotationId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                            "novelId INTEGER NOT NULL, " +
+                            "charStart INTEGER NOT NULL, " +
+                            "charEnd INTEGER NOT NULL, " +
+                            "excerpt TEXT NOT NULL, " +
+                            "note TEXT NOT NULL DEFAULT '', " +
+                            "color INTEGER NOT NULL, " +
+                            "kind INTEGER NOT NULL DEFAULT 0, " +
+                            "createdTime INTEGER NOT NULL, " +
+                            "updatedTime INTEGER NOT NULL" +
+                            ")"
+            );
+            database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_novel_annotation_table_novelId ON novel_annotation_table(novelId)"
+            );
+            database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_novel_annotation_table_novelId_charStart ON novel_annotation_table(novelId, charStart)"
+            );
+
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS novel_reading_stats_table (" +
+                            "novelId INTEGER NOT NULL PRIMARY KEY, " +
+                            "lastCharIndex INTEGER NOT NULL DEFAULT 0, " +
+                            "lastPageIndex INTEGER NOT NULL DEFAULT 0, " +
+                            "totalPageCount INTEGER NOT NULL DEFAULT 0, " +
+                            "lastReadTime INTEGER NOT NULL DEFAULT 0, " +
+                            "firstReadTime INTEGER NOT NULL DEFAULT 0, " +
+                            "openCount INTEGER NOT NULL DEFAULT 0, " +
+                            "totalDurationMs INTEGER NOT NULL DEFAULT 0, " +
+                            "totalFlips INTEGER NOT NULL DEFAULT 0, " +
+                            "totalCharsRead INTEGER NOT NULL DEFAULT 0, " +
+                            "completed INTEGER NOT NULL DEFAULT 0" +
+                            ")"
+            );
+
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS novel_daily_reading_stats_table (" +
+                            "dayEpoch INTEGER NOT NULL PRIMARY KEY, " +
+                            "durationMs INTEGER NOT NULL DEFAULT 0, " +
+                            "charsRead INTEGER NOT NULL DEFAULT 0, " +
+                            "flipCount INTEGER NOT NULL DEFAULT 0, " +
+                            "novelsTouched INTEGER NOT NULL DEFAULT 0" +
+                            ")"
+            );
+
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS novel_custom_theme_table (" +
+                            "themeId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                            "name TEXT NOT NULL, " +
+                            "backgroundColor INTEGER NOT NULL, " +
+                            "textColor INTEGER NOT NULL, " +
+                            "secondaryTextColor INTEGER NOT NULL, " +
+                            "accentColor INTEGER NOT NULL, " +
+                            "linkColor INTEGER NOT NULL, " +
+                            "selectionColor INTEGER NOT NULL, " +
+                            "highlightColor INTEGER NOT NULL, " +
+                            "dividerColor INTEGER NOT NULL, " +
+                            "chapterTitleColor INTEGER NOT NULL, " +
+                            "isDark INTEGER NOT NULL, " +
+                            "backgroundImagePath TEXT, " +
+                            "createdTime INTEGER NOT NULL" +
+                            ")"
+            );
+
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS novel_custom_font_table (" +
+                            "fontId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                            "displayName TEXT NOT NULL, " +
+                            "relativePath TEXT NOT NULL, " +
+                            "originalUri TEXT NOT NULL, " +
+                            "byteSize INTEGER NOT NULL, " +
+                            "installedTime INTEGER NOT NULL" +
+                            ")"
+            );
+        }
+    };
     private static AppDatabase INSTANCE;
 
     public static AppDatabase getAppDatabase(Context context) {
@@ -120,6 +226,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             .addMigrations(MIGRATION_26_27) // 注册 26 -> 27 迁移
                             .addMigrations(MIGRATION_27_28) // 注册 27 -> 28 迁移 (discovery_table)
                             .addMigrations(MIGRATION_28_29) // 注册 28 -> 29 迁移 (discovery_table + authorId)
+                            .addMigrations(MIGRATION_29_30) // 注册 29 -> 30 迁移 (V3 阅读器 6 张表)
                             .build();
         }
         return INSTANCE;
@@ -138,6 +245,18 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract GeneralDao generalDao();
 
     public abstract DiscoveryDao discoveryDao();
+
+    public abstract NovelBookmarkDao novelBookmarkDao();
+
+    public abstract NovelAnnotationDao novelAnnotationDao();
+
+    public abstract NovelReadingStatsDao novelReadingStatsDao();
+
+    public abstract DailyReadingStatsDao dailyReadingStatsDao();
+
+    public abstract NovelCustomThemeDao novelCustomThemeDao();
+
+    public abstract NovelCustomFontDao novelCustomFontDao();
 
 }
 

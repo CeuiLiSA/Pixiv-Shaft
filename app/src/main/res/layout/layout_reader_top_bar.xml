@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_reader_bar_top"
+    android:gravity="center_vertical"
+    android:minHeight="56dp"
+    android:orientation="horizontal"
+    android:paddingTop="24dp"
+    android:paddingHorizontal="4dp">
+
+    <ImageButton
+        android:id="@+id/btn_back"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="返回"
+        android:src="@drawable/ic_reader_back"
+        app:tint="#FFFFFF"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+    <TextView
+        android:id="@+id/txt_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:paddingHorizontal="8dp"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        tools:text="小说标题" />
+
+    <ImageButton
+        android:id="@+id/btn_bookmark"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="收藏"
+        android:src="@drawable/ic_reader_bookmark_border"
+        app:tint="#FFFFFF"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+    <ImageButton
+        android:id="@+id/btn_more"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="更多"
+        android:src="@drawable/ic_reader_more"
+        app:tint="#FFFFFF"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+</LinearLayout>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_reader_bar_top"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="6dp">
+
+        <TextView
+            android:id="@+id/sel_copy"
+            style="@style/ReaderSelectionAction"
+            android:text="复制" />
+
+        <TextView
+            android:id="@+id/sel_share"
+            style="@style/ReaderSelectionAction"
+            android:text="分享" />
+
+        <TextView
+            android:id="@+id/sel_quote_card"
+            style="@style/ReaderSelectionAction"
+            android:text="金句卡" />
+
+        <TextView
+            android:id="@+id/sel_search_pixiv"
+            style="@style/ReaderSelectionAction"
+            android:text="P站" />
+
+        <TextView
+            android:id="@+id/sel_search_web"
+            style="@style/ReaderSelectionAction"
+            android:text="网页" />
+
+        <TextView
+            android:id="@+id/sel_translate"
+            style="@style/ReaderSelectionAction"
+            android:text="翻译" />
+
+        <TextView
+            android:id="@+id/sel_highlight_yellow"
+            style="@style/ReaderSelectionAction"
+            android:text="● 黄"
+            android:textColor="#FFEB3B" />
+
+        <TextView
+            android:id="@+id/sel_highlight_green"
+            style="@style/ReaderSelectionAction"
+            android:text="● 绿"
+            android:textColor="#81C784" />
+
+        <TextView
+            android:id="@+id/sel_highlight_pink"
+            style="@style/ReaderSelectionAction"
+            android:text="● 粉"
+            android:textColor="#F48FB1" />
+
+        <TextView
+            android:id="@+id/sel_highlight_blue"
+            style="@style/ReaderSelectionAction"
+            android:text="● 蓝"
+            android:textColor="#64B5F6" />
+
+        <TextView
+            android:id="@+id/sel_note"
+            style="@style/ReaderSelectionAction"
+            android:text="笔记" />
+
+        <TextView
+            android:id="@+id/sel_dismiss"
+            style="@style/ReaderSelectionAction"
+            android:text="✕" />
+
+    </LinearLayout>
+
+</HorizontalScrollView>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_reader_bar_top"
+    android:gravity="center_vertical"
+    android:minHeight="56dp"
+    android:orientation="horizontal"
+    android:paddingTop="24dp"
+    android:paddingHorizontal="4dp">
+
+    <ImageButton
+        android:id="@+id/btn_close_search"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="关闭"
+        android:src="@drawable/ic_reader_back"
+        app:tint="#FFFFFF" />
+
+    <EditText
+        android:id="@+id/edit_search_query"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@null"
+        android:hint="搜索全文"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:paddingHorizontal="8dp"
+        android:singleLine="true"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#88FFFFFF"
+        android:textSize="15sp"
+        tools:text="关键词" />
+
+    <TextView
+        android:id="@+id/txt_search_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="56dp"
+        android:gravity="center"
+        android:paddingHorizontal="6dp"
+        android:textColor="#CCFFFFFF"
+        android:textSize="12sp"
+        tools:text="3 / 42" />
+
+    <TextView
+        android:id="@+id/btn_search_prev"
+        android:layout_width="40dp"
+        android:layout_height="44dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:gravity="center"
+        android:text="↑"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/btn_search_next"
+        android:layout_width="40dp"
+        android:layout_height="44dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:gravity="center"
+        android:text="↓"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/btn_search_regex"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:gravity="center"
+        android:paddingHorizontal="10dp"
+        android:text="正则"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp" />
+
+</LinearLayout>

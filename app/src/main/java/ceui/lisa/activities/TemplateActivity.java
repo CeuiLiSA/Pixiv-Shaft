@@ -44,6 +44,7 @@ import ceui.lisa.fragments.FragmentNewNovel;
 import ceui.lisa.fragments.FragmentNewNovels;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
+import ceui.pixiv.ui.novel.reader.NovelReaderV3Fragment;
 import ceui.lisa.fragments.FragmentNovelMarkers;
 import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentNovelSeriesDetail;
@@ -206,7 +207,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "小说作品":
                     return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "小说详情":
-                    return FragmentNovelHolder.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
+                    return NovelReaderV3Fragment.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
                 case "图片详情":
                     return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL), intent.getStringExtra(Params.TITLE));
                 case "画质增强对比":

@@ -1,0 +1,41 @@
+package ceui.pixiv.ui.novel.reader.paginate
+
+import android.text.Layout
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.text.style.LeadingMarginSpan
+
+object TextMeasurer {
+    fun buildLayout(
+        text: CharSequence,
+        paint: TextPaint,
+        width: Int,
+        lineSpacingMultiplier: Float,
+        lineSpacingExtra: Float,
+        alignment: Layout.Alignment = Layout.Alignment.ALIGN_NORMAL,
+    ): StaticLayout {
+        val source = text
+        val usableWidth = width.coerceAtLeast(1)
+        return StaticLayout.Builder.obtain(source, 0, source.length, paint, usableWidth)
+            .setAlignment(alignment)
+            .setLineSpacing(lineSpacingExtra, lineSpacingMultiplier.coerceAtLeast(0.8f))
+            .setIncludePad(false)
+            .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
+            .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
+            .build()
+    }
+
+    fun withFirstLineIndent(text: String, indentPx: Int): CharSequence {
+        if (indentPx <= 0 || text.isEmpty()) return text
+        val spannable = SpannableString(text)
+        spannable.setSpan(
+            LeadingMarginSpan.Standard(indentPx, 0),
+            0,
+            text.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+        )
+        return spannable
+    }
+}
