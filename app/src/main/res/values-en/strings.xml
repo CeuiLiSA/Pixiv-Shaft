@@ -741,6 +741,8 @@
   <string name="v3_type_ugoira">Ugoira</string>
   <string name="v3_page_count_one">1 page</string>
   <string name="v3_page_count_many">%d pages</string>
+  <string name="v3_expand_all_pages_title">Show remaining %1$d pages</string>
+  <string name="v3_expand_all_subtitle">Tap to reveal all pages</string>
   <string name="v3_detail_artwork_id">Artwork ID</string>
   <string name="v3_detail_user_id">User ID</string>
   <string name="v3_detail_type">Type</string>

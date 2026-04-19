@@ -46,6 +46,7 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     }
 
     private var illustAdapter: ceui.lisa.adapters.IllustAdapter? = null
+    private var expandPagesAdapter: ExpandPagesAdapter? = null
     private lateinit var headerAdapter: ArtworkDetailAdapter
     private lateinit var relatedAdapter: IAdapter
     private lateinit var loadingFooter: LoadingFooterAdapter
@@ -122,24 +123,41 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         setupNavBar(illustId)
         handleSystemInsets()
 
-        // When illust data arrives, insert IllustAdapter at the front for all pages
+        // When illust data arrives, insert IllustAdapter at the front. For heavy
+        // multi-page works (e.g. 50P manga) collapse all but the first few pages so
+        // the reader can reach tags / comments / related works without a huge scroll;
+        // the ExpandPagesAdapter card sits right after and reveals the rest on tap.
         ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
             if (illust != null && illustAdapter == null) {
                 // Use 70% of screen height as max — not full screen, so single-page
                 // images don't stretch to fill the entire viewport
                 val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
-                illustAdapter = object : ceui.lisa.adapters.IllustAdapter(
-                    mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
-                ) {
-                    override fun onViewAttachedToWindow(holder: ceui.lisa.adapters.ViewHolder<ceui.lisa.databinding.RecyIllustDetailBinding>) {
-                        super.onViewAttachedToWindow(holder)
-                        val lp = holder.itemView.layoutParams
-                        if (lp is StaggeredGridLayoutManager.LayoutParams) {
-                            lp.isFullSpan = true
+                if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
+                    val collapsible = CollapsibleIllustAdapter(
+                        mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
+                    )
+                    illustAdapter = collapsible
+                    val expand = ExpandPagesAdapter(collapsible.hiddenCount) {
+                        collapsible.expand()
+                        expandPagesAdapter?.hide()
+                    }
+                    expandPagesAdapter = expand
+                    concatAdapter.addAdapter(0, collapsible)
+                    concatAdapter.addAdapter(1, expand)
+                } else {
+                    illustAdapter = object : ceui.lisa.adapters.IllustAdapter(
+                        mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
+                    ) {
+                        override fun onViewAttachedToWindow(holder: ceui.lisa.adapters.ViewHolder<ceui.lisa.databinding.RecyIllustDetailBinding>) {
+                            super.onViewAttachedToWindow(holder)
+                            val lp = holder.itemView.layoutParams
+                            if (lp is StaggeredGridLayoutManager.LayoutParams) {
+                                lp.isFullSpan = true
+                            }
                         }
                     }
+                    concatAdapter.addAdapter(0, illustAdapter!!)
                 }
-                concatAdapter.addAdapter(0, illustAdapter!!)
             }
         }
 
