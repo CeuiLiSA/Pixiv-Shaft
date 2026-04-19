@@ -110,7 +110,7 @@ object ReaderSettings {
 
     // ---------- Theme ----------
     var themeId: String
-        get() = store.decodeString(K_THEME_ID, ReaderTheme.WHITE.id) ?: ReaderTheme.WHITE.id
+        get() = store.decodeString(K_THEME_ID, ReaderTheme.KRAFT.id) ?: ReaderTheme.KRAFT.id
         set(value) {
             store.encode(K_THEME_ID, value)
             emit(ChangeEvent.Theme)

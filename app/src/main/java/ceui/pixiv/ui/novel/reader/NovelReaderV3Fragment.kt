@@ -13,6 +13,9 @@ import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -24,6 +27,13 @@ import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
+import ceui.loxia.ObjectType
+import ceui.loxia.pushFragment
+import ceui.pixiv.ui.comments.CommentsFragmentArgs
+import ceui.pixiv.ui.common.NOVEL_URL_HEAD
+import ceui.pixiv.ui.common.shareNovel
+import ceui.pixiv.widgets.MenuItem
+import ceui.pixiv.widgets.showActionMenu
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
@@ -40,18 +50,18 @@ import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.render.GlideImageBitmapSource
 import ceui.pixiv.ui.novel.reader.render.HighlightRange
 import ceui.pixiv.ui.novel.reader.render.NovelReaderView
+import ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView
 import ceui.pixiv.ui.novel.reader.render.PageOverlays
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
 import ceui.pixiv.ui.novel.reader.ui.AnnotationsSheet
 import ceui.pixiv.ui.novel.reader.ui.BookmarksSheet
-import ceui.pixiv.ui.novel.reader.ui.ChapterDrawerDialog
+import ceui.pixiv.ui.novel.reader.ui.ChapterListSheet
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.ui.novel.reader.ui.NoteEditorDialog
 import ceui.pixiv.ui.novel.reader.ui.ReaderBottomBar
 import ceui.pixiv.ui.novel.reader.ui.ReaderChrome
 import ceui.pixiv.ui.novel.reader.ui.ReaderSearchOverlay
-import ceui.pixiv.ui.novel.reader.ui.ReaderSelectionToolbar
 import ceui.pixiv.ui.novel.reader.ui.ReaderSettingsPanel
 import ceui.pixiv.ui.novel.reader.ui.ReaderTopBar
 import kotlinx.coroutines.launch
@@ -79,7 +89,6 @@ class NovelReaderV3Fragment : Fragment() {
     private lateinit var bottomBar: ReaderBottomBar
     private lateinit var chrome: ReaderChrome
     private lateinit var searchOverlay: ReaderSearchOverlay
-    private lateinit var selectionToolbar: ReaderSelectionToolbar
 
     private var imageSource: GlideImageBitmapSource? = null
 
@@ -97,6 +106,14 @@ class NovelReaderV3Fragment : Fragment() {
     private var lastPushedWidth: Int = 0
     private var lastPushedHeight: Int = 0
     private var lastPushedThemeIsDark: Boolean = false
+    private var lastPushedTopInset: Int = 0
+    private var lastPushedBottomInset: Int = 0
+
+    // System bar / cutout insets — TemplateActivity runs edge-to-edge so the
+    // reader view extends behind the status bar and gesture nav. We add these
+    // to the page padding so text never lives under the system chrome.
+    private var topInsetPx: Int = 0
+    private var bottomInsetPx: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -125,13 +142,13 @@ class NovelReaderV3Fragment : Fragment() {
         bottomBar = ReaderBottomBar(view.findViewById(R.id.reader_bottom_bar))
         chrome = ReaderChrome(topBar, bottomBar)
         searchOverlay = ReaderSearchOverlay(view.findViewById(R.id.reader_search_overlay))
-        selectionToolbar = ReaderSelectionToolbar(view.findViewById(R.id.reader_selection_toolbar))
 
         wireTopBar()
         wireBottomBar()
         wireReaderView()
         wireSearchOverlay()
-        wireSelectionToolbar()
+        wireTextSelection()
+        wireSystemBarInsets()
 
         observeReaderState()
 
@@ -139,11 +156,31 @@ class NovelReaderV3Fragment : Fragment() {
         viewModel.load()
     }
 
+    private fun wireSystemBarInsets() {
+        val topBarView = rootView.findViewById<View>(R.id.reader_top_bar)
+        val bottomBarView = rootView.findViewById<View>(R.id.reader_bottom_bar)
+        val searchOverlayView = rootView.findViewById<View>(R.id.reader_search_overlay)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, windowInsets ->
+            val bars = windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
+            )
+            topBarView.updatePadding(top = bars.top)
+            searchOverlayView.updatePadding(top = bars.top)
+            bottomBarView.updatePadding(bottom = bars.bottom)
+            if (bars.top != topInsetPx || bars.bottom != bottomInsetPx) {
+                topInsetPx = bars.top
+                bottomInsetPx = bars.bottom
+                pushStyleAndGeometryIfReady()
+            }
+            windowInsets
+        }
+        ViewCompat.requestApplyInsets(rootView)
+    }
+
     private fun wireReaderView() {
         readerView.onTapCenter = {
             if (activeSelection != null) clearSelection() else chrome.toggle()
         }
-        readerView.onLongPressAt = { x, y -> beginSelectionAt(x, y) }
         readerView.onDoubleTapAt = { _, _ ->
             Toast.makeText(requireContext(), "双击放大（Phase 3 接入）", Toast.LENGTH_SHORT).show()
         }
@@ -161,9 +198,51 @@ class NovelReaderV3Fragment : Fragment() {
     private fun wireTopBar() {
         topBar.onBackClick = { activity?.finish() }
         topBar.onBookmarkClick = { togglePixivBookmark() }
-        topBar.onMoreClick = {
-            Toast.makeText(requireContext(), "更多菜单（Phase 2/3 接入分享、下载、评论）", Toast.LENGTH_SHORT).show()
+        topBar.onMoreClick = { showTopMoreMenu() }
+    }
+
+    private fun showTopMoreMenu() {
+        val novelId = resolveNovelId()
+        if (novelId == 0L) return
+        // Prefer the cached Novel (drives bookmark count, author, etc); if it
+        // isn't loaded yet, fetch on demand so the menu still works at startup.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val novel = ObjectPool.get<Novel>(novelId).value
+                ?: runCatching { Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) } }
+                    .getOrNull()
+            if (novel == null) {
+                Toast.makeText(requireContext(), "小说信息还没加载，请稍后再试", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val authorId = novel.user?.id ?: 0L
+            showActionMenu {
+                add(
+                    MenuItem(getString(R.string.view_comments)) {
+                        pushFragment(
+                            R.id.navigation_comments_illust,
+                            CommentsFragmentArgs(novelId, authorId, ObjectType.NOVEL).toBundle(),
+                        )
+                    },
+                )
+                add(
+                    MenuItem(getString(R.string.string_110)) {
+                        shareNovel(novel)
+                    },
+                )
+                add(
+                    MenuItem("复制链接") {
+                        copyNovelLink(novelId)
+                    },
+                )
+            }
         }
+    }
+
+    private fun copyNovelLink(novelId: Long) {
+        val link = NOVEL_URL_HEAD + novelId
+        val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        cm.setPrimaryClip(ClipData.newPlainText("pixiv-novel", link))
+        Toast.makeText(requireContext(), "链接已复制", Toast.LENGTH_SHORT).show()
     }
 
     private fun wireBottomBar() {
@@ -286,7 +365,7 @@ class NovelReaderV3Fragment : Fragment() {
     private fun toggleDayNightTheme() {
         val current = ReaderSettings.themeId
         val isDark = currentThemeIsDark()
-        ReaderSettings.themeId = if (isDark) ReaderTheme.WHITE.id else ReaderTheme.NIGHT.id
+        ReaderSettings.themeId = if (isDark) ReaderTheme.KRAFT.id else ReaderTheme.NIGHT.id
         bottomBar.setDarkMode(!isDark)
         Timber.tag("NovelReaderV3").d("Theme toggled: $current -> ${ReaderSettings.themeId}")
     }
@@ -295,46 +374,65 @@ class NovelReaderV3Fragment : Fragment() {
         return ReaderTheme.findPresetById(ReaderSettings.themeId)?.isDark == true
     }
 
-    private fun wireSelectionToolbar() {
-        selectionToolbar.onCopy = { copySelection() }
-        selectionToolbar.onShare = { shareSelection() }
-        selectionToolbar.onQuoteCard = {
-            Toast.makeText(requireContext(), "金句卡（Phase 4.#22 接入）", Toast.LENGTH_SHORT).show()
-        }
-        selectionToolbar.onSearchPixiv = { searchSelectionOnPixiv() }
-        selectionToolbar.onSearchWeb = { searchSelectionOnWeb() }
-        selectionToolbar.onTranslate = { translateSelection() }
-        selectionToolbar.onHighlight = { color -> saveHighlight(color) }
-        selectionToolbar.onNote = { openNoteEditorForSelection() }
-        selectionToolbar.onDismiss = { clearSelection() }
-    }
+    private fun wireTextSelection() {
+        // Action-mode menu ids. Kept stable so [ReaderTextBlockView.onMenuAction]
+        // dispatches correctly.
+        val idCopy = 1
+        val idShare = 2
+        val idSearchPixiv = 3
+        val idSearchWeb = 4
+        val idTranslate = 5
+        val idHighlightYellow = 10
+        val idHighlightGreen = 11
+        val idHighlightPink = 12
+        val idHighlightBlue = 13
+        val idNote = 20
 
-    private fun beginSelectionAt(x: Float, y: Float) {
-        val pages = viewModel.pagination.value?.pages ?: return
-        val geometry = viewModel.pagination.value?.geometry ?: return
-        val currentIndex = readerView.currentPageIndex()
-        val page = pages.getOrNull(currentIndex) ?: return
-        val hit = TextHitTester.hit(page, geometry.paddingLeft, x, y) ?: return
-        val webNovel = (viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded)?.webNovel ?: return
-        val source = webNovel.text.orEmpty()
-        if (source.isEmpty()) return
-        val range = TextHitTester.initialSelectionAt(source, hit)
-        val start = range.first
-        val end = range.last + 1
-        val text = source.substring(start.coerceIn(0, source.length), end.coerceIn(0, source.length))
-        val selection = TextSelection(start, end, text)
-        activeSelection = selection
-        rebuildOverlays()
-        val pos = TextHitTester.screenPosition(page, geometry.paddingLeft, start)
-        val anchorX = pos?.x ?: (readerView.width / 2f)
-        val anchorY = pos?.y ?: y
-        selectionToolbar.showAt(anchorX, anchorY, readerView.width, readerView.height)
-        chrome.hide()
+        val menuEntries = listOf(
+            ReaderTextBlockView.MenuEntry(idCopy, "复制"),
+            ReaderTextBlockView.MenuEntry(ReaderTextBlockView.ID_SELECT_ALL, "全选"),
+            ReaderTextBlockView.MenuEntry(idHighlightYellow, "黄"),
+            ReaderTextBlockView.MenuEntry(idHighlightGreen, "绿"),
+            ReaderTextBlockView.MenuEntry(idHighlightPink, "粉"),
+            ReaderTextBlockView.MenuEntry(idHighlightBlue, "蓝"),
+            ReaderTextBlockView.MenuEntry(idNote, "笔记"),
+            ReaderTextBlockView.MenuEntry(idSearchPixiv, "P站"),
+            ReaderTextBlockView.MenuEntry(idSearchWeb, "网页"),
+            ReaderTextBlockView.MenuEntry(idTranslate, "翻译"),
+            ReaderTextBlockView.MenuEntry(idShare, "分享"),
+        )
+
+        readerView.setTextBlockSelectionHandlers(
+            onStart = { _, absStart, absEnd, text ->
+                activeSelection = TextSelection(absStart, absEnd, text.toString())
+                chrome.hide()
+            },
+            onChange = { _, absStart, absEnd, text ->
+                activeSelection = TextSelection(absStart, absEnd, text.toString())
+            },
+            onEnd = {
+                activeSelection = null
+            },
+            menuEntries = menuEntries,
+            onMenuAction = { id ->
+                when (id) {
+                    idCopy -> copySelection()
+                    idShare -> shareSelection()
+                    idSearchPixiv -> searchSelectionOnPixiv()
+                    idSearchWeb -> searchSelectionOnWeb()
+                    idTranslate -> translateSelection()
+                    idHighlightYellow -> saveHighlight(HighlightColor.Yellow)
+                    idHighlightGreen -> saveHighlight(HighlightColor.Green)
+                    idHighlightPink -> saveHighlight(HighlightColor.Pink)
+                    idHighlightBlue -> saveHighlight(HighlightColor.Blue)
+                    idNote -> openNoteEditorForSelection()
+                }
+            },
+        )
     }
 
     private fun clearSelection() {
         activeSelection = null
-        selectionToolbar.hide()
         rebuildOverlays()
     }
 
@@ -629,14 +727,14 @@ class NovelReaderV3Fragment : Fragment() {
             return
         }
         val currentStart = viewModel.pagination.value?.pages?.getOrNull(readerView.currentPageIndex())?.charStart ?: 0
-        ChapterDrawerDialog().apply {
+        ChapterListSheet().apply {
             configure(outline, currentStart) { entry ->
                 viewModel.jumpToCharIndex(entry.sourceStart)
                 val pages = viewModel.pagination.value?.pages ?: return@configure
                 val idx = pages.indexOfFirst { it.charEnd >= entry.sourceStart }.coerceAtLeast(0)
                 readerView.goToPage(idx, animate = false)
             }
-        }.show(childFragmentManager, ChapterDrawerDialog.TAG)
+        }.show(childFragmentManager, ChapterListSheet.TAG)
     }
 
     private fun jumpChapter(forward: Boolean) {
@@ -675,19 +773,23 @@ class NovelReaderV3Fragment : Fragment() {
         if (snapshot == lastPushedSnapshot &&
             w == lastPushedWidth &&
             h == lastPushedHeight &&
-            themeIsDark == lastPushedThemeIsDark
+            themeIsDark == lastPushedThemeIsDark &&
+            topInsetPx == lastPushedTopInset &&
+            bottomInsetPx == lastPushedBottomInset
         ) {
             // No meaningful change — suppress spurious re-pagination that would
             // otherwise snap the reader back to startPageIndex mid-flip.
             return
         }
         Timber.tag("NovelReaderV3").d(
-            "pushStyleAndGeometry: size=${w}x${h} font=${snapshot.fontSizeSp} line=${snapshot.lineSpacing} theme=${snapshot.themeId}",
+            "pushStyleAndGeometry: size=${w}x${h} font=${snapshot.fontSizeSp} line=${snapshot.lineSpacing} theme=${snapshot.themeId} insets=${topInsetPx}/${bottomInsetPx}",
         )
         lastPushedSnapshot = snapshot
         lastPushedWidth = w
         lastPushedHeight = h
         lastPushedThemeIsDark = themeIsDark
+        lastPushedTopInset = topInsetPx
+        lastPushedBottomInset = bottomInsetPx
         val style = TypeStyle.from(ctx, snapshot, resolveActiveTheme())
         val density = resources.displayMetrics.density
         val horizontal = ReaderSettings.horizontalMarginDp * density
@@ -696,9 +798,9 @@ class NovelReaderV3Fragment : Fragment() {
             width = w,
             height = h,
             paddingLeft = horizontal,
-            paddingTop = vertical,
+            paddingTop = vertical + topInsetPx,
             paddingRight = horizontal,
-            paddingBottom = vertical,
+            paddingBottom = vertical + bottomInsetPx,
         )
         viewModel.updateLayout(style, geom)
     }
@@ -709,7 +811,7 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun resolveActiveTheme(): ReaderTheme {
-        return ReaderTheme.findPresetById(ReaderSettings.themeId) ?: ReaderTheme.WHITE
+        return ReaderTheme.findPresetById(ReaderSettings.themeId) ?: ReaderTheme.KRAFT
     }
 
     override fun onDestroyView() {

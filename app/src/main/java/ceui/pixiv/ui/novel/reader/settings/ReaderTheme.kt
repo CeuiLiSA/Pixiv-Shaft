@@ -19,6 +19,21 @@ data class ReaderTheme(
     val backgroundImagePath: String? = null,
 ) {
     companion object {
+        val KRAFT = ReaderTheme(
+            id = "preset_kraft",
+            displayName = "牛皮纸",
+            backgroundColor = 0xFFD9C49B.toInt(),
+            textColor = 0xFF3F3322.toInt(),
+            secondaryTextColor = 0xFF7A6A4B.toInt(),
+            accentColor = 0xFF8B5A2B.toInt(),
+            linkColor = 0xFF5E4626.toInt(),
+            selectionColor = 0x668B5A2B,
+            highlightColor = 0x66FFCA28,
+            dividerColor = 0xFFB8A77F.toInt(),
+            chapterTitleColor = 0xFF2D2316.toInt(),
+            isDark = false,
+        )
+
         val WHITE = ReaderTheme(
             id = "preset_white",
             displayName = "纯白",
@@ -110,7 +125,7 @@ data class ReaderTheme(
         )
 
         val PRESETS: List<ReaderTheme> = listOf(
-            WHITE, EYE_PROTECTION, PARCHMENT, BUTTER, NIGHT, CHARCOAL,
+            KRAFT, WHITE, EYE_PROTECTION, PARCHMENT, BUTTER, NIGHT, CHARCOAL,
         )
 
         fun findPresetById(id: String): ReaderTheme? = PRESETS.firstOrNull { it.id == id }

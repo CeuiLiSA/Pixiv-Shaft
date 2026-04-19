@@ -35,6 +35,28 @@ object TextHitTester {
     }
 
     /**
+     * Vertical bounds of the rendered line containing [absoluteOffset] plus the
+     * x position of the char. Returned as (x, yTop, yBottom) — useful for
+     * drawing a full-height selection handle bar.
+     */
+    fun lineBounds(page: Page, paddingLeft: Float, absoluteOffset: Int): Triple<Float, Float, Float>? {
+        for (el in page.elements) {
+            if (el !is PageElement.Text) continue
+            if (absoluteOffset < el.absoluteCharStart || absoluteOffset > el.absoluteCharEnd) continue
+            val layout = el.layout
+            val paragraphStart = layout.getLineStart(el.startLine)
+            val local = absoluteOffset - el.absoluteCharStart + paragraphStart
+            val line = layout.getLineForOffset(local).coerceIn(el.startLine, el.endLineExclusive - 1)
+            val x = paddingLeft + layout.getPrimaryHorizontal(local)
+            val startLineTop = layout.getLineTop(el.startLine).toFloat()
+            val yTop = el.top + (layout.getLineTop(line).toFloat() - startLineTop)
+            val yBottom = el.top + (layout.getLineBottom(line).toFloat() - startLineTop)
+            return Triple(x, yTop, yBottom)
+        }
+        return null
+    }
+
+    /**
      * Reverse lookup: where does [absoluteOffset] render on [page]? Returns
      * (x, y) at the top-left of the glyph, or null when the offset is not
      * visible on this page.

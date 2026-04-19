@@ -34,12 +34,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom" />
 
-    <include
-        android:id="@+id/reader_selection_toolbar"
-        layout="@layout/layout_reader_selection_toolbar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
     <ProgressBar
         android:id="@+id/reader_loading"
         android:layout_width="wrap_content"

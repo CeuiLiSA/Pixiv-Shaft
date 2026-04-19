@@ -5,12 +5,9 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
-import android.os.Handler
-import android.os.Looper
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.VelocityTracker
-import android.view.View
 import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
@@ -67,15 +64,11 @@ class NovelReaderView @JvmOverloads constructor(
     private val slop = ViewConfiguration.get(context).scaledTouchSlop
     private val tapMaxDurationMs = 220L
     private val tapMaxDistancePx = slop * 1.25f
-    private val longPressTimeoutMs = ViewConfiguration.getLongPressTimeout().toLong()
     private val doubleTapMaxMs = 260L
 
     private var lastTapUpTime = 0L
     private var lastTapX = 0f
     private var lastTapY = 0f
-
-    private val longPressRunnable = Runnable { handleLongPress() }
-    private val uiHandler = Handler(Looper.getMainLooper())
 
     private var settleAnimator: ValueAnimator? = null
     private var touchLocked: Boolean = false
@@ -83,7 +76,6 @@ class NovelReaderView @JvmOverloads constructor(
     // Listeners
     var onTapCenter: (() -> Unit)? = null
     var onPageChanged: ((Int) -> Unit)? = null
-    var onLongPressAt: ((x: Float, y: Float) -> Unit)? = null
     var onDoubleTapAt: ((x: Float, y: Float) -> Unit)? = null
     var onEdgeHit: ((FlipDirection) -> Unit)? = null
 
@@ -93,6 +85,12 @@ class NovelReaderView @JvmOverloads constructor(
         prevView = PageView(context).also { addView(it, lp) }
         currentView = PageView(context).also { addView(it, lp) }
         nextView = PageView(context).also { addView(it, lp) }
+        // Route bare text-taps (TextView consumed the UP but produced no
+        // selection state change) through the reader's tap-zone logic so
+        // flip-on-tap still works over text areas.
+        for (pv in arrayOf(prevView, currentView, nextView)) {
+            pv.onBlockBareTap = { x, y -> handleTap(x, y) }
+        }
     }
 
     // ---- Public API --------------------------------------------------------
@@ -128,6 +126,28 @@ class NovelReaderView @JvmOverloads constructor(
         animator = FlipAnimatorFactory.create(mode)
         dragProgress = 0f
         isDragging = false
+    }
+
+    /**
+     * Wire the platform-selection callbacks and menu used by every
+     * [PageView]'s [ReaderTextBlockView] children. Call once from the host
+     * fragment — the view propagates to all three pooled pages.
+     */
+    fun setTextBlockSelectionHandlers(
+        onStart: ((ReaderTextBlockView, Int, Int, CharSequence) -> Unit)? = null,
+        onChange: ((ReaderTextBlockView, Int, Int, CharSequence) -> Unit)? = null,
+        onEnd: ((ReaderTextBlockView) -> Unit)? = null,
+        menuEntries: List<ReaderTextBlockView.MenuEntry> = emptyList(),
+        onMenuAction: ((Int) -> Unit)? = null,
+    ) {
+        for (pv in arrayOf(prevView, currentView, nextView)) {
+            pv.onBlockSelectionStart = onStart
+            pv.onBlockSelectionChange = onChange
+            pv.onBlockSelectionEnd = onEnd
+            pv.blockMenuEntries = menuEntries
+            pv.onBlockMenuAction = onMenuAction
+        }
+        refreshPages()
     }
 
     fun setTouchLocked(locked: Boolean) {
@@ -232,7 +252,6 @@ class NovelReaderView @JvmOverloads constructor(
                 dragDownTime = System.currentTimeMillis()
                 isDragging = false
                 velocityTracker = VelocityTracker.obtain().apply { addMovement(ev) }
-                uiHandler.postDelayed(longPressRunnable, longPressTimeoutMs)
             }
             MotionEvent.ACTION_MOVE -> {
                 velocityTracker?.addMovement(ev)
@@ -242,7 +261,6 @@ class NovelReaderView @JvmOverloads constructor(
                     val dir = if (dx < 0) FlipDirection.Forward else FlipDirection.Backward
                     Timber.tag(TAG).d("intercept drag start dx=$dx dy=$dy dir=$dir canFlip=${canFlip(dir)}")
                     isDragging = true
-                    uiHandler.removeCallbacks(longPressRunnable)
                     dragDirection = dir
                     if (!canFlip(dragDirection)) {
                         isDragging = false
@@ -261,7 +279,6 @@ class NovelReaderView @JvmOverloads constructor(
             MotionEvent.ACTION_UP,
             MotionEvent.ACTION_CANCEL,
             -> {
-                uiHandler.removeCallbacks(longPressRunnable)
                 releaseVelocityTracker()
             }
         }
@@ -282,7 +299,6 @@ class NovelReaderView @JvmOverloads constructor(
                 dragStartY = event.y
                 dragDownTime = System.currentTimeMillis()
                 isDragging = false
-                uiHandler.postDelayed(longPressRunnable, longPressTimeoutMs)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -302,7 +318,6 @@ class NovelReaderView @JvmOverloads constructor(
                         val dir = if (dx < 0) FlipDirection.Forward else FlipDirection.Backward
                         Timber.tag(TAG).d("touch drag start dx=$dx dy=$dy dir=$dir canFlip=${canFlip(dir)}")
                         isDragging = true
-                        uiHandler.removeCallbacks(longPressRunnable)
                         dragDirection = dir
                         if (canFlip(dragDirection)) {
                             val incoming = incomingView(dragDirection)
@@ -316,7 +331,6 @@ class NovelReaderView @JvmOverloads constructor(
                 }
             }
             MotionEvent.ACTION_UP -> {
-                uiHandler.removeCallbacks(longPressRunnable)
                 val elapsed = System.currentTimeMillis() - dragDownTime
                 val dx = event.x - dragStartX
                 val dy = event.y - dragStartY
@@ -335,7 +349,6 @@ class NovelReaderView @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_CANCEL -> {
-                uiHandler.removeCallbacks(longPressRunnable)
                 if (isDragging) endDrag(0f, 0f)
                 releaseVelocityTracker()
                 return true
@@ -362,11 +375,6 @@ class NovelReaderView @JvmOverloads constructor(
             x > width - third -> flipForward()
             else -> onTapCenter?.invoke()
         }
-    }
-
-    private fun handleLongPress() {
-        if (isDragging) return
-        onLongPressAt?.invoke(dragStartX, dragStartY)
     }
 
     private fun endDrag(dx: Float, velocityX: Float) {
@@ -423,7 +431,6 @@ class NovelReaderView @JvmOverloads constructor(
 
     private fun cancelAllGestures() {
         cancelSettle()
-        uiHandler.removeCallbacks(longPressRunnable)
         isDragging = false
         dragProgress = 0f
         releaseVelocityTracker()

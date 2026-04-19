@@ -4,19 +4,21 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.util.AttributeSet
-import android.view.View
+import android.widget.FrameLayout
 import ceui.pixiv.ui.novel.reader.model.Page
+import ceui.pixiv.ui.novel.reader.model.PageElement
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 
 /**
- * A View that renders exactly one [Page].
+ * A [FrameLayout] that renders exactly one [Page].
  *
- * - Drawing is delegated to [PageRenderer] (stateless).
- * - Bitmap lookups for image pages go through [bitmapSource]; swap the source to
- *   rewire without touching the page data.
- * - Overlays (search / selection / annotation / TTS) are set from outside via
- *   [overlays] and trigger a redraw.
+ * Layout split:
+ *  - **Text** elements are hosted as [ReaderTextBlockView] children so the
+ *    platform provides native selection (handles + magnifier + action mode).
+ *  - **Non-text** elements (chapter titles, inline images, spaces, background,
+ *    overlays like search/annotation/TTS) are still painted by [PageRenderer]
+ *    in [dispatchDraw] before the children draw.
  *
  * This view is cheap: the flip animator pools three instances (prev / curr /
  * next) and swaps their [page] as the user turns.
@@ -25,7 +27,7 @@ class PageView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : View(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr) {
 
     private var page: Page? = null
     private var style: TypeStyle? = null
@@ -34,9 +36,26 @@ class PageView @JvmOverloads constructor(
     private var overlays: PageOverlays = PageOverlays.EMPTY
     private var backgroundBitmap: Bitmap? = null
 
+    private val textBlocks = mutableListOf<ReaderTextBlockView>()
+
     /** Snapshot of the page rendered as a Bitmap. Used by flip animators that
      *  need a static picture of a page while another view is being animated. */
     private var snapshotCache: Bitmap? = null
+
+    var onBlockSelectionStart: ((block: ReaderTextBlockView, absStart: Int, absEnd: Int, text: CharSequence) -> Unit)? = null
+    var onBlockSelectionChange: ((block: ReaderTextBlockView, absStart: Int, absEnd: Int, text: CharSequence) -> Unit)? = null
+    var onBlockSelectionEnd: ((block: ReaderTextBlockView) -> Unit)? = null
+    var blockMenuEntries: List<ReaderTextBlockView.MenuEntry> = emptyList()
+    var onBlockMenuAction: ((id: Int) -> Unit)? = null
+    /** Tap that landed on a text block and produced neither a selection nor a
+     *  selection-dismissal — forwarded here in PageView coordinates so the
+     *  host can run its tap-zone logic. */
+    var onBlockBareTap: ((xInPage: Float, yInPage: Float) -> Unit)? = null
+
+    init {
+        // We render background + non-text ourselves; let children paint on top.
+        setWillNotDraw(false)
+    }
 
     fun bind(
         page: Page?,
@@ -52,6 +71,7 @@ class PageView @JvmOverloads constructor(
         this.bitmapSource = bitmapSource
         this.overlays = overlays
         this.backgroundBitmap = backgroundBitmap
+        rebuildTextBlocks()
         invalidateSnapshot()
         invalidate()
     }
@@ -70,19 +90,114 @@ class PageView @JvmOverloads constructor(
 
     fun currentPage(): Page? = page
 
-    override fun onDraw(canvas: Canvas) {
-        val style = this.style ?: return
-        val geo = this.geometry ?: return
-        PageRenderer.drawBackground(canvas, width, height, style, backgroundBitmap)
-        val page = this.page ?: return
-        PageRenderer.drawPage(
-            canvas = canvas,
-            page = page,
-            paddingLeft = geo.paddingLeft,
-            style = style,
-            overlays = overlays,
-            imageSource = bitmapSource,
-        )
+    /** True iff any hosted text block has a non-empty native selection. */
+    fun hasActiveTextSelection(): Boolean =
+        textBlocks.any { it.visibility == VISIBLE && it.selectionStart != it.selectionEnd }
+
+    /**
+     * Scan the active page's elements and produce one [ReaderTextBlockView]
+     * per contiguous run of text elements. Chapter / Image elements break a
+     * run (they render via [PageRenderer] on the canvas). Merging consecutive
+     * paragraphs into a single view is what lets native selection drag across
+     * paragraph boundaries on the same page.
+     */
+    private fun rebuildTextBlocks() {
+        val style = this.style
+        val geometry = this.geometry
+        val page = this.page
+        if (style == null || geometry == null || page == null) {
+            removeAllTextBlocks()
+            return
+        }
+
+        val groups = groupTextElements(page.elements)
+
+        while (textBlocks.size < groups.size) {
+            val block = ReaderTextBlockView(context)
+            textBlocks.add(block)
+            addView(block)
+        }
+        while (textBlocks.size > groups.size) {
+            val removed = textBlocks.removeAt(textBlocks.lastIndex)
+            removeView(removed)
+        }
+
+        groups.forEachIndexed { i, group ->
+            val block = textBlocks[i]
+            block.visibility = VISIBLE
+            block.onSelectionStarted = onBlockSelectionStart
+            block.onSelectionChanged = onBlockSelectionChange
+            block.onSelectionEnded = onBlockSelectionEnd
+            block.menuEntries = blockMenuEntries
+            block.onMenuAction = onBlockMenuAction
+            block.onBareTap = { xInBlock, yInBlock ->
+                // Translate from block coords → PageView coords: the block's
+                // own (x, y) is the top-left of its layout within the page.
+                onBlockBareTap?.invoke(block.x + xInBlock, block.y + yInBlock)
+            }
+
+            block.bindTextGroup(group, style, geometry)
+
+            val lp = (block.layoutParams as? LayoutParams) ?: LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+            lp.width = LayoutParams.MATCH_PARENT
+            lp.height = LayoutParams.WRAP_CONTENT
+            lp.topMargin = group.first().top.toInt()
+            block.layoutParams = lp
+        }
+    }
+
+    /**
+     * Walk [elements] in order, grouping consecutive [PageElement.Text]
+     * entries. [PageElement.Space] is transparent to the grouping — the blank
+     * line it represents is already implicit in the paragraph separator we
+     * insert in the merged text. [PageElement.Chapter] / [PageElement.Image]
+     * break the current group.
+     */
+    private fun groupTextElements(elements: List<PageElement>): List<List<PageElement.Text>> {
+        val groups = mutableListOf<MutableList<PageElement.Text>>()
+        var current: MutableList<PageElement.Text>? = null
+        for (element in elements) {
+            when (element) {
+                is PageElement.Text -> {
+                    val group = current ?: mutableListOf<PageElement.Text>().also {
+                        groups += it
+                        current = it
+                    }
+                    group += element
+                }
+                is PageElement.Space -> Unit
+                is PageElement.Chapter,
+                is PageElement.Image,
+                -> current = null
+            }
+        }
+        return groups
+    }
+
+    private fun removeAllTextBlocks() {
+        if (textBlocks.isEmpty()) return
+        textBlocks.forEach { removeView(it) }
+        textBlocks.clear()
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        val style = this.style
+        val geo = this.geometry
+        val page = this.page
+        if (style != null && geo != null) {
+            PageRenderer.drawBackground(canvas, width, height, style, backgroundBitmap)
+            if (page != null) {
+                PageRenderer.drawNonTextElements(
+                    canvas = canvas,
+                    page = page,
+                    paddingLeft = geo.paddingLeft,
+                    style = style,
+                    overlays = overlays,
+                    imageSource = bitmapSource,
+                )
+            }
+        }
+        super.dispatchDraw(canvas)
     }
 
     /** Rasterize the current content. Callers must release by calling

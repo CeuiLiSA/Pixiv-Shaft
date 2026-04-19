@@ -76,6 +76,76 @@ object PageRenderer {
         }
     }
 
+    /**
+     * Paint every non-[PageElement.Text] element on [page]. Used by [PageView]
+     * which hosts Text elements as native [ReaderTextBlockView] children for
+     * system-provided selection — the canvas path handles chapters/images/etc.
+     */
+    fun drawNonTextElements(
+        canvas: Canvas,
+        page: Page,
+        paddingLeft: Float,
+        style: TypeStyle,
+        overlays: PageOverlays,
+        imageSource: ImageBitmapSource,
+    ) {
+        for (element in page.elements) {
+            when (element) {
+                is PageElement.Text -> Unit
+                is PageElement.Chapter -> drawChapter(canvas, element, paddingLeft, style)
+                is PageElement.Image -> drawImage(canvas, element, paddingLeft, style, imageSource)
+                is PageElement.Space -> Unit
+            }
+        }
+        // Overlays (search / annotations / TTS) still render on the canvas
+        // because they can span multiple text blocks — we overlay them above
+        // the non-text layer but underneath the TextView children. Selection
+        // rendering is intentionally dropped here: TextView draws it natively.
+        drawCanvasOverlays(canvas, page, paddingLeft, overlays)
+    }
+
+    private fun drawCanvasOverlays(
+        canvas: Canvas,
+        page: Page,
+        paddingLeft: Float,
+        overlays: PageOverlays,
+    ) {
+        for (element in page.elements) {
+            if (element !is PageElement.Text) continue
+            val layout = element.layout
+            val save = canvas.save()
+            try {
+                val startTop = layout.getLineTop(element.startLine)
+                val endBottom = layout.getLineBottom(element.endLineExclusive - 1)
+                canvas.translate(paddingLeft, element.top - startTop)
+                canvas.clipRect(
+                    0f,
+                    startTop.toFloat(),
+                    layout.width.toFloat(),
+                    endBottom.toFloat(),
+                )
+                for (ann in overlays.annotations) {
+                    val rect = rectForRangeIn(element, layout, ann.absoluteStart, ann.absoluteEnd) ?: continue
+                    highlightPaint.color = ann.color
+                    canvas.drawRoundRect(rect, 4f, 4f, highlightPaint)
+                }
+                for (hit in overlays.searchHits) {
+                    val rect = rectForRangeIn(element, layout, hit.absoluteStart, hit.absoluteEnd) ?: continue
+                    searchPaint.color = if (hit.isCurrent) 0xFF5B6EFF.toInt() else hit.color
+                    searchPaint.alpha = if (hit.isCurrent) 128 else 80
+                    canvas.drawRoundRect(rect, 4f, 4f, searchPaint)
+                }
+                overlays.ttsActiveRange?.let { range ->
+                    val rect = rectForRangeIn(element, layout, range.first, range.last + 1) ?: return@let
+                    highlightPaint.color = 0x3300FF88.toInt()
+                    canvas.drawRoundRect(rect, 4f, 4f, highlightPaint)
+                }
+            } finally {
+                canvas.restoreToCount(save)
+            }
+        }
+    }
+
     private fun drawText(
         canvas: Canvas,
         element: PageElement.Text,
