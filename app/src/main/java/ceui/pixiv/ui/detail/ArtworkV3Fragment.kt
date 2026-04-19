@@ -8,6 +8,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -76,24 +80,38 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         )
 
         val layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        // Disable span-shuffle on gap — the header has many fullSpan items above a 2-column
+        // grid; default MOVE_ITEMS_BETWEEN_SPANS causes jank as items re-layout during scroll.
+        layoutManager.gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
         baseBind.recyclerView.layoutManager = layoutManager
         baseBind.recyclerView.adapter = concatAdapter
         baseBind.recyclerView.addItemDecoration(RelatedOnlySpaceDecoration(4.ppppx))
 
-        // Single scroll listener for both progress bar and infinite scroll
+        // Single scroll listener for both progress bar and infinite scroll.
+        // Reuses an IntArray to avoid per-frame allocation from findLastVisibleItemPositions(null).
         baseBind.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            private val lastVisiblePositions = IntArray(2)
+            private var lastProgress = -1f
+
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                // Scroll progress
+                // Scroll progress — throttle to avoid re-scaling on sub-pixel deltas
                 val offset = recyclerView.computeVerticalScrollOffset()
                 val range = recyclerView.computeVerticalScrollRange() -
                         recyclerView.computeVerticalScrollExtent()
-                baseBind.scrollProgressBar.scaleX = if (range > 0) offset.toFloat() / range else 0f
+                val progress = if (range > 0) offset.toFloat() / range else 0f
+                // Always snap the edges so the bar doesn't stop short of 0/1 due to threshold.
+                if (progress == 0f || progress == 1f ||
+                    kotlin.math.abs(progress - lastProgress) >= 0.005f
+                ) {
+                    lastProgress = progress
+                    baseBind.scrollProgressBar.scaleX = progress
+                }
 
                 // Infinite scroll
                 if (dy > 0) {
                     val lm = recyclerView.layoutManager as StaggeredGridLayoutManager
-                    val lastPositions = lm.findLastVisibleItemPositions(null)
-                    val lastVisible = lastPositions.maxOrNull() ?: return
+                    lm.findLastVisibleItemPositions(lastVisiblePositions)
+                    val lastVisible = maxOf(lastVisiblePositions[0], lastVisiblePositions[1])
                     if (lastVisible >= lm.itemCount - 4 && viewModel.hasMoreRelated) {
                         viewModel.loadMoreRelated()
                     }
@@ -254,8 +272,11 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                     dataSource: com.bumptech.glide.load.DataSource,
                     isFirstResource: Boolean
                 ): Boolean {
-                    val uri = Common.copyBitmapToImageCacheFolder(resource, illust.id.toString() + ".png")
-                    if (uri != null) {
+                    // PNG compress + disk write are heavy — keep them off the main thread.
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val uri = withContext(Dispatchers.IO) {
+                            Common.copyBitmapToImageCacheFolder(resource, illust.id.toString() + ".png")
+                        } ?: return@launch
                         val shareIntent = android.content.Intent().apply {
                             action = android.content.Intent.ACTION_SEND
                             addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)

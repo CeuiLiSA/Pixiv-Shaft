@@ -19,6 +19,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.TemplateActivity
@@ -63,7 +64,7 @@ class ArtworkDetailAdapter(
     private val animatedViewTypes = mutableSetOf<Int>()
 
     fun submitItems(newItems: List<ArtworkDetailItem>) {
-        val t = SystemClock.elapsedRealtime()
+        val t = if (BuildConfig.DEBUG) SystemClock.elapsedRealtime() else 0L
         val oldItems = items.toList()
         items.clear()
         items.addAll(newItems)
@@ -78,10 +79,9 @@ class ArtworkDetailAdapter(
                     changedCount++
                 }
             }
-            Log.d(
-                TAG,
-                "submitItems: same structure, $changedCount changed, ${SystemClock.elapsedRealtime() - t}ms"
-            )
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "submitItems: same structure, $changedCount changed, ${SystemClock.elapsedRealtime() - t}ms")
+            }
         } else if (oldItems.size < newItems.size &&
             oldItems.indices.all { viewTypeOf(oldItems[it]) == viewTypeOf(newItems[it]) }
         ) {
@@ -90,16 +90,14 @@ class ArtworkDetailAdapter(
                 if (oldItems[i] != newItems[i]) notifyItemChanged(i)
             }
             notifyItemRangeInserted(oldItems.size, newItems.size - oldItems.size)
-            Log.d(
-                TAG,
-                "submitItems: appended ${newItems.size - oldItems.size} items, ${SystemClock.elapsedRealtime() - t}ms"
-            )
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "submitItems: appended ${newItems.size - oldItems.size} items, ${SystemClock.elapsedRealtime() - t}ms")
+            }
         } else {
             notifyDataSetChanged()
-            Log.d(
-                TAG,
-                "submitItems: structural change ${oldItems.size}->${newItems.size}, ${SystemClock.elapsedRealtime() - t}ms"
-            )
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "submitItems: structural change ${oldItems.size}->${newItems.size}, ${SystemClock.elapsedRealtime() - t}ms")
+            }
         }
     }
 
@@ -170,7 +168,7 @@ class ArtworkDetailAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val t = SystemClock.elapsedRealtime()
+        val t = if (BuildConfig.DEBUG) SystemClock.elapsedRealtime() else 0L
         val item = items[position]
         when {
             holder is HeroVH && item is ArtworkDetailItem.Hero -> holder.bind(item.illust)
@@ -188,18 +186,25 @@ class ArtworkDetailAdapter(
             holder is AuthorWorksVH && item is ArtworkDetailItem.AuthorWorks -> holder.bind(item)
             holder is RelatedHeaderVH && item is ArtworkDetailItem.RelatedHeader -> holder.bind(item)
         }
-        val elapsed = SystemClock.elapsedRealtime() - t
-        if (elapsed > 2) {
-            Log.d(
-                TAG,
-                "onBindViewHolder pos=$position type=${getItemViewType(position)} took ${elapsed}ms"
-            )
+        if (BuildConfig.DEBUG) {
+            val elapsed = SystemClock.elapsedRealtime() - t
+            if (elapsed > 2) {
+                Log.d(TAG, "onBindViewHolder pos=$position type=${getItemViewType(position)} took ${elapsed}ms")
+            }
+        }
+    }
+
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        val lp = holder.itemView.layoutParams
+        if (lp is StaggeredGridLayoutManager.LayoutParams) {
+            lp.isFullSpan = true
         }
 
-        // Entrance animation: only the first time each view type appears
-        val vt = getItemViewType(position)
-        if (vt !in animatedViewTypes) {
-            animatedViewTypes.add(vt)
+        // Entrance animation: only the first time each view type attaches. Running
+        // this here (not in onBindViewHolder) keeps rebinds — e.g. from follow-state
+        // updates — from re-triggering the opacity/translation animation.
+        val vt = holder.itemViewType
+        if (animatedViewTypes.add(vt)) {
             val view = holder.itemView
             view.alpha = 0f
             view.translationY = 16.ppppx.toFloat()
@@ -209,13 +214,6 @@ class ArtworkDetailAdapter(
                 .setDuration(350)
                 .setInterpolator(DecelerateInterpolator(2.5f))
                 .start()
-        }
-    }
-
-    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
-        val lp = holder.itemView.layoutParams
-        if (lp is StaggeredGridLayoutManager.LayoutParams) {
-            lp.isFullSpan = true
         }
     }
 
@@ -271,8 +269,23 @@ class ArtworkDetailAdapter(
     }
 
     inner class TagsVH(private val b: SectionV3TagsBinding) : RecyclerView.ViewHolder(b.root) {
+        private var lastSignature: String? = null
+
         fun bind(illust: IllustsBean) {
+            // Skip rebuild if the tag list hasn't changed. Header rebuilds happen
+            // several times during initial load (illust → user → profile response),
+            // and tearing down + reinflating 20+ TextViews each time is wasteful.
+            val sig = buildString {
+                illust.tags?.forEach { t ->
+                    append(t.name ?: ""); append('|')
+                    append(t.translated_name ?: ""); append(';')
+                }
+            }
+            if (sig == lastSignature && b.tagsFlow.childCount > 0) return
+            lastSignature = sig
+
             b.tagsFlow.removeAllViews()
+            val tagBgState = palette.tagLockedBg(999f * ctx.resources.displayMetrics.density).constantState
             illust.tags?.forEach { tag ->
                 val tv = TextView(ctx).apply {
                     text = buildString {
@@ -284,7 +297,7 @@ class ArtworkDetailAdapter(
                     }
                     textSize = 13f
                     setTextColor(palette.textTag)
-                    background = palette.tagLockedBg(999f * resources.displayMetrics.density)
+                    background = tagBgState?.newDrawable()?.mutate()
                     setPadding(14.ppppx, 7.ppppx, 14.ppppx, 7.ppppx)
                     layoutParams = FlexboxLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,

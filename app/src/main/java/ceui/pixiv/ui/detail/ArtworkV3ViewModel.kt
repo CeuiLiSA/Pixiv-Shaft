@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.detail
 
+import android.os.Handler
+import android.os.Looper
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -16,12 +18,16 @@ import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.pixiv.db.RecordType
 import com.google.gson.Gson
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class ArtworkV3ViewModel(
     private val illustId: Long
@@ -57,6 +63,11 @@ class ArtworkV3ViewModel(
     private val illustBeanLiveData = ObjectPool.get<IllustsBean>(illustId)
     private var userBeanLiveData: LiveData<ceui.lisa.models.UserBean>? = null
 
+    // Coalesce multiple triggers (illust observer + user observer + loadData end)
+    // fired within the same main-thread turn into a single header rebuild.
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val rebuildRunnable = Runnable { doBuildHeaderItems() }
+
     private val illustBeanObserver = Observer<IllustsBean> { bean ->
         if (bean != null) {
             illustBean = bean
@@ -81,6 +92,7 @@ class ArtworkV3ViewModel(
     override fun onCleared() {
         illustBeanLiveData.removeObserver(illustBeanObserver)
         userBeanLiveData?.removeObserver(userBeanObserver)
+        mainHandler.removeCallbacks(rebuildRunnable)
     }
 
     private fun observeUserIfNeeded(userId: Int) {
@@ -93,6 +105,11 @@ class ArtworkV3ViewModel(
 
     // ── build header item list (everything except individual related cards) ──
     private fun buildHeaderItems() {
+        mainHandler.removeCallbacks(rebuildRunnable)
+        mainHandler.post(rebuildRunnable)
+    }
+
+    private fun doBuildHeaderItems() {
         val illust = illustBean ?: return
         val list = mutableListOf<ArtworkDetailItem>()
 
@@ -164,7 +181,8 @@ class ArtworkV3ViewModel(
                 val authorD = async(Dispatchers.IO) {
                     runCatching {
                         val resp = ceui.lisa.http.Retro.getAppApi()
-                            .getUserSubmitIllust(userId.toInt(), "illust").blockingFirst()
+                            .getUserSubmitIllust(userId.toInt(), "illust")
+                            .awaitFirst()
                         resp.list?.filter { it.id != illustId.toInt() }?.take(10) ?: emptyList()
                     }.getOrElse { Timber.e(it); emptyList() }
                 }
@@ -225,4 +243,18 @@ class ArtworkV3ViewModel(
             }
         }
     }
+}
+
+/**
+ * Bridge Rx2 Observable to a suspend function without pulling in kotlinx-coroutines-rx2.
+ * Runs the subscription on Schedulers.io so the calling coroutine thread is freed while waiting.
+ */
+private suspend fun <T : Any> Observable<T>.awaitFirst(): T = suspendCancellableCoroutine { cont ->
+    val disposable = subscribeOn(Schedulers.io())
+        .firstOrError()
+        .subscribe(
+            { cont.resume(it) },
+            { cont.resumeWithException(it) }
+        )
+    cont.invokeOnCancellation { disposable.dispose() }
 }
