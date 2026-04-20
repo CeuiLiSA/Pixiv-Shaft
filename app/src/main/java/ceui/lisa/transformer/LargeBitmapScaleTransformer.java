@@ -15,7 +15,7 @@ public class LargeBitmapScaleTransformer extends BitmapTransformation {
 
     private static final String ID = "ceui.lisa.transformer.LargeBitmapScaleTransformer";
     private static final byte[] ID_BYTES = ID.getBytes();
-    private static final int MAX_BITMAP_SIZE = 100 * 1024 * 1024;
+    private static final int MAX_BITMAP_SIZE = 50 * 1024 * 1024;
 
     @Override
     protected Bitmap transform(@NonNull BitmapPool pool, @NonNull Bitmap toTransform, int outWidth, int outHeight) {

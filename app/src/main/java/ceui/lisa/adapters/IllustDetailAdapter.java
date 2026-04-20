@@ -2,7 +2,7 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +11,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 
@@ -84,13 +85,15 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
             params.width = imageSize;
             currentOne.illust.setLayoutParams(params);
             requestManager
-                    .asDrawable()
+                    .asBitmap()
                     .load(imageUrl)
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .into(new SimpleTarget<Drawable>() {
+                    .override(imageSize, params.height)
+                    .transform(new LargeBitmapScaleTransformer())
+                    .transition(withCrossFade())
+                    .into(new SimpleTarget<Bitmap>() {
                         @Override
-                        public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                            currentOne.illust.setImageDrawable(resource);
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            currentOne.illust.setImageBitmap(resource);
                             if(isLoadOriginalImage){
                                 Shaft.getMMKV().encode(imageUrl.toStringUrl(), true);
                             }
@@ -100,6 +103,8 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
             requestManager
                     .asBitmap()
                     .load(imageUrl)
+                    .override(imageSize, imageSize)
+                    .transform(new LargeBitmapScaleTransformer())
                     .transition(withCrossFade())
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
