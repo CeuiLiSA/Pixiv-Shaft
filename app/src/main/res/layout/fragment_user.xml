@@ -85,6 +85,7 @@
 
 
                                 <de.hdodenhof.circleimageview.CircleImageView
+                                    android:id="@+id/user_avatar"
                                     userIcon="@{user}"
                                     android:layout_width="100dp"
                                     app:civ_border_color="@color/text00"

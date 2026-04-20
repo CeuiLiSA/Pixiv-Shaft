@@ -198,6 +198,26 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     )
                 )
             }
+        } else if (ceui.pixiv.ui.common.ImageUrlViewer.DATA_TYPE_URL_SINGLE == dataType) {
+            findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
+            currentPage = findViewById(R.id.current_page)
+            currentPage?.visibility = View.INVISIBLE
+            downloadSingle = findViewById(R.id.download_this_one)
+            downloadSingle?.visibility = View.INVISIBLE
+            val singleUrl = intent.getStringExtra(Params.URL)
+            val singleTitle = intent.getStringExtra(Params.TITLE)
+            if (singleUrl.isNullOrEmpty()) {
+                finish()
+                return
+            }
+            baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
+                supportFragmentManager
+            ) {
+                override fun getItem(i: Int): Fragment =
+                    FragmentImageDetail.newInstance(singleUrl, singleTitle)
+
+                override fun getCount(): Int = 1
+            }
         } else if ("下载详情" == dataType) {
             findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
             currentPage = findViewById(R.id.current_page)

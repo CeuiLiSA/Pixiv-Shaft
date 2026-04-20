@@ -14,6 +14,7 @@ import android.widget.FrameLayout
 import timber.log.Timber
 import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.Page
+import ceui.pixiv.ui.novel.reader.model.PageElement
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.render.flip.CoverFlipAnimator
@@ -78,6 +79,7 @@ class NovelReaderView @JvmOverloads constructor(
     var onPageChanged: ((Int) -> Unit)? = null
     var onDoubleTapAt: ((x: Float, y: Float) -> Unit)? = null
     var onEdgeHit: ((FlipDirection) -> Unit)? = null
+    var onImageTap: ((PageElement.Image) -> Unit)? = null
 
     init {
         setWillNotDraw(false)
@@ -368,6 +370,13 @@ class NovelReaderView @JvmOverloads constructor(
             onDoubleTapAt?.invoke(x, y)
             return
         }
+        // Image hit-test precedes tap-zones: single-tap on an image opens the
+        // standalone viewer (pixiv illust page or image detail, decided by host).
+        val hit = findImageAt(y)
+        if (hit != null) {
+            onImageTap?.invoke(hit)
+            return
+        }
         // Single-tap zones: thirds horizontally.
         val third = width / 3f
         when {
@@ -375,6 +384,14 @@ class NovelReaderView @JvmOverloads constructor(
             x > width - third -> flipForward()
             else -> onTapCenter?.invoke()
         }
+    }
+
+    private fun findImageAt(y: Float): PageElement.Image? {
+        val page = pages.getOrNull(currentIndex) ?: return null
+        for (el in page.elements) {
+            if (el is PageElement.Image && y >= el.top && y <= el.bottom) return el
+        }
+        return null
     }
 
     private fun endDrag(dx: Float, velocityX: Float) {

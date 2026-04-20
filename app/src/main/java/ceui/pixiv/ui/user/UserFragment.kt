@@ -36,6 +36,7 @@ import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.common.ImageUrlViewer
 import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.utils.ppppx
@@ -74,6 +75,19 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
             }
             binding.iconOfficial.isVisible = user.isOfficial()
             binding.iconVolunteer.isVisible = user.isVolunteer()
+            val avatarUrl = user.profile_image_urls?.findMaxSizeUrl()
+            if (!avatarUrl.isNullOrEmpty()) {
+                binding.userAvatar.setOnClick {
+                    ImageUrlViewer.open(
+                        requireContext(),
+                        avatarUrl,
+                        saveName = "avatar_${user.id}_${user.name ?: ""}",
+                    )
+                }
+            } else {
+                binding.userAvatar.setOnClickListener(null)
+                binding.userAvatar.isClickable = false
+            }
         }
         viewModel.userProfile.observe(viewLifecycleOwner) { profile ->
             binding.iconPrime.isVisible = profile.isPremium()
@@ -82,6 +96,18 @@ class UserFragment : PixivFragment(R.layout.fragment_user), ViewPagerFragment, S
                 Glide.with(this).load(GlideUrlChild(bannerUrl))
                     .apply(bitmapTransform(BlurTransformation(15, 3))).transition(withCrossFade())
                     .into(binding.pageBackground)
+                val uid = profile.user?.id ?: safeArgs.userId
+                val uname = profile.user?.name ?: ""
+                binding.pageBackground.setOnClick {
+                    ImageUrlViewer.open(
+                        requireContext(),
+                        bannerUrl,
+                        saveName = "banner_${uid}_${uname}",
+                    )
+                }
+            } else {
+                binding.pageBackground.setOnClickListener(null)
+                binding.pageBackground.isClickable = false
             }
         }
         viewModel.blurBackground.observe(viewLifecycleOwner) { blurIllust ->

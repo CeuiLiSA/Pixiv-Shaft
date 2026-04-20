@@ -21,7 +21,12 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.appcompat.app.AlertDialog
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
+import ceui.lisa.activities.VActivity
+import ceui.lisa.core.Container
+import ceui.lisa.core.PageData
 import ceui.lisa.database.NovelAnnotationEntity
+import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.NovelBean
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -30,8 +35,10 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
+import ceui.pixiv.ui.common.ImageUrlViewer
 import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.shareNovel
+import java.util.UUID
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
@@ -180,19 +187,7 @@ class NovelReaderV3Fragment : Fragment() {
         readerView.onTapCenter = {
             if (activeSelection != null) clearSelection() else chrome.toggle()
         }
-        readerView.onDoubleTapAt = { _, _ ->
-            // Double-tap is reserved for image zoom (Phase 3). On a pure-text
-            // page there's nothing to zoom, so the gesture should be inert —
-            // firing a Toast every time the user taps twice while reading was
-            // noise. Only bubble up when the current page actually has an
-            // image element.
-            val hasImage = readerView.currentPage()?.elements?.any {
-                it is ceui.pixiv.ui.novel.reader.model.PageElement.Image
-            } == true
-            if (hasImage) {
-                Toast.makeText(requireContext(), "双击放大（Phase 3 接入）", Toast.LENGTH_SHORT).show()
-            }
-        }
+        readerView.onImageTap = { image -> openImageElement(image) }
         readerView.onEdgeHit = { /* edge feedback: vibrate later */ }
         readerView.onPageChanged = { index ->
             viewModel.onPageChanged(index)
@@ -832,6 +827,40 @@ class NovelReaderV3Fragment : Fragment() {
         super.onDestroyView()
         imageSource?.clear()
         imageSource = null
+    }
+
+    private fun openImageElement(image: ceui.pixiv.ui.novel.reader.model.PageElement.Image) {
+        when (image.imageType) {
+            ceui.pixiv.ui.novel.reader.model.PageElement.Image.ImageType.UploadedImage -> {
+                val url = image.imageUrl ?: return
+                val novelId = resolveNovelId()
+                ImageUrlViewer.open(
+                    requireContext(),
+                    url,
+                    saveName = "novel_${novelId}_upload_${image.resourceId}",
+                )
+            }
+            ceui.pixiv.ui.novel.reader.model.PageElement.Image.ImageType.PixivImage -> {
+                val illustId = image.resourceId
+                if (illustId <= 0L) return
+                viewLifecycleOwner.lifecycleScope.launch {
+                    runCatching { Client.appApi.getIllust(illustId).illust }
+                        .getOrNull()
+                        ?.let { illust ->
+                            val gson = Shaft.sGson
+                            val bean = gson.fromJson(gson.toJson(illust), IllustsBean::class.java)
+                            val uuid = UUID.randomUUID().toString()
+                            val pageData = PageData(uuid, null, listOf(bean))
+                            Container.get().addPageToMap(pageData)
+                            val intent = android.content.Intent(requireContext(), VActivity::class.java).apply {
+                                putExtra(Params.POSITION, 0)
+                                putExtra(Params.PAGE_UUID, uuid)
+                            }
+                            startActivity(intent)
+                        }
+                }
+            }
+        }
     }
 
     private fun resolveNovelId(): Long {
