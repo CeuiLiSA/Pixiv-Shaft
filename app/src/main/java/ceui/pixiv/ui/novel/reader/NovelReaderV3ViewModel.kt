@@ -20,6 +20,7 @@ import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import ceui.pixiv.ui.novel.reader.paginate.ImageResolver
 import ceui.pixiv.ui.novel.reader.paginate.Paginator
+import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -214,12 +215,20 @@ class NovelReaderV3ViewModel(
         paginationJob?.cancel()
         val resolver = imageResolver
         val startChar = desiredCharIndex
-        paginationJob = viewModelScope.launch(Dispatchers.Default) {
-            val paginator = Paginator(toks, geom, style, resolver)
+        // Pagination runs on the main thread because the paginator drives
+        // real AppCompatTextView instances (via [TextMeasurer]) to mirror
+        // the reader's rendering layout pipeline exactly. TextView
+        // construction / setText / measure all expect a Looper, and the
+        // per-paragraph measurement is cheap enough (StaticLayout build,
+        // which is what TextView does internally anyway) that a novel's
+        // worth of it is a one-shot ms-level pause.
+        paginationJob = viewModelScope.launch(Dispatchers.Main) {
+            val measurer = TextMeasurer(Shaft.getContext())
+            val paginator = Paginator(toks, geom, style, measurer, resolver)
             val pages = paginator.paginate()
             val start = if (pages.isEmpty()) 0 else pages.indexOfFirst { it.charEnd >= startChar }.coerceAtLeast(0)
-            _pagination.postValue(PaginationState(pages, start, style, geom))
-            _currentPageIndex.postValue(start)
+            _pagination.value = PaginationState(pages, start, style, geom)
+            _currentPageIndex.value = start
         }
     }
 

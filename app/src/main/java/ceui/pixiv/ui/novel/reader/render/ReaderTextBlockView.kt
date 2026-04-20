@@ -3,8 +3,6 @@ package ceui.pixiv.ui.novel.reader.render
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
-import android.os.Build
-import android.text.Layout
 import android.text.Selection
 import android.text.Spannable
 import android.text.SpannableString
@@ -19,28 +17,30 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
 import ceui.pixiv.ui.novel.reader.model.PageElement
+import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import kotlin.math.roundToInt
 
 /**
- * A selectable text block for one [PageElement.Text]. Uses the platform's native
- * selection (handles, magnifier, action mode) — we just inject a custom menu via
- * [setCustomSelectionActionModeCallback] and translate local offsets back to
- * source-absolute offsets through [absoluteCharStart].
+ * A selectable text block hosting a run of [PageElement.Text] slices. Uses
+ * the platform's native selection (handles, magnifier, action mode) — we
+ * inject a custom menu via [setCustomSelectionActionModeCallback] and
+ * translate the TextView's local offsets back to source-absolute offsets
+ * through [absoluteCharStart].
  *
- * The block renders exactly the substring of the paragraph corresponding to
- * lines [PageElement.Text.startLine, PageElement.Text.endLineExclusive). Both
- * the paginator and this view lay text out with BREAK_STRATEGY_SIMPLE, same
- * paint, same width — greedy per-line breaking is deterministic on a prefix,
- * so slicing out lines [startLine, endLineExclusive) and re-laying them here
- * reproduces the paginator's line breaks exactly (same line count, same
- * widths).
+ * Pagination and rendering share a layout pipeline. The paginator's
+ * [TextMeasurer] drives an AppCompatTextView with the exact same settings
+ * this view uses (see [TextMeasurer.applyLayoutSettings]), so the line
+ * breaks the paginator saw for this slice are reproduced here verbatim.
+ * Line count, line heights and widths match by construction.
  *
- * The view is sized by the paginator via explicit width/height on its
- * LayoutParams (see [ceui.pixiv.ui.novel.reader.render.PageView.rebuildTextBlocks]).
- * That prevents TextView's WRAP_CONTENT from growing past the page rect when
- * residual sub-pixel drift would otherwise let [setTextIsSelectable]'s
- * ArrowKeyMovementMethod turn the block into an internally scrollable area.
+ * Sized by the paginator via explicit width/height on its LayoutParams
+ * (see [ceui.pixiv.ui.novel.reader.render.PageView.rebuildTextBlocks]) —
+ * a page is a fixed rect, not a scrollable region. The scrollTo /
+ * scrollBy / canScrollVertically overrides below close the final escape
+ * hatch in TextView's `textIsSelectable=true` path (ArrowKeyMovementMethod,
+ * Editor bringPointIntoView) so the block can't accidentally become
+ * internally scrollable even if measurement drift ever returns.
  */
 class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
 
@@ -78,30 +78,18 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
     private var downTime: Long = 0L
 
     init {
+        // Layout-affecting settings (padding, break strategy, hyphenation,
+        // fallback line spacing, include-font-padding) are applied through the
+        // SAME helper that configures the paginator's measuring TextView. Any
+        // drift here becomes a pagination/render mismatch, so keep them
+        // together in [TextMeasurer.applyLayoutSettings].
+        TextMeasurer.applyLayoutSettings(this)
         setTextIsSelectable(true)
-        // A TextView with setTextIsSelectable(true) becomes focusable and long-
-        // clickable. We want all that — but NOT the default ripple / link color
-        // treatment on selection which collides with our themes.
+        // setTextIsSelectable(true) → focusable, long-clickable, and an
+        // ArrowKeyMovementMethod installed — we want all that. What we don't
+        // want is the default link/ripple highlight on selection.
         highlightColor = 0x665B6EFF
-        includeFontPadding = false
         setBackgroundColor(Color.TRANSPARENT)
-        // Page geometry positions this view with leftMargin = paddingLeft and
-        // width = contentWidth, so the TextView itself must contribute no
-        // horizontal inset. Any theme-injected default padding would shrink the
-        // rendering width and shift line breaks away from the paginator's.
-        setPadding(0, 0, 0, 0)
-        breakStrategy = Layout.BREAK_STRATEGY_SIMPLE
-        hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            // Match the paginator's StaticLayout (which keeps the Builder
-            // default `useLineSpacingFromFallbacks = false`). TextView defaults
-            // this to true since API 28, which expands every line that touches
-            // a fallback-font glyph — for a latin-typeface reader displaying
-            // CJK, that's *every* line. The result is a visibly looser line
-            // spacing than the user's TypeStyle asks for, on top of the
-            // measurement mismatch that made pages overflow before.
-            isFallbackLineSpacing = false
-        }
         customSelectionActionModeCallback = buildActionModeCallback()
     }
 
@@ -123,14 +111,7 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         segments.clear()
         val sb = SpannableStringBuilder()
         elements.forEachIndexed { idx, element ->
-            val layout = element.layout
-            val paragraphStart = layout.getLineStart(element.startLine)
-            val paragraphEnd = if (element.endLineExclusive >= layout.lineCount) {
-                layout.text.length
-            } else {
-                layout.getLineStart(element.endLineExclusive)
-            }
-            val rawSlice = layout.text.subSequence(paragraphStart, paragraphEnd).toString().trimEnd('\n')
+            val rawSlice = element.text.toString().trimEnd('\n')
 
             val segLocalStart = sb.length
             sb.append(rawSlice)

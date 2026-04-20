@@ -8,20 +8,26 @@ sealed class PageElement {
     abstract val absoluteCharStart: Int
     abstract val absoluteCharEnd: Int
 
+    /**
+     * One contiguous slice of a paragraph that lives on this page. The
+     * `text` field is the raw slice content (plain text, spans stripped);
+     * the renderer will re-apply first-line indent and paragraph-gap spans
+     * from [paragraphIndex] / [isFirstLineOfParagraph] as needed. This used
+     * to carry a [Layout] + line-range, but sharing a Layout object between
+     * the paginator's measurement (which reused a single TextView) and the
+     * renderer was a footgun — store just the data instead.
+     */
     data class Text(
         override val top: Float,
         override val bottom: Float,
         override val absoluteCharStart: Int,
         override val absoluteCharEnd: Int,
-        val layout: Layout,
+        val text: CharSequence,
         val paragraphIndex: Int,
         val isFirstLineOfParagraph: Boolean,
         val isLastLineOfParagraph: Boolean,
-        val startLine: Int,
-        val endLineExclusive: Int,
-    ) : PageElement() {
-        val lineCount: Int get() = endLineExclusive - startLine
-    }
+        val lineCount: Int,
+    ) : PageElement()
 
     data class Chapter(
         override val top: Float,

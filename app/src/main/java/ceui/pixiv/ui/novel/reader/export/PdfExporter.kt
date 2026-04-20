@@ -91,7 +91,7 @@ class PdfExporter : NovelExporter {
                 is ContentToken.BlankLine -> state.y += bodyPaint.textSize
                 is ContentToken.Chapter -> {
                     startNewPage()
-                    val layout = TextMeasurer.buildLayout(
+                    val layout = TextMeasurer.buildStaticLayout(
                         text = token.title,
                         paint = chapterPaint,
                         width = contentWidthPt.toInt(),
@@ -103,7 +103,7 @@ class PdfExporter : NovelExporter {
                     state.y += 24f
                 }
                 is ContentToken.Paragraph -> {
-                    val layout = TextMeasurer.buildLayout(
+                    val layout = TextMeasurer.buildStaticLayout(
                         text = token.text,
                         paint = bodyPaint,
                         width = contentWidthPt.toInt(),
@@ -136,7 +136,7 @@ class PdfExporter : NovelExporter {
                 is ContentToken.UploadedImage,
                 -> {
                     // Keep layout honest without pulling gigabytes of images in.
-                    val placeholder = TextMeasurer.buildLayout(
+                    val placeholder = TextMeasurer.buildStaticLayout(
                         text = "[图片]",
                         paint = metaPaint,
                         width = contentWidthPt.toInt(),

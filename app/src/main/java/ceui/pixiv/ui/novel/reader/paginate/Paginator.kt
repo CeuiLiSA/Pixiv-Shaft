@@ -10,24 +10,30 @@ import ceui.pixiv.ui.novel.reader.model.PageGeometry
  * Flows [tokens] into a concrete list of [Page]s given the geometry and style.
  *
  * Strategy:
- * - Each image token produces a full-page element (images never share a page with
- *   paragraphs to avoid awkward float / wrap layout).
- * - [ContentToken.Chapter] forces a page break, then emits a centred title on the
- *   next page, and subsequent paragraphs flow beneath.
- * - Paragraphs are laid out with a single [android.text.StaticLayout]. If the
- *   paragraph doesn't fit on the current page, we split it by *line range* — the
- *   same layout object is referenced by multiple [PageElement.Text] slices and the
- *   renderer uses `startLine..endLineExclusive` to clip / translate at draw time.
- * - Character offsets use the raw-source positions inside `WebNovel.text`, which
- *   keeps progress anchors stable across re-paginations triggered by setting
- *   changes.
+ * - Each image token produces a full-page element (images never share a page
+ *   with paragraphs to avoid awkward float / wrap layout).
+ * - [ContentToken.Chapter] forces a page break, then emits a centred title on
+ *   the next page, and subsequent paragraphs flow beneath.
+ * - Paragraphs are measured via [TextMeasurer] — which drives an
+ *   `AppCompatTextView` whose settings match the reader's
+ *   [ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView] exactly. That is
+ *   the whole point of this class: every line break and line height seen
+ *   here is what the rendering TextView will reproduce on screen. If the
+ *   paragraph doesn't fit, we slice it by character range and the renderer
+ *   re-inflates the slice in its own TextView (identical settings → SIMPLE
+ *   greedy breaking is prefix-deterministic → same line breaks back out).
+ * - Character offsets use the raw-source positions inside `WebNovel.text`,
+ *   which keeps progress anchors stable across re-paginations triggered by
+ *   setting changes.
  *
- * The algorithm is single-pass and deterministic — run it on [Dispatchers.Default].
+ * Must be run on the main thread — [TextMeasurer] drives an actual
+ * [android.widget.TextView], which requires a Looper.
  */
 class Paginator(
     private val tokens: List<ContentToken>,
     private val geometry: PageGeometry,
     private val style: TypeStyle,
+    private val measurer: TextMeasurer,
     private val imageUrlResolver: (ContentToken) -> String? = { null },
 ) {
     private val pages = ArrayList<Page>(32)
@@ -134,7 +140,10 @@ class Paginator(
         val width = geometry.contentWidth.toInt()
         if (width <= 0) return
         currentY += style.chapterTopGapPx
-        val layout = TextMeasurer.buildLayout(
+        // Chapter titles are painted directly on the page canvas by
+        // PageRenderer, not hosted in a TextView, so there's no rendering
+        // path to match. Use the lightweight StaticLayout builder.
+        val layout = TextMeasurer.buildStaticLayout(
             text = token.title.ifEmpty { "  " },
             paint = style.chapterPaint,
             width = width,
@@ -169,7 +178,7 @@ class Paginator(
         if (width <= 0) return
         val indent = style.firstLineIndentPx.toInt()
         val source = if (indent > 0) TextMeasurer.withFirstLineIndent(token.text, indent) else token.text
-        val layout = TextMeasurer.buildLayout(
+        val layout = measurer.measure(
             text = source,
             paint = style.textPaint,
             width = width,
@@ -177,6 +186,9 @@ class Paginator(
             lineSpacingExtra = style.lineSpacingExtra,
         )
         val total = layout.lineCount
+        // Snapshot the slice data we need before advancing — the measurer's
+        // internal TextView is reused, so its `layout` becomes stale on the
+        // next emitParagraph() call.
         var cursor = 0
         while (cursor < total) {
             val remainingHeight = (geometry.height - geometry.paddingBottom) - currentY
@@ -193,8 +205,8 @@ class Paginator(
                 linesFit = i - cursor + 1
                 pxUsed = pxIfIncluded
                 if (pxIfIncluded > remainingHeight) {
-                    // The first line in this range is taller than the page — we let it
-                    // overflow rather than dropping content. Next iterations will page.
+                    // The first line in this range is taller than the page — let
+                    // it overflow rather than drop content. Next iterations page.
                     break
                 }
             }
@@ -207,18 +219,18 @@ class Paginator(
             val endCharInLayout = layout.getLineEnd(cursor + linesFit - 1).coerceIn(0, token.text.length)
             val absoluteStart = token.sourceStart + startCharInLayout
             val absoluteEnd = token.sourceStart + endCharInLayout
+            val sliceText = token.text.substring(startCharInLayout, endCharInLayout)
 
             val element = PageElement.Text(
                 top = currentY,
                 bottom = currentY + pxUsed,
                 absoluteCharStart = absoluteStart,
                 absoluteCharEnd = absoluteEnd,
-                layout = layout,
+                text = sliceText,
                 paragraphIndex = token.sourceStart,
                 isFirstLineOfParagraph = cursor == 0,
                 isLastLineOfParagraph = (cursor + linesFit) == total,
-                startLine = cursor,
-                endLineExclusive = cursor + linesFit,
+                lineCount = linesFit,
             )
             currentElements += element
             ensureStartTracked(absoluteStart)
