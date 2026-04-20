@@ -11,7 +11,6 @@ import ceui.loxia.ObjectType
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.novel.NovelTextFragment
-import ceui.pixiv.ui.novel.NovelTextFragmentArgs
 import timber.log.Timber
 
 
@@ -28,9 +27,7 @@ class ArtworkViewPagerFragment : PixivFragment(R.layout.fragment_artwork_viewpag
             binding.artworkViewpager.adapter = object : FragmentStateAdapter(this) {
                 override fun createFragment(position: Int): Fragment {
                     if (safeArgs.objectType == ObjectType.NOVEL) {
-                        return NovelTextFragment().apply {
-                            arguments = NovelTextFragmentArgs(ids[position]).toBundle()
-                        }
+                        return NovelTextFragment.newInstance(ids[position])
                     } else {
                         return ArtworkFragment().apply {
                             arguments = ArtworkFragmentArgs(ids[position]).toBundle()
@@ -50,9 +47,7 @@ class ArtworkViewPagerFragment : PixivFragment(R.layout.fragment_artwork_viewpag
             binding.artworkViewpager.adapter = object : FragmentStateAdapter(this) {
                 override fun createFragment(position: Int): Fragment {
                     if (safeArgs.objectType == ObjectType.NOVEL) {
-                        return NovelTextFragment().apply {
-                            arguments = NovelTextFragmentArgs(safeArgs.objectId).toBundle()
-                        }
+                        return NovelTextFragment.newInstance(safeArgs.objectId)
                     } else {
                         return ArtworkFragment().apply {
                             arguments = ArtworkFragmentArgs(safeArgs.objectId).toBundle()

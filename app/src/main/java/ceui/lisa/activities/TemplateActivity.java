@@ -45,6 +45,8 @@ import ceui.lisa.fragments.FragmentNewNovels;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
 import ceui.pixiv.ui.novel.reader.NovelReaderV3Fragment;
+import ceui.pixiv.ui.novel.NovelSeriesFragment;
+import ceui.pixiv.ui.novel.NovelTextFragment;
 import ceui.lisa.fragments.FragmentNovelMarkers;
 import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentNovelSeriesDetail;
@@ -206,8 +208,23 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             Params.TYPE_PUBLIC, true);
                 case "小说作品":
                     return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0));
-                case "小说详情":
-                    return NovelReaderV3Fragment.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
+                case "小说详情": {
+                    NovelBean bean = (NovelBean) intent.getSerializableExtra(Params.CONTENT);
+                    long tid = bean != null ? bean.getId() : intent.getLongExtra(Params.NOVEL_ID, 0L);
+                    return NovelTextFragment.Companion.newInstance(tid);
+                }
+                case "小说正文": {
+                    NovelBean bean = (NovelBean) intent.getSerializableExtra(Params.CONTENT);
+                    if (bean != null) {
+                        return NovelReaderV3Fragment.newInstance(bean);
+                    }
+                    long rid = intent.getLongExtra(Params.NOVEL_ID, 0L);
+                    return NovelReaderV3Fragment.newInstance(rid);
+                }
+                case "小说系列": {
+                    long sid = intent.getLongExtra(NovelSeriesFragment.ARG_SERIES_ID, 0L);
+                    return NovelSeriesFragment.Companion.newInstance(sid);
+                }
                 case "图片详情":
                     return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL), intent.getStringExtra(Params.TITLE));
                 case "画质增强对比":

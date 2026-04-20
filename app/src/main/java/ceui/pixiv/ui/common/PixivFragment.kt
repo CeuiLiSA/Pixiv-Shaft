@@ -260,9 +260,11 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
     }
 
     override fun onClickNovelSeries(sender: View, series: Series) {
-        pushFragment(
-            R.id.navigation_novel_series, NovelSeriesFragmentArgs(series.id).toBundle()
-        )
+        val intent = android.content.Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+            putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说系列")
+            putExtra(ceui.pixiv.ui.novel.NovelSeriesFragment.ARG_SERIES_ID, series.id)
+        }
+        startActivity(intent)
     }
 
     override fun onClickIllustSeries(sender: View, series: Series) {
