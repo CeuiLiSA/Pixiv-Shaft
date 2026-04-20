@@ -3,6 +3,7 @@ package ceui.pixiv.ui.novel.reader.render
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.Build
 import android.text.Layout
 import android.text.Selection
 import android.text.Spannable
@@ -91,6 +92,16 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         setPadding(0, 0, 0, 0)
         breakStrategy = Layout.BREAK_STRATEGY_SIMPLE
         hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // Match the paginator's StaticLayout (which keeps the Builder
+            // default `useLineSpacingFromFallbacks = false`). TextView defaults
+            // this to true since API 28, which expands every line that touches
+            // a fallback-font glyph — for a latin-typeface reader displaying
+            // CJK, that's *every* line. The result is a visibly looser line
+            // spacing than the user's TypeStyle asks for, on top of the
+            // measurement mismatch that made pages overflow before.
+            isFallbackLineSpacing = false
+        }
         customSelectionActionModeCallback = buildActionModeCallback()
     }
 
