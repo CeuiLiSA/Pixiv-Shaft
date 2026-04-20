@@ -202,21 +202,21 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
     private fun buildActionModeCallback(): ActionMode.Callback {
         return object : ActionMode.Callback {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                menu.clear()
-                menuEntries.forEachIndexed { index, entry ->
-                    menu.add(Menu.NONE, entry.id, index, entry.title)
-                        .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-                }
+                populateMenu(menu)
                 notifySelection(onSelectionStarted)
                 return true
             }
 
             override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-                // Called when handles move and the system refreshes — keep host's
-                // `activeSelection` up-to-date so "复制" etc. always reflect the
-                // latest handle positions.
+                // Rebuild on every prepare: the platform's Editor injects its own
+                // stock items (selectAll / share / translate / PROCESS_TEXT
+                // targets) into the same Menu after onCreateActionMode returns,
+                // so a one-shot clear() in onCreate leaves duplicates behind on
+                // selection-change refreshes. Blast the whole menu and replay
+                // our entries each time — cheap at this scale.
+                populateMenu(menu)
                 notifySelection(onSelectionChanged)
-                return false
+                return true
             }
 
             override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
@@ -229,7 +229,7 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
                     mode.invalidate()
                     return true
                 }
-                if (menuEntries.any { it.id == id }) {
+                if (menuEntriesHasId(id)) {
                     notifySelection(onSelectionChanged)
                     onMenuAction?.invoke(id)
                     mode.finish()
@@ -243,6 +243,17 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
             }
         }
     }
+
+    private fun populateMenu(menu: Menu) {
+        menu.clear()
+        menuEntries.forEachIndexed { index, entry ->
+            menu.add(Menu.NONE, entry.id, index, entry.title)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+    }
+
+    private fun menuEntriesHasId(id: Int): Boolean =
+        menuEntries.any { it.id == id }
 
     private fun notifySelection(cb: ((ReaderTextBlockView, Int, Int, CharSequence) -> Unit)?) {
         if (cb == null) return

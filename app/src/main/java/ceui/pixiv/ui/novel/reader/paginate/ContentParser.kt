@@ -113,11 +113,19 @@ object ContentParser {
         return out
     }
 
-    /** Collect the chapter outline for the drawer. Includes synthetic "前言" if content
-     *  appears before any explicit [chapter:] tag. Page-break-only sections are ignored. */
+    /** Collect the chapter outline for the drawer. Mixes explicit [chapter:]
+     *  entries with `[newpage]`-derived "分页 N" entries so users get the same
+     *  navigation granularity that Pixiv's web reader exposes. A synthetic
+     *  "前言" / "分页 1" fronts the list when the first real content precedes
+     *  every anchor, so the doc's opening is always jumpable. */
     fun buildChapterOutline(tokens: List<ContentToken>): List<ChapterOutlineEntry> {
         val outline = mutableListOf<ChapterOutlineEntry>()
-        var hasContentBeforeChapter = false
+        val hasPageBreaks = tokens.any { it is ContentToken.PageBreak }
+        var firstContentAnchored = false
+        // Counts pages as Pixiv does: the span before the first [newpage] is
+        // page 1, and each subsequent break starts the next page. Incremented
+        // on PageBreak so the emitted label is `page + 1`.
+        var breaksSeen = 0
         for (token in tokens) {
             when (token) {
                 is ContentToken.Chapter -> {
@@ -125,14 +133,26 @@ object ContentParser {
                         title = token.title,
                         sourceStart = token.sourceStart,
                     )
+                    firstContentAnchored = true
+                }
+                is ContentToken.PageBreak -> {
+                    breaksSeen += 1
+                    outline += ChapterOutlineEntry(
+                        title = "分页 ${breaksSeen + 1}",
+                        sourceStart = token.sourceEnd,
+                    )
+                    firstContentAnchored = true
                 }
                 is ContentToken.Paragraph,
                 is ContentToken.PixivImage,
                 is ContentToken.UploadedImage,
                 -> {
-                    if (outline.isEmpty() && !hasContentBeforeChapter) {
-                        outline += ChapterOutlineEntry(title = "前言", sourceStart = token.sourceStart)
-                        hasContentBeforeChapter = true
+                    if (!firstContentAnchored) {
+                        outline += ChapterOutlineEntry(
+                            title = if (hasPageBreaks) "分页 1" else "前言",
+                            sourceStart = token.sourceStart,
+                        )
+                        firstContentAnchored = true
                     }
                 }
                 else -> Unit

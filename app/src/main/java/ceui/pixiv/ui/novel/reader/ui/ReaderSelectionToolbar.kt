@@ -1,6 +1,12 @@
 package ceui.pixiv.ui.novel.reader.ui
 
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.TextView
 import ceui.lisa.R
 import ceui.pixiv.ui.novel.reader.model.HighlightColor
@@ -24,6 +30,8 @@ class ReaderSelectionToolbar(private val rootView: View) {
     var onHighlight: ((HighlightColor) -> Unit)? = null
     var onDismiss: (() -> Unit)? = null
 
+    private var colorPopup: PopupWindow? = null
+
     init {
         rootView.visibility = View.GONE
 
@@ -36,10 +44,9 @@ class ReaderSelectionToolbar(private val rootView: View) {
         rootView.findViewById<TextView>(R.id.sel_note).setOnClickListener { onNote?.invoke() }
         rootView.findViewById<TextView>(R.id.sel_dismiss).setOnClickListener { onDismiss?.invoke() }
 
-        rootView.findViewById<TextView>(R.id.sel_highlight_yellow).setOnClickListener { onHighlight?.invoke(HighlightColor.Yellow) }
-        rootView.findViewById<TextView>(R.id.sel_highlight_green).setOnClickListener { onHighlight?.invoke(HighlightColor.Green) }
-        rootView.findViewById<TextView>(R.id.sel_highlight_pink).setOnClickListener { onHighlight?.invoke(HighlightColor.Pink) }
-        rootView.findViewById<TextView>(R.id.sel_highlight_blue).setOnClickListener { onHighlight?.invoke(HighlightColor.Blue) }
+        rootView.findViewById<TextView>(R.id.sel_highlight).setOnClickListener { anchor ->
+            showHighlightPicker(anchor)
+        }
     }
 
     /**
@@ -61,5 +68,58 @@ class ReaderSelectionToolbar(private val rootView: View) {
 
     fun hide() {
         rootView.visibility = View.GONE
+        colorPopup?.dismiss()
+        colorPopup = null
+    }
+
+    private fun showHighlightPicker(anchor: View) {
+        colorPopup?.dismiss()
+        val ctx = anchor.context
+        val density = ctx.resources.displayMetrics.density
+        fun dp(v: Float) = (v * density).toInt()
+
+        val container = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(10f), dp(10f), dp(10f), dp(10f))
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(16f).toFloat()
+                setColor(0xFF2A2A2A.toInt())
+            }
+        }
+
+        val dotSize = dp(28f)
+        val dotMargin = dp(6f)
+        HighlightColor.values().forEach { color ->
+            val dot = View(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(dotSize, dotSize).apply {
+                    marginStart = dotMargin
+                    marginEnd = dotMargin
+                }
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(0xFF000000.toInt() or (color.argb and 0x00FFFFFF))
+                    setStroke(dp(1f), 0x44FFFFFF)
+                }
+                setOnClickListener {
+                    onHighlight?.invoke(color)
+                    colorPopup?.dismiss()
+                    colorPopup = null
+                }
+            }
+            container.addView(dot)
+        }
+
+        colorPopup = PopupWindow(
+            container,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true,
+        ).apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+            elevation = 6f * density
+            showAsDropDown(anchor, 0, -dp(4f))
+        }
     }
 }

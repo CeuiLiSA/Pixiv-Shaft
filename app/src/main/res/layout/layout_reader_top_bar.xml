@@ -33,6 +33,16 @@
         tools:text="小说标题" />
 
     <ImageButton
+        android:id="@+id/btn_annotations"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="笔记/高亮"
+        android:src="@drawable/ic_reader_annotations"
+        app:tint="#FFFFFF"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+    <ImageButton
         android:id="@+id/btn_bookmark"
         android:layout_width="48dp"
         android:layout_height="48dp"

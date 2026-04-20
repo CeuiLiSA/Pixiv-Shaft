@@ -13,6 +13,7 @@ import ceui.lisa.R
 class ReaderTopBar(private val rootView: View) {
 
     private val btnBack = rootView.findViewById<ImageButton>(R.id.btn_back)
+    private val btnAnnotations = rootView.findViewById<ImageButton>(R.id.btn_annotations)
     private val btnBookmark = rootView.findViewById<ImageButton>(R.id.btn_bookmark)
     private val btnMore = rootView.findViewById<ImageButton>(R.id.btn_more)
     private val txtTitle = rootView.findViewById<TextView>(R.id.txt_title)
@@ -20,11 +21,13 @@ class ReaderTopBar(private val rootView: View) {
     val view: View get() = rootView
 
     var onBackClick: (() -> Unit)? = null
+    var onAnnotationsClick: (() -> Unit)? = null
     var onBookmarkClick: (() -> Unit)? = null
     var onMoreClick: (() -> Unit)? = null
 
     init {
         btnBack.setOnClickListener { onBackClick?.invoke() }
+        btnAnnotations.setOnClickListener { onAnnotationsClick?.invoke() }
         btnBookmark.setOnClickListener { onBookmarkClick?.invoke() }
         btnMore.setOnClickListener { onMoreClick?.invoke() }
     }

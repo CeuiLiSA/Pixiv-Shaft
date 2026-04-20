@@ -155,11 +155,28 @@ class NovelReaderV3Fragment : Fragment() {
         wireSearchOverlay()
         wireTextSelection()
         wireSystemBarInsets()
+        wireBackPress()
 
         observeReaderState()
 
         applyInteractionSettings()
         viewModel.load()
+    }
+
+    private fun wireBackPress() {
+        val cb = object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (chrome.isShown) {
+                    chrome.hide()
+                    return
+                }
+                // Bars already hidden — yield to the system so the activity /
+                // host navigator can finish naturally.
+                isEnabled = false
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, cb)
     }
 
     private fun wireSystemBarInsets() {
@@ -201,6 +218,7 @@ class NovelReaderV3Fragment : Fragment() {
 
     private fun wireTopBar() {
         topBar.onBackClick = { activity?.finish() }
+        topBar.onAnnotationsClick = { showAnnotationsSheet() }
         topBar.onBookmarkClick = { togglePixivBookmark() }
         topBar.onMoreClick = { showTopMoreMenu() }
     }
@@ -386,6 +404,7 @@ class NovelReaderV3Fragment : Fragment() {
         val idSearchPixiv = 3
         val idSearchWeb = 4
         val idTranslate = 5
+        val idHighlightParent = 9
         val idHighlightYellow = 10
         val idHighlightGreen = 11
         val idHighlightPink = 12
@@ -395,14 +414,11 @@ class NovelReaderV3Fragment : Fragment() {
         val menuEntries = listOf(
             ReaderTextBlockView.MenuEntry(idCopy, "复制"),
             ReaderTextBlockView.MenuEntry(ReaderTextBlockView.ID_SELECT_ALL, "全选"),
-            ReaderTextBlockView.MenuEntry(idHighlightYellow, "黄"),
-            ReaderTextBlockView.MenuEntry(idHighlightGreen, "绿"),
-            ReaderTextBlockView.MenuEntry(idHighlightPink, "粉"),
-            ReaderTextBlockView.MenuEntry(idHighlightBlue, "蓝"),
+            ReaderTextBlockView.MenuEntry(idHighlightParent, "标记高亮"),
             ReaderTextBlockView.MenuEntry(idNote, "笔记"),
+            ReaderTextBlockView.MenuEntry(idTranslate, "翻译"),
             ReaderTextBlockView.MenuEntry(idSearchPixiv, "P站"),
             ReaderTextBlockView.MenuEntry(idSearchWeb, "网页"),
-            ReaderTextBlockView.MenuEntry(idTranslate, "翻译"),
             ReaderTextBlockView.MenuEntry(idShare, "分享"),
         )
 
@@ -425,10 +441,7 @@ class NovelReaderV3Fragment : Fragment() {
                     idSearchPixiv -> searchSelectionOnPixiv()
                     idSearchWeb -> searchSelectionOnWeb()
                     idTranslate -> translateSelection()
-                    idHighlightYellow -> saveHighlight(HighlightColor.Yellow)
-                    idHighlightGreen -> saveHighlight(HighlightColor.Green)
-                    idHighlightPink -> saveHighlight(HighlightColor.Pink)
-                    idHighlightBlue -> saveHighlight(HighlightColor.Blue)
+                    idHighlightParent -> pickHighlightColor()
                     idNote -> openNoteEditorForSelection()
                 }
             },
@@ -445,6 +458,29 @@ class NovelReaderV3Fragment : Fragment() {
         viewModel.addHighlight(sel.absoluteStart, sel.absoluteEnd, sel.text, color.argb)
         Toast.makeText(requireContext(), "已高亮", Toast.LENGTH_SHORT).show()
         clearSelection()
+    }
+
+    private fun pickHighlightColor() {
+        // Snapshot selection before the ActionMode is finished — by the time
+        // the dialog's item-click fires, `activeSelection` has already been
+        // nulled out by onSelectionEnded.
+        val sel = activeSelection ?: return
+        val options = listOf(
+            "黄色" to HighlightColor.Yellow,
+            "绿色" to HighlightColor.Green,
+            "粉色" to HighlightColor.Pink,
+            "蓝色" to HighlightColor.Blue,
+        )
+        AlertDialog.Builder(requireContext())
+            .setTitle("选择高亮颜色")
+            .setItems(options.map { it.first }.toTypedArray()) { _, which ->
+                val color = options[which].second
+                viewModel.addHighlight(sel.absoluteStart, sel.absoluteEnd, sel.text, color.argb)
+                Toast.makeText(requireContext(), "已高亮", Toast.LENGTH_SHORT).show()
+                clearSelection()
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
     private fun openNoteEditorForSelection() {

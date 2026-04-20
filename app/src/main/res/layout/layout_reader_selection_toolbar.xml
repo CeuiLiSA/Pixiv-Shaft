@@ -44,28 +44,9 @@
             android:text="翻译" />
 
         <TextView
-            android:id="@+id/sel_highlight_yellow"
+            android:id="@+id/sel_highlight"
             style="@style/ReaderSelectionAction"
-            android:text="● 黄"
-            android:textColor="#FFEB3B" />
-
-        <TextView
-            android:id="@+id/sel_highlight_green"
-            style="@style/ReaderSelectionAction"
-            android:text="● 绿"
-            android:textColor="#81C784" />
-
-        <TextView
-            android:id="@+id/sel_highlight_pink"
-            style="@style/ReaderSelectionAction"
-            android:text="● 粉"
-            android:textColor="#F48FB1" />
-
-        <TextView
-            android:id="@+id/sel_highlight_blue"
-            style="@style/ReaderSelectionAction"
-            android:text="● 蓝"
-            android:textColor="#64B5F6" />
+            android:text="高亮 ▾" />
 
         <TextView
             android:id="@+id/sel_note"
