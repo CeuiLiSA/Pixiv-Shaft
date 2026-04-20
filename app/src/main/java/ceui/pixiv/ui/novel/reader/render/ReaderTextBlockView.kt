@@ -151,20 +151,31 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
             if (idx < elements.size - 1) {
                 // One `\n` so the next paragraph starts on a fresh line — NOT
                 // two, which would add a blank line per boundary and push the
-                // content past the page height (making the TextView scrollable
-                // instead of fitting the page the paginator sized). To preserve
-                // the author-configured paragraph gap, stretch the descent of
-                // the line containing the `\n` via a LineHeightSpan.
+                // content past the page height. To preserve the author-
+                // configured paragraph gap, stretch the descent of the line
+                // containing the `\n` via a LineHeightSpan.
+                //
+                // Use the *actual* pixels the paginator reserved between
+                // these two text elements (nextElement.top - element.bottom)
+                // rather than a hardcoded `style.paragraphSpacingPx`. The
+                // paginator always adds paragraphSpacingPx after a completed
+                // paragraph, AND if the source had an explicit blank line
+                // between them, a PageElement.Space on top with its own gap
+                // (`max(paragraphSpacingPx, fontHeight)`). Grouping is
+                // transparent to Space, so both paragraphs land in the same
+                // TextView — if we only inject paragraphSpacingPx here, the
+                // TextView content ends short of the rect the paginator
+                // budgeted for this group and the remainder shows up as
+                // visible empty space at page bottom / between paragraphs.
                 //
                 // Compensate for StaticLayout's lineSpacingMultiplier: it
                 // multiplies the font-metrics height per-line, so whatever we
                 // add to descent is amplified by `multiplier`. Divide to land
-                // on the exact pixel gap the paginator uses elsewhere. Round
-                // instead of truncating so accumulated drift across many
-                // paragraph boundaries stays under a pixel rather than
-                // compounding into a visible offset.
+                // on the exact pixel gap the paginator uses; round instead of
+                // truncating so accumulated drift stays sub-pixel.
+                val pixelGap = (elements[idx + 1].top - element.bottom).coerceAtLeast(0f)
                 val mult = style.lineSpacingMultiplier.coerceAtLeast(0.1f)
-                val gap = (style.paragraphSpacingPx / mult).roundToInt()
+                val gap = (pixelGap / mult).roundToInt()
                 val sepStart = sb.length
                 sb.append('\n')
                 val sepEnd = sb.length
