@@ -22,42 +22,85 @@ object ContentParser {
 
     fun tokenize(text: String): List<ContentToken> {
         if (text.isEmpty()) return emptyList()
-        val tokens = ArrayList<ContentToken>(128)
+        val raw = ArrayList<ContentToken>(128)
         var cursor = 0
         for (line in text.split('\n')) {
             val lineStart = cursor
             val lineEnd = lineStart + line.length
             cursor = lineEnd + 1 // newline that split() consumed
 
-            val trimmed = line.trim()
+            // Strip trailing CR: Pixiv novel responses use `\r\n` endings, and
+            // splitting on `\n` alone leaves the CR inside each line. The CR
+            // survives into Paragraph.text → StaticLayout treats U+000D as a
+            // line-break control, forcing a hard break mid-paragraph and
+            // stretching the visual gap there. `lineStart` / `lineEnd` still
+            // point at the original source positions so char-based anchors
+            // (bookmarks, selection) stay stable.
+            val cleanLine = line.trimEnd('\r')
+            val trimmed = cleanLine.trim()
             when {
                 trimmed == NEWPAGE_TAG -> {
-                    tokens += ContentToken.PageBreak(lineStart, lineEnd)
+                    raw += ContentToken.PageBreak(lineStart, lineEnd)
                 }
                 chapterRegex.containsMatchIn(trimmed) -> {
                     val title = chapterRegex.find(trimmed)?.groupValues?.getOrNull(1).orEmpty().trim()
-                    tokens += ContentToken.Chapter(lineStart, lineEnd, title)
+                    raw += ContentToken.Chapter(lineStart, lineEnd, title)
                 }
                 uploadedImageRegex.containsMatchIn(trimmed) -> {
                     val m = uploadedImageRegex.find(trimmed)!!
                     val id = m.groupValues[1].toLongOrNull() ?: 0L
-                    tokens += ContentToken.UploadedImage(lineStart, lineEnd, id)
+                    raw += ContentToken.UploadedImage(lineStart, lineEnd, id)
                 }
                 pixivImageRegex.containsMatchIn(trimmed) -> {
                     val m = pixivImageRegex.find(trimmed)!!
                     val id = m.groupValues[1].toLongOrNull() ?: 0L
                     val page = m.groupValues.getOrNull(2)?.toIntOrNull() ?: 0
-                    tokens += ContentToken.PixivImage(lineStart, lineEnd, id, page)
+                    raw += ContentToken.PixivImage(lineStart, lineEnd, id, page)
                 }
-                line.isEmpty() -> {
-                    tokens += ContentToken.BlankLine(lineStart, lineEnd)
+                cleanLine.isEmpty() -> {
+                    raw += ContentToken.BlankLine(lineStart, lineEnd)
                 }
                 else -> {
-                    tokens += ContentToken.Paragraph(lineStart, lineEnd, line)
+                    raw += ContentToken.Paragraph(lineStart, lineEnd, cleanLine)
                 }
             }
         }
-        return tokens
+        return coalesceParagraphBreaks(raw)
+    }
+
+    /**
+     * `\n\n` in a novel source is the conventional paragraph separator, not
+     * "paragraph + extra blank line". The paginator already puts
+     * [ceui.pixiv.ui.novel.reader.paginate.TypeStyle.paragraphSpacingPx]
+     * between consecutive paragraphs; if we also emit a [BlankLine] for the
+     * embedded empty line, both gaps compound and every paragraph break
+     * reads as two full lines of whitespace.
+     *
+     * Coalesce: drop the FIRST [BlankLine] that directly follows a
+     * [Paragraph]. Any additional BlankLines (`\n\n\n+`) stay as real extra
+     * breathing space, and BlankLines after chapter headings / images /
+     * at the start of the doc pass through unchanged.
+     */
+    private fun coalesceParagraphBreaks(raw: List<ContentToken>): List<ContentToken> {
+        val out = ArrayList<ContentToken>(raw.size)
+        var swallowedParagraphBreak = false
+        for (tok in raw) {
+            when (tok) {
+                is ContentToken.BlankLine -> {
+                    val prev = out.lastOrNull()
+                    if (prev is ContentToken.Paragraph && !swallowedParagraphBreak) {
+                        swallowedParagraphBreak = true
+                        continue
+                    }
+                    out += tok
+                }
+                else -> {
+                    swallowedParagraphBreak = false
+                    out += tok
+                }
+            }
+        }
+        return out
     }
 
     /** Collect the chapter outline for the drawer. Includes synthetic "前言" if content

@@ -8,6 +8,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.style.AbsoluteSizeSpan
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
 import android.util.TypedValue
@@ -110,6 +111,13 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
     fun bindTextGroup(elements: List<PageElement.Text>, style: TypeStyle) {
         segments.clear()
         val sb = SpannableStringBuilder()
+        // Precompute the uniform text-line height that both the paginator
+        // and this renderer will pin to. Gap lines get their own smaller
+        // height. Kept consistent with [TextMeasurer.wrapWithFixedLineHeight].
+        val fm = style.textPaint.fontMetrics
+        val naturalLineHeight = (fm.descent - fm.ascent).coerceAtLeast(1f)
+        val textLineHeight = (naturalLineHeight * style.lineSpacingMultiplier.coerceAtLeast(0.8f)
+            + style.lineSpacingExtra).roundToInt().coerceAtLeast(1)
         elements.forEachIndexed { idx, element ->
             val rawSlice = element.text.toString().trimEnd('\n')
 
@@ -128,53 +136,49 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
                     segLocalStart, segLocalEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                 )
             }
+            // Pin every line of THIS paragraph's text to the uniform height
+            // BEFORE we move on — so the span is scoped to the element range
+            // and never touches the gap line below.
+            if (segLocalEnd > segLocalStart) {
+                sb.setSpan(
+                    TextMeasurer.FixedLineHeightSpan(textLineHeight),
+                    segLocalStart, segLocalEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
+            }
 
             if (idx < elements.size - 1) {
-                // One `\n` so the next paragraph starts on a fresh line — NOT
-                // two, which would add a blank line per boundary and push the
-                // content past the page height. To preserve the author-
-                // configured paragraph gap, stretch the descent of the line
-                // containing the `\n` via a LineHeightSpan.
-                //
-                // Use the *actual* pixels the paginator reserved between
-                // these two text elements (nextElement.top - element.bottom)
-                // rather than a hardcoded `style.paragraphSpacingPx`. The
-                // paginator always adds paragraphSpacingPx after a completed
-                // paragraph, AND if the source had an explicit blank line
-                // between them, a PageElement.Space on top with its own gap
-                // (`max(paragraphSpacingPx, fontHeight)`). Grouping is
-                // transparent to Space, so both paragraphs land in the same
-                // TextView — if we only inject paragraphSpacingPx here, the
-                // TextView content ends short of the rect the paginator
-                // budgeted for this group and the remainder shows up as
-                // visible empty space at page bottom / between paragraphs.
-                //
-                // Compensate for StaticLayout's lineSpacingMultiplier: it
-                // multiplies the font-metrics height per-line, so whatever we
-                // add to descent is amplified by `multiplier`. Divide to land
-                // on the exact pixel gap the paginator uses; round instead of
-                // truncating so accumulated drift stays sub-pixel.
-                val pixelGap = (elements[idx + 1].top - element.bottom).coerceAtLeast(0f)
-                val mult = style.lineSpacingMultiplier.coerceAtLeast(0.1f)
-                val gap = (pixelGap / mult).roundToInt()
-                val sepStart = sb.length
+                // Between paragraphs we emit `\n\u200B\n`: a terminating LF,
+                // a zero-width-space marker, and another LF. The ZWSP sits
+                // in its own single-line paragraph, so the line-height span
+                // below can target it without bleeding onto the surrounding
+                // text paragraphs.
+                val pixelGap = (elements[idx + 1].top - element.bottom).coerceAtLeast(0f).roundToInt()
                 sb.append('\n')
-                val sepEnd = sb.length
-                if (gap > 0) {
+                val gapLineStart = sb.length
+                sb.append('\u200B')
+                val gapLineEnd = sb.length
+                sb.append('\n')
+                if (pixelGap > 0) {
                     sb.setSpan(
-                        ParagraphGapLineHeightSpan(gap),
-                        sepStart, sepEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                        AbsoluteSizeSpan(1),
+                        gapLineStart, gapLineEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                    )
+                    sb.setSpan(
+                        GapLineHeightSpan(pixelGap),
+                        gapLineStart, gapLineEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                     )
                 }
             }
         }
-        text = sb
-
         setTextSize(TypedValue.COMPLEX_UNIT_PX, style.textPaint.textSize)
         typeface = style.textPaint.typeface
         setTextColor(style.textPaint.color)
         letterSpacing = style.textPaint.letterSpacing
-        setLineSpacing(style.lineSpacingExtra, style.lineSpacingMultiplier.coerceAtLeast(0.8f))
+        // Line heights are driven entirely by the per-range FixedLineHeight
+        // and GapLineHeight spans above — reset setLineSpacing to a no-op
+        // so its (add, mult) path doesn't compound on top of them.
+        setLineSpacing(0f, 1f)
+        text = sb
         highlightColor = style.selectionColor
     }
 
@@ -269,13 +273,21 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
     }
 
     /**
-     * Adds [extraDescentPx] to the descent of the single line that contains
-     * the spanned character(s). Applied to the `\n` between paragraphs so the
-     * paragraph gap materialises *below* the last line of the prior
-     * paragraph — no blank line, no extra row count, so the merged text keeps
-     * the paginator's original line budget.
+     * Pins a line's font metrics so the rendered line (after StaticLayout
+     * applies `lineSpacingMultiplier`) is exactly the target pixel height.
+     *
+     * Must be applied to a span range that lives entirely inside a
+     * *single-line* paragraph (we sandwich a ZWSP between two `\n`s for
+     * this). On a multi-line paragraph the span would drag every line —
+     * the very trap that made the previous version's per-line gaps stack.
+     *
+     * Why pin (not add): StaticLayout post-multiplies `(descent-ascent)` by
+     * the line-spacing multiplier, so an additive span gets re-amplified.
+     * Setting ascent=0, descent=targetDescent makes the multiplied line
+     * height deterministic; the caller feeds in `gap / mult` so the final
+     * rendered line ends up at `gap` pixels.
      */
-    private class ParagraphGapLineHeightSpan(private val extraDescentPx: Int) : LineHeightSpan {
+    private class GapLineHeightSpan(private val targetDescent: Int) : LineHeightSpan {
         override fun chooseHeight(
             text: CharSequence,
             start: Int,
@@ -284,8 +296,10 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
             v: Int,
             fm: Paint.FontMetricsInt,
         ) {
-            fm.descent += extraDescentPx
-            fm.bottom += extraDescentPx
+            fm.ascent = 0
+            fm.top = 0
+            fm.descent = targetDescent
+            fm.bottom = targetDescent
         }
     }
 

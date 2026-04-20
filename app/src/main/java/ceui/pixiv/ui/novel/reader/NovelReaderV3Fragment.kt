@@ -781,7 +781,7 @@ class NovelReaderV3Fragment : Fragment() {
             return
         }
         Timber.tag("NovelReaderV3").d(
-            "pushStyleAndGeometry: size=${w}x${h} font=${snapshot.fontSizeSp} line=${snapshot.lineSpacing} theme=${snapshot.themeId} insets=${topInsetPx}/${bottomInsetPx}",
+            "pushStyleAndGeometry: size=${w}x${h} font=${snapshot.fontSizeSp} line=${snapshot.lineSpacing} theme=${snapshot.themeId} insets=top:${topInsetPx}/bot:${bottomInsetPx}",
         )
         lastPushedSnapshot = snapshot
         lastPushedWidth = w
@@ -792,14 +792,19 @@ class NovelReaderV3Fragment : Fragment() {
         val style = TypeStyle.from(ctx, snapshot, resolveActiveTheme())
         val density = resources.displayMetrics.density
         val horizontal = ReaderSettings.horizontalMarginDp * density
-        val vertical = ReaderSettings.verticalMarginDp * density
+        // Vertical margin used to stack *on top of* the system-bar inset, which
+        // left a visibly huge gap above the first line (inset + 24dp reading
+        // margin) whenever the top bar was toggled on. Fold the reading margin
+        // into the inset so the first line sits a small, fixed distance below
+        // whatever the system reserved, never piling up.
+        val verticalMargin = ReaderSettings.verticalMarginDp * density
         val geom = PageGeometry(
             width = w,
             height = h,
             paddingLeft = horizontal,
-            paddingTop = vertical + topInsetPx,
+            paddingTop = maxOf(topInsetPx.toFloat(), verticalMargin),
             paddingRight = horizontal,
-            paddingBottom = vertical + bottomInsetPx,
+            paddingBottom = maxOf(bottomInsetPx.toFloat(), verticalMargin),
         )
         viewModel.updateLayout(style, geom)
     }

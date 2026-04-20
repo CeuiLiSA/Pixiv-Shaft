@@ -1,18 +1,24 @@
 package ceui.pixiv.ui.novel.reader.paginate
 
 import android.content.Context
+import android.graphics.Paint
 import android.os.Build
 import android.text.Layout
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.Spannable
 import android.text.Spanned
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
+import android.text.style.LineHeightSpan
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
+import kotlin.math.roundToInt
 
 /**
  * Produces a [Layout] for pagination via the exact same path the reader uses
@@ -37,6 +43,14 @@ import androidx.appcompat.widget.AppCompatTextView
 class TextMeasurer(context: Context) {
 
     private val measurer: AppCompatTextView = AppCompatTextView(context).also {
+        // TextView.setText() → checkForRelayout() reads `getLayoutParams().width`
+        // and NPEs if LayoutParams is null. Detached measuring TextViews have
+        // no parent to assign one, so give it a placeholder here. Our explicit
+        // `measure(EXACTLY, ...)` call supplies the real width downstream.
+        it.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+        )
         applyLayoutSettings(it)
     }
 
@@ -53,9 +67,12 @@ class TextMeasurer(context: Context) {
         tv.typeface = paint.typeface
         tv.setTextColor(paint.color)
         tv.letterSpacing = paint.letterSpacing
-        tv.setLineSpacing(lineSpacingExtra, lineSpacingMultiplier.coerceAtLeast(0.8f))
+        // Fixed line-height is installed per-text via [FixedLineHeightSpan]
+        // below, so clear setLineSpacing's mult/extra here — any leftover
+        // multiplier would re-amplify the span's target height.
+        tv.setLineSpacing(0f, 1f)
         tv.gravity = alignment.toGravity()
-        tv.setText(text, TextView.BufferType.SPANNABLE)
+        tv.setText(wrapWithFixedLineHeight(text, paint, lineSpacingMultiplier, lineSpacingExtra), TextView.BufferType.SPANNABLE)
         val usableWidth = width.coerceAtLeast(1)
         tv.measure(
             View.MeasureSpec.makeMeasureSpec(usableWidth, View.MeasureSpec.EXACTLY),
@@ -124,6 +141,75 @@ class TextMeasurer(context: Context) {
                 // full page. Force false on both sides.
                 tv.isFallbackLineSpacing = false
             }
+        }
+
+        /**
+         * Wrap [text] with a [FixedLineHeightSpan] covering every character,
+         * so every rendered line gets the exact same pixel height regardless
+         * of paint metrics, fallback fonts, or StaticLayout's last-line
+         * shortcut.
+         *
+         * Why not `setLineSpacing(extra, mult)` / `setLineHeight`: Android's
+         * StaticLayout skips `mult + extra` on the *last line of each
+         * paragraph*. The paginator measures each paragraph in isolation
+         * (every last line = natural metrics), the renderer merges all
+         * paragraphs (only the document's very last line misses it). The
+         * per-paragraph drift of `fontHeight × (mult - 1)` accumulates into
+         * hundreds of pixels over a page — content ended up clipped at the
+         * bottom of the fixed-size text block.
+         *
+         * `LineHeightSpan.chooseHeight` fires before the add/mult step, and
+         * our absolute `fm.ascent/descent` overwrite means the natural line
+         * height IS the target — the skipped multiplier is multiplicative
+         * identity (1.0) with our setLineSpacing(0, 1) in the TextView.
+         */
+        fun wrapWithFixedLineHeight(
+            text: CharSequence,
+            paint: TextPaint,
+            lineSpacingMultiplier: Float,
+            lineSpacingExtra: Float,
+        ): Spannable {
+            val fm = paint.fontMetrics
+            val natural = (fm.descent - fm.ascent).coerceAtLeast(1f)
+            val mult = lineSpacingMultiplier.coerceAtLeast(0.8f)
+            val targetHeight = (natural * mult + lineSpacingExtra).roundToInt().coerceAtLeast(1)
+            val spannable = when (text) {
+                is SpannableStringBuilder -> text
+                is Spannable -> text
+                else -> SpannableString(text)
+            }
+            spannable.setSpan(
+                FixedLineHeightSpan(targetHeight),
+                0, spannable.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE,
+            )
+            return spannable
+        }
+    }
+
+    /**
+     * Pins a line to an absolute pixel height by rewriting the
+     * [Paint.FontMetricsInt] that StaticLayout uses. Idempotent so repeated
+     * chooseHeight calls within the same paragraph don't accumulate.
+     *
+     * Copies the logic of [android.text.style.LineHeightSpan.Standard]
+     * (which is only API 29+) so we can target API 24.
+     */
+    class FixedLineHeightSpan(private val height: Int) : LineHeightSpan {
+        override fun chooseHeight(
+            text: CharSequence,
+            start: Int,
+            end: Int,
+            spanstartv: Int,
+            v: Int,
+            fm: Paint.FontMetricsInt,
+        ) {
+            val original = fm.descent - fm.ascent
+            if (original <= 0) return
+            val ratio = height.toFloat() / original
+            fm.descent = (fm.descent * ratio).roundToInt()
+            fm.ascent = fm.descent - height
+            fm.top = fm.ascent
+            fm.bottom = fm.descent
         }
     }
 }

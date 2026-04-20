@@ -197,6 +197,16 @@ class Paginator(
                 continue
             }
             val startTop = layout.getLineTop(cursor)
+            // Does even the *first* line fit? If not, flush the page and
+            // retry on a fresh one. The empty-page guard prevents an
+            // infinite loop in the pathological "font bigger than page"
+            // case — there we reluctantly accept a single overflowing line.
+            val firstLineBottom = layout.getLineBottom(cursor).toFloat()
+            val firstLineHeight = firstLineBottom - startTop
+            if (firstLineHeight > remainingHeight && currentElements.isNotEmpty()) {
+                finishPage()
+                continue
+            }
             var linesFit = 0
             var pxUsed = 0f
             for (i in cursor until total) {
@@ -205,8 +215,9 @@ class Paginator(
                 linesFit = i - cursor + 1
                 pxUsed = pxIfIncluded
                 if (pxIfIncluded > remainingHeight) {
-                    // The first line in this range is taller than the page — let
-                    // it overflow rather than drop content. Next iterations page.
+                    // Reached only via the empty-page fallback above — a
+                    // single line that won't fit even on a blank page. Emit
+                    // anyway so we don't drop content.
                     break
                 }
             }
