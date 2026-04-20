@@ -484,9 +484,27 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             baseBind.saveNovel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    List<NovelDetail.NovelChapterBean> chapters = mNovelDetail.getParsedChapters();
+                    if (chapters == null || chapters.isEmpty()) {
+                        return;
+                    }
                     View someView = baseBind.viewPager.findChildViewUnder(0, 0);
-                    int currentPageIndex = baseBind.viewPager.findContainingViewHolder(someView).getAdapterPosition();
-                    int chapterIndex = mNovelDetail.getParsedChapters().get(currentPageIndex).getChapterIndex();
+                    if (someView == null) {
+                        return;
+                    }
+                    RecyclerView.ViewHolder holder = baseBind.viewPager.findContainingViewHolder(someView);
+                    if (holder == null) {
+                        return;
+                    }
+                    int currentPageIndex = holder.getAdapterPosition();
+                    int chapterIndex;
+                    if (currentPageIndex >= 0 && currentPageIndex < chapters.size()) {
+                        chapterIndex = chapters.get(currentPageIndex).getChapterIndex();
+                    } else {
+                        // CommonAdapter 图文小说：adapter position 不对应 chapter 列表，
+                        // 取第一章的 index 作为书签页码
+                        chapterIndex = chapters.get(0).getChapterIndex();
+                    }
                     PixivOperate.postNovelMarker(mNovelDetail.getNovel_marker(), mNovelBean.getId(), chapterIndex, baseBind.saveNovel);
                 }
             });
