@@ -18,8 +18,8 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
 import ceui.pixiv.ui.novel.reader.model.PageElement
-import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
+import kotlin.math.roundToInt
 
 /**
  * A selectable text block for one [PageElement.Text]. Uses the platform's native
@@ -28,11 +28,18 @@ import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
  * source-absolute offsets through [absoluteCharStart].
  *
  * The block renders exactly the substring of the paragraph corresponding to
- * lines [PageElement.Text.startLine, PageElement.Text.endLineExclusive). For
- * CJK content, re-laying out that substring under the same paint / width
- * produces identical breaks to the paginator's StaticLayout; Latin ragged text
- * may occasionally shift a word but line count is preserved because widths
- * match.
+ * lines [PageElement.Text.startLine, PageElement.Text.endLineExclusive). Both
+ * the paginator and this view lay text out with BREAK_STRATEGY_SIMPLE, same
+ * paint, same width — greedy per-line breaking is deterministic on a prefix,
+ * so slicing out lines [startLine, endLineExclusive) and re-laying them here
+ * reproduces the paginator's line breaks exactly (same line count, same
+ * widths).
+ *
+ * The view is sized by the paginator via explicit width/height on its
+ * LayoutParams (see [ceui.pixiv.ui.novel.reader.render.PageView.rebuildTextBlocks]).
+ * That prevents TextView's WRAP_CONTENT from growing past the page rect when
+ * residual sub-pixel drift would otherwise let [setTextIsSelectable]'s
+ * ArrowKeyMovementMethod turn the block into an internally scrollable area.
  */
 class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
 
@@ -77,7 +84,12 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         highlightColor = 0x665B6EFF
         includeFontPadding = false
         setBackgroundColor(Color.TRANSPARENT)
-        breakStrategy = Layout.BREAK_STRATEGY_HIGH_QUALITY
+        // Page geometry positions this view with leftMargin = paddingLeft and
+        // width = contentWidth, so the TextView itself must contribute no
+        // horizontal inset. Any theme-injected default padding would shrink the
+        // rendering width and shift line breaks away from the paginator's.
+        setPadding(0, 0, 0, 0)
+        breakStrategy = Layout.BREAK_STRATEGY_SIMPLE
         hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
         customSelectionActionModeCallback = buildActionModeCallback()
     }
@@ -87,14 +99,16 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
      * paragraphs) into a single TextView so the native selection can drag
      * across paragraph boundaries.
      *
-     * Between consecutive paragraphs we insert `\n\n` — the extra blank line
-     * roughly matches [TypeStyle.paragraphSpacingPx]. First-line indent is
-     * reapplied per-paragraph via [LeadingMarginSpan.Standard] against the
-     * sliced range (the original layout's LeadingMarginSpan is lost when we
-     * call `.toString()`). CJK line-break positions survive the merge because
-     * we preserve paint / width / line-spacing.
+     * Between consecutive paragraphs we insert a single `\n` and stretch the
+     * descent of the line containing it via [ParagraphGapLineHeightSpan] to
+     * match [TypeStyle.paragraphSpacingPx] — inserting `\n\n` would add a
+     * whole extra row per boundary. First-line indent is reapplied via
+     * [LeadingMarginSpan.Standard] against the sliced range (the original
+     * layout's LeadingMarginSpan is lost when we call `.toString()`).
+     * Line-break positions survive the merge because we preserve paint, width,
+     * line-spacing and the greedy break strategy used by the paginator.
      */
-    fun bindTextGroup(elements: List<PageElement.Text>, style: TypeStyle, geometry: PageGeometry) {
+    fun bindTextGroup(elements: List<PageElement.Text>, style: TypeStyle) {
         segments.clear()
         val sb = SpannableStringBuilder()
         elements.forEachIndexed { idx, element ->
@@ -134,9 +148,12 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
                 // Compensate for StaticLayout's lineSpacingMultiplier: it
                 // multiplies the font-metrics height per-line, so whatever we
                 // add to descent is amplified by `multiplier`. Divide to land
-                // on the exact pixel gap the paginator uses elsewhere.
+                // on the exact pixel gap the paginator uses elsewhere. Round
+                // instead of truncating so accumulated drift across many
+                // paragraph boundaries stays under a pixel rather than
+                // compounding into a visible offset.
                 val mult = style.lineSpacingMultiplier.coerceAtLeast(0.1f)
-                val gap = (style.paragraphSpacingPx / mult).toInt()
+                val gap = (style.paragraphSpacingPx / mult).roundToInt()
                 val sepStart = sb.length
                 sb.append('\n')
                 val sepEnd = sb.length
@@ -156,12 +173,6 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         letterSpacing = style.textPaint.letterSpacing
         setLineSpacing(style.lineSpacingExtra, style.lineSpacingMultiplier.coerceAtLeast(0.8f))
         highlightColor = style.selectionColor
-        setPadding(
-            geometry.paddingLeft.toInt(),
-            0,
-            geometry.paddingRight.toInt(),
-            0,
-        )
     }
 
     /**

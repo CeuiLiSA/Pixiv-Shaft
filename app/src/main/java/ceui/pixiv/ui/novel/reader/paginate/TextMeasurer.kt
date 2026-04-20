@@ -22,7 +22,13 @@ object TextMeasurer {
             .setAlignment(alignment)
             .setLineSpacing(lineSpacingExtra, lineSpacingMultiplier.coerceAtLeast(0.8f))
             .setIncludePad(false)
-            .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
+            // SIMPLE is greedy per line — breaking a substring with the same
+            // paint / width reproduces the original breaks exactly. HIGH_QUALITY
+            // optimises across all lines jointly, so slicing from line N onward
+            // (as the TextView rendering path does for mid-paragraph pages) can
+            // land on different break positions and a different line count,
+            // which leaks into page overflow.
+            .setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE)
             .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
             .build()
     }

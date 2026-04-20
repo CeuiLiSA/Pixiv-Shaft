@@ -136,12 +136,33 @@ class PageView @JvmOverloads constructor(
                 onBlockBareTap?.invoke(block.x + xInBlock, block.y + yInBlock)
             }
 
-            block.bindTextGroup(group, style, geometry)
+            block.bindTextGroup(group, style)
 
-            val lp = (block.layoutParams as? LayoutParams) ?: LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-            lp.width = LayoutParams.MATCH_PARENT
-            lp.height = LayoutParams.WRAP_CONTENT
-            lp.topMargin = group.first().top.toInt()
+            // Size the block to *exactly* the rect the paginator budgeted for
+            // this group. Using WRAP_CONTENT + MATCH_PARENT + TextView padding
+            // meant (a) the TextView could measure one line taller than the
+            // page when any sub-pixel drift crept in between the paginator's
+            // StaticLayout and the TextView's internal one, turning the block
+            // into an internally scrollable area via ArrowKeyMovementMethod
+            // (installed by setTextIsSelectable(true)); and (b) the effective
+            // text width was `pageW - padL.toInt() - padR.toInt()` while the
+            // paginator measured with `(pageW - padL - padR).toInt()` — up to
+            // 2 px of disagreement that could shift line breaks.
+            //
+            // Fixing width to the paginator's `contentWidth.toInt()` and
+            // positioning via `leftMargin = paddingLeft.toInt()` makes the two
+            // measurement paths agree. Fixing height to `last.bottom -
+            // first.top` caps any residual drift at a clipped sub-pixel at the
+            // page's bottom edge instead of letting the block grow scrollable.
+            val first = group.first()
+            val last = group.last()
+            val blockWidth = geometry.contentWidth.toInt().coerceAtLeast(1)
+            val blockHeight = (last.bottom - first.top).toInt().coerceAtLeast(1)
+            val lp = (block.layoutParams as? LayoutParams) ?: LayoutParams(blockWidth, blockHeight)
+            lp.width = blockWidth
+            lp.height = blockHeight
+            lp.leftMargin = geometry.paddingLeft.toInt()
+            lp.topMargin = first.top.toInt()
             block.layoutParams = lp
         }
     }
