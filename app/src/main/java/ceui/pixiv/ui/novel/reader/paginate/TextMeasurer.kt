@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.novel.reader.paginate
 
+import android.os.Build
 import android.text.Layout
 import android.text.SpannableString
 import android.text.Spanned
@@ -18,7 +19,7 @@ object TextMeasurer {
     ): StaticLayout {
         val source = text
         val usableWidth = width.coerceAtLeast(1)
-        return StaticLayout.Builder.obtain(source, 0, source.length, paint, usableWidth)
+        val builder = StaticLayout.Builder.obtain(source, 0, source.length, paint, usableWidth)
             .setAlignment(alignment)
             .setLineSpacing(lineSpacingExtra, lineSpacingMultiplier.coerceAtLeast(0.8f))
             .setIncludePad(false)
@@ -30,7 +31,18 @@ object TextMeasurer {
             // which leaks into page overflow.
             .setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE)
             .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
-            .build()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // StaticLayout.Builder defaults this to false, but TextView defaults
+            // to true since API 28. When the novel text pushes a glyph through a
+            // fallback font (common for CJK / emoji / latin in JP text), that
+            // line's metrics expand under `true` and stay at the base font's
+            // under `false`. The mismatch meant every fallback-touching line
+            // was a few pixels taller in the TextView than in the paginator's
+            // budget — fine for one line, screen-scrolling overflow across a
+            // full page. Align both sides on `true`.
+            builder.setUseLineSpacingFromFallbacks(true)
+        }
+        return builder.build()
     }
 
     fun withFirstLineIndent(text: String, indentPx: Int): CharSequence {

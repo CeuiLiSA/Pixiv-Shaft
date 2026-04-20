@@ -326,4 +326,27 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         }
         return handled
     }
+
+    /**
+     * Hard-disable internal vertical scrolling. A page is a fixed rect; any
+     * scroll here means content drifted past the paginator's budget and the
+     * right recovery is to clip, not to let the user pan the block inside
+     * itself. `setTextIsSelectable(true)` installs ArrowKeyMovementMethod, and
+     * Editor code paths (bringPointIntoView on cursor moves, long-press
+     * selection auto-scroll, accessibility) can still call [scrollTo] /
+     * [scrollBy] behind our back — neutralise those entry points.
+     *
+     * Horizontal scroll is left untouched: we never set
+     * [setHorizontallyScrolling], so the TextView has no cause to scroll on X
+     * anyway, and preserving `scrollTo(x, 0)` keeps bidi edge cases intact.
+     */
+    override fun canScrollVertically(direction: Int): Boolean = false
+
+    override fun scrollTo(x: Int, y: Int) {
+        super.scrollTo(x, 0)
+    }
+
+    override fun scrollBy(x: Int, y: Int) {
+        super.scrollBy(x, 0)
+    }
 }
