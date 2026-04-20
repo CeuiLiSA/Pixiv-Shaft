@@ -47,11 +47,6 @@
                         android:scaleType="centerCrop"
                         android:visibility="gone" />
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="200dp"
-                        android:layout_gravity="bottom"
-                        android:background="@drawable/bg_v3_banner_gradient" />
                 </FrameLayout>
 
                 <!-- Profile header overlapping banner -->

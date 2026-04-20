@@ -1,8 +1,8 @@
 package ceui.pixiv.ui.novel
 
-import ceui.lisa.R
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
@@ -47,10 +47,11 @@ class NovelTextViewModel(
         result.add(NovelHeaderHolder(novelId))
         result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
         result.add(UserInfoHolder(ObjectPool.get<ceui.loxia.Novel>(novelId).value?.user?.id ?: 0L))
+        result.add(RedSectionHeaderHolder("标签"))
+        result.add(NovelTagsHolder(novelId))
         result.add(RedSectionHeaderHolder("简介"))
         result.add(NovelCaptionHolder(novelId))
         result.add(SpaceHolder())
-        result.add(ReadNovelButtonHolder(novelId))
         result.add(SpaceHolder())
 
         wNovel?.let { _webNovel.value = it }
