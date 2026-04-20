@@ -6,9 +6,15 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.activities.UActivity
+import ceui.lisa.activities.VActivity
+import ceui.lisa.core.Container
+import ceui.lisa.core.PageData
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.ItemBigReadButtonBinding
+import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Novel
@@ -30,6 +36,8 @@ import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 
 class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment,
@@ -117,6 +125,40 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
             }
         }
 
+    }
+
+    // Classic 分支没有 NavController，把所有 PixivFragment 里走 pushFragment 的
+    // action receiver 方法一律改走 Intent → 对应 Activity。
+    override fun onClickUser(id: Long) {
+        val intent = Intent(requireContext(), UActivity::class.java).apply {
+            putExtra(Params.USER_ID, id.toInt())
+        }
+        startActivity(intent)
+    }
+
+    override fun onClickNovel(novelId: Long) {
+        val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+            putExtra(Params.NOVEL_ID, novelId)
+        }
+        startActivity(intent)
+    }
+
+    override fun onClickIllust(illustId: Long) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val illust = runCatching { Client.appApi.getIllust(illustId).illust }
+                .getOrNull() ?: return@launch
+            val gson = Shaft.sGson
+            val bean = gson.fromJson(gson.toJson(illust), IllustsBean::class.java)
+            val uuid = UUID.randomUUID().toString()
+            val pageData = PageData(uuid, null, listOf(bean))
+            Container.get().addPageToMap(pageData)
+            val intent = Intent(requireContext(), VActivity::class.java).apply {
+                putExtra(Params.POSITION, 0)
+                putExtra(Params.PAGE_UUID, uuid)
+            }
+            startActivity(intent)
+        }
     }
 
     companion object {
