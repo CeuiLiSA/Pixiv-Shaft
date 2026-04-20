@@ -181,7 +181,17 @@ class NovelReaderV3Fragment : Fragment() {
             if (activeSelection != null) clearSelection() else chrome.toggle()
         }
         readerView.onDoubleTapAt = { _, _ ->
-            Toast.makeText(requireContext(), "双击放大（Phase 3 接入）", Toast.LENGTH_SHORT).show()
+            // Double-tap is reserved for image zoom (Phase 3). On a pure-text
+            // page there's nothing to zoom, so the gesture should be inert —
+            // firing a Toast every time the user taps twice while reading was
+            // noise. Only bubble up when the current page actually has an
+            // image element.
+            val hasImage = readerView.currentPage()?.elements?.any {
+                it is ceui.pixiv.ui.novel.reader.model.PageElement.Image
+            } == true
+            if (hasImage) {
+                Toast.makeText(requireContext(), "双击放大（Phase 3 接入）", Toast.LENGTH_SHORT).show()
+            }
         }
         readerView.onEdgeHit = { /* edge feedback: vibrate later */ }
         readerView.onPageChanged = { index ->

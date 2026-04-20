@@ -38,6 +38,13 @@ object ContentParser {
             // (bookmarks, selection) stay stable.
             val cleanLine = line.trimEnd('\r')
             val trimmed = cleanLine.trim()
+            // Strip leading whitespace from paragraph content: Pixiv authors
+            // often type `　`/space at the start for manual CJK indent. Our
+            // TypeStyle.firstLineIndentPx already handles the indent via
+            // LeadingMarginSpan, so leaving the manual space in would double
+            // up (2em auto + 1em manual ≈ 3em visible). Trim them here and
+            // let the auto-indent own the offset.
+            val paragraphText = cleanLine.trimStart(' ', '\t', '\u3000')
             when {
                 trimmed == NEWPAGE_TAG -> {
                     raw += ContentToken.PageBreak(lineStart, lineEnd)
@@ -57,11 +64,14 @@ object ContentParser {
                     val page = m.groupValues.getOrNull(2)?.toIntOrNull() ?: 0
                     raw += ContentToken.PixivImage(lineStart, lineEnd, id, page)
                 }
-                cleanLine.isEmpty() -> {
+                trimmed.isEmpty() -> {
+                    // Treat whitespace-only lines (including lines containing
+                    // nothing but `　`) as blank — otherwise they rendered as
+                    // ghost 1-char paragraphs with an auto-indent applied.
                     raw += ContentToken.BlankLine(lineStart, lineEnd)
                 }
                 else -> {
-                    raw += ContentToken.Paragraph(lineStart, lineEnd, cleanLine)
+                    raw += ContentToken.Paragraph(lineStart, lineEnd, paragraphText)
                 }
             }
         }
