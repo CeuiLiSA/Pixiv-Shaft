@@ -9,6 +9,7 @@ import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
+import android.text.style.BackgroundColorSpan
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
 import android.util.TypedValue
@@ -181,6 +182,38 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         text = sb
         highlightColor = style.selectionColor
     }
+
+    /**
+     * Apply a list of absolute-coord highlight ranges as [BackgroundColorSpan]s
+     * over this block's text. Replaces previously applied overlay spans each
+     * call — safe to invoke on every overlay change. Ranges outside this
+     * block's segments are ignored; partial overlaps are clipped.
+     */
+    fun applyOverlayHighlights(hits: List<HighlightRange>) {
+        val t = text as? Spannable ?: return
+        t.getSpans(0, t.length, SearchHighlightSpan::class.java).forEach { t.removeSpan(it) }
+        if (segments.isEmpty()) return
+        for (hit in hits) {
+            for (seg in segments) {
+                val segAbsEnd = seg.absoluteStart + (seg.localEnd - seg.localStart)
+                val s = maxOf(hit.absoluteStart, seg.absoluteStart)
+                val e = minOf(hit.absoluteEnd, segAbsEnd)
+                if (e <= s) continue
+                val localStart = seg.localStart + (s - seg.absoluteStart)
+                val localEnd = seg.localStart + (e - seg.absoluteStart)
+                t.setSpan(
+                    SearchHighlightSpan(hit.color),
+                    localStart, localEnd,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
+            }
+        }
+        invalidate()
+    }
+
+    /** Marker subclass so we can find-and-remove our own overlay spans on
+     *  refresh without touching the paginator's layout spans. */
+    private class SearchHighlightSpan(color: Int) : BackgroundColorSpan(color)
 
     /**
      * Convert this block's local char offset to the source-absolute offset.

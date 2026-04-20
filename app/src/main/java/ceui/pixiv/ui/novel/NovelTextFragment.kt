@@ -14,6 +14,7 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.ItemBigReadButtonBinding
+import ceui.lisa.databinding.LayoutNovelTopActionsBinding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -80,6 +81,27 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
             }
             ctx.startActivity(intent)
         }
+
+        val topActions = LayoutNovelTopActionsBinding.inflate(layoutInflater)
+        // Account for the status bar: TemplateActivity may render behind it in
+        // some flavors, so shift our overlay down by the system-reported
+        // status bar height to keep the icons out from under the clock/battery.
+        val statusBarH = com.blankj.utilcode.util.BarUtils.getStatusBarHeight()
+        topActions.root.setPadding(
+            topActions.root.paddingLeft,
+            topActions.root.paddingTop + statusBarH,
+            topActions.root.paddingRight,
+            topActions.root.paddingBottom,
+        )
+        val rootLayout = binding.root as androidx.constraintlayout.widget.ConstraintLayout
+        val topLp = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT,
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT,
+        ).apply {
+            topToTop = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+        }
+        rootLayout.addView(topActions.root, topLp)
         val liveNovel = ObjectPool.get<Novel>(novelId)
         combineLatest(
             liveNovel,
@@ -91,11 +113,11 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                 }
             }
 
-            bottomView.btnShare.setOnClick {
+            topActions.btnShare.setOnClick {
                 if (novel != null) shareNovel(novel)
             }
-            bottomView.btnMore.setOnClick {
-                if (novel == null || webNovel == null) return@setOnClick
+            topActions.btnMore.setOnClick {
+                if (novel == null) return@setOnClick
                 showActionMenu {
                     add(
                         MenuItem(getString(R.string.view_comments)) {
@@ -109,15 +131,6 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                     )
                     add(
                         MenuItem(getString(R.string.string_110)) { shareNovel(novel) }
-                    )
-                    add(
-                        MenuItem(getString(R.string.string_5)) {
-                            DownloadNovelTask(
-                                requireActivity().lifecycleScope,
-                                novel,
-                                webNovel
-                            ).start { }
-                        }
                     )
                 }
             }

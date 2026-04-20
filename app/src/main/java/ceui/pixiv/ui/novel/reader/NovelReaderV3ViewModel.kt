@@ -85,11 +85,19 @@ class NovelReaderV3ViewModel(
             runCatching {
                 val novel = ObjectPool.get<Novel>(novelId).value
                     ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
-                val html = Client.appApi.getNovelText(novelId).string()
-                val parsed = withContext(Dispatchers.Default) {
-                    val web = WebNovelParser.parsePixivObject(html)?.novel ?: error("解析 HTML 失败")
-                    val toks = ContentParser.tokenize(web)
-                    web to toks
+                // 详情页进来时已经预热了 webNovel + tokens，命中就跳过网络 +
+                // 解析。miss 就自己拉，完成后顺手回填缓存，用户下次再进秒开。
+                val cached = NovelTextCache.get(novelId)
+                val parsed = if (cached != null) {
+                    cached.webNovel to cached.tokens
+                } else {
+                    val html = Client.appApi.getNovelText(novelId).string()
+                    withContext(Dispatchers.Default) {
+                        val web = WebNovelParser.parsePixivObject(html)?.novel ?: error("解析 HTML 失败")
+                        val toks = ContentParser.tokenize(web)
+                        NovelTextCache.put(novelId, NovelTextCache.Entry(web, toks))
+                        web to toks
+                    }
                 }
                 webNovel = parsed.first
                 tokens = parsed.second

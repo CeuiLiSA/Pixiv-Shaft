@@ -187,8 +187,13 @@ class NovelReaderV3Fragment : Fragment() {
             val bars = windowInsets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
             )
+            // Search overlay sits directly under the status bar (there's no top
+            // bar above it when it's shown alone), so add an extra breathing
+            // room beyond the raw inset to keep the EditText / icons from
+            // hugging the clock / battery strip.
+            val extraTop = (8 * resources.displayMetrics.density).toInt()
             topBarView.updatePadding(top = bars.top)
-            searchOverlayView.updatePadding(top = bars.top)
+            searchOverlayView.updatePadding(top = bars.top + extraTop)
             bottomBarView.updatePadding(bottom = bars.bottom)
             if (bars.top != topInsetPx || bars.bottom != bottomInsetPx) {
                 topInsetPx = bars.top

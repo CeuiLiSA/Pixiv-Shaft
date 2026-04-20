@@ -78,8 +78,16 @@ class PageView @JvmOverloads constructor(
 
     fun updateOverlays(overlays: PageOverlays) {
         this.overlays = overlays
+        applyOverlayHighlightsToBlocks()
         invalidateSnapshot()
         invalidate()
+    }
+
+    private fun applyOverlayHighlightsToBlocks() {
+        if (textBlocks.isEmpty()) return
+        for (block in textBlocks) {
+            block.applyOverlayHighlights(overlays.searchHits)
+        }
     }
 
     fun updateBitmapSource(source: ImageBitmapSource) {
@@ -165,6 +173,7 @@ class PageView @JvmOverloads constructor(
             lp.topMargin = first.top.toInt()
             block.layoutParams = lp
         }
+        applyOverlayHighlightsToBlocks()
     }
 
     /**

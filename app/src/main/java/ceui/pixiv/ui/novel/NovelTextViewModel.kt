@@ -2,6 +2,7 @@ package ceui.pixiv.ui.novel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
@@ -15,7 +16,12 @@ import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.detail.UserInfoHolder
+import ceui.pixiv.ui.novel.reader.NovelTextCache
+import ceui.pixiv.ui.novel.reader.paginate.ContentParser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class NovelTextViewModel(
     private val novelId: Long,
@@ -39,8 +45,6 @@ class NovelTextViewModel(
                 }
             }
         }
-        val html = Client.appApi.getNovelText(novelId).string()
-        val wNovel = WebNovelParser.parsePixivObject(html)?.novel
 
         val result = mutableListOf<ListItemHolder>()
         result.add(SpaceHolder())
@@ -54,9 +58,23 @@ class NovelTextViewModel(
         result.add(SpaceHolder())
         result.add(SpaceHolder())
 
-        wNovel?.let { _webNovel.value = it }
-
         _itemHolders.value = result
         _refreshState.value = RefreshState.LOADED(hasContent = true, hasNext = false)
+
+        // Fire-and-forget: 后台预热 V3 reader 要用的数据（拉 HTML → 解析
+        // WebNovel → tokenize → 落 NovelTextCache），用户看完详情点"开始阅读"
+        // 时秒开。缓存命中则直接跳过，避免重复拉。
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                if (NovelTextCache.get(novelId) != null) return@runCatching
+                val html = Client.appApi.getNovelText(novelId).string()
+                val web = WebNovelParser.parsePixivObject(html)?.novel ?: return@runCatching
+                val tokens = ContentParser.tokenize(web)
+                NovelTextCache.put(novelId, NovelTextCache.Entry(web, tokens))
+                _webNovel.postValue(web)
+            }.onFailure {
+                Timber.tag("NovelTextViewModel").w(it, "prewarm failed novelId=$novelId")
+            }
+        }
     }
 }
