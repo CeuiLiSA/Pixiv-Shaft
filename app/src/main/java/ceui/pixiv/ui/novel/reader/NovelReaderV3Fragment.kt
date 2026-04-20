@@ -236,14 +236,14 @@ class NovelReaderV3Fragment : Fragment() {
                 Toast.makeText(requireContext(), "小说信息还没加载，请稍后再试", Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            val authorId = novel.user?.id ?: 0L
             showActionMenu {
                 add(
                     MenuItem(getString(R.string.view_comments)) {
-                        pushFragment(
-                            R.id.navigation_comments_illust,
-                            CommentsFragmentArgs(novelId, authorId, ObjectType.NOVEL).toBundle(),
-                        )
+                        val intent = android.content.Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+                            putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                            putExtra(Params.NOVEL_ID, novelId.toInt())
+                        }
+                        startActivity(intent)
                     },
                 )
                 add(

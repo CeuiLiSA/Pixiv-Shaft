@@ -12,6 +12,31 @@
         android:paddingEnd="20dp"
         android:paddingBottom="20dp">
 
+        <ImageButton
+            android:id="@+id/btn_share"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="top|end"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="分享"
+            android:padding="10dp"
+            android:src="@drawable/ic_share_black_24dp"
+            app:tint="#FFFFFF"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+        <ImageButton
+            android:id="@+id/btn_more"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="top|end"
+            android:layout_marginEnd="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="更多"
+            android:padding="10dp"
+            android:src="@drawable/ic_more_vert_black_24dp"
+            app:tint="#FFFFFF"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
+
         <TextView
             android:id="@+id/btn_read"
             android:layout_width="match_parent"

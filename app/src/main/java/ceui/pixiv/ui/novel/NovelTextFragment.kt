@@ -91,11 +91,11 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                 }
             }
 
-            binding.toolbarLayout.naviMore.setOnClick {
-                if (novel == null || webNovel == null) {
-                    return@setOnClick
-                }
-                val authorId = novel.user?.id ?: 0L
+            bottomView.btnShare.setOnClick {
+                if (novel != null) shareNovel(novel)
+            }
+            bottomView.btnMore.setOnClick {
+                if (novel == null || webNovel == null) return@setOnClick
                 showActionMenu {
                     add(
                         MenuItem(getString(R.string.view_comments)) {
@@ -108,9 +108,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                         }
                     )
                     add(
-                        MenuItem(getString(R.string.string_110)) {
-                            shareNovel(novel)
-                        }
+                        MenuItem(getString(R.string.string_110)) { shareNovel(novel) }
                     )
                     add(
                         MenuItem(getString(R.string.string_5)) {
