@@ -88,7 +88,17 @@ class V3TagFlowView @JvmOverloads constructor(
         val tagBgState = palette.tagLockedBg(999f * density).constantState
 
         val closeIconSize = if (showRemoveIcon) 14.ppppx else 0
-        pairs.forEach { (name, translated) ->
+        // 单行模式（NOWRAP）下不需要 bottom margin，也不给最后一个 chip 留 end margin——
+        // 它只会把输入框顶得离内容偏远。
+        val isSingleRow = flexWrap == com.google.android.flexbox.FlexWrap.NOWRAP
+        val bottomGap = if (isSingleRow) 0 else 8.ppppx
+        val lastIndex = pairs.size - 1
+        pairs.forEachIndexed { idx, (name, translated) ->
+            val endGap = when {
+                !isSingleRow -> 8.ppppx
+                idx == lastIndex -> 0
+                else -> 8.ppppx
+            }
             val tv = TextView(context).apply {
                 text = buildString {
                     append("# "); append(name)
@@ -115,7 +125,7 @@ class V3TagFlowView @JvmOverloads constructor(
                 layoutParams = LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT,
-                ).apply { setMargins(0, 0, 8.ppppx, 8.ppppx) }
+                ).apply { setMargins(0, 0, endGap, bottomGap) }
                 setOnClickListener {
                     val custom = onTagClick
                     if (custom != null) {

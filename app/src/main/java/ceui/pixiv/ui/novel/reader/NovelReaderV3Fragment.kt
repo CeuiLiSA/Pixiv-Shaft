@@ -379,7 +379,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     }
 
     private fun updateScrollProgressBarVisibility() {
-        val show = ReaderSettings.flipMode == FlipMode.Scroll
+        val show = ReaderSettings.readingDirection == ReadingDirection.Vertical
         binding.scrollProgressBar.visibility = if (show) View.VISIBLE else View.GONE
         if (!show) binding.scrollProgressBar.scaleX = 0f
     }

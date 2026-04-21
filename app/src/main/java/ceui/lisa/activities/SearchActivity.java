@@ -219,6 +219,23 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
             @Override
             public void afterTextChanged(Editable editable) {
+                // Typing a space after some content also commits. An empty input
+                // with just a typed space is ignored so the user can still move
+                // the caret with stray spaces without accidentally committing.
+                String current = editable.toString();
+                if (current.length() > 0 && current.charAt(current.length() - 1) == ' ') {
+                    String tag = current.substring(0, current.length() - 1).trim();
+                    if (!tag.isEmpty()) {
+                        commitTagFromInput(tag);
+                        return;
+                    }
+                    // Standalone leading/consecutive space on an otherwise blank
+                    // input: drop the space so it doesn't linger.
+                    if (tag.isEmpty()) {
+                        baseBind.searchBox.setText("");
+                        return;
+                    }
+                }
                 pushKeywordFromChipsAndInput();
             }
         });
@@ -304,6 +321,19 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     .show(fragmentFilter)
                     .commitNowAllowingStateLoss();
         }
+    }
+
+    /**
+     * Commit the typed text as a new chip (dedupe, clear input, sync keyword).
+     * Space-triggered commits do NOT auto-search — Enter is still the "go" key.
+     */
+    private void commitTagFromInput(String tag) {
+        if (!committedTags.contains(tag)) {
+            committedTags.add(tag);
+            refreshChipsUI();
+        }
+        baseBind.searchBox.setText("");
+        pushKeywordFromChipsAndInput();
     }
 
     private void refreshChipsUI() {
