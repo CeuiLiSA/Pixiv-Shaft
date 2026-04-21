@@ -184,10 +184,19 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         if (!bannerUrl.isNullOrEmpty()) {
             baseBind.bannerImage.visibility = View.VISIBLE
             Glide.with(mContext).load(GlideUtil.getUrl(bannerUrl)).into(baseBind.bannerImage)
+            baseBind.bannerImage.setOnClickListener {
+                openImageDetail(bannerUrl, "user_${user.id}_profile_banner")
+            }
         }
 
         // Avatar
         Glide.with(mContext).load(GlideUtil.getHead(user)).into(baseBind.userAvatar)
+        val avatarUrl = user.profile_image_urls?.getMaxImage()
+        if (!avatarUrl.isNullOrEmpty()) {
+            baseBind.userAvatar.setOnClickListener {
+                openImageDetail(avatarUrl, "user_${user.id}_avatar")
+            }
+        }
 
         // Premium
         if (user.isIs_premium) {
@@ -619,5 +628,13 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         } catch (e: Exception) {
             Common.showToast(url)
         }
+    }
+
+    private fun openImageDetail(imageUrl: String, saveName: String) {
+        startActivity(Intent(mContext, TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情")
+            putExtra(Params.URL, imageUrl)
+            putExtra(Params.TITLE, saveName)
+        })
     }
 }
