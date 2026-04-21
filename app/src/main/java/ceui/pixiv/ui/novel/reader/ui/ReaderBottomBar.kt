@@ -1,32 +1,12 @@
 package ceui.pixiv.ui.novel.reader.ui
 
 import android.view.View
-import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.SeekBar
-import android.widget.TextView
-import ceui.lisa.R
+import ceui.lisa.databinding.LayoutReaderBottomBarBinding
 
-/**
- * Bottom chrome: progress seekbar + quick actions row (目录 / 设置 / 夜间 /
- * 搜索 / 更多). Host wires behavior through the exposed lambda properties so we
- * stay decoupled from Fragment state.
- */
-class ReaderBottomBar(private val rootView: View) {
+class ReaderBottomBar(private val binding: LayoutReaderBottomBarBinding) {
 
-    private val btnPrevChapter = rootView.findViewById<ImageButton>(R.id.btn_prev_chapter)
-    private val btnNextChapter = rootView.findViewById<ImageButton>(R.id.btn_next_chapter)
-    private val seekBar = rootView.findViewById<SeekBar>(R.id.sk_progress)
-    private val txtProgress = rootView.findViewById<TextView>(R.id.txt_progress)
-    private val btnChapters = rootView.findViewById<View>(R.id.btn_chapters)
-    private val btnSettings = rootView.findViewById<View>(R.id.btn_settings)
-    private val btnThemeToggle = rootView.findViewById<View>(R.id.btn_theme_toggle)
-    private val btnSearch = rootView.findViewById<View>(R.id.btn_search)
-    private val btnMore = rootView.findViewById<View>(R.id.btn_more)
-    private val imgThemeToggle = rootView.findViewById<ImageView>(R.id.img_theme_toggle)
-    private val txtThemeToggle = rootView.findViewById<TextView>(R.id.txt_theme_toggle)
-
-    val view: View get() = rootView
+    val view: View get() = binding.root
 
     var onPrevChapter: (() -> Unit)? = null
     var onNextChapter: (() -> Unit)? = null
@@ -42,15 +22,15 @@ class ReaderBottomBar(private val rootView: View) {
     private var suppressSeekListener = false
 
     init {
-        btnPrevChapter.setOnClickListener { onPrevChapter?.invoke() }
-        btnNextChapter.setOnClickListener { onNextChapter?.invoke() }
-        btnChapters.setOnClickListener { onChaptersClick?.invoke() }
-        btnSettings.setOnClickListener { onSettingsClick?.invoke() }
-        btnThemeToggle.setOnClickListener { onThemeToggleClick?.invoke() }
-        btnSearch.setOnClickListener { onSearchClick?.invoke() }
-        btnMore.setOnClickListener { onMoreClick?.invoke() }
+        binding.btnPrevChapter.setOnClickListener { onPrevChapter?.invoke() }
+        binding.btnNextChapter.setOnClickListener { onNextChapter?.invoke() }
+        binding.btnChapters.setOnClickListener { onChaptersClick?.invoke() }
+        binding.btnSettings.setOnClickListener { onSettingsClick?.invoke() }
+        binding.btnThemeToggle.setOnClickListener { onThemeToggleClick?.invoke() }
+        binding.btnSearch.setOnClickListener { onSearchClick?.invoke() }
+        binding.btnMore.setOnClickListener { onMoreClick?.invoke() }
 
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.skProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(s: SeekBar, progress: Int, fromUser: Boolean) {
                 if (!fromUser || suppressSeekListener) return
                 onSeekChanged?.invoke(progress)
@@ -70,15 +50,15 @@ class ReaderBottomBar(private val rootView: View) {
         val totalForBar = (totalPages - 1).coerceAtLeast(0)
         suppressSeekListener = true
         try {
-            seekBar.max = totalForBar
-            seekBar.progress = currentPage.coerceIn(0, totalForBar)
+            binding.skProgress.max = totalForBar
+            binding.skProgress.progress = currentPage.coerceIn(0, totalForBar)
         } finally {
             suppressSeekListener = false
         }
-        txtProgress.text = if (totalPages == 0) "-- / --" else "${currentPage + 1} / $totalPages"
+        binding.txtProgress.text = if (totalPages == 0) "-- / --" else "${currentPage + 1} / $totalPages"
     }
 
     fun setDarkMode(dark: Boolean) {
-        txtThemeToggle.text = if (dark) "日间" else "夜间"
+        binding.txtThemeToggle.text = if (dark) "日间" else "夜间"
     }
 }

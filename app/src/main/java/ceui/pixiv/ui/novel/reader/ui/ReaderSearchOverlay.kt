@@ -7,26 +7,11 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
-import ceui.lisa.R
+import ceui.lisa.databinding.LayoutReaderSearchOverlayBinding
 
-/**
- * Wrapper around the search overlay include. Calls back to the host for each
- * keystroke (debounced elsewhere if needed) and for next / previous / regex
- * toggles. Visibility + animation are driven by [setShown].
- */
-class ReaderSearchOverlay(private val rootView: View) {
+class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding) {
 
-    private val btnClose = rootView.findViewById<ImageButton>(R.id.btn_close_search)
-    private val editQuery = rootView.findViewById<EditText>(R.id.edit_search_query)
-    private val txtCount = rootView.findViewById<TextView>(R.id.txt_search_count)
-    private val btnPrev = rootView.findViewById<TextView>(R.id.btn_search_prev)
-    private val btnNext = rootView.findViewById<TextView>(R.id.btn_search_next)
-    private val btnRegex = rootView.findViewById<TextView>(R.id.btn_search_regex)
-
-    val view: View get() = rootView
+    val view: View get() = binding.root
 
     var onQueryChanged: ((String) -> Unit)? = null
     var onNext: (() -> Unit)? = null
@@ -37,32 +22,32 @@ class ReaderSearchOverlay(private val rootView: View) {
     private var regexMode = false
 
     init {
-        rootView.visibility = View.GONE
+        binding.root.visibility = View.GONE
 
-        editQuery.addTextChangedListener(object : TextWatcher {
+        binding.editSearchQuery.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 onQueryChanged?.invoke(s?.toString().orEmpty())
             }
         })
-        editQuery.setOnEditorActionListener { _, actionId, _ ->
+        binding.editSearchQuery.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 onNext?.invoke()
                 true
             } else false
         }
-        editQuery.setOnKeyListener { _, keyCode, event ->
+        binding.editSearchQuery.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
                 onNext?.invoke()
                 true
             } else false
         }
 
-        btnClose.setOnClickListener { onClose?.invoke() }
-        btnNext.setOnClickListener { onNext?.invoke() }
-        btnPrev.setOnClickListener { onPrev?.invoke() }
-        btnRegex.setOnClickListener {
+        binding.btnCloseSearch.setOnClickListener { onClose?.invoke() }
+        binding.btnSearchNext.setOnClickListener { onNext?.invoke() }
+        binding.btnSearchPrev.setOnClickListener { onPrev?.invoke() }
+        binding.btnSearchRegex.setOnClickListener {
             regexMode = !regexMode
             applyRegexStyle()
             onRegexToggle?.invoke(regexMode)
@@ -72,55 +57,53 @@ class ReaderSearchOverlay(private val rootView: View) {
 
     fun setShown(shown: Boolean) {
         if (shown) {
-            rootView.visibility = View.VISIBLE
-            rootView.alpha = 0f
-            rootView.translationY = -rootView.height.toFloat().coerceAtLeast(0f)
-            rootView.animate()
+            binding.root.visibility = View.VISIBLE
+            binding.root.alpha = 0f
+            binding.root.translationY = -binding.root.height.toFloat().coerceAtLeast(0f)
+            binding.root.animate()
                 .alpha(1f)
                 .translationY(0f)
                 .setDuration(200)
                 .start()
-            editQuery.requestFocus()
+            binding.editSearchQuery.requestFocus()
             showKeyboard()
         } else {
             hideKeyboard()
-            rootView.animate()
+            binding.root.animate()
                 .alpha(0f)
-                .translationY(-rootView.height.toFloat())
+                .translationY(-binding.root.height.toFloat())
                 .setDuration(160)
-                .withEndAction { rootView.visibility = View.GONE }
+                .withEndAction { binding.root.visibility = View.GONE }
                 .start()
         }
     }
 
     fun clear() {
-        editQuery.text = null
+        binding.editSearchQuery.text = null
         setCount(0, 0)
     }
 
-    fun currentQuery(): String = editQuery.text?.toString().orEmpty()
-
-    fun isRegex(): Boolean = regexMode
+    fun currentQuery(): String = binding.editSearchQuery.text?.toString().orEmpty()
 
     fun setCount(currentIndex: Int, total: Int) {
-        txtCount.text = if (total == 0) "无结果" else "${currentIndex + 1} / $total"
+        binding.txtSearchCount.text = if (total == 0) "无结果" else "${currentIndex + 1} / $total"
     }
 
     private fun applyRegexStyle() {
-        btnRegex.background = GradientDrawable().apply {
+        binding.btnSearchRegex.background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = btnRegex.context.resources.displayMetrics.density * 4
+            cornerRadius = binding.root.context.resources.displayMetrics.density * 4
             setColor(if (regexMode) 0xFF5B6EFF.toInt() else 0x33FFFFFF)
         }
     }
 
     private fun showKeyboard() {
-        val imm = rootView.context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(editQuery, InputMethodManager.SHOW_IMPLICIT)
+        val imm = binding.root.context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(binding.editSearchQuery, InputMethodManager.SHOW_IMPLICIT)
     }
 
     private fun hideKeyboard() {
-        val imm = rootView.context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(editQuery.windowToken, 0)
+        val imm = binding.root.context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.editSearchQuery.windowToken, 0)
     }
 }
