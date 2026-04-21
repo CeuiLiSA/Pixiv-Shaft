@@ -126,6 +126,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         if (ReaderSettings.flipMode == FlipMode.Scroll) {
             rv.visibility = View.GONE
             ensureScrollReaderView(ch).visibility = View.VISIBLE
+            // Data binds later: viewModel.load() → Loaded observer → rebindScrollViewIfActive()
         }
         viewModel.load()
     }
@@ -404,9 +405,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             paddingRight = horizontal,
             paddingBottom = maxOf(bottomInsetPx.toFloat(), verticalMargin),
         )
+        // Preserve reading position across rebinds (e.g. font-size change).
+        // On first bind (charAnchors empty), fall back to persisted progress.
+        val currentChar = sv.currentCharIndex().takeIf { it > 0 }
+            ?: ReaderProgressStore.loadCharIndex(viewModel.novelId)
         sv.bind(loaded.tokens, style, geom, ImageResolver.of(loaded.webNovel))
-        val charIndex = ReaderProgressStore.loadCharIndex(viewModel.novelId)
-        if (charIndex > 0) sv.jumpToCharIndex(charIndex)
+        if (currentChar > 0) sv.jumpToCharIndex(currentChar)
     }
 
     private fun togglePixivBookmark() {

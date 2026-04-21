@@ -2,7 +2,6 @@ package ceui.pixiv.ui.novel.reader.render
 
 import android.content.Context
 import android.graphics.Color
-import android.text.Layout
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.LeadingMarginSpan
@@ -86,12 +85,13 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
             geometry.paddingRight.toInt(),
             geometry.paddingBottom.toInt(),
         )
+        val contentWidth = geometry.contentWidth
         for (token in tokens) {
             val child = when (token) {
                 is ContentToken.Paragraph -> createParagraph(token, style)
                 is ContentToken.Chapter -> createChapter(token, style)
                 is ContentToken.BlankLine -> createSpacer(style)
-                is ContentToken.PageBreak -> createDivider(style)
+                is ContentToken.PageBreak -> createDivider(style, contentWidth)
                 is ContentToken.PixivImage -> createImage(token, style, imageResolver)
                 is ContentToken.UploadedImage -> createImage(token, style, imageResolver)
             }
@@ -179,9 +179,10 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
         }
     }
 
-    private fun createDivider(style: TypeStyle): android.view.View {
+    private fun createDivider(style: TypeStyle, contentWidth: Float): android.view.View {
         return android.view.View(context).apply {
             setBackgroundColor(style.dividerColor)
+            val hInset = (contentWidth * 0.25f).toInt().coerceAtLeast(0)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 (1.5f * context.resources.displayMetrics.density).toInt().coerceAtLeast(1),
@@ -189,7 +190,6 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
                 val vGap = (style.chapterTopGapPx * 0.8f).toInt()
                 topMargin = vGap
                 bottomMargin = vGap
-                val hInset = (container.width * 0.25f).toInt().coerceAtLeast(0)
                 leftMargin = hInset
                 rightMargin = hInset
             }
@@ -231,41 +231,47 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
                 .load(GlideUrlChild(url))
                 .into(this)
 
-            // Image tap
-            val imgToken = token
-            val imgType = when (imgToken) {
-                is ContentToken.UploadedImage -> ceui.pixiv.ui.novel.reader.model.PageElement.Image.ImageType.UploadedImage
-                is ContentToken.PixivImage -> ceui.pixiv.ui.novel.reader.model.PageElement.Image.ImageType.PixivImage
-                else -> return@apply
-            }
-            val resourceId = when (imgToken) {
-                is ContentToken.UploadedImage -> imgToken.imageId
-                is ContentToken.PixivImage -> imgToken.illustId
-                else -> 0L
-            }
-            val pageIdx = (imgToken as? ContentToken.PixivImage)?.pageIndex ?: 0
-            setOnClickListener {
-                onImageTap?.invoke(
-                    ceui.pixiv.ui.novel.reader.model.PageElement.Image(
-                        top = 0f, bottom = 0f,
-                        absoluteCharStart = imgToken.sourceStart,
-                        absoluteCharEnd = imgToken.sourceEnd,
-                        imageType = imgType,
-                        resourceId = resourceId,
-                        pageIndexInIllust = pageIdx,
-                        imageUrl = url,
-                    ),
+            val imageElement = when (token) {
+                is ContentToken.UploadedImage -> ceui.pixiv.ui.novel.reader.model.PageElement.Image(
+                    top = 0f, bottom = 0f,
+                    absoluteCharStart = token.sourceStart, absoluteCharEnd = token.sourceEnd,
+                    imageType = ceui.pixiv.ui.novel.reader.model.PageElement.Image.ImageType.UploadedImage,
+                    resourceId = token.imageId, pageIndexInIllust = 0, imageUrl = url,
                 )
+                is ContentToken.PixivImage -> ceui.pixiv.ui.novel.reader.model.PageElement.Image(
+                    top = 0f, bottom = 0f,
+                    absoluteCharStart = token.sourceStart, absoluteCharEnd = token.sourceEnd,
+                    imageType = ceui.pixiv.ui.novel.reader.model.PageElement.Image.ImageType.PixivImage,
+                    resourceId = token.illustId, pageIndexInIllust = token.pageIndex, imageUrl = url,
+                )
+                else -> null
+            }
+            if (imageElement != null) {
+                setOnClickListener { onImageTap?.invoke(imageElement) }
             }
         }
     }
 
     // ---- Position tracking --------------------------------------------------
 
+    private var pendingReport: Runnable? = null
+
     private fun reportVisibleCharIndex() {
-        val scrollTop = scrollY
-        val anchor = charAnchors.lastOrNull { it.view.top <= scrollTop + height / 4 }
-        anchor?.let { onCharIndexChanged?.invoke(it.charStart) }
+        if (pendingReport != null) return // already scheduled
+        val runnable = Runnable {
+            pendingReport = null
+            val scrollTop = scrollY
+            val anchor = charAnchors.lastOrNull { it.view.top <= scrollTop + height / 4 }
+            anchor?.let { onCharIndexChanged?.invoke(it.charStart) }
+        }
+        pendingReport = runnable
+        postDelayed(runnable, 500L)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        pendingReport?.let { removeCallbacks(it) }
+        pendingReport = null
     }
 
     private data class CharAnchor(val charStart: Int, val view: android.view.View)
