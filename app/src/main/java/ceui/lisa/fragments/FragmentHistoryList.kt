@@ -52,7 +52,7 @@ class FragmentHistoryList : Fragment() {
             context = requireContext(),
             items = items,
             allIllustsProvider = { illusts },
-            onRequestDelete = { _, entity -> deleteItem(entity) },
+            onRequestDelete = { _, entity -> confirmDelete(entity) },
         )
 
         val spanCount = if (historyType == TYPE_NOVEL) 1 else 2
@@ -95,6 +95,16 @@ class FragmentHistoryList : Fragment() {
             }
             refreshLayout?.finishLoadMore()
         }
+    }
+
+    private fun confirmDelete(entity: IllustHistoryEntity) {
+        val act = activity ?: return
+        androidx.appcompat.app.AlertDialog.Builder(act)
+            .setTitle(R.string.string_143)
+            .setMessage(R.string.string_352)
+            .setPositiveButton(R.string.string_141) { _, _ -> deleteItem(entity) }
+            .setNegativeButton(R.string.string_142, null)
+            .show()
     }
 
     private fun deleteItem(entity: IllustHistoryEntity) {
