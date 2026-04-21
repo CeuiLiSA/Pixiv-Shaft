@@ -1,6 +1,8 @@
 package ceui.pixiv.ui.comments
 
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.activities.Shaft
+import ceui.lisa.helper.CommentFilter
 import ceui.loxia.Client
 import ceui.loxia.Comment
 import ceui.loxia.CommentResponse
@@ -24,14 +26,16 @@ class CommentsDataSource(
             CommentHolder(
                 comment,
                 args.objectArthurId,
-                childCommentsMap[comment.id] ?: listOf()
+                filterSpamComments(childCommentsMap[comment.id] ?: listOf())
             )
         )
     },
     filter = { comment ->
-        comment.comment?.contains("翻墙") != true && comment.comment?.contains("VPN") != true
+        !isSpamComment(comment)
     }
 ) {
+
+
 
     val editingComment = MutableLiveData<String>()
     val replyToComment = MutableLiveData<Comment?>()
@@ -39,12 +43,13 @@ class CommentsDataSource(
 
     suspend fun showMoreReply(commentId: Long) {
         val resp = Client.appApi.getIllustReplyComments(args.objectType, commentId)
-        childCommentsMap[commentId] = resp.comments
+        val filtered = filterSpamComments(resp.comments)
+        childCommentsMap[commentId] = filtered
         updateItem(commentId) { old ->
             CommentHolder(
                 old.comment,
                 old.illustArthurId,
-                resp.comments,
+                filtered,
             )
         }
     }
@@ -130,4 +135,14 @@ class CommentsDataSource(
             itemHolders.value = existing
         }
     }
+}
+
+private fun isSpamComment(comment: Comment): Boolean {
+    if (!Shaft.sSettings.isFilterComment()) return false
+    return CommentFilter.judgeText(comment.comment)
+}
+
+private fun filterSpamComments(comments: List<Comment>): List<Comment> {
+    if (!Shaft.sSettings.isFilterComment()) return comments
+    return comments.filterNot { CommentFilter.judgeText(it.comment) }
 }

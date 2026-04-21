@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +21,7 @@ import okhttp3.ResponseBody;
 
 public class CommentFilter {
 
-    private static List<CommentFilterRule> rules = new ArrayList<>();
+    private static volatile List<CommentFilterRule> rules = new ArrayList<>();
 
     static {
         updateRules();
@@ -31,6 +32,13 @@ public class CommentFilter {
                 .anyMatch(rule -> rule.judge(commentsBean.getComment()) ||
                         ((commentsBean.getParent_comment().getId() > 0) && rule.judge(commentsBean.getParent_comment().getComment()))
                 );
+    }
+
+    public static boolean judgeText(String text) {
+        if (TextUtils.isEmpty(text)) {
+            return false;
+        }
+        return rules.stream().anyMatch(rule -> rule.judge(text));
     }
 
     private static void updateRules() {
@@ -44,7 +52,7 @@ public class CommentFilter {
             byte[] buffer = new byte[inputStream.available()];
             inputStream.read(buffer);
             inputStream.close();
-            String content = new String(buffer);
+            String content = new String(buffer, StandardCharsets.UTF_8);
             rules = Arrays.stream(content.split("\\r?\\n", -1))
                     .filter(string -> !TextUtils.isEmpty(string))
                     .map(CommentFilterRule::new)
