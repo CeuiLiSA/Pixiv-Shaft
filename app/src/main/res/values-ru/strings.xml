@@ -669,6 +669,7 @@
   <string name="v3_label_likes">Лайки</string>
   <string name="v3_label_bookmarks">Закладки</string>
   <string name="v3_label_comments">Комментарии</string>
+  <string name="v3_no_comments_yet">Пока нет комментариев — оставьте первый</string>
   <string name="v3_label_tags">Теги</string>
   <string name="v3_label_series">Серия</string>
   <string name="v3_label_related">Похожее</string>

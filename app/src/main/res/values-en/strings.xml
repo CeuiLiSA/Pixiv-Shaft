@@ -732,6 +732,7 @@
   <string name="v3_label_likes">Likes</string>
   <string name="v3_label_bookmarks">Bookmarks</string>
   <string name="v3_label_comments">Comments</string>
+  <string name="v3_no_comments_yet">No comments yet — be the first to comment</string>
   <string name="v3_label_tags">Tags</string>
   <string name="v3_label_series">Series</string>
   <string name="v3_label_related">Related</string>

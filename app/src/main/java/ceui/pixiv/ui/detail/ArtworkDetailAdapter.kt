@@ -439,6 +439,9 @@ class ArtworkDetailAdapter(
         RecyclerView.ViewHolder(b.root) {
         fun bind(item: ArtworkDetailItem.Comments) {
             b.commentsList.removeAllViews()
+            val hasComments = item.comments.isNotEmpty()
+            b.commentsEmpty.isVisible = !hasComments
+            b.commentsMore.isVisible = hasComments
             item.comments.forEach { comment ->
                 val row = LinearLayout(ctx).apply {
                     orientation = LinearLayout.HORIZONTAL; setPadding(0, 14.ppppx, 0, 14.ppppx)

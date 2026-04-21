@@ -938,6 +938,7 @@
     <string name="v3_label_likes">点赞</string>
     <string name="v3_label_bookmarks">收藏</string>
     <string name="v3_label_comments">评论</string>
+    <string name="v3_no_comments_yet">还没有评论，来抢沙发吧</string>
     <string name="v3_label_tags">标签</string>
     <string name="v3_label_series">系列</string>
     <string name="v3_label_related">相关作品</string>

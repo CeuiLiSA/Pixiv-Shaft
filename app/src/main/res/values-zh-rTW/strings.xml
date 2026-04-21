@@ -781,6 +781,7 @@
   <string name="v3_label_likes">按讚</string>
   <string name="v3_label_bookmarks">收藏</string>
   <string name="v3_label_comments">留言</string>
+  <string name="v3_no_comments_yet">還沒有留言，來搶沙發吧</string>
   <string name="v3_label_tags">標籤</string>
   <string name="v3_label_series">系列</string>
   <string name="v3_label_related">相關作品</string>

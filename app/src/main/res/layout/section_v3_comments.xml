@@ -32,6 +32,18 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" />
 
+    <!-- Empty state when there are no comments yet -->
+    <TextView
+        android:id="@+id/comments_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingVertical="24dp"
+        android:text="@string/v3_no_comments_yet"
+        android:textColor="@color/v3_text_3"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
     <!-- View all comments -->
     <TextView
         android:id="@+id/comments_more"

@@ -667,6 +667,7 @@
   <string name="v3_label_likes">Beğeni</string>
   <string name="v3_label_bookmarks">Yer İşaretleri</string>
   <string name="v3_label_comments">Yorumlar</string>
+  <string name="v3_no_comments_yet">Henüz yorum yok — ilk yorumu sen yap</string>
   <string name="v3_label_tags">Etiketler</string>
   <string name="v3_label_series">Seri</string>
   <string name="v3_label_related">İlgili</string>
