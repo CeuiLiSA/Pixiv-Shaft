@@ -8,5 +8,6 @@ object FlipAnimatorFactory {
         FlipMode.Cover -> CoverFlipAnimator()
         FlipMode.Slide -> SlideFlipAnimator()
         FlipMode.None -> NoneFlipAnimator()
+        FlipMode.Scroll -> NoneFlipAnimator() // scroll mode bypasses NovelReaderView
     }
 }

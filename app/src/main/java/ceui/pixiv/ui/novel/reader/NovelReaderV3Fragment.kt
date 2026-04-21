@@ -46,7 +46,10 @@ import ceui.pixiv.ui.novel.reader.model.TextSelection
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.render.GlideImageBitmapSource
 import ceui.pixiv.ui.novel.reader.render.HighlightRange
+import ceui.pixiv.ui.novel.reader.model.FlipMode
+import ceui.pixiv.ui.novel.reader.paginate.ImageResolver
 import ceui.pixiv.ui.novel.reader.render.NovelReaderView
+import ceui.pixiv.ui.novel.reader.render.NovelScrollReaderView
 import ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView
 import ceui.pixiv.ui.novel.reader.render.PageOverlays
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
@@ -72,6 +75,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     }
 
     private var readerView: NovelReaderView? = null
+    private var scrollReaderView: NovelScrollReaderView? = null
     private var imageSource: GlideImageBitmapSource? = null
 
     private var searchRegex: Boolean = false
@@ -113,11 +117,16 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         wireSystemBarInsets()
         wireBackPress(ch)
 
-        observeReaderState(rv, tb, bb, so)
+        observeReaderState(rv, tb, bb, so, ch)
 
         rv.setTouchLocked(ReaderSettings.touchLocked)
         rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
         binding.root.keepScreenOn = ReaderSettings.keepScreenOn
+
+        if (ReaderSettings.flipMode == FlipMode.Scroll) {
+            rv.visibility = View.GONE
+            ensureScrollReaderView(ch).visibility = View.VISIBLE
+        }
         viewModel.load()
     }
 
@@ -255,13 +264,17 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         tb: ReaderTopBar,
         bb: ReaderBottomBar,
         so: ReaderSearchOverlay,
+        ch: ReaderChrome,
     ) {
         ReaderSettings.changes.observe(viewLifecycleOwner) { event ->
             when (event) {
                 ReaderSettings.ChangeEvent.Layout,
                 ReaderSettings.ChangeEvent.Theme,
-                -> pushStyleAndGeometryIfReady()
-                ReaderSettings.ChangeEvent.Flip -> rv.setFlipMode(ReaderSettings.flipMode)
+                -> {
+                    pushStyleAndGeometryIfReady()
+                    rebindScrollViewIfActive()
+                }
+                ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.Interaction -> {
                     rv.setTouchLocked(ReaderSettings.touchLocked)
                     rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
@@ -278,6 +291,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             if (state is NovelReaderV3ViewModel.LoadState.Loaded) {
                 tb.setTitle(state.novel?.title ?: state.webNovel.title.orEmpty())
                 pushStyleAndGeometryIfReady()
+                rebindScrollViewIfActive()
             }
         }
 
@@ -335,6 +349,64 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     private fun clearSelection() {
         activeSelection = null
         rebuildOverlays()
+    }
+
+    // ---- Scroll / paged mode switch ----------------------------------------
+
+    private fun applyFlipMode(rv: NovelReaderView, chrome: ReaderChrome) {
+        val mode = ReaderSettings.flipMode
+        if (mode == FlipMode.Scroll) {
+            // Save paged position before hiding
+            rv.visibility = View.GONE
+            ensureScrollReaderView(chrome).visibility = View.VISIBLE
+            rebindScrollViewIfActive()
+        } else {
+            scrollReaderView?.let { sv ->
+                viewModel.onScrollPositionChanged(sv.currentCharIndex())
+                sv.visibility = View.GONE
+            }
+            rv.visibility = View.VISIBLE
+            rv.setFlipMode(mode)
+            // Re-paginate to land on the char position the user was reading in scroll mode
+            pushStyleAndGeometryIfReady()
+        }
+    }
+
+    private fun ensureScrollReaderView(chrome: ReaderChrome): NovelScrollReaderView {
+        scrollReaderView?.let { return it }
+        return NovelScrollReaderView(requireContext()).also { sv ->
+            sv.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            sv.visibility = View.GONE
+            binding.readerStage.addView(sv)
+            scrollReaderView = sv
+            sv.onCenterTap = { chrome.toggle() }
+            sv.onImageTap = { image -> openImageElement(image) }
+            sv.onCharIndexChanged = { charIndex -> viewModel.onScrollPositionChanged(charIndex) }
+        }
+    }
+
+    private fun rebindScrollViewIfActive() {
+        val sv = scrollReaderView ?: return
+        if (sv.visibility != View.VISIBLE) return
+        val loaded = viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded ?: return
+        val ctx = context ?: return
+        val snapshot = ReaderSettings.snapshot()
+        val theme = ReaderTheme.findPresetById(snapshot.themeId) ?: ReaderTheme.KRAFT
+        val style = TypeStyle.from(ctx, snapshot, theme)
+        val density = resources.displayMetrics.density
+        val horizontal = ReaderSettings.horizontalMarginDp * density
+        val verticalMargin = ReaderSettings.verticalMarginDp * density
+        val geom = PageGeometry(
+            width = sv.width.coerceAtLeast(1),
+            height = sv.height.coerceAtLeast(1),
+            paddingLeft = horizontal,
+            paddingTop = maxOf(topInsetPx.toFloat(), verticalMargin),
+            paddingRight = horizontal,
+            paddingBottom = maxOf(bottomInsetPx.toFloat(), verticalMargin),
+        )
+        sv.bind(loaded.tokens, style, geom, ImageResolver.of(loaded.webNovel))
+        val charIndex = ReaderProgressStore.loadCharIndex(viewModel.novelId)
+        if (charIndex > 0) sv.jumpToCharIndex(charIndex)
     }
 
     private fun togglePixivBookmark() {
@@ -628,6 +700,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         imageSource?.clear()
         imageSource = null
         readerView = null
+        scrollReaderView = null
     }
 
     private fun resolveNovelId(): Long {

@@ -163,6 +163,11 @@ class NovelReaderV3ViewModel(
         ReaderProgressStore.saveProgress(novelId, page.charStart, index, pages.size)
     }
 
+    fun onScrollPositionChanged(charIndex: Int) {
+        desiredCharIndex = charIndex
+        ReaderProgressStore.saveProgress(novelId, charIndex, 0, 0)
+    }
+
     fun jumpToCharIndex(charIndex: Int) {
         desiredCharIndex = charIndex
         val pages = _pagination.value?.pages ?: return

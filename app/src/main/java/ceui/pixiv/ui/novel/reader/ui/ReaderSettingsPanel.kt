@@ -134,7 +134,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         val s = binding.sectionFlip
         s.rowFlipMode.bindSegmented(
             ctx, "翻页动画",
-            listOf("仿真" to FlipMode.Simulation, "覆盖" to FlipMode.Cover, "平移" to FlipMode.Slide, "无" to FlipMode.None),
+            listOf("仿真" to FlipMode.Simulation, "覆盖" to FlipMode.Cover, "平移" to FlipMode.Slide, "无" to FlipMode.None, "滚动" to FlipMode.Scroll),
             ReaderSettings.flipMode,
         ) { ReaderSettings.flipMode = it }
         s.rowVolumeKeyFlip.bindSwitch(
