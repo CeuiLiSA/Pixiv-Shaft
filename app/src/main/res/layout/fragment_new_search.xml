@@ -33,25 +33,45 @@
                 app:titleTextColor="@android:color/white">
 
 
-                <EditText
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:id="@+id/search_box"
-                    android:imeOptions="actionSearch"
-                    android:singleLine="true"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textSize="15sp"
-                    android:textColor="@color/rank_text_color"
-                    android:background="@drawable/search_et_bg"
-                    android:paddingStart="@dimen/eight_dp"
-                    android:paddingEnd="@dimen/sixteen_dp"
-                    android:paddingTop="@dimen/eight_dp"
-                    android:paddingBottom="@dimen/eight_dp"
                     android:layout_height="wrap_content"
-                    android:inputType="text">
+                    android:background="@drawable/search_et_bg"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/eight_dp"
+                    android:paddingVertical="4dp">
 
+                    <HorizontalScrollView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
 
-                </EditText>
+                        <ceui.pixiv.widgets.V3TagFlowView
+                            android:id="@+id/search_tags_flow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:flexWrap="nowrap" />
+                    </HorizontalScrollView>
+
+                    <EditText
+                        android:id="@+id/search_box"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:ellipsize="end"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingStart="@dimen/eight_dp"
+                        android:paddingEnd="@dimen/sixteen_dp"
+                        android:paddingTop="@dimen/eight_dp"
+                        android:paddingBottom="@dimen/eight_dp"
+                        android:singleLine="true"
+                        android:textColor="@color/rank_text_color"
+                        android:textSize="15sp" />
+                </LinearLayout>
 
             </androidx.appcompat.widget.Toolbar>
 

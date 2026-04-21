@@ -54,6 +54,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private int index = 0;
     private int mPosition = 0;
     private boolean isPremium = false;
+    private final java.util.List<String> committedTags = new java.util.ArrayList<>();
 
     @Override
     protected void initBundle(Bundle bundle) {
@@ -86,7 +87,22 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 getString(R.string.string_138),
                 getString(R.string.string_432)
         };
-        baseBind.searchBox.setText(keyWord);
+        // Seed committed chips from the incoming keyword (space-separated), clear
+        // the input itself — the chip row represents the active query.
+        if (!TextUtils.isEmpty(keyWord)) {
+            for (String part : keyWord.trim().split("\\s+")) {
+                if (!TextUtils.isEmpty(part)) committedTags.add(part);
+            }
+        }
+        baseBind.searchTagsFlow.setShowRemoveIcon(true);
+        refreshChipsUI();
+        baseBind.searchTagsFlow.setOnTagClick(name -> {
+            committedTags.remove(name);
+            refreshChipsUI();
+            pushKeywordFromChipsAndInput();
+            triggerSearchIfNotEmpty();
+            return kotlin.Unit.INSTANCE;
+        });
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager(), 0) {
             @NonNull
             @Override
@@ -203,7 +219,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                searchModel.getKeyword().setValue(baseBind.searchBox.getText().toString());
+                pushKeywordFromChipsAndInput();
             }
         });
         baseBind.searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -211,6 +227,13 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 String trimmedKeyword = baseBind.searchBox.getText().toString().trim();
                 if (TextUtils.isEmpty(trimmedKeyword) && TextUtils.isEmpty(searchModel.getStarSize().getValue())) {
+                    if (!committedTags.isEmpty()) {
+                        // Enter with empty input + existing chips → just fire the search.
+                        searchModel.getKeyword().setValue(joinedChips());
+                        searchModel.getNowGo().setValue("search_now");
+                        Common.hideKeyboard(mActivity);
+                        return true;
+                    }
                     Common.showToast(getString(R.string.string_139));
                     return false;
                 }
@@ -254,6 +277,14 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     });
                 }
                 else{
+                    // Commit the freshly-typed keyword as a chip, clear the input,
+                    // re-join all chips into the search keyword, then fire search.
+                    if (!committedTags.contains(trimmedKeyword)) {
+                        committedTags.add(trimmedKeyword);
+                        refreshChipsUI();
+                    }
+                    baseBind.searchBox.setText("");
+                    searchModel.getKeyword().setValue(joinedChips());
                     searchModel.getNowGo().setValue("search_now");
                     Common.hideKeyboard(mActivity);
                 }
@@ -272,6 +303,34 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             fragmentManager.beginTransaction()
                     .show(fragmentFilter)
                     .commitNowAllowingStateLoss();
+        }
+    }
+
+    private void refreshChipsUI() {
+        baseBind.searchTagsFlow.setTagNames(new java.util.ArrayList<>(committedTags));
+    }
+
+    private String joinedChips() {
+        return android.text.TextUtils.join(" ", committedTags);
+    }
+
+    private void pushKeywordFromChipsAndInput() {
+        String typed = baseBind.searchBox.getText().toString();
+        String joined = joinedChips();
+        String combined;
+        if (TextUtils.isEmpty(joined)) {
+            combined = typed;
+        } else if (TextUtils.isEmpty(typed.trim())) {
+            combined = joined;
+        } else {
+            combined = joined + " " + typed;
+        }
+        searchModel.getKeyword().setValue(combined);
+    }
+
+    private void triggerSearchIfNotEmpty() {
+        if (!committedTags.isEmpty()) {
+            searchModel.getNowGo().setValue("search_now");
         }
     }
 

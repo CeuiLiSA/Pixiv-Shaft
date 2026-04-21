@@ -21,5 +21,6 @@
     <ceui.pixiv.widgets.V3TagFlowView
         android:id="@+id/tags_flow"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        app:flexWrap="wrap" />
 </LinearLayout>

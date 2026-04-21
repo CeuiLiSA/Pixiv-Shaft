@@ -7,6 +7,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
+import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Params
@@ -14,14 +16,18 @@ import ceui.lisa.utils.V3Palette
 import ceui.loxia.Tag
 import ceui.pixiv.utils.ppppx
 import com.google.android.flexbox.AlignItems
-import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
 
 /**
  * V3 风格标签流 — 胶囊形背景 + `# name  译名` 格式 + 点击跳 SearchActivity。
  * 自带 signature dedupe，同一组 tags 多次 setTags 不会重建 view。
  *
- * 两个 API 分别接 loxia [Tag]（小说）和 lisa [TagsBean]（插画）。
+ * 三个 API 按数据源选：
+ * - [setTags]：loxia 的 [Tag]（小说）
+ * - [setJavaTags]：lisa 的 [TagsBean]（插画）
+ * - [setTagNames]：纯字符串列表（搜索页输入框的 chip 输入）
+ *
+ * flexWrap 走 XML 原生属性：`app:flexWrap="wrap"` 或 `"nowrap"`。
  */
 class V3TagFlowView @JvmOverloads constructor(
     context: Context,
@@ -35,9 +41,24 @@ class V3TagFlowView @JvmOverloads constructor(
     /** Which SearchActivity tab to land on — 0 = illust, 1 = novel. */
     var searchIndex: Int = 0
 
+    /**
+     * When non-null, chip taps invoke this instead of opening SearchActivity.
+     * Useful for e.g. tag-input in SearchActivity itself (tap = remove chip).
+     */
+    var onTagClick: ((name: String) -> Unit)? = null
+
+    /** Show a trailing × icon on each chip — for editable/removable chip rows. */
+    var showRemoveIcon: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                lastSignature = null // force re-render
+            }
+        }
+
     init {
         alignItems = AlignItems.FLEX_START
-        flexWrap = FlexWrap.WRAP
+        // flexWrap 由 XML / caller 决定；不在 init 里强塞，避免 `app:flexWrap="nowrap"` 被覆盖。
     }
 
     fun setTags(tags: List<Tag>) {
@@ -46,6 +67,11 @@ class V3TagFlowView @JvmOverloads constructor(
 
     fun setJavaTags(tags: List<TagsBean>) {
         renderPairs(tags.map { (it.name ?: "") to it.translated_name })
+    }
+
+    /** Render chips from plain strings (no translated name). */
+    fun setTagNames(names: List<String>) {
+        renderPairs(names.map { it to null })
     }
 
     private fun renderPairs(pairs: List<Pair<String, String?>>) {
@@ -61,6 +87,7 @@ class V3TagFlowView @JvmOverloads constructor(
         val density = context.resources.displayMetrics.density
         val tagBgState = palette.tagLockedBg(999f * density).constantState
 
+        val closeIconSize = if (showRemoveIcon) 14.ppppx else 0
         pairs.forEach { (name, translated) ->
             val tv = TextView(context).apply {
                 text = buildString {
@@ -72,17 +99,34 @@ class V3TagFlowView @JvmOverloads constructor(
                 textSize = 13f
                 setTextColor(palette.textTag)
                 background = tagBgState?.newDrawable()?.mutate()
-                setPadding(14.ppppx, 7.ppppx, 14.ppppx, 7.ppppx)
+                // Trailing × icon for editable chip rows.
+                if (showRemoveIcon) {
+                    val close = AppCompatResources
+                        .getDrawable(context, R.drawable.ic_close_black_24dp)
+                        ?.mutate()
+                    close?.setBounds(0, 0, closeIconSize, closeIconSize)
+                    close?.setTint(palette.textTag)
+                    setCompoundDrawablesRelative(null, null, close, null)
+                    compoundDrawablePadding = 4.ppppx
+                }
+                // Shrink end padding when the × occupies space; otherwise the chip looks lopsided.
+                val endPadding = if (showRemoveIcon) 10.ppppx else 14.ppppx
+                setPaddingRelative(14.ppppx, 7.ppppx, endPadding, 7.ppppx)
                 layoutParams = LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                 ).apply { setMargins(0, 0, 8.ppppx, 8.ppppx) }
                 setOnClickListener {
-                    val intent = Intent(context, SearchActivity::class.java).apply {
-                        putExtra(Params.KEY_WORD, name)
-                        putExtra(Params.INDEX, searchIndex)
+                    val custom = onTagClick
+                    if (custom != null) {
+                        custom.invoke(name)
+                    } else {
+                        val intent = Intent(context, SearchActivity::class.java).apply {
+                            putExtra(Params.KEY_WORD, name)
+                            putExtra(Params.INDEX, searchIndex)
+                        }
+                        context.startActivity(intent)
                     }
-                    context.startActivity(intent)
                 }
             }
             applyTouchScale(tv, 0.94f)
