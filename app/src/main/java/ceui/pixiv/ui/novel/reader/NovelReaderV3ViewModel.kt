@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.novel.reader
 
+import android.os.Handler
+import android.os.HandlerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -26,6 +28,7 @@ import ceui.pixiv.ui.novel.reader.feature.SearchEngine
 import ceui.pixiv.ui.novel.reader.model.SearchHit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -96,6 +99,13 @@ class NovelReaderV3ViewModel(
     private var pendingGeometry: PageGeometry? = null
     private var desiredCharIndex: Int = 0
     private var paginationJob: Job? = null
+
+    // Dedicated Looper thread for pagination — TextMeasurer drives an
+    // AppCompatTextView which requires a Looper, but running it on Main
+    // blocks the UI for long novels. HandlerThread provides the Looper;
+    // its dispatcher bridges into coroutines so results post back to Main.
+    private val paginationThread = HandlerThread("novel-paginate").apply { start() }
+    private val paginationDispatcher = Handler(paginationThread.looper).asCoroutineDispatcher()
 
     fun load() {
         if (_loadState.value is LoadState.Loading) return
@@ -279,26 +289,31 @@ class NovelReaderV3ViewModel(
         paginationJob?.cancel()
         val resolver = imageResolver
         val startChar = desiredCharIndex
-        // Pagination runs on the main thread because the paginator drives
-        // real AppCompatTextView instances (via [TextMeasurer]) to mirror
-        // the reader's rendering layout pipeline exactly. TextView
-        // construction / setText / measure all expect a Looper, and the
-        // per-paragraph measurement is cheap enough (StaticLayout build,
-        // which is what TextView does internally anyway) that a novel's
-        // worth of it is a one-shot ms-level pause.
-        paginationJob = viewModelScope.launch(Dispatchers.Main) {
-            val measurer = TextMeasurer(Shaft.getContext())
-            val paginator = Paginator(toks, geom, style, measurer, resolver)
-            val pages = paginator.paginate()
-            val start = if (pages.isEmpty()) 0 else pages.indexOfFirst { it.charEnd >= startChar }.coerceAtLeast(0)
-            _pagination.value = PaginationState(pages, start, style, geom)
-            _currentPageIndex.value = start
+        // Pagination runs on [paginationThread] — a dedicated HandlerThread
+        // whose Looper satisfies the AppCompatTextView that [TextMeasurer]
+        // drives internally. Running off the main thread keeps the UI
+        // responsive for long novels; results are posted back to Main via
+        // the surrounding viewModelScope launch (Dispatchers.Main.immediate).
+        paginationJob = viewModelScope.launch {
+            val result = withContext(paginationDispatcher) {
+                val measurer = TextMeasurer(Shaft.getContext())
+                val paginator = Paginator(toks, geom, style, measurer, resolver)
+                val pages = paginator.paginate()
+                val start = if (pages.isEmpty()) 0 else {
+                    pages.indexOfFirst { it.charEnd >= startChar }.coerceAtLeast(0)
+                }
+                PaginationState(pages, start, style, geom)
+            }
+            // Back on Main — safe to touch LiveData.
+            _pagination.value = result
+            _currentPageIndex.value = result.startPageIndex
         }
     }
 
     override fun onCleared() {
         super.onCleared()
         paginationJob?.cancel()
+        paginationThread.quitSafely()
     }
 
     companion object {
