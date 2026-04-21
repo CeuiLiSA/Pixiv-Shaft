@@ -190,6 +190,9 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 Check out the [FAQ](./FAQ.md) for common questions and troubleshooting.
 
+For customizing where files go and how they're named, see the
+[Download path & filename guide](./DOWNLOAD.md).
+
 ## License
 
 ```
