@@ -21,6 +21,7 @@ import ceui.lisa.databinding.ItemReaderSettingSegmentedBinding
 import ceui.lisa.databinding.ItemReaderSettingSliderBinding
 import ceui.lisa.databinding.ItemReaderSettingSwitchBinding
 import ceui.pixiv.ui.novel.reader.model.FlipMode
+import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
 import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
 import ceui.pixiv.ui.novel.reader.model.ScreenOrientation
@@ -132,9 +133,21 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
 
     private fun bindFlip(ctx: Context) {
         val s = binding.sectionFlip
-        s.rowFlipMode.bindSegmented(
+        val flipRow = s.rowFlipMode
+        val isHorizontal = ReaderSettings.readingDirection == ReadingDirection.Horizontal
+        flipRow.root.visibility = if (isHorizontal) View.VISIBLE else View.GONE
+
+        s.rowReadingDirection.bindSegmented(
+            ctx, "阅读方向",
+            listOf("横向翻页" to ReadingDirection.Horizontal, "纵向滚动" to ReadingDirection.Vertical),
+            ReaderSettings.readingDirection,
+        ) {
+            ReaderSettings.readingDirection = it
+            flipRow.root.visibility = if (it == ReadingDirection.Horizontal) View.VISIBLE else View.GONE
+        }
+        flipRow.bindSegmented(
             ctx, "翻页动画",
-            listOf("仿真" to FlipMode.Simulation, "覆盖" to FlipMode.Cover, "平移" to FlipMode.Slide, "无" to FlipMode.None, "滚动" to FlipMode.Scroll),
+            listOf("仿真" to FlipMode.Simulation, "覆盖" to FlipMode.Cover, "平移" to FlipMode.Slide, "无" to FlipMode.None),
             ReaderSettings.flipMode,
         ) { ReaderSettings.flipMode = it }
         s.rowVolumeKeyFlip.bindSwitch(

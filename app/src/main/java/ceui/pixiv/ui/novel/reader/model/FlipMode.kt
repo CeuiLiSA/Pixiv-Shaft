@@ -5,7 +5,11 @@ enum class FlipMode {
     Cover,
     Slide,
     None,
-    Scroll,
+}
+
+enum class ReadingDirection {
+    Horizontal,
+    Vertical,
 }
 
 enum class ScreenOrientation {

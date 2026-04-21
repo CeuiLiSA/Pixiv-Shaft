@@ -22,6 +22,12 @@
             android:textStyle="bold"/>
 
         <include
+            android:id="@+id/row_reading_direction"
+            layout="@layout/item_reader_setting_segmented"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <include
             android:id="@+id/row_flip_mode"
             layout="@layout/item_reader_setting_segmented"
             android:layout_width="match_parent"

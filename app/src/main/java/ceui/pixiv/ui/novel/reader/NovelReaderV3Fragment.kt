@@ -45,7 +45,7 @@ import ceui.pixiv.ui.novel.reader.model.TextSelection
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.render.GlideImageBitmapSource
 import ceui.pixiv.ui.novel.reader.render.HighlightRange
-import ceui.pixiv.ui.novel.reader.model.FlipMode
+import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.paginate.ImageResolver
 import ceui.pixiv.ui.novel.reader.render.NovelReaderView
 import ceui.pixiv.ui.novel.reader.render.NovelScrollReaderView
@@ -122,7 +122,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
         binding.root.keepScreenOn = ReaderSettings.keepScreenOn
 
-        if (ReaderSettings.flipMode == FlipMode.Scroll) {
+        if (ReaderSettings.readingDirection == ReadingDirection.Vertical) {
             rv.visibility = View.GONE
             ensureScrollReaderView(ch).visibility = View.VISIBLE
             // Data binds later: viewModel.load() → Loaded observer → rebindScrollViewIfActive()
@@ -298,7 +298,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
         viewModel.pagination.observe(viewLifecycleOwner) { pag ->
             if (pag == null) return@observe
-            if (ReaderSettings.flipMode == FlipMode.Scroll) return@observe
+            if (ReaderSettings.readingDirection == ReadingDirection.Vertical) return@observe
             rv.setStyle(pag.style, pag.geometry)
             rv.bind(pag.pages, pag.startPageIndex)
             rv.setFlipMode(ReaderSettings.flipMode)
@@ -358,9 +358,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     // ---- Scroll / paged mode switch ----------------------------------------
 
     private fun applyFlipMode(rv: NovelReaderView, chrome: ReaderChrome) {
-        val mode = ReaderSettings.flipMode
-        if (mode == FlipMode.Scroll) {
-            // Save paged position before hiding
+        if (ReaderSettings.readingDirection == ReadingDirection.Vertical) {
             rv.visibility = View.GONE
             ensureScrollReaderView(chrome).visibility = View.VISIBLE
             rebindScrollViewIfActive()
@@ -370,7 +368,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
                 sv.visibility = View.GONE
             }
             rv.visibility = View.VISIBLE
-            rv.setFlipMode(mode)
+            rv.setFlipMode(ReaderSettings.flipMode)
             // Invalidate dedup cache so pushStyle actually triggers re-pagination.
             // The cache keys don't include flipMode, so a mode-only change would
             // be suppressed without this reset.

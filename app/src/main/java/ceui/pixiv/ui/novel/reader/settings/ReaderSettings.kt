@@ -3,6 +3,7 @@ package ceui.pixiv.ui.novel.reader.settings
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.pixiv.ui.novel.reader.model.FlipMode
+import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
 import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
 import ceui.pixiv.ui.novel.reader.model.ScreenOrientation
@@ -159,7 +160,16 @@ object ReaderSettings {
             emit(ChangeEvent.Brightness)
         }
 
-    // ---------- Flip ----------
+    // ---------- Reading direction + Flip ----------
+    var readingDirection: ReadingDirection
+        get() = runCatching {
+            ReadingDirection.valueOf(store.decodeString(K_READING_DIR, ReadingDirection.Horizontal.name) ?: ReadingDirection.Horizontal.name)
+        }.getOrDefault(ReadingDirection.Horizontal)
+        set(value) {
+            store.encode(K_READING_DIR, value.name)
+            emit(ChangeEvent.Flip)
+        }
+
     var flipMode: FlipMode
         get() = runCatching {
             FlipMode.valueOf(store.decodeString(K_FLIP_MODE, FlipMode.Simulation.name) ?: FlipMode.Simulation.name)
@@ -381,6 +391,7 @@ object ReaderSettings {
     private const val K_SYS_BRIGHTNESS = "r_sys_brightness"
     private const val K_BRIGHTNESS = "r_brightness"
     private const val K_WARM_FILTER = "r_warm_filter"
+    private const val K_READING_DIR = "r_reading_direction"
     private const val K_FLIP_MODE = "r_flip_mode"
     private const val K_VOLUME_FLIP = "r_volume_flip"
     private const val K_TAP_REVERSED = "r_tap_reversed"
