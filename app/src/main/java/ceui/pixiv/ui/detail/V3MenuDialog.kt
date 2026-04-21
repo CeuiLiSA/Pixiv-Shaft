@@ -13,6 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import ceui.lisa.R
 
 class V3MenuDialog : DialogFragment() {
@@ -24,6 +25,12 @@ class V3MenuDialog : DialogFragment() {
     )
 
     private val items = mutableListOf<MenuItem>()
+
+    fun setItems(newItems: List<MenuItem>): V3MenuDialog {
+        items.clear()
+        items.addAll(newItems)
+        return this
+    }
 
     fun addItem(label: String, @DrawableRes icon: Int, onClick: () -> Unit): V3MenuDialog {
         items.add(MenuItem(label, icon, onClick))
@@ -84,4 +91,20 @@ class V3MenuDialog : DialogFragment() {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
     }
+}
+
+class V3MenuBuilder {
+    private val items = mutableListOf<V3MenuDialog.MenuItem>()
+
+    fun item(label: String, @DrawableRes icon: Int, onClick: () -> Unit) {
+        items.add(V3MenuDialog.MenuItem(label, icon, onClick))
+    }
+
+    internal fun build(): List<V3MenuDialog.MenuItem> = items.toList()
+}
+
+fun Fragment.showV3Menu(tag: String = "V3Menu", builder: V3MenuBuilder.() -> Unit) {
+    val items = V3MenuBuilder().apply(builder).build()
+    if (items.isEmpty()) return
+    V3MenuDialog().setItems(items).show(childFragmentManager, tag)
 }
