@@ -732,28 +732,49 @@
 
                         <View style="@style/half_divider" />
 
-                        <RelativeLayout
+                        <LinearLayout
                             android:id="@+id/file_name_rela"
-                            style="@style/ripple_rela">
+                            style="@style/ripple_rela"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingTop="@dimen/twelve_dp"
+                            android:paddingBottom="@dimen/twelve_dp">
 
-                            <TextView
-                                android:id="@+id/file_name_s"
-                                style="@style/setting_text_left_and_center"
-                                android:text="@string/custom_file_name" />
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
 
-                            <TextView
-                                android:id="@+id/file_name"
+                                <TextView
+                                    android:id="@+id/file_name_s"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/sixteen_dp"
+                                    android:layout_marginEnd="@dimen/sixteen_dp"
+                                    android:textColor="@color/black_to_grey"
+                                    android:textSize="16sp"
+                                    android:text="@string/custom_file_name" />
+
+                                <TextView
+                                    android:id="@+id/file_name"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/sixteen_dp"
+                                    android:layout_marginEnd="@dimen/sixteen_dp"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/string_94"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+
+                            <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
                                 android:layout_marginEnd="@dimen/sixteen_dp"
-                                android:text="@string/string_94"
-                                android:textColor="?attr/colorPrimary"
-                                android:textSize="14sp">
-
-                            </TextView>
-                        </RelativeLayout>
+                                android:src="@drawable/ic_chevron_right_black_24dp"
+                                app:tint="@color/black_to_grey" />
+                        </LinearLayout>
 
                         <View style="@style/half_divider" />
 
