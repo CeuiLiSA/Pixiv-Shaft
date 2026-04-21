@@ -97,7 +97,7 @@
                     android:maxLines="1"
                     android:textAllCaps="true"
                     android:textColor="@color/v3_text_3"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     tools:text="2 分钟前" />
 

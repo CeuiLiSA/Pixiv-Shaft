@@ -22,7 +22,7 @@
             android:letterSpacing="0.12"
             android:textAllCaps="true"
             android:textColor="@color/v3_text_3"
-            android:textSize="10sp"
+            android:textSize="12sp"
             android:textStyle="bold"
             tools:text="ARTIST'S WORKS" />
 

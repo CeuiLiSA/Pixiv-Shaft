@@ -47,7 +47,7 @@
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
                 android:textColor="@android:color/white"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:visibility="gone"
                 tools:text="3P"

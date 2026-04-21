@@ -15,7 +15,7 @@
         android:text="@string/v3_label_tags"
         android:textAllCaps="true"
         android:textColor="@color/v3_text_3"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
     <ceui.pixiv.widgets.V3TagFlowView

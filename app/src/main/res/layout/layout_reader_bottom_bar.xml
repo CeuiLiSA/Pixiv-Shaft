@@ -34,8 +34,8 @@
             android:id="@+id/txt_progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="72dp"
             android:gravity="center"
+            android:minWidth="72dp"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             tools:text="12 / 128" />
@@ -65,17 +65,19 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center"
             android:orientation="vertical">
+
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:src="@drawable/ic_reader_chapters"
                 app:tint="#FFFFFF" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="目录"
                 android:textColor="#CCFFFFFF"
-                android:textSize="10sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -86,17 +88,19 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center"
             android:orientation="vertical">
+
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:src="@drawable/ic_reader_settings"
                 app:tint="#FFFFFF" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="设置"
                 android:textColor="#CCFFFFFF"
-                android:textSize="10sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -107,19 +111,21 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center"
             android:orientation="vertical">
+
             <ImageView
                 android:id="@+id/img_theme_toggle"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:src="@drawable/ic_reader_theme"
                 app:tint="#FFFFFF" />
+
             <TextView
                 android:id="@+id/txt_theme_toggle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="夜间"
                 android:textColor="#CCFFFFFF"
-                android:textSize="10sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -130,17 +136,19 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center"
             android:orientation="vertical">
+
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:src="@drawable/ic_reader_search"
                 app:tint="#FFFFFF" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="搜索"
                 android:textColor="#CCFFFFFF"
-                android:textSize="10sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -151,17 +159,19 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center"
             android:orientation="vertical">
+
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:src="@drawable/ic_reader_more"
                 app:tint="#FFFFFF" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="更多"
                 android:textColor="#CCFFFFFF"
-                android:textSize="10sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
     </LinearLayout>

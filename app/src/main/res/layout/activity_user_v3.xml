@@ -103,7 +103,7 @@
                                     android:layout_gravity="center"
                                     android:text="★"
                                     android:textColor="#1A1A2E"
-                                    android:textSize="10sp" />
+                                    android:textSize="12sp" />
                             </FrameLayout>
                         </FrameLayout>
 
@@ -349,7 +349,7 @@
                     android:text="@string/v3_label_navigate"
                     android:textAllCaps="true"
                     android:textColor="@color/v3_text_3"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
 
@@ -386,7 +386,7 @@
                             android:text="@string/v3_label_profile_details"
                             android:textAllCaps="true"
                             android:textColor="@color/v3_text_3"
-                            android:textSize="10sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <ImageView
@@ -432,7 +432,7 @@
                             android:text="@string/v3_label_workspace"
                             android:textAllCaps="true"
                             android:textColor="@color/v3_text_3"
-                            android:textSize="10sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <ImageView

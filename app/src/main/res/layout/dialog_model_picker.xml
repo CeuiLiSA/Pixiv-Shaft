@@ -88,7 +88,7 @@
                     android:paddingVertical="3dp"
                     android:text="@string/string_model_tag_recommend"
                     android:textColor="@color/always_white"
-                    android:textSize="10sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     style="@style/textMontserratMedium"
@@ -99,7 +99,7 @@
                     android:paddingVertical="3dp"
                     android:text="@string/string_model_tag_quality"
                     android:textColor="#7B6CF6"
-                    android:textSize="10sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <TextView
@@ -149,7 +149,7 @@
                     android:paddingVertical="3dp"
                     android:text="@string/string_model_tag_fast"
                     android:textColor="#7B6CF6"
-                    android:textSize="10sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <TextView
