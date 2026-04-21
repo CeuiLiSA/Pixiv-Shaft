@@ -63,7 +63,7 @@ public class FragmentDiscovery extends LocalListFragment<FragmentBaseListBinding
             @Override
             public List<IllustsBean> first() {
                 Timber.d("%s first() >>>", TAG);
-                List<DiscoveryEntity> entities = DiscoveryPool.INSTANCE.getDiscoveryFeedDiversified(PAGE_SIZE);
+                List<DiscoveryEntity> entities = DiscoveryPool.INSTANCE.getDiscoveryFeedDiversified(30);
                 List<IllustsBean> result = convertAndMark(entities);
                 Timber.d("%s first() <<< %d entities -> %d illusts", TAG, entities.size(), result.size());
                 return result;
@@ -73,7 +73,7 @@ public class FragmentDiscovery extends LocalListFragment<FragmentBaseListBinding
             public List<IllustsBean> next() {
                 Timber.d("%s next() >>>", TAG);
                 // 不再使用 offset：markShown + recentlyReturnedIds 已确保不会重复
-                List<DiscoveryEntity> entities = DiscoveryPool.INSTANCE.getDiscoveryFeedDiversified(PAGE_SIZE);
+                List<DiscoveryEntity> entities = DiscoveryPool.INSTANCE.getDiscoveryFeedDiversified(30);
                 List<IllustsBean> result = convertAndMark(entities);
                 Timber.d("%s next() <<< %d entities -> %d illusts", TAG, entities.size(), result.size());
                 return result;
