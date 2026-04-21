@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bottom scrim on IllustAdapter's first page — transparent at top, dim-black at
+  bottom so the "展开剩余 X 张" pill reads cleanly over any illust. Only shown
+  when the adapter is in collapsed mode.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="90"
+        android:startColor="#CC000000"
+        android:centerColor="#55000000"
+        android:endColor="#00000000"
+        android:type="linear" />
+</shape>

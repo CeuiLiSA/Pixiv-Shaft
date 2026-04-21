@@ -46,7 +46,6 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     }
 
     private var illustAdapter: ceui.lisa.adapters.IllustAdapter? = null
-    private var expandPagesAdapter: ExpandPagesAdapter? = null
     private lateinit var headerAdapter: ArtworkDetailAdapter
     private lateinit var relatedAdapter: IAdapter
     private lateinit var loadingFooter: LoadingFooterAdapter
@@ -115,20 +114,10 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                 // Use 70% of screen height as max — not full screen, so single-page
                 // images don't stretch to fill the entire viewport
                 val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
-                if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
-                    val collapsible = CollapsibleIllustAdapter(
-                        mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
-                    )
-                    illustAdapter = collapsible
-                    val expand = ExpandPagesAdapter(collapsible.hiddenCount) {
-                        collapsible.expand()
-                        expandPagesAdapter?.hide()
-                    }
-                    expandPagesAdapter = expand
-                    concatAdapter.addAdapter(0, collapsible)
-                    concatAdapter.addAdapter(1, expand)
+                val adapter = if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
+                    CollapsibleIllustAdapter(mActivity, this@ArtworkV3Fragment, illust, maxHeight, false)
                 } else {
-                    illustAdapter = object : ceui.lisa.adapters.IllustAdapter(
+                    object : ceui.lisa.adapters.IllustAdapter(
                         mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
                     ) {
                         override fun onViewAttachedToWindow(holder: ceui.lisa.adapters.ViewHolder<ceui.lisa.databinding.RecyIllustDetailBinding>) {
@@ -140,8 +129,9 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                             }
                         }
                     }
-                    concatAdapter.addAdapter(0, illustAdapter!!)
                 }
+                illustAdapter = adapter
+                concatAdapter.addAdapter(0, adapter)
             }
         }
 
