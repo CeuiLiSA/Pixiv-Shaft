@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.detail
 
+import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
@@ -237,12 +238,15 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         }
 
         baseBind.fabBookmark.setOnLongClickListener {
-
+            val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnLongClickListener true
+            val intent = Intent(mContext, ceui.lisa.activities.TemplateActivity::class.java).apply {
+                putExtra(Params.ILLUST_ID, illust.id)
+                putExtra(Params.DATA_TYPE, Params.TYPE_ILLUST)
+                putExtra(Params.TAG_NAMES, illust.tagNames)
+                putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "按标签收藏")
+            }
+            startActivity(intent)
             true
-        }
-        baseBind.fabBookmarkPrivate.setOnClick {
-            val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
-            PixivOperate.postLike(illust, Params.TYPE_PRIVATE)
         }
 
         // More menu
