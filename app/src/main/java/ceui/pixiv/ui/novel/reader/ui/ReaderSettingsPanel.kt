@@ -67,6 +67,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     ): View {
         _binding = FragmentReaderSettingsBinding.inflate(inflater, container, false)
         val ctx = requireContext()
+        primaryColor = ceui.lisa.utils.Common.resolveThemeAttribute(ctx, androidx.appcompat.R.attr.colorPrimary)
+        textColor1 = ctx.getColor(R.color.v3_text_1)
+        surfaceColor = ctx.getColor(R.color.v3_surface_2)
         bindTypography(ctx)
         bindTheme(ctx)
         bindFlip(ctx)
@@ -74,6 +77,10 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         bindImage(ctx)
         return binding.root
     }
+
+    private var primaryColor: Int = 0xFF686BDD.toInt()
+    private var textColor1: Int = Color.BLACK
+    private var surfaceColor: Int = 0x1A000000
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -309,16 +316,16 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
             b.background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dp(container.context, 6f).toFloat()
-                setColor(if (isSelected) 0xFF5B6EFF.toInt() else 0x1A000000)
+                setColor(if (isSelected) primaryColor else surfaceColor)
             }
-            b.setTextColor(if (isSelected) Color.WHITE else Color.BLACK)
+            b.setTextColor(if (isSelected) Color.WHITE else textColor1)
         }
     }
 
     // ---- Theme picker -----------------------------------------------------
 
     private fun ItemReaderSettingScrollBinding.bindThemePicker(ctx: Context) {
-        labelText.text = "主题"
+        labelText.text = getString(R.string.reader_section_theme)
         val inner = itemsContainer
         inner.removeAllViews()
         val size = dp(ctx, 56f)
@@ -337,13 +344,13 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
                     setColor(theme.backgroundColor)
                     setStroke(
                         dp(ctx, 2f),
-                        if (theme.id == selectedId) 0xFF5B6EFF.toInt() else 0x22000000,
+                        if (theme.id == selectedId) primaryColor else 0x22000000,
                     )
                 }
             }
             val text = TextView(ctx).apply {
                 this.text = theme.displayName
-                setTextColor(Color.BLACK)
+                setTextColor(textColor1)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
                 layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -359,7 +366,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
                     val c = (v as FrameLayout).getChildAt(0)
                     val bg = c.background as GradientDrawable
                     val id = v.tag as String
-                    bg.setStroke(dp(ctx, 2f), if (id == theme.id) 0xFF5B6EFF.toInt() else 0x22000000)
+                    bg.setStroke(dp(ctx, 2f), if (id == theme.id) primaryColor else surfaceColor)
                 }
             }
             swatch.tag = theme.id
@@ -371,7 +378,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     // ---- Font picker ------------------------------------------------------
 
     private fun ItemReaderSettingScrollBinding.bindFontPicker(ctx: Context) {
-        labelText.text = "字体"
+        labelText.text = getString(R.string.reader_section_typography)
         val inner = itemsContainer
         inner.removeAllViews()
         val fonts: List<ReaderFont> = PresetFonts.BUILT_IN
@@ -405,9 +412,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         view.background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = dp(view.context, 6f).toFloat()
-            setColor(if (selected) 0xFF5B6EFF.toInt() else 0x1A000000)
+            setColor(if (selected) primaryColor else surfaceColor)
         }
-        view.setTextColor(if (selected) Color.WHITE else Color.BLACK)
+        view.setTextColor(if (selected) Color.WHITE else textColor1)
     }
 
     private fun dp(ctx: Context, value: Float): Int =
