@@ -3,6 +3,7 @@ package ceui.pixiv.ui.detail
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
+import android.widget.FrameLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.utils.Params
 import ceui.lisa.adapters.IAdapter
 import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.dialogs.MuteDialog
@@ -161,7 +163,7 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         }
 
         viewModel.isBookmarked.observe(viewLifecycleOwner) { bookmarked ->
-            baseBind.navBookmark.imageTintList = android.content.res.ColorStateList.valueOf(
+            baseBind.fabBookmark.imageTintList = android.content.res.ColorStateList.valueOf(
                 if (bookmarked) mContext.getColor(R.color.has_bookmarked)
                 else android.graphics.Color.WHITE
             )
@@ -170,18 +172,25 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
 
 
     private fun handleSystemInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(baseBind.navBar) { v, windowInsets ->
+        ViewCompat.setOnApplyWindowInsetsListener(baseBind.toolbar) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
-            v.setPadding(v.paddingLeft, insets.top + 12.ppppx, v.paddingRight, v.paddingBottom)
+            v.setPadding(v.paddingLeft, insets.top, v.paddingRight, v.paddingBottom)
+            windowInsets
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(baseBind.fabBar) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val lp = v.layoutParams as FrameLayout.LayoutParams
+            lp.bottomMargin = insets.bottom + 24.ppppx
+            v.layoutParams = lp
             windowInsets
         }
     }
 
     private fun setupNavBar(illustId: Long) {
-        baseBind.navBack.setOnClick { mActivity.finish() }
+        baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
 
-        // Download button
-        baseBind.navDownload.setOnClick {
+        // Floating action bar
+        baseBind.fabDownload.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
             val baseAct = mActivity as? ceui.lisa.activities.BaseActivity<*>
             if (illust.page_count == 1) {
@@ -194,10 +203,14 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
             }
         }
 
-        // Bookmark button
-        baseBind.navBookmark.setOnClick {
+        baseBind.fabBookmark.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
             PixivOperate.postLikeDefaultStarType(illust)
+        }
+
+        baseBind.fabBookmarkPrivate.setOnClick {
+            val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
+            PixivOperate.postLike(illust, Params.TYPE_PRIVATE)
         }
 
         // More menu

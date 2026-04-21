@@ -13,66 +13,93 @@
             android:layout_height="match_parent"
             android:overScrollMode="never" />
 
-        <!-- Fixed nav bar -->
-        <FrameLayout
-            android:id="@+id/nav_bar"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:elevation="8dp"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="8dp">
+            app:layout_collapseMode="pin"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow">
+
+            <TextView
+                android:id="@+id/toolbar_title"
+                style="@style/textMontserratBold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:alpha="0.0"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/v3_text_1"
+                android:textSize="18sp" />
 
             <ImageView
-                android:id="@+id/nav_back"
+                android:id="@+id/nav_more"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
-                android:layout_gravity="start"
+                android:layout_gravity="end"
                 android:background="@drawable/v3_nav_btn_bg"
                 android:contentDescription="@null"
                 android:padding="9dp"
-                android:src="@drawable/icon_navi_back"
+                android:src="@drawable/ic_more_vert_black_24dp"
+                app:tint="@color/white" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Floating action bar (download + bookmark + private bookmark) -->
+        <LinearLayout
+            android:id="@+id/fab_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/bg_v3_fab_bar"
+            android:elevation="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="6dp">
+
+            <ImageView
+                android:id="@+id/fab_download"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:padding="8dp"
+                android:src="@drawable/ic_file_download_black_24dp"
                 app:tint="@color/white" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:orientation="horizontal">
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:layout_marginHorizontal="2dp"
+                android:background="#33FFFFFF" />
 
-                <ImageView
-                    android:id="@+id/nav_download"
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/v3_nav_btn_bg"
-                    android:contentDescription="@null"
-                    android:padding="9dp"
-                    android:src="@drawable/ic_file_download_black_24dp"
-                    app:tint="@color/white" />
+            <ImageView
+                android:id="@+id/fab_bookmark"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:padding="8dp"
+                android:src="@drawable/ic_favorite_black_24dp"
+                app:tint="@color/white" />
 
-                <ImageView
-                    android:id="@+id/nav_bookmark"
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/v3_nav_btn_bg"
-                    android:contentDescription="@null"
-                    android:padding="9dp"
-                    android:src="@drawable/ic_favorite_black_24dp"
-                    app:tint="@color/white" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:layout_marginHorizontal="2dp"
+                android:background="#33FFFFFF" />
 
-                <ImageView
-                    android:id="@+id/nav_more"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:contentDescription="@null"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_more_vert_black_24dp"
-                    app:tint="@color/white" />
-            </LinearLayout>
-        </FrameLayout>
+            <ImageView
+                android:id="@+id/fab_bookmark_private"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:padding="8dp"
+                android:src="@drawable/ic_lock_black_24dp"
+                app:tint="@color/white" />
+
+        </LinearLayout>
 
     </FrameLayout>
 
