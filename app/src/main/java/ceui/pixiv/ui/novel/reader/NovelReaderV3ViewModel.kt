@@ -22,6 +22,8 @@ import ceui.pixiv.ui.novel.reader.paginate.ImageResolver
 import ceui.pixiv.ui.novel.reader.paginate.Paginator
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
+import ceui.pixiv.ui.novel.reader.feature.SearchEngine
+import ceui.pixiv.ui.novel.reader.model.SearchHit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -68,6 +70,23 @@ class NovelReaderV3ViewModel(
 
     /** User-placed position bookmarks ("save my spot here"). */
     val bookmarks: LiveData<List<NovelBookmarkEntity>> = bookmarkDao.observeForNovel(novelId)
+
+    /** Full-text search state, driven by the Fragment's search overlay. Kept
+     *  here so the result survives configuration changes (rotation). */
+    data class SearchResult(
+        val hits: List<SearchHit>,
+        val currentIndex: Int,
+    ) {
+        val total: Int get() = hits.size
+        val currentHit: SearchHit? get() = hits.getOrNull(currentIndex)
+
+        companion object {
+            val EMPTY = SearchResult(emptyList(), -1)
+        }
+    }
+
+    private val _searchResult = MutableLiveData(SearchResult.EMPTY)
+    val searchResult: LiveData<SearchResult> = _searchResult
 
     private var webNovel: WebNovel? = null
     private var tokens: List<ContentToken> = emptyList()
@@ -212,6 +231,43 @@ class NovelReaderV3ViewModel(
 
     fun deleteBookmark(id: Long) {
         viewModelScope.launch { bookmarkDao.deleteById(id) }
+    }
+
+    // ---- Search ---------------------------------------------------------------
+
+    fun performSearch(query: String, regex: Boolean) {
+        if (query.isEmpty()) {
+            _searchResult.value = SearchResult.EMPTY
+            return
+        }
+        val loaded = _loadState.value as? LoadState.Loaded ?: return
+        val source = loaded.webNovel.text.orEmpty()
+        val rawHits = SearchEngine.search(source, query, regex = regex, caseSensitive = false)
+        val pages = _pagination.value?.pages.orEmpty()
+        val annotated = SearchEngine.annotatePageIndices(rawHits, pages)
+        val idx = if (annotated.isEmpty()) -1 else 0
+        _searchResult.value = SearchResult(annotated, idx)
+    }
+
+    fun nextSearchHit(): SearchHit? {
+        val current = _searchResult.value ?: return null
+        if (current.hits.isEmpty()) return null
+        val newIndex = (current.currentIndex + 1) % current.hits.size
+        _searchResult.value = current.copy(currentIndex = newIndex)
+        return current.hits[newIndex]
+    }
+
+    fun prevSearchHit(): SearchHit? {
+        val current = _searchResult.value ?: return null
+        if (current.hits.isEmpty()) return null
+        val size = current.hits.size
+        val newIndex = ((current.currentIndex - 1) % size + size) % size
+        _searchResult.value = current.copy(currentIndex = newIndex)
+        return current.hits[newIndex]
+    }
+
+    fun clearSearch() {
+        _searchResult.value = SearchResult.EMPTY
     }
 
     private fun repaginateIfReady() {

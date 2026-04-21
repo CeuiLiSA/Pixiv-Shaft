@@ -73,6 +73,7 @@ class NovelReaderView @JvmOverloads constructor(
 
     private var settleAnimator: ValueAnimator? = null
     private var touchLocked: Boolean = false
+    private var tapReversed: Boolean = false
 
     // Listeners
     var onTapCenter: (() -> Unit)? = null
@@ -155,6 +156,10 @@ class NovelReaderView @JvmOverloads constructor(
     fun setTouchLocked(locked: Boolean) {
         touchLocked = locked
         if (locked) cancelAllGestures()
+    }
+
+    fun setTapZoneReversed(reversed: Boolean) {
+        tapReversed = reversed
     }
 
     fun bind(pages: List<Page>, initialIndex: Int = 0) {
@@ -380,8 +385,8 @@ class NovelReaderView @JvmOverloads constructor(
         // Single-tap zones: thirds horizontally.
         val third = width / 3f
         when {
-            x < third -> flipBackward()
-            x > width - third -> flipForward()
+            x < third -> if (tapReversed) flipForward() else flipBackward()
+            x > width - third -> if (tapReversed) flipBackward() else flipForward()
             else -> onTapCenter?.invoke()
         }
     }

@@ -41,6 +41,10 @@ object PageRenderer {
         style = Paint.Style.STROKE
         strokeWidth = 1f
     }
+    private val dividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1.5f
+    }
 
     fun drawBackground(
         canvas: Canvas,
@@ -102,18 +106,13 @@ object PageRenderer {
         }
         // Divider under chapter title
         val underlineY = element.bottom + style.chapterBottomGapPx * 0.35f
-        val dividerColor = style.dividerColor
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            this.style = Paint.Style.STROKE
-            strokeWidth = 1.5f
-            color = dividerColor
-        }
+        dividerPaint.color = style.dividerColor
         canvas.drawLine(
             paddingLeft + element.layout.width * 0.35f,
             underlineY,
             paddingLeft + element.layout.width * 0.65f,
             underlineY,
-            paint,
+            dividerPaint,
         )
     }
 

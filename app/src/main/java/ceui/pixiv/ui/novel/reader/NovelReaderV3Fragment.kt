@@ -45,7 +45,6 @@ import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
-import ceui.pixiv.ui.novel.reader.feature.SearchEngine
 import ceui.pixiv.ui.novel.reader.model.HighlightColor
 import ceui.pixiv.ui.novel.reader.model.HighlightSpan
 import ceui.pixiv.ui.novel.reader.model.SearchHit
@@ -98,8 +97,6 @@ class NovelReaderV3Fragment : Fragment() {
 
     private var imageSource: GlideImageBitmapSource? = null
 
-    private var searchHits: List<SearchHit> = emptyList()
-    private var currentHitIndex: Int = -1
     private var searchRegex: Boolean = false
 
     private var activeSelection: TextSelection? = null
@@ -342,6 +339,11 @@ class NovelReaderV3Fragment : Fragment() {
             rebuildOverlays()
         }
 
+        viewModel.searchResult.observe(viewLifecycleOwner) { result ->
+            searchOverlay.setCount(result.currentIndex, result.total)
+            rebuildOverlays()
+        }
+
         bottomBar.setDarkMode(currentThemeIsDark())
     }
 
@@ -410,10 +412,6 @@ class NovelReaderV3Fragment : Fragment() {
         val idSearchWeb = 4
         val idTranslate = 5
         val idHighlightParent = 9
-        val idHighlightYellow = 10
-        val idHighlightGreen = 11
-        val idHighlightPink = 12
-        val idHighlightBlue = 13
         val idNote = 20
 
         val menuEntries = listOf(
@@ -456,13 +454,6 @@ class NovelReaderV3Fragment : Fragment() {
     private fun clearSelection() {
         activeSelection = null
         rebuildOverlays()
-    }
-
-    private fun saveHighlight(color: HighlightColor) {
-        val sel = activeSelection ?: return
-        viewModel.addHighlight(sel.absoluteStart, sel.absoluteEnd, sel.text, color.argb)
-        Toast.makeText(requireContext(), "已高亮", Toast.LENGTH_SHORT).show()
-        clearSelection()
     }
 
     private fun pickHighlightColor() {
@@ -631,13 +622,16 @@ class NovelReaderV3Fragment : Fragment() {
         Toast.makeText(requireContext(), "已保存位置书签", Toast.LENGTH_SHORT).show()
     }
 
-    private fun searchHitRanges(): List<HighlightRange> = searchHits.mapIndexed { i, hit ->
-        HighlightRange(
-            absoluteStart = hit.absoluteStart,
-            absoluteEnd = hit.absoluteEnd,
-            color = 0x66FFEB3B.toInt(),
-            isCurrent = i == currentHitIndex,
-        )
+    private fun searchHitRanges(): List<HighlightRange> {
+        val result = viewModel.searchResult.value ?: return emptyList()
+        return result.hits.mapIndexed { i, hit ->
+            HighlightRange(
+                absoluteStart = hit.absoluteStart,
+                absoluteEnd = hit.absoluteEnd,
+                color = 0x66FFEB3B.toInt(),
+                isCurrent = i == result.currentIndex,
+            )
+        }
     }
 
     private fun copySelection() {
@@ -716,51 +710,27 @@ class NovelReaderV3Fragment : Fragment() {
     private fun closeSearch() {
         searchOverlay.setShown(false)
         searchOverlay.clear()
-        searchHits = emptyList()
-        currentHitIndex = -1
-        applySearchHighlights()
+        viewModel.clearSearch()
     }
 
     private fun runSearch(query: String) {
-        if (query.isEmpty()) {
-            searchHits = emptyList()
-            currentHitIndex = -1
-            searchOverlay.setCount(-1, 0)
-            applySearchHighlights()
-            return
-        }
-        val web = (viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded)?.webNovel
-            ?: return
-        val source = web.text.orEmpty()
-        val rawHits = SearchEngine.search(source, query, regex = searchRegex, caseSensitive = false)
-        val pages = viewModel.pagination.value?.pages.orEmpty()
-        searchHits = SearchEngine.annotatePageIndices(rawHits, pages)
-        currentHitIndex = if (searchHits.isEmpty()) -1 else 0
-        searchOverlay.setCount(currentHitIndex, searchHits.size)
-        if (currentHitIndex >= 0) goToHit(currentHitIndex)
-        applySearchHighlights()
+        viewModel.performSearch(query, searchRegex)
+        // Observer updates overlay count + highlights; navigate to first hit.
+        val hit = viewModel.searchResult.value?.currentHit
+        if (hit != null) goToHitDirect(hit)
     }
 
     private fun jumpToHit(delta: Int) {
-        if (searchHits.isEmpty()) return
-        val size = searchHits.size
-        val newIndex = ((currentHitIndex + delta) % size + size) % size
-        currentHitIndex = newIndex
-        searchOverlay.setCount(currentHitIndex, size)
-        goToHit(newIndex)
-        applySearchHighlights()
+        val hit = if (delta > 0) viewModel.nextSearchHit() else viewModel.prevSearchHit()
+        // Observer updates overlay count + highlights.
+        if (hit != null) goToHitDirect(hit)
     }
 
-    private fun goToHit(index: Int) {
-        val hit = searchHits.getOrNull(index) ?: return
+    private fun goToHitDirect(hit: SearchHit) {
         viewModel.jumpToCharIndex(hit.absoluteStart)
         val pages = viewModel.pagination.value?.pages ?: return
         val pageIdx = pages.indexOfFirst { it.charEnd >= hit.absoluteStart }.coerceAtLeast(0)
         readerView.goToPage(pageIdx, animate = false)
-    }
-
-    private fun applySearchHighlights() {
-        rebuildOverlays()
     }
 
     private fun showChapterDrawer() {
@@ -857,6 +827,7 @@ class NovelReaderV3Fragment : Fragment() {
 
     private fun applyInteractionSettings() {
         readerView.setTouchLocked(ReaderSettings.touchLocked)
+        readerView.setTapZoneReversed(ReaderSettings.tapZoneReversed)
         rootView.keepScreenOn = ReaderSettings.keepScreenOn
     }
 

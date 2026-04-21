@@ -176,7 +176,7 @@ $body
     <dc:title>${escape(title)}</dc:title>
     <dc:creator opf:role="aut">${escape(author.ifEmpty { "Pixiv" })}</dc:creator>
     <dc:language>zh-CN</dc:language>
-    <dc:identifier id="BookId" opf:scheme="pixiv">$novelId</dc:identifier>
+    <dc:identifier id="BookId" opf:scheme="pixiv">${escape(novelId)}</dc:identifier>
     <dc:publisher>Pixiv-Shaft</dc:publisher>
   </metadata>
   <manifest>
@@ -210,7 +210,7 @@ $body
 <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
-    <meta name="dtb:uid" content="$novelId"/>
+    <meta name="dtb:uid" content="${escape(novelId)}"/>
     <meta name="dtb:depth" content="1"/>
     <meta name="dtb:totalPageCount" content="0"/>
     <meta name="dtb:maxPageNumber" content="0"/>

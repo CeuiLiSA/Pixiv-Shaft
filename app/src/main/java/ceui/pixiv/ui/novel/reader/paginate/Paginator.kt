@@ -283,17 +283,3 @@ class Paginator(
         trackedStartForPage = false
     }
 }
-
-/**
- * Wraps pagination output with summary stats that the UI / stats tracker needs.
- */
-data class PaginationResult(
-    val pages: List<Page>,
-    val totalChars: Int,
-    val totalPages: Int,
-    val tokenCount: Int,
-) {
-    companion object {
-        val EMPTY = PaginationResult(emptyList(), 0, 0, 0)
-    }
-}

@@ -15,11 +15,6 @@ data class Page(
         absoluteCharIndex in charStart..charEnd
 }
 
-data class PageLocation(
-    val pageIndex: Int,
-    val charIndex: Int,
-)
-
 data class PageGeometry(
     val width: Int,
     val height: Int,
