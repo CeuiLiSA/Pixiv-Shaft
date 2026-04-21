@@ -122,7 +122,7 @@ class HistoryV3Adapter(
                 .placeholder(R.color.v3_surface_2)
                 .into(image)
             title.text = illust.title
-            author.text = "by: ${illust.user?.name ?: ""}"
+            author.text = "${illust.user?.name ?: ""}"
             time.text = timeFormat.format(entity.time)
 
             when {
@@ -167,7 +167,7 @@ class HistoryV3Adapter(
                 .placeholder(R.color.v3_surface_2)
                 .into(image)
             title.text = novel.title
-            author.text = "by: ${novel.user?.name ?: ""}"
+            author.text = "${novel.user?.name ?: ""}"
             time.text = timeFormat.format(entity.time)
 
             itemView.setOnClickListener { openNovel(novel) }

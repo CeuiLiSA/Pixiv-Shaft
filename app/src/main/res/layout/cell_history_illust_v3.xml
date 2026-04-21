@@ -29,13 +29,6 @@
                 android:contentDescription="@null"
                 android:scaleType="centerCrop" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_gravity="top"
-                android:background="@drawable/bg_v3_banner_gradient"
-                android:rotation="180" />
-
             <TextView
                 android:id="@+id/p_size"
                 android:layout_width="wrap_content"
