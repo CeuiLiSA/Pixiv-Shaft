@@ -660,12 +660,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
-            // 自定义下载文件名
+            // 下载路径 / 文件名 —— 入口改到新的统一设置页
             baseBind.fileNameRela.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "修改命名方式");
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载路径与文件名");
                     startActivity(intent);
                 }
             });

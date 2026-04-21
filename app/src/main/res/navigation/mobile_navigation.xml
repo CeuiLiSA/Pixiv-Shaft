@@ -136,6 +136,11 @@
         tools:layout="@layout/fragment_pixiv_list" />
 
     <fragment
+        android:id="@+id/navigation_download_path_settings"
+        android:name="ceui.pixiv.ui.settings.DownloadPathSettingsFragment"
+        tools:layout="@layout/fragment_download_path_settings" />
+
+    <fragment
         android:id="@+id/navigation_home_viewpager"
         android:name="ceui.pixiv.ui.home.HomeViewPagerFragment"
         tools:layout="@layout/fragment_home_viewpager" />

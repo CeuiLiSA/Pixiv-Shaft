@@ -1194,4 +1194,36 @@
     <string name="storage_request">请求</string>
     <string name="saf_request_path">申请路径</string>
     <string name="saf_create_file">创建文件</string>
+
+    <!-- 下载路径与文件名设置页 -->
+    <string name="download_path_title">下载路径 / 文件名</string>
+    <string name="download_path_entry_desc">自定义不同类型作品的保存位置与文件名模板</string>
+    <string name="download_path_presets_title">快捷预设</string>
+    <string name="download_path_preset_classic">Shaft 经典</string>
+    <string name="download_path_preset_flat">扁平（不按作者）</string>
+    <string name="download_path_preset_by_date">按日期分组</string>
+    <string name="download_path_preset_by_author">按作者分组</string>
+    <string name="download_path_label_template">文件名模板</string>
+    <string name="download_path_label_preview">实时预览</string>
+    <string name="download_path_btn_save">保存</string>
+    <string name="download_path_btn_reset">恢复默认</string>
+    <string name="download_path_btn_reset_all">全部恢复默认</string>
+    <string name="download_path_saved">已保存</string>
+    <string name="download_path_preset_applied">已应用预设</string>
+    <string name="download_path_reset_done">已恢复默认</string>
+    <string name="download_path_bucket_illust">插画 / 漫画</string>
+    <string name="download_path_bucket_ugoira">动图（GIF 最终结果）</string>
+    <string name="download_path_bucket_novel">小说</string>
+    <string name="download_path_bucket_backup">备份文件</string>
+    <string name="download_path_bucket_log">日志文件</string>
+    <string name="download_path_storage_mediastore_images">MediaStore / Pictures</string>
+    <string name="download_path_storage_mediastore_downloads">MediaStore / Downloads</string>
+    <string name="download_path_storage_saf">SAF 自选目录</string>
+    <string name="download_path_storage_app_cache">应用缓存（仅中间产物）</string>
+    <string name="download_path_policy_skip">已存在则跳过</string>
+    <string name="download_path_policy_replace">已存在则覆盖</string>
+    <string name="download_path_policy_rename">已存在则重命名</string>
+    <string name="download_path_help_title">可用变量与条件</string>
+    <string name="download_path_help_body">变量：{id} {title} {page} {pages} {ext} {author} {author_id} {w} {h} {created:yyyyMMdd_HHmmss}\n条件：[?R18:R18/]、[?AI:AI/]、[?p&gt;1: p{page}]\n路径里的 / 表示子目录；清洗会把非法字符替换为 _</string>
+    <string name="download_path_invalid_template">模板无效，未保存</string>
 </resources>

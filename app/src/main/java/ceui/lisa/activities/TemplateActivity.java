@@ -275,6 +275,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentViewPager.newInstance(Params.VIEW_PAGER_MUTED);
                 case "修改命名方式":
                     return FragmentFileName.newInstance();
+                case "下载路径与文件名":
+                    return new ceui.pixiv.ui.settings.DownloadPathSettingsFragment();
                 case "捐赠":
                     return FragmentDonate.newInstance();
                 case "关注者的小说":
