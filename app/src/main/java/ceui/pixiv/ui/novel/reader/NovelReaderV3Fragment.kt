@@ -34,8 +34,7 @@ import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.shareNovel
 import ceui.pixiv.ui.common.viewBinding
 import java.util.UUID
-import ceui.pixiv.widgets.MenuItem
-import ceui.pixiv.widgets.showActionMenu
+import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
@@ -437,39 +436,39 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
                 Toast.makeText(requireContext(), "小说信息还没加载，请稍后再试", Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            showActionMenu {
-                add(MenuItem(getString(R.string.view_comments)) {
+            showV3Menu {
+                item(getString(R.string.view_comments), R.drawable.ic_baseline_comment_24) {
                     val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
                         putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "相关评论")
                         putExtra(Params.NOVEL_ID, novelId.toInt())
                     }
                     startActivity(intent)
-                })
-                add(MenuItem(getString(R.string.string_110)) { shareNovel(novel) })
-                add(MenuItem("复制链接") {
+                }
+                item(getString(R.string.string_110), R.drawable.ic_share_black_24dp) {
+                    shareNovel(novel)
+                }
+                item("复制链接", R.drawable.ic_baseline_launch_24) {
                     val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     cm.setPrimaryClip(ClipData.newPlainText("pixiv-novel", NOVEL_URL_HEAD + novelId))
                     Toast.makeText(requireContext(), "链接已复制", Toast.LENGTH_SHORT).show()
-                })
+                }
             }
         }
     }
 
     private fun showReaderOverflowMenu() {
-        AlertDialog.Builder(requireContext())
-            .setItems(arrayOf("笔记 / 高亮", "位置书签", "保存当前位置为书签", "导出", "阅读统计（Phase 3）", "金句卡（Phase 4）")) { _, which ->
-                when (which) {
-                    0 -> showAnnotationsSheet()
-                    1 -> showBookmarksSheet()
-                    2 -> {
-                        viewModel.addBookmarkAtCurrentPage(readerView?.currentPageIndex() ?: 0)
-                        Toast.makeText(requireContext(), "已保存位置书签", Toast.LENGTH_SHORT).show()
-                    }
-                    3 -> showExportSheet()
-                    else -> Toast.makeText(requireContext(), "敬请期待", Toast.LENGTH_SHORT).show()
-                }
+        showV3Menu {
+            item("位置书签", R.drawable.ic_baseline_bookmark_24) {
+                showBookmarksSheet()
             }
-            .show()
+            item("保存当前位置", R.drawable.ic_baseline_bookmark_24) {
+                viewModel.addBookmarkAtCurrentPage(readerView?.currentPageIndex() ?: 0)
+                Toast.makeText(requireContext(), "已保存位置书签", Toast.LENGTH_SHORT).show()
+            }
+            item("导出", R.drawable.ic_baseline_get_app_24) {
+                showExportSheet()
+            }
+        }
     }
 
     private fun showExportSheet() {

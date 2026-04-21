@@ -35,8 +35,7 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.task.DownloadNovelTask
 import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.widgets.MenuItem
-import ceui.pixiv.widgets.showActionMenu
+import ceui.pixiv.ui.detail.showV3Menu
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -118,20 +117,17 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
             }
             topActions.btnMore.setOnClick {
                 if (novel == null) return@setOnClick
-                showActionMenu {
-                    add(
-                        MenuItem(getString(R.string.view_comments)) {
-                            val intent =
-                                Intent(requireContext(), TemplateActivity::class.java).apply {
-                                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
-                                    putExtra(Params.NOVEL_ID, novelId.toInt())
-                                }
-                            startActivity(intent)
+                showV3Menu {
+                    item(getString(R.string.view_comments), R.drawable.ic_baseline_comment_24) {
+                        val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
+                            putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                            putExtra(Params.NOVEL_ID, novelId.toInt())
                         }
-                    )
-                    add(
-                        MenuItem(getString(R.string.string_110)) { shareNovel(novel) }
-                    )
+                        startActivity(intent)
+                    }
+                    item("复制链接", R.drawable.ic_baseline_launch_24) {
+                        ceui.lisa.utils.Common.copy(requireContext(), ceui.pixiv.ui.common.NOVEL_URL_HEAD + novelId)
+                    }
                 }
             }
         }
