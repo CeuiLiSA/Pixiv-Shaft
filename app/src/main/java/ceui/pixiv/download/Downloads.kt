@@ -67,6 +67,26 @@ class Downloads(
         return plan.open()
     }
 
+    /**
+     * Bucket-scoped raw write — for callers that already have a final relative
+     * path and just want the facade's backend dispatch + sanitization. Still
+     * runs [FsSanitizer] and [OverwritePolicy], so the same filesystem
+     * guarantees hold.
+     *
+     * Intended for legacy entry points (novel export, backup, log) that
+     * bypass template rendering. New code should prefer [plan] / [open] via a
+     * typed [DownloadItem].
+     */
+    fun openRaw(bucket: Bucket, rawPath: RelativePath, mime: String): StorageBackend.WriteHandle? {
+        require(bucket != Bucket.TempCache) { "openRaw is not intended for TempCache" }
+        val resolved = configProvider().resolve(bucket)
+        val cleaned = FsSanitizer.clean(rawPath)
+        val backend = backendFactory(resolved.storage)
+        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite)
+        if (skip) return null
+        return backend.open(finalPath, mime)
+    }
+
     private fun resolveBucket(bucket: Bucket): ResolvedBucket =
         if (bucket == Bucket.TempCache) TEMP_CACHE_FIXED else configProvider().resolve(bucket)
 

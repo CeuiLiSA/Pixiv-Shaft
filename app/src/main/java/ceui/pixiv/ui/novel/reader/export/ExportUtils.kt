@@ -1,13 +1,12 @@
 package ceui.pixiv.ui.novel.reader.export
 
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import ceui.lisa.utils.GlideUrlChild
+import ceui.pixiv.download.DownloadsRegistry
+import ceui.pixiv.download.model.Bucket
+import ceui.pixiv.download.model.RelativePath
 import com.bumptech.glide.Glide
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
@@ -19,39 +18,28 @@ import java.util.concurrent.TimeUnit
  */
 internal object ExportUtils {
 
-    private val RELATIVE_PATH = Environment.DIRECTORY_DOWNLOADS + "/ShaftNovels"
-
-    fun sanitize(name: String): String {
-        val cleaned = name.replace(Regex("""[\\/:*?"<>|\r\n]"""), "_").trim()
-        return cleaned.ifEmpty { "novel" }.take(80)
-    }
+    fun sanitize(name: String): String =
+        ceui.pixiv.download.sanitize.FsSanitizer.cleanSegment(name, preserveExtension = true).take(80)
 
     /**
-     * Insert a fresh MediaStore entry in Downloads/ShaftNovels, run [writer]
-     * with its OutputStream, and return the entry's Uri. Caller is responsible
-     * for closing/flushing its own zip / bitmap / whatever wrappers.
+     * Insert a fresh entry under the active Novel bucket, run [writer] with its
+     * OutputStream, and return the entry's Uri. Caller is responsible for
+     * closing/flushing its own zip / bitmap / whatever wrappers.
      */
     fun saveToDownloads(
         context: Context,
         fileName: String,
         mimeType: String,
         writer: (OutputStream) -> Unit,
-    ): Uri? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
-        val resolver = context.contentResolver
-        val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, RELATIVE_PATH)
-        }
-        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return null
-        return runCatching {
-            resolver.openOutputStream(uri)?.use { writer(it) } ?: return null
-            uri
-        }.onFailure {
-            runCatching { resolver.delete(uri, null, null) }
-        }.getOrNull()
-    }
+    ): Uri? = runCatching {
+        val handle = DownloadsRegistry.downloads.openRaw(
+            Bucket.Novel,
+            RelativePath.parse("ShaftNovels/$fileName"),
+            mimeType,
+        ) ?: return@runCatching null
+        handle.stream.use { writer(it) }
+        handle.uri
+    }.getOrNull()
 
     /** Replace all `<br/>`-like HTML tags with newlines and strip remaining markup. */
     fun brToNewline(input: String?): String {

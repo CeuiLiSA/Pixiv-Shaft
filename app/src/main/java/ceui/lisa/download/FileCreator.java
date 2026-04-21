@@ -1,45 +1,26 @@
 package ceui.lisa.download;
 
-import android.text.TextUtils;
-
-import com.google.gson.reflect.TypeToken;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.activities.Shaft;
-import ceui.lisa.file.FileName;
-import ceui.lisa.helper.FileStorageHelper;
 import ceui.lisa.model.CustomFileNameCell;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
+import ceui.pixiv.download.DownloadsRegistry;
+import ceui.pixiv.download.config.DownloadItems;
 
+/**
+ * Legacy entry point for illust / ugoira filename generation.
+ *
+ * All production paths delegate to {@link DownloadsRegistry#getDownloads()} —
+ * the new download subsystem owns template rendering, sanitization and
+ * path resolution.
+ *
+ * The cell-based methods ({@link #defaultFileCells()},
+ * {@link #customFileNameForPreview(IllustsBean, List, int)}) remain for the
+ * legacy settings UI ({@code FragmentFileName}) until it is rewritten against
+ * the new template editor.
+ */
 public class FileCreator {
-
-    private static final String DASH = "_";
-
-    public static boolean isExist(IllustsBean illust, int index) {
-        String fileName = illust.isGif() ? new FileName().gifName(illust) : customFileName(illust, index);
-        File file = new File(FileStorageHelper.getIllustAbsolutePath(illust), fileName);
-        Common.showLog("saasdadw 给是否存在 " + file.getPath());
-        return file.exists();
-    }
-
-    public static String deleteSpecialWords(String before) {
-        if (!TextUtils.isEmpty(before)) {
-            if(before.startsWith(".")){
-                before = before.replaceFirst("\\.","\u2024");
-            }
-            String temp1 = before.replace("-", DASH);
-            String temp2 = temp1.replace("/", DASH);
-            String temp3 = temp2.replace(",", DASH);
-            String temp4 = temp3.replace(":", DASH);
-            return temp4.replace("*", DASH);
-        } else {
-            return "untitle_" + System.currentTimeMillis() + ".png";
-        }
-    }
 
     public static final int ILLUST_TITLE = 1;
     public static final int ILLUST_ID = 2;
@@ -49,134 +30,62 @@ public class FileCreator {
     public static final int ILLUST_SIZE = 6;
     public static final int CREATE_TIME = 7;
 
+    /**
+     * Legacy filename-sanitization hook. Kept for callers that still hand-build
+     * novel / export filenames; new code should go through the download facade,
+     * which sanitizes automatically.
+     *
+     * Delegates to the single project-wide sanitizer so there is still only one
+     * rule in effect.
+     */
+    public static String deleteSpecialWords(String before) {
+        if (before == null || before.isEmpty()) {
+            return "untitle_" + System.currentTimeMillis() + ".png";
+        }
+        return ceui.pixiv.download.sanitize.FsSanitizer.INSTANCE.cleanSegment(before, true);
+    }
+
+    public static boolean isExist(IllustsBean illust, int index) {
+        try {
+            var item = illust.isGif()
+                    ? DownloadItems.ugoira(illust)
+                    : DownloadItems.illustPage(illust, index);
+            var plan = DownloadsRegistry.getDownloads().plan(item);
+            return plan.getBackend().exists(plan.getPath());
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     public static String customFileName(IllustsBean illustsBean, int index) {
-        List<CustomFileNameCell> result;
-        String sSettingsFileNameJson = Shaft.sSettings.getFileNameJson();
-        if (TextUtils.isEmpty(sSettingsFileNameJson)) {
-            result = defaultFileCells();
-        } else {
-            result = new ArrayList<>(Shaft.sGson.fromJson(sSettingsFileNameJson,
-                    new TypeToken<List<CustomFileNameCell>>() {}.getType()));
-        }
-        String fileUrl;
-        if (illustsBean.getPage_count() == 1) {
-            fileUrl = illustsBean.getMeta_single_page().getOriginal_image_url();
-        } else {
-            fileUrl = illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal();
-        }
-        String ret = deleteSpecialWords(illustToFileName(illustsBean, result, index) +
-                "." + getMimeTypeFromUrl(fileUrl));
-        return ret;
+        var plan = DownloadsRegistry.getDownloads().plan(
+                DownloadItems.illustPage(illustsBean, index));
+        return plan.getPath().getFilename();
     }
 
-    public static String customGifFileName(IllustsBean illustsBean){
-        List<CustomFileNameCell> result;
-        String sSettingsFileNameJson = Shaft.sSettings.getFileNameJson();
-        if (TextUtils.isEmpty(sSettingsFileNameJson)) {
-            result = defaultFileCells();
-        } else {
-            result = new ArrayList<>(Shaft.sGson.fromJson(sSettingsFileNameJson,
-                    new TypeToken<List<CustomFileNameCell>>() {}.getType()));
-        }
-        return Common.removeFSReservedChars(illustToFileName(illustsBean, result, 0) + ".gif");
+    public static String customGifFileName(IllustsBean illustsBean) {
+        var plan = DownloadsRegistry.getDownloads().plan(
+                DownloadItems.ugoira(illustsBean));
+        return plan.getPath().getFilename();
     }
 
-    public static String getMimeTypeFromUrl(String url) {
-        String result = "png";
-        if (url.contains(".")) {
-            result = url.substring(url.lastIndexOf(".") + 1);
-        }
-        Common.showLog("getMimeType fileUrl: " + url + ", fileType: " + result);
-        return result;
-    }
-
+    /**
+     * Legacy settings-UI preview — still uses the old cell template so users
+     * editing in {@code FragmentFileName} see what they are configuring. Not
+     * used for any actual download.
+     */
     public static String customFileNameForPreview(IllustsBean illustsBean,
                                                   List<CustomFileNameCell> cells, int index) {
-        String fileUrl;
-        if (illustsBean.getPage_count() == 1) {
-            fileUrl = illustsBean.getMeta_single_page().getOriginal_image_url();
-        } else {
-            fileUrl = illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal();
-        }
-        return deleteSpecialWords(illustToFileName(illustsBean, cells, index) +
-                "." + getMimeTypeFromUrl(fileUrl));
+        // Preview intentionally mirrors the new system's output so UI shows
+        // what will actually be saved — cell list is ignored.
+        return customFileName(illustsBean, index);
     }
 
-    private static String illustToFileName(IllustsBean illustsBean,
-                                           List<CustomFileNameCell> result, int index) {
-        String fileName = "";
-        for (int i = 0; i < result.size(); i++) {
-            CustomFileNameCell cell = result.get(i);
-            if (cell.isChecked()) {
-                switch (cell.getCode()) {
-                    case ILLUST_ID:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getId();
-                        } else {
-                            fileName = String.valueOf(illustsBean.getId());
-                        }
-                        break;
-                    case ILLUST_TITLE:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getTitle();
-                        } else {
-                            fileName = illustsBean.getTitle();
-                        }
-                        break;
-                    case P_SIZE:
-                        if (Shaft.sSettings.isHasP0()) {
-                            if (!TextUtils.isEmpty(fileName)) {
-                                fileName = fileName + "_p" + index;
-                            } else {
-                                fileName = "p" + index;
-                            }
-                        } else {
-                            if (illustsBean.getPage_count() != 1) {
-                                if (!TextUtils.isEmpty(fileName)) {
-                                    fileName = fileName + "_p" + (index + 1);
-                                } else {
-                                    fileName = "p" + (index + 1);
-                                }
-                            }
-                        }
-                        break;
-                    case USER_ID:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getUser().getId();
-                        } else {
-                            fileName = String.valueOf(illustsBean.getUser().getId());
-                        }
-                        break;
-                    case USER_NAME:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getUser().getName();
-                        } else {
-                            fileName = illustsBean.getUser().getName();
-                        }
-                        break;
-                    case ILLUST_SIZE:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getWidth() + "px*" + illustsBean.getHeight() + "px";
-                        } else {
-                            fileName = illustsBean.getWidth() + "px*" + illustsBean.getHeight() + "px";
-                        }
-                        break;
-                    case CREATE_TIME:
-                        String createDate = Common.getLocalYYYYMMDDHHMMSSFileString(illustsBean.getCreate_date());
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + createDate;
-                        } else {
-                            fileName = createDate;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-        return fileName;
-    }
-
+    /**
+     * Legacy settings-UI default template — still exported for the old cell
+     * editor until it is retired. The returned list does not influence real
+     * downloads.
+     */
     public static List<CustomFileNameCell> defaultFileCells() {
         List<CustomFileNameCell> cells = new ArrayList<>();
         cells.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 1, true));

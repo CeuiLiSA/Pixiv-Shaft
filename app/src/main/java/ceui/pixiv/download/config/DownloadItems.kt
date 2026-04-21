@@ -18,6 +18,7 @@ import java.time.format.DateTimeParseException
  */
 object DownloadItems {
 
+    @JvmStatic
     fun illustPage(illust: IllustsBean, pageIndex: Int): DownloadItem {
         val url = pageOriginalUrl(illust, pageIndex)
         val ext = extractExt(url, fallback = "png")
@@ -30,6 +31,8 @@ object DownloadItems {
         )
     }
 
+    /** Final rendered GIF, saved to the user's gallery. */
+    @JvmStatic
     fun ugoira(illust: IllustsBean): DownloadItem = DownloadItem(
         bucket = Bucket.Ugoira,
         ext = "gif",
@@ -38,6 +41,17 @@ object DownloadItems {
         meta = metaOf(illust, pageIndex = null),
     )
 
+    /** Raw zip artefact downloaded from Pixiv before GIF rendering — app cache only. */
+    @JvmStatic
+    fun ugoiraZip(illust: IllustsBean): DownloadItem = DownloadItem(
+        bucket = Bucket.TempCache,
+        ext = "zip",
+        mime = "application/zip",
+        sourceUrl = illust.imageUrls?.original.orEmpty(),
+        meta = metaOf(illust, pageIndex = null),
+    )
+
+    @JvmStatic
     fun novel(novel: NovelBean): DownloadItem = DownloadItem(
         bucket = Bucket.Novel,
         ext = "txt",

@@ -24,31 +24,18 @@ import java.io.IOException
 
 fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
     runCatching {
-        // 创建ContentValues用于插入图片
-        val contentValues = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
-            // Specify the directory path in the Pictures folder
-            put(
-                MediaStore.Images.Media.RELATIVE_PATH,
-                "${Environment.DIRECTORY_DCIM}/ShaftImages"
-            )
-        }
-
-        val contentResolver = context.contentResolver ?: return@runCatching // 检查contentResolver是否为null
-
-        // 插入图片并获取URI
-        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-            ?: return@runCatching // 如果URI为空，返回
-
-        // 将图片数据写入输出流
-        contentResolver.openOutputStream(uri)?.use { outputStream ->
+        val handle = ceui.pixiv.download.DownloadsRegistry.downloads.openRaw(
+            ceui.pixiv.download.model.Bucket.Illust,
+            ceui.pixiv.download.model.RelativePath.parse("ShaftImages/$displayName"),
+            "image/*",
+        ) ?: return@runCatching
+        handle.stream.use { outputStream ->
             FileInputStream(imageFile).use { inputStream ->
-                inputStream.copyTo(outputStream) // 复制文件内容到输出流
+                inputStream.copyTo(outputStream)
             }
         }
         ToastUtils.show(context.getString(R.string.string_181))
     }.onFailure { ex ->
-        // 记录异常信息，方便调试
         when (ex) {
             is IOException -> Timber.e("SaveImage IOException while saving image: ${ex.message}")
             is SecurityException -> Timber.e("SaveImage SecurityException: Permission issue: ${ex.message}")
@@ -114,33 +101,17 @@ fun deleteImageById(context: Context, imageId: Long): Boolean {
 
 
 fun saveToDownloadsScopedStorage(context: Context, fileName: String, content: String): Boolean {
-    try {
-        val resolver = context.contentResolver
-
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName) // 文件名
-            put(MediaStore.MediaColumns.MIME_TYPE, "text/plain") // 文件类型
-            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/ShaftNovels") // 子目录
-        }
-
-        // 插入文件描述符
-        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                ?: throw Exception("Failed to create file URI")
-        } else {
-            throw Exception("Failed to create file URI too low system version")
-        }
-
-        // 写入内容到文件
-        resolver.openOutputStream(uri)?.use { outputStream ->
-            outputStream.write(content.toByteArray())
-            outputStream.flush()
-        }
-
-        return true
+    return try {
+        val handle = ceui.pixiv.download.DownloadsRegistry.downloads.openRaw(
+            ceui.pixiv.download.model.Bucket.Novel,
+            ceui.pixiv.download.model.RelativePath.parse("ShaftNovels/$fileName"),
+            "text/plain",
+        ) ?: return false
+        handle.stream.use { it.write(content.toByteArray()) }
+        true
     } catch (e: Exception) {
         e.printStackTrace()
-        return false
+        false
     }
 }
 

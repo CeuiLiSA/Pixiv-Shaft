@@ -42,7 +42,12 @@ public class FragmentSAF extends BaseFragment<FragmentSafBinding> {
             @Override
             public void onClick(View v) {
                 IllustsBean illustsBean = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, IllustsBean.class);
-                DocumentFile childFile = SAFile.getDocument(mContext, illustsBean, 0, true);
+                ceui.pixiv.download.backend.StorageBackend.WriteHandle handle =
+                        ceui.pixiv.download.DownloadsRegistry.getDownloads().open(
+                                ceui.pixiv.download.config.DownloadItems.illustPage(illustsBean, 0));
+                if (handle != null) {
+                    try { handle.getStream().close(); } catch (Exception ignored) {}
+                }
             }
         });
     }

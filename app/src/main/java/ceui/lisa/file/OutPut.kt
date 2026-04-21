@@ -1,136 +1,72 @@
 package ceui.lisa.file
 
-import android.content.ContentValues
 import android.content.Context
-import android.os.Environment
-import android.provider.MediaStore
-import ceui.lisa.helper.FileStorageHelper
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
-import com.blankj.utilcode.util.FileUtils
-import com.blankj.utilcode.util.PathUtils
-import ceui.lisa.download.MediaStoreUtil
+import ceui.pixiv.download.DownloadsRegistry
+import ceui.pixiv.download.config.DownloadItems
+import ceui.pixiv.download.model.Bucket
+import ceui.pixiv.download.model.RelativePath
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.OutputStream
 
+/**
+ * Legacy "copy local file into user storage" helpers. Rewritten to route every
+ * write through the unified download facade.
+ */
 object OutPut {
 
     @JvmStatic
     fun outPutGif(context: Context, from: File, illust: IllustsBean) {
-        if (Common.isAndroidQ()) {
-            val relativePath = FileStorageHelper.getIllustRelativePathQ(illust)
-            var uri = MediaStoreUtil.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, context, from.name, relativePath)
-            if (uri != null) {
-                val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
-                outputStream.write(ByteArray(0))
-                outputStream.flush()
-                outputStream.close()
-            } else {
-                uri = ContentValues().run {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) // 下载到指定目录
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, from.name) // 文件名
-                    // 取contentType响应头作为文件类型
-                    put(MediaStore.MediaColumns.MIME_TYPE, "image/gif")
-                    context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, this)
-                    // 当相同路径下的文件，在文件管理器中被手动删除时，就会插入失败
+        val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust))
+        if (handle == null) {
+            Common.showToast("GIF已存在")
+            return
+        }
+        try {
+            BufferedInputStream(FileInputStream(from)).use { bis ->
+                BufferedOutputStream(handle.stream).use { bos ->
+                    bis.copyTo(bos)
                 }
             }
-
-            try {
-                val bis = BufferedInputStream(FileInputStream(from))
-                if (uri != null) {
-                    val outputStream: OutputStream = context.contentResolver.openOutputStream(uri)!!
-                    val bos = BufferedOutputStream(outputStream)
-                    val buffer = ByteArray(1024)
-                    var bytes = bis.read(buffer)
-                    while (bytes >= 0) {
-                        bos.write(buffer, 0, bytes)
-                        bos.flush()
-                        bytes = bis.read(buffer)
-                    }
-                    bos.close()
-                }
-                bis.close()
-                Common.showToast("GIF保存成功")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        } else {
-            val parentFile = File(FileStorageHelper.getIllustAbsolutePath(illust))
-            if (!parentFile.exists()) {
-                parentFile.mkdirs()
-            }
-
-            val gifResult = File(parentFile, from.name)
-            FileUtils.copy(from, gifResult)
             Common.showToast("GIF保存成功")
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     @JvmStatic
     fun outPutNovel(context: Context, from: File, fileName: String) {
-        outPutToDownload(context, from, "ShaftNovels", fileName)
+        writeRaw(Bucket.Novel, RelativePath.parse("ShaftNovels/$fileName"), "text/plain", from)
     }
 
     @JvmStatic
     fun outPutBackupFile(context: Context, from: File, fileName: String) {
-        outPutToDownload(context, from, "ShaftBackups", fileName)
+        writeRaw(Bucket.Backup, RelativePath.parse("ShaftBackups/$fileName"), "application/zip", from)
     }
 
     @JvmStatic
     fun outPutFile(context: Context, from: File, fileName: String) {
-        outPutToDownload(context, from, "ShaftFiles", fileName)
+        writeRaw(Bucket.Log, RelativePath.parse("ShaftFiles/$fileName"), "text/plain", from)
     }
 
     @JvmStatic
     fun outPutToDownload(context: Context, from: File, path: String, fileName: String) {
-        if (Common.isAndroidQ()) {
-            val relativePath = PathUtils.join(Environment.DIRECTORY_DOWNLOADS, path)
-            var uri = MediaStoreUtil.query(MediaStore.Downloads.EXTERNAL_CONTENT_URI, context, fileName, relativePath)
-            if (uri != null) {
-                val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
-                outputStream.write(ByteArray(0))
-                outputStream.flush()
-                outputStream.close()
-            } else {
-                uri = ContentValues().run {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) // 下载到指定目录
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName) // 文件名
-                    // 取contentType响应头作为文件类型
-                    put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
-                    context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, this)
-                    // 当相同路径下的文件，在文件管理器中被手动删除时，就会插入失败
-                }
-            }
+        writeRaw(Bucket.Log, RelativePath.parse("$path/$fileName"), "text/plain", from)
+    }
 
-            try {
-                val bis = BufferedInputStream(FileInputStream(from))
-                if (uri != null) {
-                    val outputStream: OutputStream = context.contentResolver.openOutputStream(uri)!!
-                    val bos = BufferedOutputStream(outputStream)
-                    val buffer = ByteArray(1024)
-                    var bytes = bis.read(buffer)
-                    while (bytes >= 0) {
-                        bos.write(buffer, 0, bytes)
-                        bos.flush()
-                        bytes = bis.read(buffer)
-                    }
-                    bos.close()
+    private fun writeRaw(bucket: Bucket, path: RelativePath, mime: String, from: File) {
+        val handle = DownloadsRegistry.downloads.openRaw(bucket, path, mime) ?: return
+        try {
+            BufferedInputStream(FileInputStream(from)).use { bis ->
+                BufferedOutputStream(handle.stream).use { bos ->
+                    bis.copyTo(bos)
                 }
-                bis.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
-        } else {
-            val parentFile = File(PathUtils.join(PathUtils.getExternalDownloadsPath(), path))
-            if (!parentFile.exists()) {
-                parentFile.mkdirs()
-            }
-            val file = File(parentFile, fileName)
-            FileUtils.copy(from, file)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

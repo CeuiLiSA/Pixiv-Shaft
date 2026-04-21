@@ -308,6 +308,17 @@ public class Manager {
         currentIllustID = downloadItem.getIllust().getId();
         Common.showLog("Manager 下载单个 当前进度" + downloadItem.getNonius());
         uuid = downloadItem.getUuid();
+
+        // Skip policy + existing file: facade wants us to skip the write entirely.
+        boolean shouldSkip =
+                (factory instanceof Android10DownloadFactory22 && ((Android10DownloadFactory22) factory).isSkip())
+             || (factory instanceof SAFactory && ((SAFactory) factory).isSkip());
+        if (shouldSkip) {
+            Common.showLog("[DL] skip download (already exists), illust=" + downloadItem.getIllust().getId());
+            complete(downloadItem, true);
+            return;
+        }
+
         long fileSize = MediaStoreUtil.length(factory.query(), context);
         long passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
 

@@ -1,7 +1,6 @@
 package ceui.pixiv.download.model
 
-@JvmInline
-value class RelativePath(val segments: List<String>) {
+data class RelativePath(val segments: List<String>) {
 
     init {
         require(segments.isNotEmpty()) { "RelativePath must have at least one segment (the filename)" }

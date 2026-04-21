@@ -6,22 +6,31 @@ import android.net.Uri;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import androidx.documentfile.provider.DocumentFile;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.download.DownloadFileFactory;
-import ceui.lisa.file.SAFile;
+import ceui.pixiv.download.Downloads;
+import ceui.pixiv.download.DownloadsRegistry;
+import ceui.pixiv.download.backend.StorageBackend;
+import ceui.pixiv.download.config.DownloadItems;
 
+/**
+ * Legacy factory kept for binary compatibility with {@code Manager.downloadOne}.
+ * Routes through the new download facade — SAF / MediaStore / cache dispatch
+ * is picked up automatically from the active {@code DownloadConfig}, not from
+ * the old {@code downloadWay} setting.
+ *
+ * Invariants: see {@link Android10DownloadFactory22}.
+ */
 public class SAFactory implements DownloadFileFactory {
 
-    private final Context mContext;
-    private final DownloadItem mItem;
+    private final Downloads.Plan mPlan;
     private Uri mUri;
 
     public SAFactory(@NotNull Context context, DownloadItem item) {
-        this.mContext = context;
-        this.mItem = item;
-        DocumentFile file = SAFile.getDocument(mContext, mItem.getIllust(), mItem.getIndex(), mItem.shouldStartNewDownload());
-        mUri = file.getUri();
+        ceui.pixiv.download.model.DownloadItem newItem = item.getIllust().isGif()
+                ? DownloadItems.ugoiraZip(item.getIllust())
+                : DownloadItems.illustPage(item.getIllust(), item.getIndex());
+        mPlan = DownloadsRegistry.getDownloads().plan(newItem);
     }
 
     @Nullable
@@ -33,16 +42,27 @@ public class SAFactory implements DownloadFileFactory {
     @NotNull
     @Override
     public Uri insert() {
+        if (mUri != null) return mUri;
+        if (mPlan.getSkip()) {
+            throw new IllegalStateException(
+                    "Facade plan is marked skip for " + mPlan.getPath() + " — Manager must not call insert()");
+        }
+        StorageBackend.WriteHandle handle = mPlan.open();
+        try {
+            handle.getStream().close();
+        } catch (Exception ignored) {
+        }
+        mUri = handle.getUri();
         return mUri;
     }
 
     @NotNull
     @Override
     public Uri getFileUri() {
-        return mUri;
+        return mUri != null ? mUri : insert();
     }
 
-    public void setUri(Uri uri) {
-        mUri = uri;
+    public boolean isSkip() {
+        return mPlan.getSkip();
     }
 }
