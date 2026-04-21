@@ -338,13 +338,15 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     // ---- Actions ------------------------------------------------------------
 
     private fun rebuildOverlays() {
+        val hits = searchHitRanges()
         readerView?.setOverlays(
             PageOverlays(
-                searchHits = searchHitRanges(),
+                searchHits = hits,
                 annotations = annotationSpans,
                 selection = activeSelection,
             ),
         )
+        scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.applySearchHighlights(hits)
     }
 
     private fun clearSelection() {

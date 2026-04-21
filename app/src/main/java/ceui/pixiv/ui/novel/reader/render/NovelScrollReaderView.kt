@@ -2,8 +2,10 @@ package ceui.pixiv.ui.novel.reader.render
 
 import android.content.Context
 import android.graphics.Color
+import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
+import android.text.style.BackgroundColorSpan
 import android.text.style.LeadingMarginSpan
 import android.util.TypedValue
 import android.view.ActionMode
@@ -311,6 +313,38 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
             }
             if (imageElement != null) {
                 setOnClickListener { onImageTap?.invoke(imageElement) }
+            }
+        }
+    }
+
+    // ---- Search highlights ---------------------------------------------------
+
+    private class ScrollSearchSpan(color: Int) : BackgroundColorSpan(color)
+
+    fun applySearchHighlights(hits: List<HighlightRange>) {
+        for (anchor in charAnchors) {
+            val tv = anchor.view as? AppCompatTextView ?: continue
+            val spannable = tv.text as? Spannable ?: continue
+            // Remove old search spans
+            spannable.getSpans(0, spannable.length, ScrollSearchSpan::class.java)
+                .forEach { spannable.removeSpan(it) }
+        }
+        if (hits.isEmpty()) return
+        for (hit in hits) {
+            for (anchor in charAnchors) {
+                val tv = anchor.view as? AppCompatTextView ?: continue
+                val spannable = tv.text as? Spannable ?: continue
+                val anchorEnd = anchor.charStart + spannable.length
+                val s = maxOf(hit.absoluteStart, anchor.charStart)
+                val e = minOf(hit.absoluteEnd, anchorEnd)
+                if (e <= s) continue
+                val localStart = s - anchor.charStart
+                val localEnd = e - anchor.charStart
+                spannable.setSpan(
+                    ScrollSearchSpan(hit.color),
+                    localStart, localEnd,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
             }
         }
     }
