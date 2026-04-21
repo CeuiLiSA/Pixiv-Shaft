@@ -219,22 +219,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                // Typing a space after some content also commits. An empty input
-                // with just a typed space is ignored so the user can still move
-                // the caret with stray spaces without accidentally committing.
+                // Space after content commits; space on an otherwise blank input
+                // is dropped so the user can't spam leading/consecutive spaces.
                 String current = editable.toString();
                 if (current.length() > 0 && current.charAt(current.length() - 1) == ' ') {
                     String tag = current.substring(0, current.length() - 1).trim();
-                    if (!tag.isEmpty()) {
-                        commitTagFromInput(tag);
-                        return;
-                    }
-                    // Standalone leading/consecutive space on an otherwise blank
-                    // input: drop the space so it doesn't linger.
                     if (tag.isEmpty()) {
                         baseBind.searchBox.setText("");
-                        return;
+                    } else {
+                        commitTagFromInput(tag);
                     }
+                    return;
                 }
                 pushKeywordFromChipsAndInput();
             }

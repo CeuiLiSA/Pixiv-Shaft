@@ -37,6 +37,7 @@ class V3TagFlowView @JvmOverloads constructor(
 
     private val palette by lazy { V3Palette.from(context) }
     private var lastSignature: String? = null
+    private var lastPairs: List<Pair<String, String?>> = emptyList()
 
     /** Which SearchActivity tab to land on — 0 = illust, 1 = novel. */
     var searchIndex: Int = 0
@@ -52,7 +53,10 @@ class V3TagFlowView @JvmOverloads constructor(
         set(value) {
             if (field != value) {
                 field = value
-                lastSignature = null // force re-render
+                // Force re-render with the last known tag list so flipping this
+                // property after a setTags*() call reflects immediately.
+                lastSignature = null
+                if (lastPairs.isNotEmpty()) renderPairs(lastPairs)
             }
         }
 
@@ -75,6 +79,7 @@ class V3TagFlowView @JvmOverloads constructor(
     }
 
     private fun renderPairs(pairs: List<Pair<String, String?>>) {
+        lastPairs = pairs
         val sig = buildString {
             pairs.forEach { (n, t) ->
                 append(n); append('|'); append(t ?: ""); append(';')
