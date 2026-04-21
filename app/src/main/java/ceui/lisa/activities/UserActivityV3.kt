@@ -75,9 +75,6 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
         baseBind.toolbar.setNavigationOnClickListener { finish() }
 
-        // Apply themed banner placeholder gradient
-        baseBind.bannerPlaceholder.background = palette.bannerPlaceholder()
-
         // Apply theme-colored drawables to follow/unfollow buttons
         val density = resources.displayMetrics.density
         baseBind.follow.background = palette.pillPrimary(999f * density)
