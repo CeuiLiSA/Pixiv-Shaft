@@ -185,6 +185,16 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     }
 
 
+    private fun updateDownloadState(illustId: Long) {
+        val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return
+        val downloaded = Common.isIllustDownloaded(illust) ||
+            ceui.lisa.database.AppDatabase.getAppDatabase(mContext).downloadDao()
+                .hasDownloadRecordByIllustId(illust.id.toLong())
+        baseBind.fabDownload.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (downloaded) mContext.getColor(R.color.has_bookmarked) else android.graphics.Color.WHITE
+        )
+    }
+
     private var fabShown = true
 
     private fun hideFabBar() {
@@ -227,13 +237,20 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
             } else {
                 IllustDownload.downloadIllustAllPages(illust, baseAct)
             }
+            updateDownloadState(illustId)
             if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
                 PixivOperate.postLikeDefaultStarType(illust)
             }
         }
+        updateDownloadState(illustId)
 
         baseBind.fabBookmark.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
+            // Optimistic UI: toggle icon immediately
+            val willBookmark = !illust.isIs_bookmarked
+            baseBind.fabBookmark.imageTintList = android.content.res.ColorStateList.valueOf(
+                if (willBookmark) mContext.getColor(R.color.has_bookmarked) else android.graphics.Color.WHITE
+            )
             PixivOperate.postLikeDefaultStarType(illust)
         }
 
