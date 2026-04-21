@@ -61,12 +61,6 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
 
         headerAdapter = ArtworkDetailAdapter(this)
 
-        // Apply themed scroll progress gradient
-        val p = headerAdapter.palette
-        baseBind.scrollProgressBar.background = android.graphics.drawable.GradientDrawable(
-            android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
-            intArrayOf(p.scrollProgressStart, p.scrollProgressMid, p.scrollProgressEnd)
-        )
         relatedAdapter = IAdapter(relatedList, mContext).apply {
             setUuid("artwork_v3_related_$illustId")
         }
@@ -93,27 +87,11 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         // Artist card snap flush with its upper neighbor. No useful animation to lose.
         baseBind.recyclerView.itemAnimator = null
 
-        // Single scroll listener for both progress bar and infinite scroll.
-        // Reuses an IntArray to avoid per-frame allocation from findLastVisibleItemPositions(null).
+        // Infinite scroll trigger near list end.
         baseBind.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             private val lastVisiblePositions = IntArray(2)
-            private var lastProgress = -1f
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                // Scroll progress — throttle to avoid re-scaling on sub-pixel deltas
-                val offset = recyclerView.computeVerticalScrollOffset()
-                val range = recyclerView.computeVerticalScrollRange() -
-                        recyclerView.computeVerticalScrollExtent()
-                val progress = if (range > 0) offset.toFloat() / range else 0f
-                // Always snap the edges so the bar doesn't stop short of 0/1 due to threshold.
-                if (progress == 0f || progress == 1f ||
-                    kotlin.math.abs(progress - lastProgress) >= 0.005f
-                ) {
-                    lastProgress = progress
-                    baseBind.scrollProgressBar.scaleX = progress
-                }
-
-                // Infinite scroll
                 if (dy > 0) {
                     val lm = recyclerView.layoutManager as StaggeredGridLayoutManager
                     lm.findLastVisibleItemPositions(lastVisiblePositions)

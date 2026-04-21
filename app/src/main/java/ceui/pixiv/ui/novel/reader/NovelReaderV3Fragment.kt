@@ -127,6 +127,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             ensureScrollReaderView(ch).visibility = View.VISIBLE
             // Data binds later: viewModel.load() → Loaded observer → rebindScrollViewIfActive()
         }
+        updateScrollProgressBarVisibility()
         viewModel.load()
     }
 
@@ -376,6 +377,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             lastPushedSnapshot = null
             pushStyleAndGeometryIfReady()
         }
+        updateScrollProgressBarVisibility()
+    }
+
+    private fun updateScrollProgressBarVisibility() {
+        val show = ReaderSettings.flipMode == FlipMode.Scroll
+        binding.scrollProgressBar.visibility = if (show) View.VISIBLE else View.GONE
+        if (!show) binding.scrollProgressBar.scaleX = 0f
     }
 
     private fun ensureScrollReaderView(chrome: ReaderChrome): NovelScrollReaderView {
@@ -388,6 +396,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             sv.onCenterTap = { chrome.toggle() }
             sv.onImageTap = { image -> openImageElement(image) }
             sv.onCharIndexChanged = { charIndex -> viewModel.onScrollPositionChanged(charIndex) }
+            sv.onScrollProgressChanged = { progress ->
+                binding.scrollProgressBar.scaleX = progress
+            }
 
             // Text selection — same menu as paged mode
             sv.selectionMenuEntries = listOf(

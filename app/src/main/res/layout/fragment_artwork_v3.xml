@@ -13,17 +13,6 @@
             android:layout_height="match_parent"
             android:overScrollMode="never" />
 
-        <!-- Scroll progress bar -->
-        <View
-            android:id="@+id/scroll_progress_bar"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_gravity="top"
-            android:background="@drawable/v3_scroll_progress"
-            android:elevation="10dp"
-            android:scaleX="0"
-            android:transformPivotX="0dp" />
-
         <!-- Fixed nav bar -->
         <FrameLayout
             android:id="@+id/nav_bar"
@@ -76,11 +65,10 @@
 
                 <ImageView
                     android:id="@+id/nav_more"
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:background="@drawable/v3_nav_btn_bg"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:contentDescription="@null"
-                    android:padding="9dp"
+                    android:padding="10dp"
                     android:src="@drawable/ic_more_vert_black_24dp"
                     app:tint="@color/white" />
             </LinearLayout>

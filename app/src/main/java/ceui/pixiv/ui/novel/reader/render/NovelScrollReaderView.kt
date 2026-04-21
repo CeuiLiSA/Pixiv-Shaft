@@ -48,6 +48,8 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
     var onCenterTap: (() -> Unit)? = null
     var onImageTap: ((ceui.pixiv.ui.novel.reader.model.PageElement.Image) -> Unit)? = null
     var onCharIndexChanged: ((Int) -> Unit)? = null
+    /** Fraction of total scrollable range consumed, in [0f, 1f]. */
+    var onScrollProgressChanged: ((Float) -> Unit)? = null
 
     /** Text selection callbacks — mirrors ReaderTextBlockView's interface. */
     var onSelectionStarted: ((absStart: Int, absEnd: Int, text: String) -> Unit)? = null
@@ -72,7 +74,10 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
         addView(container, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
         isVerticalScrollBarEnabled = true
         isFillViewport = false
-        setOnScrollChangeListener { _, _, _, _, _ -> reportVisibleCharIndex() }
+        setOnScrollChangeListener { _, _, _, _, _ ->
+            reportVisibleCharIndex()
+            reportScrollProgress()
+        }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -363,6 +368,13 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
         }
         pendingReport = runnable
         postDelayed(runnable, 500L)
+    }
+
+    private fun reportScrollProgress() {
+        val cb = onScrollProgressChanged ?: return
+        val range = computeVerticalScrollRange() - computeVerticalScrollExtent()
+        val progress = if (range > 0) scrollY.toFloat() / range else 0f
+        cb.invoke(progress.coerceIn(0f, 1f))
     }
 
     override fun onDetachedFromWindow() {
