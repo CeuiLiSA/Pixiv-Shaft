@@ -5,6 +5,7 @@
     android:layout_gravity="center"
     android:layout_marginHorizontal="40dp"
     android:background="@drawable/bg_v3_menu_dialog"
+    android:clipToOutline="true"
     android:orientation="vertical"
     android:paddingVertical="8dp">
 
