@@ -180,6 +180,12 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         val bannerUrl = profile.background_image_url
         if (!bannerUrl.isNullOrEmpty()) {
             baseBind.bannerImage.visibility = View.VISIBLE
+            // 40% 黑色 overlay 贴在图片像素上 — 用 colorFilter 而不是单独 scrim view，
+            // 和 CollapsingToolbarLayout 的 parallax + contentScrim 不会打架。
+            baseBind.bannerImage.colorFilter = android.graphics.PorterDuffColorFilter(
+                0x66000000.toInt(),
+                android.graphics.PorterDuff.Mode.SRC_ATOP,
+            )
             Glide.with(mContext).load(GlideUtil.getUrl(bannerUrl)).into(baseBind.bannerImage)
             baseBind.bannerImage.setOnClickListener {
                 openImageDetail(bannerUrl, "user_${user.id}_profile_banner")

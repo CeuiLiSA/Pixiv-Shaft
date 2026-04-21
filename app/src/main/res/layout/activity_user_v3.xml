@@ -290,7 +290,7 @@
                             style="@style/textMontserratBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="#A5B4FC"
+                            android:textColor="@color/v3_stat_following_num"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             tools:text="16" />
@@ -319,7 +319,7 @@
                             style="@style/textMontserratBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="#2DD4A8"
+                            android:textColor="@color/v3_stat_mypixiv_num"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             tools:text="3" />

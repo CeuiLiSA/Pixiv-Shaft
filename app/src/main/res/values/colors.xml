@@ -235,6 +235,9 @@
     <color name="v3_stat_bookmarks_end">#7766CC</color>
     <color name="v3_stat_comments_start">#6677CC</color>
     <color name="v3_stat_comments_end">#8877CC</color>
+    <!-- User header 关注 / 好P友 数字 — 白天饱和、夜间沿用浅色 accent。 -->
+    <color name="v3_stat_following_num">#6366F1</color>
+    <color name="v3_stat_mypixiv_num">#0EA574</color>
     <color name="v3_tag_locked_bg">#0A3F3BA0</color>
     <color name="v3_tag_locked_border">#1A3F3BA0</color>
     <color name="v3_tag_locked_text">#5B4CA0</color>

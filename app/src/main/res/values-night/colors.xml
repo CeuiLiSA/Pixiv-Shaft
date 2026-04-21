@@ -135,4 +135,7 @@
     <color name="v3_banner_placeholder_start">#1E1840</color>
     <color name="v3_banner_placeholder_center">#2A1440</color>
     <color name="v3_banner_placeholder_end">#161A38</color>
+    <!-- 用户首页 关注 / P友 数字 — 夜间保持原先的浅色 accent。 -->
+    <color name="v3_stat_following_num">#A5B4FC</color>
+    <color name="v3_stat_mypixiv_num">#2DD4A8</color>
 </resources>
