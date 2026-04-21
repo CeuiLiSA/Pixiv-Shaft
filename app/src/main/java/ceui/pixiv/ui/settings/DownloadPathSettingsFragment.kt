@@ -7,8 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.HorizontalScrollView
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
@@ -56,10 +60,34 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbarLayout.naviTitle.text = getString(R.string.download_path_title)
-        binding.toolbarLayout.naviBack.setOnClickListener {
+
+        // Shared layout_toolbar is designed for dark photo backgrounds — the
+        // title is always_white and the back arrow has a light tint. On the
+        // V3 off-white background we need to recolor both.
+        val toolbar = binding.toolbarLayout
+        toolbar.naviTitle.apply {
+            text = getString(R.string.download_path_title)
+            setTextColor(resources.getColor(R.color.v3_text_1, null))
+            setTextAppearance(R.style.textMontserratBold)
+            textSize = 18f
+        }
+        (toolbar.naviBack as ImageView).setColorFilter(resources.getColor(R.color.v3_text_1, null))
+        toolbar.naviBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+        toolbar.naviMore.visibility = View.GONE
+
+        // Apply status-bar inset as top padding on the toolbar so content does
+        // not draw under the status bar. Consume the top inset here and pass
+        // the remaining insets (left/right/bottom) through so child views see
+        // unchanged horizontals.
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar.root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(top = bars.top + dp(10))
+            insets
+        }
+        ViewCompat.requestApplyInsets(toolbar.root)
+
         render()
     }
 
@@ -205,17 +233,17 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { topMargin = dp(4) }
+            ).apply { topMargin = dp(6) }
         }
         val row = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
         tokens.forEach { token ->
             val chip = TextView(requireContext()).apply {
                 text = token.chipLabel
-                textSize = 11f
+                textSize = 13f
                 typeface = Typeface.MONOSPACE
                 setTextColor(resources.getColor(R.color.v3_text_1, null))
                 setBackgroundResource(R.drawable.bg_v3_chip)
-                setPadding(dp(10), dp(6), dp(10), dp(6))
+                setPadding(dp(12), dp(8), dp(12), dp(8))
                 isClickable = true
                 isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(
@@ -236,14 +264,14 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { topMargin = dp(8) }
+            ).apply { topMargin = dp(10) }
         }
         tokens.forEach { token ->
             val line = TextView(requireContext()).apply {
-                textSize = 11f
+                textSize = 12f
                 text = "${token.chipLabel}  —  ${getString(token.explainRes)}"
                 setTextColor(resources.getColor(R.color.v3_text_3, null))
-                setPadding(dp(2), dp(1), 0, dp(1))
+                setPadding(dp(2), dp(2), 0, dp(2))
             }
             col.addView(line)
         }
@@ -256,16 +284,16 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { topMargin = dp(4) }
+            ).apply { topMargin = dp(6) }
         }
         val row = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
         EXAMPLES.forEach { example ->
             val btn = TextView(requireContext()).apply {
                 text = getString(example.labelRes)
-                textSize = 11f
+                textSize = 13f
                 setTextColor(0xFF6C5CE7.toInt())
                 setBackgroundResource(R.drawable.bg_v3_pill_secondary)
-                setPadding(dp(14), dp(6), dp(14), dp(6))
+                setPadding(dp(16), dp(8), dp(16), dp(8))
                 isClickable = true
                 isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(
@@ -376,8 +404,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             gravity = android.view.Gravity.CENTER
             isClickable = true
             isFocusable = true
-            setPadding(dp(24), dp(12), dp(24), dp(12))
-            textSize = 13f
+            setPadding(dp(28), dp(14), dp(28), dp(14))
+            textSize = 14f
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -404,13 +432,13 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         val title = TextView(requireContext()).apply {
             this.text = text
             setTextAppearance(R.style.textMontserratBold)
-            textSize = 13f
-            setTextColor(resources.getColor(R.color.v3_text_3, null))
+            textSize = 15f
+            setTextColor(resources.getColor(R.color.v3_text_1, null))
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { topMargin = dp(topMarginDp); bottomMargin = dp(8); leftMargin = dp(6) }
-            letterSpacing = 0.05f
+            ).apply { topMargin = dp(topMarginDp); bottomMargin = dp(10); leftMargin = dp(4) }
+            letterSpacing = 0.02f
             isAllCaps = false
         }
         root.addView(title)
@@ -428,17 +456,17 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
     private fun bodyText(text: String) = TextView(requireContext()).apply {
         this.text = text
-        textSize = 12f
+        textSize = 13f
         setTextColor(resources.getColor(R.color.v3_text_2, null))
-        setLineSpacing(0f, 1.3f)
+        setLineSpacing(0f, 1.35f)
     }
 
     private fun subHeader(text: String, topDp: Int) = TextView(requireContext()).apply {
         this.text = text
-        textSize = 12f
-        setTextColor(resources.getColor(R.color.v3_text_3, null))
+        textSize = 13f
+        setTextColor(resources.getColor(R.color.v3_text_1, null))
         setTypeface(typeface, Typeface.BOLD)
-        setPadding(0, dp(topDp), 0, dp(4))
+        setPadding(0, dp(topDp), 0, dp(6))
     }
 
     private fun storageLabel(choice: StorageChoice): String = when (choice) {

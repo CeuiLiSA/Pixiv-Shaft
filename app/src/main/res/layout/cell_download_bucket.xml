@@ -13,12 +13,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/v3_text_1"
-        android:textSize="16sp" />
+        android:textSize="18sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="12dp"
         android:orientation="horizontal">
 
         <TextView
@@ -26,10 +26,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_v3_chip"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
             android:textColor="@color/v3_text_2"
-            android:textSize="11sp" />
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/bucket_policy"
@@ -37,10 +37,10 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:background="@drawable/bg_v3_chip"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
             android:textColor="@color/v3_text_2"
-            android:textSize="11sp" />
+            android:textSize="13sp" />
     </LinearLayout>
 
     <TextView
@@ -49,23 +49,23 @@
         android:layout_marginTop="18dp"
         android:text="@string/download_path_label_template"
         android:textColor="@color/v3_text_3"
-        android:textSize="11sp" />
+        android:textSize="13sp" />
 
     <EditText
         android:id="@+id/bucket_template"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="6dp"
         android:autofillHints=""
         android:background="@drawable/bg_v3_chip"
         android:fontFamily="monospace"
         android:importantForAutofill="no"
         android:inputType="text|textMultiLine|textNoSuggestions"
         android:maxLines="6"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="10dp"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="12dp"
         android:textColor="@color/v3_text_1"
-        android:textSize="13sp" />
+        android:textSize="14sp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -73,25 +73,25 @@
         android:layout_marginTop="14dp"
         android:text="@string/download_path_label_preview"
         android:textColor="@color/v3_text_3"
-        android:textSize="11sp" />
+        android:textSize="13sp" />
 
     <TextView
         android:id="@+id/bucket_preview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="6dp"
         android:background="@drawable/bg_v3_chip"
         android:fontFamily="monospace"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="10dp"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="12dp"
         android:textColor="@color/v3_text_1"
         android:textIsSelectable="true"
-        android:textSize="12sp" />
+        android:textSize="13sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="18dp"
         android:orientation="horizontal">
 
         <TextView
@@ -102,11 +102,11 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="9dp"
+            android:paddingHorizontal="22dp"
+            android:paddingVertical="11dp"
             android:text="@string/download_path_btn_save"
             android:textColor="@color/white"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/bucket_reset"
@@ -117,10 +117,10 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:paddingHorizontal="18dp"
-            android:paddingVertical="9dp"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="11dp"
             android:text="@string/download_path_btn_reset"
             android:textColor="#6C5CE7"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
     </LinearLayout>
 </LinearLayout>
