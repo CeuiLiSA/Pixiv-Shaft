@@ -115,16 +115,16 @@ class ArtworkV3ViewModel(
 
         list.add(ArtworkDetailItem.Hero(illust))
 
-        if (!TextUtils.isEmpty(illust.caption)) {
-            list.add(ArtworkDetailItem.Desc(illust.caption))
-        }
-
-
         if (illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
             list.add(ArtworkDetailItem.Series(illust))
         }
 
         list.add(ArtworkDetailItem.Artist(illust, fullUser))
+
+        if (!TextUtils.isEmpty(illust.caption)) {
+            list.add(ArtworkDetailItem.Desc(illust.caption))
+        }
+
         list.add(ArtworkDetailItem.Tags(illust))
         list.add(ArtworkDetailItem.Stats(illust))
         list.add(ArtworkDetailItem.DetailPanel(illust))
