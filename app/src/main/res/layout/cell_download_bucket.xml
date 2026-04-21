@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="?attr/colorOnSurface" />
+        android:textColor="@color/text10" />
 
     <TextView
         android:id="@+id/bucket_storage"
@@ -21,14 +21,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:textSize="12sp"
-        android:textColor="?attr/colorOnSurfaceVariant" />
+        android:textColor="@color/text10" />
 
     <TextView
         android:id="@+id/bucket_policy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="12sp"
-        android:textColor="?attr/colorOnSurfaceVariant" />
+        android:textColor="@color/text10" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -36,7 +36,7 @@
         android:layout_marginTop="10dp"
         android:text="@string/download_path_label_template"
         android:textSize="12sp"
-        android:textColor="?attr/colorOnSurfaceVariant" />
+        android:textColor="@color/text10" />
 
     <EditText
         android:id="@+id/bucket_template"
@@ -55,7 +55,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/download_path_label_preview"
         android:textSize="12sp"
-        android:textColor="?attr/colorOnSurfaceVariant" />
+        android:textColor="@color/text10" />
 
     <TextView
         android:id="@+id/bucket_preview"
@@ -65,7 +65,7 @@
         android:textSize="12sp"
         android:fontFamily="monospace"
         android:textIsSelectable="true"
-        android:textColor="?attr/colorOnSurface" />
+        android:textColor="@color/text10" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -75,14 +75,12 @@
 
         <Button
             android:id="@+id/bucket_save"
-            style="?attr/materialButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/download_path_btn_save" />
 
         <Button
             android:id="@+id/bucket_reset"
-            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
