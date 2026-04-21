@@ -9,7 +9,9 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.models.NovelBean
 import ceui.loxia.ObjectPool
+import ceui.pixiv.ui.common.ListItemHolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -18,29 +20,30 @@ class HistoryListViewModel(private val historyType: Int) : ViewModel() {
 
     private val dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
 
-    private val _items = MutableLiveData<List<IllustHistoryEntity>>(emptyList())
-    val items: LiveData<List<IllustHistoryEntity>> = _items
-
-    private val _illusts = MutableLiveData<List<IllustsBean>>(emptyList())
-    val illusts: LiveData<List<IllustsBean>> = _illusts
+    private val _holders = MutableLiveData<List<ListItemHolder>>(emptyList())
+    val holders: LiveData<List<ListItemHolder>> = _holders
 
     private val _isEmpty = MutableLiveData(false)
     val isEmpty: LiveData<Boolean> = _isEmpty
 
-    private val allItems = mutableListOf<IllustHistoryEntity>()
+    private val rawItems = mutableListOf<IllustHistoryEntity>()
     private val allIllusts = mutableListOf<IllustsBean>()
+    private var onDeleteCallback: ((IllustHistoryEntity) -> Unit)? = null
+
+    fun setDeleteCallback(cb: (IllustHistoryEntity) -> Unit) {
+        onDeleteCallback = cb
+    }
 
     fun loadFirst(onDone: () -> Unit = {}) {
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) {
                 dao.getViewHistoryByType(historyType, PAGE_SIZE, 0)
             }
-            allItems.clear()
-            allItems.addAll(data)
+            rawItems.clear()
+            rawItems.addAll(data)
             rebuildIllusts()
-            _items.value = allItems.toList()
-            _illusts.value = allIllusts.toList()
-            _isEmpty.value = allItems.isEmpty()
+            _holders.value = buildHolders()
+            _isEmpty.value = rawItems.isEmpty()
             onDone()
         }
     }
@@ -48,13 +51,12 @@ class HistoryListViewModel(private val historyType: Int) : ViewModel() {
     fun loadMore(onDone: () -> Unit = {}) {
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) {
-                dao.getViewHistoryByType(historyType, PAGE_SIZE, allItems.size)
+                dao.getViewHistoryByType(historyType, PAGE_SIZE, rawItems.size)
             }
             if (data.isNotEmpty()) {
-                allItems.addAll(data)
+                rawItems.addAll(data)
                 appendIllusts(data)
-                _items.value = allItems.toList()
-                _illusts.value = allIllusts.toList()
+                _holders.value = buildHolders()
             }
             onDone()
         }
@@ -63,21 +65,32 @@ class HistoryListViewModel(private val historyType: Int) : ViewModel() {
     fun delete(entity: IllustHistoryEntity) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { dao.delete(entity) }
-            val pos = allItems.indexOfFirst { it.illustID == entity.illustID && it.type == entity.type }
-            if (pos >= 0) {
-                allItems.removeAt(pos)
-                if (entity.type == 0) allIllusts.removeAll { it.id == entity.illustID }
+            rawItems.removeAll { it.illustID == entity.illustID && it.type == entity.type }
+            if (entity.type == 0) allIllusts.removeAll { it.id == entity.illustID }
+            _holders.value = buildHolders()
+            _isEmpty.value = rawItems.isEmpty()
+        }
+    }
+
+    private fun buildHolders(): List<ListItemHolder> {
+        val deleteHandler: (IllustHistoryEntity) -> Unit = { entity ->
+            onDeleteCallback?.invoke(entity)
+        }
+        return rawItems.mapNotNull { entity ->
+            if (historyType == 0) {
+                val illust = Shaft.sGson.fromJson(entity.illustJson, IllustsBean::class.java) ?: return@mapNotNull null
+                HistoryIllustHolder(entity, illust, { allIllusts.toList() }, deleteHandler)
+            } else {
+                val novel = Shaft.sGson.fromJson(entity.illustJson, NovelBean::class.java) ?: return@mapNotNull null
+                HistoryNovelHolder(entity, novel, deleteHandler)
             }
-            _items.value = allItems.toList()
-            _illusts.value = allIllusts.toList()
-            _isEmpty.value = allItems.isEmpty()
         }
     }
 
     private fun rebuildIllusts() {
         allIllusts.clear()
         if (historyType != 0) return
-        allItems.mapNotNull { Shaft.sGson.fromJson(it.illustJson, IllustsBean::class.java) }
+        rawItems.mapNotNull { Shaft.sGson.fromJson(it.illustJson, IllustsBean::class.java) }
             .forEach { ObjectPool.updateIllust(it); allIllusts.add(it) }
     }
 

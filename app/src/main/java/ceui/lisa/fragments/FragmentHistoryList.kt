@@ -8,15 +8,12 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.database.IllustHistoryEntity
-import ceui.pixiv.ui.common.viewBinding
 import ceui.lisa.databinding.FragmentHistoryListBinding
+import ceui.pixiv.ui.common.CommonAdapter
+import ceui.pixiv.ui.common.viewBinding
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
-/**
- * A single-type history list (illust type=0, novel type=1).
- * Used as a child of [FragmentHistoryTabs].
- */
 class FragmentHistoryList : Fragment(R.layout.fragment_history_list) {
 
     private val binding by viewBinding(FragmentHistoryListBinding::bind)
@@ -26,17 +23,12 @@ class FragmentHistoryList : Fragment(R.layout.fragment_history_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val listAdapter = HistoryV3Adapter(
-            context = requireContext(),
-            items = viewModel.items.value?.toMutableList() ?: mutableListOf(),
-            allIllustsProvider = { viewModel.illusts.value.orEmpty() },
-            onRequestDelete = { _, entity -> confirmDelete(entity) },
-        )
+        val adapter = CommonAdapter(viewLifecycleOwner)
 
         val spanCount = if (historyType == TYPE_NOVEL) 1 else 2
         binding.recyclerView.layoutManager = StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
         binding.recyclerView.itemAnimator = null
-        binding.recyclerView.adapter = listAdapter
+        binding.recyclerView.adapter = adapter
 
         binding.refreshLayout.setRefreshHeader(MaterialHeader(requireContext()))
         binding.refreshLayout.setRefreshFooter(ClassicsFooter(requireContext()))
@@ -47,14 +39,15 @@ class FragmentHistoryList : Fragment(R.layout.fragment_history_list) {
             viewModel.loadMore { binding.refreshLayout.finishLoadMore() }
         }
 
-        viewModel.items.observe(viewLifecycleOwner) { data ->
-            listAdapter.submit(data.toMutableList())
+        viewModel.setDeleteCallback { entity -> confirmDelete(entity) }
+        viewModel.holders.observe(viewLifecycleOwner) { holders ->
+            adapter.submitList(holders)
         }
         viewModel.isEmpty.observe(viewLifecycleOwner) { empty ->
             binding.emptyLayout.isVisible = empty
         }
 
-        if (viewModel.items.value.isNullOrEmpty()) {
+        if (viewModel.holders.value.isNullOrEmpty()) {
             viewModel.loadFirst()
         }
     }
