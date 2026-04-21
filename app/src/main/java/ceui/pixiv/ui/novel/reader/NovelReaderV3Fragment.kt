@@ -531,11 +531,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         AnnotationsSheet().apply {
             configure(
                 entries = viewModel.annotations.value.orEmpty(),
-                onJumpTo = { entry ->
-                    viewModel.jumpToCharIndex(entry.charStart)
-                    val idx = viewModel.pagination.value?.pages?.indexOfFirst { it.charEnd >= entry.charStart }?.coerceAtLeast(0) ?: 0
-                    readerView?.goToPage(idx, animate = false)
-                },
+                onJumpTo = { entry -> navigateToCharIndex(entry.charStart) },
                 onEdit = { editAnnotation(it) },
                 onDelete = { viewModel.deleteAnnotation(it.annotationId) },
             )
@@ -546,10 +542,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         BookmarksSheet().apply {
             configure(
                 entries = viewModel.bookmarks.value.orEmpty(),
-                onJumpTo = { entry ->
-                    viewModel.jumpToCharIndex(entry.charIndex)
-                    readerView?.goToPage(entry.pageIndex, animate = false)
-                },
+                onJumpTo = { entry -> navigateToCharIndex(entry.charIndex) },
                 onDelete = { viewModel.deleteBookmark(it.bookmarkId) },
             )
         }.show(childFragmentManager, BookmarksSheet.TAG)
@@ -574,9 +567,20 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     }
 
     private fun goToHitDirect(hit: SearchHit) {
-        viewModel.jumpToCharIndex(hit.absoluteStart)
-        val pageIdx = viewModel.pagination.value?.pages?.indexOfFirst { it.charEnd >= hit.absoluteStart }?.coerceAtLeast(0) ?: 0
-        readerView?.goToPage(pageIdx, animate = false)
+        navigateToCharIndex(hit.absoluteStart)
+    }
+
+    /** Unified jump: works in both paged and scroll mode. */
+    private fun navigateToCharIndex(charIndex: Int, animate: Boolean = false) {
+        viewModel.jumpToCharIndex(charIndex)
+        if (scrollReaderView?.visibility == View.VISIBLE) {
+            if (animate) scrollReaderView?.scrollToCharIndex(charIndex)
+            else scrollReaderView?.jumpToCharIndex(charIndex)
+        } else {
+            val pageIdx = viewModel.pagination.value?.pages
+                ?.indexOfFirst { it.charEnd >= charIndex }?.coerceAtLeast(0) ?: 0
+            readerView?.goToPage(pageIdx, animate = animate)
+        }
     }
 
     // ---- Chapter navigation -------------------------------------------------
@@ -587,13 +591,11 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             Toast.makeText(requireContext(), "这篇小说没有章节标记", Toast.LENGTH_SHORT).show()
             return
         }
-        val currentStart = viewModel.pagination.value?.pages?.getOrNull(readerView?.currentPageIndex() ?: 0)?.charStart ?: 0
+        val currentStart = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.currentCharIndex()
+            ?: viewModel.pagination.value?.pages?.getOrNull(readerView?.currentPageIndex() ?: 0)?.charStart
+            ?: 0
         ChapterListSheet().apply {
-            configure(outline, currentStart) { entry ->
-                viewModel.jumpToCharIndex(entry.sourceStart)
-                val idx = viewModel.pagination.value?.pages?.indexOfFirst { it.charEnd >= entry.sourceStart }?.coerceAtLeast(0) ?: 0
-                readerView?.goToPage(idx, animate = false)
-            }
+            configure(outline, currentStart) { entry -> navigateToCharIndex(entry.sourceStart) }
         }.show(childFragmentManager, ChapterListSheet.TAG)
     }
 
@@ -603,12 +605,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             if (forward) readerView?.flipForward() else readerView?.flipBackward()
             return
         }
-        val currentChar = viewModel.pagination.value?.pages?.getOrNull(readerView?.currentPageIndex() ?: 0)?.charStart ?: return
+        val currentChar = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.currentCharIndex()
+            ?: viewModel.pagination.value?.pages?.getOrNull(readerView?.currentPageIndex() ?: 0)?.charStart
+            ?: return
         val target = if (forward) outline.firstOrNull { it.sourceStart > currentChar } else (outline.lastOrNull { it.sourceStart < currentChar } ?: outline.firstOrNull())
         if (target != null) {
-            viewModel.jumpToCharIndex(target.sourceStart)
-            val idx = viewModel.pagination.value?.pages?.indexOfFirst { it.charEnd >= target.sourceStart }?.coerceAtLeast(0) ?: 0
-            readerView?.goToPage(idx, animate = true)
+            navigateToCharIndex(target.sourceStart, animate = true)
         } else {
             Toast.makeText(requireContext(), if (forward) "已是最后一章" else "已是第一章", Toast.LENGTH_SHORT).show()
         }
