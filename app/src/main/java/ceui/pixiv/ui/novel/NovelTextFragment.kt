@@ -21,7 +21,6 @@ import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.combineLatest
-import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
@@ -108,7 +107,8 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         ).observe(viewLifecycleOwner) { (novel, webNovel) ->
             if (novel != null) {
                 runOnceWithinFragmentLifecycle("visit-novel-${novelId}") {
-                    requireEntityWrapper().visitNovel(requireContext(), novel)
+                    val bean = Shaft.sGson.fromJson(Shaft.sGson.toJson(novel), ceui.lisa.models.NovelBean::class.java)
+                    ceui.lisa.utils.PixivOperate.insertNovelViewHistory(bean)
                 }
             }
 
