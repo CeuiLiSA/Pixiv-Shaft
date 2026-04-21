@@ -298,6 +298,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
         viewModel.pagination.observe(viewLifecycleOwner) { pag ->
             if (pag == null) return@observe
+            if (ReaderSettings.flipMode == FlipMode.Scroll) return@observe
             rv.setStyle(pag.style, pag.geometry)
             rv.bind(pag.pages, pag.startPageIndex)
             rv.setFlipMode(ReaderSettings.flipMode)
@@ -368,7 +369,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             }
             rv.visibility = View.VISIBLE
             rv.setFlipMode(mode)
-            // Re-paginate to land on the char position the user was reading in scroll mode
+            // Invalidate dedup cache so pushStyle actually triggers re-pagination.
+            // The cache keys don't include flipMode, so a mode-only change would
+            // be suppressed without this reset.
+            lastPushedSnapshot = null
             pushStyleAndGeometryIfReady()
         }
     }
