@@ -23,6 +23,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -81,6 +82,9 @@ import kotlinx.coroutines.withContext
 class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     private val safeArgs by threadSafeArgs<FragmentIllustArgs>()
+    private val vm by viewModels<FragmentIllustViewModel> {
+        FragmentIllustViewModel.Factory(safeArgs.illustId.toLong())
+    }
     private var mReceiver: CallBackReceiver? = null
     private var recyHeight = 0
     private lateinit var aiHelper: IllustAiHelper
@@ -93,6 +97,11 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         val illustLiveData = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong())
         illustLiveData.observe(viewLifecycleOwner) { illust ->
             updateIllust(illust)
+        }
+        vm.hasDownload.observe(viewLifecycleOwner) { downloaded ->
+            baseBind.download.setText(
+                if (downloaded) R.string.string_337 else R.string.string_72
+            )
         }
         val userId = illustLiveData.value?.user?.id ?: return
         val userLiveData = ObjectPool.get<UserBean>(userId.toLong())
@@ -572,15 +581,10 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
     }
 
     private fun checkDownload() {
-        val illust = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return
-        val hasLocalFile = Common.isIllustDownloaded(illust)
-        val hasRecord = !hasLocalFile && AppDatabase.getAppDatabase(mContext)
-                .downloadDao().hasDownloadRecordByIllustId(illust.id.toLong())
-        if (hasLocalFile || hasRecord) {
-            baseBind.download.setText(R.string.string_337)
-        } else {
-            baseBind.download.setText(R.string.string_72)
-        }
+        // SAF existence probe + Room query are heavy on main thread for multi-P
+        // works (issue #835 — ANR on Android 16). VM runs both on Dispatchers.IO
+        // and posts the result back to hasDownload LiveData.
+        vm.refreshDownloadState(mContext)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
