@@ -458,6 +458,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     private fun showReaderOverflowMenu() {
         showV3Menu {
+            item("笔记 / 高亮", R.drawable.ic_reader_annotations) {
+                showAnnotationsSheet()
+            }
             item("位置书签", R.drawable.ic_baseline_bookmark_24) {
                 showBookmarksSheet()
             }
