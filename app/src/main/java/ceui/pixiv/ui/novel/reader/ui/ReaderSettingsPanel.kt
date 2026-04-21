@@ -67,9 +67,11 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     ): View {
         _binding = FragmentReaderSettingsBinding.inflate(inflater, container, false)
         val ctx = requireContext()
-        primaryColor = ceui.lisa.utils.Common.resolveThemeAttribute(ctx, androidx.appcompat.R.attr.colorPrimary)
-        textColor1 = ctx.getColor(R.color.v3_text_1)
-        surfaceColor = ctx.getColor(R.color.v3_surface_2)
+        // Settings sheet has a fixed light background regardless of system dark mode,
+        // so use fixed colors — not theme-resolved ones that flip in night mode.
+        primaryColor = 0xFF5B6EFF.toInt()
+        textColor1 = 0xFF1A1A2E.toInt()
+        surfaceColor = 0x1A000000
         bindTypography(ctx)
         bindTheme(ctx)
         bindFlip(ctx)
