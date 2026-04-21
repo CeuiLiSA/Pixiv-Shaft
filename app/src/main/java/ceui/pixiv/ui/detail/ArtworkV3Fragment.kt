@@ -185,6 +185,11 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     }
 
 
+    override fun onResume() {
+        super.onResume()
+        updateDownloadState(safeArgs.illustId.toLong())
+    }
+
     private fun updateDownloadState(illustId: Long) {
         val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return
         val downloaded = Common.isIllustDownloaded(illust) ||
