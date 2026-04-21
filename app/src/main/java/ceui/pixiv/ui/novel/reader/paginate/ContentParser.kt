@@ -122,11 +122,8 @@ object ContentParser {
         val outline = mutableListOf<ChapterOutlineEntry>()
         val hasPageBreaks = tokens.any { it is ContentToken.PageBreak }
         var firstContentAnchored = false
-        // Counts pages as Pixiv does: the span before the first [newpage] is
-        // page 1, and each subsequent break starts the next page. Incremented
-        // on PageBreak so the emitted label is `page + 1`.
         var breaksSeen = 0
-        for (token in tokens) {
+        for ((i, token) in tokens.withIndex()) {
             when (token) {
                 is ContentToken.Chapter -> {
                     outline += ChapterOutlineEntry(
@@ -137,6 +134,15 @@ object ContentParser {
                 }
                 is ContentToken.PageBreak -> {
                     breaksSeen += 1
+                    // If the next meaningful token is a Chapter, skip this
+                    // PageBreak — the Chapter entry will represent this position
+                    // and avoids a duplicate "分页 N" + chapter title pair.
+                    val next = tokens.subList(i + 1, tokens.size)
+                        .firstOrNull { it !is ContentToken.BlankLine }
+                    if (next is ContentToken.Chapter) {
+                        firstContentAnchored = true
+                        continue
+                    }
                     outline += ChapterOutlineEntry(
                         title = "分页 ${breaksSeen + 1}",
                         sourceStart = token.sourceEnd,
