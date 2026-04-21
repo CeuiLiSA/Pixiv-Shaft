@@ -778,6 +778,26 @@ public class PixivOperate {
                 Intent intent = new Intent(Params.PLAY_GIF);
                 intent.putExtra(Params.ID, illustsBean.getId());
                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+
+                // 清理 zip 压缩包和解压帧文件夹
+                try {
+                    File zipFile = LegacyFile.gifZipFile(context, illustsBean);
+                    if (zipFile.exists()) {
+                        zipFile.delete();
+                        Common.showLog("已删除 ugoira zip: " + zipFile.getPath());
+                    }
+                    if (parentFile.exists() && parentFile.isDirectory()) {
+                        File[] leftover = parentFile.listFiles();
+                        if (leftover != null) {
+                            for (File f : leftover) f.delete();
+                        }
+                        parentFile.delete();
+                        Common.showLog("已删除 ugoira 帧文件夹: " + parentFile.getPath());
+                    }
+                } catch (Exception cleanupEx) {
+                    Common.showLog("ugoira cleanup failed: " + cleanupEx.getMessage());
+                }
+
                 return null;
             }
         }, new TryCatchObserverImpl<>() {
