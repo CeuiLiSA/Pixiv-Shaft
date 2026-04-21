@@ -578,7 +578,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     private fun searchHitRanges(): List<HighlightRange> {
         val result = viewModel.searchResult.value ?: return emptyList()
         return result.hits.mapIndexed { i, hit ->
-            HighlightRange(hit.absoluteStart, hit.absoluteEnd, 0x66FFEB3B.toInt(), isCurrent = i == result.currentIndex)
+            val current = i == result.currentIndex
+            HighlightRange(
+                absoluteStart = hit.absoluteStart,
+                absoluteEnd = hit.absoluteEnd,
+                color = if (current) COLOR_SEARCH_CURRENT else COLOR_SEARCH_OTHER,
+                isCurrent = current,
+            )
         }
     }
 
@@ -753,6 +759,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     companion object {
         private const val ARG_NOVEL_ID = "novel_id"
+        private const val COLOR_SEARCH_CURRENT = 0xAAFF9800.toInt() // opaque orange
+        private const val COLOR_SEARCH_OTHER = 0x66FFEB3B           // semi-transparent yellow
 
         @JvmStatic
         fun newInstance(novelBean: NovelBean): NovelReaderV3Fragment {
