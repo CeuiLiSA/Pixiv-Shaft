@@ -504,12 +504,18 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
     }
 
     private fun setupDescription(illust: IllustsBean) {
-        if (!TextUtils.isEmpty(illust.caption)) {
-            baseBind.description.visibility = View.VISIBLE
-            baseBind.description.setHtml(illust.caption)
-        } else {
+        val caption = illust.caption
+        if (caption.isNullOrEmpty()) {
             baseBind.description.visibility = View.GONE
+            return
         }
+        baseBind.description.visibility = View.VISIBLE
+        // HtmlTextView.setHtml 在 caption 含 <a> 链接时会直接吐出空串（#552）。
+        // 换成 androidx HtmlCompat.fromHtml + LinkMovementMethod，文本和可点链接都能正常渲染。
+        baseBind.description.text = androidx.core.text.HtmlCompat.fromHtml(
+            caption, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+        )
+        baseBind.description.movementMethod = LinkMovementMethod.getInstance()
     }
 
     private fun setupStats(illust: IllustsBean) {
