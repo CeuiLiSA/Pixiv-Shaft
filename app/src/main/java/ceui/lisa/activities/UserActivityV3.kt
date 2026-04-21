@@ -120,6 +120,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 override fun success(userResponse: UserDetailResponse) {
                     ObjectPool.updateUser(userResponse.user)
                     mUserViewModel.user.value = userResponse
+                    // Record user visit history
+                    runCatching {
+                        val loxiaUser = Shaft.sGson.fromJson(Shaft.sGson.toJson(userResponse.user), ceui.loxia.User::class.java)
+                        (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, loxiaUser)
+                    }
                     Shaft.appViewModel.updateFollowUserStatus(
                         userId,
                         if (userResponse.user.isIs_followed)
