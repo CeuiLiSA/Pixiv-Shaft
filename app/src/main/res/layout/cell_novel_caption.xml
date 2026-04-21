@@ -64,18 +64,5 @@
             android:textColor="@color/text00"
             android:layout_height="wrap_content"/>
 
-        <ceui.pixiv.widgets.TagsFlowView
-            android:id="@+id/tags_flow_view"
-            visibleOrGone="@{novel.tags.size() > 0}"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:dividerDrawable="@drawable/spacer_8dp"
-            app:flexWrap="wrap"
-            app:showDivider="middle"
-            app:tags="@{novel.tags}">
-
-        </ceui.pixiv.widgets.TagsFlowView>
-
     </LinearLayout>
 </layout>

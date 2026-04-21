@@ -270,50 +270,9 @@ class ArtworkDetailAdapter(
     }
 
     inner class TagsVH(private val b: SectionV3TagsBinding) : RecyclerView.ViewHolder(b.root) {
-        private var lastSignature: String? = null
-
         fun bind(illust: IllustsBean) {
-            // Skip rebuild if the tag list hasn't changed. Header rebuilds happen
-            // several times during initial load (illust → user → profile response),
-            // and tearing down + reinflating 20+ TextViews each time is wasteful.
-            val sig = buildString {
-                illust.tags?.forEach { t ->
-                    append(t.name ?: ""); append('|')
-                    append(t.translated_name ?: ""); append(';')
-                }
-            }
-            if (sig == lastSignature && b.tagsFlow.childCount > 0) return
-            lastSignature = sig
-
-            b.tagsFlow.removeAllViews()
-            val tagBgState = palette.tagLockedBg(999f * ctx.resources.displayMetrics.density).constantState
-            illust.tags?.forEach { tag ->
-                val tv = TextView(ctx).apply {
-                    text = buildString {
-                        append("# ")
-                        append(tag.name ?: "")
-                        if (!tag.translated_name.isNullOrBlank()) {
-                            append("  "); append(tag.translated_name)
-                        }
-                    }
-                    textSize = 13f
-                    setTextColor(palette.textTag)
-                    background = tagBgState?.newDrawable()?.mutate()
-                    setPadding(14.ppppx, 7.ppppx, 14.ppppx, 7.ppppx)
-                    layoutParams = FlexboxLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    ).apply { setMargins(0, 0, 8.ppppx, 8.ppppx) }
-                    setOnClickListener {
-                        val intent = Intent(ctx, SearchActivity::class.java)
-                        intent.putExtra(Params.KEY_WORD, tag.name)
-                        intent.putExtra(Params.INDEX, 0)
-                        ctx.startActivity(intent)
-                    }
-                }
-                applyTouchScale(tv, 0.94f)
-                b.tagsFlow.addView(tv)
-            }
+            b.tagsFlow.searchIndex = 0 // illust tab
+            b.tagsFlow.setJavaTags(illust.tags.orEmpty())
         }
     }
 

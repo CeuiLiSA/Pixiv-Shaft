@@ -18,10 +18,8 @@
         android:textSize="10sp"
         android:textStyle="bold" />
 
-    <com.google.android.flexbox.FlexboxLayout
+    <ceui.pixiv.widgets.V3TagFlowView
         android:id="@+id/tags_flow"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:alignItems="flex_start"
-        app:flexWrap="wrap" />
+        android:layout_height="wrap_content" />
 </LinearLayout>

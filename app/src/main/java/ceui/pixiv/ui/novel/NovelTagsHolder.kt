@@ -20,7 +20,9 @@ class NovelTagsViewHolder(bd: CellNovelTagsBinding) :
 
     override fun onBindViewHolder(holder: NovelTagsHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        val liveNovel = ObjectPool.get<Novel>(holder.novelId)
-        binding.novel = liveNovel
+        binding.tagsFlow.searchIndex = 1 // novels tab in SearchActivity
+        ObjectPool.get<Novel>(holder.novelId).observe(lifecycleOwner) { novel ->
+            binding.tagsFlow.setTags(novel?.tags.orEmpty())
+        }
     }
 }
