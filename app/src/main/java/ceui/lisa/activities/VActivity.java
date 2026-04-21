@@ -99,7 +99,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     return bundle;
                 }
             });
-            baseBind.viewPager.setOffscreenPageLimit(2);
+            // offscreenPageLimit=1 keeps 3 fragments attached (prev/current/next) instead of
+            // 5. Each ArtworkV3Fragment init fires /v1/illust/detail on ObjectPool miss —
+            // 5 parallel fetches reliably trip Pixiv's per-IP 429 rate limit.
+            baseBind.viewPager.setOffscreenPageLimit(1);
 
             ViewPager.OnPageChangeListener listener = new ViewPager.OnPageChangeListener() {
                 @Override
