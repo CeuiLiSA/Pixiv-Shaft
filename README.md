@@ -159,22 +159,22 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/CeuiLiSA"><img src="https://avatars.githubusercontent.com/u/32817377?v=4" width="72" height="72" style="border-radius:50%" alt="CeuiLiSA"/><br/><sub><b>🥇 CeuiLiSA</b></sub></a><br/><sub>521 commits</sub></td>
-    <td align="center"><a href="https://github.com/sunbeams001"><img src="https://avatars.githubusercontent.com/u/3478170?v=4" width="72" height="72" style="border-radius:50%" alt="sunbeams001"/><br/><sub><b>🥈 sunbeams001</b></sub></a><br/><sub>504 commits</sub></td>
-    <td align="center"><a href="https://github.com/SoxiaLiSA"><img src="https://avatars.githubusercontent.com/u/162939383?v=4" width="72" height="72" style="border-radius:50%" alt="SoxiaLiSA"/><br/><sub><b>🥉 SoxiaLiSA</b></sub></a><br/><sub>332 commits</sub></td>
-    <td align="center"><a href="https://github.com/4ragaki"><img src="https://avatars.githubusercontent.com/u/23445216?v=4" width="72" height="72" style="border-radius:50%" alt="4ragaki"/><br/><sub><b>4ragaki</b></sub></a><br/><sub>41 commits</sub></td>
-    <td align="center"><a href="https://github.com/duzhaokun123"><img src="https://avatars.githubusercontent.com/u/39830683?v=4" width="72" height="72" style="border-radius:50%" alt="duzhaokun123"/><br/><sub><b>duzhaokun123</b></sub></a><br/><sub>37 commits</sub></td>
+    <td align="center"><a href="https://github.com/CeuiLiSA"><img src="https://avatars.githubusercontent.com/u/32817377?v=4" width="72" height="72" style="border-radius:50%" alt="CeuiLiSA"/><br/><sub><b>🥇 CeuiLiSA</b></sub></a><br/><sub>521 commits</sub><br/><sub>+143,913 / −85,914</sub></td>
+    <td align="center"><a href="https://github.com/sunbeams001"><img src="https://avatars.githubusercontent.com/u/3478170?v=4" width="72" height="72" style="border-radius:50%" alt="sunbeams001"/><br/><sub><b>🥈 sunbeams001</b></sub></a><br/><sub>504 commits</sub><br/><sub>+21,001 / −9,963</sub></td>
+    <td align="center"><a href="https://github.com/SoxiaLiSA"><img src="https://avatars.githubusercontent.com/u/162939383?v=4" width="72" height="72" style="border-radius:50%" alt="SoxiaLiSA"/><br/><sub><b>🥉 SoxiaLiSA</b></sub></a><br/><sub>332 commits</sub><br/><sub>+52,639 / −15,211</sub></td>
+    <td align="center"><a href="https://github.com/4ragaki"><img src="https://avatars.githubusercontent.com/u/23445216?v=4" width="72" height="72" style="border-radius:50%" alt="4ragaki"/><br/><sub><b>4ragaki</b></sub></a><br/><sub>41 commits</sub><br/><sub>+1,231 / −201</sub></td>
+    <td align="center"><a href="https://github.com/duzhaokun123"><img src="https://avatars.githubusercontent.com/u/39830683?v=4" width="72" height="72" style="border-radius:50%" alt="duzhaokun123"/><br/><sub><b>duzhaokun123</b></sub></a><br/><sub>37 commits</sub><br/><sub>+1,174 / −717</sub></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/0-a-e"><img src="https://avatars.githubusercontent.com/u/42256381?v=4" width="72" height="72" style="border-radius:50%" alt="0-a-e"/><br/><sub><b>0-a-e</b></sub></a><br/><sub>19 commits</sub></td>
-    <td align="center"><a href="https://github.com/Lostin-Tianyi"><img src="https://avatars.githubusercontent.com/u/158666756?v=4" width="72" height="72" style="border-radius:50%" alt="Lostin-Tianyi"/><br/><sub><b>Lostin-Tianyi</b></sub></a><br/><sub>17 commits</sub></td>
-    <td align="center"><a href="https://github.com/SodaWithoutSparkles"><img src="https://avatars.githubusercontent.com/u/64138578?v=4" width="72" height="72" style="border-radius:50%" alt="SodaWithoutSparkles"/><br/><sub><b>SodaWithoutSparkles</b></sub></a><br/><sub>16 commits</sub></td>
-    <td align="center"><a href="https://github.com/LoxiaLiSA"><img src="https://avatars.githubusercontent.com/u/81730053?v=4" width="72" height="72" style="border-radius:50%" alt="LoxiaLiSA"/><br/><sub><b>LoxiaLiSA</b></sub></a><br/><sub>14 commits</sub></td>
-    <td align="center"><a href="https://github.com/yxsra"><img src="https://avatars.githubusercontent.com/u/49748345?v=4" width="72" height="72" style="border-radius:50%" alt="yxsra"/><br/><sub><b>yxsra</b></sub></a><br/><sub>11 commits</sub></td>
+    <td align="center"><a href="https://github.com/0-a-e"><img src="https://avatars.githubusercontent.com/u/42256381?v=4" width="72" height="72" style="border-radius:50%" alt="0-a-e"/><br/><sub><b>0-a-e</b></sub></a><br/><sub>19 commits</sub><br/><sub>+907 / −839</sub></td>
+    <td align="center"><a href="https://github.com/Lostin-Tianyi"><img src="https://avatars.githubusercontent.com/u/158666756?v=4" width="72" height="72" style="border-radius:50%" alt="Lostin-Tianyi"/><br/><sub><b>Lostin-Tianyi</b></sub></a><br/><sub>17 commits</sub><br/><sub>+1,080 / −149</sub></td>
+    <td align="center"><a href="https://github.com/SodaWithoutSparkles"><img src="https://avatars.githubusercontent.com/u/64138578?v=4" width="72" height="72" style="border-radius:50%" alt="SodaWithoutSparkles"/><br/><sub><b>SodaWithoutSparkles</b></sub></a><br/><sub>16 commits</sub><br/><sub>+351 / −273</sub></td>
+    <td align="center"><a href="https://github.com/LoxiaLiSA"><img src="https://avatars.githubusercontent.com/u/81730053?v=4" width="72" height="72" style="border-radius:50%" alt="LoxiaLiSA"/><br/><sub><b>LoxiaLiSA</b></sub></a><br/><sub>14 commits</sub><br/><sub>+50,536 / −15,637</sub></td>
+    <td align="center"><a href="https://github.com/yxsra"><img src="https://avatars.githubusercontent.com/u/49748345?v=4" width="72" height="72" style="border-radius:50%" alt="yxsra"/><br/><sub><b>yxsra</b></sub></a><br/><sub>11 commits</sub><br/><sub>+182 / −53</sub></td>
   </tr>
 </table>
 
-<sub>Numbers from the GitHub contributors API on 2026-04-21; see [full list](https://github.com/CeuiLiSA/Pixiv-Shaft/graphs/contributors).</sub>
+<sub>Commits from the GitHub contributors API; lines added / removed from <code>git log --numstat</code>. Snapshot taken 2026-04-21 — see the [live list](https://github.com/CeuiLiSA/Pixiv-Shaft/graphs/contributors).</sub>
 
 ### All contributors
 
