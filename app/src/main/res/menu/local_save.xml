@@ -12,7 +12,7 @@
         android:id="@+id/action_jump"
         android:orderInCategory="90"
         android:icon="@drawable/ic_date_range_black_24dp"
-        android:title="跳转到…"
+        android:title="@string/desc_jump_to"
         app:showAsAction="ifRoom" />
 
     <item

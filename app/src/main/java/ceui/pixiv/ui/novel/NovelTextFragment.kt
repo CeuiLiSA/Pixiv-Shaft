@@ -132,7 +132,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                         }
                         startActivity(intent)
                     }
-                    item("复制链接", R.drawable.ic_baseline_launch_24) {
+                    item(getString(R.string.menu_copy_link), R.drawable.ic_baseline_launch_24) {
                         ceui.lisa.utils.Common.copy(requireContext(), ceui.pixiv.ui.common.NOVEL_URL_HEAD + novelId)
                     }
                 }

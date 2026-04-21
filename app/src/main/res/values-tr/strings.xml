@@ -860,4 +860,42 @@
     <string name="action_highlight_menu">Vurgula ▾</string>
     <!-- History tabs -->
     <string name="tab_user">Kullanıcılar</string>
+
+    <string name="user_jump_loading">Yükleniyor…</string>
+    <string name="user_jump_no_works">Bu kullanıcının bu türde eseri yok</string>
+    <string name="user_jump_to_earliest">En eski esere git</string>
+    <string name="user_jump_by_date">Tarihe göre</string>
+    <string name="user_jump_by_page">Sayfaya göre</string>
+    <string name="user_jump_dialog_title">Git… (toplam %1$d, %2$d sayfa)</string>
+    <string name="user_jump_page_hint">Sayfa girin (1-%1$d)</string>
+    <string name="user_jump_page_dialog_title">Sayfaya git</string>
+    <string name="user_jump_page_dialog_message">%1$d sayfa, sayfa başına %2$d</string>
+    <string name="user_jump_page_range_error">Sayfa 1 ile %1$d arasında olmalı</string>
+    <string name="user_jump_locating">%1$s aranıyor…</string>
+    <string name="user_jump_locate_failed">Konum bulunamadı: %1$s</string>
+
+    <string name="task_status_not_started">Başlamadı</string>
+    <string name="task_status_downloading">İndiriliyor - %1$d%%</string>
+    <string name="task_status_done">Tamamlandı</string>
+    <string name="task_status_error">Hata</string>
+
+    <string name="translator_loading_ocr">OCR modeli yükleniyor…</string>
+    <string name="translator_recognizing">Metin tanınıyor…</string>
+    <string name="translator_no_text">Metin bulunamadı</string>
+    <string name="translator_translating">Çevriliyor…</string>
+    <string name="translator_progress">Çevriliyor (%1$d/%2$d)</string>
+    <string name="translator_erasing">Orijinal metin siliniyor…</string>
+    <string name="translator_rendering">Çeviri oluşturuluyor…</string>
+    <string name="translator_done">Çeviri tamamlandı</string>
+
+    <string name="series_bookmarked_feature">Öne çıkanlara eklendi</string>
+    <string name="title_popular_live">Popüler Canlı Yayın</string>
+    <string name="confirm_logout">Çıkış yapılsın mı?</string>
+
+    <string name="mine_cache_table">Önbellek Tablosu</string>
+    <string name="mine_progress_table">İlerleme Tablosu</string>
+
+    <string name="storage_request">İstek</string>
+    <string name="saf_request_path">Yol İste</string>
+    <string name="saf_create_file">Dosya Oluştur</string>
 </resources>

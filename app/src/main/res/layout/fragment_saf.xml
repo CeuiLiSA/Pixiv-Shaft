@@ -14,7 +14,7 @@
             android:layout_width="wrap_content"
             android:id="@+id/request"
             android:layout_marginTop="100dp"
-            android:text="申请路径"
+            android:text="@string/saf_request_path"
             android:layout_height="wrap_content">
 
         </Button>
@@ -23,7 +23,7 @@
             android:layout_width="wrap_content"
             android:id="@+id/create"
             android:layout_marginTop="100dp"
-            android:text="创建文件"
+            android:text="@string/saf_create_file"
             android:layout_height="wrap_content">
 
         </Button>

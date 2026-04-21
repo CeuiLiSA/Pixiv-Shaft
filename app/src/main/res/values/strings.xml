@@ -1150,4 +1150,48 @@
 
     <!-- History tabs -->
     <string name="tab_user">用户</string>
+
+    <!-- 用户作品「跳转到…」弹窗 -->
+    <string name="user_jump_loading">加载中…</string>
+    <string name="user_jump_no_works">该用户没有这个类型的作品</string>
+    <string name="user_jump_to_earliest">跳到最早作品</string>
+    <string name="user_jump_by_date">按时间跳转</string>
+    <string name="user_jump_by_page">按页码跳转</string>
+    <string name="user_jump_dialog_title">跳转到… (共 %1$d 件，%2$d 页)</string>
+    <string name="user_jump_page_hint">输入页码 (1-%1$d)</string>
+    <string name="user_jump_page_dialog_title">跳到第几页</string>
+    <string name="user_jump_page_dialog_message">共 %1$d 页，每页 %2$d 件</string>
+    <string name="user_jump_page_range_error">页码需要在 1 到 %1$d 之间</string>
+    <string name="user_jump_locating">正在定位 %1$s …</string>
+    <string name="user_jump_locate_failed">定位失败：%1$s</string>
+
+    <!-- 下载任务状态 -->
+    <string name="task_status_not_started">未开始</string>
+    <string name="task_status_downloading">下载中 - %1$d%%</string>
+    <string name="task_status_done">完成了</string>
+    <string name="task_status_error">出错了</string>
+
+    <!-- 漫画翻译流水线进度 -->
+    <string name="translator_loading_ocr">正在加载 OCR 模型…</string>
+    <string name="translator_recognizing">正在识别文字…</string>
+    <string name="translator_no_text">未检测到文字</string>
+    <string name="translator_translating">正在翻译…</string>
+    <string name="translator_progress">翻译中 (%1$d/%2$d)</string>
+    <string name="translator_erasing">正在擦除原文…</string>
+    <string name="translator_rendering">正在渲染译文…</string>
+    <string name="translator_done">翻译完成</string>
+
+    <!-- 杂项 -->
+    <string name="series_bookmarked_feature">已收藏到精华</string>
+    <string name="title_popular_live">人气直播</string>
+    <string name="confirm_logout">确定退出登录吗</string>
+
+    <!-- 个人中心调试入口 -->
+    <string name="mine_cache_table">缓存表</string>
+    <string name="mine_progress_table">进度表</string>
+
+    <!-- Storage / SAF 调试按钮 -->
+    <string name="storage_request">请求</string>
+    <string name="saf_request_path">申请路径</string>
+    <string name="saf_create_file">创建文件</string>
 </resources>

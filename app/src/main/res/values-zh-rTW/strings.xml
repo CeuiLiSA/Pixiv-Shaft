@@ -974,4 +974,42 @@
     <string name="action_highlight_menu">標記 ▾</string>
     <!-- History tabs -->
     <string name="tab_user">使用者</string>
+
+    <string name="user_jump_loading">載入中…</string>
+    <string name="user_jump_no_works">該使用者沒有這個類型的作品</string>
+    <string name="user_jump_to_earliest">跳到最早作品</string>
+    <string name="user_jump_by_date">按時間跳轉</string>
+    <string name="user_jump_by_page">按頁碼跳轉</string>
+    <string name="user_jump_dialog_title">跳轉到… (共 %1$d 件、%2$d 頁)</string>
+    <string name="user_jump_page_hint">輸入頁碼 (1-%1$d)</string>
+    <string name="user_jump_page_dialog_title">跳到第幾頁</string>
+    <string name="user_jump_page_dialog_message">共 %1$d 頁，每頁 %2$d 件</string>
+    <string name="user_jump_page_range_error">頁碼需要在 1 到 %1$d 之間</string>
+    <string name="user_jump_locating">正在定位 %1$s …</string>
+    <string name="user_jump_locate_failed">定位失敗：%1$s</string>
+
+    <string name="task_status_not_started">未開始</string>
+    <string name="task_status_downloading">下載中 - %1$d%%</string>
+    <string name="task_status_done">完成了</string>
+    <string name="task_status_error">出錯了</string>
+
+    <string name="translator_loading_ocr">正在載入 OCR 模型…</string>
+    <string name="translator_recognizing">正在識別文字…</string>
+    <string name="translator_no_text">未偵測到文字</string>
+    <string name="translator_translating">正在翻譯…</string>
+    <string name="translator_progress">翻譯中 (%1$d/%2$d)</string>
+    <string name="translator_erasing">正在擦除原文…</string>
+    <string name="translator_rendering">正在渲染譯文…</string>
+    <string name="translator_done">翻譯完成</string>
+
+    <string name="series_bookmarked_feature">已收藏到精華</string>
+    <string name="title_popular_live">人氣直播</string>
+    <string name="confirm_logout">確定登出嗎</string>
+
+    <string name="mine_cache_table">快取表</string>
+    <string name="mine_progress_table">進度表</string>
+
+    <string name="storage_request">請求</string>
+    <string name="saf_request_path">申請路徑</string>
+    <string name="saf_create_file">建立檔案</string>
 </resources>

@@ -869,4 +869,42 @@
     <string name="action_highlight_menu">하이라이트 ▾</string>
     <!-- History tabs -->
     <string name="tab_user">사용자</string>
+
+    <string name="user_jump_loading">로딩 중…</string>
+    <string name="user_jump_no_works">이 유저는 이 유형의 작품이 없습니다</string>
+    <string name="user_jump_to_earliest">가장 오래된 작품으로</string>
+    <string name="user_jump_by_date">날짜로 이동</string>
+    <string name="user_jump_by_page">페이지로 이동</string>
+    <string name="user_jump_dialog_title">이동… (총 %1$d개, %2$d페이지)</string>
+    <string name="user_jump_page_hint">페이지 입력 (1-%1$d)</string>
+    <string name="user_jump_page_dialog_title">몇 페이지로 이동</string>
+    <string name="user_jump_page_dialog_message">총 %1$d페이지, 페이지당 %2$d개</string>
+    <string name="user_jump_page_range_error">페이지는 1~%1$d 사이여야 합니다</string>
+    <string name="user_jump_locating">%1$s 위치 찾는 중…</string>
+    <string name="user_jump_locate_failed">위치 찾기 실패: %1$s</string>
+
+    <string name="task_status_not_started">시작 전</string>
+    <string name="task_status_downloading">다운로드 중 - %1$d%%</string>
+    <string name="task_status_done">완료</string>
+    <string name="task_status_error">오류</string>
+
+    <string name="translator_loading_ocr">OCR 모델 로딩 중…</string>
+    <string name="translator_recognizing">텍스트 인식 중…</string>
+    <string name="translator_no_text">텍스트가 감지되지 않음</string>
+    <string name="translator_translating">번역 중…</string>
+    <string name="translator_progress">번역 중 (%1$d/%2$d)</string>
+    <string name="translator_erasing">원문 지우는 중…</string>
+    <string name="translator_rendering">번역 렌더링 중…</string>
+    <string name="translator_done">번역 완료</string>
+
+    <string name="series_bookmarked_feature">하이라이트에 북마크됨</string>
+    <string name="title_popular_live">인기 라이브</string>
+    <string name="confirm_logout">로그아웃 하시겠습니까</string>
+
+    <string name="mine_cache_table">캐시 테이블</string>
+    <string name="mine_progress_table">진행 테이블</string>
+
+    <string name="storage_request">요청</string>
+    <string name="saf_request_path">경로 요청</string>
+    <string name="saf_create_file">파일 생성</string>
 </resources>

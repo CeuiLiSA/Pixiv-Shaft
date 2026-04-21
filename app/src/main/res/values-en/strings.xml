@@ -927,4 +927,42 @@
     <string name="action_highlight_menu">Highlight ▾</string>
     <!-- History tabs -->
     <string name="tab_user">Users</string>
+
+    <string name="user_jump_loading">Loading…</string>
+    <string name="user_jump_no_works">This user has no works of this type</string>
+    <string name="user_jump_to_earliest">Jump to earliest</string>
+    <string name="user_jump_by_date">Jump by date</string>
+    <string name="user_jump_by_page">Jump by page</string>
+    <string name="user_jump_dialog_title">Jump to… (%1$d total, %2$d pages)</string>
+    <string name="user_jump_page_hint">Enter page (1-%1$d)</string>
+    <string name="user_jump_page_dialog_title">Jump to page</string>
+    <string name="user_jump_page_dialog_message">%1$d pages, %2$d per page</string>
+    <string name="user_jump_page_range_error">Page must be between 1 and %1$d</string>
+    <string name="user_jump_locating">Locating %1$s…</string>
+    <string name="user_jump_locate_failed">Locate failed: %1$s</string>
+
+    <string name="task_status_not_started">Not started</string>
+    <string name="task_status_downloading">Downloading - %1$d%%</string>
+    <string name="task_status_done">Done</string>
+    <string name="task_status_error">Error</string>
+
+    <string name="translator_loading_ocr">Loading OCR model…</string>
+    <string name="translator_recognizing">Recognizing text…</string>
+    <string name="translator_no_text">No text detected</string>
+    <string name="translator_translating">Translating…</string>
+    <string name="translator_progress">Translating (%1$d/%2$d)</string>
+    <string name="translator_erasing">Erasing original text…</string>
+    <string name="translator_rendering">Rendering translation…</string>
+    <string name="translator_done">Translation complete</string>
+
+    <string name="series_bookmarked_feature">Bookmarked to features</string>
+    <string name="title_popular_live">Popular Live</string>
+    <string name="confirm_logout">Confirm logout?</string>
+
+    <string name="mine_cache_table">Cache Table</string>
+    <string name="mine_progress_table">Progress Table</string>
+
+    <string name="storage_request">Request</string>
+    <string name="saf_request_path">Request Path</string>
+    <string name="saf_create_file">Create File</string>
 </resources>

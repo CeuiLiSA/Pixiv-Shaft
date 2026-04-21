@@ -103,7 +103,7 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
 
     override fun onClickLogOut(sender: ProgressIndicator) {
         launchSuspend(sender) {
-            if (alertYesOrCancel("确定退出登录吗")) {
+            if (alertYesOrCancel(getString(R.string.confirm_logout))) {
                 SessionManager.updateSession(null)
                 findNavController().navigate(
                     R.id.navigation_landing,

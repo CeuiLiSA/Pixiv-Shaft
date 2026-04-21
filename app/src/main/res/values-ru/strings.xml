@@ -862,4 +862,42 @@
     <string name="action_highlight_menu">Выделить ▾</string>
     <!-- History tabs -->
     <string name="tab_user">Пользователи</string>
+
+    <string name="user_jump_loading">Загрузка…</string>
+    <string name="user_jump_no_works">У этого пользователя нет работ этого типа</string>
+    <string name="user_jump_to_earliest">К самой ранней работе</string>
+    <string name="user_jump_by_date">По дате</string>
+    <string name="user_jump_by_page">По странице</string>
+    <string name="user_jump_dialog_title">Перейти… (%1$d шт., %2$d стр.)</string>
+    <string name="user_jump_page_hint">Введите страницу (1-%1$d)</string>
+    <string name="user_jump_page_dialog_title">На какую страницу</string>
+    <string name="user_jump_page_dialog_message">%1$d стр., %2$d на стр.</string>
+    <string name="user_jump_page_range_error">Страница должна быть от 1 до %1$d</string>
+    <string name="user_jump_locating">Поиск %1$s…</string>
+    <string name="user_jump_locate_failed">Ошибка поиска: %1$s</string>
+
+    <string name="task_status_not_started">Не начато</string>
+    <string name="task_status_downloading">Загрузка - %1$d%%</string>
+    <string name="task_status_done">Готово</string>
+    <string name="task_status_error">Ошибка</string>
+
+    <string name="translator_loading_ocr">Загрузка модели OCR…</string>
+    <string name="translator_recognizing">Распознавание текста…</string>
+    <string name="translator_no_text">Текст не обнаружен</string>
+    <string name="translator_translating">Перевод…</string>
+    <string name="translator_progress">Перевод (%1$d/%2$d)</string>
+    <string name="translator_erasing">Удаление исходного текста…</string>
+    <string name="translator_rendering">Рендеринг перевода…</string>
+    <string name="translator_done">Перевод завершён</string>
+
+    <string name="series_bookmarked_feature">Добавлено в избранное</string>
+    <string name="title_popular_live">Популярные трансляции</string>
+    <string name="confirm_logout">Выйти из аккаунта?</string>
+
+    <string name="mine_cache_table">Таблица кэша</string>
+    <string name="mine_progress_table">Таблица прогресса</string>
+
+    <string name="storage_request">Запрос</string>
+    <string name="saf_request_path">Запросить путь</string>
+    <string name="saf_create_file">Создать файл</string>
 </resources>

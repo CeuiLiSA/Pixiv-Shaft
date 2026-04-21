@@ -1,6 +1,7 @@
 package ceui.lisa.fragments
 
 import androidx.recyclerview.widget.GridLayoutManager
+import ceui.lisa.R
 import ceui.lisa.adapters.BaseAdapter
 import ceui.lisa.adapters.LiveAdapter
 import ceui.lisa.core.RemoteRepo
@@ -32,7 +33,7 @@ class FragmentLive : NetListFragment<FragmentBaseListBinding, ListLive, Live>() 
     }
 
     override fun getToolbarTitle(): String {
-        return "人气直播"
+        return getString(R.string.title_popular_live)
     }
 
     override fun initRecyclerView() {

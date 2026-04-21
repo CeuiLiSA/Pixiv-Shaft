@@ -961,4 +961,42 @@
     <string name="action_highlight_menu">ハイライト ▾</string>
     <!-- History tabs -->
     <string name="tab_user">ユーザー</string>
+
+    <string name="user_jump_loading">読み込み中…</string>
+    <string name="user_jump_no_works">このユーザーはこのタイプの作品がありません</string>
+    <string name="user_jump_to_earliest">最初の作品へ</string>
+    <string name="user_jump_by_date">日付で移動</string>
+    <string name="user_jump_by_page">ページで移動</string>
+    <string name="user_jump_dialog_title">移動… (%1$d件、%2$dページ)</string>
+    <string name="user_jump_page_hint">ページを入力 (1-%1$d)</string>
+    <string name="user_jump_page_dialog_title">ページ移動</string>
+    <string name="user_jump_page_dialog_message">%1$dページ、%2$d件/ページ</string>
+    <string name="user_jump_page_range_error">ページは 1～%1$d の間で指定してください</string>
+    <string name="user_jump_locating">%1$s を検索中…</string>
+    <string name="user_jump_locate_failed">検索失敗：%1$s</string>
+
+    <string name="task_status_not_started">未開始</string>
+    <string name="task_status_downloading">ダウンロード中 - %1$d%%</string>
+    <string name="task_status_done">完了</string>
+    <string name="task_status_error">エラー</string>
+
+    <string name="translator_loading_ocr">OCR モデルを読み込み中…</string>
+    <string name="translator_recognizing">文字認識中…</string>
+    <string name="translator_no_text">文字が検出されません</string>
+    <string name="translator_translating">翻訳中…</string>
+    <string name="translator_progress">翻訳中 (%1$d/%2$d)</string>
+    <string name="translator_erasing">元テキストを消去中…</string>
+    <string name="translator_rendering">翻訳を描画中…</string>
+    <string name="translator_done">翻訳完了</string>
+
+    <string name="series_bookmarked_feature">ハイライトにブックマークしました</string>
+    <string name="title_popular_live">人気の配信</string>
+    <string name="confirm_logout">ログアウトしますか</string>
+
+    <string name="mine_cache_table">キャッシュテーブル</string>
+    <string name="mine_progress_table">進捗テーブル</string>
+
+    <string name="storage_request">リクエスト</string>
+    <string name="saf_request_path">パス申請</string>
+    <string name="saf_create_file">ファイル作成</string>
 </resources>

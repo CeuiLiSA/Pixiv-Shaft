@@ -16,7 +16,7 @@
 
     <Button
         android:id="@+id/search"
-        android:text="搜索"
+        android:text="@string/search"
         app:layout_constraintTop_toBottomOf="@+id/my_bookmark"
         app:layout_constraintBottom_toTopOf="@+id/cache"
         app:layout_constraintStart_toStartOf="parent"
@@ -27,7 +27,7 @@
 
     <Button
         android:id="@+id/cache"
-        android:text="缓存表"
+        android:text="@string/mine_cache_table"
         app:layout_constraintTop_toBottomOf="@+id/search"
         app:layout_constraintBottom_toTopOf="@+id/tasks"
         app:layout_constraintStart_toStartOf="parent"
@@ -38,7 +38,7 @@
 
     <Button
         android:id="@+id/tasks"
-        android:text="进度表"
+        android:text="@string/mine_progress_table"
         app:layout_constraintTop_toBottomOf="@+id/cache"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

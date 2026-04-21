@@ -11,7 +11,7 @@
 
         <Button
             android:layout_width="wrap_content"
-            android:text="请求"
+            android:text="@string/storage_request"
             android:layout_centerInParent="true"
             android:id="@+id/store"
             android:layout_height="wrap_content">
@@ -21,7 +21,7 @@
 
         <Button
             android:layout_width="wrap_content"
-            android:text="下载"
+            android:text="@string/string_5"
             android:layout_below="@+id/store"
             android:layout_centerInParent="true"
             android:id="@+id/save"

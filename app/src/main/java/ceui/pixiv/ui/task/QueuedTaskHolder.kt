@@ -37,16 +37,16 @@ class QueuedTaskViewHolder(bd: CellQueuedTaskBinding) :
 fun TextView.binding_setStatusDesc(taskStatus: TaskStatus?) {
     if (taskStatus != null) {
         if (taskStatus is TaskStatus.NotStart) {
-            text = "未开始"
+            text = context.getString(R.string.task_status_not_started)
             setTextColor(Color.parseColor("#FFB332"))
         } else if (taskStatus is TaskStatus.Executing) {
-            text = "下载中 - ${taskStatus.percentage}%"
+            text = context.getString(R.string.task_status_downloading, taskStatus.percentage)
             setTextColor(Color.parseColor("#00FF94"))
         } else if (taskStatus is TaskStatus.Finished) {
-            text = "完成了"
+            text = context.getString(R.string.task_status_done)
             setTextColor(Color.parseColor("#00FF94"))
         } else if (taskStatus is TaskStatus.Error) {
-            text = "出错了"
+            text = context.getString(R.string.task_status_error)
             setTextColor(Color.parseColor("#FFB332"))
         } else {
             text = "taskStatus unknown"

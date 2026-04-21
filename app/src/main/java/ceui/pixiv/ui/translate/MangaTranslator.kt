@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import ceui.lisa.R
 import ceui.pixiv.ui.upscale.MangaOcr
 import ceui.pixiv.ui.upscale.OcrTextRegion
 import kotlinx.coroutines.Dispatchers
@@ -50,16 +51,16 @@ object MangaTranslator {
             // ── Stage 0: Load manga-ocr model if available ──
             val ocrModel = MangaOcrModel.MANGA_OCR_BASE
             if (MangaOcrModelManager.isModelReady(context, ocrModel) && !MangaOcrRecognizer.isLoaded) {
-                onProgress(Stage.OCR, "正在加载 OCR 模型…")
+                onProgress(Stage.OCR, context.getString(R.string.translator_loading_ocr))
                 MangaOcrRecognizer.loadModel(context, ocrModel)
             }
 
             // ── Stage 1: OCR ──
-            onProgress(Stage.OCR, "正在识别文字…")
+            onProgress(Stage.OCR, context.getString(R.string.translator_recognizing))
             val regions = MangaOcr.recognize(context, inputFile)
             if (regions.isNullOrEmpty()) {
                 Timber.d("MangaTranslator: no text regions found")
-                onProgress(Stage.DONE, "未检测到文字")
+                onProgress(Stage.DONE, context.getString(R.string.translator_no_text))
                 return@withContext null
             }
             Timber.d("MangaTranslator: found ${regions.size} text regions")
@@ -76,7 +77,7 @@ object MangaTranslator {
             coroutineContext.ensureActive()
 
             // ── Stage 2: Translate each region with Sakura ──
-            onProgress(Stage.TRANSLATE, "正在翻译…")
+            onProgress(Stage.TRANSLATE, context.getString(R.string.translator_translating))
 
             // Build glossary from detected text (auto-detect common ACG terms)
             val glossary = buildGlossary(regions)
@@ -88,7 +89,7 @@ object MangaTranslator {
             val batchResults = SakuraTranslator.translateBatch(
                 context, inputTexts, glossary.ifEmpty { null }
             ) { done, total ->
-                onProgress(Stage.TRANSLATE, "翻译中 ($done/$total)")
+                onProgress(Stage.TRANSLATE, context.getString(R.string.translator_progress, done, total))
             }
 
             val translations = mutableMapOf<Int, String>()
@@ -108,7 +109,7 @@ object MangaTranslator {
             coroutineContext.ensureActive()
 
             // ── Stage 3: Erase text ──
-            onProgress(Stage.ERASE, "正在擦除原文…")
+            onProgress(Stage.ERASE, context.getString(R.string.translator_erasing))
             val opts = BitmapFactory.Options().apply {
                 inPreferredConfig = Bitmap.Config.ARGB_8888
                 inMutable = true
@@ -122,7 +123,7 @@ object MangaTranslator {
             coroutineContext.ensureActive()
 
             // ── Stage 4: Render translated text ──
-            onProgress(Stage.RENDER, "正在渲染译文…")
+            onProgress(Stage.RENDER, context.getString(R.string.translator_rendering))
             val canvas = Canvas(erased)
             TextRenderer.renderTranslations(canvas, regions, translations)
 
@@ -136,7 +137,7 @@ object MangaTranslator {
             }
             erased.recycle()
 
-            onProgress(Stage.DONE, "翻译完成")
+            onProgress(Stage.DONE, context.getString(R.string.translator_done))
             Timber.d("MangaTranslator: output saved to ${outputFile.absolutePath}")
 
             TranslationResult(outputFile, regions, translations)

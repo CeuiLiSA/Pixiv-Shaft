@@ -47,7 +47,7 @@ object UserIllustJumpHelper {
         if (userID <= 0) return
         val loading = QMUITipDialog.Builder(activity)
             .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-            .setTipWord("加载中...")
+            .setTipWord(activity.getString(R.string.user_jump_loading))
             .create()
         loading.show()
 
@@ -65,7 +65,7 @@ object UserIllustJumpHelper {
                         Kind.NOVEL -> profile.total_novels
                     }
                     if (total <= 0) {
-                        Common.showToast("ta 没有这个类型的作品")
+                        Common.showToast(activity.getString(R.string.user_jump_no_works))
                         return
                     }
                     showChoiceDialog(activity, userID, kind, total, onJump)
@@ -88,21 +88,24 @@ object UserIllustJumpHelper {
     ) {
         if (!activity.isAlive()) return
         val totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE
+        val earliest = activity.getString(R.string.user_jump_to_earliest)
+        val byDate = activity.getString(R.string.user_jump_by_date)
+        val byPage = activity.getString(R.string.user_jump_by_page)
         val choices = if (kind == Kind.NOVEL) {
-            arrayOf("跳到最早作品", "按页码跳转")
+            arrayOf(earliest, byPage)
         } else {
-            arrayOf("跳到最早作品", "按时间跳转", "按页码跳转")
+            arrayOf(earliest, byDate, byPage)
         }
         AlertDialog.Builder(activity)
-            .setTitle("跳转到… (共 $total 件，$totalPages 页)")
+            .setTitle(activity.getString(R.string.user_jump_dialog_title, total, totalPages))
             .setItems(choices) { _, which ->
                 when (choices[which]) {
-                    "跳到最早作品" -> {
+                    earliest -> {
                         val offset = ((total - 1) / PAGE_SIZE) * PAGE_SIZE
                         onJump.onPicked(offset, null)
                     }
-                    "按时间跳转" -> pickDate(activity, userID, kind, total, onJump)
-                    "按页码跳转" -> pickPage(activity, totalPages, onJump)
+                    byDate -> pickDate(activity, userID, kind, total, onJump)
+                    byPage -> pickPage(activity, totalPages, onJump)
                 }
             }
             .setNegativeButton(R.string.string_142, null)
@@ -113,7 +116,7 @@ object UserIllustJumpHelper {
         val edit = EditText(activity).apply {
             inputType = InputType.TYPE_CLASS_NUMBER
             gravity = Gravity.CENTER
-            hint = "输入页码 (1-$totalPages)"
+            hint = activity.getString(R.string.user_jump_page_hint, totalPages)
         }
         val container = LinearLayout(activity).apply {
             setPadding(64, 32, 64, 0)
@@ -123,13 +126,13 @@ object UserIllustJumpHelper {
             ))
         }
         AlertDialog.Builder(activity)
-            .setTitle("跳到第几页")
-            .setMessage("共 $totalPages 页，每页 $PAGE_SIZE 件")
+            .setTitle(R.string.user_jump_page_dialog_title)
+            .setMessage(activity.getString(R.string.user_jump_page_dialog_message, totalPages, PAGE_SIZE))
             .setView(container)
             .setPositiveButton(R.string.sure) { _: DialogInterface, _ ->
                 val page = edit.text.toString().toIntOrNull()
                 if (page == null || page < 1 || page > totalPages) {
-                    Common.showToast("页码需要在 1 到 $totalPages 之间")
+                    Common.showToast(activity.getString(R.string.user_jump_page_range_error, totalPages))
                     return@setPositiveButton
                 }
                 onJump.onPicked((page - 1) * PAGE_SIZE, null)
@@ -187,7 +190,7 @@ object UserIllustJumpHelper {
         }
         val tip = QMUITipDialog.Builder(activity)
             .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-            .setTipWord("正在定位 $target …")
+            .setTipWord(activity.getString(R.string.user_jump_locating, target.toString()))
             .create()
         tip.show()
 
@@ -202,7 +205,9 @@ object UserIllustJumpHelper {
             },
             onFail = { err ->
                 if (tip.isShowing && activity.isAlive()) tip.dismiss()
-                if (activity.isAlive()) Common.showToast("定位失败：${err.message ?: "unknown"}")
+                if (activity.isAlive()) Common.showToast(
+                    activity.getString(R.string.user_jump_locate_failed, err.message ?: "unknown")
+                )
             }
         )
     }
