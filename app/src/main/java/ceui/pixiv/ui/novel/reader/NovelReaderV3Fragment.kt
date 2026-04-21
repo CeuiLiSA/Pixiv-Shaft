@@ -72,10 +72,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     }
 
     private var readerView: NovelReaderView? = null
-    private var topBar: ReaderTopBar? = null
-    private var bottomBar: ReaderBottomBar? = null
-    private var chrome: ReaderChrome? = null
-    private var searchOverlay: ReaderSearchOverlay? = null
     private var imageSource: GlideImageBitmapSource? = null
 
     private var searchRegex: Boolean = false
@@ -108,13 +104,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         val bb = ReaderBottomBar(binding.readerBottomBar)
         val ch = ReaderChrome(tb, bb)
         val so = ReaderSearchOverlay(binding.readerSearchOverlay)
-        topBar = tb
-        bottomBar = bb
-        chrome = ch
-        searchOverlay = so
 
         wireTopBar(tb)
-        wireBottomBar(rv, bb, ch)
+        wireBottomBar(rv, bb, ch, so)
         wireReaderView(rv, ch)
         wireSearchOverlay(so)
         wireTextSelection(rv, ch)
@@ -186,18 +178,19 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         tb.onMoreClick = { showTopMoreMenu() }
     }
 
-    private fun wireBottomBar(rv: NovelReaderView, bb: ReaderBottomBar, chrome: ReaderChrome) {
+    private fun wireBottomBar(rv: NovelReaderView, bb: ReaderBottomBar, chrome: ReaderChrome, so: ReaderSearchOverlay) {
         bb.onPrevChapter = { jumpChapter(forward = false) }
         bb.onNextChapter = { jumpChapter(forward = true) }
         bb.onChaptersClick = { showChapterDrawer() }
         bb.onSettingsClick = {
             ReaderSettingsPanel().show(childFragmentManager, ReaderSettingsPanel.TAG)
         }
-        bb.onThemeToggleClick = { toggleDayNightTheme() }
-        bb.onSearchClick = {
-            chrome.hide()
-            searchOverlay?.setShown(true)
+        bb.onThemeToggleClick = {
+            val isDark = currentThemeIsDark()
+            ReaderSettings.themeId = if (isDark) ReaderTheme.KRAFT.id else ReaderTheme.NIGHT.id
+            bb.setDarkMode(!isDark)
         }
+        bb.onSearchClick = { chrome.hide(); so.setShown(true) }
         bb.onMoreClick = { showReaderOverflowMenu() }
         bb.onSeekCommit = { pageIndex -> rv.goToPage(pageIndex, animate = false) }
     }
@@ -348,12 +341,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         viewLifecycleOwner.lifecycleScope.launch {
             Toast.makeText(requireContext(), viewModel.toggleBookmark(), Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun toggleDayNightTheme() {
-        val isDark = currentThemeIsDark()
-        ReaderSettings.themeId = if (isDark) ReaderTheme.KRAFT.id else ReaderTheme.NIGHT.id
-        bottomBar?.setDarkMode(!isDark)
     }
 
     private fun currentThemeIsDark(): Boolean =
@@ -641,10 +628,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         imageSource?.clear()
         imageSource = null
         readerView = null
-        topBar = null
-        bottomBar = null
-        chrome = null
-        searchOverlay = null
     }
 
     private fun resolveNovelId(): Long {
