@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:gravity="center"
-        android:text="预览文本"
+        android:text="@string/preview_text"
         android:textSize="16sp" />
 
     <!-- 滑动条 -->

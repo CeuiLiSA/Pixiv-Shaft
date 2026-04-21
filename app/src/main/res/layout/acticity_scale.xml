@@ -24,7 +24,7 @@
                 android:layout_width="wrap_content"
                 android:id="@+id/show_animate"
                 android:layout_height="wrap_content"
-                android:text="缩小">
+                android:text="@string/action_zoom_out">
 
             </Button>
 
@@ -33,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:id="@+id/close_animate"
                 android:layout_height="wrap_content"
-                android:text="放大">
+                android:text="@string/action_zoom_in">
 
             </Button>
 

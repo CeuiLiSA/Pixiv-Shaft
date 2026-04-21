@@ -935,4 +935,27 @@
   <string name="chapters_title">目次</string>
   <string name="chapters_count">%d 章</string>
   <string name="novel_desc_label">あらすじ</string>
+
+    <!-- General UI strings -->
+    <string name="loading_text">読み込み中…</string>
+    <string name="action_unmute_work">この作品のミュートを解除</string>
+    <string name="action_unmute_user">このユーザーのミュートを解除</string>
+    <string name="action_leave_page">このページを離れる</string>
+    <string name="preview_text">プレビューテキスト</string>
+    <string name="ai_upscaling_in_progress">AI 高画質化処理中</string>
+    <string name="ai_upscaling_complete">AI 高画質化完了</string>
+    <string name="action_view_comparison">比較を見る</string>
+    <string name="action_start_reading">本文を読む</string>
+    <string name="action_zoom_out">縮小</string>
+    <string name="action_zoom_in">拡大</string>
+    <string name="action_save_to_album">アルバムに保存</string>
+    <string name="label_personal_intro">自己紹介</string>
+    <string name="label_detailed_info">詳細情報</string>
+    <string name="label_profile">プロフィール</string>
+    <string name="label_series">シリーズ</string>
+    <string name="desc_share">共有</string>
+    <string name="desc_more">その他</string>
+    <string name="desc_jump_to">ジャンプ…</string>
+    <string name="action_quote_card">名言カード</string>
+    <string name="action_highlight_menu">ハイライト ▾</string>
 </resources>

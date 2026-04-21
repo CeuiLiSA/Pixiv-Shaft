@@ -32,7 +32,7 @@
         android:paddingHorizontal="20dp"
         android:paddingVertical="8dp"
         android:stateListAnimator="@animator/button_press_alpha"
-        android:text="保存到相册"
+        android:text="@string/action_save_to_album"
         android:textAllCaps="false"
         android:textColor="@color/colorWhite60"
         android:textSize="15sp" />

@@ -17,7 +17,7 @@
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="分享"
+            android:contentDescription="@string/desc_share"
             android:padding="10dp"
             android:src="@drawable/ic_share_black_24dp"
             app:tint="@color/text00" />
@@ -27,7 +27,7 @@
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="更多"
+            android:contentDescription="@string/desc_more"
             android:padding="10dp"
             android:src="@drawable/ic_more_vert_black_24dp"
             app:tint="@color/text00" />

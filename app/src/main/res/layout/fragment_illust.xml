@@ -588,7 +588,7 @@
                     android:layout_height="45dp"
                     android:layout_marginBottom="20dp"
                     android:paddingHorizontal="20dp"
-                    android:text="取消屏蔽该作品" />
+                    android:text="@string/action_unmute_work" />
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/cancel_mute_user"
@@ -597,7 +597,7 @@
                     android:layout_height="45dp"
                     android:layout_marginBottom="20dp"
                     android:paddingHorizontal="20dp"
-                    android:text="取消屏蔽该用户" />
+                    android:text="@string/action_unmute_user" />
 
                 <ceui.loxia.ProgressTextButton
                     android:id="@+id/leave"
@@ -606,7 +606,7 @@
                     android:layout_height="45dp"
                     android:layout_marginBottom="20dp"
                     android:paddingHorizontal="20dp"
-                    android:text="离开当前页面" />
+                    android:text="@string/action_leave_page" />
             </LinearLayout>
 
 

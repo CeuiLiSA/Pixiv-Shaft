@@ -52,7 +52,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="AI 画质增强中"
+            android:text="@string/ai_upscaling_in_progress"
             android:textColor="#CCFFFFFF"
             android:textSize="14sp" />
 
@@ -80,7 +80,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="AI 画质增强已完成"
+            android:text="@string/ai_upscaling_complete"
             android:textColor="#CCFFFFFF"
             android:textSize="16sp" />
 
@@ -94,7 +94,7 @@
             android:paddingHorizontal="24dp"
             android:paddingVertical="10dp"
             android:stateListAnimator="@animator/button_press_alpha"
-            android:text="查看对比"
+            android:text="@string/action_view_comparison"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
             android:textSize="15sp" />
@@ -107,7 +107,7 @@
             android:gravity="center"
             android:paddingHorizontal="24dp"
             android:paddingVertical="8dp"
-            android:text="取消"
+            android:text="@string/action_cancel"
             android:textAllCaps="false"
             android:textColor="#80FFFFFF"
             android:textSize="14sp" />

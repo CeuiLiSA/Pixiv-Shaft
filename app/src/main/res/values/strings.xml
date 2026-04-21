@@ -1123,4 +1123,27 @@
 
     <!-- Novel detail (NovelTextFragment) -->
     <string name="novel_desc_label">简介</string>
+
+    <!-- General UI strings -->
+    <string name="loading_text">加载中…</string>
+    <string name="action_unmute_work">取消屏蔽该作品</string>
+    <string name="action_unmute_user">取消屏蔽该用户</string>
+    <string name="action_leave_page">离开当前页面</string>
+    <string name="preview_text">预览文本</string>
+    <string name="ai_upscaling_in_progress">AI 画质增强中</string>
+    <string name="ai_upscaling_complete">AI 画质增强已完成</string>
+    <string name="action_view_comparison">查看对比</string>
+    <string name="action_start_reading">开始阅读正文</string>
+    <string name="action_zoom_out">缩小</string>
+    <string name="action_zoom_in">放大</string>
+    <string name="action_save_to_album">保存到相册</string>
+    <string name="label_personal_intro">个人介绍</string>
+    <string name="label_detailed_info">详细信息</string>
+    <string name="label_profile">个人中心</string>
+    <string name="label_series">系列</string>
+    <string name="desc_share">分享</string>
+    <string name="desc_more">更多</string>
+    <string name="desc_jump_to">跳转到…</string>
+    <string name="action_quote_card">金句卡</string>
+    <string name="action_highlight_menu">高亮 ▾</string>
 </resources>

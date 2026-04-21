@@ -901,4 +901,27 @@
   <string name="chapters_title">Contents</string>
   <string name="chapters_count">%d chapters</string>
   <string name="novel_desc_label">Description</string>
+
+    <!-- General UI strings -->
+    <string name="loading_text">Loading…</string>
+    <string name="action_unmute_work">Unmute this work</string>
+    <string name="action_unmute_user">Unmute this user</string>
+    <string name="action_leave_page">Leave this page</string>
+    <string name="preview_text">Preview text</string>
+    <string name="ai_upscaling_in_progress">AI upscaling in progress</string>
+    <string name="ai_upscaling_complete">AI upscaling complete</string>
+    <string name="action_view_comparison">View comparison</string>
+    <string name="action_start_reading">Start reading</string>
+    <string name="action_zoom_out">Zoom out</string>
+    <string name="action_zoom_in">Zoom in</string>
+    <string name="action_save_to_album">Save to album</string>
+    <string name="label_personal_intro">Introduction</string>
+    <string name="label_detailed_info">Details</string>
+    <string name="label_profile">Profile</string>
+    <string name="label_series">Series</string>
+    <string name="desc_share">Share</string>
+    <string name="desc_more">More</string>
+    <string name="desc_jump_to">Jump to…</string>
+    <string name="action_quote_card">Quote card</string>
+    <string name="action_highlight_menu">Highlight ▾</string>
 </resources>

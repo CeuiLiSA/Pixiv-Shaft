@@ -21,7 +21,7 @@
             android:background="@drawable/bg_big_read_button"
             android:elevation="4dp"
             android:gravity="center"
-            android:text="开始阅读正文"
+            android:text="@string/action_start_reading"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold" />

@@ -16,42 +16,42 @@
         <TextView
             android:id="@+id/sel_copy"
             style="@style/ReaderSelectionAction"
-            android:text="复制" />
+            android:text="@string/action_copy" />
 
         <TextView
             android:id="@+id/sel_share"
             style="@style/ReaderSelectionAction"
-            android:text="分享" />
+            android:text="@string/desc_share" />
 
         <TextView
             android:id="@+id/sel_quote_card"
             style="@style/ReaderSelectionAction"
-            android:text="金句卡" />
+            android:text="@string/action_quote_card" />
 
         <TextView
             android:id="@+id/sel_search_pixiv"
             style="@style/ReaderSelectionAction"
-            android:text="P站" />
+            android:text="@string/action_search_pixiv" />
 
         <TextView
             android:id="@+id/sel_search_web"
             style="@style/ReaderSelectionAction"
-            android:text="网页" />
+            android:text="@string/action_search_web" />
 
         <TextView
             android:id="@+id/sel_translate"
             style="@style/ReaderSelectionAction"
-            android:text="翻译" />
+            android:text="@string/action_translate" />
 
         <TextView
             android:id="@+id/sel_highlight"
             style="@style/ReaderSelectionAction"
-            android:text="高亮 ▾" />
+            android:text="@string/action_highlight_menu" />
 
         <TextView
             android:id="@+id/sel_note"
             style="@style/ReaderSelectionAction"
-            android:text="笔记" />
+            android:text="@string/action_note" />
 
         <TextView
             android:id="@+id/sel_dismiss"

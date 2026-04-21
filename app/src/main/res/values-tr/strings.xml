@@ -834,4 +834,27 @@
   <string name="chapters_title">İçindekiler</string>
   <string name="chapters_count">%d bölüm</string>
   <string name="novel_desc_label">Açıklama</string>
+
+    <!-- General UI strings -->
+    <string name="loading_text">Yükleniyor…</string>
+    <string name="action_unmute_work">Bu eserin engelini kaldır</string>
+    <string name="action_unmute_user">Bu kullanıcının engelini kaldır</string>
+    <string name="action_leave_page">Bu sayfadan ayrıl</string>
+    <string name="preview_text">Önizleme metni</string>
+    <string name="ai_upscaling_in_progress">AI kalite iyileştirme devam ediyor</string>
+    <string name="ai_upscaling_complete">AI kalite iyileştirme tamamlandı</string>
+    <string name="action_view_comparison">Karşılaştırmayı gör</string>
+    <string name="action_start_reading">Okumaya başla</string>
+    <string name="action_zoom_out">Küçült</string>
+    <string name="action_zoom_in">Büyüt</string>
+    <string name="action_save_to_album">Albüme kaydet</string>
+    <string name="label_personal_intro">Kişisel tanıtım</string>
+    <string name="label_detailed_info">Ayrıntılar</string>
+    <string name="label_profile">Profil</string>
+    <string name="label_series">Seri</string>
+    <string name="desc_share">Paylaş</string>
+    <string name="desc_more">Daha fazla</string>
+    <string name="desc_jump_to">Git…</string>
+    <string name="action_quote_card">Alıntı kartı</string>
+    <string name="action_highlight_menu">Vurgula ▾</string>
 </resources>

@@ -948,4 +948,27 @@
   <string name="chapters_title">目錄</string>
   <string name="chapters_count">%d 章</string>
   <string name="novel_desc_label">簡介</string>
+
+    <!-- General UI strings -->
+    <string name="loading_text">載入中…</string>
+    <string name="action_unmute_work">取消封鎖該作品</string>
+    <string name="action_unmute_user">取消封鎖該使用者</string>
+    <string name="action_leave_page">離開目前頁面</string>
+    <string name="preview_text">預覽文字</string>
+    <string name="ai_upscaling_in_progress">AI 畫質增強中</string>
+    <string name="ai_upscaling_complete">AI 畫質增強已完成</string>
+    <string name="action_view_comparison">檢視對比</string>
+    <string name="action_start_reading">開始閱讀正文</string>
+    <string name="action_zoom_out">縮小</string>
+    <string name="action_zoom_in">放大</string>
+    <string name="action_save_to_album">儲存到相簿</string>
+    <string name="label_personal_intro">個人介紹</string>
+    <string name="label_detailed_info">詳細資訊</string>
+    <string name="label_profile">個人中心</string>
+    <string name="label_series">系列</string>
+    <string name="desc_share">分享</string>
+    <string name="desc_more">更多</string>
+    <string name="desc_jump_to">跳轉到…</string>
+    <string name="action_quote_card">金句卡</string>
+    <string name="action_highlight_menu">標記 ▾</string>
 </resources>

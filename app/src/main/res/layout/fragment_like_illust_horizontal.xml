@@ -80,7 +80,7 @@
                     android:layout_marginEnd="@dimen/eight_dp"
                     android:padding="4dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="跳转到…"
+                    android:contentDescription="@string/desc_jump_to"
                     android:src="@drawable/ic_date_range_black_24dp"
                     app:tint="?attr/colorPrimary"
                     android:visibility="gone" />

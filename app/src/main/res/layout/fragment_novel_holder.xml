@@ -154,7 +154,7 @@
                             android:layout_marginBottom="@dimen/eight_dp"
                             android:ellipsize="end"
                             android:maxLines="2"
-                            android:text="系列"
+                            android:text="@string/label_series"
                             android:textColor="@color/white_to_gray"
                             android:textSize="15sp"
                             android:textStyle="bold">

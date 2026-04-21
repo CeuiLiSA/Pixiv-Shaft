@@ -843,4 +843,27 @@
   <string name="chapters_title">목차</string>
   <string name="chapters_count">%d 장</string>
   <string name="novel_desc_label">소개</string>
+
+    <!-- General UI strings -->
+    <string name="loading_text">로딩 중…</string>
+    <string name="action_unmute_work">이 작품 차단 해제</string>
+    <string name="action_unmute_user">이 사용자 차단 해제</string>
+    <string name="action_leave_page">이 페이지 나가기</string>
+    <string name="preview_text">미리보기 텍스트</string>
+    <string name="ai_upscaling_in_progress">AI 화질 향상 중</string>
+    <string name="ai_upscaling_complete">AI 화질 향상 완료</string>
+    <string name="action_view_comparison">비교 보기</string>
+    <string name="action_start_reading">본문 읽기</string>
+    <string name="action_zoom_out">축소</string>
+    <string name="action_zoom_in">확대</string>
+    <string name="action_save_to_album">앨범에 저장</string>
+    <string name="label_personal_intro">자기소개</string>
+    <string name="label_detailed_info">상세 정보</string>
+    <string name="label_profile">프로필</string>
+    <string name="label_series">시리즈</string>
+    <string name="desc_share">공유</string>
+    <string name="desc_more">더보기</string>
+    <string name="desc_jump_to">이동…</string>
+    <string name="action_quote_card">명언 카드</string>
+    <string name="action_highlight_menu">하이라이트 ▾</string>
 </resources>

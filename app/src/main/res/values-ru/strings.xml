@@ -836,4 +836,27 @@
   <string name="chapters_title">Оглавление</string>
   <string name="chapters_count">%d глав</string>
   <string name="novel_desc_label">Описание</string>
+
+    <!-- General UI strings -->
+    <string name="loading_text">Загрузка…</string>
+    <string name="action_unmute_work">Разблокировать работу</string>
+    <string name="action_unmute_user">Разблокировать пользователя</string>
+    <string name="action_leave_page">Покинуть страницу</string>
+    <string name="preview_text">Предпросмотр</string>
+    <string name="ai_upscaling_in_progress">AI-улучшение качества</string>
+    <string name="ai_upscaling_complete">AI-улучшение завершено</string>
+    <string name="action_view_comparison">Сравнить</string>
+    <string name="action_start_reading">Начать чтение</string>
+    <string name="action_zoom_out">Уменьшить</string>
+    <string name="action_zoom_in">Увеличить</string>
+    <string name="action_save_to_album">Сохранить в альбом</string>
+    <string name="label_personal_intro">О себе</string>
+    <string name="label_detailed_info">Подробности</string>
+    <string name="label_profile">Профиль</string>
+    <string name="label_series">Серия</string>
+    <string name="desc_share">Поделиться</string>
+    <string name="desc_more">Ещё</string>
+    <string name="desc_jump_to">Перейти к…</string>
+    <string name="action_quote_card">Карточка цитаты</string>
+    <string name="action_highlight_menu">Выделить ▾</string>
 </resources>
