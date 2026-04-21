@@ -69,7 +69,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         val ctx = requireContext()
         // Settings sheet has a fixed light background regardless of system dark mode,
         // so use fixed colors — not theme-resolved ones that flip in night mode.
-        primaryColor = 0xFF5B6EFF.toInt()
+        primaryColor = ceui.lisa.utils.Common.resolveThemeAttribute(ctx, androidx.appcompat.R.attr.colorPrimary)
         textColor1 = 0xFF1A1A2E.toInt()
         surfaceColor = 0x1A000000
         bindTypography(ctx)
