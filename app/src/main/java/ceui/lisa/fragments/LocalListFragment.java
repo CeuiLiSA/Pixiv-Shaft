@@ -60,4 +60,15 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
         mLocalRepo = (LocalRepo<List<Item>>) mModel.getBaseRepo();
         super.initData();
     }
+
+    // 不走 NetListFragment 的广播注册，但点击进 VActivity 依赖 adapter 里的
+    // uuid 作为 Container 的 key，不设就会让 PageData 被静默丢掉、详情页
+    // 拿不到数据直接 finish()。
+    @Override
+    public void onAdapterPrepared() {
+        super.onAdapterPrepared();
+        if (mAdapter != null) {
+            mAdapter.setUuid(uuid);
+        }
+    }
 }
