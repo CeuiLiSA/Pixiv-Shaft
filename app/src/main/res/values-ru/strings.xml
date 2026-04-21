@@ -860,4 +860,6 @@
     <string name="desc_jump_to">Перейти к…</string>
     <string name="action_quote_card">Карточка цитаты</string>
     <string name="action_highlight_menu">Выделить ▾</string>
+    <!-- History tabs -->
+    <string name="tab_user">Пользователи</string>
 </resources>

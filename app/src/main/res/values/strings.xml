@@ -1147,4 +1147,7 @@
     <string name="desc_jump_to">跳转到…</string>
     <string name="action_quote_card">金句卡</string>
     <string name="action_highlight_menu">高亮 ▾</string>
+
+    <!-- History tabs -->
+    <string name="tab_user">用户</string>
 </resources>

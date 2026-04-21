@@ -972,4 +972,6 @@
     <string name="desc_jump_to">跳轉到…</string>
     <string name="action_quote_card">金句卡</string>
     <string name="action_highlight_menu">標記 ▾</string>
+    <!-- History tabs -->
+    <string name="tab_user">使用者</string>
 </resources>

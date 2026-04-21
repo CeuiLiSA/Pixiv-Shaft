@@ -858,4 +858,6 @@
     <string name="desc_jump_to">Git…</string>
     <string name="action_quote_card">Alıntı kartı</string>
     <string name="action_highlight_menu">Vurgula ▾</string>
+    <!-- History tabs -->
+    <string name="tab_user">Kullanıcılar</string>
 </resources>

@@ -867,4 +867,6 @@
     <string name="desc_jump_to">이동…</string>
     <string name="action_quote_card">명언 카드</string>
     <string name="action_highlight_menu">하이라이트 ▾</string>
+    <!-- History tabs -->
+    <string name="tab_user">사용자</string>
 </resources>

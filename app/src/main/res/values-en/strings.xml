@@ -925,4 +925,6 @@
     <string name="desc_jump_to">Jump to…</string>
     <string name="action_quote_card">Quote card</string>
     <string name="action_highlight_menu">Highlight ▾</string>
+    <!-- History tabs -->
+    <string name="tab_user">Users</string>
 </resources>

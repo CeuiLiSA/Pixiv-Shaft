@@ -959,4 +959,6 @@
     <string name="desc_jump_to">ジャンプ…</string>
     <string name="action_quote_card">名言カード</string>
     <string name="action_highlight_menu">ハイライト ▾</string>
+    <!-- History tabs -->
+    <string name="tab_user">ユーザー</string>
 </resources>

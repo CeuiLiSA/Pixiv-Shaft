@@ -120,6 +120,18 @@ public interface DownloadDao {
     @Query("SELECT COUNT(*) FROM illust_table")
     int getViewHistoryCount();
 
+    /**
+     * 按 type 分页查询浏览历史（0=插画/漫画, 1=小说）
+     */
+    @Query("SELECT * FROM illust_table WHERE type = :type ORDER BY time DESC LIMIT :limit OFFSET :offset")
+    List<IllustHistoryEntity> getViewHistoryByType(int type, int limit, int offset);
+
+    @Query("SELECT COUNT(*) FROM illust_table WHERE type = :type")
+    int getViewHistoryCountByType(int type);
+
+    @Query("DELETE FROM illust_table WHERE type = :type")
+    void deleteAllHistoryByType(int type);
+
 
     /**
      * 新增一个用户
