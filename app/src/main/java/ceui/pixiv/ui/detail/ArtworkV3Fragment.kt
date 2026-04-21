@@ -190,8 +190,8 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         val downloaded = Common.isIllustDownloaded(illust) ||
             ceui.lisa.database.AppDatabase.getAppDatabase(mContext).downloadDao()
                 .hasDownloadRecordByIllustId(illust.id.toLong())
-        baseBind.fabDownload.imageTintList = android.content.res.ColorStateList.valueOf(
-            if (downloaded) mContext.getColor(R.color.has_bookmarked) else android.graphics.Color.WHITE
+        baseBind.fabDownload.setImageResource(
+            if (downloaded) R.drawable.ic_file_download_done_24dp else R.drawable.ic_file_download_black_24dp
         )
     }
 
