@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             android:paddingBottom="14dp"
-            android:text="屏幕"
+            android:text="@string/reader_section_screen"
             android:textColor="#5B6EFF"
             android:textSize="13sp"
             android:textStyle="bold"/>

@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:letterSpacing="0.12"
-        android:text="简介"
+        android:text="@string/novel_desc_label"
         android:textAllCaps="true"
         android:textColor="@color/v3_text_3"
         android:textSize="12sp"

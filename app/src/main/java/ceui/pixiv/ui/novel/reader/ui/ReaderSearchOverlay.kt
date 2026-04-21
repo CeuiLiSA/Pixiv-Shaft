@@ -86,7 +86,12 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
     fun currentQuery(): String = binding.editSearchQuery.text?.toString().orEmpty()
 
     fun setCount(currentIndex: Int, total: Int) {
-        binding.txtSearchCount.text = if (total == 0) "无结果" else "${currentIndex + 1} / $total"
+        val ctx = binding.root.context
+        binding.txtSearchCount.text = if (total == 0) {
+            ctx.getString(ceui.lisa.R.string.reader_search_no_result)
+        } else {
+            ctx.getString(ceui.lisa.R.string.reader_progress_format, currentIndex + 1, total)
+        }
     }
 
     private fun applyRegexStyle() {

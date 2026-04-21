@@ -968,4 +968,159 @@
     <string name="v3_label_navigate">导航</string>
     <string name="v3_label_profile_details">个人资料</string>
     <string name="v3_label_workspace">工作环境</string>
+
+    <!-- Novel reader V3 -->
+    <string name="reader_settings_title">阅读器设置</string>
+    <string name="reader_section_typography">排版</string>
+    <string name="reader_section_theme">主题</string>
+    <string name="reader_section_flip">翻页</string>
+    <string name="reader_section_screen">屏幕</string>
+    <string name="reader_section_image">图片</string>
+    <string name="reader_btn_chapters">目录</string>
+    <string name="reader_btn_settings">设置</string>
+    <string name="reader_btn_search">搜索</string>
+    <string name="reader_btn_more">更多</string>
+    <string name="reader_btn_theme_night">夜间</string>
+    <string name="reader_btn_theme_day">日间</string>
+    <string name="reader_desc_back">返回</string>
+    <string name="reader_desc_annotations">笔记/高亮</string>
+    <string name="reader_desc_bookmark">收藏</string>
+    <string name="reader_desc_more">更多</string>
+    <string name="reader_desc_prev_chapter">上一章</string>
+    <string name="reader_desc_next_chapter">下一章</string>
+    <string name="reader_desc_close_search">关闭</string>
+    <string name="reader_search_hint">搜索全文</string>
+    <string name="reader_search_regex">正则</string>
+    <string name="reader_search_no_result">无结果</string>
+    <string name="reader_progress_format">%1$d / %2$d</string>
+    <string name="reader_progress_empty">-- / --</string>
+    <string name="reader_image_loading">图片加载中…</string>
+    <string name="reader_image_placeholder">[图片]</string>
+
+    <!-- Reader settings labels -->
+    <string name="setting_font_size">字号</string>
+    <string name="setting_line_spacing">行距</string>
+    <string name="setting_paragraph_spacing">段间距</string>
+    <string name="setting_h_margin">左右边距</string>
+    <string name="setting_v_margin">上下边距</string>
+    <string name="setting_first_indent">首行缩进</string>
+    <string name="setting_indent_none">无</string>
+    <string name="setting_indent_1">1字</string>
+    <string name="setting_indent_2">2字</string>
+    <string name="setting_indent_3">3字</string>
+    <string name="setting_indent_4">4字</string>
+    <string name="setting_letter_spacing">字间距</string>
+    <string name="setting_bold">加粗</string>
+    <string name="setting_font_weight">字重</string>
+    <string name="setting_follow_dark">跟随系统暗色</string>
+    <string name="setting_system_brightness">屏幕亮度跟随系统</string>
+    <string name="setting_custom_brightness">自定义亮度</string>
+    <string name="setting_warm_filter">暖色滤镜</string>
+    <string name="setting_reading_direction">阅读方向</string>
+    <string name="setting_direction_horizontal">横向翻页</string>
+    <string name="setting_direction_vertical">纵向滚动</string>
+    <string name="setting_flip_animation">翻页动画</string>
+    <string name="setting_flip_simulation">仿真</string>
+    <string name="setting_flip_cover">覆盖</string>
+    <string name="setting_flip_slide">平移</string>
+    <string name="setting_flip_none">无</string>
+    <string name="setting_volume_flip">音量键翻页</string>
+    <string name="setting_tap_reversed">反转左右点击区</string>
+    <string name="setting_auto_page_interval">自动翻页间隔</string>
+    <string name="setting_orientation">方向</string>
+    <string name="setting_orientation_auto">自动</string>
+    <string name="setting_orientation_portrait">竖屏</string>
+    <string name="setting_orientation_landscape">横屏</string>
+    <string name="setting_immersive">沉浸式（隐藏状态栏）</string>
+    <string name="setting_keep_screen_on">屏幕常亮</string>
+    <string name="setting_show_top_progress">显示顶部进度条</string>
+    <string name="setting_show_bottom_progress">显示底部进度条</string>
+    <string name="setting_touch_locked">锁定触控（防误触）</string>
+    <string name="setting_eye_break">护眼提醒</string>
+    <string name="setting_image_placement">垂直位置</string>
+    <string name="setting_image_top">顶部</string>
+    <string name="setting_image_center">居中</string>
+    <string name="setting_image_bottom">底部</string>
+    <string name="setting_image_scale">缩放模式</string>
+    <string name="setting_image_fit">适应</string>
+    <string name="setting_image_fill">填充</string>
+    <string name="setting_image_original">原始</string>
+    <string name="setting_preload_images">预加载图片</string>
+
+    <!-- Reader actions & menus -->
+    <string name="action_copy">复制</string>
+    <string name="action_select_all">全选</string>
+    <string name="action_highlight">标记高亮</string>
+    <string name="action_note">笔记</string>
+    <string name="action_translate">翻译</string>
+    <string name="action_search_pixiv">P站</string>
+    <string name="action_search_web">网页</string>
+    <string name="action_save">保存</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_delete">删除</string>
+    <string name="menu_annotations">笔记 / 高亮</string>
+    <string name="menu_bookmarks">位置书签</string>
+    <string name="menu_save_position">保存当前位置</string>
+    <string name="menu_export">导出</string>
+    <string name="menu_copy_link">复制链接</string>
+
+    <!-- Reader toast / messages -->
+    <string name="msg_link_copied">链接已复制</string>
+    <string name="msg_copied">已复制</string>
+    <string name="msg_highlighted">已高亮</string>
+    <string name="msg_note_saved">笔记已保存</string>
+    <string name="msg_bookmark_saved">已保存位置书签</string>
+    <string name="msg_unbookmarked">取消收藏</string>
+    <string name="msg_bookmarked">收藏成功</string>
+    <string name="msg_no_chapters">这篇小说没有章节标记</string>
+    <string name="msg_last_chapter">已是最后一章</string>
+    <string name="msg_first_chapter">已是第一章</string>
+    <string name="msg_novel_loading">小说信息还没加载，请稍后再试</string>
+    <string name="msg_novel_not_ready">小说还没加载完成</string>
+    <string name="msg_export_start">开始导出 %s…</string>
+    <string name="msg_export_success">已导出到 Downloads/ShaftNovels/%s</string>
+    <string name="msg_export_fail">导出失败：%s</string>
+    <string name="msg_operation_fail">操作失败：%s</string>
+    <string name="msg_load_fail">加载失败</string>
+    <string name="msg_parse_fail">解析 HTML 失败</string>
+    <string name="msg_coming_soon">敬请期待</string>
+    <string name="msg_no_browser">无法打开浏览器</string>
+    <string name="msg_no_app">没有找到可处理的应用</string>
+    <string name="msg_no_translate_app">没有可用的翻译应用</string>
+    <string name="chooser_share_selection">分享段落</string>
+    <string name="chooser_translate">翻译</string>
+
+    <!-- Highlight colors -->
+    <string name="highlight_yellow">黄色</string>
+    <string name="highlight_green">绿色</string>
+    <string name="highlight_pink">粉色</string>
+    <string name="highlight_blue">蓝色</string>
+    <string name="dialog_choose_highlight_color">选择高亮颜色</string>
+
+    <!-- Note editor -->
+    <string name="note_hint">写下你的想法…</string>
+    <string name="note_add_title">添加笔记</string>
+    <string name="note_edit_title">编辑笔记</string>
+
+    <!-- Export -->
+    <string name="export_title">导出格式</string>
+    <string name="export_txt_desc">最精简，适合粘贴到任何地方</string>
+    <string name="export_md_desc">保留标题与段落，图片用链接引用</string>
+    <string name="export_epub_desc">标准电子书，含嵌入图片，可在阅读器打开</string>
+    <string name="export_pdf_desc">A4 纸张，方便打印或归档（暂不含图片）</string>
+
+    <!-- Bookmarks / Annotations sheets -->
+    <string name="bookmarks_title">位置书签</string>
+    <string name="bookmarks_count">%d 条</string>
+    <string name="bookmarks_empty">还没有位置书签。\n在「更多」菜单里点「添加书签」即可。</string>
+    <string name="bookmarks_page_format">第 %d 页</string>
+    <string name="bookmarks_delete_confirm">删除该书签？</string>
+    <string name="annotations_title">笔记 / 高亮</string>
+    <string name="annotations_count">%d 条</string>
+    <string name="annotations_empty">还没有笔记或高亮。\n长按文字 → 选择颜色即可保存。</string>
+    <string name="chapters_title">目录</string>
+    <string name="chapters_count">%d 章</string>
+
+    <!-- Novel detail (NovelTextFragment) -->
+    <string name="novel_desc_label">简介</string>
 </resources>

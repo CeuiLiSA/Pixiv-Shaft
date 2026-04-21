@@ -19,7 +19,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="上一章"
+            android:contentDescription="@string/reader_desc_prev_chapter"
             android:src="@drawable/ic_reader_prev_chapter"
             app:tint="#FFFFFF" />
 
@@ -45,7 +45,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="下一章"
+            android:contentDescription="@string/reader_desc_next_chapter"
             android:src="@drawable/ic_reader_next_chapter"
             app:tint="#FFFFFF" />
     </LinearLayout>
@@ -75,7 +75,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="目录"
+                android:text="@string/reader_btn_chapters"
                 android:textColor="#CCFFFFFF"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -98,7 +98,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="设置"
+                android:text="@string/reader_btn_settings"
                 android:textColor="#CCFFFFFF"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -123,7 +123,7 @@
                 android:id="@+id/txt_theme_toggle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="夜间"
+                android:text="@string/reader_btn_theme_night"
                 android:textColor="#CCFFFFFF"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -146,7 +146,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="搜索"
+                android:text="@string/reader_btn_search"
                 android:textColor="#CCFFFFFF"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -169,7 +169,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="更多"
+                android:text="@string/reader_btn_more"
                 android:textColor="#CCFFFFFF"
                 android:textSize="12sp" />
         </LinearLayout>

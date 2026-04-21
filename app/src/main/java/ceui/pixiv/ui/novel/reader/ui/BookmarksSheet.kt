@@ -72,14 +72,14 @@ class BookmarksSheet : BottomSheetDialogFragment() {
             setPadding((16 * density).toInt(), 0, (16 * density).toInt(), (8 * density).toInt())
         }
         val title = TextView(ctx).apply {
-            text = "位置书签"
+            text = getString(ceui.lisa.R.string.bookmarks_title)
             setTextColor(Color.BLACK)
             setTypeface(typeface, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 1f }
         }
         val count = TextView(ctx).apply {
-            text = "${entries.size} 条"
+            text = getString(ceui.lisa.R.string.bookmarks_count, entries.size)
             setTextColor(0xFF888888.toInt())
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
         }
@@ -94,7 +94,7 @@ class BookmarksSheet : BottomSheetDialogFragment() {
 
         if (entries.isEmpty()) {
             root.addView(TextView(ctx).apply {
-                text = "还没有位置书签。\n在「更多」菜单里点「添加书签」即可。"
+                text = getString(ceui.lisa.R.string.bookmarks_empty)
                 gravity = Gravity.CENTER
                 setTextColor(0xFF888888.toInt())
                 setPadding(0, (48 * density).toInt(), 0, (48 * density).toInt())
@@ -148,18 +148,18 @@ class BookmarksSheet : BottomSheetDialogFragment() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val entry = entries[position]
-            holder.preview.text = if (entry.preview.isNotEmpty()) entry.preview else "第 ${entry.pageIndex + 1} 页"
-            holder.footer.text = "第 ${entry.pageIndex + 1} 页 · ${DateFormat.format("yyyy-MM-dd HH:mm", entry.createdTime)}"
             val ctx = holder.itemView.context
+            holder.preview.text = if (entry.preview.isNotEmpty()) entry.preview else ctx.getString(ceui.lisa.R.string.bookmarks_page_format, entry.pageIndex + 1)
+            holder.footer.text = "${ctx.getString(ceui.lisa.R.string.bookmarks_page_format, entry.pageIndex + 1)} · ${DateFormat.format("yyyy-MM-dd HH:mm", entry.createdTime)}"
             holder.itemView.setOnClickListener {
                 onJumpTo?.invoke(entry)
                 dismiss()
             }
             holder.itemView.setOnLongClickListener {
                 androidx.appcompat.app.AlertDialog.Builder(ctx)
-                    .setTitle("删除该书签？")
-                    .setPositiveButton("删除") { _, _ -> onDelete?.invoke(entry) }
-                    .setNegativeButton("取消", null)
+                    .setTitle(ceui.lisa.R.string.bookmarks_delete_confirm)
+                    .setPositiveButton(ceui.lisa.R.string.action_delete) { _, _ -> onDelete?.invoke(entry) }
+                    .setNegativeButton(ceui.lisa.R.string.action_cancel, null)
                     .show()
                 true
             }

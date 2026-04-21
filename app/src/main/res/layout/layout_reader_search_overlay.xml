@@ -15,7 +15,7 @@
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="关闭"
+        android:contentDescription="@string/reader_desc_close_search"
         android:src="@drawable/ic_reader_back"
         app:tint="#FFFFFF" />
 
@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:background="@null"
-        android:hint="搜索全文"
+        android:hint="@string/reader_search_hint"
         android:imeOptions="actionSearch"
         android:inputType="text"
         android:paddingHorizontal="8dp"
@@ -73,7 +73,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:gravity="center"
         android:paddingHorizontal="10dp"
-        android:text="正则"
+        android:text="@string/reader_search_regex"
         android:textColor="#FFFFFF"
         android:textSize="12sp" />
 

@@ -63,14 +63,14 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
             setPadding((16 * density).toInt(), 0, (16 * density).toInt(), (8 * density).toInt())
         }
         val title = TextView(ctx).apply {
-            text = "笔记 / 高亮"
+            text = getString(ceui.lisa.R.string.annotations_title)
             setTextColor(Color.BLACK)
             setTypeface(typeface, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 1f }
         }
         val count = TextView(ctx).apply {
-            text = "${entries.size} 条"
+            text = getString(ceui.lisa.R.string.annotations_count, entries.size)
             setTextColor(0xFF888888.toInt())
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
         }
@@ -86,7 +86,7 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
 
         if (entries.isEmpty()) {
             val empty = TextView(ctx).apply {
-                text = "还没有笔记或高亮。\n长按文字 → 选择颜色即可保存。"
+                text = getString(ceui.lisa.R.string.annotations_empty)
                 gravity = Gravity.CENTER
                 setTextColor(0xFF888888.toInt())
                 setPadding(0, (48 * density).toInt(), 0, (48 * density).toInt())
@@ -195,7 +195,7 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
                 dismiss()
             }
             holder.itemView.setOnLongClickListener {
-                val options = arrayOf(if (entry.note.isEmpty()) "添加笔记" else "编辑笔记", "删除")
+                val options = arrayOf(if (entry.note.isEmpty()) ctx.getString(ceui.lisa.R.string.note_add_title) else ctx.getString(ceui.lisa.R.string.note_edit_title), ctx.getString(ceui.lisa.R.string.action_delete))
                 androidx.appcompat.app.AlertDialog.Builder(ctx)
                     .setTitle(entry.excerpt.take(24))
                     .setItems(options) { _, which ->

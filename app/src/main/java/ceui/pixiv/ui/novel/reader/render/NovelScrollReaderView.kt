@@ -274,7 +274,7 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
         val url = imageResolver(token)
         if (url == null) {
             return TextView(context).apply {
-                text = "[图片]"
+                text = context.getString(ceui.lisa.R.string.reader_image_placeholder)
                 setTextColor(style.secondaryTextColor)
                 setTextSize(TypedValue.COMPLEX_UNIT_PX, style.textPaint.textSize)
                 gravity = Gravity.CENTER

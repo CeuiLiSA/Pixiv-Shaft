@@ -181,7 +181,7 @@ object PageRenderer {
         placeholderTextPaint.color = style.secondaryTextColor
         placeholderTextPaint.textSize = style.textSize
         canvas.drawText(
-            "图片加载中…",
+            ceui.lisa.activities.Shaft.getContext().getString(ceui.lisa.R.string.reader_image_loading),
             (left + right) / 2f,
             (top + bottom) / 2f + placeholderTextPaint.textSize / 3f,
             placeholderTextPaint,

@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.novel.reader
 
+import android.content.Context
 import android.os.Handler
 import android.os.HandlerThread
+import ceui.lisa.R
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -96,6 +98,8 @@ class NovelReaderV3ViewModel(
     private val _searchResult = MutableLiveData(SearchResult.EMPTY)
     val searchResult: LiveData<SearchResult> = _searchResult
 
+    private fun ctx(): Context = Shaft.getContext()
+
     private var webNovel: WebNovel? = null
     private var tokens: List<ContentToken> = emptyList()
     private var imageResolver: (ContentToken) -> String? = { null }
@@ -127,7 +131,7 @@ class NovelReaderV3ViewModel(
                 } else {
                     val html = Client.appApi.getNovelText(novelId).string()
                     withContext(Dispatchers.Default) {
-                        val web = WebNovelParser.parsePixivObject(html)?.novel ?: error("解析 HTML 失败")
+                        val web = WebNovelParser.parsePixivObject(html)?.novel ?: error(ctx().getString(R.string.msg_parse_fail))
                         val toks = ContentParser.tokenize(web)
                         NovelTextCache.put(novelId, NovelTextCache.Entry(web, toks))
                         web to toks
@@ -141,7 +145,7 @@ class NovelReaderV3ViewModel(
                 repaginateIfReady()
             }.onFailure { throwable ->
                 Timber.tag("NovelReaderV3").e(throwable)
-                _loadState.postValue(LoadState.Error(throwable.message ?: "加载失败"))
+                _loadState.postValue(LoadState.Error(throwable.message ?: ctx().getString(R.string.msg_load_fail)))
             }
         }
     }
@@ -296,7 +300,7 @@ class NovelReaderV3ViewModel(
         return runCatching {
             val novel = ObjectPool.get<Novel>(novelId).value
                 ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
-            novel ?: return "小说信息未加载"
+            novel ?: return ctx().getString(R.string.msg_novel_loading)
             if (novel.is_bookmarked == true) {
                 Client.appApi.removeNovelBookmark(novelId)
                 ObjectPool.update(
@@ -305,7 +309,7 @@ class NovelReaderV3ViewModel(
                         total_bookmarks = novel.total_bookmarks?.minus(1),
                     ),
                 )
-                "取消收藏"
+                ctx().getString(R.string.msg_unbookmarked)
             } else {
                 Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
                 ObjectPool.update(
@@ -314,16 +318,16 @@ class NovelReaderV3ViewModel(
                         total_bookmarks = novel.total_bookmarks?.plus(1),
                     ),
                 )
-                "收藏成功"
+                ctx().getString(R.string.msg_bookmarked)
             }
-        }.getOrElse { "操作失败：${it.message}" }
+        }.getOrElse { ctx().getString(R.string.msg_operation_fail, it.message.orEmpty()) }
     }
 
     // ---- Export --------------------------------------------------------------
 
     suspend fun exportNovel(format: ExportFormat): ExportResult {
         val loaded = _loadState.value as? LoadState.Loaded
-            ?: return ExportResult.Failure("小说还没加载完成")
+            ?: return ExportResult.Failure(ctx().getString(R.string.msg_novel_not_ready))
         return NovelExportManager.export(
             context = Shaft.getContext(),
             format = format,

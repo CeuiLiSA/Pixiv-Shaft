@@ -235,14 +235,14 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             },
             onEnd = { activeSelection = null },
             menuEntries = listOf(
-                ReaderTextBlockView.MenuEntry(idCopy, "复制"),
-                ReaderTextBlockView.MenuEntry(ReaderTextBlockView.ID_SELECT_ALL, "全选"),
-                ReaderTextBlockView.MenuEntry(idHighlightParent, "标记高亮"),
-                ReaderTextBlockView.MenuEntry(idNote, "笔记"),
-                ReaderTextBlockView.MenuEntry(idTranslate, "翻译"),
-                ReaderTextBlockView.MenuEntry(idSearchPixiv, "P站"),
-                ReaderTextBlockView.MenuEntry(idSearchWeb, "网页"),
-                ReaderTextBlockView.MenuEntry(idShare, "分享"),
+                ReaderTextBlockView.MenuEntry(idCopy, getString(R.string.action_copy)),
+                ReaderTextBlockView.MenuEntry(ReaderTextBlockView.ID_SELECT_ALL, getString(R.string.action_select_all)),
+                ReaderTextBlockView.MenuEntry(idHighlightParent, getString(R.string.action_highlight)),
+                ReaderTextBlockView.MenuEntry(idNote, getString(R.string.action_note)),
+                ReaderTextBlockView.MenuEntry(idTranslate, getString(R.string.action_translate)),
+                ReaderTextBlockView.MenuEntry(idSearchPixiv, getString(R.string.action_search_pixiv)),
+                ReaderTextBlockView.MenuEntry(idSearchWeb, getString(R.string.action_search_web)),
+                ReaderTextBlockView.MenuEntry(idShare, getString(R.string.string_110)),
             ),
             onMenuAction = { id ->
                 when (id) {
@@ -400,8 +400,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
             // Text selection — same menu as paged mode
             sv.selectionMenuEntries = listOf(
-                1 to "复制", 2 to "分享", 9 to "标记高亮", 20 to "笔记",
-                5 to "翻译", 3 to "P站", 4 to "网页",
+                1 to getString(R.string.action_copy), 2 to getString(R.string.string_110), 9 to getString(R.string.action_highlight), 20 to getString(R.string.action_note),
+                5 to getString(R.string.action_translate), 3 to getString(R.string.action_search_pixiv), 4 to getString(R.string.action_search_web),
             )
             sv.onSelectionStarted = { absStart, absEnd, text ->
                 activeSelection = TextSelection(absStart, absEnd, text)
@@ -469,7 +469,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
                 ?: runCatching { Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) } }
                     .getOrNull()
             if (novel == null) {
-                Toast.makeText(requireContext(), "小说信息还没加载，请稍后再试", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.msg_novel_loading), Toast.LENGTH_SHORT).show()
                 return@launch
             }
             showV3Menu {
@@ -483,10 +483,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
                 item(getString(R.string.string_110), R.drawable.ic_share_black_24dp) {
                     shareNovel(novel)
                 }
-                item("复制链接", R.drawable.ic_baseline_launch_24) {
+                item(getString(R.string.menu_copy_link), R.drawable.ic_baseline_launch_24) {
                     val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     cm.setPrimaryClip(ClipData.newPlainText("pixiv-novel", NOVEL_URL_HEAD + novelId))
-                    Toast.makeText(requireContext(), "链接已复制", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.msg_link_copied), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -494,17 +494,17 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     private fun showReaderOverflowMenu() {
         showV3Menu {
-            item("笔记 / 高亮", R.drawable.ic_reader_annotations) {
+            item(getString(R.string.menu_annotations), R.drawable.ic_reader_annotations) {
                 showAnnotationsSheet()
             }
-            item("位置书签", R.drawable.ic_baseline_bookmark_24) {
+            item(getString(R.string.menu_bookmarks), R.drawable.ic_baseline_bookmark_24) {
                 showBookmarksSheet()
             }
-            item("保存当前位置", R.drawable.ic_baseline_bookmark_24) {
+            item(getString(R.string.menu_save_position), R.drawable.ic_baseline_bookmark_24) {
                 viewModel.addBookmarkAtCurrentPage(readerView?.currentPageIndex() ?: 0)
-                Toast.makeText(requireContext(), "已保存位置书签", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.msg_bookmark_saved), Toast.LENGTH_SHORT).show()
             }
-            item("导出", R.drawable.ic_baseline_get_app_24) {
+            item(getString(R.string.menu_export), R.drawable.ic_baseline_get_app_24) {
                 showExportSheet()
             }
         }
@@ -512,16 +512,16 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     private fun showExportSheet() {
         if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
-            Toast.makeText(requireContext(), "小说还没加载完成", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.msg_novel_not_ready), Toast.LENGTH_SHORT).show()
             return
         }
         ExportSheet().apply {
             configure { format ->
-                Toast.makeText(requireContext(), "开始导出 ${format.displayName}…", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.msg_export_start, format.displayName), Toast.LENGTH_SHORT).show()
                 viewLifecycleOwner.lifecycleScope.launch {
                     when (val result = viewModel.exportNovel(format)) {
-                        is ExportResult.Success -> Toast.makeText(requireContext(), "已导出到 Downloads/ShaftNovels/${result.fileName}", Toast.LENGTH_LONG).show()
-                        is ExportResult.Failure -> Toast.makeText(requireContext(), "导出失败：${result.message}", Toast.LENGTH_LONG).show()
+                        is ExportResult.Success -> Toast.makeText(requireContext(), getString(R.string.msg_export_success, result.fileName), Toast.LENGTH_LONG).show()
+                        is ExportResult.Failure -> Toast.makeText(requireContext(), getString(R.string.msg_export_fail, result.message), Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -530,15 +530,15 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     private fun pickHighlightColor() {
         val sel = activeSelection ?: return
-        val options = listOf("黄色" to HighlightColor.Yellow, "绿色" to HighlightColor.Green, "粉色" to HighlightColor.Pink, "蓝色" to HighlightColor.Blue)
+        val options = listOf(getString(R.string.highlight_yellow) to HighlightColor.Yellow, getString(R.string.highlight_green) to HighlightColor.Green, getString(R.string.highlight_pink) to HighlightColor.Pink, getString(R.string.highlight_blue) to HighlightColor.Blue)
         AlertDialog.Builder(requireContext())
-            .setTitle("选择高亮颜色")
+            .setTitle(getString(R.string.dialog_choose_highlight_color))
             .setItems(options.map { it.first }.toTypedArray()) { _, which ->
                 viewModel.addHighlight(sel.absoluteStart, sel.absoluteEnd, sel.text, options[which].second.argb)
-                Toast.makeText(requireContext(), "已高亮", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.msg_highlighted), Toast.LENGTH_SHORT).show()
                 clearSelection()
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.action_cancel), null)
             .show()
     }
 
@@ -548,7 +548,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             configure(existingNote = "", excerpt = sel.text) { noteText ->
                 if (noteText.isNotEmpty()) {
                     viewModel.saveNote(0L, sel.absoluteStart, sel.absoluteEnd, sel.text, noteText, HighlightColor.Yellow.argb)
-                    Toast.makeText(requireContext(), "笔记已保存", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.msg_note_saved), Toast.LENGTH_SHORT).show()
                 }
                 clearSelection()
             }
@@ -630,7 +630,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     private fun showChapterDrawer() {
         val outline = viewModel.getChapterOutline()
         if (outline.isEmpty()) {
-            Toast.makeText(requireContext(), "这篇小说没有章节标记", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.msg_no_chapters), Toast.LENGTH_SHORT).show()
             return
         }
         val currentStart = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.currentCharIndex()
@@ -654,7 +654,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         if (target != null) {
             navigateToCharIndex(target.sourceStart, animate = true)
         } else {
-            Toast.makeText(requireContext(), if (forward) "已是最后一章" else "已是第一章", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), if (forward) getString(R.string.msg_last_chapter) else getString(R.string.msg_first_chapter), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -664,7 +664,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         val sel = activeSelection ?: return
         (requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
             .setPrimaryClip(ClipData.newPlainText("novel selection", sel.text))
-        Toast.makeText(requireContext(), "已复制", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.msg_copied), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareSelection() {
@@ -673,31 +673,31 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         val author = novel?.user?.name.orEmpty()
         val title = novel?.title.orEmpty()
         val body = if (title.isEmpty()) sel.text else "「${sel.text}」\n\n—— $title${if (author.isNotEmpty()) " / $author" else ""}"
-        startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, body) }, "分享段落"))
+        startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, body) }, getString(R.string.chooser_share_selection)))
     }
 
     private fun searchSelectionOnPixiv() {
         val query = activeSelection?.text?.trim().orEmpty()
         if (query.isEmpty()) return
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.pixiv.net/tags/${Uri.encode(query)}/novels"))) }
-            .onFailure { Toast.makeText(requireContext(), "无法打开浏览器", Toast.LENGTH_SHORT).show() }
+            .onFailure { Toast.makeText(requireContext(), getString(R.string.msg_no_browser), Toast.LENGTH_SHORT).show() }
     }
 
     private fun searchSelectionOnWeb() {
         val query = activeSelection?.text?.trim().orEmpty()
         if (query.isEmpty()) return
         runCatching { startActivity(Intent(Intent.ACTION_WEB_SEARCH).apply { putExtra("query", query) }) }
-            .onFailure { Toast.makeText(requireContext(), "没有找到可处理的应用", Toast.LENGTH_SHORT).show() }
+            .onFailure { Toast.makeText(requireContext(), getString(R.string.msg_no_app), Toast.LENGTH_SHORT).show() }
     }
 
     private fun translateSelection() {
         val sel = activeSelection ?: return
         val intent = Intent(Intent.ACTION_PROCESS_TEXT).apply { type = "text/plain"; putExtra(Intent.EXTRA_PROCESS_TEXT, sel.text); putExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, true) }
         if (intent.resolveActivity(requireContext().packageManager) != null) {
-            startActivity(Intent.createChooser(intent, "翻译"))
+            startActivity(Intent.createChooser(intent, getString(R.string.chooser_translate)))
         } else {
             runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://translate.google.com/?sl=auto&tl=zh-CN&text=${Uri.encode(sel.text)}&op=translate"))) }
-                .onFailure { Toast.makeText(requireContext(), "没有可用的翻译应用", Toast.LENGTH_SHORT).show() }
+                .onFailure { Toast.makeText(requireContext(), getString(R.string.msg_no_translate_app), Toast.LENGTH_SHORT).show() }
         }
     }
 

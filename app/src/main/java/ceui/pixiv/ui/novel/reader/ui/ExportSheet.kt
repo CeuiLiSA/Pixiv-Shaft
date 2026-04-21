@@ -56,7 +56,7 @@ class ExportSheet : BottomSheetDialogFragment() {
         root.addView(handle)
 
         val title = TextView(ctx).apply {
-            text = "导出格式"
+            text = getString(ceui.lisa.R.string.export_title)
             setTextColor(Color.BLACK)
             setTypeface(typeface, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
@@ -71,10 +71,10 @@ class ExportSheet : BottomSheetDialogFragment() {
         root.addView(divider)
 
         val rows = listOf(
-            Triple(ExportFormat.Txt, "最精简，适合粘贴到任何地方", "🅣"),
-            Triple(ExportFormat.Markdown, "保留标题与段落，图片用链接引用", "🅜"),
-            Triple(ExportFormat.Epub, "标准电子书，含嵌入图片，可在阅读器打开", "📖"),
-            Triple(ExportFormat.Pdf, "A4 纸张，方便打印或归档（暂不含图片）", "📄"),
+            Triple(ExportFormat.Txt, getString(ceui.lisa.R.string.export_txt_desc), "🅣"),
+            Triple(ExportFormat.Markdown, getString(ceui.lisa.R.string.export_md_desc), "🅜"),
+            Triple(ExportFormat.Epub, getString(ceui.lisa.R.string.export_epub_desc), "📖"),
+            Triple(ExportFormat.Pdf, getString(ceui.lisa.R.string.export_pdf_desc), "📄"),
         )
         for ((format, desc, emoji) in rows) {
             root.addView(buildRow(ctx, format, desc, emoji, density))

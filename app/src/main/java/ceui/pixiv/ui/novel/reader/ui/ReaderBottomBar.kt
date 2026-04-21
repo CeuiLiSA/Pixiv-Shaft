@@ -55,10 +55,16 @@ class ReaderBottomBar(private val binding: LayoutReaderBottomBarBinding) {
         } finally {
             suppressSeekListener = false
         }
-        binding.txtProgress.text = if (totalPages == 0) "-- / --" else "${currentPage + 1} / $totalPages"
+        binding.txtProgress.text = if (totalPages == 0) {
+            binding.root.context.getString(ceui.lisa.R.string.reader_progress_empty)
+        } else {
+            binding.root.context.getString(ceui.lisa.R.string.reader_progress_format, currentPage + 1, totalPages)
+        }
     }
 
     fun setDarkMode(dark: Boolean) {
-        binding.txtThemeToggle.text = if (dark) "日间" else "夜间"
+        binding.txtThemeToggle.text = binding.root.context.getString(
+            if (dark) ceui.lisa.R.string.reader_btn_theme_day else ceui.lisa.R.string.reader_btn_theme_night,
+        )
     }
 }

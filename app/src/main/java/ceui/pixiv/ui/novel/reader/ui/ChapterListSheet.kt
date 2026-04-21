@@ -77,14 +77,14 @@ class ChapterListSheet : BottomSheetDialogFragment() {
             setPadding((16 * density).toInt(), 0, (16 * density).toInt(), (8 * density).toInt())
         }
         val title = TextView(ctx).apply {
-            text = "目录"
+            text = getString(ceui.lisa.R.string.chapters_title)
             setTextColor(Color.BLACK)
             setTypeface(typeface, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 1f }
         }
         val count = TextView(ctx).apply {
-            text = "${chapters.size} 章"
+            text = getString(ceui.lisa.R.string.chapters_count, chapters.size)
             setTextColor(0xFF888888.toInt())
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
         }

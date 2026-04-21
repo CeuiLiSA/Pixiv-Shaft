@@ -59,7 +59,7 @@ class NoteEditorDialog : DialogFragment() {
 
         val edit = EditText(ctx).apply {
             setText(existingNote)
-            setHint("写下你的想法…")
+            setHint(ceui.lisa.R.string.note_hint)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             minLines = 4
             maxLines = 8
@@ -69,15 +69,15 @@ class NoteEditorDialog : DialogFragment() {
         container.addView(edit, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         val builder = AlertDialog.Builder(ctx)
-            .setTitle(if (existingNote.isEmpty()) "添加笔记" else "编辑笔记")
+            .setTitle(if (existingNote.isEmpty()) getString(ceui.lisa.R.string.note_add_title) else getString(ceui.lisa.R.string.note_edit_title))
             .setView(container)
-            .setPositiveButton("保存") { _, _ ->
+            .setPositiveButton(ceui.lisa.R.string.action_save) { _, _ ->
                 onSave?.invoke(edit.text.toString().trim())
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton(ceui.lisa.R.string.action_cancel, null)
 
         if (onDelete != null && existingNote.isNotEmpty()) {
-            builder.setNeutralButton("删除") { _, _ -> onDelete?.invoke() }
+            builder.setNeutralButton(ceui.lisa.R.string.action_delete) { _, _ -> onDelete?.invoke() }
         }
         return builder.create()
     }
