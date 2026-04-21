@@ -1,10 +1,10 @@
 package ceui.pixiv.ui.settings
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Editable
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
@@ -27,27 +27,23 @@ import ceui.pixiv.ui.common.viewBinding
 import com.hjq.toast.ToastUtils
 
 /**
- * Shows the active per-bucket download config and teaches users how to shape
- * it. Structure:
+ * Download path / filename settings, styled to the V3 design language used by
+ * [ceui.pixiv.ui.detail.ArtworkV3Fragment] and [ceui.pixiv.ui.user.MineProfileFragment]:
+ * soft rounded 28dp cards on an off-white background, hairline borders, pill
+ * chips and pills for interactive controls, Montserrat bold titles.
  *
- *   1. Preset row — one-tap switch between four curated configs.
- *   2. Teaching card — intro, tappable variable chips, tappable condition
- *      chips, tappable example templates. Chips splice into whichever bucket
- *      template the user most recently focused; examples replace its text.
- *   3. Per-bucket cards — storage + policy (read-only for this pass),
- *      template editor with live preview, save / reset.
- *   4. Reset-all footer.
- *
- * No ViewModel — config reads/writes are synchronous via
- * [DownloadsRegistry.store], and the page is tiny enough to re-render the
- * whole layout on each mutation.
+ * Layout roles:
+ *   - Preset section (4 cards, each shows a sample rendered path + "套用" pill)
+ *   - Teaching card (intro + tappable variable / condition chips + ready-made examples)
+ *   - Per-bucket card (storage + policy chips, template editor, live preview,
+ *     save / reset pills)
+ *   - Reset-all pill at the bottom
  */
 class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_settings) {
 
     private val binding by viewBinding(FragmentDownloadPathSettingsBinding::bind)
 
-    // The editor chip insertion targets — updated every time a template field
-    // gains focus. Null means "no editor focused yet" → chip tap shows a hint.
+    /** Currently focused template EditText — target for variable / condition chips. */
     private var focusedEditor: EditText? = null
 
     private val USER_BUCKETS = listOf(
@@ -72,40 +68,74 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         root.removeAllViews()
         focusedEditor = null
 
-        addPresetsHeader(root)
+        addSectionTitle(root, getString(R.string.download_path_presets_title), topMarginDp = 2)
+        addPresetCards(root)
+
+        addSectionTitle(root, getString(R.string.download_path_teach_section_intro), topMarginDp = 18)
         addTeachingCard(root)
-        USER_BUCKETS.forEach { (bucket, labelRes) -> addBucketSection(root, bucket, getString(labelRes)) }
+
+        USER_BUCKETS.forEach { (bucket, labelRes) ->
+            addSectionTitle(root, getString(labelRes), topMarginDp = 18)
+            addBucketSection(root, bucket)
+        }
+
         addResetAll(root)
     }
 
     // ---------------- Presets ----------------
 
-    private fun addPresetsHeader(root: LinearLayout) {
-        root.addView(sectionTitle(getString(R.string.download_path_presets_title)))
-        val row = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { bottomMargin = dp(12) }
+    private data class PresetInfo(
+        val id: ConfigPresets.Id,
+        val labelRes: Int,
+    )
+
+    private val PRESETS = listOf(
+        PresetInfo(ConfigPresets.Id.ShaftClassic, R.string.download_path_preset_classic),
+        PresetInfo(ConfigPresets.Id.Flat,         R.string.download_path_preset_flat),
+        PresetInfo(ConfigPresets.Id.ByDate,       R.string.download_path_preset_by_date),
+        PresetInfo(ConfigPresets.Id.ByAuthor,     R.string.download_path_preset_by_author),
+    )
+
+    private fun addPresetCards(root: LinearLayout) {
+        val inflater = LayoutInflater.from(requireContext())
+        PRESETS.forEach { preset ->
+            val cell = inflater.inflate(R.layout.cell_download_preset, root, false)
+            (cell.layoutParams as LinearLayout.LayoutParams).apply {
+                topMargin = dp(6); bottomMargin = dp(6)
+            }.also { cell.layoutParams = it }
+
+            cell.findViewById<TextView>(R.id.preset_name).text = getString(preset.labelRes)
+            val previewView = cell.findViewById<TextView>(R.id.preset_preview)
+            previewView.text = previewFor(preset)
+
+            val onApply = View.OnClickListener { applyPreset(preset.id) }
+            cell.findViewById<TextView>(R.id.preset_apply).setOnClickListener(onApply)
+            cell.setOnClickListener(onApply)
+
+            root.addView(cell)
         }
-        listOf(
-            ConfigPresets.Id.ShaftClassic to R.string.download_path_preset_classic,
-            ConfigPresets.Id.Flat         to R.string.download_path_preset_flat,
-            ConfigPresets.Id.ByDate       to R.string.download_path_preset_by_date,
-            ConfigPresets.Id.ByAuthor     to R.string.download_path_preset_by_author,
-        ).forEach { (id, labelRes) ->
-            val btn = Button(requireContext()).apply {
-                text = getString(labelRes)
-                textSize = 12f
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                    .apply { setMargins(dp(2), 0, dp(2), 0) }
-                setOnClickListener { applyPreset(id) }
-            }
-            row.addView(btn)
-        }
-        root.addView(row)
     }
+
+    /**
+     * Produces a 1-line illustration of what the preset would produce for the
+     * Illust bucket — the most visually informative sample for users scanning
+     * presets.
+     */
+    private fun previewFor(preset: PresetInfo): CharSequence {
+        val config = ConfigPresets.of(preset.id, placeholderImages(), placeholderDownloads())
+        val template = config.resolve(Bucket.Illust).template
+        return getString(R.string.download_path_preset_preview_prefix) + " " +
+            when (val r = TemplateSamples.preview(template, Bucket.Illust)) {
+                is TemplateSamples.Preview.Ok      -> r.cleaned.joinTo()
+                is TemplateSamples.Preview.Failure -> "⚠"
+            }
+    }
+
+    private fun placeholderImages(): StorageChoice =
+        StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+
+    private fun placeholderDownloads(): StorageChoice =
+        StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
 
     private fun applyPreset(id: ConfigPresets.Id) {
         val current = DownloadsRegistry.store.loadOrFallback()
@@ -120,11 +150,6 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
     // ---------------- Teaching card ----------------
 
-    /**
-     * Catalogue of tappable tokens. Each entry: (token to splice, human label
-     * shown on chip, explanation shown as secondary line in a caption).
-     * Labels are intentionally punchy — the explanation below shows once.
-     */
     private data class Token(val insert: String, val chipLabel: String, val explainRes: Int)
 
     private val VARIABLE_TOKENS = listOf(
@@ -150,75 +175,49 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private data class Example(val template: String, val labelRes: Int)
 
     private val EXAMPLES = listOf(
-        Example(
-            DefaultTemplates.ILLUST,
-            R.string.download_path_teach_example_classic_label,
-        ),
-        Example(
-            "Shaft/{title} {id}[?p>1: p{page}].{ext}",
-            R.string.download_path_teach_example_flat_label,
-        ),
-        Example(
-            "Shaft/{created:yyyy}/{created:yyyy-MM}/{title} {id}[?p>1: p{page}].{ext}",
-            R.string.download_path_teach_example_date_label,
-        ),
-        Example(
-            "Shaft/[?R18:R18/][?AI:AI/]{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}",
-            R.string.download_path_teach_example_r18_label,
-        ),
+        Example(DefaultTemplates.ILLUST, R.string.download_path_teach_example_classic_label),
+        Example("Shaft/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_flat_label),
+        Example("Shaft/{created:yyyy}/{created:yyyy-MM}/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_date_label),
+        Example("Shaft/[?R18:R18/][?AI:AI/]{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_r18_label),
     )
 
     private fun addTeachingCard(root: LinearLayout) {
-        val card = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundResource(R.drawable.bg_cell_rounded)
-            setPadding(dp(14), dp(12), dp(14), dp(12))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { bottomMargin = dp(14) }
-        }
+        val card = cardContainer()
+        card.addView(bodyText(getString(R.string.download_path_teach_intro_body)))
 
-        card.addView(sectionTitle(getString(R.string.download_path_teach_section_intro)).apply {
-            setPadding(0, 0, 0, dp(4))
-        })
-        card.addView(body(getString(R.string.download_path_teach_intro_body)))
-
-        card.addView(sectionTitle(getString(R.string.download_path_teach_section_vars)).apply {
-            setPadding(0, dp(8), 0, dp(4))
-        })
-        card.addView(chipRow(VARIABLE_TOKENS, isCondition = false))
+        card.addView(subHeader(getString(R.string.download_path_teach_section_vars), topDp = 16))
+        card.addView(chipScrollRow(VARIABLE_TOKENS))
         card.addView(explainList(VARIABLE_TOKENS))
 
-        card.addView(sectionTitle(getString(R.string.download_path_teach_section_cond)).apply {
-            setPadding(0, dp(10), 0, dp(4))
-        })
-        card.addView(chipRow(CONDITION_TOKENS, isCondition = true))
+        card.addView(subHeader(getString(R.string.download_path_teach_section_cond), topDp = 14))
+        card.addView(chipScrollRow(CONDITION_TOKENS))
         card.addView(explainList(CONDITION_TOKENS))
 
-        card.addView(sectionTitle(getString(R.string.download_path_teach_section_examples)).apply {
-            setPadding(0, dp(10), 0, dp(4))
-        })
-        card.addView(exampleRow())
+        card.addView(subHeader(getString(R.string.download_path_teach_section_examples), topDp = 14))
+        card.addView(exampleScrollRow())
 
         root.addView(card)
     }
 
-    private fun chipRow(tokens: List<Token>, isCondition: Boolean): View {
+    private fun chipScrollRow(tokens: List<Token>): View {
         val scroll = HorizontalScrollView(requireContext()).apply {
             isHorizontalScrollBarEnabled = false
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(4) }
         }
         val row = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
         tokens.forEach { token ->
-            val chip = Button(requireContext()).apply {
+            val chip = TextView(requireContext()).apply {
                 text = token.chipLabel
                 textSize = 11f
-                isAllCaps = false
-                minWidth = 0
-                minimumWidth = 0
-                minHeight = 0
-                minimumHeight = 0
-                typeface = android.graphics.Typeface.MONOSPACE
+                typeface = Typeface.MONOSPACE
+                setTextColor(resources.getColor(R.color.v3_text_1, null))
+                setBackgroundResource(R.drawable.bg_v3_chip)
+                setPadding(dp(10), dp(6), dp(10), dp(6))
+                isClickable = true
+                isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -234,31 +233,41 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private fun explainList(tokens: List<Token>): View {
         val col = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(8) }
         }
         tokens.forEach { token ->
             val line = TextView(requireContext()).apply {
                 textSize = 11f
                 text = "${token.chipLabel}  —  ${getString(token.explainRes)}"
-                setTextColor(resources.getColor(android.R.color.darker_gray, null))
-                setPadding(dp(2), dp(2), 0, 0)
+                setTextColor(resources.getColor(R.color.v3_text_3, null))
+                setPadding(dp(2), dp(1), 0, dp(1))
             }
             col.addView(line)
         }
         return col
     }
 
-    private fun exampleRow(): View {
+    private fun exampleScrollRow(): View {
         val scroll = HorizontalScrollView(requireContext()).apply {
             isHorizontalScrollBarEnabled = false
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(4) }
         }
         val row = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
         EXAMPLES.forEach { example ->
-            val btn = Button(requireContext()).apply {
+            val btn = TextView(requireContext()).apply {
                 text = getString(example.labelRes)
                 textSize = 11f
-                isAllCaps = false
-                minWidth = 0
-                minHeight = 0
+                setTextColor(0xFF6C5CE7.toInt())
+                setBackgroundResource(R.drawable.bg_v3_pill_secondary)
+                setPadding(dp(14), dp(6), dp(14), dp(6))
+                isClickable = true
+                isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -296,17 +305,18 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
     // ---------------- Per-bucket card ----------------
 
-    private fun addBucketSection(root: LinearLayout, bucket: Bucket, label: String) {
+    private fun addBucketSection(root: LinearLayout, bucket: Bucket) {
         val inflater = LayoutInflater.from(requireContext())
         val cell = inflater.inflate(R.layout.cell_download_bucket, root, false) as LinearLayout
-        val lp = cell.layoutParams as LinearLayout.LayoutParams
-        lp.bottomMargin = dp(10)
-        cell.layoutParams = lp
+        (cell.layoutParams as LinearLayout.LayoutParams).apply {
+            bottomMargin = dp(4)
+        }.also { cell.layoutParams = it }
 
         val config = DownloadsRegistry.store.loadOrFallback()
         val resolved = config.resolve(bucket)
+        val bucketLabel = USER_BUCKETS.first { it.first == bucket }.second
 
-        cell.findViewById<TextView>(R.id.bucket_name).text = label
+        cell.findViewById<TextView>(R.id.bucket_name).text = getString(bucketLabel)
         cell.findViewById<TextView>(R.id.bucket_storage).text = storageLabel(resolved.storage)
         cell.findViewById<TextView>(R.id.bucket_policy).text = policyLabel(resolved.overwrite)
 
@@ -322,10 +332,10 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             if (hasFocus) focusedEditor = v as EditText
         }
 
-        cell.findViewById<Button>(R.id.bucket_save).setOnClickListener {
+        cell.findViewById<TextView>(R.id.bucket_save).setOnClickListener {
             saveBucketTemplate(bucket, templateEdit.text.toString())
         }
-        cell.findViewById<Button>(R.id.bucket_reset).setOnClickListener {
+        cell.findViewById<TextView>(R.id.bucket_reset).setOnClickListener {
             val defaultSrc = DefaultTemplates.SOURCES.getValue(bucket)
             templateEdit.setText(defaultSrc)
             saveBucketTemplate(bucket, defaultSrc)
@@ -359,12 +369,19 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     // ---------------- Reset all ----------------
 
     private fun addResetAll(root: LinearLayout) {
-        val btn = Button(requireContext()).apply {
+        val btn = TextView(requireContext()).apply {
             text = getString(R.string.download_path_btn_reset_all)
+            setTextColor(0xFF6C5CE7.toInt())
+            setBackgroundResource(R.drawable.bg_v3_pill_secondary)
+            gravity = android.view.Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            setPadding(dp(24), dp(12), dp(24), dp(12))
+            textSize = 13f
             layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { topMargin = dp(16); bottomMargin = dp(24) }
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(22); gravity = android.view.Gravity.CENTER_HORIZONTAL }
             setOnClickListener {
                 val current = DownloadsRegistry.store.loadOrFallback()
                 val cleared = DownloadConfig(
@@ -383,16 +400,45 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
     // ---------------- Helpers ----------------
 
-    private fun sectionTitle(text: String) = TextView(requireContext()).apply {
-        this.text = text
-        textSize = 14f
-        setPadding(dp(2), 0, 0, dp(4))
+    private fun addSectionTitle(root: LinearLayout, text: String, topMarginDp: Int) {
+        val title = TextView(requireContext()).apply {
+            this.text = text
+            setTextAppearance(R.style.textMontserratBold)
+            textSize = 13f
+            setTextColor(resources.getColor(R.color.v3_text_3, null))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(topMarginDp); bottomMargin = dp(8); leftMargin = dp(6) }
+            letterSpacing = 0.05f
+            isAllCaps = false
+        }
+        root.addView(title)
     }
 
-    private fun body(text: String) = TextView(requireContext()).apply {
+    private fun cardContainer(): LinearLayout = LinearLayout(requireContext()).apply {
+        orientation = LinearLayout.VERTICAL
+        setBackgroundResource(R.drawable.bg_v3_card)
+        setPadding(dp(20), dp(18), dp(20), dp(18))
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { bottomMargin = dp(4) }
+    }
+
+    private fun bodyText(text: String) = TextView(requireContext()).apply {
         this.text = text
         textSize = 12f
-        setPadding(dp(2), 0, 0, 0)
+        setTextColor(resources.getColor(R.color.v3_text_2, null))
+        setLineSpacing(0f, 1.3f)
+    }
+
+    private fun subHeader(text: String, topDp: Int) = TextView(requireContext()).apply {
+        this.text = text
+        textSize = 12f
+        setTextColor(resources.getColor(R.color.v3_text_3, null))
+        setTypeface(typeface, Typeface.BOLD)
+        setPadding(0, dp(topDp), 0, dp(4))
     }
 
     private fun storageLabel(choice: StorageChoice): String = when (choice) {
@@ -400,7 +446,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             StorageChoice.MediaStore.Collection.Images    -> getString(R.string.download_path_storage_mediastore_images)
             StorageChoice.MediaStore.Collection.Downloads -> getString(R.string.download_path_storage_mediastore_downloads)
         }
-        is StorageChoice.Saf        -> getString(R.string.download_path_storage_saf) + "\n" + choice.treeUri
+        is StorageChoice.Saf        -> getString(R.string.download_path_storage_saf)
         StorageChoice.AppCache      -> getString(R.string.download_path_storage_app_cache)
     }
 

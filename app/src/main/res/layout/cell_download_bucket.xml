@@ -2,70 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_cell_rounded"
+    android:background="@drawable/bg_v3_card"
     android:orientation="vertical"
-    android:paddingHorizontal="14dp"
-    android:paddingVertical="12dp">
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="18dp">
 
     <TextView
         android:id="@+id/bucket_name"
+        style="@style/textMontserratBold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@color/text10" />
-
-    <TextView
-        android:id="@+id/bucket_storage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textSize="12sp"
-        android:textColor="@color/text10" />
-
-    <TextView
-        android:id="@+id/bucket_policy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:textColor="@color/text10" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="@string/download_path_label_template"
-        android:textSize="12sp"
-        android:textColor="@color/text10" />
-
-    <EditText
-        android:id="@+id/bucket_template"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="text|textMultiLine|textNoSuggestions"
-        android:maxLines="5"
-        android:textSize="13sp"
-        android:fontFamily="monospace"
-        android:importantForAutofill="no"
-        android:autofillHints="" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/download_path_label_preview"
-        android:textSize="12sp"
-        android:textColor="@color/text10" />
-
-    <TextView
-        android:id="@+id/bucket_preview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textSize="12sp"
-        android:fontFamily="monospace"
-        android:textIsSelectable="true"
-        android:textColor="@color/text10" />
+        android:textColor="@color/v3_text_1"
+        android:textSize="16sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -73,17 +21,106 @@
         android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
-        <Button
+        <TextView
+            android:id="@+id/bucket_storage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_v3_chip"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:textColor="@color/v3_text_2"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/bucket_policy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_v3_chip"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:textColor="@color/v3_text_2"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="@string/download_path_label_template"
+        android:textColor="@color/v3_text_3"
+        android:textSize="11sp" />
+
+    <EditText
+        android:id="@+id/bucket_template"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:autofillHints=""
+        android:background="@drawable/bg_v3_chip"
+        android:fontFamily="monospace"
+        android:importantForAutofill="no"
+        android:inputType="text|textMultiLine|textNoSuggestions"
+        android:maxLines="6"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp"
+        android:textColor="@color/v3_text_1"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="@string/download_path_label_preview"
+        android:textColor="@color/v3_text_3"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/bucket_preview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/bg_v3_chip"
+        android:fontFamily="monospace"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp"
+        android:textColor="@color/v3_text_1"
+        android:textIsSelectable="true"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <TextView
             android:id="@+id/bucket_save"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/download_path_btn_save" />
+            android:background="@drawable/bg_v3_pill_primary"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="9dp"
+            android:text="@string/download_path_btn_save"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
 
-        <Button
+        <TextView
             android:id="@+id/bucket_reset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/download_path_btn_reset" />
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_v3_pill_secondary"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="9dp"
+            android:text="@string/download_path_btn_reset"
+            android:textColor="#6C5CE7"
+            android:textSize="13sp" />
     </LinearLayout>
 </LinearLayout>

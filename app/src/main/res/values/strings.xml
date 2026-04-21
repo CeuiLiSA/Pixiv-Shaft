@@ -1256,4 +1256,6 @@
     <string name="download_path_teach_example_r18_label">R18 / AI 分目录 + 按作者</string>
 
     <string name="download_path_teach_tip_focus">先点一下某个 bucket 的模板输入框，再来点变量/条件/范例，才会插入到那里</string>
+    <string name="download_path_preset_apply">套用</string>
+    <string name="download_path_preset_preview_prefix">例：</string>
 </resources>
