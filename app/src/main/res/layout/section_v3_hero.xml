@@ -21,7 +21,7 @@
             android:letterSpacing="-0.03"
             android:lineSpacingMultiplier="1.2"
             android:textColor="@color/v3_text_1"
-            android:textSize="26sp"
+            android:textSize="23sp"
             android:textStyle="bold"
             tools:text="アナイクス" />
 

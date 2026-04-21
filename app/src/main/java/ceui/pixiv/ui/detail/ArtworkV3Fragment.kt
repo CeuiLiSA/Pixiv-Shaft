@@ -10,15 +10,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.utils.Params
 import ceui.lisa.adapters.IAdapter
 import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.dialogs.MuteDialog
@@ -27,12 +23,16 @@ import ceui.lisa.fragments.BaseFragment
 import ceui.lisa.fragments.FragmentIllustArgs
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
 import ceui.loxia.ObjectPool
 import ceui.loxia.threadSafeArgs
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
 
@@ -124,7 +124,13 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                 // images don't stretch to fill the entire viewport
                 val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
                 val adapter = if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
-                    CollapsibleIllustAdapter(mActivity, this@ArtworkV3Fragment, illust, maxHeight, false)
+                    CollapsibleIllustAdapter(
+                        mActivity,
+                        this@ArtworkV3Fragment,
+                        illust,
+                        maxHeight,
+                        false
+                    )
                 } else {
                     object : ceui.lisa.adapters.IllustAdapter(
                         mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
@@ -230,6 +236,10 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
             PixivOperate.postLikeDefaultStarType(illust)
         }
 
+        baseBind.fabBookmark.setOnLongClickListener {
+
+            true
+        }
         baseBind.fabBookmarkPrivate.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
             PixivOperate.postLike(illust, Params.TYPE_PRIVATE)
@@ -258,10 +268,19 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                     PixivOperate.muteIllust(illust)
                 }
                 item(getString(R.string.flag_post), R.drawable.ic_baseline_remove_red_eye_24) {
-                    val intent = android.content.Intent(mContext, ceui.lisa.activities.TemplateActivity::class.java)
-                    intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "举报插画")
+                    val intent = android.content.Intent(
+                        mContext,
+                        ceui.lisa.activities.TemplateActivity::class.java
+                    )
+                    intent.putExtra(
+                        ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT,
+                        "举报插画"
+                    )
                     intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
-                    intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectTypeKey, ceui.lisa.models.ObjectSpec.POST)
+                    intent.putExtra(
+                        ceui.loxia.flag.FlagDescFragment.FlagObjectTypeKey,
+                        ceui.lisa.models.ObjectSpec.POST
+                    )
                     startActivity(intent)
                 }
                 item(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
@@ -279,10 +298,17 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     private fun shareImage(illust: IllustsBean) {
         com.bumptech.glide.Glide.with(mContext)
             .asBitmap()
-            .load(ceui.lisa.utils.GlideUrlChild(
-                ceui.lisa.download.IllustDownload.getUrl(illust, 0, ceui.lisa.utils.Params.IMAGE_RESOLUTION_LARGE)
-            ))
-            .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.Bitmap?> {
+            .load(
+                ceui.lisa.utils.GlideUrlChild(
+                    ceui.lisa.download.IllustDownload.getUrl(
+                        illust,
+                        0,
+                        ceui.lisa.utils.Params.IMAGE_RESOLUTION_LARGE
+                    )
+                )
+            )
+            .listener(object :
+                com.bumptech.glide.request.RequestListener<android.graphics.Bitmap?> {
                 override fun onLoadFailed(
                     e: com.bumptech.glide.load.engine.GlideException?,
                     model: Any?,
@@ -300,7 +326,10 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                     // PNG compress + disk write are heavy — keep them off the main thread.
                     viewLifecycleOwner.lifecycleScope.launch {
                         val uri = withContext(Dispatchers.IO) {
-                            Common.copyBitmapToImageCacheFolder(resource, illust.id.toString() + ".png")
+                            Common.copyBitmapToImageCacheFolder(
+                                resource,
+                                illust.id.toString() + ".png"
+                            )
                         } ?: return@launch
                         val shareIntent = android.content.Intent().apply {
                             action = android.content.Intent.ACTION_SEND
@@ -308,7 +337,12 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                             setDataAndType(uri, mContext.contentResolver.getType(uri))
                             putExtra(android.content.Intent.EXTRA_STREAM, uri)
                         }
-                        startActivity(android.content.Intent.createChooser(shareIntent, getString(R.string.share)))
+                        startActivity(
+                            android.content.Intent.createChooser(
+                                shareIntent,
+                                getString(R.string.share)
+                            )
+                        )
                     }
                     return true
                 }
@@ -321,8 +355,14 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
      * Spacing decoration that only applies to non-fullSpan items (IAdapter's related cards).
      * Header items and loading footer are fullSpan and get zero offset.
      */
-    private class RelatedOnlySpaceDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
-        override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+    private class RelatedOnlySpaceDecoration(private val space: Int) :
+        RecyclerView.ItemDecoration() {
+        override fun getItemOffsets(
+            outRect: Rect,
+            view: View,
+            parent: RecyclerView,
+            state: RecyclerView.State
+        ) {
             val lp = view.layoutParams
             if (lp !is StaggeredGridLayoutManager.LayoutParams || lp.isFullSpan) return
 
