@@ -20,7 +20,7 @@
             android:contentDescription="分享"
             android:padding="10dp"
             android:src="@drawable/ic_share_black_24dp"
-            app:tint="#FFFFFF" />
+            app:tint="@color/text00" />
 
         <ImageButton
             android:id="@+id/btn_more"
@@ -30,6 +30,6 @@
             android:contentDescription="更多"
             android:padding="10dp"
             android:src="@drawable/ic_more_vert_black_24dp"
-            app:tint="#FFFFFF" />
+            app:tint="@color/text00" />
     </LinearLayout>
 </layout>

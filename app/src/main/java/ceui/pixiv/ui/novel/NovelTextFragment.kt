@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.novel
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
@@ -60,10 +61,16 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, textModel, ListMode.VERTICAL)
-        bgViewModel.result.observe(viewLifecycleOwner) { resp ->
-            resp.displayList.getOrNull(novelId.mod(10))?.let {
-                ObjectPool.update(it)
-                blurBackground(binding, it.id)
+        // 只有夜间模式才铺模糊底图+黑色遮罩。白天模式铺深色底会让文本（text00 此时是黑色）
+        // 落在模糊图上对比度极差，直接保留 activity 的 windowBackground 即可。
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        if (isNight) {
+            bgViewModel.result.observe(viewLifecycleOwner) { resp ->
+                resp.displayList.getOrNull(novelId.mod(10))?.let {
+                    ObjectPool.update(it)
+                    blurBackground(binding, it.id)
+                }
             }
         }
         binding.toolbarLayout.root.visibility = View.GONE
