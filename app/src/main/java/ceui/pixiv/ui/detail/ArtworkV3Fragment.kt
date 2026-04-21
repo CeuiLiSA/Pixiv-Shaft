@@ -87,6 +87,11 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         baseBind.recyclerView.layoutManager = layoutManager
         baseBind.recyclerView.adapter = concatAdapter
         baseBind.recyclerView.addItemDecoration(RelatedOnlySpaceDecoration(4.ppppx))
+        // Header items are all fullSpan — DefaultItemAnimator's change animation on
+        // notifyItemChanged (fired when ObjectPool pushes the updated UserBean after
+        // returning from UActivity) scrambles SGLM's fullSpan tracking and makes the
+        // Artist card snap flush with its upper neighbor. No useful animation to lose.
+        baseBind.recyclerView.itemAnimator = null
 
         // Single scroll listener for both progress bar and infinite scroll.
         // Reuses an IntArray to avoid per-frame allocation from findLastVisibleItemPositions(null).
@@ -151,8 +156,9 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                         override fun onViewAttachedToWindow(holder: ceui.lisa.adapters.ViewHolder<ceui.lisa.databinding.RecyIllustDetailBinding>) {
                             super.onViewAttachedToWindow(holder)
                             val lp = holder.itemView.layoutParams
-                            if (lp is StaggeredGridLayoutManager.LayoutParams) {
+                            if (lp is StaggeredGridLayoutManager.LayoutParams && !lp.isFullSpan) {
                                 lp.isFullSpan = true
+                                holder.itemView.layoutParams = lp
                             }
                         }
                     }

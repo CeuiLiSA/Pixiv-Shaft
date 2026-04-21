@@ -46,8 +46,9 @@ class CollapsibleIllustAdapter(
     override fun onViewAttachedToWindow(holder: ViewHolder<RecyIllustDetailBinding>) {
         super.onViewAttachedToWindow(holder)
         val lp = holder.itemView.layoutParams
-        if (lp is StaggeredGridLayoutManager.LayoutParams) {
+        if (lp is StaggeredGridLayoutManager.LayoutParams && !lp.isFullSpan) {
             lp.isFullSpan = true
+            holder.itemView.layoutParams = lp
         }
     }
 

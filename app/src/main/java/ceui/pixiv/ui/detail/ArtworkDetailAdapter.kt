@@ -196,8 +196,9 @@ class ArtworkDetailAdapter(
 
     override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
         val lp = holder.itemView.layoutParams
-        if (lp is StaggeredGridLayoutManager.LayoutParams) {
+        if (lp is StaggeredGridLayoutManager.LayoutParams && !lp.isFullSpan) {
             lp.isFullSpan = true
+            holder.itemView.layoutParams = lp
         }
 
         // Entrance animation: only the first time each view type attaches. Running

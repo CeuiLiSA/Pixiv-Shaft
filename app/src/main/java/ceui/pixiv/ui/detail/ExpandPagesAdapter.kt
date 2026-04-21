@@ -55,8 +55,9 @@ class ExpandPagesAdapter(
 
     override fun onViewAttachedToWindow(holder: VH) {
         val lp = holder.itemView.layoutParams
-        if (lp is StaggeredGridLayoutManager.LayoutParams) {
+        if (lp is StaggeredGridLayoutManager.LayoutParams && !lp.isFullSpan) {
             lp.isFullSpan = true
+            holder.itemView.layoutParams = lp
         }
         // Looping chevron bob to draw the eye.
         holder.stopChevron()
