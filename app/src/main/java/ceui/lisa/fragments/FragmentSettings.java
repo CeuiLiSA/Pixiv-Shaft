@@ -627,6 +627,17 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
         // 下载
         {
+            // 以下行已被统一的"下载路径与文件名"设置页吸收——通过模板变量 / 条件块 /
+            // 按 bucket 的存储后端表达，用户应去新页面调整。这里直接隐藏旧入口，
+            // 避免两套并存互相覆盖。剩余保留的：长按下载开关、下载限制（WiFi）、
+            // 自动点赞——这些与路径 / 文件名无关，是 UX / 网络行为开关。
+            baseBind.r18DivideSaveRela.setVisibility(View.GONE);
+            baseBind.aiDivideSaveRela.setVisibility(View.GONE);
+            baseBind.saveForSeparateAuthorRela.setVisibility(View.GONE);
+            baseBind.downloadWayRela.setVisibility(View.GONE);
+            baseBind.singleIllustPath.setVisibility(View.GONE);
+            baseBind.novelPathRela.setVisibility(View.GONE);
+
             baseBind.r18DivideSave.setChecked(Shaft.sSettings.isR18DivideSave());
             baseBind.r18DivideSave.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -660,7 +671,9 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
-            // 下载路径 / 文件名 —— 入口改到新的统一设置页
+            // 下载路径 / 文件名 —— 所有分目录 / 命名 / 存储位置的配置都收在这一个入口
+            baseBind.fileNameS.setText(getString(R.string.download_path_title));
+            baseBind.fileName.setText(getString(R.string.download_path_entry_desc));
             baseBind.fileNameRela.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

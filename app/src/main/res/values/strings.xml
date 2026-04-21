@@ -1226,4 +1226,34 @@
     <string name="download_path_help_title">可用变量与条件</string>
     <string name="download_path_help_body">变量：{id} {title} {page} {pages} {ext} {author} {author_id} {w} {h} {created:yyyyMMdd_HHmmss}\n条件：[?R18:R18/]、[?AI:AI/]、[?p&gt;1: p{page}]\n路径里的 / 表示子目录；清洗会把非法字符替换为 _</string>
     <string name="download_path_invalid_template">模板无效，未保存</string>
+
+    <!-- 教学板块 -->
+    <string name="download_path_teach_section_intro">怎么写模板？</string>
+    <string name="download_path_teach_intro_body">模板是一段描述"文件该放哪、叫什么"的文字。\n规则很简单：\n• 普通文字照原样出现\n• {变量名} 会被换成对应的真实内容\n• [?条件:内容] 只在条件满足时才出现\n• / 表示进入子目录\n点下面任意一个 变量/条件 可以插入到正在编辑的模板里（先点一下要编辑的模板）。</string>
+
+    <string name="download_path_teach_section_vars">变量（点击插入）</string>
+    <string name="download_path_teach_var_id">作品 ID（如 123456789），建议必加，避免同名覆盖</string>
+    <string name="download_path_teach_var_title">作品标题</string>
+    <string name="download_path_teach_var_page">当前是第几张图，从 0 开始</string>
+    <string name="download_path_teach_var_pages">本作品总张数</string>
+    <string name="download_path_teach_var_ext">文件扩展名（跟随源文件，如 png / jpg / gif）</string>
+    <string name="download_path_teach_var_author">作者昵称</string>
+    <string name="download_path_teach_var_author_id">作者 ID</string>
+    <string name="download_path_teach_var_w">图片宽度（像素）</string>
+    <string name="download_path_teach_var_h">图片高度（像素）</string>
+    <string name="download_path_teach_var_created">投稿时间，格式可自定义，如 {created:yyyy}、{created:yyyy-MM-dd}</string>
+
+    <string name="download_path_teach_section_cond">条件块（点击插入）</string>
+    <string name="download_path_teach_cond_r18">只有 R18 作品才加 "R18/" 子目录</string>
+    <string name="download_path_teach_cond_ai">只有 AI 作品才加 "AI/" 子目录</string>
+    <string name="download_path_teach_cond_multipage">只有多张时才加页码后缀</string>
+    <string name="download_path_teach_cond_not_r18">只有非 R18 才加 "safe/" 子目录</string>
+
+    <string name="download_path_teach_section_examples">常见写法（点击套用到当前编辑的模板）</string>
+    <string name="download_path_teach_example_classic_label">Shaft 经典：按作者分组</string>
+    <string name="download_path_teach_example_flat_label">扁平：所有作品平铺在一个目录</string>
+    <string name="download_path_teach_example_date_label">按年月分组</string>
+    <string name="download_path_teach_example_r18_label">R18 / AI 分目录 + 按作者</string>
+
+    <string name="download_path_teach_tip_focus">先点一下某个 bucket 的模板输入框，再来点变量/条件/范例，才会插入到那里</string>
 </resources>
