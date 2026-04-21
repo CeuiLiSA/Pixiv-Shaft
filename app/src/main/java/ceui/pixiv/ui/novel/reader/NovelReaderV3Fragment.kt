@@ -386,6 +386,31 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             sv.onCenterTap = { chrome.toggle() }
             sv.onImageTap = { image -> openImageElement(image) }
             sv.onCharIndexChanged = { charIndex -> viewModel.onScrollPositionChanged(charIndex) }
+
+            // Text selection — same menu as paged mode
+            sv.selectionMenuEntries = listOf(
+                1 to "复制", 2 to "分享", 9 to "标记高亮", 20 to "笔记",
+                5 to "翻译", 3 to "P站", 4 to "网页",
+            )
+            sv.onSelectionStarted = { absStart, absEnd, text ->
+                activeSelection = TextSelection(absStart, absEnd, text)
+                chrome.hide()
+            }
+            sv.onSelectionChanged = { absStart, absEnd, text ->
+                activeSelection = TextSelection(absStart, absEnd, text)
+            }
+            sv.onSelectionEnded = { activeSelection = null }
+            sv.onSelectionMenuAction = { id ->
+                when (id) {
+                    1 -> copySelection()
+                    2 -> shareSelection()
+                    3 -> searchSelectionOnPixiv()
+                    4 -> searchSelectionOnWeb()
+                    5 -> translateSelection()
+                    9 -> pickHighlightColor()
+                    20 -> openNoteEditorForSelection()
+                }
+            }
         }
     }
 

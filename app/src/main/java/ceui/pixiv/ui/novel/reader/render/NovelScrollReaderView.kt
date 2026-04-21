@@ -6,8 +6,11 @@ import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.LeadingMarginSpan
 import android.util.TypedValue
+import android.view.ActionMode
 import android.view.GestureDetector
 import android.view.Gravity
+import android.view.Menu
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -43,6 +46,13 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
     var onCenterTap: (() -> Unit)? = null
     var onImageTap: ((ceui.pixiv.ui.novel.reader.model.PageElement.Image) -> Unit)? = null
     var onCharIndexChanged: ((Int) -> Unit)? = null
+
+    /** Text selection callbacks — mirrors ReaderTextBlockView's interface. */
+    var onSelectionStarted: ((absStart: Int, absEnd: Int, text: String) -> Unit)? = null
+    var onSelectionChanged: ((absStart: Int, absEnd: Int, text: String) -> Unit)? = null
+    var onSelectionEnded: (() -> Unit)? = null
+    var selectionMenuEntries: List<Pair<Int, String>> = emptyList()
+    var onSelectionMenuAction: ((id: Int) -> Unit)? = null
 
     private val gestureDetector = GestureDetectorCompat(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
@@ -118,6 +128,7 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
     // ---- View factories -----------------------------------------------------
 
     private fun createParagraph(token: ContentToken.Paragraph, style: TypeStyle): AppCompatTextView {
+        val sourceStart = token.sourceStart
         return AppCompatTextView(context).apply {
             TextMeasurer.applyLayoutSettings(this)
             setTextSize(TypedValue.COMPLEX_UNIT_PX, style.textPaint.textSize)
@@ -126,6 +137,8 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
             letterSpacing = style.textPaint.letterSpacing
             setLineSpacing(style.lineSpacingExtra, style.lineSpacingMultiplier)
             setBackgroundColor(Color.TRANSPARENT)
+            highlightColor = style.selectionColor
+            setTextIsSelectable(true)
 
             val indent = style.firstLineIndentPx.toInt()
             if (indent > 0 && token.text.isNotEmpty()) {
@@ -144,7 +157,57 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
             ).apply {
                 bottomMargin = style.paragraphSpacingPx.toInt()
             }
+
+            customSelectionActionModeCallback = buildSelectionCallback(this, sourceStart)
         }
+    }
+
+    private fun buildSelectionCallback(tv: AppCompatTextView, sourceStart: Int): ActionMode.Callback {
+        return object : ActionMode.Callback {
+            override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                populateMenu(menu)
+                notifySelection(tv, sourceStart, onSelectionStarted)
+                return true
+            }
+
+            override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+                populateMenu(menu)
+                notifySelection(tv, sourceStart, onSelectionChanged)
+                return true
+            }
+
+            override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                notifySelection(tv, sourceStart, onSelectionChanged)
+                onSelectionMenuAction?.invoke(item.itemId)
+                mode.finish()
+                return true
+            }
+
+            override fun onDestroyActionMode(mode: ActionMode) {
+                onSelectionEnded?.invoke()
+            }
+        }
+    }
+
+    private fun populateMenu(menu: Menu) {
+        menu.clear()
+        selectionMenuEntries.forEachIndexed { index, (id, title) ->
+            menu.add(Menu.NONE, id, index, title)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+    }
+
+    private fun notifySelection(
+        tv: AppCompatTextView,
+        sourceStart: Int,
+        cb: ((Int, Int, String) -> Unit)?,
+    ) {
+        if (cb == null) return
+        val s = tv.selectionStart.coerceAtLeast(0)
+        val e = tv.selectionEnd.coerceAtLeast(s)
+        if (e <= s || e > tv.text.length) return
+        val sliced = tv.text.subSequence(s, e).toString()
+        cb(sourceStart + s, sourceStart + e, sliced)
     }
 
     private fun createChapter(token: ContentToken.Chapter, style: TypeStyle): AppCompatTextView {
