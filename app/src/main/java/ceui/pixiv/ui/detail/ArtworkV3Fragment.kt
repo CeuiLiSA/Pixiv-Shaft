@@ -104,6 +104,13 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
             }
         })
 
+        // Hide/show floating action bar on scroll
+        baseBind.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy > 8) hideFabBar() else if (dy < -8) showFabBar()
+            }
+        })
+
         setupNavBar(illustId)
         handleSystemInsets()
 
@@ -170,6 +177,21 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         }
     }
 
+
+    private var fabShown = true
+
+    private fun hideFabBar() {
+        if (!fabShown) return
+        fabShown = false
+        baseBind.fabBar.animate().translationY(baseBind.fabBar.height + 100f)
+            .alpha(0f).setDuration(200).start()
+    }
+
+    private fun showFabBar() {
+        if (fabShown) return
+        fabShown = true
+        baseBind.fabBar.animate().translationY(0f).alpha(1f).setDuration(200).start()
+    }
 
     private fun handleSystemInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(baseBind.toolbar) { v, windowInsets ->
