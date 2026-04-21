@@ -24,8 +24,13 @@ import ceui.pixiv.ui.novel.reader.paginate.ImageResolver
 import ceui.pixiv.ui.novel.reader.paginate.Paginator
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
+import ceui.pixiv.ui.novel.reader.export.ExportFormat
+import ceui.pixiv.ui.novel.reader.export.ExportResult
+import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.feature.SearchEngine
 import ceui.pixiv.ui.novel.reader.model.SearchHit
+import ceui.pixiv.ui.novel.reader.paginate.ChapterOutlineEntry
+import ceui.lisa.utils.Params
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -278,6 +283,69 @@ class NovelReaderV3ViewModel(
 
     fun clearSearch() {
         _searchResult.value = SearchResult.EMPTY
+    }
+
+    // ---- Bookmark toggle ----------------------------------------------------
+
+    suspend fun toggleBookmark(): String {
+        return runCatching {
+            val novel = ObjectPool.get<Novel>(novelId).value
+                ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
+            novel ?: return "小说信息未加载"
+            if (novel.is_bookmarked == true) {
+                Client.appApi.removeNovelBookmark(novelId)
+                ObjectPool.update(
+                    novel.copy(
+                        is_bookmarked = false,
+                        total_bookmarks = novel.total_bookmarks?.minus(1),
+                    ),
+                )
+                "取消收藏"
+            } else {
+                Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
+                ObjectPool.update(
+                    novel.copy(
+                        is_bookmarked = true,
+                        total_bookmarks = novel.total_bookmarks?.plus(1),
+                    ),
+                )
+                "收藏成功"
+            }
+        }.getOrElse { "操作失败：${it.message}" }
+    }
+
+    // ---- Export --------------------------------------------------------------
+
+    suspend fun exportNovel(format: ExportFormat): ExportResult {
+        val loaded = _loadState.value as? LoadState.Loaded
+            ?: return ExportResult.Failure("小说还没加载完成")
+        return NovelExportManager.export(
+            context = Shaft.getContext(),
+            format = format,
+            novel = loaded.novel,
+            webNovel = loaded.webNovel,
+            tokens = loaded.tokens,
+        )
+    }
+
+    // ---- Chapter outline ----------------------------------------------------
+
+    fun getChapterOutline(): List<ChapterOutlineEntry> {
+        val toks = (_loadState.value as? LoadState.Loaded)?.tokens ?: return emptyList()
+        return ContentParser.buildChapterOutline(toks)
+    }
+
+    // ---- Position bookmark (with preview extraction) ------------------------
+
+    fun addBookmarkAtCurrentPage(pageIndex: Int) {
+        val pages = _pagination.value?.pages ?: return
+        val page = pages.getOrNull(pageIndex) ?: return
+        val source = webNovel?.text.orEmpty()
+        val preview = source.substring(
+            page.charStart.coerceIn(0, source.length),
+            minOf(source.length, page.charStart + 80),
+        ).replace('\n', ' ').trim()
+        addPositionBookmark(page.charStart, pageIndex, preview)
     }
 
     private fun repaginateIfReady() {

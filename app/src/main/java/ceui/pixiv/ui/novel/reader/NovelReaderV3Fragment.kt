@@ -9,9 +9,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,15 +23,13 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.database.NovelAnnotationEntity
+import ceui.lisa.databinding.FragmentNovelReaderV3Binding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.NovelBean
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
-import ceui.loxia.ObjectType
-import ceui.loxia.pushFragment
-import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.ImageUrlViewer
 import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.shareNovel
@@ -44,13 +39,10 @@ import ceui.pixiv.widgets.showActionMenu
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
-import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.model.HighlightColor
 import ceui.pixiv.ui.novel.reader.model.HighlightSpan
 import ceui.pixiv.ui.novel.reader.model.SearchHit
 import ceui.pixiv.ui.novel.reader.model.TextSelection
-import ceui.pixiv.ui.novel.reader.paginate.ChapterOutlineEntry
-import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.render.GlideImageBitmapSource
 import ceui.pixiv.ui.novel.reader.render.HighlightRange
@@ -84,11 +76,10 @@ class NovelReaderV3Fragment : Fragment() {
         NovelReaderV3ViewModel.factory(resolveNovelId())
     }
 
-    private lateinit var rootView: View
+    private var _binding: FragmentNovelReaderV3Binding? = null
+    private val binding get() = _binding!!
+
     private lateinit var readerView: NovelReaderView
-    private lateinit var stage: FrameLayout
-    private lateinit var loading: ProgressBar
-    private lateinit var error: TextView
 
     private lateinit var topBar: ReaderTopBar
     private lateinit var bottomBar: ReaderBottomBar
@@ -123,28 +114,26 @@ class NovelReaderV3Fragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        return inflater.inflate(R.layout.fragment_novel_reader_v3, container, false).also { rootView = it }
+        _binding = FragmentNovelReaderV3Binding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        loading = view.findViewById(R.id.reader_loading)
-        error = view.findViewById(R.id.reader_error)
-        stage = view.findViewById(R.id.reader_stage)
 
         readerView = NovelReaderView(requireContext()).also { rv ->
             rv.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            stage.addView(rv)
+            binding.readerStage.addView(rv)
         }
 
         imageSource = GlideImageBitmapSource(requireContext()) { _ ->
             readerView.invalidate()
         }.also { readerView.setBitmapSource(it) }
 
-        topBar = ReaderTopBar(view.findViewById(R.id.reader_top_bar))
-        bottomBar = ReaderBottomBar(view.findViewById(R.id.reader_bottom_bar))
+        topBar = ReaderTopBar(binding.readerTopBar.root)
+        bottomBar = ReaderBottomBar(binding.readerBottomBar.root)
         chrome = ReaderChrome(topBar, bottomBar)
-        searchOverlay = ReaderSearchOverlay(view.findViewById(R.id.reader_search_overlay))
+        searchOverlay = ReaderSearchOverlay(binding.readerSearchOverlay.root)
 
         wireTopBar()
         wireBottomBar()
@@ -167,8 +156,6 @@ class NovelReaderV3Fragment : Fragment() {
                     chrome.hide()
                     return
                 }
-                // Bars already hidden — yield to the system so the activity /
-                // host navigator can finish naturally.
                 isEnabled = false
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
@@ -177,21 +164,14 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun wireSystemBarInsets() {
-        val topBarView = rootView.findViewById<View>(R.id.reader_top_bar)
-        val bottomBarView = rootView.findViewById<View>(R.id.reader_bottom_bar)
-        val searchOverlayView = rootView.findViewById<View>(R.id.reader_search_overlay)
-        ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, windowInsets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             val bars = windowInsets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
             )
-            // Search overlay sits directly under the status bar (there's no top
-            // bar above it when it's shown alone), so add an extra breathing
-            // room beyond the raw inset to keep the EditText / icons from
-            // hugging the clock / battery strip.
             val extraTop = (8 * resources.displayMetrics.density).toInt()
-            topBarView.updatePadding(top = bars.top)
-            searchOverlayView.updatePadding(top = bars.top + extraTop)
-            bottomBarView.updatePadding(bottom = bars.bottom)
+            binding.readerTopBar.root.updatePadding(top = bars.top)
+            binding.readerSearchOverlay.root.updatePadding(top = bars.top + extraTop)
+            binding.readerBottomBar.root.updatePadding(bottom = bars.bottom)
             if (bars.top != topInsetPx || bars.bottom != bottomInsetPx) {
                 topInsetPx = bars.top
                 bottomInsetPx = bars.bottom
@@ -199,7 +179,7 @@ class NovelReaderV3Fragment : Fragment() {
             }
             windowInsets
         }
-        ViewCompat.requestApplyInsets(rootView)
+        ViewCompat.requestApplyInsets(binding.root)
     }
 
     private fun wireReaderView() {
@@ -228,8 +208,6 @@ class NovelReaderV3Fragment : Fragment() {
     private fun showTopMoreMenu() {
         val novelId = resolveNovelId()
         if (novelId == 0L) return
-        // Prefer the cached Novel (drives bookmark count, author, etc); if it
-        // isn't loaded yet, fetch on demand so the menu still works at startup.
         viewLifecycleOwner.lifecycleScope.launch {
             val novel = ObjectPool.get<Novel>(novelId).value
                 ?: runCatching { Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) } }
@@ -241,7 +219,7 @@ class NovelReaderV3Fragment : Fragment() {
             showActionMenu {
                 add(
                     MenuItem(getString(R.string.view_comments)) {
-                        val intent = android.content.Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+                        val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
                             putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "相关评论")
                             putExtra(Params.NOVEL_ID, novelId.toInt())
                         }
@@ -295,9 +273,9 @@ class NovelReaderV3Fragment : Fragment() {
         }
 
         viewModel.loadState.observe(viewLifecycleOwner) { state ->
-            loading.visibility = if (state is NovelReaderV3ViewModel.LoadState.Loading) View.VISIBLE else View.GONE
-            error.visibility = if (state is NovelReaderV3ViewModel.LoadState.Error) View.VISIBLE else View.GONE
-            if (state is NovelReaderV3ViewModel.LoadState.Error) error.text = state.message
+            binding.readerLoading.visibility = if (state is NovelReaderV3ViewModel.LoadState.Loading) View.VISIBLE else View.GONE
+            binding.readerError.visibility = if (state is NovelReaderV3ViewModel.LoadState.Error) View.VISIBLE else View.GONE
+            if (state is NovelReaderV3ViewModel.LoadState.Error) binding.readerError.text = state.message
             if (state is NovelReaderV3ViewModel.LoadState.Loaded) {
                 topBar.setTitle(state.novel?.title ?: state.webNovel.title.orEmpty())
                 pushStyleAndGeometryIfReady()
@@ -358,36 +336,9 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun togglePixivBookmark() {
-        val novelId = resolveNovelId()
-        if (novelId == 0L) return
         viewLifecycleOwner.lifecycleScope.launch {
-            runCatching {
-                val novel = ObjectPool.get<Novel>(novelId).value
-                    ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
-                novel ?: return@runCatching
-                if (novel.is_bookmarked == true) {
-                    Client.appApi.removeNovelBookmark(novelId)
-                    ObjectPool.update(
-                        novel.copy(
-                            is_bookmarked = false,
-                            total_bookmarks = novel.total_bookmarks?.minus(1),
-                        ),
-                    )
-                    Toast.makeText(requireContext(), "取消收藏", Toast.LENGTH_SHORT).show()
-                } else {
-                    Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
-                    ObjectPool.update(
-                        novel.copy(
-                            is_bookmarked = true,
-                            total_bookmarks = novel.total_bookmarks?.plus(1),
-                        ),
-                    )
-                    Toast.makeText(requireContext(), "收藏成功", Toast.LENGTH_SHORT).show()
-                }
-            }.onFailure { ex ->
-                Timber.tag("NovelReaderV3").e(ex)
-                Toast.makeText(requireContext(), "操作失败：${ex.message}", Toast.LENGTH_SHORT).show()
-            }
+            val msg = viewModel.toggleBookmark()
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -404,8 +355,6 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun wireTextSelection() {
-        // Action-mode menu ids. Kept stable so [ReaderTextBlockView.onMenuAction]
-        // dispatches correctly.
         val idCopy = 1
         val idShare = 2
         val idSearchPixiv = 3
@@ -457,9 +406,6 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun pickHighlightColor() {
-        // Snapshot selection before the ActionMode is finished — by the time
-        // the dialog's item-click fires, `activeSelection` has already been
-        // nulled out by onSelectionEnded.
         val sel = activeSelection ?: return
         val options = listOf(
             "黄色" to HighlightColor.Yellow,
@@ -542,28 +488,19 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun showExportSheet() {
-        val loaded = viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded
-        if (loaded == null) {
+        if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
             Toast.makeText(requireContext(), "小说还没加载完成", Toast.LENGTH_SHORT).show()
             return
         }
         ExportSheet().apply {
-            configure { format -> exportNovel(format, loaded) }
+            configure { format -> exportNovel(format) }
         }.show(childFragmentManager, ExportSheet.TAG)
     }
 
-    private fun exportNovel(format: ExportFormat, loaded: NovelReaderV3ViewModel.LoadState.Loaded) {
-        val ctx = requireContext().applicationContext
+    private fun exportNovel(format: ExportFormat) {
         Toast.makeText(requireContext(), "开始导出 ${format.displayName}…", Toast.LENGTH_SHORT).show()
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = NovelExportManager.export(
-                context = ctx,
-                format = format,
-                novel = loaded.novel,
-                webNovel = loaded.webNovel,
-                tokens = loaded.tokens,
-            )
-            when (result) {
+            when (val result = viewModel.exportNovel(format)) {
                 is ExportResult.Success -> {
                     Toast.makeText(
                         requireContext(),
@@ -611,14 +548,7 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun addBookmarkHere() {
-        val pages = viewModel.pagination.value?.pages ?: return
-        val idx = readerView.currentPageIndex()
-        val page = pages.getOrNull(idx) ?: return
-        val webNovel = (viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded)?.webNovel
-        val source = webNovel?.text.orEmpty()
-        val preview = source.substring(page.charStart.coerceIn(0, source.length), minOf(source.length, page.charStart + 80))
-            .replace('\n', ' ').trim()
-        viewModel.addPositionBookmark(page.charStart, idx, preview)
+        viewModel.addBookmarkAtCurrentPage(readerView.currentPageIndex())
         Toast.makeText(requireContext(), "已保存位置书签", Toast.LENGTH_SHORT).show()
     }
 
@@ -715,14 +645,12 @@ class NovelReaderV3Fragment : Fragment() {
 
     private fun runSearch(query: String) {
         viewModel.performSearch(query, searchRegex)
-        // Observer updates overlay count + highlights; navigate to first hit.
         val hit = viewModel.searchResult.value?.currentHit
         if (hit != null) goToHitDirect(hit)
     }
 
     private fun jumpToHit(delta: Int) {
         val hit = if (delta > 0) viewModel.nextSearchHit() else viewModel.prevSearchHit()
-        // Observer updates overlay count + highlights.
         if (hit != null) goToHitDirect(hit)
     }
 
@@ -734,9 +662,7 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun showChapterDrawer() {
-        val tokens = (viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded)?.tokens
-            ?: return
-        val outline = ContentParser.buildChapterOutline(tokens)
+        val outline = viewModel.getChapterOutline()
         if (outline.isEmpty()) {
             Toast.makeText(requireContext(), "这篇小说没有章节标记", Toast.LENGTH_SHORT).show()
             return
@@ -753,9 +679,7 @@ class NovelReaderV3Fragment : Fragment() {
     }
 
     private fun jumpChapter(forward: Boolean) {
-        val tokens = (viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded)?.tokens
-            ?: return
-        val outline = ContentParser.buildChapterOutline(tokens)
+        val outline = viewModel.getChapterOutline()
         if (outline.isEmpty()) {
             if (forward) readerView.flipForward() else readerView.flipBackward()
             return
@@ -763,7 +687,7 @@ class NovelReaderV3Fragment : Fragment() {
         val currentPage = viewModel.pagination.value?.pages?.getOrNull(readerView.currentPageIndex())
             ?: return
         val currentChar = currentPage.charStart
-        val target: ChapterOutlineEntry? = if (forward) {
+        val target = if (forward) {
             outline.firstOrNull { it.sourceStart > currentChar }
         } else {
             outline.lastOrNull { it.sourceStart < currentChar } ?: outline.firstOrNull()
@@ -792,8 +716,6 @@ class NovelReaderV3Fragment : Fragment() {
             topInsetPx == lastPushedTopInset &&
             bottomInsetPx == lastPushedBottomInset
         ) {
-            // No meaningful change — suppress spurious re-pagination that would
-            // otherwise snap the reader back to startPageIndex mid-flip.
             return
         }
         Timber.tag("NovelReaderV3").d(
@@ -808,11 +730,6 @@ class NovelReaderV3Fragment : Fragment() {
         val style = TypeStyle.from(ctx, snapshot, resolveActiveTheme())
         val density = resources.displayMetrics.density
         val horizontal = ReaderSettings.horizontalMarginDp * density
-        // Vertical margin used to stack *on top of* the system-bar inset, which
-        // left a visibly huge gap above the first line (inset + 24dp reading
-        // margin) whenever the top bar was toggled on. Fold the reading margin
-        // into the inset so the first line sits a small, fixed distance below
-        // whatever the system reserved, never piling up.
         val verticalMargin = ReaderSettings.verticalMarginDp * density
         val geom = PageGeometry(
             width = w,
@@ -828,7 +745,7 @@ class NovelReaderV3Fragment : Fragment() {
     private fun applyInteractionSettings() {
         readerView.setTouchLocked(ReaderSettings.touchLocked)
         readerView.setTapZoneReversed(ReaderSettings.tapZoneReversed)
-        rootView.keepScreenOn = ReaderSettings.keepScreenOn
+        binding.root.keepScreenOn = ReaderSettings.keepScreenOn
     }
 
     private fun resolveActiveTheme(): ReaderTheme {
@@ -839,6 +756,7 @@ class NovelReaderV3Fragment : Fragment() {
         super.onDestroyView()
         imageSource?.clear()
         imageSource = null
+        _binding = null
     }
 
     private fun openImageElement(image: ceui.pixiv.ui.novel.reader.model.PageElement.Image) {
@@ -864,7 +782,7 @@ class NovelReaderV3Fragment : Fragment() {
                             val uuid = UUID.randomUUID().toString()
                             val pageData = PageData(uuid, null, listOf(bean))
                             Container.get().addPageToMap(pageData)
-                            val intent = android.content.Intent(requireContext(), VActivity::class.java).apply {
+                            val intent = Intent(requireContext(), VActivity::class.java).apply {
                                 putExtra(Params.POSITION, 0)
                                 putExtra(Params.PAGE_UUID, uuid)
                             }
