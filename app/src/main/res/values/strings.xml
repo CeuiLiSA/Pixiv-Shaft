@@ -1340,6 +1340,10 @@
     <string name="novel_chip_total_bookmarks">收藏  %1$s</string>
     <string name="novel_chip_novel_link">作品链接</string>
     <string name="novel_chip_user_link">作者主页</string>
+    <string name="novel_chip_series_id">系列ID  %1$s</string>
+    <string name="novel_chip_series_link">系列链接</string>
+    <string name="novel_chip_series_content_count">章节数  %1$s</string>
+    <string name="novel_chip_series_char_count">总字数  %1$s</string>
 
     <string name="setting_default_novel_format">默认小说下载格式</string>
     <string name="setting_default_image_resolution">默认图片保存清晰度</string>
