@@ -28,14 +28,14 @@ interface NovelExporter {
 }
 
 enum class ExportFormat(
-    val displayName: String,
+    val displayNameResId: Int,
     val extension: String,
     val mimeType: String,
 ) {
-    Txt("纯文本 TXT", "txt", "text/plain"),
-    Markdown("Markdown", "md", "text/markdown"),
-    Epub("EPUB 电子书", "epub", "application/epub+zip"),
-    Pdf("PDF", "pdf", "application/pdf"),
+    Txt(ceui.lisa.R.string.format_txt, "txt", "text/plain"),
+    Markdown(ceui.lisa.R.string.format_markdown, "md", "text/markdown"),
+    Epub(ceui.lisa.R.string.format_epub, "epub", "application/epub+zip"),
+    Pdf(ceui.lisa.R.string.format_pdf, "pdf", "application/pdf"),
 }
 
 sealed class ExportResult {

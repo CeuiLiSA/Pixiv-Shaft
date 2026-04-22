@@ -1344,6 +1344,11 @@
     <string name="setting_default_novel_format">默认小说下载格式</string>
     <string name="setting_default_image_resolution">默认图片保存清晰度</string>
     <string name="option_always_ask">每次询问</string>
+    <string name="msg_unknown_format">未知格式: %s</string>
+    <string name="format_txt">纯文本 TXT</string>
+    <string name="format_markdown">Markdown</string>
+    <string name="format_epub">EPUB 电子书</string>
+    <string name="format_pdf">PDF</string>
     <string name="resolution_original">原图 (Original)</string>
     <string name="resolution_large">大图 (Large)</string>
     <string name="resolution_medium">中图 (Medium)</string>

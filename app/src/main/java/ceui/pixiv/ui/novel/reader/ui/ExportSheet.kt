@@ -112,7 +112,7 @@ class ExportSheet : BottomSheetDialogFragment() {
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 1f }
         }
         val title = TextView(ctx).apply {
-            text = format.displayName
+            text = ctx.getString(format.displayNameResId)
             setTextColor(Color.BLACK)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             setTypeface(typeface, Typeface.BOLD)

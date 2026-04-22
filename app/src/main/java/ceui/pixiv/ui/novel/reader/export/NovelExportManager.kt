@@ -32,7 +32,7 @@ object NovelExportManager {
         )
         val fileName = "$baseName.${format.extension}"
         val exporter = exporters[format]
-            ?: return@withContext ExportResult.Failure("未知格式: ${format.displayName}")
+            ?: return@withContext ExportResult.Failure(context.getString(ceui.lisa.R.string.msg_unknown_format, context.getString(format.displayNameResId)))
         runCatching {
             exporter.export(context, novel, webNovel, tokens, fileName)
         }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }

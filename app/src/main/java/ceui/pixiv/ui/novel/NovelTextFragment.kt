@@ -166,7 +166,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
     }
 
     private fun executeExport(format: ExportFormat) {
-        ToastUtils.show(getString(R.string.msg_export_start, format.displayName))
+        ToastUtils.show(getString(R.string.msg_export_start, getString(format.displayNameResId)))
         viewLifecycleOwner.lifecycleScope.launch {
             val result = runCatching {
                 val novel = ObjectPool.get<Novel>(novelId).value

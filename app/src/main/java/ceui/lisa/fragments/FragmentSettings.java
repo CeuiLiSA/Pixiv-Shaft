@@ -696,7 +696,10 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             // 默认小说下载格式
             final String[] NOVEL_FORMAT_NAMES = new String[]{
                     getString(R.string.option_always_ask),
-                    "纯文本 TXT", "Markdown", "EPUB 电子书", "PDF"
+                    getString(R.string.format_txt),
+                    getString(R.string.format_markdown),
+                    getString(R.string.format_epub),
+                    getString(R.string.format_pdf)
             };
             final String[] NOVEL_FORMAT_VALUES = new String[]{"", "Txt", "Markdown", "Epub", "Pdf"};
             {

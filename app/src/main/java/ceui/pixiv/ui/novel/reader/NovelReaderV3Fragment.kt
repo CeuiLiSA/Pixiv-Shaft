@@ -536,7 +536,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     }
 
     private fun executeExport(format: ExportFormat) {
-        Toast.makeText(requireContext(), getString(R.string.msg_export_start, format.displayName), Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.msg_export_start, getString(format.displayNameResId)), Toast.LENGTH_SHORT).show()
         viewLifecycleOwner.lifecycleScope.launch {
             when (val result = viewModel.exportNovel(format)) {
                 is ExportResult.Success -> Toast.makeText(requireContext(), getString(R.string.msg_export_success, result.fileName), Toast.LENGTH_LONG).show()
