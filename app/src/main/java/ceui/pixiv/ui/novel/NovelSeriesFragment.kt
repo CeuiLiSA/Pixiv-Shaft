@@ -33,10 +33,7 @@ import ceui.lisa.utils.V3Palette
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
-import ceui.pixiv.ui.common.NovelCardHolder
-import ceui.pixiv.ui.common.NovelCardViewHolder
 import ceui.pixiv.ui.common.NovelMultiSelectReceiver
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
@@ -124,10 +121,11 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
         }
         ViewCompat.requestApplyInsets(binding.root)
 
-        // Observe multi-select state: swap bottom UI. Card checkbox/click
+        // Observe multi-select state: swap bottom UI. Card visual state is
+        // driven by the holders list (ViewModel re-emits holders with updated
+        // isMultiSelectMode / isSelected), so the adapter handles it via DiffUtil.
         viewModel.isMultiSelect.observe(viewLifecycleOwner) { enabled ->
             applyMultiSelectVisibility(enabled)
-            refreshVisibleCards()
         }
         viewModel.selectedIds.observe(viewLifecycleOwner) { selected ->
             val count = selected.size
@@ -137,7 +135,6 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
             multiSelectSelectAllBtn?.text = getString(
                 if (allSelected) R.string.deselect_all else R.string.select_all
             )
-            refreshVisibleCards()
         }
     }
 
@@ -279,23 +276,6 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
             } else {
                 tb.setImageResource(R.drawable.ic_checkbox_off)
                 tb.setColorFilter(palette.textTag)
-            }
-        }
-    }
-
-    private fun refreshVisibleCards() {
-        val rv = binding.listView
-        val adapter = rv.adapter as? CommonAdapter ?: return
-        for (i in 0 until rv.childCount) {
-            val vh = rv.getChildViewHolder(rv.getChildAt(i))
-            if (vh is NovelCardViewHolder) {
-                val pos = vh.bindingAdapterPosition
-                if (pos in 0 until adapter.itemCount) {
-                    val item = adapter.currentList[pos]
-                    if (item is NovelCardHolder) {
-                        vh.applyMultiSelectState(item, this)
-                    }
-                }
             }
         }
     }

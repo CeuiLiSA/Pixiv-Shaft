@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
+
         <variable
             name="novel"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.Novel>" />
@@ -10,17 +10,76 @@
 
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/publish_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/text00"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/text_length"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/text00"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/total_bookmarks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/text00"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/illust_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="@{`ID: ` + String.valueOf(novel.id)}"
+            android:textColor="@color/text00"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/illust_link"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/text00"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/user_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="@{`UID: ` + String.valueOf(novel.user.id)}"
+            android:textColor="@color/text00"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/user_link"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/text00"
+            android:textSize="15sp" />
+
 
         <TextView
             android:id="@+id/caption"
-            android:textSize="15sp"
-            android:layout_marginBottom="8dp"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:textColor="@color/text00"
-            android:layout_height="wrap_content"/>
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/copy_caption"
@@ -34,65 +93,7 @@
             android:textColor="@color/buttonTextGreen"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:visibility="gone"/>
-
-        <TextView
-            android:id="@+id/publish_time"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp"
-            android:layout_width="match_parent"
-            android:textColor="@color/text00"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/text_length"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp"
-            android:layout_width="match_parent"
-            android:textColor="@color/text00"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/total_bookmarks"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp"
-            android:layout_width="match_parent"
-            android:textColor="@color/text00"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/illust_id"
-            android:textSize="15sp"
-            android:text="@{`ID: ` + String.valueOf(novel.id)}"
-            android:layout_marginBottom="12dp"
-            android:layout_width="match_parent"
-            android:textColor="@color/text00"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/illust_link"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp"
-            android:layout_width="match_parent"
-            android:textColor="@color/text00"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/user_id"
-            android:textSize="15sp"
-            android:text="@{`UID: ` + String.valueOf(novel.user.id)}"
-            android:layout_marginBottom="12dp"
-            android:layout_width="match_parent"
-            android:textColor="@color/text00"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/user_link"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp"
-            android:layout_width="match_parent"
-            android:textColor="@color/text00"
-            android:layout_height="wrap_content"/>
+            android:visibility="gone" />
 
     </LinearLayout>
 </layout>

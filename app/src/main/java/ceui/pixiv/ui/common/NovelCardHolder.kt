@@ -5,7 +5,6 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelCardBinding
-import ceui.lisa.utils.V3Palette
 import ceui.loxia.DateParse
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -16,6 +15,9 @@ import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.setOnClick
 
 class NovelCardHolder(val novel: Novel) : ListItemHolder() {
+    var isMultiSelectMode: Boolean = false
+    var isSelected: Boolean = false
+
     init {
         ObjectPool.update(novel)
         novel.user?.let {
@@ -25,6 +27,13 @@ class NovelCardHolder(val novel: Novel) : ListItemHolder() {
 
     override fun getItemId(): Long {
         return novel.id
+    }
+
+    override fun areContentsTheSame(other: ListItemHolder): Boolean {
+        if (other !is NovelCardHolder) return false
+        return novel.id == other.novel.id
+                && isMultiSelectMode == other.isMultiSelectMode
+                && isSelected == other.isSelected
     }
 }
 
@@ -37,14 +46,23 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) :
         binding.novel = ObjectPool.get<Novel>(holder.novel.id)
         binding.showTags = Shaft.sSettings.isShowNovelCardTags
 
-        val receiver = binding.root.findActionReceiverOrNull<NovelMultiSelectReceiver>()
-
-        // Apply current multi-select visual state
-        applyMultiSelectState(holder, receiver)
+        binding.selectIndicator.isVisible = holder.isMultiSelectMode
+        if (holder.isMultiSelectMode) {
+            if (holder.isSelected) {
+                binding.selectIndicator.setImageResource(R.drawable.ic_check_circle_black_24dp)
+                binding.selectIndicator.clearColorFilter()
+                binding.selectIndicator.imageAlpha = 255
+            } else {
+                binding.selectIndicator.setImageResource(R.drawable.ic_checkbox_off)
+                binding.selectIndicator.setColorFilter(0xFFFFFFFF.toInt())
+                binding.selectIndicator.imageAlpha = 200
+            }
+        }
 
         binding.userLayout.setOnClick { sender ->
-            if (receiver?.isNovelMultiSelectMode() == true) {
-                receiver.onToggleNovelSelection(holder.novel.id)
+            if (holder.isMultiSelectMode) {
+                sender.findActionReceiverOrNull<NovelMultiSelectReceiver>()
+                    ?.onToggleNovelSelection(holder.novel.id)
                 return@setOnClick
             }
             holder.novel.user?.id?.let {
@@ -52,8 +70,9 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) :
             }
         }
         binding.seriesName.setOnClick { sender ->
-            if (receiver?.isNovelMultiSelectMode() == true) {
-                receiver.onToggleNovelSelection(holder.novel.id)
+            if (holder.isMultiSelectMode) {
+                sender.findActionReceiverOrNull<NovelMultiSelectReceiver>()
+                    ?.onToggleNovelSelection(holder.novel.id)
                 return@setOnClick
             }
             holder.novel.series?.let { series ->
@@ -62,24 +81,24 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) :
             }
         }
         binding.root.setOnClick {
-            if (receiver?.isNovelMultiSelectMode() == true) {
-                receiver.onToggleNovelSelection(holder.novel.id)
+            if (holder.isMultiSelectMode) {
+                it.findActionReceiverOrNull<NovelMultiSelectReceiver>()
+                    ?.onToggleNovelSelection(holder.novel.id)
                 return@setOnClick
             }
             it.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(holder.novel.id)
         }
         binding.bookmark.setOnClick {
-            if (receiver?.isNovelMultiSelectMode() == true) {
-                receiver.onToggleNovelSelection(holder.novel.id)
+            if (holder.isMultiSelectMode) {
+                it.findActionReceiverOrNull<NovelMultiSelectReceiver>()
+                    ?.onToggleNovelSelection(holder.novel.id)
                 return@setOnClick
             }
             it.findActionReceiverOrNull<NovelActionReceiver>()
                 ?.onClickBookmarkNovel(it, holder.novel.id)
         }
-        // Intercept touches on tags in multi-select mode to prevent
-        // NavController crash in TemplateActivity
         binding.novelTag.setOnTouchListener { _, _ ->
-            receiver?.isNovelMultiSelectMode() == true
+            holder.isMultiSelectMode
         }
         binding.publishTime.text = context.getString(
             R.string.published_on,
@@ -87,24 +106,6 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) :
         )
         binding.textCount.text =
             context.getString(R.string.how_many_words, holder.novel.text_length.toString())
-    }
-
-    fun applyMultiSelectState(holder: NovelCardHolder, receiver: NovelMultiSelectReceiver?) {
-        val inSelectMode = receiver?.isNovelMultiSelectMode() == true
-        binding.selectIndicator.isVisible = inSelectMode
-        if (inSelectMode) {
-            val selected = receiver.isNovelSelected(holder.novel.id)
-            val palette = V3Palette.from(context)
-            binding.selectIndicator.setImageResource(
-                if (selected) R.drawable.ic_check_circle_black_24dp
-                else R.drawable.ic_checkbox_off
-            )
-            if (selected) {
-                binding.selectIndicator.clearColorFilter()
-            } else {
-                binding.selectIndicator.setColorFilter(palette.textTag)
-            }
-        }
     }
 }
 

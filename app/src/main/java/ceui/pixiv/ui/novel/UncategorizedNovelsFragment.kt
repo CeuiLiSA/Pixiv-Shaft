@@ -81,7 +81,6 @@ class UncategorizedNovelsFragment : PixivFragment(R.layout.fragment_pixiv_list),
 
         viewModel.isMultiSelect.observe(viewLifecycleOwner) { enabled ->
             applyMultiSelectVisibility(enabled)
-            binding.listView.adapter?.notifyDataSetChanged()
         }
         viewModel.selectedIds.observe(viewLifecycleOwner) { selected ->
             val count = selected.size
@@ -92,7 +91,6 @@ class UncategorizedNovelsFragment : PixivFragment(R.layout.fragment_pixiv_list),
             multiSelectSelectAllBtn?.text = getString(
                 if (allSelected) R.string.deselect_all else R.string.select_all
             )
-            binding.listView.adapter?.notifyDataSetChanged()
         }
     }
 

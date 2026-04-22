@@ -35,8 +35,8 @@
              applied from V3Palette at bind time so it tracks the user theme. -->
         <ImageView
             android:id="@+id/select_indicator"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_marginStart="4dp"
             android:layout_marginTop="4dp"
             android:src="@drawable/ic_checkbox_off"

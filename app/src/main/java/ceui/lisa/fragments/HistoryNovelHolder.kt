@@ -43,6 +43,7 @@ class HistoryNovelViewHolder(bd: CellHistoryNovelV3Binding) :
         val novel = holder.novel
         val entity = holder.entity
 
+        binding.pSize.visibility = android.view.View.GONE
         Glide.with(context).load(GlideUtil.getUrl(novel.image_urls?.medium))
             .placeholder(R.color.v3_surface_2).into(binding.illustImage)
         binding.title.text = novel.title

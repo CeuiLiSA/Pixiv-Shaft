@@ -53,19 +53,44 @@ class NovelSeriesViewModel(
         if (!enabled) {
             _selectedIds.value = emptySet()
         }
+        updateHoldersSelectionState()
     }
 
     fun toggleSelection(novelId: Long) {
         val current = _selectedIds.value.orEmpty()
         _selectedIds.value = if (novelId in current) current - novelId else current + novelId
+        updateHoldersSelectionState()
     }
 
     fun selectAll() {
         _selectedIds.value = allNovelIds().toSet()
+        updateHoldersSelectionState()
     }
 
     fun clearSelection() {
         _selectedIds.value = emptySet()
+        updateHoldersSelectionState()
+    }
+
+    private fun updateHoldersSelectionState() {
+        val multiSelect = _isMultiSelect.value == true
+        val selected = _selectedIds.value.orEmpty()
+        val currentList = _itemHolders.value ?: return
+        _itemHolders.value = currentList.map { holder ->
+            if (holder is NovelCardHolder) {
+                val sel = holder.novel.id in selected
+                if (holder.isMultiSelectMode != multiSelect || holder.isSelected != sel) {
+                    NovelCardHolder(holder.novel).also {
+                        it.isMultiSelectMode = multiSelect
+                        it.isSelected = sel
+                    }
+                } else {
+                    holder
+                }
+            } else {
+                holder
+            }
+        }
     }
 
     fun allNovelIds(): List<Long> = _itemHolders.value.orEmpty()
