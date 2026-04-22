@@ -185,6 +185,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         tb.onBackClick = { activity?.finish() }
         tb.onAnnotationsClick = { showAnnotationsSheet() }
         tb.onBookmarkClick = { togglePixivBookmark() }
+        tb.onBookmarkLongClick = { openTagBookmarkForCurrentNovel() }
         tb.onMoreClick = { showTopMoreMenu() }
     }
 
@@ -456,6 +457,14 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         viewLifecycleOwner.lifecycleScope.launch {
             Toast.makeText(requireContext(), viewModel.toggleBookmark(), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // 长按收藏按钮 → 跳「按标签收藏」自定义公开/私密 + 标签（issue #839）。
+    private fun openTagBookmarkForCurrentNovel() {
+        val novelId = resolveNovelId()
+        if (novelId == 0L) return
+        val novel = ObjectPool.get<Novel>(novelId).value ?: return
+        ceui.pixiv.ui.novel.openTagBookmarkForNovel(requireView(), novel)
     }
 
     private fun currentThemeIsDark(): Boolean =
