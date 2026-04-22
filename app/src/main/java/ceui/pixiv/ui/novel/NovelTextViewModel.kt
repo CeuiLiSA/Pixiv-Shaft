@@ -46,13 +46,16 @@ class NovelTextViewModel(
             }
         }
 
+        // 任务 #3：把核心按钮区以上的 1~5 排成固定长度的"定海神针"布局。
+        // 顺序：标题+系列 → 作者 → 作品档案 → 功能按钮 → 标签 → 简介。
         val result = mutableListOf<ListItemHolder>()
         result.add(NovelHeaderHolder(novelId))
-        result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
         result.add(UserInfoHolder(ObjectPool.get<ceui.loxia.Novel>(novelId).value?.user?.id ?: 0L))
-        result.add(RedSectionHeaderHolder("标签"))
+        result.add(NovelProfileHolder(novelId))
+        result.add(NovelActionsHolder(novelId))
+        result.add(RedSectionHeaderHolder(context.getString(R.string.novel_section_tags)))
         result.add(NovelTagsHolder(novelId))
-        result.add(RedSectionHeaderHolder("简介"))
+        result.add(RedSectionHeaderHolder(context.getString(R.string.novel_section_caption)))
         result.add(NovelCaptionHolder(novelId))
         result.add(SpaceHolder())
         result.add(SpaceHolder())

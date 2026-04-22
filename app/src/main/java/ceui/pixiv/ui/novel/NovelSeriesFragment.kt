@@ -42,6 +42,7 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 import ceui.pixiv.ui.task.FailedNovel
 import ceui.pixiv.ui.task.FetchAllTask
+import ceui.pixiv.ui.task.MergeDownloadNovelSeriesTask
 import ceui.pixiv.ui.task.PixivTaskType
 import ceui.pixiv.utils.setOnClick
 import com.hjq.toast.ToastUtils
@@ -127,7 +128,8 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
     private fun addDownloadAllButton() {
         val density = resources.displayMetrics.density
         val btn = TextView(requireContext()).apply {
-            text = getString(R.string.download_all_artworks)
+            // 原来是单一入口「下载全部」；现在点击后弹 3 选 1 sheet（选择 / 批量 / 合并）。
+            text = getString(R.string.series_download_action)
             setTextColor(Color.WHITE)
             textSize = 15f
             gravity = Gravity.CENTER
@@ -144,11 +146,47 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, h,
             ).apply { setMargins(mx, my, mx, my) }
-            setOnClick { launchDownloadAll() }
+            setOnClick { showDownloadOptionsSheet() }
         }
         binding.bottomCovered.isVisible = true
         binding.bottomCovered.addView(btn)
         singleDownloadBtn = btn
+    }
+
+    private fun showDownloadOptionsSheet() {
+        if (!isAdded) return
+        SeriesDownloadOptionsSheet().apply {
+            configure { action ->
+                when (action) {
+                    SeriesDownloadOptionsSheet.Action.Picker -> {
+                        // 进入多选模式，用户手动勾选章节后再走批量下载
+                        viewModel.setMultiSelectMode(true)
+                    }
+                    SeriesDownloadOptionsSheet.Action.AllSeparate -> {
+                        launchDownloadAll()
+                    }
+                    SeriesDownloadOptionsSheet.Action.MergeOne -> {
+                        launchMergeDownload()
+                    }
+                }
+            }
+        }.show(childFragmentManager, SeriesDownloadOptionsSheet.TAG)
+    }
+
+    private fun launchMergeDownload() {
+        val detail = viewModel.series.value?.novel_series_detail
+        if (detail == null) {
+            ToastUtils.show(getString(R.string.merge_download_failed_empty))
+            return
+        }
+        val known = viewModel.series.value?.novels.orEmpty() + viewModel.allLoadedNovels()
+        val dedup = known.distinctBy { it.id }
+        MergeDownloadNovelSeriesTask(
+            activity = requireActivity(),
+            seriesDetail = detail,
+            knownNovels = dedup,
+            onFinished = { _, _ -> /* task 已经自己 toast 过了 */ },
+        )
     }
 
     /**

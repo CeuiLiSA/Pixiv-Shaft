@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    作品档案信息单元背景（作品 ID / 字数 / 浏览 / 发布时间等）。
+    任务 #3 要求此单元视觉上成独立锚点，使用浅背景区别正文。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/v3_surface_1" />
+    <corners android:radius="14dp" />
+    <stroke
+        android:width="0.5dp"
+        android:color="@color/v3_border_1" />
+</shape>

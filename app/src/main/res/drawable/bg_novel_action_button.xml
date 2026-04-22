@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    小说详情页核心功能按钮背景（分享 / 评论 / 下载）。
+    采用 v3 的 tonal 风格：浅色半透明填充 + 细描边 + 大圆角，白天夜间都清晰可辨。
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/v3_surface_3">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/v3_surface_2" />
+            <stroke
+                android:width="0.5dp"
+                android:color="@color/v3_border_2" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+</ripple>

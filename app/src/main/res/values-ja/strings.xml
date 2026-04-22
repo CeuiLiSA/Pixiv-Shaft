@@ -999,4 +999,66 @@
     <string name="storage_request">リクエスト</string>
     <string name="saf_request_path">パス申請</string>
     <string name="saf_create_file">ファイル作成</string>
+
+    <!-- Novel detail actions / series download / cross-series download (2026-04) -->
+    <!-- A: シリーズ詳細のダウンロード導線 -->
+    <string name="series_download_action">ダウンロード</string>
+    <string name="series_download_options_title">ダウンロードオプション</string>
+    <string name="series_download_picker">ダウンロードを選択</string>
+    <string name="series_download_picker_desc">章を手動で選択し、個別のファイルとして保存</string>
+    <string name="series_download_all_separate">一括ダウンロード</string>
+    <string name="series_download_all_separate_desc">すべての章をそれぞれ個別のファイルとして保存</string>
+    <string name="series_download_merge_one">まとめてダウンロード</string>
+    <string name="series_download_merge_one_desc">すべての章を1つのファイルに結合</string>
+    <string name="merge_download_preparing">結合ダウンロード中、全 %1$d 章</string>
+    <string name="merge_download_progress">結合ダウンロード中 %1$d/%2$d</string>
+    <string name="merge_download_finished">結合ダウンロード完了：%1$s</string>
+    <string name="merge_download_failed_empty">シリーズの読み込みが完了していません。しばらく待ってから再試行してください</string>
+    <string name="merge_download_failed_save">結合ダウンロード失敗：ファイルの書き込みに失敗しました</string>
+    <string name="merge_download_some_chapters_failed">結合ダウンロード完了。ただし %1$d 章の取得に失敗しました（スキップ済み）</string>
+
+    <!-- B: 作者小説シリーズ一覧からの一括ダウンロード -->
+    <string name="cross_series_download_options_title">作者の小説シリーズをダウンロード</string>
+    <string name="cross_series_download_pick">シリーズを選択</string>
+    <string name="cross_series_download_pick_desc">複数のシリーズを選択し、各シリーズを1つのファイルに結合</string>
+    <string name="cross_series_download_all">すべてダウンロード</string>
+    <string name="cross_series_download_all_desc">すべてのシリーズを、各シリーズごとに1つのファイルに結合</string>
+    <string name="cross_series_download_merge">まとめてダウンロード</string>
+    <string name="cross_series_download_merge_desc">すべてのシリーズの全章を1つのファイルに結合</string>
+    <string name="cross_series_pick_dialog_title">ダウンロードするシリーズを選択</string>
+    <string name="cross_series_pick_dialog_ok">選択分をダウンロード (%1$d)</string>
+    <string name="cross_series_pick_dialog_cancel">キャンセル</string>
+    <string name="cross_series_no_series_loaded">シリーズがまだ読み込まれていません。しばらく待ってから再試行してください</string>
+    <string name="cross_series_pick_empty">少なくとも1つのシリーズを選択してください</string>
+    <string name="cross_series_download_starting_series">シリーズ %1$d/%2$d をダウンロード開始：%3$s</string>
+    <string name="cross_series_download_series_ok">シリーズのダウンロード完了：%1$s</string>
+    <string name="cross_series_download_series_failed">シリーズのダウンロード失敗：%1$s (%2$s)</string>
+    <string name="cross_series_download_all_done">すべて完了：成功 %1$d、失敗 %2$d</string>
+    <string name="cross_series_download_merge_progress">結合ダウンロード シリーズ %1$d/%2$d - 章 %3$d/%4$d</string>
+    <string name="cross_series_download_merge_finished">シリーズ横断の結合ダウンロード完了：%1$s</string>
+    <string name="cross_series_download_merge_failed_save">シリーズ横断の結合ダウンロード失敗：ファイルの書き込みに失敗しました</string>
+
+    <!-- C: 小説詳細のヘッダー / セクション / アクション -->
+    <string name="novel_header_series_prefix">シリーズ：%1$s</string>
+    <string name="novel_section_tags">タグ</string>
+    <string name="novel_section_caption">キャプション</string>
+    <string name="novel_profile_title">作品情報</string>
+    <string name="novel_actions_share">共有</string>
+    <string name="novel_actions_comments">コメント</string>
+    <string name="novel_actions_download">ダウンロード</string>
+
+    <!-- D: 作品情報カードの info chip -->
+    <string name="novel_chip_id">作品ID  %1$s</string>
+    <string name="novel_chip_author">作者  %1$s</string>
+    <string name="novel_chip_author_id">作者ID  %1$s</string>
+    <string name="novel_chip_create_date">投稿日  %1$s</string>
+    <string name="novel_chip_text_length">文字数  %1$s</string>
+    <string name="novel_chip_total_view">閲覧数  %1$s</string>
+    <string name="novel_chip_total_bookmarks">ブックマーク  %1$s</string>
+    <string name="novel_chip_novel_link">作品リンク</string>
+    <string name="novel_chip_user_link">作者ページ</string>
+    <string name="novel_chip_series_id">シリーズID  %1$s</string>
+    <string name="novel_chip_series_link">シリーズリンク</string>
+    <string name="novel_chip_series_content_count">話数  %1$s</string>
+    <string name="novel_chip_series_char_count">総文字数  %1$s</string>
 </resources>

@@ -17,17 +17,13 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.ItemBigReadButtonBinding
-import ceui.lisa.databinding.LayoutNovelTopActionsBinding
 import ceui.lisa.models.IllustsBean
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
-import ceui.loxia.combineLatest
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
-import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.setUpRefreshState
@@ -48,7 +44,7 @@ import java.util.UUID
 
 
 class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment,
-    NovelSeriesActionReceiver {
+    NovelSeriesActionReceiver, NovelActionsReceiver {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val novelId: Long by lazy { arguments?.getLong(Params.NOVEL_ID, 0L) ?: 0L }
@@ -68,7 +64,6 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         // 在纯色背景下变成顶上一道脏黑带。详情页不需要，关掉。
         binding.topShadow.isVisible = false
 
-        val density = resources.displayMetrics.density
         binding.listView.clipToPadding = false
 
         val bottomView = ItemBigReadButtonBinding.inflate(layoutInflater)
@@ -83,72 +78,70 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
             ctx.startActivity(intent)
         }
 
-        val topActions = LayoutNovelTopActionsBinding.inflate(layoutInflater)
-        val rootLayout = binding.root as androidx.constraintlayout.widget.ConstraintLayout
-        val topLp = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
-            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT,
-            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT,
-        ).apply {
-            topToTop = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-            endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-        }
-        rootLayout.addView(topActions.root, topLp)
-
+        // 任务 #1：移除顶部右上角的评论/分享/下载/复制链接悬浮按钮，
+        // 功能全部下沉到列表内的 NovelActionsHolder（任务 #4）。
         // Edge-to-edge safe area: TemplateActivity draws behind the status bar
-        // / display cutout, so both the floating top-action overlay and the
-        // list's first holder need to clear systemBars.top. The list also
-        // needs extra room for the 4-icon overlay (8dp margin + 40dp icon).
+        // / display cutout, so both the top of the list need to clear systemBars.top.
         // Remove the toolbar's insets listener first — setUpToolbar sets one
         // on binding.toolbarLayout.root that calls content.updatePadding(0,0,0,bottom),
         // resetting our top padding to 0. The toolbar is GONE anyway.
         ViewCompat.setOnApplyWindowInsetsListener(binding.toolbarLayout.root, null)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            topActions.root.updatePadding(top = bars.top)
-            binding.listView.updatePadding(top = bars.top + (56 * density).toInt(), bottom = bars.bottom)
+            binding.listView.updatePadding(top = bars.top, bottom = bars.bottom)
             insets
         }
         ViewCompat.requestApplyInsets(binding.root)
-        val liveNovel = ObjectPool.get<Novel>(novelId)
-        combineLatest(
-            liveNovel,
-            textModel.webNovel
-        ).observe(viewLifecycleOwner) { (novel, webNovel) ->
+
+        ObjectPool.get<Novel>(novelId).observe(viewLifecycleOwner) { novel ->
             if (novel != null) {
                 runOnceWithinFragmentLifecycle("visit-novel-${novelId}") {
                     val bean = Shaft.sGson.fromJson(Shaft.sGson.toJson(novel), ceui.lisa.models.NovelBean::class.java)
                     ceui.lisa.utils.PixivOperate.insertNovelViewHistory(bean)
                 }
             }
+        }
+    }
 
-            topActions.btnShare.setOnClick {
-                if (novel != null) shareNovel(novel)
-            }
-            topActions.btnComments.setOnClick {
-                val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
-                    putExtra(Params.NOVEL_ID, novelId.toInt())
-                }
-                startActivity(intent)
-            }
-            topActions.btnCopyLink.setOnClick {
-                Common.copy(requireContext(), NOVEL_URL_HEAD + novelId)
-            }
-            topActions.btnExport.setOnClick {
-                val defaultFormat = Shaft.sSettings.defaultNovelExportFormat
-                val format = ExportFormat.entries.firstOrNull { it.name == defaultFormat }
-                if (format != null) {
-                    executeExport(format)
-                } else {
-                    showExportSheet()
-                }
-            }
-            topActions.btnExport.setOnLongClickListener {
-                showExportSheet()
-                true
+    // ─── NovelActionsReceiver 任务 #4 ──────────────────────────────────────
+
+    override fun onClickShareNovel(sender: View, novelId: Long) {
+        // 分享菜单里已经包含"复制链接"，所以不再需要独立的复制链接按钮。
+        val novel = ObjectPool.get<Novel>(novelId).value
+        if (novel != null) {
+            shareNovel(novel)
+        } else {
+            // 冷启动直接点下来时 LiveData 可能还没到位，兜底再拉一次。
+            viewLifecycleOwner.lifecycleScope.launch {
+                val fresh = runCatching { Client.appApi.getNovel(novelId).novel }
+                    .getOrNull()?.also { ObjectPool.update(it) }
+                if (fresh != null) shareNovel(fresh)
             }
         }
+    }
 
+    override fun onClickNovelComments(sender: View, novelId: Long) {
+        val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+            putExtra(Params.NOVEL_ID, novelId.toInt())
+        }
+        startActivity(intent)
+    }
+
+    override fun onClickDownloadNovel(sender: View, novelId: Long) {
+        // 单击：使用设置里预设的默认导出格式静默下载；若未设置则弹出格式选择。
+        val defaultFormat = Shaft.sSettings.defaultNovelExportFormat
+        val format = ExportFormat.entries.firstOrNull { it.name == defaultFormat }
+        if (format != null) {
+            executeExport(format)
+        } else {
+            showExportSheet()
+        }
+    }
+
+    override fun onLongClickDownloadNovel(sender: View, novelId: Long) {
+        // 长按：不看默认设置，始终弹格式选择，让用户临时选一次。
+        showExportSheet()
     }
 
     /**

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    作品档案信息单元（锚点卡片）。
+    包含作品 ID / 字数 / 浏览 / 收藏 / 发布时间 / 作者链接等可复制元数据。
+    长度固定，是核心按钮区上方的最后一个稳定锚点，不受标签/简介长度影响。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_novel_profile_card"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/novel_profile_title"
+            android:textColor="@color/text00"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/info_chips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:flexWrap="wrap">
+
+            <TextView
+                android:id="@+id/chip_novel_id"
+                style="@style/NovelInfoChip"
+                tools:text="作品ID  12345" />
+
+            <TextView
+                android:id="@+id/chip_text_length"
+                style="@style/NovelInfoChip"
+                tools:text="字数  5000" />
+
+            <TextView
+                android:id="@+id/chip_total_view"
+                style="@style/NovelInfoChip"
+                tools:text="浏览  1234" />
+
+            <TextView
+                android:id="@+id/chip_total_bookmarks"
+                style="@style/NovelInfoChip"
+                tools:text="收藏  234" />
+
+            <TextView
+                android:id="@+id/chip_create_date"
+                style="@style/NovelInfoChip"
+                tools:text="发布  2024-01-15" />
+
+            <TextView
+                android:id="@+id/chip_author"
+                style="@style/NovelInfoChip"
+                tools:text="作者  Alice" />
+
+            <TextView
+                android:id="@+id/chip_author_id"
+                style="@style/NovelInfoChip"
+                tools:text="作者ID  67890" />
+
+            <TextView
+                android:id="@+id/chip_novel_link"
+                style="@style/NovelInfoChip"
+                tools:text="作品链接" />
+
+            <TextView
+                android:id="@+id/chip_user_link"
+                style="@style/NovelInfoChip"
+                tools:text="作者主页" />
+        </com.google.android.flexbox.FlexboxLayout>
+    </LinearLayout>
+</layout>

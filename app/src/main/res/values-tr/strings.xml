@@ -898,4 +898,66 @@
     <string name="storage_request">İstek</string>
     <string name="saf_request_path">Yol İste</string>
     <string name="saf_create_file">Dosya Oluştur</string>
+
+    <!-- Novel detail actions / series download / cross-series download (2026-04) -->
+    <!-- A: Seri detayı indirme girişi -->
+    <string name="series_download_action">İndir</string>
+    <string name="series_download_options_title">İndirme seçenekleri</string>
+    <string name="series_download_picker">Bölüm seç</string>
+    <string name="series_download_picker_desc">Bölümleri elle işaretleyin, her biri ayrı dosya olarak indirilir</string>
+    <string name="series_download_all_separate">Toplu indir</string>
+    <string name="series_download_all_separate_desc">Tüm bölümler ayrı birer dosya olarak indirilir</string>
+    <string name="series_download_merge_one">Birleştirerek indir</string>
+    <string name="series_download_merge_one_desc">Tüm bölümler tek bir dosyada birleştirilir</string>
+    <string name="merge_download_preparing">Birleştirilmiş indirme, toplam %1$d bölüm</string>
+    <string name="merge_download_progress">Birleştiriliyor %1$d/%2$d</string>
+    <string name="merge_download_finished">Birleştirilmiş indirme tamamlandı: %1$s</string>
+    <string name="merge_download_failed_empty">Seri henüz yüklenmedi, lütfen daha sonra tekrar deneyin</string>
+    <string name="merge_download_failed_save">Birleştirilmiş indirme başarısız: dosya yazılamadı</string>
+    <string name="merge_download_some_chapters_failed">Birleştirilmiş indirme tamamlandı, ancak %1$d bölüm alınamadı (atlandı)</string>
+
+    <!-- B: Yazar roman serileri arası indirme -->
+    <string name="cross_series_download_options_title">Yazarın roman serilerini indir</string>
+    <string name="cross_series_download_pick">Seri seç</string>
+    <string name="cross_series_download_pick_desc">Birden fazla seri seçin; her seri tek bir dosyada birleştirilir</string>
+    <string name="cross_series_download_all">Tümünü indir</string>
+    <string name="cross_series_download_all_desc">Tüm seriler; her seri tek bir dosyada birleştirilir</string>
+    <string name="cross_series_download_merge">Birleştirerek indir</string>
+    <string name="cross_series_download_merge_desc">Tüm serilerin tüm bölümleri tek bir dosyada birleştirilir</string>
+    <string name="cross_series_pick_dialog_title">İndirilecek serileri seçin</string>
+    <string name="cross_series_pick_dialog_ok">Seçilenleri indir (%1$d)</string>
+    <string name="cross_series_pick_dialog_cancel">İptal</string>
+    <string name="cross_series_no_series_loaded">Henüz hiç seri yüklenmedi, lütfen daha sonra tekrar deneyin</string>
+    <string name="cross_series_pick_empty">Lütfen en az bir seri seçin</string>
+    <string name="cross_series_download_starting_series">Seri %1$d/%2$d indiriliyor: %3$s</string>
+    <string name="cross_series_download_series_ok">Seri indirme tamamlandı: %1$s</string>
+    <string name="cross_series_download_series_failed">Seri indirme başarısız: %1$s (%2$s)</string>
+    <string name="cross_series_download_all_done">Tümü tamamlandı: başarılı %1$d, başarısız %2$d</string>
+    <string name="cross_series_download_merge_progress">Birleştirme seri %1$d/%2$d - bölüm %3$d/%4$d</string>
+    <string name="cross_series_download_merge_finished">Seriler arası birleştirilmiş indirme tamamlandı: %1$s</string>
+    <string name="cross_series_download_merge_failed_save">Seriler arası birleştirilmiş indirme başarısız: dosya yazılamadı</string>
+
+    <!-- C: Roman detayı başlık / bölüm / eylemler -->
+    <string name="novel_header_series_prefix">Seri: %1$s</string>
+    <string name="novel_section_tags">Etiketler</string>
+    <string name="novel_section_caption">Açıklama</string>
+    <string name="novel_profile_title">Eser bilgisi</string>
+    <string name="novel_actions_share">Paylaş</string>
+    <string name="novel_actions_comments">Yorumlar</string>
+    <string name="novel_actions_download">İndir</string>
+
+    <!-- D: Eser bilgi kartı info chip -->
+    <string name="novel_chip_id">Eser ID  %1$s</string>
+    <string name="novel_chip_author">Yazar  %1$s</string>
+    <string name="novel_chip_author_id">Yazar ID  %1$s</string>
+    <string name="novel_chip_create_date">Yayın  %1$s</string>
+    <string name="novel_chip_text_length">Karakter sayısı  %1$s</string>
+    <string name="novel_chip_total_view">Görüntülenme  %1$s</string>
+    <string name="novel_chip_total_bookmarks">Favori  %1$s</string>
+    <string name="novel_chip_novel_link">Eser bağlantısı</string>
+    <string name="novel_chip_user_link">Yazar sayfası</string>
+    <string name="novel_chip_series_id">Seri ID  %1$s</string>
+    <string name="novel_chip_series_link">Seri bağlantısı</string>
+    <string name="novel_chip_series_content_count">Bölüm sayısı  %1$s</string>
+    <string name="novel_chip_series_char_count">Toplam karakter  %1$s</string>
 </resources>

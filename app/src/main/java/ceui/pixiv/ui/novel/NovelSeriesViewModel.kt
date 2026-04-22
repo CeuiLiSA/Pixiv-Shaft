@@ -97,6 +97,12 @@ class NovelSeriesViewModel(
         .filterIsInstance<NovelCardHolder>()
         .map { it.novel.id }
 
+    /** 当前已加载到列表里的全部章节（按出现顺序）。「合并下载」用来预填充，之后
+     *  任务本身还会继续翻页补齐。 */
+    fun allLoadedNovels(): List<Novel> = _itemHolders.value.orEmpty()
+        .filterIsInstance<NovelCardHolder>()
+        .map { it.novel }
+
     fun selectedNovels(): List<Novel> {
         val selected = _selectedIds.value.orEmpty()
         if (selected.isEmpty()) return emptyList()

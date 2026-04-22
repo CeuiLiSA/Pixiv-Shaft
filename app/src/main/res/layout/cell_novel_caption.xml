@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+<!--
+    简介内容区。
+    信息 chip 已迁移到 cell_novel_profile（任务 #3 锚点单元）；
+    "复制简介"独立提示已移除（任务 #5，点击简介正文即可复制，提示冗余）。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
 
@@ -16,86 +19,14 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!--
-            用户反馈：作品详情页希望提供一组高密度可复制 chip。
-            原本散开的多行 publishTime / textLength / totalBookmarks / illustId / illustLink /
-            userId / userLink 全部合并到这里，每个 chip 点击复制对应字段。值缺失的 chip 自动隐藏。
-        -->
-        <com.google.android.flexbox.FlexboxLayout
-            android:id="@+id/info_chips"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:flexWrap="wrap">
-
-            <TextView
-                android:id="@+id/chip_novel_id"
-                style="@style/NovelInfoChip"
-                tools:text="作品ID  12345" />
-
-            <TextView
-                android:id="@+id/chip_author"
-                style="@style/NovelInfoChip"
-                tools:text="作者  Alice" />
-
-            <TextView
-                android:id="@+id/chip_author_id"
-                style="@style/NovelInfoChip"
-                tools:text="作者ID  67890" />
-
-            <TextView
-                android:id="@+id/chip_create_date"
-                style="@style/NovelInfoChip"
-                tools:text="发布  2024-01-15" />
-
-            <TextView
-                android:id="@+id/chip_text_length"
-                style="@style/NovelInfoChip"
-                tools:text="字数  5000" />
-
-            <TextView
-                android:id="@+id/chip_total_view"
-                style="@style/NovelInfoChip"
-                tools:text="浏览  1234" />
-
-            <TextView
-                android:id="@+id/chip_total_bookmarks"
-                style="@style/NovelInfoChip"
-                tools:text="收藏  234" />
-
-            <TextView
-                android:id="@+id/chip_novel_link"
-                style="@style/NovelInfoChip"
-                tools:text="作品链接" />
-
-            <TextView
-                android:id="@+id/chip_user_link"
-                style="@style/NovelInfoChip"
-                tools:text="作者主页" />
-
-        </com.google.android.flexbox.FlexboxLayout>
-
         <TextView
             android:id="@+id/caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:paddingVertical="4dp"
             android:textColor="@color/text00"
             android:textSize="15sp" />
-
-        <TextView
-            android:id="@+id/copy_caption"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:text="@string/copy_caption"
-            android:textColor="@color/buttonTextGreen"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
 
     </LinearLayout>
 </layout>

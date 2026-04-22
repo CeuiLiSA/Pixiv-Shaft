@@ -965,4 +965,66 @@
     <string name="storage_request">Request</string>
     <string name="saf_request_path">Request Path</string>
     <string name="saf_create_file">Create File</string>
+
+    <!-- Novel detail actions / series download / cross-series download (2026-04) -->
+    <!-- A: Series detail download entry -->
+    <string name="series_download_action">Download</string>
+    <string name="series_download_options_title">Download options</string>
+    <string name="series_download_picker">Pick chapters</string>
+    <string name="series_download_picker_desc">Manually select chapters, each saved as a separate file</string>
+    <string name="series_download_all_separate">Download all (separate)</string>
+    <string name="series_download_all_separate_desc">Download every chapter as its own file</string>
+    <string name="series_download_merge_one">Merge into one</string>
+    <string name="series_download_merge_one_desc">Merge all chapters into a single file</string>
+    <string name="merge_download_preparing">Merging download, %1$d chapters in total</string>
+    <string name="merge_download_progress">Merging %1$d/%2$d</string>
+    <string name="merge_download_finished">Merged download finished: %1$s</string>
+    <string name="merge_download_failed_empty">Series is still loading, please try again later</string>
+    <string name="merge_download_failed_save">Merged download failed: could not write file</string>
+    <string name="merge_download_some_chapters_failed">Merged download finished, but %1$d chapter(s) failed to fetch (skipped)</string>
+
+    <!-- B: Cross-series download (author novel series overview) -->
+    <string name="cross_series_download_options_title">Download author\'s novel series</string>
+    <string name="cross_series_download_pick">Pick series</string>
+    <string name="cross_series_download_pick_desc">Select multiple series; each series merged into its own file</string>
+    <string name="cross_series_download_all">Download all</string>
+    <string name="cross_series_download_all_desc">Every series merged into its own file</string>
+    <string name="cross_series_download_merge">Merge into one</string>
+    <string name="cross_series_download_merge_desc">Merge every chapter of every series into a single file</string>
+    <string name="cross_series_pick_dialog_title">Pick series to download</string>
+    <string name="cross_series_pick_dialog_ok">Download selected (%1$d)</string>
+    <string name="cross_series_pick_dialog_cancel">Cancel</string>
+    <string name="cross_series_no_series_loaded">No series loaded yet, please try again later</string>
+    <string name="cross_series_pick_empty">Please select at least one series</string>
+    <string name="cross_series_download_starting_series">Starting series %1$d/%2$d: %3$s</string>
+    <string name="cross_series_download_series_ok">Series download finished: %1$s</string>
+    <string name="cross_series_download_series_failed">Series download failed: %1$s (%2$s)</string>
+    <string name="cross_series_download_all_done">All done: %1$d succeeded, %2$d failed</string>
+    <string name="cross_series_download_merge_progress">Merging series %1$d/%2$d - chapter %3$d/%4$d</string>
+    <string name="cross_series_download_merge_finished">Cross-series merged download finished: %1$s</string>
+    <string name="cross_series_download_merge_failed_save">Cross-series merged download failed: could not write file</string>
+
+    <!-- C: Novel detail header / section / actions -->
+    <string name="novel_header_series_prefix">Series: %1$s</string>
+    <string name="novel_section_tags">Tags</string>
+    <string name="novel_section_caption">Caption</string>
+    <string name="novel_profile_title">Work profile</string>
+    <string name="novel_actions_share">Share</string>
+    <string name="novel_actions_comments">Comments</string>
+    <string name="novel_actions_download">Download</string>
+
+    <!-- D: Work profile info chips (label + value) -->
+    <string name="novel_chip_id">Novel ID  %1$s</string>
+    <string name="novel_chip_author">Author  %1$s</string>
+    <string name="novel_chip_author_id">Author ID  %1$s</string>
+    <string name="novel_chip_create_date">Published  %1$s</string>
+    <string name="novel_chip_text_length">Length  %1$s</string>
+    <string name="novel_chip_total_view">Views  %1$s</string>
+    <string name="novel_chip_total_bookmarks">Bookmarks  %1$s</string>
+    <string name="novel_chip_novel_link">Novel link</string>
+    <string name="novel_chip_user_link">Author page</string>
+    <string name="novel_chip_series_id">Series ID  %1$s</string>
+    <string name="novel_chip_series_link">Series link</string>
+    <string name="novel_chip_series_content_count">Chapters  %1$s</string>
+    <string name="novel_chip_series_char_count">Total length  %1$s</string>
 </resources>

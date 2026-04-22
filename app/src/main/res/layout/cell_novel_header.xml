@@ -8,51 +8,65 @@
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.Novel>" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!--
+        顶格放标题 + 收藏按钮，系列信息独占一行并放大点击热区（整行响应点击）。
+        任务 #1 / #3：标题上方不再叠加功能按钮行，功能入口统一下沉到 NovelActionsHolder。
+    -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="12dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/title"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/series_name"
-            app:layout_constraintEnd_toStartOf="@+id/bookmark"
-            android:textSize="18sp"
-            android:text="@{novel.title}"
-            android:textStyle="bold"
-            android:textColor="@color/text00"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:paddingVertical="4dp"
+                android:text="@{novel.title}"
+                android:textColor="@color/text00"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/bookmark"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <ceui.loxia.ProgressImageButton
-            android:id="@+id/bookmark"
-            app:ptb_progress_stroke_width="3dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="@+id/title"
-            app:layout_constraintTop_toTopOf="@+id/title"
-            android:padding="8dp"
-            app:ptb_progress_width="14dp"
-            android:src="@{novel.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
-            android:layout_width="@dimen/min_widget_size"
-            android:layout_height="@dimen/min_widget_size" />
+            <ceui.loxia.ProgressImageButton
+                android:id="@+id/bookmark"
+                android:layout_width="@dimen/min_widget_size"
+                android:layout_height="@dimen/min_widget_size"
+                android:padding="8dp"
+                android:src="@{novel.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
+                app:layout_constraintBottom_toBottomOf="@+id/title"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/title"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <!-- 系列信息：整行响应点击，任务 #2 放大热区；条件显示。 -->
         <TextView
             android:id="@+id/series_name"
-            app:layout_constraintTop_toBottomOf="@+id/title"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginTop="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:textSize="14sp"
-            android:text="@{`系列：` + novel.series.title}"
-            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}"
-            android:textStyle="bold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_baseline_menu_book_24"
+            android:drawablePadding="8dp"
+            android:drawableTint="@color/buttonTextGreen"
+            android:gravity="center_vertical"
+            android:minHeight="44dp"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="8dp"
+            android:text="@{@string/novel_header_series_prefix(novel.series.title)}"
             android:textColor="@color/buttonTextGreen"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:textSize="14sp"
+            android:textStyle="bold"
+            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}" />
+    </LinearLayout>
 </layout>

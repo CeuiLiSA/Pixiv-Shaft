@@ -907,4 +907,66 @@
     <string name="storage_request">요청</string>
     <string name="saf_request_path">경로 요청</string>
     <string name="saf_create_file">파일 생성</string>
+
+    <!-- Novel detail actions / series download / cross-series download (2026-04) -->
+    <!-- A: 시리즈 상세 다운로드 진입 -->
+    <string name="series_download_action">다운로드</string>
+    <string name="series_download_options_title">다운로드 옵션</string>
+    <string name="series_download_picker">다운로드 선택</string>
+    <string name="series_download_picker_desc">챕터를 수동으로 선택하여 각각 개별 파일로 다운로드</string>
+    <string name="series_download_all_separate">일괄 다운로드</string>
+    <string name="series_download_all_separate_desc">모든 챕터를 각각 개별 파일로 다운로드</string>
+    <string name="series_download_merge_one">병합 다운로드</string>
+    <string name="series_download_merge_one_desc">모든 챕터를 하나의 파일로 병합</string>
+    <string name="merge_download_preparing">병합 다운로드 중, 총 %1$d 챕터</string>
+    <string name="merge_download_progress">병합 다운로드 중 %1$d/%2$d</string>
+    <string name="merge_download_finished">병합 다운로드 완료: %1$s</string>
+    <string name="merge_download_failed_empty">시리즈가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요</string>
+    <string name="merge_download_failed_save">병합 다운로드 실패: 파일 쓰기에 실패했습니다</string>
+    <string name="merge_download_some_chapters_failed">병합 다운로드 완료, 다만 %1$d 챕터를 가져오지 못했습니다 (건너뜀)</string>
+
+    <!-- B: 작가 소설 시리즈 교차 다운로드 -->
+    <string name="cross_series_download_options_title">작가 소설 시리즈 다운로드</string>
+    <string name="cross_series_download_pick">시리즈 선택</string>
+    <string name="cross_series_download_pick_desc">여러 시리즈를 선택, 각 시리즈를 하나의 파일로 병합</string>
+    <string name="cross_series_download_all">전체 다운로드</string>
+    <string name="cross_series_download_all_desc">모든 시리즈를, 시리즈별로 하나의 파일로 병합</string>
+    <string name="cross_series_download_merge">병합 다운로드</string>
+    <string name="cross_series_download_merge_desc">모든 시리즈의 전체 챕터를 하나의 파일로 병합</string>
+    <string name="cross_series_pick_dialog_title">다운로드할 시리즈 선택</string>
+    <string name="cross_series_pick_dialog_ok">선택 항목 다운로드 (%1$d)</string>
+    <string name="cross_series_pick_dialog_cancel">취소</string>
+    <string name="cross_series_no_series_loaded">아직 로드된 시리즈가 없습니다. 잠시 후 다시 시도해주세요</string>
+    <string name="cross_series_pick_empty">시리즈를 하나 이상 선택해주세요</string>
+    <string name="cross_series_download_starting_series">시리즈 %1$d/%2$d 다운로드 시작: %3$s</string>
+    <string name="cross_series_download_series_ok">시리즈 다운로드 완료: %1$s</string>
+    <string name="cross_series_download_series_failed">시리즈 다운로드 실패: %1$s (%2$s)</string>
+    <string name="cross_series_download_all_done">전체 완료: 성공 %1$d, 실패 %2$d</string>
+    <string name="cross_series_download_merge_progress">병합 다운로드 시리즈 %1$d/%2$d - 챕터 %3$d/%4$d</string>
+    <string name="cross_series_download_merge_finished">교차 시리즈 병합 다운로드 완료: %1$s</string>
+    <string name="cross_series_download_merge_failed_save">교차 시리즈 병합 다운로드 실패: 파일 쓰기에 실패했습니다</string>
+
+    <!-- C: 소설 상세 헤더 / 섹션 / 액션 -->
+    <string name="novel_header_series_prefix">시리즈: %1$s</string>
+    <string name="novel_section_tags">태그</string>
+    <string name="novel_section_caption">소개</string>
+    <string name="novel_profile_title">작품 정보</string>
+    <string name="novel_actions_share">공유</string>
+    <string name="novel_actions_comments">댓글</string>
+    <string name="novel_actions_download">다운로드</string>
+
+    <!-- D: 작품 정보 카드 info chip -->
+    <string name="novel_chip_id">작품 ID  %1$s</string>
+    <string name="novel_chip_author">작가  %1$s</string>
+    <string name="novel_chip_author_id">작가 ID  %1$s</string>
+    <string name="novel_chip_create_date">게시일  %1$s</string>
+    <string name="novel_chip_text_length">글자 수  %1$s</string>
+    <string name="novel_chip_total_view">조회수  %1$s</string>
+    <string name="novel_chip_total_bookmarks">북마크  %1$s</string>
+    <string name="novel_chip_novel_link">작품 링크</string>
+    <string name="novel_chip_user_link">작가 페이지</string>
+    <string name="novel_chip_series_id">시리즈 ID  %1$s</string>
+    <string name="novel_chip_series_link">시리즈 링크</string>
+    <string name="novel_chip_series_content_count">챕터 수  %1$s</string>
+    <string name="novel_chip_series_char_count">총 글자 수  %1$s</string>
 </resources>

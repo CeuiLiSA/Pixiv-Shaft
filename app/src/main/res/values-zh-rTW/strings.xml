@@ -1012,4 +1012,66 @@
     <string name="storage_request">請求</string>
     <string name="saf_request_path">申請路徑</string>
     <string name="saf_create_file">建立檔案</string>
+
+    <!-- Novel detail actions / series download / cross-series download (2026-04) -->
+    <!-- A 組：系列詳情頁下載入口 -->
+    <string name="series_download_action">下載</string>
+    <string name="series_download_options_title">下載選項</string>
+    <string name="series_download_picker">選擇下載</string>
+    <string name="series_download_picker_desc">手動勾選章節，逐個獨立下載</string>
+    <string name="series_download_all_separate">批次下載</string>
+    <string name="series_download_all_separate_desc">全部章節分別作為獨立檔案下載</string>
+    <string name="series_download_merge_one">合併下載</string>
+    <string name="series_download_merge_one_desc">所有章節合併為一個檔案</string>
+    <string name="merge_download_preparing">正在合併下載，共 %1$d 章</string>
+    <string name="merge_download_progress">合併下載中 %1$d/%2$d</string>
+    <string name="merge_download_finished">合併下載完成：%1$s</string>
+    <string name="merge_download_failed_empty">系列尚未載入完成，請稍候再試</string>
+    <string name="merge_download_failed_save">合併下載失敗：寫入檔案失敗</string>
+    <string name="merge_download_some_chapters_failed">合併下載完成，但有 %1$d 章擷取失敗（已略過）</string>
+
+    <!-- B 組：跨系列下載（作者小說系列總覽頁） -->
+    <string name="cross_series_download_options_title">下載作者小說系列</string>
+    <string name="cross_series_download_pick">選擇下載</string>
+    <string name="cross_series_download_pick_desc">勾選若干系列，每個系列合併為一個獨立檔案</string>
+    <string name="cross_series_download_all">全部下載</string>
+    <string name="cross_series_download_all_desc">所有系列，每個系列合併為一個獨立檔案</string>
+    <string name="cross_series_download_merge">合併下載</string>
+    <string name="cross_series_download_merge_desc">所有系列的全部章節合併為一個檔案</string>
+    <string name="cross_series_pick_dialog_title">選擇要下載的系列</string>
+    <string name="cross_series_pick_dialog_ok">下載所選 (%1$d)</string>
+    <string name="cross_series_pick_dialog_cancel">取消</string>
+    <string name="cross_series_no_series_loaded">尚未載入到任何系列，請稍候再試</string>
+    <string name="cross_series_pick_empty">請先勾選至少一個系列</string>
+    <string name="cross_series_download_starting_series">開始下載系列 %1$d/%2$d：%3$s</string>
+    <string name="cross_series_download_series_ok">系列下載完成：%1$s</string>
+    <string name="cross_series_download_series_failed">系列下載失敗：%1$s (%2$s)</string>
+    <string name="cross_series_download_all_done">全部完成：成功 %1$d，失敗 %2$d</string>
+    <string name="cross_series_download_merge_progress">合併下載 系列 %1$d/%2$d - 章節 %3$d/%4$d</string>
+    <string name="cross_series_download_merge_finished">跨系列合併下載完成：%1$s</string>
+    <string name="cross_series_download_merge_failed_save">跨系列合併下載失敗：寫入檔案失敗</string>
+
+    <!-- C 組：小說詳情頁 header / section / actions -->
+    <string name="novel_header_series_prefix">系列：%1$s</string>
+    <string name="novel_section_tags">標籤</string>
+    <string name="novel_section_caption">簡介</string>
+    <string name="novel_profile_title">作品檔案</string>
+    <string name="novel_actions_share">分享</string>
+    <string name="novel_actions_comments">評論</string>
+    <string name="novel_actions_download">下載</string>
+
+    <!-- D 組：作品檔案卡片裡的 info chip -->
+    <string name="novel_chip_id">作品ID  %1$s</string>
+    <string name="novel_chip_author">作者  %1$s</string>
+    <string name="novel_chip_author_id">作者ID  %1$s</string>
+    <string name="novel_chip_create_date">發布  %1$s</string>
+    <string name="novel_chip_text_length">字數  %1$s</string>
+    <string name="novel_chip_total_view">瀏覽  %1$s</string>
+    <string name="novel_chip_total_bookmarks">收藏  %1$s</string>
+    <string name="novel_chip_novel_link">作品連結</string>
+    <string name="novel_chip_user_link">作者主頁</string>
+    <string name="novel_chip_series_id">系列ID  %1$s</string>
+    <string name="novel_chip_series_link">系列連結</string>
+    <string name="novel_chip_series_content_count">章節數  %1$s</string>
+    <string name="novel_chip_series_char_count">總字數  %1$s</string>
 </resources>

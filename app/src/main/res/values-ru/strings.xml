@@ -900,4 +900,66 @@
     <string name="storage_request">Запрос</string>
     <string name="saf_request_path">Запросить путь</string>
     <string name="saf_create_file">Создать файл</string>
+
+    <!-- Novel detail actions / series download / cross-series download (2026-04) -->
+    <!-- A: Вход в загрузку серии -->
+    <string name="series_download_action">Загрузить</string>
+    <string name="series_download_options_title">Параметры загрузки</string>
+    <string name="series_download_picker">Выбрать главы</string>
+    <string name="series_download_picker_desc">Вручную отметьте главы, каждая сохраняется отдельным файлом</string>
+    <string name="series_download_all_separate">Загрузить все (раздельно)</string>
+    <string name="series_download_all_separate_desc">Каждая глава сохраняется отдельным файлом</string>
+    <string name="series_download_merge_one">Объединить в один файл</string>
+    <string name="series_download_merge_one_desc">Все главы объединяются в один файл</string>
+    <string name="merge_download_preparing">Объединённая загрузка, всего глав: %1$d</string>
+    <string name="merge_download_progress">Объединение %1$d/%2$d</string>
+    <string name="merge_download_finished">Объединённая загрузка завершена: %1$s</string>
+    <string name="merge_download_failed_empty">Серия ещё загружается, попробуйте позже</string>
+    <string name="merge_download_failed_save">Ошибка объединённой загрузки: не удалось записать файл</string>
+    <string name="merge_download_some_chapters_failed">Объединённая загрузка завершена, но %1$d глав не удалось получить (пропущены)</string>
+
+    <!-- B: Массовая загрузка серий автора -->
+    <string name="cross_series_download_options_title">Загрузить серии новелл автора</string>
+    <string name="cross_series_download_pick">Выбрать серии</string>
+    <string name="cross_series_download_pick_desc">Отметьте несколько серий, каждая серия объединяется в один файл</string>
+    <string name="cross_series_download_all">Загрузить все</string>
+    <string name="cross_series_download_all_desc">Все серии; каждая серия объединяется в один файл</string>
+    <string name="cross_series_download_merge">Объединить в один файл</string>
+    <string name="cross_series_download_merge_desc">Все главы всех серий объединяются в один файл</string>
+    <string name="cross_series_pick_dialog_title">Выберите серии для загрузки</string>
+    <string name="cross_series_pick_dialog_ok">Загрузить выбранное (%1$d)</string>
+    <string name="cross_series_pick_dialog_cancel">Отмена</string>
+    <string name="cross_series_no_series_loaded">Серии ещё не загружены, попробуйте позже</string>
+    <string name="cross_series_pick_empty">Выберите хотя бы одну серию</string>
+    <string name="cross_series_download_starting_series">Запуск серии %1$d/%2$d: %3$s</string>
+    <string name="cross_series_download_series_ok">Серия загружена: %1$s</string>
+    <string name="cross_series_download_series_failed">Ошибка загрузки серии: %1$s (%2$s)</string>
+    <string name="cross_series_download_all_done">Готово: успешно %1$d, с ошибкой %2$d</string>
+    <string name="cross_series_download_merge_progress">Объединение серия %1$d/%2$d - глава %3$d/%4$d</string>
+    <string name="cross_series_download_merge_finished">Объединённая загрузка серий завершена: %1$s</string>
+    <string name="cross_series_download_merge_failed_save">Ошибка объединённой загрузки серий: не удалось записать файл</string>
+
+    <!-- C: Шапка / разделы / действия в деталях новеллы -->
+    <string name="novel_header_series_prefix">Серия: %1$s</string>
+    <string name="novel_section_tags">Теги</string>
+    <string name="novel_section_caption">Описание</string>
+    <string name="novel_profile_title">О произведении</string>
+    <string name="novel_actions_share">Поделиться</string>
+    <string name="novel_actions_comments">Комментарии</string>
+    <string name="novel_actions_download">Загрузить</string>
+
+    <!-- D: Чипы карточки "О произведении" -->
+    <string name="novel_chip_id">ID работы  %1$s</string>
+    <string name="novel_chip_author">Автор  %1$s</string>
+    <string name="novel_chip_author_id">ID автора  %1$s</string>
+    <string name="novel_chip_create_date">Дата  %1$s</string>
+    <string name="novel_chip_text_length">Объём  %1$s</string>
+    <string name="novel_chip_total_view">Просмотры  %1$s</string>
+    <string name="novel_chip_total_bookmarks">В избранном  %1$s</string>
+    <string name="novel_chip_novel_link">Ссылка на работу</string>
+    <string name="novel_chip_user_link">Страница автора</string>
+    <string name="novel_chip_series_id">ID серии  %1$s</string>
+    <string name="novel_chip_series_link">Ссылка на серию</string>
+    <string name="novel_chip_series_content_count">Глав  %1$s</string>
+    <string name="novel_chip_series_char_count">Всего знаков  %1$s</string>
 </resources>
