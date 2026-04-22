@@ -64,6 +64,7 @@ import ceui.pixiv.ui.novel.reader.ui.ReaderChrome
 import ceui.pixiv.ui.novel.reader.ui.ReaderSearchOverlay
 import ceui.pixiv.ui.novel.reader.ui.ReaderSettingsPanel
 import ceui.pixiv.ui.novel.reader.ui.ReaderTopBar
+import ceui.pixiv.ui.novel.reader.ui.SeriesListSheet
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -115,7 +116,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         wireSearchOverlay(so)
         wireTextSelection(rv, ch)
         wireSystemBarInsets()
-        wireBackPress(ch)
+        wireBackPress(ch, so)
 
         observeReaderState(rv, tb, bb, so, ch)
 
@@ -134,9 +135,17 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     // ---- Wiring -------------------------------------------------------------
 
-    private fun wireBackPress(chrome: ReaderChrome) {
+    private fun wireBackPress(chrome: ReaderChrome, so: ReaderSearchOverlay) {
         val cb = object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                // 优先级 1：正文搜索 overlay 打开 → 返回手势先退出搜索（与 onClose 行为一致）。
+                if (so.isShown()) {
+                    so.setShown(false)
+                    so.clear()
+                    viewModel.clearSearch()
+                    return
+                }
+                // 优先级 2：阅读器 chrome（顶/底栏）显示中 → 返回手势先收起 chrome。
                 if (chrome.isShown) {
                     chrome.hide()
                     return
@@ -194,6 +203,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         bb.onPrevChapter = { jumpChapter(forward = false) }
         bb.onNextChapter = { jumpChapter(forward = true) }
         bb.onChaptersClick = { showChapterDrawer() }
+        bb.onSeriesClick = { showSeriesSheet() }
         bb.onSettingsClick = {
             ReaderSettingsPanel().show(childFragmentManager, ReaderSettingsPanel.TAG)
         }
@@ -301,6 +311,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             if (state is NovelReaderV3ViewModel.LoadState.Error) binding.readerError.text = state.message
             if (state is NovelReaderV3ViewModel.LoadState.Loaded) {
                 tb.setTitle(state.novel?.title ?: state.webNovel.title.orEmpty())
+                // 系列按钮按当前小说是否归属系列动态显示。
+                bb.setSeriesVisible(state.novel?.series?.id != null)
                 pushStyleAndGeometryIfReady()
                 rebindScrollViewIfActive()
             }
@@ -677,6 +689,32 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         ChapterListSheet().apply {
             configure(outline, currentStart) { entry -> navigateToCharIndex(entry.sourceStart) }
         }.show(childFragmentManager, ChapterListSheet.TAG)
+    }
+
+    /**
+     * 系列单篇切换 sheet。仅在当前小说归属一个系列时可用（按钮本身也会因
+     * `setSeriesVisible(false)` 隐藏，这里再 guard 一次防护并发重入）。
+     * 选中后 finish 当前 reader 并启动新的 reader activity，跟
+     * [tryJumpSeriesNeighbor] 的接力策略一致。
+     */
+    private fun showSeriesSheet() {
+        val novelId = resolveNovelId()
+        val novel = ObjectPool.get<Novel>(novelId).value ?: return
+        val sid = novel.series?.id ?: return
+        SeriesListSheet().apply {
+            configure(
+                seriesId = sid,
+                currentNovelId = novelId,
+                seriesTitle = novel.series?.title,
+            ) { picked ->
+                val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+                    putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+                    putExtra(Params.NOVEL_ID, picked.id)
+                }
+                startActivity(intent)
+                activity?.finish()
+            }
+        }.show(childFragmentManager, SeriesListSheet.TAG)
     }
 
     private fun jumpChapter(forward: Boolean) {

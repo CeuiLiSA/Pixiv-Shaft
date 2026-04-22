@@ -1,7 +1,5 @@
 package ceui.pixiv.ui.novel.reader.ui
 
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
@@ -11,24 +9,26 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.pixiv.ui.novel.reader.model.SearchHit
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
+/**
+ * 搜索结果 bottom sheet。与 [ChapterListSheet] / [SeriesListSheet] 共用
+ * [ReaderSheetUi] / [ReaderSheetPalette] 骨架，颜色全部走 V3 token，白天/夜间自动适配。
+ */
 class SearchHitsSheet : BottomSheetDialogFragment() {
 
     private var hits: List<SearchHit> = emptyList()
     private var query: String = ""
     private var currentIndex: Int = -1
     private var onJumpTo: ((SearchHit, Int) -> Unit)? = null
+
+    private var listView: RecyclerView? = null
 
     fun configure(
         hits: List<SearchHit>,
@@ -48,87 +48,33 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?,
     ): View {
         val ctx = requireContext()
-        val density = ctx.resources.displayMetrics.density
-        val bgColor = ContextCompat.getColor(ctx, R.color.v3_bg)
-        val text1 = ContextCompat.getColor(ctx, R.color.v3_text_1)
-        val text3 = ContextCompat.getColor(ctx, R.color.v3_text_3)
-        val dividerColor = ContextCompat.getColor(ctx, R.color.v3_surface_2)
-
-        val root = LinearLayout(ctx).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(bgColor)
-            setPadding(0, (12 * density).toInt(), 0, (8 * density).toInt())
-        }
-
-        val handle = FrameLayout(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (18 * density).toInt())
-        }
-        val indicator = View(ctx).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = 2 * density
-                setColor(ContextCompat.getColor(ctx, R.color.v3_surface_3))
-            }
-            layoutParams = FrameLayout.LayoutParams((40 * density).toInt(), (4 * density).toInt(), Gravity.CENTER)
-        }
-        handle.addView(indicator)
-        root.addView(handle)
-
-        val titleRow = LinearLayout(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding((16 * density).toInt(), 0, (16 * density).toInt(), (8 * density).toInt())
-        }
-        val title = TextView(ctx).apply {
-            text = getString(R.string.search_hits_title)
-            setTextColor(text1)
-            setTypeface(typeface, Typeface.BOLD)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 1f }
-        }
-        val count = TextView(ctx).apply {
-            text = getString(R.string.search_hits_count, hits.size)
-            setTextColor(text3)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
-        }
-        titleRow.addView(title)
-        titleRow.addView(count)
-        root.addView(titleRow)
-
-        root.addView(View(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1)
-            setBackgroundColor(dividerColor)
-        })
+        val palette = ReaderSheetPalette.from(ctx)
+        val root = ReaderSheetUi.scaffold(
+            ctx,
+            palette,
+            title = getString(R.string.search_hits_title),
+            countLabel = getString(R.string.search_hits_count, hits.size),
+        )
 
         val list = RecyclerView(ctx).apply {
             layoutManager = LinearLayoutManager(ctx)
-            adapter = Adapter(hits, query, currentIndex, onJumpTo) { dismissAllowingStateLoss() }
+            adapter = Adapter(hits, query, currentIndex, palette, onJumpTo) { dismissAllowingStateLoss() }
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0,
             ).apply { weight = 1f }
         }
+        listView = list
         root.addView(list)
-
         return root
     }
 
     override fun onStart() {
         super.onStart()
-        val dialog = dialog as? BottomSheetDialog ?: return
-        val sheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) ?: return
-        val displayHeight = resources.displayMetrics.heightPixels
-        val targetHeight = (displayHeight * 0.7f).toInt()
-        sheet.layoutParams = sheet.layoutParams.apply { height = targetHeight }
-        sheet.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.v3_bg))
-        BottomSheetBehavior.from(sheet).apply {
-            peekHeight = targetHeight
-            state = BottomSheetBehavior.STATE_EXPANDED
-            skipCollapsed = true
-        }
+        ReaderSheetUi.applyExpandedHeight(this)
         if (currentIndex in hits.indices) {
-            view?.post {
-                val rv = (view as? LinearLayout)?.getChildAt((view as LinearLayout).childCount - 1) as? RecyclerView
-                (rv?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentIndex, 0)
+            listView?.post {
+                val lm = listView?.layoutManager as? LinearLayoutManager ?: return@post
+                lm.scrollToPositionWithOffset(currentIndex, 0)
             }
         }
     }
@@ -137,6 +83,7 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
         private val hits: List<SearchHit>,
         private val query: String,
         private val currentIndex: Int,
+        private val palette: ReaderSheetPalette,
         private val onJumpTo: ((SearchHit, Int) -> Unit)?,
         private val dismiss: () -> Unit,
     ) : RecyclerView.Adapter<Adapter.VH>() {
@@ -155,12 +102,12 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
                 applySelectableBackground()
             }
             val index = TextView(ctx).apply {
-                setTextColor(ContextCompat.getColor(ctx, R.color.v3_text_3))
+                setTextColor(palette.textSecondary)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
                 minWidth = (32 * density).toInt()
             }
             val snippet = TextView(ctx).apply {
-                setTextColor(ContextCompat.getColor(ctx, R.color.v3_text_1))
+                setTextColor(palette.textPrimary)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 maxLines = 2
                 ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
@@ -178,7 +125,6 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val hit = hits[position]
-            val ctx = holder.itemView.context
             holder.index.text = "${position + 1}"
 
             val snippetText = hit.snippet
@@ -201,7 +147,7 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
             holder.snippet.text = spannable
 
             if (position == currentIndex) {
-                holder.itemView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.v3_surface_1))
+                holder.itemView.setBackgroundColor(palette.surfaceSubtle)
             } else {
                 holder.itemView.background = null
                 holder.itemView.applySelectableBackground()
@@ -218,6 +164,7 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "SearchHitsSheet"
+        // 沿用 ReaderSearchOverlay 的命中底色（半透明橙），白天/夜间在浅/深底上都视觉合适。
         private const val COLOR_HIT_HIGHLIGHT = 0xAAFF9800.toInt()
     }
 }

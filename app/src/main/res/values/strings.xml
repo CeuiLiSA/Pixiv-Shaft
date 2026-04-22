@@ -992,6 +992,7 @@
     <string name="reader_section_screen">屏幕</string>
     <string name="reader_section_image">图片</string>
     <string name="reader_btn_chapters">目录</string>
+    <string name="reader_btn_series">系列</string>
     <string name="reader_btn_settings">设置</string>
     <string name="reader_btn_search">搜索</string>
     <string name="reader_btn_more">更多</string>
@@ -1135,6 +1136,12 @@
     <string name="annotations_empty">还没有笔记或高亮。\n长按文字 → 选择颜色即可保存。</string>
     <string name="chapters_title">目录</string>
     <string name="chapters_count">%d 章</string>
+    <string name="series_sheet_title">系列</string>
+    <string name="series_sheet_count">%d 篇</string>
+    <string name="series_sheet_loading">正在加载系列篇目…</string>
+    <string name="series_sheet_empty">系列暂无其它单篇</string>
+    <string name="series_sheet_load_failed">系列加载失败：%1$s</string>
+    <string name="series_sheet_chip_current">当前</string>
 
     <!-- Novel detail (NovelTextFragment) -->
     <string name="novel_desc_label">简介</string>

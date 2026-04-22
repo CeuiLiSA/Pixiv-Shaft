@@ -50,12 +50,43 @@
             app:tint="#FFFFFF" />
     </LinearLayout>
 
+    <!--
+        bottom row 权重不写死 weightSum：系列按钮 visibility=gone 时不参与权重，
+        其它 5 个按钮各占 1/5；系列按钮显示时 6 个按钮各占 1/6（自动收缩）。
+    -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:weightSum="5">
+        android:orientation="horizontal">
+
+        <!--
+            系列切换按钮：当前小说有所属系列时显示，唤起 SeriesListSheet 切换其它单篇。
+            见 ReaderBottomBar.setSeriesVisible / NovelReaderV3Fragment.showSeriesSheet。
+        -->
+        <LinearLayout
+            android:id="@+id/btn_series"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_reader_series"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/reader_btn_series"
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/btn_chapters"

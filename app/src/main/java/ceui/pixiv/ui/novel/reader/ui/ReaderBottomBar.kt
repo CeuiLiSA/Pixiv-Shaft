@@ -11,6 +11,7 @@ class ReaderBottomBar(private val binding: LayoutReaderBottomBarBinding) {
     var onPrevChapter: (() -> Unit)? = null
     var onNextChapter: (() -> Unit)? = null
     var onChaptersClick: (() -> Unit)? = null
+    var onSeriesClick: (() -> Unit)? = null
     var onSettingsClick: (() -> Unit)? = null
     var onThemeToggleClick: (() -> Unit)? = null
     var onSearchClick: (() -> Unit)? = null
@@ -25,6 +26,7 @@ class ReaderBottomBar(private val binding: LayoutReaderBottomBarBinding) {
         binding.btnPrevChapter.setOnClickListener { onPrevChapter?.invoke() }
         binding.btnNextChapter.setOnClickListener { onNextChapter?.invoke() }
         binding.btnChapters.setOnClickListener { onChaptersClick?.invoke() }
+        binding.btnSeries.setOnClickListener { onSeriesClick?.invoke() }
         binding.btnSettings.setOnClickListener { onSettingsClick?.invoke() }
         binding.btnThemeToggle.setOnClickListener { onThemeToggleClick?.invoke() }
         binding.btnSearch.setOnClickListener { onSearchClick?.invoke() }
@@ -60,6 +62,11 @@ class ReaderBottomBar(private val binding: LayoutReaderBottomBarBinding) {
         } else {
             binding.root.context.getString(ceui.lisa.R.string.reader_progress_format, currentPage + 1, totalPages)
         }
+    }
+
+    /** 当前小说有所属系列时调用 setSeriesVisible(true)，唤起 SeriesListSheet 切换其它单篇。 */
+    fun setSeriesVisible(visible: Boolean) {
+        binding.btnSeries.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     fun setDarkMode(dark: Boolean) {
