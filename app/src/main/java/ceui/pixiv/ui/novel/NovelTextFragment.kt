@@ -59,10 +59,13 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, textModel, ListMode.VERTICAL)
         binding.toolbarLayout.root.visibility = View.GONE
-        // 用户反馈：详情页背景图（模糊封面）干扰前景文字。改深灰纯色。
+        // 用户反馈：详情页背景图（模糊封面）干扰前景文字。改 v3_bg（白天/夜间自动适配）。
         binding.pageBackground.setBackgroundColor(
-            androidx.core.content.ContextCompat.getColor(requireContext(), R.color.novel_page_bg),
+            androidx.core.content.ContextCompat.getColor(requireContext(), R.color.v3_bg),
         )
+        // setUpRefreshState 会因为 FitsSystemWindowFragment 默认打开顶部黑色渐变，
+        // 在纯色背景下变成顶上一道脏黑带。详情页不需要，关掉。
+        binding.topShadow.isVisible = false
 
         val density = resources.displayMetrics.density
         binding.listView.clipToPadding = false

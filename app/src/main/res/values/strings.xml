@@ -1338,4 +1338,6 @@
     <string name="novel_chip_text_length">字数  %1$s</string>
     <string name="novel_chip_total_view">浏览  %1$s</string>
     <string name="novel_chip_total_bookmarks">收藏  %1$s</string>
+    <string name="novel_chip_novel_link">作品链接</string>
+    <string name="novel_chip_user_link">作者主页</string>
 </resources>

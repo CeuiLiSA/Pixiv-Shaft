@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -14,64 +16,64 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/publish_time"
+        <!--
+            用户反馈：作品详情页希望提供一组高密度可复制 chip。
+            原本散开的多行 publishTime / textLength / totalBookmarks / illustId / illustLink /
+            userId / userLink 全部合并到这里，每个 chip 点击复制对应字段。值缺失的 chip 自动隐藏。
+        -->
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/info_chips"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:textColor="@color/text00"
-            android:textSize="15sp" />
+            app:flexWrap="wrap">
 
-        <TextView
-            android:id="@+id/text_length"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:textColor="@color/text00"
-            android:textSize="15sp" />
+            <TextView
+                android:id="@+id/chip_novel_id"
+                style="@style/NovelInfoChip"
+                tools:text="作品ID  12345" />
 
-        <TextView
-            android:id="@+id/total_bookmarks"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:textColor="@color/text00"
-            android:textSize="15sp" />
+            <TextView
+                android:id="@+id/chip_author"
+                style="@style/NovelInfoChip"
+                tools:text="作者  Alice" />
 
-        <TextView
-            android:id="@+id/illust_id"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:text="@{`ID: ` + String.valueOf(novel.id)}"
-            android:textColor="@color/text00"
-            android:textSize="15sp" />
+            <TextView
+                android:id="@+id/chip_author_id"
+                style="@style/NovelInfoChip"
+                tools:text="作者ID  67890" />
 
-        <TextView
-            android:id="@+id/illust_link"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:textColor="@color/text00"
-            android:textSize="15sp" />
+            <TextView
+                android:id="@+id/chip_create_date"
+                style="@style/NovelInfoChip"
+                tools:text="发布  2024-01-15" />
 
-        <TextView
-            android:id="@+id/user_id"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:text="@{`UID: ` + String.valueOf(novel.user.id)}"
-            android:textColor="@color/text00"
-            android:textSize="15sp" />
+            <TextView
+                android:id="@+id/chip_text_length"
+                style="@style/NovelInfoChip"
+                tools:text="字数  5000" />
 
-        <TextView
-            android:id="@+id/user_link"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:textColor="@color/text00"
-            android:textSize="15sp" />
+            <TextView
+                android:id="@+id/chip_total_view"
+                style="@style/NovelInfoChip"
+                tools:text="浏览  1234" />
 
+            <TextView
+                android:id="@+id/chip_total_bookmarks"
+                style="@style/NovelInfoChip"
+                tools:text="收藏  234" />
+
+            <TextView
+                android:id="@+id/chip_novel_link"
+                style="@style/NovelInfoChip"
+                tools:text="作品链接" />
+
+            <TextView
+                android:id="@+id/chip_user_link"
+                style="@style/NovelInfoChip"
+                tools:text="作者主页" />
+
+        </com.google.android.flexbox.FlexboxLayout>
 
         <TextView
             android:id="@+id/caption"

@@ -70,9 +70,9 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
         val density = resources.displayMetrics.density
         binding.listView.clipToPadding = false
-        // 用户反馈：模糊封面图作为背景反而干扰前景文字阅读。改为深灰纯色。
+        // 用户反馈：模糊封面图作为背景反而干扰前景文字阅读。改为 v3_bg（白天/夜间自动适配）。
         binding.pageBackground.setBackgroundColor(
-            androidx.core.content.ContextCompat.getColor(requireContext(), R.color.novel_page_bg),
+            androidx.core.content.ContextCompat.getColor(requireContext(), R.color.v3_bg),
         )
         binding.toolbarLayout.root.visibility = View.GONE
 

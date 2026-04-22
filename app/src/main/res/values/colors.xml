@@ -30,7 +30,9 @@
     <color name="hito_bg">#000339</color>
     <color name="trans">#00eeeeee</color>
     <color name="tag_text_unselect">#737373</color>
-    <color name="novel_text_unselect">#F0F0F0</color>
+    <!-- 标签 chip 文字（未选中态）。原本两套都是 #F0F0F0，白天模式下白对白彻底看不见。
+         白天用深色，夜间保持浅色（在 values-night 里）。 -->
+    <color name="novel_text_unselect">#1F1F1F</color>
 
 
     <color name="rank_text_color">#2c333c</color>
@@ -206,8 +208,6 @@
 
     <!-- V3 Detail — Light Mode -->
     <color name="v3_bg">#FAFAFA</color>
-    <!-- 小说详情页 / 系列页背景：用户反馈模糊封面图干扰阅读，改为深灰纯色。 -->
-    <color name="novel_page_bg">#0F0F0F</color>
     <color name="v3_surface_1">#08000000</color>
     <color name="v3_surface_2">#0E000000</color>
     <color name="v3_surface_3">#14000000</color>
