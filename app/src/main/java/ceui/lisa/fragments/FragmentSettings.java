@@ -683,6 +683,16 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            // 下载内容信息头 —— 可视化勾选 / 拖拽排序小说 TXT 的元信息块
+            baseBind.novelHeaderRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说信息头");
+                    startActivity(intent);
+                }
+            });
+
             //按作者保存到单独文件夹
             baseBind.saveForSeparateAuthor.setText(UserFolderNameUtil.getCurrentStatusName());
             baseBind.saveForSeparateAuthor.setOnClickListener(new View.OnClickListener() {

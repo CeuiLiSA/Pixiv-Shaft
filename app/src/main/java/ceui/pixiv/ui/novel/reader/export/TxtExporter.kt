@@ -3,12 +3,15 @@ package ceui.pixiv.ui.novel.reader.export
 import android.content.Context
 import ceui.loxia.Novel
 import ceui.loxia.WebNovel
+import ceui.pixiv.download.header.HeaderConfigRepo
+import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 
 /**
  * Plain-text dump. Strips every tag, flattens images to `[图片]`, keeps chapter
- * headings as bracketed titles for scanability. No formatting, no metadata
- * bloat — just the raw narrative.
+ * headings as bracketed titles for scanability. The metadata header is now
+ * driven by the user's preset from "下载内容信息头设置" — the hardcoded
+ * title/author/source block that used to live here was replaced.
  */
 class TxtExporter : NovelExporter {
     override val format: ExportFormat = ExportFormat.Txt
@@ -21,26 +24,35 @@ class TxtExporter : NovelExporter {
         fileName: String,
     ): ExportResult {
         val text = buildString {
-            val title = novel?.title ?: webNovel.title.orEmpty()
-            if (title.isNotEmpty()) {
-                appendLine(title)
+            if (novel != null) {
+                append(
+                    NovelHeaderRenderer.render(
+                        novel = novel,
+                        preset = HeaderConfigRepo.activePreset(),
+                        isSeriesChapter = novel.series != null,
+                    )
+                )
+                appendLine()
+            } else {
+                // Fallback when we only have the web payload — keep the old
+                // minimal layout so the dump is still readable.
+                val title = webNovel.title.orEmpty()
+                if (title.isNotEmpty()) {
+                    appendLine(title)
+                    appendLine()
+                }
+                append("来源: https://www.pixiv.net/novel/show.php?id=")
+                appendLine(webNovel.id.orEmpty())
+                appendLine()
+                val caption = ExportUtils.brToNewline(webNovel.caption)
+                if (caption.isNotEmpty()) {
+                    appendLine("[简介]")
+                    appendLine(caption)
+                    appendLine()
+                }
+                appendLine("-----")
                 appendLine()
             }
-            val author = novel?.user?.name.orEmpty()
-            if (author.isNotEmpty()) {
-                appendLine("作者: $author")
-            }
-            append("来源: https://www.pixiv.net/novel/show.php?id=")
-            appendLine(novel?.id ?: webNovel.id.orEmpty())
-            appendLine()
-            val caption = ExportUtils.brToNewline(webNovel.caption)
-            if (caption.isNotEmpty()) {
-                appendLine("[简介]")
-                appendLine(caption)
-                appendLine()
-            }
-            appendLine("-----")
-            appendLine()
             for (token in tokens) {
                 when (token) {
                     is ContentToken.Paragraph -> {

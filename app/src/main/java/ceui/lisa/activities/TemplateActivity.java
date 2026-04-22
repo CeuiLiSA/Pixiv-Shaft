@@ -282,6 +282,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentFileName.newInstance();
                 case "下载路径与文件名":
                     return new ceui.pixiv.ui.settings.DownloadPathSettingsFragment();
+                case "小说信息头":
+                    return new ceui.pixiv.ui.settings.NovelHeaderSettingsFragment();
                 case "捐赠":
                     return FragmentDonate.newInstance();
                 case "关注者的小说":

@@ -1284,4 +1284,39 @@
     <string name="download_path_teach_tip_focus">先点一下某个 bucket 的模板输入框，再来点变量/条件/范例，才会插入到那里</string>
     <string name="download_path_preset_apply">套用</string>
     <string name="download_path_preset_preview_prefix">例：</string>
+
+    <!-- 下载内容信息头设置页 -->
+    <string name="novel_header_settings_title">下载内容信息头</string>
+    <string name="novel_header_settings_entry_desc">自定义 TXT 下载文件顶部写入的字段及顺序</string>
+    <string name="novel_header_section_presets">预设</string>
+    <string name="novel_header_section_fields">信息字段</string>
+    <string name="novel_header_section_preview">预览</string>
+    <string name="novel_header_fields_hint">勾选需要写入的字段，拖动右侧手柄可调整顺序。带「系列」标签的字段只在下载系列篇章时才会出现。</string>
+    <string name="novel_header_preview_standalone">单篇作品</string>
+    <string name="novel_header_preview_series">系列篇章</string>
+    <string name="novel_header_preset_new">新建</string>
+    <string name="novel_header_preset_rename">重命名</string>
+    <string name="novel_header_preset_delete">删除</string>
+    <string name="novel_header_preset_delete_confirm">确认删除预设「%1$s」？</string>
+    <string name="novel_header_preset_delete_last">至少保留一个预设</string>
+    <string name="novel_header_preset_name_hint">预设名称</string>
+    <string name="novel_header_preset_name_taken">名称已存在</string>
+    <string name="novel_header_preset_name_blank">名称不能为空</string>
+    <string name="novel_header_save">保存</string>
+    <string name="novel_header_saved">已保存</string>
+    <string name="novel_header_reset">恢复默认</string>
+    <string name="novel_header_reset_confirm">将清空所有自定义预设并恢复出厂默认模板，确认继续？</string>
+    <string name="novel_header_reset_done">已恢复默认</string>
+    <string name="novel_header_badge_series">系列</string>
+    <string name="novel_header_field_title">作品名称</string>
+    <string name="novel_header_field_author">作者昵称</string>
+    <string name="novel_header_field_author_id">作者ID</string>
+    <string name="novel_header_field_novel_id">作品ID</string>
+    <string name="novel_header_field_novel_link">作品链接</string>
+    <string name="novel_header_field_caption">作品简介</string>
+    <string name="novel_header_field_publish_time">发布时间</string>
+    <string name="novel_header_field_text_length">作品总字数</string>
+    <string name="novel_header_field_tags">作品标签/分类</string>
+    <string name="novel_header_field_series_title">系列总标题</string>
+    <string name="novel_header_field_series_index">系列中的序号</string>
 </resources>

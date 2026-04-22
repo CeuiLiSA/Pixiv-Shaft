@@ -7,6 +7,8 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
 import ceui.loxia.Novel
+import ceui.pixiv.download.header.HeaderConfigRepo
+import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.ui.common.getTxtFileIdInDownloads
 import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
 import ceui.pixiv.ui.works.buildPixivNovelFileName
@@ -105,18 +107,14 @@ class BatchDownloadNovelsTask(
             append("\n\n")
             append("<===== Shaft Novel Start =====>")
             append("\n\n")
-            append("标题：${novel.title}")
-            append("\n\n")
-            append("作者：${novel.user?.name}")
-            append("\n\n")
-            append("作者链接：https://www.pixiv.net/users/${novel.user?.id}")
-            append("\n\n")
-            append("小说链接：https://www.pixiv.net/novel/show.php?id=${novel.id}")
-            append("\n\n")
-            append("标签：${novel.tags?.map { it.name }?.joinToString(", ")}")
-            append("\n\n")
-            append("简介：${DownloadNovelTask.replaceBrWithNewLine(novel.caption)}")
-            append("\n\n")
+            append(
+                NovelHeaderRenderer.render(
+                    novel = novel,
+                    preset = HeaderConfigRepo.activePreset(),
+                    isSeriesChapter = novel.series != null,
+                )
+            )
+            append("\n")
             append("正文：")
             append("\n\n")
             append(DownloadNovelTask.replaceBrWithNewLine(wNovel.text))

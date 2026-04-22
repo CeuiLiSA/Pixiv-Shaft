@@ -6,6 +6,8 @@ import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.WebNovel
+import ceui.pixiv.download.header.HeaderConfigRepo
+import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.getTxtFileIdInDownloads
 import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
@@ -81,23 +83,15 @@ class DownloadNovelTask(
             stringBuffer.append("<===== Shaft Novel Start =====>")
             stringBuffer.append("\n\n")
 
-            stringBuffer.append("标题：${novel.title}")
-            stringBuffer.append("\n\n")
-
-            stringBuffer.append("作者：${novel.user?.name}")
-            stringBuffer.append("\n\n")
-
-            stringBuffer.append("作者链接：https://www.pixiv.net/users/${novel.user?.id}")
-            stringBuffer.append("\n\n")
-
-            stringBuffer.append("小说链接：https://www.pixiv.net/novel/show.php?id=${novel.id}")
-            stringBuffer.append("\n\n")
-
-            stringBuffer.append("标签：${novel.tags?.map { it.name }?.joinToString(", ")}") // 去除 HTML 标签
-            stringBuffer.append("\n\n")
-
-            stringBuffer.append("简介：${replaceBrWithNewLine(novel.caption)}") // 去除 HTML 标签
-            stringBuffer.append("\n\n")
+            // 用户自定义的信息头（设置 → 下载内容信息头设置）
+            stringBuffer.append(
+                NovelHeaderRenderer.render(
+                    novel = novel,
+                    preset = HeaderConfigRepo.activePreset(),
+                    isSeriesChapter = novel.series != null,
+                )
+            )
+            stringBuffer.append("\n")
 
             stringBuffer.append("正文：")
             stringBuffer.append("\n\n")
