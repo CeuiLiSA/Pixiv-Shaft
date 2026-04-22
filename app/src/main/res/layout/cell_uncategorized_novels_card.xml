@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <!--
+      Virtual "uncategorized novels" series card. Rendered only at position 0
+      of the author's novel list when there is at least one standalone novel
+      (no `series` field). Tapping it opens UncategorizedNovelsFragment which
+      shows all filtered novels with multi-select + batch download.
+    -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/card_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/bg_v3_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_baseline_menu_book_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:textColor="@color/v3_text_1"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:text="@string/uncategorized_novels_title"
+            app:layout_constraintEnd_toStartOf="@+id/chevron"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="@+id/icon" />
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/icon"
+            app:layout_constraintEnd_toStartOf="@+id/chevron"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toBottomOf="@+id/title"
+            tools:text="包含 12 篇独立单篇" />
+
+        <ImageView
+            android:id="@+id/chevron"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:alpha="0.5"
+            android:src="@drawable/ic_chevron_right_black_24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>
