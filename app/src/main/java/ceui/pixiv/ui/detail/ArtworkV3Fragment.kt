@@ -241,15 +241,46 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         baseBind.fabDownload.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
             val baseAct = mActivity as? ceui.lisa.activities.BaseActivity<*>
+            val resolution = Shaft.sSettings.defaultImageResolution.let {
+                if (it.isNullOrEmpty()) Params.IMAGE_RESOLUTION_ORIGINAL else it
+            }
             if (illust.page_count == 1) {
-                IllustDownload.downloadIllustFirstPage(illust, baseAct)
+                IllustDownload.downloadIllustFirstPageWithResolution(illust, resolution, baseAct)
             } else {
-                IllustDownload.downloadIllustAllPages(illust, baseAct)
+                IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution, baseAct)
             }
             updateDownloadState(illustId)
             if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
                 PixivOperate.postLikeDefaultStarType(illust)
             }
+        }
+        baseBind.fabDownload.setOnLongClickListener {
+            val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnLongClickListener true
+            val baseAct = mActivity as? ceui.lisa.activities.BaseActivity<*>
+            val resNames = arrayOf(
+                getString(R.string.resolution_original),
+                getString(R.string.resolution_large),
+                getString(R.string.resolution_medium),
+                getString(R.string.resolution_square_medium)
+            )
+            val resValues = arrayOf(
+                Params.IMAGE_RESOLUTION_ORIGINAL,
+                Params.IMAGE_RESOLUTION_LARGE,
+                Params.IMAGE_RESOLUTION_MEDIUM,
+                Params.IMAGE_RESOLUTION_SQUARE_MEDIUM
+            )
+            androidx.appcompat.app.AlertDialog.Builder(mContext)
+                .setItems(resNames) { dialog, which ->
+                    if (illust.page_count == 1) {
+                        IllustDownload.downloadIllustFirstPageWithResolution(illust, resValues[which], baseAct)
+                    } else {
+                        IllustDownload.downloadIllustAllPagesWithResolution(illust, resValues[which], baseAct)
+                    }
+                    updateDownloadState(illustId)
+                    dialog.dismiss()
+                }
+                .show()
+            true
         }
         updateDownloadState(illustId)
 

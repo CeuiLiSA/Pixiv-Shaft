@@ -702,4 +702,26 @@ public class Settings {
     public void setDefaultRembgModel(String defaultRembgModel) {
         this.defaultRembgModel = defaultRembgModel;
     }
+
+    // "" = 每次询问（弹出格式选择），否则存 ExportFormat 枚举名（Txt / Markdown / Epub / Pdf）
+    private String defaultNovelExportFormat = "";
+
+    public String getDefaultNovelExportFormat() {
+        return defaultNovelExportFormat == null ? "" : defaultNovelExportFormat;
+    }
+
+    public void setDefaultNovelExportFormat(String defaultNovelExportFormat) {
+        this.defaultNovelExportFormat = defaultNovelExportFormat;
+    }
+
+    // "" = 原图（当前默认行为），否则存 Params.IMAGE_RESOLUTION_* 值
+    private String defaultImageResolution = "";
+
+    public String getDefaultImageResolution() {
+        return defaultImageResolution == null ? "" : defaultImageResolution;
+    }
+
+    public void setDefaultImageResolution(String defaultImageResolution) {
+        this.defaultImageResolution = defaultImageResolution;
+    }
 }

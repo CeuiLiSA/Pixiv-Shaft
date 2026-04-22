@@ -1340,4 +1340,12 @@
     <string name="novel_chip_total_bookmarks">收藏  %1$s</string>
     <string name="novel_chip_novel_link">作品链接</string>
     <string name="novel_chip_user_link">作者主页</string>
+
+    <string name="setting_default_novel_format">默认小说下载格式</string>
+    <string name="setting_default_image_resolution">默认图片保存清晰度</string>
+    <string name="option_always_ask">每次询问</string>
+    <string name="resolution_original">原图 (Original)</string>
+    <string name="resolution_large">大图 (Large)</string>
+    <string name="resolution_medium">中图 (Medium)</string>
+    <string name="resolution_square_medium">小图 (Square Medium)</string>
 </resources>

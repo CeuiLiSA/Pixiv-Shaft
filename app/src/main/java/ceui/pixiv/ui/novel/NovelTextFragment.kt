@@ -34,6 +34,7 @@ import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.shareNovel
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.novel.reader.NovelTextCache
+import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
@@ -134,7 +135,17 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                 Common.copy(requireContext(), NOVEL_URL_HEAD + novelId)
             }
             topActions.btnExport.setOnClick {
+                val defaultFormat = Shaft.sSettings.defaultNovelExportFormat
+                val format = ExportFormat.entries.firstOrNull { it.name == defaultFormat }
+                if (format != null) {
+                    executeExport(format)
+                } else {
+                    showExportSheet()
+                }
+            }
+            topActions.btnExport.setOnLongClickListener {
                 showExportSheet()
+                true
             }
         }
 
@@ -150,38 +161,40 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
      */
     private fun showExportSheet() {
         ExportSheet().apply {
-            configure { format ->
-                ToastUtils.show(getString(R.string.msg_export_start, format.displayName))
-                viewLifecycleOwner.lifecycleScope.launch {
-                    val result = runCatching {
-                        val novel = ObjectPool.get<Novel>(novelId).value
-                            ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
-                        val cached = NovelTextCache.get(novelId)
-                        val web = cached?.webNovel ?: withContext(Dispatchers.IO) {
-                            val html = Client.appApi.getNovelText(novelId).string()
-                            ceui.lisa.fragments.WebNovelParser.parsePixivObject(html)?.novel
-                        } ?: error("invalid web novel")
-                        val tokens = cached?.tokens ?: withContext(Dispatchers.IO) {
-                            ContentParser.tokenize(web)
-                        }
-                        if (cached == null) {
-                            NovelTextCache.put(novelId, NovelTextCache.Entry(web, tokens))
-                        }
-                        NovelExportManager.export(
-                            context = requireContext().applicationContext,
-                            format = format,
-                            novel = novel,
-                            webNovel = web,
-                            tokens = tokens,
-                        )
-                    }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }
-                    when (result) {
-                        is ExportResult.Success -> ToastUtils.show(getString(R.string.msg_export_success, result.fileName))
-                        is ExportResult.Failure -> ToastUtils.show(getString(R.string.msg_export_fail, result.message))
-                    }
-                }
-            }
+            configure { format -> executeExport(format) }
         }.show(childFragmentManager, ExportSheet.TAG)
+    }
+
+    private fun executeExport(format: ExportFormat) {
+        ToastUtils.show(getString(R.string.msg_export_start, format.displayName))
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = runCatching {
+                val novel = ObjectPool.get<Novel>(novelId).value
+                    ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
+                val cached = NovelTextCache.get(novelId)
+                val web = cached?.webNovel ?: withContext(Dispatchers.IO) {
+                    val html = Client.appApi.getNovelText(novelId).string()
+                    ceui.lisa.fragments.WebNovelParser.parsePixivObject(html)?.novel
+                } ?: error("invalid web novel")
+                val tokens = cached?.tokens ?: withContext(Dispatchers.IO) {
+                    ContentParser.tokenize(web)
+                }
+                if (cached == null) {
+                    NovelTextCache.put(novelId, NovelTextCache.Entry(web, tokens))
+                }
+                NovelExportManager.export(
+                    context = requireContext().applicationContext,
+                    format = format,
+                    novel = novel,
+                    webNovel = web,
+                    tokens = tokens,
+                )
+            }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }
+            when (result) {
+                is ExportResult.Success -> ToastUtils.show(getString(R.string.msg_export_success, result.fileName))
+                is ExportResult.Failure -> ToastUtils.show(getString(R.string.msg_export_fail, result.message))
+            }
+        }
     }
 
     // Classic 分支没有 NavController，把所有 PixivFragment 里走 pushFragment 的

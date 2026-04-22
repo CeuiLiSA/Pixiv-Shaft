@@ -514,27 +514,35 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
                 Toast.makeText(requireContext(), getString(R.string.msg_bookmark_saved), Toast.LENGTH_SHORT).show()
             }
             item(getString(R.string.menu_export), R.drawable.ic_baseline_get_app_24) {
-                showExportSheet()
+                if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
+                    Toast.makeText(requireContext(), getString(R.string.msg_novel_not_ready), Toast.LENGTH_SHORT).show()
+                    return@item
+                }
+                val defaultFormat = Shaft.sSettings.defaultNovelExportFormat
+                val format = ExportFormat.entries.firstOrNull { it.name == defaultFormat }
+                if (format != null) {
+                    executeExport(format)
+                } else {
+                    showExportSheet()
+                }
             }
         }
     }
 
     private fun showExportSheet() {
-        if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
-            Toast.makeText(requireContext(), getString(R.string.msg_novel_not_ready), Toast.LENGTH_SHORT).show()
-            return
-        }
         ExportSheet().apply {
-            configure { format ->
-                Toast.makeText(requireContext(), getString(R.string.msg_export_start, format.displayName), Toast.LENGTH_SHORT).show()
-                viewLifecycleOwner.lifecycleScope.launch {
-                    when (val result = viewModel.exportNovel(format)) {
-                        is ExportResult.Success -> Toast.makeText(requireContext(), getString(R.string.msg_export_success, result.fileName), Toast.LENGTH_LONG).show()
-                        is ExportResult.Failure -> Toast.makeText(requireContext(), getString(R.string.msg_export_fail, result.message), Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
+            configure { format -> executeExport(format) }
         }.show(childFragmentManager, ExportSheet.TAG)
+    }
+
+    private fun executeExport(format: ExportFormat) {
+        Toast.makeText(requireContext(), getString(R.string.msg_export_start, format.displayName), Toast.LENGTH_SHORT).show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            when (val result = viewModel.exportNovel(format)) {
+                is ExportResult.Success -> Toast.makeText(requireContext(), getString(R.string.msg_export_success, result.fileName), Toast.LENGTH_LONG).show()
+                is ExportResult.Failure -> Toast.makeText(requireContext(), getString(R.string.msg_export_fail, result.message), Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun pickHighlightColor() {

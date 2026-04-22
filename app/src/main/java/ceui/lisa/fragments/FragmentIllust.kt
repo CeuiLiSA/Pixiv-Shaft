@@ -531,10 +531,13 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         baseBind.related.setChangeAlphaWhenPress(true)
         baseBind.comment.setChangeAlphaWhenPress(true)
         baseBind.download.setOnClick { v: View? ->
+            val resolution = Shaft.sSettings.defaultImageResolution.let {
+                if (it.isNullOrEmpty()) Params.IMAGE_RESOLUTION_ORIGINAL else it
+            }
             if (illust.page_count == 1) {
-                IllustDownload.downloadIllustFirstPage(illust, mContext as BaseActivity<*>)
+                IllustDownload.downloadIllustFirstPageWithResolution(illust, resolution, mContext as BaseActivity<*>)
             } else {
-                IllustDownload.downloadIllustAllPages(illust, mContext as BaseActivity<*>)
+                IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution, mContext as BaseActivity<*>)
             }
             checkDownload()
             if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {

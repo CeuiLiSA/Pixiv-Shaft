@@ -693,6 +693,93 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            // 默认小说下载格式
+            final String[] NOVEL_FORMAT_NAMES = new String[]{
+                    getString(R.string.option_always_ask),
+                    "纯文本 TXT", "Markdown", "EPUB 电子书", "PDF"
+            };
+            final String[] NOVEL_FORMAT_VALUES = new String[]{"", "Txt", "Markdown", "Epub", "Pdf"};
+            {
+                int idx = 0;
+                String cur = Shaft.sSettings.getDefaultNovelExportFormat();
+                for (int i = 0; i < NOVEL_FORMAT_VALUES.length; i++) {
+                    if (NOVEL_FORMAT_VALUES[i].equals(cur)) { idx = i; break; }
+                }
+                baseBind.defaultNovelFormat.setText(NOVEL_FORMAT_NAMES[idx]);
+            }
+            baseBind.defaultNovelFormatRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int checkedIdx = 0;
+                    String cur = Shaft.sSettings.getDefaultNovelExportFormat();
+                    for (int i = 0; i < NOVEL_FORMAT_VALUES.length; i++) {
+                        if (NOVEL_FORMAT_VALUES[i].equals(cur)) { checkedIdx = i; break; }
+                    }
+                    new QMUIDialog.CheckableDialogBuilder(mActivity)
+                            .setCheckedIndex(checkedIdx)
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(NOVEL_FORMAT_NAMES, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Shaft.sSettings.setDefaultNovelExportFormat(NOVEL_FORMAT_VALUES[which]);
+                                    baseBind.defaultNovelFormat.setText(NOVEL_FORMAT_NAMES[which]);
+                                    Local.setSettings(Shaft.sSettings);
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                }
+            });
+
+            // 默认图片保存清晰度
+            final String[] IMG_RES_NAMES = new String[]{
+                    getString(R.string.resolution_original),
+                    getString(R.string.resolution_large),
+                    getString(R.string.resolution_medium),
+                    getString(R.string.resolution_square_medium)
+            };
+            final String[] IMG_RES_VALUES = new String[]{
+                    Params.IMAGE_RESOLUTION_ORIGINAL,
+                    Params.IMAGE_RESOLUTION_LARGE,
+                    Params.IMAGE_RESOLUTION_MEDIUM,
+                    Params.IMAGE_RESOLUTION_SQUARE_MEDIUM
+            };
+            {
+                int idx = 0;
+                String cur = Shaft.sSettings.getDefaultImageResolution();
+                if (!cur.isEmpty()) {
+                    for (int i = 0; i < IMG_RES_VALUES.length; i++) {
+                        if (IMG_RES_VALUES[i].equals(cur)) { idx = i; break; }
+                    }
+                }
+                baseBind.defaultImageResolution.setText(IMG_RES_NAMES[idx]);
+            }
+            baseBind.defaultImageResolutionRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int checkedIdx = 0;
+                    String cur = Shaft.sSettings.getDefaultImageResolution();
+                    if (!cur.isEmpty()) {
+                        for (int i = 0; i < IMG_RES_VALUES.length; i++) {
+                            if (IMG_RES_VALUES[i].equals(cur)) { checkedIdx = i; break; }
+                        }
+                    }
+                    new QMUIDialog.CheckableDialogBuilder(mActivity)
+                            .setCheckedIndex(checkedIdx)
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(IMG_RES_NAMES, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Shaft.sSettings.setDefaultImageResolution(IMG_RES_VALUES[which]);
+                                    baseBind.defaultImageResolution.setText(IMG_RES_NAMES[which]);
+                                    Local.setSettings(Shaft.sSettings);
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                }
+            });
+
             //按作者保存到单独文件夹
             baseBind.saveForSeparateAuthor.setText(UserFolderNameUtil.getCurrentStatusName());
             baseBind.saveForSeparateAuthor.setOnClickListener(new View.OnClickListener() {
