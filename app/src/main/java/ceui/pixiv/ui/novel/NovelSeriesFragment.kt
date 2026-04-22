@@ -1,9 +1,23 @@
 package ceui.pixiv.ui.novel
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -19,8 +33,10 @@ import ceui.lisa.utils.V3Palette
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.pixiv.session.SessionManager
-import androidx.core.view.isVisible
+import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
+import ceui.pixiv.ui.common.NovelCardHolder
+import ceui.pixiv.ui.common.NovelCardViewHolder
 import ceui.pixiv.ui.common.NovelMultiSelectReceiver
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
@@ -37,19 +53,6 @@ import ceui.pixiv.utils.setOnClick
 import com.hjq.toast.ToastUtils
 import kotlinx.coroutines.launch
 import java.util.UUID
-import android.widget.TextView
-import android.widget.ImageView
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.view.Gravity
-import android.view.ViewGroup
-import android.graphics.drawable.GradientDrawable
-import android.graphics.Color
-import android.graphics.Typeface
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 
 class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMultiSelectReceiver {
 
@@ -101,9 +104,17 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
         // / display cutout, so both the floating multi-select toggle and the
         // list's first holder need to clear systemBars.top. The list also
         // needs extra room for the 44dp toggle + 8dp margin overlay.
+        // Remove the toolbar's insets listener first — setUpToolbar sets one
+        // on binding.toolbarLayout.root that calls content.updatePadding(0,0,0,bottom),
+        // resetting our top padding to 0. The toolbar is GONE anyway.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbarLayout.root, null)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.listView.updatePadding(top = bars.top + (56 * density).toInt())
+            binding.listView.updatePadding(
+                top = bars.top + (56 * density).toInt(),
+                bottom = bars.bottom + (72 * density).toInt()
+            )
+            binding.bottomCovered.updatePadding(bottom = bars.bottom)
             topToggleBtn?.let { tb ->
                 val lp = tb.layoutParams as ConstraintLayout.LayoutParams
                 lp.topMargin = bars.top + (8 * density).toInt()
@@ -113,12 +124,10 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
         }
         ViewCompat.requestApplyInsets(binding.root)
 
-        // Observe multi-select state: swap bottom UI + re-render all cards
-        // so the checkbox visibility / selection flips update in place.
+        // Observe multi-select state: swap bottom UI. Card checkbox/click
         viewModel.isMultiSelect.observe(viewLifecycleOwner) { enabled ->
             applyMultiSelectVisibility(enabled)
-            // Refresh holders so NovelCardViewHolder re-queries the receiver.
-            binding.listView.adapter?.notifyDataSetChanged()
+            refreshVisibleCards()
         }
         viewModel.selectedIds.observe(viewLifecycleOwner) { selected ->
             val count = selected.size
@@ -128,7 +137,7 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
             multiSelectSelectAllBtn?.text = getString(
                 if (allSelected) R.string.deselect_all else R.string.select_all
             )
-            binding.listView.adapter?.notifyDataSetChanged()
+            refreshVisibleCards()
         }
     }
 
@@ -270,6 +279,23 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
             } else {
                 tb.setImageResource(R.drawable.ic_checkbox_off)
                 tb.setColorFilter(palette.textTag)
+            }
+        }
+    }
+
+    private fun refreshVisibleCards() {
+        val rv = binding.listView
+        val adapter = rv.adapter as? CommonAdapter ?: return
+        for (i in 0 until rv.childCount) {
+            val vh = rv.getChildViewHolder(rv.getChildAt(i))
+            if (vh is NovelCardViewHolder) {
+                val pos = vh.bindingAdapterPosition
+                if (pos in 0 until adapter.itemCount) {
+                    val item = adapter.currentList[pos]
+                    if (item is NovelCardHolder) {
+                        vh.applyMultiSelectState(item, this)
+                    }
+                }
             }
         }
     }

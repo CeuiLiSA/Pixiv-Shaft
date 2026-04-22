@@ -90,10 +90,14 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         // / display cutout, so both the floating top-action overlay and the
         // list's first holder need to clear systemBars.top. The list also
         // needs extra room for the 4-icon overlay (8dp margin + 40dp icon).
+        // Remove the toolbar's insets listener first — setUpToolbar sets one
+        // on binding.toolbarLayout.root that calls content.updatePadding(0,0,0,bottom),
+        // resetting our top padding to 0. The toolbar is GONE anyway.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbarLayout.root, null)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             topActions.root.updatePadding(top = bars.top)
-            binding.listView.updatePadding(top = bars.top + (56 * density).toInt())
+            binding.listView.updatePadding(top = bars.top + (56 * density).toInt(), bottom = bars.bottom)
             insets
         }
         ViewCompat.requestApplyInsets(binding.root)

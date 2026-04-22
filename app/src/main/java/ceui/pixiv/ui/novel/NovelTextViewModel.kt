@@ -47,7 +47,6 @@ class NovelTextViewModel(
         }
 
         val result = mutableListOf<ListItemHolder>()
-        result.add(SpaceHolder())
         result.add(NovelHeaderHolder(novelId))
         result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
         result.add(UserInfoHolder(ObjectPool.get<ceui.loxia.Novel>(novelId).value?.user?.id ?: 0L))
