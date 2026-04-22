@@ -10,27 +10,16 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <net.csdn.roundview.RoundImageView
-            android:id="@+id/novel_cover"
-            loadMedia="@{novel.image_urls.findMaxSizeUrl()}"
-            android:layout_width="130dp"
-            android:layout_height="0dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintDimensionRatio="240:338"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:rRadius="4dp" />
+        android:layout_height="wrap_content"
+        android:paddingTop="12dp">
 
         <TextView
             android:id="@+id/title"
-            app:layout_constraintTop_toBottomOf="@+id/novel_cover"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/series_name"
-            android:layout_marginTop="16dp"
             app:layout_constraintEnd_toStartOf="@+id/bookmark"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:text="@{novel.title}"
             android:textStyle="bold"
             android:textColor="@color/text00"
@@ -55,7 +44,7 @@
             app:layout_constraintTop_toBottomOf="@+id/title"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             android:textSize="14sp"
             android:text="@{`系列：` + novel.series.title}"

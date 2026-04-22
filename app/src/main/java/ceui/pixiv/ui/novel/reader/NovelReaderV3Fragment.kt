@@ -652,19 +652,76 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     private fun jumpChapter(forward: Boolean) {
         val outline = viewModel.getChapterOutline()
-        if (outline.isEmpty()) {
-            if (forward) readerView?.flipForward() else readerView?.flipBackward()
-            return
+        if (outline.isNotEmpty()) {
+            val currentChar = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.currentCharIndex()
+                ?: viewModel.pagination.value?.pages?.getOrNull(readerView?.currentPageIndex() ?: 0)?.charStart
+            if (currentChar != null) {
+                val target = if (forward) outline.firstOrNull { it.sourceStart > currentChar }
+                else outline.lastOrNull { it.sourceStart < currentChar } ?: outline.firstOrNull()
+                if (target != null) {
+                    navigateToCharIndex(target.sourceStart, animate = true)
+                    return
+                }
+            }
         }
-        val currentChar = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.currentCharIndex()
-            ?: viewModel.pagination.value?.pages?.getOrNull(readerView?.currentPageIndex() ?: 0)?.charStart
-            ?: return
-        val target = if (forward) outline.firstOrNull { it.sourceStart > currentChar } else (outline.lastOrNull { it.sourceStart < currentChar } ?: outline.firstOrNull())
-        if (target != null) {
-            navigateToCharIndex(target.sourceStart, animate = true)
-        } else {
-            Toast.makeText(requireContext(), if (forward) getString(R.string.msg_last_chapter) else getString(R.string.msg_first_chapter), Toast.LENGTH_SHORT).show()
+        // outline 没命中：要么整本没 [chapter:] 标记，要么已经到本卷首尾——
+        // 若属于同一系列，切换到上/下一篇。
+        if (!tryJumpSeriesNeighbor(forward)) {
+            if (outline.isEmpty()) {
+                if (forward) readerView?.flipForward() else readerView?.flipBackward()
+            } else {
+                Toast.makeText(requireContext(), if (forward) getString(R.string.msg_last_chapter) else getString(R.string.msg_first_chapter), Toast.LENGTH_SHORT).show()
+            }
         }
+    }
+
+    /**
+     * 系列作品的单篇切换——在没有章节 outline 或 outline 已走到头时接力。
+     * 拉全系列列表（<=5 页 / 150 篇上限防失控），找当前位置，跳到邻居。
+     * 返回 true 表示已发起跳转（已启动新 activity），调用方不要再 toast。
+     */
+    private fun tryJumpSeriesNeighbor(forward: Boolean): Boolean {
+        val novelId = resolveNovelId()
+        if (novelId == 0L) return false
+        val seriesId = ObjectPool.get<Novel>(novelId).value?.series?.id ?: return false
+        viewLifecycleOwner.lifecycleScope.launch {
+            val neighbor = runCatching {
+                val all = mutableListOf<Novel>()
+                var lastOrder: Int? = null
+                for (i in 0 until 5) {
+                    val resp = Client.appApi.getNovelSeries(seriesId, lastOrder)
+                    resp.novels?.let { all.addAll(it) }
+                    if (resp.next_url == null) break
+                    lastOrder = all.size
+                }
+                val idx = all.indexOfFirst { it.id == novelId }
+                if (idx < 0) return@runCatching null
+                if (forward) all.getOrNull(idx + 1) else all.getOrNull(idx - 1)
+            }.getOrNull()
+            if (neighbor == null) {
+                Toast.makeText(
+                    requireContext(),
+                    if (forward) getString(R.string.msg_last_chapter) else getString(R.string.msg_first_chapter),
+                    Toast.LENGTH_SHORT,
+                ).show()
+                return@launch
+            }
+            Toast.makeText(
+                requireContext(),
+                getString(
+                    if (forward) R.string.msg_jump_next_in_series else R.string.msg_jump_prev_in_series,
+                    neighbor.title.orEmpty(),
+                ),
+                Toast.LENGTH_SHORT,
+            ).show()
+            val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+                putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+                putExtra(Params.NOVEL_ID, neighbor.id)
+            }
+            startActivity(intent)
+            activity?.finish()
+        }
+        return true
     }
 
     // ---- Selection actions --------------------------------------------------

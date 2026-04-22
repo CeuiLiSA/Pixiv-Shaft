@@ -17,6 +17,7 @@ import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.pixiv.session.SessionManager
+import androidx.core.view.isVisible
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
@@ -32,6 +33,12 @@ import ceui.pixiv.widgets.MenuItem
 import ceui.pixiv.widgets.showActionMenu
 import kotlinx.coroutines.launch
 import java.util.UUID
+import android.widget.TextView
+import android.widget.FrameLayout
+import android.view.Gravity
+import android.view.ViewGroup
+import android.graphics.drawable.GradientDrawable
+import android.graphics.Color
 
 class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -60,21 +67,46 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             }
         }
         binding.toolbarLayout.root.visibility = View.GONE
-        binding.toolbarLayout.naviTitle.text = getString(R.string.novel_series)
-        binding.toolbarLayout.naviMore.setOnClick {
-            showActionMenu {
-                add(
-                    MenuItem(getString(R.string.download_all_artworks)) {
-                        FetchAllTask(
-                            requireActivity(),
-                            taskFullName = "下载系列小说全部作品-${seriesId}",
-                            PixivTaskType.DownloadSeriesNovels,
-                        ) {
-                            Client.appApi.getNovelSeries(seriesId)
-                        }
-                    }
-                )
+
+        // 醒目的合集下载按钮——老版本放在 toolbarLayout 的 more 菜单里，但 toolbarLayout
+        // 被整体 GONE 了，用户根本看不到入口。挂到 bottomCovered 里做成一个 fab-ish 的
+        // 条状按钮，所有系列页都能一眼看到。
+        addDownloadAllButton()
+    }
+
+    private fun addDownloadAllButton() {
+        val density = resources.displayMetrics.density
+        val btn = TextView(requireContext()).apply {
+            text = getString(R.string.download_all_artworks)
+            setTextColor(Color.WHITE)
+            textSize = 15f
+            gravity = Gravity.CENTER
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 28 * density
+                setColor(0xFF2196F3.toInt())
             }
+            elevation = 4 * density
+            val h = (48 * density).toInt()
+            val mx = (20 * density).toInt()
+            val my = (12 * density).toInt()
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, h,
+            ).apply { setMargins(mx, my, mx, my) }
+            setOnClick { launchDownloadAll() }
+        }
+        binding.bottomCovered.isVisible = true
+        binding.bottomCovered.addView(btn)
+    }
+
+    private fun launchDownloadAll() {
+        FetchAllTask(
+            requireActivity(),
+            taskFullName = "下载系列小说全部作品-${seriesId}",
+            PixivTaskType.DownloadSeriesNovels,
+        ) {
+            Client.appApi.getNovelSeries(seriesId)
         }
     }
 

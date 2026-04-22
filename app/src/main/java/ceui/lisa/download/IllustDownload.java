@@ -221,7 +221,7 @@ public class IllustDownload {
 
     public static String getNovelText( String title , NovelBean novelBean, NovelDetail novelDetail) {
         String content = title +"\n\n"+
-                "RawTitle:"+novelBean.getTitle().replaceAll("([第（(章卷篇幕回节册季话集])", "$1'")+"\n"+
+                "RawTitle:"+novelBean.getTitle()+"\n"+
                 "Date:"+novelBean.getCreate_date().substring(0, 10)+" "+ "Length:"+novelBean.getText_length()+"\n"+
                 "Name:"+novelBean.getUser().getName()+"(https://www.pixiv.net/users/"+novelBean.getUser().getId()+ ")\n" +
                 "Source:"+"https://www.pixiv.net/novel/show.php?id="+novelBean.getId()+"\n"+

@@ -43,7 +43,12 @@ class NovelCaptionViewHolder(bd: CellNovelCaptionBinding) : ListItemViewHolder<C
         val liveNovel = ObjectPool.get<Novel>(holder.novelId)
         binding.novel = liveNovel
         liveNovel.observe(lifecycleOwner) { novel ->
-            if (novel.caption?.isNotEmpty() == true) {
+            val rawCaption = novel.caption.orEmpty()
+            val hasCaption = rawCaption.isNotEmpty()
+            // Pixiv 的 caption 里 `\n` 和 `<br>` 经常混用，HtmlCompat 只认后者，
+            // 不转就会把几十段挤成一段（issue 里系列详情的投诉，普通详情页同源同修）。
+            val normalizedCaption = rawCaption.replace("\r\n", "\n").replace("\n", "<br/>")
+            if (hasCaption) {
                 binding.caption.isVisible = true
                 // 启用链接点击处理
                 // 设置自定义的 MovementMethod
@@ -61,10 +66,17 @@ class NovelCaptionViewHolder(bd: CellNovelCaptionBinding) : ListItemViewHolder<C
                     Timber.d("sdasdwq2 ${info}")
                 }
                 Timber.d("novelCaption: ${novel.caption}")
-                binding.caption.text = HtmlCompat.fromHtml(novel.caption, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                binding.caption.text = HtmlCompat.fromHtml(normalizedCaption, HtmlCompat.FROM_HTML_MODE_COMPACT)
             } else {
                 binding.caption.isVisible = false
             }
+            binding.copyCaption.isVisible = hasCaption
+            binding.copyCaption.setOnClick {
+                val plain = HtmlCompat.fromHtml(normalizedCaption, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                    .toString().trim()
+                Common.copy(context, plain)
+            }
+
             binding.illustLink.text =
                 context.getString(R.string.artwork_link, NOVEL_URL_HEAD + novel.id)
             binding.illustLink.setOnClick {
@@ -84,6 +96,18 @@ class NovelCaptionViewHolder(bd: CellNovelCaptionBinding) : ListItemViewHolder<C
                 R.string.published_on,
                 DateParse.getTimeAgo(context, novel.create_date)
             )
+
+            val words = novel.text_length ?: 0
+            binding.textLength.text = context.getString(R.string.novel_text_length, words)
+            binding.textLength.setOnClick {
+                Common.copy(context, words.toString())
+            }
+
+            val bookmarks = novel.total_bookmarks ?: 0
+            binding.totalBookmarks.text = context.getString(R.string.novel_total_bookmarks, bookmarks)
+            binding.totalBookmarks.setOnClick {
+                Common.copy(context, bookmarks.toString())
+            }
         }
         binding.illustId.setOnClick {
             Common.copy(context, holder.novelId.toString())

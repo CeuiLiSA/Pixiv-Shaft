@@ -11,7 +11,6 @@ import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.Series
 import ceui.loxia.findActionReceiverOrNull
-import ceui.pixiv.ui.common.ImageUrlViewer
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.NovelActionReceiver
@@ -40,11 +39,6 @@ class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<Cel
             val novel = liveNovel.value ?: return@setOnLongClickListener false
             openTagBookmarkForNovel(sender, novel)
             true
-        }
-        binding.novelCover.setOnClick { sender ->
-            liveNovel.value?.image_urls?.findMaxSizeUrl()?.let { url ->
-                ImageUrlViewer.open(sender.context, url, "novel_${holder.novelId}_cover")
-            }
         }
         binding.seriesName.setOnClick { sender ->
             liveNovel.value?.series?.let { series ->

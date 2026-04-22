@@ -47,7 +47,7 @@
                 android:id="@+id/user_info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@{`@` + user.account}"
+                android:text="@{`@` + user.account + `  ·  UID ` + user.id}"
                 android:textColor="@color/text20"
                 android:textSize="13sp" />
         </LinearLayout>

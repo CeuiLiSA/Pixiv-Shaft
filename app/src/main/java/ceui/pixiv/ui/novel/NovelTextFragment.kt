@@ -1,7 +1,6 @@
 package ceui.pixiv.ui.novel
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
@@ -17,26 +16,30 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.ItemBigReadButtonBinding
 import ceui.lisa.databinding.LayoutNovelTopActionsBinding
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.combineLatest
-import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.FitsSystemWindowFragment
 import ceui.pixiv.ui.common.ListMode
+import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
-import ceui.pixiv.ui.common.createResponseStore
-import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.shareNovel
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.task.DownloadNovelTask
-import ceui.pixiv.ui.works.blurBackground
+import ceui.pixiv.ui.novel.reader.NovelTextCache
+import ceui.pixiv.ui.novel.reader.export.ExportResult
+import ceui.pixiv.ui.novel.reader.export.NovelExportManager
+import ceui.pixiv.ui.novel.reader.paginate.ContentParser
+import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.ui.detail.showV3Menu
+import com.hjq.toast.ToastUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 
@@ -45,15 +48,6 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val novelId: Long by lazy { arguments?.getLong(Params.NOVEL_ID, 0L) ?: 0L }
-    private val bgViewModel by pixivValueViewModel(
-        dataFetcher = {
-            Client.appApi.getUserBookmarkedIllusts(
-                SessionManager.loggedInUid,
-                Params.TYPE_PUBLIC
-            )
-        },
-        responseStore = createResponseStore({ "user-${SessionManager.loggedInUid}-bookmarked-illusts" })
-    )
     private val textModel by constructVM({ novelId }) { id ->
         NovelTextViewModel(id)
     }
@@ -61,18 +55,6 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, textModel, ListMode.VERTICAL)
-        // 只有夜间模式才铺模糊底图+黑色遮罩。白天模式铺深色底会让文本（text00 此时是黑色）
-        // 落在模糊图上对比度极差，直接保留 activity 的 windowBackground 即可。
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-            Configuration.UI_MODE_NIGHT_YES
-        if (isNight) {
-            bgViewModel.result.observe(viewLifecycleOwner) { resp ->
-                resp.displayList.getOrNull(novelId.mod(10))?.let {
-                    ObjectPool.update(it)
-                    blurBackground(binding, it.id)
-                }
-            }
-        }
         binding.toolbarLayout.root.visibility = View.GONE
 
         val bottomView = ItemBigReadButtonBinding.inflate(layoutInflater)
@@ -122,23 +104,65 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
             topActions.btnShare.setOnClick {
                 if (novel != null) shareNovel(novel)
             }
-            topActions.btnMore.setOnClick {
-                if (novel == null) return@setOnClick
-                showV3Menu {
-                    item(getString(R.string.view_comments), R.drawable.ic_baseline_comment_24) {
-                        val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-                            putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
-                            putExtra(Params.NOVEL_ID, novelId.toInt())
-                        }
-                        startActivity(intent)
-                    }
-                    item(getString(R.string.menu_copy_link), R.drawable.ic_baseline_launch_24) {
-                        ceui.lisa.utils.Common.copy(requireContext(), ceui.pixiv.ui.common.NOVEL_URL_HEAD + novelId)
-                    }
+            topActions.btnComments.setOnClick {
+                val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                    putExtra(Params.NOVEL_ID, novelId.toInt())
                 }
+                startActivity(intent)
+            }
+            topActions.btnCopyLink.setOnClick {
+                Common.copy(requireContext(), NOVEL_URL_HEAD + novelId)
+            }
+            topActions.btnExport.setOnClick {
+                showExportSheet()
             }
         }
 
+    }
+
+    /**
+     * 详情页外置的导出入口（issue #842 提案）——避免用户为了导出 TXT/MD/EPUB/PDF
+     * 还得先进入正文页点「更多→导出」。
+     *
+     * 数据来源优先级：
+     * 1. [NovelTextCache]（[NovelTextViewModel] 初始化时会后台预热）
+     * 2. 未命中就现拉 novel 接口 + novel_text + tokenize 一次
+     */
+    private fun showExportSheet() {
+        ExportSheet().apply {
+            configure { format ->
+                ToastUtils.show(getString(R.string.msg_export_start, format.displayName))
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val result = runCatching {
+                        val novel = ObjectPool.get<Novel>(novelId).value
+                            ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
+                        val cached = NovelTextCache.get(novelId)
+                        val web = cached?.webNovel ?: withContext(Dispatchers.IO) {
+                            val html = Client.appApi.getNovelText(novelId).string()
+                            ceui.lisa.fragments.WebNovelParser.parsePixivObject(html)?.novel
+                        } ?: error("invalid web novel")
+                        val tokens = cached?.tokens ?: withContext(Dispatchers.IO) {
+                            ContentParser.tokenize(web)
+                        }
+                        if (cached == null) {
+                            NovelTextCache.put(novelId, NovelTextCache.Entry(web, tokens))
+                        }
+                        NovelExportManager.export(
+                            context = requireContext().applicationContext,
+                            format = format,
+                            novel = novel,
+                            webNovel = web,
+                            tokens = tokens,
+                        )
+                    }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }
+                    when (result) {
+                        is ExportResult.Success -> ToastUtils.show(getString(R.string.msg_export_success, result.fileName))
+                        is ExportResult.Failure -> ToastUtils.show(getString(R.string.msg_export_fail, result.message))
+                    }
+                }
+            }
+        }.show(childFragmentManager, ExportSheet.TAG)
     }
 
     // Classic 分支没有 NavController，把所有 PixivFragment 里走 pushFragment 的

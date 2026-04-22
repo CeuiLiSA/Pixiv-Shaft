@@ -17,13 +17,43 @@
         <TextView
             android:id="@+id/caption"
             android:textSize="15sp"
+            android:layout_marginBottom="8dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/copy_caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="@string/copy_caption"
+            android:textColor="@color/buttonTextGreen"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/publish_time"
+            android:textSize="15sp"
             android:layout_marginBottom="12dp"
             android:layout_width="match_parent"
             android:textColor="@color/text00"
             android:layout_height="wrap_content"/>
 
         <TextView
-            android:id="@+id/publish_time"
+            android:id="@+id/text_length"
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:textColor="@color/text00"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/total_bookmarks"
             android:textSize="15sp"
             android:layout_marginBottom="12dp"
             android:layout_width="match_parent"
