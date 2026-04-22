@@ -118,10 +118,14 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     )
 
     private val PRESETS = listOf(
-        PresetInfo(ConfigPresets.Id.ShaftClassic, R.string.download_path_preset_classic),
-        PresetInfo(ConfigPresets.Id.Flat,         R.string.download_path_preset_flat),
-        PresetInfo(ConfigPresets.Id.ByDate,       R.string.download_path_preset_by_date),
-        PresetInfo(ConfigPresets.Id.ByAuthor,     R.string.download_path_preset_by_author),
+        PresetInfo(ConfigPresets.Id.ShaftClassic,    R.string.download_path_preset_classic),
+        PresetInfo(ConfigPresets.Id.Modern,          R.string.download_path_preset_modern),
+        PresetInfo(ConfigPresets.Id.Flat,            R.string.download_path_preset_flat),
+        PresetInfo(ConfigPresets.Id.ByDate,          R.string.download_path_preset_by_date),
+        PresetInfo(ConfigPresets.Id.ByAuthor,        R.string.download_path_preset_by_author),
+        PresetInfo(ConfigPresets.Id.ByAuthorAndDate, R.string.download_path_preset_by_author_and_date),
+        PresetInfo(ConfigPresets.Id.Minimal,         R.string.download_path_preset_minimal),
+        PresetInfo(ConfigPresets.Id.RFilter,         R.string.download_path_preset_r_filter),
     )
 
     private fun addPresetCards(root: LinearLayout) {

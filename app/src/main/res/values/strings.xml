@@ -1199,10 +1199,14 @@
     <string name="download_path_title">下载路径 / 文件名</string>
     <string name="download_path_entry_desc">自定义不同类型作品的保存位置与文件名模板</string>
     <string name="download_path_presets_title">快捷预设</string>
-    <string name="download_path_preset_classic">Shaft 经典</string>
+    <string name="download_path_preset_classic">Shaft 经典（兼容 4.5.8 之前）</string>
+    <string name="download_path_preset_modern">Shaft 现代（R18/AI 嵌套）</string>
     <string name="download_path_preset_flat">扁平（不按作者）</string>
     <string name="download_path_preset_by_date">按日期分组</string>
     <string name="download_path_preset_by_author">按作者分组</string>
+    <string name="download_path_preset_by_author_and_date">按作者 + 年月分组</string>
+    <string name="download_path_preset_minimal">极简（只用 ID）</string>
+    <string name="download_path_preset_r_filter">R18 / AI 强制分桶</string>
     <string name="download_path_label_template">文件名模板</string>
     <string name="download_path_label_preview">实时预览</string>
     <string name="download_path_btn_save">保存</string>
