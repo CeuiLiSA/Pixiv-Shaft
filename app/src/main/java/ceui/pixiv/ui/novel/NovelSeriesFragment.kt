@@ -287,6 +287,10 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
             activity = requireActivity(),
             novels = novels,
             onFinished = { failures -> onBatchDownloadFinished(failures) },
+            // novels 列表沿用了 NovelSeriesViewModel 从 /v2/novel/series 拉到的顺序
+            // （= 作者在 Pixiv 上设定的系列顺序），下载时把 1-based 位置交给信息头
+            // 渲染器，issue #710 里章节序号对不上的问题用「在系列中第 X 章」消除歧义。
+            orderIsSeriesPosition = true,
         )
     }
 

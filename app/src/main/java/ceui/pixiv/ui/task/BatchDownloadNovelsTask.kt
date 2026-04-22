@@ -44,6 +44,18 @@ class BatchDownloadNovelsTask(
     private val novels: List<Novel>,
     private val onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
     private val onFinished: (failures: List<FailedNovel>) -> Unit,
+    /**
+     * 当 [novels] 是「同一个系列的章节按系列顺序」（NovelSeriesFragment 走的就是
+     * 这条路径）时设为 true，下载时把 1-based 位置 + 总数交给 [NovelHeaderRenderer]，
+     * 用户在「信息头设置」勾选「本篇在系列中的序号」就能看到「第 X 章 / 共 Y 章」。
+     *
+     * 「未归类作品」之类不是同一系列的批量场景保持 false（默认），
+     * 这种情况下 NovelHeaderRenderer 自身也会因为 isSeriesChapter=false 而跳过该字段。
+     *
+     * 修复 issue #710：作者在 Pixiv 上手工重排过章节后，正文里写死的 `[chapter:N]`
+     * 标签序号会和系列顺序对不上；启用本字段后用户能看到无歧义的位置。
+     */
+    private val orderIsSeriesPosition: Boolean = false,
 ) {
 
     init {
@@ -65,7 +77,7 @@ class BatchDownloadNovelsTask(
                 val done = index + 1
                 try {
                     withContext(Dispatchers.IO) {
-                        downloadOne(novel)
+                        downloadOne(novel, seriesIndex = if (orderIsSeriesPosition) done else null)
                     }
                 } catch (ex: Exception) {
                     Timber.e(ex, "BatchDownloadNovelsTask: failed on ${novel.id} (${novel.title})")
@@ -88,7 +100,7 @@ class BatchDownloadNovelsTask(
      * progress UI here — we drive the batch UI ourselves). Any exception
      * bubbles up and becomes a [FailedNovel].
      */
-    private suspend fun downloadOne(novel: Novel) {
+    private suspend fun downloadOne(novel: Novel, seriesIndex: Int?) {
         val ctx = Shaft.getContext()
         val fileName = buildPixivNovelFileName(novel)
 
@@ -112,6 +124,8 @@ class BatchDownloadNovelsTask(
                     novel = novel,
                     preset = HeaderConfigRepo.activePreset(),
                     isSeriesChapter = novel.series != null,
+                    seriesIndex = seriesIndex,
+                    seriesTotal = if (seriesIndex != null) novels.size else null,
                 )
             )
             append("\n")
