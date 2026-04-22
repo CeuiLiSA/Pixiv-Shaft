@@ -47,6 +47,9 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.Color
 import android.graphics.Typeface
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 
 class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMultiSelectReceiver {
 
@@ -77,20 +80,8 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
-        // toolbarLayout 被 GONE 了，没东西撑住 status bar；顶部又悬浮了多选切换按钮
-        // (44dp + statusBar + 8dp marginTop)，所以列表首个 holder 要下移
-        // `statusBar + 56dp` 才不会和切换按钮叠在一起。clipToPadding=false 让滚动
-        // 时内容还能画进 padding 区域。
         val density = resources.displayMetrics.density
-        val statusBarH = com.blankj.utilcode.util.BarUtils.getStatusBarHeight()
-        val topInset = statusBarH + (56 * density).toInt()
         binding.listView.clipToPadding = false
-        binding.listView.setPadding(
-            binding.listView.paddingLeft,
-            binding.listView.paddingTop + topInset,
-            binding.listView.paddingRight,
-            binding.listView.paddingBottom,
-        )
         bgViewModel.result.observe(viewLifecycleOwner) { resp ->
             resp.displayList.getOrNull(seriesId.mod(10))?.let {
                 ObjectPool.update(it)
@@ -105,6 +96,22 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
         addDownloadAllButton()
         addMultiSelectActionBar()
         addMultiSelectTopToggle()
+
+        // Edge-to-edge safe area: TemplateActivity draws behind the status bar
+        // / display cutout, so both the floating multi-select toggle and the
+        // list's first holder need to clear systemBars.top. The list also
+        // needs extra room for the 44dp toggle + 8dp margin overlay.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.listView.updatePadding(top = bars.top + (56 * density).toInt())
+            topToggleBtn?.let { tb ->
+                val lp = tb.layoutParams as ConstraintLayout.LayoutParams
+                lp.topMargin = bars.top + (8 * density).toInt()
+                tb.layoutParams = lp
+            }
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.root)
 
         // Observe multi-select state: swap bottom UI + re-render all cards
         // so the checkbox visibility / selection flips update in place.
@@ -236,13 +243,12 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
                 val now = viewModel.isMultiSelect.value == true
                 viewModel.setMultiSelectMode(!now)
             }
-            // Anchor top-end, with a top margin large enough to clear the
-            // status bar when TemplateActivity draws behind it.
-            val statusBarH = com.blankj.utilcode.util.BarUtils.getStatusBarHeight()
+            // Anchor top-end; topMargin is updated via the root WindowInsets
+            // listener in onViewCreated so it matches safe-area / cutout.
             val lp = ConstraintLayout.LayoutParams(size, size).apply {
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
                 endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                topMargin = statusBarH + (8 * density).toInt()
+                topMargin = (8 * density).toInt()
                 marginEnd = (12 * density).toInt()
             }
             layoutParams = lp

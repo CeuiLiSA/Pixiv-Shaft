@@ -3,7 +3,10 @@ package ceui.pixiv.ui.novel
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -57,19 +60,8 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         setUpRefreshState(binding, textModel, ListMode.VERTICAL)
         binding.toolbarLayout.root.visibility = View.GONE
 
-        // toolbarLayout GONE 之后 RecyclerView 会一直顶到状态栏，再叠上顶栏 4 个操作
-        // 按钮（statusBar + 8dp margin + 40dp icon），所以列表首个 holder 需要往下留
-        // statusBar + 56dp。clipToPadding=false 让滚动时内容仍然能画到 padding 区域。
         val density = resources.displayMetrics.density
-        val statusBarH = com.blankj.utilcode.util.BarUtils.getStatusBarHeight()
-        val topInset = statusBarH + (56 * density).toInt()
         binding.listView.clipToPadding = false
-        binding.listView.setPadding(
-            binding.listView.paddingLeft,
-            binding.listView.paddingTop + topInset,
-            binding.listView.paddingRight,
-            binding.listView.paddingBottom,
-        )
 
         val bottomView = ItemBigReadButtonBinding.inflate(layoutInflater)
         binding.bottomCovered.isVisible = true
@@ -84,15 +76,6 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         }
 
         val topActions = LayoutNovelTopActionsBinding.inflate(layoutInflater)
-        // Account for the status bar: TemplateActivity may render behind it in
-        // some flavors, so shift our overlay down by the system-reported
-        // status bar height to keep the icons out from under the clock/battery.
-        topActions.root.setPadding(
-            topActions.root.paddingLeft,
-            topActions.root.paddingTop + statusBarH,
-            topActions.root.paddingRight,
-            topActions.root.paddingBottom,
-        )
         val rootLayout = binding.root as androidx.constraintlayout.widget.ConstraintLayout
         val topLp = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
             androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT,
@@ -102,6 +85,18 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
             endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
         }
         rootLayout.addView(topActions.root, topLp)
+
+        // Edge-to-edge safe area: TemplateActivity draws behind the status bar
+        // / display cutout, so both the floating top-action overlay and the
+        // list's first holder need to clear systemBars.top. The list also
+        // needs extra room for the 4-icon overlay (8dp margin + 40dp icon).
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            topActions.root.updatePadding(top = bars.top)
+            binding.listView.updatePadding(top = bars.top + (56 * density).toInt())
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.root)
         val liveNovel = ObjectPool.get<Novel>(novelId)
         combineLatest(
             liveNovel,
