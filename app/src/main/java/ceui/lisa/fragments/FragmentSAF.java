@@ -41,12 +41,18 @@ public class FragmentSAF extends BaseFragment<FragmentSafBinding> {
         baseBind.create.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IllustsBean illustsBean = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, IllustsBean.class);
-                ceui.pixiv.download.backend.StorageBackend.WriteHandle handle =
-                        ceui.pixiv.download.DownloadsRegistry.getDownloads().open(
-                                ceui.pixiv.download.config.DownloadItems.illustPage(illustsBean, 0));
-                if (handle != null) {
-                    try { handle.getStream().close(); } catch (Exception ignored) {}
+                try {
+                    IllustsBean illustsBean = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, IllustsBean.class);
+                    ceui.pixiv.download.backend.StorageBackend.WriteHandle handle =
+                            ceui.pixiv.download.DownloadsRegistry.getDownloads().open(
+                                    ceui.pixiv.download.config.DownloadItems.illustPage(illustsBean, 0));
+                    if (handle != null) {
+                        try { handle.getStream().close(); } catch (Exception ignored) {}
+                    }
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    com.hjq.toast.ToastUtils.show(getString(R.string.saf_write_failed,
+                            t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
                 }
             }
         });

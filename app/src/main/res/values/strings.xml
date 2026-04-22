@@ -1319,4 +1319,15 @@
     <string name="novel_header_field_tags">作品标签/分类</string>
     <string name="novel_header_field_series_title">系列总标题</string>
     <string name="novel_header_field_series_index">系列中的序号</string>
+
+    <string name="save_image_failed">图片保存失败：%1$s</string>
+    <string name="save_novel_failed">小说保存失败：%1$s</string>
+    <string name="save_backup_failed">备份保存失败：%1$s</string>
+    <string name="save_file_failed">文件保存失败：%1$s</string>
+    <string name="save_gif_failed">GIF 保存失败：%1$s</string>
+    <string name="save_gif_exists">GIF 已存在</string>
+    <string name="save_gif_success">GIF 保存成功</string>
+    <string name="saf_write_failed">写入失败：%1$s</string>
+    <string name="download_settings_save_failed">下载设置保存失败：%1$s</string>
+    <string name="header_preset_save_failed">信息头预设保存失败：%1$s</string>
 </resources>

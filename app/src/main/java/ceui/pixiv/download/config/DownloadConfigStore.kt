@@ -1,6 +1,10 @@
 package ceui.pixiv.download.config
 
+import ceui.lisa.R
+import ceui.lisa.activities.Shaft
+import com.hjq.toast.ToastUtils
 import com.tencent.mmkv.MMKV
+import timber.log.Timber
 
 /**
  * MMKV-backed persistence for [DownloadConfig].
@@ -34,7 +38,14 @@ class DownloadConfigStore(
     }
 
     fun load(): LoadResult {
-        val raw = store.decodeString(KEY) ?: return LoadResult.FirstRun(fallback())
+        val raw = try {
+            store.decodeString(KEY)
+        } catch (t: Throwable) {
+            // MMKV native error or not-yet-initialised — fall back without
+            // claiming the stored payload is corrupt, since we never read it.
+            Timber.e(t, "DownloadConfigStore.load: MMKV decodeString failed")
+            return LoadResult.Corrupt(fallback(), t)
+        } ?: return LoadResult.FirstRun(fallback())
         return try {
             LoadResult.Ok(DownloadConfigJson.fromJson(raw))
         } catch (t: Throwable) {
@@ -46,7 +57,17 @@ class DownloadConfigStore(
     fun loadOrFallback(): DownloadConfig = load().config
 
     fun save(config: DownloadConfig) {
-        store.encode(KEY, DownloadConfigJson.toJson(config))
+        try {
+            store.encode(KEY, DownloadConfigJson.toJson(config))
+        } catch (t: Throwable) {
+            Timber.e(t, "DownloadConfigStore.save failed")
+            ToastUtils.show(
+                Shaft.getContext().getString(
+                    R.string.download_settings_save_failed,
+                    t.message ?: t.javaClass.simpleName,
+                )
+            )
+        }
     }
 
     fun update(transform: (DownloadConfig) -> DownloadConfig): DownloadConfig {

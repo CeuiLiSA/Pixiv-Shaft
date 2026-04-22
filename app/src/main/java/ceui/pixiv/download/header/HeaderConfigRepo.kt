@@ -1,7 +1,10 @@
 package ceui.pixiv.download.header
 
+import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import com.hjq.toast.ToastUtils
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
@@ -44,7 +47,12 @@ object HeaderConfigRepo {
     )
 
     fun load(): HeaderConfigStore {
-        val raw = mmkv.decodeString(KEY) ?: return defaultStore()
+        val raw = try {
+            mmkv.decodeString(KEY)
+        } catch (t: Throwable) {
+            Timber.w(t, "HeaderConfigRepo: MMKV decodeString failed, falling back to default")
+            return defaultStore()
+        } ?: return defaultStore()
         return try {
             val parsed = gson.fromJson(raw, HeaderConfigStore::class.java)
             sanitize(parsed)
@@ -58,7 +66,17 @@ object HeaderConfigRepo {
     }
 
     fun save(store: HeaderConfigStore) {
-        mmkv.encode(KEY, gson.toJson(sanitize(store)))
+        try {
+            mmkv.encode(KEY, gson.toJson(sanitize(store)))
+        } catch (t: Throwable) {
+            Timber.e(t, "HeaderConfigRepo.save failed")
+            ToastUtils.show(
+                Shaft.getContext().getString(
+                    R.string.header_preset_save_failed,
+                    t.message ?: t.javaClass.simpleName,
+                )
+            )
+        }
     }
 
     fun update(transform: (HeaderConfigStore) -> HeaderConfigStore): HeaderConfigStore {

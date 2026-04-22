@@ -106,6 +106,7 @@ class DownloadNovelTask(
                 _status.value = TaskStatus.Finished
                 onEnd(Unit)
             } else {
+                ToastUtils.show(context.getString(R.string.save_novel_failed, fileName))
                 onError(RuntimeException("saveToDownloadsScopedStorage returned false"))
             }
 

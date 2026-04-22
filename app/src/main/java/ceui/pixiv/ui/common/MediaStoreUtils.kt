@@ -41,6 +41,7 @@ fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
             is SecurityException -> Timber.e("SaveImage SecurityException: Permission issue: ${ex.message}")
             else -> Timber.e("SaveImage Unexpected error: ${ex.message}")
         }
+        ToastUtils.show(context.getString(R.string.save_image_failed, ex.message ?: ex.javaClass.simpleName))
     }
 }
 
@@ -109,8 +110,11 @@ fun saveToDownloadsScopedStorage(context: Context, fileName: String, content: St
         ) ?: return false
         handle.stream.use { it.write(content.toByteArray()) }
         true
-    } catch (e: Exception) {
-        e.printStackTrace()
+    } catch (e: Throwable) {
+        // Low-level helper — never crashes, just reports failure to caller via
+        // `false`. Caller decides whether/how to surface the error (e.g. single
+        // download path toasts; batch path collects into a failures dialog).
+        Timber.e(e, "saveToDownloadsScopedStorage failed for $fileName")
         false
     }
 }

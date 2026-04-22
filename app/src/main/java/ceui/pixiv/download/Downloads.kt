@@ -116,11 +116,15 @@ class Downloads(
         val stem = if (hasExt) filename.substring(0, dot) else filename
         val ext = if (hasExt) filename.substring(dot) else ""
         var i = 1
-        while (true) {
+        while (i <= MAX_RENAME_ATTEMPTS) {
             val candidate = RelativePath(path.directory + "$stem ($i)$ext")
             if (!backend.exists(candidate)) return candidate
             i++
         }
+        // Backend keeps reporting "exists" — broken tree, stuck cursor, etc.
+        // Bail with a unique-ish suffix so the caller still gets *some* path
+        // instead of looping forever.
+        return RelativePath(path.directory + "$stem (${System.currentTimeMillis()})$ext")
     }
 
     data class Plan(
@@ -137,6 +141,7 @@ class Downloads(
     }
 
     companion object {
+        private const val MAX_RENAME_ATTEMPTS = 9999
         private val TEMP_CACHE_FIXED = ResolvedBucket(
             template  = DefaultTemplates.TEMP,
             storage   = StorageChoice.AppCache,

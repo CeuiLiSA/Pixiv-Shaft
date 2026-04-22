@@ -323,7 +323,26 @@ public class Manager {
         long passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
 
         // 准备目标文件
-        Uri targetUri = factory.insert();
+        Uri targetUri;
+        try {
+            targetUri = factory.insert();
+        } catch (Exception e) {
+            Common.showLog("[DL] factory.insert() failed: " + e);
+            e.printStackTrace();
+            Common.showToast(mContext.getString(R.string.string_365));
+            complete(downloadItem, false);
+            // Same rationale as factory init failure above — typically a lost
+            // SAF tree or full MediaStore. Stop the queue so we don't spam.
+            stopAll();
+            return;
+        }
+        if (targetUri == null) {
+            Common.showLog("[DL] factory.insert() returned null targetUri");
+            Common.showToast(mContext.getString(R.string.string_365));
+            complete(downloadItem, false);
+            stopAll();
+            return;
+        }
 
         // 若二级详情页已经通过 Glide 缓存了原图，直接复制，避免重复网络请求
         final String dlUrl = downloadItem.getUrl();
