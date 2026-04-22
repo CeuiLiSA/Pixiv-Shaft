@@ -57,6 +57,20 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         setUpRefreshState(binding, textModel, ListMode.VERTICAL)
         binding.toolbarLayout.root.visibility = View.GONE
 
+        // toolbarLayout GONE 之后 RecyclerView 会一直顶到状态栏，再叠上顶栏 4 个操作
+        // 按钮（statusBar + 8dp margin + 40dp icon），所以列表首个 holder 需要往下留
+        // statusBar + 56dp。clipToPadding=false 让滚动时内容仍然能画到 padding 区域。
+        val density = resources.displayMetrics.density
+        val statusBarH = com.blankj.utilcode.util.BarUtils.getStatusBarHeight()
+        val topInset = statusBarH + (56 * density).toInt()
+        binding.listView.clipToPadding = false
+        binding.listView.setPadding(
+            binding.listView.paddingLeft,
+            binding.listView.paddingTop + topInset,
+            binding.listView.paddingRight,
+            binding.listView.paddingBottom,
+        )
+
         val bottomView = ItemBigReadButtonBinding.inflate(layoutInflater)
         binding.bottomCovered.isVisible = true
         binding.bottomCovered.addView(bottomView.root)
@@ -73,7 +87,6 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         // Account for the status bar: TemplateActivity may render behind it in
         // some flavors, so shift our overlay down by the system-reported
         // status bar height to keep the icons out from under the clock/battery.
-        val statusBarH = com.blankj.utilcode.util.BarUtils.getStatusBarHeight()
         topActions.root.setPadding(
             topActions.root.paddingLeft,
             topActions.root.paddingTop + statusBarH,

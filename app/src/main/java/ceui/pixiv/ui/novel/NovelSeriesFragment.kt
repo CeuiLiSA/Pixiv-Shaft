@@ -77,6 +77,20 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
+        // toolbarLayout 被 GONE 了，没东西撑住 status bar；顶部又悬浮了多选切换按钮
+        // (44dp + statusBar + 8dp marginTop)，所以列表首个 holder 要下移
+        // `statusBar + 56dp` 才不会和切换按钮叠在一起。clipToPadding=false 让滚动
+        // 时内容还能画进 padding 区域。
+        val density = resources.displayMetrics.density
+        val statusBarH = com.blankj.utilcode.util.BarUtils.getStatusBarHeight()
+        val topInset = statusBarH + (56 * density).toInt()
+        binding.listView.clipToPadding = false
+        binding.listView.setPadding(
+            binding.listView.paddingLeft,
+            binding.listView.paddingTop + topInset,
+            binding.listView.paddingRight,
+            binding.listView.paddingBottom,
+        )
         bgViewModel.result.observe(viewLifecycleOwner) { resp ->
             resp.displayList.getOrNull(seriesId.mod(10))?.let {
                 ObjectPool.update(it)
