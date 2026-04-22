@@ -41,6 +41,7 @@ import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.model.HighlightColor
 import ceui.pixiv.ui.novel.reader.model.HighlightSpan
 import ceui.pixiv.ui.novel.reader.model.SearchHit
+import ceui.pixiv.ui.novel.reader.ui.SearchHitsSheet
 import ceui.pixiv.ui.novel.reader.model.TextSelection
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.render.GlideImageBitmapSource
@@ -201,7 +202,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             ReaderSettings.themeId = if (isDark) ReaderTheme.KRAFT.id else ReaderTheme.NIGHT.id
             bb.setDarkMode(!isDark)
         }
-        bb.onSearchClick = { chrome.hide(); so.setShown(true) }
+        bb.onSearchClick = {
+            chrome.hide()
+            so.setShown(true)
+            // Let the overlay measure, then tell the scroll reader how much top
+            // area is covered so search-hit centering avoids the hidden zone.
+            so.view.post { scrollReaderView?.topInset = so.view.height }
+        }
         bb.onMoreClick = { showReaderOverflowMenu() }
         bb.onSeekCommit = { pageIndex -> rv.goToPage(pageIndex, animate = false) }
     }
@@ -218,7 +225,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
             so.setShown(false)
             so.clear()
             viewModel.clearSearch()
+            scrollReaderView?.topInset = 0
         }
+        so.onListClick = { showSearchHitsSheet() }
     }
 
     private fun wireTextSelection(rv: NovelReaderView, chrome: ReaderChrome) {
@@ -627,6 +636,18 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     private fun goToHitDirect(hit: SearchHit) {
         navigateToCharIndex(hit.absoluteStart)
+    }
+
+    private fun showSearchHitsSheet() {
+        val result = viewModel.searchResult.value ?: return
+        if (result.hits.isEmpty()) return
+        val query = binding.readerSearchOverlay.editSearchQuery.text?.toString().orEmpty()
+        SearchHitsSheet().apply {
+            configure(result.hits, query, result.currentIndex) { hit, index ->
+                viewModel.setSearchIndex(index)
+                goToHitDirect(hit)
+            }
+        }.show(childFragmentManager, SearchHitsSheet.TAG)
     }
 
     /** Unified jump: works in both paged and scroll mode. */

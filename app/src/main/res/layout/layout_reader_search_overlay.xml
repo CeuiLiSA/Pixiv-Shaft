@@ -46,6 +46,16 @@
         android:textSize="12sp"
         tools:text="3 / 42" />
 
+    <ImageButton
+        android:id="@+id/btn_search_list"
+        android:layout_width="40dp"
+        android:layout_height="44dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/search_hits_title"
+        android:src="@drawable/ic_baseline_list_24"
+        app:tint="#FFFFFF"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/btn_search_prev"
         android:layout_width="40dp"

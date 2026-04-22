@@ -90,7 +90,8 @@ object ContentParser {
                     raw += ContentToken.BlankLine(lineStart, lineEnd)
                 }
                 else -> {
-                    raw += ContentToken.Paragraph(lineStart, lineEnd, paragraphText)
+                    val textSourceStart = lineStart + (cleanLine.length - paragraphText.length)
+                    raw += ContentToken.Paragraph(lineStart, lineEnd, paragraphText, textSourceStart)
                 }
             }
         }

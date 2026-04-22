@@ -8,6 +8,9 @@ sealed class ContentToken {
         override val sourceStart: Int,
         override val sourceEnd: Int,
         val text: String,
+        /** Position in the raw source where [text] actually begins.
+         *  May differ from [sourceStart] when leading whitespace was trimmed. */
+        val textSourceStart: Int = sourceStart,
     ) : ContentToken()
 
     data class Chapter(

@@ -290,6 +290,13 @@ class NovelReaderV3ViewModel(
         return current.hits[newIndex]
     }
 
+    fun setSearchIndex(index: Int) {
+        val current = _searchResult.value ?: return
+        if (index in current.hits.indices) {
+            _searchResult.value = current.copy(currentIndex = index)
+        }
+    }
+
     fun clearSearch() {
         _searchResult.value = SearchResult.EMPTY
     }

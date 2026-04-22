@@ -1349,6 +1349,8 @@
     <string name="setting_default_image_resolution">默认图片保存清晰度</string>
     <string name="option_always_ask">每次询问</string>
     <string name="msg_unknown_format">未知格式: %s</string>
+    <string name="search_hits_title">搜索结果</string>
+    <string name="search_hits_count">共 %d 条</string>
     <string name="format_txt">纯文本 TXT</string>
     <string name="format_markdown">Markdown</string>
     <string name="format_epub">EPUB 电子书</string>

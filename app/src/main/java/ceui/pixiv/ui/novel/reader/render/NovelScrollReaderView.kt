@@ -45,6 +45,10 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
     /** charStart → child view, for scroll-to-position and position reporting. */
     private val charAnchors = mutableListOf<CharAnchor>()
 
+    /** Extra top offset (e.g. search overlay height) so centering avoids
+     *  the covered region. Set by the host fragment when the overlay opens. */
+    var topInset: Int = 0
+
     var onCenterTap: (() -> Unit)? = null
     var onImageTap: ((ceui.pixiv.ui.novel.reader.model.PageElement.Image) -> Unit)? = null
     var onCharIndexChanged: ((Int) -> Unit)? = null
@@ -113,18 +117,27 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
                 is ContentToken.UploadedImage -> createImage(token, style, imageResolver)
             }
             container.addView(child)
-            charAnchors += CharAnchor(token.sourceStart, child)
+            val anchorStart = if (token is ContentToken.Paragraph) token.textSourceStart else token.sourceStart
+            charAnchors += CharAnchor(anchorStart, child)
         }
     }
 
     fun scrollToCharIndex(charIndex: Int) {
         val target = charAnchors.lastOrNull { it.charStart <= charIndex }?.view ?: return
-        post { smoothScrollTo(0, target.top) }
+        post {
+            val visibleHeight = height - topInset
+            val y = (target.top - topInset - visibleHeight / 2 + target.height / 2).coerceAtLeast(0)
+            smoothScrollTo(0, y)
+        }
     }
 
     fun jumpToCharIndex(charIndex: Int) {
         val target = charAnchors.lastOrNull { it.charStart <= charIndex }?.view ?: return
-        post { scrollTo(0, target.top) }
+        post {
+            val visibleHeight = height - topInset
+            val y = (target.top - topInset - visibleHeight / 2 + target.height / 2).coerceAtLeast(0)
+            scrollTo(0, y)
+        }
     }
 
     fun currentCharIndex(): Int {

@@ -228,8 +228,8 @@ class Paginator(
 
             val startCharInLayout = layout.getLineStart(cursor).coerceIn(0, token.text.length)
             val endCharInLayout = layout.getLineEnd(cursor + linesFit - 1).coerceIn(0, token.text.length)
-            val absoluteStart = token.sourceStart + startCharInLayout
-            val absoluteEnd = token.sourceStart + endCharInLayout
+            val absoluteStart = token.textSourceStart + startCharInLayout
+            val absoluteEnd = token.textSourceStart + endCharInLayout
             val sliceText = token.text.substring(startCharInLayout, endCharInLayout)
 
             val element = PageElement.Text(

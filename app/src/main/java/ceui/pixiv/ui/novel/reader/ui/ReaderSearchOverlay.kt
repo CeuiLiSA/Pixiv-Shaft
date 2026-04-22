@@ -18,6 +18,7 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
     var onPrev: (() -> Unit)? = null
     var onClose: (() -> Unit)? = null
     var onRegexToggle: ((Boolean) -> Unit)? = null
+    var onListClick: (() -> Unit)? = null
 
     private var regexMode = false
 
@@ -47,6 +48,7 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
         binding.btnCloseSearch.setOnClickListener { onClose?.invoke() }
         binding.btnSearchNext.setOnClickListener { onNext?.invoke() }
         binding.btnSearchPrev.setOnClickListener { onPrev?.invoke() }
+        binding.btnSearchList.setOnClickListener { onListClick?.invoke() }
         binding.btnSearchRegex.setOnClickListener {
             regexMode = !regexMode
             applyRegexStyle()
@@ -92,6 +94,7 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
         } else {
             ctx.getString(ceui.lisa.R.string.reader_progress_format, currentIndex + 1, total)
         }
+        binding.btnSearchList.visibility = if (total > 0) View.VISIBLE else View.GONE
     }
 
     private fun applyRegexStyle() {
