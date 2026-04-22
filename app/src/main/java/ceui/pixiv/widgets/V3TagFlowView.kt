@@ -2,10 +2,14 @@ package ceui.pixiv.widgets
 
 import android.content.Context
 import android.content.Intent
+import android.text.InputType
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
+import android.widget.HorizontalScrollView
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import ceui.lisa.R
@@ -56,9 +60,18 @@ class V3TagFlowView @JvmOverloads constructor(
                 // Force re-render with the last known tag list so flipping this
                 // property after a setTags*() call reflects immediately.
                 lastSignature = null
-                if (lastPairs.isNotEmpty()) renderPairs(lastPairs)
+                renderPairs(lastPairs)
             }
         }
+
+    private var _editor: EditText? = null
+
+    /**
+     * 编辑模式（[showRemoveIcon]=true）下末尾嵌入的输入框。外部直接挂 listener / 读写
+     * text。非编辑模式访问返回 null。
+     */
+    val editor: EditText?
+        get() = if (showRemoveIcon) ensureEditor() else null
 
     init {
         alignItems = AlignItems.FLEX_START
@@ -79,6 +92,7 @@ class V3TagFlowView @JvmOverloads constructor(
     }
 
     private fun renderPairs(pairs: List<Pair<String, String?>>) {
+        val prevCount = lastPairs.size
         lastPairs = pairs
         val sig = buildString {
             pairs.forEach { (n, t) ->
@@ -87,6 +101,7 @@ class V3TagFlowView @JvmOverloads constructor(
         }
         if (sig == lastSignature && childCount > 0) return
         lastSignature = sig
+        val grew = pairs.size > prevCount
 
         removeAllViews()
         val density = context.resources.displayMetrics.density
@@ -153,6 +168,45 @@ class V3TagFlowView @JvmOverloads constructor(
             applyTouchScale(tv, 0.94f)
             addView(tv)
         }
+
+        if (showRemoveIcon) {
+            val ed = ensureEditor()
+            (ed.parent as? ViewGroup)?.removeView(ed)
+            addView(ed)
+        }
+
+        // 新追加 chip 时把外层 HSV 滚到末尾，不让新 commit 的 chip 躲到屏幕外。
+        if (grew) {
+            (parent as? HorizontalScrollView)?.let { hsv ->
+                hsv.post { hsv.fullScroll(View.FOCUS_RIGHT) }
+            }
+        }
+    }
+
+    private fun ensureEditor(): EditText {
+        _editor?.let { return it }
+        val ed = EditText(context).apply {
+            background = null
+            setTextColor(palette.textTag)
+            setHintTextColor(palette.textTag and 0x66FFFFFF.toInt())
+            textSize = 15f
+            setPadding(4.ppppx, 6.ppppx, 8.ppppx, 6.ppppx)
+            imeOptions = EditorInfo.IME_ACTION_SEARCH
+            inputType = InputType.TYPE_CLASS_TEXT
+            isSingleLine = true
+            minWidth = 96.ppppx
+            layoutParams = LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                flexShrink = 0f
+                // 当 chip 们没撑满 HSV 时，让 editor 吃掉剩余空间，避免出现「只有 1 个 tag，
+                // 右边输入框只剩 48dp」的尴尬。chip 溢出时 flexGrow 不生效，HSV 正常横滚。
+                flexGrow = 1f
+            }
+        }
+        _editor = ed
+        return ed
     }
 
     private fun applyTouchScale(view: View, scale: Float) {

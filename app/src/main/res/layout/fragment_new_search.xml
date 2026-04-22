@@ -9,7 +9,9 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:id="@+id/top_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
@@ -32,45 +34,21 @@
                 app:titleTextColor="@android:color/white">
 
 
-                <LinearLayout
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/search_et_bg"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
+                    android:fillViewport="true"
                     android:paddingHorizontal="@dimen/eight_dp"
-                    android:paddingVertical="4dp">
+                    android:paddingVertical="4dp"
+                    android:scrollbars="none">
 
-                    <HorizontalScrollView
+                    <ceui.pixiv.widgets.V3TagFlowView
+                        android:id="@+id/search_tags_flow"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:scrollbars="none">
-
-                        <ceui.pixiv.widgets.V3TagFlowView
-                            android:id="@+id/search_tags_flow"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            app:flexWrap="nowrap" />
-                    </HorizontalScrollView>
-
-                    <EditText
-                        android:id="@+id/search_box"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@null"
-                        android:ellipsize="end"
-                        android:imeOptions="actionSearch"
-                        android:inputType="text"
-                        android:maxLines="1"
-                        android:paddingStart="@dimen/eight_dp"
-                        android:paddingEnd="@dimen/sixteen_dp"
-                        android:paddingTop="@dimen/eight_dp"
-                        android:paddingBottom="@dimen/eight_dp"
-                        android:singleLine="true"
-                        android:textColor="@color/rank_text_color"
-                        android:textSize="15sp" />
-                </LinearLayout>
+                        app:flexWrap="nowrap" />
+                </HorizontalScrollView>
 
             </androidx.appcompat.widget.Toolbar>
 

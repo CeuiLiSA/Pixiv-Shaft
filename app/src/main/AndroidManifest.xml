@@ -188,7 +188,8 @@
         <activity
             android:name=".activities.SearchActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:theme="@style/SplashTheme" />
+            android:theme="@style/SplashTheme"
+            android:windowSoftInputMode="stateHidden" />
         <activity android:name=".activities.VActivity" />
         <activity
             android:name=".activities.UActivity"
