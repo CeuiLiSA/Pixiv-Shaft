@@ -62,6 +62,9 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         val illustId = safeArgs.illustId.toLong()
 
         headerAdapter = ArtworkDetailAdapter(this)
+        headerAdapter.onCommentsVisible = { viewModel.loadComments() }
+        headerAdapter.onAuthorWorksVisible = { viewModel.loadAuthorWorks() }
+        headerAdapter.onRelatedVisible = { viewModel.loadRelated() }
 
         relatedAdapter = IAdapter(relatedList, mContext).apply {
             setUuid("artwork_v3_related_$illustId")

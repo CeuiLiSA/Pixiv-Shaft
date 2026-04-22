@@ -2,28 +2,47 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingHorizontal="12dp"
-    android:paddingTop="6dp"
-    android:paddingBottom="12dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:letterSpacing="0.12"
-        android:text="@string/v3_label_related"
-        android:textAllCaps="true"
-        android:textColor="@color/v3_text_3"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="12dp">
 
-    <TextView
-        android:id="@+id/related_see_more"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/see_more"
-        android:textColor="@color/v3_ambient_primary"
-        android:textSize="12sp" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:letterSpacing="0.12"
+            android:text="@string/v3_label_related"
+            android:textAllCaps="true"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/related_see_more"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/see_more"
+            android:textColor="@color/v3_ambient_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/related_loading_container"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/v3_text_3" />
+    </FrameLayout>
 </LinearLayout>

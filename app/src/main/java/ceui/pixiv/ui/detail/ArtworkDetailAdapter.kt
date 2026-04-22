@@ -62,6 +62,9 @@ class ArtworkDetailAdapter(
     val palette: V3Palette = V3Palette.from(fragment.requireContext())
     private val items = mutableListOf<ArtworkDetailItem>()
     private val animatedViewTypes = mutableSetOf<Int>()
+    var onCommentsVisible: (() -> Unit)? = null
+    var onAuthorWorksVisible: (() -> Unit)? = null
+    var onRelatedVisible: (() -> Unit)? = null
 
     fun submitItems(newItems: List<ArtworkDetailItem>) {
         val t = if (BuildConfig.DEBUG) SystemClock.elapsedRealtime() else 0L
@@ -176,10 +179,7 @@ class ArtworkDetailAdapter(
             holder is DescVH && item is ArtworkDetailItem.Desc -> holder.bind(item.caption)
             holder is StatsVH && item is ArtworkDetailItem.Stats -> holder.bind(item.illust)
             holder is TagsVH && item is ArtworkDetailItem.Tags -> holder.bind(item.illust)
-            holder is ArtistVH && item is ArtworkDetailItem.Artist -> holder.bind(
-                item.illust,
-                item.fullUser
-            )
+            holder is ArtistVH && item is ArtworkDetailItem.Artist -> holder.bind(item.illust)
 
             holder is DetailPanelVH && item is ArtworkDetailItem.DetailPanel -> holder.bind(item.illust)
             holder is CommentsVH && item is ArtworkDetailItem.Comments -> holder.bind(item)
@@ -215,6 +215,17 @@ class ArtworkDetailAdapter(
                 .setDuration(350)
                 .setInterpolator(DecelerateInterpolator(2.5f))
                 .start()
+        }
+
+        // Lazy-load trigger: fire API calls only when the section scrolls into view
+        val pos = holder.bindingAdapterPosition
+        if (pos in items.indices) {
+            when (val item = items[pos]) {
+                is ArtworkDetailItem.Comments -> if (item.comments == null) onCommentsVisible?.invoke()
+                is ArtworkDetailItem.AuthorWorks -> if (item.works == null) onAuthorWorksVisible?.invoke()
+                is ArtworkDetailItem.RelatedHeader -> if (item.isLoading) onRelatedVisible?.invoke()
+                else -> {}
+            }
         }
     }
 
@@ -277,7 +288,7 @@ class ArtworkDetailAdapter(
     }
 
     inner class ArtistVH(private val b: SectionV3ArtistBinding) : RecyclerView.ViewHolder(b.root) {
-        fun bind(illust: IllustsBean, fullUser: UserBean?) {
+        fun bind(illust: IllustsBean) {
             val user = illust.user ?: return
             b.artistName.text = user.name
             b.artistHandle.text = "@${user.account ?: ""}"
@@ -292,16 +303,9 @@ class ArtworkDetailAdapter(
             }
             applyTouchScale(b.artistCard)
 
-            if (fullUser != null) {
-                bindFollowState(fullUser)
-                b.artistBio.isVisible = !fullUser.comment.isNullOrBlank()
-                if (b.artistBio.isVisible) b.artistBio.text = fullUser.comment
-            } else {
-                b.followBtn.text = ctx.getString(R.string.follow)
-                palette.applyFollowBtn(b.followBtn)
-                b.followBtn.setTextColor(Color.WHITE)
-                b.artistBio.isVisible = false
-            }
+            bindFollowState(user)
+            b.artistBio.isVisible = !user.comment.isNullOrBlank()
+            if (b.artistBio.isVisible) b.artistBio.text = user.comment
         }
 
         private fun bindFollowState(user: UserBean) {
@@ -438,6 +442,13 @@ class ArtworkDetailAdapter(
     inner class CommentsVH(private val b: SectionV3CommentsBinding) :
         RecyclerView.ViewHolder(b.root) {
         fun bind(item: ArtworkDetailItem.Comments) {
+            val isLoading = item.comments == null
+            b.commentsLoading.isVisible = isLoading
+            b.commentsList.isVisible = !isLoading
+            b.commentsEmpty.isVisible = false
+            b.commentsMore.isVisible = false
+            if (isLoading) return
+
             b.commentsList.removeAllViews()
             val hasComments = item.comments.isNotEmpty()
             b.commentsEmpty.isVisible = !hasComments
@@ -520,9 +531,14 @@ class ArtworkDetailAdapter(
         private val worksList = mutableListOf<IllustsBean>()
 
         fun bind(item: ArtworkDetailItem.AuthorWorks) {
+            val isLoading = item.works == null
+            b.authorWorksLoading.isVisible = isLoading
+            b.authorWorksRv.isVisible = !isLoading
+            b.authorWorksSeeAll.isVisible = !isLoading
             b.authorWorksLabel.text =
                 ctx.getString(R.string.v3_author_works, item.authorName).uppercase()
             b.authorWorksSeeAll.setTextColor(palette.textAccent)
+            if (isLoading) return
 
             if (lAdapter == null) {
                 lAdapter = LAdapter(worksList, ctx)
@@ -567,6 +583,8 @@ class ArtworkDetailAdapter(
     inner class RelatedHeaderVH(private val b: SectionV3RelatedHeaderBinding) :
         RecyclerView.ViewHolder(b.root) {
         fun bind(item: ArtworkDetailItem.RelatedHeader) {
+            b.relatedLoadingContainer.isVisible = item.isLoading
+            b.relatedSeeMore.isVisible = !item.isLoading
             b.relatedSeeMore.setTextColor(palette.textAccent)
             b.relatedSeeMore.setOnClick {
                 val intent = Intent(ctx, TemplateActivity::class.java)

@@ -21,7 +21,6 @@ import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -35,10 +34,14 @@ class ArtworkV3ViewModel(
 
     // ── internal state ──
     private var illustBean: IllustsBean? = null
-    private var fullUser: ceui.lisa.models.UserBean? = null
     private var comments: List<Comment>? = null
     private var authorWorks: List<IllustsBean>? = null
     private val gson = Gson()
+    private var commentsLoadTriggered = false
+    private var authorWorksLoadTriggered = false
+    private var authorWorksLoaded = false
+    private var relatedLoadTriggered = false
+    private var relatedLoaded = false
 
     // ── output: header sections ──
     private val _headerItems = MutableLiveData<List<ArtworkDetailItem>>()
@@ -61,25 +64,17 @@ class ArtworkV3ViewModel(
 
     // ── ObjectPool observers ──
     private val illustBeanLiveData = ObjectPool.get<IllustsBean>(illustId)
-    private var userBeanLiveData: LiveData<ceui.lisa.models.UserBean>? = null
 
-    // Coalesce multiple triggers (illust observer + user observer + loadData end)
-    // fired within the same main-thread turn into a single header rebuild.
+    // Coalesce multiple triggers fired within the same main-thread turn
+    // into a single header rebuild.
     private val mainHandler = Handler(Looper.getMainLooper())
     private val rebuildRunnable = Runnable { doBuildHeaderItems() }
+    private val enableLoadMoreRunnable = Runnable { isLoadingMore = false }
 
     private val illustBeanObserver = Observer<IllustsBean> { bean ->
         if (bean != null) {
             illustBean = bean
             _isBookmarked.value = bean.isIs_bookmarked
-            observeUserIfNeeded(bean.user?.id ?: 0)
-            buildHeaderItems()
-        }
-    }
-
-    private val userBeanObserver = Observer<ceui.lisa.models.UserBean> { user ->
-        if (user != null) {
-            fullUser = user
             buildHeaderItems()
         }
     }
@@ -91,16 +86,8 @@ class ArtworkV3ViewModel(
 
     override fun onCleared() {
         illustBeanLiveData.removeObserver(illustBeanObserver)
-        userBeanLiveData?.removeObserver(userBeanObserver)
         mainHandler.removeCallbacks(rebuildRunnable)
-    }
-
-    private fun observeUserIfNeeded(userId: Int) {
-        if (userId <= 0 || userBeanLiveData != null) return
-        val ld = ObjectPool.get<ceui.lisa.models.UserBean>(userId.toLong())
-        userBeanLiveData = ld
-        ld.value?.let { fullUser = it }
-        ld.observeForever(userBeanObserver)
+        mainHandler.removeCallbacks(enableLoadMoreRunnable)
     }
 
     // ── build header item list (everything except individual related cards) ──
@@ -119,7 +106,7 @@ class ArtworkV3ViewModel(
             list.add(ArtworkDetailItem.Series(illust))
         }
 
-        list.add(ArtworkDetailItem.Artist(illust, fullUser))
+        list.add(ArtworkDetailItem.Artist(illust))
 
         if (!TextUtils.isEmpty(illust.caption)) {
             list.add(ArtworkDetailItem.Desc(illust.caption))
@@ -129,48 +116,100 @@ class ArtworkV3ViewModel(
         list.add(ArtworkDetailItem.Stats(illust))
         list.add(ArtworkDetailItem.DetailPanel(illust))
 
-        comments?.let {
-            list.add(ArtworkDetailItem.Comments(it, illust.id, illust.title ?: ""))
-        }
-        authorWorks?.takeIf { it.isNotEmpty() }?.let {
+        list.add(ArtworkDetailItem.Comments(comments, illust.id, illust.title ?: ""))
+
+        if (authorWorksLoaded) {
+            authorWorks?.takeIf { it.isNotEmpty() }?.let {
+                list.add(
+                    ArtworkDetailItem.AuthorWorks(
+                        it,
+                        illust.user?.name ?: "",
+                        illust.user?.id ?: 0
+                    )
+                )
+            }
+        } else {
             list.add(
                 ArtworkDetailItem.AuthorWorks(
-                    it,
+                    null,
                     illust.user?.name ?: "",
                     illust.user?.id ?: 0
                 )
             )
         }
-        if (relatedList.isNotEmpty()) {
-            list.add(ArtworkDetailItem.RelatedHeader(illust.id, illust.title ?: ""))
+        if (relatedLoaded) {
+            if (relatedList.isNotEmpty()) {
+                list.add(ArtworkDetailItem.RelatedHeader(illust.id, illust.title ?: ""))
+            }
+        } else {
+            list.add(ArtworkDetailItem.RelatedHeader(illust.id, illust.title ?: "", isLoading = true))
         }
 
         _headerItems.value = list
     }
 
-    // ── data loading ──
+    // ── data loading (deep-link fallback) ──
     private fun loadData() {
+        // IllustsBean is normally already in ObjectPool from the list page.
+        // Only fetch when entering via deep link / history where the pool is empty.
+        if (illustBean != null) return
         viewModelScope.launch {
             try {
-                val illust = ObjectPool.get<Illust>(illustId).value ?: run {
-                    withContext(Dispatchers.IO) {
+                ObjectPool.get<Illust>(illustId).value
+                    ?: withContext(Dispatchers.IO) {
                         val ctx = Shaft.getContext()
                         AppDatabase.getAppDatabase(ctx).generalDao()
                             .getByRecordTypeAndId(RecordType.VIEW_ILLUST_HISTORY, illustId)
                             ?.typedObject<Illust>()?.also { ObjectPool.update(it) }
                     }
-                } ?: run {
-                    Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
-                } ?: return@launch
+                    ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
+            } catch (e: Exception) {
+                Timber.e(e)
+            }
+        }
+    }
 
-                val userId = illust.user?.id ?: return@launch
+    fun loadComments() {
+        if (commentsLoadTriggered) return
+        commentsLoadTriggered = true
+        viewModelScope.launch {
+            comments = withContext(Dispatchers.IO) {
+                runCatching { Client.appApi.getIllustComments(illustId).comments.take(3) }
+                    .getOrElse { Timber.e(it); emptyList() }
+            }
+            buildHeaderItems()
+        }
+    }
 
-                val commentsD = async(Dispatchers.IO) {
-                    runCatching { Client.appApi.getIllustComments(illustId).comments.take(3) }
-                        .getOrElse { Timber.e(it); emptyList() }
-                }
-                _isLoadingRelated.value = true
-                val relatedD = async(Dispatchers.IO) {
+    fun loadAuthorWorks() {
+        if (authorWorksLoadTriggered) return
+        authorWorksLoadTriggered = true
+        val userId = illustBean?.user?.id ?: return
+        viewModelScope.launch {
+            try {
+                authorWorks = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val resp = ceui.lisa.http.Retro.getAppApi()
+                            .getUserSubmitIllust(userId, "illust")
+                            .awaitFirst()
+                        resp.list?.filter { it.id != illustId.toInt() }?.take(10) ?: emptyList()
+                    }.getOrElse { Timber.e(it); emptyList() }
+                }.ifEmpty { null }
+            } catch (e: Exception) {
+                Timber.e(e)
+            } finally {
+                authorWorksLoaded = true
+                buildHeaderItems()
+            }
+        }
+    }
+
+    fun loadRelated() {
+        if (relatedLoadTriggered) return
+        relatedLoadTriggered = true
+        viewModelScope.launch {
+            try {
+                val resp = withContext(Dispatchers.IO) {
                     runCatching {
                         val body = Client.appApi.generalGet(
                             "https://app-api.pixiv.net/v2/illust/related?illust_id=$illustId"
@@ -178,42 +217,20 @@ class ArtworkV3ViewModel(
                         gson.fromJson(body.string(), ListIllust::class.java)
                     }.getOrElse { Timber.e(it); null }
                 }
-                val authorD = async(Dispatchers.IO) {
-                    runCatching {
-                        val resp = ceui.lisa.http.Retro.getAppApi()
-                            .getUserSubmitIllust(userId.toInt(), "illust")
-                            .awaitFirst()
-                        resp.list?.filter { it.id != illustId.toInt() }?.take(10) ?: emptyList()
-                    }.getOrElse { Timber.e(it); emptyList() }
-                }
-                val profileD = async(Dispatchers.IO) {
-                    runCatching { Client.appApi.getUserProfile(userId) }
-                        .getOrElse { Timber.e(it); null }
-                }
-
-                comments = commentsD.await()
-
-                relatedD.await()?.let { resp ->
+                resp?.let { r ->
                     relatedList.clear()
-                    relatedList.addAll(resp.list ?: emptyList())
-                    relatedNextUrl = resp.next_url
+                    relatedList.addAll(r.list ?: emptyList())
+                    relatedNextUrl = r.next_url
                     _relatedIllusts.value = relatedList.toList()
-                    _isLoadingRelated.value = false
                 }
-
-                authorWorks = authorD.await().ifEmpty { null }
-
-                profileD.await()?.user?.let { u ->
-                    illustBean?.user?.let { existing ->
-                        existing.isIs_followed = u.is_followed == true
-                        existing.comment = u.comment
-                        ObjectPool.updateUser(existing)
-                    }
-                }
-
-                buildHeaderItems()
             } catch (e: Exception) {
                 Timber.e(e)
+            } finally {
+                relatedLoaded = true
+                // Prevent scroll inertia from immediately triggering loadMoreRelated
+                isLoadingMore = true
+                mainHandler.postDelayed(enableLoadMoreRunnable, 300)
+                buildHeaderItems()
             }
         }
     }

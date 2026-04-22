@@ -1,7 +1,6 @@
 package ceui.pixiv.ui.detail
 
 import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.UserBean
 import ceui.loxia.Comment
 
 sealed class ArtworkDetailItem {
@@ -18,26 +17,26 @@ sealed class ArtworkDetailItem {
 
     data class Artist(
         val illust: IllustsBean,
-        val fullUser: UserBean?,
-        val isFollowed: Boolean = fullUser?.isIs_followed ?: false
+        val isFollowed: Boolean = illust.user?.isIs_followed ?: false
     ) : ArtworkDetailItem()
 
     data class DetailPanel(val illust: IllustsBean) : ArtworkDetailItem()
 
     data class Comments(
-        val comments: List<Comment>,
+        val comments: List<Comment>?,
         val illustId: Int,
         val illustTitle: String
     ) : ArtworkDetailItem()
 
     data class AuthorWorks(
-        val works: List<IllustsBean>,
+        val works: List<IllustsBean>?,
         val authorName: String,
         val userId: Int
     ) : ArtworkDetailItem()
 
     data class RelatedHeader(
         val illustId: Int,
-        val illustTitle: String
+        val illustTitle: String,
+        val isLoading: Boolean = false
     ) : ArtworkDetailItem()
 }

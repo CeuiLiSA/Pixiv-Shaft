@@ -25,6 +25,16 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Loading spinner -->
+    <ProgressBar
+        android:id="@+id/comments_loading"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginVertical="24dp"
+        android:indeterminateTint="@color/v3_text_3"
+        android:visibility="gone" />
+
     <!-- Comments list -->
     <LinearLayout
         android:id="@+id/comments_list"
