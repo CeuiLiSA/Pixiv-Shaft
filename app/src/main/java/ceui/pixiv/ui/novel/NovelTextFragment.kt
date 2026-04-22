@@ -59,6 +59,10 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, textModel, ListMode.VERTICAL)
         binding.toolbarLayout.root.visibility = View.GONE
+        // 用户反馈：详情页背景图（模糊封面）干扰前景文字。改深灰纯色。
+        binding.pageBackground.setBackgroundColor(
+            androidx.core.content.ContextCompat.getColor(requireContext(), R.color.novel_page_bg),
+        )
 
         val density = resources.displayMetrics.density
         binding.listView.clipToPadding = false

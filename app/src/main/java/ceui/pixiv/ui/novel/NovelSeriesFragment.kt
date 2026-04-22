@@ -32,20 +32,17 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.V3Palette
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
-import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.NovelMultiSelectReceiver
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
-import ceui.pixiv.ui.common.createResponseStore
-import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 import ceui.pixiv.ui.task.FailedNovel
 import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.task.PixivTaskType
-import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.utils.setOnClick
 import com.hjq.toast.ToastUtils
 import kotlinx.coroutines.launch
@@ -58,15 +55,6 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
     private val viewModel by constructVM({ seriesId }) { id ->
         NovelSeriesViewModel(id)
     }
-    private val bgViewModel by pixivValueViewModel(
-        dataFetcher = {
-            Client.appApi.getUserBookmarkedIllusts(
-                SessionManager.loggedInUid,
-                Params.TYPE_PUBLIC
-            )
-        },
-        responseStore = createResponseStore({ "user-${SessionManager.loggedInUid}-bookmarked-illusts" })
-    )
 
     // Two independent bottom views — we swap between them based on
     // isMultiSelect. Kept as fields so the observer can just flip
@@ -82,12 +70,10 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
         val density = resources.displayMetrics.density
         binding.listView.clipToPadding = false
-        bgViewModel.result.observe(viewLifecycleOwner) { resp ->
-            resp.displayList.getOrNull(seriesId.mod(10))?.let {
-                ObjectPool.update(it)
-                blurBackground(binding, it.id)
-            }
-        }
+        // 用户反馈：模糊封面图作为背景反而干扰前景文字阅读。改为深灰纯色。
+        binding.pageBackground.setBackgroundColor(
+            androidx.core.content.ContextCompat.getColor(requireContext(), R.color.novel_page_bg),
+        )
         binding.toolbarLayout.root.visibility = View.GONE
 
         // 醒目的合集下载按钮——老版本放在 toolbarLayout 的 more 菜单里，但 toolbarLayout

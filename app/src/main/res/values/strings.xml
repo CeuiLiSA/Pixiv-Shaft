@@ -1330,4 +1330,12 @@
     <string name="saf_write_failed">写入失败：%1$s</string>
     <string name="download_settings_save_failed">下载设置保存失败：%1$s</string>
     <string name="header_preset_save_failed">信息头预设保存失败：%1$s</string>
+
+    <string name="novel_chip_id">作品ID  %1$s</string>
+    <string name="novel_chip_author">作者  %1$s</string>
+    <string name="novel_chip_author_id">作者ID  %1$s</string>
+    <string name="novel_chip_create_date">发布  %1$s</string>
+    <string name="novel_chip_text_length">字数  %1$s</string>
+    <string name="novel_chip_total_view">浏览  %1$s</string>
+    <string name="novel_chip_total_bookmarks">收藏  %1$s</string>
 </resources>

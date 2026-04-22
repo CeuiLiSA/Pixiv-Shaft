@@ -133,8 +133,11 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
 
         private fun extractChapterContent(input: String): String? {
             val regex = """\[chapter:(.+?)]""".toRegex()
-            val matchResult = regex.find(input)
-            return matchResult?.groups?.get(1)?.value
+            val matchResult = regex.find(input) ?: return null
+            // 与 ContentParser.cleanChapterTitle 保持一致：剥除数字两侧的多余引号，
+            // 修复「【第'0章'】」类显示问题。
+            return ceui.pixiv.ui.novel.reader.paginate.ContentParser
+                .cleanChapterTitle(matchResult.groups[1]?.value.orEmpty())
         }
     }
 }

@@ -18,6 +18,23 @@ object ContentParser {
     private val chapterRegex = Regex("""\[chapter:(.+?)]""")
     private const val NEWPAGE_TAG = "[newpage]"
 
+    // 用户反馈：部分 Pixiv 作品的章节标题里数字两侧出现多余的引号（直引号 /
+    // 弯引号都见过），导出 TXT 后呈现为「【第'0章'】」。这些引号通常成对包住
+    // 数字 + 中文字符（如 `第'0章'` —— 后引号在 `章` 而非数字后面），所以单纯
+    // "数字两侧" 的正则会漏掉一半。规则改为：标题里若出现数字，就连同所有
+    // 直/弯单引号一并剥掉。CJK 引号「」/双引号""保留，避免误伤合法标点。
+    private val singleQuotesRegex = Regex("""['‘’]""")
+    private val digitRegex = Regex("""\d""")
+
+    internal fun cleanChapterTitle(raw: String): String {
+        val s = raw.trim()
+        return if (digitRegex.containsMatchIn(s)) {
+            s.replace(singleQuotesRegex, "").trim()
+        } else {
+            s
+        }
+    }
+
     fun tokenize(webNovel: WebNovel): List<ContentToken> = tokenize(webNovel.text.orEmpty())
 
     fun tokenize(text: String): List<ContentToken> {
@@ -50,7 +67,9 @@ object ContentParser {
                     raw += ContentToken.PageBreak(lineStart, lineEnd)
                 }
                 chapterRegex.containsMatchIn(trimmed) -> {
-                    val title = chapterRegex.find(trimmed)?.groupValues?.getOrNull(1).orEmpty().trim()
+                    val title = cleanChapterTitle(
+                        chapterRegex.find(trimmed)?.groupValues?.getOrNull(1).orEmpty()
+                    )
                     raw += ContentToken.Chapter(lineStart, lineEnd, title)
                 }
                 uploadedImageRegex.containsMatchIn(trimmed) -> {
