@@ -858,6 +858,16 @@
     <string name="manga_series">漫画系列</string>
     <string name="total_works_count">系列中包含%1$d个作品</string>
     <string name="download_all_artworks">下载系列全部作品</string>
+    <string name="multi_select_on">多选</string>
+    <string name="multi_select_off">完成</string>
+    <string name="select_all">全选</string>
+    <string name="deselect_all">取消全选</string>
+    <string name="download_selected_count">下载选中 (%1$d)</string>
+    <string name="batch_download_progress">下载中 %1$d/%2$d</string>
+    <string name="batch_download_all_ok">已全部下载</string>
+    <string name="batch_download_some_failed">下载完成，%1$d 篇失败</string>
+    <string name="batch_download_failure_line">《%1$s》— %2$s</string>
+    <string name="batch_download_no_selection">请先选择要下载的小说</string>
     <string name="turn_on_v5_ui">体验新版UI(公测中)</string>
     <string name="use_new_ui">体验新版</string>
     <string name="turn_off_v5_ui">切换为旧版UI</string>

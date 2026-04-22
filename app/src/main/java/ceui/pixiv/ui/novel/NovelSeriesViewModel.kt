@@ -36,6 +36,50 @@ class NovelSeriesViewModel(
     private val _series = MutableLiveData<NovelSeriesResp>()
     val series: LiveData<NovelSeriesResp> = _series
 
+    // ── Multi-select state ──────────────────────────────────────────
+    // Kept in the VM so it survives config changes (rotation, theme
+    // switch). The fragment observes both values to drive its top-right
+    // toggle icon and the bottom action bar.
+    private val _isMultiSelect = MutableLiveData(false)
+    val isMultiSelect: LiveData<Boolean> = _isMultiSelect
+
+    private val _selectedIds = MutableLiveData<Set<Long>>(emptySet())
+    val selectedIds: LiveData<Set<Long>> = _selectedIds
+
+    fun setMultiSelectMode(enabled: Boolean) {
+        if (_isMultiSelect.value == enabled) return
+        _isMultiSelect.value = enabled
+        if (!enabled) {
+            _selectedIds.value = emptySet()
+        }
+    }
+
+    fun toggleSelection(novelId: Long) {
+        val current = _selectedIds.value.orEmpty()
+        _selectedIds.value = if (novelId in current) current - novelId else current + novelId
+    }
+
+    fun selectAll() {
+        _selectedIds.value = allNovelIds().toSet()
+    }
+
+    fun clearSelection() {
+        _selectedIds.value = emptySet()
+    }
+
+    fun allNovelIds(): List<Long> = _itemHolders.value.orEmpty()
+        .filterIsInstance<NovelCardHolder>()
+        .map { it.novel.id }
+
+    fun selectedNovels(): List<Novel> {
+        val selected = _selectedIds.value.orEmpty()
+        if (selected.isEmpty()) return emptyList()
+        return _itemHolders.value.orEmpty()
+            .filterIsInstance<NovelCardHolder>()
+            .filter { it.novel.id in selected }
+            .map { it.novel }
+    }
+
     private val _seriesNovelsDataSource = object : DataSource<Novel, NovelSeriesResp>(
         dataFetcher = { Client.appApi.getNovelSeries(seriesId, _lastOrder) },
         responseStore = createResponseStore({ "novel-series-$seriesId" }),

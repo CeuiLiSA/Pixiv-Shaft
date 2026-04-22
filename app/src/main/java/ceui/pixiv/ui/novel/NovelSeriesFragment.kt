@@ -3,6 +3,7 @@ package ceui.pixiv.ui.novel
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -14,33 +15,40 @@ import ceui.lisa.core.PageData
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
+import ceui.lisa.utils.V3Palette
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.pixiv.session.SessionManager
 import androidx.core.view.isVisible
 import ceui.pixiv.ui.common.ListMode
+import ceui.pixiv.ui.common.NovelMultiSelectReceiver
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.constructVM
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpRefreshState
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.task.BatchDownloadNovelsTask
+import ceui.pixiv.ui.task.FailedNovel
 import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.task.PixivTaskType
 import ceui.pixiv.ui.works.blurBackground
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.widgets.MenuItem
-import ceui.pixiv.widgets.showActionMenu
+import com.hjq.toast.ToastUtils
 import kotlinx.coroutines.launch
 import java.util.UUID
 import android.widget.TextView
+import android.widget.ImageView
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.view.Gravity
 import android.view.ViewGroup
 import android.graphics.drawable.GradientDrawable
 import android.graphics.Color
+import android.graphics.Typeface
+import androidx.constraintlayout.widget.ConstraintLayout
 
-class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
+class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMultiSelectReceiver {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val seriesId: Long by lazy { arguments?.getLong(ARG_SERIES_ID, 0L) ?: 0L }
@@ -57,6 +65,15 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         responseStore = createResponseStore({ "user-${SessionManager.loggedInUid}-bookmarked-illusts" })
     )
 
+    // Two independent bottom views — we swap between them based on
+    // isMultiSelect. Kept as fields so the observer can just flip
+    // visibility instead of re-inflating on every emission.
+    private var singleDownloadBtn: TextView? = null
+    private var multiSelectBar: View? = null
+    private var multiSelectDownloadBtn: TextView? = null
+    private var multiSelectSelectAllBtn: TextView? = null
+    private var topToggleBtn: ImageView? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
@@ -72,6 +89,26 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         // 被整体 GONE 了，用户根本看不到入口。挂到 bottomCovered 里做成一个 fab-ish 的
         // 条状按钮，所有系列页都能一眼看到。
         addDownloadAllButton()
+        addMultiSelectActionBar()
+        addMultiSelectTopToggle()
+
+        // Observe multi-select state: swap bottom UI + re-render all cards
+        // so the checkbox visibility / selection flips update in place.
+        viewModel.isMultiSelect.observe(viewLifecycleOwner) { enabled ->
+            applyMultiSelectVisibility(enabled)
+            // Refresh holders so NovelCardViewHolder re-queries the receiver.
+            binding.listView.adapter?.notifyDataSetChanged()
+        }
+        viewModel.selectedIds.observe(viewLifecycleOwner) { selected ->
+            val count = selected.size
+            multiSelectDownloadBtn?.text = getString(R.string.download_selected_count, count)
+            val allIds = viewModel.allNovelIds()
+            val allSelected = allIds.isNotEmpty() && selected.containsAll(allIds)
+            multiSelectSelectAllBtn?.text = getString(
+                if (allSelected) R.string.deselect_all else R.string.select_all
+            )
+            binding.listView.adapter?.notifyDataSetChanged()
+        }
     }
 
     private fun addDownloadAllButton() {
@@ -98,6 +135,170 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         }
         binding.bottomCovered.isVisible = true
         binding.bottomCovered.addView(btn)
+        singleDownloadBtn = btn
+    }
+
+    /**
+     * Bottom action row visible only during multi-select mode. Left half
+     * is the "全选 / 取消全选" toggle; right half is "下载选中 (N)". Kept
+     * visually close to addDownloadAllButton so the transition looks like
+     * a UI mode swap rather than a layout jump.
+     */
+    private fun addMultiSelectActionBar() {
+        val density = resources.displayMetrics.density
+        val palette = V3Palette.from(requireContext())
+
+        val row = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            val mx = (20 * density).toInt()
+            val my = (12 * density).toInt()
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                (48 * density).toInt(),
+            ).apply { setMargins(mx, my, mx, my) }
+            visibility = View.GONE
+        }
+
+        val selectAll = TextView(requireContext()).apply {
+            text = getString(R.string.select_all)
+            setTextColor(palette.textAccent)
+            textSize = 15f
+            gravity = Gravity.CENTER
+            setTypeface(typeface, Typeface.BOLD)
+            background = palette.pillSecondary(28 * density, (1 * density).toInt())
+            layoutParams = LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f
+            ).apply { marginEnd = (10 * density).toInt() }
+            setOnClick { onClickSelectAllToggle() }
+        }
+
+        val download = TextView(requireContext()).apply {
+            text = getString(R.string.download_selected_count, 0)
+            setTextColor(Color.WHITE)
+            textSize = 15f
+            gravity = Gravity.CENTER
+            setTypeface(typeface, Typeface.BOLD)
+            background = palette.pillPrimary(28 * density)
+            elevation = 4 * density
+            layoutParams = LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.MATCH_PARENT, 1.4f
+            )
+            setOnClick { launchBatchDownloadSelected() }
+        }
+
+        row.addView(selectAll)
+        row.addView(download)
+
+        binding.bottomCovered.isVisible = true
+        binding.bottomCovered.addView(row)
+
+        multiSelectBar = row
+        multiSelectSelectAllBtn = selectAll
+        multiSelectDownloadBtn = download
+    }
+
+    /**
+     * Top-right floating toggle that flips multi-select mode. Rendered as
+     * an overlay on the root ConstraintLayout to mirror NovelTextFragment's
+     * top-actions pattern. Tinted via V3Palette so day/night both look
+     * right.
+     */
+    private fun addMultiSelectTopToggle() {
+        val density = resources.displayMetrics.density
+        val palette = V3Palette.from(requireContext())
+
+        val toggle = ImageView(requireContext()).apply {
+            // A generic "checklist" vector isn't guaranteed in the project,
+            // so reuse ic_check_circle for ON and ic_checkbox_off for OFF.
+            setImageResource(R.drawable.ic_checkbox_off)
+            setColorFilter(palette.textTag)
+            val size = (44 * density).toInt()
+            val pad = (10 * density).toInt()
+            setPadding(pad, pad, pad, pad)
+            background = palette.pillSecondary(
+                999f * density, (1 * density).toInt()
+            )
+            setOnClick {
+                val now = viewModel.isMultiSelect.value == true
+                viewModel.setMultiSelectMode(!now)
+            }
+            // Anchor top-end, with a top margin large enough to clear the
+            // status bar when TemplateActivity draws behind it.
+            val statusBarH = com.blankj.utilcode.util.BarUtils.getStatusBarHeight()
+            val lp = ConstraintLayout.LayoutParams(size, size).apply {
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                topMargin = statusBarH + (8 * density).toInt()
+                marginEnd = (12 * density).toInt()
+            }
+            layoutParams = lp
+        }
+
+        val rootLayout = binding.root as ConstraintLayout
+        rootLayout.addView(toggle)
+        topToggleBtn = toggle
+    }
+
+    private fun applyMultiSelectVisibility(enabled: Boolean) {
+        singleDownloadBtn?.isVisible = !enabled
+        multiSelectBar?.isVisible = enabled
+        val palette = V3Palette.from(requireContext())
+        topToggleBtn?.let { tb ->
+            if (enabled) {
+                tb.setImageResource(R.drawable.ic_check_circle_black_24dp)
+                tb.clearColorFilter()
+            } else {
+                tb.setImageResource(R.drawable.ic_checkbox_off)
+                tb.setColorFilter(palette.textTag)
+            }
+        }
+    }
+
+    private fun onClickSelectAllToggle() {
+        val selected = viewModel.selectedIds.value.orEmpty()
+        val allIds = viewModel.allNovelIds()
+        if (allIds.isEmpty()) return
+        if (selected.containsAll(allIds)) {
+            viewModel.clearSelection()
+        } else {
+            viewModel.selectAll()
+        }
+    }
+
+    private fun launchBatchDownloadSelected() {
+        val novels = viewModel.selectedNovels()
+        if (novels.isEmpty()) {
+            ToastUtils.show(getString(R.string.batch_download_no_selection))
+            return
+        }
+        BatchDownloadNovelsTask(
+            activity = requireActivity(),
+            novels = novels,
+            onFinished = { failures -> onBatchDownloadFinished(failures) },
+        )
+    }
+
+    private fun onBatchDownloadFinished(failures: List<FailedNovel>) {
+        if (!isAdded) return
+        if (failures.isEmpty()) {
+            ToastUtils.show(getString(R.string.batch_download_all_ok))
+            // Exit multi-select on full success — matches the user's mental
+            // model ("I'm done, clean up").
+            viewModel.setMultiSelectMode(false)
+            return
+        }
+        val msg = failures.joinToString(separator = "\n") { fn ->
+            getString(
+                R.string.batch_download_failure_line,
+                fn.novel.title.orEmpty(),
+                fn.reason.orEmpty(),
+            )
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.batch_download_some_failed, failures.size))
+            .setMessage(msg)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     private fun launchDownloadAll() {
@@ -108,6 +309,19 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         ) {
             Client.appApi.getNovelSeries(seriesId)
         }
+    }
+
+    // ── NovelMultiSelectReceiver ────────────────────────────────────
+    override fun isNovelMultiSelectMode(): Boolean {
+        return viewModel.isMultiSelect.value == true
+    }
+
+    override fun isNovelSelected(novelId: Long): Boolean {
+        return viewModel.selectedIds.value?.contains(novelId) == true
+    }
+
+    override fun onToggleNovelSelection(novelId: Long) {
+        viewModel.toggleSelection(novelId)
     }
 
     override fun onClickUser(id: Long) {

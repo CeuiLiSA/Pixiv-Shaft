@@ -29,6 +29,21 @@
             app:layout_constraintTop_toTopOf="parent"
             app:rRadius="4dp" />
 
+        <!-- Multi-select indicator overlay. Hidden by default (NovelCardHolder
+             flips isVisible to true only when the host fragment implements
+             NovelMultiSelectReceiver AND multi-select mode is ON). Color is
+             applied from V3Palette at bind time so it tracks the user theme. -->
+        <ImageView
+            android:id="@+id/select_indicator"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:src="@drawable/ic_checkbox_off"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@+id/novel_cover"
+            app:layout_constraintTop_toTopOf="@+id/novel_cover" />
+
 
         <TextView
             android:id="@+id/title"
