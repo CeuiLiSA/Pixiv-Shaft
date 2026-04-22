@@ -130,7 +130,13 @@ class V3TagFlowView @JvmOverloads constructor(
                 layoutParams = LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT,
-                ).apply { setMargins(0, 0, endGap, bottomGap) }
+                ).apply {
+                    setMargins(0, 0, endGap, bottomGap)
+                    // flexbox 默认 flexShrink=1，配合 flexWrap=nowrap 会把一行塞不下的 chip
+                    // 按比例压窄，导致中文 chip 被挤成竖排多行。保持 chip 自然宽度，超出
+                    // 交给外层 HorizontalScrollView 滚动。
+                    flexShrink = 0f
+                }
                 setOnClickListener {
                     val custom = onTagClick
                     if (custom != null) {
