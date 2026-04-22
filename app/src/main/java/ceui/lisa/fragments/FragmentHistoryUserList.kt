@@ -8,6 +8,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHistoryListBinding
+import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.viewBinding
 import com.scwang.smart.refresh.footer.ClassicsFooter
@@ -34,6 +35,7 @@ class FragmentHistoryUserList : Fragment(R.layout.fragment_history_list) {
             viewModel.loadMore { binding.refreshLayout.finishLoadMore() }
         }
 
+        viewModel.setDeleteCallback { entity -> confirmDelete(entity) }
         viewModel.holders.observe(viewLifecycleOwner) { holders ->
             adapter.submitList(holders)
         }
@@ -44,5 +46,15 @@ class FragmentHistoryUserList : Fragment(R.layout.fragment_history_list) {
         if (viewModel.holders.value.isNullOrEmpty()) {
             viewModel.loadFirst()
         }
+    }
+
+    private fun confirmDelete(entity: GeneralEntity) {
+        val act = activity ?: return
+        androidx.appcompat.app.AlertDialog.Builder(act)
+            .setTitle(R.string.string_143)
+            .setMessage(R.string.string_352)
+            .setPositiveButton(R.string.string_141) { _, _ -> viewModel.delete(entity) }
+            .setNegativeButton(R.string.string_142, null)
+            .show()
     }
 }

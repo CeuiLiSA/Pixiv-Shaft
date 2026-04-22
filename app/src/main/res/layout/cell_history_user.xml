@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -44,5 +45,16 @@
             tools:text="2025-04-21 12:00" />
 
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/delete_item"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/v3_glass_surface"
+        android:contentDescription="@null"
+        android:padding="7dp"
+        android:src="@drawable/ic_delete_black_24dp"
+        app:tint="@color/v3_text_3" />
 
 </LinearLayout>

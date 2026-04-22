@@ -24,6 +24,11 @@ class HistoryUserViewModel : ViewModel() {
     val isEmpty: LiveData<Boolean> = _isEmpty
 
     private val rawItems = mutableListOf<GeneralEntity>()
+    private var onDeleteCallback: ((GeneralEntity) -> Unit)? = null
+
+    fun setDeleteCallback(cb: (GeneralEntity) -> Unit) {
+        onDeleteCallback = cb
+    }
 
     fun loadFirst(onDone: () -> Unit = {}) {
         viewModelScope.launch {
@@ -32,7 +37,7 @@ class HistoryUserViewModel : ViewModel() {
             }
             rawItems.clear()
             rawItems.addAll(data)
-            _holders.value = rawItems.map { HistoryUserHolder(it) }
+            _holders.value = buildHolders()
             _isEmpty.value = rawItems.isEmpty()
             onDone()
         }
@@ -45,10 +50,28 @@ class HistoryUserViewModel : ViewModel() {
             }
             if (data.isNotEmpty()) {
                 rawItems.addAll(data)
-                _holders.value = rawItems.map { HistoryUserHolder(it) }
+                _holders.value = buildHolders()
             }
             onDone()
         }
+    }
+
+    fun delete(entity: GeneralEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                dao.deleteByRecordTypeAndId(RecordType.VIEW_USER_HISTORY, entity.id)
+            }
+            rawItems.removeAll { it.id == entity.id }
+            _holders.value = buildHolders()
+            _isEmpty.value = rawItems.isEmpty()
+        }
+    }
+
+    private fun buildHolders(): List<ListItemHolder> {
+        val deleteHandler: (GeneralEntity) -> Unit = { entity ->
+            onDeleteCallback?.invoke(entity)
+        }
+        return rawItems.map { HistoryUserHolder(it, deleteHandler) }
     }
 
     companion object {

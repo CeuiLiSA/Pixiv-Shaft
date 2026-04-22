@@ -15,7 +15,10 @@ import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class HistoryUserHolder(val entity: GeneralEntity) : ListItemHolder() {
+class HistoryUserHolder(
+    val entity: GeneralEntity,
+    val onRequestDelete: (GeneralEntity) -> Unit,
+) : ListItemHolder() {
     override fun getItemId(): Long = entity.id
 
     override fun areContentsTheSame(other: ListItemHolder): Boolean {
@@ -44,6 +47,13 @@ class HistoryUserViewHolder(bd: CellHistoryUserBinding) :
             context.startActivity(Intent(context, UActivity::class.java).apply {
                 putExtra(Params.USER_ID, holder.entity.id.toInt())
             })
+        }
+        binding.root.setOnLongClickListener {
+            holder.onRequestDelete(holder.entity)
+            true
+        }
+        binding.deleteItem.setOnClickListener {
+            holder.onRequestDelete(holder.entity)
         }
     }
 }
