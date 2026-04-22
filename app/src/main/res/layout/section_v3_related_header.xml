@@ -36,13 +36,14 @@
     <FrameLayout
         android:id="@+id/related_loading_container"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="wrap_content"
         android:visibility="gone">
 
         <ProgressBar
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_gravity="center"
+            android:layout_marginVertical="50dp"
             android:indeterminateTint="@color/v3_text_3" />
     </FrameLayout>
 </LinearLayout>

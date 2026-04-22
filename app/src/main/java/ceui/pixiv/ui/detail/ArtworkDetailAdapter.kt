@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
-import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.VActivity
@@ -47,11 +46,11 @@ import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.V3Palette
+import ceui.loxia.Comment
 import ceui.loxia.ProgressTextButton
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
-import com.google.android.flexbox.FlexboxLayout
 import de.hdodenhof.circleimageview.CircleImageView
 import java.text.NumberFormat
 
@@ -83,7 +82,10 @@ class ArtworkDetailAdapter(
                 }
             }
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "submitItems: same structure, $changedCount changed, ${SystemClock.elapsedRealtime() - t}ms")
+                Log.d(
+                    TAG,
+                    "submitItems: same structure, $changedCount changed, ${SystemClock.elapsedRealtime() - t}ms"
+                )
             }
         } else if (oldItems.size < newItems.size &&
             oldItems.indices.all { viewTypeOf(oldItems[it]) == viewTypeOf(newItems[it]) }
@@ -94,12 +96,18 @@ class ArtworkDetailAdapter(
             }
             notifyItemRangeInserted(oldItems.size, newItems.size - oldItems.size)
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "submitItems: appended ${newItems.size - oldItems.size} items, ${SystemClock.elapsedRealtime() - t}ms")
+                Log.d(
+                    TAG,
+                    "submitItems: appended ${newItems.size - oldItems.size} items, ${SystemClock.elapsedRealtime() - t}ms"
+                )
             }
         } else {
             notifyDataSetChanged()
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "submitItems: structural change ${oldItems.size}->${newItems.size}, ${SystemClock.elapsedRealtime() - t}ms")
+                Log.d(
+                    TAG,
+                    "submitItems: structural change ${oldItems.size}->${newItems.size}, ${SystemClock.elapsedRealtime() - t}ms"
+                )
             }
         }
     }
@@ -189,7 +197,10 @@ class ArtworkDetailAdapter(
         if (BuildConfig.DEBUG) {
             val elapsed = SystemClock.elapsedRealtime() - t
             if (elapsed > 2) {
-                Log.d(TAG, "onBindViewHolder pos=$position type=${getItemViewType(position)} took ${elapsed}ms")
+                Log.d(
+                    TAG,
+                    "onBindViewHolder pos=$position type=${getItemViewType(position)} took ${elapsed}ms"
+                )
             }
         }
     }
@@ -221,9 +232,9 @@ class ArtworkDetailAdapter(
         val pos = holder.bindingAdapterPosition
         if (pos in items.indices) {
             when (val item = items[pos]) {
-                is ArtworkDetailItem.Comments -> if (item.comments == null) onCommentsVisible?.invoke()
-                is ArtworkDetailItem.AuthorWorks -> if (item.works == null) onAuthorWorksVisible?.invoke()
-                is ArtworkDetailItem.RelatedHeader -> if (item.isLoading) onRelatedVisible?.invoke()
+                is ArtworkDetailItem.Comments -> if (item.liveData.value == null) onCommentsVisible?.invoke()
+                is ArtworkDetailItem.AuthorWorks -> if (item.liveData.value == null) onAuthorWorksVisible?.invoke()
+                is ArtworkDetailItem.RelatedHeader -> if (item.liveData.value == null) onRelatedVisible?.invoke()
                 else -> {}
             }
         }
@@ -441,8 +452,19 @@ class ArtworkDetailAdapter(
 
     inner class CommentsVH(private val b: SectionV3CommentsBinding) :
         RecyclerView.ViewHolder(b.root) {
+        private var observing = false
+
         fun bind(item: ArtworkDetailItem.Comments) {
-            val isLoading = item.comments == null
+            if (!observing) {
+                observing = true
+                item.liveData.observe(fragment.viewLifecycleOwner) { comments ->
+                    render(comments, item.illustId, item.illustTitle)
+                }
+            }
+        }
+
+        private fun render(comments: List<Comment>?, illustId: Int, illustTitle: String) {
+            val isLoading = comments == null
             b.commentsLoading.isVisible = isLoading
             b.commentsList.isVisible = !isLoading
             b.commentsEmpty.isVisible = false
@@ -450,10 +472,10 @@ class ArtworkDetailAdapter(
             if (isLoading) return
 
             b.commentsList.removeAllViews()
-            val hasComments = item.comments.isNotEmpty()
+            val hasComments = comments.isNotEmpty()
             b.commentsEmpty.isVisible = !hasComments
             b.commentsMore.isVisible = hasComments
-            item.comments.forEach { comment ->
+            comments.forEach { comment ->
                 val row = LinearLayout(ctx).apply {
                     orientation = LinearLayout.HORIZONTAL; setPadding(0, 14.ppppx, 0, 14.ppppx)
                 }
@@ -518,8 +540,8 @@ class ArtworkDetailAdapter(
             b.commentsMore.setOnClick {
                 val intent = Intent(ctx, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
-                intent.putExtra(Params.ILLUST_ID, item.illustId)
-                intent.putExtra(Params.ILLUST_TITLE, item.illustTitle)
+                intent.putExtra(Params.ILLUST_ID, illustId)
+                intent.putExtra(Params.ILLUST_TITLE, illustTitle)
                 ctx.startActivity(intent)
             }
         }
@@ -529,16 +551,44 @@ class ArtworkDetailAdapter(
         RecyclerView.ViewHolder(b.root) {
         private var lAdapter: LAdapter? = null
         private val worksList = mutableListOf<IllustsBean>()
+        private var observing = false
 
         fun bind(item: ArtworkDetailItem.AuthorWorks) {
-            val isLoading = item.works == null
-            b.authorWorksLoading.isVisible = isLoading
-            b.authorWorksRv.isVisible = !isLoading
-            b.authorWorksSeeAll.isVisible = !isLoading
             b.authorWorksLabel.text =
                 ctx.getString(R.string.v3_author_works, item.authorName).uppercase()
             b.authorWorksSeeAll.setTextColor(palette.textAccent)
-            if (isLoading) return
+            b.authorWorksSeeAll.setOnClickListener {
+                val intent = Intent(ctx, TemplateActivity::class.java)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
+                intent.putExtra(Params.USER_ID, item.userId)
+                ctx.startActivity(intent)
+            }
+            if (!observing) {
+                observing = true
+                item.liveData.observe(fragment.viewLifecycleOwner) { works -> render(works) }
+            }
+        }
+
+        private fun render(works: List<IllustsBean>?) {
+            if (works == null) {
+                b.authorWorksLoading.isVisible = true
+                b.authorWorksRv.isVisible = false
+                b.authorWorksSeeAll.isVisible = false
+                return
+            }
+
+            b.authorWorksLoading.isVisible = false
+
+            if (works.isEmpty()) {
+                b.authorWorksLabel.isVisible = false
+                b.authorWorksRv.isVisible = false
+                b.authorWorksSeeAll.isVisible = false
+                return
+            }
+
+            b.authorWorksLabel.isVisible = true
+            b.authorWorksRv.isVisible = true
+            b.authorWorksSeeAll.isVisible = true
 
             if (lAdapter == null) {
                 lAdapter = LAdapter(worksList, ctx)
@@ -553,38 +603,33 @@ class ArtworkDetailAdapter(
                 b.authorWorksRv.layoutManager =
                     LinearLayoutManager(ctx, LinearLayoutManager.HORIZONTAL, false)
                 b.authorWorksRv.addItemDecoration(object : RecyclerView.ItemDecoration() {
-                    override fun getItemOffsets(outRect: android.graphics.Rect, view: View,
-                        parent: RecyclerView, state: RecyclerView.State) {
+                    override fun getItemOffsets(
+                        outRect: android.graphics.Rect, view: View,
+                        parent: RecyclerView, state: RecyclerView.State
+                    ) {
                         outRect.right = 8.ppppx
                     }
                 })
                 b.authorWorksRv.adapter = lAdapter
                 val lp = b.authorWorksRv.layoutParams
                 lp.height = lAdapter!!.imageSize +
-                    ctx.resources.getDimensionPixelSize(R.dimen.sixteen_dp)
+                        ctx.resources.getDimensionPixelSize(R.dimen.sixteen_dp)
                 b.authorWorksRv.layoutParams = lp
             }
 
-            if (worksList != item.works) {
+            if (worksList != works) {
                 worksList.clear()
-                worksList.addAll(item.works)
+                worksList.addAll(works)
                 lAdapter?.notifyDataSetChanged()
-            }
-
-            b.authorWorksSeeAll.setOnClickListener {
-                val intent = Intent(ctx, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
-                intent.putExtra(Params.USER_ID, item.userId)
-                ctx.startActivity(intent)
             }
         }
     }
 
     inner class RelatedHeaderVH(private val b: SectionV3RelatedHeaderBinding) :
         RecyclerView.ViewHolder(b.root) {
+        private var observing = false
+
         fun bind(item: ArtworkDetailItem.RelatedHeader) {
-            b.relatedLoadingContainer.isVisible = item.isLoading
-            b.relatedSeeMore.isVisible = !item.isLoading
             b.relatedSeeMore.setTextColor(palette.textAccent)
             b.relatedSeeMore.setOnClick {
                 val intent = Intent(ctx, TemplateActivity::class.java)
@@ -592,6 +637,29 @@ class ArtworkDetailAdapter(
                 intent.putExtra(Params.ILLUST_ID, item.illustId)
                 intent.putExtra(Params.ILLUST_TITLE, item.illustTitle)
                 ctx.startActivity(intent)
+            }
+            if (!observing) {
+                observing = true
+                item.liveData.observe(fragment.viewLifecycleOwner) { loaded -> render(loaded) }
+            }
+        }
+
+        private fun render(loaded: Boolean?) {
+            when (loaded) {
+                null -> {
+                    b.relatedLoadingContainer.isVisible = true
+                    b.relatedSeeMore.isVisible = false
+                }
+
+                false -> {
+                    b.relatedLoadingContainer.isVisible = false
+                    b.relatedSeeMore.isVisible = false
+                }
+
+                true -> {
+                    b.relatedLoadingContainer.isVisible = false
+                    b.relatedSeeMore.isVisible = true
+                }
             }
         }
     }

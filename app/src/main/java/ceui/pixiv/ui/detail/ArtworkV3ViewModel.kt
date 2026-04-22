@@ -34,18 +34,24 @@ class ArtworkV3ViewModel(
 
     // ── internal state ──
     private var illustBean: IllustsBean? = null
-    private var comments: List<Comment>? = null
-    private var authorWorks: List<IllustsBean>? = null
     private val gson = Gson()
     private var commentsLoadTriggered = false
     private var authorWorksLoadTriggered = false
-    private var authorWorksLoaded = false
     private var relatedLoadTriggered = false
-    private var relatedLoaded = false
 
     // ── output: header sections ──
     private val _headerItems = MutableLiveData<List<ArtworkDetailItem>>()
     val headerItems: LiveData<List<ArtworkDetailItem>> = _headerItems
+
+    // ── lazy-loaded section data (observed directly by ViewHolders) ──
+    private val _commentsData = MutableLiveData<List<Comment>?>(null)
+    val commentsData: LiveData<List<Comment>?> = _commentsData
+
+    private val _authorWorksData = MutableLiveData<List<IllustsBean>?>(null)
+    val authorWorksData: LiveData<List<IllustsBean>?> = _authorWorksData
+
+    private val _relatedState = MutableLiveData<Boolean?>(null)
+    val relatedState: LiveData<Boolean?> = _relatedState
 
     // ── output: related illusts (for IAdapter) ──
     private val relatedList = mutableListOf<IllustsBean>()
@@ -116,34 +122,15 @@ class ArtworkV3ViewModel(
         list.add(ArtworkDetailItem.Stats(illust))
         list.add(ArtworkDetailItem.DetailPanel(illust))
 
-        list.add(ArtworkDetailItem.Comments(comments, illust.id, illust.title ?: ""))
-
-        if (authorWorksLoaded) {
-            authorWorks?.takeIf { it.isNotEmpty() }?.let {
-                list.add(
-                    ArtworkDetailItem.AuthorWorks(
-                        it,
-                        illust.user?.name ?: "",
-                        illust.user?.id ?: 0
-                    )
-                )
-            }
-        } else {
-            list.add(
-                ArtworkDetailItem.AuthorWorks(
-                    null,
-                    illust.user?.name ?: "",
-                    illust.user?.id ?: 0
-                )
+        list.add(ArtworkDetailItem.Comments(_commentsData, illust.id, illust.title ?: ""))
+        list.add(
+            ArtworkDetailItem.AuthorWorks(
+                _authorWorksData,
+                illust.user?.name ?: "",
+                illust.user?.id ?: 0
             )
-        }
-        if (relatedLoaded) {
-            if (relatedList.isNotEmpty()) {
-                list.add(ArtworkDetailItem.RelatedHeader(illust.id, illust.title ?: ""))
-            }
-        } else {
-            list.add(ArtworkDetailItem.RelatedHeader(illust.id, illust.title ?: "", isLoading = true))
-        }
+        )
+        list.add(ArtworkDetailItem.RelatedHeader(_relatedState, illust.id, illust.title ?: ""))
 
         _headerItems.value = list
     }
@@ -173,11 +160,12 @@ class ArtworkV3ViewModel(
         if (commentsLoadTriggered) return
         commentsLoadTriggered = true
         viewModelScope.launch {
-            comments = withContext(Dispatchers.IO) {
-                runCatching { Client.appApi.getIllustComments(illustId).comments.take(3) }
+            _commentsData.value = withContext(Dispatchers.IO) {
+                runCatching {
+                    Client.appApi.getIllustComments(illustId).comments.take(3)
+                }
                     .getOrElse { Timber.e(it); emptyList() }
             }
-            buildHeaderItems()
         }
     }
 
@@ -186,20 +174,17 @@ class ArtworkV3ViewModel(
         authorWorksLoadTriggered = true
         val userId = illustBean?.user?.id ?: return
         viewModelScope.launch {
-            try {
-                authorWorks = withContext(Dispatchers.IO) {
+            _authorWorksData.value = try {
+                withContext(Dispatchers.IO) {
                     runCatching {
                         val resp = ceui.lisa.http.Retro.getAppApi()
                             .getUserSubmitIllust(userId, "illust")
                             .awaitFirst()
                         resp.list?.filter { it.id != illustId.toInt() }?.take(10) ?: emptyList()
                     }.getOrElse { Timber.e(it); emptyList() }
-                }.ifEmpty { null }
+                }
             } catch (e: Exception) {
-                Timber.e(e)
-            } finally {
-                authorWorksLoaded = true
-                buildHeaderItems()
+                Timber.e(e); emptyList()
             }
         }
     }
@@ -226,11 +211,10 @@ class ArtworkV3ViewModel(
             } catch (e: Exception) {
                 Timber.e(e)
             } finally {
-                relatedLoaded = true
+                _relatedState.value = relatedList.isNotEmpty()
                 // Prevent scroll inertia from immediately triggering loadMoreRelated
                 isLoadingMore = true
                 mainHandler.postDelayed(enableLoadMoreRunnable, 300)
-                buildHeaderItems()
             }
         }
     }

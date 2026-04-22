@@ -53,6 +53,7 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     private lateinit var relatedAdapter: IAdapter
     private lateinit var loadingFooter: LoadingFooterAdapter
     private val relatedList = mutableListOf<IllustsBean>()
+    private var pendingHeaderItems: List<ArtworkDetailItem>? = null
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_artwork_v3
