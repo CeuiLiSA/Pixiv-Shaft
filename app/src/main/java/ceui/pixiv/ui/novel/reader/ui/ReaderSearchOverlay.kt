@@ -57,6 +57,9 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
         applyRegexStyle()
     }
 
+    /** 搜索 overlay 是否处于可见态（用于返回手势优先关闭它）。 */
+    fun isShown(): Boolean = binding.root.visibility == View.VISIBLE
+
     fun setShown(shown: Boolean) {
         if (shown) {
             binding.root.visibility = View.VISIBLE
