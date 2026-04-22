@@ -91,7 +91,10 @@ object ContentParser {
                 }
                 else -> {
                     val textSourceStart = lineStart + (cleanLine.length - paragraphText.length)
-                    raw += ContentToken.Paragraph(lineStart, lineEnd, paragraphText, textSourceStart)
+                    val processed = InlineMarkupProcessor.process(paragraphText)
+                    raw += ContentToken.Paragraph(
+                        lineStart, lineEnd, processed.text, textSourceStart, processed.spans
+                    )
                 }
             }
         }

@@ -11,6 +11,8 @@ sealed class ContentToken {
         /** Position in the raw source where [text] actually begins.
          *  May differ from [sourceStart] when leading whitespace was trimmed. */
         val textSourceStart: Int = sourceStart,
+        /** Inline markup spans (links, ruby, etc.) with offsets into [text]. */
+        val inlineSpans: List<ceui.pixiv.ui.novel.reader.paginate.InlineSpan> = emptyList(),
     ) : ContentToken()
 
     data class Chapter(

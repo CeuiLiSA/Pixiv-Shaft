@@ -30,6 +30,7 @@ data class TypeStyle(
     val backgroundColor: Int,
     val dividerColor: Int,
     val secondaryTextColor: Int,
+    val linkColor: Int,
     val chapterTopGapPx: Float,
     val chapterBottomGapPx: Float,
 ) {
@@ -88,6 +89,7 @@ data class TypeStyle(
                 backgroundColor = theme.backgroundColor,
                 dividerColor = theme.dividerColor,
                 secondaryTextColor = theme.secondaryTextColor,
+                linkColor = theme.linkColor,
                 chapterTopGapPx = chapterHeight * 0.8f,
                 chapterBottomGapPx = chapterHeight * 1.2f,
             )

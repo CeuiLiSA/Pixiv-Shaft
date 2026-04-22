@@ -6,7 +6,10 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.BackgroundColorSpan
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
 import android.text.style.LeadingMarginSpan
+import android.text.style.UnderlineSpan
 import android.util.TypedValue
 import android.view.ActionMode
 import android.view.GestureDetector
@@ -24,6 +27,8 @@ import androidx.core.widget.NestedScrollView
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
+import ceui.pixiv.ui.novel.reader.paginate.InlineSpan
+import ceui.pixiv.ui.novel.reader.paginate.InlineTag
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import com.bumptech.glide.Glide
@@ -158,19 +163,23 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
             setLineSpacing(style.lineSpacingExtra, style.lineSpacingMultiplier)
             setBackgroundColor(Color.TRANSPARENT)
             highlightColor = style.selectionColor
-            setTextIsSelectable(true)
 
+            val spannable = SpannableString(token.text)
             val indent = style.firstLineIndentPx.toInt()
             if (indent > 0 && token.text.isNotEmpty()) {
-                val spannable = SpannableString(token.text)
                 spannable.setSpan(
                     LeadingMarginSpan.Standard(indent, 0),
                     0, token.text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                 )
-                text = spannable
-            } else {
-                text = token.text
             }
+            applyInlineSpans(spannable, token.inlineSpans, style)
+            // LinkMovementMethod must be set BEFORE setTextIsSelectable,
+            // otherwise ArrowKeyMovementMethod overwrites it.
+            if (token.inlineSpans.any { it.tag is InlineTag.Link }) {
+                movementMethod = android.text.method.LinkMovementMethod.getInstance()
+            }
+            setTextIsSelectable(true)
+            text = spannable
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -331,6 +340,52 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
             }
             if (imageElement != null) {
                 setOnClickListener { onImageTap?.invoke(imageElement) }
+            }
+        }
+    }
+
+    // ---- Inline markup spans ------------------------------------------------
+
+    private fun applyInlineSpans(
+        spannable: SpannableString,
+        inlineSpans: List<InlineSpan>,
+        style: TypeStyle,
+    ) {
+        for (span in inlineSpans) {
+            if (span.start < 0 || span.end > spannable.length || span.start >= span.end) continue
+            when (val tag = span.tag) {
+                is InlineTag.Link -> {
+                    val linkColor = style.linkColor
+                    spannable.setSpan(
+                        object : ClickableSpan() {
+                            override fun onClick(widget: android.view.View) {
+                                try {
+                                    val intent = android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        android.net.Uri.parse(tag.url),
+                                    )
+                                    widget.context.startActivity(intent)
+                                } catch (_: Exception) {
+                                    android.widget.Toast.makeText(
+                                        widget.context,
+                                        tag.url,
+                                        android.widget.Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                            override fun updateDrawState(ds: android.text.TextPaint) {
+                                ds.color = linkColor
+                                ds.isUnderlineText = true
+                            }
+                        },
+                        span.start, span.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                    )
+                }
+                is InlineTag.Ruby -> {
+                    // Ruby (furigana) — append as parenthesized annotation for now.
+                    // Full ruby rendering would require custom spans; this is a
+                    // readable fallback that preserves the info.
+                }
             }
         }
     }
