@@ -82,18 +82,19 @@ object ProfileManager {
         val db = AppDatabase.getAppDatabase(context)
         val gson = Shaft.sGson
 
-        // ====== 1. 读取本地数据源 ======
-        val downloads = db.downloadDao().getAll(5000, 0)
+        // ====== 1. 读取本地数据源（只取最近的，够算画像就行）======
+        // 每批 100 条，避免大 JSON 字段撑爆 CursorWindow (2MB)
+        val downloads = paginate(500) { limit, offset -> db.downloadDao().getAll(limit, offset) }
         Timber.d("$TAG buildProfile downloads=${downloads.size}")
 
-        val bookmarks = db.downloadDao().allFeatureEntities
+        val bookmarks = paginate(500) { limit, offset -> db.downloadDao().getFeatureList(limit, offset) }
         Timber.d("$TAG buildProfile bookmarks=${bookmarks.size}")
 
-        val viewHistoryLegacy = db.downloadDao().allViewHistoryEntities
+        val viewHistoryLegacy = paginate(500) { limit, offset -> db.downloadDao().getAllViewHistory(limit, offset) }
         Timber.d("$TAG buildProfile viewHistory(legacy)=${viewHistoryLegacy.size}")
 
         val viewHistoryNew = try {
-            db.generalDao().getByRecordType(RecordType.VIEW_ILLUST_HISTORY, 0, 5000)
+            db.generalDao().getByRecordType(RecordType.VIEW_ILLUST_HISTORY, 0, 500)
         } catch (e: Exception) {
             Timber.w(e, "$TAG buildProfile failed to read new view history")
             emptyList()
@@ -350,6 +351,20 @@ object ProfileManager {
         val daysAgo = (now - timestamp) / 86_400_000.0
         return if (daysAgo <= 30) 1.0f
         else exp(-0.03 * (daysAgo - 30)).toFloat().coerceAtLeast(0.05f)
+    }
+
+    private const val PAGE_SIZE = 100
+
+    private inline fun <T> paginate(max: Int, query: (limit: Int, offset: Int) -> List<T>): List<T> {
+        val result = mutableListOf<T>()
+        var offset = 0
+        while (result.size < max) {
+            val batch = query(PAGE_SIZE, offset)
+            if (batch.isEmpty()) break
+            result.addAll(batch)
+            offset += batch.size
+        }
+        return result
     }
 
     private data class LikedRecord(val illust: IllustsBean, val weight: Float, val timestamp: Long)
