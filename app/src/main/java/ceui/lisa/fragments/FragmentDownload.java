@@ -15,14 +15,13 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
 import com.blankj.utilcode.util.BarUtils;
-import com.blankj.utilcode.util.UriUtils;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
-import java.lang.reflect.Type;
-import java.util.List;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -238,21 +237,28 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                     Common.showToast(getString(R.string.download_records_import_no_file));
                     return;
                 }
-                String fileString = new String(UriUtils.uri2Bytes(uri));
-                Type listType = new TypeToken<List<DownloadEntity>>() {}.getType();
-                List<DownloadEntity> entities = Shaft.sGson.fromJson(fileString, listType);
-                if (entities == null || entities.isEmpty()) {
-                    Common.showToast(getString(R.string.download_records_import_invalid));
+                InputStream is = mContext.getContentResolver().openInputStream(uri);
+                if (is == null) {
+                    Common.showToast(getString(R.string.download_records_import_no_file));
                     return;
                 }
                 DownloadDao dao = AppDatabase.getAppDatabase(mContext).downloadDao();
                 int imported = 0;
-                for (DownloadEntity entity : entities) {
-                    if (entity == null || entity.getFileName() == null || entity.getFileName().isEmpty()) {
-                        continue;
+                try (JsonReader reader = new JsonReader(new InputStreamReader(is))) {
+                    reader.beginArray();
+                    while (reader.hasNext()) {
+                        DownloadEntity entity = Shaft.sGson.fromJson(reader, DownloadEntity.class);
+                        if (entity == null || entity.getFileName() == null || entity.getFileName().isEmpty()) {
+                            continue;
+                        }
+                        dao.insert(entity);
+                        imported++;
                     }
-                    dao.insert(entity);
-                    imported++;
+                    reader.endArray();
+                }
+                if (imported == 0) {
+                    Common.showToast(getString(R.string.download_records_import_invalid));
+                    return;
                 }
                 if (allPages[1] instanceof FragmentDownloadFinish) {
                     ((FragmentDownloadFinish) allPages[1]).clearAndRefresh();
