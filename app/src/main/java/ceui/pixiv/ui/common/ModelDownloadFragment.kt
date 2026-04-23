@@ -17,6 +17,7 @@ abstract class ModelDownloadFragment : SwipeFragment<FragmentRembgModelDownloadB
     private var lastSpeedUpdateTime = 0L
     private var lastSpeedBytes = 0L
     private var smoothedSpeed = 0.0
+    private var lastUIUpdateTime = 0L
 
     protected abstract fun resolveModel(): DownloadableModel
     protected abstract fun getManager(): ModelDownloadManager
@@ -122,6 +123,9 @@ abstract class ModelDownloadFragment : SwipeFragment<FragmentRembgModelDownloadB
         showDownloadingState()
         downloadJob = viewLifecycleOwner.lifecycleScope.launch {
             val success = getManager().downloadModel(requireContext(), model) { bytesRead, totalBytes ->
+                val now = System.currentTimeMillis()
+                if (now - lastUIUpdateTime < 300) return@downloadModel
+                lastUIUpdateTime = now
                 val root = view ?: return@downloadModel
                 root.post {
                     if (!isAdded || view == null) return@post
