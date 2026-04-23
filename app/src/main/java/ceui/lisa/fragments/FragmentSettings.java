@@ -517,6 +517,28 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.layoutMode.setText(Shaft.sSettings.isUseStaggeredLayout()
+                    ? getString(R.string.layout_staggered) : getString(R.string.layout_linear));
+            baseBind.layoutModeRela.setOnClickListener(v -> {
+                String[] options = new String[]{
+                        getString(R.string.layout_staggered),
+                        getString(R.string.layout_linear)
+                };
+                int currentIndex = Shaft.sSettings.isUseStaggeredLayout() ? 0 : 1;
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(currentIndex)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(options, (dialog, which) -> {
+                            if (which != currentIndex) {
+                                Shaft.sSettings.setUseStaggeredLayout(which == 0);
+                                baseBind.layoutMode.setText(options[which]);
+                                Local.setSettings(Shaft.sSettings);
+                            }
+                            dialog.dismiss();
+                        })
+                        .show();
+            });
+
             baseBind.lineCount.setText(getString(R.string.string_349, Shaft.sSettings.getLineCount()));
             baseBind.lineCountRela.setOnClickListener(new View.OnClickListener() {
                 @Override

@@ -40,12 +40,22 @@ public class Settings {
 
     private int lineCount = 2;
 
+    private boolean useStaggeredLayout = true;
+
     public int getLineCount() {
         return lineCount;
     }
 
     public void setLineCount(int lineCount) {
         this.lineCount = lineCount;
+    }
+
+    public boolean isUseStaggeredLayout() {
+        return useStaggeredLayout;
+    }
+
+    public void setUseStaggeredLayout(boolean useStaggeredLayout) {
+        this.useStaggeredLayout = useStaggeredLayout;
     }
 
     public int getThemeIndex() {
