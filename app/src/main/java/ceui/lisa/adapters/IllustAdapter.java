@@ -86,40 +86,51 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         }
 
         if (position == 0) {
-            if (allIllust.getPage_count() == 1) {
-                //获取屏幕imageview的宽高比率
-                float screenRatio = (float) imageSize / maxHeight;
-                //获取作品的宽高比率
-                float illustRatio = (float) allIllust.getWidth() / allIllust.getHeight();
+            // Both single-page and multi-page: IllustsBean.width/height describes page 0,
+            // so we can pin layout height deterministically before the bitmap arrives and
+            // avoid the "240dp → natural height" jump that was visible on tall works.
+            int iw = allIllust.getWidth();
+            int ih = allIllust.getHeight();
+            boolean hasValidDims = iw > 0 && ih > 0 && maxHeight > 0;
 
-                if (Math.abs(illustRatio - screenRatio) < 0.1f) {//如果宽高相近，直接CENTER_CROP 填充
-                    holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
-
-                    ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
-                    params.width = imageSize;
-                    params.height = maxHeight;
-                    Common.showLog("onBindViewHolder " + maxHeight);
-                    holder.baseBind.illust.setLayoutParams(params);
-                    loadIllust(holder, position, false);
-                } else {
-                    //如果宽高差的比较大，FIT_CENTER 填充
-                    if (illustRatio < screenRatio) {
-                        holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        loadIllust(holder, position, true);
-                    } else {
-                        holder.baseBind.illust.setScaleType(ImageView.ScaleType.FIT_CENTER);
-
-                        ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
-                        params.width = imageSize;
-                        params.height = maxHeight;
-                        holder.baseBind.illust.setLayoutParams(params);
-                        loadIllust(holder, position, false);
-                    }
-                }
+            ImageView.ScaleType scaleType;
+            int targetHeight;
+            boolean changeSize;
+            if (!hasValidDims) {
+                // Fallback: unknown dimensions, defer sizing to UniformScaleTransformation.
+                scaleType = ImageView.ScaleType.CENTER_CROP;
+                targetHeight = maxHeight > 0 ? maxHeight : holder.baseBind.illust.getLayoutParams().height;
+                changeSize = true;
             } else {
-                holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                loadIllust(holder, position, true);
+                float screenRatio = (float) imageSize / maxHeight;
+                float illustRatio = (float) iw / ih;
+                boolean nearSquare = Math.abs(illustRatio - screenRatio) < 0.1f;
+                boolean wide = illustRatio >= screenRatio;
+                boolean singlePage = allIllust.getPage_count() == 1;
+
+                if (!singlePage) {
+                    // Multi-page cover: CENTER_CROP; natural-aspect tall, letterbox cap wide.
+                    scaleType = ImageView.ScaleType.CENTER_CROP;
+                    targetHeight = wide ? maxHeight : Math.round(imageSize / illustRatio);
+                } else if (nearSquare) {
+                    scaleType = ImageView.ScaleType.CENTER_CROP;
+                    targetHeight = maxHeight;
+                } else if (wide) {
+                    scaleType = ImageView.ScaleType.FIT_CENTER;
+                    targetHeight = maxHeight;
+                } else { // tall: natural aspect, may exceed maxHeight
+                    scaleType = ImageView.ScaleType.CENTER_CROP;
+                    targetHeight = Math.round(imageSize / illustRatio);
+                }
+                changeSize = false;
             }
+
+            holder.baseBind.illust.setScaleType(scaleType);
+            ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
+            params.width = imageSize;
+            params.height = targetHeight;
+            holder.baseBind.illust.setLayoutParams(params);
+            loadIllust(holder, position, changeSize);
         } else {
             holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
             loadIllust(holder, position, true);
