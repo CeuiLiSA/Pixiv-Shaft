@@ -39,6 +39,8 @@ import ceui.loxia.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.utils.NetworkStateManager;
+import io.reactivex.exceptions.UndeliverableException;
+import io.reactivex.plugins.RxJavaPlugins;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
@@ -118,6 +120,19 @@ public class Shaft extends Application implements ServicesProvider {
                     return;
                 }
             }
+        });
+
+        // RxJava 2 global error handler: catch errors that have nowhere to go
+        // (e.g. OOM on a background thread after the subscriber has disposed).
+        RxJavaPlugins.setErrorHandler(e -> {
+            if (e instanceof UndeliverableException) {
+                e = e.getCause();
+            }
+            if (e instanceof OutOfMemoryError) {
+                Timber.e(e, "RxJava undeliverable OOM");
+                return;
+            }
+            Timber.w(e, "RxJava undeliverable exception");
         });
 
         //初始化context

@@ -159,6 +159,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     override fun hideStatusBar(): Boolean = true
 
     private fun updateFollowState(user: UserBean) {
+        if (baseBind == null) return
         if (user.isIs_followed) {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
