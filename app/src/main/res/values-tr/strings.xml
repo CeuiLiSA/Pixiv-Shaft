@@ -605,7 +605,7 @@
   <string name="string_449">Sıfırla</string>
   <string name="string_450">Küçük resimleri büyük göster</string>
   <string name="string_451">Resim sayfasında ekranı açık tut</string>
-  <string name="artwork_v3_fab_order_title">V3 resim sayfası: indirme/yer imi düğme sırası</string>
+  <string name="artwork_v3_fab_order_title">İndirme/yer imi düğme sırası</string>
   <string name="artwork_v3_fab_order_download_left">Sol indir, sağ yer imi</string>
   <string name="artwork_v3_fab_order_bookmark_left">Sol yer imi, sağ indir</string>
   <string name="string_452">İndirme sınırı</string>

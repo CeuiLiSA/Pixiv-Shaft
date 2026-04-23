@@ -606,7 +606,7 @@
   <string name="string_449">Сброс</string>
   <string name="string_450">Миниатюры отображают большое изображение</string>
   <string name="string_451">Держите экран включенным в деталях иллюстраций</string>
-  <string name="artwork_v3_fab_order_title">Детали иллюстрации V3: порядок скачивания/закладок</string>
+  <string name="artwork_v3_fab_order_title">Порядок кнопок скачивания/закладок</string>
   <string name="artwork_v3_fab_order_download_left">Скачать слева, закладка справа</string>
   <string name="artwork_v3_fab_order_bookmark_left">Закладка слева, скачать справа</string>
   <string name="string_452">Тип лимита загрузки</string>
