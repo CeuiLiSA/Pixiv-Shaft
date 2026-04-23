@@ -2,19 +2,20 @@ package ceui.pixiv.ui.novel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
-import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
+import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.SpaceHolder
 import ceui.loxia.WebNovel
+import ceui.pixiv.ui.common.ArtworkV3Holder
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
-import ceui.pixiv.ui.detail.UserInfoHolder
 import ceui.pixiv.ui.novel.reader.NovelTextCache
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +50,7 @@ class NovelTextViewModel(
         // 顺序：标题+系列 → 作者 → 作品档案 → 功能按钮 → 标签 → 简介。
         val result = mutableListOf<ListItemHolder>()
         result.add(NovelHeaderHolder(novelId))
-        result.add(UserInfoHolder(ObjectPool.get<ceui.loxia.Novel>(novelId).value?.user?.id ?: 0L))
+        result.add(ArtworkV3Holder(ObjectPool.get<Novel>(novelId).map { it.user }))
         result.add(NovelProfileHolder(novelId))
         result.add(NovelActionsHolder(novelId))
         result.add(NovelTagsHolder(novelId))

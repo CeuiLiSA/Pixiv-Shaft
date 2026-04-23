@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.novel
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.view.View
 import androidx.core.view.isVisible
 import ceui.lisa.R
@@ -27,7 +28,8 @@ class NovelHeaderHolder(val novelId: Long) : ListItemHolder() {
 }
 
 @ItemHolder(NovelHeaderHolder::class)
-class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<CellNovelHeaderBinding, NovelHeaderHolder>(bd) {
+class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) :
+    ListItemViewHolder<CellNovelHeaderBinding, NovelHeaderHolder>(bd) {
 
     override fun onBindViewHolder(holder: NovelHeaderHolder, position: Int) {
         super.onBindViewHolder(holder, position)
@@ -44,7 +46,8 @@ class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<Cel
         }
         binding.seriesStrip.setOnClick { sender ->
             liveNovel.value?.series?.let { series ->
-                sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickNovelSeries(sender, series)
+                sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()
+                    ?.onClickNovelSeries(sender, series)
             }
         }
         binding.title.setOnClick {
@@ -52,6 +55,12 @@ class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<Cel
         }
         liveNovel.observe(lifecycleOwner) { novel ->
             if (novel == null) return@observe
+            // Bookmark tint: icon_not_liked is white — invisible on light bg
+            binding.bookmark.imageTintList = if (novel.is_bookmarked == true) {
+                null // icon_liked is already red
+            } else {
+                ColorStateList.valueOf(context.getColor(R.color.v3_text_3))
+            }
             // Meta line
             val date = novel.create_date?.replace('T', ' ')?.take(16).orEmpty()
             binding.metaDate.text = date

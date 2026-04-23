@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="novel"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.Novel>" />
@@ -109,15 +110,16 @@
         <!-- Series strip (conditional) -->
         <LinearLayout
             android:id="@+id/series_strip"
+            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/v3_series_strip_bg"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="12dp"
-            android:visibility="gone"
-            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}">
+            android:visibility="gone">
 
             <FrameLayout
                 android:layout_width="32dp"

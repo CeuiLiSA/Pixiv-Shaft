@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.novel
 
+import android.content.res.ColorStateList
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
@@ -28,6 +29,13 @@ class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemVi
         binding.series = holder.series
         val series = holder.series
         val fmt = NumberFormat.getInstance()
+
+        // Bookmark tint: icon_not_liked is white — invisible on light bg
+        binding.bookmark.imageTintList = if (series.watchlist_added == true) {
+            null
+        } else {
+            ColorStateList.valueOf(context.getColor(R.color.v3_text_3))
+        }
 
         // Meta line
         binding.metaContentCount.text = context.getString(R.string.novel_meta_chapter_count, series.content_count)

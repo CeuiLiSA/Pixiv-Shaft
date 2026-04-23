@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.common
 
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.annotations.ItemHolder
@@ -12,9 +13,10 @@ import ceui.loxia.ProgressIndicator
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
 import ceui.pixiv.ui.user.UserActionReceiver
+import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 
-class NovelCardHolder(val novel: Novel) : ListItemHolder() {
+class NovelCardHolder(val novel: Novel, val showExtraMargin: Boolean = false) : ListItemHolder() {
     var isMultiSelectMode: Boolean = false
     var isSelected: Boolean = false
 
@@ -43,6 +45,9 @@ class NovelCardViewHolder(bd: CellNovelCardBinding) :
 
     override fun onBindViewHolder(holder: NovelCardHolder, position: Int) {
         super.onBindViewHolder(holder, position)
+        if (holder.showExtraMargin) {
+            binding.novelRoot.updatePadding(12.ppppx, 0, 12.ppppx, 0)
+        }
         binding.novel = ObjectPool.get<Novel>(holder.novel.id)
         binding.showTags = Shaft.sSettings.isShowNovelCardTags
 

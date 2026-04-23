@@ -126,18 +126,14 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
 
     private fun addDownloadAllButton() {
         val density = resources.displayMetrics.density
+        val palette = V3Palette.from(requireContext())
         val btn = TextView(requireContext()).apply {
-            // 原来是单一入口「下载全部」；现在点击后弹 3 选 1 sheet（选择 / 批量 / 合并）。
             text = getString(R.string.series_download_action)
             setTextColor(Color.WHITE)
             textSize = 15f
             gravity = Gravity.CENTER
             setTypeface(typeface, android.graphics.Typeface.BOLD)
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = 28 * density
-                setColor(0xFF2196F3.toInt())
-            }
+            background = palette.pillPrimary(28 * density)
             elevation = 4 * density
             val h = (48 * density).toInt()
             val mx = (20 * density).toInt()

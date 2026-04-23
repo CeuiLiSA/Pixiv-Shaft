@@ -2,9 +2,6 @@ package ceui.pixiv.ui.novel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.loxia.Client
@@ -13,19 +10,16 @@ import ceui.loxia.NovelSeriesResp
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
+import ceui.loxia.User
+import ceui.pixiv.ui.common.ArtworkV3Holder
 import ceui.pixiv.ui.common.DataSource
-import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
-import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.common.NovelCardHolder
-import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.V3SectionLabelHolder
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.detail.ArtworksMap
-import ceui.pixiv.ui.detail.UserInfoHolder
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class NovelSeriesViewModel(
@@ -80,7 +74,7 @@ class NovelSeriesViewModel(
             if (holder is NovelCardHolder) {
                 val sel = holder.novel.id in selected
                 if (holder.isMultiSelectMode != multiSelect || holder.isSelected != sel) {
-                    NovelCardHolder(holder.novel).also {
+                    NovelCardHolder(holder.novel, true).also {
                         it.isMultiSelectMode = multiSelect
                         it.isSelected = sel
                     }
@@ -115,7 +109,7 @@ class NovelSeriesViewModel(
     private val _seriesNovelsDataSource = object : DataSource<Novel, NovelSeriesResp>(
         dataFetcher = { Client.appApi.getNovelSeries(seriesId, _lastOrder) },
         responseStore = createResponseStore({ "novel-series-$seriesId" }),
-        itemMapper = { novel -> listOf(NovelCardHolder(novel)) }
+        itemMapper = { novel -> listOf(NovelCardHolder(novel, true)) }
     ) {
         override fun updateHolders(holders: List<ListItemHolder>) {
             // 从现有列表中剔除 LoadingHolder
@@ -145,13 +139,24 @@ class NovelSeriesViewModel(
         _series.value = resp
         val result = mutableListOf<ListItemHolder>()
         resp.novel_series_detail?.let {
+            it.user?.let { user ->
+                ObjectPool.update(user)
+            }
             result.add(NovelSeriesHeaderHolder(it))
         }
-        result.add(UserInfoHolder(resp.novel_series_detail?.user?.id ?: 0L))
-        result.add(V3SectionLabelHolder(
-            context.getString(R.string.novel_series_section_works)
-        ))
-        result.addAll(resp.displayList.map { novel -> NovelCardHolder(novel) })
+        result.add(
+            ArtworkV3Holder(
+                ObjectPool.get<User>(
+                    resp.novel_series_detail?.user?.id ?: 0L
+                ) as LiveData<User?>
+            )
+        )
+        result.add(
+            V3SectionLabelHolder(
+                context.getString(R.string.novel_series_section_works)
+            )
+        )
+        result.addAll(resp.displayList.map { novel -> NovelCardHolder(novel, true) })
         _lastOrder = resp.novels?.size
         _itemHolders.value = result
         val hasNext = resp.next_url != null
