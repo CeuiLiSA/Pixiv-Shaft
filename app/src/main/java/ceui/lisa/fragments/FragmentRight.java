@@ -36,18 +36,17 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.RightRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.OnCheckChangeListener;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.DynamicIllustModel;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import ceui.pixiv.ui.common.BottomDividerDecoration;
-import ceui.lisa.utils.DensityUtil;
 
 public class FragmentRight extends NetListFragment<FragmentNewRightBinding, ListIllust, IllustsBean> {
 
     private FragmentRecmdUserHorizontal headerFragment;
-    private boolean isTimelineMode = false;
+    private boolean isTimelineMode = !Shaft.sSettings.isUseStaggeredLayout();
 
     @Override
     public void initLayout() {
@@ -61,7 +60,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
     @Override
     public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
-        return new IAdapter(allItems, mContext);
+        return isTimelineMode ? new TimelineAdapter(allItems, mContext) : new IAdapter(allItems, mContext);
     }
 
     @Override
@@ -151,10 +150,16 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             }
         });
         baseBind.timelineToggle.setOnClickListener(v -> toggleTimelineMode());
+        if (isTimelineMode) {
+            int primaryColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
+            baseBind.timelineToggle.setColorFilter(primaryColor);
+        }
     }
 
     private void toggleTimelineMode() {
         isTimelineMode = !isTimelineMode;
+        Shaft.sSettings.setUseStaggeredLayout(!isTimelineMode);
+        Local.setSettings(Shaft.sSettings);
         int primaryColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
         int unselectedColor = mContext.getResources().getColor(R.color.glare_unselected_text);
         baseBind.timelineToggle.setColorFilter(isTimelineMode ? primaryColor : unselectedColor);
@@ -166,7 +171,6 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
         if (isTimelineMode) {
             mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-            mRecyclerView.addItemDecoration(new BottomDividerDecoration(mContext, R.drawable.list_divider_full, 0, 0));
             mAdapter = new TimelineAdapter(allItems, mContext);
         } else {
             staggerRecyclerView();
@@ -183,7 +187,11 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
     @Override
     public void initRecyclerView() {
-        staggerRecyclerView();
+        if (isTimelineMode) {
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+        } else {
+            staggerRecyclerView();
+        }
     }
 
     @Override

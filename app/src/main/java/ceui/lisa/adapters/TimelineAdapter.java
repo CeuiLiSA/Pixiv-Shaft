@@ -46,6 +46,7 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
 
     @Override
     public void bindData(IllustsBean target, ViewHolder<RecyTimelineIllustBinding> bindView, int position) {
+        // ── Header ──
         if (target.getUser() != null) {
             bindView.baseBind.userName.setText(target.getUser().getName());
             GlideUrl userIconUrl = GlideUtil.getHead(target.getUser());
@@ -55,20 +56,28 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
                         .into(bindView.baseBind.userIcon);
             }
         }
-
         bindView.baseBind.postTime.setText(DateParse.INSTANCE.getTimeAgo(mContext, target.getCreate_date()));
 
+        // ── Title ──
+        String title = target.getTitle();
+        if (title != null && !title.isEmpty()) {
+            bindView.baseBind.title.setVisibility(View.VISIBLE);
+            bindView.baseBind.title.setText(title);
+        } else {
+            bindView.baseBind.title.setVisibility(View.GONE);
+        }
+
+        // ── Image area ──
         int screenWidth = mContext.getResources().getDisplayMetrics().widthPixels;
         float density = mContext.getResources().getDisplayMetrics().density;
-        // content width = screenWidth - 16dp*2 (horizontal padding)
-        int cardWidth = screenWidth - (int) (32 * density);
+        // image container width = screen - 16dp*2 (horizontal margin on the CardView)
+        int imageWidth = screenWidth - (int) (32 * density);
 
         boolean isMulti = target.getPage_count() > 1
                 && target.getMeta_pages() != null
                 && !target.getMeta_pages().isEmpty();
 
         if (isMulti) {
-            // Grid mode
             bindView.baseBind.illustImage.setVisibility(View.GONE);
             bindView.baseBind.imageGrid.setVisibility(View.VISIBLE);
 
@@ -79,8 +88,7 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
             int showCount = Math.min(total, maxShow);
             boolean hasMore = total > maxShow;
             int remaining = total - maxShow;
-
-            int cellSize = (cardWidth - (int) ((spanCount - 1) * 2 * density)) / spanCount;
+            int cellSize = (imageWidth - (int) ((spanCount - 1) * 2 * density)) / spanCount;
 
             bindView.baseBind.imageGrid.setLayoutManager(new GridLayoutManager(mContext, spanCount));
             View.OnClickListener gridClick = view -> {
@@ -91,58 +99,46 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
             bindView.baseBind.imageGrid.setAdapter(
                     new GridImageAdapter(mContext, target, showCount, cellSize, hasMore, remaining, gridClick));
         } else {
-            // Single image — preserve aspect ratio with elegant constraints
             bindView.baseBind.illustImage.setVisibility(View.VISIBLE);
             bindView.baseBind.imageGrid.setVisibility(View.GONE);
 
-            float ratio = (float) target.getHeight() / (float) target.getWidth();
-
-            // Landscape/square: full card width
-            // Portrait: cap width at 70% of card to avoid overwhelming the feed
-            int imgWidth;
-            if (ratio <= 1.0f) {
-                imgWidth = cardWidth;
-            } else {
-                imgWidth = Math.max((int) (cardWidth * 0.7f), (int) (200 * density));
-            }
-
-            int imgHeight = (int) (imgWidth * ratio);
-            // Cap max height at 1.3x card width — tall images stay elegant
-            int maxHeight = (int) (cardWidth * 1.3f);
-            imgHeight = Math.min(imgHeight, maxHeight);
+            // Aspect ratio clamped to [0.6, 1.5] like Compose
+            float ratio = target.getWidth() > 0
+                    ? (float) target.getHeight() / (float) target.getWidth()
+                    : 1.0f;
+            ratio = Math.max(0.6f, Math.min(ratio, 1.5f));
+            int imgHeight = (int) (imageWidth * ratio);
 
             ViewGroup.LayoutParams imgParams = bindView.baseBind.illustImage.getLayoutParams();
-            imgParams.width = imgWidth;
+            imgParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
             imgParams.height = imgHeight;
             bindView.baseBind.illustImage.setLayoutParams(imgParams);
 
             GlideUrl imgUrl = GlideUtil.getLargeImage(target);
             Glide.with(mContext)
                     .load(imgUrl)
-                    .placeholder(R.color.second_light_bg)
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(bindView.baseBind.illustImage);
         }
 
-        bindView.baseBind.title.setText(target.getTitle());
+        // ── Stats overlay ──
         bindView.baseBind.viewCount.setText(String.format(Locale.getDefault(), "%,d", target.getTotal_view()));
         bindView.baseBind.bookmarkCount.setText(String.format(Locale.getDefault(), "%,d", target.getTotal_bookmarks()));
 
+        // ── Page count badge ──
         if (target.getPage_count() > 1) {
-            bindView.baseBind.pageCount.setVisibility(View.VISIBLE);
-            bindView.baseBind.pageCount.setText(String.format(Locale.getDefault(), "%dP", target.getPage_count()));
+            bindView.baseBind.pageCountBadge.setVisibility(View.VISIBLE);
+            bindView.baseBind.pageCount.setText(String.valueOf(target.getPage_count()));
         } else {
-            bindView.baseBind.pageCount.setVisibility(View.GONE);
+            bindView.baseBind.pageCountBadge.setVisibility(View.GONE);
         }
 
-        View.OnClickListener cardClick = view -> {
+        // ── Click ──
+        bindView.baseBind.card.setOnClickListener(view -> {
             if (mOnItemClickListener != null) {
                 mOnItemClickListener.onItemClick(view, position, 0);
             }
-        };
-        bindView.baseBind.card.setOnClickListener(cardClick);
-        bindView.baseBind.illustImage.setOnClickListener(cardClick);
-        bindView.baseBind.imageGrid.setOnClickListener(cardClick);
+        });
     }
 
     private void handleClick() {
@@ -197,7 +193,6 @@ public class TimelineAdapter extends BaseAdapter<IllustsBean, RecyTimelineIllust
             GlideUrl url = GlideUtil.getLargeImage(illust, position);
             Glide.with(context)
                     .load(url)
-                    .placeholder(R.color.second_light_bg)
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(holder.image);
 

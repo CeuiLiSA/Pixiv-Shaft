@@ -521,6 +521,9 @@
     <string name="about_network">网络</string>
     <string name="string_335">添加收藏默认私人收藏</string>
     <string name="string_336">图片纵向展示列数</string>
+    <string name="layout_mode">关注动态布局模式</string>
+    <string name="layout_staggered">瀑布流</string>
+    <string name="layout_linear">纵向列表</string>
     <string name="string_337">重新下载</string>
     <string name="string_338">R18 作品下载至另一目录</string>
     <string name="string_339">下载这个作品</string>
