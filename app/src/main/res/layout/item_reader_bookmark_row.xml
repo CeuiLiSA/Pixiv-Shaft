@@ -6,29 +6,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:background="?attr/selectableItemBackground"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:paddingTop="12dp"
         android:paddingBottom="12dp">
 
         <TextView
-            android:id="@+id/label_text"
-            android:layout_width="wrap_content"
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="12dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textColor="@color/v3_text_1"
             android:textSize="14sp"/>
 
-        <HorizontalScrollView
+        <TextView
+            android:id="@+id/footer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/items_container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"/>
-        </HorizontalScrollView>
+            android:paddingTop="6dp"
+            android:textColor="@color/v3_text_3"
+            android:textSize="11sp"/>
     </LinearLayout>
 </layout>

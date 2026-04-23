@@ -17,7 +17,7 @@
             android:paddingTop="4dp"
             android:paddingBottom="14dp"
             android:text="@string/reader_section_screen"
-            android:textColor="#5B6EFF"
+            android:textColor="?attr/colorPrimary"
             android:textSize="13sp"
             android:textStyle="bold"/>
 

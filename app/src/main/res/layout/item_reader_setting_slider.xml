@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:minWidth="96dp"
             android:layout_marginEnd="12dp"
-            android:textColor="#000000"
+            android:textColor="@color/v3_text_1"
             android:textSize="14sp"/>
 
         <SeekBar
@@ -34,7 +34,7 @@
             android:paddingStart="10dp"
             android:paddingEnd="0dp"
             android:gravity="end"
-            android:textColor="#000000"
+            android:textColor="@color/v3_text_1"
             android:textSize="13sp"/>
     </LinearLayout>
 </layout>

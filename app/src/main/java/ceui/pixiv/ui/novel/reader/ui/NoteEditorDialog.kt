@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 
 /**
@@ -48,7 +49,7 @@ class NoteEditorDialog : DialogFragment() {
         if (excerpt.isNotEmpty()) {
             val excerptView = TextView(ctx).apply {
                 text = "「${excerpt.take(200)}」"
-                setTextColor(0xFF888888.toInt())
+                setTextColor(ContextCompat.getColor(ctx, ceui.lisa.R.color.v3_text_3))
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                 gravity = Gravity.START
             }

@@ -1,28 +1,19 @@
 package ceui.pixiv.ui.novel.reader.ui
 
-import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.format.DateFormat
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import ceui.lisa.R
 import ceui.lisa.database.NovelAnnotationEntity
+import ceui.lisa.databinding.ItemReaderAnnotationRowBinding
+import ceui.lisa.databinding.SheetReaderAnnotationsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-/**
- * Lists the saved highlights / notes for the current novel. Callback-driven so
- * the Fragment can jump to an entry, edit a note, or delete it without this
- * class reaching into the ViewModel.
- */
 class AnnotationsSheet : BottomSheetDialogFragment() {
 
     private var entries: List<NovelAnnotationEntity> = emptyList()
@@ -47,78 +38,23 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val ctx = requireContext()
-        val density = ctx.resources.displayMetrics.density
-
-        val root = LinearLayout(ctx).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.WHITE)
-            setPadding(0, (12 * density).toInt(), 0, (8 * density).toInt())
-        }
-        root.addView(handleIndicator(ctx))
-
-        val titleRow = LinearLayout(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding((16 * density).toInt(), 0, (16 * density).toInt(), (8 * density).toInt())
-        }
-        val title = TextView(ctx).apply {
-            text = getString(ceui.lisa.R.string.annotations_title)
-            setTextColor(Color.BLACK)
-            setTypeface(typeface, Typeface.BOLD)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 1f }
-        }
-        val count = TextView(ctx).apply {
-            text = getString(ceui.lisa.R.string.annotations_count, entries.size)
-            setTextColor(0xFF888888.toInt())
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
-        }
-        titleRow.addView(title)
-        titleRow.addView(count)
-        root.addView(titleRow)
-
-        val divider = View(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1)
-            setBackgroundColor(0x1F000000)
-        }
-        root.addView(divider)
-
+        val binding = SheetReaderAnnotationsBinding.inflate(inflater, container, false)
+        binding.title.text = getString(R.string.annotations_title)
+        binding.count.text = getString(R.string.annotations_count, entries.size)
         if (entries.isEmpty()) {
-            val empty = TextView(ctx).apply {
-                text = getString(ceui.lisa.R.string.annotations_empty)
-                gravity = Gravity.CENTER
-                setTextColor(0xFF888888.toInt())
-                setPadding(0, (48 * density).toInt(), 0, (48 * density).toInt())
-            }
-            root.addView(empty)
+            binding.empty.text = getString(R.string.annotations_empty)
+            binding.empty.isVisible = true
+            binding.list.isVisible = false
         } else {
-            val list = RecyclerView(ctx).apply {
-                layoutManager = LinearLayoutManager(ctx)
-                adapter = Adapter(entries, onJumpTo, onEdit, onDelete) { dismissAllowingStateLoss() }
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            }
-            root.addView(list)
+            binding.list.layoutManager = LinearLayoutManager(requireContext())
+            binding.list.adapter = Adapter(entries, onJumpTo, onEdit, onDelete) { dismissAllowingStateLoss() }
         }
-
-        return root
+        return binding.root
     }
 
-    private fun handleIndicator(ctx: android.content.Context): View {
-        val density = ctx.resources.displayMetrics.density
-        val holder = FrameLayout(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (18 * density).toInt())
-        }
-        val indicator = View(ctx).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = 2 * density
-                setColor(0x33000000)
-            }
-            layoutParams = FrameLayout.LayoutParams((40 * density).toInt(), (4 * density).toInt(), Gravity.CENTER)
-        }
-        holder.addView(indicator)
-        return holder
+    override fun onStart() {
+        super.onStart()
+        ReaderSheetUi.applyTransparentBackground(this)
     }
 
     private class Adapter(
@@ -130,72 +66,35 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
     ) : RecyclerView.Adapter<Adapter.VH>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-            val ctx = parent.context
-            val density = ctx.resources.displayMetrics.density
-            val row = LinearLayout(ctx).apply {
-                orientation = LinearLayout.HORIZONTAL
-                layoutParams = RecyclerView.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                )
-                setPadding((16 * density).toInt(), (12 * density).toInt(), (16 * density).toInt(), (12 * density).toInt())
-                applySelectableBackground()
-            }
-            val colorChip = View(ctx).apply {
-                layoutParams = LinearLayout.LayoutParams((6 * density).toInt(), ViewGroup.LayoutParams.MATCH_PARENT).apply {
-                    marginEnd = (12 * density).toInt()
-                }
-            }
-            val content = LinearLayout(ctx).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 1f }
-            }
-            val excerpt = TextView(ctx).apply {
-                setTextColor(0xFF333333.toInt())
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                maxLines = 3
-                ellipsize = android.text.TextUtils.TruncateAt.END
-            }
-            val note = TextView(ctx).apply {
-                setTextColor(0xFF5B6EFF.toInt())
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
-                setPadding(0, (4 * density).toInt(), 0, 0)
-                maxLines = 3
-                ellipsize = android.text.TextUtils.TruncateAt.END
-            }
-            val footer = TextView(ctx).apply {
-                setTextColor(0xFFAAAAAA.toInt())
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-                setPadding(0, (6 * density).toInt(), 0, 0)
-            }
-            content.addView(excerpt)
-            content.addView(note)
-            content.addView(footer)
-            row.addView(colorChip)
-            row.addView(content)
-            return VH(row, colorChip, excerpt, note, footer)
+            val binding = ItemReaderAnnotationRowBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false,
+            )
+            return VH(binding)
         }
 
         override fun getItemCount(): Int = entries.size
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val entry = entries[position]
-            holder.colorChip.setBackgroundColor(entry.color)
-            holder.excerpt.text = "「${entry.excerpt}」"
-            if (entry.note.isNotEmpty()) {
-                holder.note.visibility = View.VISIBLE
-                holder.note.text = "📝 ${entry.note}"
-            } else {
-                holder.note.visibility = View.GONE
-            }
             val ctx = holder.itemView.context
-            holder.footer.text = DateFormat.format("yyyy-MM-dd HH:mm", entry.updatedTime).toString()
+            holder.binding.colorChip.setBackgroundColor(entry.color)
+            holder.binding.excerpt.text = "\u300C${entry.excerpt}\u300D"
+            if (entry.note.isNotEmpty()) {
+                holder.binding.note.isVisible = true
+                holder.binding.note.text = "\uD83D\uDCDD ${entry.note}"
+            } else {
+                holder.binding.note.isVisible = false
+            }
+            holder.binding.footer.text = DateFormat.format("yyyy-MM-dd HH:mm", entry.updatedTime).toString()
             holder.itemView.setOnClickListener {
                 onJumpTo?.invoke(entry)
                 dismiss()
             }
             holder.itemView.setOnLongClickListener {
-                val options = arrayOf(if (entry.note.isEmpty()) ctx.getString(ceui.lisa.R.string.note_add_title) else ctx.getString(ceui.lisa.R.string.note_edit_title), ctx.getString(ceui.lisa.R.string.action_delete))
+                val options = arrayOf(
+                    if (entry.note.isEmpty()) ctx.getString(R.string.note_add_title) else ctx.getString(R.string.note_edit_title),
+                    ctx.getString(R.string.action_delete),
+                )
                 androidx.appcompat.app.AlertDialog.Builder(ctx)
                     .setTitle(entry.excerpt.take(24))
                     .setItems(options) { _, which ->
@@ -209,13 +108,7 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
             }
         }
 
-        class VH(
-            itemView: View,
-            val colorChip: View,
-            val excerpt: TextView,
-            val note: TextView,
-            val footer: TextView,
-        ) : RecyclerView.ViewHolder(itemView)
+        class VH(val binding: ItemReaderAnnotationRowBinding) : RecyclerView.ViewHolder(binding.root)
     }
 
     companion object {

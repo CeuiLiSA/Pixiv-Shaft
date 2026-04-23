@@ -15,6 +15,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentReaderSettingsBinding
 import ceui.lisa.databinding.ItemReaderSettingScrollBinding
@@ -67,11 +68,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     ): View {
         _binding = FragmentReaderSettingsBinding.inflate(inflater, container, false)
         val ctx = requireContext()
-        // Settings sheet has a fixed light background regardless of system dark mode,
-        // so use fixed colors — not theme-resolved ones that flip in night mode.
         primaryColor = ceui.lisa.utils.Common.resolveThemeAttribute(ctx, androidx.appcompat.R.attr.colorPrimary)
-        textColor1 = 0xFF1A1A2E.toInt()
-        surfaceColor = 0x1A000000
+        textColor1 = ContextCompat.getColor(ctx, R.color.v3_text_1)
+        surfaceColor = ContextCompat.getColor(ctx, R.color.v3_surface_2)
         bindTypography(ctx)
         bindTheme(ctx)
         bindFlip(ctx)

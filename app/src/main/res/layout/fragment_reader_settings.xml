@@ -35,7 +35,7 @@
                 android:paddingTop="4dp"
                 android:paddingBottom="12dp"
                 android:text="@string/reader_settings_title"
-                android:textColor="#000000"
+                android:textColor="@color/v3_text_1"
                 android:textSize="17sp"
                 android:textStyle="bold"/>
 
