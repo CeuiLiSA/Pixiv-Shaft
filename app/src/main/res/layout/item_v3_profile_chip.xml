@@ -25,6 +25,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/v3_text_1"
+        android:textColorLink="?attr/colorPrimary"
         android:alpha="0.82"
         android:textSize="13sp"
         android:textStyle="bold" />

@@ -693,6 +693,17 @@ public class Settings {
         this.illustDetailKeepScreenOn = illustDetailKeepScreenOn;
     }
 
+    // 插画V3详情页：下载按钮是否在左（true=左下载右收藏，false=左收藏右下载）
+    private boolean artworkV3FabDownloadOnLeft = true;
+
+    public boolean isArtworkV3FabDownloadOnLeft() {
+        return artworkV3FabDownloadOnLeft;
+    }
+
+    public void setArtworkV3FabDownloadOnLeft(boolean artworkV3FabDownloadOnLeft) {
+        this.artworkV3FabDownloadOnLeft = artworkV3FabDownloadOnLeft;
+    }
+
     private String defaultUpscaleModel = "";
 
     public String getDefaultUpscaleModel() {

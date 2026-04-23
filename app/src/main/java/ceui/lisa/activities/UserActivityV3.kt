@@ -436,7 +436,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             chips.add(Triple("Job", profile.job, false))
         }
         chips.add(Triple("Premium", if (user.isIs_premium) "★ Premium User" else "Standard", false))
-        chips.add(Triple("Pixiv URL", "pixiv.net/users/${user.id}", true))
+        chips.add(Triple("Pixiv URL", "https://www.pixiv.net/users/${user.id}", true))
 
         // Build the grid: 2 chips per row
         val grid = baseBind.profileGrid
@@ -495,6 +495,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         binding.chipValue.text = data.second
         if (data.second == "★ Premium User") {
             binding.chipValue.setTextColor(0xFFFFC233.toInt())
+        }
+        if (data.second.startsWith("http://") || data.second.startsWith("https://")) {
+            binding.chipValue.autoLinkMask = android.text.util.Linkify.WEB_URLS
+            binding.chipValue.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+            binding.chipValue.text = data.second
         }
         return binding.root
     }

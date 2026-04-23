@@ -237,6 +237,17 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     private fun setupNavBar(illustId: Long) {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
 
+        // Apply download/bookmark order preference
+        if (!Shaft.sSettings.isArtworkV3FabDownloadOnLeft) {
+            val bar = baseBind.fabBar
+            val download = baseBind.fabDownload
+            val bookmark = baseBind.fabBookmark
+            bar.removeView(download)
+            bar.removeView(bookmark)
+            bar.addView(bookmark, 0)
+            bar.addView(download)
+        }
+
         // Floating action bar
         baseBind.fabDownload.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick

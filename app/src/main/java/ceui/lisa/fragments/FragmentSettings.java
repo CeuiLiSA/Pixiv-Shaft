@@ -6,7 +6,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
+import android.transition.AutoTransition;
+import android.transition.TransitionManager;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 
 import androidx.annotation.Nullable;
@@ -457,18 +460,54 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
             // V3沉浸式作品详情
             baseBind.illustDetailV3.setChecked(Shaft.sSettings.isUseArtworkV3());
+            applyArtworkV3FabOrderRowVisibility(Shaft.sSettings.isUseArtworkV3(), false);
             baseBind.illustDetailV3.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setUseArtworkV3(isChecked);
                     Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
+                    applyArtworkV3FabOrderRowVisibility(isChecked, true);
                 }
             });
             baseBind.illustDetailV3Rela.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     baseBind.illustDetailV3.performClick();
+                }
+            });
+
+            // V3详情页 下载/收藏按钮顺序
+            updateArtworkV3FabOrderLabel();
+            baseBind.artworkV3FabOrderSelect.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final int index = Shaft.sSettings.isArtworkV3FabDownloadOnLeft() ? 0 : 1;
+                    String[] items = new String[]{
+                            getString(R.string.artwork_v3_fab_order_download_left),
+                            getString(R.string.artwork_v3_fab_order_bookmark_left),
+                    };
+                    new QMUIDialog.CheckableDialogBuilder(mActivity)
+                            .setCheckedIndex(index)
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(items, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (which != index) {
+                                        Shaft.sSettings.setArtworkV3FabDownloadOnLeft(which == 0);
+                                        Local.setSettings(Shaft.sSettings);
+                                        updateArtworkV3FabOrderLabel();
+                                    }
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                }
+            });
+            baseBind.artworkV3FabOrderRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.artworkV3FabOrderSelect.performClick();
                 }
             });
 
@@ -1260,6 +1299,27 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
+    }
+
+    private void updateArtworkV3FabOrderLabel() {
+        boolean downloadLeft = Shaft.sSettings.isArtworkV3FabDownloadOnLeft();
+        baseBind.artworkV3FabOrderSelect.setText(downloadLeft
+                ? R.string.artwork_v3_fab_order_download_left
+                : R.string.artwork_v3_fab_order_bookmark_left);
+    }
+
+    private void applyArtworkV3FabOrderRowVisibility(boolean v3Enabled, boolean animate) {
+        int visibility = v3Enabled ? View.VISIBLE : View.GONE;
+        if (animate) {
+            View parent = (View) baseBind.artworkV3FabOrderRela.getParent();
+            if (parent instanceof ViewGroup) {
+                AutoTransition transition = new AutoTransition();
+                transition.setDuration(220);
+                TransitionManager.beginDelayedTransition((ViewGroup) parent, transition);
+            }
+        }
+        baseBind.artworkV3FabOrderRela.setVisibility(visibility);
+        baseBind.artworkV3FabOrderDivider.setVisibility(visibility);
     }
 
     private void setOrderName() {

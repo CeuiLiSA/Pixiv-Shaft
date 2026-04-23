@@ -612,6 +612,9 @@
   <string name="string_449">Reset</string>
   <string name="string_450">Thumbnail display large image</string>
   <string name="string_451">Keep screen on in illust detail</string>
+  <string name="artwork_v3_fab_order_title">Illust V3 detail: download / bookmark button order</string>
+  <string name="artwork_v3_fab_order_download_left">Download left, bookmark right</string>
+  <string name="artwork_v3_fab_order_bookmark_left">Bookmark left, download right</string>
   <string name="string_452">Download limit type</string>
   <string name="string_453">Do not auto start</string>
   <string name="string_454">Share first image</string>

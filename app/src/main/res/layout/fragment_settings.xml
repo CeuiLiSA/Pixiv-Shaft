@@ -585,6 +585,30 @@
 
                         </RelativeLayout>
 
+                        <View
+                            android:id="@+id/artwork_v3_fab_order_divider"
+                            style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/artwork_v3_fab_order_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/artwork_v3_fab_order_title" />
+
+                            <TextView
+                                android:id="@+id/artwork_v3_fab_order_select"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp" />
+
+                        </RelativeLayout>
+
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
