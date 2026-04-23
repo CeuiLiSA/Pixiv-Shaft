@@ -4,10 +4,27 @@
 
     <data />
 
-    <ceui.pixiv.widgets.V3TagFlowView
-        android:id="@+id/tags_flow"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        app:flexWrap="wrap" />
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:letterSpacing="0.12"
+            android:text="@string/novel_section_tags"
+            android:textAllCaps="true"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <ceui.pixiv.widgets.V3TagFlowView
+            android:id="@+id/tags_flow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:flexWrap="wrap" />
+    </LinearLayout>
 </layout>

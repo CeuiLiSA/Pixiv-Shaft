@@ -9,97 +9,181 @@
             type="ceui.loxia.NovelSeriesDetail" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/title"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/bookmark"
-            android:textSize="16sp"
-            android:text="@{series.title}"
-            android:textStyle="bold"
-            android:textColor="@color/buttonTextGreen"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-
-
-        <ceui.loxia.ProgressImageButton
-            android:id="@+id/bookmark"
-            app:ptb_progress_stroke_width="3dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="@+id/title"
-            app:layout_constraintTop_toTopOf="@+id/title"
-            android:padding="8dp"
-            app:ptb_progress_width="14dp"
-            android:src="@{series.watchlist_added ? @drawable/icon_liked : @drawable/icon_not_liked}"
-            android:layout_width="@dimen/min_widget_size"
-            android:layout_height="@dimen/min_widget_size" />
-
-        <!--
-            和 NovelText 详情页保持一致：高密度可复制信息 chips。
-            字段缺失的 chip 自动隐藏。值绑定在 ViewHolder.bindInfoChips。
-        -->
-        <com.google.android.flexbox.FlexboxLayout
-            android:id="@+id/info_chips"
-            app:layout_constraintTop_toBottomOf="@+id/title"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="10dp"
-            android:layout_width="0dp"
+        <!-- Hero: Series title + bookmark -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:flexWrap="wrap">
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="16dp">
 
-            <TextView
-                android:id="@+id/chip_series_id"
-                style="@style/NovelInfoChip"
-                tools:text="系列ID  12345" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/chip_author"
-                style="@style/NovelInfoChip"
-                tools:text="作者  Alice" />
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:letterSpacing="-0.03"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@{series.title}"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="23sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/bookmark"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="ある小説シリーズ" />
 
-            <TextView
-                android:id="@+id/chip_author_id"
-                style="@style/NovelInfoChip"
-                tools:text="作者ID  67890" />
+                <ceui.loxia.ProgressImageButton
+                    android:id="@+id/bookmark"
+                    android:layout_width="@dimen/min_widget_size"
+                    android:layout_height="@dimen/min_widget_size"
+                    android:padding="8dp"
+                    android:src="@{series.watchlist_added ? @drawable/icon_liked : @drawable/icon_not_liked}"
+                    app:layout_constraintBottom_toBottomOf="@+id/title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/title"
+                    app:ptb_progress_stroke_width="3dp"
+                    app:ptb_progress_width="14dp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <TextView
-                android:id="@+id/chip_content_count"
-                style="@style/NovelInfoChip"
-                tools:text="章节数  12" />
+            <!-- Meta line: chapter count · total chars -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/chip_char_count"
-                style="@style/NovelInfoChip"
-                tools:text="总字数  50000" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/novel_meta_type"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/chip_series_link"
-                style="@style/NovelInfoChip"
-                tools:text="系列链接" />
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="3dp"
+                    android:layout_marginHorizontal="8dp"
+                    android:background="@drawable/v3_nav_btn_bg" />
 
-            <TextView
-                android:id="@+id/chip_user_link"
-                style="@style/NovelInfoChip"
-                tools:text="作者主页" />
+                <TextView
+                    android:id="@+id/meta_content_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="11sp"
+                    tools:text="12 篇" />
 
-        </com.google.android.flexbox.FlexboxLayout>
+                <View
+                    android:id="@+id/meta_dot_2"
+                    android:layout_width="3dp"
+                    android:layout_height="3dp"
+                    android:layout_marginHorizontal="8dp"
+                    android:background="@drawable/v3_nav_btn_bg" />
 
+                <TextView
+                    android:id="@+id/meta_char_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="11sp"
+                    tools:text="50,000字" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Caption (if exists) -->
         <TextView
             android:id="@+id/caption"
-            app:layout_constraintTop_toBottomOf="@+id/info_chips"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginTop="14dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.78"
+            android:background="?attr/selectableItemBackground"
+            android:lineSpacingMultiplier="1.65"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="16dp"
+            android:textColor="@color/v3_text_1"
             android:textSize="14sp"
-            android:textColor="@color/text10"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
+            android:visibility="gone" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Detail panel: metadata chips -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:background="@drawable/v3_glass_surface_xl">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14dp"
+                    android:letterSpacing="0.12"
+                    android:text="@string/novel_profile_title"
+                    android:textAllCaps="true"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/info_chips"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:flexWrap="wrap">
+
+                    <TextView
+                        android:id="@+id/chip_series_id"
+                        style="@style/NovelInfoChip"
+                        tools:text="系列ID  12345" />
+
+                    <TextView
+                        android:id="@+id/chip_author"
+                        style="@style/NovelInfoChip"
+                        tools:text="作者  Alice" />
+
+                    <TextView
+                        android:id="@+id/chip_author_id"
+                        style="@style/NovelInfoChip"
+                        tools:text="作者ID  67890" />
+
+                    <TextView
+                        android:id="@+id/chip_content_count"
+                        style="@style/NovelInfoChip"
+                        tools:text="章节数  12" />
+
+                    <TextView
+                        android:id="@+id/chip_char_count"
+                        style="@style/NovelInfoChip"
+                        tools:text="总字数  50000" />
+
+                    <TextView
+                        android:id="@+id/chip_series_link"
+                        style="@style/NovelInfoChip"
+                        tools:text="系列链接" />
+
+                    <TextView
+                        android:id="@+id/chip_user_link"
+                        style="@style/NovelInfoChip"
+                        tools:text="作者主页" />
+                </com.google.android.flexbox.FlexboxLayout>
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
 </layout>

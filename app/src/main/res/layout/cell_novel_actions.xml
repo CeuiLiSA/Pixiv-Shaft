@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    小说详情页核心功能按钮区（任务 #4）。
-    从左到右：分享 / 评论 / 下载。每个按钮 weight=1 均分宽度，
-    高度 52dp，图标 + 文字，拇指易触。
-    下载按钮：单击走预设默认格式；长按弹格式选择。
--->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -13,6 +7,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
         android:orientation="horizontal"
         android:weightSum="3">
 
@@ -20,7 +15,7 @@
             android:id="@+id/btn_share"
             android:layout_width="0dp"
             android:layout_height="52dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:background="@drawable/bg_novel_action_button"
             android:clickable="true"
@@ -33,15 +28,15 @@
                 android:layout_height="18dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_share_black_24dp"
-                app:tint="@color/text00" />
+                app:tint="@color/v3_text_1" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:text="@string/novel_actions_share"
-                android:textColor="@color/text00"
-                android:textSize="14sp"
+                android:textColor="@color/v3_text_1"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -49,7 +44,7 @@
             android:id="@+id/btn_comments"
             android:layout_width="0dp"
             android:layout_height="52dp"
-            android:layout_marginHorizontal="4dp"
+            android:layout_marginHorizontal="3dp"
             android:layout_weight="1"
             android:background="@drawable/bg_novel_action_button"
             android:clickable="true"
@@ -62,15 +57,15 @@
                 android:layout_height="18dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_baseline_comment_24"
-                app:tint="@color/text00" />
+                app:tint="@color/v3_text_1" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:text="@string/novel_actions_comments"
-                android:textColor="@color/text00"
-                android:textSize="14sp"
+                android:textColor="@color/v3_text_1"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -78,7 +73,7 @@
             android:id="@+id/btn_download"
             android:layout_width="0dp"
             android:layout_height="52dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:layout_weight="1"
             android:background="@drawable/bg_novel_action_button"
             android:clickable="true"
@@ -91,15 +86,15 @@
                 android:layout_height="18dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_file_download_black_24dp"
-                app:tint="@color/text00" />
+                app:tint="@color/v3_text_1" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:text="@string/novel_actions_download"
-                android:textColor="@color/text00"
-                android:textSize="14sp"
+                android:textColor="@color/v3_text_1"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

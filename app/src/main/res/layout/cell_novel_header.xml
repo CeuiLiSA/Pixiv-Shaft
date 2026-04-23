@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
         <variable
@@ -8,65 +9,168 @@
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.Novel>" />
     </data>
 
-    <!--
-        顶格放标题 + 收藏按钮，系列信息独占一行并放大点击热区（整行响应点击）。
-        任务 #1 / #3：标题上方不再叠加功能按钮行，功能入口统一下沉到 NovelActionsHolder。
-    -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:paddingVertical="4dp"
-                android:text="@{novel.title}"
-                android:textColor="@color/text00"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/bookmark"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ceui.loxia.ProgressImageButton
-                android:id="@+id/bookmark"
-                android:layout_width="@dimen/min_widget_size"
-                android:layout_height="@dimen/min_widget_size"
-                android:padding="8dp"
-                android:src="@{novel.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
-                app:layout_constraintBottom_toBottomOf="@+id/title"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/title"
-                app:ptb_progress_stroke_width="3dp"
-                app:ptb_progress_width="14dp" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- 系列信息：整行响应点击，任务 #2 放大热区；条件显示。 -->
-        <TextView
-            android:id="@+id/series_name"
+        <!-- Hero: Title + Bookmark -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:background="?attr/selectableItemBackground"
-            android:drawableStart="@drawable/ic_baseline_menu_book_24"
-            android:drawablePadding="8dp"
-            android:drawableTint="@color/buttonTextGreen"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="4dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:letterSpacing="-0.03"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@{novel.title}"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="23sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/bookmark"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="ある小説のタイトル" />
+
+                <ceui.loxia.ProgressImageButton
+                    android:id="@+id/bookmark"
+                    android:layout_width="@dimen/min_widget_size"
+                    android:layout_height="@dimen/min_widget_size"
+                    android:padding="8dp"
+                    android:src="@{novel.is_bookmarked() ? @drawable/icon_liked : @drawable/icon_not_liked}"
+                    app:layout_constraintBottom_toBottomOf="@+id/title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/title"
+                    app:ptb_progress_stroke_width="3dp"
+                    app:ptb_progress_width="14dp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Meta line: Novel · date · word count -->
+            <LinearLayout
+                android:id="@+id/meta_row"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/meta_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/novel_meta_type"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="3dp"
+                    android:layout_marginHorizontal="8dp"
+                    android:background="@drawable/v3_nav_btn_bg" />
+
+                <TextView
+                    android:id="@+id/meta_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="11sp"
+                    tools:text="2024-01-15 18:00" />
+
+                <View
+                    android:id="@+id/meta_dot_2"
+                    android:layout_width="3dp"
+                    android:layout_height="3dp"
+                    android:layout_marginHorizontal="8dp"
+                    android:background="@drawable/v3_nav_btn_bg" />
+
+                <TextView
+                    android:id="@+id/meta_word_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="11sp"
+                    tools:text="5,000字" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Series strip (conditional) -->
+        <LinearLayout
+            android:id="@+id/series_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:background="@drawable/v3_series_strip_bg"
             android:gravity="center_vertical"
-            android:minHeight="44dp"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="8dp"
-            android:text="@{@string/novel_header_series_prefix(novel.series.title)}"
-            android:textColor="@color/buttonTextGreen"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}" />
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:visibility="gone"
+            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}">
+
+            <FrameLayout
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/v3_series_icon_bg">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_baseline_menu_book_24"
+                    app:tint="@color/white" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.7"
+                    android:letterSpacing="0.1"
+                    android:text="@string/v3_label_series"
+                    android:textAllCaps="true"
+                    android:textColor="@color/v3_tag_locked_text"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/series_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@{novel.series.title}"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="›"
+                android:textColor="@color/v3_text_3"
+                android:textSize="16sp" />
+        </LinearLayout>
     </LinearLayout>
 </layout>

@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    作品档案信息单元（锚点卡片）。
-    包含作品 ID / 字数 / 浏览 / 收藏 / 发布时间 / 作者链接等可复制元数据。
-    长度固定，是核心按钮区上方的最后一个稳定锚点，不受标签/简介长度影响。
--->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
@@ -13,70 +8,191 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_novel_profile_card"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="2dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/novel_profile_title"
-            android:textColor="@color/text00"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
-        <com.google.android.flexbox.FlexboxLayout
-            android:id="@+id/info_chips"
+        <!-- Stats card: Views + Bookmarks -->
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:flexWrap="wrap">
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/v3_glass_surface">
 
-            <TextView
-                android:id="@+id/chip_novel_id"
-                style="@style/NovelInfoChip"
-                tools:text="作品ID  12345" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="16dp">
 
-            <TextView
-                android:id="@+id/chip_text_length"
-                style="@style/NovelInfoChip"
-                tools:text="字数  5000" />
+                <!-- Views -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/chip_total_view"
-                style="@style/NovelInfoChip"
-                tools:text="浏览  1234" />
+                    <ceui.pixiv.ui.detail.GradientTextView
+                        android:id="@+id/stat_views"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="-0.03"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:gtv_endColor="@color/v3_stat_views_end"
+                        app:gtv_startColor="@color/v3_stat_views_start"
+                        tools:text="1,627" />
 
-            <TextView
-                android:id="@+id/chip_total_bookmarks"
-                style="@style/NovelInfoChip"
-                tools:text="收藏  234" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:letterSpacing="0.1"
+                        android:text="@string/v3_label_views"
+                        android:textAllCaps="true"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
-            <TextView
-                android:id="@+id/chip_create_date"
-                style="@style/NovelInfoChip"
-                tools:text="发布  2024-01-15" />
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginVertical="4dp"
+                    android:background="@color/v3_border_1" />
 
-            <TextView
-                android:id="@+id/chip_author"
-                style="@style/NovelInfoChip"
-                tools:text="作者  Alice" />
+                <!-- Bookmarks -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/chip_author_id"
-                style="@style/NovelInfoChip"
-                tools:text="作者ID  67890" />
+                    <ceui.pixiv.ui.detail.GradientTextView
+                        android:id="@+id/stat_bookmarks"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="-0.03"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:gtv_endColor="@color/v3_stat_bookmarks_end"
+                        app:gtv_startColor="@color/v3_stat_bookmarks_start"
+                        tools:text="298" />
 
-            <TextView
-                android:id="@+id/chip_novel_link"
-                style="@style/NovelInfoChip"
-                tools:text="作品链接" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:letterSpacing="0.1"
+                        android:text="@string/v3_label_bookmarks"
+                        android:textAllCaps="true"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
 
-            <TextView
-                android:id="@+id/chip_user_link"
-                style="@style/NovelInfoChip"
-                tools:text="作者主页" />
-        </com.google.android.flexbox.FlexboxLayout>
+            <ceui.pixiv.ui.detail.ShimmerOverlayView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <!-- Detail panel: metadata chips -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:background="@drawable/v3_glass_surface_xl">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:id="@+id/detail_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:letterSpacing="0.12"
+                        android:text="@string/novel_profile_title"
+                        android:textAllCaps="true"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/detail_arrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="▾"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/info_chips"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    app:flexWrap="wrap">
+
+                    <TextView
+                        android:id="@+id/chip_novel_id"
+                        style="@style/NovelInfoChip"
+                        tools:text="ID  12345" />
+
+                    <TextView
+                        android:id="@+id/chip_text_length"
+                        style="@style/NovelInfoChip"
+                        tools:text="字数  5000" />
+
+                    <TextView
+                        android:id="@+id/chip_total_view"
+                        style="@style/NovelInfoChip"
+                        tools:text="浏览  1234" />
+
+                    <TextView
+                        android:id="@+id/chip_total_bookmarks"
+                        style="@style/NovelInfoChip"
+                        tools:text="收藏  234" />
+
+                    <TextView
+                        android:id="@+id/chip_create_date"
+                        style="@style/NovelInfoChip"
+                        tools:text="发布  2024-01-15" />
+
+                    <TextView
+                        android:id="@+id/chip_author"
+                        style="@style/NovelInfoChip"
+                        tools:text="作者  Alice" />
+
+                    <TextView
+                        android:id="@+id/chip_author_id"
+                        style="@style/NovelInfoChip"
+                        tools:text="作者ID  67890" />
+
+                    <TextView
+                        android:id="@+id/chip_novel_link"
+                        style="@style/NovelInfoChip"
+                        tools:text="作品链接" />
+
+                    <TextView
+                        android:id="@+id/chip_user_link"
+                        style="@style/NovelInfoChip"
+                        tools:text="作者主页" />
+                </com.google.android.flexbox.FlexboxLayout>
+            </LinearLayout>
+        </FrameLayout>
     </LinearLayout>
 </layout>

@@ -31,8 +31,6 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.V3Palette
 import ceui.loxia.Client
-import ceui.loxia.ObjectPool
-import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.NovelMultiSelectReceiver
 import ceui.pixiv.ui.common.PixivFragment
@@ -68,7 +66,7 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, viewModel, ListMode.VERTICAL)
+        setUpRefreshState(binding, viewModel, ListMode.VERTICAL_NO_HORIZONTAL)
         val density = resources.displayMetrics.density
         binding.listView.clipToPadding = false
         // 用户反馈：模糊封面图作为背景反而干扰前景文字阅读。改为 v3_bg（白天/夜间自动适配）。
@@ -76,6 +74,7 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
             androidx.core.content.ContextCompat.getColor(requireContext(), R.color.v3_bg),
         )
         binding.toolbarLayout.root.visibility = View.GONE
+        binding.topShadow.isVisible = false
 
         // 醒目的合集下载按钮——老版本放在 toolbarLayout 的 more 菜单里，但 toolbarLayout
         // 被整体 GONE 了，用户根本看不到入口。挂到 bottomCovered 里做成一个 fab-ish 的
@@ -162,9 +161,11 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
                         // 进入多选模式，用户手动勾选章节后再走批量下载
                         viewModel.setMultiSelectMode(true)
                     }
+
                     SeriesDownloadOptionsSheet.Action.AllSeparate -> {
                         launchDownloadAll()
                     }
+
                     SeriesDownloadOptionsSheet.Action.MergeOne -> {
                         launchMergeDownload()
                     }

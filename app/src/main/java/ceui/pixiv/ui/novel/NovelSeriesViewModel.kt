@@ -13,7 +13,6 @@ import ceui.loxia.NovelSeriesResp
 import ceui.loxia.ObjectPool
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
-import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersContainer
 import ceui.pixiv.ui.common.HoldersViewModel
@@ -22,6 +21,7 @@ import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.common.NovelCardHolder
 import ceui.pixiv.ui.common.RefreshOwner
+import ceui.pixiv.ui.common.V3SectionLabelHolder
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.UserInfoHolder
@@ -147,13 +147,10 @@ class NovelSeriesViewModel(
         resp.novel_series_detail?.let {
             result.add(NovelSeriesHeaderHolder(it))
         }
-        result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
         result.add(UserInfoHolder(resp.novel_series_detail?.user?.id ?: 0L))
-        result.add(RedSectionHeaderHolder(
-            context.getString(
-                R.string.total_works_count,
-                resp.novel_series_detail?.content_count
-            )))
+        result.add(V3SectionLabelHolder(
+            context.getString(R.string.novel_series_section_works)
+        ))
         result.addAll(resp.displayList.map { novel -> NovelCardHolder(novel) })
         _lastOrder = resp.novels?.size
         _itemHolders.value = result

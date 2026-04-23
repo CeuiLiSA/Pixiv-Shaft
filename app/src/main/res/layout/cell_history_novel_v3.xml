@@ -39,25 +39,9 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/p_size"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/v3_badge_pages_bg"
-                android:includeFontPadding="false"
-                android:letterSpacing="0.1"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:text="@string/type_novel"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:textSize="9sp"
-                android:textStyle="bold" />
-
-            <TextView
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:ellipsize="end"
                 android:letterSpacing="-0.02"
                 android:maxLines="2"

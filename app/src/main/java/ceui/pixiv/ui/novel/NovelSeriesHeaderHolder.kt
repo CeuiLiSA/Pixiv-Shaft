@@ -12,6 +12,7 @@ import ceui.loxia.NovelSeriesDetail
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.utils.setOnClick
+import java.text.NumberFormat
 
 class NovelSeriesHeaderHolder(val series: NovelSeriesDetail) : ListItemHolder() {
     override fun getItemId(): Long {
@@ -25,17 +26,29 @@ class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemVi
     override fun onBindViewHolder(holder: NovelSeriesHeaderHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         binding.series = holder.series
-        bindInfoChips(holder.series)
+        val series = holder.series
+        val fmt = NumberFormat.getInstance()
 
-        val rawCaption = holder.series.caption.orEmpty()
+        // Meta line
+        binding.metaContentCount.text = context.getString(R.string.novel_meta_chapter_count, series.content_count)
+        if (series.total_character_count > 0) {
+            binding.metaCharCount.text = context.getString(
+                R.string.novel_meta_word_count,
+                fmt.format(series.total_character_count),
+            )
+            binding.metaCharCount.isVisible = true
+            binding.metaDot2.isVisible = true
+        } else {
+            binding.metaCharCount.isVisible = false
+            binding.metaDot2.isVisible = false
+        }
+
+        // Caption
+        val rawCaption = series.caption.orEmpty()
         if (rawCaption.isNotEmpty()) {
             binding.caption.isVisible = true
-            // Pixiv 的 series caption 经常混用裸 `\n` 和 `<br>`，HtmlCompat 只认后者，
-            // 不做替换就会把几十段压成一整段（issue 里的排版投诉）。先把 `\n` 改成 `<br>`
-            // 再交给 HtmlCompat 解析。
             val normalized = rawCaption.replace("\r\n", "\n").replace("\n", "<br/>")
             binding.caption.text = HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
-            // 点简介 = 复制简介（纯文本）。
             binding.caption.setOnClick {
                 val plain = HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
                     .toString().trim()
@@ -44,9 +57,12 @@ class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemVi
         } else {
             binding.caption.isVisible = false
         }
+
         binding.title.setOnClick {
-            Common.copy(it.context, holder.series.title)
+            Common.copy(it.context, series.title)
         }
+
+        bindInfoChips(series)
     }
 
     private fun bindInfoChips(series: NovelSeriesDetail) {
@@ -73,7 +89,6 @@ class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemVi
         } else {
             binding.chipCharCount.isVisible = false
         }
-        // 系列链接：与小说详情页 NOVEL_URL_HEAD 同源，但路径不同；这里沿用旧版 FragmentNovelSeriesDetail 的格式。
         linkChip(binding.chipSeriesLink, R.string.novel_chip_series_link,
             "https://www.pixiv.net/novel/series/${series.id}")
     }

@@ -10,4 +10,6 @@ object ListMode {
     const val STAGGERED_GRID = 3
     const val GRID = 4
     const val GRID_AND_SECTION_HEADER = 5
+
+    const val VERTICAL_NO_HORIZONTAL = 6
 }

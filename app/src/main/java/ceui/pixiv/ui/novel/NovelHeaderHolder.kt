@@ -2,6 +2,8 @@ package ceui.pixiv.ui.novel
 
 import android.content.Intent
 import android.view.View
+import androidx.core.view.isVisible
+import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelHeaderBinding
@@ -15,6 +17,7 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.NovelActionReceiver
 import ceui.pixiv.utils.setOnClick
+import java.text.NumberFormat
 
 
 class NovelHeaderHolder(val novelId: Long) : ListItemHolder() {
@@ -34,19 +37,36 @@ class NovelHeaderViewHolder(bd: CellNovelHeaderBinding) : ListItemViewHolder<Cel
             it.findActionReceiverOrNull<NovelActionReceiver>()
                 ?.onClickBookmarkNovel(it, holder.novelId)
         }
-        // 长按收藏按钮 → 打开「按标签收藏」以自定义标签/公开私密（issue #839）。
         binding.bookmark.setOnLongClickListener { sender ->
             val novel = liveNovel.value ?: return@setOnLongClickListener false
             openTagBookmarkForNovel(sender, novel)
             true
         }
-        binding.seriesName.setOnClick { sender ->
+        binding.seriesStrip.setOnClick { sender ->
             liveNovel.value?.series?.let { series ->
                 sender.findActionReceiverOrNull<NovelSeriesActionReceiver>()?.onClickNovelSeries(sender, series)
             }
         }
         binding.title.setOnClick {
             Common.copy(context, liveNovel.value?.title)
+        }
+        liveNovel.observe(lifecycleOwner) { novel ->
+            if (novel == null) return@observe
+            // Meta line
+            val date = novel.create_date?.replace('T', ' ')?.take(16).orEmpty()
+            binding.metaDate.text = date
+            val wordCount = novel.text_length
+            if (wordCount != null && wordCount > 0) {
+                binding.metaWordCount.text = context.getString(
+                    R.string.novel_meta_word_count,
+                    NumberFormat.getInstance().format(wordCount),
+                )
+                binding.metaWordCount.isVisible = true
+                binding.metaDot2.isVisible = true
+            } else {
+                binding.metaWordCount.isVisible = false
+                binding.metaDot2.isVisible = false
+            }
         }
     }
 }
@@ -60,7 +80,6 @@ internal fun openTagBookmarkForNovel(sender: View, novel: Novel) {
     val tagNames = novel.tags.orEmpty().mapNotNull { it.name }.toTypedArray()
     val intent = Intent(ctx, TemplateActivity::class.java).apply {
         putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏")
-        // FragmentSB 对 illust/novel 统一用 ILLUST_ID 作为 id key，type 区分。
         putExtra(Params.ILLUST_ID, novel.id.toInt())
         putExtra(Params.DATA_TYPE, Params.TYPE_NOVEL)
         putExtra(Params.TAG_NAMES, tagNames)

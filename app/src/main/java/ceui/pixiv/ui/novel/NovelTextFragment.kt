@@ -54,7 +54,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpRefreshState(binding, textModel, ListMode.VERTICAL)
+        setUpRefreshState(binding, textModel, ListMode.VERTICAL_NO_HORIZONTAL)
         binding.toolbarLayout.root.visibility = View.GONE
         // 用户反馈：详情页背景图（模糊封面）干扰前景文字。改 v3_bg（白天/夜间自动适配）。
         binding.pageBackground.setBackgroundColor(
@@ -69,6 +69,8 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         val bottomView = ItemBigReadButtonBinding.inflate(layoutInflater)
         binding.bottomCovered.isVisible = true
         binding.bottomCovered.addView(bottomView.root)
+        val palette = ceui.lisa.utils.V3Palette.from(requireContext())
+        bottomView.btnRead.background = palette.pillPrimary(28f * resources.displayMetrics.density)
         bottomView.btnRead.setOnClick {
             val ctx = requireContext()
             val intent = Intent(ctx, TemplateActivity::class.java).apply {
@@ -96,7 +98,10 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
         ObjectPool.get<Novel>(novelId).observe(viewLifecycleOwner) { novel ->
             if (novel != null) {
                 runOnceWithinFragmentLifecycle("visit-novel-${novelId}") {
-                    val bean = Shaft.sGson.fromJson(Shaft.sGson.toJson(novel), ceui.lisa.models.NovelBean::class.java)
+                    val bean = Shaft.sGson.fromJson(
+                        Shaft.sGson.toJson(novel),
+                        ceui.lisa.models.NovelBean::class.java
+                    )
                     ceui.lisa.utils.PixivOperate.insertNovelViewHistory(bean)
                 }
             }
@@ -185,8 +190,19 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                 )
             }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }
             when (result) {
-                is ExportResult.Success -> ToastUtils.show(appContext.getString(R.string.msg_export_success, result.fileName))
-                is ExportResult.Failure -> ToastUtils.show(appContext.getString(R.string.msg_export_fail, result.message))
+                is ExportResult.Success -> ToastUtils.show(
+                    appContext.getString(
+                        R.string.msg_export_success,
+                        result.fileName
+                    )
+                )
+
+                is ExportResult.Failure -> ToastUtils.show(
+                    appContext.getString(
+                        R.string.msg_export_fail,
+                        result.message
+                    )
+                )
             }
         }
     }

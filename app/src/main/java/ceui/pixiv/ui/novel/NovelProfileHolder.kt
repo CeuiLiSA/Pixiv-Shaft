@@ -13,15 +13,9 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.utils.setOnClick
+import java.text.NumberFormat
 
 
-/**
- * 作品档案信息单元（锚点卡片）。
- *
- * 任务 #3：把原本散落在 NovelCaptionHolder 里的 info chip 迁移到独立的
- * 卡片 holder 里，让它成为核心按钮区上方最后一个"稳定锚点"。
- * 档案字段长度基本固定，卡片位置不受标签/简介长度影响，用户可形成肌肉记忆。
- */
 class NovelProfileHolder(val novelId: Long) : ListItemHolder() {
     override fun getItemId(): Long {
         return novelId
@@ -37,8 +31,15 @@ class NovelProfileViewHolder(bd: CellNovelProfileBinding) :
         val liveNovel = ObjectPool.get<Novel>(holder.novelId)
         liveNovel.observe(lifecycleOwner) { novel ->
             if (novel == null) return@observe
+            bindStats(novel)
             bindInfoChips(novel)
         }
+    }
+
+    private fun bindStats(novel: Novel) {
+        val fmt = NumberFormat.getInstance()
+        binding.statViews.text = fmt.format(novel.total_view ?: 0)
+        binding.statBookmarks.text = fmt.format(novel.total_bookmarks ?: 0)
     }
 
     private fun bindInfoChips(novel: Novel) {

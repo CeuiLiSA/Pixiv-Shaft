@@ -1275,6 +1275,10 @@
     <string name="novel_author_id_copied">已复制作者 UID</string>
     <!-- 小说详情页一级页面 UI 重构（任务 #2–#4） -->
     <string name="novel_header_series_prefix">系列：%1$s</string>
+    <string name="novel_meta_type">Novel</string>
+    <string name="novel_meta_word_count">%1$s字</string>
+    <string name="novel_meta_chapter_count">%1$d篇</string>
+    <string name="novel_series_section_works">作品列表</string>
     <string name="novel_section_tags">标签</string>
     <string name="novel_section_caption">简介</string>
     <string name="novel_profile_title">作品档案</string>

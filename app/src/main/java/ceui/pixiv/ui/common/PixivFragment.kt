@@ -22,15 +22,16 @@ import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.R
 import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.databinding.LayoutToolbarBinding
+import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.ShareIllust
 import ceui.lisa.view.LinearItemDecoration
+import ceui.lisa.view.LinearItemDecorationNoLRTB
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Article
 import ceui.loxia.Client
@@ -46,20 +47,19 @@ import ceui.loxia.Tag
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
-import ceui.pixiv.widgets.RateAppManager
 import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.circles.CircleFragmentArgs
 import ceui.pixiv.ui.detail.ArtworkViewPagerFragmentArgs
 import ceui.pixiv.ui.detail.ArtworksMap
 import ceui.pixiv.ui.detail.IllustSeriesFragmentArgs
 import ceui.pixiv.ui.novel.NovelSeriesActionReceiver
-import ceui.pixiv.ui.novel.NovelSeriesFragmentArgs
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserFragmentArgs
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.utils.animateWiggle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.widgets.RateAppManager
 import ceui.pixiv.widgets.TagsActionReceiver
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.FalsifyFooter
@@ -260,7 +260,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
     }
 
     override fun onClickNovelSeries(sender: View, series: Series) {
-        val intent = android.content.Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+        val intent = android.content.Intent(
+            requireContext(),
+            ceui.lisa.activities.TemplateActivity::class.java
+        ).apply {
             putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说系列")
             putExtra(ceui.pixiv.ui.novel.NovelSeriesFragment.ARG_SERIES_ID, series.id)
         }
@@ -415,6 +418,9 @@ fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode
     } else if (listMode == ListMode.VERTICAL) {
         listView.layoutManager = LinearLayoutManager(ctx)
         listView.addItemDecoration(LinearItemDecoration(18.ppppx))
+    } else if (listMode == ListMode.VERTICAL_NO_HORIZONTAL) {
+        listView.layoutManager = LinearLayoutManager(ctx)
+        listView.addItemDecoration(LinearItemDecorationNoLRTB(18.ppppx))
     } else if (listMode == ListMode.VERTICAL_COMMENT) {
         listView.layoutManager = LinearLayoutManager(requireContext())
         listView.addItemDecoration(
@@ -468,7 +474,8 @@ fun FragmentActivity.findCurrentFragmentOrNull(): Fragment? {
             .filterIsInstance<NavHostFragment>()
             .firstOrNull()
 
-        val currentFragment = navigationFragment?.childFragmentManager?.fragments?.firstOrNull { it.isVisible }
+        val currentFragment =
+            navigationFragment?.childFragmentManager?.fragments?.firstOrNull { it.isVisible }
 
         currentFragment?.let {
             Timber.d("Current Fragment Instance: ${it.javaClass.simpleName}")
@@ -500,7 +507,6 @@ fun Fragment.shareIllust(illust: Illust) {
         }
     }
 }
-
 
 
 const val NOVEL_URL_HEAD = "https://www.pixiv.net/novel/show.php?id="

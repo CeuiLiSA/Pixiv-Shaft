@@ -12,7 +12,6 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.SpaceHolder
 import ceui.loxia.WebNovel
-import ceui.pixiv.ui.chats.RedSectionHeaderHolder
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.detail.UserInfoHolder
@@ -53,9 +52,7 @@ class NovelTextViewModel(
         result.add(UserInfoHolder(ObjectPool.get<ceui.loxia.Novel>(novelId).value?.user?.id ?: 0L))
         result.add(NovelProfileHolder(novelId))
         result.add(NovelActionsHolder(novelId))
-        result.add(RedSectionHeaderHolder(context.getString(R.string.novel_section_tags)))
         result.add(NovelTagsHolder(novelId))
-        result.add(RedSectionHeaderHolder(context.getString(R.string.novel_section_caption)))
         result.add(NovelCaptionHolder(novelId))
         result.add(SpaceHolder())
         result.add(SpaceHolder())

@@ -1,32 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    简介内容区。
-    信息 chip 已迁移到 cell_novel_profile（任务 #3 锚点单元）；
-    "复制简介"独立提示已移除（任务 #5，点击简介正文即可复制，提示冗余）。
--->
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
-
         <variable
             name="novel"
             type="androidx.lifecycle.LiveData&lt;ceui.loxia.Novel>" />
     </data>
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp">
+
+        <TextView
+            android:id="@+id/caption_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:letterSpacing="0.12"
+            android:text="@string/novel_section_caption"
+            android:textAllCaps="true"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:alpha="0.78"
             android:background="?attr/selectableItemBackground"
-            android:paddingVertical="4dp"
-            android:textColor="@color/text00"
-            android:textSize="15sp" />
-
+            android:lineSpacingMultiplier="1.65"
+            android:paddingHorizontal="8dp"
+            android:textColor="@color/v3_text_1"
+            android:textColorLink="@color/v3_blue"
+            android:textSize="14sp" />
     </LinearLayout>
 </layout>
