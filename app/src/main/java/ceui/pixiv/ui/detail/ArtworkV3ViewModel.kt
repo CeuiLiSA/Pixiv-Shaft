@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
@@ -12,10 +13,16 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.model.ListIllust
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.Comment
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
+import ceui.pixiv.ui.task.DownloadTask
+import ceui.pixiv.ui.task.NamedUrl
+import ceui.pixiv.ui.task.TaskPool
+import ceui.pixiv.ui.task.TaskStatus
+import ceui.pixiv.ui.works.buildPixivWorksFileName
 import ceui.pixiv.db.RecordType
 import com.google.gson.Gson
 import io.reactivex.Observable
@@ -82,6 +89,85 @@ class ArtworkV3ViewModel(
             illustBean = bean
             _isBookmarked.value = bean.isIs_bookmarked
             buildHeaderItems()
+            setupDownloadFab(bean)
+        }
+    }
+
+    // ── download FAB state machine ──
+    //
+    // Each page of the illust is backed by a pool-resident DownloadTask, the
+    // same type 二级详情页 uses — so downloading here warms the Glide cache
+    // and gives that page instant display. The MediatorLiveData fuses every
+    // page's task status plus a legacy-path fallback into a single state that
+    // the fragment renders in one switch.
+    private var downloadTasks: List<DownloadTask> = emptyList()
+    private var downloadFabInitialized = false
+    private val fabRefreshTick = MutableLiveData(0)
+    private val _downloadFabState = MediatorLiveData<DownloadFab>().apply {
+        value = DownloadFab.Idle
+        addSource(fabRefreshTick) { value = computeDownloadFab() }
+    }
+    val downloadFabState: LiveData<DownloadFab> = _downloadFabState
+
+    fun triggerDownload() {
+        downloadTasks.forEach { it.start { } }
+    }
+
+    /** Re-evaluate state; call after paths outside our observation (legacy
+     * IllustDownload → Manager DB) may have changed. */
+    fun refreshDownloadFab() {
+        fabRefreshTick.value = (fabRefreshTick.value ?: 0) + 1
+    }
+
+    private fun setupDownloadFab(illust: IllustsBean) {
+        if (downloadFabInitialized) return
+        val urls = buildDownloadNamedUrls(illust)
+        if (urls.isEmpty()) {
+            _downloadFabState.value = computeDownloadFab()
+            return
+        }
+        downloadFabInitialized = true
+        downloadTasks = urls.map { TaskPool.getDownloadTask(it) }
+        downloadTasks.forEach { task ->
+            _downloadFabState.addSource(task.status) {
+                _downloadFabState.value = computeDownloadFab()
+            }
+        }
+        _downloadFabState.value = computeDownloadFab()
+    }
+
+    private fun computeDownloadFab(): DownloadFab {
+        val tasks = downloadTasks
+        if (tasks.any { it.status.value is TaskStatus.Executing }) {
+            val avg = tasks.sumOf { t ->
+                when (val s = t.status.value) {
+                    is TaskStatus.Executing -> s.percentage.coerceIn(0, 100)
+                    is TaskStatus.Finished -> 100
+                    else -> 0
+                }
+            } / tasks.size
+            return DownloadFab.Downloading(avg.coerceIn(0, 100))
+        }
+        if (tasks.isNotEmpty() && tasks.all { it.status.value is TaskStatus.Finished }) {
+            return DownloadFab.Done
+        }
+        val bean = illustBean ?: return DownloadFab.Idle
+        val dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
+        if (Common.isIllustDownloaded(bean) || dao.hasDownloadRecordByIllustId(bean.id.toLong())) {
+            return DownloadFab.Done
+        }
+        return DownloadFab.Idle
+    }
+
+    private fun buildDownloadNamedUrls(illust: IllustsBean): List<NamedUrl> {
+        val id = illust.id.toLong()
+        return if (illust.page_count <= 1) {
+            val url = illust.meta_single_page?.original_image_url ?: illust.image_urls?.original
+            listOfNotNull(url?.let { NamedUrl(buildPixivWorksFileName(id), it) })
+        } else {
+            illust.meta_pages.orEmpty().mapIndexedNotNull { i, page ->
+                page.image_urls?.original?.let { NamedUrl(buildPixivWorksFileName(id, i), it) }
+            }
         }
     }
 
@@ -250,6 +336,12 @@ class ArtworkV3ViewModel(
  * Bridge Rx2 Observable to a suspend function without pulling in kotlinx-coroutines-rx2.
  * Runs the subscription on Schedulers.io so the calling coroutine thread is freed while waiting.
  */
+sealed interface DownloadFab {
+    data object Idle : DownloadFab
+    data class Downloading(val percent: Int) : DownloadFab
+    data object Done : DownloadFab
+}
+
 private suspend fun <T : Any> Observable<T>.awaitFirst(): T = suspendCancellableCoroutine { cont ->
     val disposable = subscribeOn(Schedulers.io())
         .firstOrError()

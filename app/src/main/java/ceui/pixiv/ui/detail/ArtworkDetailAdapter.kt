@@ -474,7 +474,7 @@ class ArtworkDetailAdapter(
             b.commentsList.removeAllViews()
             val hasComments = comments.isNotEmpty()
             b.commentsEmpty.isVisible = !hasComments
-            b.commentsMore.isVisible = hasComments
+            b.commentsMore.isVisible = true
             comments.forEach { comment ->
                 val row = LinearLayout(ctx).apply {
                     orientation = LinearLayout.HORIZONTAL; setPadding(0, 14.ppppx, 0, 14.ppppx)

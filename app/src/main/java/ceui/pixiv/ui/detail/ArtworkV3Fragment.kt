@@ -29,6 +29,10 @@ import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
 import ceui.loxia.ObjectPool
 import ceui.loxia.threadSafeArgs
+import android.content.res.ColorStateList
+import android.graphics.Color
+import androidx.annotation.ColorInt
+import androidx.annotation.DrawableRes
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import kotlinx.coroutines.Dispatchers
@@ -191,17 +195,29 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
 
     override fun onResume() {
         super.onResume()
-        updateDownloadState(safeArgs.illustId.toLong())
+        viewModel.refreshDownloadFab()
     }
 
-    private fun updateDownloadState(illustId: Long) {
-        val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return
-        val downloaded = Common.isIllustDownloaded(illust) ||
-            ceui.lisa.database.AppDatabase.getAppDatabase(mContext).downloadDao()
-                .hasDownloadRecordByIllustId(illust.id.toLong())
-        baseBind.fabDownload.setImageResource(
-            if (downloaded) R.drawable.ic_file_download_done_24dp else R.drawable.ic_file_download_black_24dp
-        )
+    private fun renderDownloadFab(state: DownloadFab) {
+        if (view == null) return
+        when (state) {
+            DownloadFab.Idle ->
+                paintFab(R.drawable.ic_file_download_black_24dp, Color.WHITE)
+            DownloadFab.Done ->
+                paintFab(R.drawable.ic_file_download_done_24dp, mContext.getColor(R.color.has_downloaded))
+            is DownloadFab.Downloading -> {
+                baseBind.fabDownload.visibility = View.INVISIBLE
+                baseBind.fabDownloadProgress.visibility = View.VISIBLE
+                baseBind.fabDownloadProgress.setProgressCompat(state.percent, true)
+            }
+        }
+    }
+
+    private fun paintFab(@DrawableRes iconRes: Int, @ColorInt tint: Int) {
+        baseBind.fabDownloadProgress.visibility = View.GONE
+        baseBind.fabDownload.visibility = View.VISIBLE
+        baseBind.fabDownload.setImageResource(iconRes)
+        baseBind.fabDownload.imageTintList = ColorStateList.valueOf(tint)
     }
 
     private var fabShown = true
@@ -240,7 +256,7 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         // Apply download/bookmark order preference
         if (!Shaft.sSettings.isArtworkV3FabDownloadOnLeft) {
             val bar = baseBind.fabBar
-            val download = baseBind.fabDownload
+            val download = baseBind.fabDownloadContainer
             val bookmark = baseBind.fabBookmark
             bar.removeView(download)
             bar.removeView(bookmark)
@@ -248,24 +264,16 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
             bar.addView(download)
         }
 
-        // Floating action bar
-        baseBind.fabDownload.setOnClick {
+        // Floating action bar — downloads go through the shared TaskPool so
+        // the Glide cache warmed here gives 二级详情页 instant display.
+        baseBind.fabDownloadContainer.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
-            val baseAct = mActivity as? ceui.lisa.activities.BaseActivity<*>
-            val resolution = Shaft.sSettings.defaultImageResolution.let {
-                if (it.isNullOrEmpty()) Params.IMAGE_RESOLUTION_ORIGINAL else it
-            }
-            if (illust.page_count == 1) {
-                IllustDownload.downloadIllustFirstPageWithResolution(illust, resolution, baseAct)
-            } else {
-                IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution, baseAct)
-            }
-            updateDownloadState(illustId)
+            viewModel.triggerDownload()
             if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
                 PixivOperate.postLikeDefaultStarType(illust)
             }
         }
-        baseBind.fabDownload.setOnLongClickListener {
+        baseBind.fabDownloadContainer.setOnLongClickListener {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnLongClickListener true
             val baseAct = mActivity as? ceui.lisa.activities.BaseActivity<*>
             val resNames = arrayOf(
@@ -287,13 +295,13 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                     } else {
                         IllustDownload.downloadIllustAllPagesWithResolution(illust, resValues[which], baseAct)
                     }
-                    updateDownloadState(illustId)
+                    viewModel.refreshDownloadFab()
                     dialog.dismiss()
                 }
                 .show()
             true
         }
-        updateDownloadState(illustId)
+        viewModel.downloadFabState.observe(viewLifecycleOwner) { renderDownloadFab(it) }
 
         baseBind.fabBookmark.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
