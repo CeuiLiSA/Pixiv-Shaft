@@ -159,6 +159,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
     }
 
     private fun executeExport(format: ExportFormat) {
+        val appContext = requireContext().applicationContext
         ToastUtils.show(getString(R.string.msg_export_start, getString(format.displayNameResId)))
         viewLifecycleOwner.lifecycleScope.launch {
             val result = runCatching {
@@ -176,7 +177,7 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                     NovelTextCache.put(novelId, NovelTextCache.Entry(web, tokens))
                 }
                 NovelExportManager.export(
-                    context = requireContext().applicationContext,
+                    context = appContext,
                     format = format,
                     novel = novel,
                     webNovel = web,
@@ -184,8 +185,8 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
                 )
             }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }
             when (result) {
-                is ExportResult.Success -> ToastUtils.show(getString(R.string.msg_export_success, result.fileName))
-                is ExportResult.Failure -> ToastUtils.show(getString(R.string.msg_export_fail, result.message))
+                is ExportResult.Success -> ToastUtils.show(appContext.getString(R.string.msg_export_success, result.fileName))
+                is ExportResult.Failure -> ToastUtils.show(appContext.getString(R.string.msg_export_fail, result.message))
             }
         }
     }
