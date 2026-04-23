@@ -16,12 +16,17 @@ import androidx.viewpager.widget.ViewPager;
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
 import com.blankj.utilcode.util.BarUtils;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -199,20 +204,35 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
     }
 
     private void exportDownloadRecords() {
-        List<DownloadEntity> all = AppDatabase.getAppDatabase(mContext)
-                .downloadDao().getAll(Integer.MAX_VALUE, 0);
-        if (all == null || all.isEmpty()) {
-            Common.showToast(getString(R.string.download_records_export_empty));
-            return;
-        }
-        String json = Shaft.sGson.toJson(all);
+        DownloadDao dao = AppDatabase.getAppDatabase(mContext).downloadDao();
         IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity,
-                DOWNLOAD_RECORDS_FILE_NAME, json, new Callback<Uri>() {
+                DOWNLOAD_RECORDS_FILE_NAME, new Callback<File>() {
                     @Override
-                    public void doSomething(Uri t) {
-                        Common.showToast(getString(R.string.download_records_export_success, all.size()));
+                    public void doSomething(File file) {
+                        int count = 0;
+                        try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(new FileOutputStream(file)))) {
+                            writer.beginArray();
+                            int offset = 0;
+                            while (true) {
+                                List<DownloadEntity> batch = dao.getAll(100, offset);
+                                if (batch == null || batch.isEmpty()) break;
+                                for (DownloadEntity entity : batch) {
+                                    Shaft.sGson.toJson(entity, DownloadEntity.class, writer);
+                                    count++;
+                                }
+                                offset += batch.size();
+                            }
+                            writer.endArray();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        if (count == 0) {
+                            Common.showToast(getString(R.string.download_records_export_empty));
+                        } else {
+                            Common.showToast(getString(R.string.download_records_export_success, count));
+                        }
                     }
-                });
+                }, null);
     }
 
     private void pickDownloadRecordsFile() {

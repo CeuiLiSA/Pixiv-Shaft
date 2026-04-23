@@ -315,6 +315,27 @@ public class IllustDownload {
         });
     }
 
+    public static void downloadBackupFile(BaseActivity<?> activity, String displayName, Callback<File> fileWriter, Callback<Uri> targetCallback){
+        check(activity, new FeedBack() {
+            @Override
+            public void doSomething() {
+                File textFile = LegacyFile.textFile(activity, displayName);
+                try {
+                    fileWriter.doSomething(textFile);
+                    Common.showLog("downloadBackupFile displayName " + textFile.getName());
+                    OutPut.outPutBackupFile(activity, textFile, textFile.getName());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Uri fileURI = FileProvider.getUriForFile(activity,
+                        activity.getApplicationContext().getPackageName() + ".provider", textFile);
+                if (targetCallback != null) {
+                    targetCallback.doSomething(fileURI);
+                }
+            }
+        });
+    }
+
     public static String getUrl(IllustsBean illust, int index) {
         return getUrl(illust, index, Params.IMAGE_RESOLUTION_ORIGINAL);
     }

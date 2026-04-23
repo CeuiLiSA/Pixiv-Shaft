@@ -17,10 +17,14 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.blankj.utilcode.util.UriUtils;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 
-import java.lang.reflect.Type;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -197,24 +201,28 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
     }
 
     private void exportMuteRecords() {
-        new Thread(() -> {
-            List<MuteEntity> all = AppDatabase.getAppDatabase(mContext)
-                    .searchDao().getAllMuteEntities();
-            if (all == null || all.isEmpty()) {
-                mActivity.runOnUiThread(() ->
-                        Common.showToast(getString(R.string.mute_records_export_empty)));
-                return;
-            }
-            String json = Shaft.sGson.toJson(all);
-            mActivity.runOnUiThread(() ->
-                    IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity,
-                            MUTE_RECORDS_FILE_NAME, json, new Callback<Uri>() {
-                                @Override
-                                public void doSomething(Uri t) {
-                                    Common.showToast(getString(R.string.mute_records_export_success, all.size()));
-                                }
-                            }));
-        }).start();
+        IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity,
+                MUTE_RECORDS_FILE_NAME, new Callback<File>() {
+                    @Override
+                    public void doSomething(File file) {
+                        List<MuteEntity> all = AppDatabase.getAppDatabase(mContext)
+                                .searchDao().getAllMuteEntities();
+                        if (all == null || all.isEmpty()) {
+                            Common.showToast(getString(R.string.mute_records_export_empty));
+                            return;
+                        }
+                        try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(new FileOutputStream(file)))) {
+                            writer.beginArray();
+                            for (MuteEntity entity : all) {
+                                Shaft.sGson.toJson(entity, MuteEntity.class, writer);
+                            }
+                            writer.endArray();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        Common.showToast(getString(R.string.mute_records_export_success, all.size()));
+                    }
+                }, null);
     }
 
     private void pickMuteRecordsFile() {
@@ -240,21 +248,29 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
             }
             new Thread(() -> {
                 try {
-                    String fileString = new String(UriUtils.uri2Bytes(uri));
-                    Type listType = new TypeToken<List<MuteEntity>>() {}.getType();
-                    List<MuteEntity> entities = Shaft.sGson.fromJson(fileString, listType);
-                    if (entities == null || entities.isEmpty()) {
+                    InputStream is = mContext.getContentResolver().openInputStream(uri);
+                    if (is == null) {
                         mActivity.runOnUiThread(() ->
-                                Common.showToast(getString(R.string.mute_records_import_invalid)));
+                                Common.showToast(getString(R.string.mute_records_import_no_file)));
                         return;
                     }
                     int imported = 0;
-                    for (MuteEntity entity : entities) {
-                        if (entity == null || entity.getTagJson() == null || entity.getTagJson().isEmpty()) {
-                            continue;
+                    try (JsonReader reader = new JsonReader(new InputStreamReader(is))) {
+                        reader.beginArray();
+                        while (reader.hasNext()) {
+                            MuteEntity entity = Shaft.sGson.fromJson(reader, MuteEntity.class);
+                            if (entity == null || entity.getTagJson() == null || entity.getTagJson().isEmpty()) {
+                                continue;
+                            }
+                            AppDatabase.getAppDatabase(mContext).searchDao().insertMuteTag(entity);
+                            imported++;
                         }
-                        AppDatabase.getAppDatabase(mContext).searchDao().insertMuteTag(entity);
-                        imported++;
+                        reader.endArray();
+                    }
+                    if (imported == 0) {
+                        mActivity.runOnUiThread(() ->
+                                Common.showToast(getString(R.string.mute_records_import_invalid)));
+                        return;
                     }
                     int finalImported = imported;
                     mActivity.runOnUiThread(() -> {
