@@ -15,6 +15,7 @@ import android.webkit.URLUtil;
 import android.widget.TextView;
 
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
@@ -27,7 +28,6 @@ import com.zhy.view.flowlayout.TagFlowLayout;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import ceui.lisa.R;
@@ -40,28 +40,23 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSearchBinding;
 import ceui.lisa.databinding.RecySingleLineTextWithDeleteBinding;
-import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.SearchTypeUtil;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
+import ceui.pixiv.ui.search.SearchHintViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
-    private ObservableEmitter<String> fuck = null;
+    private SearchHintViewModel hintViewModel;
     private int searchType = SearchTypeUtil.defaultSearchType;
     private boolean hasSwitchSearchType = false;
 
@@ -77,20 +72,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
         baseBind.head.setLayoutParams(headParams);
-        Observable.create(new ObservableOnSubscribe<String>() {
-            @Override
-            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-                fuck = emitter;
-            }
-        }).subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .debounce(800, TimeUnit.MILLISECONDS)
-                .subscribe(new ErrorCtrl<String>() {
-                    @Override
-                    public void next(String s) {
-                        completeWord(s);
-                    }
-                });
+        hintViewModel = new ViewModelProvider(this).get(SearchHintViewModel.class);
+        setupHintObservers();
         baseBind.inputBox.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -101,20 +84,16 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 String inputs = String.valueOf(charSequence);
                 baseBind.clear.setVisibility(inputs.length() > 0 ? View.VISIBLE : View.INVISIBLE);
 
-                if (inputs.length() > 0 && searchType == 0 && !inputs.endsWith(" ") && fuck != null) {
+                boolean shouldAutocomplete = inputs.length() > 0 && !inputs.endsWith(" ")
+                        && (searchType == 0 || (searchType == 5 && !Common.isNumeric(inputs)));
+                if (shouldAutocomplete) {
                     List<String> keys = Arrays.stream(inputs.split(" "))
                             .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
                     if (keys.size() > 0) {
-                        fuck.onNext(keys.get(keys.size() - 1));
+                        hintViewModel.onTextChanged(keys.get(keys.size() - 1));
                     }
-                } else if(inputs.length() > 0 && searchType == 5 && !inputs.endsWith(" ") && fuck != null && !Common.isNumeric(inputs)){
-                    List<String> keys = Arrays.stream(inputs.split(" "))
-                            .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
-                    if (keys.size() > 0) {
-                        fuck.onNext(keys.get(keys.size() - 1));
-                    }
-                }  else {
-                    baseBind.hintList.setVisibility(View.GONE);
+                } else {
+                    hintViewModel.clearHints();
                 }
             }
 
@@ -136,43 +115,17 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 return false;
             }
         });
-        baseBind.inputBox.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    if (baseBind.hintList.getAdapter() != null) {
-                        baseBind.hintList.setVisibility(View.VISIBLE);
-                    }
-                }
+        baseBind.inputBox.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                hintViewModel.showHintsIfAvailable();
             }
         });
-        baseBind.clear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                baseBind.inputBox.setText("");
-            }
+        baseBind.clear.setOnClickListener(view -> baseBind.inputBox.setText(""));
+        baseBind.inputBox.setOnTouchListener((view, motionEvent) -> {
+            hintViewModel.showHintsIfAvailable();
+            return false;
         });
-
-        baseBind.inputBox.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (baseBind.hintList.getAdapter() != null &&
-                        ((SearchHintAdapter) baseBind.hintList.getAdapter())
-                                .getKeyword().equals(baseBind.inputBox.getText().toString())) {
-                    baseBind.hintList.setVisibility(View.VISIBLE);
-                }
-                return false;
-            }
-        });
-
-        baseBind.container.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (baseBind.hintList.getVisibility() == View.VISIBLE) {
-                    baseBind.hintList.setVisibility(View.INVISIBLE);
-                }
-            }
-        });
+        baseBind.container.setOnClickListener(view -> hintViewModel.hideHints());
         baseBind.more.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -186,7 +139,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     private void dispatchClick(String keyWord, int searchType) {
         String trimmedKeyword = keyWord.trim();
         if (searchType == 0) {
-            baseBind.hintList.setVisibility(View.INVISIBLE);
+            hintViewModel.hideHints();
             //PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
             Intent intent = new Intent(mContext, SearchActivity.class);
             intent.putExtra(Params.KEY_WORD, trimmedKeyword);
@@ -266,7 +219,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 });
             }
             else{
-                baseBind.hintList.setVisibility(View.INVISIBLE);
+                hintViewModel.hideHints();
                 //PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                 Intent intent = new Intent(mContext, SearchActivity.class);
                 intent.putExtra(Params.KEY_WORD, trimmedKeyword);
@@ -276,54 +229,68 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         }
     }
 
-    private void completeWord(String key) {
-        Retro.getAppApi().searchCompleteWord(key)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListTrendingtag>() {
-                    @Override
-                    public void success(ListTrendingtag listTrendingtag) {
-                        baseBind.hintList.setLayoutManager(new LinearLayoutManager(mContext));
-                        SearchHintAdapter searchHintAdapter =
-                                new SearchHintAdapter(listTrendingtag.getList(), mContext, key);
-                        // 点击直接搜索条目
-                        searchHintAdapter.setOnItemClickListener(new OnItemClickListener() {
-                            @Override
-                            public void onItemClick(View v, int position, int viewType) {
-                                baseBind.hintList.setVisibility(View.INVISIBLE);
-                                String keyword = listTrendingtag.getList().get(position).getTag();
-                                //PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
-                                Intent intent = new Intent(mContext, SearchActivity.class);
-                                intent.putExtra(Params.KEY_WORD, keyword);
-                                intent.putExtra(Params.INDEX, 0);
-                                startActivity(intent);
-                            }
-                        });
-                        // 长按将条目填写入搜索框
-                        searchHintAdapter.setOnItemLongClickListener(new OnItemLongClickListener() {
-                            @Override
-                            public void onItemLongClick(View v, int position, int viewType) {
-                                baseBind.hintList.setVisibility(View.INVISIBLE);
-                                // 将现有文字最后方的非空部分替换为 hint
-                                String currentInput = baseBind.inputBox.getText().toString();
-                                List<String> keys = Arrays.stream(currentInput.split(" "))
-                                        .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
-                                String tagName = listTrendingtag.getList().get(position).getTag();
-                                StringBuilder sb = new StringBuilder();
-                                if (keys.size() > 0) {
-                                    keys.set(keys.size() - 1, tagName);
-                                    sb.append(TextUtils.join(" ", keys));
-                                } else {
-                                    sb.append(tagName);
-                                }
-                                baseBind.inputBox.setText(sb.append(" ").toString());
-                                baseBind.inputBox.setSelection(baseBind.inputBox.getText().length());
-                            }
-                        });
-                        baseBind.hintList.setAdapter(searchHintAdapter);
-                        baseBind.hintList.setVisibility(View.VISIBLE);
-                    }
-                });
+    private void setupHintObservers() {
+        baseBind.hintList.setLayoutManager(new LinearLayoutManager(mContext));
+        hintViewModel.getHints().observe(getViewLifecycleOwner(), hints -> {
+            if (hints == null || hints.isEmpty()) return;
+            String keyword = hintViewModel.getCurrentKeyword().getValue();
+            SearchHintAdapter adapter = new SearchHintAdapter(hints, mContext, keyword != null ? keyword : "");
+            adapter.setOnItemClickListener((v, position, viewType) -> {
+                hintViewModel.hideHints();
+                String tag = hints.get(position).getTag();
+                Intent intent = new Intent(mContext, SearchActivity.class);
+                intent.putExtra(Params.KEY_WORD, tag);
+                intent.putExtra(Params.INDEX, 0);
+                startActivity(intent);
+            });
+            adapter.setOnItemLongClickListener((v, position, viewType) -> {
+                hintViewModel.hideHints();
+                String currentInput = baseBind.inputBox.getText().toString();
+                List<String> keys = Arrays.stream(currentInput.split(" "))
+                        .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
+                String tagName = hints.get(position).getTag();
+                StringBuilder sb = new StringBuilder();
+                if (keys.size() > 0) {
+                    keys.set(keys.size() - 1, tagName);
+                    sb.append(TextUtils.join(" ", keys));
+                } else {
+                    sb.append(tagName);
+                }
+                baseBind.inputBox.setText(sb.append(" ").toString());
+                baseBind.inputBox.setSelection(baseBind.inputBox.getText().length());
+            });
+            baseBind.hintList.setAdapter(adapter);
+        });
+        hintViewModel.getHintsVisible().observe(getViewLifecycleOwner(), visible -> {
+            animateHintList(visible != null && visible);
+        });
+    }
+
+    private void animateHintList(boolean show) {
+        if (show) {
+            if (baseBind.hintList.getVisibility() == View.VISIBLE) return;
+            baseBind.hintList.setAlpha(0f);
+            baseBind.hintList.setTranslationY(-24f);
+            baseBind.hintList.setVisibility(View.VISIBLE);
+            baseBind.hintList.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(220)
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                    .start();
+        } else {
+            if (baseBind.hintList.getVisibility() != View.VISIBLE) return;
+            baseBind.hintList.animate()
+                    .alpha(0f)
+                    .translationY(-16f)
+                    .setDuration(160)
+                    .setInterpolator(new android.view.animation.AccelerateInterpolator())
+                    .withEndAction(() -> {
+                        baseBind.hintList.setVisibility(View.GONE);
+                        baseBind.hintList.setTranslationY(0f);
+                    })
+                    .start();
+        }
     }
 
     private void getHotTags() {
@@ -350,7 +317,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                         baseBind.hotTags.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
                             @Override
                             public boolean onTagClick(View view, int position, FlowLayout parent) {
-                                baseBind.hintList.setVisibility(View.INVISIBLE);
+                                hintViewModel.hideHints();
                                 String keyword = listTrendingtag.getList().get(position).getTag();
                                 //PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                                 Intent intent = new Intent(mContext, SearchActivity.class);
@@ -446,7 +413,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             @Override
             public boolean onTagClick(View view, int position, FlowLayout parent) {
                 if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD) {
-                    baseBind.hintList.setVisibility(View.INVISIBLE);
+                    hintViewModel.hideHints();
                     Intent intent = new Intent(mContext, SearchActivity.class);
                     intent.putExtra(Params.KEY_WORD, history.get(position).getKeyword());
                     intent.putExtra(Params.INDEX, 0);
@@ -456,7 +423,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     PixivOperate.getIllustByID(tryParseId(history.get(position).getKeyword()), mContext);
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_USERKEYWORD) {
-                    baseBind.hintList.setVisibility(View.INVISIBLE);
+                    hintViewModel.hideHints();
                     Intent intent = new Intent(mContext, SearchActivity.class);
                     intent.putExtra(Params.KEY_WORD, history.get(position).getKeyword());
                     intent.putExtra(Params.INDEX, 0);

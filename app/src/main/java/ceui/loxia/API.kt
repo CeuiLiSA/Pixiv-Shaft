@@ -1,5 +1,6 @@
 package ceui.loxia
 
+import ceui.lisa.model.ListTrendingtag
 import ceui.lisa.models.NullResponse
 import ceui.lisa.utils.Params
 import okhttp3.ResponseBody
@@ -269,4 +270,7 @@ interface API {
 
     @GET
     suspend fun generalGet(@Url url: String): ResponseBody
+
+    @GET("/v2/search/autocomplete?merge_plain_keyword_results=true")
+    suspend fun searchAutocomplete(@Query("word") word: String): ListTrendingtag
 }

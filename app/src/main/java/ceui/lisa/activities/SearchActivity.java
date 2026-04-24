@@ -27,8 +27,10 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewpager.widget.ViewPager;
 import ceui.lisa.R;
+import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentFilter;
@@ -44,6 +46,7 @@ import ceui.lisa.utils.SearchTypeUtil;
 import ceui.lisa.viewmodel.SearchModel;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.prime.PrimeIllustLoader;
+import ceui.pixiv.ui.search.SearchHintViewModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
@@ -55,12 +58,14 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private int mPosition = 0;
     private boolean isPremium = false;
     private final java.util.List<String> committedTags = new java.util.ArrayList<>();
+    private SearchHintViewModel hintViewModel;
 
     @Override
     protected void initBundle(Bundle bundle) {
         keyWord = bundle.getString(Params.KEY_WORD);
         index = bundle.getInt(Params.INDEX);
         searchModel = new ViewModelProvider(this).get(SearchModel.class);
+        hintViewModel = new ViewModelProvider(this).get(SearchHintViewModel.class);
         searchModel.getKeyword().setValue(keyWord);
         searchModel.getIsNovel().setValue(index == 1);
 
@@ -137,6 +142,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
             @Override
             public void onPageSelected(int position) {
+                hintViewModel.hideHints();
                 // 通知更改 过滤器-关键字匹配 类型
                 if (fragmentFilter != null) {
                     mPosition = position;
@@ -229,9 +235,18 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     } else {
                         commitTagFromInput(tag);
                     }
+                    hintViewModel.hideHints();
                     return;
                 }
                 pushKeywordFromChipsAndInput();
+
+                // Feed autocomplete for the current word being typed
+                String typed = current.trim();
+                if (!typed.isEmpty() && !Common.isNumeric(typed)) {
+                    hintViewModel.onTextChanged(typed);
+                } else {
+                    hintViewModel.clearHints();
+                }
             }
         });
         baseBind.searchTagsFlow.getEditor().setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -301,8 +316,46 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     Common.hideKeyboard(mActivity);
                 }
 
+                hintViewModel.hideHints();
                 return true;
             }
+        });
+
+        // ── Autocomplete hint list ──────────────────────────────────────
+        // Position hint list right below the toolbar (above tabs + content)
+        baseBind.toolbar.post(() -> {
+            androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams lp =
+                    (androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams) baseBind.hintList.getLayoutParams();
+            lp.topMargin = baseBind.toolbar.getBottom();
+            baseBind.hintList.setLayoutParams(lp);
+        });
+        baseBind.hintList.setLayoutManager(new LinearLayoutManager(mContext));
+        hintViewModel.getHints().observe(this, hints -> {
+            if (hints == null || hints.isEmpty()) return;
+            String keyword = hintViewModel.getCurrentKeyword().getValue();
+            SearchHintAdapter adapter = new SearchHintAdapter(hints, mContext, keyword != null ? keyword : "");
+            adapter.setOnItemClickListener((v, position, viewType) -> {
+                hintViewModel.hideHints();
+                String tag = hints.get(position).getTag();
+                if (!committedTags.contains(tag)) {
+                    committedTags.add(tag);
+                    refreshChipsUI();
+                }
+                baseBind.searchTagsFlow.getEditor().setText("");
+                pushKeywordFromChipsAndInput();
+                triggerSearchIfNotEmpty();
+                Common.hideKeyboard(mActivity);
+            });
+            adapter.setOnItemLongClickListener((v, position, viewType) -> {
+                hintViewModel.hideHints();
+                String tagName = hints.get(position).getTag();
+                baseBind.searchTagsFlow.getEditor().setText(tagName);
+                baseBind.searchTagsFlow.getEditor().setSelection(tagName.length());
+            });
+            baseBind.hintList.setAdapter(adapter);
+        });
+        hintViewModel.getHintsVisible().observe(this, visible -> {
+            animateHintList(visible != null && visible);
         });
 
         fragmentFilter = new FragmentFilter();
@@ -356,6 +409,33 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private void triggerSearchIfNotEmpty() {
         if (!committedTags.isEmpty()) {
             searchModel.getNowGo().setValue("search_now");
+        }
+    }
+
+    private void animateHintList(boolean show) {
+        if (show) {
+            if (baseBind.hintList.getVisibility() == View.VISIBLE) return;
+            baseBind.hintList.setAlpha(0f);
+            baseBind.hintList.setTranslationY(-24f);
+            baseBind.hintList.setVisibility(View.VISIBLE);
+            baseBind.hintList.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(220)
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                    .start();
+        } else {
+            if (baseBind.hintList.getVisibility() != View.VISIBLE) return;
+            baseBind.hintList.animate()
+                    .alpha(0f)
+                    .translationY(-16f)
+                    .setDuration(160)
+                    .setInterpolator(new android.view.animation.AccelerateInterpolator())
+                    .withEndAction(() -> {
+                        baseBind.hintList.setVisibility(View.GONE);
+                        baseBind.hintList.setTranslationY(0f);
+                    })
+                    .start();
         }
     }
 
