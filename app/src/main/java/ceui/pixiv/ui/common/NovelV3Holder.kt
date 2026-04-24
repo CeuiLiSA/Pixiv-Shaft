@@ -53,8 +53,14 @@ class NovelV3ViewHolder(private val b: CellNovelV3Binding) :
 
     override fun onBindViewHolder(holder: NovelV3Holder, position: Int) {
         super.onBindViewHolder(holder, position)
-        val novel = ObjectPool.get<Novel>(holder.novel.id).value ?: holder.novel
+        val liveNovel = ObjectPool.get<Novel>(holder.novel.id)
+        val novel = liveNovel.value ?: holder.novel
         bind(novel, holder)
+
+        // observe 收藏状态变化，收藏/取消后实时刷新按钮
+        liveNovel.observe(lifecycleOwner) { updated ->
+            if (updated != null) bindBookmark(updated, holder)
+        }
     }
 
     private fun bind(novel: Novel, holder: NovelV3Holder) {
@@ -210,6 +216,11 @@ class NovelV3ViewHolder(private val b: CellNovelV3Binding) :
         b.bookmarkBtn.setImageResource(
             if (bookmarked) R.drawable.icon_liked else R.drawable.icon_not_liked
         )
+        b.bookmarkBtn.imageTintList = if (bookmarked) {
+            null
+        } else {
+            android.content.res.ColorStateList.valueOf(context.getColor(R.color.v3_text_3))
+        }
         b.bookmarkBtn.setOnClick { sender ->
             sender.findActionReceiverOrNull<NovelActionReceiver>()
                 ?.onClickBookmarkNovel(sender as ProgressIndicator, holder.novel.id)
@@ -224,11 +235,9 @@ class NovelV3ViewHolder(private val b: CellNovelV3Binding) :
             if (holder.isSelected) {
                 b.selectIndicator.setImageResource(R.drawable.ic_check_circle_black_24dp)
                 b.selectIndicator.clearColorFilter()
-                b.selectIndicator.imageAlpha = 255
             } else {
                 b.selectIndicator.setImageResource(R.drawable.ic_checkbox_off)
-                b.selectIndicator.setColorFilter(0xFFFFFFFF.toInt())
-                b.selectIndicator.imageAlpha = 200
+                b.selectIndicator.setColorFilter(context.getColor(R.color.v3_text_3))
             }
         }
     }
