@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:background="@drawable/v3_glass_surface_xl">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:letterSpacing="0.12"
+            android:text="@string/novel_profile_title"
+            android:textAllCaps="true"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/info_chips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:flexWrap="wrap">
+
+            <TextView
+                android:id="@+id/chip_series_id"
+                style="@style/NovelInfoChip"
+                tools:text="系列ID  12345" />
+
+            <TextView
+                android:id="@+id/chip_author"
+                style="@style/NovelInfoChip"
+                tools:text="作者  Alice" />
+
+            <TextView
+                android:id="@+id/chip_author_id"
+                style="@style/NovelInfoChip"
+                tools:text="作者ID  67890" />
+
+            <TextView
+                android:id="@+id/chip_content_count"
+                style="@style/NovelInfoChip"
+                tools:text="章节数  12" />
+
+            <TextView
+                android:id="@+id/chip_char_count"
+                style="@style/NovelInfoChip"
+                tools:text="总字数  50000" />
+
+            <TextView
+                android:id="@+id/chip_series_link"
+                style="@style/NovelInfoChip"
+                tools:text="系列链接" />
+
+            <TextView
+                android:id="@+id/chip_user_link"
+                style="@style/NovelInfoChip"
+                tools:text="作者主页" />
+        </com.google.android.flexbox.FlexboxLayout>
+    </LinearLayout>
+</FrameLayout>

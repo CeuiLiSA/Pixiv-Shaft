@@ -1024,6 +1024,13 @@
     <string name="v3_label_profile_details">个人资料</string>
     <string name="v3_label_workspace">工作环境</string>
 
+    <!-- V3 novel card -->
+    <string name="v3_type_novel">小说</string>
+    <string name="v3_novel_word_count">%s字</string>
+    <string name="v3_novel_r18">R-18</string>
+    <string name="v3_novel_original">原创</string>
+    <string name="v3_label_caption">简介</string>
+
     <!-- Novel reader V3 -->
     <string name="reader_settings_title">阅读器设置</string>
     <string name="reader_section_typography">排版</string>

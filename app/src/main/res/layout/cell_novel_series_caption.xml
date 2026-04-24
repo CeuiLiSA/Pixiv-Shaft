@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp"
+    android:paddingBottom="18dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:letterSpacing="0.12"
+        android:text="@string/novel_desc_label"
+        android:textAllCaps="true"
+        android:textColor="@color/v3_text_3"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0.78"
+        android:background="?attr/selectableItemBackground"
+        android:lineSpacingMultiplier="1.65"
+        android:paddingHorizontal="8dp"
+        android:textColor="@color/v3_text_1"
+        android:textColorLink="@color/v3_blue"
+        android:textSize="14sp" />
+</LinearLayout>

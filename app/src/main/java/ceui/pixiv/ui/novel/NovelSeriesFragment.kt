@@ -27,6 +27,7 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.databinding.ItemBigReadButtonBinding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.V3Palette
@@ -58,7 +59,7 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
     // Two independent bottom views — we swap between them based on
     // isMultiSelect. Kept as fields so the observer can just flip
     // visibility instead of re-inflating on every emission.
-    private var singleDownloadBtn: TextView? = null
+    private var singleDownloadBtn: View? = null
     private var multiSelectBar: View? = null
     private var multiSelectDownloadBtn: TextView? = null
     private var multiSelectSelectAllBtn: TextView? = null
@@ -97,7 +98,6 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
                 top = bars.top + (56 * density).toInt(),
                 bottom = bars.bottom + (72 * density).toInt()
             )
-            binding.bottomCovered.updatePadding(bottom = bars.bottom)
             topToggleBtn?.let { tb ->
                 val lp = tb.layoutParams as ConstraintLayout.LayoutParams
                 lp.topMargin = bars.top + (8 * density).toInt()
@@ -125,27 +125,16 @@ class NovelSeriesFragment : PixivFragment(R.layout.fragment_pixiv_list), NovelMu
     }
 
     private fun addDownloadAllButton() {
-        val density = resources.displayMetrics.density
         val palette = V3Palette.from(requireContext())
-        val btn = TextView(requireContext()).apply {
-            text = getString(R.string.series_download_action)
-            setTextColor(Color.WHITE)
-            textSize = 15f
-            gravity = Gravity.CENTER
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-            background = palette.pillPrimary(28 * density)
-            elevation = 4 * density
-            val h = (48 * density).toInt()
-            val mx = (20 * density).toInt()
-            val my = (12 * density).toInt()
-            layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, h,
-            ).apply { setMargins(mx, my, mx, my) }
-            setOnClick { showDownloadOptionsSheet() }
-        }
+        val bottomView = ItemBigReadButtonBinding.inflate(layoutInflater)
+        bottomView.btnRead.text = getString(R.string.series_download_action)
+        bottomView.btnRead.background = palette.pillPrimary(
+            28f * resources.displayMetrics.density
+        )
+        bottomView.btnRead.setOnClick { showDownloadOptionsSheet() }
         binding.bottomCovered.isVisible = true
-        binding.bottomCovered.addView(btn)
-        singleDownloadBtn = btn
+        binding.bottomCovered.addView(bottomView.root)
+        singleDownloadBtn = bottomView.root
     }
 
     private fun showDownloadOptionsSheet() {

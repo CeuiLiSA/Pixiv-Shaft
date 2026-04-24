@@ -16,7 +16,7 @@ import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.HoldersViewModel
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.LoadingHolder
-import ceui.pixiv.ui.common.NovelCardHolder
+import ceui.pixiv.ui.common.NovelV3Holder
 import ceui.pixiv.ui.common.V3SectionLabelHolder
 import ceui.pixiv.ui.common.createResponseStore
 import ceui.pixiv.ui.detail.ArtworksMap
@@ -71,10 +71,10 @@ class NovelSeriesViewModel(
         val selected = _selectedIds.value.orEmpty()
         val currentList = _itemHolders.value ?: return
         _itemHolders.value = currentList.map { holder ->
-            if (holder is NovelCardHolder) {
+            if (holder is NovelV3Holder) {
                 val sel = holder.novel.id in selected
                 if (holder.isMultiSelectMode != multiSelect || holder.isSelected != sel) {
-                    NovelCardHolder(holder.novel, true).also {
+                    NovelV3Holder(holder.novel).also {
                         it.isMultiSelectMode = multiSelect
                         it.isSelected = sel
                     }
@@ -88,20 +88,20 @@ class NovelSeriesViewModel(
     }
 
     fun allNovelIds(): List<Long> = _itemHolders.value.orEmpty()
-        .filterIsInstance<NovelCardHolder>()
+        .filterIsInstance<NovelV3Holder>()
         .map { it.novel.id }
 
     /** 当前已加载到列表里的全部章节（按出现顺序）。「合并下载」用来预填充，之后
      *  任务本身还会继续翻页补齐。 */
     fun allLoadedNovels(): List<Novel> = _itemHolders.value.orEmpty()
-        .filterIsInstance<NovelCardHolder>()
+        .filterIsInstance<NovelV3Holder>()
         .map { it.novel }
 
     fun selectedNovels(): List<Novel> {
         val selected = _selectedIds.value.orEmpty()
         if (selected.isEmpty()) return emptyList()
         return _itemHolders.value.orEmpty()
-            .filterIsInstance<NovelCardHolder>()
+            .filterIsInstance<NovelV3Holder>()
             .filter { it.novel.id in selected }
             .map { it.novel }
     }
@@ -109,7 +109,7 @@ class NovelSeriesViewModel(
     private val _seriesNovelsDataSource = object : DataSource<Novel, NovelSeriesResp>(
         dataFetcher = { Client.appApi.getNovelSeries(seriesId, _lastOrder) },
         responseStore = createResponseStore({ "novel-series-$seriesId" }),
-        itemMapper = { novel -> listOf(NovelCardHolder(novel, true)) }
+        itemMapper = { novel -> listOf(NovelV3Holder(novel)) }
     ) {
         override fun updateHolders(holders: List<ListItemHolder>) {
             // 从现有列表中剔除 LoadingHolder
@@ -138,25 +138,25 @@ class NovelSeriesViewModel(
         val resp = Client.appApi.getNovelSeries(seriesId)
         _series.value = resp
         val result = mutableListOf<ListItemHolder>()
-        resp.novel_series_detail?.let {
-            it.user?.let { user ->
-                ObjectPool.update(user)
-            }
-            result.add(NovelSeriesHeaderHolder(it))
-        }
-        result.add(
-            ArtworkV3Holder(
-                ObjectPool.get<User>(
-                    resp.novel_series_detail?.user?.id ?: 0L
-                ) as LiveData<User?>
+        resp.novel_series_detail?.let { detail ->
+            detail.user?.let { user -> ObjectPool.update(user) }
+            result.add(NovelSeriesHeroHolder(detail))
+            result.add(
+                ArtworkV3Holder(
+                    ObjectPool.get<User>(detail.user?.id ?: 0L) as LiveData<User?>
+                )
             )
-        )
+            result.add(NovelSeriesProfileHolder(detail))
+            if (!detail.caption.isNullOrBlank()) {
+                result.add(NovelSeriesCaptionHolder(detail))
+            }
+        }
         result.add(
             V3SectionLabelHolder(
                 context.getString(R.string.novel_series_section_works)
             )
         )
-        result.addAll(resp.displayList.map { novel -> NovelCardHolder(novel, true) })
+        result.addAll(resp.displayList.map { novel -> NovelV3Holder(novel) })
         _lastOrder = resp.novels?.size
         _itemHolders.value = result
         val hasNext = resp.next_url != null
@@ -175,7 +175,7 @@ class NovelSeriesViewModel(
 
     override fun prepareIdMap(fragmentUniqueId: String) {
         val filteredList = _itemHolders.value.orEmpty()
-            .filterIsInstance<NovelCardHolder>()
+            .filterIsInstance<NovelV3Holder>()
             .map { it.novel.id }
 
         ArtworksMap.store[fragmentUniqueId] = filteredList

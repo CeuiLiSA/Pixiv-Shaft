@@ -20,7 +20,7 @@ import ceui.pixiv.ui.common.LoadMoreOwner
 import ceui.pixiv.ui.common.LoadingHolder
 import ceui.pixiv.ui.common.RefreshOwner
 import ceui.pixiv.ui.common.createResponseStore
-import ceui.pixiv.ui.novel.NovelSeriesHeaderHolder
+import ceui.pixiv.ui.novel.NovelSeriesHeroHolder
 import ceui.pixiv.ui.user.UserPostHolder
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -67,7 +67,7 @@ class IllustSeriesViewModel(
         _series.value = resp
         val result = mutableListOf<ListItemHolder>()
         resp.illust_series_detail?.let {
-            result.add(NovelSeriesHeaderHolder(it))
+            result.add(NovelSeriesHeroHolder(it))
         }
         result.add(RedSectionHeaderHolder(context.getString(R.string.string_432)))
         result.add(UserInfoHolder(resp.illust_series_detail?.user?.id ?: 0L))

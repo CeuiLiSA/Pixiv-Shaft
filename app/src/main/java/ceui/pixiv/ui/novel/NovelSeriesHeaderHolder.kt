@@ -6,7 +6,9 @@ import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
-import ceui.lisa.databinding.CellNovelSeriesHeaderBinding
+import ceui.lisa.databinding.CellNovelSeriesCaptionBinding
+import ceui.lisa.databinding.CellNovelSeriesHeroBinding
+import ceui.lisa.databinding.CellNovelSeriesProfileBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.ShareIllust
 import ceui.loxia.NovelSeriesDetail
@@ -15,22 +17,28 @@ import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.pixiv.utils.setOnClick
 import java.text.NumberFormat
 
-class NovelSeriesHeaderHolder(val series: NovelSeriesDetail) : ListItemHolder() {
-    override fun getItemId(): Long {
-        return series.id
-    }
+// ── 1. Hero: title + bookmark + meta ────────────────────────────────
+
+class NovelSeriesHeroHolder(val series: NovelSeriesDetail) : ListItemHolder() {
+    override fun getItemId(): Long = series.id
 }
 
-@ItemHolder(NovelSeriesHeaderHolder::class)
-class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemViewHolder<CellNovelSeriesHeaderBinding, NovelSeriesHeaderHolder>(bd) {
+@ItemHolder(NovelSeriesHeroHolder::class)
+class NovelSeriesHeroViewHolder(bd: CellNovelSeriesHeroBinding) :
+    ListItemViewHolder<CellNovelSeriesHeroBinding, NovelSeriesHeroHolder>(bd) {
 
-    override fun onBindViewHolder(holder: NovelSeriesHeaderHolder, position: Int) {
+    override fun onBindViewHolder(holder: NovelSeriesHeroHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        binding.series = holder.series
         val series = holder.series
         val fmt = NumberFormat.getInstance()
 
-        // Bookmark tint: icon_not_liked is white — invisible on light bg
+        binding.title.text = series.title ?: ""
+        binding.title.setOnClick { Common.copy(it.context, series.title) }
+
+        // Bookmark
+        binding.bookmark.setImageResource(
+            if (series.watchlist_added == true) R.drawable.icon_liked else R.drawable.icon_not_liked
+        )
         binding.bookmark.imageTintList = if (series.watchlist_added == true) {
             null
         } else {
@@ -38,7 +46,8 @@ class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemVi
         }
 
         // Meta line
-        binding.metaContentCount.text = context.getString(R.string.novel_meta_chapter_count, series.content_count)
+        binding.metaContentCount.text =
+            context.getString(R.string.novel_meta_chapter_count, series.content_count)
         if (series.total_character_count > 0) {
             binding.metaCharCount.text = context.getString(
                 R.string.novel_meta_word_count,
@@ -50,13 +59,27 @@ class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemVi
             binding.metaCharCount.isVisible = false
             binding.metaDot2.isVisible = false
         }
+    }
+}
 
-        // Caption
-        val rawCaption = series.caption.orEmpty()
+// ── 2. Caption ──────────────────────────────────────────────────────
+
+class NovelSeriesCaptionHolder(val series: NovelSeriesDetail) : ListItemHolder() {
+    override fun getItemId(): Long = series.id + 1_000_000
+}
+
+@ItemHolder(NovelSeriesCaptionHolder::class)
+class NovelSeriesCaptionViewHolder(bd: CellNovelSeriesCaptionBinding) :
+    ListItemViewHolder<CellNovelSeriesCaptionBinding, NovelSeriesCaptionHolder>(bd) {
+
+    override fun onBindViewHolder(holder: NovelSeriesCaptionHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
+        val rawCaption = holder.series.caption.orEmpty()
         if (rawCaption.isNotEmpty()) {
             binding.caption.isVisible = true
             val normalized = rawCaption.replace("\r\n", "\n").replace("\n", "<br/>")
-            binding.caption.text = HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
+            binding.caption.text =
+                HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
             binding.caption.setOnClick {
                 val plain = HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
                     .toString().trim()
@@ -65,21 +88,34 @@ class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemVi
         } else {
             binding.caption.isVisible = false
         }
+    }
+}
 
-        binding.title.setOnClick {
-            Common.copy(it.context, series.title)
-        }
+// ── 3. Profile chips ────────────────────────────────────────────────
 
-        bindInfoChips(series)
+class NovelSeriesProfileHolder(val series: NovelSeriesDetail) : ListItemHolder() {
+    override fun getItemId(): Long = series.id + 2_000_000
+}
+
+@ItemHolder(NovelSeriesProfileHolder::class)
+class NovelSeriesProfileViewHolder(bd: CellNovelSeriesProfileBinding) :
+    ListItemViewHolder<CellNovelSeriesProfileBinding, NovelSeriesProfileHolder>(bd) {
+
+    override fun onBindViewHolder(holder: NovelSeriesProfileHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
+        bindInfoChips(holder.series)
     }
 
     private fun bindInfoChips(series: NovelSeriesDetail) {
-        chip(binding.chipSeriesId, R.string.novel_chip_series_id, series.id.toString(), series.id.toString())
+        chip(binding.chipSeriesId, R.string.novel_chip_series_id,
+            series.id.toString(), series.id.toString())
         series.user?.let { user ->
             val name = user.name.orEmpty()
             chip(binding.chipAuthor, R.string.novel_chip_author, name, name)
-            chip(binding.chipAuthorId, R.string.novel_chip_author_id, user.id.toString(), user.id.toString())
-            linkChip(binding.chipUserLink, R.string.novel_chip_user_link, ShareIllust.USER_URL_Head + user.id)
+            chip(binding.chipAuthorId, R.string.novel_chip_author_id,
+                user.id.toString(), user.id.toString())
+            linkChip(binding.chipUserLink, R.string.novel_chip_user_link,
+                ShareIllust.USER_URL_Head + user.id)
         } ?: run {
             binding.chipAuthor.isVisible = false
             binding.chipAuthorId.isVisible = false
@@ -102,19 +138,16 @@ class NovelSeriesHeaderViewHolder(bd: CellNovelSeriesHeaderBinding) : ListItemVi
     }
 
     private fun chip(view: TextView, labelRes: Int, displayValue: String, copyValue: String) {
-        val ctx = view.context
-        view.text = ctx.getString(labelRes, displayValue)
+        view.text = context.getString(labelRes, displayValue)
         view.isVisible = true
-        view.setOnClick { Common.copy(ctx, copyValue) }
+        view.setOnClick { Common.copy(context, copyValue) }
     }
 
     private fun linkChip(view: TextView, labelRes: Int, url: String) {
-        val ctx = view.context
-        view.text = ctx.getString(labelRes)
+        view.text = context.getString(labelRes)
         view.isVisible = true
-        view.setOnClick { Common.copy(ctx, url) }
+        view.setOnClick { Common.copy(context, url) }
     }
 }
 
-interface NovelSeriesHeaderActionReceiver {
-}
+interface NovelSeriesHeaderActionReceiver
