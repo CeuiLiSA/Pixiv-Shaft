@@ -368,7 +368,7 @@ public class Common {
                     return FileCreator.isExist(illust, 0);
                 }
             } else {
-                IntStream pageIndexStream = IntStream.range(0, illust.getPage_count() - 1);
+                IntStream pageIndexStream = IntStream.range(0, illust.getPage_count());
                 if (Shaft.sSettings.getDownloadWay() == 1) {
                     return pageIndexStream
                             .allMatch(index -> SAFile.isFileExists(Shaft.getContext(), illust, index));

@@ -103,9 +103,17 @@ class ArtworkV3ViewModel(
     private var downloadTasks: List<DownloadTask> = emptyList()
     private var downloadFabInitialized = false
     private val fabRefreshTick = MutableLiveData(0)
+
+    // Result of the SAF / download-DB check. null = not computed yet.
+    // The check touches ContentResolver (SAF) and SQLite LIKE scans, so it
+    // must never run on the main thread — stale user data can make it take
+    // seconds and trigger ANR.
+    private var legacyDownloadedCache: Boolean? = null
+    private var legacyCheckInFlight = false
+
     private val _downloadFabState = MediatorLiveData<DownloadFab>().apply {
         value = DownloadFab.Idle
-        addSource(fabRefreshTick) { value = computeDownloadFab() }
+        addSource(fabRefreshTick) { recomputeFab() }
     }
     val downloadFabState: LiveData<DownloadFab> = _downloadFabState
 
@@ -116,6 +124,7 @@ class ArtworkV3ViewModel(
     /** Re-evaluate state; call after paths outside our observation (legacy
      * IllustDownload → Manager DB) may have changed. */
     fun refreshDownloadFab() {
+        legacyDownloadedCache = null
         fabRefreshTick.value = (fabRefreshTick.value ?: 0) + 1
     }
 
@@ -123,20 +132,18 @@ class ArtworkV3ViewModel(
         if (downloadFabInitialized) return
         val urls = buildDownloadNamedUrls(illust)
         if (urls.isEmpty()) {
-            _downloadFabState.value = computeDownloadFab()
+            recomputeFab()
             return
         }
         downloadFabInitialized = true
         downloadTasks = urls.map { TaskPool.getDownloadTask(it) }
         downloadTasks.forEach { task ->
-            _downloadFabState.addSource(task.status) {
-                _downloadFabState.value = computeDownloadFab()
-            }
+            _downloadFabState.addSource(task.status) { recomputeFab() }
         }
-        _downloadFabState.value = computeDownloadFab()
+        recomputeFab()
     }
 
-    private fun computeDownloadFab(): DownloadFab {
+    private fun recomputeFab() {
         val tasks = downloadTasks
         if (tasks.any { it.status.value is TaskStatus.Executing }) {
             val avg = tasks.sumOf { t ->
@@ -146,17 +153,44 @@ class ArtworkV3ViewModel(
                     else -> 0
                 }
             } / tasks.size
-            return DownloadFab.Downloading(avg.coerceIn(0, 100))
+            _downloadFabState.value = DownloadFab.Downloading(avg.coerceIn(0, 100))
+            return
         }
         if (tasks.isNotEmpty() && tasks.all { it.status.value is TaskStatus.Finished }) {
-            return DownloadFab.Done
+            _downloadFabState.value = DownloadFab.Done
+            return
         }
-        val bean = illustBean ?: return DownloadFab.Idle
-        val dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
-        if (Common.isIllustDownloaded(bean) || dao.hasDownloadRecordByIllustId(bean.id.toLong())) {
-            return DownloadFab.Done
+        val cached = legacyDownloadedCache
+        if (cached != null) {
+            _downloadFabState.value = if (cached) DownloadFab.Done else DownloadFab.Idle
+            return
         }
-        return DownloadFab.Idle
+        // Don't downgrade an existing Done while the async check is running.
+        if (_downloadFabState.value !is DownloadFab.Done) {
+            _downloadFabState.value = DownloadFab.Idle
+        }
+        triggerLegacyDownloadedCheck()
+    }
+
+    private fun triggerLegacyDownloadedCheck() {
+        if (legacyCheckInFlight) return
+        val bean = illustBean ?: return
+        legacyCheckInFlight = true
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                try {
+                    val dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
+                    Common.isIllustDownloaded(bean) ||
+                            dao.hasDownloadRecordByIllustId(bean.id.toLong())
+                } catch (e: Exception) {
+                    Timber.e(e, "legacy downloaded check failed")
+                    false
+                }
+            }
+            legacyDownloadedCache = result
+            legacyCheckInFlight = false
+            recomputeFab()
+        }
     }
 
     private fun buildDownloadNamedUrls(illust: IllustsBean): List<NamedUrl> {
