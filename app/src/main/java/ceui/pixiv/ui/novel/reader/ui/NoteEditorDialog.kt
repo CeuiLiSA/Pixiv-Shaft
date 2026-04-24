@@ -13,29 +13,20 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 
-/**
- * Simple multi-line note editor. Configured with an optional existing note and
- * returns the new text via callback. Uses AppCompat AlertDialog so it styles
- * consistently with the rest of the app.
- */
+interface NoteEditorCallback {
+    fun onNoteSaved(annotationId: Long, charStart: Int, charEnd: Int, excerpt: String, noteText: String, color: Int)
+    fun onNoteDeleted(annotationId: Long)
+}
+
 class NoteEditorDialog : DialogFragment() {
 
-    private var existingNote: String = ""
-    private var excerpt: String = ""
-    private var onSave: ((String) -> Unit)? = null
-    private var onDelete: (() -> Unit)? = null
-
-    fun configure(
-        existingNote: String = "",
-        excerpt: String = "",
-        onDelete: (() -> Unit)? = null,
-        onSave: (String) -> Unit,
-    ) {
-        this.existingNote = existingNote
-        this.excerpt = excerpt
-        this.onDelete = onDelete
-        this.onSave = onSave
-    }
+    private val existingNote: String by lazy { requireArguments().getString(ARG_EXISTING_NOTE, "") }
+    private val excerpt: String by lazy { requireArguments().getString(ARG_EXCERPT, "") }
+    private val annotationId: Long by lazy { requireArguments().getLong(ARG_ANNOTATION_ID, 0L) }
+    private val charStart: Int by lazy { requireArguments().getInt(ARG_CHAR_START, 0) }
+    private val charEnd: Int by lazy { requireArguments().getInt(ARG_CHAR_END, 0) }
+    private val highlightColor: Int by lazy { requireArguments().getInt(ARG_COLOR, 0) }
+    private val showDelete: Boolean by lazy { requireArguments().getBoolean(ARG_SHOW_DELETE, false) }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val ctx = requireContext()
@@ -48,7 +39,7 @@ class NoteEditorDialog : DialogFragment() {
 
         if (excerpt.isNotEmpty()) {
             val excerptView = TextView(ctx).apply {
-                text = "「${excerpt.take(200)}」"
+                text = "\u300C${excerpt.take(200)}\u300D"
                 setTextColor(ContextCompat.getColor(ctx, ceui.lisa.R.color.v3_text_3))
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                 gravity = Gravity.START
@@ -69,21 +60,52 @@ class NoteEditorDialog : DialogFragment() {
         }
         container.addView(edit, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
+        val callback = parentFragment as? NoteEditorCallback
+
         val builder = AlertDialog.Builder(ctx)
             .setTitle(if (existingNote.isEmpty()) getString(ceui.lisa.R.string.note_add_title) else getString(ceui.lisa.R.string.note_edit_title))
             .setView(container)
             .setPositiveButton(ceui.lisa.R.string.action_save) { _, _ ->
-                onSave?.invoke(edit.text.toString().trim())
+                callback?.onNoteSaved(annotationId, charStart, charEnd, excerpt, edit.text.toString().trim(), highlightColor)
             }
             .setNegativeButton(ceui.lisa.R.string.action_cancel, null)
 
-        if (onDelete != null && existingNote.isNotEmpty()) {
-            builder.setNeutralButton(ceui.lisa.R.string.action_delete) { _, _ -> onDelete?.invoke() }
+        if (showDelete) {
+            builder.setNeutralButton(ceui.lisa.R.string.action_delete) { _, _ ->
+                callback?.onNoteDeleted(annotationId)
+            }
         }
         return builder.create()
     }
 
     companion object {
         const val TAG = "NoteEditorDialog"
+        private const val ARG_EXISTING_NOTE = "existing_note"
+        private const val ARG_EXCERPT = "excerpt"
+        private const val ARG_ANNOTATION_ID = "annotation_id"
+        private const val ARG_CHAR_START = "char_start"
+        private const val ARG_CHAR_END = "char_end"
+        private const val ARG_COLOR = "color"
+        private const val ARG_SHOW_DELETE = "show_delete"
+
+        fun newInstance(
+            annotationId: Long = 0L,
+            charStart: Int = 0,
+            charEnd: Int = 0,
+            excerpt: String = "",
+            existingNote: String = "",
+            color: Int = 0,
+            showDelete: Boolean = false,
+        ) = NoteEditorDialog().apply {
+            arguments = Bundle().apply {
+                putLong(ARG_ANNOTATION_ID, annotationId)
+                putInt(ARG_CHAR_START, charStart)
+                putInt(ARG_CHAR_END, charEnd)
+                putString(ARG_EXCERPT, excerpt)
+                putString(ARG_EXISTING_NOTE, existingNote)
+                putInt(ARG_COLOR, color)
+                putBoolean(ARG_SHOW_DELETE, showDelete)
+            }
+        }
     }
 }

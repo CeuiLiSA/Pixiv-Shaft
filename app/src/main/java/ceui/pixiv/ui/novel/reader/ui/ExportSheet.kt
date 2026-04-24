@@ -12,13 +12,11 @@ import ceui.lisa.databinding.SheetReaderExportBinding
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
+interface ExportFormatCallback {
+    fun onExportFormatChosen(format: ExportFormat)
+}
+
 class ExportSheet : BottomSheetDialogFragment() {
-
-    private var onFormatChosen: ((ExportFormat) -> Unit)? = null
-
-    fun configure(onFormatChosen: (ExportFormat) -> Unit) {
-        this.onFormatChosen = onFormatChosen
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,8 +31,8 @@ class ExportSheet : BottomSheetDialogFragment() {
             Triple(ExportFormat.Pdf, getString(R.string.export_pdf_desc), "\uD83D\uDCC4"),
         )
         binding.list.layoutManager = LinearLayoutManager(requireContext())
-        binding.list.adapter = Adapter(rows) {
-            onFormatChosen?.invoke(it)
+        binding.list.adapter = Adapter(rows) { format ->
+            (parentFragment as? ExportFormatCallback)?.onExportFormatChosen(format)
             dismissAllowingStateLoss()
         }
         return binding.root

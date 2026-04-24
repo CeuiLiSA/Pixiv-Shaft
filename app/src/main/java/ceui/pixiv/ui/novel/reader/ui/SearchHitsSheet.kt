@@ -8,46 +8,53 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemReaderSearchHitRowBinding
 import ceui.lisa.databinding.SheetReaderSearchHitsBinding
+import ceui.pixiv.ui.novel.reader.NovelReaderV3ViewModel
 import ceui.pixiv.ui.novel.reader.model.SearchHit
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
+interface SearchHitSheetCallback {
+    fun onSearchHitSelected(hit: SearchHit, index: Int)
+}
+
 class SearchHitsSheet : BottomSheetDialogFragment() {
 
-    private var hits: List<SearchHit> = emptyList()
-    private var query: String = ""
-    private var currentIndex: Int = -1
-    private var onJumpTo: ((SearchHit, Int) -> Unit)? = null
+    private var _binding: SheetReaderSearchHitsBinding? = null
+    private val binding get() = _binding!!
+
+    private val query: String by lazy {
+        requireArguments().getString(ARG_QUERY, "")
+    }
+
+    private val readerViewModel: NovelReaderV3ViewModel by lazy {
+        ViewModelProvider(requireParentFragment())[NovelReaderV3ViewModel::class.java]
+    }
 
     private var listView: RecyclerView? = null
-
-    fun configure(
-        hits: List<SearchHit>,
-        query: String,
-        currentIndex: Int,
-        onJumpTo: (SearchHit, Int) -> Unit,
-    ) {
-        this.hits = hits
-        this.query = query
-        this.currentIndex = currentIndex
-        this.onJumpTo = onJumpTo
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val binding = SheetReaderSearchHitsBinding.inflate(inflater, container, false)
+        _binding = SheetReaderSearchHitsBinding.inflate(inflater, container, false)
         binding.title.text = getString(R.string.search_hits_title)
+
+        val result = readerViewModel.searchResult.value ?: NovelReaderV3ViewModel.SearchResult.EMPTY
+        val hits = result.hits
+        val currentIndex = result.currentIndex
+
         binding.count.text = getString(R.string.search_hits_count, hits.size)
         val surfaceSubtle = ContextCompat.getColor(requireContext(), R.color.v3_surface_1)
         binding.list.layoutManager = LinearLayoutManager(requireContext())
-        binding.list.adapter = Adapter(hits, query, currentIndex, surfaceSubtle, onJumpTo) { dismissAllowingStateLoss() }
+        binding.list.adapter = Adapter(hits, query, currentIndex, surfaceSubtle, parentFragment as? SearchHitSheetCallback) {
+            dismissAllowingStateLoss()
+        }
         listView = binding.list
         return binding.root
     }
@@ -55,6 +62,9 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
     override fun onStart() {
         super.onStart()
         ReaderSheetUi.applyExpandedHeight(this)
+        val result = readerViewModel.searchResult.value
+        val currentIndex = result?.currentIndex ?: -1
+        val hits = result?.hits.orEmpty()
         if (currentIndex in hits.indices) {
             listView?.post {
                 val lm = listView?.layoutManager as? LinearLayoutManager ?: return@post
@@ -63,12 +73,18 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+        listView = null
+    }
+
     private class Adapter(
         private val hits: List<SearchHit>,
         private val query: String,
         private val currentIndex: Int,
         private val surfaceSubtle: Int,
-        private val onJumpTo: ((SearchHit, Int) -> Unit)?,
+        private val callback: SearchHitSheetCallback?,
         private val dismiss: () -> Unit,
     ) : RecyclerView.Adapter<Adapter.VH>() {
 
@@ -118,7 +134,7 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
             }
 
             holder.itemView.setOnClickListener {
-                onJumpTo?.invoke(hit, position)
+                callback?.onSearchHitSelected(hit, position)
                 dismiss()
             }
         }
@@ -128,6 +144,13 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "SearchHitsSheet"
+        private const val ARG_QUERY = "query"
         private const val COLOR_HIT_HIGHLIGHT = 0xAAFF9800.toInt()
+
+        fun newInstance(query: String) = SearchHitsSheet().apply {
+            arguments = Bundle().apply {
+                putString(ARG_QUERY, query)
+            }
+        }
     }
 }

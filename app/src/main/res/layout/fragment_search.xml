@@ -34,7 +34,7 @@
                 <EditText
                     android:id="@+id/input_box"
                     android:layout_width="match_parent"
-                    android:layout_height="86dp"
+                    android:layout_height="36dp"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginTop="@dimen/twelve_dp"
                     android:layout_marginEnd="@dimen/twelve_dp"

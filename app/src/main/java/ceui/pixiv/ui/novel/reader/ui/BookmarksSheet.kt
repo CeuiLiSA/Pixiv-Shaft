@@ -6,28 +6,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.database.NovelBookmarkEntity
 import ceui.lisa.databinding.ItemReaderBookmarkRowBinding
 import ceui.lisa.databinding.SheetReaderBookmarksBinding
+import ceui.pixiv.ui.novel.reader.NovelReaderV3ViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+
+interface BookmarkSheetCallback {
+    fun onJumpToBookmark(entry: NovelBookmarkEntity)
+    fun onDeleteBookmark(entry: NovelBookmarkEntity)
+}
 
 class BookmarksSheet : BottomSheetDialogFragment() {
 
-    private var entries: List<NovelBookmarkEntity> = emptyList()
-    private var onJumpTo: ((NovelBookmarkEntity) -> Unit)? = null
-    private var onDelete: ((NovelBookmarkEntity) -> Unit)? = null
+    private var _binding: SheetReaderBookmarksBinding? = null
+    private val binding get() = _binding!!
 
-    fun configure(
-        entries: List<NovelBookmarkEntity>,
-        onJumpTo: (NovelBookmarkEntity) -> Unit,
-        onDelete: (NovelBookmarkEntity) -> Unit,
-    ) {
-        this.entries = entries
-        this.onJumpTo = onJumpTo
-        this.onDelete = onDelete
+    private val readerViewModel: NovelReaderV3ViewModel by lazy {
+        ViewModelProvider(requireParentFragment())[NovelReaderV3ViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -35,16 +35,24 @@ class BookmarksSheet : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val binding = SheetReaderBookmarksBinding.inflate(inflater, container, false)
+        _binding = SheetReaderBookmarksBinding.inflate(inflater, container, false)
         binding.title.text = getString(R.string.bookmarks_title)
-        binding.count.text = getString(R.string.bookmarks_count, entries.size)
-        if (entries.isEmpty()) {
-            binding.empty.text = getString(R.string.bookmarks_empty)
-            binding.empty.isVisible = true
-            binding.list.isVisible = false
-        } else {
-            binding.list.layoutManager = LinearLayoutManager(requireContext())
-            binding.list.adapter = Adapter(entries, onJumpTo, onDelete) { dismissAllowingStateLoss() }
+        binding.list.layoutManager = LinearLayoutManager(requireContext())
+
+        readerViewModel.bookmarks.observe(viewLifecycleOwner) { entries ->
+            val list = entries.orEmpty()
+            binding.count.text = getString(R.string.bookmarks_count, list.size)
+            if (list.isEmpty()) {
+                binding.empty.text = getString(R.string.bookmarks_empty)
+                binding.empty.isVisible = true
+                binding.list.isVisible = false
+            } else {
+                binding.empty.isVisible = false
+                binding.list.isVisible = true
+                binding.list.adapter = Adapter(list, parentFragment as? BookmarkSheetCallback) {
+                    dismissAllowingStateLoss()
+                }
+            }
         }
         return binding.root
     }
@@ -54,10 +62,14 @@ class BookmarksSheet : BottomSheetDialogFragment() {
         ReaderSheetUi.applyTransparentBackground(this)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private class Adapter(
         private val entries: List<NovelBookmarkEntity>,
-        private val onJumpTo: ((NovelBookmarkEntity) -> Unit)?,
-        private val onDelete: ((NovelBookmarkEntity) -> Unit)?,
+        private val callback: BookmarkSheetCallback?,
         private val dismiss: () -> Unit,
     ) : RecyclerView.Adapter<Adapter.VH>() {
 
@@ -78,13 +90,13 @@ class BookmarksSheet : BottomSheetDialogFragment() {
             }
             holder.binding.footer.text = "${ctx.getString(R.string.bookmarks_page_format, entry.pageIndex + 1)} \u00b7 ${DateFormat.format("yyyy-MM-dd HH:mm", entry.createdTime)}"
             holder.itemView.setOnClickListener {
-                onJumpTo?.invoke(entry)
+                callback?.onJumpToBookmark(entry)
                 dismiss()
             }
             holder.itemView.setOnLongClickListener {
                 androidx.appcompat.app.AlertDialog.Builder(ctx)
                     .setTitle(R.string.bookmarks_delete_confirm)
-                    .setPositiveButton(R.string.action_delete) { _, _ -> onDelete?.invoke(entry) }
+                    .setPositiveButton(R.string.action_delete) { _, _ -> callback?.onDeleteBookmark(entry) }
                     .setNegativeButton(R.string.action_cancel, null)
                     .show()
                 true

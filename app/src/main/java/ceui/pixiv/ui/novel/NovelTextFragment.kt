@@ -34,6 +34,7 @@ import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
+import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.utils.setOnClick
 import com.hjq.toast.ToastUtils
@@ -44,7 +45,7 @@ import java.util.UUID
 
 
 class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSystemWindowFragment,
-    NovelSeriesActionReceiver, NovelActionsReceiver {
+    NovelSeriesActionReceiver, NovelActionsReceiver, ExportFormatCallback {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val novelId: Long by lazy { arguments?.getLong(Params.NOVEL_ID, 0L) ?: 0L }
@@ -158,9 +159,11 @@ class NovelTextFragment : PixivFragment(R.layout.fragment_pixiv_list), FitsSyste
      * 2. 未命中就现拉 novel 接口 + novel_text + tokenize 一次
      */
     private fun showExportSheet() {
-        ExportSheet().apply {
-            configure { format -> executeExport(format) }
-        }.show(childFragmentManager, ExportSheet.TAG)
+        ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+    }
+
+    override fun onExportFormatChosen(format: ExportFormat) {
+        executeExport(format)
     }
 
     private fun executeExport(format: ExportFormat) {

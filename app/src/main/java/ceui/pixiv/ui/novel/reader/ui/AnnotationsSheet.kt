@@ -6,31 +6,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.database.NovelAnnotationEntity
 import ceui.lisa.databinding.ItemReaderAnnotationRowBinding
 import ceui.lisa.databinding.SheetReaderAnnotationsBinding
+import ceui.pixiv.ui.novel.reader.NovelReaderV3ViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+
+interface AnnotationSheetCallback {
+    fun onJumpToAnnotation(entry: NovelAnnotationEntity)
+    fun onEditAnnotation(entry: NovelAnnotationEntity)
+    fun onDeleteAnnotation(entry: NovelAnnotationEntity)
+}
 
 class AnnotationsSheet : BottomSheetDialogFragment() {
 
-    private var entries: List<NovelAnnotationEntity> = emptyList()
-    private var onJumpTo: ((NovelAnnotationEntity) -> Unit)? = null
-    private var onEdit: ((NovelAnnotationEntity) -> Unit)? = null
-    private var onDelete: ((NovelAnnotationEntity) -> Unit)? = null
+    private var _binding: SheetReaderAnnotationsBinding? = null
+    private val binding get() = _binding!!
 
-    fun configure(
-        entries: List<NovelAnnotationEntity>,
-        onJumpTo: (NovelAnnotationEntity) -> Unit,
-        onEdit: (NovelAnnotationEntity) -> Unit,
-        onDelete: (NovelAnnotationEntity) -> Unit,
-    ) {
-        this.entries = entries
-        this.onJumpTo = onJumpTo
-        this.onEdit = onEdit
-        this.onDelete = onDelete
+    private val readerViewModel: NovelReaderV3ViewModel by lazy {
+        ViewModelProvider(requireParentFragment())[NovelReaderV3ViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -38,16 +36,24 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val binding = SheetReaderAnnotationsBinding.inflate(inflater, container, false)
+        _binding = SheetReaderAnnotationsBinding.inflate(inflater, container, false)
         binding.title.text = getString(R.string.annotations_title)
-        binding.count.text = getString(R.string.annotations_count, entries.size)
-        if (entries.isEmpty()) {
-            binding.empty.text = getString(R.string.annotations_empty)
-            binding.empty.isVisible = true
-            binding.list.isVisible = false
-        } else {
-            binding.list.layoutManager = LinearLayoutManager(requireContext())
-            binding.list.adapter = Adapter(entries, onJumpTo, onEdit, onDelete) { dismissAllowingStateLoss() }
+        binding.list.layoutManager = LinearLayoutManager(requireContext())
+
+        readerViewModel.annotations.observe(viewLifecycleOwner) { entries ->
+            val list = entries.orEmpty()
+            binding.count.text = getString(R.string.annotations_count, list.size)
+            if (list.isEmpty()) {
+                binding.empty.text = getString(R.string.annotations_empty)
+                binding.empty.isVisible = true
+                binding.list.isVisible = false
+            } else {
+                binding.empty.isVisible = false
+                binding.list.isVisible = true
+                binding.list.adapter = Adapter(list, parentFragment as? AnnotationSheetCallback) {
+                    dismissAllowingStateLoss()
+                }
+            }
         }
         return binding.root
     }
@@ -57,11 +63,14 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
         ReaderSheetUi.applyTransparentBackground(this)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private class Adapter(
         private val entries: List<NovelAnnotationEntity>,
-        private val onJumpTo: ((NovelAnnotationEntity) -> Unit)?,
-        private val onEdit: ((NovelAnnotationEntity) -> Unit)?,
-        private val onDelete: ((NovelAnnotationEntity) -> Unit)?,
+        private val callback: AnnotationSheetCallback?,
         private val dismiss: () -> Unit,
     ) : RecyclerView.Adapter<Adapter.VH>() {
 
@@ -87,7 +96,7 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
             }
             holder.binding.footer.text = DateFormat.format("yyyy-MM-dd HH:mm", entry.updatedTime).toString()
             holder.itemView.setOnClickListener {
-                onJumpTo?.invoke(entry)
+                callback?.onJumpToAnnotation(entry)
                 dismiss()
             }
             holder.itemView.setOnLongClickListener {
@@ -99,8 +108,8 @@ class AnnotationsSheet : BottomSheetDialogFragment() {
                     .setTitle(entry.excerpt.take(24))
                     .setItems(options) { _, which ->
                         when (which) {
-                            0 -> onEdit?.invoke(entry)
-                            1 -> onDelete?.invoke(entry)
+                            0 -> callback?.onEditAnnotation(entry)
+                            1 -> callback?.onDeleteAnnotation(entry)
                         }
                     }
                     .show()

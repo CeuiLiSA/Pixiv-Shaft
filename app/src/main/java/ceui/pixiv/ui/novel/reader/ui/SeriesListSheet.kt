@@ -8,7 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
@@ -22,26 +26,79 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-class SeriesListSheet : BottomSheetDialogFragment() {
+/**
+ * 回调接口 — 父 Fragment 实现此接口以接收系列列表中的选中事件。
+ */
+interface SeriesNavCallback {
+    fun onSeriesNovelSelected(novel: Novel)
+}
 
-    private var seriesId: Long = 0L
-    private var currentNovelId: Long = 0L
-    private var seriesTitle: String? = null
-    private var onSelected: ((Novel) -> Unit)? = null
+class SeriesListViewModel(
+    private val seriesId: Long,
+) : ViewModel() {
+
+    sealed class State {
+        object Idle : State()
+        object Loading : State()
+        data class Loaded(val novels: List<Novel>) : State()
+        data class Error(val message: String) : State()
+    }
+
+    private val _state = MutableLiveData<State>(State.Idle)
+    val state: LiveData<State> = _state
+
+    fun load() {
+        if (_state.value !is State.Idle) return
+        _state.value = State.Loading
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val all = mutableListOf<Novel>()
+                    var lastOrder: Int? = null
+                    for (i in 0 until MAX_PAGES) {
+                        val resp = Client.appApi.getNovelSeries(seriesId, lastOrder)
+                        resp.novels?.let { all.addAll(it) }
+                        if (resp.next_url == null) break
+                        lastOrder = all.size
+                    }
+                    all
+                }
+            }
+            result.fold(
+                onSuccess = { novels ->
+                    _state.value = State.Loaded(novels)
+                },
+                onFailure = { ex ->
+                    Timber.e(ex, "SeriesListViewModel load failed series=$seriesId")
+                    _state.value = State.Error(ex.message ?: ex.javaClass.simpleName)
+                },
+            )
+        }
+    }
+
+    companion object {
+        private const val MAX_PAGES = 5
+
+        fun factory(seriesId: Long): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return SeriesListViewModel(seriesId) as T
+            }
+        }
+    }
+}
+
+class SeriesListSheet : BottomSheetDialogFragment() {
 
     private var _binding: SheetReaderSeriesBinding? = null
     private val binding get() = _binding!!
 
-    fun configure(
-        seriesId: Long,
-        currentNovelId: Long,
-        seriesTitle: String? = null,
-        onSelected: (Novel) -> Unit,
-    ) {
-        this.seriesId = seriesId
-        this.currentNovelId = currentNovelId
-        this.seriesTitle = seriesTitle
-        this.onSelected = onSelected
+    private val seriesId: Long by lazy { requireArguments().getLong(ARG_SERIES_ID) }
+    private val currentNovelId: Long by lazy { requireArguments().getLong(ARG_CURRENT_NOVEL_ID) }
+    private val seriesTitle: String? by lazy { requireArguments().getString(ARG_SERIES_TITLE) }
+
+    private val viewModel: SeriesListViewModel by lazy {
+        ViewModelProvider(this, SeriesListViewModel.factory(seriesId))[SeriesListViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -56,7 +113,29 @@ class SeriesListSheet : BottomSheetDialogFragment() {
         if (seriesId == 0L) {
             showEmpty(getString(R.string.series_sheet_empty))
         } else {
-            loadSeries()
+            viewModel.load()
+        }
+
+        viewModel.state.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is SeriesListViewModel.State.Idle,
+                is SeriesListViewModel.State.Loading -> {
+                    binding.loading.isVisible = true
+                    binding.empty.isVisible = false
+                    binding.list.isVisible = false
+                    binding.count.isVisible = false
+                }
+                is SeriesListViewModel.State.Loaded -> {
+                    if (state.novels.isEmpty()) {
+                        showEmpty(getString(R.string.series_sheet_empty))
+                    } else {
+                        showList(state.novels)
+                    }
+                }
+                is SeriesListViewModel.State.Error -> {
+                    showEmpty(getString(R.string.series_sheet_load_failed, state.message))
+                }
+            }
         }
         return binding.root
     }
@@ -89,7 +168,7 @@ class SeriesListSheet : BottomSheetDialogFragment() {
         binding.list.isVisible = true
         binding.list.layoutManager = LinearLayoutManager(requireContext())
         binding.list.adapter = SeriesAdapter(novels, currentIndex, accent) { novel ->
-            onSelected?.invoke(novel)
+            (parentFragment as? SeriesNavCallback)?.onSeriesNovelSelected(novel)
             dismissAllowingStateLoss()
         }
         if (currentIndex >= 0) {
@@ -97,38 +176,6 @@ class SeriesListSheet : BottomSheetDialogFragment() {
                 (binding.list.layoutManager as? LinearLayoutManager)
                     ?.scrollToPositionWithOffset(currentIndex, 0)
             }
-        }
-    }
-
-    private fun loadSeries() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    val all = mutableListOf<Novel>()
-                    var lastOrder: Int? = null
-                    for (i in 0 until MAX_PAGES) {
-                        val resp = Client.appApi.getNovelSeries(seriesId, lastOrder)
-                        resp.novels?.let { all.addAll(it) }
-                        if (resp.next_url == null) break
-                        lastOrder = all.size
-                    }
-                    all
-                }
-            }
-            if (!isAdded) return@launch
-            result.fold(
-                onSuccess = { novels ->
-                    if (novels.isEmpty()) {
-                        showEmpty(getString(R.string.series_sheet_empty))
-                    } else {
-                        showList(novels)
-                    }
-                },
-                onFailure = { ex ->
-                    Timber.e(ex, "SeriesListSheet load failed series=$seriesId")
-                    showEmpty(getString(R.string.series_sheet_load_failed, ex.message ?: ex.javaClass.simpleName))
-                },
-            )
         }
     }
 
@@ -164,7 +211,6 @@ class SeriesListSheet : BottomSheetDialogFragment() {
             holder.binding.index.setTextColor(if (isCurrent) accent else textSecondary)
             holder.binding.currentBadge.isVisible = isCurrent
             if (isCurrent) {
-                val density = ctx.resources.displayMetrics.density
                 holder.binding.currentBadge.background = GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
                     cornerRadius = 999f
@@ -181,6 +227,20 @@ class SeriesListSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "SeriesListSheet"
-        private const val MAX_PAGES = 5
+        private const val ARG_SERIES_ID = "series_id"
+        private const val ARG_CURRENT_NOVEL_ID = "current_novel_id"
+        private const val ARG_SERIES_TITLE = "series_title"
+
+        fun newInstance(
+            seriesId: Long,
+            currentNovelId: Long,
+            seriesTitle: String? = null,
+        ) = SeriesListSheet().apply {
+            arguments = Bundle().apply {
+                putLong(ARG_SERIES_ID, seriesId)
+                putLong(ARG_CURRENT_NOVEL_ID, currentNovelId)
+                putString(ARG_SERIES_TITLE, seriesTitle)
+            }
+        }
     }
 }

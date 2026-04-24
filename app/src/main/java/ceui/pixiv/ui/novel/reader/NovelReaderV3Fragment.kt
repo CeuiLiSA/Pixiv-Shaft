@@ -22,6 +22,7 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.database.NovelAnnotationEntity
+import ceui.lisa.database.NovelBookmarkEntity
 import ceui.lisa.databinding.FragmentNovelReaderV3Binding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.NovelBean
@@ -41,7 +42,6 @@ import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.model.HighlightColor
 import ceui.pixiv.ui.novel.reader.model.HighlightSpan
 import ceui.pixiv.ui.novel.reader.model.SearchHit
-import ceui.pixiv.ui.novel.reader.ui.SearchHitsSheet
 import ceui.pixiv.ui.novel.reader.model.TextSelection
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.render.GlideImageBitmapSource
@@ -54,21 +54,32 @@ import ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView
 import ceui.pixiv.ui.novel.reader.render.PageOverlays
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
+import ceui.pixiv.ui.novel.reader.ui.AnnotationSheetCallback
 import ceui.pixiv.ui.novel.reader.ui.AnnotationsSheet
+import ceui.pixiv.ui.novel.reader.ui.BookmarkSheetCallback
 import ceui.pixiv.ui.novel.reader.ui.BookmarksSheet
+import ceui.pixiv.ui.novel.reader.paginate.ChapterOutlineEntry
 import ceui.pixiv.ui.novel.reader.ui.ChapterListSheet
+import ceui.pixiv.ui.novel.reader.ui.ChapterSheetCallback
+import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
+import ceui.pixiv.ui.novel.reader.ui.NoteEditorCallback
 import ceui.pixiv.ui.novel.reader.ui.NoteEditorDialog
 import ceui.pixiv.ui.novel.reader.ui.ReaderBottomBar
 import ceui.pixiv.ui.novel.reader.ui.ReaderChrome
 import ceui.pixiv.ui.novel.reader.ui.ReaderSearchOverlay
 import ceui.pixiv.ui.novel.reader.ui.ReaderSettingsPanel
 import ceui.pixiv.ui.novel.reader.ui.ReaderTopBar
+import ceui.pixiv.ui.novel.reader.ui.SearchHitSheetCallback
+import ceui.pixiv.ui.novel.reader.ui.SearchHitsSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesListSheet
+import ceui.pixiv.ui.novel.reader.ui.SeriesNavCallback
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
+class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
+    SeriesNavCallback, ExportFormatCallback, BookmarkSheetCallback, AnnotationSheetCallback,
+    ChapterSheetCallback, SearchHitSheetCallback, NoteEditorCallback {
 
     private val binding by viewBinding(FragmentNovelReaderV3Binding::bind)
     private val viewModel: NovelReaderV3ViewModel by viewModels {
@@ -551,9 +562,11 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
     }
 
     private fun showExportSheet() {
-        ExportSheet().apply {
-            configure { format -> executeExport(format) }
-        }.show(childFragmentManager, ExportSheet.TAG)
+        ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+    }
+
+    override fun onExportFormatChosen(format: ExportFormat) {
+        executeExport(format)
     }
 
     private fun executeExport(format: ExportFormat) {
@@ -582,44 +595,65 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
 
     private fun openNoteEditorForSelection() {
         val sel = activeSelection ?: return
-        NoteEditorDialog().apply {
-            configure(existingNote = "", excerpt = sel.text) { noteText ->
-                if (noteText.isNotEmpty()) {
-                    viewModel.saveNote(0L, sel.absoluteStart, sel.absoluteEnd, sel.text, noteText, HighlightColor.Yellow.argb)
-                    Toast.makeText(requireContext(), getString(R.string.msg_note_saved), Toast.LENGTH_SHORT).show()
-                }
-                clearSelection()
-            }
-        }.show(childFragmentManager, NoteEditorDialog.TAG)
+        NoteEditorDialog.newInstance(
+            annotationId = 0L,
+            charStart = sel.absoluteStart,
+            charEnd = sel.absoluteEnd,
+            excerpt = sel.text,
+            color = HighlightColor.Yellow.argb,
+        ).show(childFragmentManager, NoteEditorDialog.TAG)
     }
 
     private fun editAnnotation(entry: NovelAnnotationEntity) {
-        NoteEditorDialog().apply {
-            configure(existingNote = entry.note, excerpt = entry.excerpt, onDelete = { viewModel.deleteAnnotation(entry.annotationId) }) { updatedNote ->
-                viewModel.saveNote(entry.annotationId, entry.charStart, entry.charEnd, entry.excerpt, updatedNote, entry.color)
-            }
-        }.show(childFragmentManager, NoteEditorDialog.TAG)
+        NoteEditorDialog.newInstance(
+            annotationId = entry.annotationId,
+            charStart = entry.charStart,
+            charEnd = entry.charEnd,
+            excerpt = entry.excerpt,
+            existingNote = entry.note,
+            color = entry.color,
+            showDelete = entry.note.isNotEmpty(),
+        ).show(childFragmentManager, NoteEditorDialog.TAG)
+    }
+
+    override fun onNoteSaved(annotationId: Long, charStart: Int, charEnd: Int, excerpt: String, noteText: String, color: Int) {
+        if (noteText.isNotEmpty()) {
+            viewModel.saveNote(annotationId, charStart, charEnd, excerpt, noteText, color)
+            Toast.makeText(requireContext(), getString(R.string.msg_note_saved), Toast.LENGTH_SHORT).show()
+        }
+        if (annotationId == 0L) clearSelection()
+    }
+
+    override fun onNoteDeleted(annotationId: Long) {
+        viewModel.deleteAnnotation(annotationId)
     }
 
     private fun showAnnotationsSheet() {
-        AnnotationsSheet().apply {
-            configure(
-                entries = viewModel.annotations.value.orEmpty(),
-                onJumpTo = { entry -> navigateToCharIndex(entry.charStart) },
-                onEdit = { editAnnotation(it) },
-                onDelete = { viewModel.deleteAnnotation(it.annotationId) },
-            )
-        }.show(childFragmentManager, AnnotationsSheet.TAG)
+        AnnotationsSheet().show(childFragmentManager, AnnotationsSheet.TAG)
+    }
+
+    override fun onJumpToAnnotation(entry: NovelAnnotationEntity) {
+        navigateToCharIndex(entry.charStart)
+    }
+
+    override fun onEditAnnotation(entry: NovelAnnotationEntity) {
+        editAnnotation(entry)
+    }
+
+    override fun onDeleteAnnotation(entry: NovelAnnotationEntity) {
+        viewModel.deleteAnnotation(entry.annotationId)
     }
 
     private fun showBookmarksSheet() {
-        BookmarksSheet().apply {
-            configure(
-                entries = viewModel.bookmarks.value.orEmpty(),
-                onJumpTo = { entry -> navigateToCharIndex(entry.charIndex) },
-                onDelete = { viewModel.deleteBookmark(it.bookmarkId) },
-            )
-        }.show(childFragmentManager, BookmarksSheet.TAG)
+        BookmarksSheet().show(childFragmentManager, BookmarksSheet.TAG)
+    }
+
+    override fun onJumpToBookmark(entry: NovelBookmarkEntity) {
+        navigateToCharIndex(entry.charIndex)
+    }
+
+    override fun onDeleteBookmark(entry: NovelBookmarkEntity) {
+        viewModel.deleteBookmark(entry.bookmarkId)
     }
 
     // ---- Search -------------------------------------------------------------
@@ -654,12 +688,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         val result = viewModel.searchResult.value ?: return
         if (result.hits.isEmpty()) return
         val query = binding.readerSearchOverlay.editSearchQuery.text?.toString().orEmpty()
-        SearchHitsSheet().apply {
-            configure(result.hits, query, result.currentIndex) { hit, index ->
-                viewModel.setSearchIndex(index)
-                goToHitDirect(hit)
-            }
-        }.show(childFragmentManager, SearchHitsSheet.TAG)
+        SearchHitsSheet.newInstance(query).show(childFragmentManager, SearchHitsSheet.TAG)
+    }
+
+    override fun onSearchHitSelected(hit: SearchHit, index: Int) {
+        viewModel.setSearchIndex(index)
+        goToHitDirect(hit)
     }
 
     /** Unified jump: works in both paged and scroll mode. */
@@ -686,9 +720,11 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         val currentStart = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.currentCharIndex()
             ?: viewModel.pagination.value?.pages?.getOrNull(readerView?.currentPageIndex() ?: 0)?.charStart
             ?: 0
-        ChapterListSheet().apply {
-            configure(outline, currentStart) { entry -> navigateToCharIndex(entry.sourceStart) }
-        }.show(childFragmentManager, ChapterListSheet.TAG)
+        ChapterListSheet.newInstance(currentStart).show(childFragmentManager, ChapterListSheet.TAG)
+    }
+
+    override fun onChapterSelected(entry: ChapterOutlineEntry) {
+        navigateToCharIndex(entry.sourceStart)
     }
 
     /**
@@ -701,20 +737,20 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3) {
         val novelId = resolveNovelId()
         val novel = ObjectPool.get<Novel>(novelId).value ?: return
         val sid = novel.series?.id ?: return
-        SeriesListSheet().apply {
-            configure(
-                seriesId = sid,
-                currentNovelId = novelId,
-                seriesTitle = novel.series?.title,
-            ) { picked ->
-                val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
-                    putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说正文")
-                    putExtra(Params.NOVEL_ID, picked.id)
-                }
-                startActivity(intent)
-                activity?.finish()
-            }
-        }.show(childFragmentManager, SeriesListSheet.TAG)
+        SeriesListSheet.newInstance(
+            seriesId = sid,
+            currentNovelId = novelId,
+            seriesTitle = novel.series?.title,
+        ).show(childFragmentManager, SeriesListSheet.TAG)
+    }
+
+    override fun onSeriesNovelSelected(novel: Novel) {
+        val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+            putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+            putExtra(Params.NOVEL_ID, novel.id)
+        }
+        startActivity(intent)
+        activity?.finish()
     }
 
     private fun jumpChapter(forward: Boolean) {

@@ -7,48 +7,52 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemReaderChapterRowBinding
 import ceui.lisa.databinding.SheetReaderChaptersBinding
+import ceui.pixiv.ui.novel.reader.NovelReaderV3ViewModel
 import ceui.pixiv.ui.novel.reader.paginate.ChapterOutlineEntry
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
+interface ChapterSheetCallback {
+    fun onChapterSelected(entry: ChapterOutlineEntry)
+}
+
 class ChapterListSheet : BottomSheetDialogFragment() {
 
-    private var chapters: List<ChapterOutlineEntry> = emptyList()
-    private var currentSourceStart: Int = 0
-    private var onSelected: ((ChapterOutlineEntry) -> Unit)? = null
+    private var _binding: SheetReaderChaptersBinding? = null
+    private val binding get() = _binding!!
+
+    private val currentSourceStart: Int by lazy {
+        requireArguments().getInt(ARG_CURRENT_SOURCE_START)
+    }
+
+    private val readerViewModel: NovelReaderV3ViewModel by lazy {
+        ViewModelProvider(requireParentFragment())[NovelReaderV3ViewModel::class.java]
+    }
 
     private var listView: RecyclerView? = null
     private var currentIndex: Int = -1
-
-    fun configure(
-        chapters: List<ChapterOutlineEntry>,
-        currentSourceStart: Int,
-        onSelected: (ChapterOutlineEntry) -> Unit,
-    ) {
-        this.chapters = chapters
-        this.currentSourceStart = currentSourceStart
-        this.onSelected = onSelected
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val binding = SheetReaderChaptersBinding.inflate(inflater, container, false)
+        _binding = SheetReaderChaptersBinding.inflate(inflater, container, false)
+        val chapters = readerViewModel.getChapterOutline()
         binding.title.text = getString(R.string.chapters_title)
         binding.count.text = getString(R.string.chapters_count, chapters.size)
-        currentIndex = resolveCurrentIndex()
+        currentIndex = resolveCurrentIndex(chapters)
         val accent = ceui.lisa.utils.Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
         binding.list.layoutManager = LinearLayoutManager(requireContext())
         binding.list.adapter = ChapterAdapter(chapters, currentIndex, accent) { entry ->
-            onSelected?.invoke(entry)
+            (parentFragment as? ChapterSheetCallback)?.onChapterSelected(entry)
             dismissAllowingStateLoss()
         }
         listView = binding.list
@@ -64,7 +68,13 @@ class ChapterListSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun resolveCurrentIndex(): Int {
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+        listView = null
+    }
+
+    private fun resolveCurrentIndex(chapters: List<ChapterOutlineEntry>): Int {
         if (chapters.isEmpty()) return -1
         for (i in chapters.indices) {
             val here = chapters[i]
@@ -111,6 +121,13 @@ class ChapterListSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "ChapterListSheet"
+        private const val ARG_CURRENT_SOURCE_START = "current_source_start"
+
+        fun newInstance(currentSourceStart: Int) = ChapterListSheet().apply {
+            arguments = Bundle().apply {
+                putInt(ARG_CURRENT_SOURCE_START, currentSourceStart)
+            }
+        }
     }
 }
 
