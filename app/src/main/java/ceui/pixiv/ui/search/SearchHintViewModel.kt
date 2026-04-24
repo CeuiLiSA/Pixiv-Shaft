@@ -63,6 +63,6 @@ class SearchHintViewModel : ViewModel() {
     }
 
     companion object {
-        private const val DEBOUNCE_MS = 800L
+        private const val DEBOUNCE_MS = 400L
     }
 }
