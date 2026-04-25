@@ -1,10 +1,12 @@
 package ceui.pixiv.ui.works
 
 import ceui.loxia.Novel
+import ceui.pixiv.download.DownloadsRegistry
 
 
 fun buildPixivWorksFileName(illustId: Long, index: Int = 0): String {
-    return "pixiv_works_${illustId}_p${index}.png"
+    val pageOffset = if (DownloadsRegistry.store.loadOrFallback().pageIndexFrom1) 1 else 0
+    return "pixiv_works_${illustId}_p${index + pageOffset}.png"
 }
 
 fun buildPixivNovelFileName(novel: Novel): String {

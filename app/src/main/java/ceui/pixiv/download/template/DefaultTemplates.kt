@@ -21,7 +21,7 @@ object DefaultTemplates {
     // `R18DivideSave` / `AIDivideSave` 设置时才生效；默认这两个设置都关着，
     // 所有作品（含 R18/AI）都塞在 `ShaftImages/` 里。若用户想按 R18/AI 拆分，
     // 可去预设里选「R18/AI 强制分桶」。
-    const val ILLUST  = "ShaftImages/{title}_{id}[?p>1:_p{page1}].{ext}"
+    const val ILLUST  = "ShaftImages/{title}_{id}[?p>1:_p{page}].{ext}"
     const val UGOIRA  = "ShaftImages/{title}_{id}.gif"
     // 旧版 buildPixivNovelFileName 写到 Downloads/ShaftNovels/{title}_ID{id}.txt
     // 旧版会把 title 截到 24 字符；新模板暂不做截断——超长标题会有一次性重复

@@ -959,6 +959,28 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/page_index_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left_and_center"
+                                android:text="@string/setting_page_index" />
+
+                            <TextView
+                                android:id="@+id/page_index"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp" />
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/save_for_separate_author_rela"
                             style="@style/ripple_rela">
 

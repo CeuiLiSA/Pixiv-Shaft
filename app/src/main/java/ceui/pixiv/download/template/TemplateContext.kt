@@ -15,16 +15,16 @@ import java.util.concurrent.ConcurrentHashMap
 class TemplateContext(
     val meta: ItemMeta,
     val ext: String,
+    private val pageIndexFrom1: Boolean = true,
     private val zoneId: ZoneId = ZoneId.systemDefault(),
 ) {
 
     fun resolveVariable(name: String, format: String?): String {
+        val pageOffset = if (pageIndexFrom1) 1 else 0
         val raw = when (name) {
             "id" -> meta.id.toString()
             "title" -> meta.title
-            "page" -> (meta.page ?: 0).toString()
-            // 1-based page index — matches legacy 4.5.7 之前的 `_p{N+1}` 风格。
-            "page1" -> ((meta.page ?: 0) + 1).toString()
+            "page" -> ((meta.page ?: 0) + pageOffset).toString()
             "pages" -> meta.totalPages.toString()
             "ext" -> ext
             "author" -> meta.author.name

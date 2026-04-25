@@ -58,7 +58,8 @@ class TemplateTest {
 
     @Test fun `page greater than condition`() {
         val t = Template.compile("{title}[?p>1: p{page}].{ext}")
-        assertEquals("Hello World p2.png", t.render(META, "png").joinTo())
+        // META.page = 2, pageIndexFrom1 = true (default) → 2 + 1 = 3
+        assertEquals("Hello World p3.png", t.render(META, "png").joinTo())
         val single = META.copy(totalPages = 1)
         assertEquals("Hello World.png", t.render(single, "png").joinTo())
     }

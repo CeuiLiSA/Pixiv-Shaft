@@ -874,7 +874,8 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                                     selected
                                             ),
                                             cfg.getPerBucket(),
-                                            cfg.getWifiOnly()
+                                            cfg.getWifiOnly(),
+                                            cfg.getPageIndexFrom1()
                                     )
                             );
                             baseBind.overwritePolicy.setText(POLICY_NAMES[which]);
@@ -918,6 +919,37 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                                 mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
                             }
+                        })
+                        .show();
+            });
+
+            // 多图页码起始（pageIndexFrom1）
+            final String[] PAGE_INDEX_NAMES = new String[]{
+                    getString(R.string.setting_page_index_from_0),
+                    getString(R.string.setting_page_index_from_1)
+            };
+            {
+                boolean from1 = DownloadsRegistry.getStore().loadOrFallback().getPageIndexFrom1();
+                baseBind.pageIndex.setText(PAGE_INDEX_NAMES[from1 ? 1 : 0]);
+            }
+            baseBind.pageIndexRela.setOnClickListener(v -> {
+                boolean from1 = DownloadsRegistry.getStore().loadOrFallback().getPageIndexFrom1();
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(from1 ? 1 : 0)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(PAGE_INDEX_NAMES, (dialog, which) -> {
+                            boolean selected = which == 1;
+                            DownloadsRegistry.getStore().update(cfg ->
+                                    cfg.copy(
+                                            cfg.getVersion(),
+                                            cfg.getDefaults(),
+                                            cfg.getPerBucket(),
+                                            cfg.getWifiOnly(),
+                                            selected
+                                    )
+                            );
+                            baseBind.pageIndex.setText(PAGE_INDEX_NAMES[which]);
+                            dialog.dismiss();
                         })
                         .show();
             });

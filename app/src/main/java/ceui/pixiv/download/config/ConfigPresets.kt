@@ -63,7 +63,7 @@ object ConfigPresets {
     fun flat(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
             defaults = BucketDefaults(
-                template = "Shaft/{title} {id}[?p>1: p{page1}].{ext}",
+                template = "Shaft/{title} {id}[?p>1: p{page}].{ext}",
                 storage  = imagesStorage,
             ),
             perBucket = mapOf(
@@ -77,7 +77,7 @@ object ConfigPresets {
     fun byDate(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
             defaults = BucketDefaults(
-                template = "Shaft/{created:yyyy}/{created:yyyy-MM}/{title} {id}[?p>1: p{page1}].{ext}",
+                template = "Shaft/{created:yyyy}/{created:yyyy-MM}/{title} {id}[?p>1: p{page}].{ext}",
                 storage  = imagesStorage,
             ),
             perBucket = mapOf(
@@ -97,7 +97,7 @@ object ConfigPresets {
     fun byAuthor(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
             defaults = BucketDefaults(
-                template = "Shaft/{author} ({author_id})/{title} {id}[?p>1: p{page1}].{ext}",
+                template = "Shaft/{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}",
                 storage  = imagesStorage,
             ),
             perBucket = mapOf(
@@ -118,7 +118,7 @@ object ConfigPresets {
     fun byAuthorAndDate(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
             defaults = BucketDefaults(
-                template = "Shaft/{author} ({author_id})/{created:yyyy-MM}/{title} {id}[?p>1: p{page1}].{ext}",
+                template = "Shaft/{author} ({author_id})/{created:yyyy-MM}/{title} {id}[?p>1: p{page}].{ext}",
                 storage  = imagesStorage,
             ),
             perBucket = mapOf(
@@ -139,7 +139,7 @@ object ConfigPresets {
     fun minimal(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
             defaults = BucketDefaults(
-                template = "Shaft/{id}[?p>1:_p{page1}].{ext}",
+                template = "Shaft/{id}[?p>1:_p{page}].{ext}",
                 storage  = imagesStorage,
             ),
             perBucket = mapOf(
@@ -154,7 +154,7 @@ object ConfigPresets {
     fun rFilter(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
             defaults = BucketDefaults(
-                template = "Shaft/[?R18:R18][?!R18:SFW]/[?AI:AI/][?!AI:Human/]{author} ({author_id})/{title} {id}[?p>1: p{page1}].{ext}",
+                template = "Shaft/[?R18:R18][?!R18:SFW]/[?AI:AI/][?!AI:Human/]{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}",
                 storage  = imagesStorage,
             ),
             perBucket = mapOf(

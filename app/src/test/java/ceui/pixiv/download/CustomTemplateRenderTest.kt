@@ -70,10 +70,10 @@ class CustomTemplateRenderTest {
         assertEquals(listOf("Shaft", "Alice", "12345_夜の物語.png"), plan.path.segments)
     }
 
-    /** 多页插画：page1（1-based）应该正确替换。 */
-    @Test fun `page1 variable substitutes 1 based page index`() {
+    /** 多页插画：page 受 pageIndexFrom1 控制，默认 1-based。 */
+    @Test fun `page variable substitutes with correct offset`() {
         val multi = illustItem.copy(meta = meta.copy(page = 4))
-        val facade = Downloads(cfg("{author}/{id}_p{page1}.{ext}"), { NoopBackend() })
+        val facade = Downloads(cfg("{author}/{id}_p{page}.{ext}"), { NoopBackend() })
         val plan = facade.plan(multi)
         assertEquals(listOf("Alice", "12345_p5.png"), plan.path.segments)
     }

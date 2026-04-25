@@ -22,6 +22,8 @@ data class DownloadConfig(
     val defaults: BucketDefaults,
     val perBucket: Map<Bucket, BucketConfig> = emptyMap(),
     val wifiOnly: Boolean = false,
+    /** true = page numbering starts at 1 (p1, p2, …); false = starts at 0 (p0, p1, …). */
+    val pageIndexFrom1: Boolean = true,
 ) {
 
     fun resolve(bucket: Bucket): ResolvedBucket {
