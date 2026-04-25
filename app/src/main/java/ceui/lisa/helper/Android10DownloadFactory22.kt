@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.download.DownloadFileFactory
+import ceui.lisa.file.LegacyFile
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.config.DownloadItems
 
@@ -19,29 +20,41 @@ import ceui.pixiv.download.config.DownloadItems
  *     to resume; null tells it to proceed with insert.
  *   - [insert] is the single allocation point — any skip/replace/rename
  *     decision was baked into [plan] at construction time by the facade.
+ *
+ * GIF (ugoira) downloads bypass the facade and write the zip directly to
+ * [LegacyFile.gifZipFile] so that [PixivOperate.unzipAndPlay] finds it at
+ * the expected path.
  */
 class Android10DownloadFactory22(
     private val context: Context,
     private val item: DownloadItem,
 ) : DownloadFileFactory {
 
-    private val newItem = if (item.illust.isGif) {
-        DownloadItems.ugoiraZip(item.illust)
+    private val isGif = item.illust.isGif
+
+    private val plan = if (isGif) {
+        null
     } else {
-        DownloadItems.illustPage(item.illust, item.index)
+        val newItem = DownloadItems.illustPage(item.illust, item.index)
+        DownloadsRegistry.downloads.plan(newItem)
     }
 
-    private val plan = DownloadsRegistry.downloads.plan(newItem)
     private var _uri: Uri? = null
 
     override fun query(): Uri? = _uri
 
     override fun insert(): Uri {
         _uri?.let { return it }
-        check(!plan.skip) {
-            "Facade plan is marked skip for ${plan.path} — Manager must not call insert()"
+        if (isGif) {
+            val zipFile = LegacyFile.gifZipFile(context, item.illust)
+            _uri = Uri.fromFile(zipFile)
+            return _uri!!
         }
-        val handle = plan.open()
+        val p = plan!!
+        check(!p.skip) {
+            "Facade plan is marked skip for ${p.path} — Manager must not call insert()"
+        }
+        val handle = p.open()
         // Manager reopens via contentResolver.openOutputStream later — close our
         // own stream so we do not hold the FD open while the actual write happens.
         try { handle.stream.close() } catch (_: Exception) {}
@@ -52,5 +65,5 @@ class Android10DownloadFactory22(
     override fun getFileUri(): Uri = _uri ?: insert()
 
     /** Exposed so callers who want to short-circuit can check skip state. */
-    fun isSkip(): Boolean = plan.skip
+    fun isSkip(): Boolean = plan?.skip ?: false
 }

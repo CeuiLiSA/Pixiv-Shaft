@@ -316,6 +316,10 @@ public class Manager {
         if (shouldSkip) {
             Common.showLog("[DL] skip download (already exists), illust=" + downloadItem.getIllust().getId());
             complete(downloadItem, true);
+            // Post to main handler instead of calling loop() directly — matches
+            // the doFinally path (RxJava posts via observeOn). A direct call would
+            // create synchronous recursion when many items are skipped in a row.
+            AndroidSchedulers.mainThread().scheduleDirect(this::loop);
             return;
         }
 
