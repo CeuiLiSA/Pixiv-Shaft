@@ -58,7 +58,16 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
             }
 
             int primaryColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
-            if (hideStatusBar()) {
+            if (isHarmonyOS()) {
+                // HarmonyOS 对 EdgeToEdge API 兼容性不佳，回退到直接设置状态栏/导航栏颜色
+                if (hideStatusBar()) {
+                    getWindow().setStatusBarColor(Color.TRANSPARENT);
+                    getWindow().setNavigationBarColor(Color.TRANSPARENT);
+                } else {
+                    getWindow().setStatusBarColor(primaryColor);
+                    getWindow().setNavigationBarColor(Color.TRANSPARENT);
+                }
+            } else if (hideStatusBar()) {
                 EdgeToEdge.enable(this);
             } else {
                 EdgeToEdge.enable(this,
@@ -162,6 +171,21 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
 
     public void setFeedBack(FeedBack feedBack) {
         mFeedBack = feedBack;
+    }
+
+    private static Boolean sIsHarmonyOS;
+
+    private static boolean isHarmonyOS() {
+        if (sIsHarmonyOS == null) {
+            try {
+                Class<?> cls = Class.forName("com.huawei.system.BuildEx");
+                String osBrand = (String) cls.getMethod("getOsBrand").invoke(null);
+                sIsHarmonyOS = "Harmony".equalsIgnoreCase(osBrand) || "HarmonyOS".equalsIgnoreCase(osBrand);
+            } catch (Exception e) {
+                sIsHarmonyOS = false;
+            }
+        }
+        return sIsHarmonyOS;
     }
 
     private void updateTheme() {

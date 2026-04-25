@@ -112,6 +112,12 @@ public class Shaft extends Application implements ServicesProvider {
                         Timber.w(t, "Suppressed GMS SecurityException on main thread");
                         continue;
                     }
+                    if (t instanceof RuntimeException
+                            && t.getMessage() != null
+                            && t.getMessage().contains("trying to draw too large")) {
+                        Timber.w(t, "Suppressed oversized bitmap draw on main thread");
+                        continue;
+                    }
                     Thread.UncaughtExceptionHandler h =
                             Thread.getDefaultUncaughtExceptionHandler();
                     if (h != null) {
