@@ -1317,6 +1317,7 @@
     <string name="download_path_policy_skip">已存在则跳过</string>
     <string name="download_path_policy_replace">已存在则覆盖</string>
     <string name="download_path_policy_rename">已存在则重命名</string>
+    <string name="setting_overwrite_policy">文件重复时</string>
     <string name="download_path_choose_storage">选择存储位置</string>
     <string name="download_path_choose_policy">选择文件冲突策略</string>
     <string name="download_path_saf_granted">SAF 授权成功</string>

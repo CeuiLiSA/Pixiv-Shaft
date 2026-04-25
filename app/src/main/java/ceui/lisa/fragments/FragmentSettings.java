@@ -53,6 +53,8 @@ import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.utils.Settings;
 import ceui.lisa.utils.UserFolderNameUtil;
 import ceui.loxia.Client;
+import ceui.pixiv.download.DownloadsRegistry;
+import ceui.pixiv.download.config.OverwritePolicy;
 
 import static android.app.Activity.RESULT_OK;
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
@@ -842,6 +844,42 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                             })
                             .show();
                 }
+            });
+
+            // 文件重复时（OverwritePolicy）
+            final String[] POLICY_NAMES = new String[]{
+                    getString(R.string.download_path_policy_skip),
+                    getString(R.string.download_path_policy_replace),
+                    getString(R.string.download_path_policy_rename)
+            };
+            final OverwritePolicy[] POLICY_VALUES = OverwritePolicy.values();
+            {
+                OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
+                baseBind.overwritePolicy.setText(POLICY_NAMES[cur.ordinal()]);
+            }
+            baseBind.overwritePolicyRela.setOnClickListener(v -> {
+                OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(cur.ordinal())
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(POLICY_NAMES, (dialog, which) -> {
+                            OverwritePolicy selected = POLICY_VALUES[which];
+                            DownloadsRegistry.getStore().update(cfg ->
+                                    cfg.copy(
+                                            cfg.getVersion(),
+                                            cfg.getDefaults().copy(
+                                                    cfg.getDefaults().getTemplate(),
+                                                    cfg.getDefaults().getStorage(),
+                                                    selected
+                                            ),
+                                            cfg.getPerBucket(),
+                                            cfg.getWifiOnly()
+                                    )
+                            );
+                            baseBind.overwritePolicy.setText(POLICY_NAMES[which]);
+                            dialog.dismiss();
+                        })
+                        .show();
             });
 
             //按作者保存到单独文件夹

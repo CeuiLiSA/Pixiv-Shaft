@@ -8,5 +8,5 @@ package ceui.pixiv.download.config
 data class BucketDefaults(
     val template: String,
     val storage: StorageChoice,
-    val overwrite: OverwritePolicy = OverwritePolicy.Rename,
+    val overwrite: OverwritePolicy = OverwritePolicy.Replace,
 )
