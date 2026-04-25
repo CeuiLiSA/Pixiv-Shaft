@@ -25,19 +25,33 @@ object TaskPool {
         }
 
     fun getLoadTask(namedUrl: NamedUrl, autoStart: Boolean = true): LoadTask {
+        val shortUrl = namedUrl.url.substringAfterLast('/')
         val existing = _taskMap[namedUrl.url]
         if (existing != null) {
-            Timber.d("TaskPool 复用已有任务: taskId=${existing.taskId}, status=${existing.status.value}, url=${namedUrl.url}")
+            // DownloadTask 占了坑位但没有可用结果 —— 不能直接启动它（会触发 saveImageToGallery），
+            // 用一个纯 LoadTask 替换，仅负责加载图片到内存
+            if (existing is DownloadTask && existing.result.value == null) {
+                Timber.d("[TaskPool] EVICT DownloadTask taskId=${existing.taskId}, status=${existing.status.value}, url=$shortUrl")
+                val newTask = LoadTask(namedUrl, scope, autoStart)
+                _taskMap[namedUrl.url] = newTask
+                Timber.d("[TaskPool] REPLACE with LoadTask taskId=${newTask.taskId}, autoStart=$autoStart, poolSize=${_taskMap.size}, url=$shortUrl")
+                return newTask
+            }
+            val file = existing.result.value
+            val fileInfo = file?.let { "path=${it.absolutePath}, exists=${it.exists()}, size=${it.length()}" } ?: "null"
+            Timber.d("[TaskPool] REUSE taskId=${existing.taskId}, status=${existing.status.value}, file=[$fileInfo], poolSize=${_taskMap.size}, url=$shortUrl")
             return existing
         }
         val newTask = LoadTask(namedUrl, scope, autoStart)
         _taskMap[namedUrl.url] = newTask
-        Timber.d("TaskPool 创建新任务: taskId=${newTask.taskId}, url=${namedUrl.url}")
+        Timber.d("[TaskPool] CREATE taskId=${newTask.taskId}, autoStart=$autoStart, poolSize=${_taskMap.size}, url=$shortUrl")
         return newTask
     }
 
     fun removeTask(url: String) {
-        _taskMap.remove(url)
+        val shortUrl = url.substringAfterLast('/')
+        val removed = _taskMap.remove(url)
+        Timber.d("[TaskPool] REMOVE taskId=${removed?.taskId}, status=${removed?.status?.value}, found=${removed != null}, poolSize=${_taskMap.size}, url=$shortUrl")
     }
 
     @JvmStatic
