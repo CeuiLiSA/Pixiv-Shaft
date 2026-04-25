@@ -65,7 +65,7 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
                 return ImgUrlFragment().apply {
                     arguments = ImgUrlFragmentArgs(
                         url,
-                        buildPixivWorksFileName(args.illustId, position)
+                        url.substringAfterLast('/')
                     ).toBundle()
                 }
             }

@@ -2,11 +2,15 @@ package ceui.pixiv.download.config
 
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.NovelBean
+import ceui.loxia.Novel
+import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.model.Author
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.DownloadItem
 import ceui.pixiv.download.model.Flag
 import ceui.pixiv.download.model.ItemMeta
+import ceui.pixiv.download.sanitize.FsSanitizer
+import ceui.pixiv.download.template.Template
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -69,6 +73,59 @@ object DownloadItems {
             flags = flagsOfNovel(novel),
         ),
     )
+
+    /**
+     * Render the template-based filename for a single illust page.
+     * Use this everywhere instead of the legacy `buildPixivWorksFileName`.
+     */
+    @JvmStatic
+    fun illustFileName(illust: IllustsBean, pageIndex: Int): String {
+        val item = illustPage(illust, pageIndex)
+        val config = DownloadsRegistry.store.loadOrFallback()
+        val resolved = config.resolve(item.bucket)
+        val template = Template.compile(resolved.template)
+        val rendered = template.render(item.meta, item.ext, config.pageIndexFrom1)
+        return FsSanitizer.clean(rendered).filename
+    }
+
+    /**
+     * Render the template-based filename for a novel.
+     * Use this everywhere instead of the legacy `buildPixivNovelFileName`.
+     */
+    @JvmStatic
+    fun novelFileName(novel: NovelBean): String {
+        val item = novel(novel)
+        val config = DownloadsRegistry.store.loadOrFallback()
+        val resolved = config.resolve(item.bucket)
+        val template = Template.compile(resolved.template)
+        val rendered = template.render(item.meta, item.ext, config.pageIndexFrom1)
+        return FsSanitizer.clean(rendered).filename
+    }
+
+    /**
+     * Novel from the loxia [Novel] model (used by V3 novel detail).
+     */
+    @JvmStatic
+    fun novelFileNameFromLoxia(novel: Novel): String {
+        val meta = ItemMeta(
+            id = novel.id?.toLong() ?: 0L,
+            title = novel.title.orEmpty(),
+            author = Author(novel.user?.id?.toLong() ?: 0L, novel.user?.name.orEmpty()),
+            createdAt = parseInstant(novel.create_date),
+        )
+        val item = DownloadItem(
+            bucket = Bucket.Novel,
+            ext = "txt",
+            mime = "text/plain",
+            sourceUrl = "",
+            meta = meta,
+        )
+        val config = DownloadsRegistry.store.loadOrFallback()
+        val resolved = config.resolve(item.bucket)
+        val template = Template.compile(resolved.template)
+        val rendered = template.render(item.meta, item.ext, config.pageIndexFrom1)
+        return FsSanitizer.clean(rendered).filename
+    }
 
     private fun metaOf(illust: IllustsBean, pageIndex: Int?): ItemMeta = ItemMeta(
         id = illust.id.toLong(),

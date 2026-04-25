@@ -18,11 +18,9 @@ import kotlinx.coroutines.launch
 fun getGalleryHolders(illust: Illust): List<GalleryHolder>? {
     // Helper function to create a GalleryHolder
     fun createGalleryHolder(index: Int, imageUrl: String?): GalleryHolder {
+        val url = imageUrl.orEmpty()
         val task = TaskPool.getLoadTask(
-            NamedUrl(
-                buildPixivWorksFileName(illust.id, index),
-                imageUrl.orEmpty() // Handle null gracefully
-            ),
+            NamedUrl(url.substringAfterLast('/'), url),
             autoStart = false
         )
         return GalleryHolder(illust, index, task) {

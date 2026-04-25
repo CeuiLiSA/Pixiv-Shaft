@@ -11,7 +11,7 @@ import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.getTxtFileIdInDownloads
 import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
-import ceui.pixiv.ui.works.buildPixivNovelFileName
+import ceui.pixiv.download.config.DownloadItems
 import com.blankj.utilcode.util.PathUtils
 import com.hjq.toast.ToastUtils
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +31,7 @@ class DownloadNovelTask(
     private val webNovel: WebNovel? = null,
 ) : QueuedRunnable<Unit>() {
 
-    private val fileName = buildPixivNovelFileName(novel)
+    private val fileName = DownloadItems.novelFileNameFromLoxia(novel)
 
     override fun start(onNext: () -> Unit) {
         super.start(onNext)

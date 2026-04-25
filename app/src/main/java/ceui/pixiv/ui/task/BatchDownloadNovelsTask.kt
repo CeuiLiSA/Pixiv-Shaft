@@ -11,7 +11,7 @@ import ceui.pixiv.download.header.HeaderConfigRepo
 import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.ui.common.getTxtFileIdInDownloads
 import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
-import ceui.pixiv.ui.works.buildPixivNovelFileName
+import ceui.pixiv.download.config.DownloadItems
 import com.hjq.toast.ToastUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -102,7 +102,7 @@ class BatchDownloadNovelsTask(
      */
     private suspend fun downloadOne(novel: Novel, seriesIndex: Int?) {
         val ctx = Shaft.getContext()
-        val fileName = buildPixivNovelFileName(novel)
+        val fileName = DownloadItems.novelFileNameFromLoxia(novel)
 
         // Skip already-downloaded files. DownloadNovelTask uses the same
         // pre-check before it hits the network.

@@ -22,7 +22,7 @@ import ceui.pixiv.ui.task.DownloadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.task.TaskStatus
-import ceui.pixiv.ui.works.buildPixivWorksFileName
+import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.db.RecordType
 import com.google.gson.Gson
 import io.reactivex.Observable
@@ -194,13 +194,12 @@ class ArtworkV3ViewModel(
     }
 
     private fun buildDownloadNamedUrls(illust: IllustsBean): List<NamedUrl> {
-        val id = illust.id.toLong()
         return if (illust.page_count <= 1) {
             val url = illust.meta_single_page?.original_image_url ?: illust.image_urls?.original
-            listOfNotNull(url?.let { NamedUrl(buildPixivWorksFileName(id), it) })
+            listOfNotNull(url?.let { NamedUrl(DownloadItems.illustFileName(illust, 0), it) })
         } else {
             illust.meta_pages.orEmpty().mapIndexedNotNull { i, page ->
-                page.image_urls?.original?.let { NamedUrl(buildPixivWorksFileName(id, i), it) }
+                page.image_urls?.original?.let { NamedUrl(DownloadItems.illustFileName(illust, i), it) }
             }
         }
     }
