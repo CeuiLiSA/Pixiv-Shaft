@@ -55,6 +55,7 @@ import ceui.lisa.utils.UserFolderNameUtil;
 import ceui.loxia.Client;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.OverwritePolicy;
+import ceui.pixiv.download.config.StorageChoice;
 
 import static android.app.Activity.RESULT_OK;
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
@@ -878,6 +879,45 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                             );
                             baseBind.overwritePolicy.setText(POLICY_NAMES[which]);
                             dialog.dismiss();
+                        })
+                        .show();
+            });
+
+            // 存储位置（StorageChoice）
+            final String[] STORAGE_NAMES = new String[]{
+                    getString(R.string.setting_storage_mediastore),
+                    getString(R.string.setting_storage_saf)
+            };
+            {
+                boolean isSaf = DownloadsRegistry.isSaf();
+                baseBind.storageChoice.setText(STORAGE_NAMES[isSaf ? 1 : 0]);
+            }
+            baseBind.storageChoiceRela.setOnClickListener(v -> {
+                boolean isSaf = DownloadsRegistry.isSaf();
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(isSaf ? 1 : 0)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(STORAGE_NAMES, (dialog, which) -> {
+                            dialog.dismiss();
+                            if (which == 0) {
+                                // MediaStore
+                                DownloadsRegistry.applyGlobalStorage(
+                                        new StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images));
+                                baseBind.storageChoice.setText(STORAGE_NAMES[0]);
+                            } else {
+                                // SAF — launch document tree picker
+                                ((BaseActivity<?>)mActivity).setFeedBack(() -> {
+                                    // Called after SAF grant succeeds in BaseActivity.onActivityResult
+                                    String uriStr = Shaft.sSettings.getRootPathUri();
+                                    if (uriStr != null && !uriStr.isEmpty()) {
+                                        DownloadsRegistry.applyGlobalStorage(
+                                                new StorageChoice.Saf(android.net.Uri.parse(uriStr)));
+                                        baseBind.storageChoice.setText(STORAGE_NAMES[1]);
+                                    }
+                                });
+                                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                                mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
+                            }
                         })
                         .show();
             });

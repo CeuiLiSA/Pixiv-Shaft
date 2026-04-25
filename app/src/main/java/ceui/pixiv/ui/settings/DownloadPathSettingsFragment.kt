@@ -1,8 +1,6 @@
 package ceui.pixiv.ui.settings
 
-import android.content.Intent
 import android.graphics.Typeface
-import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.view.LayoutInflater
@@ -12,8 +10,6 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -53,26 +49,6 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
     /** Currently focused template EditText — target for variable / condition chips. */
     private var focusedEditor: EditText? = null
-
-    /** Which bucket is waiting for a SAF tree result. */
-    private var safPendingBucket: Bucket? = null
-
-    private val safLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri: Uri? ->
-        val bucket = safPendingBucket ?: return@registerForActivityResult
-        safPendingBucket = null
-        if (uri == null) {
-            ToastUtils.show(getString(R.string.download_path_saf_failed))
-            return@registerForActivityResult
-        }
-        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        requireContext().contentResolver.takePersistableUriPermission(uri, takeFlags)
-        saveBucketStorage(bucket, StorageChoice.Saf(uri))
-        ToastUtils.show(getString(R.string.download_path_saf_granted))
-        render()
-    }
 
     private val USER_BUCKETS = listOf(
         Bucket.Illust to R.string.download_path_bucket_illust,
@@ -374,9 +350,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
         cell.findViewById<TextView>(R.id.bucket_name).text = getString(bucketLabel)
 
-        val storageView = cell.findViewById<TextView>(R.id.bucket_storage)
-        storageView.text = storageLabel(resolved.storage)
-        storageView.setOnClickListener { showStoragePicker(bucket) }
+        cell.findViewById<TextView>(R.id.bucket_storage).text = storageLabel(resolved.storage)
 
         val policyView = cell.findViewById<TextView>(R.id.bucket_policy)
         policyView.text = policyLabel(resolved.overwrite)
@@ -402,52 +376,6 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             saveBucketTemplate(bucket, defaultSrc)
         }
         root.addView(cell)
-    }
-
-    private fun showStoragePicker(bucket: Bucket) {
-        val labels = arrayOf(
-            getString(R.string.download_path_storage_mediastore_images),
-            getString(R.string.download_path_storage_mediastore_downloads),
-            getString(R.string.download_path_storage_saf),
-        )
-        val current = DownloadsRegistry.store.loadOrFallback().resolve(bucket).storage
-        val checkedIndex = when (current) {
-            is StorageChoice.MediaStore -> when (current.collection) {
-                StorageChoice.MediaStore.Collection.Images -> 0
-                StorageChoice.MediaStore.Collection.Downloads -> 1
-            }
-            is StorageChoice.Saf -> 2
-            StorageChoice.AppCache -> -1
-        }
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.download_path_choose_storage))
-            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
-                dialog.dismiss()
-                when (which) {
-                    0 -> {
-                        saveBucketStorage(bucket, StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images))
-                        render()
-                    }
-                    1 -> {
-                        saveBucketStorage(bucket, StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads))
-                        render()
-                    }
-                    2 -> {
-                        safPendingBucket = bucket
-                        val initialUri = (current as? StorageChoice.Saf)?.treeUri
-                        safLauncher.launch(initialUri)
-                    }
-                }
-            }
-            .show()
-    }
-
-    private fun saveBucketStorage(bucket: Bucket, storage: StorageChoice) {
-        DownloadsRegistry.store.update { cfg ->
-            val existing = cfg.perBucket[bucket] ?: BucketConfig()
-            cfg.withBucket(bucket, existing.copy(storage = storage))
-        }
-        DownloadsRegistry.invalidateBackends()
     }
 
     private fun saveBucketTemplate(bucket: Bucket, source: String) {

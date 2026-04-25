@@ -11,6 +11,7 @@ import ceui.pixiv.download.config.ConfigPresets
 import ceui.pixiv.download.config.DownloadConfig
 import ceui.pixiv.download.config.DownloadConfigStore
 import ceui.pixiv.download.config.StorageChoice
+import ceui.pixiv.download.model.Bucket
 
 /**
  * Process-wide entry point. Owns the [DownloadConfigStore] and the single
@@ -80,4 +81,51 @@ object DownloadsRegistry {
     fun invalidateBackends() {
         synchronized(backendCache) { backendCache.clear() }
     }
+
+    /**
+     * Switch all buckets to the given storage. MediaStore automatically routes
+     * images to Pictures and downloads (novels/backups/logs) to Downloads.
+     * SAF sends everything to the same tree.
+     */
+    @JvmStatic
+    fun applyGlobalStorage(choice: StorageChoice) {
+        val imagesStorage: StorageChoice
+        val downloadsStorage: StorageChoice
+        when (choice) {
+            is StorageChoice.Saf -> {
+                imagesStorage = choice
+                downloadsStorage = choice
+            }
+            is StorageChoice.MediaStore -> {
+                imagesStorage = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+                downloadsStorage = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+            }
+            StorageChoice.AppCache -> {
+                imagesStorage = choice
+                downloadsStorage = choice
+            }
+        }
+        store.update { cfg ->
+            // Preserve per-bucket templates but replace all storage choices
+            val newDefaults = cfg.defaults.copy(storage = imagesStorage)
+            val newPerBucket = cfg.perBucket.mapValues { (bucket, bc) ->
+                val newStorage = when (bucket) {
+                    Bucket.Illust, Bucket.Ugoira -> imagesStorage
+                    else -> downloadsStorage
+                }
+                bc.copy(storage = newStorage)
+            }
+            cfg.copy(defaults = newDefaults, perBucket = newPerBucket)
+        }
+        invalidateBackends()
+    }
+
+    /** Returns the current effective images storage (from defaults). */
+    @JvmStatic
+    fun currentImagesStorage(): StorageChoice =
+        store.loadOrFallback().defaults.storage
+
+    /** True if the current config uses SAF for images. */
+    @JvmStatic
+    fun isSaf(): Boolean = currentImagesStorage() is StorageChoice.Saf
 }
