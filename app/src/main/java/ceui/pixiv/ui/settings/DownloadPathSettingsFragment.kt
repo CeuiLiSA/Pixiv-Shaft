@@ -380,7 +380,6 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
         val policyView = cell.findViewById<TextView>(R.id.bucket_policy)
         policyView.text = policyLabel(resolved.overwrite)
-        policyView.setOnClickListener { showPolicyPicker(bucket) }
 
         val templateEdit = cell.findViewById<EditText>(R.id.bucket_template)
         val previewView = cell.findViewById<TextView>(R.id.bucket_preview)
@@ -443,34 +442,12 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             .show()
     }
 
-    private fun showPolicyPicker(bucket: Bucket) {
-        val policies = OverwritePolicy.entries.toTypedArray()
-        val labels = policies.map { policyLabel(it) }.toTypedArray()
-        val current = DownloadsRegistry.store.loadOrFallback().resolve(bucket).overwrite
-        val checkedIndex = policies.indexOf(current)
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.download_path_choose_policy))
-            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
-                dialog.dismiss()
-                saveBucketPolicy(bucket, policies[which])
-                render()
-            }
-            .show()
-    }
-
     private fun saveBucketStorage(bucket: Bucket, storage: StorageChoice) {
         DownloadsRegistry.store.update { cfg ->
             val existing = cfg.perBucket[bucket] ?: BucketConfig()
             cfg.withBucket(bucket, existing.copy(storage = storage))
         }
         DownloadsRegistry.invalidateBackends()
-    }
-
-    private fun saveBucketPolicy(bucket: Bucket, policy: OverwritePolicy) {
-        DownloadsRegistry.store.update { cfg ->
-            val existing = cfg.perBucket[bucket] ?: BucketConfig()
-            cfg.withBucket(bucket, existing.copy(overwrite = policy))
-        }
     }
 
     private fun saveBucketTemplate(bucket: Bucket, source: String) {
