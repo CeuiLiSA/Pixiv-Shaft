@@ -93,8 +93,8 @@ object DownloadItems {
      * Use this everywhere instead of the legacy `buildPixivNovelFileName`.
      */
     @JvmStatic
-    fun novelFileName(novel: NovelBean): String {
-        val item = novel(novel)
+    fun novelFileName(novelBean: NovelBean): String {
+        val item = novel(novelBean)
         val config = DownloadsRegistry.store.loadOrFallback()
         val resolved = config.resolve(item.bucket)
         val template = Template.compile(resolved.template)
