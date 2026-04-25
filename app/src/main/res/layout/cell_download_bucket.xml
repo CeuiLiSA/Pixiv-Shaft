@@ -25,10 +25,12 @@
             android:id="@+id/bucket_storage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_v3_chip"
+            android:background="@drawable/bg_v3_pill_secondary"
+            android:clickable="true"
+            android:focusable="true"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
-            android:textColor="@color/v3_text_2"
+            android:textColor="#6C5CE7"
             android:textSize="13sp" />
 
         <TextView
@@ -36,10 +38,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:background="@drawable/bg_v3_chip"
+            android:background="@drawable/bg_v3_pill_secondary"
+            android:clickable="true"
+            android:focusable="true"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
-            android:textColor="@color/v3_text_2"
+            android:textColor="#6C5CE7"
             android:textSize="13sp" />
     </LinearLayout>
 

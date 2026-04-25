@@ -1317,6 +1317,10 @@
     <string name="download_path_policy_skip">已存在则跳过</string>
     <string name="download_path_policy_replace">已存在则覆盖</string>
     <string name="download_path_policy_rename">已存在则重命名</string>
+    <string name="download_path_choose_storage">选择存储位置</string>
+    <string name="download_path_choose_policy">选择文件冲突策略</string>
+    <string name="download_path_saf_granted">SAF 授权成功</string>
+    <string name="download_path_saf_failed">SAF 授权失败</string>
     <string name="download_path_help_title">可用变量与条件</string>
     <string name="download_path_help_body">变量：{id} {title} {page} {pages} {ext} {author} {author_id} {w} {h} {created:yyyyMMdd_HHmmss}\n条件：[?R18:R18/]、[?AI:AI/]、[?p&gt;1: p{page}]\n路径里的 / 表示子目录；清洗会把非法字符替换为 _</string>
     <string name="download_path_invalid_template">模板无效，未保存</string>
