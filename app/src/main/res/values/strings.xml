@@ -1319,7 +1319,8 @@
     <string name="download_path_policy_rename">已存在则重命名</string>
     <string name="setting_overwrite_policy">文件重复时</string>
     <string name="setting_storage_choice">存储位置</string>
-    <string name="setting_storage_mediastore">系统相册 (Pictures)</string>
+    <string name="setting_storage_pictures">系统相册 (Pictures)</string>
+    <string name="setting_storage_downloads">下载目录 (Downloads)</string>
     <string name="setting_storage_saf">自选目录 (SAF)</string>
     <string name="setting_page_index">多图页码起始</string>
     <string name="setting_page_index_from_0">从 0 开始 (p0, p1, p2…)</string>

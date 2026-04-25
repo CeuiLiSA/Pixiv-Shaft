@@ -885,35 +885,60 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             });
 
             // 存储位置（StorageChoice）
+            // 0 = Pictures, 1 = Downloads, 2 = SAF
             final String[] STORAGE_NAMES = new String[]{
-                    getString(R.string.setting_storage_mediastore),
+                    getString(R.string.setting_storage_pictures),
+                    getString(R.string.setting_storage_downloads),
                     getString(R.string.setting_storage_saf)
             };
-            {
-                boolean isSaf = DownloadsRegistry.isSaf();
-                baseBind.storageChoice.setText(STORAGE_NAMES[isSaf ? 1 : 0]);
-            }
+            final Runnable refreshStorageLabel = () -> {
+                StorageChoice cur = DownloadsRegistry.currentImagesStorage();
+                int idx;
+                if (cur instanceof StorageChoice.Saf) {
+                    idx = 2;
+                } else if (cur instanceof StorageChoice.MediaStore
+                        && ((StorageChoice.MediaStore) cur).getCollection()
+                            == StorageChoice.MediaStore.Collection.Downloads) {
+                    idx = 1;
+                } else {
+                    idx = 0;
+                }
+                baseBind.storageChoice.setText(STORAGE_NAMES[idx]);
+            };
+            refreshStorageLabel.run();
             baseBind.storageChoiceRela.setOnClickListener(v -> {
-                boolean isSaf = DownloadsRegistry.isSaf();
+                StorageChoice cur = DownloadsRegistry.currentImagesStorage();
+                int checkedIdx;
+                if (cur instanceof StorageChoice.Saf) {
+                    checkedIdx = 2;
+                } else if (cur instanceof StorageChoice.MediaStore
+                        && ((StorageChoice.MediaStore) cur).getCollection()
+                            == StorageChoice.MediaStore.Collection.Downloads) {
+                    checkedIdx = 1;
+                } else {
+                    checkedIdx = 0;
+                }
                 new QMUIDialog.CheckableDialogBuilder(mActivity)
-                        .setCheckedIndex(isSaf ? 1 : 0)
+                        .setCheckedIndex(checkedIdx)
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addItems(STORAGE_NAMES, (dialog, which) -> {
                             dialog.dismiss();
                             if (which == 0) {
-                                // MediaStore
                                 DownloadsRegistry.applyGlobalStorage(
                                         new StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images));
-                                baseBind.storageChoice.setText(STORAGE_NAMES[0]);
+                                refreshStorageLabel.run();
+                            } else if (which == 1) {
+                                DownloadsRegistry.applyGlobalStorage(
+                                        new StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads));
+                                refreshStorageLabel.run();
                             } else {
                                 // SAF — launch document tree picker
                                 ((BaseActivity<?>)mActivity).setFeedBack(() -> {
-                                    // Called after SAF grant succeeds in BaseActivity.onActivityResult
                                     String uriStr = Shaft.sSettings.getRootPathUri();
                                     if (uriStr != null && !uriStr.isEmpty()) {
                                         DownloadsRegistry.applyGlobalStorage(
                                                 new StorageChoice.Saf(android.net.Uri.parse(uriStr)));
-                                        baseBind.storageChoice.setText(STORAGE_NAMES[1]);
+                                        refreshStorageLabel.run();
                                     }
                                 });
                                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);

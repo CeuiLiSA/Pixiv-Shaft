@@ -83,9 +83,10 @@ object DownloadsRegistry {
     }
 
     /**
-     * Switch all buckets to the given storage. MediaStore automatically routes
-     * images to Pictures and downloads (novels/backups/logs) to Downloads.
-     * SAF sends everything to the same tree.
+     * Switch all buckets to the given storage.
+     * - Pictures: images→Pictures, downloads→Downloads
+     * - Downloads: everything→Downloads
+     * - SAF: everything→same tree
      */
     @JvmStatic
     fun applyGlobalStorage(choice: StorageChoice) {
@@ -97,8 +98,12 @@ object DownloadsRegistry {
                 downloadsStorage = choice
             }
             is StorageChoice.MediaStore -> {
-                imagesStorage = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
-                downloadsStorage = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+                imagesStorage = choice
+                downloadsStorage = when (choice.collection) {
+                    StorageChoice.MediaStore.Collection.Images ->
+                        StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+                    StorageChoice.MediaStore.Collection.Downloads -> choice
+                }
             }
             StorageChoice.AppCache -> {
                 imagesStorage = choice
