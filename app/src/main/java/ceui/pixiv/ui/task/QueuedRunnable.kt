@@ -38,22 +38,21 @@ abstract class QueuedRunnable<ResultT> {
     }
 
     open fun onIgnore() {
-        Timber.d("${this.javaClass.simpleName}-${taskId} empty onIgnore ${_status.value}")
+        Timber.d("[QueuedRunnable] onIgnore class=${this.javaClass.simpleName}, taskId=$taskId, status=${_status.value}, hasResult=${_result.value != null}")
     }
 
     open fun onStart() {
-        Timber.d("${this.javaClass.simpleName}-${taskId} onStart")
+        Timber.d("[QueuedRunnable] onStart class=${this.javaClass.simpleName}, taskId=$taskId, prevStatus=${_status.value}")
     }
 
     open fun onEnd(resultT: ResultT) {
-        Timber.d("${this.javaClass.simpleName}-${taskId} onEnd")
+        Timber.d("[QueuedRunnable] onEnd class=${this.javaClass.simpleName}, taskId=$taskId, result=$resultT")
         this._onNext?.invoke()
     }
 
     open fun onError(ex: Exception?) {
-        Timber.d("${this.javaClass.simpleName}-${taskId} handleError")
+        Timber.w(ex, "[QueuedRunnable] onError class=${this.javaClass.simpleName}, taskId=$taskId, prevStatus=${_status.value}")
         if (ex != null) {
-            Timber.e(ex)
             _status.postValue(TaskStatus.Error(ex))
             this._onNext?.invoke()
         }

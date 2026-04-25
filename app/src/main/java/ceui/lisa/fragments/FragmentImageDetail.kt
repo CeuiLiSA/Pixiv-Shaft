@@ -68,9 +68,12 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL)
         }
 
+        val shortUrl = imageUrl?.substringAfterLast('/') ?: "null"
+        Timber.d("[ImageDetail] loadImage index=$index, isUrlMode=$isUrlMode, url=$shortUrl")
+
         if (imageUrl?.isNotEmpty() == true) {
             val task = TaskPool.getLoadTask(NamedUrl("", imageUrl))
-            Timber.d("二级详情页 loadImage: taskId=${task.taskId}, status=${task.status.value}, url=$imageUrl")
+            Timber.d("[ImageDetail] task acquired. taskId=${task.taskId}, status=${task.status.value}, hasResult=${task.result.value != null}, url=$shortUrl")
 
             // 原图尚未加载完时，若一级详情页的大图已在 Glide 缓存，先用大图占位
             if (mIllustsBean != null && task.result.value == null) {
@@ -80,15 +83,16 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 if (!largeUrl.isNullOrEmpty() && largeUrl != imageUrl) {
                     val largeFile = TaskPool.peekCachedFile(largeUrl)
                     if (largeFile != null) {
-                        Timber.d("二级详情页 占位大图 HIT path=${largeFile.absolutePath} size=${largeFile.length()}")
+                        Timber.d("[ImageDetail] placeholder HIT path=${largeFile.absolutePath} size=${largeFile.length()}")
                         baseBind.image.loadImage(largeFile)
                     } else {
-                        Timber.d("二级详情页 占位大图 MISS largeUrl=$largeUrl")
+                        Timber.d("[ImageDetail] placeholder MISS largeUrl=${largeUrl.substringAfterLast('/')}")
                     }
                 }
             }
 
             task.result.observe(viewLifecycleOwner) { file ->
+                Timber.d("[ImageDetail] result callback. file=${file?.absolutePath}, exists=${file?.exists()}, size=${file?.length() ?: -1}, url=$shortUrl")
                 baseBind.image.loadImage(file)
                 if (isUrlMode) {
                     baseBind.downloadButton.visibility = View.VISIBLE
