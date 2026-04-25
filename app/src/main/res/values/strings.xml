@@ -1435,4 +1435,6 @@
     <string name="resolution_large">大图 (Large)</string>
     <string name="resolution_medium">中图 (Medium)</string>
     <string name="resolution_square_medium">小图 (Square Medium)</string>
+    <string name="filter_invalid_bookmarks">收藏夹过滤已失效作品</string>
+    <string name="filter_invalid_bookmarks_desc">开启后将隐藏已删除或不可见的收藏作品</string>
 </resources>

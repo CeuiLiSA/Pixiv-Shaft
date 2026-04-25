@@ -18,11 +18,13 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.ListMode
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.TabCellHolder
+import androidx.lifecycle.MutableLiveData
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpCustomAdapter
 import ceui.pixiv.ui.web.WebFragmentArgs
 import ceui.pixiv.widgets.alertYesOrCancel
 import ceui.pixiv.ui.common.viewBinding
+import ceui.lisa.utils.Local
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
@@ -46,6 +48,8 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
         val liveUser = ObjectPool.get<User>(SessionManager.loggedInUid)
         val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
         val nameCode = prefStore.getString(SessionManager.CONTENT_LANGUAGE_KEY, "cn") ?: "cn"
+
+        val filterInvalidLive = MutableLiveData(Shaft.sSettings.isFilterInvalidBookmarks)
 
         liveUser.observe(viewLifecycleOwner) { user ->
             adapter.submitList(
@@ -93,6 +97,18 @@ class SettingsFragment : PixivFragment(R.layout.fragment_pixiv_list), LogOutActi
                         pushFragment(
                             R.id.navigation_select_language,
                         )
+                    },
+
+                    TabCellHolder(
+                        getString(R.string.filter_invalid_bookmarks),
+                        getString(R.string.filter_invalid_bookmarks_desc),
+                        showGreenDone = true,
+                        selected = filterInvalidLive
+                    ).onItemClick {
+                        val newValue = !Shaft.sSettings.isFilterInvalidBookmarks
+                        Shaft.sSettings.isFilterInvalidBookmarks = newValue
+                        Local.setSettings(Shaft.sSettings)
+                        filterInvalidLive.value = newValue
                     },
 
                     LogOutHolder()

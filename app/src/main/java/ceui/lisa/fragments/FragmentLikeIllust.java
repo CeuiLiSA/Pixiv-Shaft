@@ -10,6 +10,8 @@ import android.view.MenuItem;
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
@@ -127,6 +129,20 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
         super.onDestroy();
         if (filterReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(filterReceiver);
+        }
+    }
+
+    @Override
+    public void beforeFirstLoad(List<IllustsBean> items) {
+        if (Shaft.sSettings.isFilterInvalidBookmarks()) {
+            items.removeIf(illust -> !illust.isVisible() || illust.getUser() == null || illust.getUser().getId() == 0);
+        }
+    }
+
+    @Override
+    public void beforeNextLoad(List<IllustsBean> items) {
+        if (Shaft.sSettings.isFilterInvalidBookmarks()) {
+            items.removeIf(illust -> !illust.isVisible() || illust.getUser() == null || illust.getUser().getId() == 0);
         }
     }
 

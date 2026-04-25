@@ -7,7 +7,10 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import java.util.List;
+
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -78,6 +81,20 @@ public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
         });
         intentFilter.addAction(Params.FILTER_NOVEL);
         LocalBroadcastManager.getInstance(mContext).registerReceiver(filterReceiver, intentFilter);
+    }
+
+    @Override
+    public void beforeFirstLoad(List<NovelBean> items) {
+        if (Shaft.sSettings.isFilterInvalidBookmarks()) {
+            items.removeIf(novel -> !novel.isVisible() || novel.getUser() == null || novel.getUser().getId() == 0);
+        }
+    }
+
+    @Override
+    public void beforeNextLoad(List<NovelBean> items) {
+        if (Shaft.sSettings.isFilterInvalidBookmarks()) {
+            items.removeIf(novel -> !novel.isVisible() || novel.getUser() == null || novel.getUser().getId() == 0);
+        }
     }
 
     @Override

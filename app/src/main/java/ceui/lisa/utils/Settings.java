@@ -215,6 +215,9 @@ public class Settings {
 
     private boolean illustDetailKeepScreenOn = false; //插画二级详情保持屏幕常亮
 
+    // 收藏夹过滤已失效作品（已删除/不可见），默认不过滤
+    private boolean filterInvalidBookmarks = false;
+
     /** @deprecated legacy display-name language；仅供 AppLocalesBootstrap 一次性迁移读取，请使用 {@link ceui.pixiv.i18n.AppLocales}。 */
     @Deprecated
     public String getAppLanguage() {
@@ -691,6 +694,14 @@ public class Settings {
 
     public void setIllustDetailKeepScreenOn(boolean illustDetailKeepScreenOn) {
         this.illustDetailKeepScreenOn = illustDetailKeepScreenOn;
+    }
+
+    public boolean isFilterInvalidBookmarks() {
+        return filterInvalidBookmarks;
+    }
+
+    public void setFilterInvalidBookmarks(boolean filterInvalidBookmarks) {
+        this.filterInvalidBookmarks = filterInvalidBookmarks;
     }
 
     // 插画V3详情页：下载按钮是否在左（true=左下载右收藏，false=左收藏右下载）
