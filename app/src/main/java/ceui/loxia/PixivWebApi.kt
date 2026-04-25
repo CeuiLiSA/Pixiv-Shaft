@@ -14,6 +14,19 @@ interface PixivWebApi {
     @GET("/ajax/illust/{illust_id}")
     suspend fun getWebIllust(@Path("illust_id") illust_id: Long)
 
+    @GET("/ajax/tags/frequent/illust")
+    suspend fun getFrequentTags(
+        @Query("ids[]") ids: List<Long>,
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<List<FrequentTag>>
+
+    @GET("/ajax/user/{user_id}")
+    suspend fun getWebUserDetail(
+        @Path("user_id") userId: Long,
+        @Query("full") full: Int = 1,
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<WebUserDetail>
+
     @GET("/ajax/top/{type}?mode=all&lang=zh")
     suspend fun getSquareContents(
         @Path("type") type: String,

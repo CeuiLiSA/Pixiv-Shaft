@@ -30,11 +30,15 @@ import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.V3Palette
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
+import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
+import ceui.loxia.WebUserDetail
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.setOnClick
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.bumptech.glide.Glide
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
@@ -59,6 +63,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     override fun initModel() {
         mUserViewModel = ViewModelProvider(this)[UserViewModel::class.java]
         mUserViewModel.user.observe(this) { data -> displayUser(data) }
+        mUserViewModel.webUserDetail.observe(this) { detail ->
+            if (detail != null) displayWebUserDetail(detail)
+        }
 
         val entity = AppDatabase.getAppDatabase(this).searchDao().getUserMuteEntityByID(userId)
         mUserViewModel.isUserMuted.value = entity != null
@@ -154,6 +161,16 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     Shaft.appViewModel.updateFollowUserStatus(userId, followStatus)
                 }
             })
+
+        // Fetch supplementary data from Web API (bio HTML, badges, social links)
+        lifecycleScope.launch {
+            try {
+                val resp = Client.webApi.getWebUserDetail(userId.toLong())
+                resp.body?.let { mUserViewModel.webUserDetail.value = it }
+            } catch (e: Exception) {
+                timber.log.Timber.d(e, "Web user detail fetch failed for user=$userId")
+            }
+        }
     }
 
     override fun hideStatusBar(): Boolean = true
@@ -288,6 +305,102 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 mUserViewModel.refreshEvent.value = Event(100, 0L)
             }
         }
+    }
+
+    private fun displayWebUserDetail(detail: WebUserDetail) {
+        val dp = resources.displayMetrics.density
+        val isSelf = userId.toLong() == SessionManager.loggedInUid
+
+        // ── Bio: prefer commentHtml for better link rendering ────────
+        if (!detail.commentHtml.isNullOrEmpty()) {
+            baseBind.bio.isVisible = true
+            baseBind.bio.text = androidx.core.text.HtmlCompat.fromHtml(
+                detail.commentHtml, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+            )
+            baseBind.bio.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+        }
+
+        // ── Badges row ───────────────────────────────────────────────
+        var showBadges = false
+
+        // "互相关注" badge — followedBack means the user follows us back
+        if (!isSelf && detail.followedBack == true) {
+            baseBind.badgeFollowsYou.isVisible = true
+            baseBind.badgeFollowsYou.background = makeBadgeBg(dp, palette.alpha20)
+            showBadges = true
+        }
+
+        // 好P友 badge
+        if (detail.isMypixiv == true) {
+            baseBind.badgeMypixiv.isVisible = true
+            baseBind.badgeMypixiv.background = makeBadgeBg(dp, palette.alpha20)
+            showBadges = true
+        }
+
+        // Official badge
+        if (detail.official == true) {
+            baseBind.badgeOfficial.isVisible = true
+            baseBind.badgeOfficial.background = makeBadgeBg(dp, 0x33FFC233.toInt())
+            showBadges = true
+        }
+
+        if (showBadges) {
+            baseBind.badgesRow.isVisible = true
+        }
+
+        // ── Message button ───────────────────────────────────────────
+        if (!isSelf && detail.canSendMessage == true) {
+            baseBind.msgBtn.isVisible = true
+            baseBind.msgBtn.background = makeBadgeBg(dp, palette.alpha20)
+            baseBind.msgBtn.imageTintList = android.content.res.ColorStateList.valueOf(palette.textAccent)
+            baseBind.msgBtn.setOnClick {
+                openUrl("https://www.pixiv.net/messages.php?receiver_id=$userId")
+            }
+        }
+
+        // ── Supplement social links from Web API ─────────────────────
+        detail.social?.forEach { (platform, link) ->
+            val url = link.url ?: return@forEach
+            addSocialChip(platform.replaceFirstChar { it.uppercase() }, url)
+        }
+        detail.webpage?.takeIf { it.isNotBlank() }?.let { url ->
+            addSocialChip("Website", url)
+        }
+    }
+
+    private fun makeBadgeBg(dp: Float, strokeColor: Int): android.graphics.drawable.GradientDrawable {
+        return android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = 999f * dp
+            setColor(0x0AFFFFFF)
+            setStroke((1 * dp).toInt(), strokeColor)
+        }
+    }
+
+    private fun addSocialChip(label: String, url: String) {
+        // Avoid duplicate chips (APP API may have already added some)
+        for (i in 0 until baseBind.socialsGroup.childCount) {
+            val child = baseBind.socialsGroup.getChildAt(i)
+            if (child is android.widget.TextView && child.text == label) return
+        }
+        val dp = resources.displayMetrics.density
+        val textColor = resources.getColor(R.color.v3_text_2, theme)
+        val tv = android.widget.TextView(this).apply {
+            text = label
+            setTextColor(textColor)
+            textSize = 12f
+            background = makeBadgeBg(dp, palette.alpha20)
+            setPadding((14 * dp).toInt(), (8 * dp).toInt(), (14 * dp).toInt(), (8 * dp).toInt())
+            layoutParams = com.google.android.flexbox.FlexboxLayout.LayoutParams(
+                com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 0, (10 * dp).toInt(), (10 * dp).toInt())
+            }
+            setOnClickListener { openUrl(url) }
+        }
+        baseBind.socialsGroup.addView(tv)
+        baseBind.socialsGroup.isVisible = true
     }
 
     private fun setupSocialChips(profile: ceui.lisa.models.ProfileBean) {

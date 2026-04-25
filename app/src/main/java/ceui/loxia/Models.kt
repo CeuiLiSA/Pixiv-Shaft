@@ -236,6 +236,50 @@ data class Tag(
     }
 }
 
+data class FrequentTag(
+    val tag: String? = null,
+    val tag_translation: String? = null,
+) : Serializable
+
+data class WebUserDetail(
+    val userId: String? = null,
+    val name: String? = null,
+    val image: String? = null,
+    val imageBig: String? = null,
+    val premium: Boolean? = null,
+    val isFollowed: Boolean? = null,
+    val isMypixiv: Boolean? = null,
+    val isBlocking: Boolean? = null,
+    val followedBack: Boolean? = null,
+    val canSendMessage: Boolean? = null,
+    val background: WebUserBackground? = null,
+    val following: Int? = null,
+    val mypixivCount: Int? = null,
+    val comment: String? = null,
+    val commentHtml: String? = null,
+    val webpage: String? = null,
+    val social: Map<String, WebSocialLink>? = null,
+    val region: WebPrivacyField? = null,
+    val gender: WebPrivacyField? = null,
+    val workspace: Map<String, String?>? = null,
+    val official: Boolean? = null,
+    val publisher: Boolean? = null,
+) : Serializable
+
+data class WebUserBackground(
+    val url: String? = null,
+    val isPrivate: Boolean? = null,
+) : Serializable
+
+data class WebSocialLink(
+    val url: String? = null,
+) : Serializable
+
+data class WebPrivacyField(
+    val name: String? = null,
+    val privacyLevel: String? = null,
+) : Serializable
+
 object UserGender {
 
     const val UNKNOWN = 0

@@ -1023,6 +1023,9 @@
     <string name="v3_label_navigate">导航</string>
     <string name="v3_label_profile_details">个人资料</string>
     <string name="v3_label_workspace">工作环境</string>
+    <string name="v3_follows_you">互相关注</string>
+    <string name="v3_mypixiv_badge">好P友</string>
+    <string name="v3_official">Official</string>
 
     <!-- V3 novel card -->
     <string name="v3_type_novel">小说</string>

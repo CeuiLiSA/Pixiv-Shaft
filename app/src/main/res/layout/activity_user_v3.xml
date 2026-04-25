@@ -191,6 +191,54 @@
                         android:textColor="@color/v3_text_3"
                         android:textSize="13sp"
                         tools:text="@hitohachan · ID: 62059105" />
+
+                    <!-- Web-only badges row -->
+                    <LinearLayout
+                        android:id="@+id/badges_row"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/badge_follows_you"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="@string/v3_follows_you"
+                            android:textColor="@color/v3_text_2"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/badge_mypixiv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="@string/v3_mypixiv_badge"
+                            android:textColor="@color/v3_text_2"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/badge_official"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="@string/v3_official"
+                            android:textColor="#FFFFC233"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Toolbar (pinned) -->
@@ -252,21 +300,6 @@
                 android:paddingHorizontal="20dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="32dp">
-
-                <!-- Bio -->
-                <TextView
-                    android:id="@+id/bio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:alpha="0.78"
-                    android:autoLink="all"
-                    android:lineSpacingMultiplier="1.6"
-                    android:textColor="@color/v3_text_1"
-                    android:textColorLink="#3D8BFD"
-                    android:textIsSelectable="true"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
 
                 <!-- Stats Row (following + mypixiv only) -->
                 <LinearLayout
@@ -411,6 +444,21 @@
                         android:layout_marginTop="14dp"
                         android:orientation="vertical" />
                 </LinearLayout>
+
+                <!-- Bio (between profile and workspace) -->
+                <TextView
+                    android:id="@+id/bio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:alpha="0.78"
+                    android:autoLink="all"
+                    android:lineSpacingMultiplier="1.6"
+                    android:textColor="@color/v3_text_1"
+                    android:textColorLink="#3D8BFD"
+                    android:textIsSelectable="true"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
                 <!-- Workspace Card -->
                 <LinearLayout

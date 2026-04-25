@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.loxia.Event;
+import ceui.loxia.WebUserDetail;
 
 public class UserViewModel extends ViewModel {
 
@@ -16,6 +17,8 @@ public class UserViewModel extends ViewModel {
         }
         return user;
     }
+
+    public MutableLiveData<WebUserDetail> webUserDetail = new MutableLiveData<>();
 
     public MutableLiveData<Boolean> isUserMuted = new MutableLiveData<>();
     public MutableLiveData<Boolean> isUserBlocked = new MutableLiveData<>();
