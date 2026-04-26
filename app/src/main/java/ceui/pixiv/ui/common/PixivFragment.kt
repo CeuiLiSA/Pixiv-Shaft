@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.R
 import ceui.lisa.activities.UserActivity
@@ -584,7 +585,7 @@ fun Fragment.setUpLayoutManager(listView: RecyclerView, listMode: Int = ListMode
     listView.clearItemDecorations()
     if (listMode == ListMode.STAGGERED_GRID) {
         listView.addItemDecoration(StaggeredGridSpacingItemDecoration(4.ppppx))
-        listView.layoutManager = StaggeredManager(2, StaggeredGridLayoutManager.VERTICAL)
+        listView.layoutManager = StaggeredManager(Shaft.sSettings.lineCount, StaggeredGridLayoutManager.VERTICAL)
     } else if (listMode == ListMode.VERTICAL) {
         listView.layoutManager = LinearLayoutManager(ctx)
         listView.addItemDecoration(LinearItemDecoration(18.ppppx))
