@@ -138,7 +138,15 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
 
                         val tokenRegex = Regex(""""token"\s*:\s*"([a-f0-9]{32})"""")
                         val token = tokenRegex.find(body)?.groupValues?.get(1)
-                        Timber.d("StreetMain: intercepted HTML length=${body.length}, token=${token?.take(8)}")
+                        Timber.d("StreetMain: intercepted HTML length=${body.length}, token=${token?.take(8)}, hasNEXT_DATA=${body.contains("__NEXT_DATA__")}, hasToken=${body.contains("\"token\"")}, isLoggedIn=${body.contains("isLoggedIn\":true")}")
+                        if (token == null) {
+                            // 打印 token 附近的内容帮助调试
+                            val idx = body.indexOf("\"token\"")
+                            if (idx >= 0) {
+                                Timber.d("StreetMain: token context: ${body.substring(idx, minOf(idx + 80, body.length))}")
+                            }
+                            Timber.d("StreetMain: cookie sent: ${cookies.take(100)}")
+                        }
                         if (token != null) {
                             MMKV.defaultMMKV().encode("web-api-csrf-token", token)
                         }
