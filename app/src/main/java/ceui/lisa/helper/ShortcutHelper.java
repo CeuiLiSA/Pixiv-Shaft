@@ -25,35 +25,48 @@ import ceui.lisa.activities.TemplateActivity;
 public class ShortcutHelper {
 
     public static void addAppShortcuts() {
-        Context context = Shaft.getContext();
-        String searchShortcutId = "search";
-
-        List<ShortcutInfoCompat> shortcuts = ShortcutManagerCompat.getDynamicShortcuts(context);
-        if (shortcuts.stream().anyMatch(it -> it.getId().equals(searchShortcutId))) {
+        // Dynamic shortcuts 由系统的 ShortcutManager 提供，最早 API 25 (N_MR1) 才有；
+        // 低版本设备调 ShortcutManagerCompat.getDynamicShortcuts/pushDynamicShortcut
+        // 在部分 ROM 上会引发不可预知的问题 (#477)。直接早退，反正下面也用不到。
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) {
             return;
         }
 
-        Intent intent = new Intent(context, TemplateActivity.class);
-        intent.setAction(Intent.ACTION_VIEW);
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索");
-        IconCompat iconCompat;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                iconCompat = IconCompat.createWithBitmap(getAdaptiveBitmap(context, R.mipmap.ic_launcher_round));
-            } catch (Exception e) {
+        Context context = Shaft.getContext();
+        String searchShortcutId = "search";
+
+        try {
+            List<ShortcutInfoCompat> shortcuts = ShortcutManagerCompat.getDynamicShortcuts(context);
+            if (shortcuts.stream().anyMatch(it -> it.getId().equals(searchShortcutId))) {
+                return;
+            }
+
+            Intent intent = new Intent(context, TemplateActivity.class);
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索");
+            IconCompat iconCompat;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                try {
+                    iconCompat = IconCompat.createWithBitmap(getAdaptiveBitmap(context, R.mipmap.ic_launcher_round));
+                } catch (Exception e) {
+                    iconCompat = IconCompat.createWithResource(context, R.mipmap.ic_launcher_round);
+                }
+            } else {
                 iconCompat = IconCompat.createWithResource(context, R.mipmap.ic_launcher_round);
             }
-        } else {
-            iconCompat = IconCompat.createWithResource(context, R.mipmap.ic_launcher_round);
-        }
-        ShortcutInfoCompat shortcut = new ShortcutInfoCompat.Builder(context, searchShortcutId)
-                .setShortLabel(context.getString(R.string.search))
-                .setLongLabel(context.getString(R.string.search))
-                .setIcon(iconCompat)
-                .setIntent(intent)
-                .build();
+            ShortcutInfoCompat shortcut = new ShortcutInfoCompat.Builder(context, searchShortcutId)
+                    .setShortLabel(context.getString(R.string.search))
+                    .setLongLabel(context.getString(R.string.search))
+                    .setIcon(iconCompat)
+                    .setIntent(intent)
+                    .build();
 
-        ShortcutManagerCompat.pushDynamicShortcut(context, shortcut);
+            ShortcutManagerCompat.pushDynamicShortcut(context, shortcut);
+        } catch (Throwable t) {
+            // 兜底：某些厂商 ROM (国产改版) 的 ShortcutManager 实现仍可能抛
+            // RuntimeException / IllegalStateException，吞掉避免应用启动崩溃。
+            android.util.Log.w("ShortcutHelper", "addAppShortcuts failed", t);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
