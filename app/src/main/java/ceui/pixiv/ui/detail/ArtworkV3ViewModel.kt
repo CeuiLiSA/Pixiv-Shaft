@@ -86,10 +86,20 @@ class ArtworkV3ViewModel(
 
     private val illustBeanObserver = Observer<IllustsBean> { bean ->
         if (bean != null) {
+            val mpInfo = try {
+                if (bean.meta_pages == null) "null" else "size=${bean.meta_pages.size}"
+            } catch (e: Throwable) { "throws ${e.javaClass.simpleName}" }
+            Timber.tag("V3MultiP").d(
+                "[ViewModel.illustBeanObserver] FIRE illustId=$illustId, " +
+                    "page_count=${bean.page_count}, w=${bean.width}, h=${bean.height}, " +
+                    "meta_pages=$mpInfo, prevIllustBeanWasNull=${illustBean == null}"
+            )
             illustBean = bean
             _isBookmarked.value = bean.isIs_bookmarked
             buildHeaderItems()
             setupDownloadFab(bean)
+        } else {
+            Timber.tag("V3MultiP").w("[ViewModel.illustBeanObserver] FIRE illustId=$illustId, bean=NULL")
         }
     }
 
@@ -205,6 +215,11 @@ class ArtworkV3ViewModel(
     }
 
     init {
+        Timber.tag("V3MultiP").d(
+            "[ViewModel.init] illustId=$illustId, " +
+                "IllustsBeanPoolHasValue=${illustBeanLiveData.value != null}, " +
+                "IllustPoolHasValue=${ObjectPool.get<Illust>(illustId).value != null}"
+        )
         illustBeanLiveData.observeForever(illustBeanObserver)
         loadData()
     }
@@ -258,19 +273,38 @@ class ArtworkV3ViewModel(
     private fun loadData() {
         // IllustsBean is normally already in ObjectPool from the list page.
         // Only fetch when entering via deep link / history where the pool is empty.
-        if (illustBean != null) return
+        if (illustBean != null) {
+            Timber.tag("V3MultiP").d("[ViewModel.loadData] short-circuit: IllustsBean already present (illustId=$illustId)")
+            return
+        }
+        Timber.tag("V3MultiP").d(
+            "[ViewModel.loadData] IllustsBean is NULL, falling through to Illust pool / DB / API path. " +
+                "WARNING: this path only updates Illust(modern) pool, NOT IllustsBean(legacy) — " +
+                "Fragment observes IllustsBean and may never get adapter-created."
+        )
         viewModelScope.launch {
             try {
-                ObjectPool.get<Illust>(illustId).value
+                val fromIllustPool = ObjectPool.get<Illust>(illustId).value
+                Timber.tag("V3MultiP").d("[ViewModel.loadData] Illust(modern) pool value=${fromIllustPool != null}")
+                fromIllustPool
                     ?: withContext(Dispatchers.IO) {
                         val ctx = Shaft.getContext()
                         AppDatabase.getAppDatabase(ctx).generalDao()
                             .getByRecordTypeAndId(RecordType.VIEW_ILLUST_HISTORY, illustId)
-                            ?.typedObject<Illust>()?.also { ObjectPool.update(it) }
+                            ?.typedObject<Illust>()?.also {
+                                Timber.tag("V3MultiP").d("[ViewModel.loadData] hit DB history, updating Illust(modern) pool")
+                                ObjectPool.update(it)
+                            }
                     }
-                    ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
+                    ?: Client.appApi.getIllust(illustId).illust?.also {
+                        Timber.tag("V3MultiP").d(
+                            "[ViewModel.loadData] fetched via API, page_count=${it.page_count}, " +
+                                "meta_pages=${it.meta_pages?.size ?: -1}; updating Illust(modern) pool"
+                        )
+                        ObjectPool.update(it)
+                    }
             } catch (e: Exception) {
-                Timber.e(e)
+                Timber.tag("V3MultiP").e(e, "[ViewModel.loadData] EXCEPTION")
             }
         }
     }

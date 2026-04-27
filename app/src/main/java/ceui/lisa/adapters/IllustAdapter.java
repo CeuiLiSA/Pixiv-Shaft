@@ -76,6 +76,25 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
+        try {
+            doBind(holder, position);
+        } catch (Throwable t) {
+            // Don't let a malformed bean (null meta_pages, missing image_urls, etc.)
+            // crash the whole RecyclerView. Log loudly so the issue can be triaged.
+            Timber.tag("V3MultiP").e(t,
+                "[IllustAdapter.bind] FATAL pos=%d, illustId=%d, page_count=%d, w=%d, h=%d",
+                position,
+                allIllust != null ? allIllust.getId() : -1,
+                allIllust != null ? allIllust.getPage_count() : -1,
+                allIllust != null ? allIllust.getWidth() : -1,
+                allIllust != null ? allIllust.getHeight() : -1
+            );
+            holder.baseBind.reload.setVisibility(View.VISIBLE);
+            holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+        }
+    }
+
+    private void doBind(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
         if(longPressDownload && mActivity instanceof BaseActivity<?>){
             holder.itemView.setOnLongClickListener(v -> {
@@ -98,11 +117,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             ImageView.ScaleType scaleType;
             int targetHeight;
             boolean changeSize;
+            String branchTag;
             if (!hasValidDims) {
                 // Fallback: unknown dimensions, defer sizing to UniformScaleTransformation.
                 scaleType = ImageView.ScaleType.CENTER_CROP;
                 targetHeight = maxHeight > 0 ? maxHeight : holder.baseBind.illust.getLayoutParams().height;
                 changeSize = true;
+                branchTag = "fallback(noValidDims)";
             } else {
                 float screenRatio = (float) imageSize / maxHeight;
                 float illustRatio = (float) iw / ih;
@@ -114,18 +135,31 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     // Multi-page cover: CENTER_CROP; natural-aspect tall, letterbox cap wide.
                     scaleType = ImageView.ScaleType.CENTER_CROP;
                     targetHeight = wide ? maxHeight : Math.round(imageSize / illustRatio);
+                    branchTag = "multiP_" + (wide ? "wide_capMax" : "tall_natural");
                 } else if (nearSquare) {
                     scaleType = ImageView.ScaleType.CENTER_CROP;
                     targetHeight = maxHeight;
+                    branchTag = "single_nearSquare";
                 } else if (wide) {
                     scaleType = ImageView.ScaleType.FIT_CENTER;
                     targetHeight = maxHeight;
+                    branchTag = "single_wide_letterbox";
                 } else { // tall: natural aspect, may exceed maxHeight
                     scaleType = ImageView.ScaleType.CENTER_CROP;
                     targetHeight = Math.round(imageSize / illustRatio);
+                    branchTag = "single_tall_natural";
                 }
                 changeSize = false;
             }
+
+            int pageCount = allIllust.getPage_count();
+            Timber.tag("V3MultiP").d(
+                "[IllustAdapter.bind pos=0] illustId=%d, page_count=%d, iw=%d, ih=%d, " +
+                    "imageSize(=screenW)=%d, maxHeight=%d, branch=%s, targetHeight=%d, " +
+                    "scaleType=%s, changeSize=%b, adapterClass=%s, getItemCount=%d",
+                allIllust.getId(), pageCount, iw, ih, imageSize, maxHeight, branchTag,
+                targetHeight, scaleType, changeSize, this.getClass().getSimpleName(), getItemCount()
+            );
 
             holder.baseBind.illust.setScaleType(scaleType);
             ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
@@ -134,6 +168,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             holder.baseBind.illust.setLayoutParams(params);
             loadIllust(holder, position, changeSize);
         } else {
+            Timber.tag("V3MultiP").d(
+                "[IllustAdapter.bind pos=%d] non-first page, illustId=%d",
+                position, allIllust.getId()
+            );
             holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
             loadIllust(holder, position, true);
         }

@@ -38,6 +38,7 @@ import ceui.pixiv.utils.setOnClick
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
 
@@ -123,16 +124,51 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         setupNavBar(illustId)
         handleSystemInsets()
 
+        Timber.tag("V3MultiP").d(
+            "[Fragment.initView] illustId=$illustId, " +
+                "displayMetrics=${resources.displayMetrics.widthPixels}x${resources.displayMetrics.heightPixels}, " +
+                "density=${resources.displayMetrics.density}, " +
+                "concatHasIsolateViewTypes=true, sglmGapHandling=NONE"
+        )
+
         // When illust data arrives, insert IllustAdapter at the front. For heavy
         // multi-page works (e.g. 50P manga) collapse all but the first few pages so
         // the reader can reach tags / comments / related works without a huge scroll;
         // the ExpandPagesAdapter card sits right after and reveals the rest on tap.
+        var observerEmissionCount = 0
         ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
-            if (illust != null && illustAdapter == null) {
+            observerEmissionCount++
+            if (illust == null) {
+                Timber.tag("V3MultiP").w("[Fragment.observe] emission #$observerEmissionCount: illust=NULL, illustId=$illustId")
+                return@observe
+            }
+            val metaPagesInfo = try {
+                val mp = illust.meta_pages
+                if (mp == null) "null" else "size=${mp.size}"
+            } catch (e: Throwable) { "throws ${e.javaClass.simpleName}" }
+            val metaSingleInfo = try {
+                if (illust.meta_single_page == null) "null"
+                else "original=${illust.meta_single_page.original_image_url?.take(80) ?: "null"}"
+            } catch (e: Throwable) { "throws ${e.javaClass.simpleName}" }
+            Timber.tag("V3MultiP").d(
+                "[Fragment.observe] emission #$observerEmissionCount, " +
+                    "illustId=$illustId, page_count=${illust.page_count}, " +
+                    "width=${illust.width}, height=${illust.height}, " +
+                    "meta_pages=$metaPagesInfo, meta_single_page=$metaSingleInfo, " +
+                    "image_urls.large=${illust.image_urls?.large?.take(80) ?: "null"}, " +
+                    "adapterAlreadyCreated=${illustAdapter != null}"
+            )
+            if (illustAdapter == null) {
                 // Use 70% of screen height as max — not full screen, so single-page
                 // images don't stretch to fill the entire viewport
                 val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
-                val adapter = if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
+                val willCollapse = CollapsibleIllustAdapter.shouldCollapse(illust.page_count)
+                Timber.tag("V3MultiP").d(
+                    "[Fragment.createAdapter] page_count=${illust.page_count}, " +
+                        "maxHeight=$maxHeight, willCollapse=$willCollapse, " +
+                        "adapterClass=${if (willCollapse) "CollapsibleIllustAdapter" else "IllustAdapter(anon)"}"
+                )
+                val adapter = if (willCollapse) {
                     CollapsibleIllustAdapter(
                         mActivity,
                         this@ArtworkV3Fragment,
@@ -151,11 +187,26 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                                 lp.isFullSpan = true
                                 holder.itemView.layoutParams = lp
                             }
+                            Timber.tag("V3MultiP").d(
+                                "[Fragment.IllustAdapter.onAttach] pos=${holder.bindingAdapterPosition}, " +
+                                    "itemView=${holder.itemView.width}x${holder.itemView.height}, " +
+                                    "isFullSpan=${(lp as? StaggeredGridLayoutManager.LayoutParams)?.isFullSpan}"
+                            )
                         }
                     }
                 }
                 illustAdapter = adapter
+                val adapterCount = adapter.itemCount
+                Timber.tag("V3MultiP").d(
+                    "[Fragment.addAdapter] inserting at index 0, " +
+                        "adapter.itemCount=$adapterCount, concatBeforeInsert=${concatAdapter.itemCount}"
+                )
                 concatAdapter.addAdapter(0, adapter)
+                Timber.tag("V3MultiP").d(
+                    "[Fragment.addAdapter] after insert, concatItemCount=${concatAdapter.itemCount}, " +
+                        "rvIsComputingLayout=${baseBind.recyclerView.isComputingLayout}, " +
+                        "rvIsAttached=${baseBind.recyclerView.isAttachedToWindow}"
+                )
             }
         }
 
