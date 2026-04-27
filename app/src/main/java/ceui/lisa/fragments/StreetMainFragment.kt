@@ -105,12 +105,12 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
         Timber.d("StreetMain: have cookie but no CSRF, fetching via WebView")
         baseBind.toolbarTitle.text = getString(R.string.street_title)
 
+        val ua = "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.42 Mobile Safari/537.36"
         val webView = WebView(mContext).apply {
             visibility = View.GONE
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            settings.userAgentString =
-                "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.42 Mobile Safari/537.36"
+            settings.userAgentString = ua
         }
         loginWebView = webView
 
@@ -126,12 +126,11 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): android.webkit.WebResourceResponse? {
                 val url = request?.url?.toString() ?: return null
-                // 只拦截主页面请求
                 if (url == "https://www.pixiv.net/" || url == "https://www.pixiv.net") {
                     try {
                         val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
                         conn.setRequestProperty("Cookie", cookies)
-                        conn.setRequestProperty("User-Agent", view?.settings?.userAgentString ?: "")
+                        conn.setRequestProperty("User-Agent", ua)
                         conn.setRequestProperty("Accept", "text/html")
                         conn.connect()
                         val body = conn.inputStream.bufferedReader().readText()
@@ -194,6 +193,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
         baseBind.toolbarTitle.text = getString(R.string.street_web_login_toolbar)
         baseBind.recyclerView.visibility = View.GONE
 
+        val ua = "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.42 Mobile Safari/537.36"
         val webView = WebView(mContext).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -202,8 +202,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
             setBackgroundColor(Color.WHITE)
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            settings.userAgentString =
-                "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.42 Mobile Safari/537.36"
+            settings.userAgentString = ua
         }
         loginWebView = webView
 
@@ -221,7 +220,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
                         val savedCookie = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "") ?: ""
                         val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
                         conn.setRequestProperty("Cookie", savedCookie)
-                        conn.setRequestProperty("User-Agent", view?.settings?.userAgentString ?: "")
+                        conn.setRequestProperty("User-Agent", ua)
                         conn.setRequestProperty("Accept", "text/html")
                         conn.connect()
                         val body = conn.inputStream.bufferedReader().readText()
