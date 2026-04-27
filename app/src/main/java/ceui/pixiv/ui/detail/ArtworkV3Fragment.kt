@@ -85,28 +85,34 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
             loadingFooter
         )
 
-        val layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-        // Disable span-shuffle on gap — the header has many fullSpan items above a 2-column
-        // grid; default MOVE_ITEMS_BETWEEN_SPANS causes jank as items re-layout during scroll.
+        // Honour the global "列数" setting (FragmentSettings → 首页/作者页推荐流列数)。
+        // Hardcoded 2 here ignored the user's preference — see issue #851.
+        val spanCount = Shaft.sSettings.lineCount.coerceAtLeast(1)
+        val layoutManager = StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+        // Disable span-shuffle on gap — the header has many fullSpan items above an
+        // N-column grid; default MOVE_ITEMS_BETWEEN_SPANS causes jank as items
+        // re-layout during scroll.
         layoutManager.gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
         baseBind.recyclerView.layoutManager = layoutManager
         baseBind.recyclerView.adapter = concatAdapter
-        baseBind.recyclerView.addItemDecoration(RelatedOnlySpaceDecoration(4.ppppx))
+        baseBind.recyclerView.addItemDecoration(RelatedOnlySpaceDecoration(4.ppppx, spanCount))
         // Header items are all fullSpan — DefaultItemAnimator's change animation on
         // notifyItemChanged (fired when ObjectPool pushes the updated UserBean after
         // returning from UActivity) scrambles SGLM's fullSpan tracking and makes the
         // Artist card snap flush with its upper neighbor. No useful animation to lose.
         baseBind.recyclerView.itemAnimator = null
 
-        // Infinite scroll trigger near list end.
+        // Infinite scroll trigger near list end. Buffer is per-span so it must
+        // match the layout's spanCount, not be hardcoded to 2.
         baseBind.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            private val lastVisiblePositions = IntArray(2)
+            private val lastVisiblePositions = IntArray(spanCount)
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 if (dy > 0) {
                     val lm = recyclerView.layoutManager as StaggeredGridLayoutManager
                     lm.findLastVisibleItemPositions(lastVisiblePositions)
-                    val lastVisible = maxOf(lastVisiblePositions[0], lastVisiblePositions[1])
+                    var lastVisible = RecyclerView.NO_POSITION
+                    for (p in lastVisiblePositions) if (p > lastVisible) lastVisible = p
                     if (lastVisible >= lm.itemCount - 4 && viewModel.hasMoreRelated) {
                         viewModel.loadMoreRelated()
                     }
@@ -485,9 +491,16 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
     /**
      * Spacing decoration that only applies to non-fullSpan items (IAdapter's related cards).
      * Header items and loading footer are fullSpan and get zero offset.
+     *
+     * Distributes [space] gutters evenly for any [spanCount] >= 1: full gutter
+     * outside the leftmost / rightmost columns, half gutter on the inner sides.
+     * For spanCount=2 this matches the previous hardcoded behavior; for 3+ it
+     * keeps the middle columns from collapsing against either neighbor.
      */
-    private class RelatedOnlySpaceDecoration(private val space: Int) :
-        RecyclerView.ItemDecoration() {
+    private class RelatedOnlySpaceDecoration(
+        private val space: Int,
+        private val spanCount: Int,
+    ) : RecyclerView.ItemDecoration() {
         override fun getItemOffsets(
             outRect: Rect,
             view: View,
@@ -498,13 +511,9 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
             if (lp !is StaggeredGridLayoutManager.LayoutParams || lp.isFullSpan) return
 
             outRect.bottom = space
-            if (lp.spanIndex == 0) {
-                outRect.left = space
-                outRect.right = space / 2
-            } else {
-                outRect.left = space / 2
-                outRect.right = space
-            }
+            val spanIndex = lp.spanIndex
+            outRect.left = if (spanIndex == 0) space else space / 2
+            outRect.right = if (spanIndex == spanCount - 1) space else space / 2
         }
     }
 
