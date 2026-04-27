@@ -25,6 +25,17 @@ interface StorageBackend {
 
     fun delete(relPath: RelativePath): Boolean
 
+    /**
+     * Open a write handle that replaces any existing file at [relPath].
+     * Default: delete + open. [MediaStoreBackend] overrides this to update
+     * the existing row in place, avoiding `contentResolver.delete()` which
+     * triggers media-deletion alerts on some Android skins (e.g. HarmonyOS).
+     */
+    fun replace(relPath: RelativePath, mime: String): WriteHandle {
+        if (exists(relPath)) delete(relPath)
+        return open(relPath, mime)
+    }
+
     data class WriteHandle(
         val uri: Uri,
         val stream: OutputStream,

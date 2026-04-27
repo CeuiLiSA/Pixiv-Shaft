@@ -48,6 +48,34 @@ class MediaStoreBackend(
         return legacyFile(relPath).delete()
     }
 
+    /**
+     * On Q+, update the existing MediaStore row in place instead of
+     * delete + insert. This avoids `contentResolver.delete()` which
+     * triggers media-deletion alerts on HarmonyOS and similar skins.
+     */
+    override fun replace(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val existing = findUri(relPath)
+            if (existing != null) {
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.MIME_TYPE, mime)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+                context.contentResolver.update(existing, values, null, null)
+                val stream = context.contentResolver.openOutputStream(existing, "rwt")
+                    ?: error("openOutputStream returned null for $existing")
+                val onFinish: () -> Unit = {
+                    val update = ContentValues().apply {
+                        put(MediaStore.MediaColumns.IS_PENDING, 0)
+                    }
+                    context.contentResolver.update(existing, update, null, null)
+                }
+                return StorageBackend.WriteHandle(existing, stream, onFinish)
+            }
+        }
+        return super.replace(relPath, mime)
+    }
+
     private fun openModern(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
         // Facade-enforced invariant: the path is guaranteed free by the time
         // we get here. Always insert fresh so the row carries the correct mime.

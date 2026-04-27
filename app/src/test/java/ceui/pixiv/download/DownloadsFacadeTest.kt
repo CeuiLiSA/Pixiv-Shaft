@@ -77,13 +77,14 @@ class DownloadsFacadeTest {
         assertEquals(listOf("d", "a 1 (2).png"), plan.path.segments)
     }
 
-    @Test fun `replace policy deletes existing before planning`() {
+    @Test fun `replace policy does not delete during plan — deferred to backend replace`() {
         val backend = FakeBackend()
         backend.seed("d/a 1.png")
         val facade = Downloads(configWith(overwrite = OverwritePolicy.Replace), { backend })
         val plan = facade.plan(item)
         assertEquals(listOf("d", "a 1.png"), plan.path.segments)
-        assertTrue("original deleted", backend.deleted.any { it.joinTo() == "d/a 1.png" })
+        assertFalse("plan should not skip for Replace", plan.skip)
+        assertTrue("nothing deleted during plan", backend.deleted.isEmpty())
     }
 
     @Test fun `skip policy marks plan and returns untouched path when file exists`() {

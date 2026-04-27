@@ -24,8 +24,10 @@ import ceui.pixiv.download.template.Template
  *   3. Backends are resolved via the [backendFactory] using the
  *      [StorageChoice] in [DownloadConfig]; the factory should cache its own
  *      instances if appropriate.
- *   4. [OverwritePolicy] is enforced at the facade. Backends MUST NOT make
- *      overwrite decisions on their own.
+ *   4. [OverwritePolicy] is enforced at the facade. For [OverwritePolicy.Replace],
+ *      the facade delegates to [StorageBackend.replace] so each backend can
+ *      handle replacement in a platform-friendly way (e.g. MediaStore updates
+ *      in place instead of delete + insert).
  *   5. [Bucket.TempCache] is not user-configurable — it always uses
  *      [StorageChoice.AppCache] with a fixed template and Replace policy. This
  *      keeps intermediate artefacts (ugoira zip, unpacked frames) out of the
@@ -84,7 +86,11 @@ class Downloads(
         val backend = backendFactory(resolved.storage)
         val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite)
         if (skip) return null
-        return backend.open(finalPath, mime)
+        return if (resolved.overwrite == OverwritePolicy.Replace) {
+            backend.replace(finalPath, mime)
+        } else {
+            backend.open(finalPath, mime)
+        }
     }
 
     private fun resolveBucket(bucket: Bucket): ResolvedBucket =
@@ -97,7 +103,9 @@ class Downloads(
     ): Pair<RelativePath, Boolean> = when (policy) {
         OverwritePolicy.Skip    -> path to backend.exists(path)
         OverwritePolicy.Replace -> {
-            if (backend.exists(path)) backend.delete(path)
+            // Don't delete here — backend.replace() handles it in a
+            // platform-friendly way (e.g. MediaStore updates in place
+            // instead of delete + insert to avoid deletion alerts).
             path to false
         }
         OverwritePolicy.Rename  -> nextFreePath(path, backend) to false
@@ -136,7 +144,11 @@ class Downloads(
     ) {
         fun open(): StorageBackend.WriteHandle {
             check(!skip) { "Plan for ${path.joinTo()} is marked skip — do not open" }
-            return backend.open(path, item.mime)
+            return if (overwrite == OverwritePolicy.Replace) {
+                backend.replace(path, item.mime)
+            } else {
+                backend.open(path, item.mime)
+            }
         }
     }
 
