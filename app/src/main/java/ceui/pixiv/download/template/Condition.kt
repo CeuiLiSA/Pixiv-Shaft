@@ -6,18 +6,19 @@ package ceui.pixiv.download.template
  */
 sealed interface Condition {
     data class Flag(val name: String, val negated: Boolean = false) : Condition
-    data class PageGreaterThan(val threshold: Int) : Condition
+    data class PageGreaterThan(val threshold: Int, val negated: Boolean = false) : Condition
 
     companion object {
         fun parse(raw: String): Condition {
             val trimmed = raw.trim()
-            if (trimmed.startsWith("p>")) {
-                val n = trimmed.removePrefix("p>").trim().toIntOrNull()
-                    ?: error("Invalid condition: '$raw'")
-                return PageGreaterThan(n)
-            }
             val negated = trimmed.startsWith("!")
-            val name = if (negated) trimmed.removePrefix("!").trim() else trimmed
+            val body = if (negated) trimmed.removePrefix("!").trim() else trimmed
+            if (body.startsWith("p>")) {
+                val n = body.removePrefix("p>").trim().toIntOrNull()
+                    ?: error("Invalid condition: '$raw'")
+                return PageGreaterThan(n, negated)
+            }
+            val name = body
             require(name.isNotEmpty()) { "Empty condition: '$raw'" }
             return Flag(name, negated)
         }

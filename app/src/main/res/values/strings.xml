@@ -1276,6 +1276,7 @@
     <string name="download_path_preset_by_date">按日期分组</string>
     <string name="download_path_preset_by_author">按作者分组</string>
     <string name="download_path_preset_by_author_and_date">按作者 + 年月分组</string>
+    <string name="download_path_preset_by_author_multi_page_group">按作者分组 + 多P建子文件夹</string>
     <string name="download_path_preset_minimal">极简（只用 ID）</string>
     <string name="download_path_preset_r_filter">R18 / AI 强制分桶</string>
     <string name="novel_text_length">字数：%1$d</string>
@@ -1348,11 +1349,14 @@
     <string name="download_path_teach_section_cond">条件块（点击插入）</string>
     <string name="download_path_teach_cond_r18">只有 R18 作品才加 "R18/" 子目录</string>
     <string name="download_path_teach_cond_ai">只有 AI 作品才加 "AI/" 子目录</string>
-    <string name="download_path_teach_cond_multipage">只有多张时才加页码后缀</string>
+    <string name="download_path_teach_cond_multipage">多P时才生效（可包含 / 建子目录）</string>
+    <string name="download_path_teach_cond_singlepage">单P时才生效（[?p>1:] 的反面）</string>
     <string name="download_path_teach_cond_not_r18">只有非 R18 才加 "safe/" 子目录</string>
 
     <string name="download_path_teach_section_examples">常见写法（点击套用到当前编辑的模板）</string>
-    <string name="download_path_teach_example_classic_label">Shaft 经典：按作者分组</string>
+    <string name="download_path_teach_example_classic_label">Shaft 经典</string>
+    <string name="download_path_teach_example_by_author_label">按作者分组</string>
+    <string name="download_path_teach_example_multi_page_group_label">多P建子文件夹，单P不建</string>
     <string name="download_path_teach_example_flat_label">扁平：所有作品平铺在一个目录</string>
     <string name="download_path_teach_example_date_label">按年月分组</string>
     <string name="download_path_teach_example_r18_label">R18 / AI 分目录 + 按作者</string>

@@ -13,12 +13,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Scroll progress bar — only visible in FlipMode.Scroll, bound to NovelScrollReaderView -->
+    <!-- Scroll progress bar (top) — only visible in vertical scroll mode -->
     <View
         android:id="@+id/scroll_progress_bar"
         android:layout_width="match_parent"
         android:layout_height="3dp"
         android:layout_gravity="top"
+        android:background="@drawable/v3_scroll_progress"
+        android:elevation="10dp"
+        android:scaleX="0"
+        android:transformPivotX="0dp"
+        android:visibility="gone" />
+
+    <!-- Scroll progress bar (bottom) — only visible in vertical scroll mode -->
+    <View
+        android:id="@+id/scroll_progress_bar_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="bottom"
         android:background="@drawable/v3_scroll_progress"
         android:elevation="10dp"
         android:scaleX="0"

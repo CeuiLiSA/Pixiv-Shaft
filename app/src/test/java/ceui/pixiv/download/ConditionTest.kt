@@ -22,6 +22,11 @@ class ConditionTest {
         assertEquals(Condition.PageGreaterThan(3), c)
     }
 
+    @Test fun `parses negated page greater than`() {
+        val c = Condition.parse("!p>1")
+        assertEquals(Condition.PageGreaterThan(1, negated = true), c)
+    }
+
     @Test fun `trims surrounding whitespace`() {
         assertEquals(Condition.Flag("AI"), Condition.parse("  AI  "))
     }

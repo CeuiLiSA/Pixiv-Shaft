@@ -44,7 +44,10 @@ class TemplateContext(
             val present = meta.has(flag)
             if (condition.negated) !present else present
         }
-        is Condition.PageGreaterThan -> meta.totalPages > condition.threshold
+        is Condition.PageGreaterThan -> {
+            val result = meta.totalPages > condition.threshold
+            if (condition.negated) !result else result
+        }
     }
 
     private fun formatInstant(pattern: String?): String {

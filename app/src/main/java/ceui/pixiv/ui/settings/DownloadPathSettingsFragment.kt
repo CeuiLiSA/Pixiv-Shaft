@@ -124,6 +124,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         PresetInfo(ConfigPresets.Id.ByDate,          R.string.download_path_preset_by_date),
         PresetInfo(ConfigPresets.Id.ByAuthor,        R.string.download_path_preset_by_author),
         PresetInfo(ConfigPresets.Id.ByAuthorAndDate, R.string.download_path_preset_by_author_and_date),
+        PresetInfo(ConfigPresets.Id.ByAuthorMultiPageGroup, R.string.download_path_preset_by_author_multi_page_group),
         PresetInfo(ConfigPresets.Id.Minimal,         R.string.download_path_preset_minimal),
         PresetInfo(ConfigPresets.Id.RFilter,         R.string.download_path_preset_r_filter),
     )
@@ -200,7 +201,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private val CONDITION_TOKENS = listOf(
         Token("[?R18:R18/]", "[?R18:R18/]", R.string.download_path_teach_cond_r18),
         Token("[?AI:AI/]", "[?AI:AI/]", R.string.download_path_teach_cond_ai),
-        Token("[?p>1: p{page}]", "[?p>1:p{page}]", R.string.download_path_teach_cond_multipage),
+        Token("[?p>1: p{page}]", "[?p>1:…]", R.string.download_path_teach_cond_multipage),
+        Token("[?!p>1:]", "[?!p>1:…]", R.string.download_path_teach_cond_singlepage),
         Token("[?!R18:safe/]", "[?!R18:safe/]", R.string.download_path_teach_cond_not_r18),
     )
 
@@ -209,6 +211,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private val EXAMPLES = listOf(
         Example(DefaultTemplates.ILLUST, R.string.download_path_teach_example_classic_label),
         Example("Shaft/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_flat_label),
+        Example("Shaft/{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_by_author_label),
+        Example("Shaft/{author} ({author_id})/[?p>1:{title} {id}/]{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_multi_page_group_label),
         Example("Shaft/{created:yyyy}/{created:yyyy-MM}/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_date_label),
         Example("Shaft/[?R18:R18/][?AI:AI/]{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_r18_label),
     )

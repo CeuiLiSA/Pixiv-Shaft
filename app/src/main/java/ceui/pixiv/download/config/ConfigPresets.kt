@@ -135,6 +135,27 @@ object ConfigPresets {
             ),
         )
 
+    /** 多P单独建子文件夹，单P直接放作者目录下；兼顾整洁和浏览便利。 */
+    fun byAuthorMultiPageGroup(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
+        DownloadConfig(
+            defaults = BucketDefaults(
+                template = "Shaft/{author} ({author_id})/[?p>1:{title} {id}/]{title} {id}[?p>1: p{page}].{ext}",
+                storage  = imagesStorage,
+            ),
+            perBucket = mapOf(
+                Bucket.Ugoira to BucketConfig(
+                    template = "Shaft/{author} ({author_id})/{title} {id}.gif",
+                    storage  = imagesStorage,
+                ),
+                Bucket.Novel  to BucketConfig(
+                    template = "Shaft/{author} ({author_id})/{title} {id}.txt",
+                    storage  = downloadsStorage,
+                ),
+                Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
+                Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
+            ),
+        )
+
     /** 最短路径——只保留 ID + 扩展名，路径由存储卷自己决定。 */
     fun minimal(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
@@ -178,6 +199,7 @@ object ConfigPresets {
         ByDate,
         ByAuthor,
         ByAuthorAndDate,
+        ByAuthorMultiPageGroup,
         Minimal,
         RFilter,
     }
@@ -187,13 +209,14 @@ object ConfigPresets {
         imagesStorage: StorageChoice,
         downloadsStorage: StorageChoice,
     ): DownloadConfig = when (id) {
-        Id.ShaftClassic    -> shaftClassic(imagesStorage, downloadsStorage)
-        Id.Modern          -> modern(imagesStorage, downloadsStorage)
-        Id.Flat            -> flat(imagesStorage, downloadsStorage)
-        Id.ByDate          -> byDate(imagesStorage, downloadsStorage)
-        Id.ByAuthor        -> byAuthor(imagesStorage, downloadsStorage)
-        Id.ByAuthorAndDate -> byAuthorAndDate(imagesStorage, downloadsStorage)
-        Id.Minimal         -> minimal(imagesStorage, downloadsStorage)
-        Id.RFilter         -> rFilter(imagesStorage, downloadsStorage)
+        Id.ShaftClassic            -> shaftClassic(imagesStorage, downloadsStorage)
+        Id.Modern                  -> modern(imagesStorage, downloadsStorage)
+        Id.Flat                    -> flat(imagesStorage, downloadsStorage)
+        Id.ByDate                  -> byDate(imagesStorage, downloadsStorage)
+        Id.ByAuthor                -> byAuthor(imagesStorage, downloadsStorage)
+        Id.ByAuthorAndDate         -> byAuthorAndDate(imagesStorage, downloadsStorage)
+        Id.ByAuthorMultiPageGroup  -> byAuthorMultiPageGroup(imagesStorage, downloadsStorage)
+        Id.Minimal                 -> minimal(imagesStorage, downloadsStorage)
+        Id.RFilter                 -> rFilter(imagesStorage, downloadsStorage)
     }
 }

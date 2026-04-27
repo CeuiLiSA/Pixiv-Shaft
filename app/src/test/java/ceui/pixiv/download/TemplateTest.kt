@@ -64,6 +64,15 @@ class TemplateTest {
         assertEquals("Hello World.png", t.render(single, "png").joinTo())
     }
 
+    @Test fun `negated page greater than condition`() {
+        val t = Template.compile("[?p>1:{title}/]{title}[?p>1: p{page}][?!p>1: single].{ext}")
+        // Multi-page: subfolder + page suffix
+        assertEquals("Hello World/Hello World p3.png", t.render(META, "png").joinTo())
+        // Single-page: no subfolder, " single" suffix
+        val single = META.copy(totalPages = 1)
+        assertEquals("Hello World single.png", t.render(single, "png").joinTo())
+    }
+
     @Test fun `created date formatting`() {
         val t = Template.compile("{created:yyyy-MM-dd}.{ext}")
         val p = t.render(META, "png")
