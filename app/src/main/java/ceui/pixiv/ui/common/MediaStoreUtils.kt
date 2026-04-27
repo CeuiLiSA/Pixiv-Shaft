@@ -22,12 +22,27 @@ import java.io.FileInputStream
 import java.io.IOException
 
 
+private fun mimeFromName(name: String): String {
+    val ext = name.substringAfterLast('.', missingDelimiterValue = "").lowercase()
+    return when (ext) {
+        "png"          -> "image/png"
+        "gif"          -> "image/gif"
+        "webp"         -> "image/webp"
+        "bmp"          -> "image/bmp"
+        "heic", "heif" -> "image/heif"
+        "jpg", "jpeg"  -> "image/jpeg"
+        else           -> "image/jpeg"
+    }
+}
+
 fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
     runCatching {
         val handle = ceui.pixiv.download.DownloadsRegistry.downloads.openRaw(
             ceui.pixiv.download.model.Bucket.Illust,
             ceui.pixiv.download.model.RelativePath.parse("ShaftImages/$displayName"),
-            "image/*",
+            // MediaStore.MIME_TYPE rejects wildcards on Q+, so resolve a concrete
+            // type from the extension. Falls back to image/jpeg for unknown ones.
+            mimeFromName(displayName),
         ) ?: return@runCatching
         handle.stream.use { outputStream ->
             FileInputStream(imageFile).use { inputStream ->
