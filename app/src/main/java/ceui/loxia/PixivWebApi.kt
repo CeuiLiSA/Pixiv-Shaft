@@ -1,6 +1,9 @@
 package ceui.loxia
 
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -55,4 +58,10 @@ interface PixivWebApi {
     suspend fun getCircleDetail(
         @Query("word") word: String,
     ): CircleResponse
+
+    @POST("/ajax/street/v2/main")
+    suspend fun getStreetMain(
+        @Header("x-csrf-token") csrfToken: String,
+        @Body request: StreetRequest,
+    ): StreetResponse
 }

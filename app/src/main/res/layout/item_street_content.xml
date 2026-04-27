@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="@dimen/eight_dp"
+        app:cardElevation="0dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white_and_black">
+
+            <ImageView
+                android:id="@+id/thumb_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/six_dp">
+
+                <TextView
+                    android:id="@+id/badge_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/tag_stroke"
+                    android:includeFontPadding="false"
+                    android:paddingStart="@dimen/four_dp"
+                    android:paddingTop="@dimen/two_dp"
+                    android:paddingEnd="@dimen/four_dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/always_white"
+                    android:textSize="11sp"
+                    tools:text="illust" />
+
+                <TextView
+                    android:id="@+id/badge_page"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/four_dp"
+                    android:background="@drawable/tag_stroke"
+                    android:includeFontPadding="false"
+                    android:paddingStart="@dimen/four_dp"
+                    android:paddingTop="@dimen/two_dp"
+                    android:paddingEnd="@dimen/four_dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/always_white"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:text="3P" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/thumb_image"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/title_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/rank_text_color"
+                    android:textSize="13sp"
+                    tools:text="イラストのタイトル" />
+
+                <TextView
+                    android:id="@+id/author_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/secondary_text_color"
+                    android:textSize="11sp"
+                    tools:text="作者名" />
+            </LinearLayout>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</layout>

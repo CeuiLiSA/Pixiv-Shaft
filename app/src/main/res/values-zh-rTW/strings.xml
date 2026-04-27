@@ -1078,4 +1078,11 @@
     <string name="novel_chip_series_link">系列連結</string>
     <string name="novel_chip_series_content_count">章節數  %1$s</string>
     <string name="novel_chip_series_char_count">總字數  %1$s</string>
+
+    <string name="street_web_login_title">需要登入 Pixiv 網頁版</string>
+    <string name="street_web_login_message">Web 首頁使用了 Pixiv 網頁端的推薦介面，需要透過網頁版登入來取得必要的工作階段資訊。\n\n這是一次性操作，登入成功後會自動記住。</string>
+    <string name="street_web_login_confirm">去登入</string>
+    <string name="street_web_login_toolbar">登入 Pixiv 網頁版</string>
+    <string name="street_web_login_success">登入成功</string>
+    <string name="street_title">Web 首頁</string>
 </resources>

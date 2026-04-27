@@ -965,4 +965,11 @@
     <string name="novel_chip_series_link">Ссылка на серию</string>
     <string name="novel_chip_series_content_count">Глав  %1$s</string>
     <string name="novel_chip_series_char_count">Всего знаков  %1$s</string>
+
+    <string name="street_web_login_title">Требуется вход в веб-версию Pixiv</string>
+    <string name="street_web_login_message">Веб-главная использует API рекомендаций веб-версии Pixiv, для которого нужна веб-сессия.\n\nЭто одноразовая операция. Сессия сохранится автоматически.</string>
+    <string name="street_web_login_confirm">Войти</string>
+    <string name="street_web_login_toolbar">Вход в веб-версию Pixiv</string>
+    <string name="street_web_login_success">Вход выполнен</string>
+    <string name="street_title">Веб-главная</string>
 </resources>

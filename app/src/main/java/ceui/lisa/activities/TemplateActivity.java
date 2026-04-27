@@ -231,6 +231,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     int uid = intent.getIntExtra(Params.USER_ID, 0);
                     return UncategorizedNovelsFragment.Companion.newInstance((long) uid);
                 }
+                case "Web首页":
+                    return new ceui.lisa.fragments.StreetMainFragment();
                 case "图片详情":
                     return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL), intent.getStringExtra(Params.TITLE));
                 case "画质增强对比":

@@ -1442,4 +1442,11 @@
     <string name="resolution_square_medium">小图 (Square Medium)</string>
     <string name="filter_invalid_bookmarks">收藏夹过滤已失效作品</string>
     <string name="filter_invalid_bookmarks_desc">开启后将隐藏已删除或不可见的收藏作品</string>
+
+    <string name="street_web_login_title">需要登录 Pixiv 网页版</string>
+    <string name="street_web_login_message">Web 首页使用了 Pixiv 网页端的推荐接口，需要通过网页版登录来获取必要的会话信息。\n\n这是一次性操作，登录成功后会自动记住。</string>
+    <string name="street_web_login_confirm">去登录</string>
+    <string name="street_web_login_toolbar">登录 Pixiv 网页版</string>
+    <string name="street_web_login_success">登录成功</string>
+    <string name="street_title">Web 首页</string>
 </resources>

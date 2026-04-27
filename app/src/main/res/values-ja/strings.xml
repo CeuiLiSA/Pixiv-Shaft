@@ -1065,4 +1065,11 @@
     <string name="novel_chip_series_link">シリーズリンク</string>
     <string name="novel_chip_series_content_count">話数  %1$s</string>
     <string name="novel_chip_series_char_count">総文字数  %1$s</string>
+
+    <string name="street_web_login_title">pixiv Webログインが必要です</string>
+    <string name="street_web_login_message">Web ホームは pixiv のWebレコメンドAPIを使用しており、Webセッションが必要です。\n\nこれは一度だけの操作で、ログイン後は自動的に記憶されます。</string>
+    <string name="street_web_login_confirm">ログインする</string>
+    <string name="street_web_login_toolbar">pixiv Webにログイン</string>
+    <string name="street_web_login_success">ログイン成功</string>
+    <string name="street_title">Web ホーム</string>
 </resources>

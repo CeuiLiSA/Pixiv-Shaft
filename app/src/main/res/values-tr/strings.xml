@@ -963,4 +963,11 @@
     <string name="novel_chip_series_link">Seri bağlantısı</string>
     <string name="novel_chip_series_content_count">Bölüm sayısı  %1$s</string>
     <string name="novel_chip_series_char_count">Toplam karakter  %1$s</string>
+
+    <string name="street_web_login_title">Pixiv Web Girişi Gerekli</string>
+    <string name="street_web_login_message">Web Ana Sayfa, Pixiv\'in web öneri API\'sini kullanır ve bir web oturumu gerektirir.\n\nBu tek seferlik bir işlemdir. Oturumunuz otomatik olarak hatırlanacaktır.</string>
+    <string name="street_web_login_confirm">Giriş Yap</string>
+    <string name="street_web_login_toolbar">Pixiv Web\'e giriş yap</string>
+    <string name="street_web_login_success">Giriş başarılı</string>
+    <string name="street_title">Web Ana Sayfa</string>
 </resources>

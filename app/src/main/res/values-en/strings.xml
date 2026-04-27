@@ -1031,4 +1031,11 @@
     <string name="novel_chip_series_link">Series link</string>
     <string name="novel_chip_series_content_count">Chapters  %1$s</string>
     <string name="novel_chip_series_char_count">Total length  %1$s</string>
+
+    <string name="street_web_login_title">Pixiv Web Login Required</string>
+    <string name="street_web_login_message">Web Home uses Pixiv\'s web recommendation API, which requires a web session.\n\nThis is a one-time operation. Your session will be remembered.</string>
+    <string name="street_web_login_confirm">Log In</string>
+    <string name="street_web_login_toolbar">Log in to Pixiv Web</string>
+    <string name="street_web_login_success">Login successful</string>
+    <string name="street_title">Web Home</string>
 </resources>

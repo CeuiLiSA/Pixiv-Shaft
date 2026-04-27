@@ -3,14 +3,14 @@ package ceui.pixiv.session
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.models.UserModel
+import ceui.lisa.utils.Common
 import ceui.loxia.AccountResponse
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
-import ceui.lisa.R
-import ceui.lisa.utils.Common
 import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
 import com.google.gson.Gson
@@ -25,7 +25,7 @@ object SessionManager {
 
     private const val USER_KEY = "LoggedInUserJsonKey"
     const val USE_NEW_UI_KEY = "use-v5-ui"
-    const val COOKIE_KEY = "web-api-cookie"
+    const val COOKIE_KEY = "web-api-cookie-v2"
     const val CONTENT_LANGUAGE_KEY = "content-language"
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
@@ -44,37 +44,45 @@ object SessionManager {
         MMKV.defaultMMKV()
     }
 
-    val isLoggedIn: Boolean get() {
-        return _loggedInAccount.value?.access_token != null
-    }
+    val isLoggedIn: Boolean
+        get() {
+            return _loggedInAccount.value?.access_token != null
+        }
 
-    val loggedInUid: Long get() {
-        return _loggedInAccount.value?.user?.id ?: 0L
-    }
+    val loggedInUid: Long
+        get() {
+            return _loggedInAccount.value?.user?.id ?: 0L
+        }
 
-    val loggedInUser: User? get() {
-        return _loggedInAccount.value?.user
-    }
+    val loggedInUser: User?
+        get() {
+            return _loggedInAccount.value?.user
+        }
 
-    val isPremium: Boolean get() {
-        return _loggedInAccount.value?.user?.is_premium == true
-    }
+    val isPremium: Boolean
+        get() {
+            return _loggedInAccount.value?.user?.is_premium == true
+        }
 
-    val mailAddress: String? get() {
-        return _loggedInAccount.value?.user?.mail_address
-    }
+    val mailAddress: String?
+        get() {
+            return _loggedInAccount.value?.user?.mail_address
+        }
 
-    val accountName: String? get() {
-        return _loggedInAccount.value?.user?.account
-    }
+    val accountName: String?
+        get() {
+            return _loggedInAccount.value?.user?.account
+        }
 
-    val isMailAuthorized: Boolean get() {
-        return _loggedInAccount.value?.user?.is_mail_authorized == true
-    }
+    val isMailAuthorized: Boolean
+        get() {
+            return _loggedInAccount.value?.user?.is_mail_authorized == true
+        }
 
-    val refreshToken: String? get() {
-        return _loggedInAccount.value?.refresh_token
-    }
+    val refreshToken: String?
+        get() {
+            return _loggedInAccount.value?.refresh_token
+        }
 
     fun initialize() {
         val json = prefStore.getString(USER_KEY, "")
@@ -169,7 +177,11 @@ object SessionManager {
                 val response = PixivLogin.refreshTokenBlocking(refreshToken)
                 delay(500L)
                 withContext(Dispatchers.Main) {
-                    applyTokenRefresh(response.accessToken, response.refreshToken, response.expiresIn)
+                    applyTokenRefresh(
+                        response.accessToken,
+                        response.refreshToken,
+                        response.expiresIn
+                    )
                 }
                 response.accessToken
             } catch (ex: InvalidRefreshTokenException) {

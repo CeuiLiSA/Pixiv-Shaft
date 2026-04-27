@@ -972,4 +972,11 @@
     <string name="novel_chip_series_link">시리즈 링크</string>
     <string name="novel_chip_series_content_count">챕터 수  %1$s</string>
     <string name="novel_chip_series_char_count">총 글자 수  %1$s</string>
+
+    <string name="street_web_login_title">Pixiv 웹 로그인 필요</string>
+    <string name="street_web_login_message">웹 홈은 Pixiv 웹 추천 API를 사용하며, 웹 세션이 필요합니다.\n\n이 작업은 한 번만 수행하면 되며, 로그인 후 자동으로 기억됩니다.</string>
+    <string name="street_web_login_confirm">로그인</string>
+    <string name="street_web_login_toolbar">Pixiv 웹에 로그인</string>
+    <string name="street_web_login_success">로그인 성공</string>
+    <string name="street_title">웹 홈</string>
 </resources>
