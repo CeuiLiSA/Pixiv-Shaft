@@ -47,6 +47,7 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
 
 
         val illust = ObjectPool.get<Illust>(args.illustId).value ?: return
+        viewPagerViewModel.illustId = args.illustId
         binding.download.setOnClick {
             viewPagerViewModel.triggerDownloadEvent(binding.pagedViewpager.currentItem)
         }

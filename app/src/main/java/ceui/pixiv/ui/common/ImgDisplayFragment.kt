@@ -20,8 +20,13 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import ceui.lisa.activities.Shaft
+import ceui.lisa.database.AppDatabase
+import ceui.lisa.database.DownloadEntity
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
+import ceui.loxia.Illust
+import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.observeEvent
@@ -105,11 +110,32 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
                 if (alertYesOrCancel("图片已存在，确定覆盖下载吗? 文件路径: ${filePath?.path}")) {
                     deleteImageById(activity, imageId)
                     saveImageToGallery(activity, file, displayName())
+                    recordIllustDownload(file)
                 }
             }
         } else {
             saveImageToGallery(activity, file, displayName())
+            recordIllustDownload(file)
         }
+    }
+
+    // 与 Manager.java 标准下载流程一致：成功保存到相册后写一条下载历史，
+    // 这样从 PagedImgUrlFragment 触发的「保存」也能出现在「已下载」列表里。
+    // 仅当所在 ViewPager 已绑定 illust（PagedImgUrlFragment 设置了 illustId）
+    // 时才记录；novel 内嵌图等没有 illust 上下文的入口直接跳过。
+    private fun recordIllustDownload(file: File) {
+        if (parentFragment !is ViewPagerFragment) return
+        val illustId = viewPagerViewModel.illustId.takeIf { it != 0L } ?: return
+        val illust = ObjectPool.get<Illust>(illustId).value ?: return
+        runCatching {
+            val entity = DownloadEntity().apply {
+                fileName = displayName()
+                downloadTime = System.currentTimeMillis()
+                filePath = file.absolutePath
+                illustGson = Shaft.sGson.toJson(illust)
+            }
+            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(entity)
+        }.onFailure { Timber.e(it, "recordIllustDownload failed for ${displayName()}") }
     }
 
     override fun onDestroyView() {
