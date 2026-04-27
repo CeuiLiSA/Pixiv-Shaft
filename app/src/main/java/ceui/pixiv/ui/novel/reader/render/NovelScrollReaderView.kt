@@ -154,6 +154,11 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
      * Jump to [fraction] of the total scroll range (0f = top, 1f = bottom).
      * Used by the bottom seekbar's drag handler in vertical-scroll mode.
      */
+    fun scrollByPage(forward: Boolean) {
+        val distance = (height * 0.9f).toInt()
+        smoothScrollBy(0, if (forward) distance else -distance)
+    }
+
     fun scrollToFraction(fraction: Float) {
         val clamped = fraction.coerceIn(0f, 1f)
         post {

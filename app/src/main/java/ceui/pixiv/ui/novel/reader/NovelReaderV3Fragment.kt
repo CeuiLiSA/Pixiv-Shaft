@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -138,6 +139,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         rv.setTouchLocked(ReaderSettings.touchLocked)
         rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
         binding.root.keepScreenOn = ReaderSettings.keepScreenOn
+
+        // 立即应用阅读器主题背景色，避免加载中显示白底
+        val theme = ReaderTheme.findPresetById(ReaderSettings.themeId) ?: ReaderTheme.KRAFT
+        binding.root.setBackgroundColor(theme.backgroundColor)
 
         if (ReaderSettings.readingDirection == ReadingDirection.Vertical) {
             rv.visibility = View.GONE
@@ -311,6 +316,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 -> {
                     pushStyleAndGeometryIfReady()
                     rebindScrollViewIfActive()
+                    val t = ReaderTheme.findPresetById(ReaderSettings.themeId) ?: ReaderTheme.KRAFT
+                    binding.root.setBackgroundColor(t.backgroundColor)
                 }
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.Interaction -> {
@@ -929,6 +936,19 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 }
             }
         }
+    }
+
+    // ---- Volume key flip ----------------------------------------------------
+
+    fun handleVolumeKey(keyCode: Int): Boolean {
+        if (!ReaderSettings.volumeKeyFlip) return false
+        val forward = keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+        if (scrollReaderView?.visibility == View.VISIBLE) {
+            scrollReaderView?.scrollByPage(forward)
+        } else {
+            if (forward) readerView?.flipForward() else readerView?.flipBackward()
+        }
+        return true
     }
 
     // ---- Lifecycle -----------------------------------------------------------

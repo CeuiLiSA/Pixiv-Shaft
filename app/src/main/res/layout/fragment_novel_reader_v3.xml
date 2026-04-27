@@ -4,7 +4,7 @@
     android:id="@+id/reader_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFFFF"
+    android:background="@android:color/transparent"
     android:clickable="true"
     android:focusable="true">
 

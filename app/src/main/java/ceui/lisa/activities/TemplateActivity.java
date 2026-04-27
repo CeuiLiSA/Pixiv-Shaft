@@ -397,6 +397,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
             return ((FragmentWebView) childFragment).getAgentWeb().handleKeyEvent(keyCode, event) ||
                     super.onKeyDown(keyCode, event);
         }
+        if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+                && childFragment instanceof NovelReaderV3Fragment) {
+            if (((NovelReaderV3Fragment) childFragment).handleVolumeKey(keyCode)) {
+                return true;
+            }
+        }
         return super.onKeyDown(keyCode, event);
     }
 
