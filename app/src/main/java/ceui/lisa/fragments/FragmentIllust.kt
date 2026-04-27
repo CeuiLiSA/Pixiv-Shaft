@@ -93,6 +93,18 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         mLayoutID = R.layout.fragment_illust
     }
 
+    override fun init() {
+        // Don't call super.init() — SmartRefreshLayout is used only as a
+        // container in this fragment; FalsifyHeader/FalsifyFooter are no-ops.
+        // But SmartRefreshLayout still intercepts touch events for pull
+        // detection, which can call requestDisallowInterceptTouchEvent(true)
+        // and block ViewPager's horizontal swipe (observed on Android 16 +
+        // tablet devices).
+        val layout = smartRefreshLayout ?: return
+        layout.setEnableRefresh(false)
+        layout.setEnableLoadMore(false)
+    }
+
     override fun initView() {
         val illustLiveData = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong())
         illustLiveData.observe(viewLifecycleOwner) { illust ->
