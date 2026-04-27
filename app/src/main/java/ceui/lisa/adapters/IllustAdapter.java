@@ -76,25 +76,6 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
-        try {
-            doBind(holder, position);
-        } catch (Throwable t) {
-            // Don't let a malformed bean (null meta_pages, missing image_urls, etc.)
-            // crash the whole RecyclerView. Log loudly so the issue can be triaged.
-            Timber.tag("V3MultiP").e(t,
-                "[IllustAdapter.bind] FATAL pos=%d, illustId=%d, page_count=%d, w=%d, h=%d",
-                position,
-                allIllust != null ? allIllust.getId() : -1,
-                allIllust != null ? allIllust.getPage_count() : -1,
-                allIllust != null ? allIllust.getWidth() : -1,
-                allIllust != null ? allIllust.getHeight() : -1
-            );
-            holder.baseBind.reload.setVisibility(View.VISIBLE);
-            holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
-        }
-    }
-
-    private void doBind(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
         if(longPressDownload && mActivity instanceof BaseActivity<?>){
             holder.itemView.setOnLongClickListener(v -> {

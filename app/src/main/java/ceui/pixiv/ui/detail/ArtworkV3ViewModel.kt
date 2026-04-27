@@ -215,10 +215,13 @@ class ArtworkV3ViewModel(
     }
 
     init {
+        // Note: only read the IllustsBean LiveData (already created above via the
+        // member val). Do NOT touch ObjectPool.get<Illust>(...) here — it would
+        // create a fresh empty entry as a side effect, which loadData() may not
+        // have done in the short-circuit branch.
         Timber.tag("V3MultiP").d(
             "[ViewModel.init] illustId=$illustId, " +
-                "IllustsBeanPoolHasValue=${illustBeanLiveData.value != null}, " +
-                "IllustPoolHasValue=${ObjectPool.get<Illust>(illustId).value != null}"
+                "IllustsBeanPoolHasValue=${illustBeanLiveData.value != null}"
         )
         illustBeanLiveData.observeForever(illustBeanObserver)
         loadData()

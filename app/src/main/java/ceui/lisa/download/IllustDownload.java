@@ -364,21 +364,19 @@ public class IllustDownload {
         if (illust.getPage_count() == 1) {
             return imageResolution.equals(Params.IMAGE_RESOLUTION_ORIGINAL) ? illust.getMeta_single_page() : illust.getImage_urls();
         } else {
-            // Defensive: a thin IllustsBean (some list endpoints, history cache, partial
-            // deserialization) may have null/empty meta_pages even when page_count > 1.
-            // Returning null here makes loaders fail gracefully (placeholder + reload)
-            // instead of crashing the whole bind / rxjava chain with NPE/IOOB.
+            // Diagnostic only — log if meta_pages looks malformed but still let the
+            // original behavior (NPE / IOOB on .get(index)) propagate so we don't
+            // mask the bug. Once the root cause is confirmed we can revisit fallback.
             java.util.List<ceui.lisa.models.MetaPagesBean> mp = illust.getMeta_pages();
             if (mp == null || mp.isEmpty() || index < 0 || index >= mp.size()) {
                 timber.log.Timber.tag("V3MultiP").w(
-                    "[IllustDownload.getImageUrlsBean] DEGRADED: illustId=%d page_count=%d index=%d " +
-                        "meta_pages=%s — falling back to image_urls",
+                    "[IllustDownload.getImageUrlsBean] SUSPECT: illustId=%d page_count=%d index=%d " +
+                        "meta_pages=%s — about to throw on .get(index)",
                     illust.getId(), illust.getPage_count(), index,
                     mp == null ? "null" : ("size=" + mp.size())
                 );
-                return illust.getImage_urls();
             }
-            return mp.get(index).getImage_urls();
+            return illust.getMeta_pages().get(index).getImage_urls();
         }
     }
 
