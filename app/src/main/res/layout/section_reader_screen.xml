@@ -40,18 +40,6 @@
             android:layout_height="wrap_content"/>
 
         <include
-            android:id="@+id/row_show_top_progress"
-            layout="@layout/item_reader_setting_switch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <include
-            android:id="@+id/row_show_bottom_progress"
-            layout="@layout/item_reader_setting_switch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <include
             android:id="@+id/row_touch_locked"
             layout="@layout/item_reader_setting_switch"
             android:layout_width="match_parent"

@@ -183,12 +183,6 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowKeepScreenOn.bindSwitch(
             getString(R.string.setting_keep_screen_on), ReaderSettings.keepScreenOn,
         ) { ReaderSettings.keepScreenOn = it }
-        s.rowShowTopProgress.bindSwitch(
-            getString(R.string.setting_show_top_progress), ReaderSettings.showTopProgress,
-        ) { ReaderSettings.showTopProgress = it }
-        s.rowShowBottomProgress.bindSwitch(
-            getString(R.string.setting_show_bottom_progress), ReaderSettings.showBottomProgress,
-        ) { ReaderSettings.showBottomProgress = it }
         s.rowTouchLocked.bindSwitch(
             getString(R.string.setting_touch_locked), ReaderSettings.touchLocked,
         ) { ReaderSettings.touchLocked = it }

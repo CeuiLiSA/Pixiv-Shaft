@@ -144,7 +144,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             ensureScrollReaderView(ch).visibility = View.VISIBLE
             // Data binds later: viewModel.load() → Loaded observer → rebindScrollViewIfActive()
         }
-        updateScrollProgressBarVisibility()
         viewModel.load()
     }
 
@@ -312,7 +311,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 -> {
                     pushStyleAndGeometryIfReady()
                     rebindScrollViewIfActive()
-                    updateScrollProgressBarVisibility()
                 }
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.Interaction -> {
@@ -426,17 +424,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             lastPushedSnapshot = null
             pushStyleAndGeometryIfReady()
         }
-        updateScrollProgressBarVisibility()
-    }
-
-    private fun updateScrollProgressBarVisibility() {
-        val isVertical = ReaderSettings.readingDirection == ReadingDirection.Vertical
-        val showTop = isVertical && ReaderSettings.showTopProgress
-        val showBottom = isVertical && ReaderSettings.showBottomProgress
-        binding.scrollProgressBar.visibility = if (showTop) View.VISIBLE else View.GONE
-        if (!showTop) binding.scrollProgressBar.scaleX = 0f
-        binding.scrollProgressBarBottom.visibility = if (showBottom) View.VISIBLE else View.GONE
-        if (!showBottom) binding.scrollProgressBarBottom.scaleX = 0f
     }
 
     private fun ensureScrollReaderView(chrome: ReaderChrome): NovelScrollReaderView {
@@ -450,8 +437,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             sv.onImageTap = { image -> openImageElement(image) }
             sv.onCharIndexChanged = { charIndex -> viewModel.onScrollPositionChanged(charIndex) }
             sv.onScrollProgressChanged = { progress ->
-                binding.scrollProgressBar.scaleX = progress
-                binding.scrollProgressBarBottom.scaleX = progress
                 // Drive the bottom-bar SeekBar in vertical mode (issue: 纵向翻页底部
                 // 进度条不联动). Paged mode is driven separately by currentPageIndex.
                 bottomBar?.setScrollProgress(progress)
