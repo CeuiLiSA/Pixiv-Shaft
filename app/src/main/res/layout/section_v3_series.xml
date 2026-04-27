@@ -40,7 +40,7 @@
             android:letterSpacing="0.1"
             android:text="@string/v3_label_series"
             android:textAllCaps="true"
-            android:textColor="@color/v3_tag_locked_text"
+            android:textColor="@android:color/white"
             android:textSize="9sp"
             android:textStyle="bold" />
 
@@ -51,7 +51,7 @@
             android:layout_marginTop="1dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/v3_text_1"
+            android:textColor="@android:color/white"
             android:textSize="14sp"
             android:textStyle="bold"
             tools:text="崩壊スターレイル まとめ #12" />
@@ -62,6 +62,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:text="›"
-        android:textColor="@color/v3_text_3"
+        android:textColor="@android:color/white"
         android:textSize="16sp" />
 </LinearLayout>
