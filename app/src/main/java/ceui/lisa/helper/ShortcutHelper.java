@@ -10,6 +10,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.util.Log;
 
 import java.util.List;
 
@@ -65,7 +66,7 @@ public class ShortcutHelper {
         } catch (Throwable t) {
             // 兜底：某些厂商 ROM (国产改版) 的 ShortcutManager 实现仍可能抛
             // RuntimeException / IllegalStateException，吞掉避免应用启动崩溃。
-            android.util.Log.w("ShortcutHelper", "addAppShortcuts failed", t);
+            Log.w("ShortcutHelper", "addAppShortcuts failed", t);
         }
     }
 
