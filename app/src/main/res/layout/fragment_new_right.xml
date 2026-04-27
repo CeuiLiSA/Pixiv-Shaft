@@ -135,19 +135,24 @@
                         android:layout_height="wrap_content">
 
                         <TextView
+                            android:id="@+id/dynamic_type_switcher"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="14dp"
                             android:layout_marginTop="@dimen/twelve_dp"
                             android:layout_marginBottom="@dimen/twelve_dp"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:drawablePadding="@dimen/four_dp"
                             app:drawableTint="#75d2f0"
                             android:gravity="center_vertical"
-                            android:text="@string/string_80"
+                            android:text="@string/dynamic_type_illust_manga"
                             android:textColor="@color/rank_title"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            app:drawableStartCompat="@drawable/ic_toys_black_24dp">
+                            app:drawableStartCompat="@drawable/ic_toys_black_24dp"
+                            app:drawableEndCompat="@drawable/ic_arrow_drop_down_20dp">
                         </TextView>
 
                         <LinearLayout
@@ -183,17 +188,29 @@
 
                 </androidx.core.widget.NestedScrollView>
 
-                <com.scwang.smart.refresh.layout.SmartRefreshLayout
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:id="@+id/refreshLayout"
                     android:layout_height="match_parent">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerView"
+                    <com.scwang.smart.refresh.layout.SmartRefreshLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+                        android:id="@+id/refreshLayout"
+                        android:layout_height="match_parent">
 
-                </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/recyclerView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
+                    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+
+                    <FrameLayout
+                        android:id="@+id/novel_list_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="gone" />
+
+                </FrameLayout>
 
 
             </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout>

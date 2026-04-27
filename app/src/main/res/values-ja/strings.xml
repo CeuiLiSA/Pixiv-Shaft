@@ -361,7 +361,8 @@
   <string name="string_195">ユーザーID： %d</string>  
   <string name="string_196">小説</string>
   <string name="string_197">最新小説</string>
-  <string name="string_198">レビューを投稿</string>  
+  <string name="dynamic_type_illust_manga">イラスト/マンガ</string>
+  <string name="string_198">レビューを投稿</string>
   <string name="string_199">バージョン</string>  
   <string name="string_200">Weiboでフォロー</string>  
   <string name="string_201">Telegramグループ</string>  

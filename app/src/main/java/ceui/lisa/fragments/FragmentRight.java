@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.databinding.ViewDataBinding;
@@ -47,6 +48,9 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
     private FragmentRecmdUserHorizontal headerFragment;
     private boolean isTimelineMode = !Shaft.sSettings.isUseStaggeredLayout();
+    // 动态页类型：true=插画/漫画(默认)，false=小说。fixes #844
+    private boolean isIllustMode = true;
+    private FragmentNewNovels novelFragment;
 
     @Override
     public void initLayout() {
@@ -133,16 +137,25 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                 if (index < types.length) {
                     restrict = types[index];
                 }
-                ((RightRepo) mRemoteRepo).setRestrict(restrict);
-                forceRefresh();
+                if (isIllustMode) {
+                    ((RightRepo) mRemoteRepo).setRestrict(restrict);
+                    forceRefresh();
+                } else if (novelFragment != null) {
+                    novelFragment.setRestrict(restrict);
+                }
             }
 
             @Override
             public void onReselect(int index, View view) {
                 Common.showLog("glareLayout onReselect " + index);
-                forceRefresh();
+                if (isIllustMode) {
+                    forceRefresh();
+                } else if (novelFragment != null) {
+                    novelFragment.forceRefresh();
+                }
             }
         });
+        baseBind.dynamicTypeSwitcher.setOnClickListener(v -> showTypeSwitcherMenu(v));
         baseBind.dynamicTitleLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -153,6 +166,58 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
         if (isTimelineMode) {
             int primaryColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
             baseBind.timelineToggle.setColorFilter(primaryColor);
+        }
+    }
+
+    private void showTypeSwitcherMenu(View anchor) {
+        PopupMenu popup = new PopupMenu(mContext, anchor);
+        popup.getMenu().add(0, 1, 0, R.string.dynamic_type_illust_manga);
+        popup.getMenu().add(0, 2, 1, R.string.string_171); // 小说
+        popup.setOnMenuItemClickListener(item -> {
+            boolean wantIllust = item.getItemId() == 1;
+            switchMode(wantIllust);
+            baseBind.dynamicTypeSwitcher.setText(
+                    wantIllust ? R.string.dynamic_type_illust_manga : R.string.string_171);
+            return true;
+        });
+        popup.show();
+    }
+
+    private void switchMode(boolean wantIllust) {
+        if (isIllustMode == wantIllust) return;
+        isIllustMode = wantIllust;
+        if (wantIllust) {
+            baseBind.refreshLayout.setVisibility(View.VISIBLE);
+            baseBind.novelListContainer.setVisibility(View.GONE);
+            baseBind.timelineToggle.setVisibility(View.VISIBLE);
+            if (novelFragment != null && novelFragment.isAdded()) {
+                getChildFragmentManager().beginTransaction()
+                        .hide(novelFragment)
+                        .commitNowAllowingStateLoss();
+            }
+            // 切回插画时同步当前 restrict 并刷新（若与上次一致则跳过）
+            if (mRemoteRepo instanceof RightRepo) {
+                RightRepo repo = (RightRepo) mRemoteRepo;
+                if (!java.util.Objects.equals(repo.getRestrict(), restrict)) {
+                    repo.setRestrict(restrict);
+                    forceRefresh();
+                }
+            }
+        } else {
+            baseBind.refreshLayout.setVisibility(View.GONE);
+            baseBind.novelListContainer.setVisibility(View.VISIBLE);
+            baseBind.timelineToggle.setVisibility(View.GONE);
+            if (novelFragment == null) {
+                novelFragment = FragmentNewNovels.newInstance(restrict);
+                getChildFragmentManager().beginTransaction()
+                        .add(R.id.novel_list_container, novelFragment, "FragmentNewNovels")
+                        .commitNowAllowingStateLoss();
+            } else {
+                getChildFragmentManager().beginTransaction()
+                        .show(novelFragment)
+                        .commitNowAllowingStateLoss();
+                novelFragment.setRestrict(restrict);
+            }
         }
     }
 

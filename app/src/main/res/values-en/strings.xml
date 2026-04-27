@@ -359,8 +359,9 @@
   <string name="string_194">Artwork ID: %d</string>  
   <string name="string_195">Artist ID: %d</string>  
   <string name="string_196">Novel of Followers</string>  
-  <string name="string_197">Followers latest novel</string>  
-  <string name="string_198">Rate this app</string>  
+  <string name="string_197">Followers latest novel</string>
+  <string name="dynamic_type_illust_manga">Illust/Manga</string>
+  <string name="string_198">Rate this app</string>
   <string name="string_199">version</string>  
   <string name="string_200">Follow me on Weibo</string>  
   <string name="string_201">Telegram Groups</string>  
