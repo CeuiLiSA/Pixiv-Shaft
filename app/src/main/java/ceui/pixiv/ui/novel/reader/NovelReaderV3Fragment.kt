@@ -503,6 +503,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             ?: ReaderProgressStore.loadCharIndex(viewModel.novelId)
         sv.bind(loaded.tokens, style, geom, ImageResolver.of(loaded.webNovel))
         if (currentChar > 0) sv.jumpToCharIndex(currentChar)
+        // Make sure the bottom seekbar gets at least one update even when
+        // currentChar == 0 (fresh entry, no saved progress) — otherwise the
+        // scroll-listener wouldn't fire until the user first scrolls.
+        sv.pushScrollProgressNow()
     }
 
     private fun togglePixivBookmark() {
