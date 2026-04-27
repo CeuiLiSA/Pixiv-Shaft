@@ -150,6 +150,19 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
         return charAnchors.lastOrNull { it.view.top <= scrollTop + height / 4 }?.charStart ?: 0
     }
 
+    /**
+     * Jump to [fraction] of the total scroll range (0f = top, 1f = bottom).
+     * Used by the bottom seekbar's drag handler in vertical-scroll mode.
+     */
+    fun scrollToFraction(fraction: Float) {
+        val clamped = fraction.coerceIn(0f, 1f)
+        post {
+            val range = computeVerticalScrollRange() - computeVerticalScrollExtent()
+            if (range <= 0) return@post
+            scrollTo(0, (clamped * range).toInt())
+        }
+    }
+
     // ---- View factories -----------------------------------------------------
 
     private fun createParagraph(token: ContentToken.Paragraph, style: TypeStyle): AppCompatTextView {
@@ -443,6 +456,15 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
         val range = computeVerticalScrollRange() - computeVerticalScrollExtent()
         val progress = if (range > 0) scrollY.toFloat() / range else 0f
         cb.invoke(progress.coerceIn(0f, 1f))
+    }
+
+    /**
+     * Force a scroll-progress callback emission. Used right after entering
+     * vertical-scroll mode so the bottom-bar SeekBar picks up the current
+     * scroll fraction even if no scroll event has fired yet.
+     */
+    fun pushScrollProgressNow() {
+        post { reportScrollProgress() }
     }
 
     override fun onDetachedFromWindow() {

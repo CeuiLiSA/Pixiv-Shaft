@@ -89,6 +89,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private var readerView: NovelReaderView? = null
     private var scrollReaderView: NovelScrollReaderView? = null
     private var imageSource: GlideImageBitmapSource? = null
+    // Held so ensureScrollReaderView's onScrollProgressChanged callback can
+    // drive the bottom seekbar without having to be inlined into onViewCreated.
+    private var bottomBar: ReaderBottomBar? = null
 
     private var searchRegex: Boolean = false
     private var activeSelection: TextSelection? = null
@@ -118,6 +121,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
         val tb = ReaderTopBar(binding.readerTopBar)
         val bb = ReaderBottomBar(binding.readerBottomBar)
+        bottomBar = bb
         val ch = ReaderChrome(tb, bb)
         val so = ReaderSearchOverlay(binding.readerSearchOverlay)
 
@@ -232,6 +236,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
         bb.onMoreClick = { showReaderOverflowMenu() }
         bb.onSeekCommit = { pageIndex -> rv.goToPage(pageIndex, animate = false) }
+        bb.onScrollSeekCommit = { fraction ->
+            scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.scrollToFraction(fraction)
+        }
     }
 
     private fun wireSearchOverlay(so: ReaderSearchOverlay) {
@@ -339,6 +346,11 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
 
         viewModel.currentPageIndex.observe(viewLifecycleOwner) { index ->
+            // Page-index events are paged-mode semantics. In vertical mode the
+            // bottom bar is driven by NovelScrollReaderView.onScrollProgressChanged
+            // instead — letting setProgress run here would flip the bar back to
+            // page mode and zero out the scroll fraction.
+            if (ReaderSettings.readingDirection == ReadingDirection.Vertical) return@observe
             bb.setProgress(index, viewModel.pagination.value?.pages?.size ?: 0)
         }
 
@@ -393,8 +405,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private fun applyFlipMode(rv: NovelReaderView, chrome: ReaderChrome) {
         if (ReaderSettings.readingDirection == ReadingDirection.Vertical) {
             rv.visibility = View.GONE
-            ensureScrollReaderView(chrome).visibility = View.VISIBLE
+            val sv = ensureScrollReaderView(chrome)
+            sv.visibility = View.VISIBLE
             rebindScrollViewIfActive()
+            // Force one progress emission so the bottom seekbar leaves paged
+            // mode (page-x/y) and snaps to the current scroll fraction even
+            // before the user touches the scroll view.
+            sv.pushScrollProgressNow()
         } else {
             scrollReaderView?.let { sv ->
                 viewModel.onScrollPositionChanged(sv.currentCharIndex())
@@ -429,6 +446,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             sv.onCharIndexChanged = { charIndex -> viewModel.onScrollPositionChanged(charIndex) }
             sv.onScrollProgressChanged = { progress ->
                 binding.scrollProgressBar.scaleX = progress
+                // Drive the bottom-bar SeekBar in vertical mode (issue: 纵向翻页底部
+                // 进度条不联动). Paged mode is driven separately by currentPageIndex.
+                bottomBar?.setScrollProgress(progress)
             }
 
             // Text selection — same menu as paged mode
@@ -924,6 +944,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         imageSource = null
         readerView = null
         scrollReaderView = null
+        bottomBar = null
     }
 
     private fun resolveNovelId(): Long {
