@@ -2,6 +2,7 @@ package ceui.pixiv.download.backend
 
 import android.content.ContentValues
 import android.content.Context
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -56,19 +57,40 @@ class MediaStoreBackend(
             put(MediaStore.MediaColumns.DISPLAY_NAME, relPath.filename)
             put(MediaStore.MediaColumns.RELATIVE_PATH, relativeDir)
             put(MediaStore.MediaColumns.MIME_TYPE, mime)
+            // Hide the row from gallery apps until the bytes are flushed —
+            // otherwise gallery apps may cache a 0-byte thumbnail and never
+            // refresh, which is what users see as "doesn't appear in gallery".
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
         val target: Uri = context.contentResolver.insert(collectionUri, values)
             ?: error("MediaStore insert failed for $relPath")
         val stream = context.contentResolver.openOutputStream(target, "rwt")
             ?: error("openOutputStream returned null for $target")
-        return StorageBackend.WriteHandle(target, stream)
+        val onFinish: () -> Unit = {
+            // Clear IS_PENDING — this both makes the row visible to other apps
+            // and fires a content observer notification that gallery apps use
+            // to refresh their grid.
+            val update = ContentValues().apply {
+                put(MediaStore.MediaColumns.IS_PENDING, 0)
+            }
+            context.contentResolver.update(target, update, null, null)
+        }
+        return StorageBackend.WriteHandle(target, stream, onFinish)
     }
 
     private fun openLegacy(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
         val file = legacyFile(relPath)
         file.parentFile?.mkdirs()
         if (!file.exists()) file.createNewFile()
-        return StorageBackend.WriteHandle(Uri.fromFile(file), FileOutputStream(file) as OutputStream)
+        val onFinish: () -> Unit = {
+            // Pre-Q public-storage write — file is real, just tell MediaScanner.
+            MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mime), null)
+        }
+        return StorageBackend.WriteHandle(
+            Uri.fromFile(file),
+            FileOutputStream(file) as OutputStream,
+            onFinish,
+        )
     }
 
     private fun findUri(relPath: RelativePath): Uri? {

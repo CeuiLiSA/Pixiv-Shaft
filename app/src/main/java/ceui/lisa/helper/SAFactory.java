@@ -12,6 +12,8 @@ import ceui.pixiv.download.Downloads;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.backend.StorageBackend;
 import ceui.pixiv.download.config.DownloadItems;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 /**
  * Legacy factory kept for binary compatibility with {@code Manager.downloadOne}.
@@ -25,6 +27,7 @@ public class SAFactory implements DownloadFileFactory {
 
     private final Downloads.Plan mPlan;
     private Uri mUri;
+    private Function0<Unit> mOnFinish = () -> Unit.INSTANCE;
 
     public SAFactory(@NotNull Context context, DownloadItem item) {
         ceui.pixiv.download.model.DownloadItem newItem = item.getIllust().isGif()
@@ -53,6 +56,7 @@ public class SAFactory implements DownloadFileFactory {
         } catch (Exception ignored) {
         }
         mUri = handle.getUri();
+        mOnFinish = handle.getOnFinish();
         return mUri;
     }
 
@@ -60,6 +64,15 @@ public class SAFactory implements DownloadFileFactory {
     @Override
     public Uri getFileUri() {
         return mUri != null ? mUri : insert();
+    }
+
+    @Override
+    public void finishWrite() {
+        try {
+            mOnFinish.invoke();
+        } catch (Exception e) {
+            android.util.Log.w("SAFactory", "finishWrite failed: " + e.getMessage());
+        }
     }
 
     public boolean isSkip() {

@@ -40,6 +40,7 @@ class Android10DownloadFactory22(
     }
 
     private var _uri: Uri? = null
+    private var onFinish: () -> Unit = {}
 
     override fun query(): Uri? = _uri
 
@@ -59,10 +60,22 @@ class Android10DownloadFactory22(
         // own stream so we do not hold the FD open while the actual write happens.
         try { handle.stream.close() } catch (_: Exception) {}
         _uri = handle.uri
+        onFinish = handle.onFinish
         return handle.uri
     }
 
     override fun getFileUri(): Uri = _uri ?: insert()
+
+    override fun finishWrite() {
+        // GIF (ugoira zip) 写到 app cache，相册不关心，跳过即可。
+        if (isGif) return
+        try {
+            onFinish()
+        } catch (e: Exception) {
+            // 仅记录，不中断下载完成流程
+            android.util.Log.w("Android10DownloadFactory22", "finishWrite failed: ${e.message}")
+        }
+    }
 
     /** Exposed so callers who want to short-circuit can check skip state. */
     fun isSkip(): Boolean = plan?.skip ?: false

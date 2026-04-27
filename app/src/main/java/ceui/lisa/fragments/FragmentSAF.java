@@ -48,6 +48,10 @@ public class FragmentSAF extends BaseFragment<FragmentSafBinding> {
                                     ceui.pixiv.download.config.DownloadItems.illustPage(illustsBean, 0));
                     if (handle != null) {
                         try { handle.getStream().close(); } catch (Exception ignored) {}
+                        // Intentionally do NOT call onFinish: the probe writes 0
+                        // bytes, and committing would expose an empty image row
+                        // to the gallery. Any orphan pending row is cleaned up
+                        // by the system after the standard pending TTL.
                     }
                 } catch (Throwable t) {
                     t.printStackTrace();

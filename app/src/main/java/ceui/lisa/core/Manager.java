@@ -25,7 +25,6 @@ import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.download.DownloadFileFactory;
 import ceui.lisa.download.DownloadProgress;
-import ceui.lisa.download.ImageSaver;
 import ceui.lisa.download.MediaStoreUtil;
 import ceui.lisa.helper.Android10DownloadFactory22;
 import ceui.lisa.helper.SAFactory;
@@ -522,16 +521,11 @@ public class Manager {
             }
 
             // 通知相册下载完成
-            new ImageSaver(){
-                @Override
-                public File whichFile() {
-                    Uri uri = factory.query();
-                    if (uri == null || uri.getPath() == null) {
-                        return null;
-                    }
-                    return new File(uri.getPath());
-                }
-            }.execute();
+            // 由各 Backend 的 onFinish 决定具体策略：
+            //   MediaStore (Q+) — 清除 IS_PENDING；
+            //   旧版 File / SAF — 调用 MediaScannerConnection.scanFile；
+            //   AppCache (ugoira zip 等中间产物) — 不通知。
+            factory.finishWrite();
 
             complete(downloadItem, true);
         }, throwable -> {

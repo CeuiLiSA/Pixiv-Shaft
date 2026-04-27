@@ -34,6 +34,10 @@ fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
                 inputStream.copyTo(outputStream)
             }
         }
+        // Tell the backend the bytes are committed: clears IS_PENDING on
+        // MediaStore writes and triggers MediaScanner for SAF / legacy paths.
+        // Without this, gallery apps may not see the image until next rescan.
+        handle.onFinish()
         ToastUtils.show(context.getString(R.string.string_181))
     }.onFailure { ex ->
         when (ex) {
@@ -109,6 +113,7 @@ fun saveToDownloadsScopedStorage(context: Context, fileName: String, content: St
             "text/plain",
         ) ?: return false
         handle.stream.use { it.write(content.toByteArray()) }
+        handle.onFinish()
         true
     } catch (e: Throwable) {
         // Low-level helper — never crashes, just reports failure to caller via

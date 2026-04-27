@@ -1,9 +1,13 @@
 package ceui.pixiv.download.backend
 
 import android.content.Context
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Environment
+import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import ceui.pixiv.download.model.RelativePath
+import java.io.File
 
 /**
  * Strategy: write under a user-chosen tree URI ([treeUri]) using [DocumentFile].
@@ -24,8 +28,38 @@ class SafBackend(
             ?: error("DocumentFile.createFile returned null for $relPath under $treeUri")
         val stream = context.contentResolver.openOutputStream(doc.uri, "rwt")
             ?: error("openOutputStream returned null for ${doc.uri}")
-        return StorageBackend.WriteHandle(doc.uri, stream)
+        val onFinish: () -> Unit = {
+            // Best-effort gallery visibility: if the SAF tree maps to a real
+            // path on shared storage, hand it to MediaScanner so the new file
+            // shows up in the gallery without waiting for the next system rescan.
+            // For trees on non-primary volumes (SD card, USB) we may not be able
+            // to derive a path — in that case we skip silently.
+            resolveFsPath(doc.uri)?.let { fsPath ->
+                MediaScannerConnection.scanFile(context, arrayOf(fsPath), arrayOf(mime), null)
+            }
+        }
+        return StorageBackend.WriteHandle(doc.uri, stream, onFinish)
     }
+
+    private fun resolveFsPath(docUri: Uri): String? = runCatching {
+        // Only ExternalStorageProvider exposes "volume:relative" doc IDs we can
+        // reliably translate to a filesystem path. Downloads/MediaStore/Drive
+        // providers use opaque IDs — for those, defer to the next system rescan.
+        if (docUri.authority != "com.android.externalstorage.documents") return@runCatching null
+        val docId = DocumentsContract.getDocumentId(docUri)
+        val parts = docId.split(":", limit = 2)
+        if (parts.size != 2) return@runCatching null
+        val (volume, relative) = parts
+        val root = if (volume.equals("primary", ignoreCase = true)) {
+            Environment.getExternalStorageDirectory().absolutePath
+        } else {
+            "/storage/$volume"
+        }
+        // Skip exists() — on scoped storage we may not have read access to
+        // arbitrary public paths even though the file was just written via SAF.
+        // MediaScannerConnection silently no-ops on missing paths anyway.
+        File(root, relative).absolutePath
+    }.getOrNull()
 
     override fun exists(relPath: RelativePath): Boolean {
         val parent = findDirectory(relPath.directory) ?: return false
