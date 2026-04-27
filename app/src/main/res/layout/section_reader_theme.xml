@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
-    <data/>
+
+    <data />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
         android:paddingTop="16dp"
+        android:paddingEnd="16dp"
         android:paddingBottom="16dp">
 
         <TextView
@@ -17,38 +18,38 @@
             android:paddingTop="4dp"
             android:paddingBottom="14dp"
             android:text="@string/reader_section_theme"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="@color/v3_text_2"
             android:textSize="13sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <include
             android:id="@+id/row_theme_picker"
             layout="@layout/item_reader_setting_scroll"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
         <include
             android:id="@+id/row_follow_system_dark"
             layout="@layout/item_reader_setting_switch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
         <include
             android:id="@+id/row_use_system_brightness"
             layout="@layout/item_reader_setting_switch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
         <include
             android:id="@+id/row_custom_brightness"
             layout="@layout/item_reader_setting_slider"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
         <include
             android:id="@+id/row_warm_filter"
             layout="@layout/item_reader_setting_slider"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </layout>

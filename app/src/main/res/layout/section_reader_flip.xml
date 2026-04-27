@@ -17,7 +17,7 @@
             android:paddingTop="4dp"
             android:paddingBottom="14dp"
             android:text="@string/reader_section_flip"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="@color/v3_text_2"
             android:textSize="13sp"
             android:textStyle="bold"/>
 
