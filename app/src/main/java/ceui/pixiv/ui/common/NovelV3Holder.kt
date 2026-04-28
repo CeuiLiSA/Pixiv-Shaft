@@ -48,7 +48,7 @@ class NovelV3Holder(val novel: Novel) : ListItemHolder() {
 class NovelV3ViewHolder(private val b: CellNovelV3Binding) :
     ListItemViewHolder<CellNovelV3Binding, NovelV3Holder>(b) {
 
-    private val palette: V3Palette = V3Palette.from(Shaft.getContext())
+    private val palette: V3Palette = V3Palette.from(context)
     private val fmt: NumberFormat = NumberFormat.getInstance()
 
     override fun onBindViewHolder(holder: NovelV3Holder, position: Int) {

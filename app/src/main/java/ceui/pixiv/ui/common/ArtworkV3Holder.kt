@@ -37,7 +37,7 @@ class ArtworkV3ViewHolder(private val b: SectionV3ArtistBinding) :
     ListItemViewHolder<SectionV3ArtistBinding, ArtworkV3Holder>(b) {
 
     private val ctx: Context get() = b.root.context
-    private val palette: V3Palette = V3Palette.from(Shaft.getContext())
+    private val palette: V3Palette = V3Palette.from(ctx)
 
     override fun onBindViewHolder(holder: ArtworkV3Holder, position: Int) {
         super.onBindViewHolder(holder, position)
