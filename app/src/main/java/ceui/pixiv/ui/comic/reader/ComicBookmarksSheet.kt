@@ -6,14 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.ComicBookmarkEntity
 import ceui.lisa.databinding.CellComicBookmarkBinding
 import ceui.lisa.databinding.SheetComicBookmarksBinding
@@ -22,41 +20,33 @@ import ceui.pixiv.widgets.PixivBottomSheet
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-
-interface ComicBookmarkCallback {
-    fun onJumpToBookmark(entry: ComicBookmarkEntity)
-    fun onAddBookmarkAtCurrentPage()
-    fun onDeleteBookmark(entry: ComicBookmarkEntity)
-}
 
 class ComicBookmarksSheet : PixivBottomSheet(R.layout.sheet_comic_bookmarks) {
 
     private val binding by viewBinding(SheetComicBookmarksBinding::bind)
-    private val dao by lazy { AppDatabase.getAppDatabase(Shaft.getContext()).comicBookmarkDao() }
+    private val eventBus by activityViewModels<ComicReaderEventBus>()
+    private val repo by lazy { ComicBookmarkRepository.fromContext() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val cb = parentFragment as? ComicBookmarkCallback
         val illustId = arguments?.getLong(ARG_ILLUST_ID, 0L) ?: 0L
 
         val adapter = BookmarkAdapter(
-            onJump = { entry -> cb?.onJumpToBookmark(entry); dismiss() },
-            onDelete = { entry ->
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) { dao.deleteById(entry.bookmarkId) }
-                cb?.onDeleteBookmark(entry)
+            onJump = { entry ->
+                eventBus.post(ComicReaderEventBus.Event.JumpToBookmark(entry))
+                dismiss()
             },
+            onDelete = { entry -> repo.delete(entry.bookmarkId) },
         )
         binding.comicBookmarksList.layoutManager = LinearLayoutManager(requireContext())
         binding.comicBookmarksList.adapter = adapter
 
         binding.comicBookmarksAdd.setOnClickListener {
-            cb?.onAddBookmarkAtCurrentPage()
+            eventBus.post(ComicReaderEventBus.Event.AddBookmarkAtCurrent)
             dismiss()
         }
 
-        dao.observeForIllust(illustId).observe(viewLifecycleOwner) { list ->
+        repo.observeFor(illustId).observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             binding.comicBookmarksEmpty.isVisible = list.isEmpty()
         }
