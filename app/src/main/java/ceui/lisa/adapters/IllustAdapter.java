@@ -88,49 +88,30 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         }
 
         if (position == 0) {
-            // Both single-page and multi-page: IllustsBean.width/height describes page 0,
-            // so we can pin layout height deterministically before the bitmap arrives and
-            // avoid the "240dp → natural height" jump that was visible on tall works.
+            // 第一张图统一规则：宽 = 屏宽，高 = max(自然高, maxHeight)，FIT_CENTER 不裁切。
+            // 高图按比例完整显示；扁图保留 maxHeight 占位，上下留白维持版式空间。
+            // 单 P / 多 P / 折叠与否都走同一分支。
             int iw = allIllust.getWidth();
             int ih = allIllust.getHeight();
-            boolean hasValidDims = iw > 0 && ih > 0 && maxHeight > 0;
+            boolean hasValidDims = iw > 0 && ih > 0;
 
             ImageView.ScaleType scaleType;
             int targetHeight;
             boolean changeSize;
             String branchTag;
             if (!hasValidDims) {
-                // Fallback: unknown dimensions, defer sizing to UniformScaleTransformation.
-                scaleType = ImageView.ScaleType.CENTER_CROP;
+                scaleType = ImageView.ScaleType.FIT_CENTER;
                 targetHeight = maxHeight > 0 ? maxHeight : holder.baseBind.illust.getLayoutParams().height;
                 changeSize = true;
                 branchTag = "fallback(noValidDims)";
             } else {
-                float screenRatio = (float) imageSize / maxHeight;
-                float illustRatio = (float) iw / ih;
-                boolean nearSquare = Math.abs(illustRatio - screenRatio) < 0.1f;
-                boolean wide = illustRatio >= screenRatio;
-                boolean singlePage = allIllust.getPage_count() == 1;
-
-                if (!singlePage) {
-                    // Multi-page cover: CENTER_CROP; natural-aspect tall, letterbox cap wide.
-                    scaleType = ImageView.ScaleType.CENTER_CROP;
-                    targetHeight = wide ? maxHeight : Math.round(imageSize / illustRatio);
-                    branchTag = "multiP_" + (wide ? "wide_capMax" : "tall_natural");
-                } else if (nearSquare) {
-                    scaleType = ImageView.ScaleType.CENTER_CROP;
-                    targetHeight = maxHeight;
-                    branchTag = "single_nearSquare";
-                } else if (wide) {
-                    scaleType = ImageView.ScaleType.FIT_CENTER;
-                    targetHeight = maxHeight;
-                    branchTag = "single_wide_letterbox";
-                } else { // tall: natural aspect, may exceed maxHeight
-                    scaleType = ImageView.ScaleType.CENTER_CROP;
-                    targetHeight = Math.round(imageSize / illustRatio);
-                    branchTag = "single_tall_natural";
-                }
+                int naturalHeight = Math.round((float) imageSize * ih / iw);
+                scaleType = ImageView.ScaleType.FIT_CENTER;
+                targetHeight = maxHeight > 0 ? Math.max(naturalHeight, maxHeight) : naturalHeight;
                 changeSize = false;
+                boolean tall = maxHeight <= 0 || naturalHeight >= maxHeight;
+                branchTag = (allIllust.getPage_count() == 1 ? "single_" : "multiP_")
+                        + (tall ? "tall_natural" : "flat_padToMax");
             }
 
             int pageCount = allIllust.getPage_count();
