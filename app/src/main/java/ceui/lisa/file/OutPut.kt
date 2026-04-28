@@ -34,6 +34,7 @@ object OutPut {
                     bis.copyTo(bos)
                 }
             }
+            handle.onFinish()
             Common.showToast(string(R.string.save_gif_success))
         } catch (t: Throwable) {
             Timber.e(t, "outPutGif failed")
@@ -70,6 +71,7 @@ object OutPut {
                     bis.copyTo(bos)
                 }
             }
+            handle.onFinish()
         } catch (t: Throwable) {
             Timber.e(t, "OutPut.writeRaw failed (bucket=$bucket path=$rawPath)")
             Common.showToast(string(failedMsgId, errMsg(t)))

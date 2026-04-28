@@ -38,6 +38,7 @@ internal object ExportUtils {
             mimeType,
         ) ?: return@runCatching null
         handle.stream.use { writer(it) }
+        handle.onFinish()
         handle.uri
     }.getOrNull()
 
