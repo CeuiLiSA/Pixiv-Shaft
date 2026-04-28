@@ -1509,4 +1509,5 @@
     <string name="comic_reader_series_loading">正在查找系列…</string>
     <string name="comic_reader_long_press_open_advanced">高级查看（AI / 翻译）</string>
     <string name="comic_reader_total_minutes">已阅读 %1$d 分钟</string>
+    <string name="comic_reader_enter">阅读漫画</string>
 </resources>

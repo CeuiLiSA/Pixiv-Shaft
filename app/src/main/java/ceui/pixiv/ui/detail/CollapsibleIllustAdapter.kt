@@ -28,7 +28,8 @@ class CollapsibleIllustAdapter(
     private val illust: IllustsBean,
     maxHeight: Int,
     isForceOriginal: Boolean,
-    private val collapsedCount: Int = DEFAULT_COLLAPSED
+    private val collapsedCount: Int = DEFAULT_COLLAPSED,
+    var onComicReaderClick: (() -> Unit)? = null,
 ) : IllustAdapter(activity, fragment, illust, maxHeight, isForceOriginal) {
 
     private var expanded = false
@@ -72,7 +73,11 @@ class CollapsibleIllustAdapter(
 
     @SuppressLint("ClickableViewAccessibility")
     private fun bindExpandOverlay(holder: ViewHolder<RecyIllustDetailBinding>, position: Int) {
-        val (overlay, pill, label) = overlayOf(holder) ?: return
+        val views = overlayOf(holder) ?: return
+        val overlay = views.overlay
+        val pill = views.expandPill
+        val label = views.expandLabel
+        val comicPill = views.comicPill
 
         if (position != 0 || !isCollapsed) {
             overlay.animate().cancel()
@@ -83,6 +88,8 @@ class CollapsibleIllustAdapter(
             pill.scaleY = 1f
             pill.setOnClickListener(null)
             pill.setOnTouchListener(null)
+            comicPill.visibility = View.GONE
+            comicPill.setOnClickListener(null)
             return
         }
 
@@ -92,19 +99,18 @@ class CollapsibleIllustAdapter(
         label.text = holder.itemView.context.getString(
             R.string.v3_expand_all_pages_title, hiddenCount
         )
+
+        // Show comic reader pill for manga type
+        val isManga = "manga" == illust.type
+        comicPill.visibility = if (isManga && onComicReaderClick != null) View.VISIBLE else View.GONE
+        if (isManga) {
+            applyPillTouchFeedback(comicPill)
+            comicPill.setOnClickListener { onComicReaderClick?.invoke() }
+        }
+
         // Press-down feedback — scale on ACTION_DOWN, restore on release/cancel.
         // Return false so the click still fires normally via setOnClickListener.
-        pill.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN ->
-                    v.animate().scaleX(0.94f).scaleY(0.94f).setDuration(120)
-                        .setInterpolator(DecelerateInterpolator()).start()
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
-                    v.animate().scaleX(1f).scaleY(1f).setDuration(160)
-                        .setInterpolator(DecelerateInterpolator()).start()
-            }
-            false
-        }
+        applyPillTouchFeedback(pill)
         pill.setOnClickListener {
             overlay.animate()
                 .alpha(0f)
@@ -117,20 +123,38 @@ class CollapsibleIllustAdapter(
         }
     }
 
-    /**
-     * Cache the overlay's 3 child views on the holder's itemView via setTag —
-     * avoids repeated findViewById on each bind/payload rebind.
-     */
-    private fun overlayOf(holder: ViewHolder<RecyIllustDetailBinding>): Triple<FrameLayout, View, TextView>? {
+    @SuppressLint("ClickableViewAccessibility")
+    private fun applyPillTouchFeedback(view: View) {
+        view.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN ->
+                    v.animate().scaleX(0.94f).scaleY(0.94f).setDuration(120)
+                        .setInterpolator(DecelerateInterpolator()).start()
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(160)
+                        .setInterpolator(DecelerateInterpolator()).start()
+            }
+            false
+        }
+    }
+
+    private class OverlayViews(
+        val overlay: FrameLayout,
+        val expandPill: View,
+        val expandLabel: TextView,
+        val comicPill: View,
+    )
+
+    private fun overlayOf(holder: ViewHolder<RecyIllustDetailBinding>): OverlayViews? {
         val root = holder.itemView
-        @Suppress("UNCHECKED_CAST")
-        (root.getTag(TAG_OVERLAY) as? Triple<FrameLayout, View, TextView>)?.let { return it }
+        (root.getTag(TAG_OVERLAY) as? OverlayViews)?.let { return it }
         val overlay = root.findViewById<FrameLayout>(R.id.expand_overlay) ?: return null
         val pill = root.findViewById<View>(R.id.expand_pill) ?: return null
         val label = root.findViewById<TextView>(R.id.expand_label) ?: return null
-        val triple = Triple(overlay, pill, label)
-        root.setTag(TAG_OVERLAY, triple)
-        return triple
+        val comicPill = root.findViewById<View>(R.id.comic_reader_pill) ?: return null
+        val views = OverlayViews(overlay, pill, label, comicPill)
+        root.setTag(TAG_OVERLAY, views)
+        return views
     }
 
     override fun onViewAttachedToWindow(holder: ViewHolder<RecyIllustDetailBinding>) {
