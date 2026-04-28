@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ceui.pixiv.ui.comic.reader.ComicZoomImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/reload"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:padding="12dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_baseline_refresh_48"
+        android:tint="@color/white_to_gray"
+        android:visibility="gone"
+        android:contentDescription="@string/comic_reader_retry" />
+</FrameLayout>

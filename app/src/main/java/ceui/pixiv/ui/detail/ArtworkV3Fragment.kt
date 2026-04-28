@@ -186,6 +186,19 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                     object : ceui.lisa.adapters.IllustAdapter(
                         mActivity, this@ArtworkV3Fragment, illust, maxHeight, false
                     ) {
+                        override fun onBindViewHolder(holder: ceui.lisa.adapters.ViewHolder<ceui.lisa.databinding.RecyIllustDetailBinding>, position: Int) {
+                            super.onBindViewHolder(holder, position)
+                            // 进入 V3 漫画阅读器（多 P 才有意义；单 P 走旧的全屏看图）
+                            if (illust.page_count > 1) {
+                                holder.baseBind.illust.setOnClickListener {
+                                    val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+                                        putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "漫画阅读")
+                                        putExtra(Params.ILLUST_ID, illustId)
+                                    }
+                                    startActivity(intent)
+                                }
+                            }
+                        }
                         override fun onViewAttachedToWindow(holder: ceui.lisa.adapters.ViewHolder<ceui.lisa.databinding.RecyIllustDetailBinding>) {
                             super.onViewAttachedToWindow(holder)
                             val lp = holder.itemView.layoutParams

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/comic_reader_settings"
+            android:textColor="@color/rank_text_color"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <!-- 阅读模式 -->
+        <TextView style="@style/ComicSheetSection" android:text="@string/comic_reader_mode_label" />
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/comic_mode_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_mode_paged"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_mode_paged" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_mode_webtoon"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_mode_webtoon" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- 翻页方向 -->
+        <TextView style="@style/ComicSheetSection" android:text="@string/comic_reader_direction_label" />
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/comic_direction_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_dir_ltr"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_dir_ltr" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_dir_rtl"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_dir_rtl" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- 缩放 -->
+        <TextView style="@style/ComicSheetSection" android:text="@string/comic_reader_fit_label" />
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/comic_fit_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_fit_width"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_fit_width" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_fit_screen"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_fit_screen" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_fit_original"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_fit_original" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- 亮度 -->
+        <TextView style="@style/ComicSheetSection" android:text="@string/comic_reader_brightness_label" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/comic_sys_brightness"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_brightness_system" />
+
+            <SeekBar
+                android:id="@+id/comic_brightness_seek"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:max="100" />
+        </LinearLayout>
+
+        <!-- 开关组 -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/comic_keep_screen_on"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/comic_reader_keep_screen_on" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/comic_immersive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/comic_reader_immersive" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/comic_show_page_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/comic_reader_show_page_number" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/comic_load_original"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/comic_reader_load_original" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/comic_volume_flip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/comic_reader_volume_flip" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/comic_tap_reversed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/comic_reader_tap_reversed" />
+
+        <!-- 预载页数 -->
+        <TextView style="@style/ComicSheetSection" android:text="@string/comic_reader_preload_label" />
+        <SeekBar
+            android:id="@+id/comic_preload_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="8" />
+
+        <TextView
+            android:id="@+id/comic_preload_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textColor="@color/rank_text_color"
+            android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>

@@ -1449,4 +1449,38 @@
     <string name="street_web_login_toolbar">登录 Pixiv 网页版</string>
     <string name="street_web_login_success">登录成功</string>
     <string name="street_title">Web 首页</string>
+
+    <!-- Comic Reader V3 -->
+    <string name="comic_reader_back">返回</string>
+    <string name="comic_reader_more">更多</string>
+    <string name="comic_reader_pages">页面列表</string>
+    <string name="comic_reader_direction">翻页方向</string>
+    <string name="comic_reader_settings">阅读设置</string>
+    <string name="comic_reader_theme">背景</string>
+    <string name="comic_reader_retry">重新加载</string>
+    <string name="comic_reader_mode_label">阅读模式</string>
+    <string name="comic_reader_mode_paged">横向翻页</string>
+    <string name="comic_reader_mode_webtoon">竖向条漫</string>
+    <string name="comic_reader_direction_label">翻页方向（横向）</string>
+    <string name="comic_reader_dir_ltr">从左到右</string>
+    <string name="comic_reader_dir_rtl">从右到左</string>
+    <string name="comic_reader_fit_label">画面缩放</string>
+    <string name="comic_reader_fit_width">宽度铺满</string>
+    <string name="comic_reader_fit_screen">整页适应</string>
+    <string name="comic_reader_fit_original">原始尺寸</string>
+    <string name="comic_reader_brightness_label">亮度</string>
+    <string name="comic_reader_brightness_system">跟随系统</string>
+    <string name="comic_reader_keep_screen_on">阅读时保持屏幕常亮</string>
+    <string name="comic_reader_immersive">沉浸式（隐藏状态栏）</string>
+    <string name="comic_reader_show_page_number">显示页码角标</string>
+    <string name="comic_reader_load_original">加载原图</string>
+    <string name="comic_reader_volume_flip">音量键翻页</string>
+    <string name="comic_reader_tap_reversed">反转点击区域</string>
+    <string name="comic_reader_preload_label">预载页数</string>
+    <string name="comic_reader_preload_value">预载 %1$d 页</string>
+    <string name="comic_reader_page_indicator">%1$d / %2$d</string>
+    <string name="comic_reader_jump_to_page">跳转到第 %1$d 页</string>
+    <string name="comic_reader_open_label">进入阅读</string>
+    <string name="comic_reader_load_failed">加载失败：%1$s</string>
+    <string name="comic_reader_no_pages">该作品没有可阅读的页面</string>
 </resources>

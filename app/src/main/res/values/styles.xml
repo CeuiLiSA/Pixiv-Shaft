@@ -17,6 +17,16 @@
         <item name="qmui_skin_support_dialog_edit_text_color">@color/rank_text_color</item>
     </style>
 
+    <style name="ComicSheetSection">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:textColor">@color/rank_text_color</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="PixivBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:background">@drawable/bg_dialog_header</item>
     </style>

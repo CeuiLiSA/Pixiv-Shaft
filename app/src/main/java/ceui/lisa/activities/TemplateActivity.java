@@ -46,6 +46,7 @@ import ceui.lisa.fragments.FragmentNewNovels;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
 import ceui.pixiv.ui.novel.reader.NovelReaderV3Fragment;
+import ceui.pixiv.ui.comic.reader.ComicReaderV3Fragment;
 import ceui.pixiv.ui.novel.NovelSeriesFragment;
 import ceui.pixiv.ui.novel.NovelTextFragment;
 import ceui.pixiv.ui.novel.UncategorizedNovelsFragment;
@@ -222,6 +223,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     }
                     long rid = intent.getLongExtra(Params.NOVEL_ID, 0L);
                     return NovelReaderV3Fragment.newInstance(rid);
+                }
+                case "漫画阅读": {
+                    long iid = intent.getLongExtra(Params.ILLUST_ID, 0L);
+                    if (iid == 0L) iid = intent.getIntExtra(Params.ILLUST_ID, 0);
+                    return ComicReaderV3Fragment.newInstance(iid);
                 }
                 case "小说系列": {
                     long sid = intent.getLongExtra(NovelSeriesFragment.ARG_SERIES_ID, 0L);
@@ -409,6 +415,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
         if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
                 && childFragment instanceof NovelReaderV3Fragment) {
             if (((NovelReaderV3Fragment) childFragment).handleVolumeKey(keyCode)) {
+                return true;
+            }
+        }
+        if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+                && childFragment instanceof ComicReaderV3Fragment) {
+            if (((ComicReaderV3Fragment) childFragment).handleVolumeKey(keyCode)) {
                 return true;
             }
         }
