@@ -73,10 +73,10 @@
 
                         <GridLayout
                             android:layout_width="match_parent"
-                            android:layout_height="268dp"
+                            android:layout_height="402dp"
                             android:columnCount="2"
                             android:orientation="horizontal"
-                            android:rowCount="2">
+                            android:rowCount="3">
 
                             <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
                                 app:qmui_radius="10dp"
@@ -227,13 +227,11 @@
 
                             </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
-                            <!-- webStreet 暂时隐藏，功能未完成 -->
                             <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
                                 app:qmui_radius="10dp"
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
                                 android:id="@+id/web_street"
-                                android:visibility="gone"
                                 android:stateListAnimator="@animator/button_press_scale"
                                 android:layout_rowWeight="1"
                                 android:layout_columnWeight="1"
