@@ -43,6 +43,12 @@ class ClientManager {
         const val WEB_API_HOST = "https://www.pixiv.net"
         const val NETEASY_API_HOST = "http://192.243.123.124:3000"
 
+        /**
+         * 所有 Web API 请求和 WebView 统一使用的 User-Agent。
+         * cf_clearance cookie 绑定 UA，WebView 和 OkHttp 必须一致。
+         */
+        const val WEB_USER_AGENT = "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.39 Mobile Safari/537.36"
+
         const val TOKEN_HEAD = "Bearer "
 
         const val HEADER_AUTH = "authorization"

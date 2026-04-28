@@ -21,6 +21,11 @@ object CsrfTokenProvider {
 
     fun get(): String? = cached ?: store.decodeString(KEY_CSRF, null)?.also { cached = it }
 
+    fun set(token: String) {
+        cached = token
+        store.encode(KEY_CSRF, token)
+    }
+
     /**
      * Fetch a fresh token from the Pixiv homepage. Call from a background thread.
      */
@@ -39,7 +44,7 @@ object CsrfTokenProvider {
             val request = Request.Builder()
                 .url("https://www.pixiv.net/")
                 .addHeader("Cookie", cookies)
-                .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.42 Mobile Safari/537.36")
+                .addHeader("User-Agent", ClientManager.WEB_USER_AGENT)
                 .build()
             val response = client.newCall(request).execute()
             Timber.d("CsrfToken: HTTP ${response.code}, url=${response.request.url}")
