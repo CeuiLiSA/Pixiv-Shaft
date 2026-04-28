@@ -568,13 +568,15 @@ public class PixivOperate {
         }
 
         if (illust.getId() > 0) {
-            IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
-            illustHistoryEntity.setType(0);
-            illustHistoryEntity.setIllustID(illust.getId());
-            illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(illust));
-            illustHistoryEntity.setTime(System.currentTimeMillis());
-            Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
-            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
+            Schedulers.io().scheduleDirect(() -> {
+                IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
+                illustHistoryEntity.setType(0);
+                illustHistoryEntity.setIllustID(illust.getId());
+                illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(illust));
+                illustHistoryEntity.setTime(System.currentTimeMillis());
+                Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
+                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
+            });
         }
     }
 
@@ -584,13 +586,15 @@ public class PixivOperate {
         }
 
         if (novelBean.getId() > 0) {
-            IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
-            illustHistoryEntity.setIllustID(novelBean.getId());
-            illustHistoryEntity.setType(1);
-            illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(novelBean));
-            illustHistoryEntity.setTime(System.currentTimeMillis());
-            Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
-            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
+            Schedulers.io().scheduleDirect(() -> {
+                IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
+                illustHistoryEntity.setIllustID(novelBean.getId());
+                illustHistoryEntity.setType(1);
+                illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(novelBean));
+                illustHistoryEntity.setTime(System.currentTimeMillis());
+                Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
+                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
+            });
         }
     }
 
