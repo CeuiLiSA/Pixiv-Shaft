@@ -111,14 +111,22 @@ public class Manager {
             if (content == null) {
                 content = new ArrayList<>();
             }
+
+            long t0 = System.nanoTime();
             boolean isTaskExist = false;
             for (DownloadItem item : content) {
                 if (item.isSame(bean)) {
                     isTaskExist = true;
                 }
             }
+            long dedupMs = (System.nanoTime() - t0) / 1_000_000;
+
             if (!isTaskExist) {
+                long t1 = System.nanoTime();
                 safeAdd(bean);
+                long safeAddMs = (System.nanoTime() - t1) / 1_000_000;
+                Common.showLog("[PERF] addTask #" + content.size()
+                        + " dedupMs=" + dedupMs + " safeAddMs=" + safeAddMs);
             }
             if(DownloadLimitTypeUtil.startTaskWhenCreate()){
                 startAll();
@@ -132,8 +140,16 @@ public class Manager {
         DownloadingEntity entity = new DownloadingEntity();
         entity.setFileName(item.getName());
         entity.setUuid(item.getUuid());
+
+        long t0 = System.nanoTime();
         entity.setTaskGson(Shaft.sGson.toJson(item));
+        long gsonMs = (System.nanoTime() - t0) / 1_000_000;
+
+        long t1 = System.nanoTime();
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownloading(entity);
+        long dbMs = (System.nanoTime() - t1) / 1_000_000;
+
+        Common.showLog("[PERF] safeAdd gsonMs=" + gsonMs + " dbInsertMs=" + dbMs);
     }
 
     private void complete(DownloadItem item, boolean isDownloadSuccess) {
@@ -158,9 +174,13 @@ public class Manager {
 
     public void addTasks(List<DownloadItem> list) {
         if (!Common.isEmpty(list)) {
+            long t0 = System.nanoTime();
             for (DownloadItem item : list) {
                 addTask(item);
             }
+            long totalMs = (System.nanoTime() - t0) / 1_000_000;
+            Common.showLog("[PERF] addTasks total=" + list.size()
+                    + " items, totalMs=" + totalMs);
         }
     }
 
