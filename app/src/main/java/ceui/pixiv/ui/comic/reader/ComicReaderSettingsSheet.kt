@@ -10,6 +10,8 @@ import ceui.pixiv.widgets.PixivBottomSheet
 
 class ComicReaderSettingsSheet : PixivBottomSheet(R.layout.sheet_comic_reader_settings) {
 
+    override fun getTheme(): Int = com.google.android.material.R.style.Theme_Material3_DayNight_BottomSheetDialog
+
     private val binding by viewBinding(SheetComicReaderSettingsBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

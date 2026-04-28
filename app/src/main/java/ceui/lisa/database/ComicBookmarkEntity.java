@@ -19,8 +19,10 @@ public class ComicBookmarkEntity {
     public long illustId;
     public int pageIndex;
     public int totalPages;
+    @NonNull
     @ColumnInfo(name = "preview_url")
     public String previewUrl = "";
+    @NonNull
     public String note = "";
     public long createdTime;
 

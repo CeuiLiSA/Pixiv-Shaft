@@ -30,7 +30,7 @@ class PagedViewport(
         adapter.fillHeight = true
         pager.adapter = adapter
         pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) { onPageSelected(position) }
+            override fun onPageSelected(position: Int) { this@PagedViewport.onPageSelected(position) }
         })
     }
 

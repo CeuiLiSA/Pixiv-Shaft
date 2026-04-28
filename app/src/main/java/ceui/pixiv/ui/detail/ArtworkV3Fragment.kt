@@ -260,6 +260,21 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
                 else android.graphics.Color.WHITE
             )
         }
+
+        // Show comic reader FAB when the illust is manga
+        ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
+            if (illust != null && "manga" == illust.type && illust.page_count > 1) {
+                baseBind.fabComicDivider.visibility = View.VISIBLE
+                baseBind.fabComic.visibility = View.VISIBLE
+            }
+        }
+        baseBind.fabComic.setOnClick {
+            val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
+                putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "漫画阅读")
+                putExtra(Params.ILLUST_ID, illustId)
+            }
+            startActivity(intent)
+        }
     }
 
 
