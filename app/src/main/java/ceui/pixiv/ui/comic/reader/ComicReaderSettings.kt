@@ -90,7 +90,7 @@ object ComicReaderSettings {
         set(value) { store.encode(K_PAGE_NUM, value); emit(ChangeEvent.Layout) }
 
     var loadOriginal: Boolean
-        get() = store.decodeBool(K_LOAD_ORIGINAL, false)
+        get() = store.decodeBool(K_LOAD_ORIGINAL, true)
         set(value) { store.encode(K_LOAD_ORIGINAL, value); emit(ChangeEvent.Image) }
 
     var flipAnim: FlipAnim
