@@ -239,14 +239,14 @@
                                 android:layout_marginTop="@dimen/six_dp"
                                 android:layout_marginEnd="@dimen/six_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
-                                android:background="?attr/colorPrimary">
+                                android:background="@color/v3_surface_2">
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_centerInParent="true"
                                     android:text="Web 首页"
-                                    android:textColor="@color/always_white"
+                                    android:textColor="@color/v3_text_1"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 

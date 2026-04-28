@@ -18,10 +18,6 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentNewCenterBinding;
 import ceui.lisa.utils.Dev;
-import ceui.lisa.utils.Params;
-import ceui.loxia.CsrfTokenProvider;
-import ceui.pixiv.session.SessionManager;
-import com.tencent.mmkv.MMKV;
 
 public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
 
@@ -105,23 +101,17 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
         baseBind.webStreet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String cookies = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "");
-                boolean noCookie = cookies == null || cookies.isEmpty() || !cookies.contains("PHPSESSID");
-                boolean noToken = CsrfTokenProvider.INSTANCE.get() == null;
-                if (noCookie || noToken) {
-                    // 没有 Web cookie 或 CSRF token，优先跳转到 WebFragment
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web页面");
-                    intent.putExtra(Params.URL, noCookie
-                            ? "https://accounts.pixiv.net/login"
-                            : "https://www.pixiv.net/");
-                    intent.putExtra("saveCookies", true);
-                    startActivity(intent);
-                } else {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页");
-                    startActivity(intent);
-                }
+                new com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder(mActivity)
+                        .setTitle("Web 首页")
+                        .setMessage("Coming soon...")
+                        .setSkinManager(com.qmuiteam.qmui.skin.QMUISkinManager.defaultInstance(mContext))
+                        .addAction("OK", new com.qmuiteam.qmui.widget.dialog.QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(com.qmuiteam.qmui.widget.dialog.QMUIDialog dialog, int index) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
             }
         });
     }
