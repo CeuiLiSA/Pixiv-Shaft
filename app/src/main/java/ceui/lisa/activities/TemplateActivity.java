@@ -233,6 +233,13 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 }
                 case "Web首页":
                     return new ceui.lisa.fragments.StreetMainFragment();
+                case "Web页面": {
+                    String webUrl = intent.getStringExtra(Params.URL);
+                    boolean saveCookies = intent.getBooleanExtra("saveCookies", false);
+                    return ceui.pixiv.ui.web.WebFragment.Companion.newInstance(
+                            webUrl != null ? webUrl : "https://www.pixiv.net/",
+                            saveCookies);
+                }
                 case "图片详情":
                     return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL), intent.getStringExtra(Params.TITLE));
                 case "画质增强对比":
