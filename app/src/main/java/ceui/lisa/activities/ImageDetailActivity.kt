@@ -40,10 +40,9 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import android.content.Intent
-import android.view.ContextThemeWrapper
 import android.widget.ImageView
-import android.widget.PopupMenu
 import androidx.core.view.ViewCompat
+import ceui.lisa.utils.QMUIMenuPopup
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.io.UnsupportedEncodingException
@@ -118,31 +117,22 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
-                val popup = PopupMenu(
-                    ContextThemeWrapper(this, R.style.AppTheme_PopupOverlay),
-                    anchor
+                val titles = arrayOf<CharSequence>(
+                    getString(R.string.string_ai_upscale),
+                    getString(R.string.string_ai_rembg)
                 )
-                popup.menuInflater.inflate(R.menu.menu_ai_detail, popup.menu)
-                popup.setOnMenuItemClickListener { menuItem ->
-                    val illust = mIllustsBean ?: return@setOnMenuItemClickListener false
+                QMUIMenuPopup.show(this, anchor, titles) { index, _ ->
+                    val illust = mIllustsBean ?: return@show
                     val pageIndex = baseBind!!.viewPager.currentItem
-                    when (menuItem.itemId) {
-                        R.id.action_ai_upscale -> {
-                            ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                                performAiUpscale(illust, pageIndex, model)
-                            }
-                            true
+                    when (index) {
+                        0 -> ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                            performAiUpscale(illust, pageIndex, model)
                         }
-                        R.id.action_ai_rembg -> {
-                            RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                                performAiRembg(illust, pageIndex, model)
-                            }
-                            true
+                        1 -> RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                            performAiRembg(illust, pageIndex, model)
                         }
-                        else -> false
                     }
                 }
-                popup.show()
             }
             baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
                 supportFragmentManager

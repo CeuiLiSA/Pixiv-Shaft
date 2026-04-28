@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.databinding.ViewDataBinding;
@@ -39,6 +38,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.QMUIMenuPopup;
 import ceui.lisa.view.OnCheckChangeListener;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.DynamicIllustModel;
@@ -170,17 +170,15 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
     }
 
     private void showTypeSwitcherMenu(View anchor) {
-        PopupMenu popup = new PopupMenu(mContext, anchor);
-        popup.getMenu().add(0, 1, 0, R.string.dynamic_type_illust_manga);
-        popup.getMenu().add(0, 2, 1, R.string.string_171); // 小说
-        popup.setOnMenuItemClickListener(item -> {
-            boolean wantIllust = item.getItemId() == 1;
+        CharSequence illustTitle = mContext.getString(R.string.dynamic_type_illust_manga);
+        CharSequence novelTitle = mContext.getString(R.string.string_171);
+        CharSequence[] titles = new CharSequence[]{illustTitle, novelTitle};
+        QMUIMenuPopup.show(mContext, anchor, titles, (index, text) -> {
+            boolean wantIllust = index == 0;
             switchMode(wantIllust);
             baseBind.dynamicTypeSwitcher.setText(
                     wantIllust ? R.string.dynamic_type_illust_manga : R.string.string_171);
-            return true;
         });
-        popup.show();
     }
 
     private void switchMode(boolean wantIllust) {
