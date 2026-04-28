@@ -48,6 +48,18 @@
         android:paddingTop="2dp">
 
         <ImageView
+            android:id="@+id/comic_btn_series_list"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_reader_series"
+            android:tint="#FFFFFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/series_sheet_title" />
+
+        <ImageView
             android:id="@+id/comic_btn_prev_series"
             android:layout_width="0dp"
             android:layout_height="44dp"

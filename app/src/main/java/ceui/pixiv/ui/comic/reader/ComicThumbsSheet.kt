@@ -26,6 +26,7 @@ import com.bumptech.glide.load.model.LazyHeaders
 class ComicReaderPagesProvider : ViewModel() {
     var pages: List<ComicReaderV3ViewModel.ComicPage> = emptyList()
     var currentIndex: Int = 0
+    var title: String = ""
 }
 
 class ComicThumbsSheet : PixivBottomSheet(R.layout.sheet_comic_thumbs) {
@@ -39,6 +40,10 @@ class ComicThumbsSheet : PixivBottomSheet(R.layout.sheet_comic_thumbs) {
         val pages = provider.pages
         val current = provider.currentIndex
         if (pages.isEmpty()) { dismiss(); return }
+
+        if (provider.title.isNotEmpty()) {
+            binding.comicThumbsTitle.text = provider.title
+        }
 
         val span = if (resources.configuration.screenWidthDp >= 600) 5 else 3
         binding.comicThumbsList.layoutManager = GridLayoutManager(requireContext(), span)

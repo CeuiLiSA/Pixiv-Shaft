@@ -160,6 +160,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         binding.comicBottomBar.comicBtnTheme.setOnClickListener {
             ComicReaderSettings.backgroundDark = !ComicReaderSettings.backgroundDark
         }
+        binding.comicBottomBar.comicBtnSeriesList.setOnClickListener { showSeriesListSheet() }
         binding.comicBottomBar.comicBtnPrevSeries.setOnClickListener {
             viewModel.jumpSeriesNeighbor(forward = false)
         }
@@ -242,6 +243,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             binding.comicBottomBar.comicTotalLabel.text = state.pages.size.toString()
             pagesProvider.pages = state.pages
             pagesProvider.currentIndex = viewModel.currentPage.value ?: 0
+            pagesProvider.title = state.illust.title.orEmpty()
             applyReadingMode(state.pages, viewModel.currentPage.value ?: 0)
         }
     }
@@ -325,6 +327,20 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     private fun showBookmarksSheet() {
         ComicBookmarksSheet.newInstance(resolveIllustId())
             .show(childFragmentManager, ComicBookmarksSheet.TAG)
+    }
+
+    private fun showSeriesListSheet() {
+        val illust = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.illust
+        val series = illust?.series
+        if (series == null || series.id == 0) {
+            Toast.makeText(requireContext(), R.string.comic_reader_no_series, Toast.LENGTH_SHORT).show()
+            return
+        }
+        ComicSeriesListSheet.newInstance(
+            seriesId = series.id.toLong(),
+            currentIllustId = resolveIllustId(),
+            seriesTitle = series.title,
+        ).show(childFragmentManager, ComicSeriesListSheet.TAG)
     }
 
     private fun showThumbsSheet() {
