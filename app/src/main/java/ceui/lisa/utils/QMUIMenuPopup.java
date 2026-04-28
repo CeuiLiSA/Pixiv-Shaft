@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
@@ -12,6 +13,8 @@ import com.qmuiteam.qmui.widget.popup.QMUIPopups;
 
 import java.util.Arrays;
 import java.util.List;
+
+import ceui.lisa.R;
 
 /**
  * 用 QMUI 的 listPopup 替代 androidx PopupMenu，统一项目里的下拉菜单视觉。
@@ -36,7 +39,7 @@ public final class QMUIMenuPopup {
                                  @NonNull List<CharSequence> titles,
                                  @NonNull OnItemSelected listener) {
         ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(
-                context, android.R.layout.simple_list_item_1, titles);
+                context, R.layout.item_qmui_menu, titles);
         QMUIPopup[] holder = new QMUIPopup[1];
         QMUIPopup popup = QMUIPopups.listPopup(
                 context,
@@ -52,6 +55,7 @@ public final class QMUIMenuPopup {
         popup.preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
                 .shadow(true)
                 .arrow(false)
+                .bgColor(ContextCompat.getColor(context, R.color.fragment_center))
                 .animStyle(QMUIPopup.ANIM_GROW_FROM_CENTER)
                 .edgeProtection(QMUIDisplayHelper.dp2px(context, 12))
                 .show(anchor);
