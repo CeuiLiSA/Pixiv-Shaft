@@ -22,8 +22,11 @@ import timber.log.Timber
  * 由调用者在 onBindViewHolder 时把 onSingleTap 传进来（chrome toggle）。
  */
 class ComicPagerAdapter(
-    private val onSingleTap: () -> Unit,
+    private val onSingleTap: (TapZone) -> Unit,
+    private val onLongPressPage: ((Int) -> Unit)? = null,
 ) : ListAdapter<ComicReaderV3ViewModel.ComicPage, ComicPagerAdapter.PageHolder>(DIFF) {
+
+    enum class TapZone { Left, Center, Right }
 
     var fillHeight: Boolean = false  // webtoon 模式下 ImageView 用 wrap_content；横翻时铺满
 
@@ -38,7 +41,7 @@ class ComicPagerAdapter(
                 height = ViewGroup.LayoutParams.WRAP_CONTENT
             }
         }
-        return PageHolder(binding, onSingleTap)
+        return PageHolder(binding, onSingleTap, onLongPressPage)
     }
 
     override fun onBindViewHolder(holder: PageHolder, position: Int) {
@@ -51,11 +54,25 @@ class ComicPagerAdapter(
 
     class PageHolder(
         val binding: CellComicPageBinding,
-        private val onSingleTap: () -> Unit,
+        private val onSingleTap: (TapZone) -> Unit,
+        private val onLongPressPage: ((Int) -> Unit)?,
     ) : RecyclerView.ViewHolder(binding.root) {
 
         init {
-            binding.image.onSingleTap = { _ -> onSingleTap() }
+            binding.image.onSingleTap = { e ->
+                val w = binding.image.width
+                val zone = when {
+                    w <= 0 -> TapZone.Center
+                    e.x < w / 3f -> TapZone.Left
+                    e.x > w * 2f / 3f -> TapZone.Right
+                    else -> TapZone.Center
+                }
+                onSingleTap(zone)
+            }
+            binding.image.onLongPress = { _ ->
+                val current = binding.root.tag as? ComicReaderV3ViewModel.ComicPage
+                if (current != null) onLongPressPage?.invoke(current.index)
+            }
             binding.reload.setOnClickListener {
                 val current = binding.root.tag as? ComicReaderV3ViewModel.ComicPage ?: return@setOnClickListener
                 bind(current)

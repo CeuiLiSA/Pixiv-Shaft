@@ -71,6 +71,18 @@ class ComicReaderSettingsSheet : PixivBottomSheet(R.layout.sheet_comic_reader_se
             override fun onStopTrackingTouch(s: SeekBar?) = Unit
         })
 
+        // 暖色护眼滤镜
+        binding.comicWarmSeek.progress = (ComicReaderSettings.warmFilterStrength * 100).toInt()
+        binding.comicWarmValue.text = "${binding.comicWarmSeek.progress}%"
+        binding.comicWarmSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) {
+                if (fromUser) ComicReaderSettings.warmFilterStrength = p / 100f
+                binding.comicWarmValue.text = "$p%"
+            }
+            override fun onStartTrackingTouch(s: SeekBar?) = Unit
+            override fun onStopTrackingTouch(s: SeekBar?) = Unit
+        })
+
         // 开关组
         binding.comicKeepScreenOn.isChecked = ComicReaderSettings.keepScreenOn
         binding.comicKeepScreenOn.setOnCheckedChangeListener { _, b -> ComicReaderSettings.keepScreenOn = b }
@@ -89,6 +101,24 @@ class ComicReaderSettingsSheet : PixivBottomSheet(R.layout.sheet_comic_reader_se
 
         binding.comicTapReversed.isChecked = ComicReaderSettings.tapZoneReversed
         binding.comicTapReversed.setOnCheckedChangeListener { _, b -> ComicReaderSettings.tapZoneReversed = b }
+
+        // 翻页动画
+        binding.comicAnimGroup.check(when (ComicReaderSettings.flipAnim) {
+            ComicReaderSettings.FlipAnim.Slide -> R.id.comic_anim_slide
+            ComicReaderSettings.FlipAnim.Cover -> R.id.comic_anim_cover
+            ComicReaderSettings.FlipAnim.Depth -> R.id.comic_anim_depth
+            ComicReaderSettings.FlipAnim.FlipBook -> R.id.comic_anim_flipbook
+        })
+        binding.comicAnimGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            ComicReaderSettings.flipAnim = when (checkedId) {
+                R.id.comic_anim_slide -> ComicReaderSettings.FlipAnim.Slide
+                R.id.comic_anim_cover -> ComicReaderSettings.FlipAnim.Cover
+                R.id.comic_anim_depth -> ComicReaderSettings.FlipAnim.Depth
+                R.id.comic_anim_flipbook -> ComicReaderSettings.FlipAnim.FlipBook
+                else -> ComicReaderSettings.FlipAnim.Slide
+            }
+        }
 
         // 预载页数
         binding.comicPreloadSeek.progress = ComicReaderSettings.preloadAhead

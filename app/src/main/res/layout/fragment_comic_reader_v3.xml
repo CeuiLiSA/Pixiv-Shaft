@@ -20,6 +20,15 @@
         android:clipToPadding="false"
         tools:listitem="@layout/cell_comic_page" />
 
+    <View
+        android:id="@+id/comic_warm_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFB347"
+        android:alpha="0"
+        android:clickable="false"
+        android:focusable="false" />
+
     <ProgressBar
         android:id="@+id/comic_loading"
         android:layout_width="48dp"

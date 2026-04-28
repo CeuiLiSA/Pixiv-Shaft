@@ -29,6 +29,7 @@ object ComicReaderSettings {
     enum class ReadingMode { Paged, Webtoon }
     enum class PageDirection { LTR, RTL }
     enum class FitMode { FitWidth, FitScreen, FitOriginal }
+    enum class FlipAnim { Slide, Cover, Depth, FlipBook }
 
     var readingMode: ReadingMode
         get() = runCatching {
@@ -60,6 +61,10 @@ object ComicReaderSettings {
         get() = store.decodeFloat(K_BRIGHTNESS, 0.5f).coerceIn(0.01f, 1f)
         set(value) { store.encode(K_BRIGHTNESS, value.coerceIn(0.01f, 1f)); emit(ChangeEvent.Brightness) }
 
+    var warmFilterStrength: Float
+        get() = store.decodeFloat(K_WARM_FILTER, 0f).coerceIn(0f, 0.6f)
+        set(value) { store.encode(K_WARM_FILTER, value.coerceIn(0f, 0.6f)); emit(ChangeEvent.Theme) }
+
     var keepScreenOn: Boolean
         get() = store.decodeBool(K_KEEP_SCREEN_ON, true)
         set(value) { store.encode(K_KEEP_SCREEN_ON, value); emit(ChangeEvent.Interaction) }
@@ -87,6 +92,12 @@ object ComicReaderSettings {
     var loadOriginal: Boolean
         get() = store.decodeBool(K_LOAD_ORIGINAL, false)
         set(value) { store.encode(K_LOAD_ORIGINAL, value); emit(ChangeEvent.Image) }
+
+    var flipAnim: FlipAnim
+        get() = runCatching {
+            FlipAnim.valueOf(store.decodeString(K_FLIP_ANIM, FlipAnim.Slide.name) ?: FlipAnim.Slide.name)
+        }.getOrDefault(FlipAnim.Slide)
+        set(value) { store.encode(K_FLIP_ANIM, value.name); emit(ChangeEvent.Layout) }
 
     var doubleTapZoomLevel: Float
         get() = store.decodeFloat(K_DBLTAP_ZOOM, 2.5f).coerceIn(1.5f, 5f)
@@ -129,4 +140,6 @@ object ComicReaderSettings {
     private const val K_PAGE_NUM = "c_page_num"
     private const val K_LOAD_ORIGINAL = "c_load_original"
     private const val K_DBLTAP_ZOOM = "c_dbltap_zoom"
+    private const val K_FLIP_ANIM = "c_flip_anim"
+    private const val K_WARM_FILTER = "c_warm_filter"
 }

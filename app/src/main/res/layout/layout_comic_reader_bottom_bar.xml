@@ -48,6 +48,18 @@
         android:paddingTop="2dp">
 
         <ImageView
+            android:id="@+id/comic_btn_prev_series"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_baseline_arrow_back_ios_24"
+            android:tint="#FFFFFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/comic_reader_prev_series" />
+
+        <ImageView
             android:id="@+id/comic_btn_pages"
             android:layout_width="0dp"
             android:layout_height="44dp"
@@ -94,5 +106,17 @@
             android:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/comic_reader_theme" />
+
+        <ImageView
+            android:id="@+id/comic_btn_next_series"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_chevron_right_black_24dp"
+            android:tint="#FFFFFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/comic_reader_next_series" />
     </LinearLayout>
 </LinearLayout>

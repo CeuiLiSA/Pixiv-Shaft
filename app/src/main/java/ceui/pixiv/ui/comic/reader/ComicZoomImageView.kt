@@ -29,6 +29,7 @@ class ComicZoomImageView @JvmOverloads constructor(
     var maxScale: Float = 6f
     var onSingleTap: ((MotionEvent) -> Unit)? = null
     var onDoubleTap: ((MotionEvent) -> Unit)? = null
+    var onLongPress: ((MotionEvent) -> Unit)? = null
 
     /** 当前 view 是否处于"已放大"状态，外部可据此决定要不要拦截 ViewPager2 的横向滑动。 */
     val isZoomed: Boolean get() = currentScale() > minScale * 1.01f
@@ -181,6 +182,10 @@ class ComicZoomImageView @JvmOverloads constructor(
             val target = if (current > minScale * 1.05f) minScale else midScale
             animateZoom(target, e.x, e.y)
             return true
+        }
+
+        override fun onLongPress(e: MotionEvent) {
+            onLongPress?.invoke(e)
         }
     }
 }

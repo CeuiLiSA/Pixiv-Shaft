@@ -37,8 +37,10 @@ import ceui.pixiv.db.RemoteKey;
                 DailyReadingStatsEntity.class, // V3 阅读器每日统计
                 NovelCustomThemeEntity.class, // V3 阅读器自定义主题
                 NovelCustomFontEntity.class, // V3 阅读器自定义字体
+                ComicBookmarkEntity.class, // V3 漫画阅读器书签
+                ComicReadingStatsEntity.class, // V3 漫画阅读器累计统计
         },
-        version = 30,
+        version = 32,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -210,6 +212,44 @@ public abstract class AppDatabase extends RoomDatabase {
             );
         }
     };
+    private static final Migration MIGRATION_31_32 = new Migration(31, 32) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS comic_reading_stats_table (" +
+                            "illustId INTEGER NOT NULL PRIMARY KEY, " +
+                            "lastPageIndex INTEGER NOT NULL DEFAULT 0, " +
+                            "totalPageCount INTEGER NOT NULL DEFAULT 0, " +
+                            "lastReadTime INTEGER NOT NULL DEFAULT 0, " +
+                            "firstReadTime INTEGER NOT NULL DEFAULT 0, " +
+                            "openCount INTEGER NOT NULL DEFAULT 0, " +
+                            "totalDurationMs INTEGER NOT NULL DEFAULT 0, " +
+                            "totalFlips INTEGER NOT NULL DEFAULT 0, " +
+                            "completed INTEGER NOT NULL DEFAULT 0" +
+                            ")"
+            );
+        }
+    };
+    private static final Migration MIGRATION_30_31 = new Migration(30, 31) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS comic_bookmark_table (" +
+                            "bookmarkId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                            "illustId INTEGER NOT NULL, " +
+                            "pageIndex INTEGER NOT NULL, " +
+                            "totalPages INTEGER NOT NULL, " +
+                            "preview_url TEXT NOT NULL, " +
+                            "note TEXT NOT NULL, " +
+                            "createdTime INTEGER NOT NULL" +
+                            ")"
+            );
+            database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_comic_bookmark_table_illustId " +
+                            "ON comic_bookmark_table (illustId)"
+            );
+        }
+    };
     private static AppDatabase INSTANCE;
 
     public static AppDatabase getAppDatabase(Context context) {
@@ -227,6 +267,8 @@ public abstract class AppDatabase extends RoomDatabase {
                             .addMigrations(MIGRATION_27_28) // 注册 27 -> 28 迁移 (discovery_table)
                             .addMigrations(MIGRATION_28_29) // 注册 28 -> 29 迁移 (discovery_table + authorId)
                             .addMigrations(MIGRATION_29_30) // 注册 29 -> 30 迁移 (V3 阅读器 6 张表)
+                            .addMigrations(MIGRATION_30_31) // 注册 30 -> 31 迁移 (V3 漫画书签)
+                            .addMigrations(MIGRATION_31_32) // 注册 31 -> 32 迁移 (V3 漫画累计统计)
                             .build();
         }
         return INSTANCE;
@@ -257,6 +299,10 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract NovelCustomThemeDao novelCustomThemeDao();
 
     public abstract NovelCustomFontDao novelCustomFontDao();
+
+    public abstract ComicBookmarkDao comicBookmarkDao();
+
+    public abstract ComicReadingStatsDao comicReadingStatsDao();
 
 }
 

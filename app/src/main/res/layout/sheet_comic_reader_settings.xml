@@ -126,6 +126,21 @@
                 android:max="100" />
         </LinearLayout>
 
+        <!-- 暖色护眼滤镜 -->
+        <TextView style="@style/ComicSheetSection" android:text="@string/comic_reader_warm_label" />
+        <SeekBar
+            android:id="@+id/comic_warm_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="60" />
+        <TextView
+            android:id="@+id/comic_warm_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textColor="@color/rank_text_color"
+            android:textSize="12sp" />
+
         <!-- 开关组 -->
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/comic_keep_screen_on"
@@ -162,6 +177,48 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/comic_reader_tap_reversed" />
+
+        <!-- 翻页动画 -->
+        <TextView style="@style/ComicSheetSection" android:text="@string/comic_reader_anim_label" />
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/comic_anim_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_anim_slide"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_anim_slide" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_anim_cover"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_anim_cover" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_anim_depth"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_anim_depth" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/comic_anim_flipbook"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/comic_reader_anim_flipbook" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <!-- 预载页数 -->
         <TextView style="@style/ComicSheetSection" android:text="@string/comic_reader_preload_label" />
