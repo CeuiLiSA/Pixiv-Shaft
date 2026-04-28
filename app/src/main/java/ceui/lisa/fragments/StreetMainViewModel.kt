@@ -44,7 +44,7 @@ class StreetMainViewModel : ViewModel() {
                 val response = callApi(request, retried = false)
 
                 val contents = response.body?.contents?.filter {
-                    it.kind == "illust" || it.kind == "manga" || it.kind == "novel"
+                    it.kind == "illust" || it.kind == "manga" || it.kind == "novel" || it.kind == "collection"
                 } ?: emptyList()
                 nextParams = response.body?.nextParams
 
@@ -83,10 +83,10 @@ class StreetMainViewModel : ViewModel() {
             StreetRequest()
         } else {
             StreetRequest(
-                vhi = loadedIllustIds.joinToString(","),
-                vhm = loadedMangaIds.joinToString(","),
-                vhn = loadedNovelIds.joinToString(","),
-                vhc = loadedCollectionIds.joinToString(","),
+                vhi = loadedIllustIds.takeIf { it.isNotEmpty() }?.joinToString(","),
+                vhm = loadedMangaIds.takeIf { it.isNotEmpty() }?.joinToString(","),
+                vhn = loadedNovelIds.takeIf { it.isNotEmpty() }?.joinToString(","),
+                vhc = loadedCollectionIds.takeIf { it.isNotEmpty() }?.joinToString(","),
             )
         }
     }

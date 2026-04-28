@@ -27,6 +27,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
+import ceui.loxia.ClientManager
 import ceui.loxia.CsrfTokenProvider
 import ceui.loxia.StreetContent
 import ceui.loxia.StreetThumbnail
@@ -39,6 +40,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.UUID
+
+private const val EXTRACT_TOKEN_JS = """
+(function() {
+    var meta = document.getElementById('meta-global-data');
+    if (meta) {
+        var c = meta.getAttribute('content');
+        var m = c && c.match(/"token"\s*:\s*"([a-f0-9]{32})"/);
+        if (m) return m[1];
+    }
+    var nd = document.getElementById('__NEXT_DATA__');
+    if (nd) {
+        var m2 = nd.textContent.match(/"token"\s*:\s*"([a-f0-9]{32})"/);
+        if (m2) return m2[1];
+    }
+    var m3 = document.documentElement.innerHTML.match(/"token"\s*:\s*"([a-f0-9]{32})"/);
+    return m3 ? m3[1] : null;
+})()
+"""
 
 class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
 
@@ -99,18 +118,17 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
 
     /**
      * Cookie 已有，但 CSRF token 缺失。用隐藏 WebView 加载 pixiv.net，
-     * 通过拦截 HTTP 响应从原始 HTML 里提取 token。
+     * 让 WebView 自行处理 Cloudflare JS Challenge，然后通过 evaluateJavascript 提取 token。
      */
     private fun fetchCsrfViaWebView() {
         Timber.d("StreetMain: have cookie but no CSRF, fetching via WebView")
         baseBind.toolbarTitle.text = getString(R.string.street_title)
 
-        val ua = "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.42 Mobile Safari/537.36"
         val webView = WebView(mContext).apply {
             visibility = View.GONE
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            settings.userAgentString = ua
+            settings.userAgentString = ClientManager.WEB_USER_AGENT
         }
         loginWebView = webView
 
@@ -124,49 +142,21 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
         cm.flush()
 
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): android.webkit.WebResourceResponse? {
-                val url = request?.url?.toString() ?: return null
-                if (url == "https://www.pixiv.net/" || url == "https://www.pixiv.net") {
-                    try {
-                        val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
-                        conn.setRequestProperty("Cookie", cookies)
-                        conn.setRequestProperty("User-Agent", ua)
-                        conn.setRequestProperty("Accept", "text/html")
-                        conn.connect()
-                        val body = conn.inputStream.bufferedReader().readText()
-                        conn.disconnect()
-
-                        val tokenRegex = Regex(""""token"\s*:\s*"([a-f0-9]{32})"""")
-                        val token = tokenRegex.find(body)?.groupValues?.get(1)
-                        Timber.d("StreetMain: intercepted HTML length=${body.length}, token=${token?.take(8)}, hasNEXT_DATA=${body.contains("__NEXT_DATA__")}, hasToken=${body.contains("\"token\"")}, isLoggedIn=${body.contains("isLoggedIn\":true")}")
-                        if (token == null) {
-                            // 打印 token 附近的内容帮助调试
-                            val idx = body.indexOf("\"token\"")
-                            if (idx >= 0) {
-                                Timber.d("StreetMain: token context: ${body.substring(idx, minOf(idx + 80, body.length))}")
-                            }
-                            Timber.d("StreetMain: cookie sent: ${cookies.take(100)}")
-                        }
-                        if (token != null) {
-                            MMKV.defaultMMKV().encode("web-api-csrf-token", token)
-                        }
-
-                        // 返回原始响应给 WebView
-                        return android.webkit.WebResourceResponse(
-                            "text/html", "utf-8",
-                            body.byteInputStream(),
-                        )
-                    } catch (e: Exception) {
-                        Timber.e(e, "StreetMain: intercept failed")
-                    }
-                }
-                return null
-            }
-
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                // 无论 token 有没有拿到，页面加载完就结束
-                if (url?.contains("www.pixiv.net") == true) {
+                if (url?.contains("www.pixiv.net") != true) return
+                view?.evaluateJavascript(EXTRACT_TOKEN_JS) { result ->
+                    val token = result?.trim('"')?.takeIf { it.matches(Regex("[a-f0-9]{32}")) }
+                    Timber.d("StreetMain: evaluateJavascript token=${token?.take(8)}")
+                    if (token != null) {
+                        MMKV.defaultMMKV().encode("web-api-csrf-token", token)
+                    }
+                    // 顺便更新 cookie（WebView 可能刷新了 cf_clearance 等）
+                    CookieManager.getInstance().getCookie("https://www.pixiv.net")?.let { freshCookie ->
+                        if (freshCookie.contains("PHPSESSID")) {
+                            MMKV.defaultMMKV().putString(SessionManager.COOKIE_KEY, freshCookie)
+                        }
+                    }
                     cleanupWebView()
                     if (CsrfTokenProvider.get() != null) {
                         viewModel.refresh()
@@ -201,7 +191,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
         baseBind.toolbarTitle.text = getString(R.string.street_web_login_toolbar)
         baseBind.recyclerView.visibility = View.GONE
 
-        val ua = "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.42 Mobile Safari/537.36"
+        val ua = ClientManager.WEB_USER_AGENT
         val webView = WebView(mContext).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -220,42 +210,23 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
         }
 
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): android.webkit.WebResourceResponse? {
-                if (!cookieSaved) return null
-                val url = request?.url?.toString() ?: return null
-                if (url == "https://www.pixiv.net/" || url == "https://www.pixiv.net") {
-                    try {
-                        val savedCookie = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "") ?: ""
-                        val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
-                        conn.setRequestProperty("Cookie", savedCookie)
-                        conn.setRequestProperty("User-Agent", ua)
-                        conn.setRequestProperty("Accept", "text/html")
-                        conn.connect()
-                        val body = conn.inputStream.bufferedReader().readText()
-                        conn.disconnect()
-                        val tokenRegex = Regex(""""token"\s*:\s*"([a-f0-9]{32})"""")
-                        val token = tokenRegex.find(body)?.groupValues?.get(1)
-                        Timber.d("StreetMain: login intercept HTML length=${body.length}, token=${token?.take(8)}")
-                        if (token != null) {
-                            MMKV.defaultMMKV().encode("web-api-csrf-token", token)
-                        }
-                        return android.webkit.WebResourceResponse("text/html", "utf-8", body.byteInputStream())
-                    } catch (e: Exception) {
-                        Timber.e(e, "StreetMain: login intercept failed")
-                    }
-                }
-                return null
-            }
-
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Timber.d("StreetMain: WebView onPageFinished url=$url")
                 if (!cookieSaved) {
                     checkAndSaveCookie()
                 } else if (url?.contains("www.pixiv.net") == true) {
-                    cleanupWebView()
-                    Toast.makeText(mContext, getString(R.string.street_web_login_success), Toast.LENGTH_SHORT).show()
-                    viewModel.refresh()
+                    // 登录完成后 WebView 加载了首页，用 JS 提取 CSRF token
+                    view?.evaluateJavascript(EXTRACT_TOKEN_JS) { result ->
+                        val token = result?.trim('"')?.takeIf { it.matches(Regex("[a-f0-9]{32}")) }
+                        Timber.d("StreetMain: login evaluateJavascript token=${token?.take(8)}")
+                        if (token != null) {
+                            MMKV.defaultMMKV().encode("web-api-csrf-token", token)
+                        }
+                        cleanupWebView()
+                        Toast.makeText(mContext, getString(R.string.street_web_login_success), Toast.LENGTH_SHORT).show()
+                        viewModel.refresh()
+                    }
                 }
             }
 

@@ -102,8 +102,8 @@ data class StreetNextParams(
 
 data class StreetRequest(
     val k: String? = null,
-    val vhi: String = "",
-    val vhm: String = "",
-    val vhn: String = "",
-    val vhc: String = "",
+    val vhi: String? = null,
+    val vhm: String? = null,
+    val vhn: String? = null,
+    val vhc: String? = null,
 ) : Serializable
