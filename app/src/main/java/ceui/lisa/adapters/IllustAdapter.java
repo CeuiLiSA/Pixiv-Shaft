@@ -88,9 +88,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         }
 
         if (position == 0) {
-            // 第一张图统一规则：宽 = 屏宽，高 = max(自然高, maxHeight)，FIT_CENTER 不裁切。
-            // 高图按比例完整显示；扁图保留 maxHeight 占位，上下留白维持版式空间。
-            // 单 P / 多 P / 折叠与否都走同一分支。
+            // 第一张图：宽 = 屏宽，FIT_CENTER 不裁切。
+            // 单 P：高 = max(自然高, maxHeight)，扁图保留 maxHeight 占位。
+            // 多 P（≥2P）：高 = 自然高，不施加 maxHeight 约束，消除上下黑边。
             int iw = allIllust.getWidth();
             int ih = allIllust.getHeight();
             boolean hasValidDims = iw > 0 && ih > 0;
@@ -107,7 +107,12 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             } else {
                 int naturalHeight = Math.round((float) imageSize * ih / iw);
                 scaleType = ImageView.ScaleType.FIT_CENTER;
-                targetHeight = maxHeight > 0 ? Math.max(naturalHeight, maxHeight) : naturalHeight;
+                if (allIllust.getPage_count() >= 2) {
+                    // 多P：第一P 直接用自然高度，不施加 maxHeight 约束，消除上下黑边
+                    targetHeight = naturalHeight;
+                } else {
+                    targetHeight = maxHeight > 0 ? Math.max(naturalHeight, maxHeight) : naturalHeight;
+                }
                 changeSize = false;
                 boolean tall = maxHeight <= 0 || naturalHeight >= maxHeight;
                 branchTag = (allIllust.getPage_count() == 1 ? "single_" : "multiP_")
