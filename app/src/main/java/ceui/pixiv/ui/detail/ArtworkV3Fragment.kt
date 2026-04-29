@@ -386,10 +386,13 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
         }
         viewModel.downloadFabState.observe(viewLifecycleOwner) { renderDownloadFab(it) }
 
-        // 监听 Manager 下载完成广播，刷新 FAB 状态
+        // 监听 Manager 下载完成广播，刷新 FAB 状态。
+        // 轮询期间不干扰（轮询自己会检测队列清空并设 Done）。
         val downloadFinishReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                viewModel.refreshDownloadFab()
+                if (!viewModel.isPollingProgress) {
+                    viewModel.refreshDownloadFab()
+                }
             }
         }
         LocalBroadcastManager.getInstance(mContext).registerReceiver(

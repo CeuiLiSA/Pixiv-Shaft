@@ -117,7 +117,8 @@ class ArtworkV3ViewModel(
     }
     val downloadFabState: LiveData<DownloadFab> = _downloadFabState
 
-    private var progressPolling = false
+    var isPollingProgress = false
+        private set
 
     fun triggerDownload() {
         val illust = illustBean ?: return
@@ -136,16 +137,16 @@ class ArtworkV3ViewModel(
      * 例：172P 作品已完成 100 页，当前页 nonius=50 → (100×100+50)/172 = 58%
      */
     private fun startProgressPolling(pageCount: Int) {
-        if (progressPolling) return
-        progressPolling = true
+        if (isPollingProgress) return
+        isPollingProgress = true
         viewModelScope.launch {
-            while (progressPolling) {
+            while (isPollingProgress) {
                 kotlinx.coroutines.delay(300)
                 val items = ceui.lisa.core.Manager.get().content
                 val myItems = items.filter { it.illust?.id == illustId.toInt() }
                 if (myItems.isEmpty()) {
                     // 队列清空 = 下载完成，直接设 Done，避免经过 Idle 闪烁
-                    progressPolling = false
+                    isPollingProgress = false
                     downloadedCache = true
                     _downloadFabState.postValue(DownloadFab.Done)
                     break
@@ -167,7 +168,7 @@ class ArtworkV3ViewModel(
     }
 
     fun refreshDownloadFab() {
-        progressPolling = false
+        isPollingProgress = false
         downloadedCache = null
         fabRefreshTick.value = (fabRefreshTick.value ?: 0) + 1
     }
