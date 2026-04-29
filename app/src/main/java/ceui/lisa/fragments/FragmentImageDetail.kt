@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import android.net.Uri
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var index = 0
@@ -80,6 +81,13 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         Timber.d("[ImageDetail] loadImage index=$index, isUrlMode=$isUrlMode, url=$shortUrl")
 
         if (imageUrl?.isNotEmpty() == true) {
+            // content:// URI（来自下载完成页的 SAF 路径）直接用 Sketch 加载，
+            // 不走 TaskPool/Glide，因为 Glide 没有 SAF URI 的访问权限。
+            if (imageUrl.startsWith("content://")) {
+                baseBind.image.loadImage(Uri.parse(imageUrl))
+                return
+            }
+
             val task = TaskPool.getLoadTask(NamedUrl("", imageUrl))
             Timber.d("[ImageDetail] task acquired. taskId=${task.taskId}, status=${task.status.value}, hasResult=${task.result.value != null}, url=$shortUrl")
 
