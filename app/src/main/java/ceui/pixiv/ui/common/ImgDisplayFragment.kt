@@ -43,6 +43,7 @@ import ceui.pixiv.utils.setOnClick
 import com.blankj.utilcode.util.UriUtils
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
+import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -65,9 +66,9 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         progressCircular.max = 100
-        displayImg.setOnClick {
+        displayImg.onViewTapListener = OnViewTapListener { view, _ ->
             if (parentFragment is ViewPagerFragment) {
-                it.findActionReceiverOrNull<PagedImgActionReceiver>()?.onClickPagedImg()
+                view.findActionReceiverOrNull<PagedImgActionReceiver>()?.onClickPagedImg()
             } else {
                 viewModel.toggleFullscreen()
             }

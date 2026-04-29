@@ -20,6 +20,8 @@ import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
+import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
+import com.github.panpf.zoomimage.zoom.ReadMode
 import timber.log.Timber
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
@@ -49,9 +51,11 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
             baseBind.root.keepScreenOn = true
         }
-        baseBind.image.setOnClick {
+        baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
             viewModel.toggleFullscreen()
         }
+        // 长图阅读模式：自动填满宽度、��顶部开始，无需手动双击放大再滑动
+        baseBind.image.zoomable.setReadMode(ReadMode.Default)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

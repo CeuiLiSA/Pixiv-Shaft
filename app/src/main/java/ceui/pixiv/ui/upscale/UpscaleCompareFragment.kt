@@ -63,35 +63,26 @@ class UpscaleCompareFragment : Fragment() {
         setupZoomSync(imageOriginal, imageEnhanced)
     }
 
-    private val updateMethod by lazy {
-        com.github.panpf.zoomimage.view.zoom.ZoomableEngine::class.java
-            .getDeclaredMethod("updateUserTransform", com.github.panpf.zoomimage.util.TransformCompat::class.java)
-            .also { it.isAccessible = true }
-    }
-
-    private fun syncTransform(
-        target: SketchZoomImageView,
-        transform: com.github.panpf.zoomimage.util.TransformCompat
-    ) {
-        updateMethod.invoke(target.zoomable, transform)
-    }
-
     private fun setupZoomSync(original: SketchZoomImageView, enhanced: SketchZoomImageView) {
-        // Sync original → enhanced
         viewLifecycleOwner.lifecycleScope.launch {
-            original.zoomable.userTransformState.collect { transform ->
+            original.zoomable.transformState.collect { transform ->
                 if (syncing) return@collect
                 syncing = true
-                try { syncTransform(enhanced, transform) } finally { syncing = false }
+                try {
+                    enhanced.zoomable.scale(transform.scaleX, animated = false)
+                    enhanced.zoomable.offset(transform.offset, animated = false)
+                } finally { syncing = false }
             }
         }
 
-        // Sync enhanced → original
         viewLifecycleOwner.lifecycleScope.launch {
-            enhanced.zoomable.userTransformState.collect { transform ->
+            enhanced.zoomable.transformState.collect { transform ->
                 if (syncing) return@collect
                 syncing = true
-                try { syncTransform(original, transform) } finally { syncing = false }
+                try {
+                    original.zoomable.scale(transform.scaleX, animated = false)
+                    original.zoomable.offset(transform.offset, animated = false)
+                } finally { syncing = false }
             }
         }
     }

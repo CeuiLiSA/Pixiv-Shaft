@@ -55,33 +55,26 @@ class MangaTranslationFragment : Fragment() {
         setupZoomSync(imageOriginal, imageTranslated)
     }
 
-    private val updateMethod by lazy {
-        com.github.panpf.zoomimage.view.zoom.ZoomableEngine::class.java
-            .getDeclaredMethod("updateUserTransform", com.github.panpf.zoomimage.util.TransformCompat::class.java)
-            .also { it.isAccessible = true }
-    }
-
-    private fun syncTransform(
-        target: SketchZoomImageView,
-        transform: com.github.panpf.zoomimage.util.TransformCompat
-    ) {
-        updateMethod.invoke(target.zoomable, transform)
-    }
-
     private fun setupZoomSync(original: SketchZoomImageView, translated: SketchZoomImageView) {
         viewLifecycleOwner.lifecycleScope.launch {
-            original.zoomable.userTransformState.collect { transform ->
+            original.zoomable.transformState.collect { transform ->
                 if (syncing) return@collect
                 syncing = true
-                try { syncTransform(translated, transform) } finally { syncing = false }
+                try {
+                    translated.zoomable.scale(transform.scaleX, animated = false)
+                    translated.zoomable.offset(transform.offset, animated = false)
+                } finally { syncing = false }
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            translated.zoomable.userTransformState.collect { transform ->
+            translated.zoomable.transformState.collect { transform ->
                 if (syncing) return@collect
                 syncing = true
-                try { syncTransform(original, transform) } finally { syncing = false }
+                try {
+                    original.zoomable.scale(transform.scaleX, animated = false)
+                    original.zoomable.offset(transform.offset, animated = false)
+                } finally { syncing = false }
             }
         }
     }

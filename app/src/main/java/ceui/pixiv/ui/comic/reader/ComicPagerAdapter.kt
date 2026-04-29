@@ -100,7 +100,7 @@ class ComicPagerAdapter(
 
         fun bind(page: ComicReaderV3ViewModel.ComicPage) {
             binding.root.tag = page
-            binding.image.zoomable.contentScaleState.value = contentScaleProvider()
+            binding.image.zoomable.setContentScale(contentScaleProvider())
 
             clearObservers()
             binding.reload.visibility = View.GONE

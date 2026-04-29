@@ -253,7 +253,7 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
 
-    implementation("io.github.panpf.zoomimage:zoomimage-view-sketch4:1.1.0-rc03")
+    implementation("io.github.panpf.zoomimage:zoomimage-view-sketch4:1.4.0")
 
     implementation("me.zhanghai.android.fastscroll:library:1.2.0")
 
