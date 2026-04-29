@@ -44,7 +44,9 @@ import android.widget.ImageView
 import androidx.core.view.ViewCompat
 import ceui.lisa.utils.QMUIMenuPopup
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.Locale
@@ -262,11 +264,13 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     private fun checkDownload(i: Int) {
-        downloadSingle!!.visibility = if (Common.isIllustDownloaded(
-                mIllustsBean,
-                i
-            )
-        ) View.INVISIBLE else View.VISIBLE
+        val illust = mIllustsBean ?: return
+        lifecycleScope.launch {
+            val downloaded = withContext(Dispatchers.IO) {
+                Common.isIllustDownloaded(illust, i)
+            }
+            downloadSingle?.visibility = if (downloaded) View.INVISIBLE else View.VISIBLE
+        }
     }
 
     override fun initData() {

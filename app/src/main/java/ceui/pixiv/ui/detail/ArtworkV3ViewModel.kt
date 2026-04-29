@@ -18,11 +18,7 @@ import ceui.loxia.Client
 import ceui.loxia.Comment
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
-import ceui.pixiv.ui.task.DownloadTask
-import ceui.pixiv.ui.task.NamedUrl
-import ceui.pixiv.ui.task.TaskPool
-import ceui.pixiv.ui.task.TaskStatus
-import ceui.pixiv.download.config.DownloadItems
+import ceui.lisa.download.IllustDownload
 import ceui.pixiv.db.RecordType
 import com.google.gson.Gson
 import io.reactivex.Observable
@@ -105,21 +101,15 @@ class ArtworkV3ViewModel(
 
     // ── download FAB state machine ──
     //
-    // Each page of the illust is backed by a pool-resident DownloadTask, the
-    // same type 二级详情页 uses — so downloading here warms the Glide cache
-    // and gives that page instant display. The MediatorLiveData fuses every
-    // page's task status plus a legacy-path fallback into a single state that
-    // the fragment renders in one switch.
-    private var downloadTasks: List<DownloadTask> = emptyList()
+    // 通过 Manager 队列串行下载，不再自行创建 DownloadTask。
+    // FAB 状态仅依赖 Manager 是否正在下载当前作品 + DB 是否已有下载记录。
     private var downloadFabInitialized = false
     private val fabRefreshTick = MutableLiveData(0)
 
-    // Result of the SAF / download-DB check. null = not computed yet.
-    // The check touches ContentResolver (SAF) and SQLite LIKE scans, so it
-    // must never run on the main thread — stale user data can make it take
-    // seconds and trigger ANR.
-    private var legacyDownloadedCache: Boolean? = null
-    private var legacyCheckInFlight = false
+    private var downloadedCache: Boolean? = null
+    private var downloadCheckInFlight = false
+
+    private val recomputeFabRunnable = Runnable { recomputeFab() }
 
     private val _downloadFabState = MediatorLiveData<DownloadFab>().apply {
         value = DownloadFab.Idle
@@ -128,64 +118,45 @@ class ArtworkV3ViewModel(
     val downloadFabState: LiveData<DownloadFab> = _downloadFabState
 
     fun triggerDownload() {
-        downloadTasks.forEach { it.start { } }
+        val illust = illustBean ?: return
+        IllustDownload.downloadIllustAllPages(illust)
+        _downloadFabState.value = DownloadFab.Downloading(0)
+        // Manager 下载完成后通过 refreshDownloadFab() 刷新状态
     }
 
-    /** Re-evaluate state; call after paths outside our observation (legacy
-     * IllustDownload → Manager DB) may have changed. */
     fun refreshDownloadFab() {
-        legacyDownloadedCache = null
+        downloadedCache = null
         fabRefreshTick.value = (fabRefreshTick.value ?: 0) + 1
     }
 
     private fun setupDownloadFab(illust: IllustsBean) {
         if (downloadFabInitialized) return
-        val urls = buildDownloadNamedUrls(illust)
-        if (urls.isEmpty()) {
-            recomputeFab()
-            return
-        }
         downloadFabInitialized = true
-        downloadTasks = urls.map { TaskPool.getDownloadTask(it) }
-        downloadTasks.forEach { task ->
-            _downloadFabState.addSource(task.status) { recomputeFab() }
-        }
         recomputeFab()
     }
 
     private fun recomputeFab() {
-        val tasks = downloadTasks
-        if (tasks.any { it.status.value is TaskStatus.Executing }) {
-            val avg = tasks.sumOf { t ->
-                when (val s = t.status.value) {
-                    is TaskStatus.Executing -> s.percentage.coerceIn(0, 100)
-                    is TaskStatus.Finished -> 100
-                    else -> 0
-                }
-            } / tasks.size
-            _downloadFabState.value = DownloadFab.Downloading(avg.coerceIn(0, 100))
+        // 检查 Manager 是否正在下载当前作品
+        val managerId = ceui.lisa.core.Manager.get().currentIllustID
+        if (managerId == illustId.toInt() && managerId != 0) {
+            _downloadFabState.value = DownloadFab.Downloading(0)
             return
         }
-        if (tasks.isNotEmpty() && tasks.all { it.status.value is TaskStatus.Finished }) {
-            _downloadFabState.value = DownloadFab.Done
-            return
-        }
-        val cached = legacyDownloadedCache
+        val cached = downloadedCache
         if (cached != null) {
             _downloadFabState.value = if (cached) DownloadFab.Done else DownloadFab.Idle
             return
         }
-        // Don't downgrade an existing Done while the async check is running.
         if (_downloadFabState.value !is DownloadFab.Done) {
             _downloadFabState.value = DownloadFab.Idle
         }
-        triggerLegacyDownloadedCheck()
+        triggerDownloadedCheck()
     }
 
-    private fun triggerLegacyDownloadedCheck() {
-        if (legacyCheckInFlight) return
+    private fun triggerDownloadedCheck() {
+        if (downloadCheckInFlight) return
         val bean = illustBean ?: return
-        legacyCheckInFlight = true
+        downloadCheckInFlight = true
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 try {
@@ -193,24 +164,13 @@ class ArtworkV3ViewModel(
                     Common.isIllustDownloaded(bean) ||
                             dao.hasDownloadRecordByIllustId(bean.id.toLong())
                 } catch (e: Exception) {
-                    Timber.e(e, "legacy downloaded check failed")
+                    Timber.e(e, "downloaded check failed")
                     false
                 }
             }
-            legacyDownloadedCache = result
-            legacyCheckInFlight = false
+            downloadedCache = result
+            downloadCheckInFlight = false
             recomputeFab()
-        }
-    }
-
-    private fun buildDownloadNamedUrls(illust: IllustsBean): List<NamedUrl> {
-        return if (illust.page_count <= 1) {
-            val url = illust.meta_single_page?.original_image_url ?: illust.image_urls?.original
-            listOfNotNull(url?.let { NamedUrl(DownloadItems.illustFileName(illust, 0), it) })
-        } else {
-            illust.meta_pages.orEmpty().mapIndexedNotNull { i, page ->
-                page.image_urls?.original?.let { NamedUrl(DownloadItems.illustFileName(illust, i), it) }
-            }
         }
     }
 
@@ -231,6 +191,7 @@ class ArtworkV3ViewModel(
         illustBeanLiveData.removeObserver(illustBeanObserver)
         mainHandler.removeCallbacks(rebuildRunnable)
         mainHandler.removeCallbacks(enableLoadMoreRunnable)
+        mainHandler.removeCallbacks(recomputeFabRunnable)
     }
 
     // ── build header item list (everything except individual related cards) ──

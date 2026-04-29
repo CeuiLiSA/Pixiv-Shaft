@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.Shaft
@@ -22,6 +23,9 @@ import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import com.github.panpf.zoomimage.zoom.ReadMode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
@@ -108,11 +112,15 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                             imageUrl.substringAfterLast('/')
                         }
                         val ctx = requireActivity()
-                        val imageId = getImageIdInGallery(ctx, displayName)
-                        if (imageId != null) {
-                            deleteImageById(ctx, imageId)
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            withContext(Dispatchers.IO) {
+                                val imageId = getImageIdInGallery(ctx, displayName)
+                                if (imageId != null) {
+                                    deleteImageById(ctx, imageId)
+                                }
+                                saveImageToGallery(ctx, file, displayName)
+                            }
                         }
-                        saveImageToGallery(ctx, file, displayName)
                     }
                 }
             }

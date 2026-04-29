@@ -173,15 +173,37 @@ public class Manager {
     }
 
     public void addTasks(List<DownloadItem> list) {
-        if (!Common.isEmpty(list)) {
+        if (Common.isEmpty(list)) return;
+
+        // Gson 序列化 + DB INSERT 是重操作（172P 场景需序列化 ~13MB JSON + 172 次 INSERT），
+        // 必须在后台线程执行，否则主线程卡死。
+        Schedulers.io().scheduleDirect(() -> {
             long t0 = System.nanoTime();
-            for (DownloadItem item : list) {
-                addTask(item);
+            synchronized (this) {
+                if (content == null) {
+                    content = new ArrayList<>();
+                }
+                // 批量构建一个 HashSet 做 O(1) 去重，避免 O(n^2) 逐项扫描
+                java.util.Set<String> existingUrls = new java.util.HashSet<>();
+                for (DownloadItem existing : content) {
+                    existingUrls.add(existing.getUrl());
+                }
+                for (DownloadItem item : list) {
+                    if (!existingUrls.contains(item.getUrl())) {
+                        safeAdd(item);
+                        existingUrls.add(item.getUrl());
+                    }
+                }
             }
             long totalMs = (System.nanoTime() - t0) / 1_000_000;
             Common.showLog("[PERF] addTasks total=" + list.size()
                     + " items, totalMs=" + totalMs);
-        }
+            AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                if (DownloadLimitTypeUtil.startTaskWhenCreate()) {
+                    startAll();
+                }
+            });
+        });
     }
 
     public void startAll() {

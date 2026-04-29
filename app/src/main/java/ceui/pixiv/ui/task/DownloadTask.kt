@@ -56,7 +56,13 @@ class DownloadTask(
     }
 
     override fun onEnd(resultT: File) {
-        saveImageToGallery(context, resultT, content.name)
-        super.onEnd(resultT)
+        // saveImageToGallery 包含文件复制和 MediaScanner，必须在 IO 线程执行，
+        // 否则多 P 作品（如 172P）下载时会在主线程密集执行文件 IO 导致 ANR。
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                saveImageToGallery(context, resultT, content.name)
+            }
+            super.onEnd(resultT)
+        }
     }
 }

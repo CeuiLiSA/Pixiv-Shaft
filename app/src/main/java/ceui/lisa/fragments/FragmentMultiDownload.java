@@ -135,10 +135,14 @@ public class FragmentMultiDownload extends LocalListFragment<FragmentMultiDownlo
                     }
                     mAdapter.notifyDataSetChanged();
                 } else if (item.getItemId() == R.id.action_7) {
-                    for (int i = 0; i < allItems.size(); i++) {
-                        allItems.get(i).setChecked(!Common.isIllustDownloaded(allItems.get(i)));
-                    }
-                    mAdapter.notifyDataSetChanged();
+                    io.reactivex.rxjava3.schedulers.Schedulers.io().scheduleDirect(() -> {
+                        for (int i = 0; i < allItems.size(); i++) {
+                            allItems.get(i).setChecked(!Common.isIllustDownloaded(allItems.get(i)));
+                        }
+                        io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                            mAdapter.notifyDataSetChanged();
+                        });
+                    });
                 }
                 return false;
             }

@@ -45,8 +45,10 @@ import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.util.Locale
@@ -103,20 +105,23 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
     }
 
     private fun performDownload(activity: FragmentActivity, file: File) {
-        val imageId = getImageIdInGallery(activity, displayName())
-        if (imageId != null) {
-            MainScope().launch {
+        lifecycleScope.launch {
+            val name = displayName()
+            val imageId = withContext(Dispatchers.IO) { getImageIdInGallery(activity, name) }
+            if (imageId != null) {
                 val uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId.toString())
                 val filePath = UriUtils.uri2File(uri)
                 if (alertYesOrCancel("图片已存在，确定覆盖下载吗? 文件路径: ${filePath?.path}")) {
-                    deleteImageById(activity, imageId)
-                    saveImageToGallery(activity, file, displayName())
+                    withContext(Dispatchers.IO) {
+                        deleteImageById(activity, imageId)
+                        saveImageToGallery(activity, file, name)
+                    }
                     recordIllustDownload(file)
                 }
+            } else {
+                withContext(Dispatchers.IO) { saveImageToGallery(activity, file, name) }
+                recordIllustDownload(file)
             }
-        } else {
-            saveImageToGallery(activity, file, displayName())
-            recordIllustDownload(file)
         }
     }
 
