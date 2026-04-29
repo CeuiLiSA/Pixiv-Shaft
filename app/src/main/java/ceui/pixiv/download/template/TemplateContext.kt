@@ -25,6 +25,10 @@ class TemplateContext(
             "id" -> meta.id.toString()
             "title" -> meta.title
             "page" -> ((meta.page ?: 0) + pageOffset).toString()
+            // 兼容别名：4.5.x 旧模板里直接写 {page1}（永远 1-based）。e18080ab 把它合并到
+            // {page} + 全局 pageIndexFrom1，但用户 DownloadConfig 里已持久化的旧字符串
+            // 仍带 {page1}，这里保留以免渲染抛 Unknown variable。语义保持原样：始终 +1。
+            "page1" -> ((meta.page ?: 0) + 1).toString()
             "pages" -> meta.totalPages.toString()
             "ext" -> ext
             "author" -> meta.author.name

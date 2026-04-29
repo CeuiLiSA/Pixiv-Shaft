@@ -95,13 +95,18 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         }
 
         ComicReaderSettings.changes.observe(viewLifecycleOwner) { event ->
+            // Settings 是 process-scoped 单例，可能在 Loaded 之前就发出 ChangeEvent（比如
+            // 用户上次会话改过设置后立刻进入 reader），此时 [current] 还没初始化。
+            // 所有依赖 current 的分支都需要 isInitialized 守卫。
             when (event) {
                 ComicReaderSettings.ChangeEvent.Layout -> {
                     pagedViewport.applyTransformer()
                     pagedViewport.applyDirection()
                     pagedViewport.applyOffscreenLimit()
                     val state = viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded ?: return@observe
-                    applyReadingMode(state.pages, current.currentIndex())
+                    val resume = if (::current.isInitialized) current.currentIndex()
+                                 else viewModel.currentPage.value ?: 0
+                    applyReadingMode(state.pages, resume)
                 }
                 ComicReaderSettings.ChangeEvent.Brightness,
                 ComicReaderSettings.ChangeEvent.Theme,
@@ -111,8 +116,11 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
                 }
                 ComicReaderSettings.ChangeEvent.Image -> {
                     viewModel.onImageSettingsChanged()
-                    binding.comicPager.adapter?.notifyItemChanged(current.currentIndex())
-                    binding.comicWebtoon.adapter?.notifyItemChanged(current.currentIndex())
+                    if (::current.isInitialized) {
+                        val idx = current.currentIndex()
+                        binding.comicPager.adapter?.notifyItemChanged(idx)
+                        binding.comicWebtoon.adapter?.notifyItemChanged(idx)
+                    }
                 }
             }
         }
