@@ -153,9 +153,8 @@ public class Manager {
     }
 
     /**
-     * 标记任务完成。可在任意线程调用：
-     * - Gson + DB 操作直接执行（适合 IO 线程）
-     * - content 列表修改和 Toast 必须回主线程（adapter 线程安全）
+     * 标记任务完成。可在任意线程调用。
+     * 注意：content 列表修改不在此方法中，由调用方在主线程统一处理。
      */
     private void complete(DownloadItem item, boolean isDownloadSuccess) {
         if (isDownloadSuccess) {
@@ -168,14 +167,6 @@ public class Manager {
             entity.setUuid(item.getUuid());
             entity.setTaskGson(Shaft.sGson.toJson(item));
             AppDatabase.getAppDatabase(mContext).downloadDao().deleteDownloading(entity);
-
-            // content 列表修改必须在主线程，因为 RecyclerView adapter 直接引用它
-            AndroidSchedulers.mainThread().scheduleDirect(() -> {
-                content.remove(item);
-                if (Shaft.sSettings.isToastDownloadResult()) {
-                    Common.showToast(item.getName() + mContext.getString(R.string.has_been_downloaded));
-                }
-            });
         } else {
             item.setNonius(0);
             item.setState(DownloadItem.DownloadState.FAILED);
@@ -367,7 +358,10 @@ public class Manager {
             if (shouldSkip) {
                 Common.showLog("[DL] skip download (already exists), illust=" + downloadItem.getIllust().getId());
                 complete(downloadItem, true);
-                AndroidSchedulers.mainThread().scheduleDirect(this::loop);
+                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    content.remove(downloadItem);
+                    loop();
+                });
                 return;
             }
 
@@ -563,11 +557,16 @@ public class Manager {
                     + " filePath=" + downloadEntity.getFilePath());
 
             factory.finishWrite();
-            // complete 的 Gson+DB 部分在 IO 执行，content.remove 延迟到主线程
+            // Gson + DB 在 IO 线程
             complete(downloadItem, true);
 
-            // 所有 list 修改 + 广播通知统一在主线程
+            // content.remove + 广播必须在同一个 Runnable 里，
+            // 确保 adapter 收到通知时 item 已经被移除。
             AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                content.remove(downloadItem);
+                if (Shaft.sSettings.isToastDownloadResult()) {
+                    Common.showToast(downloadItem.getName() + mContext.getString(R.string.has_been_downloaded));
+                }
                 {
                     Intent intent = new Intent(Params.DOWNLOAD_ING);
                     Holder holder = new Holder();
