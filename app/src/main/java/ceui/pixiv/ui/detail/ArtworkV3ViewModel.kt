@@ -126,32 +126,38 @@ class ArtworkV3ViewModel(
         startProgressPolling(illust.page_count)
     }
 
-    /** 轮询 Manager 队列中当前 illust 的下载进度 */
+    /**
+     * 轮询 Manager 队列中当前 illust 的下载进度。
+     *
+     * 只关心本作品的 DownloadItem，与其他作品无关。
+     * 进度 = (已完成页 × 100 + 正在下载页的 nonius) / 总页数
+     *
+     * 例：单 P 作品正在下载，nonius=60 → 进度 60%
+     * 例：172P 作品已完成 100 页，当前页 nonius=50 → (100×100+50)/172 = 58%
+     */
     private fun startProgressPolling(pageCount: Int) {
         if (progressPolling) return
         progressPolling = true
         viewModelScope.launch {
             while (progressPolling) {
-                kotlinx.coroutines.delay(500)
-                val manager = ceui.lisa.core.Manager.get()
-                val items = manager.content
-                val illustItems = items.filter {
-                    it.illust?.id == illustId.toInt()
-                }
-                if (illustItems.isEmpty()) {
-                    // 队列中没有了 → 全部完成
+                kotlinx.coroutines.delay(300)
+                val items = ceui.lisa.core.Manager.get().content
+                val myItems = items.filter { it.illust?.id == illustId.toInt() }
+                if (myItems.isEmpty()) {
                     progressPolling = false
                     refreshDownloadFab()
                     break
                 }
-                // 已完成的页数 = 总页数 - 队列中剩余页数
-                val completedPages = pageCount - illustItems.size
-                val currentPageProgress = illustItems.firstOrNull()?.let {
-                    if (it.state == ceui.lisa.core.DownloadItem.DownloadState.DOWNLOADING) it.nonius else 0
-                } ?: 0
-                // 总进度 = (已完成页 * 100 + 当前页进度) / 总页数
+                // 队列中剩余的本作品页数
+                val remaining = myItems.size
+                val completedPages = pageCount - remaining
+                // 找到本作品中正在下载的那一页（state=DOWNLOADING 且 nonius>0）
+                val activeItem = myItems.firstOrNull {
+                    it.state == ceui.lisa.core.DownloadItem.DownloadState.DOWNLOADING
+                }
+                val activeNonius = activeItem?.nonius ?: 0
                 val totalPercent = if (pageCount > 0) {
-                    ((completedPages * 100 + currentPageProgress) / pageCount).coerceIn(0, 100)
+                    ((completedPages * 100 + activeNonius) / pageCount).coerceIn(0, 99)
                 } else 0
                 _downloadFabState.value = DownloadFab.Downloading(totalPercent)
             }
