@@ -553,6 +553,8 @@ public class Manager {
                     + " filePath=" + downloadEntity.getFilePath());
 
             factory.finishWrite();
+            // 在 complete() 移除 item 之前记住 index
+            final int itemIndex = content.indexOf(downloadItem);
             complete(downloadItem, true);
 
             // 广播通知回主线程
@@ -561,7 +563,7 @@ public class Manager {
                     Intent intent = new Intent(Params.DOWNLOAD_ING);
                     Holder holder = new Holder();
                     holder.setCode(Params.DOWNLOAD_SUCCESS);
-                    holder.setIndex(content.indexOf(downloadItem));
+                    holder.setIndex(Math.max(itemIndex, 0));
                     holder.setDownloadItem(downloadItem);
                     intent.putExtra(Params.CONTENT, holder);
                     LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
