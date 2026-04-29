@@ -1,6 +1,9 @@
 package ceui.pixiv.ui.detail
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
@@ -11,6 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -381,6 +385,21 @@ class ArtworkV3Fragment : BaseFragment<FragmentArtworkV3Binding>() {
             true
         }
         viewModel.downloadFabState.observe(viewLifecycleOwner) { renderDownloadFab(it) }
+
+        // 监听 Manager 下载完成广播，刷新 FAB 状态
+        val downloadFinishReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                viewModel.refreshDownloadFab()
+            }
+        }
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(
+            downloadFinishReceiver, IntentFilter(Params.DOWNLOAD_FINISH)
+        )
+        viewLifecycleOwner.lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+            override fun onDestroy(owner: androidx.lifecycle.LifecycleOwner) {
+                LocalBroadcastManager.getInstance(mContext).unregisterReceiver(downloadFinishReceiver)
+            }
+        })
 
         baseBind.fabBookmark.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
