@@ -117,14 +117,49 @@ class ArtworkV3ViewModel(
     }
     val downloadFabState: LiveData<DownloadFab> = _downloadFabState
 
+    private var progressPolling = false
+
     fun triggerDownload() {
         val illust = illustBean ?: return
         IllustDownload.downloadIllustAllPages(illust)
         _downloadFabState.value = DownloadFab.Downloading(0)
-        // Manager 下载完成后通过 refreshDownloadFab() 刷新状态
+        startProgressPolling(illust.page_count)
+    }
+
+    /** 轮询 Manager 队列中当前 illust 的下载进度 */
+    private fun startProgressPolling(pageCount: Int) {
+        if (progressPolling) return
+        progressPolling = true
+        viewModelScope.launch {
+            while (progressPolling) {
+                kotlinx.coroutines.delay(500)
+                val manager = ceui.lisa.core.Manager.get()
+                val items = manager.content
+                val illustItems = items.filter {
+                    it.illust?.id == illustId.toInt()
+                }
+                if (illustItems.isEmpty()) {
+                    // 队列中没有了 → 全部完成
+                    progressPolling = false
+                    refreshDownloadFab()
+                    break
+                }
+                // 已完成的页数 = 总页数 - 队列中剩余页数
+                val completedPages = pageCount - illustItems.size
+                val currentPageProgress = illustItems.firstOrNull()?.let {
+                    if (it.state == ceui.lisa.core.DownloadItem.DownloadState.DOWNLOADING) it.nonius else 0
+                } ?: 0
+                // 总进度 = (已完成页 * 100 + 当前页进度) / 总页数
+                val totalPercent = if (pageCount > 0) {
+                    ((completedPages * 100 + currentPageProgress) / pageCount).coerceIn(0, 100)
+                } else 0
+                _downloadFabState.value = DownloadFab.Downloading(totalPercent)
+            }
+        }
     }
 
     fun refreshDownloadFab() {
+        progressPolling = false
         downloadedCache = null
         fabRefreshTick.value = (fabRefreshTick.value ?: 0) + 1
     }
@@ -132,16 +167,18 @@ class ArtworkV3ViewModel(
     private fun setupDownloadFab(illust: IllustsBean) {
         if (downloadFabInitialized) return
         downloadFabInitialized = true
-        recomputeFab()
+        // 若 Manager 正在下载本作品，启动进度轮询
+        val items = ceui.lisa.core.Manager.get().content
+        val hasItems = items.any { it.illust?.id == illustId.toInt() }
+        if (hasItems) {
+            _downloadFabState.value = DownloadFab.Downloading(0)
+            startProgressPolling(illust.page_count)
+        } else {
+            recomputeFab()
+        }
     }
 
     private fun recomputeFab() {
-        // 检查 Manager 是否正在下载当前作品
-        val managerId = ceui.lisa.core.Manager.get().currentIllustID
-        if (managerId == illustId.toInt() && managerId != 0) {
-            _downloadFabState.value = DownloadFab.Downloading(0)
-            return
-        }
         val cached = downloadedCache
         if (cached != null) {
             _downloadFabState.value = if (cached) DownloadFab.Done else DownloadFab.Idle
