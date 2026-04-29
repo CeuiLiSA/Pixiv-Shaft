@@ -144,8 +144,10 @@ class ArtworkV3ViewModel(
                 val items = ceui.lisa.core.Manager.get().content
                 val myItems = items.filter { it.illust?.id == illustId.toInt() }
                 if (myItems.isEmpty()) {
+                    // 队列清空 = 下载完成，直接设 Done，避免经过 Idle 闪烁
                     progressPolling = false
-                    refreshDownloadFab()
+                    downloadedCache = true
+                    _downloadFabState.postValue(DownloadFab.Done)
                     break
                 }
                 // 队列中剩余的本作品页数
