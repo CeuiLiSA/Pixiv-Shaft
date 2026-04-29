@@ -321,96 +321,101 @@ public class Manager {
     private void downloadOne(Context context, DownloadItem downloadItem) {
         Common.showLog("[DL-CACHE] downloadOne enter uuid=" + downloadItem.getUuid()
                 + " name=" + downloadItem.getName() + " url=" + downloadItem.getUrl());
-        // check network status, if setting don't download when mobile data, stop all task
         if(!DownloadLimitTypeUtil.canDownloadNow()){
             stopAll();
             return;
         }
 
-        DownloadFileFactory factory;
-        try {
-            if (Shaft.sSettings.getDownloadWay() == 0 || downloadItem.getIllust().isGif()) {
-                factory = new Android10DownloadFactory22(context, downloadItem);
-            } else {
-                factory = new SAFactory(context, downloadItem);
-            }
-        } catch (Exception e) {
-            Common.showLog("[DL] factory init failed: " + e);
-            e.printStackTrace();
-            Common.showToast(mContext.getString(R.string.string_365));
-            complete(downloadItem, false);
-            // Halt the queue instead of looping: the most common cause is a lost
-            // or revoked SAF root — every subsequent SAF item would fail the same
-            // way and spam the user with duplicate toasts. Let them fix the
-            // folder and re-start manually.
-            stopAll();
-            return;
-        }
         currentIllustID = downloadItem.getIllust().getId();
-        Common.showLog("Manager 下载单个 当前进度" + downloadItem.getNonius());
         uuid = downloadItem.getUuid();
+        Common.showLog("Manager 下载单个 当前进度" + downloadItem.getNonius());
 
-        // Skip policy + existing file: facade wants us to skip the write entirely.
-        boolean shouldSkip =
-                (factory instanceof Android10DownloadFactory22 && ((Android10DownloadFactory22) factory).isSkip())
-             || (factory instanceof SAFactory && ((SAFactory) factory).isSkip());
-        if (shouldSkip) {
-            Common.showLog("[DL] skip download (already exists), illust=" + downloadItem.getIllust().getId());
-            complete(downloadItem, true);
-            // Post to main handler instead of calling loop() directly — matches
-            // the doFinally path (RxJava posts via observeOn). A direct call would
-            // create synchronous recursion when many items are skipped in a row.
-            AndroidSchedulers.mainThread().scheduleDirect(this::loop);
-            return;
-        }
-
-        long fileSize = MediaStoreUtil.length(factory.query(), context);
-        long passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
-
-        // 准备目标文件
-        Uri targetUri;
-        try {
-            targetUri = factory.insert();
-        } catch (Exception e) {
-            Common.showLog("[DL] factory.insert() failed: " + e);
-            e.printStackTrace();
-            Common.showToast(mContext.getString(R.string.string_365));
-            complete(downloadItem, false);
-            // Same rationale as factory init failure above — typically a lost
-            // SAF tree or full MediaStore. Stop the queue so we don't spam.
-            stopAll();
-            return;
-        }
-        if (targetUri == null) {
-            Common.showLog("[DL] factory.insert() returned null targetUri");
-            Common.showToast(mContext.getString(R.string.string_365));
-            complete(downloadItem, false);
-            stopAll();
-            return;
-        }
-
-        // 若二级详情页已经通过 Glide 缓存了原图，直接复制，避免重复网络请求
-        final String dlUrl = downloadItem.getUrl();
-        final boolean isGif = downloadItem.getIllust().isGif();
-        final File cachedFile;
-        if (passSize != 0) {
-            Common.showLog("[DL-CACHE] skip peek, passSize=" + passSize + " (resume), url=" + dlUrl);
-            cachedFile = null;
-        } else if (isGif) {
-            Common.showLog("[DL-CACHE] skip peek, illust isGif, url=" + dlUrl);
-            cachedFile = null;
-        } else {
-            File peeked = TaskPool.peekCachedFile(dlUrl);
-            if (peeked != null) {
-                Common.showLog("[DL-CACHE] HIT path=" + peeked.getAbsolutePath()
-                        + " size=" + peeked.length() + " url=" + dlUrl);
-                cachedFile = peeked;
-            } else {
-                Common.showLog("[DL-CACHE] MISS url=" + dlUrl);
-                cachedFile = null;
+        // SAF factory 创建、文件查询、insert 全部在 IO 线程执行，
+        // 避免 172P 连续下载时 SAF 操作阻塞主线程。
+        Schedulers.io().scheduleDirect(() -> {
+            DownloadFileFactory factory;
+            try {
+                if (Shaft.sSettings.getDownloadWay() == 0 || downloadItem.getIllust().isGif()) {
+                    factory = new Android10DownloadFactory22(context, downloadItem);
+                } else {
+                    factory = new SAFactory(context, downloadItem);
+                }
+            } catch (Exception e) {
+                Common.showLog("[DL] factory init failed: " + e);
+                e.printStackTrace();
+                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    Common.showToast(mContext.getString(R.string.string_365));
+                    complete(downloadItem, false);
+                    stopAll();
+                });
+                return;
             }
-        }
 
+            boolean shouldSkip =
+                    (factory instanceof Android10DownloadFactory22 && ((Android10DownloadFactory22) factory).isSkip())
+                 || (factory instanceof SAFactory && ((SAFactory) factory).isSkip());
+            if (shouldSkip) {
+                Common.showLog("[DL] skip download (already exists), illust=" + downloadItem.getIllust().getId());
+                complete(downloadItem, true);
+                AndroidSchedulers.mainThread().scheduleDirect(this::loop);
+                return;
+            }
+
+            long fileSize = MediaStoreUtil.length(factory.query(), context);
+            long passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
+
+            Uri targetUri;
+            try {
+                targetUri = factory.insert();
+            } catch (Exception e) {
+                Common.showLog("[DL] factory.insert() failed: " + e);
+                e.printStackTrace();
+                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    Common.showToast(mContext.getString(R.string.string_365));
+                    complete(downloadItem, false);
+                    stopAll();
+                });
+                return;
+            }
+            if (targetUri == null) {
+                Common.showLog("[DL] factory.insert() returned null targetUri");
+                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    Common.showToast(mContext.getString(R.string.string_365));
+                    complete(downloadItem, false);
+                    stopAll();
+                });
+                return;
+            }
+
+            final String dlUrl = downloadItem.getUrl();
+            final boolean isGif = downloadItem.getIllust().isGif();
+            final File cachedFile;
+            if (passSize != 0) {
+                Common.showLog("[DL-CACHE] skip peek, passSize=" + passSize + " (resume), url=" + dlUrl);
+                cachedFile = null;
+            } else if (isGif) {
+                Common.showLog("[DL-CACHE] skip peek, illust isGif, url=" + dlUrl);
+                cachedFile = null;
+            } else {
+                File peeked = TaskPool.peekCachedFile(dlUrl);
+                if (peeked != null) {
+                    Common.showLog("[DL-CACHE] HIT path=" + peeked.getAbsolutePath()
+                            + " size=" + peeked.length() + " url=" + dlUrl);
+                    cachedFile = peeked;
+                } else {
+                    Common.showLog("[DL-CACHE] MISS url=" + dlUrl);
+                    cachedFile = null;
+                }
+            }
+
+            // 回主线程启动 RxJava 下载链（handle 赋值需要在一致的线程）
+            AndroidSchedulers.mainThread().scheduleDirect(() ->
+                startDownloadChain(context, downloadItem, factory, cachedFile, targetUri, dlUrl, passSize));
+        });
+    }
+
+    private void startDownloadChain(Context context, DownloadItem downloadItem,
+            DownloadFileFactory factory, File cachedFile, Uri targetUri, String dlUrl, long passSize) {
         OkHttpClient client = ((Shaft) Shaft.getContext()).getOkHttpClient();
         Request.Builder reqBuilder = new Request.Builder()
                 .url(downloadItem.getUrl())
@@ -519,57 +524,54 @@ public class Manager {
             }
         })
         .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
+        // 完成回调保持在 IO 线程，Gson 序列化 + DB 操作 + finishWrite 不阻塞主线程。
+        // 只有 UI 通知（广播、Toast）和 loop() 回主线程。
+        .observeOn(Schedulers.io())
         .doFinally(() -> {
-            //下载完成，处理相关逻辑
             currentIllustID = 0;
-            loop();
             Common.showLog("doFinally ");
+            // loop 需要回主线程，因为它可能操作 UI 状态
+            AndroidSchedulers.mainThread().scheduleDirect(this::loop);
         })
         .subscribe(s -> {
-            //s为String类型，这里为文件存储路径
             Common.showLog("downloadOne " + s);
 
             if(downloadItem.getIllust().isGif()){
                 Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + downloadItem.getIllust().getId(), true);
-                PixivOperate.unzipAndPlay(context, downloadItem.getIllust(), downloadItem.isAutoSave());
+                AndroidSchedulers.mainThread().scheduleDirect(() ->
+                    PixivOperate.unzipAndPlay(context, downloadItem.getIllust(), downloadItem.isAutoSave()));
             }
 
-            //通知 DOWNLOAD_ING 下载完成
-            {
-                Intent intent = new Intent(Params.DOWNLOAD_ING);
-                Holder holder = new Holder();
-                holder.setCode(Params.DOWNLOAD_SUCCESS);
-                holder.setIndex(content.indexOf(downloadItem));
-                holder.setDownloadItem(downloadItem);
-                intent.putExtra(Params.CONTENT, holder);
-                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-            }
+            // Gson 序列化 + DB 操作在 IO 线程执行
+            DownloadEntity downloadEntity = new DownloadEntity();
+            downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
+            downloadEntity.setFileName(downloadItem.getName());
+            downloadEntity.setDownloadTime(System.currentTimeMillis());
+            downloadEntity.setFilePath(factory.getFileUri().toString());
+            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
+            Common.showLog("[DL-CACHE] db inserted DownloadEntity fileName=" + downloadEntity.getFileName()
+                    + " filePath=" + downloadEntity.getFilePath());
 
-            //通知 DOWNLOAD_FINISH 下载完成
-            {
-                DownloadEntity downloadEntity = new DownloadEntity();
-                downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
-                downloadEntity.setFileName(downloadItem.getName());
-                downloadEntity.setDownloadTime(System.currentTimeMillis());
-                downloadEntity.setFilePath(factory.getFileUri().toString());
-                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
-                Common.showLog("[DL-CACHE] db inserted DownloadEntity fileName=" + downloadEntity.getFileName()
-                        + " filePath=" + downloadEntity.getFilePath());
-                //通知FragmentDownloadFinish 添加这一项
-                Intent intent = new Intent(Params.DOWNLOAD_FINISH);
-                intent.putExtra(Params.CONTENT, downloadEntity);
-                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-            }
-
-            // 通知相册下载完成
-            // 由各 Backend 的 onFinish 决定具体策略：
-            //   MediaStore (Q+) — 清除 IS_PENDING；
-            //   旧版 File / SAF — 调用 MediaScannerConnection.scanFile；
-            //   AppCache (ugoira zip 等中间产物) — 不通知。
             factory.finishWrite();
-
             complete(downloadItem, true);
+
+            // 广播通知回主线程
+            AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                {
+                    Intent intent = new Intent(Params.DOWNLOAD_ING);
+                    Holder holder = new Holder();
+                    holder.setCode(Params.DOWNLOAD_SUCCESS);
+                    holder.setIndex(content.indexOf(downloadItem));
+                    holder.setDownloadItem(downloadItem);
+                    intent.putExtra(Params.CONTENT, holder);
+                    LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                }
+                {
+                    Intent intent = new Intent(Params.DOWNLOAD_FINISH);
+                    intent.putExtra(Params.CONTENT, downloadEntity);
+                    LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                }
+            });
         }, throwable -> {
             //下载失败，处理相关逻辑
             Common.showLog("Manager download error: " + throwable.getMessage());
