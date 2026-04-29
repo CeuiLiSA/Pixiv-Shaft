@@ -563,7 +563,10 @@ public class Manager {
             // content.remove + 广播必须在同一个 Runnable 里，
             // 确保 adapter 收到通知时 item 已经被移除。
             AndroidSchedulers.mainThread().scheduleDirect(() -> {
-                content.remove(downloadItem);
+                int sizeBefore = content.size();
+                boolean removed = content.remove(downloadItem);
+                Common.showLog("[DL-REMOVE] remove=" + removed + " sizeBefore=" + sizeBefore
+                        + " sizeAfter=" + content.size() + " name=" + downloadItem.getName());
                 if (Shaft.sSettings.isToastDownloadResult()) {
                     Common.showToast(downloadItem.getName() + mContext.getString(R.string.has_been_downloaded));
                 }
@@ -574,6 +577,7 @@ public class Manager {
                     holder.setDownloadItem(downloadItem);
                     intent.putExtra(Params.CONTENT, holder);
                     LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                    Common.showLog("[DL-REMOVE] DOWNLOAD_ING broadcast sent");
                 }
                 {
                     Intent intent = new Intent(Params.DOWNLOAD_FINISH);

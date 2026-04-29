@@ -61,10 +61,19 @@ public class FragmentDownloading extends LocalListFragment<FragmentBaseListBindi
                 mAdapter.notifyItemChanged(holder.getIndex());
                 Common.showLog("收到了失败提醒");
             } else if(holder.getCode() == Params.DOWNLOAD_SUCCESS) {
-                // content.remove 已在 Manager.complete() 的主线程回调中执行，
-                // allItems 和 content 是同一个引用，这里只需刷新 adapter。
+                // allItems 是 content 的副本，需要自行移除对应 item
+                final DownloadItem doneItem = holder.getDownloadItem();
                 try {
-                    mAdapter.notifyDataSetChanged();
+                    if (doneItem != null) {
+                        for (int i = allItems.size() - 1; i >= 0; i--) {
+                            if (allItems.get(i).getUuid().equals(doneItem.getUuid())) {
+                                allItems.remove(i);
+                                mAdapter.notifyItemRemoved(i);
+                                mAdapter.notifyItemRangeChanged(i, allItems.size() - i);
+                                break;
+                            }
+                        }
+                    }
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
