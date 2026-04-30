@@ -26,19 +26,22 @@
             <View
                 android:layout_width="10dp"
                 android:layout_height="10dp"
-                android:background="@android:color/holo_red_light" />
+                android:background="@drawable/shape_circle"
+                android:backgroundTint="#FF5F57" />
 
             <View
                 android:layout_width="10dp"
                 android:layout_height="10dp"
                 android:layout_marginStart="6dp"
-                android:background="@android:color/holo_orange_light" />
+                android:background="@drawable/shape_circle"
+                android:backgroundTint="#FEBC2E" />
 
             <View
                 android:layout_width="10dp"
                 android:layout_height="10dp"
                 android:layout_marginStart="6dp"
-                android:background="@android:color/holo_green_light" />
+                android:background="@drawable/shape_circle"
+                android:backgroundTint="#28C840" />
 
             <TextView
                 android:id="@+id/title"

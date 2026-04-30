@@ -7,7 +7,7 @@
     android:background="@color/v3_bg">
 
     <!-- 操作 bar 顶部 -->
-    <com.google.android.material.card.MaterialCardView
+    <androidx.cardview.widget.CardView
         android:id="@+id/actionsCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -73,7 +73,7 @@
                 android:textSize="12sp"
                 tools:text="清空全部" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+    </androidx.cardview.widget.CardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"

@@ -68,6 +68,11 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         this.flow = flow
     }
 
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewAlive = true
