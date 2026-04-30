@@ -770,7 +770,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             taskName = "下载 $authorName 的全部$typeLabel",
         )
         ceui.pixiv.ui.bulk.FetchProgressDialog.show(supportFragmentManager, fetcher.fetch())
-        ceui.pixiv.ui.bulk.QueueDownloadManager.notifyNewItems()
+        // 不在这里 notifyNewItems —— 等 fetcher 全部抓完才统一唤醒消费者
     }
 
     private fun jumpTo(userID: Int, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {

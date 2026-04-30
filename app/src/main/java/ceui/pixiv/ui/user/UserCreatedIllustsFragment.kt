@@ -51,7 +51,8 @@ class UserCreatedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
                             taskName = taskName,
                         )
                         FetchProgressDialog.show(childFragmentManager, fetcher.fetch())
-                        QueueDownloadManager.notifyNewItems()
+                        // 不在这里 notifyNewItems —— 等 fetcher 全部抓完才统一唤醒消费者，
+                        // 避免抓取期间下载抢带宽 / 让作者主页变卡。
                     }
                 )
                 add(

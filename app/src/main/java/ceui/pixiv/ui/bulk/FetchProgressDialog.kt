@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.bulk
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -7,6 +8,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
+import ceui.lisa.activities.TemplateActivity
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +44,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
     private lateinit var logScroll: ScrollView
     private lateinit var statusLine: TextView
     private lateinit var cancelBtn: Button
+    private lateinit var openManagerBtn: Button
     private lateinit var closeBtn: Button
 
     private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.US)
@@ -81,6 +84,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         logScroll = view.findViewById(R.id.logScroll)
         statusLine = view.findViewById(R.id.statusLine)
         cancelBtn = view.findViewById(R.id.cancelBtn)
+        openManagerBtn = view.findViewById(R.id.openManagerBtn)
         closeBtn = view.findViewById(R.id.closeBtn)
 
         titleView.text = "batch-download"
@@ -99,6 +103,13 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             flushLog()
         }
         closeBtn.setOnClickListener { dismissAllowingStateLoss() }
+        openManagerBtn.setOnClickListener {
+            val ctx = requireContext()
+            val intent = Intent(ctx, TemplateActivity::class.java)
+                .putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理")
+            ctx.startActivity(intent)
+            dismissAllowingStateLoss()
+        }
 
         startedAt = System.currentTimeMillis()
 
@@ -186,9 +197,17 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                 phaseDetail = "completed"
                 totalSoFar = e.total
                 if (viewAlive) {
-                    appendLine("✓ done. total=${e.total}  pages=${e.pageCount}  elapsed=${formatDuration(e.elapsedMs)}")
-                    appendLine("  全部 ${e.total} 项已加入下载队列，按入队顺序串行下载")
+                    appendLine("")
+                    appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                    appendLine("✓ 抓取完成")
+                    appendLine("")
+                    appendLine("  ▸ 总计: ${e.total} 项作品")
+                    appendLine("  ▸ 共 ${e.pageCount} 页 · 耗时 ${formatDuration(e.elapsedMs)}")
+                    appendLine("  ▸ 已加入下载队列，按入队顺序串行下载")
+                    appendLine("  ▸ 下载已开始 →")
+                    appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     cancelBtn.visibility = View.GONE
+                    openManagerBtn.visibility = View.VISIBLE
                     closeBtn.visibility = View.VISIBLE
                     flushLog()
                 }
@@ -197,9 +216,14 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                 phase = Phase.FAILED
                 phaseDetail = "page ${e.pageIndex} failed"
                 if (viewAlive) {
-                    appendLine("✗ error at page ${e.pageIndex}: ${e.message}")
-                    appendLine("  已入队的项目保留，可在下载管理页查看")
+                    appendLine("")
+                    appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                    appendLine("✗ 抓取失败 · page ${e.pageIndex}")
+                    appendLine("  ▸ ${e.message}")
+                    appendLine("  ▸ 已入队 $totalSoFar 项已开始下载")
+                    appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     cancelBtn.visibility = View.GONE
+                    if (totalSoFar > 0) openManagerBtn.visibility = View.VISIBLE
                     closeBtn.visibility = View.VISIBLE
                     flushLog()
                 }

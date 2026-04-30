@@ -109,6 +109,17 @@
                 style="?attr/borderlessButtonStyle" />
 
             <Button
+                android:id="@+id/openManagerBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFamily="monospace"
+                android:text="去下载管理 →"
+                android:textColor="#5EB3FF"
+                android:visibility="gone"
+                style="?attr/borderlessButtonStyle" />
+
+            <Button
                 android:id="@+id/closeBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

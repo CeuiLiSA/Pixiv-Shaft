@@ -115,12 +115,16 @@ class AuthorWorksFetcher(
                 }
             }
 
+            // 全部抓完，统一唤醒下载消费者
+            if (totalSoFar > 0) QueueDownloadManager.notifyNewItems()
             emit(FetchEvent.Done(totalSoFar, System.currentTimeMillis() - startedAt, pageIndex))
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
-            // 用户取消：保留已入队的，不回滚
+            // 用户取消：保留已入队的，但不主动唤醒下载（用户既然取消了，让他自己决定）
             throw cancellation
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "fetch failed userId=$userId type=$type page=$pageIndex")
+            // 失败：把已入队的部分启动下载（不浪费已经做的工作）
+            if (totalSoFar > 0) QueueDownloadManager.notifyNewItems()
             emit(FetchEvent.Errored(e.message ?: e::class.java.simpleName, pageIndex))
         }
     }.flowOn(Dispatchers.IO)
@@ -158,7 +162,9 @@ class AuthorWorksFetcher(
         val dbLatency = System.currentTimeMillis() - tDb
         collector.emit(FetchEvent.DbBatchDone(list.size, dbLatency))
 
-        QueueDownloadManager.notifyNewItems()
+        // 注意：这里 **不** 唤醒消费者 —— 用户希望全部页面抓完再统一开始下载，
+        // 避免 fetch 还在跑时下载就把作者主页搞慢了。
+        // notifyNewItems() 在 fetch 流程结束后（Done / Errored）统一调一次。
         return list.size
     }
 
