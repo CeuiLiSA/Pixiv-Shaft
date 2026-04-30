@@ -115,8 +115,10 @@ class AuthorWorksFetcher(
                 }
             }
 
-            // 全部抓完，统一唤醒下载消费者
-            if (totalSoFar > 0) QueueDownloadManager.notifyNewItems()
+            // 全部抓完，统一唤醒下载消费者。
+            // 用 resume() 而不是 notifyNewItems() —— 用户主动发起的新批量下载，
+            // 即使之前在 cold-start 弹窗里点了"暂时不下"，新意图也要立刻执行。
+            if (totalSoFar > 0) QueueDownloadManager.resume()
             emit(FetchEvent.Done(totalSoFar, System.currentTimeMillis() - startedAt, pageIndex))
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
             // 用户取消：保留已入队的，但不主动唤醒下载（用户既然取消了，让他自己决定）
@@ -124,7 +126,7 @@ class AuthorWorksFetcher(
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "fetch failed userId=$userId type=$type page=$pageIndex")
             // 失败：把已入队的部分启动下载（不浪费已经做的工作）
-            if (totalSoFar > 0) QueueDownloadManager.notifyNewItems()
+            if (totalSoFar > 0) QueueDownloadManager.resume()
             emit(FetchEvent.Errored(e.message ?: e::class.java.simpleName, pageIndex))
         }
     }.flowOn(Dispatchers.IO)

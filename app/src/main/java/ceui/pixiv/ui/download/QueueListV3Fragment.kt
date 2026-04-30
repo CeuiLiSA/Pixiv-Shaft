@@ -46,7 +46,6 @@ class QueueListV3Fragment : Fragment() {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
     }
     private val adapter = QueueAdapterV3()
-    @Volatile private var paused = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -63,20 +62,28 @@ class QueueListV3Fragment : Fragment() {
         view.findViewById<TextView>(R.id.emptyTitle).text = "队列为空"
         view.findViewById<TextView>(R.id.emptyHint).text = "去作者页 → 右上角 more →\n下载全部插画 / 漫画"
 
-        val btnPause = view.findViewById<Button>(R.id.btn1).apply { text = "暂停" }
+        // 按钮文案根据 manager 真实状态初始化（cold-start 暂停时直接显示"继续"）
+        val btnPause = view.findViewById<Button>(R.id.btn1).apply {
+            text = if (QueueDownloadManager.isPaused()) "继续" else "暂停"
+        }
         val btnRetry = view.findViewById<Button>(R.id.btn2).apply { text = "重试失败" }
         val btnClearOk = view.findViewById<Button>(R.id.btn3).apply { text = "清成功记录" }
         val btnClearAll = view.findViewById<Button>(R.id.btn4).apply { text = "清空全部" }
 
         btnPause.setOnClickListener {
-            paused = !paused
-            if (paused) QueueDownloadManager.pause() else QueueDownloadManager.resume()
-            btnPause.text = if (paused) "继续" else "暂停"
+            if (QueueDownloadManager.isPaused()) {
+                QueueDownloadManager.resume()
+                btnPause.text = "暂停"
+            } else {
+                QueueDownloadManager.pause()
+                btnPause.text = "继续"
+            }
         }
         btnRetry.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 runCatching { dao.retryAllFailed() }
-                QueueDownloadManager.notifyNewItems()
+                // 用户手动点重试 → 必须 resume() 而不仅仅 tickle，否则 paused 时啥也不做
+                QueueDownloadManager.resume()
             }
         }
         btnClearOk.setOnClickListener {

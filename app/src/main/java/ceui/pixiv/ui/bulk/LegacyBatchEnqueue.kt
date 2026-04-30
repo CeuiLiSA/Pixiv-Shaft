@@ -50,7 +50,8 @@ object LegacyBatchEnqueue {
                         )
                     }
                     dao.appendBatch(rows)
-                    QueueDownloadManager.notifyNewItems()
+                    // 用户主动批量下载 → resume()，覆盖 cold-start 弹窗的暂停状态
+                    QueueDownloadManager.resume()
                 }
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "入队完成，共 ${list.size} 项", Toast.LENGTH_SHORT).show()

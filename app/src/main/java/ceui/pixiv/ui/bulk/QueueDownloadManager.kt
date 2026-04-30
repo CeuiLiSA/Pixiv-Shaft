@@ -163,6 +163,7 @@ object QueueDownloadManager {
     fun notifyNewItems() { tickle.trySend(Unit) }
     fun pause() { paused = true }
     fun resume() { paused = false; tickle.trySend(Unit) }
+    fun isPaused(): Boolean = paused
 
     private suspend fun consumeUntilEmpty() {
         while (!paused) {

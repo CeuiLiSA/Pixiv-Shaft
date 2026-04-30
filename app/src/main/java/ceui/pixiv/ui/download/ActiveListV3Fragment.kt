@@ -78,7 +78,7 @@ class ActiveListV3Fragment : Fragment() {
         // 操作 bar
         view.findViewById<Button>(R.id.btn1).apply {
             text = "全部继续"
-            setOnClickListener { Manager.get().startAll(); QueueDownloadManager.notifyNewItems() }
+            setOnClickListener { Manager.get().startAll(); QueueDownloadManager.resume() }
         }
         view.findViewById<Button>(R.id.btn2).apply {
             text = "全部暂停"
