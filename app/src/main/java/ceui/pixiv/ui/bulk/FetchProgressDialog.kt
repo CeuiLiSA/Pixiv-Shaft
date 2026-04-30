@@ -10,14 +10,12 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.ArrayDeque
@@ -25,18 +23,15 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * CLI 风格抓取进度 dialog。
+ * Claude Code CLI 风格的进度 dialog —— 用户能 **一直** 看到 "当前在干嘛"，绝不让人干等。
  *
- * 性能/友好度要点：
- *  - 日志环形缓冲（[MAX_LINES] 行）：避免 StringBuilder 无界增长导致 setText O(n²)。
- *  - 事件分两类：
- *      * 终态事件（Done/Errored）即时刷新；
- *      * 高频事件（PageFetched/Enqueued/RateLimit）走 [MutableSharedFlow] + sample 节流，
- *        每 [FLUSH_INTERVAL_MS] 毫秒最多 1 次 UI 刷新；20000 作品 ~666 页，整体刷新 < 50 次。
- *  - 抓取在 activity 的 lifecycleScope 跑，dialog 关闭后 fetch 继续。
- *  - 允许 back 键收起 dialog（fetch 不取消），用户可去队列页查看。
+ * 关键体感：
+ *   - 顶部状态行 100ms 一刷，包含：
+ *       {spinner 帧} {当前操作描述}  ·  page=N/total  ·  elapsed  ·  rate
+ *   - 网络/DB/池/速率限制 都有独立子文案
+ *   - rate-limit 实时倒计时 "1.20s 后继续"
+ *   - 日志区记录每一个微动作（page received / latency / db ms / pool ms / cumulative）
  */
-@OptIn(FlowPreview::class)
 class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
 
     private var flow: Flow<FetchEvent>? = null
@@ -53,15 +48,19 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
     private val ringBuffer = ArrayDeque<String>(MAX_LINES + 4)
     @Volatile private var viewAlive: Boolean = false
 
-    // 当前进度状态（被 sample 后周期性 flush 到 UI）
-    @Volatile private var lastPageIndex: Int = 0
-    @Volatile private var lastTotal: Int = 0
-    @Volatile private var lastEventTag: String = ""
-    private val uiPulse = MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    // —— 状态机 ——
+    private enum class Phase { IDLE, NETWORKING, RECEIVED, POOL, DB, ENQUEUED, RATE_LIMIT, DONE, FAILED, CANCELED }
+    @Volatile private var phase: Phase = Phase.IDLE
+    @Volatile private var phaseDetail: String = ""
+    @Volatile private var rateLimitUntil: Long = 0L
+    @Volatile private var pageIndex: Int = 0
+    @Volatile private var totalSoFar: Int = 0
+    @Volatile private var startedAt: Long = 0L
+    @Volatile private var spinnerFrame: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 允许 back 键收起 dialog —— fetch 在 activity scope 仍在跑
+        // 允许 back 收起 dialog —— fetch 在 activity scope 仍跑
         isCancelable = true
     }
 
@@ -80,38 +79,38 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         closeBtn = view.findViewById(R.id.closeBtn)
 
         titleView.text = "batch-download"
-        statusLine.text = "● running…    page=0  total=0"
-        appendLine("$ fetch-author-works --stream")
-        appendLine("  关掉此窗口不会停止抓取，可去 \"批量下载队列\" 查看进度")
+        statusLine.text = "${SPINNER[0]} starting…"
+        appendLine("$ fetch-author-works --stream --verbose")
+        appendLine("  关掉此窗口不会停止抓取，可去 \"下载管理\" 查看进度")
         flushLog()
 
         cancelBtn.setOnClickListener {
             fetchJob?.cancel()
-            appendLine("^C  user canceled — 已入队的项目保留，可在批量下载队列页继续/重试")
-            statusLine.text = "● canceled"
+            phase = Phase.CANCELED
+            phaseDetail = "user canceled"
+            appendLine("^C  user canceled — 已入队的项目保留，可在下载管理页继续/重试")
             cancelBtn.visibility = View.GONE
             closeBtn.visibility = View.VISIBLE
             flushLog()
         }
         closeBtn.setOnClickListener { dismissAllowingStateLoss() }
 
-        // 收集 fetch 事件 —— 在 activity scope，dialog 关掉也继续；UI handler 在 dialog 自己 scope
+        startedAt = System.currentTimeMillis()
+
+        // 收集 fetch 事件 —— activity scope，dialog 关掉也继续
         flow?.let { f ->
             fetchJob = f.flowOn(Dispatchers.IO)
                 .onEach(::handleEvent)
                 .launchIn(requireActivity().lifecycleScope)
         }
 
-        // UI 节流刷新：20000 作品下，原本每页 2 个事件 = 1300+ 次 setText；
-        // 改为每 FLUSH_INTERVAL_MS 最多刷新一次，最多 ~50 次 setText。
+        // 100ms 状态行刷新（spinner + 倒计时 + elapsed）—— 让用户感觉一直在动
         viewLifecycleOwner.lifecycleScope.launch {
-            uiPulse
-                .sample(FLUSH_INTERVAL_MS)
-                .collect {
-                    if (!viewAlive) return@collect
-                    flushProgressLine()
-                    flushLog()
-                }
+            while (viewAlive) {
+                spinnerFrame = (spinnerFrame + 1) % SPINNER.size
+                refreshStatusLine()
+                delay(STATUS_TICK_MS)
+            }
         }
     }
 
@@ -121,43 +120,80 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                 if (viewAlive) {
                     titleView.text = "batch-download · user:${e.userId}"
                     appendLine("> ${e.taskName}")
-                    appendLine("> userId=${e.userId}, streaming pages…")
+                    appendLine("  userId=${e.userId}, streaming pages…")
                     flushLog()
                 }
             }
-            is FetchEvent.PageFetched -> {
-                lastPageIndex = e.pageIndex
-                lastTotal = e.totalSoFar
-                lastEventTag = "page +${e.pageSize}"
-                // 节流：每 N 页才 append 一行日志，避免 666 行刷屏
-                if (e.pageIndex % LOG_EVERY_N_PAGES == 0 || e.pageIndex == 1) {
-                    appendLine("> page ${e.pageIndex}: +${e.pageSize}  (total ${e.totalSoFar})")
+            is FetchEvent.Networking -> {
+                phase = Phase.NETWORKING
+                phaseDetail = "GET ${e.endpoint}"
+                pageIndex = e.pageIndex
+                if (viewAlive) {
+                    appendLine("> page ${e.pageIndex}: GET ${e.endpoint}")
+                    flushLog()
                 }
-                uiPulse.tryEmit(Unit)
+            }
+            is FetchEvent.PageReceived -> {
+                phase = Phase.RECEIVED
+                phaseDetail = "received ${e.pageSize} illusts in ${e.latencyMs}ms"
+                if (viewAlive) {
+                    appendLine("  ↳ received ${e.pageSize} illusts in ${e.latencyMs}ms")
+                    flushLog()
+                }
+            }
+            is FetchEvent.PoolUpdate -> {
+                phase = Phase.POOL
+                phaseDetail = "warming ObjectPool (${e.size} illusts)"
+                if (viewAlive) {
+                    appendLine("  ↳ pool: ${e.size} illusts updated")
+                    // 不 flushLog —— 太频繁，统一节流到 100ms tick
+                }
+            }
+            is FetchEvent.DbBatchStart -> {
+                phase = Phase.DB
+                phaseDetail = "writing ${e.size} rows to download_queue"
+            }
+            is FetchEvent.DbBatchDone -> {
+                phase = Phase.ENQUEUED
+                phaseDetail = "db inserted ${e.size} rows in ${e.latencyMs}ms"
+                if (viewAlive) {
+                    appendLine("  ↳ db: inserted ${e.size} rows in ${e.latencyMs}ms")
+                }
             }
             is FetchEvent.Enqueued -> {
-                lastTotal = e.totalSoFar
-                uiPulse.tryEmit(Unit)
+                totalSoFar = e.totalSoFar
+                if (viewAlive) {
+                    appendLine("  ↳ enqueued ✓  cumulative=${e.totalSoFar}")
+                    flushLog()
+                }
             }
             is FetchEvent.RateLimit -> {
-                lastEventTag = "rate-limit"
-                uiPulse.tryEmit(Unit)
+                phase = Phase.RATE_LIMIT
+                rateLimitUntil = System.currentTimeMillis() + e.waitMs
+                phaseDetail = "rate-limit"
+                if (viewAlive) {
+                    appendLine("  ⏳ rate-limit: sleep ${e.waitMs}ms")
+                    flushLog()
+                }
             }
             is FetchEvent.Done -> {
+                phase = Phase.DONE
+                phaseDetail = "completed"
+                totalSoFar = e.total
                 if (viewAlive) {
-                    appendLine("✓ done. total=${e.total}  elapsed=${formatDuration(e.elapsedMs)}")
+                    appendLine("✓ done. total=${e.total}  pages=${e.pageCount}  elapsed=${formatDuration(e.elapsedMs)}")
                     appendLine("  全部 ${e.total} 项已加入下载队列，按入队顺序串行下载")
-                    statusLine.text = "● completed · ${e.total} items queued · ${formatDuration(e.elapsedMs)}"
                     cancelBtn.visibility = View.GONE
                     closeBtn.visibility = View.VISIBLE
                     flushLog()
                 }
             }
             is FetchEvent.Errored -> {
+                phase = Phase.FAILED
+                phaseDetail = "page ${e.pageIndex} failed"
                 if (viewAlive) {
-                    appendLine("✗ error: ${e.message}")
-                    appendLine("  已入队的项目保留，可在批量下载队列页查看")
-                    statusLine.text = "● failed · 已入队 $lastTotal 项"
+                    appendLine("✗ error at page ${e.pageIndex}: ${e.message}")
+                    appendLine("  已入队的项目保留，可在下载管理页查看")
                     cancelBtn.visibility = View.GONE
                     closeBtn.visibility = View.VISIBLE
                     flushLog()
@@ -166,8 +202,45 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         }
     }
 
-    private fun flushProgressLine() {
-        statusLine.text = "● running…    page=$lastPageIndex  total=$lastTotal  · $lastEventTag"
+    /**
+     * 顶部状态行 —— 一直在变，让用户绝不感觉"卡住了"。
+     * 格式: "{spinner} {action}  ·  page=N · total=M  ·  elapsed M:SS  ·  R.R/s"
+     */
+    private fun refreshStatusLine() {
+        if (!viewAlive) return
+        val now = System.currentTimeMillis()
+        val elapsedMs = if (startedAt == 0L) 0L else now - startedAt
+        val spin = SPINNER[spinnerFrame]
+
+        val (icon, action) = when (phase) {
+            Phase.IDLE -> spin to "starting…"
+            Phase.NETWORKING -> spin to "fetching page $pageIndex · $phaseDetail"
+            Phase.RECEIVED -> spin to "page $pageIndex received · $phaseDetail"
+            Phase.POOL -> spin to "warming pool · $phaseDetail"
+            Phase.DB -> spin to "writing db · $phaseDetail"
+            Phase.ENQUEUED -> spin to "page $pageIndex enqueued"
+            Phase.RATE_LIMIT -> {
+                val left = (rateLimitUntil - now).coerceAtLeast(0L)
+                if (left > 0) "⏳" to String.format("rate-limit · %.2fs 后继续 (pixiv 速率限制)", left / 1000.0)
+                else spin to "fetching next page…"
+            }
+            Phase.DONE -> "✓" to "completed · ${totalSoFar} items queued"
+            Phase.FAILED -> "✗" to "failed at page $pageIndex"
+            Phase.CANCELED -> "●" to "canceled · ${totalSoFar} items kept"
+        }
+
+        // 速率：每秒入队多少 item
+        val rate = if (elapsedMs > 1000 && totalSoFar > 0) {
+            String.format(Locale.US, "%.1f/s", totalSoFar * 1000.0 / elapsedMs)
+        } else "—"
+
+        statusLine.text = buildString {
+            append(icon).append(' ').append(action)
+            append("    page=").append(if (pageIndex == 0) "—" else pageIndex.toString())
+            append(" · total=").append(totalSoFar)
+            append(" · elapsed=").append(formatDuration(elapsedMs))
+            append(" · ").append(rate)
+        }
     }
 
     private fun appendLine(line: String) {
@@ -178,7 +251,6 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
 
     private fun flushLog() {
         if (!viewAlive) return
-        // 一次性拼接 + 一次 setText，避免每行都 setText 整个文本
         val sb = StringBuilder(ringBuffer.size * 60)
         for (line in ringBuffer) sb.append(line).append('\n')
         logText.text = sb
@@ -187,7 +259,11 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
 
     private fun formatDuration(ms: Long): String {
         val s = ms / 1000
-        return if (s < 60) "${s}s" else "${s / 60}m${s % 60}s"
+        return when {
+            s < 60 -> "${s}s"
+            s < 3600 -> String.format("%dm%02ds", s / 60, s % 60)
+            else -> String.format("%dh%02dm%02ds", s / 3600, (s % 3600) / 60, s % 60)
+        }
     }
 
     override fun onDestroyView() {
@@ -197,9 +273,11 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
     }
 
     companion object {
-        private const val MAX_LINES = 100
-        private const val FLUSH_INTERVAL_MS = 200L
-        private const val LOG_EVERY_N_PAGES = 5
+        private const val MAX_LINES = 200
+        private const val STATUS_TICK_MS = 100L
+
+        // Braille spinner — 比 / - \ | 平滑得多
+        private val SPINNER = arrayOf("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
 
         fun show(fm: FragmentManager, flow: Flow<FetchEvent>): FetchProgressDialog {
             val dialog = FetchProgressDialog().apply { bindFlow(flow) }
