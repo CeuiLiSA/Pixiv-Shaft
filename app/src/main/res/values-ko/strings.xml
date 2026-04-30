@@ -1039,4 +1039,82 @@
     <string name="comic_reader_series_loading">시리즈를 찾는 중…</string>
     <string name="comic_reader_long_press_open_advanced">고급 보기 (AI / 번역)</string>
     <string name="comic_reader_total_minutes">총 %1$d 분 읽음</string>
+
+    <!-- Bulk download -->
+    <string name="bulk_menu_download_all">모든 작품 다운로드</string>
+    <string name="bulk_menu_download_all_desc">스트리밍 가져오기 + 영구 큐, 재시작 시 복구 가능</string>
+    <string name="bulk_user_menu_download_all_illust">모든 일러스트 다운로드 (일괄 큐 추가)</string>
+    <string name="bulk_user_menu_download_all_manga">모든 만화 다운로드 (일괄 큐 추가)</string>
+    <string name="bulk_user_menu_open_download_manager">다운로드 관리 열기…</string>
+    <string name="bulk_task_name">%1$s의 %2$s 모두 다운로드</string>
+    <string name="bulk_type_illust">일러스트</string>
+    <string name="bulk_type_manga">만화</string>
+
+    <string name="bulk_select_title">일괄 다운로드 · 작품 선택</string>
+    <string name="bulk_select_select_all">전체 선택</string>
+    <string name="bulk_select_invert">선택 반전</string>
+    <string name="bulk_select_no_items">선택 가능한 작품이 없습니다. 다른 진입점에서 와서 상태가 손실되었을 수 있습니다.</string>
+    <string name="bulk_select_loading">로딩 중…</string>
+    <string name="bulk_select_summary">%1$d개 · %2$d개 선택됨</string>
+    <string name="bulk_select_summary_with_gif">%1$d개 · %2$d개 선택됨 · GIF %3$d개 건너뜀</string>
+    <string name="bulk_select_confirm">다운로드 큐에 추가 (%1$d) →</string>
+    <string name="bulk_select_confirm_empty">최소 1개 이상 선택하세요</string>
+
+    <string name="bulk_enqueue_empty">큐에 추가할 작품이 없습니다</string>
+    <string name="bulk_enqueue_truncated">수가 너무 많습니다. %1$d개로 잘랐습니다</string>
+    <string name="bulk_enqueue_started">%1$d개 큐 추가 시작</string>
+    <string name="bulk_enqueue_zero_after_filter">다운로드할 작품이 없습니다 (GIF 제외)</string>
+    <string name="bulk_enqueue_done">큐 추가 완료, 총 %1$d개</string>
+    <string name="bulk_enqueue_failed">큐 추가 실패: %1$s</string>
+
+    <string name="bulk_resume_prompt_title">일괄 다운로드</string>
+    <string name="bulk_resume_prompt_message">이전 세션에서 %1$d개의 작품이 아직 미완료입니다.\n지금 재개하시겠습니까?\n\n(큐는 순서대로 직렬 다운로드되며 탐색을 방해하지 않습니다.)</string>
+    <string name="bulk_resume_prompt_decline">지금은 안 함</string>
+    <string name="bulk_resume_prompt_continue">재개</string>
+
+    <string name="bulk_fetch_dialog_close_hint">이 창을 닫아도 가져오기는 중지되지 않습니다. \"다운로드 관리\"에서 진행 상황을 확인하세요.</string>
+    <string name="bulk_fetch_dialog_canceled">^C  user canceled — 이미 큐에 추가된 항목은 유지됩니다. 다운로드 관리에서 재개/재시도할 수 있습니다.</string>
+    <string name="bulk_fetch_dialog_done_title">✓ 가져오기 완료</string>
+    <string name="bulk_fetch_dialog_done_total">  ▸ 합계: %1$d개 작품</string>
+    <string name="bulk_fetch_dialog_done_pages">  ▸ %1$d 페이지 · 경과 %2$s</string>
+    <string name="bulk_fetch_dialog_done_queue">  ▸ 다운로드 큐에 추가됨 · 순서대로 직렬 다운로드</string>
+    <string name="bulk_fetch_dialog_done_started">  ▸ 다운로드 시작 →</string>
+    <string name="bulk_fetch_dialog_failed_title">✗ 가져오기 실패 · page %1$d</string>
+    <string name="bulk_fetch_dialog_failed_message">  ▸ %1$s</string>
+    <string name="bulk_fetch_dialog_failed_partial">  ▸ %1$d개의 큐에 추가된 항목이 다운로드를 시작했습니다</string>
+    <string name="bulk_fetch_dialog_rate_limit">rate-limit · %1$.2fs 후 재개 (pixiv 속도 제한)</string>
+    <string name="bulk_fetch_dialog_btn_cancel">취소</string>
+    <string name="bulk_fetch_dialog_btn_open_manager">다운로드 관리 →</string>
+    <string name="bulk_fetch_dialog_btn_close">닫기</string>
+
+    <string name="dlmgr_title">다운로드 관리</string>
+    <string name="dlmgr_tab_queue">큐</string>
+    <string name="dlmgr_tab_active">다운로드 중</string>
+    <string name="dlmgr_tab_done">완료</string>
+
+    <string name="dlmgr_queue_empty_title">큐가 비어 있습니다</string>
+    <string name="dlmgr_queue_empty_hint">작가 페이지 → 우측 상단 더보기 →\n모든 일러스트/만화 다운로드</string>
+    <string name="dlmgr_queue_action_pause">일시 정지</string>
+    <string name="dlmgr_queue_action_resume">재개</string>
+    <string name="dlmgr_queue_action_retry_failed">실패 재시도</string>
+    <string name="dlmgr_queue_action_clear_success">성공 항목 지우기</string>
+    <string name="dlmgr_queue_action_clear_all">모두 지우기</string>
+
+    <string name="dlmgr_active_empty_title">진행 중인 다운로드가 없습니다</string>
+    <string name="dlmgr_active_empty_hint">큐 항목이 자동으로 여기로 이동하며\n페이지별 실시간 진행 상황을 표시합니다</string>
+    <string name="dlmgr_active_action_resume_all">모두 재개</string>
+    <string name="dlmgr_active_action_pause_all">모두 일시 정지</string>
+    <string name="dlmgr_active_action_clear">지우기</string>
+    <string name="dlmgr_active_status_downloading_n">%1$d개 다운로드 중</string>
+    <string name="dlmgr_active_status_waiting_n">%1$d개 대기 중</string>
+    <string name="dlmgr_active_status_paused_n">%1$d개 일시 정지됨</string>
+    <string name="dlmgr_active_status_failed_n">%1$d개 실패</string>
+    <string name="dlmgr_active_size_waiting">대기 중…</string>
+    <string name="dlmgr_active_size_paused">일시 정지됨</string>
+    <string name="dlmgr_active_size_failed">다운로드 실패</string>
+
+    <string name="dlmgr_done_empty_title">아직 완료된 다운로드가 없습니다</string>
+    <string name="dlmgr_done_empty_hint">완료된 작품이 여기에 표시됩니다</string>
+    <string name="dlmgr_done_action_refresh">새로고침</string>
+    <string name="dlmgr_done_action_clear_history">기록 지우기</string>
 </resources>

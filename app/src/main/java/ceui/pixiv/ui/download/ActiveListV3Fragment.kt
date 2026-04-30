@@ -62,9 +62,8 @@ class ActiveListV3Fragment : Fragment() {
         list.setHasFixedSize(false)
 
         val empty = view.findViewById<View>(R.id.emptyState)
-        view.findViewById<TextView>(R.id.emptyTitle).text = "没有正在下载的任务"
-        view.findViewById<TextView>(R.id.emptyHint).text =
-            "队列里的任务会自动转到这里\n显示 page 级实时进度"
+        view.findViewById<TextView>(R.id.emptyTitle).text = getString(R.string.dlmgr_active_empty_title)
+        view.findViewById<TextView>(R.id.emptyHint).text = getString(R.string.dlmgr_active_empty_hint)
 
         // 顶部状态行（占用 btn3 这个空位 button 改为只读 TextView 风格）
         statusHeader = view.findViewById<Button>(R.id.btn3).apply {
@@ -76,15 +75,15 @@ class ActiveListV3Fragment : Fragment() {
 
         // 操作 bar
         view.findViewById<Button>(R.id.btn1).apply {
-            text = "全部继续"
+            text = getString(R.string.dlmgr_active_action_resume_all)
             setOnClickListener { Manager.get().startAll(); QueueDownloadManager.resume() }
         }
         view.findViewById<Button>(R.id.btn2).apply {
-            text = "全部暂停"
+            text = getString(R.string.dlmgr_active_action_pause_all)
             setOnClickListener { Manager.get().stopAll() }
         }
         view.findViewById<Button>(R.id.btn4).apply {
-            text = "清空"
+            text = getString(R.string.dlmgr_active_action_clear)
             setOnClickListener { Manager.get().clearAll() }
         }
 
@@ -120,10 +119,10 @@ class ActiveListV3Fragment : Fragment() {
 
                     // 顶部状态行
                     val parts = buildList {
-                        if (downloadingCount > 0) add("$downloadingCount 正在下载")
-                        if (initCount > 0) add("$initCount 等待中")
-                        if (pausedCount > 0) add("$pausedCount 已暂停")
-                        if (failedCount > 0) add("$failedCount 失败")
+                        if (downloadingCount > 0) add(getString(R.string.dlmgr_active_status_downloading_n, downloadingCount))
+                        if (initCount > 0) add(getString(R.string.dlmgr_active_status_waiting_n, initCount))
+                        if (pausedCount > 0) add(getString(R.string.dlmgr_active_status_paused_n, pausedCount))
+                        if (failedCount > 0) add(getString(R.string.dlmgr_active_status_failed_n, failedCount))
                     }
                     statusHeader?.text = if (parts.isEmpty()) "—" else parts.joinToString(" · ")
 
@@ -206,9 +205,9 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
                     )
                 } else "—"
             }
-            isWaiting -> h.sizeText.text = "等待中…"
-            isPaused -> h.sizeText.text = "已暂停"
-            isFailed -> h.sizeText.text = "下载失败"
+            isWaiting -> h.sizeText.setText(R.string.dlmgr_active_size_waiting)
+            isPaused -> h.sizeText.setText(R.string.dlmgr_active_size_paused)
+            isFailed -> h.sizeText.setText(R.string.dlmgr_active_size_failed)
             else -> h.sizeText.text = "—"
         }
 

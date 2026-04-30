@@ -68,12 +68,12 @@ class BulkSelectV3Fragment : Fragment() {
         // 取列表 —— 大列表（10000+）SelectableItem 构造也搬 IO 避免主线程长时间循环。
         val raw = BulkSelectStorage.consume()
         if (raw.isNullOrEmpty()) {
-            hint.text = "没有可选作品，可能从其他入口进来导致状态丢失。"
+            hint.text = getString(R.string.bulk_select_no_items)
             btnConfirm.isEnabled = false
             btnConfirm.text = "—"
             return
         }
-        hint.text = "加载中…"
+        hint.text = getString(R.string.bulk_select_loading)
         btnConfirm.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
             val prepared = withContext(Dispatchers.IO) {
@@ -138,12 +138,16 @@ class BulkSelectV3Fragment : Fragment() {
         val selected = items.count { it.selected && it.selectable }
         val gifSkipped = items.count { !it.selectable }
         hint.text = if (gifSkipped > 0) {
-            "共 $total 项 · 已选 $selected 项 · GIF 已跳过 $gifSkipped 项"
+            getString(R.string.bulk_select_summary_with_gif, total, selected, gifSkipped)
         } else {
-            "共 $total 项 · 已选 $selected 项"
+            getString(R.string.bulk_select_summary, total, selected)
         }
         btnConfirm.isEnabled = selected > 0
-        btnConfirm.text = if (selected > 0) "加入下载队列 ($selected) →" else "请至少选择 1 项"
+        btnConfirm.text = if (selected > 0) {
+            getString(R.string.bulk_select_confirm, selected)
+        } else {
+            getString(R.string.bulk_select_confirm_empty)
+        }
     }
 }
 

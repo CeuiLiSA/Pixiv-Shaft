@@ -708,7 +708,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
         }
         if (data.profile.total_illusts > 0) {
-            labels.add("下载全部插画 (批量入队)")
+            labels.add(getString(R.string.bulk_user_menu_download_all_illust))
             actions.add {
                 startBatchFetch(
                     userIdLong = data.user.id.toLong(),
@@ -718,7 +718,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             }
         }
         if (data.profile.total_manga > 0) {
-            labels.add("下载全部漫画 (批量入队)")
+            labels.add(getString(R.string.bulk_user_menu_download_all_manga))
             actions.add {
                 startBatchFetch(
                     userIdLong = data.user.id.toLong(),
@@ -727,10 +727,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 )
             }
         }
-        labels.add("打开下载管理…")
+        labels.add(getString(R.string.bulk_user_menu_open_download_manager))
         actions.add {
             val intent = Intent(this, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理") // route key
             startActivity(intent)
         }
         if (!isSelf) {
@@ -763,11 +763,14 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     }
 
     private fun startBatchFetch(userIdLong: Long, type: String, authorName: String) {
-        val typeLabel = if (type == ceui.pixiv.db.queue.WorkType.MANGA) "漫画" else "插画"
+        val typeLabel = getString(
+            if (type == ceui.pixiv.db.queue.WorkType.MANGA) R.string.bulk_type_manga
+            else R.string.bulk_type_illust
+        )
         val fetcher = ceui.pixiv.ui.bulk.AuthorWorksFetcher(
             userId = userIdLong,
             type = type,
-            taskName = "下载 $authorName 的全部$typeLabel",
+            taskName = getString(R.string.bulk_task_name, authorName, typeLabel),
         )
         ceui.pixiv.ui.bulk.FetchProgressDialog.show(supportFragmentManager, fetcher.fetch())
         // 不在这里 notifyNewItems —— 等 fetcher 全部抓完才统一唤醒消费者

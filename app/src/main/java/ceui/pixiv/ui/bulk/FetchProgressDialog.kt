@@ -95,7 +95,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         statusLine.text = "${SPINNER[0]} starting…"
         statusMetrics.text = "page=— · total=0 · elapsed=0s · —"
         appendLine("$ fetch-author-works --stream --verbose")
-        appendLine("  关掉此窗口不会停止抓取，可去 \"下载管理\" 查看进度")
+        appendLine("  " + getString(R.string.bulk_fetch_dialog_close_hint))
         flushLog()
 
         cancelBtn.setOnClickListener {
@@ -103,7 +103,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             phase = Phase.CANCELED
             phaseDetail = "user canceled"
             freezeTimer()
-            appendLine("^C  user canceled — 已入队的项目保留，可在下载管理页继续/重试")
+            appendLine(getString(R.string.bulk_fetch_dialog_canceled))
             cancelBtn.visibility = View.GONE
             closeBtn.visibility = View.VISIBLE
             flushLog()
@@ -112,7 +112,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         openManagerBtn.setOnClickListener {
             val ctx = requireContext()
             val intent = Intent(ctx, TemplateActivity::class.java)
-                .putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理")
+                .putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理") // route key, not UI text
             ctx.startActivity(intent)
             dismissAllowingStateLoss()
         }
@@ -202,12 +202,12 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                 if (viewAlive) {
                     appendLine("")
                     appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                    appendLine("✓ 抓取完成")
+                    appendLine(getString(R.string.bulk_fetch_dialog_done_title))
                     appendLine("")
-                    appendLine("  ▸ 总计: ${e.total} 项作品")
-                    appendLine("  ▸ 共 ${e.pageCount} 页 · 耗时 ${formatDuration(e.elapsedMs)}")
-                    appendLine("  ▸ 已加入下载队列，按入队顺序串行下载")
-                    appendLine("  ▸ 下载已开始 →")
+                    appendLine(getString(R.string.bulk_fetch_dialog_done_total, e.total))
+                    appendLine(getString(R.string.bulk_fetch_dialog_done_pages, e.pageCount, formatDuration(e.elapsedMs)))
+                    appendLine(getString(R.string.bulk_fetch_dialog_done_queue))
+                    appendLine(getString(R.string.bulk_fetch_dialog_done_started))
                     appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     cancelBtn.visibility = View.GONE
                     openManagerBtn.visibility = View.VISIBLE
@@ -222,9 +222,9 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                 if (viewAlive) {
                     appendLine("")
                     appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                    appendLine("✗ 抓取失败 · page ${e.pageIndex}")
-                    appendLine("  ▸ ${e.message}")
-                    appendLine("  ▸ 已入队 $totalSoFar 项已开始下载")
+                    appendLine(getString(R.string.bulk_fetch_dialog_failed_title, e.pageIndex))
+                    appendLine(getString(R.string.bulk_fetch_dialog_failed_message, e.message))
+                    appendLine(getString(R.string.bulk_fetch_dialog_failed_partial, totalSoFar))
                     appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     cancelBtn.visibility = View.GONE
                     if (totalSoFar > 0) openManagerBtn.visibility = View.VISIBLE
@@ -261,7 +261,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             Phase.ENQUEUED -> spin to "page $pageIndex enqueued"
             Phase.RATE_LIMIT -> {
                 val left = (rateLimitUntil - now).coerceAtLeast(0L)
-                if (left > 0) "⏳" to String.format("rate-limit · %.2fs 后继续 (pixiv 速率限制)", left / 1000.0)
+                if (left > 0) "⏳" to getString(R.string.bulk_fetch_dialog_rate_limit, left / 1000.0)
                 else spin to "fetching next page…"
             }
             Phase.DONE -> "✓" to "completed · ${totalSoFar} items queued"

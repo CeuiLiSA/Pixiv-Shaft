@@ -21,7 +21,7 @@
             android:background="@color/v3_bg"
             app:contentInsetStartWithNavigation="0dp"
             app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="批量下载 · 选择作品"
+            app:title="@string/bulk_select_title"
             app:titleTextAppearance="@style/TextAppearance.AppCompat.Title"
             app:titleTextColor="@color/v3_text_1" />
 
@@ -70,7 +70,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="monospace"
-                android:text="全选"
+                android:text="@string/bulk_select_select_all"
                 android:textColor="@color/v3_text_2"
                 android:textSize="12sp" />
 
@@ -80,7 +80,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="monospace"
-                android:text="反选"
+                android:text="@string/bulk_select_invert"
                 android:textColor="@color/v3_text_2"
                 android:textSize="12sp" />
 

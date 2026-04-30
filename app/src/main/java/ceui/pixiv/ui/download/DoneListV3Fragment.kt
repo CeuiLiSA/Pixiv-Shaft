@@ -78,17 +78,17 @@ class DoneListV3Fragment : Fragment() {
         list.adapter = adapter
 
         val empty = view.findViewById<View>(R.id.emptyState)
-        view.findViewById<TextView>(R.id.emptyTitle).text = "还没有完成的下载"
-        view.findViewById<TextView>(R.id.emptyHint).text = "下载完成的作品会出现在这里"
+        view.findViewById<TextView>(R.id.emptyTitle).text = getString(R.string.dlmgr_done_empty_title)
+        view.findViewById<TextView>(R.id.emptyHint).text = getString(R.string.dlmgr_done_empty_hint)
 
         view.findViewById<Button>(R.id.btn1).visibility = View.GONE
         view.findViewById<Button>(R.id.btn2).visibility = View.GONE
         view.findViewById<Button>(R.id.btn3).apply {
-            text = "刷新"
+            text = getString(R.string.dlmgr_done_action_refresh)
             setOnClickListener { refreshTickle.trySend(Unit) }
         }
         view.findViewById<Button>(R.id.btn4).apply {
-            text = "清空记录"
+            text = getString(R.string.dlmgr_done_action_clear_history)
             setOnClickListener {
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     runCatching { dao.deleteAllDownload() }

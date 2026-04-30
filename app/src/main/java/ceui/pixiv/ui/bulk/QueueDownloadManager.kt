@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
+import ceui.lisa.R
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
 import ceui.lisa.database.AppDatabase
@@ -138,15 +139,15 @@ object QueueDownloadManager {
             if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
             try {
                 QMUIDialog.MessageDialogBuilder(activity)
-                    .setTitle("批量下载")
-                    .setMessage("上次还有 ${pendingCount} 项作品没下完。\n现在继续吗？\n\n(队列会按入队顺序串行下载，不打扰你浏览)")
+                    .setTitle(R.string.bulk_resume_prompt_title)
+                    .setMessage(activity.getString(R.string.bulk_resume_prompt_message, pendingCount))
                     .setSkinManager(QMUISkinManager.defaultInstance(activity))
-                    .addAction(0, "暂时不下", QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
+                    .addAction(0, activity.getString(R.string.bulk_resume_prompt_decline), QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
                         // 保持 paused —— 用户可去 下载管理 → 批量队列 手动点 "继续"
                         Timber.tag(TAG).i("user declined cold-start resume; staying paused")
                         d.dismiss()
                     }
-                    .addAction(0, "继续") { d, _ ->
+                    .addAction(0, activity.getString(R.string.bulk_resume_prompt_continue)) { d, _ ->
                         Timber.tag(TAG).i("user confirmed cold-start resume; pending=$pendingCount")
                         resume()
                         d.dismiss()

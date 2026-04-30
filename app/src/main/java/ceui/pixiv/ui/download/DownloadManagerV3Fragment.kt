@@ -71,9 +71,9 @@ class DownloadManagerV3Fragment : Fragment() {
     }
 
     private fun baseLabel(pos: Int): String = when (pos) {
-        0 -> "批量队列"
-        1 -> "正在下载"
-        2 -> "已完成"
+        0 -> getString(R.string.dlmgr_tab_queue)
+        1 -> getString(R.string.dlmgr_tab_active)
+        2 -> getString(R.string.dlmgr_tab_done)
         else -> ""
     }
 

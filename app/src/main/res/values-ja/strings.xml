@@ -1132,4 +1132,82 @@
     <string name="comic_reader_series_loading">シリーズを検索中…</string>
     <string name="comic_reader_long_press_open_advanced">詳細表示（AI / 翻訳）</string>
     <string name="comic_reader_total_minutes">%1$d 分間読書しました</string>
+
+    <!-- Bulk download -->
+    <string name="bulk_menu_download_all">すべての作品をダウンロード</string>
+    <string name="bulk_menu_download_all_desc">ストリーミング取得 + 永続化キュー、再起動でも復元可能</string>
+    <string name="bulk_user_menu_download_all_illust">イラストをすべてダウンロード（一括キュー）</string>
+    <string name="bulk_user_menu_download_all_manga">マンガをすべてダウンロード（一括キュー）</string>
+    <string name="bulk_user_menu_open_download_manager">ダウンロード管理を開く…</string>
+    <string name="bulk_task_name">%1$sの%2$sをすべてダウンロード</string>
+    <string name="bulk_type_illust">イラスト</string>
+    <string name="bulk_type_manga">マンガ</string>
+
+    <string name="bulk_select_title">一括ダウンロード · 作品を選択</string>
+    <string name="bulk_select_select_all">すべて選択</string>
+    <string name="bulk_select_invert">選択反転</string>
+    <string name="bulk_select_no_items">選択可能な作品がありません。別の入口から来たため状態が失われた可能性があります。</string>
+    <string name="bulk_select_loading">読み込み中…</string>
+    <string name="bulk_select_summary">%1$d 件 · %2$d 件選択中</string>
+    <string name="bulk_select_summary_with_gif">%1$d 件 · %2$d 件選択中 · GIF %3$d 件をスキップ</string>
+    <string name="bulk_select_confirm">ダウンロードキューに追加 (%1$d) →</string>
+    <string name="bulk_select_confirm_empty">1件以上選択してください</string>
+
+    <string name="bulk_enqueue_empty">キューに追加できる作品がありません</string>
+    <string name="bulk_enqueue_truncated">件数が多すぎます。%1$d 件に切り詰めました</string>
+    <string name="bulk_enqueue_started">%1$d 件をキューに追加しています</string>
+    <string name="bulk_enqueue_zero_after_filter">ダウンロード可能な作品はありません（GIF はスキップ）</string>
+    <string name="bulk_enqueue_done">キュー追加完了、合計 %1$d 件</string>
+    <string name="bulk_enqueue_failed">キュー追加失敗: %1$s</string>
+
+    <string name="bulk_resume_prompt_title">一括ダウンロード</string>
+    <string name="bulk_resume_prompt_message">前回のセッションで %1$d 件が未完了です。\n今すぐ再開しますか？\n\n（キューは順番に直列でダウンロードし、閲覧の邪魔をしません）</string>
+    <string name="bulk_resume_prompt_decline">今はしない</string>
+    <string name="bulk_resume_prompt_continue">再開</string>
+
+    <string name="bulk_fetch_dialog_close_hint">このウィンドウを閉じても取得は継続します。進捗は \"ダウンロード管理\" で確認できます。</string>
+    <string name="bulk_fetch_dialog_canceled">^C  user canceled — キューに追加済みの項目は保持されます。ダウンロード管理ページで再開/再試行できます。</string>
+    <string name="bulk_fetch_dialog_done_title">✓ 取得完了</string>
+    <string name="bulk_fetch_dialog_done_total">  ▸ 合計: %1$d 件</string>
+    <string name="bulk_fetch_dialog_done_pages">  ▸ %1$d ページ · 経過 %2$s</string>
+    <string name="bulk_fetch_dialog_done_queue">  ▸ ダウンロードキューに追加 · 順番に直列でダウンロード</string>
+    <string name="bulk_fetch_dialog_done_started">  ▸ ダウンロード開始 →</string>
+    <string name="bulk_fetch_dialog_failed_title">✗ 取得失敗 · page %1$d</string>
+    <string name="bulk_fetch_dialog_failed_message">  ▸ %1$s</string>
+    <string name="bulk_fetch_dialog_failed_partial">  ▸ キュー追加済みの %1$d 件はダウンロードを開始しました</string>
+    <string name="bulk_fetch_dialog_rate_limit">rate-limit · %1$.2fs 後に再開 (pixiv レート制限)</string>
+    <string name="bulk_fetch_dialog_btn_cancel">キャンセル</string>
+    <string name="bulk_fetch_dialog_btn_open_manager">ダウンロード管理 →</string>
+    <string name="bulk_fetch_dialog_btn_close">閉じる</string>
+
+    <string name="dlmgr_title">ダウンロード管理</string>
+    <string name="dlmgr_tab_queue">キュー</string>
+    <string name="dlmgr_tab_active">ダウンロード中</string>
+    <string name="dlmgr_tab_done">完了</string>
+
+    <string name="dlmgr_queue_empty_title">キューは空です</string>
+    <string name="dlmgr_queue_empty_hint">作者ページ → 右上のメニュー →\nイラスト/マンガをすべてダウンロード</string>
+    <string name="dlmgr_queue_action_pause">一時停止</string>
+    <string name="dlmgr_queue_action_resume">再開</string>
+    <string name="dlmgr_queue_action_retry_failed">失敗を再試行</string>
+    <string name="dlmgr_queue_action_clear_success">成功を削除</string>
+    <string name="dlmgr_queue_action_clear_all">すべてクリア</string>
+
+    <string name="dlmgr_active_empty_title">進行中のダウンロードはありません</string>
+    <string name="dlmgr_active_empty_hint">キューの項目は自動的にここへ移動し\nページ単位の進捗を表示します</string>
+    <string name="dlmgr_active_action_resume_all">すべて再開</string>
+    <string name="dlmgr_active_action_pause_all">すべて一時停止</string>
+    <string name="dlmgr_active_action_clear">クリア</string>
+    <string name="dlmgr_active_status_downloading_n">%1$d 件ダウンロード中</string>
+    <string name="dlmgr_active_status_waiting_n">%1$d 件待機中</string>
+    <string name="dlmgr_active_status_paused_n">%1$d 件一時停止</string>
+    <string name="dlmgr_active_status_failed_n">%1$d 件失敗</string>
+    <string name="dlmgr_active_size_waiting">待機中…</string>
+    <string name="dlmgr_active_size_paused">一時停止</string>
+    <string name="dlmgr_active_size_failed">ダウンロード失敗</string>
+
+    <string name="dlmgr_done_empty_title">まだ完了したダウンロードはありません</string>
+    <string name="dlmgr_done_empty_hint">完了した作品はここに表示されます</string>
+    <string name="dlmgr_done_action_refresh">更新</string>
+    <string name="dlmgr_done_action_clear_history">記録をクリア</string>
 </resources>

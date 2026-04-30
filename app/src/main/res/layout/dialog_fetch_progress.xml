@@ -119,7 +119,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="monospace"
-                android:text="取消"
+                android:text="@string/bulk_fetch_dialog_btn_cancel"
                 android:textColor="#FF8B8B"
                 style="?attr/borderlessButtonStyle" />
 
@@ -129,7 +129,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:fontFamily="monospace"
-                android:text="去下载管理 →"
+                android:text="@string/bulk_fetch_dialog_btn_open_manager"
                 android:textColor="#5EB3FF"
                 android:visibility="gone"
                 style="?attr/borderlessButtonStyle" />
@@ -140,7 +140,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:fontFamily="monospace"
-                android:text="关闭"
+                android:text="@string/bulk_fetch_dialog_btn_close"
                 android:textColor="#7CB668"
                 android:visibility="gone"
                 style="?attr/borderlessButtonStyle" />

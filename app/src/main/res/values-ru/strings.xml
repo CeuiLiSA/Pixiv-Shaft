@@ -1032,4 +1032,82 @@
     <string name="comic_reader_series_loading">Поиск серии…</string>
     <string name="comic_reader_long_press_open_advanced">Расширенный просмотр (AI / перевод)</string>
     <string name="comic_reader_total_minutes">Прочитано %1$d мин</string>
+
+    <!-- Bulk download -->
+    <string name="bulk_menu_download_all">Скачать все работы</string>
+    <string name="bulk_menu_download_all_desc">Потоковая загрузка + постоянная очередь, восстановление после перезапуска</string>
+    <string name="bulk_user_menu_download_all_illust">Скачать все иллюстрации (в очередь)</string>
+    <string name="bulk_user_menu_download_all_manga">Скачать всю мангу (в очередь)</string>
+    <string name="bulk_user_menu_open_download_manager">Открыть менеджер загрузок…</string>
+    <string name="bulk_task_name">Загрузить все %2$s от %1$s</string>
+    <string name="bulk_type_illust">иллюстрации</string>
+    <string name="bulk_type_manga">манга</string>
+
+    <string name="bulk_select_title">Пакетная загрузка · Выбор работ</string>
+    <string name="bulk_select_select_all">Выбрать все</string>
+    <string name="bulk_select_invert">Инвертировать</string>
+    <string name="bulk_select_no_items">Нет доступных работ. Состояние могло быть потеряно при входе с другого экрана.</string>
+    <string name="bulk_select_loading">Загрузка…</string>
+    <string name="bulk_select_summary">Всего %1$d · выбрано %2$d</string>
+    <string name="bulk_select_summary_with_gif">Всего %1$d · выбрано %2$d · пропущено %3$d GIF</string>
+    <string name="bulk_select_confirm">Добавить в очередь (%1$d) →</string>
+    <string name="bulk_select_confirm_empty">Выберите хотя бы 1</string>
+
+    <string name="bulk_enqueue_empty">Нет работ для очереди</string>
+    <string name="bulk_enqueue_truncated">Слишком много, обрезано до %1$d</string>
+    <string name="bulk_enqueue_started">Добавление %1$d элементов</string>
+    <string name="bulk_enqueue_zero_after_filter">Нечего скачивать (GIF пропущены)</string>
+    <string name="bulk_enqueue_done">Добавлено %1$d элементов</string>
+    <string name="bulk_enqueue_failed">Не удалось добавить: %1$s</string>
+
+    <string name="bulk_resume_prompt_title">Пакетная загрузка</string>
+    <string name="bulk_resume_prompt_message">%1$d элементов из предыдущей сессии не загружены.\nПродолжить сейчас?\n\n(Очередь скачивает последовательно по порядку и не мешает просмотру.)</string>
+    <string name="bulk_resume_prompt_decline">Не сейчас</string>
+    <string name="bulk_resume_prompt_continue">Продолжить</string>
+
+    <string name="bulk_fetch_dialog_close_hint">Закрытие окна не остановит загрузку. Прогресс — в \"Менеджере загрузок\".</string>
+    <string name="bulk_fetch_dialog_canceled">^C  user canceled — уже добавленное сохранено. Возобновить/повторить можно в менеджере загрузок.</string>
+    <string name="bulk_fetch_dialog_done_title">✓ Загрузка списка завершена</string>
+    <string name="bulk_fetch_dialog_done_total">  ▸ Всего: %1$d работ</string>
+    <string name="bulk_fetch_dialog_done_pages">  ▸ %1$d страниц · прошло %2$s</string>
+    <string name="bulk_fetch_dialog_done_queue">  ▸ Добавлено в очередь · последовательная загрузка</string>
+    <string name="bulk_fetch_dialog_done_started">  ▸ Загрузка началась →</string>
+    <string name="bulk_fetch_dialog_failed_title">✗ Не удалось получить · page %1$d</string>
+    <string name="bulk_fetch_dialog_failed_message">  ▸ %1$s</string>
+    <string name="bulk_fetch_dialog_failed_partial">  ▸ %1$d уже добавленных элементов начали загрузку</string>
+    <string name="bulk_fetch_dialog_rate_limit">rate-limit · возобновится через %1$.2fs (ограничение pixiv)</string>
+    <string name="bulk_fetch_dialog_btn_cancel">Отмена</string>
+    <string name="bulk_fetch_dialog_btn_open_manager">Менеджер загрузок →</string>
+    <string name="bulk_fetch_dialog_btn_close">Закрыть</string>
+
+    <string name="dlmgr_title">Менеджер загрузок</string>
+    <string name="dlmgr_tab_queue">Очередь</string>
+    <string name="dlmgr_tab_active">Загружается</string>
+    <string name="dlmgr_tab_done">Готово</string>
+
+    <string name="dlmgr_queue_empty_title">Очередь пуста</string>
+    <string name="dlmgr_queue_empty_hint">Страница автора → меню в верхнем правом углу →\nСкачать все иллюстрации/мангу</string>
+    <string name="dlmgr_queue_action_pause">Пауза</string>
+    <string name="dlmgr_queue_action_resume">Продолжить</string>
+    <string name="dlmgr_queue_action_retry_failed">Повторить ошибки</string>
+    <string name="dlmgr_queue_action_clear_success">Очистить выполненные</string>
+    <string name="dlmgr_queue_action_clear_all">Очистить все</string>
+
+    <string name="dlmgr_active_empty_title">Нет активных загрузок</string>
+    <string name="dlmgr_active_empty_hint">Элементы из очереди появятся здесь автоматически\nПрогресс по страницам в реальном времени</string>
+    <string name="dlmgr_active_action_resume_all">Возобновить все</string>
+    <string name="dlmgr_active_action_pause_all">Пауза для всех</string>
+    <string name="dlmgr_active_action_clear">Очистить</string>
+    <string name="dlmgr_active_status_downloading_n">%1$d загружается</string>
+    <string name="dlmgr_active_status_waiting_n">%1$d ожидает</string>
+    <string name="dlmgr_active_status_paused_n">%1$d на паузе</string>
+    <string name="dlmgr_active_status_failed_n">%1$d не удалось</string>
+    <string name="dlmgr_active_size_waiting">Ожидание…</string>
+    <string name="dlmgr_active_size_paused">Пауза</string>
+    <string name="dlmgr_active_size_failed">Ошибка</string>
+
+    <string name="dlmgr_done_empty_title">Пока нет завершенных загрузок</string>
+    <string name="dlmgr_done_empty_hint">Завершенные работы появятся здесь</string>
+    <string name="dlmgr_done_action_refresh">Обновить</string>
+    <string name="dlmgr_done_action_clear_history">Очистить записи</string>
 </resources>

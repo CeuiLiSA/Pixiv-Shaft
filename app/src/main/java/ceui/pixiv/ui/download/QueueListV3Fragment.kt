@@ -59,24 +59,24 @@ class QueueListV3Fragment : Fragment() {
         list.setHasFixedSize(true)
 
         val empty = view.findViewById<View>(R.id.emptyState)
-        view.findViewById<TextView>(R.id.emptyTitle).text = "队列为空"
-        view.findViewById<TextView>(R.id.emptyHint).text = "去作者页 → 右上角 more →\n下载全部插画 / 漫画"
+        view.findViewById<TextView>(R.id.emptyTitle).text = getString(R.string.dlmgr_queue_empty_title)
+        view.findViewById<TextView>(R.id.emptyHint).text = getString(R.string.dlmgr_queue_empty_hint)
 
         // 按钮文案根据 manager 真实状态初始化（cold-start 暂停时直接显示"继续"）
         val btnPause = view.findViewById<Button>(R.id.btn1).apply {
-            text = if (QueueDownloadManager.isPaused()) "继续" else "暂停"
+            text = getString(if (QueueDownloadManager.isPaused()) R.string.dlmgr_queue_action_resume else R.string.dlmgr_queue_action_pause)
         }
-        val btnRetry = view.findViewById<Button>(R.id.btn2).apply { text = "重试失败" }
-        val btnClearOk = view.findViewById<Button>(R.id.btn3).apply { text = "清成功记录" }
-        val btnClearAll = view.findViewById<Button>(R.id.btn4).apply { text = "清空全部" }
+        val btnRetry = view.findViewById<Button>(R.id.btn2).apply { text = getString(R.string.dlmgr_queue_action_retry_failed) }
+        val btnClearOk = view.findViewById<Button>(R.id.btn3).apply { text = getString(R.string.dlmgr_queue_action_clear_success) }
+        val btnClearAll = view.findViewById<Button>(R.id.btn4).apply { text = getString(R.string.dlmgr_queue_action_clear_all) }
 
         btnPause.setOnClickListener {
             if (QueueDownloadManager.isPaused()) {
                 QueueDownloadManager.resume()
-                btnPause.text = "暂停"
+                btnPause.text = getString(R.string.dlmgr_queue_action_pause)
             } else {
                 QueueDownloadManager.pause()
-                btnPause.text = "继续"
+                btnPause.text = getString(R.string.dlmgr_queue_action_resume)
             }
         }
         btnRetry.setOnClickListener {

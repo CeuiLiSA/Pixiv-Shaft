@@ -1145,4 +1145,82 @@
     <string name="comic_reader_series_loading">正在尋找系列⋯</string>
     <string name="comic_reader_long_press_open_advanced">進階檢視（AI / 翻譯）</string>
     <string name="comic_reader_total_minutes">已閱讀 %1$d 分鐘</string>
+
+    <!-- Bulk download -->
+    <string name="bulk_menu_download_all">下載全部作品</string>
+    <string name="bulk_menu_download_all_desc">串流抓取 + 持久化佇列，可冷啟動恢復</string>
+    <string name="bulk_user_menu_download_all_illust">下載全部插畫 (批次入隊)</string>
+    <string name="bulk_user_menu_download_all_manga">下載全部漫畫 (批次入隊)</string>
+    <string name="bulk_user_menu_open_download_manager">開啟下載管理…</string>
+    <string name="bulk_task_name">下載 %1$s 的全部%2$s</string>
+    <string name="bulk_type_illust">插畫</string>
+    <string name="bulk_type_manga">漫畫</string>
+
+    <string name="bulk_select_title">批次下載 · 選擇作品</string>
+    <string name="bulk_select_select_all">全選</string>
+    <string name="bulk_select_invert">反選</string>
+    <string name="bulk_select_no_items">沒有可選作品，可能從其他入口進來導致狀態遺失。</string>
+    <string name="bulk_select_loading">載入中…</string>
+    <string name="bulk_select_summary">共 %1$d 項 · 已選 %2$d 項</string>
+    <string name="bulk_select_summary_with_gif">共 %1$d 項 · 已選 %2$d 項 · GIF 已略過 %3$d 項</string>
+    <string name="bulk_select_confirm">加入下載佇列 (%1$d) →</string>
+    <string name="bulk_select_confirm_empty">請至少選擇 1 項</string>
+
+    <string name="bulk_enqueue_empty">沒有可入隊的作品</string>
+    <string name="bulk_enqueue_truncated">數量過多，已截斷至 %1$d 項</string>
+    <string name="bulk_enqueue_started">已發起入隊 %1$d 項</string>
+    <string name="bulk_enqueue_zero_after_filter">可下載的作品為 0（GIF 已略過）</string>
+    <string name="bulk_enqueue_done">入隊完成，共 %1$d 項</string>
+    <string name="bulk_enqueue_failed">入隊失敗: %1$s</string>
+
+    <string name="bulk_resume_prompt_title">批次下載</string>
+    <string name="bulk_resume_prompt_message">上次還有 %1$d 項作品未下完。\n現在繼續嗎？\n\n(佇列會按入隊順序串列下載，不打擾你瀏覽)</string>
+    <string name="bulk_resume_prompt_decline">暫時不下</string>
+    <string name="bulk_resume_prompt_continue">繼續</string>
+
+    <string name="bulk_fetch_dialog_close_hint">關掉此視窗不會停止抓取，可去 \"下載管理\" 查看進度</string>
+    <string name="bulk_fetch_dialog_canceled">^C  user canceled — 已入隊的項目保留，可在下載管理頁繼續/重試</string>
+    <string name="bulk_fetch_dialog_done_title">✓ 抓取完成</string>
+    <string name="bulk_fetch_dialog_done_total">  ▸ 總計: %1$d 項作品</string>
+    <string name="bulk_fetch_dialog_done_pages">  ▸ 共 %1$d 頁 · 耗時 %2$s</string>
+    <string name="bulk_fetch_dialog_done_queue">  ▸ 已加入下載佇列，按入隊順序串列下載</string>
+    <string name="bulk_fetch_dialog_done_started">  ▸ 下載已開始 →</string>
+    <string name="bulk_fetch_dialog_failed_title">✗ 抓取失敗 · page %1$d</string>
+    <string name="bulk_fetch_dialog_failed_message">  ▸ %1$s</string>
+    <string name="bulk_fetch_dialog_failed_partial">  ▸ 已入隊 %1$d 項已開始下載</string>
+    <string name="bulk_fetch_dialog_rate_limit">rate-limit · %1$.2fs 後繼續 (pixiv 速率限制)</string>
+    <string name="bulk_fetch_dialog_btn_cancel">取消</string>
+    <string name="bulk_fetch_dialog_btn_open_manager">去下載管理 →</string>
+    <string name="bulk_fetch_dialog_btn_close">關閉</string>
+
+    <string name="dlmgr_title">下載管理</string>
+    <string name="dlmgr_tab_queue">批次佇列</string>
+    <string name="dlmgr_tab_active">正在下載</string>
+    <string name="dlmgr_tab_done">已完成</string>
+
+    <string name="dlmgr_queue_empty_title">佇列為空</string>
+    <string name="dlmgr_queue_empty_hint">去作者頁 → 右上角 more →\n下載全部插畫 / 漫畫</string>
+    <string name="dlmgr_queue_action_pause">暫停</string>
+    <string name="dlmgr_queue_action_resume">繼續</string>
+    <string name="dlmgr_queue_action_retry_failed">重試失敗</string>
+    <string name="dlmgr_queue_action_clear_success">清成功記錄</string>
+    <string name="dlmgr_queue_action_clear_all">清空全部</string>
+
+    <string name="dlmgr_active_empty_title">沒有正在下載的任務</string>
+    <string name="dlmgr_active_empty_hint">佇列裡的任務會自動轉到這裡\n顯示 page 級即時進度</string>
+    <string name="dlmgr_active_action_resume_all">全部繼續</string>
+    <string name="dlmgr_active_action_pause_all">全部暫停</string>
+    <string name="dlmgr_active_action_clear">清空</string>
+    <string name="dlmgr_active_status_downloading_n">%1$d 正在下載</string>
+    <string name="dlmgr_active_status_waiting_n">%1$d 等待中</string>
+    <string name="dlmgr_active_status_paused_n">%1$d 已暫停</string>
+    <string name="dlmgr_active_status_failed_n">%1$d 失敗</string>
+    <string name="dlmgr_active_size_waiting">等待中…</string>
+    <string name="dlmgr_active_size_paused">已暫停</string>
+    <string name="dlmgr_active_size_failed">下載失敗</string>
+
+    <string name="dlmgr_done_empty_title">還沒有完成的下載</string>
+    <string name="dlmgr_done_empty_hint">下載完成的作品會出現在這裡</string>
+    <string name="dlmgr_done_action_refresh">重新整理</string>
+    <string name="dlmgr_done_action_clear_history">清空記錄</string>
 </resources>

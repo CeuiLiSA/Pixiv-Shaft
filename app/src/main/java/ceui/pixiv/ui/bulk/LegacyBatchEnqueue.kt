@@ -2,6 +2,7 @@ package ceui.pixiv.ui.bulk
 
 import android.content.Context
 import android.widget.Toast
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.IllustsBean
@@ -42,15 +43,15 @@ object LegacyBatchEnqueue {
 
         val incomingSize = illusts?.size ?: 0
         if (incomingSize == 0) {
-            Toast.makeText(appCtx, "没有可入队的作品", Toast.LENGTH_SHORT).show()
+            Toast.makeText(appCtx, R.string.bulk_enqueue_empty, Toast.LENGTH_SHORT).show()
             return
         }
         if (incomingSize > HARD_CAP) {
             Timber.tag(TAG).w("incoming list size $incomingSize > HARD_CAP $HARD_CAP, truncating")
-            Toast.makeText(appCtx, "数量过多，已截断到 $HARD_CAP 项", Toast.LENGTH_SHORT).show()
+            Toast.makeText(appCtx, appCtx.getString(R.string.bulk_enqueue_truncated, HARD_CAP), Toast.LENGTH_SHORT).show()
         }
         // Toast 是同步、瞬时的，OK 在主线程；后面的 filter/插入全部 IO。
-        Toast.makeText(appCtx, "已发起入队 $incomingSize 项", Toast.LENGTH_SHORT).show()
+        Toast.makeText(appCtx, appCtx.getString(R.string.bulk_enqueue_started, incomingSize), Toast.LENGTH_SHORT).show()
 
         // 拷贝引用进 IO 协程；filter 也在 IO，主线程立刻 return。
         val src = illusts!!
@@ -65,7 +66,7 @@ object LegacyBatchEnqueue {
 
                 if (list.isEmpty()) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(appCtx, "可下载的作品为 0（GIF 已跳过）", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(appCtx, R.string.bulk_enqueue_zero_after_filter, Toast.LENGTH_SHORT).show()
                     }
                     return@launch
                 }
@@ -91,12 +92,12 @@ object LegacyBatchEnqueue {
                 QueueDownloadManager.resume()
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(appCtx, "入队完成，共 ${list.size} 项", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(appCtx, appCtx.getString(R.string.bulk_enqueue_done, list.size), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "enqueueAndToast failed")
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(appCtx, "入队失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(appCtx, appCtx.getString(R.string.bulk_enqueue_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
                 }
             }
         }

@@ -1510,4 +1510,87 @@
     <string name="comic_reader_long_press_open_advanced">高级查看（AI / 翻译）</string>
     <string name="comic_reader_total_minutes">已阅读 %1$d 分钟</string>
     <string name="comic_reader_enter">阅读漫画</string>
+
+    <!-- Bulk download · 入口菜单 -->
+    <string name="bulk_menu_download_all">下载全部作品</string>
+    <string name="bulk_menu_download_all_desc">流式抓取 + 持久化队列，可冷启动恢复</string>
+    <string name="bulk_user_menu_download_all_illust">下载全部插画 (批量入队)</string>
+    <string name="bulk_user_menu_download_all_manga">下载全部漫画 (批量入队)</string>
+    <string name="bulk_user_menu_open_download_manager">打开下载管理…</string>
+    <string name="bulk_task_name">下载 %1$s 的全部%2$s</string>
+    <string name="bulk_type_illust">插画</string>
+    <string name="bulk_type_manga">漫画</string>
+
+    <!-- Bulk select page -->
+    <string name="bulk_select_title">批量下载 · 选择作品</string>
+    <string name="bulk_select_select_all">全选</string>
+    <string name="bulk_select_invert">反选</string>
+    <string name="bulk_select_no_items">没有可选作品，可能从其他入口进来导致状态丢失。</string>
+    <string name="bulk_select_loading">加载中…</string>
+    <string name="bulk_select_summary">共 %1$d 项 · 已选 %2$d 项</string>
+    <string name="bulk_select_summary_with_gif">共 %1$d 项 · 已选 %2$d 项 · GIF 已跳过 %3$d 项</string>
+    <string name="bulk_select_confirm">加入下载队列 (%1$d) →</string>
+    <string name="bulk_select_confirm_empty">请至少选择 1 项</string>
+
+    <!-- Legacy batch enqueue 提示 -->
+    <string name="bulk_enqueue_empty">没有可入队的作品</string>
+    <string name="bulk_enqueue_truncated">数量过多，已截断到 %1$d 项</string>
+    <string name="bulk_enqueue_started">已发起入队 %1$d 项</string>
+    <string name="bulk_enqueue_zero_after_filter">可下载的作品为 0（GIF 已跳过）</string>
+    <string name="bulk_enqueue_done">入队完成，共 %1$d 项</string>
+    <string name="bulk_enqueue_failed">入队失败: %1$s</string>
+
+    <!-- 冷启动询问 -->
+    <string name="bulk_resume_prompt_title">批量下载</string>
+    <string name="bulk_resume_prompt_message">上次还有 %1$d 项作品没下完。\n现在继续吗？\n\n(队列会按入队顺序串行下载，不打扰你浏览)</string>
+    <string name="bulk_resume_prompt_decline">暂时不下</string>
+    <string name="bulk_resume_prompt_continue">继续</string>
+
+    <!-- Fetch progress dialog -->
+    <string name="bulk_fetch_dialog_close_hint">关掉此窗口不会停止抓取，可去 \"下载管理\" 查看进度</string>
+    <string name="bulk_fetch_dialog_canceled">^C  user canceled — 已入队的项目保留，可在下载管理页继续/重试</string>
+    <string name="bulk_fetch_dialog_done_title">✓ 抓取完成</string>
+    <string name="bulk_fetch_dialog_done_total">  ▸ 总计: %1$d 项作品</string>
+    <string name="bulk_fetch_dialog_done_pages">  ▸ 共 %1$d 页 · 耗时 %2$s</string>
+    <string name="bulk_fetch_dialog_done_queue">  ▸ 已加入下载队列，按入队顺序串行下载</string>
+    <string name="bulk_fetch_dialog_done_started">  ▸ 下载已开始 →</string>
+    <string name="bulk_fetch_dialog_failed_title">✗ 抓取失败 · page %1$d</string>
+    <string name="bulk_fetch_dialog_failed_message">  ▸ %1$s</string>
+    <string name="bulk_fetch_dialog_failed_partial">  ▸ 已入队 %1$d 项已开始下载</string>
+    <string name="bulk_fetch_dialog_rate_limit">rate-limit · %1$.2fs 后继续 (pixiv 速率限制)</string>
+    <string name="bulk_fetch_dialog_btn_cancel">取消</string>
+    <string name="bulk_fetch_dialog_btn_open_manager">去下载管理 →</string>
+    <string name="bulk_fetch_dialog_btn_close">关闭</string>
+
+    <!-- 下载管理 -->
+    <string name="dlmgr_title">下载管理</string>
+    <string name="dlmgr_tab_queue">批量队列</string>
+    <string name="dlmgr_tab_active">正在下载</string>
+    <string name="dlmgr_tab_done">已完成</string>
+
+    <string name="dlmgr_queue_empty_title">队列为空</string>
+    <string name="dlmgr_queue_empty_hint">去作者页 → 右上角 more →\n下载全部插画 / 漫画</string>
+    <string name="dlmgr_queue_action_pause">暂停</string>
+    <string name="dlmgr_queue_action_resume">继续</string>
+    <string name="dlmgr_queue_action_retry_failed">重试失败</string>
+    <string name="dlmgr_queue_action_clear_success">清成功记录</string>
+    <string name="dlmgr_queue_action_clear_all">清空全部</string>
+
+    <string name="dlmgr_active_empty_title">没有正在下载的任务</string>
+    <string name="dlmgr_active_empty_hint">队列里的任务会自动转到这里\n显示 page 级实时进度</string>
+    <string name="dlmgr_active_action_resume_all">全部继续</string>
+    <string name="dlmgr_active_action_pause_all">全部暂停</string>
+    <string name="dlmgr_active_action_clear">清空</string>
+    <string name="dlmgr_active_status_downloading_n">%1$d 正在下载</string>
+    <string name="dlmgr_active_status_waiting_n">%1$d 等待中</string>
+    <string name="dlmgr_active_status_paused_n">%1$d 已暂停</string>
+    <string name="dlmgr_active_status_failed_n">%1$d 失败</string>
+    <string name="dlmgr_active_size_waiting">等待中…</string>
+    <string name="dlmgr_active_size_paused">已暂停</string>
+    <string name="dlmgr_active_size_failed">下载失败</string>
+
+    <string name="dlmgr_done_empty_title">还没有完成的下载</string>
+    <string name="dlmgr_done_empty_hint">下载完成的作品会出现在这里</string>
+    <string name="dlmgr_done_action_refresh">刷新</string>
+    <string name="dlmgr_done_action_clear_history">清空记录</string>
 </resources>

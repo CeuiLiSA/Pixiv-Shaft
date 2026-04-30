@@ -42,17 +42,22 @@ class UserCreatedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         binding.toolbarLayout.naviMore.setOnClick {
             showActionMenu {
                 add(
-                    MenuItem("下载全部作品", "流式抓取 + 持久化队列，可冷启动恢复") {
+                    MenuItem(
+                        getString(R.string.bulk_menu_download_all),
+                        getString(R.string.bulk_menu_download_all_desc),
+                    ) {
                         val authorName = ObjectPool.get<User>(args.userId).value?.name ?: "user"
-                        val taskName = "下载 ${authorName} 的全部${if (args.objectType == "manga") "漫画" else "插画"}"
+                        val typeLabel = getString(
+                            if (args.objectType == "manga") R.string.bulk_type_manga else R.string.bulk_type_illust
+                        )
+                        val taskName = getString(R.string.bulk_task_name, authorName, typeLabel)
                         val fetcher = AuthorWorksFetcher(
                             userId = args.userId,
                             type = args.objectType,
                             taskName = taskName,
                         )
                         FetchProgressDialog.show(childFragmentManager, fetcher.fetch())
-                        // 不在这里 notifyNewItems —— 等 fetcher 全部抓完才统一唤醒消费者，
-                        // 避免抓取期间下载抢带宽 / 让作者主页变卡。
+                        // 不在这里 notifyNewItems —— 等 fetcher 全部抓完才统一唤醒消费者
                     }
                 )
                 add(

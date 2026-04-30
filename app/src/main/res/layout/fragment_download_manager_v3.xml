@@ -21,7 +21,7 @@
             android:background="@color/v3_bg"
             app:contentInsetStartWithNavigation="0dp"
             app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="下载管理"
+            app:title="@string/dlmgr_title"
             app:titleTextAppearance="@style/TextAppearance.AppCompat.Title"
             app:titleTextColor="@color/v3_text_1" />
 

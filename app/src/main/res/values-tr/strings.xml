@@ -1030,4 +1030,82 @@
     <string name="comic_reader_series_loading">Seri aranıyor…</string>
     <string name="comic_reader_long_press_open_advanced">Gelişmiş görünüm (AI / çeviri)</string>
     <string name="comic_reader_total_minutes">%1$d dakika okundu</string>
+
+    <!-- Bulk download -->
+    <string name="bulk_menu_download_all">Tüm eserleri indir</string>
+    <string name="bulk_menu_download_all_desc">Akış halinde getirme + kalıcı kuyruk, yeniden başlatmaya dayanıklı</string>
+    <string name="bulk_user_menu_download_all_illust">Tüm illüstrasyonları indir (toplu kuyruk)</string>
+    <string name="bulk_user_menu_download_all_manga">Tüm mangaları indir (toplu kuyruk)</string>
+    <string name="bulk_user_menu_open_download_manager">İndirme yöneticisini aç…</string>
+    <string name="bulk_task_name">%1$s tarafından tüm %2$s</string>
+    <string name="bulk_type_illust">illüstrasyonlar</string>
+    <string name="bulk_type_manga">manga</string>
+
+    <string name="bulk_select_title">Toplu indirme · Eserleri seç</string>
+    <string name="bulk_select_select_all">Tümünü seç</string>
+    <string name="bulk_select_invert">Tersine çevir</string>
+    <string name="bulk_select_no_items">Seçilebilir eser yok. Farklı bir giriş noktasından gelinmiş olabilir.</string>
+    <string name="bulk_select_loading">Yükleniyor…</string>
+    <string name="bulk_select_summary">Toplam %1$d · %2$d seçili</string>
+    <string name="bulk_select_summary_with_gif">Toplam %1$d · %2$d seçili · %3$d GIF atlandı</string>
+    <string name="bulk_select_confirm">Kuyruğa ekle (%1$d) →</string>
+    <string name="bulk_select_confirm_empty">En az 1 öğe seçin</string>
+
+    <string name="bulk_enqueue_empty">Kuyruğa eklenecek eser yok</string>
+    <string name="bulk_enqueue_truncated">Çok fazla öğe, %1$d ile sınırlandı</string>
+    <string name="bulk_enqueue_started">%1$d öğe kuyruğa ekleniyor</string>
+    <string name="bulk_enqueue_zero_after_filter">İndirilecek bir şey yok (GIF atlandı)</string>
+    <string name="bulk_enqueue_done">Kuyruğa eklendi, toplam %1$d öğe</string>
+    <string name="bulk_enqueue_failed">Kuyruğa ekleme başarısız: %1$s</string>
+
+    <string name="bulk_resume_prompt_title">Toplu indirme</string>
+    <string name="bulk_resume_prompt_message">Önceki oturumdan %1$d öğe hâlâ tamamlanmadı.\nŞimdi devam edilsin mi?\n\n(Kuyruk seri olarak sırayla indirir, tarayıcıyı engellemez.)</string>
+    <string name="bulk_resume_prompt_decline">Şimdi değil</string>
+    <string name="bulk_resume_prompt_continue">Devam et</string>
+
+    <string name="bulk_fetch_dialog_close_hint">Bu pencereyi kapatmak getirme işlemini durdurmaz. İlerlemeyi \"İndirme yöneticisi\"nde takip edin.</string>
+    <string name="bulk_fetch_dialog_canceled">^C  user canceled — kuyruğa eklenenler korundu. İndirme yöneticisinden devam ettirebilir/yeniden deneyebilirsiniz.</string>
+    <string name="bulk_fetch_dialog_done_title">✓ Getirme tamamlandı</string>
+    <string name="bulk_fetch_dialog_done_total">  ▸ Toplam: %1$d eser</string>
+    <string name="bulk_fetch_dialog_done_pages">  ▸ %1$d sayfa · geçen süre %2$s</string>
+    <string name="bulk_fetch_dialog_done_queue">  ▸ İndirme kuyruğuna eklendi · sırayla seri indirme</string>
+    <string name="bulk_fetch_dialog_done_started">  ▸ İndirme başladı →</string>
+    <string name="bulk_fetch_dialog_failed_title">✗ Getirme başarısız · page %1$d</string>
+    <string name="bulk_fetch_dialog_failed_message">  ▸ %1$s</string>
+    <string name="bulk_fetch_dialog_failed_partial">  ▸ Kuyruğa eklenmiş %1$d öğe indirilmeye başlandı</string>
+    <string name="bulk_fetch_dialog_rate_limit">rate-limit · %1$.2fs sonra devam (pixiv hız sınırı)</string>
+    <string name="bulk_fetch_dialog_btn_cancel">İptal</string>
+    <string name="bulk_fetch_dialog_btn_open_manager">İndirme yöneticisi →</string>
+    <string name="bulk_fetch_dialog_btn_close">Kapat</string>
+
+    <string name="dlmgr_title">İndirme yöneticisi</string>
+    <string name="dlmgr_tab_queue">Kuyruk</string>
+    <string name="dlmgr_tab_active">İndiriliyor</string>
+    <string name="dlmgr_tab_done">Tamamlandı</string>
+
+    <string name="dlmgr_queue_empty_title">Kuyruk boş</string>
+    <string name="dlmgr_queue_empty_hint">Sanatçı sayfası → sağ üst menü →\nTüm illüstrasyonları/mangaları indir</string>
+    <string name="dlmgr_queue_action_pause">Duraklat</string>
+    <string name="dlmgr_queue_action_resume">Devam et</string>
+    <string name="dlmgr_queue_action_retry_failed">Başarısızları yeniden dene</string>
+    <string name="dlmgr_queue_action_clear_success">Tamamlananları temizle</string>
+    <string name="dlmgr_queue_action_clear_all">Tümünü temizle</string>
+
+    <string name="dlmgr_active_empty_title">Aktif indirme yok</string>
+    <string name="dlmgr_active_empty_hint">Kuyruktaki öğeler buraya otomatik geçer\nSayfa bazlı canlı ilerleme gösterilir</string>
+    <string name="dlmgr_active_action_resume_all">Tümünü devam ettir</string>
+    <string name="dlmgr_active_action_pause_all">Tümünü duraklat</string>
+    <string name="dlmgr_active_action_clear">Temizle</string>
+    <string name="dlmgr_active_status_downloading_n">%1$d indiriliyor</string>
+    <string name="dlmgr_active_status_waiting_n">%1$d bekleniyor</string>
+    <string name="dlmgr_active_status_paused_n">%1$d duraklatıldı</string>
+    <string name="dlmgr_active_status_failed_n">%1$d başarısız</string>
+    <string name="dlmgr_active_size_waiting">Bekleniyor…</string>
+    <string name="dlmgr_active_size_paused">Duraklatıldı</string>
+    <string name="dlmgr_active_size_failed">İndirme başarısız</string>
+
+    <string name="dlmgr_done_empty_title">Henüz tamamlanmış indirme yok</string>
+    <string name="dlmgr_done_empty_hint">Tamamlanan eserler burada görünecek</string>
+    <string name="dlmgr_done_action_refresh">Yenile</string>
+    <string name="dlmgr_done_action_clear_history">Kayıtları temizle</string>
 </resources>

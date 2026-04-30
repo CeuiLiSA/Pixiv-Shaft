@@ -1098,4 +1098,87 @@
     <string name="comic_reader_series_loading">Looking up series…</string>
     <string name="comic_reader_long_press_open_advanced">Advanced view (AI / translation)</string>
     <string name="comic_reader_total_minutes">Read for %1$d min</string>
+
+    <!-- Bulk download · entry menus -->
+    <string name="bulk_menu_download_all">Download all works</string>
+    <string name="bulk_menu_download_all_desc">Streaming fetch + persistent queue, recoverable across restarts</string>
+    <string name="bulk_user_menu_download_all_illust">Download all illustrations (queue all)</string>
+    <string name="bulk_user_menu_download_all_manga">Download all manga (queue all)</string>
+    <string name="bulk_user_menu_open_download_manager">Open download manager…</string>
+    <string name="bulk_task_name">Download all %2$s by %1$s</string>
+    <string name="bulk_type_illust">illustrations</string>
+    <string name="bulk_type_manga">manga</string>
+
+    <!-- Bulk select page -->
+    <string name="bulk_select_title">Batch download · Select works</string>
+    <string name="bulk_select_select_all">Select all</string>
+    <string name="bulk_select_invert">Invert</string>
+    <string name="bulk_select_no_items">No selectable works. State may have been lost from a different entry point.</string>
+    <string name="bulk_select_loading">Loading…</string>
+    <string name="bulk_select_summary">%1$d total · %2$d selected</string>
+    <string name="bulk_select_summary_with_gif">%1$d total · %2$d selected · %3$d GIFs skipped</string>
+    <string name="bulk_select_confirm">Enqueue (%1$d) →</string>
+    <string name="bulk_select_confirm_empty">Select at least 1</string>
+
+    <!-- Legacy batch enqueue toasts -->
+    <string name="bulk_enqueue_empty">No works to enqueue</string>
+    <string name="bulk_enqueue_truncated">Too many items, truncated to %1$d</string>
+    <string name="bulk_enqueue_started">Enqueueing %1$d items</string>
+    <string name="bulk_enqueue_zero_after_filter">Nothing to download (GIFs skipped)</string>
+    <string name="bulk_enqueue_done">Enqueued %1$d items</string>
+    <string name="bulk_enqueue_failed">Enqueue failed: %1$s</string>
+
+    <!-- Cold-start resume prompt -->
+    <string name="bulk_resume_prompt_title">Batch download</string>
+    <string name="bulk_resume_prompt_message">%1$d items from the previous session are still pending.\nResume now?\n\n(The queue downloads serially in order and won\'t disrupt browsing.)</string>
+    <string name="bulk_resume_prompt_decline">Not now</string>
+    <string name="bulk_resume_prompt_continue">Resume</string>
+
+    <!-- Fetch progress dialog -->
+    <string name="bulk_fetch_dialog_close_hint">Closing this window won\'t stop fetching. Check progress in \"Download manager\".</string>
+    <string name="bulk_fetch_dialog_canceled">^C  user canceled — already-enqueued items kept. Resume / retry in download manager.</string>
+    <string name="bulk_fetch_dialog_done_title">✓ Fetch complete</string>
+    <string name="bulk_fetch_dialog_done_total">  ▸ Total: %1$d works</string>
+    <string name="bulk_fetch_dialog_done_pages">  ▸ %1$d pages · %2$s elapsed</string>
+    <string name="bulk_fetch_dialog_done_queue">  ▸ Added to download queue · serial in-order download</string>
+    <string name="bulk_fetch_dialog_done_started">  ▸ Download started →</string>
+    <string name="bulk_fetch_dialog_failed_title">✗ Fetch failed · page %1$d</string>
+    <string name="bulk_fetch_dialog_failed_message">  ▸ %1$s</string>
+    <string name="bulk_fetch_dialog_failed_partial">  ▸ %1$d already-enqueued items started downloading</string>
+    <string name="bulk_fetch_dialog_rate_limit">rate-limit · resume in %1$.2fs (pixiv rate limit)</string>
+    <string name="bulk_fetch_dialog_btn_cancel">Cancel</string>
+    <string name="bulk_fetch_dialog_btn_open_manager">Download manager →</string>
+    <string name="bulk_fetch_dialog_btn_close">Close</string>
+
+    <!-- Download manager -->
+    <string name="dlmgr_title">Download manager</string>
+    <string name="dlmgr_tab_queue">Queue</string>
+    <string name="dlmgr_tab_active">Active</string>
+    <string name="dlmgr_tab_done">Done</string>
+
+    <string name="dlmgr_queue_empty_title">Queue is empty</string>
+    <string name="dlmgr_queue_empty_hint">Author page → top-right more →\nDownload all illustrations / manga</string>
+    <string name="dlmgr_queue_action_pause">Pause</string>
+    <string name="dlmgr_queue_action_resume">Resume</string>
+    <string name="dlmgr_queue_action_retry_failed">Retry failed</string>
+    <string name="dlmgr_queue_action_clear_success">Clear succeeded</string>
+    <string name="dlmgr_queue_action_clear_all">Clear all</string>
+
+    <string name="dlmgr_active_empty_title">No active downloads</string>
+    <string name="dlmgr_active_empty_hint">Queue items transition here automatically\nShows per-page live progress</string>
+    <string name="dlmgr_active_action_resume_all">Resume all</string>
+    <string name="dlmgr_active_action_pause_all">Pause all</string>
+    <string name="dlmgr_active_action_clear">Clear</string>
+    <string name="dlmgr_active_status_downloading_n">%1$d downloading</string>
+    <string name="dlmgr_active_status_waiting_n">%1$d waiting</string>
+    <string name="dlmgr_active_status_paused_n">%1$d paused</string>
+    <string name="dlmgr_active_status_failed_n">%1$d failed</string>
+    <string name="dlmgr_active_size_waiting">Waiting…</string>
+    <string name="dlmgr_active_size_paused">Paused</string>
+    <string name="dlmgr_active_size_failed">Failed</string>
+
+    <string name="dlmgr_done_empty_title">No completed downloads yet</string>
+    <string name="dlmgr_done_empty_hint">Completed downloads will appear here</string>
+    <string name="dlmgr_done_action_refresh">Refresh</string>
+    <string name="dlmgr_done_action_clear_history">Clear records</string>
 </resources>
