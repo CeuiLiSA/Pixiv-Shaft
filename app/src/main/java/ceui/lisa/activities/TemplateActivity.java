@@ -21,7 +21,6 @@ import ceui.lisa.fragments.FragmentColors;
 import ceui.lisa.fragments.FragmentDiscovery;
 import ceui.lisa.fragments.FragmentDoing;
 import ceui.lisa.fragments.FragmentDonate;
-import ceui.lisa.fragments.FragmentDownload;
 import ceui.lisa.fragments.FragmentEditAccount;
 import ceui.lisa.fragments.FragmentEditFile;
 import ceui.lisa.fragments.FragmentFeature;
@@ -165,7 +164,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "关于软件":
                     return new FragmentAboutApp();
                 case "批量下载队列":
-                    return new ceui.pixiv.ui.bulk.DownloadQueueFragment();
+                    // 统一路由到新的 V3 下载管理页（默认进队列 tab）
+                    return new ceui.pixiv.ui.download.DownloadManagerV3Fragment();
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "正在关注":
@@ -198,7 +198,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             Params.TYPE_PUBLIC, true);
                 case "下载管理":
-                    return new FragmentDownload();
+                    return new ceui.pixiv.ui.download.DownloadManagerV3Fragment();
                 case "推荐漫画":
                     return FragmentRecmdIllust.newInstance("漫画");
                 case "热度小说":

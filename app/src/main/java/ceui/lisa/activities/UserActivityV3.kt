@@ -727,10 +727,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 )
             }
         }
-        labels.add("批量下载队列…")
+        labels.add("打开下载管理…")
         actions.add {
             val intent = Intent(this, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "批量下载队列")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理")
             startActivity(intent)
         }
         if (!isSelf) {

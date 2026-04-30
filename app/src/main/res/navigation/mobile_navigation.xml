@@ -31,11 +31,6 @@
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_download_queue"
-        android:name="ceui.pixiv.ui.bulk.DownloadQueueFragment"
-        tools:layout="@layout/fragment_download_queue" />
-
-    <fragment
         android:id="@+id/navigation_cache_list"
         android:name="ceui.pixiv.ui.task.CacheFileFragment"
         tools:layout="@layout/fragment_pixiv_list">
