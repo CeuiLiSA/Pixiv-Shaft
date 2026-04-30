@@ -4,9 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -22,19 +20,17 @@ import kotlinx.coroutines.launch
 /**
  * V3 设计哲学的下载管理页：单页面 3 tab 容器。
  *
- * Tab 0: 批量队列    — 持久化 download_queue (DownloadQueueEntity)
- * Tab 1: 正在下载    — Manager.content 内存队列 (page-level DownloadItem)
- * Tab 2: 已完成      — DownloadEntity (DB)
+ * Tab 0: 批量队列  · count → 持久化 download_queue 中 PENDING+DOWNLOADING
+ * Tab 1: 正在下载  · count → Manager.content 内存队列大小
+ * Tab 2: 已完成    · count → download_queue 里 SUCCESS 的累积
  *
- * 顶部 V3 风格 stats chips：实时显示 3 类计数。每 2s 刷一次，仅 STARTED 时刷新。
+ * 数字直接追加到 tab 文字后面，避免单独占一行。
  */
 class DownloadManagerV3Fragment : Fragment() {
 
     private val sharedVm: DownloadManagerSharedViewModel by activityViewModels()
 
-    private lateinit var queueChip: TextView
-    private lateinit var activeChip: TextView
-    private lateinit var doneChip: TextView
+    private var tabs: TabLayout? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -46,35 +42,45 @@ class DownloadManagerV3Fragment : Fragment() {
         view.findViewById<Toolbar>(R.id.toolbar).setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        queueChip = view.findViewById(R.id.queueChip)
-        activeChip = view.findViewById(R.id.activeChip)
-        doneChip = view.findViewById(R.id.doneChip)
 
         val pager = view.findViewById<ViewPager2>(R.id.viewPager)
-        val tabs = view.findViewById<TabLayout>(R.id.tabLayout)
+        tabs = view.findViewById<TabLayout>(R.id.tabLayout)
 
         pager.adapter = TabsAdapter(this)
         pager.offscreenPageLimit = 2
 
-        TabLayoutMediator(tabs, pager) { tab, pos ->
-            tab.text = when (pos) {
-                0 -> "批量队列"
-                1 -> "正在下载"
-                2 -> "已完成"
-                else -> ""
-            }
+        TabLayoutMediator(tabs!!, pager) { tab, pos ->
+            tab.text = baseLabel(pos)
         }.attach()
 
-        // V3 stats chips 实时刷新
+        // 实时刷新 tab 文案末尾的数字
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 sharedVm.snapshots().collect { s ->
-                    queueChip.text = "队列  ${s.queuePending + s.queueDownloading}"
-                    activeChip.text = "下载中  ${s.activeCount}"
-                    doneChip.text = "已完成  ${s.queueSuccess}"
+                    setTabCount(0, s.queuePending + s.queueDownloading)
+                    setTabCount(1, s.activeCount)
+                    setTabCount(2, s.queueSuccess)
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        tabs = null
+        super.onDestroyView()
+    }
+
+    private fun baseLabel(pos: Int): String = when (pos) {
+        0 -> "批量队列"
+        1 -> "正在下载"
+        2 -> "已完成"
+        else -> ""
+    }
+
+    private fun setTabCount(pos: Int, count: Int) {
+        val t = tabs?.getTabAt(pos) ?: return
+        val base = baseLabel(pos)
+        t.text = if (count > 0) "$base  $count" else base
     }
 
     private class TabsAdapter(host: Fragment) : FragmentStateAdapter(host) {
