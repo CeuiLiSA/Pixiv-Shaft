@@ -21,6 +21,7 @@ import ceui.pixiv.download.template.DefaultTemplates
  * - [bySeries] — 小说按系列分组，图按作者分组。
  * - [minimal] — 仅用 ID，最短路径，适合文件管理器手动管理。
  * - [rFilter] — 强制 R18/AI 子目录；内部再按作者分。
+ * - [detailed] — 标题+ID+P+画师ID+画师昵称+尺寸+时间，信息量最大。
  */
 object ConfigPresets {
 
@@ -171,6 +172,27 @@ object ConfigPresets {
             ),
         )
 
+    /** 详细命名——标题+ID+P+画师ID+画师昵称+尺寸+时间，信息量最大。 */
+    fun detailed(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
+        DownloadConfig(
+            defaults = BucketDefaults(
+                template = "ShaftImages/{title}_{id}_p{page}_{author_id}_{author}_{w}px_{h}px_{created:yyyyMMdd_HHmmss}.{ext}",
+                storage  = imagesStorage,
+            ),
+            perBucket = mapOf(
+                Bucket.Ugoira to BucketConfig(
+                    template = "ShaftImages/{title}_{id}_{author_id}_{author}_{created:yyyyMMdd_HHmmss}.gif",
+                    storage  = imagesStorage,
+                ),
+                Bucket.Novel  to BucketConfig(
+                    template = "ShaftNovels/{title}_{id}_{author_id}_{author}_{created:yyyyMMdd_HHmmss}.txt",
+                    storage  = downloadsStorage,
+                ),
+                Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
+                Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
+            ),
+        )
+
     /** R18 / AI 强制分桶，内部按作者分；适合整理时想「一眼避开 R18」的场景。 */
     fun rFilter(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
@@ -202,6 +224,7 @@ object ConfigPresets {
         ByAuthorMultiPageGroup,
         Minimal,
         RFilter,
+        Detailed,
     }
 
     fun of(
@@ -218,5 +241,6 @@ object ConfigPresets {
         Id.ByAuthorMultiPageGroup  -> byAuthorMultiPageGroup(imagesStorage, downloadsStorage)
         Id.Minimal                 -> minimal(imagesStorage, downloadsStorage)
         Id.RFilter                 -> rFilter(imagesStorage, downloadsStorage)
+        Id.Detailed                -> detailed(imagesStorage, downloadsStorage)
     }
 }

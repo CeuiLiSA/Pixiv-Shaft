@@ -127,6 +127,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         PresetInfo(ConfigPresets.Id.ByAuthorMultiPageGroup, R.string.download_path_preset_by_author_multi_page_group),
         PresetInfo(ConfigPresets.Id.Minimal,         R.string.download_path_preset_minimal),
         PresetInfo(ConfigPresets.Id.RFilter,         R.string.download_path_preset_r_filter),
+        PresetInfo(ConfigPresets.Id.Detailed,        R.string.download_path_preset_detailed),
     )
 
     private fun addPresetCards(root: LinearLayout) {
