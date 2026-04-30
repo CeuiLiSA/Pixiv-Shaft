@@ -166,6 +166,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "批量下载队列":
                     // 统一路由到新的 V3 下载管理页（默认进队列 tab）
                     return new ceui.pixiv.ui.download.DownloadManagerV3Fragment();
+                case "批量选择":
+                    return new ceui.pixiv.ui.bulk.BulkSelectV3Fragment();
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "正在关注":

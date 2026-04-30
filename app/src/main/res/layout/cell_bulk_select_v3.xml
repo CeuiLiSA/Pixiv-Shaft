@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/v3_bg"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="1.5dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/thumb"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:adjustViewBounds="true"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <!-- 选中遮罩（半透明 + 边框） -->
+        <View
+            android:id="@+id/selectOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:background="#5512A4FF"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <!-- 多页徽章（左上） -->
+        <TextView
+            android:id="@+id/pBadge"
+            style="@style/V3StatusBadge"
+            android:layout_gravity="top|start"
+            android:layout_margin="6dp"
+            android:visibility="gone"
+            tools:text="3P"
+            tools:visibility="visible" />
+
+        <!-- GIF 徽章 -->
+        <TextView
+            android:id="@+id/gifBadge"
+            style="@style/V3StatusBadge"
+            android:layout_gravity="top|end"
+            android:layout_margin="6dp"
+            android:textColor="#FFB454"
+            android:visibility="gone"
+            tools:text="GIF" />
+
+        <!-- 选中圆角勾 -->
+        <ImageView
+            android:id="@+id/checkMark"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="6dp"
+            android:background="@drawable/v3_nav_btn_bg"
+            android:contentDescription="@null"
+            android:padding="4dp"
+            android:src="@drawable/ic_file_download_done_24dp"
+            android:visibility="gone"
+            app:tint="#FFFFFF"
+            tools:visibility="visible" />
+    </FrameLayout>
+</androidx.cardview.widget.CardView>
