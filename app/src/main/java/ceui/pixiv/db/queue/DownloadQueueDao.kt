@@ -49,6 +49,16 @@ interface DownloadQueueDao {
     @Query("SELECT * FROM download_queue ORDER BY seq ASC LIMIT :limit OFFSET :offset")
     fun observePage(limit: Int, offset: Int): LiveData<List<DownloadQueueEntity>>
 
+    /**
+     * 队列 tab 专用：排除 SUCCESS（已完成的不再"占着茅坑"）。
+     * FAILED / CANCELED 仍展示，让用户能看到哪些没下成功。
+     */
+    @Query("SELECT * FROM download_queue WHERE status != '${QueueStatus.SUCCESS}' ORDER BY seq ASC LIMIT :limit OFFSET :offset")
+    suspend fun pageActive(limit: Int, offset: Int): List<DownloadQueueEntity>
+
+    @Query("SELECT COUNT(*) FROM download_queue WHERE status != '${QueueStatus.SUCCESS}'")
+    suspend fun countActive(): Int
+
     @Query("DELETE FROM download_queue WHERE status = :status")
     suspend fun deleteByStatus(status: String): Int
 

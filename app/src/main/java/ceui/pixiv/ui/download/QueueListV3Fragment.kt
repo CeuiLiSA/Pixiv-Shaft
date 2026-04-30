@@ -65,7 +65,7 @@ class QueueListV3Fragment : Fragment() {
 
         val btnPause = view.findViewById<Button>(R.id.btn1).apply { text = "暂停" }
         val btnRetry = view.findViewById<Button>(R.id.btn2).apply { text = "重试失败" }
-        val btnClearOk = view.findViewById<Button>(R.id.btn3).apply { text = "清空成功" }
+        val btnClearOk = view.findViewById<Button>(R.id.btn3).apply { text = "清成功记录" }
         val btnClearAll = view.findViewById<Button>(R.id.btn4).apply { text = "清空全部" }
 
         btnPause.setOnClickListener {
@@ -90,12 +90,13 @@ class QueueListV3Fragment : Fragment() {
             }
         }
 
-        // 仅 STARTED 时刷新
+        // 仅 STARTED 时刷新；只显示活跃项（PENDING / DOWNLOADING / FAILED），
+        // SUCCESS 完成后自动从队列视图消失，让队列真正"越来越短"。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
                     val rows = withContext(Dispatchers.IO) {
-                        runCatching { dao.page(limit = PAGE_SIZE, offset = 0) }.getOrDefault(emptyList())
+                        runCatching { dao.pageActive(limit = PAGE_SIZE, offset = 0) }.getOrDefault(emptyList())
                     }
                     adapter.submitList(rows)
                     empty.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
