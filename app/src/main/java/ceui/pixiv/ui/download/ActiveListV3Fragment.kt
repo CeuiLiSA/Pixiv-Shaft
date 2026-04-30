@@ -30,18 +30,26 @@ import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * V3 风格 "正在下载" — 监听 Manager.content。
  *
- *  - 1s polling 取 snapshot（不依赖 broadcast，规避 RxJava 老回调路径）；
- *    UI 真正高频刷新走 Manager.setCallback 的进度回调，per-item 更新当前活动项 progress。
- *  - 卡片包含缩略图、文件名、size、进度条、暂停/取消。
+ * 关于"看似多个并发下载"的澄清：
+ *   一个 N-page illust 进入下载时，[Manager.content] 会同时挂 N 个 DownloadItem，
+ *   但 [Manager.loop] 严格串行下载（每完成一个才启下一个）。任意时刻 **只有 1 个**
+ *   item 处于 DOWNLOADING，其余都是 INIT（等待）。本 UI 用以下方式让区分一目了然：
+ *
+ *     - 顶部统计行明确写 "1 正在 · N 等待"
+ *     - DOWNLOADING 卡：完整不透明 + 蓝色进度条 + 实时大小/百分比
+ *     - INIT 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "等待中…"
+ *     - 运行时 invariant：snapshot 里 DOWNLOADING > 1 直接 warn 到日志
  */
 class ActiveListV3Fragment : Fragment() {
 
     private val adapter = ActiveAdapterV3()
     private var receiver: DownloadReceiver<*>? = null
+    private var statusHeader: TextView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -56,7 +64,16 @@ class ActiveListV3Fragment : Fragment() {
 
         val empty = view.findViewById<View>(R.id.emptyState)
         view.findViewById<TextView>(R.id.emptyTitle).text = "没有正在下载的任务"
-        view.findViewById<TextView>(R.id.emptyHint).text = "队列里的任务会自动转到这里\n显示 page 级实时进度"
+        view.findViewById<TextView>(R.id.emptyHint).text =
+            "队列里的任务会自动转到这里\n显示 page 级实时进度"
+
+        // 顶部状态行（占用 btn3 这个空位 button 改为只读 TextView 风格）
+        statusHeader = view.findViewById<Button>(R.id.btn3).apply {
+            text = "—"
+            isEnabled = false
+            // 视觉去按钮化
+            setTextColor(Color.parseColor("#7CB668"))
+        }
 
         // 操作 bar
         view.findViewById<Button>(R.id.btn1).apply {
@@ -67,7 +84,6 @@ class ActiveListV3Fragment : Fragment() {
             text = "全部暂停"
             setOnClickListener { Manager.get().stopAll() }
         }
-        view.findViewById<Button>(R.id.btn3).visibility = View.GONE
         view.findViewById<Button>(R.id.btn4).apply {
             text = "清空"
             setOnClickListener { Manager.get().clearAll() }
@@ -77,7 +93,41 @@ class ActiveListV3Fragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
-                    val snapshot = runCatching { ArrayList(Manager.get().content) }.getOrDefault(arrayListOf())
+                    val snapshot = runCatching {
+                        ArrayList(Manager.get().content)
+                    }.getOrDefault(arrayListOf())
+
+                    val downloadingCount = snapshot.count {
+                        it.state == DownloadItem.DownloadState.DOWNLOADING
+                    }
+                    val initCount = snapshot.count {
+                        it.state == DownloadItem.DownloadState.INIT
+                    }
+                    val pausedCount = snapshot.count {
+                        it.state == DownloadItem.DownloadState.PAUSED
+                    }
+                    val failedCount = snapshot.count {
+                        it.state == DownloadItem.DownloadState.FAILED
+                    }
+
+                    // 运行时不变量：DOWNLOADING 应当永远 <= 1（Manager.loop 串行）
+                    if (downloadingCount > 1) {
+                        Timber.tag(TAG).w(
+                            "INVARIANT: ${downloadingCount} items in DOWNLOADING state simultaneously! " +
+                                snapshot.filter { it.state == DownloadItem.DownloadState.DOWNLOADING }
+                                    .joinToString { "${it.uuid}/${it.illust?.id}" }
+                        )
+                    }
+
+                    // 顶部状态行
+                    val parts = buildList {
+                        if (downloadingCount > 0) add("$downloadingCount 正在下载")
+                        if (initCount > 0) add("$initCount 等待中")
+                        if (pausedCount > 0) add("$pausedCount 已暂停")
+                        if (failedCount > 0) add("$failedCount 失败")
+                    }
+                    statusHeader?.text = if (parts.isEmpty()) "—" else parts.joinToString(" · ")
+
                     adapter.submit(snapshot.toList())
                     empty.visibility = if (snapshot.isEmpty()) View.VISIBLE else View.GONE
                     delay(REFRESH_INTERVAL_MS)
@@ -100,11 +150,13 @@ class ActiveListV3Fragment : Fragment() {
             LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(it)
         }
         receiver = null
-        Manager.get().clearCallback()
+        // ⚠️ 不调 Manager.clearCallback() —— 那会清掉别的页面（如 ArtworkV3Fragment）的回调。
+        //    我们 setCallback 用的 key=item.uuid，新 bind 会覆盖旧的，无需主动清。
     }
 
     companion object {
         private const val REFRESH_INTERVAL_MS = 1000L
+        private const val TAG = "ActiveListV3"
     }
 }
 
@@ -113,7 +165,6 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
     private val items = mutableListOf<DownloadItem>()
 
     fun submit(newItems: List<DownloadItem>) {
-        // 简单替换 + notifyDataSetChanged：activeList 通常很短（1-30 项）
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
@@ -127,17 +178,39 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
     override fun onBindViewHolder(h: VH, pos: Int) {
         val item = items[pos]
         h.taskName.text = item.name
-        h.progress.progress = item.nonius
-        h.percentText.text = "${item.nonius}%"
 
-        if (item.totalSize > 0) {
-            h.sizeText.text = String.format(
-                "%s / %s",
-                FileSizeUtil.formatFileSize(item.currentSize),
-                FileSizeUtil.formatFileSize(item.totalSize)
-            )
-        } else {
-            h.sizeText.text = "—"
+        // —— 状态分类决定视觉权重 ——
+        val isActive = item.state == DownloadItem.DownloadState.DOWNLOADING
+        val isWaiting = item.state == DownloadItem.DownloadState.INIT
+        val isPaused = item.isPaused || item.state == DownloadItem.DownloadState.PAUSED
+        val isFailed = item.state == DownloadItem.DownloadState.FAILED
+
+        // 等待中的卡片显著弱化
+        h.itemView.alpha = if (isActive || isFailed) 1.0f else 0.55f
+
+        // 进度条：只对 DOWNLOADING 显示
+        h.progress.visibility = if (isActive) View.VISIBLE else View.GONE
+        h.percentText.visibility = if (isActive) View.VISIBLE else View.GONE
+        if (isActive) {
+            h.progress.progress = item.nonius
+            h.percentText.text = "${item.nonius}%"
+        }
+
+        // size 文本：DOWNLOADING 显示实际大小；其它用人话替代
+        when {
+            isActive -> {
+                h.sizeText.text = if (item.totalSize > 0) {
+                    String.format(
+                        "%s / %s",
+                        FileSizeUtil.formatFileSize(item.currentSize),
+                        FileSizeUtil.formatFileSize(item.totalSize)
+                    )
+                } else "—"
+            }
+            isWaiting -> h.sizeText.text = "等待中…"
+            isPaused -> h.sizeText.text = "已暂停"
+            isFailed -> h.sizeText.text = "下载失败"
+            else -> h.sizeText.text = "—"
         }
 
         if (!TextUtils.isEmpty(item.showUrl)) {
@@ -150,12 +223,12 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
             h.thumb.setImageDrawable(null)
         }
 
-        val (label, color) = when (item.state) {
-            DownloadItem.DownloadState.INIT -> "QUEUED" to "#9DA3AB"
-            DownloadItem.DownloadState.DOWNLOADING -> "DOWNLOADING" to "#5EB3FF"
-            DownloadItem.DownloadState.PAUSED -> "PAUSED" to "#FFB454"
-            DownloadItem.DownloadState.FAILED -> "FAILED" to "#FF8B8B"
-            DownloadItem.DownloadState.SUCCESS -> "DONE" to "#7CB668"
+        val (label, color) = when {
+            isActive -> "DOWNLOADING" to "#5EB3FF"
+            isPaused -> "PAUSED" to "#FFB454"
+            isFailed -> "FAILED" to "#FF8B8B"
+            isWaiting -> "QUEUED" to "#9DA3AB"
+            item.state == DownloadItem.DownloadState.SUCCESS -> "DONE" to "#7CB668"
             else -> "—" to "#9DA3AB"
         }
         h.stateBadge.text = label
@@ -169,26 +242,26 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
         h.pauseBtn.setOnClickListener {
             if (item.isPaused) Manager.get().startOne(item.uuid)
             else Manager.get().stopOne(item.uuid)
-            // 立刻刷新本卡 UI（下次 polling 会再校准）
             notifyItemChanged(h.bindingAdapterPosition)
         }
         h.cancelBtn.setOnClickListener {
             Manager.get().clearOne(item.uuid)
-            // 不在这里手动 remove —— polling 会同步 UI
         }
 
-        // 同时绑定 Manager 进度回调，让"正在下载"那一项的进度条丝滑刷新
-        Manager.get().setCallback(item.uuid) { progress: DownloadProgress ->
-            if (Manager.get().uuid == item.uuid) {
-                h.itemView.post {
-                    h.progress.progress = progress.progress
-                    h.percentText.text = "${progress.progress}%"
-                    if (progress.totalSize > 0) {
-                        h.sizeText.text = String.format(
-                            "%s / %s",
-                            FileSizeUtil.formatFileSize(progress.currentSize),
-                            FileSizeUtil.formatFileSize(progress.totalSize)
-                        )
+        // 进度回调只对当前活动项有意义
+        if (isActive) {
+            Manager.get().setCallback(item.uuid) { progress: DownloadProgress ->
+                if (Manager.get().uuid == item.uuid) {
+                    h.itemView.post {
+                        h.progress.progress = progress.progress
+                        h.percentText.text = "${progress.progress}%"
+                        if (progress.totalSize > 0) {
+                            h.sizeText.text = String.format(
+                                "%s / %s",
+                                FileSizeUtil.formatFileSize(progress.currentSize),
+                                FileSizeUtil.formatFileSize(progress.totalSize)
+                            )
+                        }
                     }
                 }
             }
