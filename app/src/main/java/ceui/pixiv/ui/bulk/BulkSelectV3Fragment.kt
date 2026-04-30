@@ -9,12 +9,16 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * V3 风格批量下载 · 多选页。
@@ -61,45 +65,71 @@ class BulkSelectV3Fragment : Fragment() {
         grid.layoutManager = GridLayoutManager(requireContext(), 3)
         grid.adapter = adapter
 
-        // 取列表
-        val list = BulkSelectStorage.consume()
-        if (list.isNullOrEmpty()) {
+        // 取列表 —— 大列表（10000+）SelectableItem 构造也搬 IO 避免主线程长时间循环。
+        val raw = BulkSelectStorage.consume()
+        if (raw.isNullOrEmpty()) {
             hint.text = "没有可选作品，可能从其他入口进来导致状态丢失。"
             btnConfirm.isEnabled = false
             btnConfirm.text = "—"
             return
         }
-        items.clear()
-        list.forEach { illust ->
-            // GIF 不可选（队列不支持），其它默认选中
-            val selectable = !illust.isGif
-            items.add(SelectableItem(illust, selected = selectable, selectable = selectable))
+        hint.text = "加载中…"
+        btnConfirm.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            val prepared = withContext(Dispatchers.IO) {
+                raw.map { illust ->
+                    val selectable = !illust.isGif
+                    SelectableItem(illust, selected = selectable, selectable = selectable)
+                }
+            }
+            items.clear()
+            items.addAll(prepared)
+            adapter.notifyDataSetChanged()
+            refreshHeaderAndCta()
         }
-        adapter.notifyDataSetChanged()
-        refreshHeaderAndCta()
 
         view.findViewById<Button>(R.id.btnSelectAll).setOnClickListener {
+            // 大列表（10000+）的 N 次 copy 移到 IO，避免 5-20ms 主线程停顿
             val anyUnselected = items.any { it.selectable && !it.selected }
-            for (i in items.indices) {
-                if (!items[i].selectable) continue
-                items[i] = items[i].copy(selected = anyUnselected) // 有未选 → 全选；否则 → 全不选
+            val target = anyUnselected // 有未选 → 全选；否则 → 全不选
+            viewLifecycleOwner.lifecycleScope.launch {
+                val rebuilt = withContext(Dispatchers.IO) {
+                    items.map { if (it.selectable) it.copy(selected = target) else it }
+                }
+                items.clear()
+                items.addAll(rebuilt)
+                adapter.notifyDataSetChanged()
+                refreshHeaderAndCta()
             }
-            adapter.notifyDataSetChanged()
-            refreshHeaderAndCta()
         }
         view.findViewById<Button>(R.id.btnInvert).setOnClickListener {
-            for (i in items.indices) {
-                if (!items[i].selectable) continue
-                items[i] = items[i].copy(selected = !items[i].selected)
+            viewLifecycleOwner.lifecycleScope.launch {
+                val rebuilt = withContext(Dispatchers.IO) {
+                    items.map { if (it.selectable) it.copy(selected = !it.selected) else it }
+                }
+                items.clear()
+                items.addAll(rebuilt)
+                adapter.notifyDataSetChanged()
+                refreshHeaderAndCta()
             }
-            adapter.notifyDataSetChanged()
-            refreshHeaderAndCta()
         }
         btnConfirm.setOnClickListener {
-            val picked = items.filter { it.selected && it.selectable }.map { it.illust }
-            if (picked.isEmpty()) return@setOnClickListener
-            LegacyBatchEnqueue.enqueueAndToast(requireContext(), picked)
-            requireActivity().finish()
+            // 大列表（10000+）的 filter/map 也走 IO 防卡帧；快照后立刻禁用按钮防双击。
+            btnConfirm.isEnabled = false
+            val snapshot = items.toList()
+            val ctx = requireContext()
+            viewLifecycleOwner.lifecycleScope.launch {
+                val picked = withContext(Dispatchers.IO) {
+                    snapshot.asSequence()
+                        .filter { it.selected && it.selectable }
+                        .map { it.illust }
+                        .toList()
+                }
+                if (picked.isNotEmpty()) {
+                    LegacyBatchEnqueue.enqueueAndToast(ctx, picked)
+                }
+                requireActivity().finish()
+            }
         }
     }
 
