@@ -53,7 +53,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
     @Volatile private var viewAlive: Boolean = false
 
     // —— 状态机 ——
-    private enum class Phase { IDLE, NETWORKING, RECEIVED, POOL, DB, ENQUEUED, RATE_LIMIT, DONE, FAILED, CANCELED }
+    private enum class Phase { IDLE, NETWORKING, RECEIVED, DB, ENQUEUED, RATE_LIMIT, DONE, FAILED, CANCELED }
     @Volatile private var phase: Phase = Phase.IDLE
     @Volatile private var phaseDetail: String = ""
     @Volatile private var rateLimitUntil: Long = 0L
@@ -166,14 +166,6 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                     flushLog()
                 }
             }
-            is FetchEvent.PoolUpdate -> {
-                phase = Phase.POOL
-                phaseDetail = "warming ObjectPool (${e.size} illusts)"
-                if (viewAlive) {
-                    appendLine("  ↳ pool: ${e.size} illusts updated")
-                    // 不 flushLog —— 太频繁，统一节流到 100ms tick
-                }
-            }
             is FetchEvent.DbBatchStart -> {
                 phase = Phase.DB
                 phaseDetail = "writing ${e.size} rows to download_queue"
@@ -265,7 +257,6 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             Phase.IDLE -> spin to "starting…"
             Phase.NETWORKING -> spin to "fetching page $pageIndex · $phaseDetail"
             Phase.RECEIVED -> spin to "page $pageIndex received · $phaseDetail"
-            Phase.POOL -> spin to "warming pool · $phaseDetail"
             Phase.DB -> spin to "writing db · $phaseDetail"
             Phase.ENQUEUED -> spin to "page $pageIndex enqueued"
             Phase.RATE_LIMIT -> {

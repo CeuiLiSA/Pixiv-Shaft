@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
-import ceui.lisa.download.DownloadProgress
 import ceui.lisa.download.FileSizeUtil
 import ceui.lisa.notification.DownloadReceiver
 import ceui.lisa.utils.GlideUtil
@@ -248,24 +247,11 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
             Manager.get().clearOne(item.uuid)
         }
 
-        // 进度回调只对当前活动项有意义
-        if (isActive) {
-            Manager.get().setCallback(item.uuid) { progress: DownloadProgress ->
-                if (Manager.get().uuid == item.uuid) {
-                    h.itemView.post {
-                        h.progress.progress = progress.progress
-                        h.percentText.text = "${progress.progress}%"
-                        if (progress.totalSize > 0) {
-                            h.sizeText.text = String.format(
-                                "%s / %s",
-                                FileSizeUtil.formatFileSize(progress.currentSize),
-                                FileSizeUtil.formatFileSize(progress.totalSize)
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        // 故意不再 Manager.get().setCallback(item.uuid) { ... } —— 之前每次 bind 都
+        // 注册一个 lambda，Manager.mCallback HashMap 按 uuid 存且永远不清，长跑下
+        // 100000+ 闭包会持有 ViewHolder 引用 → 内存堆积 OOM。
+        // 进度更新依赖 1s polling 重新 submit() 触发 onBindViewHolder 时读 item.nonius，
+        // 1Hz 已足够顺滑。
     }
 
     override fun getItemCount(): Int = items.size

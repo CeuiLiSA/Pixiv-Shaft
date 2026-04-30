@@ -185,6 +185,9 @@ internal data class DownloadGroup(
     val pageCount: Int,
     val allFilePaths: List<String>,
     val allEntities: List<DownloadEntity>,
+    /** 预解析的 IllustsBean —— 在 IO 线程做完 Gson；UI 绑卡时直接用，不再 fromJson 卡帧 */
+    val parsedIllust: IllustsBean? = null,
+    val isNovel: Boolean = false,
 )
 
 private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
@@ -200,16 +203,23 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
         }
         buckets.getOrPut(key) { mutableListOf() }.add(row)
     }
-    // 每组按 fileName 自然排序（p0, p1, p2…），代表 entity 取 downloadTime 最大的
+    // 每组按 fileName 自然排序（p0, p1, p2…），代表 entity 取 downloadTime 最大的；
+    // Gson.fromJson 在这里（IO 线程）就解掉，绑卡时不再 parse
     val groups = buckets.entries.map { (k, list) ->
         val sortedByName = list.sortedBy { it.fileName.orEmpty() }
         val latest = list.maxByOrNull { it.downloadTime } ?: list.first()
+        val isNovel = latest.fileName?.contains(Params.NOVEL_KEY) == true
+        val parsed = if (isNovel) null else runCatching {
+            Shaft.sGson.fromJson(latest.illustGson, IllustsBean::class.java)
+        }.getOrNull()
         DownloadGroup(
             key = k,
             latest = latest,
             pageCount = list.size,
             allFilePaths = sortedByName.map { it.filePath.orEmpty() },
             allEntities = sortedByName,
+            parsedIllust = parsed,
+            isNovel = isNovel,
         )
     }
     // 按代表的 downloadTime 倒序
@@ -239,17 +249,15 @@ private class DoneAdapterV3(
         val group = getItem(pos)
         val entity = group.latest
 
-        val isNovel = entity.fileName?.contains(Params.NOVEL_KEY) == true
-        if (isNovel) {
+        if (group.isNovel) {
             h.typeBadge.text = "NOVEL"
             Glide.with(h.thumb).clear(h.thumb)
             h.thumb.setImageDrawable(null)
             h.title.text = entity.fileName.orEmpty()
             h.author.text = ""
         } else {
-            val illust: IllustsBean? = runCatching {
-                Shaft.sGson.fromJson(entity.illustGson, IllustsBean::class.java)
-            }.getOrNull()
+            // 用预解析的 illust（reload 时 IO 线程已 fromJson 完）—— 绑卡 0 解析
+            val illust: IllustsBean? = group.parsedIllust
             // type 徽章：单页 ILLUST，多页 MANGA(N) 体现页数
             h.typeBadge.text = when {
                 group.pageCount > 1 -> "MANGA · ${group.pageCount}P"

@@ -5,7 +5,6 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.models.IllustsBean
-import ceui.loxia.ObjectPool
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
@@ -47,7 +46,6 @@ sealed class FetchEvent {
     data class Started(val taskName: String, val userId: Long) : FetchEvent()
     data class Networking(val pageIndex: Int, val endpoint: String) : FetchEvent()
     data class PageReceived(val pageIndex: Int, val pageSize: Int, val latencyMs: Long, val totalSoFar: Int) : FetchEvent()
-    data class PoolUpdate(val size: Int) : FetchEvent()
     data class DbBatchStart(val size: Int) : FetchEvent()
     data class DbBatchDone(val size: Int, val latencyMs: Long) : FetchEvent()
     data class Enqueued(val totalSoFar: Int) : FetchEvent()
@@ -132,22 +130,19 @@ class AuthorWorksFetcher(
     }.flowOn(Dispatchers.IO)
 
     /**
-     * 处理一页：灌池 + 入队，每步发事件。返回入队数量。
-     * 显式接 collector 而不是用 receiver —— member extension on outer-class FlowCollector
-     * 在 Kotlin 当前稳定语法里不支持。
+     * 处理一页：入队，每步发事件。返回入队数量。
+     *
+     * 不再灌 ObjectPool —— 20000 illusts × ~15KB 在内存里 = 300MB，绝对 OOM。
+     * 而且每条 setValue 都会触发该 illust 的所有 LiveData observers（如作者主页可见
+     * 的 RecyclerView cell）刷新一轮，UI 抖动。
+     * consumer 处理时若 pool miss，会回退到 Retro.getAppApi().getIllustByID() 单独取，
+     * 一次只一个 illust，跟下载节奏一致，不构成压力。
      */
     private suspend fun processPage(
         collector: FlowCollector<FetchEvent>,
         list: List<IllustsBean>,
         userId: Long,
     ): Int {
-        collector.emit(FetchEvent.PoolUpdate(list.size))
-        withContext(Dispatchers.Main.immediate) {
-            list.forEach { illust ->
-                runCatching { ObjectPool.updateIllust(illust) }
-            }
-        }
-
         collector.emit(FetchEvent.DbBatchStart(list.size))
         val tDb = System.currentTimeMillis()
         val batchBase = System.nanoTime()
