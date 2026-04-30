@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?android:attr/colorBackground">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:title="批量下载队列"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
+
+    <TextView
+        android:id="@+id/statsLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:textSize="13sp"
+        android:fontFamily="monospace"
+        tools:text="待下载: 0 · 下载中: 0 · 成功: 0 · 失败: 0"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btnPauseResume"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="暂停"
+            style="?attr/borderlessButtonStyle" />
+
+        <Button
+            android:id="@+id/btnRetryFailed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="重试失败"
+            style="?attr/borderlessButtonStyle" />
+
+        <Button
+            android:id="@+id/btnClearSuccess"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="清空成功"
+            style="?attr/borderlessButtonStyle" />
+
+        <Button
+            android:id="@+id/btnClearAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="清空全部"
+            android:textColor="@android:color/holo_red_light"
+            style="?attr/borderlessButtonStyle" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="24dp"
+        tools:listitem="@layout/cell_download_queue_item"
+        xmlns:tools="http://schemas.android.com/tools" />
+</LinearLayout>

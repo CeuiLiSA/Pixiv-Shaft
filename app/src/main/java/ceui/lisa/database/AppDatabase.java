@@ -15,6 +15,8 @@ import ceui.pixiv.db.DiscoveryEntity;
 import ceui.pixiv.db.GeneralDao;
 import ceui.pixiv.db.GeneralEntity;
 import ceui.pixiv.db.RemoteKey;
+import ceui.pixiv.db.queue.DownloadQueueDao;
+import ceui.pixiv.db.queue.DownloadQueueEntity;
 
 @Database(
         entities = {
@@ -39,8 +41,9 @@ import ceui.pixiv.db.RemoteKey;
                 NovelCustomFontEntity.class, // V3 阅读器自定义字体
                 ComicBookmarkEntity.class, // V3 漫画阅读器书签
                 ComicReadingStatsEntity.class, // V3 漫画阅读器累计统计
+                DownloadQueueEntity.class, // 批量下载队列（v33）
         },
-        version = 32,
+        version = 33,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -250,6 +253,34 @@ public abstract class AppDatabase extends RoomDatabase {
             );
         }
     };
+    // 迁移 32 -> 33：批量下载持久化队列表
+    private static final Migration MIGRATION_32_33 = new Migration(32, 33) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS download_queue (" +
+                            "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                            "illustId INTEGER NOT NULL, " +
+                            "type TEXT NOT NULL, " +
+                            "seq INTEGER NOT NULL, " +
+                            "sourceTag TEXT NOT NULL, " +
+                            "status TEXT NOT NULL, " +
+                            "errorMsg TEXT, " +
+                            "retryCount INTEGER NOT NULL DEFAULT 0, " +
+                            "createdAt INTEGER NOT NULL, " +
+                            "finishedAt INTEGER" +
+                            ")"
+            );
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_download_queue_status ON download_queue(status)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_download_queue_seq ON download_queue(seq)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_download_queue_illustId ON download_queue(illustId)");
+        }
+    };
+    // 关于 "ONE downloading" 不变量：原本计划用 partial unique index 在 DB 层强制
+    //   CREATE UNIQUE INDEX uniq_download_queue_one_downloading ON download_queue(status) WHERE status = 'DOWNLOADING'
+    // 但 androidx.room.Index 不支持 partial 索引（无 where 子句），手写 migration 加索引会让
+    // Room 启动时 validateMigration 失败。改为 QueueDownloadManager.consumeUntilEmpty 里
+    // mark DOWNLOADING 前 count 一次的运行时检查；reasonable，因为只有一个 consumer 写状态。
     private static AppDatabase INSTANCE;
 
     public static AppDatabase getAppDatabase(Context context) {
@@ -269,6 +300,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             .addMigrations(MIGRATION_29_30) // 注册 29 -> 30 迁移 (V3 阅读器 6 张表)
                             .addMigrations(MIGRATION_30_31) // 注册 30 -> 31 迁移 (V3 漫画书签)
                             .addMigrations(MIGRATION_31_32) // 注册 31 -> 32 迁移 (V3 漫画累计统计)
+                            .addMigrations(MIGRATION_32_33) // 注册 32 -> 33 迁移 (批量下载队列)
                             .build();
         }
         return INSTANCE;
@@ -303,6 +335,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract ComicBookmarkDao comicBookmarkDao();
 
     public abstract ComicReadingStatsDao comicReadingStatsDao();
+
+    public abstract DownloadQueueDao downloadQueueDao();
 
 }
 

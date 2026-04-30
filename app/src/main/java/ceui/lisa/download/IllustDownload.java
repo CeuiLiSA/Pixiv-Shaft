@@ -142,38 +142,8 @@ public class IllustDownload {
     }
 
 
-    public static void downloadCheckedIllustAllPages(List<IllustsBean> beans, BaseActivity<?> activity) {
-        check(activity, () -> {
-            List<DownloadItem> tempList = new ArrayList<>();
-            int taskCount = 0;
-            for (int i = 0; i < beans.size(); i++) {
-                if (beans.get(i).isChecked()) {
-                    final IllustsBean illust = beans.get(i);
-
-                    if(illust.isGif()){
-                        downloadGif(illust);
-                        taskCount++;
-                    } else if (illust.getPage_count() == 1) {
-                        DownloadItem item = new DownloadItem(illust, 0);
-                        item.setUrl(getUrl(illust, 0));
-                        item.setShowUrl(getShowUrl(illust, 0));
-                        tempList.add(item);
-                        taskCount++;
-                    } else {
-                        for (int j = 0; j < illust.getPage_count(); j++) {
-                            DownloadItem item = new DownloadItem(illust, j);
-                            item.setUrl(getUrl(illust, j));
-                            item.setShowUrl(getShowUrl(illust, j));
-                            tempList.add(item);
-                            taskCount++;
-                        }
-                    }
-                }
-            }
-            Common.showToast(taskCount + Shaft.getContext().getString(R.string.has_been_added));
-            Manager.get().addTasks(tempList);
-        });
-    }
+    // downloadCheckedIllustAllPages 已移除：旧的 FragmentMultiDownload 勾选下载入口已废弃，
+    // 现在统一通过 download_queue v33 持久化队列（见 ceui.pixiv.ui.bulk.LegacyBatchEnqueue 与 AuthorWorksFetcher）。
 
     public static DownloadItem downloadGif(GifResponse response, IllustsBean illust) {
         return downloadGif(response, illust, false);

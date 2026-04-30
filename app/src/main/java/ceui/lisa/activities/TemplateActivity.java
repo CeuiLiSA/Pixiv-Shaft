@@ -39,7 +39,6 @@ import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentMangaSeries;
 import ceui.lisa.fragments.FragmentMangaSeriesDetail;
 import ceui.lisa.fragments.FragmentMarkdown;
-import ceui.lisa.fragments.FragmentMultiDownload;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNewNovel;
 import ceui.lisa.fragments.FragmentNewNovels;
@@ -165,8 +164,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 }
                 case "关于软件":
                     return new FragmentAboutApp();
-                case "批量下载":
-                    return new FragmentMultiDownload();
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "正在关注":

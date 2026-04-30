@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp"
+    android:background="?attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/seqText"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        android:textColor="?android:attr/textColorSecondary"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:text="#1" />
+
+    <TextView
+        android:id="@+id/illustIdText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="14sp"
+        android:fontFamily="monospace"
+        android:textColor="?android:attr/textColorPrimary"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:text="illustId 123456789" />
+
+    <TextView
+        android:id="@+id/statusBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="3dp"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:text="PENDING" />
+</LinearLayout>

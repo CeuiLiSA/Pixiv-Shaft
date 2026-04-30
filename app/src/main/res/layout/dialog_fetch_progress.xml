@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_marginHorizontal="20dp"
+    app:cardBackgroundColor="#0F1115"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <!-- Title bar (fake terminal header) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="10dp">
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@android:color/holo_red_light" />
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="6dp"
+                android:background="@android:color/holo_orange_light" />
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="6dp"
+                android:background="@android:color/holo_green_light" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:textSize="13sp"
+                android:textColor="#9DA3AB"
+                android:singleLine="true"
+                android:ellipsize="end"
+                tools:ignore="HardcodedText"
+                xmlns:tools="http://schemas.android.com/tools"
+                tools:text="batch-download" />
+        </LinearLayout>
+
+        <!-- Scrollable log area -->
+        <ScrollView
+            android:id="@+id/logScroll"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:fillViewport="true"
+            android:scrollbars="vertical"
+            android:scrollbarThumbVertical="@android:color/darker_gray">
+
+            <TextView
+                android:id="@+id/logText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:textSize="12sp"
+                android:textColor="#D6E1EF"
+                android:lineSpacingExtra="2dp"
+                android:textIsSelectable="true"
+                android:padding="6dp" />
+        </ScrollView>
+
+        <!-- Footer: status line + buttons -->
+        <TextView
+            android:id="@+id/statusLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textSize="11sp"
+            android:textColor="#7CB668"
+            android:paddingTop="8dp"
+            tools:text="● running…"
+            xmlns:tools="http://schemas.android.com/tools" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:paddingTop="10dp">
+
+            <Button
+                android:id="@+id/cancelBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:text="取消"
+                android:textColor="#FF8B8B"
+                style="?attr/borderlessButtonStyle" />
+
+            <Button
+                android:id="@+id/closeBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFamily="monospace"
+                android:text="关闭"
+                android:textColor="#7CB668"
+                android:visibility="gone"
+                style="?attr/borderlessButtonStyle" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

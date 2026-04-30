@@ -162,6 +162,9 @@ public class Shaft extends Application implements ServicesProvider {
 
         SessionManager.INSTANCE.initialize();
 
+        // 批量下载持久化队列（v33）：冷启动恢复 + 单并发消费循环
+        ceui.pixiv.ui.bulk.QueueDownloadManager.INSTANCE.init(this);
+
         // 初始化发现池 + 异步构建用户画像
         Timber.d("Discovery/Init >>> initializing DiscoveryPool");
         ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.initialize();

@@ -16,6 +16,9 @@ import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.setUpRefreshState
 
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.bulk.AuthorWorksFetcher
+import ceui.pixiv.ui.bulk.FetchProgressDialog
+import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.task.PixivTaskType
 import ceui.pixiv.utils.setOnClick
@@ -39,13 +42,16 @@ class UserCreatedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         binding.toolbarLayout.naviMore.setOnClick {
             showActionMenu {
                 add(
-                    MenuItem("下载全部作品", "实验性功能，测试中") {
-                        FetchAllTask(requireActivity(), taskFullName = "下载${ObjectPool.get<User>(args.userId).value?.name}创作的全部插画", PixivTaskType.DownloadAll) {
-                            Client.appApi.getUserCreatedIllusts(
-                                args.userId,
-                                args.objectType
-                            )
-                        }
+                    MenuItem("下载全部作品", "流式抓取 + 持久化队列，可冷启动恢复") {
+                        val authorName = ObjectPool.get<User>(args.userId).value?.name ?: "user"
+                        val taskName = "下载 ${authorName} 的全部${if (args.objectType == "manga") "漫画" else "插画"}"
+                        val fetcher = AuthorWorksFetcher(
+                            userId = args.userId,
+                            type = args.objectType,
+                            taskName = taskName,
+                        )
+                        FetchProgressDialog.show(childFragmentManager, fetcher.fetch())
+                        QueueDownloadManager.notifyNewItems()
                     }
                 )
                 add(
