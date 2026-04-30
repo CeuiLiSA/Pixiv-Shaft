@@ -43,6 +43,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
     private lateinit var logText: TextView
     private lateinit var logScroll: ScrollView
     private lateinit var statusLine: TextView
+    private lateinit var statusMetrics: TextView
     private lateinit var cancelBtn: Button
     private lateinit var openManagerBtn: Button
     private lateinit var closeBtn: Button
@@ -60,6 +61,8 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
     @Volatile private var totalSoFar: Int = 0
     @Volatile private var startedAt: Long = 0L
     @Volatile private var spinnerFrame: Int = 0
+    /** 进终态后冻结，refreshStatusLine 不再重新计算 elapsed，spinner ticker 也停止。 */
+    @Volatile private var frozenElapsedMs: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,12 +86,14 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         logText = view.findViewById(R.id.logText)
         logScroll = view.findViewById(R.id.logScroll)
         statusLine = view.findViewById(R.id.statusLine)
+        statusMetrics = view.findViewById(R.id.statusMetrics)
         cancelBtn = view.findViewById(R.id.cancelBtn)
         openManagerBtn = view.findViewById(R.id.openManagerBtn)
         closeBtn = view.findViewById(R.id.closeBtn)
 
         titleView.text = "batch-download"
         statusLine.text = "${SPINNER[0]} starting…"
+        statusMetrics.text = "page=— · total=0 · elapsed=0s · —"
         appendLine("$ fetch-author-works --stream --verbose")
         appendLine("  关掉此窗口不会停止抓取，可去 \"下载管理\" 查看进度")
         flushLog()
@@ -97,6 +102,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             fetchJob?.cancel()
             phase = Phase.CANCELED
             phaseDetail = "user canceled"
+            freezeTimer()
             appendLine("^C  user canceled — 已入队的项目保留，可在下载管理页继续/重试")
             cancelBtn.visibility = View.GONE
             closeBtn.visibility = View.VISIBLE
@@ -120,13 +126,16 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                 .launchIn(requireActivity().lifecycleScope)
         }
 
-        // 100ms 状态行刷新（spinner + 倒计时 + elapsed）—— 让用户感觉一直在动
+        // 100ms 状态行刷新（spinner + 倒计时 + elapsed）—— 让用户感觉一直在动。
+        // 一旦进入终态（frozenElapsedMs != null）立刻停转 —— 抓取完成后不该还有跳动的计时器。
         viewLifecycleOwner.lifecycleScope.launch {
-            while (viewAlive) {
+            while (viewAlive && frozenElapsedMs == null) {
                 spinnerFrame = (spinnerFrame + 1) % SPINNER.size
                 refreshStatusLine()
                 delay(STATUS_TICK_MS)
             }
+            // 终态最后刷一次，确保显示的就是冻结值
+            if (viewAlive) refreshStatusLine()
         }
     }
 
@@ -196,6 +205,8 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                 phase = Phase.DONE
                 phaseDetail = "completed"
                 totalSoFar = e.total
+                // 用 fetcher 上报的精确 elapsed，避免和 dialog 本地的 startedAt 漂移
+                frozenElapsedMs = e.elapsedMs
                 if (viewAlive) {
                     appendLine("")
                     appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -215,6 +226,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             is FetchEvent.Errored -> {
                 phase = Phase.FAILED
                 phaseDetail = "page ${e.pageIndex} failed"
+                freezeTimer()
                 if (viewAlive) {
                     appendLine("")
                     appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -232,13 +244,21 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
     }
 
     /**
-     * 顶部状态行 —— 一直在变，让用户绝不感觉"卡住了"。
-     * 格式: "{spinner} {action}  ·  page=N · total=M  ·  elapsed M:SS  ·  R.R/s"
+     * 双行固定结构的状态显示（避免 wrap_content 多行带来的 dialog 高度跳变）：
+     *   行 1（statusLine）: "{spinner} {action}"  —— singleLine + ellipsize
+     *   行 2（statusMetrics）: "page=N · total=M · elapsed=X · R/s"
      */
+    private fun freezeTimer() {
+        if (frozenElapsedMs == null) {
+            frozenElapsedMs = if (startedAt == 0L) 0L else System.currentTimeMillis() - startedAt
+        }
+    }
+
     private fun refreshStatusLine() {
         if (!viewAlive) return
         val now = System.currentTimeMillis()
-        val elapsedMs = if (startedAt == 0L) 0L else now - startedAt
+        val elapsedMs = frozenElapsedMs
+            ?: if (startedAt == 0L) 0L else now - startedAt
         val spin = SPINNER[spinnerFrame]
 
         val (icon, action) = when (phase) {
@@ -263,9 +283,9 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             String.format(Locale.US, "%.1f/s", totalSoFar * 1000.0 / elapsedMs)
         } else "—"
 
-        statusLine.text = buildString {
-            append(icon).append(' ').append(action)
-            append("    page=").append(if (pageIndex == 0) "—" else pageIndex.toString())
+        statusLine.text = "$icon $action"
+        statusMetrics.text = buildString {
+            append("page=").append(if (pageIndex == 0) "—" else pageIndex.toString())
             append(" · total=").append(totalSoFar)
             append(" · elapsed=").append(formatDuration(elapsedMs))
             append(" · ").append(rate)

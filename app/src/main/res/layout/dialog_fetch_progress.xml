@@ -80,7 +80,7 @@
                 android:padding="6dp" />
         </ScrollView>
 
-        <!-- Footer: status line + buttons -->
+        <!-- Footer: status (双行固定结构，避免 dialog 高度跳变) -->
         <TextView
             android:id="@+id/statusLine"
             android:layout_width="match_parent"
@@ -89,7 +89,22 @@
             android:textSize="11sp"
             android:textColor="#7CB668"
             android:paddingTop="8dp"
-            tools:text="● running…"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="⠋ fetching page 14 · GET /v1/user/illusts…"
+            xmlns:tools="http://schemas.android.com/tools" />
+
+        <TextView
+            android:id="@+id/statusMetrics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textSize="10sp"
+            android:textColor="#9DA3AB"
+            android:paddingTop="2dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="page=14 · total=420 · elapsed=24s · 16.3/s"
             xmlns:tools="http://schemas.android.com/tools" />
 
         <LinearLayout
