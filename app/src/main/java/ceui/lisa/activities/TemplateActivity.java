@@ -164,6 +164,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 }
                 case "关于软件":
                     return new FragmentAboutApp();
+                case "批量下载队列":
+                    return new ceui.pixiv.ui.bulk.DownloadQueueFragment();
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "正在关注":

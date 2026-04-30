@@ -707,6 +707,32 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             labels.add("跳转到漫画…")
             actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
         }
+        if (data.profile.total_illusts > 0) {
+            labels.add("下载全部插画 (批量入队)")
+            actions.add {
+                startBatchFetch(
+                    userIdLong = data.user.id.toLong(),
+                    type = ceui.pixiv.db.queue.WorkType.ILLUST,
+                    authorName = data.user.name ?: "user",
+                )
+            }
+        }
+        if (data.profile.total_manga > 0) {
+            labels.add("下载全部漫画 (批量入队)")
+            actions.add {
+                startBatchFetch(
+                    userIdLong = data.user.id.toLong(),
+                    type = ceui.pixiv.db.queue.WorkType.MANGA,
+                    authorName = data.user.name ?: "user",
+                )
+            }
+        }
+        labels.add("批量下载队列…")
+        actions.add {
+            val intent = Intent(this, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "批量下载队列")
+            startActivity(intent)
+        }
         if (!isSelf) {
             labels.add(
                 if (isMuted) getString(R.string.cancel_block_this_users_work)
@@ -734,6 +760,17 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 actions.getOrNull(which)?.invoke()
             }
             .show()
+    }
+
+    private fun startBatchFetch(userIdLong: Long, type: String, authorName: String) {
+        val typeLabel = if (type == ceui.pixiv.db.queue.WorkType.MANGA) "漫画" else "插画"
+        val fetcher = ceui.pixiv.ui.bulk.AuthorWorksFetcher(
+            userId = userIdLong,
+            type = type,
+            taskName = "下载 $authorName 的全部$typeLabel",
+        )
+        ceui.pixiv.ui.bulk.FetchProgressDialog.show(supportFragmentManager, fetcher.fetch())
+        ceui.pixiv.ui.bulk.QueueDownloadManager.notifyNewItems()
     }
 
     private fun jumpTo(userID: Int, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {
