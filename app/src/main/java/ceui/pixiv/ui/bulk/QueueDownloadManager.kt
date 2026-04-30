@@ -1,6 +1,9 @@
 package ceui.pixiv.ui.bulk
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
 import ceui.lisa.database.AppDatabase
@@ -12,6 +15,9 @@ import ceui.loxia.ObjectPool
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
@@ -77,13 +83,81 @@ object QueueDownloadManager {
         loopJob = scope.launch {
             // 冷启动：上次崩溃残留的 DOWNLOADING/没结束的全部归位为 PENDING
             runCatching { dao.resurrectInProgress() }.onFailure { Timber.tag(TAG).e(it, "resurrectInProgress failed") }
-            tickle.trySend(Unit)
+
+            // 检查是否有需要恢复的批量下载 —— 不无脑继续，让用户决定
+            val pending = runCatching { dao.countByStatus(QueueStatus.PENDING) }.getOrDefault(0)
+            if (pending > 0) {
+                paused = true   // 默认暂停；等用户在第一个 Activity 弹窗里决定
+                (appContext as? Application)?.let { app ->
+                    promptResumeOnFirstActivity(app, pending)
+                }
+                Timber.tag(TAG).i("cold start: $pending pending items, awaiting user decision")
+            } else {
+                paused = false
+                tickle.trySend(Unit)
+            }
+
             for (signal in tickle) {
                 if (paused) continue
                 consumeUntilEmpty()
             }
         }
         Timber.tag(TAG).d("QueueDownloadManager initialized")
+    }
+
+    /**
+     * 注册 ActivityLifecycleCallbacks，等到第一个真正进入 RESUMED 的 Activity，弹 QMUI
+     * dialog 询问用户是否继续。回调只触发一次，弹完即注销。
+     *
+     * Activity 必须是用户可见的 (state RESUMED) 且没在 finishing/destroyed —— 否则
+     * QMUIDialog 会在错误的窗口上 attach。
+     */
+    private fun promptResumeOnFirstActivity(app: Application, pendingCount: Int) {
+        val cb = object : Application.ActivityLifecycleCallbacks {
+            @Volatile var fired = false
+            override fun onActivityResumed(activity: Activity) {
+                if (fired) return
+                if (activity.isFinishing || activity.isDestroyed) return
+                fired = true
+                app.unregisterActivityLifecycleCallbacks(this)
+                showResumePrompt(activity, pendingCount)
+            }
+            override fun onActivityCreated(a: Activity, b: Bundle?) {}
+            override fun onActivityStarted(a: Activity) {}
+            override fun onActivityPaused(a: Activity) {}
+            override fun onActivityStopped(a: Activity) {}
+            override fun onActivitySaveInstanceState(a: Activity, b: Bundle) {}
+            override fun onActivityDestroyed(a: Activity) {}
+        }
+        app.registerActivityLifecycleCallbacks(cb)
+    }
+
+    private fun showResumePrompt(activity: Activity, pendingCount: Int) {
+        // QMUIDialog 必须在主线程展示
+        activity.runOnUiThread {
+            if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
+            try {
+                QMUIDialog.MessageDialogBuilder(activity)
+                    .setTitle("批量下载")
+                    .setMessage("上次还有 ${pendingCount} 项作品没下完。\n现在继续吗？\n\n(队列会按入队顺序串行下载，不打扰你浏览)")
+                    .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                    .addAction(0, "暂时不下", QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
+                        // 保持 paused —— 用户可去 下载管理 → 批量队列 手动点 "继续"
+                        Timber.tag(TAG).i("user declined cold-start resume; staying paused")
+                        d.dismiss()
+                    }
+                    .addAction(0, "继续") { d, _ ->
+                        Timber.tag(TAG).i("user confirmed cold-start resume; pending=$pendingCount")
+                        resume()
+                        d.dismiss()
+                    }
+                    .show()
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "failed to show resume prompt; auto-resuming as fallback")
+                // 极端情况（窗口已坏）下 fallback 到自动恢复，免得任务永远卡在 paused
+                resume()
+            }
+        }
     }
 
     fun notifyNewItems() { tickle.trySend(Unit) }
