@@ -26,8 +26,15 @@ class SafBackend(
         val parent = ensureDirectory(relPath.directory)
         val doc = parent.createFile(mime, relPath.filename)
             ?: error("DocumentFile.createFile returned null for $relPath under $treeUri")
-        val stream = context.contentResolver.openOutputStream(doc.uri, "rwt")
-            ?: error("openOutputStream returned null for ${doc.uri}")
+        // If openOutputStream throws, delete the empty document before
+        // propagating so we don't leak 0-byte SAF files (issue #857).
+        val stream = try {
+            context.contentResolver.openOutputStream(doc.uri, "rwt")
+                ?: error("openOutputStream returned null for ${doc.uri}")
+        } catch (e: Exception) {
+            runCatching { doc.delete() }
+            throw e
+        }
         val onFinish: () -> Unit = {
             // Best-effort gallery visibility: if the SAF tree maps to a real
             // path on shared storage, hand it to MediaScanner so the new file
@@ -38,7 +45,12 @@ class SafBackend(
                 MediaScannerConnection.scanFile(context, arrayOf(fsPath), arrayOf(mime), null)
             }
         }
-        return StorageBackend.WriteHandle(doc.uri, stream, onFinish)
+        // On abort, delete the SAF document we just created (always
+        // unconditional — createFile produced a fresh document we own).
+        val onAbort: () -> Unit = {
+            runCatching { doc.delete() }
+        }
+        return StorageBackend.WriteHandle(doc.uri, stream, onFinish, onAbort)
     }
 
     private fun resolveFsPath(docUri: Uri): String? = runCatching {

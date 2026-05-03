@@ -374,6 +374,10 @@ public class Manager {
             } catch (Exception e) {
                 Common.showLog("[DL] factory.insert() failed: " + e);
                 e.printStackTrace();
+                // insert() 内部已自带 cleanup（MediaStoreBackend 在 openOutputStream
+                // 失败时会先 delete row 再抛），但 factory 还可能维护额外状态 ——
+                // 调一次 abandonWrite 兜底，幂等 + 内部判空。
+                try { factory.abandonWrite(); } catch (Exception ignored) {}
                 AndroidSchedulers.mainThread().scheduleDirect(() -> {
                     Common.showToast(mContext.getString(R.string.string_365));
                     complete(downloadItem, false);
@@ -383,6 +387,7 @@ public class Manager {
             }
             if (targetUri == null) {
                 Common.showLog("[DL] factory.insert() returned null targetUri");
+                try { factory.abandonWrite(); } catch (Exception ignored) {}
                 AndroidSchedulers.mainThread().scheduleDirect(() -> {
                     Common.showToast(mContext.getString(R.string.string_365));
                     complete(downloadItem, false);
@@ -592,6 +597,12 @@ public class Manager {
                 Common.showToast("下载失败，原因：" + throwable.toString());
             }
             Common.showLog("下载失败，原因：" + throwable.toString());
+            // issue #857：网络抖动 / 断链 → 进这里。之前只 complete + 广播，从不
+            // 清理 factory.insert() 阶段创建的 MediaStore 行，导致用户的相册根
+            // 目录里堆出大量 0 字节 `.pending-NNNN` 文件。abandonWrite 内部对
+            // MediaStore 行做 delete、对 SAF 文件做 delete、对 legacy 文件做 delete
+            // （只删自己刚创建的那条；pre-existing 文件不动）。
+            try { factory.abandonWrite(); } catch (Exception ignored) {}
             complete(downloadItem, false);
             {
                 //通知 DOWNLOAD_ING 有一项下载失败

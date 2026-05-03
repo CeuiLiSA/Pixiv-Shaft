@@ -16,6 +16,7 @@ import ceui.loxia.ObjectPool
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
+import ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
@@ -84,6 +85,14 @@ object QueueDownloadManager {
         loopJob = scope.launch {
             // 冷启动：上次崩溃残留的 DOWNLOADING/没结束的全部归位为 PENDING
             runCatching { dao.resurrectInProgress() }.onFailure { Timber.tag(TAG).e(it, "resurrectInProgress failed") }
+
+            // issue #857：清理上一次会话遗留的 IS_PENDING=1 行（4.6.0~4.6.4 版本
+            // 在网络抖动时下载失败留下的 0 字节 `.pending-NNNN` 文件）。这一时刻
+            // 没有任何下载在进行，所以查到的全是孤儿，删除安全。
+            runCatching {
+                val ctx = appContext ?: return@runCatching
+                MediaStoreOrphanCleaner.cleanupPendingOrphans(ctx)
+            }.onFailure { Timber.tag(TAG).w(it, "cleanupPendingOrphans failed") }
 
             // 检查是否有需要恢复的批量下载 —— 不无脑继续，让用户决定
             val pending = runCatching { dao.countByStatus(QueueStatus.PENDING) }.getOrDefault(0)

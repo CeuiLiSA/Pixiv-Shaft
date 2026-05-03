@@ -19,8 +19,14 @@ class AppCacheBackend(private val context: Context) : StorageBackend {
         // name; Skip short-circuits in the facade). We do not second-guess it.
         val file = toFile(relPath)
         file.parentFile?.mkdirs()
-        file.createNewFile()
-        return StorageBackend.WriteHandle(Uri.fromFile(file), FileOutputStream(file))
+        val newlyCreated = file.createNewFile()
+        // On abort, only delete what we created — never touch a pre-existing
+        // file. Cache lives under externalCacheDir so leakage isn't visible
+        // to the user, but we still keep the surface area tight.
+        val onAbort: () -> Unit = {
+            if (newlyCreated) runCatching { file.delete() }
+        }
+        return StorageBackend.WriteHandle(Uri.fromFile(file), FileOutputStream(file), onAbort = onAbort)
     }
 
     override fun exists(relPath: RelativePath): Boolean = toFile(relPath).exists()

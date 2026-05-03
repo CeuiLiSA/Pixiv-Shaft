@@ -25,4 +25,16 @@ public interface DownloadFileFactory {
      * 默认空实现，方便实现类按需覆盖。
      */
     default void finishWrite() {}
+
+    /**
+     * 下载因网络失败 / 取消 / 异常等原因半途而废时调用，取消 insert() 阶段
+     * 留下的痕迹（MediaStore 行 / SAF 文件 / 缓存文件）。
+     *
+     * 不调用本方法的后果：MediaStore 上 IS_PENDING=1 的行不会被清除，
+     * 用户在文件管理器里看到一堆 0 字节的 `.pending-` 临时文件（issue #857）。
+     *
+     * 与 finishWrite() 二选一调用：成功 finishWrite，失败 abandonWrite。
+     * 默认空实现，方便实现类按需覆盖。
+     */
+    default void abandonWrite() {}
 }

@@ -41,6 +41,9 @@ class Android10DownloadFactory22(
 
     private var _uri: Uri? = null
     private var onFinish: () -> Unit = {}
+    private var onAbort: () -> Unit = {}
+    /** 终态后再回调一次 finish/abandon 都该是 no-op，避免误清空已成功的行。 */
+    private var settled: Boolean = false
 
     override fun query(): Uri? = _uri
 
@@ -61,6 +64,7 @@ class Android10DownloadFactory22(
         try { handle.stream.close() } catch (_: Exception) {}
         _uri = handle.uri
         onFinish = handle.onFinish
+        onAbort = handle.onAbort
         return handle.uri
     }
 
@@ -69,11 +73,28 @@ class Android10DownloadFactory22(
     override fun finishWrite() {
         // GIF (ugoira zip) 写到 app cache，相册不关心，跳过即可。
         if (isGif) return
+        if (settled) return
+        settled = true
         try {
             onFinish()
         } catch (e: Exception) {
             // 仅记录，不中断下载完成流程
             android.util.Log.w("Android10DownloadFactory22", "finishWrite failed: ${e.message}")
+        }
+    }
+
+    override fun abandonWrite() {
+        if (isGif) return
+        // 已经标记 finish/abandon 过了 → 幂等保护
+        if (settled) return
+        settled = true
+        // _uri == null 说明 insert 还没成功（factory init 后立刻失败），无可清理。
+        if (_uri == null) return
+        try {
+            onAbort()
+        } catch (e: Exception) {
+            // 清理是 best-effort —— 失败也别遮蔽真正的下载错误。
+            android.util.Log.w("Android10DownloadFactory22", "abandonWrite failed: ${e.message}")
         }
     }
 

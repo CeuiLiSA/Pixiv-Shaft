@@ -36,9 +36,19 @@ interface StorageBackend {
         return open(relPath, mime)
     }
 
+    /**
+     * [onFinish] is called once after bytes are committed (download success).
+     * [onAbort] is called when the download was abandoned mid-write
+     * (network failure, user cancellation, OOM, …) — backends MUST clean up
+     * any artefacts they materialised during [open] / [replace], otherwise
+     * a 0-byte / partial pending file will leak into the user's gallery.
+     * Exactly one of [onFinish] / [onAbort] is invoked per handle. After
+     * [onAbort] the handle is dead — do not call [onFinish] on it.
+     */
     data class WriteHandle(
         val uri: Uri,
         val stream: OutputStream,
         val onFinish: () -> Unit = {},
+        val onAbort: () -> Unit = {},
     )
 }

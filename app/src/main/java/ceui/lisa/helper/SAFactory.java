@@ -28,6 +28,9 @@ public class SAFactory implements DownloadFileFactory {
     private final Downloads.Plan mPlan;
     private Uri mUri;
     private Function0<Unit> mOnFinish = () -> Unit.INSTANCE;
+    private Function0<Unit> mOnAbort = () -> Unit.INSTANCE;
+    /** 终态保护：finish 或 abandon 任一发生后，再次调用都是 no-op。 */
+    private boolean mSettled = false;
 
     public SAFactory(@NotNull Context context, DownloadItem item) {
         ceui.pixiv.download.model.DownloadItem newItem = item.getIllust().isGif()
@@ -57,6 +60,7 @@ public class SAFactory implements DownloadFileFactory {
         }
         mUri = handle.getUri();
         mOnFinish = handle.getOnFinish();
+        mOnAbort = handle.getOnAbort();
         return mUri;
     }
 
@@ -68,10 +72,26 @@ public class SAFactory implements DownloadFileFactory {
 
     @Override
     public void finishWrite() {
+        if (mSettled) return;
+        mSettled = true;
         try {
             mOnFinish.invoke();
         } catch (Exception e) {
             android.util.Log.w("SAFactory", "finishWrite failed: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void abandonWrite() {
+        if (mSettled) return;
+        mSettled = true;
+        // mUri == null 说明 insert 还没成功，没东西可清理。
+        if (mUri == null) return;
+        try {
+            mOnAbort.invoke();
+        } catch (Exception e) {
+            // 清理是 best-effort —— 失败也别遮蔽真正的下载错误。
+            android.util.Log.w("SAFactory", "abandonWrite failed: " + e.getMessage());
         }
     }
 

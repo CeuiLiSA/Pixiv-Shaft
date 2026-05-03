@@ -103,7 +103,7 @@ class QueueListV3Fragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
                     val rows = withContext(Dispatchers.IO) {
-                        runCatching { dao.pageActive(limit = PAGE_SIZE, offset = 0) }.getOrDefault(emptyList())
+                        runCatching { loadAllActive() }.getOrDefault(emptyList())
                     }
                     adapter.submitList(rows)
                     empty.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
@@ -113,8 +113,36 @@ class QueueListV3Fragment : Fragment() {
         }
     }
 
+    /**
+     * issue #858：旧代码直接 `pageActive(limit=200, offset=0)`，导致用户批量下载
+     * 487p 暂停重启后，只显示前 200 条 —— 用户感觉"中间 300 张丢了"。实际数据
+     * 都在 DB 里，consumer 会按 seq ASC 顺序消费完，只是 UI 没翻页就把后面的
+     * 截掉了。
+     *
+     * 改成"分页拉到为止"，硬上限 [MAX_DISPLAY_ROWS] 防极端用例（5 万项时
+     * RecyclerView 不至于卡死）。487 项这种正常规模一次性全显示。
+     */
+    private suspend fun loadAllActive(): List<DownloadQueueEntity> {
+        val all = ArrayList<DownloadQueueEntity>()
+        var offset = 0
+        while (offset < MAX_DISPLAY_ROWS) {
+            val page = dao.pageActive(limit = PAGE_SIZE, offset = offset)
+            if (page.isEmpty()) break
+            all.addAll(page)
+            if (page.size < PAGE_SIZE) break
+            offset += PAGE_SIZE
+        }
+        return all
+    }
+
     companion object {
         private const val PAGE_SIZE = 200
+        /**
+         * UI 一次最多加载这么多条 —— 5000 条 RecyclerView 仍然流畅。
+         * consumer 不受此限，会把 DB 里全部 PENDING 都消费掉，所以即使有
+         * 几万条也只是前 5000 个可见，后续随消费完成自动滚出来。
+         */
+        private const val MAX_DISPLAY_ROWS = 5000
         private const val REFRESH_INTERVAL_MS = 1500L
     }
 }

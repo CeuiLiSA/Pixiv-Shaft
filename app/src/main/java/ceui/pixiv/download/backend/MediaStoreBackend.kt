@@ -62,15 +62,42 @@ class MediaStoreBackend(
                     put(MediaStore.MediaColumns.IS_PENDING, 1)
                 }
                 context.contentResolver.update(existing, values, null, null)
-                val stream = context.contentResolver.openOutputStream(existing, "rwt")
-                    ?: error("openOutputStream returned null for $existing")
+                // If openOutputStream throws, restore IS_PENDING=0 on the
+                // existing row before propagating — otherwise the pre-existing
+                // file gets stuck as a `.pending-` orphan even though we never
+                // wrote a byte (issue #857 manifested via "replace" path).
+                val stream = try {
+                    context.contentResolver.openOutputStream(existing, "rwt")
+                        ?: error("openOutputStream returned null for $existing")
+                } catch (e: Exception) {
+                    runCatching {
+                        context.contentResolver.update(
+                            existing,
+                            ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
+                            null, null,
+                        )
+                    }
+                    throw e
+                }
                 val onFinish: () -> Unit = {
                     val update = ContentValues().apply {
                         put(MediaStore.MediaColumns.IS_PENDING, 0)
                     }
                     context.contentResolver.update(existing, update, null, null)
                 }
-                return StorageBackend.WriteHandle(existing, stream, onFinish)
+                // On abort during replace, restore IS_PENDING=0 — the row
+                // pre-existed before we touched it, so deleting it would
+                // unilaterally erase a file the user already had.
+                val onAbort: () -> Unit = {
+                    runCatching {
+                        context.contentResolver.update(
+                            existing,
+                            ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
+                            null, null,
+                        )
+                    }
+                }
+                return StorageBackend.WriteHandle(existing, stream, onFinish, onAbort)
             }
         }
         return super.replace(relPath, mime)
@@ -92,8 +119,16 @@ class MediaStoreBackend(
         }
         val target: Uri = context.contentResolver.insert(collectionUri, values)
             ?: error("MediaStore insert failed for $relPath")
-        val stream = context.contentResolver.openOutputStream(target, "rwt")
-            ?: error("openOutputStream returned null for $target")
+        // If openOutputStream throws after the row was inserted, the row
+        // would otherwise be left stranded as a `.pending-NNNN` 0-byte file.
+        // Delete it before propagating so we don't leak orphans (issue #857).
+        val stream = try {
+            context.contentResolver.openOutputStream(target, "rwt")
+                ?: error("openOutputStream returned null for $target")
+        } catch (e: Exception) {
+            runCatching { context.contentResolver.delete(target, null, null) }
+            throw e
+        }
         val onFinish: () -> Unit = {
             // Clear IS_PENDING — this both makes the row visible to other apps
             // and fires a content observer notification that gallery apps use
@@ -103,21 +138,33 @@ class MediaStoreBackend(
             }
             context.contentResolver.update(target, update, null, null)
         }
-        return StorageBackend.WriteHandle(target, stream, onFinish)
+        // On abort, delete the row we just inserted. The bytes are partial /
+        // zero, the row is invisible to galleries (still IS_PENDING=1), and
+        // the user's file manager shows it as `.pending-NNNN`. Clean exit.
+        val onAbort: () -> Unit = {
+            runCatching { context.contentResolver.delete(target, null, null) }
+        }
+        return StorageBackend.WriteHandle(target, stream, onFinish, onAbort)
     }
 
     private fun openLegacy(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
         val file = legacyFile(relPath)
         file.parentFile?.mkdirs()
-        if (!file.exists()) file.createNewFile()
+        val newlyCreated = !file.exists() && file.createNewFile()
         val onFinish: () -> Unit = {
             // Pre-Q public-storage write — file is real, just tell MediaScanner.
             MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mime), null)
+        }
+        // On abort, only delete if we created the file ourselves — never
+        // delete a pre-existing file the user already had on disk.
+        val onAbort: () -> Unit = {
+            if (newlyCreated) runCatching { file.delete() }
         }
         return StorageBackend.WriteHandle(
             Uri.fromFile(file),
             FileOutputStream(file) as OutputStream,
             onFinish,
+            onAbort,
         )
     }
 
