@@ -20,13 +20,22 @@ class AppCacheBackend(private val context: Context) : StorageBackend {
         val file = toFile(relPath)
         file.parentFile?.mkdirs()
         val newlyCreated = file.createNewFile()
+        // FileOutputStream 罕见地可能在 createNewFile 后抛（cache 分区满 /
+        // 卷被卸载等）。失败时调用方拿不到 WriteHandle，onAbort 无从触发，
+        // 这里先把刚创建的文件清掉再抛。
+        val stream = try {
+            FileOutputStream(file)
+        } catch (e: Exception) {
+            if (newlyCreated) runCatching { file.delete() }
+            throw e
+        }
         // On abort, only delete what we created — never touch a pre-existing
         // file. Cache lives under externalCacheDir so leakage isn't visible
         // to the user, but we still keep the surface area tight.
         val onAbort: () -> Unit = {
             if (newlyCreated) runCatching { file.delete() }
         }
-        return StorageBackend.WriteHandle(Uri.fromFile(file), FileOutputStream(file), onAbort = onAbort)
+        return StorageBackend.WriteHandle(Uri.fromFile(file), stream, onAbort = onAbort)
     }
 
     override fun exists(relPath: RelativePath): Boolean = toFile(relPath).exists()

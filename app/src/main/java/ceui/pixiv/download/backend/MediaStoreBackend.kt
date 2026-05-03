@@ -151,6 +151,16 @@ class MediaStoreBackend(
         val file = legacyFile(relPath)
         file.parentFile?.mkdirs()
         val newlyCreated = !file.exists() && file.createNewFile()
+        // FileOutputStream 失败极罕见（disk full / 同时撤权限），但一旦失败
+        // 调用方拿不到 WriteHandle、抓不到 onAbort，刚 createNewFile 的 0 字节
+        // 文件就泄漏。和 openModern / SafBackend 保持一致：失败前先把刚创建的
+        // 文件删掉再抛。
+        val stream: OutputStream = try {
+            FileOutputStream(file)
+        } catch (e: Exception) {
+            if (newlyCreated) runCatching { file.delete() }
+            throw e
+        }
         val onFinish: () -> Unit = {
             // Pre-Q public-storage write — file is real, just tell MediaScanner.
             MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mime), null)
@@ -160,12 +170,7 @@ class MediaStoreBackend(
         val onAbort: () -> Unit = {
             if (newlyCreated) runCatching { file.delete() }
         }
-        return StorageBackend.WriteHandle(
-            Uri.fromFile(file),
-            FileOutputStream(file) as OutputStream,
-            onFinish,
-            onAbort,
-        )
+        return StorageBackend.WriteHandle(Uri.fromFile(file), stream, onFinish, onAbort)
     }
 
     private fun findUri(relPath: RelativePath): Uri? {
