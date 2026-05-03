@@ -10,35 +10,48 @@ import android.provider.MediaStore
 import timber.log.Timber
 
 /**
- * 清扫上一次会话遗留的 `IS_PENDING=1` MediaStore 行（issue #857 修复的"打扫"环节）。
+ * 清扫上一次会话遗留的 `IS_PENDING=1` MediaStore 行（issue #857 的"打扫"环节）。
  *
  * 用户报告：4.63 / 4.64 网络抖动或断链时下载失效，相册根目录下出现大量
  * 0 字节 `.pending-NNNN` 临时文件，恢复网络后这些文件不会消失。
  *
  * 修复分两条线：
- *   1. **不再产生**：[ceui.lisa.core.Manager] 的 onError handler 现在调用
- *      `factory.abandonWrite()`，让 MediaStoreBackend / SafBackend 删掉刚创建
- *      的行/文件。新失败不再泄漏。
- *   2. **打扫历史**：本工具，在 app 冷启动消费者动起来之前跑一遍，把上一次
- *      会话留下的 `IS_PENDING=1` 行全部删掉。
+ *   1. **不再产生**：[ceui.lisa.core.Manager] 的 onError handler 调用
+ *      `factory.abandonWrite()`，MediaStoreBackend / SafBackend 删掉刚创建
+ *      的行 / 文件。新失败不再泄漏。
+ *   2. **打扫历史**：本工具在 app 冷启动跑一遍，把上一次会话遗留的
+ *      `IS_PENDING=1` 行删掉。
  *
- * **安全性**：MediaStore 上 `IS_PENDING=1` 的行默认只对所属 app 可见，所以
- * 我们的查询不会误触别 app 的待处理行。冷启动时机选在
- * [ceui.pixiv.ui.bulk.QueueDownloadManager.init] 协程一开始（IO 线程，
- * `resurrectInProgress` 之后、第一个 `tickle` 处理之前），保证没有正在进行
- * 的下载，所以删除是无歧义的。
+ * **安全性两道闸**：
+ *   - MediaStore 上 `IS_PENDING=1` 的行默认只对所属 app 可见，查到的全是我们
+ *     自己的行，不会误删别 app 的待处理文件。
+ *   - 用 [STALENESS_THRESHOLD_MS] 过滤 DATE_ADDED：只删 60 秒前以上的行，
+ *     避免和"用户刚点单图下载"在 [ceui.lisa.core.Manager.downloadOne] 里刚
+ *     插入的新 row 撞车（race window 真实存在 —— init 在 IO 协程，
+ *     downloadOne 也在 IO，两条 binder 调用可能交错）。
+ *
+ * **行数封顶** [MAX_DELETE_PER_RUN]：极端用户可能积累上千条孤儿行，每条
+ * `contentResolver.delete()` 都是一次 binder 往返，不限量会把首次启动拖慢
+ * 几十秒。剩余的等下次启动继续清。
  */
 object MediaStoreOrphanCleaner {
 
     private const val TAG = "MediaStoreOrphanCleaner"
+    /** 单次启动最多删多少行；剩余下次启动再删，不要把首次启动拖死。 */
+    private const val MAX_DELETE_PER_RUN = 2000
+    /** 比这个新的 IS_PENDING 行不动 —— 可能是用户当前 session 里刚发起的下载。 */
+    private const val STALENESS_THRESHOLD_MS = 60_000L
 
     /** 返回总共删掉的行数。失败时返回累计数（部分成功也算），不抛。 */
     fun cleanupPendingOrphans(context: Context): Int {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return 0
         var total = 0
+        // DATE_ADDED 是 Unix 秒，不是毫秒
+        val cutoffSec = (System.currentTimeMillis() - STALENESS_THRESHOLD_MS) / 1000
         for (collection in collections()) {
+            if (total >= MAX_DELETE_PER_RUN) break
             total += try {
-                cleanupCollection(context, collection)
+                cleanupCollection(context, collection, cutoffSec, MAX_DELETE_PER_RUN - total)
             } catch (e: Exception) {
                 Timber.tag(TAG).w(e, "cleanupCollection failed for $collection")
                 0
@@ -56,10 +69,17 @@ object MediaStoreOrphanCleaner {
         }
     }
 
-    private fun cleanupCollection(context: Context, collection: Uri): Int {
+    private fun cleanupCollection(
+        context: Context,
+        collection: Uri,
+        cutoffSec: Long,
+        budget: Int,
+    ): Int {
         val resolver = context.contentResolver
         val projection = arrayOf(MediaStore.MediaColumns._ID)
-        val selection = "${MediaStore.MediaColumns.IS_PENDING}=1"
+        // 只动 60 秒以前的行 —— 避免误删用户刚发起的单图下载（DATE_ADDED 用秒）
+        val selection = "${MediaStore.MediaColumns.IS_PENDING}=1 AND " +
+                "${MediaStore.MediaColumns.DATE_ADDED} < $cutoffSec"
         val cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // R+ 推荐用 queryArgs Bundle，setIncludePending 在 R 起 deprecated。
             val args = Bundle().apply {
@@ -77,7 +97,7 @@ object MediaStoreOrphanCleaner {
         var deleted = 0
         cursor.use { c ->
             val idCol = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-            while (c.moveToNext()) {
+            while (c.moveToNext() && deleted < budget) {
                 val id = c.getLong(idCol)
                 val rowUri = ContentUris.withAppendedId(collection, id)
                 runCatching { resolver.delete(rowUri, null, null) }
