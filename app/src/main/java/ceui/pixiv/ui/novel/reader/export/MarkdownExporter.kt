@@ -79,6 +79,10 @@ class MarkdownExporter : NovelExporter {
                         }
                         appendLine()
                     }
+                    is ContentToken.Jump -> {
+                        appendLine("*[跳转→第 ${token.target} 段]*")
+                        appendLine()
+                    }
                 }
             }
         }

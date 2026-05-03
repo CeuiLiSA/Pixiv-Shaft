@@ -43,4 +43,15 @@ sealed class ContentToken {
         override val sourceStart: Int,
         override val sourceEnd: Int,
     ) : ContentToken()
+
+    /**
+     * `[jump:N]` — Pixiv novel inter-page navigation. `target` is the
+     * 1-indexed `[newpage]`-delimited segment to jump to. Block-level (own
+     * line) per Pixiv markup convention; renders as a tappable button.
+     */
+    data class Jump(
+        override val sourceStart: Int,
+        override val sourceEnd: Int,
+        val target: Int,
+    ) : ContentToken()
 }

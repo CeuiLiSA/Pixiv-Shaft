@@ -81,6 +81,7 @@ class NovelReaderView @JvmOverloads constructor(
     var onDoubleTapAt: ((x: Float, y: Float) -> Unit)? = null
     var onEdgeHit: ((FlipDirection) -> Unit)? = null
     var onImageTap: ((PageElement.Image) -> Unit)? = null
+    var onJumpTap: ((PageElement.Jump) -> Unit)? = null
 
     init {
         setWillNotDraw(false)
@@ -382,6 +383,13 @@ class NovelReaderView @JvmOverloads constructor(
             onImageTap?.invoke(hit)
             return
         }
+        // Jump button hit-test — likewise precedes tap-zones so the button
+        // navigates instead of flipping pages.
+        val jumpHit = findJumpAt(y)
+        if (jumpHit != null) {
+            onJumpTap?.invoke(jumpHit)
+            return
+        }
         // Single-tap zones: thirds horizontally.
         val third = width / 3f
         when {
@@ -395,6 +403,14 @@ class NovelReaderView @JvmOverloads constructor(
         val page = pages.getOrNull(currentIndex) ?: return null
         for (el in page.elements) {
             if (el is PageElement.Image && y >= el.top && y <= el.bottom) return el
+        }
+        return null
+    }
+
+    private fun findJumpAt(y: Float): PageElement.Jump? {
+        val page = pages.getOrNull(currentIndex) ?: return null
+        for (el in page.elements) {
+            if (el is PageElement.Jump && y >= el.top && y <= el.bottom) return el
         }
         return null
     }

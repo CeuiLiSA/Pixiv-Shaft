@@ -915,6 +915,8 @@
   <string name="msg_no_chapters">這篇小說沒有章節標記</string>
   <string name="msg_last_chapter">已是最後一章</string>
   <string name="msg_first_chapter">已是第一章</string>
+  <string name="reader_jump_button">→ 跳轉：第 %1$d 段</string>
+  <string name="msg_jump_target_invalid">跳轉目標超出範圍</string>
   <string name="msg_novel_loading">小說資訊尚未載入，請稍後再試</string>
   <string name="msg_novel_not_ready">小說尚未載入完成</string>
   <string name="msg_export_start">開始匯出 %s…</string>

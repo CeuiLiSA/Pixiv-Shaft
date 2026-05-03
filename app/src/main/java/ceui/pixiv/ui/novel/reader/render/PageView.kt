@@ -198,6 +198,7 @@ class PageView @JvmOverloads constructor(
                 is PageElement.Space -> Unit
                 is PageElement.Chapter,
                 is PageElement.Image,
+                is PageElement.Jump,
                 -> current = null
             }
         }

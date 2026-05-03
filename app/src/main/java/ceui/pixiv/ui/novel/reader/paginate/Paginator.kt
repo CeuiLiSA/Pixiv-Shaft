@@ -121,7 +121,35 @@ class Paginator(
                     currentCharEnd = token.sourceEnd
                 }
             }
+
+            is ContentToken.Jump -> emitJump(token)
         }
+    }
+
+    private fun emitJump(token: ContentToken.Jump) {
+        // Button is a fixed-height row with vertical breathing room. Keep its
+        // height tied to textSize so it scales with reader font settings, and
+        // pad with paragraphSpacing on either side so the button doesn't
+        // crowd the surrounding text.
+        val buttonHeight = style.textPaint.textSize * 2.4f
+        val gap = style.paragraphSpacingPx
+        val totalHeight = buttonHeight + gap * 2f
+        val remaining = (geometry.height - geometry.paddingBottom) - currentY
+        if (remaining < totalHeight && currentElements.isNotEmpty()) {
+            finishPage()
+        }
+        currentY += gap
+        val element = PageElement.Jump(
+            top = currentY,
+            bottom = currentY + buttonHeight,
+            absoluteCharStart = token.sourceStart,
+            absoluteCharEnd = token.sourceEnd,
+            target = token.target,
+        )
+        currentElements += element
+        ensureStartTracked(token.sourceStart)
+        currentY += buttonHeight + gap
+        currentCharEnd = token.sourceEnd
     }
 
     private fun emitImagePage(token: ContentToken, element: PageElement.Image) {

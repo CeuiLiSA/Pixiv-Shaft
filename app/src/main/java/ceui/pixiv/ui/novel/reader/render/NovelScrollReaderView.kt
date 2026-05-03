@@ -56,6 +56,7 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
 
     var onCenterTap: (() -> Unit)? = null
     var onImageTap: ((ceui.pixiv.ui.novel.reader.model.PageElement.Image) -> Unit)? = null
+    var onJumpTap: ((target: Int) -> Unit)? = null
     var onCharIndexChanged: ((Int) -> Unit)? = null
     /** Fraction of total scrollable range consumed, in [0f, 1f]. */
     var onScrollProgressChanged: ((Float) -> Unit)? = null
@@ -120,6 +121,7 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
                 is ContentToken.PageBreak -> createDivider(style, contentWidth)
                 is ContentToken.PixivImage -> createImage(token, style, imageResolver)
                 is ContentToken.UploadedImage -> createImage(token, style, imageResolver)
+                is ContentToken.Jump -> createJumpButton(token, style)
             }
             container.addView(child)
             val anchorStart = if (token is ContentToken.Paragraph) token.textSourceStart else token.sourceStart
@@ -286,6 +288,44 @@ class NovelScrollReaderView(context: Context) : NestedScrollView(context) {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 height.toInt(),
             )
+        }
+    }
+
+    private fun createJumpButton(token: ContentToken.Jump, style: TypeStyle): android.view.View {
+        val density = context.resources.displayMetrics.density
+        val drawable = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = style.textPaint.textSize * 1.2f
+            setStroke((2 * density).toInt(), style.linkColor)
+            setColor(android.graphics.Color.TRANSPARENT)
+        }
+        return AppCompatTextView(context).apply {
+            text = context.getString(ceui.lisa.R.string.reader_jump_button, token.target)
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, style.textPaint.textSize)
+            typeface = style.textPaint.typeface
+            setTextColor(style.linkColor)
+            gravity = Gravity.CENTER
+            background = drawable
+            isClickable = true
+            isFocusable = true
+            // Padding gives the button visible breathing room; the inner
+            // padding plus stroke produce a comfortably tappable height
+            // (~48dp at default font size).
+            val padV = (style.textPaint.textSize * 0.5f).toInt()
+            val padH = (style.textPaint.textSize * 1f).toInt()
+            setPadding(padH, padV, padH, padV)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                topMargin = style.paragraphSpacingPx.toInt()
+                bottomMargin = style.paragraphSpacingPx.toInt()
+                val side = (style.textPaint.textSize * 2f).toInt()
+                leftMargin = side
+                rightMargin = side
+            }
+            val target = token.target
+            setOnClickListener { onJumpTap?.invoke(target) }
         }
     }
 

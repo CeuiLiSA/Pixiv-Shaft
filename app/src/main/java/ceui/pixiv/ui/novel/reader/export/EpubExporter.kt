@@ -132,6 +132,9 @@ class EpubExporter : NovelExporter {
                             append("<p class=\"image\"><em>[图片 ${token.imageId}: $url]</em></p>\n")
                         }
                     }
+                    is ContentToken.Jump -> {
+                        append("<p class=\"jump\"><em>[跳转→第 ${token.target} 段]</em></p>\n")
+                    }
                 }
             }
         }

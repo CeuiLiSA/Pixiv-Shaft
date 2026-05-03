@@ -868,6 +868,8 @@
   <string name="msg_no_chapters">This novel has no chapter markers</string>
   <string name="msg_last_chapter">Already at last chapter</string>
   <string name="msg_first_chapter">Already at first chapter</string>
+  <string name="reader_jump_button">→ Jump to page %1$d</string>
+  <string name="msg_jump_target_invalid">Jump target out of range</string>
   <string name="msg_novel_loading">Novel info not loaded yet, try again later</string>
   <string name="msg_novel_not_ready">Novel not loaded yet</string>
   <string name="msg_export_start">Starting export %s…</string>

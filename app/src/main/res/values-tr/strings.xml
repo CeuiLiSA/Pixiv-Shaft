@@ -800,6 +800,8 @@
   <string name="msg_no_chapters">Bu romanda bölüm işareti yok</string>
   <string name="msg_last_chapter">Son bölümdesiniz</string>
   <string name="msg_first_chapter">İlk bölümdesiniz</string>
+  <string name="reader_jump_button">→ %1$d. sayfaya atla</string>
+  <string name="msg_jump_target_invalid">Atlama hedefi aralık dışında</string>
   <string name="msg_novel_loading">Roman bilgisi henüz yüklenmedi, daha sonra deneyin</string>
   <string name="msg_novel_not_ready">Roman henüz yüklenmedi</string>
   <string name="msg_export_start">%s dışa aktarılıyor…</string>

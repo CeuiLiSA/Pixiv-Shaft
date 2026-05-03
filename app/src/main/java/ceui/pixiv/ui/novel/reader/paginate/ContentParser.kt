@@ -16,6 +16,7 @@ object ContentParser {
     private val uploadedImageRegex = Regex("""\[uploadedimage:(\d+)]""")
     private val pixivImageRegex = Regex("""\[pixivimage:(\d+)(?:-(\d+))?]""")
     private val chapterRegex = Regex("""\[chapter:(.+?)]""")
+    private val jumpRegex = Regex("""\[jump:(\d+)]""")
     private const val NEWPAGE_TAG = "[newpage]"
 
     // 用户反馈：部分 Pixiv 作品的章节标题里数字两侧出现多余的引号（直引号 /
@@ -65,6 +66,15 @@ object ContentParser {
             when {
                 trimmed == NEWPAGE_TAG -> {
                     raw += ContentToken.PageBreak(lineStart, lineEnd)
+                }
+                jumpRegex.matchEntire(trimmed) != null -> {
+                    // Block-level `[jump:N]` — own line, parsed as a button.
+                    // Inline-mixed `…[jump:N]…` falls through to Paragraph
+                    // (rare in practice; Pixiv authoring tools always emit
+                    // jump tags on their own line).
+                    val target = jumpRegex.matchEntire(trimmed)!!
+                        .groupValues[1].toIntOrNull() ?: 0
+                    raw += ContentToken.Jump(lineStart, lineEnd, target)
                 }
                 chapterRegex.containsMatchIn(trimmed) -> {
                     val title = cleanChapterTitle(
@@ -175,6 +185,7 @@ object ContentParser {
                 is ContentToken.Paragraph,
                 is ContentToken.PixivImage,
                 is ContentToken.UploadedImage,
+                is ContentToken.Jump,
                 -> {
                     if (!firstContentAnchored) {
                         outline += ChapterOutlineEntry(
@@ -188,6 +199,27 @@ object ContentParser {
             }
         }
         return outline
+    }
+
+    /**
+     * Resolve a `[jump:N]` target (1-indexed `[newpage]`-segment number) to
+     * the source character offset where that segment begins. Returns null
+     * when [target] is out of range so the caller can show a no-op toast.
+     *
+     * Segment 1 = doc start (or first content). Segment N (>1) = char right
+     * after the (N-1)th [PageBreak]. Pixiv numbers pages starting at 1.
+     */
+    fun resolveJumpTarget(tokens: List<ContentToken>, target: Int): Int? {
+        if (target < 1) return null
+        if (target == 1) return tokens.firstOrNull()?.sourceStart ?: 0
+        var seen = 0
+        for (token in tokens) {
+            if (token is ContentToken.PageBreak) {
+                seen += 1
+                if (seen == target - 1) return token.sourceEnd
+            }
+        }
+        return null
     }
 }
 

@@ -1142,6 +1142,8 @@
     <string name="msg_no_chapters">这篇小说没有章节标记</string>
     <string name="msg_last_chapter">已是最后一章</string>
     <string name="msg_first_chapter">已是第一章</string>
+    <string name="reader_jump_button">→ 跳转：第 %1$d 段</string>
+    <string name="msg_jump_target_invalid">跳转目标超出范围</string>
     <string name="msg_novel_loading">小说信息还没加载，请稍后再试</string>
     <string name="msg_novel_not_ready">小说还没加载完成</string>
     <string name="msg_export_start">开始导出 %s…</string>

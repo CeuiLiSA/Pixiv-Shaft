@@ -45,6 +45,13 @@ object PageRenderer {
         style = Paint.Style.STROKE
         strokeWidth = 1.5f
     }
+    private val jumpBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 2f
+    }
+    private val jumpTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+    }
 
     fun drawBackground(
         canvas: Canvas,
@@ -82,6 +89,7 @@ object PageRenderer {
                 is PageElement.Chapter -> drawChapter(canvas, element, paddingLeft, style)
                 is PageElement.Image -> drawImage(canvas, element, paddingLeft, style, imageSource)
                 is PageElement.Space -> Unit
+                is PageElement.Jump -> drawJump(canvas, element, paddingLeft, style)
             }
         }
         // TODO(v3): re-wire annotations / search / TTS overlays on top of the
@@ -114,6 +122,37 @@ object PageRenderer {
             underlineY,
             dividerPaint,
         )
+    }
+
+    private fun drawJump(
+        canvas: Canvas,
+        element: PageElement.Jump,
+        paddingLeft: Float,
+        style: TypeStyle,
+    ) {
+        // Inset the button so it visually reads as an inline control rather
+        // than a full-width banner. ~25% of content width on each side keeps
+        // the button comfortably wide on phones without overpowering body text.
+        val contentWidth = (canvas.width - paddingLeft * 2).coerceAtLeast(1f)
+        val sideInset = contentWidth * 0.18f
+        val left = paddingLeft + sideInset
+        val right = paddingLeft + contentWidth - sideInset
+        val rect = RectF(left, element.top, right, element.bottom)
+        val radius = (element.bottom - element.top) * 0.5f
+        jumpBorderPaint.color = style.linkColor
+        canvas.drawRoundRect(rect, radius, radius, jumpBorderPaint)
+
+        jumpTextPaint.color = style.linkColor
+        jumpTextPaint.textSize = style.textPaint.textSize
+        jumpTextPaint.typeface = style.textPaint.typeface
+        val label = ceui.lisa.activities.Shaft.getContext()
+            .getString(ceui.lisa.R.string.reader_jump_button, element.target)
+        val cy = (element.top + element.bottom) / 2f
+        // Vertical center: subtract half the font's visual height (the
+        // descent/ascent average is the cleanest baseline for centered text).
+        val fm = jumpTextPaint.fontMetrics
+        val baseline = cy - (fm.ascent + fm.descent) / 2f
+        canvas.drawText(label, (left + right) / 2f, baseline, jumpTextPaint)
     }
 
     private fun drawImage(

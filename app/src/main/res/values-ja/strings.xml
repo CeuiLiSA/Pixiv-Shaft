@@ -902,6 +902,8 @@
   <string name="msg_no_chapters">この小説にはチャプターマークがありません</string>
   <string name="msg_last_chapter">最後の章です</string>
   <string name="msg_first_chapter">最初の章です</string>
+  <string name="reader_jump_button">→ %1$d ページへジャンプ</string>
+  <string name="msg_jump_target_invalid">ジャンプ先が範囲外です</string>
   <string name="msg_novel_loading">小説情報がまだ読み込まれていません。後でもう一度お試しください</string>
   <string name="msg_novel_not_ready">小説がまだ読み込まれていません</string>
   <string name="msg_export_start">%s をエクスポート中…</string>

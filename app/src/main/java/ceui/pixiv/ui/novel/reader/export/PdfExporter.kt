@@ -147,6 +147,18 @@ class PdfExporter : NovelExporter {
                     state.drawLayout(placeholder, marginPt)
                     state.y += 12f
                 }
+                is ContentToken.Jump -> {
+                    val placeholder = TextMeasurer.buildStaticLayout(
+                        text = "[跳转→第 ${token.target} 段]",
+                        paint = metaPaint,
+                        width = contentWidthPt.toInt(),
+                        lineSpacingMultiplier = 1.2f,
+                        lineSpacingExtra = 0f,
+                        alignment = Layout.Alignment.ALIGN_CENTER,
+                    )
+                    state.drawLayout(placeholder, marginPt)
+                    state.y += 12f
+                }
             }
         }
         state.finish(document)

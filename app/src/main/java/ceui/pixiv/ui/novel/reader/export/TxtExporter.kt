@@ -71,6 +71,7 @@ class TxtExporter : NovelExporter {
                     }
                     is ContentToken.PixivImage -> appendLine("[图片: pixiv ${token.illustId}]")
                     is ContentToken.UploadedImage -> appendLine("[图片: uploaded ${token.imageId}]")
+                    is ContentToken.Jump -> appendLine("[跳转→第 ${token.target} 段]")
                 }
             }
         }

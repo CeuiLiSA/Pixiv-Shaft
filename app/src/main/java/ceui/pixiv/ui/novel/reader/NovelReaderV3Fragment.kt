@@ -200,6 +200,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             if (activeSelection != null) clearSelection() else chrome.toggle()
         }
         rv.onImageTap = { image -> openImageElement(image) }
+        rv.onJumpTap = { jump -> handleJumpTap(jump.target) }
         rv.onEdgeHit = { /* edge feedback: vibrate later */ }
         rv.onPageChanged = { index ->
             viewModel.onPageChanged(index)
@@ -442,6 +443,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             scrollReaderView = sv
             sv.onCenterTap = { chrome.toggle() }
             sv.onImageTap = { image -> openImageElement(image) }
+            sv.onJumpTap = { target -> handleJumpTap(target) }
             sv.onCharIndexChanged = { charIndex -> viewModel.onScrollPositionChanged(charIndex) }
             sv.onScrollProgressChanged = { progress ->
                 // Drive the bottom-bar SeekBar in vertical mode (issue: 纵向翻页底部
@@ -716,6 +718,19 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     override fun onSearchHitSelected(hit: SearchHit, index: Int) {
         viewModel.setSearchIndex(index)
         goToHitDirect(hit)
+    }
+
+    /** `[jump:N]` button → resolve target page to a char offset and navigate.
+     *  Out-of-range or unknown targets show a toast instead of failing silently. */
+    private fun handleJumpTap(target: Int) {
+        val toks = (viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded)?.tokens
+            ?: return
+        val charIndex = ceui.pixiv.ui.novel.reader.paginate.ContentParser.resolveJumpTarget(toks, target)
+        if (charIndex == null) {
+            Toast.makeText(requireContext(), getString(R.string.msg_jump_target_invalid), Toast.LENGTH_SHORT).show()
+            return
+        }
+        navigateToCharIndex(charIndex, animate = true)
     }
 
     /** Unified jump: works in both paged and scroll mode. */

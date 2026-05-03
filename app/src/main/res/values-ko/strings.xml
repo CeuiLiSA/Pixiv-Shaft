@@ -809,6 +809,8 @@
   <string name="msg_no_chapters">이 소설에는 챕터 표시가 없습니다</string>
   <string name="msg_last_chapter">마지막 장입니다</string>
   <string name="msg_first_chapter">첫 번째 장입니다</string>
+  <string name="reader_jump_button">→ %1$d페이지로 이동</string>
+  <string name="msg_jump_target_invalid">이동 대상이 범위를 벗어났습니다</string>
   <string name="msg_novel_loading">소설 정보가 아직 로드되지 않았습니다. 나중에 다시 시도하세요</string>
   <string name="msg_novel_not_ready">소설이 아직 로드되지 않았습니다</string>
   <string name="msg_export_start">%s 내보내기 중…</string>

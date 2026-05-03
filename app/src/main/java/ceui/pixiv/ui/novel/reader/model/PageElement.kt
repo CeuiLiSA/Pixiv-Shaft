@@ -57,4 +57,17 @@ sealed class PageElement {
         override val absoluteCharStart: Int,
         override val absoluteCharEnd: Int,
     ) : PageElement()
+
+    /**
+     * `[jump:N]` rendered as a tappable button. [target] is the 1-indexed
+     * `[newpage]` segment to navigate to; resolution to a char offset happens
+     * in the host fragment so this element stays display-only.
+     */
+    data class Jump(
+        override val top: Float,
+        override val bottom: Float,
+        override val absoluteCharStart: Int,
+        override val absoluteCharEnd: Int,
+        val target: Int,
+    ) : PageElement()
 }

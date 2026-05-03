@@ -802,6 +802,8 @@
   <string name="msg_no_chapters">В этом произведении нет глав</string>
   <string name="msg_last_chapter">Это последняя глава</string>
   <string name="msg_first_chapter">Это первая глава</string>
+  <string name="reader_jump_button">→ Перейти к стр. %1$d</string>
+  <string name="msg_jump_target_invalid">Цель перехода вне диапазона</string>
   <string name="msg_novel_loading">Информация ещё не загружена, попробуйте позже</string>
   <string name="msg_novel_not_ready">Произведение ещё не загружено</string>
   <string name="msg_export_start">Экспорт %s…</string>
