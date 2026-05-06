@@ -209,6 +209,42 @@ class ActiveListV3Fragment : Fragment() {
 }
 
 /**
+ * 关键陷阱：[Manager] 原地修改 [DownloadItem]（setNonius / setPaused / ...），
+ * 不会创建新对象。如果 ListAdapter 直接拿 DownloadItem 做 DiffUtil 元素，旧
+ * snapshot 列表和新 snapshot 列表持有**同一份对象引用**，DiffUtil 调
+ * areContentsTheSame 时 a 和 b 是同一个 obj，所有字段比较恒等 → 永不发现变化
+ * → 进度条视觉上冻死。这是 ListAdapter + 可变模型的经典 aliasing 陷阱。
+ *
+ * 修法：每次 submit 时把 DownloadItem 的"渲染相关字段"拍进一个 immutable
+ * data class [ActiveSnapshot]。新旧 ActiveSnapshot 之间字段比较真实反映变化；
+ * data class auto equals 让 DiffUtil 干净工作。
+ */
+private data class ActiveSnapshot(
+    /** 持有原 DownloadItem 引用，让 click handler 能拿到 uuid 给 Manager 调命令 */
+    val item: DownloadItem,
+    val state: Int,
+    val isPaused: Boolean,
+    val nonius: Int,
+    val currentSize: Long,
+    val totalSize: Long,
+    val name: String?,
+    val showUrl: String?,
+) {
+    companion object {
+        fun of(d: DownloadItem) = ActiveSnapshot(
+            item = d,
+            state = d.state,
+            isPaused = d.isPaused,
+            nonius = d.nonius,
+            currentSize = d.currentSize,
+            totalSize = d.totalSize,
+            name = d.name,
+            showUrl = d.showUrl,
+        )
+    }
+}
+
+/**
  * DiffUtil 让"看起来没变"的 item 不重 bind。issue: 1s polling 用
  * notifyDataSetChanged() 全量重 bind，每次都重 Glide.load 缩略图 → 视觉上闪烁
  * （即使在暂停态也闪，因为 polling 不区分状态）。
@@ -218,26 +254,21 @@ class ActiveListV3Fragment : Fragment() {
  *   - 仅进度/状态变化 → 走 payload，仅刷新进度条/百分比/大小/徽章
  *   - 缩略图 URL 没变就根本不调 Glide.load
  */
-private object ActiveDiff : DiffUtil.ItemCallback<DownloadItem>() {
-    override fun areItemsTheSame(a: DownloadItem, b: DownloadItem): Boolean = a.uuid == b.uuid
-    override fun areContentsTheSame(a: DownloadItem, b: DownloadItem): Boolean =
-        a.state == b.state &&
-            a.isPaused == b.isPaused &&
-            a.nonius == b.nonius &&
-            a.currentSize == b.currentSize &&
-            a.totalSize == b.totalSize &&
-            a.name == b.name &&
-            a.showUrl == b.showUrl
-    override fun getChangePayload(oldItem: DownloadItem, newItem: DownloadItem): Any = PROGRESS_PAYLOAD
+private object ActiveDiff : DiffUtil.ItemCallback<ActiveSnapshot>() {
+    override fun areItemsTheSame(a: ActiveSnapshot, b: ActiveSnapshot): Boolean =
+        a.item.uuid == b.item.uuid
+    override fun areContentsTheSame(a: ActiveSnapshot, b: ActiveSnapshot): Boolean = a == b
+    override fun getChangePayload(oldItem: ActiveSnapshot, newItem: ActiveSnapshot): Any = PROGRESS_PAYLOAD
 }
 
 private const val PROGRESS_PAYLOAD = "progress"
 
-private class ActiveAdapterV3 : ListAdapter<DownloadItem, ActiveAdapterV3.VH>(ActiveDiff) {
+private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(ActiveDiff) {
 
     fun submit(newItems: List<DownloadItem>) {
-        // ListAdapter.submitList copies + diff —— 引用比较失败也会进 DiffUtil
-        submitList(ArrayList(newItems))
+        // 把可变 DownloadItem 拍成 immutable snapshot 后再交给 ListAdapter，
+        // 让 DiffUtil 拿到的新旧元素是不同对象、字段比较真实反映变化。
+        submitList(newItems.map { ActiveSnapshot.of(it) })
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -258,13 +289,13 @@ private class ActiveAdapterV3 : ListAdapter<DownloadItem, ActiveAdapterV3.VH>(Ac
         }
     }
 
-    private fun bindFull(h: VH, item: DownloadItem) {
-        h.taskName.text = item.name
-        bindStateAndProgress(h, item)
+    private fun bindFull(h: VH, snap: ActiveSnapshot) {
+        h.taskName.text = snap.name
+        bindStateAndProgress(h, snap)
 
         // 缩略图：原始 showUrl 没变就不 Glide.load —— 这是消除闪烁的关键。
         // 用原始 String 比较（GlideUrl 没实现稳定的 equals，比较起来不靠谱）
-        val newShowUrl = item.showUrl?.takeIf { !TextUtils.isEmpty(it) }
+        val newShowUrl = snap.showUrl?.takeIf { !TextUtils.isEmpty(it) }
         if (newShowUrl != h.lastLoadedUrl) {
             if (!newShowUrl.isNullOrEmpty()) {
                 Glide.with(h.thumb)
@@ -280,16 +311,22 @@ private class ActiveAdapterV3 : ListAdapter<DownloadItem, ActiveAdapterV3.VH>(Ac
 
         // 暂停/继续 + 取消（每次 full bind 重设，保证 lambda 引用最新 item）
         h.pauseBtn.setOnClickListener {
-            if (item.isPaused) Manager.get().startOne(item.uuid)
-            else Manager.get().stopOne(item.uuid)
-            // 即时反馈：state 同步翻转后立刻 payload-bind 一次，让按钮 icon /
-            // 状态徽章 / size 文案立即变。等下一轮 1s polling 才更新 = UX 觉得卡。
-            notifyItemChanged(h.bindingAdapterPosition, PROGRESS_PAYLOAD)
+            // 即时反馈：snapshot 列表是 immutable，无法靠 notifyItemChanged 让
+            // payload-bind 看到新状态（snapshot 还是旧的）。直接操作 view —
+            // 下一轮 1s polling 来重 snapshot 时 DiffUtil 会再 reconcile 一次。
+            val live = snap.item
+            val wasPaused = live.isPaused
+            if (wasPaused) Manager.get().startOne(live.uuid)
+            else Manager.get().stopOne(live.uuid)
+            h.pauseBtn.setImageResource(
+                if (wasPaused) R.drawable.ic_baseline_pause_24
+                else R.drawable.ic_baseline_play_arrow_24
+            )
         }
         h.cancelBtn.setOnClickListener {
             // Manager.clearOne 会从 content 移除该 item，下一轮 polling 通过
             // DiffUtil 自动消失，不需要手动通知。
-            Manager.get().clearOne(item.uuid)
+            Manager.get().clearOne(snap.item.uuid)
         }
 
         // 故意不再 Manager.get().setCallback(item.uuid) { ... } —— 之前每次 bind 都
@@ -298,29 +335,29 @@ private class ActiveAdapterV3 : ListAdapter<DownloadItem, ActiveAdapterV3.VH>(Ac
         // 进度更新依赖 1s polling + DiffUtil payload 触发 bindStateAndProgress。
     }
 
-    private fun bindStateAndProgress(h: VH, item: DownloadItem) {
+    private fun bindStateAndProgress(h: VH, snap: ActiveSnapshot) {
         // —— 状态分类决定视觉权重 ——
-        val isActive = item.state == DownloadItem.DownloadState.DOWNLOADING
-        val isWaiting = item.state == DownloadItem.DownloadState.INIT
-        val isPaused = item.isPaused || item.state == DownloadItem.DownloadState.PAUSED
-        val isFailed = item.state == DownloadItem.DownloadState.FAILED
+        val isActive = snap.state == DownloadItem.DownloadState.DOWNLOADING
+        val isWaiting = snap.state == DownloadItem.DownloadState.INIT
+        val isPaused = snap.isPaused || snap.state == DownloadItem.DownloadState.PAUSED
+        val isFailed = snap.state == DownloadItem.DownloadState.FAILED
 
         h.itemView.alpha = if (isActive || isFailed) 1.0f else 0.55f
 
         h.progress.visibility = if (isActive) View.VISIBLE else View.GONE
         h.percentText.visibility = if (isActive) View.VISIBLE else View.GONE
         if (isActive) {
-            h.progress.progress = item.nonius
-            h.percentText.text = "${item.nonius}%"
+            h.progress.progress = snap.nonius
+            h.percentText.text = "${snap.nonius}%"
         }
 
         when {
             isActive -> {
-                h.sizeText.text = if (item.totalSize > 0) {
+                h.sizeText.text = if (snap.totalSize > 0) {
                     String.format(
                         "%s / %s",
-                        FileSizeUtil.formatFileSize(item.currentSize),
-                        FileSizeUtil.formatFileSize(item.totalSize)
+                        FileSizeUtil.formatFileSize(snap.currentSize),
+                        FileSizeUtil.formatFileSize(snap.totalSize)
                     )
                 } else "—"
             }
@@ -335,14 +372,14 @@ private class ActiveAdapterV3 : ListAdapter<DownloadItem, ActiveAdapterV3.VH>(Ac
             isPaused -> "PAUSED" to "#FFB454"
             isFailed -> "FAILED" to "#FF8B8B"
             isWaiting -> "QUEUED" to "#9DA3AB"
-            item.state == DownloadItem.DownloadState.SUCCESS -> "DONE" to "#7CB668"
+            snap.state == DownloadItem.DownloadState.SUCCESS -> "DONE" to "#7CB668"
             else -> "—" to "#9DA3AB"
         }
         h.stateBadge.text = label
         h.stateBadge.setTextColor(Color.parseColor(color))
 
         h.pauseBtn.setImageResource(
-            if (item.isPaused) R.drawable.ic_baseline_play_arrow_24
+            if (snap.isPaused) R.drawable.ic_baseline_play_arrow_24
             else R.drawable.ic_baseline_pause_24
         )
     }
