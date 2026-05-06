@@ -53,6 +53,24 @@ class MediaStoreBackend(
      * On Q+, update the existing MediaStore row in place instead of
      * delete + insert. This avoids `contentResolver.delete()` which
      * triggers media-deletion alerts on HarmonyOS and similar skins.
+     *
+     * Two distinct failure modes are handled here:
+     *
+     *  1. **Orphan rows from external scanners.** A file may exist on disk
+     *     but its row's `RELATIVE_PATH` was normalised differently by a
+     *     system migration / 3rd-party scanner so [findUri] misses. The
+     *     `findUri ?: reclaimOrphanRow` chain forces MediaScanner to ingest
+     *     it before we fall through, otherwise [openModern] would trigger
+     *     OEM-side directory auto-rename
+     *     (`Pictures/ShaftImages (1)/`, `(2)/`, ...).
+     *
+     *  2. **Row exists but not owned by us.** Typical after app reinstall
+     *     or when another package created the row first. On Q+
+     *     MediaProvider rejects our `update`/`delete` with
+     *     `SecurityException`, breaking the download chain. We catch it
+     *     and fall through to insert; MediaStore auto-suffixes DISPLAY_NAME
+     *     on conflict so bytes land on a sibling " (1)" file. Net better
+     *     than failing the download outright — price is a duplicate file.
      */
     override fun replace(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -64,56 +82,84 @@ class MediaStoreBackend(
             // [openModern]'s rename guard for the matching diagnostic).
             val existing = findUri(relPath) ?: reclaimOrphanRow(relPath)
             if (existing != null) {
-                val values = ContentValues().apply {
-                    put(MediaStore.MediaColumns.MIME_TYPE, mime)
-                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                try {
+                    return openExistingForReplace(existing, mime)
+                } catch (se: SecurityException) {
+                    // Row exists but we don't own it; cannot in-place update.
+                    // Log + fall through to fresh insert below. MediaStore on
+                    // Q+ auto-resolves DISPLAY_NAME conflicts within the same
+                    // RELATIVE_PATH by appending a counter, so the bytes still
+                    // land on disk just under a "(1)" filename.
+                    android.util.Log.w(
+                        "MediaStoreBackend",
+                        "replace() denied on $existing — row not owned by us " +
+                            "(reinstall or external scanner). Falling back to insert.",
+                        se,
+                    )
                 }
-                context.contentResolver.update(existing, values, null, null)
-                // If openOutputStream throws, restore IS_PENDING=0 on the
-                // existing row before propagating — otherwise the pre-existing
-                // file gets stuck as a `.pending-` orphan even though we never
-                // wrote a byte (issue #857 manifested via "replace" path).
-                val stream = try {
-                    context.contentResolver.openOutputStream(existing, "rwt")
-                        ?: error("openOutputStream returned null for $existing")
-                } catch (e: Exception) {
-                    runCatching {
-                        context.contentResolver.update(
-                            existing,
-                            ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
-                            null, null,
-                        )
-                    }
-                    throw e
-                }
-                val onFinish: () -> Unit = {
-                    val update = ContentValues().apply {
-                        put(MediaStore.MediaColumns.IS_PENDING, 0)
-                    }
-                    context.contentResolver.update(existing, update, null, null)
-                }
-                // On abort during replace, restore IS_PENDING=0 — the row
-                // pre-existed before we touched it, so deleting it would
-                // unilaterally erase a file the user already had.
-                val onAbort: () -> Unit = {
-                    runCatching {
-                        context.contentResolver.update(
-                            existing,
-                            ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
-                            null, null,
-                        )
-                    }
-                }
-                return StorageBackend.WriteHandle(existing, stream, onFinish, onAbort)
             }
-            // Three lookups (canonical / _DATA / scanFile) all missed — there
-            // is no row to update. Skip [super.replace], whose default impl
-            // would call `exists()` again (one more redundant findUri round
-            // trip), and go straight to insert. The inserted row carries our
-            // OEM-rename guard, so this is the safe entry to a fresh write.
+            // Reach here under two distinct conditions:
+            //   1. All three lookups (canonical / _DATA / scanFile reclaim) missed —
+            //      no row to update; this is a clean fresh write.
+            //   2. A row was found but [openExistingForReplace] hit SecurityException
+            //      because we don't own it (reinstall / external scanner). Fall back
+            //      to insert; MediaStore Q+ auto-suffixes DISPLAY_NAME on conflict,
+            //      so bytes land on a sibling "(1)" file.
+            // In both cases skip [super.replace], whose default impl would call
+            // `exists()` again (one more redundant findUri round-trip), and go
+            // straight to insert. The inserted row carries our OEM-rename guard,
+            // so this is the safe entry to a fresh write.
             return openModern(relPath, mime)
         }
         return super.replace(relPath, mime)
+    }
+
+    /**
+     * In-place update path of [replace] — extracted so we can wrap it in a
+     * single try/catch SecurityException and cleanly fall back to insert.
+     */
+    private fun openExistingForReplace(existing: Uri, mime: String): StorageBackend.WriteHandle {
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.MIME_TYPE, mime)
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        context.contentResolver.update(existing, values, null, null)
+        // If openOutputStream throws, restore IS_PENDING=0 on the
+        // existing row before propagating — otherwise the pre-existing
+        // file gets stuck as a `.pending-` orphan even though we never
+        // wrote a byte (issue #857 manifested via "replace" path).
+        val stream = try {
+            context.contentResolver.openOutputStream(existing, "rwt")
+                ?: error("openOutputStream returned null for $existing")
+        } catch (e: Exception) {
+            runCatching {
+                context.contentResolver.update(
+                    existing,
+                    ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
+                    null, null,
+                )
+            }
+            throw e
+        }
+        val onFinish: () -> Unit = {
+            val update = ContentValues().apply {
+                put(MediaStore.MediaColumns.IS_PENDING, 0)
+            }
+            context.contentResolver.update(existing, update, null, null)
+        }
+        // On abort during replace, restore IS_PENDING=0 — the row
+        // pre-existed before we touched it, so deleting it would
+        // unilaterally erase a file the user already had.
+        val onAbort: () -> Unit = {
+            runCatching {
+                context.contentResolver.update(
+                    existing,
+                    ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
+                    null, null,
+                )
+            }
+        }
+        return StorageBackend.WriteHandle(existing, stream, onFinish, onAbort)
     }
 
     private fun openModern(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
