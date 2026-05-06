@@ -301,8 +301,11 @@ public class Manager {
      *
      * synchronized 关键：state 检查 + 状态置 DOWNLOADING + handles.put 必须原子，
      * 否则两个 doFinally 同时回调可能挑到同一条 INIT 派发两次。
+     *
+     * public：用户改并发设置时希望"扩大槽位继续跑"但不希望像 startAll 那样
+     * 把手动暂停的 item 也强制恢复 —— FragmentSettings 调这个。
      */
-    private synchronized void pumpAvailableSlots() {
+    public synchronized void pumpAvailableSlots() {
         if (!isRunning) return;
         int max = Shaft.sSettings.getMaxConcurrentDownloads();
         if (max < 1) max = 1;

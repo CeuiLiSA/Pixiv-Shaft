@@ -1112,8 +1112,9 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                         Local.setSettings(Shaft.sSettings);
                                         refreshConcurrencyLabel.run();
                                         Common.showToast(getString(R.string.setting_max_concurrent_downloads_changed, chosen));
-                                        // 即时生效：让 Manager 把新增的并发槽位填上
-                                        try { Manager.get().startAll(); } catch (Exception ignored) {}
+                                        // 即时生效：仅 pump 新增的槽位，不要 startAll —— 那会把
+                                        // 用户手动暂停的 item 一并恢复，违反用户预期。
+                                        try { Manager.get().pumpAvailableSlots(); } catch (Exception ignored) {}
                                     }
                                     dialog.dismiss();
                                 }

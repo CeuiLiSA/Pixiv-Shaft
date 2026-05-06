@@ -47,9 +47,10 @@ class DownloadManagerSharedViewModel(app: Application) : AndroidViewModel(app) {
                 queueSuccess = runCatching { queueDao.countByStatus(QueueStatus.SUCCESS) }.getOrDefault(0),
                 queueFailed = runCatching { queueDao.countByStatus(QueueStatus.FAILED) }.getOrDefault(0),
                 activeCount = runCatching {
-                    // 只计真正在传输的那一 page —— Manager.loop 串行下载，
-                    // 任意时刻 DOWNLOADING 状态最多 1 个。其它 INIT/PAUSED/FAILED 不算"正在下载"。
-                    // Manager.content 非线程安全；snapshot 失败给 0，下个周期会再试
+                    // 只计真正在传输中的 page。Manager 现支持 1-5 并发，
+                    // 任意时刻 DOWNLOADING 数量上限 = Settings.maxConcurrentDownloads。
+                    // 其它 INIT/PAUSED/FAILED 都不算"正在下载"。
+                    // Manager.content 非线程安全；snapshot 失败给 0，下个周期会再试。
                     ArrayList(Manager.get().content)
                         .count { it.state == DownloadItem.DownloadState.DOWNLOADING }
                 }.getOrDefault(0),

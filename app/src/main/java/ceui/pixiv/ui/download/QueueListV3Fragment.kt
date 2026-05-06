@@ -29,6 +29,9 @@ import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -109,11 +112,14 @@ class QueueListV3Fragment : Fragment() {
             }
         }
         btnClearAll.setOnClickListener {
-            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                // 联动：清空队列同时把正在下载的也一并停掉清掉，
-                // 否则用户清完队列还看到"正在下载" tab 有残留任务在跑。
-                runCatching { Manager.get().clearAll() }
-                runCatching { dao.deleteAll() }
+            // destructive 操作必须确认 —— 误点会让用户失去全部排队
+            showClearConfirmDialog {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    // 联动：清空队列同时把正在下载的也一并停掉清掉，
+                    // 否则用户清完队列还看到"正在下载" tab 有残留任务在跑。
+                    runCatching { Manager.get().clearAll() }
+                    runCatching { dao.deleteAll() }
+                }
             }
         }
 
@@ -133,6 +139,12 @@ class QueueListV3Fragment : Fragment() {
                     btnPause.alpha = if (hasWork) 1f else 0.4f
                     btnClearAll.isEnabled = hasWork
                     btnClearAll.alpha = if (hasWork) 1f else 0.4f
+                    // 同步 暂停/继续 文案：用户可能从其它 tab（active）触发了 pause，
+                    // 此时本 tab 的按钮文案要跟着变，否则显示"暂停"但实际已 paused 是误导。
+                    btnPause.text = getString(
+                        if (QueueDownloadManager.isPaused()) R.string.dlmgr_queue_action_resume
+                        else R.string.dlmgr_queue_action_pause
+                    )
                     // 让看得见的几条 item 把缩略图/标题加载出来：ObjectPool cache miss 的
                     // illustId 触发后台拉取，下一轮 polling DiffUtil 会自动重 bind 那些行。
                     prefetchVisibleIllusts(rows)
@@ -182,6 +194,21 @@ class QueueListV3Fragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun showClearConfirmDialog(onConfirm: () -> Unit) {
+        val act = activity ?: return
+        if (act.isFinishing || act.isDestroyed) return
+        QMUIDialog.MessageDialogBuilder(act)
+            .setTitle(R.string.dlmgr_clear_active_queue_title)
+            .setMessage(R.string.dlmgr_clear_active_queue_message)
+            .setSkinManager(QMUISkinManager.defaultInstance(act))
+            .addAction(R.string.cancel) { d, _ -> d.dismiss() }
+            .addAction(0, R.string.sure, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                d.dismiss()
+                onConfirm()
+            }
+            .show()
     }
 
     private suspend fun fetchIllustOnce(id: Long): IllustsBean? = suspendCancellableCoroutine { cont ->

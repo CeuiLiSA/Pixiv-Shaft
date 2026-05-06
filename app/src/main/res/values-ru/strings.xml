@@ -1116,11 +1116,15 @@
     <string name="dlmgr_done_layout_list">Вид: Список</string>
     <string name="dlmgr_done_layout_grid">Вид: Сетка</string>
     <string name="dlmgr_done_layout_compact">Вид: Компактный</string>
+    <string name="dlmgr_clear_active_queue_title">Очистить все загрузки?</string>
+    <string name="dlmgr_clear_active_queue_message">Все текущие и ожидающие загрузки будут остановлены и удалены.\n(Частично загруженные файлы на диске сохраняются.)</string>
+    <string name="dlmgr_clear_done_title">Очистить историю завершённых?</string>
+    <string name="dlmgr_clear_done_message">Скачанные файлы останутся на диске; удаляется только запись в этом списке.</string>
     <string name="setting_max_concurrent_downloads">Одновременных загрузок</string>
     <string name="setting_max_concurrent_downloads_one">1 (последовательно · по умолчанию)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d параллельно</string>
     <string name="setting_max_concurrent_downloads_changed">Одновременных загрузок: %1$d</string>
     <string name="dlmgr_done_export_empty">Нет завершённых работ для экспорта</string>
     <string name="dlmgr_done_export_share_title">Экспорт завершённых загрузок</string>
-    <string name="dlmgr_done_export_summary">%1$d работ · %2$d ссылок</string>
+    <string name="dlmgr_done_export_summary">Экспортировано работ: %1$d</string>
 </resources>

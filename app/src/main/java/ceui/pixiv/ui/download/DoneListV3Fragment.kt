@@ -31,6 +31,9 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -111,9 +114,13 @@ class DoneListV3Fragment : Fragment() {
         view.findViewById<Button>(R.id.btn4).apply {
             text = getString(R.string.dlmgr_done_action_clear_history)
             setOnClickListener {
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    runCatching { dao.deleteAllDownload() }
-                    refreshTickle.trySend(Unit)
+                // destructive 操作前必须确认。文案明确告知"文件不会被删除"，避免
+                // 用户因恐慌而不敢清理记录。
+                showClearDoneConfirmDialog {
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        runCatching { dao.deleteAllDownload() }
+                        refreshTickle.trySend(Unit)
+                    }
                 }
             }
         }
@@ -205,7 +212,7 @@ class DoneListV3Fragment : Fragment() {
                 return@launch
             }
             val title = getString(R.string.dlmgr_done_export_share_title)
-            val summary = getString(R.string.dlmgr_done_export_summary, illustCount, illustCount)
+            val summary = getString(R.string.dlmgr_done_export_summary, illustCount)
             Toast.makeText(ctx, summary, Toast.LENGTH_SHORT).show()
             val send = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
@@ -214,6 +221,21 @@ class DoneListV3Fragment : Fragment() {
             }
             startActivity(Intent.createChooser(send, title))
         }
+    }
+
+    private fun showClearDoneConfirmDialog(onConfirm: () -> Unit) {
+        val act = activity ?: return
+        if (act.isFinishing || act.isDestroyed) return
+        QMUIDialog.MessageDialogBuilder(act)
+            .setTitle(R.string.dlmgr_clear_done_title)
+            .setMessage(R.string.dlmgr_clear_done_message)
+            .setSkinManager(QMUISkinManager.defaultInstance(act))
+            .addAction(R.string.cancel) { d, _ -> d.dismiss() }
+            .addAction(0, R.string.sure, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                d.dismiss()
+                onConfirm()
+            }
+            .show()
     }
 
     /** 切换布局：换 LayoutManager + 通知 adapter 切 viewType 重 inflate。 */

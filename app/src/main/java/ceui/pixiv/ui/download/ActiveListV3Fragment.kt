@@ -32,6 +32,9 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -41,15 +44,13 @@ import timber.log.Timber
 /**
  * V3 风格 "正在下载" — 监听 Manager.content。
  *
- * 关于"看似多个并发下载"的澄清：
- *   一个 N-page illust 进入下载时，[Manager.content] 会同时挂 N 个 DownloadItem，
- *   但 [Manager.loop] 严格串行下载（每完成一个才启下一个）。任意时刻 **只有 1 个**
- *   item 处于 DOWNLOADING，其余都是 INIT（等待）。本 UI 用以下方式让区分一目了然：
- *
- *     - 顶部统计行明确写 "1 正在 · N 等待"
- *     - DOWNLOADING 卡：完整不透明 + 蓝色进度条 + 实时大小/百分比
- *     - INIT 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "等待中…"
- *     - 运行时 invariant：snapshot 里 DOWNLOADING > 1 直接 warn 到日志
+ * 并发下载（Settings.maxConcurrentDownloads，默认 1，上限 5）：
+ *   - 任意时刻 DOWNLOADING 数量 ≤ 用户配置的并发数
+ *   - 其余可下载的 page 处于 INIT（等待）
+ *   - DOWNLOADING 卡：完整不透明 + 蓝色进度条 + 实时大小/百分比
+ *   - INIT 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "等待中…"
+ *   - 顶部状态行明确写 "N 正在 · M 等待"
+ *   - 运行时 invariant：snapshot 里 DOWNLOADING > 配置上限 直接 warn 到日志
  */
 class ActiveListV3Fragment : Fragment() {
 
@@ -98,10 +99,14 @@ class ActiveListV3Fragment : Fragment() {
             text = getString(R.string.dlmgr_active_action_clear)
             // 联动：清空 active 同时把批量队列 DB 也清掉，避免用户清完 active 又被
             // 队列消费者重新填回去，看起来"清不掉"。
+            //
+            // 加确认 dialog：destructive 操作不应一键直行 —— 用户误点损失大。
             setOnClickListener {
-                Manager.get().clearAll()
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    runCatching { queueDao.deleteAll() }
+                showClearConfirmDialog {
+                    Manager.get().clearAll()
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        runCatching { queueDao.deleteAll() }
+                    }
                 }
             }
         }
@@ -127,10 +132,13 @@ class ActiveListV3Fragment : Fragment() {
                         it.state == DownloadItem.DownloadState.FAILED
                     }
 
-                    // 运行时不变量：DOWNLOADING 应当永远 <= 1（Manager.loop 串行）
-                    if (downloadingCount > 1) {
+                    // 运行时不变量：DOWNLOADING 数量永远不应该超过绝对上限 5。
+                    // 注意不要拿当前 maxConcurrent 比 —— 用户从 5 调到 2 后那 5 条
+                    // 在传的不会立即被掐，会自然消化，期间 downloadingCount > 2
+                    // 是正常现象，不能误报。
+                    if (downloadingCount > 5) {
                         Timber.tag(TAG).w(
-                            "INVARIANT: ${downloadingCount} items in DOWNLOADING state simultaneously! " +
+                            "INVARIANT: ${downloadingCount} DOWNLOADING > absolute max 5! " +
                                 snapshot.filter { it.state == DownloadItem.DownloadState.DOWNLOADING }
                                     .joinToString { "${it.uuid}/${it.illust?.id}" }
                         )
@@ -167,6 +175,21 @@ class ActiveListV3Fragment : Fragment() {
             DownloadReceiver.NOTIFY_FRAGMENT_DOWNLOADING,
         )
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(receiver!!, intentFilter)
+    }
+
+    private fun showClearConfirmDialog(onConfirm: () -> Unit) {
+        val act = activity ?: return
+        if (act.isFinishing || act.isDestroyed) return
+        QMUIDialog.MessageDialogBuilder(act)
+            .setTitle(R.string.dlmgr_clear_active_queue_title)
+            .setMessage(R.string.dlmgr_clear_active_queue_message)
+            .setSkinManager(QMUISkinManager.defaultInstance(act))
+            .addAction(R.string.cancel) { d, _ -> d.dismiss() }
+            .addAction(0, R.string.sure, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                d.dismiss()
+                onConfirm()
+            }
+            .show()
     }
 
     override fun onDestroyView() {
@@ -259,9 +282,13 @@ private class ActiveAdapterV3 : ListAdapter<DownloadItem, ActiveAdapterV3.VH>(Ac
         h.pauseBtn.setOnClickListener {
             if (item.isPaused) Manager.get().startOne(item.uuid)
             else Manager.get().stopOne(item.uuid)
-            // 状态变化通过下一轮 polling + DiffUtil 推 payload 即可，不再 notifyItemChanged
+            // 即时反馈：state 同步翻转后立刻 payload-bind 一次，让按钮 icon /
+            // 状态徽章 / size 文案立即变。等下一轮 1s polling 才更新 = UX 觉得卡。
+            notifyItemChanged(h.bindingAdapterPosition, PROGRESS_PAYLOAD)
         }
         h.cancelBtn.setOnClickListener {
+            // Manager.clearOne 会从 content 移除该 item，下一轮 polling 通过
+            // DiffUtil 自动消失，不需要手动通知。
             Manager.get().clearOne(item.uuid)
         }
 

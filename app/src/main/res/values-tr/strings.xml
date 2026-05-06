@@ -1114,11 +1114,15 @@
     <string name="dlmgr_done_layout_list">Düzen: Liste</string>
     <string name="dlmgr_done_layout_grid">Düzen: Izgara</string>
     <string name="dlmgr_done_layout_compact">Düzen: Kompakt</string>
+    <string name="dlmgr_clear_active_queue_title">Tüm indirmeleri temizle?</string>
+    <string name="dlmgr_clear_active_queue_message">Süren ve sırada bekleyen tüm indirmeler durdurulup temizlenecek.\n(Disk üzerinde kısmen indirilmiş dosyalar korunur.)</string>
+    <string name="dlmgr_clear_done_title">Tamamlanan kayıtları temizle?</string>
+    <string name="dlmgr_clear_done_message">İndirilen dosyalar diskte kalır; yalnızca buradaki kayıtlar silinir.</string>
     <string name="setting_max_concurrent_downloads">Eş zamanlı indirmeler</string>
     <string name="setting_max_concurrent_downloads_one">1 (sıralı · varsayılan)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d paralel</string>
     <string name="setting_max_concurrent_downloads_changed">Eş zamanlı indirme sayısı %1$d olarak ayarlandı</string>
     <string name="dlmgr_done_export_empty">Dışa aktarılacak tamamlanan eser yok</string>
     <string name="dlmgr_done_export_share_title">Tamamlanan indirmeleri dışa aktar</string>
-    <string name="dlmgr_done_export_summary">%1$d eser · %2$d bağlantı</string>
+    <string name="dlmgr_done_export_summary">%1$d eser dışa aktarıldı</string>
 </resources>

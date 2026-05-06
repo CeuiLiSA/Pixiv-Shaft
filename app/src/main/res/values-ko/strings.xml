@@ -1123,11 +1123,15 @@
     <string name="dlmgr_done_layout_list">레이아웃: 리스트</string>
     <string name="dlmgr_done_layout_grid">레이아웃: 그리드</string>
     <string name="dlmgr_done_layout_compact">레이아웃: 콤팩트</string>
+    <string name="dlmgr_clear_active_queue_title">모든 다운로드 지우기?</string>
+    <string name="dlmgr_clear_active_queue_message">진행 중이거나 대기 중인 항목이 모두 중지되고 지워집니다.\n(이미 일부 다운로드된 파일은 보존됩니다.)</string>
+    <string name="dlmgr_clear_done_title">완료 기록 지우기?</string>
+    <string name="dlmgr_clear_done_message">다운로드된 파일은 그대로 유지되며, 여기 기록만 사라집니다.</string>
     <string name="setting_max_concurrent_downloads">동시 다운로드 수</string>
     <string name="setting_max_concurrent_downloads_one">1 (직렬 · 기본값)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d개 병렬</string>
     <string name="setting_max_concurrent_downloads_changed">동시 다운로드 수가 %1$d로 설정됨</string>
     <string name="dlmgr_done_export_empty">내보낼 완료된 작품이 없습니다</string>
     <string name="dlmgr_done_export_share_title">완료된 다운로드 내보내기</string>
-    <string name="dlmgr_done_export_summary">%1$d개 작품 · %2$d개 링크</string>
+    <string name="dlmgr_done_export_summary">%1$d개 작품을 내보냈습니다</string>
 </resources>

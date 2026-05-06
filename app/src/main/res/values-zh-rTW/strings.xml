@@ -1229,11 +1229,15 @@
     <string name="dlmgr_done_layout_list">版面：列表</string>
     <string name="dlmgr_done_layout_grid">版面：網格</string>
     <string name="dlmgr_done_layout_compact">版面：縮圖</string>
+    <string name="dlmgr_clear_active_queue_title">清空全部下載？</string>
+    <string name="dlmgr_clear_active_queue_message">正在下載和排隊中的任務都會停止並清除。\n（已下載到一半的檔案不會被刪除。）</string>
+    <string name="dlmgr_clear_done_title">清空已完成記錄？</string>
+    <string name="dlmgr_clear_done_message">已下載的檔案不會被刪除，只是從這裡看不到了。</string>
     <string name="setting_max_concurrent_downloads">同時下載數</string>
     <string name="setting_max_concurrent_downloads_one">1（串列 · 預設）</string>
     <string name="setting_max_concurrent_downloads_n">%1$d 並發</string>
     <string name="setting_max_concurrent_downloads_changed">同時下載數已設為 %1$d</string>
     <string name="dlmgr_done_export_empty">沒有已完成的作品可匯出</string>
     <string name="dlmgr_done_export_share_title">匯出已完成下載</string>
-    <string name="dlmgr_done_export_summary">共 %1$d 個作品 · %2$d 行連結</string>
+    <string name="dlmgr_done_export_summary">已匯出 %1$d 個作品的連結</string>
 </resources>

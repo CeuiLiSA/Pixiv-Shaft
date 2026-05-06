@@ -1187,11 +1187,15 @@
     <string name="dlmgr_done_layout_list">Layout: List</string>
     <string name="dlmgr_done_layout_grid">Layout: Grid</string>
     <string name="dlmgr_done_layout_compact">Layout: Compact</string>
+    <string name="dlmgr_clear_active_queue_title">Clear all downloads?</string>
+    <string name="dlmgr_clear_active_queue_message">Downloads in progress and queued items will be stopped and cleared.\n(Partially-downloaded files on disk are kept.)</string>
+    <string name="dlmgr_clear_done_title">Clear completed history?</string>
+    <string name="dlmgr_clear_done_message">Downloaded files stay on disk; only the records here are removed.</string>
     <string name="setting_max_concurrent_downloads">Concurrent downloads</string>
     <string name="setting_max_concurrent_downloads_one">1 (serial · default)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d in parallel</string>
     <string name="setting_max_concurrent_downloads_changed">Concurrent downloads set to %1$d</string>
     <string name="dlmgr_done_export_empty">No completed works to export</string>
     <string name="dlmgr_done_export_share_title">Export completed downloads</string>
-    <string name="dlmgr_done_export_summary">%1$d works · %2$d links</string>
+    <string name="dlmgr_done_export_summary">Exported %1$d work(s)</string>
 </resources>

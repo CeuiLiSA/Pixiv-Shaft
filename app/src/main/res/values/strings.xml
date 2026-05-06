@@ -1600,11 +1600,15 @@
     <string name="dlmgr_done_layout_list">布局：列表</string>
     <string name="dlmgr_done_layout_grid">布局：网格</string>
     <string name="dlmgr_done_layout_compact">布局：缩图</string>
+    <string name="dlmgr_clear_active_queue_title">清空全部下载？</string>
+    <string name="dlmgr_clear_active_queue_message">正在下载和排队中的任务都会停止并清除。\n（已经下载到一半的文件不会被删除。）</string>
+    <string name="dlmgr_clear_done_title">清空已完成记录？</string>
+    <string name="dlmgr_clear_done_message">已下载的文件不会被删除，只是从这里看不到了。</string>
     <string name="setting_max_concurrent_downloads">同时下载数</string>
     <string name="setting_max_concurrent_downloads_one">1（串行 · 默认）</string>
     <string name="setting_max_concurrent_downloads_n">%1$d 个并发</string>
     <string name="setting_max_concurrent_downloads_changed">同时下载数已设为 %1$d</string>
     <string name="dlmgr_done_export_empty">没有已完成的作品可导出</string>
     <string name="dlmgr_done_export_share_title">导出已完成下载</string>
-    <string name="dlmgr_done_export_summary">共 %1$d 个作品 · %2$d 行链接</string>
+    <string name="dlmgr_done_export_summary">已导出 %1$d 个作品的链接</string>
 </resources>

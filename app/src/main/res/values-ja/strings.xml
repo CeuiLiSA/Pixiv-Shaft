@@ -1216,11 +1216,15 @@
     <string name="dlmgr_done_layout_list">レイアウト: リスト</string>
     <string name="dlmgr_done_layout_grid">レイアウト: グリッド</string>
     <string name="dlmgr_done_layout_compact">レイアウト: コンパクト</string>
+    <string name="dlmgr_clear_active_queue_title">すべてのダウンロードをクリア？</string>
+    <string name="dlmgr_clear_active_queue_message">ダウンロード中と待機中の項目はすべて停止・削除されます。\n(ディスクに途中までダウンロードされたファイルは残ります。)</string>
+    <string name="dlmgr_clear_done_title">完了履歴をクリア？</string>
+    <string name="dlmgr_clear_done_message">ダウンロード済みファイルはディスクに残ります。ここの記録のみが削除されます。</string>
     <string name="setting_max_concurrent_downloads">同時ダウンロード数</string>
     <string name="setting_max_concurrent_downloads_one">1（直列 · デフォルト）</string>
     <string name="setting_max_concurrent_downloads_n">%1$d 並列</string>
     <string name="setting_max_concurrent_downloads_changed">同時ダウンロード数を %1$d に設定</string>
     <string name="dlmgr_done_export_empty">エクスポート可能な完了作品がありません</string>
     <string name="dlmgr_done_export_share_title">完了したダウンロードをエクスポート</string>
-    <string name="dlmgr_done_export_summary">%1$d 件 · %2$d 個のリンク</string>
+    <string name="dlmgr_done_export_summary">%1$d 件の作品をエクスポート</string>
 </resources>
