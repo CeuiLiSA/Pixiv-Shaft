@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  已完成 tab 的「紧凑缩图」cell：4 列网格，正方形缩略图 + 角标，无标题文字。
+  IDs 与 cell_download_done_v3.xml 完全一致，让 DoneAdapterV3 同一份代码可同时
+  渲染（title/author/time 在 compact 模式下保持 visibility=gone，binding 调
+  setText 也不会显示，安全）。
+-->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="2dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/v3_bg"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp">
+
+    <FrameLayout
+        android:id="@+id/imageWrap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/thumb"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:adjustViewBounds="true"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/typeBadge"
+            style="@style/V3StatusBadge"
+            android:layout_gravity="top|start"
+            android:layout_margin="3dp"
+            android:background="@drawable/bg_page_count_overlay"
+            android:textColor="#FFFFFF"
+            android:textSize="8sp"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="1dp"
+            tools:text="3P" />
+
+        <ImageView
+            android:id="@+id/deleteBtn"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="3dp"
+            android:background="@drawable/v3_nav_btn_bg"
+            android:contentDescription="@null"
+            android:padding="4dp"
+            android:src="@drawable/ic_delete_black_24dp"
+            app:tint="#CCFFFFFF" />
+
+        <!-- 不显示但保留 ID，让 binding 代码不需要分支判断 -->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/author"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+    </FrameLayout>
+</androidx.cardview.widget.CardView>

@@ -36,6 +36,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.file.LegacyFile;
@@ -1077,6 +1078,53 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onClick(View v) {
                     baseBind.downloadLimitType.performClick();
+                }
+            });
+
+            // 同时下载数 1-5（issue #859：用户希望多任务下载，默认 1=旧串行行为）
+            final String[] CONCURRENCY_NAMES = new String[]{
+                    getString(R.string.setting_max_concurrent_downloads_one),
+                    getString(R.string.setting_max_concurrent_downloads_n, 2),
+                    getString(R.string.setting_max_concurrent_downloads_n, 3),
+                    getString(R.string.setting_max_concurrent_downloads_n, 4),
+                    getString(R.string.setting_max_concurrent_downloads_n, 5),
+            };
+            final Runnable refreshConcurrencyLabel = () -> {
+                int n = Shaft.sSettings.getMaxConcurrentDownloads();
+                if (n < 1) n = 1; if (n > 5) n = 5;
+                baseBind.maxConcurrentDownloads.setText(CONCURRENCY_NAMES[n - 1]);
+            };
+            refreshConcurrencyLabel.run();
+            baseBind.maxConcurrentDownloads.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int current = Shaft.sSettings.getMaxConcurrentDownloads();
+                    if (current < 1) current = 1; if (current > 5) current = 5;
+                    new QMUIDialog.CheckableDialogBuilder(mActivity)
+                            .setCheckedIndex(current - 1)
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(CONCURRENCY_NAMES, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    int chosen = which + 1;
+                                    if (chosen != Shaft.sSettings.getMaxConcurrentDownloads()) {
+                                        Shaft.sSettings.setMaxConcurrentDownloads(chosen);
+                                        Local.setSettings(Shaft.sSettings);
+                                        refreshConcurrencyLabel.run();
+                                        Common.showToast(getString(R.string.setting_max_concurrent_downloads_changed, chosen));
+                                        // 即时生效：让 Manager 把新增的并发槽位填上
+                                        try { Manager.get().startAll(); } catch (Exception ignored) {}
+                                    }
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                }
+            });
+            baseBind.maxConcurrentDownloadsRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.maxConcurrentDownloads.performClick();
                 }
             });
 

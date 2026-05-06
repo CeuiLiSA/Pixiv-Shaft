@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import ceui.lisa.R;
@@ -48,7 +49,12 @@ public class Manager {
 
     private final Context mContext = Shaft.getContext();
     private List<DownloadItem> content = new ArrayList<>();
-    private Disposable handle = null;
+    /**
+     * 多任务并发下载的运行 disposable 表（key = item.uuid）。
+     * 旧设计是单一 `Disposable handle`（串行），现在支持 1-5 并发：每个正在传的
+     * page 各占一个 entry。stopOne(uuid) 只 dispose 那一个；stopAll() dispose 全部。
+     */
+    private final Map<String, Disposable> handles = new ConcurrentHashMap<>();
     private boolean isRunning = false;
 
     private Manager() {
@@ -217,12 +223,10 @@ public class Manager {
                 }
             }
         }
-        if (isRunning) {
-            Common.showLog("Manager 正在下载中，不用多次start");
-            return;
-        }
         isRunning = true;
-        loop();
+        // 之前 isRunning=true 时会 short-circuit return，假设单线程串行用 doFinally
+        // 自动驱动下一条；并发模式下需要每次都 pumpAvailableSlots() 来填满空闲槽位。
+        pumpAvailableSlots();
     }
 
     public void startOne(String uuid) {
@@ -239,12 +243,8 @@ public class Manager {
             }
         }
 
-        if (isRunning) {
-            Common.showLog("Manager 正在下载中，不用多次start");
-            return;
-        }
         isRunning = true;
-        loop();
+        pumpAvailableSlots();
     }
 
     public void stopAll() {
@@ -252,9 +252,11 @@ public class Manager {
             item.setPaused(true);
         }
         isRunning = false;
-        if (handle != null) {
-            handle.dispose();
+        // dispose 全部正在传输的下载（snapshot 防 CME）
+        for (Disposable d : new ArrayList<>(handles.values())) {
+            try { d.dispose(); } catch (Exception ignored) {}
         }
+        handles.clear();
         Common.showLog("已经停止");
     }
 
@@ -266,8 +268,9 @@ public class Manager {
                 break;
             }
         }
-        if(this.uuid.equals(uuid) && handle != null){
-            handle.dispose();
+        Disposable d = handles.remove(uuid);
+        if (d != null) {
+            try { d.dispose(); } catch (Exception ignored) {}
         }
     }
 
@@ -291,30 +294,57 @@ public class Manager {
         }
     }
 
-    private void loop() {
-        if (Common.isEmpty(content.stream().filter(it->!it.isPaused()).collect(Collectors.toList()))) {
-            isRunning = false;
-            Common.showLog("Manager 已经全部下载完成");
-            return;
-        }
-        if(!isRunning){
-            return;
+    /**
+     * 每次有任务变化（startAll / 一条传输完成 / 用户改并发数）都调一次：把 INIT 队首
+     * 拉出来，状态置 DOWNLOADING 后异步派发，直到正在传输的数量达到用户设置的
+     * 并发数上限或没有 INIT 可用为止。
+     *
+     * synchronized 关键：state 检查 + 状态置 DOWNLOADING + handles.put 必须原子，
+     * 否则两个 doFinally 同时回调可能挑到同一条 INIT 派发两次。
+     */
+    private synchronized void pumpAvailableSlots() {
+        if (!isRunning) return;
+        int max = Shaft.sSettings.getMaxConcurrentDownloads();
+        if (max < 1) max = 1;
+        if (max > 5) max = 5;
+
+        int active = activeCount();
+        while (active < max) {
+            DownloadItem next = getFirstReady();
+            if (next == null) break;
+            // 抢占式置 DOWNLOADING：阻止下一次 pump 再挑到这条；progress callback
+            // 进来再细化为带 nonius 的 DOWNLOADING（语义不变，只是同名状态）。
+            next.setState(DownloadItem.DownloadState.DOWNLOADING);
+            // 兼容字段：第一个进入的当前下载 = 老 API 返回的 currentIllustID/uuid
+            currentIllustID = next.getIllust().getId();
+            uuid = next.getUuid();
+            downloadOne(mContext, next);
+            active++;
         }
 
-        DownloadItem item = getFirstOne();
-        if (item != null) {
-            downloadOne(mContext, item);
-        } else {
-            stopAll();
+        if (active == 0 && getFirstReady() == null) {
+            // 没活儿了
+            isRunning = false;
+            Common.showLog("Manager 已经全部下载完成");
         }
     }
 
-    private DownloadItem getFirstOne() {
-        for (int i = 0; i < content.size(); i++) {
-            DownloadItem downloadItem = content.get(i);
-            if (downloadItem.getState() == DownloadItem.DownloadState.INIT || downloadItem.getState() == DownloadItem.DownloadState.DOWNLOADING) {
-                return downloadItem;
-            }
+    /** 兼容老调用点：等价于 pumpAvailableSlots()。 */
+    private void loop() { pumpAvailableSlots(); }
+
+    /** 当前正在传输的 page 数（state=DOWNLOADING 且 !paused）。 */
+    private int activeCount() {
+        int n = 0;
+        for (DownloadItem it : content) {
+            if (!it.isPaused() && it.getState() == DownloadItem.DownloadState.DOWNLOADING) n++;
+        }
+        return n;
+    }
+
+    /** 找出可以 dispatch 的下一条：state=INIT 且未暂停。 */
+    private DownloadItem getFirstReady() {
+        for (DownloadItem it : content) {
+            if (!it.isPaused() && it.getState() == DownloadItem.DownloadState.INIT) return it;
         }
         return null;
     }
@@ -327,8 +357,6 @@ public class Manager {
             return;
         }
 
-        currentIllustID = downloadItem.getIllust().getId();
-        uuid = downloadItem.getUuid();
         Common.showLog("Manager 下载单个 当前进度" + downloadItem.getNonius());
 
         // SAF factory 创建、文件查询、insert 全部在 IO 线程执行，
@@ -347,7 +375,8 @@ public class Manager {
                 AndroidSchedulers.mainThread().scheduleDirect(() -> {
                     Common.showToast(mContext.getString(R.string.string_365));
                     complete(downloadItem, false);
-                    stopAll();
+                    // 单条失败不再 stopAll —— 并发模式下其它正在传的 page 不应受牵连。
+                    pumpAvailableSlots();
                 });
                 return;
             }
@@ -360,7 +389,7 @@ public class Manager {
                 complete(downloadItem, true);
                 AndroidSchedulers.mainThread().scheduleDirect(() -> {
                     content.remove(downloadItem);
-                    loop();
+                    pumpAvailableSlots();
                 });
                 return;
             }
@@ -381,7 +410,7 @@ public class Manager {
                 AndroidSchedulers.mainThread().scheduleDirect(() -> {
                     Common.showToast(mContext.getString(R.string.string_365));
                     complete(downloadItem, false);
-                    stopAll();
+                    pumpAvailableSlots();
                 });
                 return;
             }
@@ -391,7 +420,7 @@ public class Manager {
                 AndroidSchedulers.mainThread().scheduleDirect(() -> {
                     Common.showToast(mContext.getString(R.string.string_365));
                     complete(downloadItem, false);
-                    stopAll();
+                    pumpAvailableSlots();
                 });
                 return;
             }
@@ -434,7 +463,9 @@ public class Manager {
         }
         Request request = reqBuilder.build();
 
-        handle = io.reactivex.rxjava3.core.Observable.<String>create(emitter -> {
+        // 并发模式下：每个传输的 disposable 单独存到 handles，按 uuid key
+        final String itemUuid = downloadItem.getUuid();
+        Disposable d = io.reactivex.rxjava3.core.Observable.<String>create(emitter -> {
             Response response = null;
             InputStream inputStream = null;
             OutputStream outputStream = null;
@@ -505,7 +536,9 @@ public class Manager {
                                 downloadItem.setState(DownloadItem.DownloadState.DOWNLOADING);
                                 Common.showLog("currentProgress " + progress);
                                 try {
-                                    Callback<DownloadProgress> c = getCallback(uuid);
+                                    // 用 item 自己的 uuid 查 callback —— 之前用 Manager 的静态
+                                    // uuid 字段，并发模式下会拿错（被后启动的覆盖了）。
+                                    Callback<DownloadProgress> c = getCallback(downloadItem.getUuid());
                                     if (c != null) {
                                         c.doSomething(dp);
                                     }
@@ -534,13 +567,13 @@ public class Manager {
         })
         .subscribeOn(Schedulers.io())
         // 完成回调保持在 IO 线程，Gson 序列化 + DB 操作 + finishWrite 不阻塞主线程。
-        // 只有 UI 通知（广播、Toast）和 loop() 回主线程。
+        // 只有 UI 通知（广播、Toast）和 pump 回主线程。
         .observeOn(Schedulers.io())
         .doFinally(() -> {
-            currentIllustID = 0;
-            Common.showLog("doFinally ");
-            // loop 需要回主线程，因为它可能操作 UI 状态
-            AndroidSchedulers.mainThread().scheduleDirect(this::loop);
+            // 这条传完了，把它的 disposable 从表里移除，主线程上 pump 下一个空闲槽位。
+            handles.remove(itemUuid);
+            Common.showLog("doFinally uuid=" + itemUuid);
+            AndroidSchedulers.mainThread().scheduleDirect(this::pumpAvailableSlots);
         })
         .subscribe(s -> {
             Common.showLog("downloadOne " + s);
@@ -615,6 +648,7 @@ public class Manager {
                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
             }
         });
+        handles.put(itemUuid, d);
     }
 
     private String uuid;

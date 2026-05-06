@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -16,6 +17,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
@@ -26,6 +28,7 @@ import ceui.lisa.database.DownloadDao
 import ceui.lisa.database.DownloadEntity
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
+import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +60,9 @@ class DoneListV3Fragment : Fragment() {
     private val dao: DownloadDao by lazy {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
     }
-    private val adapter = DoneAdapterV3 { group, action ->
+    private val adapter = DoneAdapterV3(
+        initialMode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode),
+    ) { group, action ->
         when (action) {
             DoneAction.OPEN -> openDetail(group)
             DoneAction.DELETE -> deleteOne(group)
@@ -74,18 +79,34 @@ class DoneListV3Fragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val list = view.findViewById<RecyclerView>(R.id.list)
-        list.layoutManager = GridLayoutManager(requireContext(), 2)
         list.adapter = adapter
+        applyLayoutMode(list, DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode))
 
         val empty = view.findViewById<View>(R.id.emptyState)
         view.findViewById<TextView>(R.id.emptyTitle).text = getString(R.string.dlmgr_done_empty_title)
         view.findViewById<TextView>(R.id.emptyHint).text = getString(R.string.dlmgr_done_empty_hint)
 
-        view.findViewById<Button>(R.id.btn1).visibility = View.GONE
+        // btn1 改成"切换布局"按钮 —— 循环 LIST → GRID → COMPACT。
+        // 用户首次发现这个按钮会顺便看到 toast 提示当前模式。
+        val btnLayout = view.findViewById<Button>(R.id.btn1).apply {
+            visibility = View.VISIBLE
+            text = getString(DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode).labelRes)
+            setOnClickListener {
+                val next = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode).next()
+                Shaft.sSettings.doneListLayoutMode = next.ordinal
+                Local.setSettings(Shaft.sSettings)
+                applyLayoutMode(list, next)
+                text = getString(next.labelRes)
+            }
+        }
         view.findViewById<Button>(R.id.btn2).visibility = View.GONE
+        // btn3 改为"导出"：把已完成下载的所有 illustId 拼成 pixiv 链接列表，
+        // 走 ACTION_SEND 让用户分享/保存。4.6.4 之前的 FragmentMultiDownload
+        // 有这个功能，重写后丢了，现在补回来。
         view.findViewById<Button>(R.id.btn3).apply {
-            text = getString(R.string.dlmgr_done_action_refresh)
-            setOnClickListener { refreshTickle.trySend(Unit) }
+            visibility = View.VISIBLE
+            text = getString(R.string.dlmgr_done_action_export)
+            setOnClickListener { exportDoneList() }
         }
         view.findViewById<Button>(R.id.btn4).apply {
             text = getString(R.string.dlmgr_done_action_clear_history)
@@ -153,6 +174,58 @@ class DoneListV3Fragment : Fragment() {
         startActivity(intent)
     }
 
+    /**
+     * 导出已完成下载的链接列表为纯文本，走 [Intent.ACTION_SEND] 让用户选择
+     * 复制 / 保存为文件 / 发送到聊天工具。每行一个 pixiv 作品链接，按下载时间倒序，
+     * 按 illustId 去重（多 p illust 只占一行）。
+     *
+     * 不导出小说（NOVEL_KEY 标记的行）—— 小说没有标准 URL 模板，需要单独处理。
+     */
+    private fun exportDoneList() {
+        val ctx = requireContext()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val (text, illustCount) = withContext(Dispatchers.IO) {
+                val rows = runCatching { dao.getAll(EXPORT_HARD_CAP, 0) }.getOrDefault(emptyList())
+                val groups = groupByIllust(rows)
+                val sb = StringBuilder()
+                var n = 0
+                for (g in groups) {
+                    if (g.isNovel) continue
+                    // 优先用预解析的 illust.id，回退到正则从 illustGson 抽 id
+                    val id = (g.parsedIllust?.id?.toLong()?.takeIf { it > 0 })
+                        ?: extractIllustId(g.latest.illustGson).takeIf { it > 0 }
+                        ?: continue
+                    sb.append("https://www.pixiv.net/artworks/").append(id).append('\n')
+                    n++
+                }
+                sb.toString().trimEnd() to n
+            }
+            if (text.isEmpty()) {
+                Toast.makeText(ctx, getString(R.string.dlmgr_done_export_empty), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val title = getString(R.string.dlmgr_done_export_share_title)
+            val summary = getString(R.string.dlmgr_done_export_summary, illustCount, illustCount)
+            Toast.makeText(ctx, summary, Toast.LENGTH_SHORT).show()
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, title)
+                putExtra(Intent.EXTRA_TEXT, text)
+            }
+            startActivity(Intent.createChooser(send, title))
+        }
+    }
+
+    /** 切换布局：换 LayoutManager + 通知 adapter 切 viewType 重 inflate。 */
+    private fun applyLayoutMode(list: RecyclerView, mode: DoneLayoutMode) {
+        list.layoutManager = when (mode) {
+            DoneLayoutMode.LIST    -> LinearLayoutManager(requireContext())
+            DoneLayoutMode.GRID    -> GridLayoutManager(requireContext(), 2)
+            DoneLayoutMode.COMPACT -> GridLayoutManager(requireContext(), 4)
+        }
+        adapter.setMode(mode)
+    }
+
     private fun deleteOne(group: DownloadGroup) {
         viewLifecycleOwner.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -168,6 +241,8 @@ class DoneListV3Fragment : Fragment() {
     companion object {
         private const val PAGE_SIZE = 600   // 一次取多点；分组后实际卡片数会少
         private const val REFRESH_INTERVAL_MS = 1500L
+        /** 导出时一次拉的硬上限 —— 5w 行 ≈ 2MB 文本，正常用户都装不了这么多 */
+        private const val EXPORT_HARD_CAP = 50000
     }
 }
 
@@ -228,6 +303,24 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
 
 private enum class DoneAction { OPEN, DELETE }
 
+/**
+ * 已完成 tab 三种布局模式。值与 [Settings.doneListLayoutMode] 同步：
+ *   0 = LIST    横向列表，单列，缩略图在左
+ *   1 = GRID    网格 2 列（旧默认）
+ *   2 = COMPACT 紧凑缩图 4 列，无文字
+ */
+internal enum class DoneLayoutMode(val labelRes: Int) {
+    LIST(R.string.dlmgr_done_layout_list),
+    GRID(R.string.dlmgr_done_layout_grid),
+    COMPACT(R.string.dlmgr_done_layout_compact);
+
+    fun next(): DoneLayoutMode = values()[(ordinal + 1) % values().size]
+
+    companion object {
+        fun fromInt(i: Int): DoneLayoutMode = values().getOrElse(i) { GRID }
+    }
+}
+
 private object DoneDiff : DiffUtil.ItemCallback<DownloadGroup>() {
     override fun areItemsTheSame(a: DownloadGroup, b: DownloadGroup): Boolean = a.key == b.key
     override fun areContentsTheSame(a: DownloadGroup, b: DownloadGroup): Boolean =
@@ -235,13 +328,29 @@ private object DoneDiff : DiffUtil.ItemCallback<DownloadGroup>() {
 }
 
 private class DoneAdapterV3(
+    initialMode: DoneLayoutMode,
     private val onAction: (DownloadGroup, DoneAction) -> Unit,
 ) : ListAdapter<DownloadGroup, DoneAdapterV3.VH>(DoneDiff) {
 
     private val timeFmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    private var mode: DoneLayoutMode = initialMode
+
+    fun setMode(m: DoneLayoutMode) {
+        if (mode == m) return
+        mode = m
+        // viewType 改了，必须 invalidate 让 RecyclerView 重 inflate 不同 cell
+        notifyDataSetChanged()
+    }
+
+    override fun getItemViewType(position: Int): Int = mode.ordinal
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val v = LayoutInflater.from(parent.context).inflate(R.layout.cell_download_done_v3, parent, false)
+        val layoutRes = when (DoneLayoutMode.fromInt(viewType)) {
+            DoneLayoutMode.LIST    -> R.layout.cell_download_done_v3_list
+            DoneLayoutMode.GRID    -> R.layout.cell_download_done_v3
+            DoneLayoutMode.COMPACT -> R.layout.cell_download_done_v3_compact
+        }
+        val v = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
         return VH(v)
     }
 
@@ -250,6 +359,7 @@ private class DoneAdapterV3(
         val entity = group.latest
 
         if (group.isNovel) {
+            h.typeBadge.visibility = View.VISIBLE
             h.typeBadge.text = "NOVEL"
             Glide.with(h.thumb).clear(h.thumb)
             h.thumb.setImageDrawable(null)
@@ -258,11 +368,19 @@ private class DoneAdapterV3(
         } else {
             // 用预解析的 illust（reload 时 IO 线程已 fromJson 完）—— 绑卡 0 解析
             val illust: IllustsBean? = group.parsedIllust
-            // type 徽章：单页 ILLUST，多页 MANGA(N) 体现页数
-            h.typeBadge.text = when {
-                group.pageCount > 1 -> "MANGA · ${group.pageCount}P"
-                (illust?.page_count ?: 1) > 1 -> "MANGA · ${illust?.page_count}P"
-                else -> "ILLUST"
+            // 多页 illust：左上角只显示 "Np"（去掉 "MANGA · " 冗余前缀）。
+            // 单页 illust：徽章直接隐藏 —— 没有页数信息可言。
+            // 之前的渐隐 + 透明背景文字在暗色图上几乎读不出，改为白字 + 70% 黑底。
+            val pageCount = when {
+                group.pageCount > 1 -> group.pageCount
+                (illust?.page_count ?: 1) > 1 -> illust?.page_count ?: 1
+                else -> 1
+            }
+            if (pageCount > 1) {
+                h.typeBadge.visibility = View.VISIBLE
+                h.typeBadge.text = "${pageCount}P"
+            } else {
+                h.typeBadge.visibility = View.GONE
             }
             h.title.text = illust?.title?.takeIf { it.isNotBlank() } ?: entity.fileName.orEmpty()
             h.author.text = illust?.user?.name?.let { "by: $it" } ?: ""

@@ -1163,9 +1163,9 @@
     <string name="bulk_select_invert">反選</string>
     <string name="bulk_select_no_items">沒有可選作品，可能從其他入口進來導致狀態遺失。</string>
     <string name="bulk_select_loading">載入中…</string>
-    <string name="bulk_select_summary">共 %1$d 項 · 已選 %2$d 項</string>
-    <string name="bulk_select_summary_with_gif">共 %1$d 項 · 已選 %2$d 項 · GIF 已略過 %3$d 項</string>
-    <string name="bulk_select_confirm">加入下載佇列 (%1$d) →</string>
+    <string name="bulk_select_summary">共 %1$d 項 · 已選 %2$d 項 (%3$d 張圖)</string>
+    <string name="bulk_select_summary_with_gif">共 %1$d 項 · 已選 %2$d 項 (%3$d 張圖) · 跳過 %4$d 個動圖（請到作品頁單獨下載）</string>
+    <string name="bulk_select_confirm">加入下載佇列 (%1$d 項 / %2$d 張圖) →</string>
     <string name="bulk_select_confirm_empty">請至少選擇 1 項</string>
 
     <string name="bulk_enqueue_empty">沒有可入隊的作品</string>
@@ -1225,4 +1225,15 @@
     <string name="dlmgr_done_empty_hint">下載完成的作品會出現在這裡</string>
     <string name="dlmgr_done_action_refresh">重新整理</string>
     <string name="dlmgr_done_action_clear_history">清空記錄</string>
+    <string name="dlmgr_done_action_export">匯出</string>
+    <string name="dlmgr_done_layout_list">版面：列表</string>
+    <string name="dlmgr_done_layout_grid">版面：網格</string>
+    <string name="dlmgr_done_layout_compact">版面：縮圖</string>
+    <string name="setting_max_concurrent_downloads">同時下載數</string>
+    <string name="setting_max_concurrent_downloads_one">1（串列 · 預設）</string>
+    <string name="setting_max_concurrent_downloads_n">%1$d 並發</string>
+    <string name="setting_max_concurrent_downloads_changed">同時下載數已設為 %1$d</string>
+    <string name="dlmgr_done_export_empty">沒有已完成的作品可匯出</string>
+    <string name="dlmgr_done_export_share_title">匯出已完成下載</string>
+    <string name="dlmgr_done_export_summary">共 %1$d 個作品 · %2$d 行連結</string>
 </resources>

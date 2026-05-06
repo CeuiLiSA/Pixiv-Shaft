@@ -1117,9 +1117,9 @@
     <string name="bulk_select_invert">Invert</string>
     <string name="bulk_select_no_items">No selectable works. State may have been lost from a different entry point.</string>
     <string name="bulk_select_loading">Loading…</string>
-    <string name="bulk_select_summary">%1$d total · %2$d selected</string>
-    <string name="bulk_select_summary_with_gif">%1$d total · %2$d selected · %3$d GIFs skipped</string>
-    <string name="bulk_select_confirm">Enqueue (%1$d) →</string>
+    <string name="bulk_select_summary">%1$d total · %2$d selected (%3$d images)</string>
+    <string name="bulk_select_summary_with_gif">%1$d total · %2$d selected (%3$d images) · %4$d GIFs skipped (download from artwork page)</string>
+    <string name="bulk_select_confirm">Enqueue (%1$d works / %2$d images) →</string>
     <string name="bulk_select_confirm_empty">Select at least 1</string>
 
     <!-- Legacy batch enqueue toasts -->
@@ -1183,4 +1183,15 @@
     <string name="dlmgr_done_empty_hint">Completed downloads will appear here</string>
     <string name="dlmgr_done_action_refresh">Refresh</string>
     <string name="dlmgr_done_action_clear_history">Clear records</string>
+    <string name="dlmgr_done_action_export">Export</string>
+    <string name="dlmgr_done_layout_list">Layout: List</string>
+    <string name="dlmgr_done_layout_grid">Layout: Grid</string>
+    <string name="dlmgr_done_layout_compact">Layout: Compact</string>
+    <string name="setting_max_concurrent_downloads">Concurrent downloads</string>
+    <string name="setting_max_concurrent_downloads_one">1 (serial · default)</string>
+    <string name="setting_max_concurrent_downloads_n">%1$d in parallel</string>
+    <string name="setting_max_concurrent_downloads_changed">Concurrent downloads set to %1$d</string>
+    <string name="dlmgr_done_export_empty">No completed works to export</string>
+    <string name="dlmgr_done_export_share_title">Export completed downloads</string>
+    <string name="dlmgr_done_export_summary">%1$d works · %2$d links</string>
 </resources>

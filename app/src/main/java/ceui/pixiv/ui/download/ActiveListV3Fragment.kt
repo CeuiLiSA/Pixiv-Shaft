@@ -16,19 +16,26 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.FileSizeUtil
 import ceui.lisa.notification.DownloadReceiver
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
+import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -49,6 +56,9 @@ class ActiveListV3Fragment : Fragment() {
     private val adapter = ActiveAdapterV3()
     private var receiver: DownloadReceiver<*>? = null
     private var statusHeader: TextView? = null
+    private val queueDao: DownloadQueueDao by lazy {
+        AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -74,17 +84,26 @@ class ActiveListV3Fragment : Fragment() {
         }
 
         // 操作 bar
-        view.findViewById<Button>(R.id.btn1).apply {
+        val btnResume = view.findViewById<Button>(R.id.btn1).apply {
             text = getString(R.string.dlmgr_active_action_resume_all)
+            // 联动：恢复 active 同时恢复批量队列
             setOnClickListener { Manager.get().startAll(); QueueDownloadManager.resume() }
         }
-        view.findViewById<Button>(R.id.btn2).apply {
+        val btnPause = view.findViewById<Button>(R.id.btn2).apply {
             text = getString(R.string.dlmgr_active_action_pause_all)
-            setOnClickListener { Manager.get().stopAll() }
+            // 联动：暂停 active 同时暂停批量队列消费者
+            setOnClickListener { Manager.get().stopAll(); QueueDownloadManager.pause() }
         }
-        view.findViewById<Button>(R.id.btn4).apply {
+        val btnClear = view.findViewById<Button>(R.id.btn4).apply {
             text = getString(R.string.dlmgr_active_action_clear)
-            setOnClickListener { Manager.get().clearAll() }
+            // 联动：清空 active 同时把批量队列 DB 也清掉，避免用户清完 active 又被
+            // 队列消费者重新填回去，看起来"清不掉"。
+            setOnClickListener {
+                Manager.get().clearAll()
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    runCatching { queueDao.deleteAll() }
+                }
+            }
         }
 
         // Snapshot polling（1s）
@@ -128,6 +147,14 @@ class ActiveListV3Fragment : Fragment() {
 
                     adapter.submit(snapshot.toList())
                     empty.visibility = if (snapshot.isEmpty()) View.VISIBLE else View.GONE
+                    // 没有任何活跃任务时把操作按钮置灰，避免用户在空列表上反复点
+                    val hasWork = snapshot.isNotEmpty()
+                    btnResume.isEnabled = hasWork
+                    btnResume.alpha = if (hasWork) 1f else 0.4f
+                    btnPause.isEnabled = hasWork
+                    btnPause.alpha = if (hasWork) 1f else 0.4f
+                    btnClear.isEnabled = hasWork
+                    btnClear.alpha = if (hasWork) 1f else 0.4f
                     delay(REFRESH_INTERVAL_MS)
                 }
             }
@@ -158,14 +185,36 @@ class ActiveListV3Fragment : Fragment() {
     }
 }
 
-private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
+/**
+ * DiffUtil 让"看起来没变"的 item 不重 bind。issue: 1s polling 用
+ * notifyDataSetChanged() 全量重 bind，每次都重 Glide.load 缩略图 → 视觉上闪烁
+ * （即使在暂停态也闪，因为 polling 不区分状态）。
+ *
+ * 行为：
+ *   - 标识相同（uuid）+ 内容完全一致 → 不 bind
+ *   - 仅进度/状态变化 → 走 payload，仅刷新进度条/百分比/大小/徽章
+ *   - 缩略图 URL 没变就根本不调 Glide.load
+ */
+private object ActiveDiff : DiffUtil.ItemCallback<DownloadItem>() {
+    override fun areItemsTheSame(a: DownloadItem, b: DownloadItem): Boolean = a.uuid == b.uuid
+    override fun areContentsTheSame(a: DownloadItem, b: DownloadItem): Boolean =
+        a.state == b.state &&
+            a.isPaused == b.isPaused &&
+            a.nonius == b.nonius &&
+            a.currentSize == b.currentSize &&
+            a.totalSize == b.totalSize &&
+            a.name == b.name &&
+            a.showUrl == b.showUrl
+    override fun getChangePayload(oldItem: DownloadItem, newItem: DownloadItem): Any = PROGRESS_PAYLOAD
+}
 
-    private val items = mutableListOf<DownloadItem>()
+private const val PROGRESS_PAYLOAD = "progress"
+
+private class ActiveAdapterV3 : ListAdapter<DownloadItem, ActiveAdapterV3.VH>(ActiveDiff) {
 
     fun submit(newItems: List<DownloadItem>) {
-        items.clear()
-        items.addAll(newItems)
-        notifyDataSetChanged()
+        // ListAdapter.submitList copies + diff —— 引用比较失败也会进 DiffUtil
+        submitList(ArrayList(newItems))
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -174,19 +223,63 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
     }
 
     override fun onBindViewHolder(h: VH, pos: Int) {
-        val item = items[pos]
-        h.taskName.text = item.name
+        bindFull(h, getItem(pos))
+    }
 
+    override fun onBindViewHolder(h: VH, pos: Int, payloads: List<Any>) {
+        if (payloads.isEmpty()) {
+            bindFull(h, getItem(pos))
+        } else {
+            // payload-only：进度/状态变了，但缩略图、文件名没变
+            bindStateAndProgress(h, getItem(pos))
+        }
+    }
+
+    private fun bindFull(h: VH, item: DownloadItem) {
+        h.taskName.text = item.name
+        bindStateAndProgress(h, item)
+
+        // 缩略图：原始 showUrl 没变就不 Glide.load —— 这是消除闪烁的关键。
+        // 用原始 String 比较（GlideUrl 没实现稳定的 equals，比较起来不靠谱）
+        val newShowUrl = item.showUrl?.takeIf { !TextUtils.isEmpty(it) }
+        if (newShowUrl != h.lastLoadedUrl) {
+            if (!newShowUrl.isNullOrEmpty()) {
+                Glide.with(h.thumb)
+                    .load(GlideUtil.getUrl(newShowUrl))
+                    .placeholder(android.R.color.transparent)
+                    .into(h.thumb)
+            } else {
+                Glide.with(h.thumb).clear(h.thumb)
+                h.thumb.setImageDrawable(null)
+            }
+            h.lastLoadedUrl = newShowUrl
+        }
+
+        // 暂停/继续 + 取消（每次 full bind 重设，保证 lambda 引用最新 item）
+        h.pauseBtn.setOnClickListener {
+            if (item.isPaused) Manager.get().startOne(item.uuid)
+            else Manager.get().stopOne(item.uuid)
+            // 状态变化通过下一轮 polling + DiffUtil 推 payload 即可，不再 notifyItemChanged
+        }
+        h.cancelBtn.setOnClickListener {
+            Manager.get().clearOne(item.uuid)
+        }
+
+        // 故意不再 Manager.get().setCallback(item.uuid) { ... } —— 之前每次 bind 都
+        // 注册一个 lambda，Manager.mCallback HashMap 按 uuid 存且永远不清，长跑下
+        // 100000+ 闭包会持有 ViewHolder 引用 → 内存堆积 OOM。
+        // 进度更新依赖 1s polling + DiffUtil payload 触发 bindStateAndProgress。
+    }
+
+    private fun bindStateAndProgress(h: VH, item: DownloadItem) {
         // —— 状态分类决定视觉权重 ——
         val isActive = item.state == DownloadItem.DownloadState.DOWNLOADING
         val isWaiting = item.state == DownloadItem.DownloadState.INIT
         val isPaused = item.isPaused || item.state == DownloadItem.DownloadState.PAUSED
         val isFailed = item.state == DownloadItem.DownloadState.FAILED
 
-        // 等待中的卡片显著弱化
         h.itemView.alpha = if (isActive || isFailed) 1.0f else 0.55f
 
-        // 进度条：只对 DOWNLOADING 显示
         h.progress.visibility = if (isActive) View.VISIBLE else View.GONE
         h.percentText.visibility = if (isActive) View.VISIBLE else View.GONE
         if (isActive) {
@@ -194,7 +287,6 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
             h.percentText.text = "${item.nonius}%"
         }
 
-        // size 文本：DOWNLOADING 显示实际大小；其它用人话替代
         when {
             isActive -> {
                 h.sizeText.text = if (item.totalSize > 0) {
@@ -211,16 +303,6 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
             else -> h.sizeText.text = "—"
         }
 
-        if (!TextUtils.isEmpty(item.showUrl)) {
-            Glide.with(h.thumb)
-                .load(GlideUtil.getUrl(item.showUrl))
-                .placeholder(android.R.color.transparent)
-                .into(h.thumb)
-        } else {
-            Glide.with(h.thumb).clear(h.thumb)
-            h.thumb.setImageDrawable(null)
-        }
-
         val (label, color) = when {
             isActive -> "DOWNLOADING" to "#5EB3FF"
             isPaused -> "PAUSED" to "#FFB454"
@@ -232,28 +314,11 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
         h.stateBadge.text = label
         h.stateBadge.setTextColor(Color.parseColor(color))
 
-        // 暂停/继续切换 icon
         h.pauseBtn.setImageResource(
             if (item.isPaused) R.drawable.ic_baseline_play_arrow_24
             else R.drawable.ic_baseline_pause_24
         )
-        h.pauseBtn.setOnClickListener {
-            if (item.isPaused) Manager.get().startOne(item.uuid)
-            else Manager.get().stopOne(item.uuid)
-            notifyItemChanged(h.bindingAdapterPosition)
-        }
-        h.cancelBtn.setOnClickListener {
-            Manager.get().clearOne(item.uuid)
-        }
-
-        // 故意不再 Manager.get().setCallback(item.uuid) { ... } —— 之前每次 bind 都
-        // 注册一个 lambda，Manager.mCallback HashMap 按 uuid 存且永远不清，长跑下
-        // 100000+ 闭包会持有 ViewHolder 引用 → 内存堆积 OOM。
-        // 进度更新依赖 1s polling 重新 submit() 触发 onBindViewHolder 时读 item.nonius，
-        // 1Hz 已足够顺滑。
     }
-
-    override fun getItemCount(): Int = items.size
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
         val thumb: ImageView = v.findViewById(R.id.thumb)
@@ -264,5 +329,7 @@ private class ActiveAdapterV3 : RecyclerView.Adapter<ActiveAdapterV3.VH>() {
         val percentText: TextView = v.findViewById(R.id.percentText)
         val pauseBtn: ImageView = v.findViewById(R.id.pauseBtn)
         val cancelBtn: ImageView = v.findViewById(R.id.cancelBtn)
+        /** 上次 Glide.load 的 URL（含 referer 拼接后）；URL 不变就跳过加载，消除闪烁 */
+        var lastLoadedUrl: String? = null
     }
 }

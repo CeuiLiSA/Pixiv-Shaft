@@ -1,30 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  已完成 tab 的「横向列表」cell：图左 80dp，文字栏靠右铺满。
+  ID 必须与 cell_download_done_v3.xml 一致（thumb/typeBadge/title/author/time/deleteBtn），
+  让 DoneAdapterV3.VH 的同一份代码同时复用两套布局。
+-->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
+    android:layout_marginHorizontal="6dp"
+    android:layout_marginVertical="3dp"
     android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="@color/v3_bg"
-    app:cardCornerRadius="14dp"
-    app:cardElevation="1.5dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="1dp">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:padding="6dp">
 
         <FrameLayout
             android:id="@+id/imageWrap"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true">
 
             <ImageView
                 android:id="@+id/thumb"
                 android:layout_width="match_parent"
-                android:layout_height="160dp"
-                android:adjustViewBounds="true"
+                android:layout_height="match_parent"
                 android:background="@color/v3_surface_2"
                 android:contentDescription="@null"
                 android:scaleType="centerCrop" />
@@ -33,31 +40,36 @@
                 android:id="@+id/typeBadge"
                 style="@style/V3StatusBadge"
                 android:layout_gravity="top|start"
-                android:layout_margin="6dp"
+                android:layout_margin="3dp"
                 android:background="@drawable/bg_page_count_overlay"
                 android:textColor="#FFFFFF"
+                android:textSize="9sp"
+                android:paddingHorizontal="5dp"
+                android:paddingVertical="2dp"
                 tools:text="3P" />
-
-            <ImageView
-                android:id="@+id/deleteBtn"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="bottom|end"
-                android:layout_margin="6dp"
-                android:background="@drawable/v3_nav_btn_bg"
-                android:contentDescription="@null"
-                android:padding="6dp"
-                android:src="@drawable/ic_delete_black_24dp"
-                app:tint="#CCFFFFFF" />
         </FrameLayout>
+
+        <ImageView
+            android:id="@+id/deleteBtn"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@null"
+            android:padding="6dp"
+            android:src="@drawable/ic_delete_black_24dp"
+            app:tint="@color/v3_text_3" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="10dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="10dp">
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/imageWrap"
+            android:layout_toStartOf="@id/deleteBtn"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="2dp"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/title"
@@ -67,7 +79,7 @@
                 android:letterSpacing="-0.02"
                 android:maxLines="1"
                 android:textColor="@color/v3_text_1"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 tools:text="作品标题" />
 
@@ -75,25 +87,25 @@
                 android:id="@+id/author"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/v3_text_3"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 tools:text="by: 作者" />
 
             <TextView
                 android:id="@+id/time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:fontFamily="monospace"
-                android:letterSpacing="0.06"
+                android:letterSpacing="0.04"
                 android:textAllCaps="true"
                 android:textColor="@color/v3_text_3"
                 android:textSize="9sp"
                 android:textStyle="bold"
                 tools:text="2 分钟前" />
         </LinearLayout>
-    </LinearLayout>
+    </RelativeLayout>
 </androidx.cardview.widget.CardView>

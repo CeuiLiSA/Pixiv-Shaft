@@ -137,14 +137,18 @@ class BulkSelectV3Fragment : Fragment() {
         val total = items.size
         val selected = items.count { it.selected && it.selectable }
         val gifSkipped = items.count { !it.selectable }
+        // 求和已选作品的页数 —— 每个 illust 的 page_count 累加；page_count<=0 当 1 算
+        val selectedImageCount = items.asSequence()
+            .filter { it.selected && it.selectable }
+            .sumOf { (it.illust.page_count.takeIf { c -> c > 0 } ?: 1) }
         hint.text = if (gifSkipped > 0) {
-            getString(R.string.bulk_select_summary_with_gif, total, selected, gifSkipped)
+            getString(R.string.bulk_select_summary_with_gif, total, selected, selectedImageCount, gifSkipped)
         } else {
-            getString(R.string.bulk_select_summary, total, selected)
+            getString(R.string.bulk_select_summary, total, selected, selectedImageCount)
         }
         btnConfirm.isEnabled = selected > 0
         btnConfirm.text = if (selected > 0) {
-            getString(R.string.bulk_select_confirm, selected)
+            getString(R.string.bulk_select_confirm, selected, selectedImageCount)
         } else {
             getString(R.string.bulk_select_confirm_empty)
         }

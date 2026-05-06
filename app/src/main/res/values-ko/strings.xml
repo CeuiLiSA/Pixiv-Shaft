@@ -1057,9 +1057,9 @@
     <string name="bulk_select_invert">선택 반전</string>
     <string name="bulk_select_no_items">선택 가능한 작품이 없습니다. 다른 진입점에서 와서 상태가 손실되었을 수 있습니다.</string>
     <string name="bulk_select_loading">로딩 중…</string>
-    <string name="bulk_select_summary">%1$d개 · %2$d개 선택됨</string>
-    <string name="bulk_select_summary_with_gif">%1$d개 · %2$d개 선택됨 · GIF %3$d개 건너뜀</string>
-    <string name="bulk_select_confirm">다운로드 큐에 추가 (%1$d) →</string>
+    <string name="bulk_select_summary">%1$d개 · %2$d개 선택됨 (%3$d장)</string>
+    <string name="bulk_select_summary_with_gif">%1$d개 · %2$d개 선택됨 (%3$d장) · GIF %4$d개 건너뜀 (작품 페이지에서 개별 다운로드)</string>
+    <string name="bulk_select_confirm">다운로드 큐에 추가 (%1$d개 / %2$d장) →</string>
     <string name="bulk_select_confirm_empty">최소 1개 이상 선택하세요</string>
 
     <string name="bulk_enqueue_empty">큐에 추가할 작품이 없습니다</string>
@@ -1119,4 +1119,15 @@
     <string name="dlmgr_done_empty_hint">완료된 작품이 여기에 표시됩니다</string>
     <string name="dlmgr_done_action_refresh">새로고침</string>
     <string name="dlmgr_done_action_clear_history">기록 지우기</string>
+    <string name="dlmgr_done_action_export">내보내기</string>
+    <string name="dlmgr_done_layout_list">레이아웃: 리스트</string>
+    <string name="dlmgr_done_layout_grid">레이아웃: 그리드</string>
+    <string name="dlmgr_done_layout_compact">레이아웃: 콤팩트</string>
+    <string name="setting_max_concurrent_downloads">동시 다운로드 수</string>
+    <string name="setting_max_concurrent_downloads_one">1 (직렬 · 기본값)</string>
+    <string name="setting_max_concurrent_downloads_n">%1$d개 병렬</string>
+    <string name="setting_max_concurrent_downloads_changed">동시 다운로드 수가 %1$d로 설정됨</string>
+    <string name="dlmgr_done_export_empty">내보낼 완료된 작품이 없습니다</string>
+    <string name="dlmgr_done_export_share_title">완료된 다운로드 내보내기</string>
+    <string name="dlmgr_done_export_summary">%1$d개 작품 · %2$d개 링크</string>
 </resources>

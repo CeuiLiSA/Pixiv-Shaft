@@ -1530,9 +1530,9 @@
     <string name="bulk_select_invert">反选</string>
     <string name="bulk_select_no_items">没有可选作品，可能从其他入口进来导致状态丢失。</string>
     <string name="bulk_select_loading">加载中…</string>
-    <string name="bulk_select_summary">共 %1$d 项 · 已选 %2$d 项</string>
-    <string name="bulk_select_summary_with_gif">共 %1$d 项 · 已选 %2$d 项 · GIF 已跳过 %3$d 项</string>
-    <string name="bulk_select_confirm">加入下载队列 (%1$d) →</string>
+    <string name="bulk_select_summary">共 %1$d 项 · 已选 %2$d 项 (%3$d 张图)</string>
+    <string name="bulk_select_summary_with_gif">共 %1$d 项 · 已选 %2$d 项 (%3$d 张图) · 跳过 %4$d 个动图（请到作品页单独下载）</string>
+    <string name="bulk_select_confirm">加入下载队列 (%1$d 项 / %2$d 张图) →</string>
     <string name="bulk_select_confirm_empty">请至少选择 1 项</string>
 
     <!-- Legacy batch enqueue 提示 -->
@@ -1596,4 +1596,15 @@
     <string name="dlmgr_done_empty_hint">下载完成的作品会出现在这里</string>
     <string name="dlmgr_done_action_refresh">刷新</string>
     <string name="dlmgr_done_action_clear_history">清空记录</string>
+    <string name="dlmgr_done_action_export">导出</string>
+    <string name="dlmgr_done_layout_list">布局：列表</string>
+    <string name="dlmgr_done_layout_grid">布局：网格</string>
+    <string name="dlmgr_done_layout_compact">布局：缩图</string>
+    <string name="setting_max_concurrent_downloads">同时下载数</string>
+    <string name="setting_max_concurrent_downloads_one">1（串行 · 默认）</string>
+    <string name="setting_max_concurrent_downloads_n">%1$d 个并发</string>
+    <string name="setting_max_concurrent_downloads_changed">同时下载数已设为 %1$d</string>
+    <string name="dlmgr_done_export_empty">没有已完成的作品可导出</string>
+    <string name="dlmgr_done_export_share_title">导出已完成下载</string>
+    <string name="dlmgr_done_export_summary">共 %1$d 个作品 · %2$d 行链接</string>
 </resources>

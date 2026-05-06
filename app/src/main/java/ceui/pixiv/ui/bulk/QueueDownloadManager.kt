@@ -224,6 +224,24 @@ object QueueDownloadManager {
         }
         val pageCount = if (bean.page_count <= 0) 1 else bean.page_count
 
+        // 重试路径检测：如果 Manager.content 里还有这个 illust 的 page（必为 FAILED —
+        // SUCCESS 在完成时已 remove；INIT/DOWNLOADING 不会触发 retry），说明这是
+        // bumpRetry → PENDING → consume 又拿回来的同一个 item。直接 startAll() 让
+        // Manager 把这些 FAILED page 重置为 INIT 继续下，不要再 addTask 全部 pageCount
+        // 页 —— 那会让上一轮已经 SUCCESS 的页又重新入队，用户看到 100 张图重新跑一遍。
+        // (issue #859: failed page → 整批 illust 重新加载下载)
+        val target = item.illustId.toInt()
+        val existing = snapshotManagerContent().filter { it.illust?.id == target }
+        if (existing.isNotEmpty()) {
+            Timber.tag(TAG).i(
+                "retry path illust=${item.illustId}: ${existing.size}/$pageCount page(s) still in Manager.content, skipping addTask"
+            )
+            startAllWithRetry()
+            awaitIllustSettled(item.illustId, expectedPageCount = pageCount)
+            return
+        }
+
+        // 首次或被清空后的全新执行：addTask 全部页。
         // 同步 addTask（每次调用都 synchronized 写 content + DB）。
         // 关键：addTask 返回时 items 一定已经在 Manager.content 里，awaitIllustSettled 不会 race 误判。
         for (i in 0 until pageCount) {

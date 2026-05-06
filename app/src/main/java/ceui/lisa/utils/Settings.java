@@ -213,6 +213,12 @@ public class Settings {
 
     private int downloadLimitType = 0; // 下载限制类型 0:无限制 1:仅Wifi下自动下载 2:不自动下载
 
+    /** 同时下载的最大任务数（1-5）。1 = 严格串行（旧默认行为）。 */
+    private int maxConcurrentDownloads = 1;
+
+    /** 已完成 tab 的列表展示模式（0=横向列表，1=网格 2 列，2=紧凑缩图 4 列）。1 = 旧默认。 */
+    private int doneListLayoutMode = 1;
+
     private boolean illustDetailKeepScreenOn = false; //插画二级详情保持屏幕常亮
 
     // 收藏夹过滤已失效作品（已删除/不可见），默认不过滤
@@ -670,6 +676,32 @@ public class Settings {
 
     public void setDownloadLimitType(int downloadLimitType) {
         this.downloadLimitType = downloadLimitType;
+    }
+
+    /** clamp 到 [1,5]；老用户/损坏配置（值为 0 / 负数 / 大于 5）都按 1 处理 */
+    public int getMaxConcurrentDownloads() {
+        if (maxConcurrentDownloads < 1) return 1;
+        if (maxConcurrentDownloads > 5) return 5;
+        return maxConcurrentDownloads;
+    }
+
+    public void setMaxConcurrentDownloads(int n) {
+        if (n < 1) n = 1;
+        if (n > 5) n = 5;
+        this.maxConcurrentDownloads = n;
+    }
+
+    /** clamp 到 [0,2]，0=LIST, 1=GRID, 2=COMPACT */
+    public int getDoneListLayoutMode() {
+        if (doneListLayoutMode < 0) return 1;
+        if (doneListLayoutMode > 2) return 1;
+        return doneListLayoutMode;
+    }
+
+    public void setDoneListLayoutMode(int n) {
+        if (n < 0) n = 1;
+        if (n > 2) n = 1;
+        this.doneListLayoutMode = n;
     }
 
     public boolean isShowLargeThumbnailImage() {
