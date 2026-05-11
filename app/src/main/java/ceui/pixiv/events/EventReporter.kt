@@ -4,6 +4,7 @@ import android.content.Context
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -66,6 +67,10 @@ object EventReporter {
     private const val MAX_BATCH = 50                 // server caps at 100; stay well under
     private const val MAX_QUEUE = 500                // hard cap, drop oldest above this
     private const val MAX_RETRIES = 3
+    // Per-event payload cap — must stay <= server's EVENTS_MAX_PAYLOAD_BYTES
+    // (256 KiB). Anything bigger gets the payload stripped (event still
+    // reported without it) so a freak large IllustsBean can't break the batch.
+    private const val MAX_PAYLOAD_BYTES = 200_000
 
     private val initialized = AtomicBoolean(false)
     private val scope = CoroutineScope(
@@ -82,6 +87,11 @@ object EventReporter {
         val type: String,
         val targetType: String,
         val targetId: Long,
+        /** Pre-serialized JSON of the IllustsBean / NovelBean / UserBean.
+         *  Stored as String (not Any) so a re-queue after network failure
+         *  doesn't pay the Gson cost again. null = no payload (server falls
+         *  back to whatever it already has in illust_meta / user_meta). */
+        val payloadJson: String? = null,
         var attempts: Int = 0,
     )
 
@@ -134,7 +144,8 @@ object EventReporter {
      * Anonymous and on by default — there is no opt-out toggle. Identity is
      * sha256(random UUID) generated on first launch; Pixiv UID is never sent.
      */
-    fun report(type: String, targetType: String, targetId: Long) {
+    @JvmOverloads
+    fun report(type: String, targetType: String, targetId: Long, payload: Any? = null) {
         if (!initialized.get()) {
             Timber.tag(TAG).v("drop %s/%s/%d (not initialized)", type, targetType, targetId)
             return
@@ -148,17 +159,59 @@ object EventReporter {
             return
         }
         scope.launch {
-            val triggerFlush = mutex.withLock {
-                if (queue.size >= MAX_QUEUE) {
-                    queue.removeFirst()
-                    Timber.tag(TAG).w("queue overflow (>=%d), dropped oldest", MAX_QUEUE)
-                }
-                queue.addLast(EventEntry(type, targetType, targetId))
-                Timber.tag(TAG).d("enqueue %s/%s/%d (queue=%d)", type, targetType, targetId, queue.size)
-                queue.size >= FLUSH_THRESHOLD
-            }
-            if (triggerFlush) flushInternal(reason = "threshold")
+            val payloadJson = serializePayload(payload, targetType, targetId)
+            enqueue(EventEntry(type, targetType, targetId, payloadJson))
         }
+    }
+
+    /** For callers that already have the JSON in hand (e.g. DownloadQueueDao
+     *  has illustGson cached). Skips the Gson.toJson roundtrip. */
+    fun reportWithRawJson(type: String, targetType: String, targetId: Long, payloadJson: String?) {
+        if (!initialized.get() || !hmacEnabled || targetId <= 0) return
+        scope.launch {
+            val cleaned = clampPayloadJson(payloadJson, targetType, targetId)
+            enqueue(EventEntry(type, targetType, targetId, cleaned))
+        }
+    }
+
+    private suspend fun enqueue(entry: EventEntry) {
+        val triggerFlush = mutex.withLock {
+            if (queue.size >= MAX_QUEUE) {
+                queue.removeFirst()
+                Timber.tag(TAG).w("queue overflow (>=%d), dropped oldest", MAX_QUEUE)
+            }
+            queue.addLast(entry)
+            Timber.tag(TAG).d(
+                "enqueue %s/%s/%d (queue=%d, payload=%s)",
+                entry.type, entry.targetType, entry.targetId, queue.size,
+                entry.payloadJson?.let { "${it.length}B" } ?: "—",
+            )
+            queue.size >= FLUSH_THRESHOLD
+        }
+        if (triggerFlush) flushInternal(reason = "threshold")
+    }
+
+    private fun serializePayload(payload: Any?, targetType: String, targetId: Long): String? {
+        if (payload == null) return null
+        return try {
+            val s = (Shaft.sGson ?: Gson()).toJson(payload)
+            clampPayloadJson(s, targetType, targetId)
+        } catch (t: Throwable) {
+            Timber.tag(TAG).w(t, "payload serialize failed for %s/%d, dropping payload", targetType, targetId)
+            null
+        }
+    }
+
+    private fun clampPayloadJson(json: String?, targetType: String, targetId: Long): String? {
+        if (json == null) return null
+        if (json.length > MAX_PAYLOAD_BYTES) {
+            Timber.tag(TAG).w(
+                "payload too large (%dB > %dB) for %s/%d, dropping payload only",
+                json.length, MAX_PAYLOAD_BYTES, targetType, targetId,
+            )
+            return null
+        }
+        return json
     }
 
     /** Best-effort flush. Useful from app-lifecycle hooks (e.g. onStop). */
@@ -210,33 +263,41 @@ object EventReporter {
     }
 
     private suspend fun sendBatch(events: List<EventEntry>) {
+        val gson = Shaft.sGson ?: Gson()
+        val eventList = events.map { e ->
+            val obj = mutableMapOf<String, Any>(
+                "type" to e.type,
+                "target_type" to e.targetType,
+                "target_id" to e.targetId,
+            )
+            // Re-parse the pre-serialized payload back into a JsonElement so
+            // Gson nests it as an object, not as a quoted JSON string.
+            if (e.payloadJson != null) {
+                obj["payload"] = JsonParser.parseString(e.payloadJson)
+            }
+            obj
+        }
         val payload = mapOf(
             "client_id" to clientId,
             "platform" to "android",
             "app_version" to BuildConfig.VERSION_NAME,
-            "events" to events.map {
-                mapOf(
-                    "type" to it.type,
-                    "target_type" to it.targetType,
-                    "target_id" to it.targetId,
-                )
-            },
+            "events" to eventList,
         )
-        // Use a local Gson if Shaft.sGson isn't ready yet (tests, very early
-        // boot). Identical configuration is fine for this payload.
-        val json = (Shaft.sGson ?: Gson()).toJson(payload)
+        val json = gson.toJson(payload)
         val sig = hmacSha256Hex(json, BuildConfig.SHAFT_EVENTS_HMAC)
+        val withPayload = events.count { it.payloadJson != null }
         Timber.tag(TAG).d(
-            "POST batch=%d bytes=%d sig=%s..%s",
-            events.size, json.length, sig.take(8), sig.takeLast(4),
+            "POST batch=%d (with-payload=%d) bytes=%d sig=%s..%s",
+            events.size, withPayload, json.length, sig.take(8), sig.takeLast(4),
         )
         val resp = ShaftEventsClient.api.batch(
             sig,
             json.toRequestBody("application/json".toMediaType()),
         )
         Timber.tag(TAG).i(
-            "response accepted=%d deduped=%d total=%d (sent=%d, queueAfter=%d)",
-            resp.accepted, resp.deduped, resp.total, events.size, queue.size,
+            "response accepted=%d deduped=%d total=%d meta_inserted=%d meta_skipped=%d (queueAfter=%d)",
+            resp.accepted, resp.deduped, resp.total,
+            resp.meta_inserted ?: 0, resp.meta_skipped ?: 0, queue.size,
         )
     }
 

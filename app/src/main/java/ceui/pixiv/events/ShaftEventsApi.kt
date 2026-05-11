@@ -34,7 +34,9 @@ interface ShaftEventsApi {
 data class EventBatchResponse(
     val accepted: Int,
     val deduped: Int,
-    val total: Int
+    val total: Int,
+    val meta_inserted: Int? = null,
+    val meta_skipped: Int? = null,
 )
 
 object ShaftEventsClient {

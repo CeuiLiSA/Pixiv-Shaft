@@ -138,7 +138,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                         )
                     )
                     Common.showToast(getString(R.string.cancel_like_illust))
-                    EventReporter.report(EventReporter.Type.UNBOOKMARK, targetType, illustId)
+                    EventReporter.report(EventReporter.Type.UNBOOKMARK, targetType, illustId, illust)
                 } else {
                     Client.appApi.postBookmark(illustId)
                     RateAppManager.onUserEngaged()
@@ -149,7 +149,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                         )
                     )
                     Common.showToast(getString(R.string.like_novel_success_public))
-                    EventReporter.report(EventReporter.Type.BOOKMARK, targetType, illustId)
+                    EventReporter.report(EventReporter.Type.BOOKMARK, targetType, illustId, illust)
                 }
             }
         }
@@ -169,7 +169,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                         )
                     )
                     Common.showToast(getString(R.string.cancel_like_illust))
-                    EventReporter.report(EventReporter.Type.UNBOOKMARK, EventReporter.Target.NOVEL, novelId)
+                    EventReporter.report(EventReporter.Type.UNBOOKMARK, EventReporter.Target.NOVEL, novelId, novel)
                 } else {
                     Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
                     RateAppManager.onUserEngaged()
@@ -180,7 +180,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                         )
                     )
                     Common.showToast(getString(R.string.like_novel_success_public))
-                    EventReporter.report(EventReporter.Type.BOOKMARK, EventReporter.Target.NOVEL, novelId)
+                    EventReporter.report(EventReporter.Type.BOOKMARK, EventReporter.Target.NOVEL, novelId, novel)
                 }
             }
         }

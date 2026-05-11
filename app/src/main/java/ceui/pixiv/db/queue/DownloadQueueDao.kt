@@ -117,16 +117,19 @@ interface DownloadQueueDao {
         // legacy, bulk) — fire community-trending events from here so we
         // don't have to remember to hook every UI path. Reporter is fully
         // fire-and-forget (see EventReporter.kt) so this can't slow the txn.
+        // illustGson is already a serialized IllustsBean — pass it through
+        // raw so the reporter doesn't pay another Gson.toJson roundtrip.
         for (e in items) {
             val targetType = if (e.type == WorkType.MANGA) {
                 ceui.pixiv.events.EventReporter.Target.MANGA
             } else {
                 ceui.pixiv.events.EventReporter.Target.ILLUST
             }
-            ceui.pixiv.events.EventReporter.report(
+            ceui.pixiv.events.EventReporter.reportWithRawJson(
                 ceui.pixiv.events.EventReporter.Type.DOWNLOAD,
                 targetType,
                 e.illustId,
+                e.illustGson,
             )
         }
     }

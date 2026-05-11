@@ -206,7 +206,8 @@ public class PixivOperate {
                                     "manga".equals(illustsBean.getType())
                                             ? EventReporter.Target.MANGA
                                             : EventReporter.Target.ILLUST,
-                                    (long) illustsBean.getId());
+                                    (long) illustsBean.getId(),
+                                    illustsBean);
                         }
                     });
         } else { //没有收藏
@@ -238,7 +239,8 @@ public class PixivOperate {
                                     "manga".equals(illustsBean.getType())
                                             ? EventReporter.Target.MANGA
                                             : EventReporter.Target.ILLUST,
-                                    (long) illustsBean.getId());
+                                    (long) illustsBean.getId(),
+                                    illustsBean);
 
                             //收藏后自动关注作者
                             if (Shaft.sSettings.isAutoFollowAfterStar()
@@ -307,7 +309,8 @@ public class PixivOperate {
                             EventReporter.INSTANCE.report(
                                     EventReporter.Type.UNBOOKMARK,
                                     EventReporter.Target.NOVEL,
-                                    (long) novelBean.getId());
+                                    (long) novelBean.getId(),
+                                    novelBean);
                         }
                     });
         } else { //没有收藏
@@ -337,7 +340,8 @@ public class PixivOperate {
                             EventReporter.INSTANCE.report(
                                     EventReporter.Type.BOOKMARK,
                                     EventReporter.Target.NOVEL,
-                                    (long) novelBean.getId());
+                                    (long) novelBean.getId(),
+                                    novelBean);
 
                             //收藏后自动关注作者
                             if (Shaft.sSettings.isAutoFollowAfterStar()
