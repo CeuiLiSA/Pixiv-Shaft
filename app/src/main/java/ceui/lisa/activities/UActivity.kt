@@ -46,6 +46,7 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import ceui.pixiv.events.EventReporter
 
 class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResponse> {
     private var userId = 0
@@ -318,6 +319,7 @@ fun FragmentActivity.followUser(sender: ProgressIndicator, userId: Int, followTy
             sender.showProgress()
             Client.appApi.postFollow(userId.toLong(), pendingFollowType)
             RateAppManager.onUserEngaged()
+            EventReporter.report(EventReporter.Type.FOLLOW, EventReporter.Target.USER, userId.toLong())
             delay(500L)
             ObjectPool.followUser(userId.toLong())
             if (pendingFollowType == Params.TYPE_PUBLIC) {
@@ -351,6 +353,7 @@ fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Int) {
         try {
             sender.showProgress()
             Client.appApi.postUnFollow(userId.toLong())
+            EventReporter.report(EventReporter.Type.UNFOLLOW, EventReporter.Target.USER, userId.toLong())
             delay(500L)
             Shaft.appViewModel.updateFollowUserStatus(
                 userId,

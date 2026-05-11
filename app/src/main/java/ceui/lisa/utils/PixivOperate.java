@@ -76,6 +76,7 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
+import ceui.pixiv.events.EventReporter;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.widgets.RateAppManager;
 
@@ -131,6 +132,11 @@ public class PixivOperate {
                         // 关注行为更新画像
                         Common.showLog("Discovery/Hook followUser userId=" + userID);
                         ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onFollowUser((long) userID);
+
+                        EventReporter.INSTANCE.report(
+                                EventReporter.Type.FOLLOW,
+                                EventReporter.Target.USER,
+                                (long) userID);
                     }
                 });
     }
@@ -154,6 +160,11 @@ public class PixivOperate {
                         // 取消关注更新画像
                         Common.showLog("Discovery/Hook unfollowUser userId=" + userID);
                         ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onUnfollowUser((long) userID);
+
+                        EventReporter.INSTANCE.report(
+                                EventReporter.Type.UNFOLLOW,
+                                EventReporter.Target.USER,
+                                (long) userID);
                     }
                 });
     }
@@ -189,6 +200,13 @@ public class PixivOperate {
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
                             Common.showToast(getString(R.string.cancel_like_illust));
+
+                            EventReporter.INSTANCE.report(
+                                    EventReporter.Type.UNBOOKMARK,
+                                    "manga".equals(illustsBean.getType())
+                                            ? EventReporter.Target.MANGA
+                                            : EventReporter.Target.ILLUST,
+                                    (long) illustsBean.getId());
                         }
                     });
         } else { //没有收藏
@@ -214,6 +232,13 @@ public class PixivOperate {
                             // 收藏行为更新画像：提升画师和标签偏好，让后续推荐更精准
                             Common.showLog("Discovery/Hook bookmarkIllust id=" + illustsBean.getId());
                             ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onBookmarkIllust(illustsBean);
+
+                            EventReporter.INSTANCE.report(
+                                    EventReporter.Type.BOOKMARK,
+                                    "manga".equals(illustsBean.getType())
+                                            ? EventReporter.Target.MANGA
+                                            : EventReporter.Target.ILLUST,
+                                    (long) illustsBean.getId());
 
                             //收藏后自动关注作者
                             if (Shaft.sSettings.isAutoFollowAfterStar()
@@ -278,6 +303,11 @@ public class PixivOperate {
                                 ((Button) view).setText(getString(R.string.string_180));
                             }
                             Common.showToast(getString(R.string.cancel_like_illust));
+
+                            EventReporter.INSTANCE.report(
+                                    EventReporter.Type.UNBOOKMARK,
+                                    EventReporter.Target.NOVEL,
+                                    (long) novelBean.getId());
                         }
                     });
         } else { //没有收藏
@@ -303,6 +333,11 @@ public class PixivOperate {
                             } else {
                                 Common.showToast(getString(R.string.like_novel_success_private));
                             }
+
+                            EventReporter.INSTANCE.report(
+                                    EventReporter.Type.BOOKMARK,
+                                    EventReporter.Target.NOVEL,
+                                    (long) novelBean.getId());
 
                             //收藏后自动关注作者
                             if (Shaft.sSettings.isAutoFollowAfterStar()

@@ -207,6 +207,10 @@ public class Shaft extends Application implements ServicesProvider {
         // 批量下载持久化队列（v33）：冷启动恢复 + 单并发消费循环
         ceui.pixiv.ui.bulk.QueueDownloadManager.INSTANCE.init(this);
 
+        // 社区榜单事件上报（shaft-api-v2）。完全 fire-and-forget，失败静默，
+        // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
+        ceui.pixiv.events.EventReporter.INSTANCE.init(this);
+
         // 初始化发现池 + 异步构建用户画像
         Timber.d("Discovery/Init >>> initializing DiscoveryPool");
         ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.initialize();

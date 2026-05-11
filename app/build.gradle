@@ -27,6 +27,15 @@ android {
                 arguments = [:]
             }
         }
+
+        // Shaft community events server (shaft-api-v2). Secret is injected at
+        // build time from ~/.gradle/gradle.properties or env (SHAFT_EVENTS_HMAC) —
+        // never committed. Forks build with empty secret and get 401 from the
+        // server, which is intentional: only official builds may post events.
+        buildConfigField "String", "SHAFT_EVENTS_BASE_URL",
+            '"' + (project.findProperty('SHAFT_EVENTS_BASE_URL') ?: 'http://36.138.103.18:30009') + '"'
+        buildConfigField "String", "SHAFT_EVENTS_HMAC",
+            '"' + (project.findProperty('SHAFT_EVENTS_HMAC') ?: System.getenv('SHAFT_EVENTS_HMAC') ?: '') + '"'
     }
 
     lint {

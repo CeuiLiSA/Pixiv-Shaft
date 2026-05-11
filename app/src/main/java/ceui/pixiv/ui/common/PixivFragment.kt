@@ -33,6 +33,7 @@ import ceui.lisa.utils.ShareIllust
 import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.LinearItemDecorationNoLRTB
 import ceui.lisa.view.SpacesItemDecoration
+import ceui.pixiv.events.EventReporter
 import ceui.loxia.Article
 import ceui.loxia.Client
 import ceui.loxia.Illust
@@ -120,6 +121,14 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
             val illust = ObjectPool.get<Illust>(illustId).value
                 ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
             if (illust != null) {
+                // Pixiv stores manga as illust with type == "manga"; report
+                // them under their semantic target_type so the server can rank
+                // illust / manga separately.
+                val targetType = if (illust.type == "manga") {
+                    EventReporter.Target.MANGA
+                } else {
+                    EventReporter.Target.ILLUST
+                }
                 if (illust.is_bookmarked == true) {
                     Client.appApi.removeBookmark(illustId)
                     ObjectPool.update(
@@ -129,6 +138,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                         )
                     )
                     Common.showToast(getString(R.string.cancel_like_illust))
+                    EventReporter.report(EventReporter.Type.UNBOOKMARK, targetType, illustId)
                 } else {
                     Client.appApi.postBookmark(illustId)
                     RateAppManager.onUserEngaged()
@@ -139,6 +149,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                         )
                     )
                     Common.showToast(getString(R.string.like_novel_success_public))
+                    EventReporter.report(EventReporter.Type.BOOKMARK, targetType, illustId)
                 }
             }
         }
@@ -158,6 +169,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                         )
                     )
                     Common.showToast(getString(R.string.cancel_like_illust))
+                    EventReporter.report(EventReporter.Type.UNBOOKMARK, EventReporter.Target.NOVEL, novelId)
                 } else {
                     Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
                     RateAppManager.onUserEngaged()
@@ -168,6 +180,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId),
                         )
                     )
                     Common.showToast(getString(R.string.like_novel_success_public))
+                    EventReporter.report(EventReporter.Type.BOOKMARK, EventReporter.Target.NOVEL, novelId)
                 }
             }
         }
