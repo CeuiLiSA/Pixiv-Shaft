@@ -1899,6 +1899,9 @@
     <string name="saf_perf_test_diag_raw_failed">[4] 裸 createFile 失败: %1$s %2$s</string>
     <string name="saf_perf_test_diag_conclusion">→ 单次 listFiles(root) %1$.1f ms · backend.replace %2$.1f ms · 裸 createFile %3$.1f ms。差值是 backend 链路里的 listFiles 重复成本。</string>
 
+    <!-- 网络测试-->
+    <string name="nav_network_test_entry">网络测试</string>
+
     <!-- Chat subsystem (borrowed from Peanut; see ceui.pixiv.chat.*) -->
     <string name="chat_drawer_entry">聊天室</string>
     <string name="chat_room_global_title">公屏闲聊</string>

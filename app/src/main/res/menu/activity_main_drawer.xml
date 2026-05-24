@@ -127,6 +127,10 @@
                 android:icon="@drawable/ic_baseline_settings_24"
                 android:title="@string/saf_perf_test_entry" />
             <item
+                android:id="@+id/nav_network_test"
+                android:icon="@drawable/ic_baseline_settings_24"
+                android:title="@string/nav_network_test_entry" />
+            <item
                 android:id="@+id/nav_current_hot"
                 android:icon="@drawable/outline_whatshot_24"
                 android:title="@string/current_hot" />
