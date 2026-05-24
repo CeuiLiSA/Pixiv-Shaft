@@ -22,13 +22,14 @@
         android:layout_weight="1">
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/outputText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
             android:padding="16dp"
             android:text="点击开始按钮进行网络测试"
-            android:textColor="@color/alphaBlack"
+            android:textColor="@color/v3_text_1"
+            android:textIsSelectable="true"
             android:textSize="14sp" />
 
     </ScrollView>
