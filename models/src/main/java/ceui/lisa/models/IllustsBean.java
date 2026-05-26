@@ -336,7 +336,7 @@ public class IllustsBean implements Serializable, Starable, Deduplicatable, Mode
         //对sanity_level >= 4抽出单独方法，瀑布流添加[含敏感]标签
         //瀑布流逻辑为先isR18File()，是就只标注R18，不需要在进行sanity_level >= 4的判断，因为无意义（都R18了）
         //不是R18再进行sanity_level >= 4的判断，是就标注[含敏感]
-        return x_restrict == 1
+        return x_restrict == 1;
     }
 
     public boolean isRelated() {
