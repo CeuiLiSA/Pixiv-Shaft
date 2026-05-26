@@ -1,5 +1,6 @@
 package ceui.lisa.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
@@ -23,13 +24,16 @@ import ceui.pixiv.ui.task.TaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
-import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
-import com.github.panpf.zoomimage.zoom.ReadMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import android.net.Uri
+import android.view.GestureDetector
+import android.view.MotionEvent
+import com.github.panpf.zoomimage.util.OffsetCompat
+import com.github.panpf.zoomimage.zoom.GestureType
+import com.github.panpf.zoomimage.zoom.ReadMode
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var index = 0
@@ -43,6 +47,107 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private val mIllustsBean: IllustsBean?
         get() = (activity as? ImageDetailActivity)?.mIllustsBean
 
+    /**
+     * 自定义双击持续放大逻辑
+     *
+     * 作者：wangwang-code
+     *
+     * 核心痛点：ZoomImage原有的双击缩放功能一次缩放过大，导致需要手动双指缩小
+     * 具体案例：图中多处区域有大量文字，ZoomImage原有的双击放大功能，双击后图片放大倍数过大，导致需要手动双指缩小或者拼命拖拽来找文字。
+     * 解决办法：
+     * 1. 禁用 ZoomImage 双击放大功能
+     * 2. 自定义双击放大逻辑，双击图片后用scaleBy() 方法来以乘法的方式增量缩放图像到指定的倍数
+     * 3. 图片放大后，长按屏幕可恢复至原始大小
+     * 备注：
+     * 原本想法是参照ZoomImage的双击放大逻辑中的循环放大，但考虑到需要多次双击才能回到原始大小，因此改为长按屏幕恢复至原始大小。
+     * 该方法仅消费双击、单击事件，处理长按事件，其余事件（滑动拖拽、双指放大）需要交回 ZoomImage 处理
+     * 待实现：
+     * 1. 设置页面，提供切换默认（ZoomImage的双击放大）和双击持续放大模式
+     * 2. 设置页面，允许用户自定义双击持续放大模式的addScale
+     * 3. 设置页面，允许用户自定义 选择 双击持续放大模式 的 双击次数上限 list，需向用户注明即使未达到次数也可能无法继续放大（被最大倍数限制），例如：默认（无限制）, 2次, 3次, ...
+     * 4. 显示当前放大倍数
+     * 5. 做无干扰的提醒，双击放大后，提醒“可长按复原”
+     * 6. “已至最大，长按复原”Toast存在延迟，需要换更优雅、更及时的提醒
+     */
+    private val gestureDetector by lazy {
+        GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                val touchPoint = OffsetCompat(e.x, e.y)
+                val zoomable = baseBind.image.zoomable
+                val contentPoint = zoomable.touchPointToContentPointF(touchPoint)
+
+                //val currentScale = zoomable.transformState.value.scaleX
+                val maxScale = zoomable.maxScaleState.value
+                //val minScale = zoomable.minScaleState.value
+                // 判断当前是否已经放大到最大倍数，若是则缩小至最小倍数；否则放大继续放大。
+                /*if (currentScale >= maxScale - 0.01f) {
+                    // 取消图片沉浸式
+                    if (viewModel.isFullscreenMode.value == true) {
+                        viewModel.toggleFullscreen()
+                    }
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        zoomable.scale(
+                            targetScale = minScale,
+                            centroidContentPointF = contentPoint,
+                            animated = true
+                        )
+                    }
+                } else {*/
+                    // 图片沉浸式
+                    if (viewModel.isFullscreenMode.value == false) {
+                        viewModel.toggleFullscreen()
+                    }
+                    // 放大倍数（相对）
+                    val addScale = 1.8f
+
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        // 1. 先执行放大操作
+                        zoomable.scaleBy(
+                            addScale = addScale,
+                            centroidContentPointF = contentPoint,
+                            animated = true
+                        )
+                        // 2. 在协程内、操作完成后，获取最新的缩放值
+                        val afterScale = zoomable.transformState.value.scaleX
+
+                        // 3. 浮点数防误差判断：若当前大小已经接近或等于最大放大倍数
+                        if (afterScale >= maxScale - 0.01f) {
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                "已至最大，长按复原",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                //}
+                return true
+            }
+            override fun onLongPress(e: MotionEvent) {
+                val touchPoint = OffsetCompat(e.x, e.y)
+                val zoomable = baseBind.image.zoomable
+                val minScale = zoomable.minScaleState.value
+                val contentPoint = zoomable.touchPointToContentPointF(touchPoint)
+                // 取消图片沉浸式
+                if (viewModel.isFullscreenMode.value == true) {
+                    viewModel.toggleFullscreen()
+                }
+                viewLifecycleOwner.lifecycleScope.launch {
+                    zoomable.scale(
+                        targetScale = minScale,
+                        centroidContentPointF = contentPoint,
+                        animated = true
+                    )
+                }
+            }
+            /*处理原有点击事件，单击屏幕切换沉浸式模式，如果正在缩放动画中则不切换沉浸式模式，避免打断动画。
+            * */
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                viewModel.toggleFullscreen()
+                return true
+            }
+        })
+    }
+
     public override fun initBundle(bundle: Bundle) {
         url = bundle.getString(Params.URL)
         index = bundle.getInt(Params.INDEX)
@@ -53,17 +158,36 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         mLayoutID = R.layout.fragment_image_detail
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun initView() {
         baseBind.emptyActionButton.setOnClickListener { v: View? -> loadImage() }
         //插画二级详情保持屏幕常亮
         if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
             baseBind.root.keepScreenOn = true
         }
+        //交给gestureDetector处理
+        /*
         baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
             viewModel.toggleFullscreen()
-        }
+        }*/
         // 长图阅读模式：自动填满宽度、��顶部开始，无需手动双击放大再滑动
         baseBind.image.zoomable.setReadMode(ReadMode.Default)
+        // 禁用ZoomImage的默认双击缩放
+        baseBind.image.zoomable.setDisabledGestureTypes(
+            baseBind.image.zoomable.disabledGestureTypesState.value or GestureType.DOUBLE_TAP_SCALE
+        )
+        //监听触摸事件，视情况拦截事件避免打断动画
+        baseBind.image.setOnTouchListener { v, event ->
+            // 只在单指时拦截触摸事件给gestureDetector，其他情况交回给ZoomImage处理
+            // 在实现自有双击持续放大逻辑下，尽力减少对ZoomImage手势的拦截。
+            // 但双指缩放过程中总有可能发生中心点“抖动”（疑似原本就存在）
+            if (event.pointerCount == 1) {
+                val handled = gestureDetector.onTouchEvent(event)
+                handled
+            } else {
+                v.onTouchEvent(event)
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
