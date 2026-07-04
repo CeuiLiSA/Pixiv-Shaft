@@ -1947,7 +1947,7 @@
     <string name="tag_popular_export_run">내보내기</string>
     <string name="tag_popular_export_running">내보내는 중…</string>
     <string name="tag_popular_export_need_tag">먼저 태그 이름을 입력하세요</string>
-    <string name="use_custom_double_tap_zoom">(신규) 일러스트 상세 큰 이미지에서 더블 탭 단계/3단계 확대 사용</string>
+    <string name="use_custom_double_tap_zoom">일러스트 상세 큰 이미지에서 더블 탭 단계/3단계 확대 사용</string>
     <string name="use_custom_long_press_reset">길게 눌러 복원 사용 (권장)</string>
     <string name="use_custom_long_press_reset_link_text">최대까지 확대해도 최소로 돌아가지 않습니다</string>
     <string name="double_tap_zoom_max_reached">최대 배율 도달, 길게 눌러 복원</string>

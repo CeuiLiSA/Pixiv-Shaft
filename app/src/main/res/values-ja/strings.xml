@@ -1947,7 +1947,7 @@
     <string name="tag_popular_export_run">エクスポート</string>
     <string name="tag_popular_export_running">エクスポート中…</string>
     <string name="tag_popular_export_need_tag">先にタグ名を入力してください</string>
-    <string name="use_custom_double_tap_zoom">（新）イラスト詳細の大画像でダブルタップの段階／3段階ズームを使用</string>
+    <string name="use_custom_double_tap_zoom">イラスト詳細の大画像でダブルタップの段階／3段階ズームを使用</string>
     <string name="use_custom_long_press_reset">長押しで元に戻すを有効化（推奨）</string>
     <string name="use_custom_long_press_reset_link_text">最大まで拡大しても最小には戻りません</string>
     <string name="double_tap_zoom_max_reached">最大倍率に到達、長押しで元に戻ります</string>

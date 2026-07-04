@@ -2107,7 +2107,7 @@
     <string name="tag_popular_export_running">导出中…</string>
     <string name="tag_popular_export_need_tag">请先输入 tag 名称</string>
     <!-- 插画二级详情：自定义双击放大模式（PR#900） -->
-    <string name="use_custom_double_tap_zoom">（新）插画二级大图使用双击增量/三级放大模式</string>
+    <string name="use_custom_double_tap_zoom">插画二级大图使用双击增量/三级放大模式</string>
     <string name="use_custom_long_press_reset">启用长按复原（推荐启用）</string>
     <string name="use_custom_long_press_reset_link_text">放至最大后不会循环至最小</string>
     <string name="double_tap_zoom_max_reached">已至最大，长按复原</string>

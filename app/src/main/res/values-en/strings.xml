@@ -60,7 +60,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="cannot_download">You lower your 🐴 it?</string>
     <string name="image_alredy_exist">Pictures already exists</string>
-    <string name="has_been_added">Item(s) have been added to the download queue</string>
+    <string name="has_been_added"> added to the download queue</string>
     <string name="type_illust">Illustration</string>
     <string name="type_manga">Manga</string>
     <string name="type_walk_through">gallery</string>
@@ -86,7 +86,7 @@
     <string name="cancel">Cancel</string>
     <string name="now_downloading">Downloading</string>
     <string name="has_download">Completed</string>
-    <string name="has_copyed">Copied to clipboard</string>
+    <string name="has_copyed"> copied to clipboard</string>
     <string name="no_info">No Information</string>
     <string name="like_success_public">Followed ~ (public)</string>
     <string name="like_success_private">Followed ~ (private)</string>
@@ -802,7 +802,7 @@
     <string name="follow">Follow</string>
     <string name="unfollow">UnFollow</string>
     <string name="created_by_ai">AI-generated</string>
-    <string name="has_been_downloaded">download completed</string>
+    <string name="has_been_downloaded"> download completed</string>
     <string name="delete_ai_illust">Hide AI-generated works</string>
     <string name="trying_login">Trying to log in</string>
     <string name="userTab_other">Profile</string>
@@ -1295,7 +1295,7 @@
     <string name="setting_storage_pictures">System gallery (Pictures)</string>
     <string name="setting_storage_downloads">Downloads folder</string>
     <string name="setting_storage_saf">Custom folder (SAF)</string>
-    <string name="setting_page_index">Multi-page numbering starts from</string>
+    <string name="setting_page_index">Multi-page numbering</string>
     <string name="setting_page_index_from_0">Start from 0 (p0, p1, p2...)</string>
     <string name="setting_page_index_from_1">Start from 1 (p1, p2, p3...)</string>
     <string name="download_path_help_title">Available variables and conditions</string>
@@ -1738,7 +1738,7 @@
     <string name="debug_bulk_dl_entry">Bulk Download Debug</string>
     <string name="debug_bulk_dl_refresh">Refresh</string>
     <string name="debug_bulk_dl_copy">Copy output</string>
-    <string name="debug_bulk_dl_copied">Copied to clipboard</string>
+    <string name="debug_bulk_dl_copied"> copied to clipboard</string>
     <string name="debug_bulk_dl_running">Collecting…</string>
     <string name="saf_perf_test_entry">SAF write benchmark</string>
     <string name="saf_perf_test_tree_label">Test folder (SAF tree URI)</string>
@@ -1947,7 +1947,7 @@
     <string name="tag_popular_export_run">Export</string>
     <string name="tag_popular_export_running">Exporting…</string>
     <string name="tag_popular_export_need_tag">Please enter a tag name first</string>
-    <string name="use_custom_double_tap_zoom">(New) Incremental / 3-level double-tap zoom in full illustration view</string>
+    <string name="use_custom_double_tap_zoom">Incremental / 3-level double-tap zoom in full illustration view</string>
     <string name="use_custom_long_press_reset">Enable long-press to reset (recommended)</string>
     <string name="use_custom_long_press_reset_link_text">Will not loop back to minimum after reaching max</string>
     <string name="double_tap_zoom_max_reached">Max zoom reached — long-press to reset</string>

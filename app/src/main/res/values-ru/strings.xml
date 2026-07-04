@@ -60,7 +60,7 @@
     <string name="hello_blank_fragment">Пустой фрагмент</string>
     <string name="cannot_download">Не удалось скачать</string>
     <string name="image_alredy_exist">Изображение уже существует</string>
-    <string name="has_been_added">Добавлено в очередь загрузки</string>
+    <string name="has_been_added"> добавлено в очередь загрузки</string>
     <string name="type_illust">Иллюстрация</string>
     <string name="type_manga">Манга</string>
     <string name="type_walk_through">Галерея</string>
@@ -76,7 +76,7 @@
     <string name="filter_by_bookmark">Фильтр по тегам</string>
     <string name="access_denied">Нет доступа. Проверьте разрешения</string>
     <string name="view_history">История</string>
-    <string name="muted_history">История скрытого</string>
+    <string name="muted_history">История скрытых</string>
     <string name="app_settings">Настройки</string>
     <string name="full_about_app">О приложении</string>
     <string name="no_mail_address">Почта не привязана</string>
@@ -86,12 +86,12 @@
     <string name="cancel">Отмена</string>
     <string name="now_downloading">Скачивание</string>
     <string name="has_download">Готово</string>
-    <string name="has_copyed">Скопировано в буфер обмена</string>
+    <string name="has_copyed"> скопировано в буфер обмена</string>
     <string name="no_info">Нет информации</string>
-    <string name="like_success_public">Подписка оформлена (публично)</string>
-    <string name="like_success_private">Подписка оформлена (приватно)</string>
-    <string name="like_novel_success_public">Добавлено в закладки (публично)</string>
-    <string name="like_novel_success_private">Добавлено в закладки (приватно)</string>
+    <string name="like_success_public">Подписка оформлена (публичные)</string>
+    <string name="like_success_private">Подписка оформлена (приватные)</string>
+    <string name="like_novel_success_public">Добавлено в закладки (публичные)</string>
+    <string name="like_novel_success_private">Добавлено в закладки (приватные)</string>
     <string name="cancel_like">Подписка отменена</string>
     <string name="cancel_like_illust">Убрать из закладок</string>
     <string name="like_illust_success">Добавлено в закладки</string>
@@ -393,7 +393,7 @@
     <string name="string_195">ID автора: %d</string>
     <string name="string_196">Новеллы подписок</string>
     <string name="string_197">Новые новеллы подписок</string>
-    <string name="dynamic_type_illust_manga">Иллюстрации/манга</string>
+    <string name="dynamic_type_illust_manga">Илл./Манга</string>
     <string name="string_198">Оценить приложение</string>
     <string name="string_199">Версия</string>
     <string name="string_200">Подписаться на Weibo</string>
@@ -544,7 +544,7 @@
     <string name="string_351">yyyy-MM-dd HH:mm добавлено</string>
     <string name="string_352">Удалить эту запись?</string>
     <string name="string_353">Скрытые теги</string>
-    <string name="string_354">Скрыть иллюстрацию</string>
+    <string name="string_354">Скрытые иллюстрации</string>
     <string name="string_355">Скрыть эту работу</string>
     <string name="string_355_2">Копировать ссылку</string>
     <string name="string_356">Настройки применены</string>
@@ -583,8 +583,8 @@
     <string name="string_388">Нет скрытых пользователей для удаления</string>
     <string name="string_389">Будут удалены все скрытые пользователи</string>
     <string name="string_390">Все</string>
-    <string name="string_391">Публично</string>
-    <string name="string_392">Приватно</string>
+    <string name="string_391">Публичные</string>
+    <string name="string_392">Приватные</string>
     <string name="string_393">Переход на вложенную страницу деталей иллюстрации</string>
     <string name="string_394">Текст</string>
     <string name="string_395">Ключевое слово</string>
@@ -606,7 +606,7 @@
     <string name="reverse_image_network_error">Соединение сброшено. Возможно, нужен прокси. Попробуйте Ascii2D.</string>
     <string name="string_411">Четвёртая группа</string>
     <string name="string_412">День рождения</string>
-    <string name="string_413">На странице деталей показывать оригинал</string>
+    <string name="string_413">На странице деталей показывать оригинал изображения</string>
     <string name="string_414">По умолчанию фильтровать R-18</string>
     <string name="string_415">Долгое нажатие на аватар в меню временно переключает</string>
     <string name="string_416">Начальная и конечная даты</string>
@@ -619,7 +619,7 @@
     <string name="string_423">Также сохранить историю просмотров? Она может быть очень большой</string>
     <string name="string_424">Выберите тип поиска</string>
     <string name="string_425">Выберите тип поиска из буфера обмена</string>
-    <string name="string_426">Начальная позиция панели навигации</string>
+    <string name="string_426">Позиция панели навигации</string>
     <string name="string_427">Позиция при последнем закрытии</string>
     <string name="string_428">Настройки сохранены</string>
     <string name="string_429">Загрузка</string>
@@ -646,7 +646,7 @@
     <string name="string_default_upscale_model">Модель ИИ по умолчанию</string>
     <string name="string_default_rembg_model">Модель удаления фона</string>
     <string name="string_ocr_model">OCR-модель</string>
-    <string name="string_bubble_detector_model">Модель детектора пузырей</string>
+    <string name="string_bubble_detector_model">Модель детектора комикс-облачков</string>
     <string name="string_model_ready">Загружено</string>
     <string name="string_model_not_ready">Не загружено (%s)</string>
     <string name="string_not_set">Не задано</string>
@@ -765,7 +765,7 @@
     <string name="string_447">ID автора</string>
     <string name="string_448">Скачивать только по Wi-Fi</string>
     <string name="string_449">Сбросить</string>
-    <string name="string_450">Показывать крупные миниатюры</string>
+    <string name="string_450">Показывать большие (Large) миниатюры</string>
     <string name="string_451">Не выключать экран на странице иллюстрации</string>
     <string name="artwork_v3_fab_order_title">Порядок кнопок «Скачать» и «Закладка»</string>
     <string name="artwork_v3_fab_order_download_left">Скачать слева, закладка справа</string>
@@ -802,7 +802,7 @@
     <string name="follow">Подписаться</string>
     <string name="unfollow">Отписаться</string>
     <string name="created_by_ai">Создано ИИ</string>
-    <string name="has_been_downloaded">Загрузка завершена</string>
+    <string name="has_been_downloaded"> загрузка завершена</string>
     <string name="delete_ai_illust">Скрывать работы, созданные ИИ</string>
     <string name="trying_login">Выполняется вход</string>
     <string name="userTab_other">Профиль</string>
@@ -981,13 +981,13 @@
     <string name="download_records_import_invalid">Ошибка импорта: файл пуст или имеет неверный формат</string>
     <string name="download_records_import_success">Импортировано записей: %1$d</string>
     <string name="download_records_import_failed">Ошибка импорта: %1$s</string>
-    <string name="mute_records_export">Экспорт списка скрытого</string>
-    <string name="mute_records_import">Импорт списка скрытого</string>
-    <string name="mute_records_export_empty">Нет записей скрытого для экспорта</string>
-    <string name="mute_records_export_success">Экспортировано записей скрытого: %1$d</string>
+    <string name="mute_records_export">Экспорт списка скрытых</string>
+    <string name="mute_records_import">Импорт списка скрытых</string>
+    <string name="mute_records_export_empty">Нет скрытых записей для экспорта</string>
+    <string name="mute_records_export_success">Экспортировано скрытых записей: %1$d</string>
     <string name="mute_records_import_no_file">Ошибка импорта: файл не выбран</string>
     <string name="mute_records_import_invalid">Ошибка импорта: файл пуст или имеет неверный формат</string>
-    <string name="mute_records_import_success">Импортировано записей скрытого: %1$d</string>
+    <string name="mute_records_import_success">Импортировано скрытых записей: %1$d</string>
     <string name="mute_records_import_failed">Ошибка импорта: %1$s</string>
     <string name="v3_label_views">Просмотры</string>
     <string name="v3_label_likes">Лайки</string>
@@ -1284,9 +1284,9 @@
     <string name="download_path_storage_mediastore_downloads">MediaStore / Downloads</string>
     <string name="download_path_storage_saf">Выбранная папка SAF</string>
     <string name="download_path_storage_app_cache">Кэш приложения (только временные файлы)</string>
-    <string name="download_path_policy_skip">Пропускать, если файл уже существует</string>
-    <string name="download_path_policy_replace">Заменять, если файл уже существует</string>
-    <string name="download_path_policy_rename">Переименовывать, если файл уже существует</string>
+    <string name="download_path_policy_skip">Пропускать</string>
+    <string name="download_path_policy_replace">Заменять</string>
+    <string name="download_path_policy_rename">Переименовывать</string>
     <string name="setting_overwrite_policy">Если файл уже существует</string>
     <string name="setting_overwrite_policy_saf_locked">Авто-суффикс · заблокировано</string>
     <string name="setting_overwrite_policy_saf_locked_title">Почему пункт заблокирован</string>
@@ -1391,7 +1391,7 @@
     <string name="novel_chip_series_content_count">Глав  %1$s</string>
     <string name="novel_chip_series_char_count">Общий объём  %1$s</string>
     <string name="setting_default_novel_format">Формат загрузки романов по умолчанию</string>
-    <string name="setting_default_image_resolution">Разрешение сохранения изображений по умолчанию</string>
+    <string name="setting_default_image_resolution">Качество при скачивании</string>
     <string name="option_always_ask">Всегда спрашивать</string>
     <string name="msg_unknown_format">Неизвестный формат: %s</string>
     <string name="search_hits_title">Результаты поиска</string>
@@ -1738,7 +1738,7 @@
     <string name="debug_bulk_dl_entry">Отладка массовой загрузки</string>
     <string name="debug_bulk_dl_refresh">Обновить</string>
     <string name="debug_bulk_dl_copy">Копировать вывод</string>
-    <string name="debug_bulk_dl_copied">Скопировано в буфер обмена</string>
+    <string name="debug_bulk_dl_copied"> скопировано в буфер обмена</string>
     <string name="debug_bulk_dl_running">Сбор данных…</string>
     <string name="saf_perf_test_entry">Тест записи SAF</string>
     <string name="saf_perf_test_tree_label">Тестовая папка (SAF tree URI)</string>
@@ -1923,7 +1923,7 @@
     <string name="clear_cloud_history">Очистить историю просмотров в облаке</string>
     <string name="cloud_history_consent_title">Синхронизация истории просмотров с облаком</string>
     <string name="cloud_history_consent_message">Shaft синхронизирует просмотренные вами работы, новеллы и пользователей с облаком (видно только вам), чтобы история была доступна на разных устройствах. Это можно отключить в настройках в любое время. Продолжить?</string>
-    <string name="cloud_history_consent_keep">Продолжить синхронизацию</string>
+    <string name="cloud_history_consent_keep">Продолжить</string>
     <string name="cloud_history_consent_stop">Отключить</string>
     <string name="clear_cloud_history_confirm_title">Очистить историю в облаке</string>
     <string name="clear_cloud_history_confirm_message">Будет удалена вся история просмотров, синхронизированная с облаком. Локальная история не затрагивается. Продолжить?</string>
@@ -1947,7 +1947,7 @@
     <string name="tag_popular_export_run">Экспорт</string>
     <string name="tag_popular_export_running">Экспортируем…</string>
     <string name="tag_popular_export_need_tag">Сначала введите название тега</string>
-    <string name="use_custom_double_tap_zoom">(Новое) Пошаговый / трёхуровневый зум двойным касанием при просмотре иллюстрации</string>
+    <string name="use_custom_double_tap_zoom">Пошаговый / трёхуровневый зум двойным касанием при просмотре иллюстрации</string>
     <string name="use_custom_long_press_reset">Включить сброс долгим нажатием (рекомендуется)</string>
     <string name="use_custom_long_press_reset_link_text">После максимального масштаба не возвращаться циклом к минимальному</string>
     <string name="double_tap_zoom_max_reached">Достигнут максимальный масштаб — зажмите, чтобы сбросить</string>

@@ -1949,7 +1949,7 @@
     <string name="tag_popular_export_run">開始匯出</string>
     <string name="tag_popular_export_running">匯出中…</string>
     <string name="tag_popular_export_need_tag">請先輸入 tag 名稱</string>
-    <string name="use_custom_double_tap_zoom">（新）插畫二級大圖使用雙擊增量／三級放大模式</string>
+    <string name="use_custom_double_tap_zoom">插畫二級大圖使用雙擊增量／三級放大模式</string>
     <string name="use_custom_long_press_reset">啟用長按復原（建議啟用）</string>
     <string name="use_custom_long_press_reset_link_text">放至最大後不會循環至最小</string>
     <string name="double_tap_zoom_max_reached">已至最大，長按復原</string>

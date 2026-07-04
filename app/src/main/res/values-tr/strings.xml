@@ -60,7 +60,7 @@
     <string name="hello_blank_fragment">Boş alan</string>
     <string name="cannot_download">İndirilemiyor. Depolama alanını kontrol et.</string>
     <string name="image_alredy_exist">Resim zaten var</string>
-    <string name="has_been_added">İndirme sırasına eklendi</string>
+    <string name="has_been_added"> İndirme sırasına eklendi</string>
     <string name="type_illust">İllüstrasyon</string>
     <string name="type_manga">Manga</string>
     <string name="type_walk_through">Galeri</string>
@@ -86,7 +86,7 @@
     <string name="cancel">İptal</string>
     <string name="now_downloading">İndiriliyor</string>
     <string name="has_download">Tamamlandı</string>
-    <string name="has_copyed">Kopyalandı</string>
+    <string name="has_copyed"> kopyalandı</string>
     <string name="no_info">Bilgi yok</string>
     <string name="like_success_public">Takip edildi (açık)</string>
     <string name="like_success_private">Takip edildi (gizli)</string>
@@ -802,7 +802,7 @@
     <string name="follow">Takip et</string>
     <string name="unfollow">Takibi bırak</string>
     <string name="created_by_ai">AI ile oluşturuldu</string>
-    <string name="has_been_downloaded">İndirme tamamlandı</string>
+    <string name="has_been_downloaded"> İndirme tamamlandı</string>
     <string name="delete_ai_illust">AI ile oluşturulan eserleri gizle</string>
     <string name="trying_login">Giriş deneniyor</string>
     <string name="userTab_other">Diğer</string>
@@ -1738,7 +1738,7 @@
     <string name="debug_bulk_dl_entry">Toplu İndirme Hata Ayıklama</string>
     <string name="debug_bulk_dl_refresh">Yenile</string>
     <string name="debug_bulk_dl_copy">Çıktıyı kopyala</string>
-    <string name="debug_bulk_dl_copied">Panoya kopyalandı</string>
+    <string name="debug_bulk_dl_copied"> panoya kopyalandı</string>
     <string name="debug_bulk_dl_running">Toplanıyor…</string>
     <string name="saf_perf_test_entry">SAF yazma testi</string>
     <string name="saf_perf_test_tree_label">Test klasörü (SAF tree URI)</string>
@@ -1947,7 +1947,7 @@
     <string name="tag_popular_export_run">Dışa aktar</string>
     <string name="tag_popular_export_running">Aktarılıyor…</string>
     <string name="tag_popular_export_need_tag">Lütfen önce bir etiket adı girin</string>
-    <string name="use_custom_double_tap_zoom">(Yeni) İllüstrasyon büyük görünümünde kademeli / 3 seviyeli çift dokunma yakınlaştırma</string>
+    <string name="use_custom_double_tap_zoom">İllüstrasyon büyük görünümünde kademeli / 3 seviyeli çift dokunma yakınlaştırma</string>
     <string name="use_custom_long_press_reset">Basılı tutarak sıfırlamayı etkinleştir (önerilir)</string>
     <string name="use_custom_long_press_reset_link_text">Maksimuma ulaşınca minimuma geri dönmez</string>
     <string name="double_tap_zoom_max_reached">Maksimuma ulaşıldı — sıfırlamak için basılı tutun</string>
