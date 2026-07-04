@@ -60,8 +60,8 @@
     <string name="hello_blank_fragment">Пустой фрагмент</string>
     <string name="cannot_download">Не удалось скачать</string>
     <string name="image_alredy_exist">Изображение уже существует</string>
-    <string name="has_been_added"> добавлено в очередь загрузки</string>
-    <string name="type_illust">Иллюстрация</string>
+    <string name="has_been_added"> добавлено в очередь загрузки</string>
+    <string name="type_illust">Иллюстрации</string>
     <string name="type_manga">Манга</string>
     <string name="type_walk_through">Галерея</string>
     <string name="type_novel">Новелла</string>
@@ -86,7 +86,7 @@
     <string name="cancel">Отмена</string>
     <string name="now_downloading">Скачивание</string>
     <string name="has_download">Готово</string>
-    <string name="has_copyed"> скопировано в буфер обмена</string>
+    <string name="has_copyed"> скопировано в буфер обмена</string>
     <string name="no_info">Нет информации</string>
     <string name="like_success_public">Подписка оформлена (публичные)</string>
     <string name="like_success_private">Подписка оформлена (приватные)</string>
@@ -427,7 +427,7 @@
     <string name="string_229">Серия</string>
     <string name="string_230">Серия манги</string>
     <string name="string_231">Похожие работы</string>
-    <string name="string_232">Подписаться</string>
+    <string name="string_232">Подписки</string>
     <string name="string_233">Манга</string>
     <string name="string_234">Галерея</string>
     <string name="string_235">P-друзья</string>
@@ -802,7 +802,7 @@
     <string name="follow">Подписаться</string>
     <string name="unfollow">Отписаться</string>
     <string name="created_by_ai">Создано ИИ</string>
-    <string name="has_been_downloaded"> загрузка завершена</string>
+    <string name="has_been_downloaded"> загрузка завершена</string>
     <string name="delete_ai_illust">Скрывать работы, созданные ИИ</string>
     <string name="trying_login">Выполняется вход</string>
     <string name="userTab_other">Профиль</string>
@@ -1738,7 +1738,7 @@
     <string name="debug_bulk_dl_entry">Отладка массовой загрузки</string>
     <string name="debug_bulk_dl_refresh">Обновить</string>
     <string name="debug_bulk_dl_copy">Копировать вывод</string>
-    <string name="debug_bulk_dl_copied"> скопировано в буфер обмена</string>
+    <string name="debug_bulk_dl_copied"> скопировано в буфер обмена</string>
     <string name="debug_bulk_dl_running">Сбор данных…</string>
     <string name="saf_perf_test_entry">Тест записи SAF</string>
     <string name="saf_perf_test_tree_label">Тестовая папка (SAF tree URI)</string>

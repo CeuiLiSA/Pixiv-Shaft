@@ -60,7 +60,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="cannot_download">You lower your 🐴 it?</string>
     <string name="image_alredy_exist">Pictures already exists</string>
-    <string name="has_been_added"> added to the download queue</string>
+    <string name="has_been_added"> added to the download queue</string>
     <string name="type_illust">Illustration</string>
     <string name="type_manga">Manga</string>
     <string name="type_walk_through">gallery</string>
@@ -86,7 +86,7 @@
     <string name="cancel">Cancel</string>
     <string name="now_downloading">Downloading</string>
     <string name="has_download">Completed</string>
-    <string name="has_copyed"> copied to clipboard</string>
+    <string name="has_copyed"> copied to clipboard</string>
     <string name="no_info">No Information</string>
     <string name="like_success_public">Followed ~ (public)</string>
     <string name="like_success_private">Followed ~ (private)</string>
@@ -802,7 +802,7 @@
     <string name="follow">Follow</string>
     <string name="unfollow">UnFollow</string>
     <string name="created_by_ai">AI-generated</string>
-    <string name="has_been_downloaded"> download completed</string>
+    <string name="has_been_downloaded"> download completed</string>
     <string name="delete_ai_illust">Hide AI-generated works</string>
     <string name="trying_login">Trying to log in</string>
     <string name="userTab_other">Profile</string>
@@ -1738,7 +1738,7 @@
     <string name="debug_bulk_dl_entry">Bulk Download Debug</string>
     <string name="debug_bulk_dl_refresh">Refresh</string>
     <string name="debug_bulk_dl_copy">Copy output</string>
-    <string name="debug_bulk_dl_copied"> copied to clipboard</string>
+    <string name="debug_bulk_dl_copied"> copied to clipboard</string>
     <string name="debug_bulk_dl_running">Collecting…</string>
     <string name="saf_perf_test_entry">SAF write benchmark</string>
     <string name="saf_perf_test_tree_label">Test folder (SAF tree URI)</string>
