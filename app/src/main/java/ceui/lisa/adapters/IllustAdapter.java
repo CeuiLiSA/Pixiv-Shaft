@@ -14,12 +14,10 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -56,6 +54,8 @@ import ceui.pixiv.imageloader.ImageLoaderV3;
 import ceui.pixiv.ui.task.TaskStatus;
 
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
+    private static final boolean DEBUG_DELAY_ORIGINAL = false;  // true=延迟3秒, false=正常
+    private static final int DEBUG_DELAY_MS = 3000;
 
     /** Reports per-page LoadTask status changes to the host (used by V3's retry-all banner). */
     public interface PageStatusListener {
@@ -193,62 +193,45 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 return true;
             });
         }
+        // 先用元数据设置一个初始高度（占位），但不要设太大避免白边
+        int iw = allIllust.getWidth();
+        int ih = allIllust.getHeight();
+        /* 废案
+        boolean hasValidDims = iw > 0 && ih > 0;
 
-        if (position == 0) {
-            // 第一张图：宽 = 屏宽，FIT_CENTER 不裁切。
-            // 单 P：高 = max(自然高, maxHeight)，扁图保留 maxHeight 占位。
-            // 多 P（≥2P）：高 = 自然高，不施加 maxHeight 约束，消除上下黑边。
-            int iw = allIllust.getWidth();
-            int ih = allIllust.getHeight();
-            boolean hasValidDims = iw > 0 && ih > 0;
-
-            ImageView.ScaleType scaleType;
+        // 所有页面统一：根据图片宽高比计算高度
+        if (hasValidDims) {
+            int naturalHeight = Math.round((float) imageSize * ih / iw);
             int targetHeight;
-            boolean changeSize;
-            String branchTag;
-            if (!hasValidDims) {
-                scaleType = ImageView.ScaleType.FIT_CENTER;
-                targetHeight = maxHeight > 0 ? maxHeight : holder.baseBind.illust.getLayoutParams().height;
-                changeSize = true;
-                branchTag = "fallback(noValidDims)";
+            if (position == 0 && allIllust.getPage_count() == 1) {
+                // 单图：最小高度为 maxHeight（占位）
+                targetHeight = maxHeight > 0 ? Math.max(naturalHeight, maxHeight) : naturalHeight;
             } else {
-                int naturalHeight = Math.round((float) imageSize * ih / iw);
-                scaleType = ImageView.ScaleType.FIT_CENTER;
-                if (allIllust.getPage_count() >= 2) {
-                    // 多P：第一P 直接用自然高度，不施加 maxHeight 约束，消除上下黑边
-                    targetHeight = naturalHeight;
-                } else {
-                    targetHeight = maxHeight > 0 ? Math.max(naturalHeight, maxHeight) : naturalHeight;
-                }
-                changeSize = false;
-                boolean tall = maxHeight <= 0 || naturalHeight >= maxHeight;
-                branchTag = (allIllust.getPage_count() == 1 ? "single_" : "multiP_")
-                        + (tall ? "tall_natural" : "flat_padToMax");
+                // 多图任意页 或 单图多页的第一页：精确匹配自然高度
+                targetHeight = naturalHeight;
             }
 
-            int pageCount = allIllust.getPage_count();
-            Timber.tag("V3MultiP").d(
-                "[IllustAdapter.bind pos=0] illustId=%d, page_count=%d, iw=%d, ih=%d, " +
-                    "imageSize(=screenW)=%d, maxHeight=%d, branch=%s, targetHeight=%d, " +
-                    "scaleType=%s, changeSize=%b, adapterClass=%s, getItemCount=%d",
-                allIllust.getId(), pageCount, iw, ih, imageSize, maxHeight, branchTag,
-                targetHeight, scaleType, changeSize, this.getClass().getSimpleName(), getItemCount()
-            );
-
-            holder.baseBind.illust.setScaleType(scaleType);
             ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
             params.width = imageSize;
             params.height = targetHeight;
             holder.baseBind.illust.setLayoutParams(params);
-            loadIllust(holder, position, changeSize);
         } else {
-            Timber.tag("V3MultiP").d(
-                "[IllustAdapter.bind pos=%d] non-first page, illustId=%d",
-                position, allIllust.getId()
-            );
-            holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            loadIllust(holder, position, true);
+            // fallback: 用 maxHeight 兜底
+            int fallbackHeight = maxHeight > 0 ? maxHeight : holder.baseBind.illust.getLayoutParams().height;
+            holder.baseBind.illust.getLayoutParams().height = fallbackHeight;
         }
+        */
+        if (iw > 0 && ih > 0) {
+            int naturalHeight = Math.round((float) imageSize * ih / iw);
+            ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
+            params.width = imageSize;
+            params.height = naturalHeight;
+            holder.baseBind.illust.setLayoutParams(params);
+        }
+
+        holder.baseBind.illust.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        // 调用统一的 loadIllust（large 会再次修正高度）
+        loadIllust(holder, position, false);
     }
 
     /**
@@ -257,22 +240,161 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * @param changeSize 是否自动计算宽高
      */
     private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
-        // Drop observers left over from a previous bind of this recycled holder before
-        // registering new ones. Prevents unbounded observer accumulation across rebinds. #912
         detachTaskObservers(holder);
 
-        // 复用前重置「顶层原图」overlay，避免上一条的原图盖在这次的图上。底层 large 由各渲染路径自行覆盖。
         Glide.with(mFragment).clear(holder.baseBind.illustHd);
         holder.baseBind.illustHd.setImageDrawable(null);
         holder.baseBind.illustHd.setVisibility(View.GONE);
 
-        // 命中已下载的本地文件就直读，跳过网络 LoadTask —— 详情页展开多图复用下载结果。
         Uri localUri = localPageUris.get(position);
         if (localUri != null) {
             loadFromLocalFile(holder, position, changeSize, localUri);
             return;
         }
-        loadFromNetwork(holder, position, changeSize);
+
+        boolean loadOriginal = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
+        final String largeUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
+        final String targetUrl = loadOriginal
+                ? IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL)
+                : largeUrl;
+
+        holder.baseBind.illust.setTag(R.id.tag_image_url, targetUrl);
+        holder.baseBind.reload.setVisibility(View.GONE);
+        holder.baseBind.reload.setOnClickListener(v -> loadIllust(holder, position, changeSize));
+        holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+
+        // 关键改动：large 加载时确定高度，之后不再变动
+        // 先用元数据预估，large 加载完成后用 large 实际尺寸修正（只这一次）
+        Glide.with(mFragment)
+                .asBitmap()
+                .load(new GlideUrlChild(largeUrl))
+                .transform(new LargeBitmapScaleTransformer())
+                .transition(BitmapTransitionOptions.withCrossFade())
+                .listener(new RequestListener<Bitmap>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                        if (!targetUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
+                        holder.baseBind.reload.setVisibility(View.VISIBLE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                        if (!targetUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
+
+                        // 只在这里调整一次高度：用 large 图实际尺寸
+                        int naturalHeight = Math.round((float) imageSize * resource.getHeight() / resource.getWidth());
+                        ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
+                        if (params.height != naturalHeight) {
+                            params.height = naturalHeight;
+                            holder.baseBind.illust.requestLayout();
+                        }
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                        return false;
+                    }
+                })
+                .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
+
+        // 如果开启原图模式，原图加载完成后只替换内容，不调整高度
+        if (loadOriginal) {
+            loadOriginalOverlay(holder, position, targetUrl);
+        }
+    }
+
+    /**
+     * 原图 overlay：加载原图，只替换内容，不调整高度
+     */
+    private void loadOriginalOverlay(ViewHolder<RecyIllustDetailBinding> holder, int position, String originalUrl) {
+        String shortUrl = originalUrl.substring(originalUrl.lastIndexOf('/') + 1);
+        ImageLoadTask task = ImageLoaderV3.obtain(originalUrl);
+        if (task.getState().getValue() instanceof ImageLoadState.Error) {
+            task.retry();
+        }
+
+        final Observer<ImageLoadState> stateObserver = state -> {
+            if (!originalUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) {
+                return;
+            }
+            if (state instanceof ImageLoadState.Loading) {
+                int percent = ((ImageLoadState.Loading) state).getPercent();
+                holder.baseBind.progressLayout.donutProgress.setProgress(percent);
+                reportPageStatus(position, new TaskStatus.Executing(percent));
+            } else if (state instanceof ImageLoadState.Success) {
+                File file = ((ImageLoadState.Success) state).getFile();
+
+                Runnable showOriginal = () -> {
+                    if (!originalUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) {
+                        return;
+                    }
+                    showOriginalOverlay(holder, file, originalUrl, position);
+                };
+
+                if (DEBUG_DELAY_ORIGINAL) {
+                    // 延迟显示，观察 large 稳定效果
+                    new Handler(Looper.getMainLooper()).postDelayed(showOriginal, DEBUG_DELAY_MS);
+                } else {
+                    showOriginal.run();
+                }
+
+                reportPageStatus(position, TaskStatus.Finished.INSTANCE);
+            } else if (state instanceof ImageLoadState.Error) {
+                holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                holder.baseBind.reload.setVisibility(View.VISIBLE);
+                Throwable cause = ((ImageLoadState.Error) state).getCause();
+                Timber.w(cause, "[IllustAdapter] original load failed. pos=%d", position);
+                reportPageStatus(position, new TaskStatus.Error(
+                        (cause instanceof Exception) ? (Exception) cause : new Exception(cause)));
+            }
+        };
+
+        task.getStateLiveData().observe(mFragment.getViewLifecycleOwner(), stateObserver);
+        holder.itemView.setTag(R.id.tag_task_observers,
+                (Runnable) () -> task.getStateLiveData().removeObserver(stateObserver));
+    }
+
+    /**
+     * 显示原图 overlay（从 loadOriginalOverlay 中抽离出来）
+     */
+    private void showOriginalOverlay(ViewHolder<RecyIllustDetailBinding> holder, File file,
+                                     String guardUrl, int position) {
+        if (position == 0 && Shaft.sSettings.isShowOriginalPreviewImage()) {
+            SketchPreloader.warm(mContext, file);
+        }
+
+        String shortUrl = guardUrl.substring(guardUrl.lastIndexOf('/') + 1);
+        holder.baseBind.illustHd.setVisibility(View.INVISIBLE);
+
+        Glide.with(mFragment)
+                .asBitmap()
+                .load(file)
+                .transform(new LargeBitmapScaleTransformer())
+                .transition(BitmapTransitionOptions.withCrossFade())
+                .listener(new RequestListener<Bitmap>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object m, Target<Bitmap> target, boolean isFirstResource) {
+                        if (!guardUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
+                        holder.baseBind.reload.setVisibility(View.VISIBLE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Bitmap resource, Object m, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                        if (!guardUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
+
+                        // ✅ 原图加载完成，只替换内容，不调整高度
+                        Timber.d("[IllustAdapter] original overlay ready, replacing large. pos=%d, %dx%d",
+                                position, resource.getWidth(), resource.getHeight());
+
+                        holder.baseBind.reload.setVisibility(View.GONE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                        holder.baseBind.illustHd.setVisibility(View.VISIBLE);
+                        Shaft.getMMKV().encode(guardUrl, true);
+                        return false;
+                    }
+                })
+                .into(holder.baseBind.illustHd);
     }
 
     private void loadFromNetwork(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
