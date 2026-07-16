@@ -6,6 +6,8 @@ import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.text.TextUtils;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -30,6 +32,8 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
 import ceui.loxia.MoonSync;
+import ceui.pixiv.download.DownloadsRegistry;
+import ceui.pixiv.download.config.StorageChoice;
 import ceui.pixiv.session.SessionManager;
 
 /** 设置 · 备份与缓存 */
@@ -62,7 +66,49 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                             IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity, "Shaft-Backup.json", backupString, new Callback<Uri>() {
                                 @Override
                                 public void doSomething(Uri t) {
-                                    Common.showToast(getString(R.string.backup_success) + Settings.FILE_PATH_BACKUP);
+                                    //为什么不用Shaft.sSettings.getDownloadWay() == 1，当用户更过改存储方式后，该值却不更新
+                                    if (isSafStorage()) {
+                                        // 获取 SAF 选择的文件夹路径
+                                        String rootPath = getSafFullPath();
+                                        if (rootPath != null) {
+                                            // 显示 SAF 文件夹路径 + ShaftBackups 目录
+                                            Common.showToast(getString(R.string.backup_success) + rootPath + "/ShaftBackups");
+                                        } else {
+                                            Common.showToast(getString(R.string.backup_success));
+                                        }
+                                    } else {Common.showToast(getString(R.string.backup_success) + Settings.FILE_PATH_BACKUP);}
+                                }
+                                private boolean isSafStorage() {
+                                    return DownloadsRegistry.currentImagesStorage() instanceof StorageChoice.Saf;
+                                }
+                                private String getSafFullPath() {
+                                    String rootUri = Shaft.sSettings.getRootPathUri();
+                                    if (TextUtils.isEmpty(rootUri)) {
+                                        return null;
+                                    }
+
+                                    try {
+                                        Uri treeUri = Uri.parse(rootUri);
+                                        String uriPath = treeUri.getPath();
+                                        if (uriPath != null && uriPath.contains("/tree/")) {
+                                            String treePart = uriPath.substring(uriPath.indexOf("/tree/") + 6);
+
+                                            if (treePart.startsWith("primary:")) {
+                                                String path = treePart.substring(8);
+                                                return Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + path;
+                                            } else if (treePart.contains(":")) {
+                                                String[] parts = treePart.split(":", 2);
+                                                if (parts.length == 2) {
+                                                    String path = parts[1];
+                                                    return "/storage/" + parts[0] + "/" + path;
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    return null;
                                 }
                             });
                             dialog.dismiss();
