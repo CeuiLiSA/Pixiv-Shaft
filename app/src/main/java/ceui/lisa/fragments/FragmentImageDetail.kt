@@ -285,6 +285,18 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 if (event.pointerCount == 1) {
                     gestureDetector.onTouchEvent(event)
                 } else {
+                    // 多指（双指缩放/拖拽）：取消 gestureDetector 的待处理长按事件
+                    // 通过发送一个 ACTION_CANCEL 来阻止长按触发
+                    gestureDetector.onTouchEvent(
+                        MotionEvent.obtain(
+                            event.downTime,
+                            event.eventTime,
+                            MotionEvent.ACTION_CANCEL,
+                            event.x,
+                            event.y,
+                            event.metaState
+                        ).also { it.recycle() }
+                    )
                     v.onTouchEvent(event)
                 }
             }
