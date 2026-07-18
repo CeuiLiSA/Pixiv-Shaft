@@ -14,6 +14,9 @@ import ceui.lisa.database.SearchDao;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.feature.FeatureEntity;
+import ceui.pixiv.download.DownloadsRegistry;
+import ceui.pixiv.download.config.DownloadConfig;
+import ceui.pixiv.download.config.DownloadConfigJson;
 
 public class BackupUtils {
 
@@ -24,7 +27,7 @@ public class BackupUtils {
         private List<SearchEntity> searchEntityList;
         private List<UserEntity> userEntityList;
         private List<IllustHistoryEntity> illustHistoryEntityList;
-
+        private String downloadConfigJson;
         public Settings getSettings() {
             return settings;
         }
@@ -72,11 +75,28 @@ public class BackupUtils {
         public void setIllustHistoryEntityList(List<IllustHistoryEntity> illustHistoryEntityList) {
             this.illustHistoryEntityList = illustHistoryEntityList;
         }
+
+        public String getDownloadConfigJson() {
+            return downloadConfigJson;
+        }
+
+        public void setDownloadConfigJson(String downloadConfigJson) {
+            this.downloadConfigJson = downloadConfigJson;
+        }
     }
 
     public static String getBackupString(Context context, boolean backupViewHistory) {
         BackupEntity backupEntity = new BackupEntity();
         backupEntity.setSettings(Shaft.sSettings);
+        try {
+            ceui.pixiv.download.config.DownloadConfig config =
+                    DownloadsRegistry.getStore().loadOrFallback();
+            String configJson = ceui.pixiv.download.config.DownloadConfigJson.INSTANCE.toJson(config);
+            backupEntity.setDownloadConfigJson(configJson);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 备份失败不影响其他数据备份
+        }
         AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
         backupEntity.setMuteEntityList(appDatabase.searchDao().getAllMuteEntities());
         backupEntity.setFeatureEntityList(appDatabase.downloadDao().getAllFeatureEntities());
@@ -91,6 +111,23 @@ public class BackupUtils {
     public static boolean restoreBackups(Context context, String backupString) {
         try {
             BackupEntity backupEntity = Shaft.sGson.fromJson(backupString, BackupEntity.class);
+            String configJson = backupEntity.getDownloadConfigJson();
+            if (configJson != null && !configJson.isEmpty()) {
+                try {
+                    DownloadConfig backupConfig = DownloadConfigJson.INSTANCE.fromJson(configJson);
+                    DownloadsRegistry.getStore().update(cfg -> {
+                        // 替换 perBucket、WifiOnly、PageIndexFrom1、从备份中的Defaults提取Overwrite覆盖当前Defaults中的Overwrite
+                        return cfg
+                                .withPerBucket(backupConfig.getPerBucket())
+                                .withWifiOnly(backupConfig.getWifiOnly())
+                                .withPageIndexFrom1(backupConfig.getPageIndexFrom1())
+                                .withDefaultsOverwrite(backupConfig.getDefaults());
+                    });
+                    DownloadsRegistry.invalidateBackends();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             Settings settings = backupEntity.getSettings();
             if (settings != null) {
                 Local.setSettings(settings);
