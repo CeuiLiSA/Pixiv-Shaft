@@ -389,13 +389,17 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 loadWatchlistStateForSeries(seriesId)
                 pushStyleAndGeometryIfReady()
                 rebindScrollViewIfActive()
+                // 纵向立即隐藏；分页模式等 pagination 到来
+                if (ReaderSettings.readingDirection == ReadingDirection.Vertical) {
+                    binding.readerLoading.visibility = View.GONE
+                }
             }
         }
 
         // 同时观察 pagination，当它更新时重新评估 loading 状态
         viewModel.pagination.observe(viewLifecycleOwner) { pag ->
-            // 如果当前是 Loaded 状态，且 pagination 不为 null，隐藏 loading
-            if (pag != null && viewModel.loadState.value is NovelReaderV3ViewModel.LoadState.Loaded) {
+            // 只有分页数据真正准备好时才隐藏
+            if (pag != null && pag.pages.isNotEmpty()) {
                 binding.readerLoading.visibility = View.GONE
             }
             // 原有的 paged 模式处理逻辑...
@@ -478,6 +482,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             // mode (page-x/y) and snaps to the current scroll fraction even
             // before the user touches the scroll view.
             sv.pushScrollProgressNow()
+            if (viewModel.loadState.value is NovelReaderV3ViewModel.LoadState.Loaded) {
+                binding.readerLoading.visibility = View.GONE
+            }
         } else {
             scrollReaderView?.let { sv ->
                 viewModel.onScrollPositionChanged(sv.currentCharIndex())
@@ -490,6 +497,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             // be suppressed without this reset.
             lastPushedSnapshot = null
             pushStyleAndGeometryIfReady()
+            // 切换时如果 pagination 为空，显示 loading
+            if (viewModel.pagination.value == null) {
+                binding.readerLoading.visibility = View.VISIBLE
+            }
         }
     }
 
@@ -566,6 +577,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         // currentChar == 0 (fresh entry, no saved progress) — otherwise the
         // scroll-listener wouldn't fire until the user first scrolls.
         sv.pushScrollProgressNow()
+        binding.readerLoading.visibility = View.GONE
     }
 
     private fun togglePixivBookmark() {
