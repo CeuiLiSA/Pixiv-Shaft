@@ -10,15 +10,26 @@
 
     <!-- 紧凑小号 chip 换行堆叠,行数由 UserV3IllustTabFragment 用 flexLines 折叠到最多 2 行
          (「+N」块表达溢出),不用 maxLine —— 它会把末行放不下的 chip 硬切成半个。 -->
-    <ceui.pixiv.widgets.V3TagFlowView
-        android:id="@+id/illust_filter_bar"
+    <!-- 用 NestedScrollView 包裹，maxHeight 限制最大高度，展开允许时滚动 -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/tag_scroll_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="20dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="20dp"
-        android:visibility="gone"
-        app:flexWrap="wrap" />
+        android:maxHeight="200dp"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <ceui.pixiv.widgets.V3TagFlowView
+            android:id="@+id/illust_filter_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="8dp"
+            android:visibility="gone"
+            app:flexWrap="wrap" />
+    </androidx.core.widget.NestedScrollView>
 
     <FrameLayout
         android:id="@+id/illust_list_container"

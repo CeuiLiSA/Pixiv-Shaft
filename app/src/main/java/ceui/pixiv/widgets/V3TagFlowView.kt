@@ -46,7 +46,11 @@ class V3TagFlowView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : FlexboxLayout(context, attrs, defStyleAttr) {
-
+    /**
+     * 自定义 tag 显示文本。返回 Pair(主文本, 译名后缀)，返回 null 则使用默认渲染。
+     * 用于特殊 tag（如展开/收起）显示自定义文本。
+     */
+    var customTagDisplay: ((name: String, translated: String?) -> Pair<String, String?>?)? = null
     private val palette by lazy { V3Palette.from(context) }
     private var lastSignature: String? = null
     private var lastPairs: List<Pair<String, String?>> = emptyList()
@@ -189,6 +193,10 @@ class V3TagFlowView @JvmOverloads constructor(
         }
         val lastIndex = visiblePairs.size - 1
         visiblePairs.forEachIndexed { idx, (name, translated) ->
+            val custom = customTagDisplay?.invoke(name, translated)
+            val displayName = custom?.first ?: name
+            val displayTranslated = if (custom != null) custom.second else translated
+            val isCustom = custom != null
             val endGap = when {
                 !isSingleRow -> gap
                 idx == lastIndex -> 0
@@ -196,16 +204,15 @@ class V3TagFlowView @JvmOverloads constructor(
             }
             val tv = TextView(context).apply {
                 text = buildString {
-                    if (showHashPrefix) append("# ")
-                    append(name)
-                    if (!translated.isNullOrBlank()) {
-                        append("  "); append(translated)
+                    if (showHashPrefix && !isCustom) append("# ")
+                    append(displayName)
+                    if (!displayTranslated.isNullOrBlank()) {
+                        append("  "); append(displayTranslated)
                     }
                 }
                 textSize = chipTextSize
                 setTextColor(palette.textTag)
                 background = tagBgState?.newDrawable()?.mutate()
-                // Trailing × icon for editable chip rows.
                 if (showRemoveIcon) {
                     val close = AppCompatResources
                         .getDrawable(context, R.drawable.ic_close_black_24dp)
@@ -215,7 +222,6 @@ class V3TagFlowView @JvmOverloads constructor(
                     setCompoundDrawablesRelative(null, null, close, null)
                     compoundDrawablePadding = 4.ppppx
                 }
-                // Shrink end padding when the × occupies space; otherwise the chip looks lopsided.
                 val endPadding = if (showRemoveIcon) (hPad - 4.ppppx) else hPad
                 setPaddingRelative(hPad, vPad, endPadding, vPad)
                 layoutParams = LayoutParams(
@@ -229,9 +235,9 @@ class V3TagFlowView @JvmOverloads constructor(
                     flexShrink = 0f
                 }
                 setOnClickListener {
-                    val custom = onTagClick
-                    if (custom != null) {
-                        custom.invoke(name)
+                    val customClick = onTagClick
+                    if (customClick != null) {
+                        customClick.invoke(name)
                     } else {
                         val intent = Intent(context, SearchActivity::class.java).apply {
                             putExtra(Params.KEY_WORD, name)
@@ -244,6 +250,10 @@ class V3TagFlowView @JvmOverloads constructor(
                 // refreshChipsUI 再 setOnTagLongClick），所以监听器无条件挂、回调在长按
                 // 触发时再取——和 onTagClick 同套路。
                 setOnLongClickListener {
+                    if (isCustom) {
+                        // 特殊项（如 +N/收起）不弹出菜单，消费事件
+                        return@setOnLongClickListener true
+                    }
                     val handler = onTagLongClick
                     if (handler != null) {
                         handler.invoke(name)
