@@ -35,23 +35,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom" />
 
-    <!-- 与插画一级/二级详情页的进度环样式统一(30dp/5dp 圆角 Material 环)。
-         阅读器加载章节内容无字节级进度,故用不确定模式;indicatorColor 在
-         applyLoadingTint() 里按当前阅读器主题着色,避免白底主题下不可见。 -->
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/reader_loading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:indeterminate="true"
-        android:visibility="gone"
-        app:indicatorColor="@color/white"
-        app:indicatorSize="30dp"
-        app:trackColor="@color/voice_record_track_color"
-        app:trackCornerRadius="4dp"
-        app:trackThickness="5dp"
-        tools:visibility="visible" />
-
     <TextView
         android:id="@+id/reader_error"
         android:layout_width="match_parent"
@@ -65,4 +48,20 @@
         tools:text="加载失败"
         tools:visibility="visible" />
 
+    <!-- 与插画一级/二级详情页的进度环样式统一(30dp/5dp 圆角 Material 环)。
+     阅读器加载章节内容无字节级进度,故用不确定模式;indicatorColor 在
+     applyLoadingTint() 里按当前阅读器主题着色,避免白底主题下不可见。 -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/reader_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorColor="@color/white"
+        app:indicatorSize="30dp"
+        app:trackColor="@color/voice_record_track_color"
+        app:trackCornerRadius="4dp"
+        app:trackThickness="5dp"
+        tools:visibility="visible" />
 </FrameLayout>

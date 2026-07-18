@@ -335,7 +335,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     // 同色 track 以保持与插画详情页进度环一致的配置。
     private fun applyLoadingTint(theme: ReaderTheme) {
         binding.readerLoading.setIndicatorColor(theme.accentColor)
-        binding.readerLoading.trackColor = ColorUtils.setAlphaComponent(theme.accentColor, 0x33)
+        //binding.readerLoading.trackColor = ColorUtils.setAlphaComponent(theme.accentColor, 0x33)
     }
 
     // ---- Observe ------------------------------------------------------------
@@ -369,12 +369,21 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
 
         viewModel.loadState.observe(viewLifecycleOwner) { state ->
-            binding.readerLoading.visibility = if (state is NovelReaderV3ViewModel.LoadState.Loading) View.VISIBLE else View.GONE
+            val isLoading = state is NovelReaderV3ViewModel.LoadState.Loading
+            val paginationReady = viewModel.pagination.value != null
+
+            // 当 Loaded 且 pagination 准备好时才隐藏 loading
+            val shouldShowLoading = isLoading ||
+                    (state is NovelReaderV3ViewModel.LoadState.Loaded && !paginationReady)
+
+            binding.readerLoading.visibility = if (shouldShowLoading) View.VISIBLE else View.GONE
             binding.readerError.visibility = if (state is NovelReaderV3ViewModel.LoadState.Error) View.VISIBLE else View.GONE
-            if (state is NovelReaderV3ViewModel.LoadState.Error) binding.readerError.text = state.message
+
+            if (state is NovelReaderV3ViewModel.LoadState.Error) {
+                binding.readerError.text = state.message
+            }
             if (state is NovelReaderV3ViewModel.LoadState.Loaded) {
                 tb.setTitle(state.novel?.title ?: state.webNovel.title.orEmpty())
-                // 系列按钮按当前小说是否归属系列动态显示。
                 val seriesId = state.novel?.series?.id
                 bb.setSeriesVisible(seriesId != null)
                 loadWatchlistStateForSeries(seriesId)
@@ -383,7 +392,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             }
         }
 
+        // 同时观察 pagination，当它更新时重新评估 loading 状态
         viewModel.pagination.observe(viewLifecycleOwner) { pag ->
+            // 如果当前是 Loaded 状态，且 pagination 不为 null，隐藏 loading
+            if (pag != null && viewModel.loadState.value is NovelReaderV3ViewModel.LoadState.Loaded) {
+                binding.readerLoading.visibility = View.GONE
+            }
+            // 原有的 paged 模式处理逻辑...
             if (pag == null) return@observe
             if (ReaderSettings.readingDirection == ReadingDirection.Vertical) return@observe
             rv.setStyle(pag.style, pag.geometry)
