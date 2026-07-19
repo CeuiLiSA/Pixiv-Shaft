@@ -347,6 +347,11 @@ public class Shaft extends Application implements ServicesProvider {
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
         OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(new OkHttpClient.Builder());
+        // 图片客户端一律强制 HTTP/1.1。Glide 加载缩略图网格会在单条 H2 连接上并发开大量
+        // stream，okhttp 的 Http2Writer 共享帧缓冲在这种高并发下会被写坏，抛出
+        // ArrayIndexOutOfBoundsException(okio checkOffsetAndCount / AsyncTimeout.write)导致崩溃。
+        // 下载(Manager)、ugoira 早已各自退回 H1.1，这里统一在源头兜住，非直连模式同样生效。
+        glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
         // issue #865: 直连覆盖(HttpDns 硬编码 210.140.139.x + 无 SNI 的 TLS)只对
         // 原始 i.pximg.net 有效，会打死 pixiv.cat / 自定义反代。所以非 PIXIV 模式下
         // 图片客户端退回系统 DNS + 标准 TLS。API 客户端(Retro/Client 的 Cronet 直连)
@@ -356,7 +361,7 @@ public class Shaft extends Application implements ServicesProvider {
             // 图片走 https://i.pximg.net 原始 URL，在 OkHttp 层面：
             // 1. 自定义 DNS 绕过 DNS 污染
             // 2. 无 SNI 的 TLS 绕过 GFW（图片服务器不要求 SNI）
-            // 3. 强制 HTTP/1.1 避免 H2 复用连接被 GFW 整体干扰
+            // 3. HTTP/1.1 已在上面统一强制（既避免 H2 写坏崩溃，也避免 H2 复用连接被 GFW 整体干扰）
             try {
                 ceui.lisa.http.TrustAllCertManager trustManager = new ceui.lisa.http.TrustAllCertManager();
                 glideBuilder.sslSocketFactory(new ceui.lisa.http.RubySSLSocketFactory(), trustManager);
@@ -365,7 +370,6 @@ public class Shaft extends Application implements ServicesProvider {
                 Timber.e(e, "Direct-connect SSL init error");
             }
             glideBuilder.dns(ceui.lisa.http.HttpDns.getInstance());
-            glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
             glideBuilder.connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS);
             glideBuilder.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
         }
