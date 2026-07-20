@@ -2,7 +2,9 @@ package ceui.pixiv.ui.user
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
@@ -59,9 +61,22 @@ import kotlin.math.floor
  * 选完模式再弹 [ExportSheet] 选输出格式（TXT/MD/PDF/EPUB），回调走 [CrossSeriesDownloadTask]。
  * 该流程只依赖 [allItems]（当前列表快照）/ activity / childFragmentManager / isAdded，与 legacy 等价。
  */
-class UserNovelSeriesFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed), ExportFormatCallback {
+class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
+
+    /**
+     * 两种形态,对齐 [UserNovelFeedFragment]:
+     * - 独立(TemplateActivity「小说系列作品」,showToolbar=true,legacy 默认):自带返回箭头 + 标题 +
+     *   顶部跨系列批量下载菜单;
+     * - 内嵌(UserActivityV3「小说系列」Tab,showToolbar=false):去掉 toolbar,否则 Tab 里会多顶一条头。
+     */
+    private val showToolbar: Boolean by lazy(LazyThreadSafetyMode.NONE) {
+        requireArguments().getBoolean(Params.FLAG, true)
+    }
+
+    // 内嵌 UserActivityV3 tab(无底栏)时,列表底部补手势条 inset;带 toolbar 独立页由 setUpToolbar 自理
+    override val applyBottomSafeInset: Boolean = true
 
     override val feedViewModel by feedViewModels {
         // 零捕获：只从 arguments / intent 取出 userID(int)，source 仅持有这个基本类型，不碰 Fragment/View。
@@ -71,8 +86,21 @@ class UserNovelSeriesFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed)
         UserNovelSeriesFeedSource(userID)
     }
 
+    // showToolbar 是运行时参数,系统重建只走无参构造,不能靠构造器传 contentLayoutId,
+    // 改在这里按参数选骨架(两张布局都带同结构的 feed_root)。对齐 UserNovelFeedFragment。
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        val layoutId = if (showToolbar) R.layout.fragment_toolbar_feed else R.layout.fragment_feed
+        return inflater.inflate(layoutId, container, false)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 内嵌 tab 无 toolbar:跳过标题 / 返回箭头 / 跨系列下载菜单(它们都挂在 toolbar 上)。
+        if (!showToolbar) return
         setUpToolbar(binding, feedBinding.feedListView)
         binding.toolbarTitle.text = getString(R.string.string_257)
         // 顶部下载 icon，复用 legacy 同一套 menu / itemId。
@@ -261,9 +289,13 @@ class UserNovelSeriesFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed)
         private const val ARG_USER_ID = "arg_user_id"
 
         @JvmStatic
-        fun newInstance(userID: Int): UserNovelSeriesFeedFragment =
+        @JvmOverloads
+        fun newInstance(userID: Int, showToolbar: Boolean = true): UserNovelSeriesFeedFragment =
             UserNovelSeriesFeedFragment().apply {
-                arguments = Bundle().apply { putInt(ARG_USER_ID, userID) }
+                arguments = Bundle().apply {
+                    putInt(ARG_USER_ID, userID)
+                    putBoolean(Params.FLAG, showToolbar)
+                }
             }
     }
 }

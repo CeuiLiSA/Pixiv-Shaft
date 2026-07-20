@@ -60,10 +60,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     private lateinit var mUserViewModel: UserViewModel
     private lateinit var palette: V3Palette
 
-    // Tab 期望顺序:插画 · [漫画] · [小说] · 收藏 · [约稿中] · 资料。
-    // 收藏 / 资料 常驻;漫画 / 小说 / 约稿中 是条件 tab(有对应作品 / 开启接受约稿才插)。
+    // Tab 期望顺序:插画 · [漫画] · [小说] · [小说系列] · 收藏 · [约稿中] · 资料。
+    // 收藏 / 资料 常驻;漫画 / 小说 / 小说系列 / 约稿中 是条件 tab(有对应作品 / 开启接受约稿才插)。
+    // 小说系列紧跟小说之后(total_novel_series>0 才有,issue #951——旧版 UActivity 的入口在新版加回来)。
     // 约稿中紧贴资料左侧(is_accept_request=true 才有)。
-    private enum class TabKind { ILLUST, MANGA, NOVEL, COLLECTION, REQUEST, INFO }
+    private enum class TabKind { ILLUST, MANGA, NOVEL, NOVEL_SERIES, COLLECTION, REQUEST, INFO }
 
     // 哪些 tab 该展示要等 getUserDetail 返回才知道 (total_manga / total_novels),
     // 所以空列表起步,详情到手后一次性建全量 tab —— 不再「3 tab 先上、条件 tab 后插」闪一下。
@@ -258,6 +259,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                         hasIllust = true,
                         hasManga = false,
                         hasNovel = false,
+                        hasNovelSeries = false,
                         hasRequest = false,
                     )
                 }
@@ -292,6 +294,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 TabKind.ILLUST -> UserV3IllustTabFragment.newInstance(userId)
                 TabKind.MANGA -> ceui.pixiv.ui.user.UserMangaFeedFragment.newInstance(userId, false)
                 TabKind.NOVEL -> ceui.pixiv.ui.user.UserNovelFeedFragment.newInstance(userId, false)
+                TabKind.NOVEL_SERIES -> ceui.pixiv.ui.user.UserNovelSeriesFeedFragment.newInstance(userId, false)
                 TabKind.COLLECTION -> UserV3CollectionFragment.newInstance(userId)
                 TabKind.REQUEST -> ceui.pixiv.ui.user.RequestPlanFeedFragment.newInstance(userId)
                 TabKind.INFO -> UserV3InfoFragment()
@@ -318,6 +321,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             TabKind.ILLUST -> getString(R.string.string_246)
             TabKind.MANGA -> getString(R.string.string_233)
             TabKind.NOVEL -> getString(R.string.string_237)
+            TabKind.NOVEL_SERIES -> getString(R.string.string_257)
             TabKind.COLLECTION -> getString(R.string.v3_label_bookmarks)
             TabKind.REQUEST -> getString(R.string.request_tab_title)
             TabKind.INFO -> getString(R.string.v3_label_profile_details)
@@ -341,12 +345,14 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         hasIllust: Boolean,
         hasManga: Boolean,
         hasNovel: Boolean,
+        hasNovelSeries: Boolean,
         hasRequest: Boolean,
     ) {
         if (tabKinds.isNotEmpty()) return
         if (hasIllust) tabKinds.add(TabKind.ILLUST)
         if (hasManga) tabKinds.add(TabKind.MANGA)
         if (hasNovel) tabKinds.add(TabKind.NOVEL)
+        if (hasNovelSeries) tabKinds.add(TabKind.NOVEL_SERIES) // 紧跟小说
         tabKinds.add(TabKind.COLLECTION)
         if (hasRequest) tabKinds.add(TabKind.REQUEST) // 约稿中紧贴资料左侧
         tabKinds.add(TabKind.INFO)
@@ -402,6 +408,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         updateTabCount(TabKind.ILLUST, profile.total_illusts)
         updateTabCount(TabKind.MANGA, profile.total_manga)
         updateTabCount(TabKind.NOVEL, profile.total_novels)
+        updateTabCount(TabKind.NOVEL_SERIES, profile.total_novel_series)
         updateTabCount(TabKind.COLLECTION, profile.total_illust_bookmarks_public)
 
         // 纯小说创作者(插画 0 + 漫画 0 + 小说>0):首页藏掉「插画作品」「漫画作品」两个空 tab。
@@ -417,14 +424,18 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 hasIllust = !isNovelistOnly,
                 hasManga = profile.total_manga > 0,
                 hasNovel = profile.total_novels > 0,
+                hasNovelSeries = profile.total_novel_series > 0,
                 hasRequest = isAcceptRequest,
             )
         } else {
-            // 旋转恢复 / 下拉刷新:列表已在,只按需补插条件 tab。MANGA 在插画之后,NOVEL 在收藏之前,
-            // REQUEST 在资料之前(紧贴资料左侧)。
+            // 旋转恢复 / 下拉刷新:列表已在,只按需补插条件 tab。MANGA 在插画之后,NOVEL / NOVEL_SERIES
+            // 在收藏之前(NOVEL_SERIES 先插使其落在 NOVEL 之后),REQUEST 在资料之前(紧贴资料左侧)。
             if (profile.total_manga > 0) ensureConditionalTab(TabKind.MANGA, 1)
             if (profile.total_novels > 0) {
                 ensureConditionalTab(TabKind.NOVEL, tabKinds.indexOf(TabKind.COLLECTION))
+            }
+            if (profile.total_novel_series > 0) {
+                ensureConditionalTab(TabKind.NOVEL_SERIES, tabKinds.indexOf(TabKind.COLLECTION))
             }
             if (isAcceptRequest) {
                 ensureConditionalTab(TabKind.REQUEST, tabKinds.indexOf(TabKind.INFO))
