@@ -97,7 +97,7 @@ object DownloadItems {
         val config = DownloadsRegistry.store.loadOrFallback()
         val resolved = config.resolve(item.bucket)
         val rendered = SafeTemplateRender.render(
-            resolved.template, item.bucket, item.meta, item.ext, config.pageIndexFrom1,
+            resolved.template, item.bucket, item.meta, item.ext, config.pageNumbering,
         )
         return FsSanitizer.clean(rendered)
     }
@@ -298,7 +298,7 @@ object DownloadItems {
         val config = DownloadsRegistry.store.loadOrFallback()
         val resolved = config.resolve(item.bucket)
         val rendered = SafeTemplateRender.render(
-            resolved.template, item.bucket, item.meta, item.ext, config.pageIndexFrom1,
+            resolved.template, item.bucket, item.meta, item.ext, config.pageNumbering,
         )
         val cleaned = FsSanitizer.clean(rendered)
         if (extOverride.isNullOrEmpty()) return cleaned
@@ -319,7 +319,7 @@ object DownloadItems {
         val config = DownloadsRegistry.store.loadOrFallback()
         val resolved = config.resolve(item.bucket)
         val rendered = SafeTemplateRender.render(
-            resolved.template, item.bucket, item.meta, item.ext, config.pageIndexFrom1,
+            resolved.template, item.bucket, item.meta, item.ext, config.pageNumbering,
         )
         val cleaned = FsSanitizer.clean(rendered)
         val finalName = FsSanitizer.cleanSegment(overrideName, preserveExtension = true)

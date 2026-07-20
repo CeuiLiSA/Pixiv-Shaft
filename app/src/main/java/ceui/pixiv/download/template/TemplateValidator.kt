@@ -51,11 +51,35 @@ object TemplateValidator {
             applyBucketRules(source, bucket, issues)
         }
 
+        checkPageMasks(source, issues)
+
         if (source.endsWith("/") || source.endsWith("\\")) {
             issues += Issue(Severity.Error, "Template must end with a filename, not a directory separator")
         }
 
         return Result(issues, compiled)
+    }
+
+    private val PAGE_MASK_REGEX = Regex("\\{(page1?):([^}]*)\\}")
+
+    /**
+     * `{page:000}` pins a zero-pad width. Rendering ignores a malformed mask so
+     * that pre-existing templates keep working (see
+     * [TemplateContext.explicitWidth]), which means a typo would otherwise be
+     * invisible — the download would just silently come out unpadded. Catch it
+     * here, while the user is still looking at the editor.
+     */
+    private fun checkPageMasks(source: String, issues: MutableList<Issue>) {
+        PAGE_MASK_REGEX.findAll(source).forEach { match ->
+            val (name, mask) = match.destructured
+            if (!TemplateContext.isPageMask(mask)) {
+                issues += Issue(
+                    Severity.Error,
+                    "Invalid width in '{$name:$mask}' — expected 1-${TemplateContext.MAX_PAGE_WIDTH} " +
+                        "zeros, e.g. {$name:000}",
+                )
+            }
+        }
     }
 
     private fun applyBucketRules(source: String, bucket: Bucket, issues: MutableList<Issue>) {

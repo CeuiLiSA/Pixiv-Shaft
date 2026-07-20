@@ -1324,6 +1324,16 @@
     <string name="download_path_teach_var_id">Eser kimliği (ör. 123456789). Aynı adlı dosyaların üzerine yazılmasını önlemek için eklemeniz önerilir</string>
     <string name="download_path_teach_var_title">Eser başlığı</string>
     <string name="download_path_teach_var_page">Geçerli sayfa numarası, 0 ile başlar</string>
+    <string name="download_path_pad_page_title">Sayfa numarasını sıfırla doldur</string>
+    <string name="download_path_pad_page_switch_label">Sayfa numaralarını sıfırla doldur (p2 → p02)</string>
+    <string name="download_path_pad_page_on">Açık</string>
+    <string name="download_path_pad_page_off">Kapalı</string>
+    <string name="download_path_pad_page_body">Galeriler ve dosya yöneticileri dosya adlarını karakter karakter karşılaştırır; bu yüzden p10, p2\'den önce gelir ve çok sayfalı bir eser sırasız görünür.\nAçıldığında {page}, eserin en büyük sayfa numarası kadar basamağa sıfırla tamamlanır (4 sayfa → p01…p04, 150 sayfa → p001…p150) ve sıralama düzelir.\nYalnızca bundan sonra indirilen dosyaları etkiler; mevcut dosyalar yeniden adlandırılmaz.</string>
+    <string name="download_path_pad_page_example_off">Kapalı — galerinin sıralaması</string>
+    <string name="download_path_pad_page_example_on">Açık</string>
+    <string name="download_path_pad_page_hint">Sabit basamak mı istiyorsunuz? Şablona doğrudan {page:000} (3 basamak) veya {page:0000} (4 basamak) yazın; şablondaki açık değer bu anahtardan önceliklidir.</string>
+    <string name="download_path_pad_page_toast_on">Sayfa numaraları sıfırla doldurulacak</string>
+    <string name="download_path_pad_page_toast_off">Sayfa numaraları sıfırla doldurulmayacak</string>
     <string name="download_path_teach_var_pages">Bu eserin toplam sayfa sayısı</string>
     <string name="download_path_teach_var_ext">Kaynak dosyanın uzantısı, örneğin png / jpg / gif</string>
     <string name="download_path_teach_var_author">Yazar adı</string>

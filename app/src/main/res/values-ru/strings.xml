@@ -1324,6 +1324,16 @@
     <string name="download_path_teach_var_id">ID работы (например, 123456789). Рекомендуется добавлять обязательно, чтобы избежать перезаписи одноимённых файлов</string>
     <string name="download_path_teach_var_title">Название работы</string>
     <string name="download_path_teach_var_page">Номер текущей страницы, начиная с 0</string>
+    <string name="download_path_pad_page_title">Дополнение номеров страниц нулями</string>
+    <string name="download_path_pad_page_switch_label">Дополнять номера нулями (p2 → p02)</string>
+    <string name="download_path_pad_page_on">Вкл.</string>
+    <string name="download_path_pad_page_off">Выкл.</string>
+    <string name="download_path_pad_page_body">Галереи и файловые менеджеры сравнивают имена файлов посимвольно, поэтому p10 оказывается перед p2 и многостраничная работа отображается не по порядку.\nЕсли включить, {page} дополняется нулями до разрядности наибольшего номера страницы в работе (4 страницы → p01…p04, 150 страниц → p001…p150), и порядок восстанавливается.\nЗатрагивает только новые загрузки — уже скачанные файлы не переименовываются.</string>
+    <string name="download_path_pad_page_example_off">Выкл. — так это отсортирует галерея</string>
+    <string name="download_path_pad_page_example_on">Вкл.</string>
+    <string name="download_path_pad_page_hint">Нужна фиксированная разрядность? Впишите в шаблон {page:000} (3 знака) или {page:0000} (4 знака) — явное указание всегда важнее этого переключателя.</string>
+    <string name="download_path_pad_page_toast_on">Номера страниц будут дополняться нулями</string>
+    <string name="download_path_pad_page_toast_off">Номера страниц не будут дополняться нулями</string>
     <string name="download_path_teach_var_pages">Общее количество страниц в работе</string>
     <string name="download_path_teach_var_ext">Расширение исходного файла, например png / jpg / gif</string>
     <string name="download_path_teach_var_author">Имя автора</string>

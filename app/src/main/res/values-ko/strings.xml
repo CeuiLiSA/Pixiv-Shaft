@@ -1324,6 +1324,16 @@
     <string name="download_path_teach_var_id">작품 ID(예: 123456789). 같은 이름 덮어쓰기를 막기 위해 넣는 것을 권장합니다</string>
     <string name="download_path_teach_var_title">작품 제목</string>
     <string name="download_path_teach_var_page">현재 페이지 번호, 0부터 시작</string>
+    <string name="download_path_pad_page_title">페이지 번호 0 채우기</string>
+    <string name="download_path_pad_page_switch_label">페이지 번호에 0 채우기(p2 → p02)</string>
+    <string name="download_path_pad_page_on">켜짐</string>
+    <string name="download_path_pad_page_off">꺼짐</string>
+    <string name="download_path_pad_page_body">갤러리와 파일 관리자는 파일 이름을 한 글자씩 비교해 정렬하므로 p10 이 p2 보다 앞에 오고, 여러 장짜리 작품의 순서가 뒤섞입니다.\n켜면 {page} 가 해당 작품의 최대 페이지 번호와 같은 자릿수까지 0 으로 채워져(4 장 → p01…p04, 150 장 → p001…p150) 정렬이 정상으로 돌아옵니다.\n앞으로 내려받는 파일에만 적용되며, 이미 받은 파일의 이름은 바뀌지 않습니다.</string>
+    <string name="download_path_pad_page_example_off">꺼짐 — 갤러리에서의 정렬</string>
+    <string name="download_path_pad_page_example_on">켜짐</string>
+    <string name="download_path_pad_page_hint">자릿수를 고정하려면 템플릿에 {page:000}(세 자리) 또는 {page:0000}(네 자리)을 직접 쓰면 됩니다. 템플릿에 지정한 자릿수가 이 스위치보다 우선합니다.</string>
+    <string name="download_path_pad_page_toast_on">페이지 번호 0 채우기를 켰습니다</string>
+    <string name="download_path_pad_page_toast_off">페이지 번호 0 채우기를 껐습니다</string>
     <string name="download_path_teach_var_pages">이 작품의 총 페이지 수</string>
     <string name="download_path_teach_var_ext">원본 파일 확장자(예: png / jpg / gif)</string>
     <string name="download_path_teach_var_author">작가 이름</string>

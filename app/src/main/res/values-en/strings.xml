@@ -1324,6 +1324,16 @@
     <string name="download_path_teach_var_id">Work ID (for example 123456789). Recommended to avoid overwriting files with the same name</string>
     <string name="download_path_teach_var_title">Work title</string>
     <string name="download_path_teach_var_page">Current image page, starting from 0</string>
+    <string name="download_path_pad_page_title">Pad page numbers</string>
+    <string name="download_path_pad_page_switch_label">Zero-pad page numbers (p2 → p02)</string>
+    <string name="download_path_pad_page_on">On</string>
+    <string name="download_path_pad_page_off">Off</string>
+    <string name="download_path_pad_page_body">Galleries and file managers compare filenames character by character, so p10 sorts before p2 and a multi-page work ends up out of order.\nWhen this is on, {page} is zero-padded to the width of the work\'s highest page number (4 pages → p01…p04, 150 pages → p001…p150), which restores the right order.\nOnly affects files downloaded from now on — files you already have are not renamed.</string>
+    <string name="download_path_pad_page_example_off">Off — how a gallery sorts them</string>
+    <string name="download_path_pad_page_example_on">On</string>
+    <string name="download_path_pad_page_hint">Need a fixed width? Write {page:000} (3 digits) or {page:0000} (4 digits) straight into the template — an explicit width always overrides this switch.</string>
+    <string name="download_path_pad_page_toast_on">Page numbers will be zero-padded</string>
+    <string name="download_path_pad_page_toast_off">Page numbers will not be padded</string>
     <string name="download_path_teach_var_pages">Total number of pages in this work</string>
     <string name="download_path_teach_var_ext">File extension from the source file, such as png / jpg / gif</string>
     <string name="download_path_teach_var_author">Author name</string>

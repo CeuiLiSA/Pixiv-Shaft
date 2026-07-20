@@ -54,7 +54,7 @@ class Downloads(
         // constructor on the main thread, before any caller can catch). On
         // failure SafeTemplateRender falls back to the bucket default.
         val raw: RelativePath = SafeTemplateRender.render(
-            resolved.template, item.bucket, item.meta, item.ext, configProvider().pageIndexFrom1,
+            resolved.template, item.bucket, item.meta, item.ext, configProvider().pageNumbering,
         )
         val cleaned: RelativePath = FsSanitizer.clean(raw)
         val backend: StorageBackend = backendFactory(resolved.storage)

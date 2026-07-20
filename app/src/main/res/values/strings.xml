@@ -1440,6 +1440,16 @@
     <string name="download_path_teach_var_id">作品 ID（如 123456789），建议必加，避免同名覆盖</string>
     <string name="download_path_teach_var_title">作品标题</string>
     <string name="download_path_teach_var_page">当前是第几张图，从 0 开始</string>
+    <string name="download_path_pad_page_title">多图页码补零</string>
+    <string name="download_path_pad_page_switch_label">给页码补零（p2 → p02）</string>
+    <string name="download_path_pad_page_on">已开启</string>
+    <string name="download_path_pad_page_off">已关闭</string>
+    <string name="download_path_pad_page_body">相册和文件管理器是按文件名逐个字符比大小的，所以 p10 会排到 p2 前面，一套多图的顺序就乱了。\n开启后，{page} 会自动补 0，补到和本作品最大页码一样宽（4 张图 → p01…p04，150 张图 → p001…p150），顺序就正常了。\n只影响之后新下载的文件，已经下好的不会重命名。</string>
+    <string name="download_path_pad_page_example_off">关闭时，相册里会这样排</string>
+    <string name="download_path_pad_page_example_on">开启后</string>
+    <string name="download_path_pad_page_hint">想固定位数，可以在模板里直接写 {page:000}（三位）或 {page:0000}（四位）；模板里写死的位数优先于这个开关。</string>
+    <string name="download_path_pad_page_toast_on">已开启页码补零</string>
+    <string name="download_path_pad_page_toast_off">已关闭页码补零</string>
     <string name="download_path_teach_var_pages">本作品总张数</string>
     <string name="download_path_teach_var_ext">文件扩展名（跟随源文件，如 png / jpg / gif）</string>
     <string name="download_path_teach_var_author">作者昵称</string>

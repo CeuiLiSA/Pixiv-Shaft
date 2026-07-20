@@ -384,7 +384,7 @@ object MoonSync {
     /**
      * Merge cloud DownloadConfig into local: preserve local storage (SAF
      * treeUri is device-bound), take cloud's templates / overwrite policy /
-     * wifiOnly / pageIndexFrom1.
+     * wifiOnly / pageIndexFrom1 / padPageNumber.
      */
     private fun mergeDownloadConfig(local: DownloadConfig, cloud: DownloadConfig): DownloadConfig {
         val mergedDefaults = local.defaults.copy(
@@ -404,6 +404,7 @@ object MoonSync {
         return local.copy(
             wifiOnly = cloud.wifiOnly,
             pageIndexFrom1 = cloud.pageIndexFrom1,
+            padPageNumber = cloud.padPageNumber,
             defaults = mergedDefaults,
             perBucket = mergedPerBucket,
         )

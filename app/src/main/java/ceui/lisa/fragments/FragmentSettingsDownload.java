@@ -206,7 +206,8 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
                                         ),
                                         cfg.getPerBucket(),
                                         cfg.getWifiOnly(),
-                                        cfg.getPageIndexFrom1()
+                                        cfg.getPageIndexFrom1(),
+                                        cfg.getPadPageNumber()
                                 )
                         );
                         refreshOverwritePolicyRow();
@@ -268,7 +269,8 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
                                         cfg.getDefaults(),
                                         cfg.getPerBucket(),
                                         cfg.getWifiOnly(),
-                                        selected
+                                        selected,
+                                        cfg.getPadPageNumber()
                                 )
                         );
                         baseBind.pageIndex.setText(PAGE_INDEX_NAMES[which]);

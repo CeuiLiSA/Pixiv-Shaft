@@ -1324,6 +1324,16 @@
     <string name="download_path_teach_var_id">作品 ID（例：123456789）。同名上書きを防ぐため、入れることを推奨します</string>
     <string name="download_path_teach_var_title">作品タイトル</string>
     <string name="download_path_teach_var_page">現在のページ番号。0 から開始</string>
+    <string name="download_path_pad_page_title">ページ番号のゼロ埋め</string>
+    <string name="download_path_pad_page_switch_label">ページ番号をゼロ埋めする（p2 → p02）</string>
+    <string name="download_path_pad_page_on">オン</string>
+    <string name="download_path_pad_page_off">オフ</string>
+    <string name="download_path_pad_page_body">ギャラリーやファイルマネージャーはファイル名を1文字ずつ比較して並べるため、p10 が p2 より前に来てしまい、複数ページ作品の順番が崩れます。\nオンにすると {page} が作品の最大ページ番号と同じ桁数までゼロ埋めされ（4 枚 → p01…p04、150 枚 → p001…p150）、正しい順番に戻ります。\nこれから保存するファイルにのみ適用され、既存のファイルの名前は変わりません。</string>
+    <string name="download_path_pad_page_example_off">オフのとき（ギャラリーでの並び順）</string>
+    <string name="download_path_pad_page_example_on">オンのとき</string>
+    <string name="download_path_pad_page_hint">桁数を固定したい場合は、テンプレートに {page:000}（3 桁）や {page:0000}（4 桁）と直接書けます。テンプレート側の指定がこのスイッチより優先されます。</string>
+    <string name="download_path_pad_page_toast_on">ページ番号のゼロ埋めをオンにしました</string>
+    <string name="download_path_pad_page_toast_off">ページ番号のゼロ埋めをオフにしました</string>
     <string name="download_path_teach_var_pages">この作品の総ページ数</string>
     <string name="download_path_teach_var_ext">元ファイルの拡張子。例：png / jpg / gif</string>
     <string name="download_path_teach_var_author">作者名</string>
