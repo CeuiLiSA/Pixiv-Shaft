@@ -46,6 +46,7 @@
             android:id="@+id/btn_emoji"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:layout_gravity="bottom"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="centerInside"
             android:src="@drawable/chat_ic_emoji"
