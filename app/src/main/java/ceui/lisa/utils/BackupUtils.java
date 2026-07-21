@@ -14,9 +14,7 @@ import ceui.lisa.database.SearchDao;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.feature.FeatureEntity;
-import ceui.pixiv.download.DownloadsRegistry;
-import ceui.pixiv.download.config.DownloadConfig;
-import ceui.pixiv.download.config.DownloadConfigJson;
+import ceui.pixiv.download.config.DownloadConfigBackup;
 
 public class BackupUtils {
 
@@ -27,7 +25,14 @@ public class BackupUtils {
         private List<SearchEntity> searchEntityList;
         private List<UserEntity> userEntityList;
         private List<IllustHistoryEntity> illustHistoryEntityList;
-        private String downloadConfigJson;
+        /**
+         * 整份 V3 下载配置（下载路径 / 文件名 / 文件重复时 / 页码起始 / 仅 WiFi）序列化成的
+         * JSON 字符串。这里存字符串而不是嵌套对象，是因为 {@link Shaft#sGson} 没有注册
+         * StorageChoice 的 sealed 适配器，只有 DownloadConfigJson 那份 Gson 能正确读写；
+         * 字段名与云同步 payload 的 {@code downloadConfigV3} 保持一致，两边可互相导入。
+         */
+        private String downloadConfigV3;
+
         public Settings getSettings() {
             return settings;
         }
@@ -76,27 +81,21 @@ public class BackupUtils {
             this.illustHistoryEntityList = illustHistoryEntityList;
         }
 
-        public String getDownloadConfigJson() {
-            return downloadConfigJson;
+        public String getDownloadConfigV3() {
+            return downloadConfigV3;
         }
 
-        public void setDownloadConfigJson(String downloadConfigJson) {
-            this.downloadConfigJson = downloadConfigJson;
+        public void setDownloadConfigV3(String downloadConfigV3) {
+            this.downloadConfigV3 = downloadConfigV3;
         }
     }
 
     public static String getBackupString(Context context, boolean backupViewHistory) {
         BackupEntity backupEntity = new BackupEntity();
         backupEntity.setSettings(Shaft.sSettings);
-        try {
-            ceui.pixiv.download.config.DownloadConfig config =
-                    DownloadsRegistry.getStore().loadOrFallback();
-            String configJson = ceui.pixiv.download.config.DownloadConfigJson.INSTANCE.toJson(config);
-            backupEntity.setDownloadConfigJson(configJson);
-        } catch (Exception e) {
-            e.printStackTrace();
-            // 备份失败不影响其他数据备份
-        }
+        // 「设置 · 下载」里的下载路径 / 文件名等已经搬到 V3 下载配置，不在 Settings 里，
+        // 得单独打包（#949）。
+        backupEntity.setDownloadConfigV3(DownloadConfigBackup.export());
         AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
         backupEntity.setMuteEntityList(appDatabase.searchDao().getAllMuteEntities());
         backupEntity.setFeatureEntityList(appDatabase.downloadDao().getAllFeatureEntities());
@@ -111,23 +110,8 @@ public class BackupUtils {
     public static boolean restoreBackups(Context context, String backupString) {
         try {
             BackupEntity backupEntity = Shaft.sGson.fromJson(backupString, BackupEntity.class);
-            String configJson = backupEntity.getDownloadConfigJson();
-            if (configJson != null && !configJson.isEmpty()) {
-                try {
-                    DownloadConfig backupConfig = DownloadConfigJson.INSTANCE.fromJson(configJson);
-                    DownloadsRegistry.getStore().update(cfg -> {
-                        // 替换 perBucket、WifiOnly、PageIndexFrom1、从备份中的Defaults提取Overwrite覆盖当前Defaults中的Overwrite
-                        return cfg
-                                .withPerBucket(backupConfig.getPerBucket())
-                                .withWifiOnly(backupConfig.getWifiOnly())
-                                .withPageIndexFrom1(backupConfig.getPageIndexFrom1())
-                                .withDefaultsOverwrite(backupConfig.getDefaults());
-                    });
-                    DownloadsRegistry.invalidateBackends();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+            // 下载配置自己吞掉所有异常：解析不了就保持本机现状，不影响其余数据还原。
+            DownloadConfigBackup.restore(backupEntity.getDownloadConfigV3());
             Settings settings = backupEntity.getSettings();
             if (settings != null) {
                 Local.setSettings(settings);

@@ -1,6 +1,5 @@
 package ceui.pixiv.download.config
 
-import ceui.pixiv.download.DownloadsRegistry.store
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.template.PageNumbering
 
@@ -29,41 +28,10 @@ data class DownloadConfig(
     /** true = zero-pad `{page}` so multi-page works sort correctly in galleries (#721). */
     val padPageNumber: Boolean = false,
 ) {
-    // 为 Java 提供的便捷方法
-    @JvmOverloads
-    fun withPerBucket(
-        newPerBucket: Map<Bucket, BucketConfig>,
-        wifiOnly: Boolean = this.wifiOnly,
-        pageIndexFrom1: Boolean = this.pageIndexFrom1
-    ): DownloadConfig {
-        return copy(
-            perBucket = newPerBucket,
-            wifiOnly = wifiOnly,
-            pageIndexFrom1 = pageIndexFrom1
-        )
-    }
 
     /** The two page-numbering knobs as the template layer wants them. */
     val pageNumbering: PageNumbering
         get() = PageNumbering(indexFrom1 = pageIndexFrom1, padded = padPageNumber)
-
-    fun withWifiOnly(wifiOnly: Boolean): DownloadConfig = copy(wifiOnly = wifiOnly)
-    fun withPageIndexFrom1(pageIndexFrom1: Boolean): DownloadConfig = copy(
-        pageIndexFrom1 = pageIndexFrom1
-    )
-    /**
-     * 为什么这样做，因为
-     * FragmentSettingsDownload.kt:
-     * OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
-     * 这里拿的是defaults.overwrite，而不是perBucket里面的overwrite。
-     * 至于实际文件出现重复时到底时 由defaults.overwrite 还是 perBucket里面的overwrite，需要检查更多的代码来确定
-     * **/
-    fun withDefaultsOverwrite(defaults: BucketDefaults): DownloadConfig {
-        return store.update { cfg ->
-            val newDefaults = cfg.defaults.copy(overwrite = defaults.overwrite)
-            cfg.copy(defaults = newDefaults)
-        }
-    }
 
     fun resolve(bucket: Bucket): ResolvedBucket {
         require(bucket != Bucket.TempCache) {
