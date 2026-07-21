@@ -2,6 +2,7 @@ package ceui.pixiv.download.config
 
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.download.DownloadsRegistry
+import ceui.pixiv.download.model.Bucket
 import timber.log.Timber
 
 /**
@@ -20,9 +21,24 @@ import timber.log.Timber
  */
 object DownloadConfigBackup {
 
-    /** 当前配置的 JSON 快照，写进备份文件 / 云端 payload。 */
+    /**
+     * 当前配置的 JSON 快照，写进备份文件 / 云端 payload。
+     *
+     * 绝不抛异常：设置页那个「备份」按钮是主线程 dialog 回调里直接调
+     * [ceui.lisa.utils.BackupUtils.getBackupString]，外面没有 try，这里炸了就是
+     * 整个备份崩掉。真出问题就返回空串——宁可这份备份少一段下载配置。
+     */
     @JvmStatic
-    fun export(): String = DownloadConfigJson.toJson(DownloadsRegistry.store.loadOrFallback())
+    fun export(): String = try {
+        export(DownloadsRegistry.store.loadOrFallback())
+    } catch (t: Throwable) {
+        Timber.e(t, "DownloadConfigBackup: 导出下载配置失败，本次备份不含下载配置")
+        ""
+    }
+
+    /** 已经拿到配置时的重载，省掉一次 MMKV 读。 */
+    @JvmStatic
+    fun export(config: DownloadConfig): String = DownloadConfigJson.toJson(config)
 
     /**
      * 把备份里的配置 merge 回本地并落盘。空内容 / 解析失败 / 版本比本地新都直接
@@ -33,23 +49,12 @@ object DownloadConfigBackup {
     @JvmStatic
     fun restore(json: String?): Boolean {
         if (json.isNullOrBlank()) return false
-        val parsed = try {
-            DownloadConfigJson.fromJson(json)
+        val incoming = try {
+            sanitize(DownloadConfigJson.fromJson(json))
         } catch (t: Throwable) {
             Timber.w(t, "DownloadConfigBackup: 下载配置解析失败，跳过")
-            return false
-        }
-        // Gson 走 Unsafe 造对象，字段缺失时即使 Kotlin 声明成非空也会拿到 null，
-        // 所以手改过的备份文件必须在这里挡掉，别等到渲染模板时才 NPE。
-        @Suppress("SENSELESS_COMPARISON", "USELESS_ELVIS")
-        val incoming = parsed.takeIf {
-            it != null && it.defaults != null && it.defaults.storage != null &&
-                    !it.defaults.template.isNullOrBlank()
-        }?.let { it.copy(perBucket = it.perBucket ?: emptyMap()) }
-        if (incoming == null) {
-            Timber.w("DownloadConfigBackup: 备份里的下载配置不完整，跳过")
-            return false
-        }
+            null
+        } ?: return false
         if (incoming.version > DownloadConfig.VERSION) {
             Timber.w(
                 "DownloadConfigBackup: 备份配置版本 %d 高于本地 %d，跳过",
@@ -73,6 +78,24 @@ object DownloadConfigBackup {
     }
 
     /**
+     * Gson 走 Unsafe 造对象，JSON 里缺字段时即使 Kotlin 声明成非空也会拿到 null，
+     * 而非空 `copy(...)` 参数带着 null 进去会直接抛 IllegalArgumentException。手改过 /
+     * 截断的备份文件就属于这种，统一堵在入口：必填项缺失整份判废，能推导的补默认值。
+     */
+    @Suppress("SENSELESS_COMPARISON", "UNNECESSARY_SAFE_CALL", "USELESS_ELVIS")
+    private fun sanitize(parsed: DownloadConfig): DownloadConfig? {
+        val defaults = parsed?.defaults
+        if (defaults == null || defaults.storage == null || defaults.template.isNullOrBlank()) {
+            Timber.w("DownloadConfigBackup: 备份里的下载配置不完整，跳过")
+            return null
+        }
+        return parsed.copy(
+            defaults = defaults.copy(overwrite = defaults.overwrite ?: OverwritePolicy.Replace),
+            perBucket = parsed.perBucket ?: emptyMap(),
+        )
+    }
+
+    /**
      * 备份配置合并进本地配置。[isUsableHere] 决定备份里的存储位置在本机是否可用，
      * 单测里可以注入假实现。
      */
@@ -83,18 +106,23 @@ object DownloadConfigBackup {
         incoming: DownloadConfig,
         isUsableHere: (StorageChoice) -> Boolean = ::usableOnThisDevice,
     ): DownloadConfig {
+        // 一份配置里同一个 SAF 目录会出现在 defaults 和每个 bucket 上，判定结果只跟
+        // StorageChoice 有关，记一下省掉重复的 persistedUriPermissions 跨进程查询。
+        val verdicts = HashMap<StorageChoice, Boolean>()
+        val usable = { choice: StorageChoice -> verdicts.getOrPut(choice) { isUsableHere(choice) } }
+
         val mergedDefaults = local.defaults.copy(
             template = incoming.defaults.template,
             overwrite = incoming.defaults.overwrite,
-            storage = incoming.defaults.storage.takeIf(isUsableHere) ?: local.defaults.storage,
+            storage = incoming.defaults.storage.takeIf(usable) ?: local.defaults.storage,
         )
-        val mergedPerBucket = local.perBucket.toMutableMap()
-        for ((bucket, incomingBucket) in incoming.perBucket) {
+        val mergedPerBucket = local.perBucket.dropBrokenEntries()
+        for ((bucket, incomingBucket) in incoming.perBucket.dropBrokenEntries()) {
             val localBucket = mergedPerBucket[bucket]
             mergedPerBucket[bucket] = BucketConfig(
                 template = incomingBucket.template ?: localBucket?.template,
                 // null 表示继承 defaults.storage，本身就是合法状态
-                storage = incomingBucket.storage?.takeIf(isUsableHere) ?: localBucket?.storage,
+                storage = incomingBucket.storage?.takeIf(usable) ?: localBucket?.storage,
                 overwrite = incomingBucket.overwrite ?: localBucket?.overwrite,
             )
         }
@@ -106,6 +134,15 @@ object DownloadConfigBackup {
             padPageNumber = incoming.padPageNumber,
         )
     }
+
+    /**
+     * 丢掉 Gson 可能造出的 null key / null value。JSON 里若有本版本已经删掉的 Bucket：
+     * 枚举 key 解析成 null，写回时变成一个 `"null"` 键一直赖在配置里；value 为 null 时
+     * 下面按非空用就是 NPE，整份还原都会被跳过。本地存量配置同样可能有，两边都过一遍。
+     */
+    @Suppress("SENSELESS_COMPARISON")
+    private fun Map<Bucket, BucketConfig>.dropBrokenEntries(): MutableMap<Bucket, BucketConfig> =
+        filterTo(LinkedHashMap()) { (bucket, config) -> bucket != null && config != null }
 
     /** SAF 目录只在本机还握着 persistable 写权限时可用；其他存储位置都可以跨设备。 */
     private fun usableOnThisDevice(choice: StorageChoice): Boolean = when (choice) {

@@ -174,7 +174,7 @@ object MoonSync {
                     // downloadConfigV3 现在是 BackupEntity 自己的字段(和设置页导出的
                     // Shaft-Backup.json 同一份格式),不用再往 envelope 上手动挂。
                     val cfg = DownloadsRegistry.store.loadOrFallback()
-                    entity.downloadConfigV3 = DownloadConfigBackup.export()
+                    entity.downloadConfigV3 = DownloadConfigBackup.export(cfg)
                     val obj = Shaft.sGson.toJsonTree(entity).asJsonObject
 
                     Timber.tag(TAG).d(

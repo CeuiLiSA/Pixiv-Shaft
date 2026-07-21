@@ -81,6 +81,17 @@ class DownloadConfigBackupTest {
         assertEquals("backup/{author}/{id}.{ext}", merged.resolve(Bucket.Illust).template)
     }
 
+    @Test fun `unknown bucket key from an old backup is dropped`() {
+        // Gson 遇到本版本已经删掉的 Bucket 会给出 null key，留着它会被原样写回配置。
+        @Suppress("UNCHECKED_CAST")
+        val poisoned = backup.copy(
+            perBucket = mapOf(null to BucketConfig(template = "gone/{id}.{ext}"))
+                    as Map<Bucket, BucketConfig>,
+        )
+        val merged = DownloadConfigBackup.merge(local, poisoned) { true }
+        assertEquals(local.perBucket.keys, merged.perBucket.keys)
+    }
+
     @Test fun `empty backup config leaves local per-bucket overrides alone`() {
         val empty = backup.copy(perBucket = emptyMap())
         val merged = DownloadConfigBackup.merge(local, empty) { true }

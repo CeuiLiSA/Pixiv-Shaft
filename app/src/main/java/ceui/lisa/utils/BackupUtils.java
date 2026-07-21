@@ -111,6 +111,9 @@ public class BackupUtils {
         try {
             BackupEntity backupEntity = Shaft.sGson.fromJson(backupString, BackupEntity.class);
             // 下载配置自己吞掉所有异常：解析不了就保持本机现状，不影响其余数据还原。
+            // 必须排在 Local.setSettings 之前：本机若还没有 V3 配置，store 会用当前
+            // Settings 的 downloadWay / rootPathUri 兜底，先还原 Settings 就会把备份里
+            // 别的设备的 SAF 目录当成本机的兜底值。
             DownloadConfigBackup.restore(backupEntity.getDownloadConfigV3());
             Settings settings = backupEntity.getSettings();
             if (settings != null) {
