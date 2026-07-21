@@ -9,9 +9,7 @@ import ceui.lisa.utils.BackupUtils
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.pixiv.download.DownloadsRegistry
-import ceui.pixiv.download.config.BucketConfig
-import ceui.pixiv.download.config.DownloadConfig
-import ceui.pixiv.download.config.DownloadConfigJson
+import ceui.pixiv.download.config.DownloadConfigBackup
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
@@ -173,15 +171,16 @@ object MoonSync {
                     entity.settings = Shaft.sSettings
                     val mutes = AppDatabase.getAppDatabase(activity).searchDao().allMuteEntities
                     entity.muteEntityList = mutes
-                    val obj = Shaft.sGson.toJsonTree(entity).asJsonObject
+                    // downloadConfigV3 现在是 BackupEntity 自己的字段(和设置页导出的
+                    // Shaft-Backup.json 同一份格式),不用再往 envelope 上手动挂。
                     val cfg = DownloadsRegistry.store.loadOrFallback()
-                    val v3Json = DownloadConfigJson.toJson(cfg)
-                    obj.addProperty("downloadConfigV3", v3Json)
+                    entity.downloadConfigV3 = DownloadConfigBackup.export(cfg)
+                    val obj = Shaft.sGson.toJsonTree(entity).asJsonObject
 
                     Timber.tag(TAG).d(
                         "[upload] packed: muteCount=%d v3Size=%d perBucket=%d wifiOnly=%b pageFrom1=%b",
                         mutes.size,
-                        v3Json.length,
+                        entity.downloadConfigV3.length,
                         cfg.perBucket.size,
                         cfg.wifiOnly,
                         cfg.pageIndexFrom1,
@@ -319,9 +318,9 @@ object MoonSync {
 
     /**
      * 把云端 payload 应用回本地:
-     * - BackupEntity 部分(settings + muteEntityList)走 [BackupUtils.restoreBackups]
-     * - 如果 envelope 里带了 `downloadConfigV3`,只 merge 模板/策略,storage 保持本地
-     *   (SAF treeUri 是设备绑定的,跨设备无效)
+     * - BackupEntity 部分(settings + muteEntityList + downloadConfigV3)走
+     *   [BackupUtils.restoreBackups];下载配置的 merge 语义见 [DownloadConfigBackup]
+     *   (只 merge 模板/策略,本机用不了的 SAF treeUri 不会被盖上来)
      * - 最后把当前 uid 的 applied version 设为本次 cloud.version
      */
     private suspend fun applyCloudPayload(
@@ -344,70 +343,9 @@ object MoonSync {
         Timber.tag(TAG).i("[apply] BackupUtils.restoreBackups → %b", ok)
         if (!ok) return@withContext false
 
-        // V3 下载配置(可选)
-        val v3Elem = payloadObj.get("downloadConfigV3")
-        if (v3Elem == null || v3Elem.isJsonNull) {
-            Timber.tag(TAG).d("[apply] no downloadConfigV3 in payload (legacy upload)")
-        } else {
-            val v3Raw = v3Elem.asString
-            Timber.tag(TAG).d("[apply] downloadConfigV3 present (%d bytes)", v3Raw.length)
-            val cloudCfg = try {
-                DownloadConfigJson.fromJson(v3Raw)
-            } catch (t: Throwable) {
-                Timber.tag(TAG).w(t, "[apply] downloadConfigV3 parse failed; skipping")
-                null
-            }
-            if (cloudCfg != null) {
-                DownloadsRegistry.store.update { local ->
-                    val merged = mergeDownloadConfig(local, cloudCfg)
-                    Timber.tag(TAG).i(
-                        "[apply] DC3 merged: defaults.template '%s' → '%s', overwrite %s → %s, perBucket %d → %d",
-                        local.defaults.template,
-                        merged.defaults.template,
-                        local.defaults.overwrite,
-                        merged.defaults.overwrite,
-                        local.perBucket.size,
-                        merged.perBucket.size,
-                    )
-                    merged
-                }
-                DownloadsRegistry.invalidateBackends()
-                Timber.tag(TAG).d("[apply] backends invalidated")
-            }
-        }
-
         saveLocalAppliedVersion(uid, cloud.version)
         Timber.tag(TAG).i("[apply] done; applied[uid=%d]=%d", uid, cloud.version)
         true
-    }
-
-    /**
-     * Merge cloud DownloadConfig into local: preserve local storage (SAF
-     * treeUri is device-bound), take cloud's templates / overwrite policy /
-     * wifiOnly / pageIndexFrom1 / padPageNumber.
-     */
-    private fun mergeDownloadConfig(local: DownloadConfig, cloud: DownloadConfig): DownloadConfig {
-        val mergedDefaults = local.defaults.copy(
-            template = cloud.defaults.template,
-            overwrite = cloud.defaults.overwrite,
-            // storage 保持本地不动
-        )
-        val mergedPerBucket = local.perBucket.toMutableMap()
-        for ((bucket, cloudCfg) in cloud.perBucket) {
-            val localCfg = mergedPerBucket[bucket]
-            mergedPerBucket[bucket] = BucketConfig(
-                template = cloudCfg.template ?: localCfg?.template,
-                storage = localCfg?.storage,    // null → fallback 到 defaults.storage
-                overwrite = cloudCfg.overwrite ?: localCfg?.overwrite,
-            )
-        }
-        return local.copy(
-            wifiOnly = cloud.wifiOnly,
-            pageIndexFrom1 = cloud.pageIndexFrom1,
-            padPageNumber = cloud.padPageNumber,
-            defaults = mergedDefaults,
-            perBucket = mergedPerBucket,
-        )
     }
 
     private fun prettyTime(epochMs: Long): String =
