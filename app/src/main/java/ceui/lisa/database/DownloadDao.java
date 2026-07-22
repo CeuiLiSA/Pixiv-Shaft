@@ -37,6 +37,33 @@ public interface DownloadDao {
         insert(entity);
     }
 
+    /**
+     * 批量写入且**不覆盖**已有行 —— 只给 {@code DownloadImporter}（扫描导入本地文件，
+     * issue #953）用。
+     *
+     * 绝不能让导入走 {@link #insertDownload}：那条路是 REPLACE，而本表主键只有
+     * fileName。用户盘上一个同名文件就会把真实下载记录整行顶掉（丢 filePath 和完整
+     * illustGson），扫一次目录能静默毁掉一大片记录。IGNORE 语义下已有行原样保留，
+     * 导入是纯增量的，重复扫同一个目录也是幂等的。
+     */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    void insertIgnoreAll(List<DownloadEntity> entities);
+
+    /**
+     * 这批 fileName 里哪些已经在库里 —— 导入前算"将跳过多少"用，让用户在真正写库
+     * 之前就看到准确的数字。调用方需按 SQLite 变量上限（999）分片。
+     */
+    @Query("SELECT fileName FROM illust_download_table WHERE fileName IN (:fileNames)")
+    List<String> filterExistingFileNames(List<String> fileNames);
+
+    /**
+     * 把某个作品所有下载行的 illustGson 换成完整版。导入时先写的是
+     * {@code {"id":123}} 这种最小 JSON，{@code ImportMetadataEnricher} 回
+     * v1/illust/detail 拉到真数据后用这个覆盖，卡片上就有标题 / 作者 / 封面了。
+     */
+    @Query("UPDATE illust_download_table SET illustGson = :illustGson WHERE illustId = :illustId")
+    void updateIllustGsonByIllustId(long illustId, String illustGson);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertDownloading(DownloadingEntity entity);
 

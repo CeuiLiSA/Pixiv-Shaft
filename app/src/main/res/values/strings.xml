@@ -1734,6 +1734,33 @@
     <string name="dlmgr_done_action_refresh">刷新</string>
     <string name="dlmgr_done_action_clear_history">清空记录</string>
     <string name="dlmgr_done_action_export">导出</string>
+
+    <!-- 导入本地下载（issue #953）：旧版下载的图片新版认不出来，扫描用户授权的目录重建记录 -->
+    <string name="dlmgr_import_title">导入本地下载</string>
+    <string name="dlmgr_import_intro">如果你之前用旧版本下载过作品，升级或换机后这些图片可能不再被识别为「已下载」。\n\n选择存放这些图片的文件夹，Shaft 会读取其中的文件名，为能识别出作品 ID 的图片补建下载记录。\n\n· 只读取你选择的这个文件夹\n· 不会修改、移动或删除任何文件\n· 已有的下载记录不会被覆盖</string>
+    <string name="dlmgr_import_pick_folder">选择文件夹</string>
+    <string name="dlmgr_import_pick_failed">无法打开文件夹选择器：%s</string>
+    <string name="dlmgr_import_failed">导入失败：%s</string>
+    <string name="dlmgr_import_scanning_title">正在扫描</string>
+    <string name="dlmgr_import_scanning_start">正在读取目录…</string>
+    <string name="dlmgr_import_scanning_status">已扫描 %1$d 个文件 · 已识别 %2$d 个</string>
+    <string name="dlmgr_import_preview_title">确认导入</string>
+    <string name="dlmgr_import_confirm">导入</string>
+    <string name="dlmgr_import_stat_scanned">扫描到图片文件：%d</string>
+    <string name="dlmgr_import_stat_recognized">识别出作品：%1$d 个（共 %2$d 页）</string>
+    <string name="dlmgr_import_stat_existing">已有记录，将跳过：%d 页</string>
+    <string name="dlmgr_import_stat_new">本次新增：%1$d 个作品 / %2$d 条记录</string>
+    <string name="dlmgr_import_stat_unrecognized">无法识别作品 ID：%d 个文件</string>
+    <string name="dlmgr_import_empty_no_files">这个文件夹里没有找到图片文件。</string>
+    <string name="dlmgr_import_empty_none_recognized">扫描到了图片，但文件名里认不出作品 ID，无法建立下载记录。\n\n如果这些图片是 Shaft 下载的，请确认文件名中保留了作品 ID。</string>
+    <string name="dlmgr_import_empty_all_existing">这个文件夹里的 %d 个文件都已经有下载记录了，无需导入。</string>
+    <string name="dlmgr_import_writing">正在写入记录…</string>
+    <string name="dlmgr_import_done_title">导入完成</string>
+    <string name="dlmgr_import_done_message">已补建 %1$d 个作品 / %2$d 条下载记录。\n\n这些作品现在会显示为「已下载」。</string>
+    <string name="dlmgr_import_enrich_now">补全作品信息</string>
+    <string name="dlmgr_import_enrich_later">以后再说</string>
+    <string name="dlmgr_import_enrich_message">导入的记录目前只有作品 ID，卡片上显示的是文件名。\n\n可以联网逐个补全标题、作者和封面。共 %1$d 个作品，预计需要 %2$d 分钟，中途可以取消，下次会接着跑。</string>
+
     <string name="dlmgr_done_layout_list">布局：列表</string>
     <string name="dlmgr_done_layout_grid">布局：网格</string>
     <string name="dlmgr_done_layout_compact">布局：缩图</string>

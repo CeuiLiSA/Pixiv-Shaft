@@ -1588,6 +1588,32 @@
     <string name="dlmgr_done_action_refresh">새로고침</string>
     <string name="dlmgr_done_action_clear_history">기록 지우기</string>
     <string name="dlmgr_done_action_export">내보내기</string>
+
+    <!-- 로컬 다운로드 가져오기 (issue #953) -->
+    <string name="dlmgr_import_title">로컬 다운로드 가져오기</string>
+    <string name="dlmgr_import_intro">이전 버전으로 내려받은 작품은 업그레이드하거나 기기를 바꾼 뒤 «다운로드됨»으로 인식되지 않을 수 있습니다.\n\n해당 이미지가 들어 있는 폴더를 선택하면 Shaft가 파일 이름을 읽어, 작품 ID를 알아낼 수 있는 이미지의 다운로드 기록을 다시 만듭니다.\n\n· 선택한 폴더만 읽습니다\n· 파일을 수정·이동·삭제하지 않습니다\n· 기존 다운로드 기록을 덮어쓰지 않습니다</string>
+    <string name="dlmgr_import_pick_folder">폴더 선택</string>
+    <string name="dlmgr_import_pick_failed">폴더 선택기를 열 수 없습니다: %s</string>
+    <string name="dlmgr_import_failed">가져오기 실패: %s</string>
+    <string name="dlmgr_import_scanning_title">검사 중</string>
+    <string name="dlmgr_import_scanning_start">폴더를 읽는 중…</string>
+    <string name="dlmgr_import_scanning_status">%1$d개 검사 · %2$d개 인식</string>
+    <string name="dlmgr_import_preview_title">가져오기 확인</string>
+    <string name="dlmgr_import_confirm">가져오기</string>
+    <string name="dlmgr_import_stat_scanned">찾은 이미지 파일: %d</string>
+    <string name="dlmgr_import_stat_recognized">인식한 작품: %1$d개(%2$d쪽)</string>
+    <string name="dlmgr_import_stat_existing">이미 기록되어 건너뜀: %d쪽</string>
+    <string name="dlmgr_import_stat_new">이번에 추가: 작품 %1$d개 / 기록 %2$d건</string>
+    <string name="dlmgr_import_stat_unrecognized">작품 ID를 인식하지 못함: %d개</string>
+    <string name="dlmgr_import_empty_no_files">이 폴더에서 이미지 파일을 찾지 못했습니다.</string>
+    <string name="dlmgr_import_empty_none_recognized">이미지는 찾았지만 파일 이름에서 작품 ID를 읽을 수 없어 다운로드 기록을 만들 수 없습니다.\n\nShaft로 내려받은 이미지라면 파일 이름에 작품 ID가 남아 있는지 확인해 주세요.</string>
+    <string name="dlmgr_import_empty_all_existing">이 폴더의 %d개 파일은 모두 이미 기록되어 있어 가져올 것이 없습니다.</string>
+    <string name="dlmgr_import_writing">기록을 쓰는 중…</string>
+    <string name="dlmgr_import_done_title">가져오기 완료</string>
+    <string name="dlmgr_import_done_message">작품 %1$d개 / 다운로드 기록 %2$d건을 복원했습니다.\n\n이제 이 작품들은 «다운로드됨»으로 표시됩니다.</string>
+    <string name="dlmgr_import_enrich_now">작품 정보 채우기</string>
+    <string name="dlmgr_import_enrich_later">나중에</string>
+    <string name="dlmgr_import_enrich_message">가져온 기록에는 작품 ID만 있어 카드에 파일 이름이 표시됩니다.\n\n온라인으로 제목·작가·표지를 받아올 수 있습니다. 작품 %1$d개, 약 %2$d분 걸립니다. 도중에 취소해도 다음에 이어서 진행합니다.</string>
     <string name="dlmgr_done_layout_list">레이아웃: 리스트</string>
     <string name="dlmgr_done_layout_grid">레이아웃: 그리드</string>
     <string name="dlmgr_done_layout_compact">레이아웃: 콤팩트</string>

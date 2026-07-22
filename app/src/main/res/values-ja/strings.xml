@@ -1588,6 +1588,32 @@
     <string name="dlmgr_done_action_refresh">更新</string>
     <string name="dlmgr_done_action_clear_history">記録をクリア</string>
     <string name="dlmgr_done_action_export">エクスポート</string>
+
+    <!-- ローカルのダウンロードを取り込む（issue #953） -->
+    <string name="dlmgr_import_title">ローカルのダウンロードを取り込む</string>
+    <string name="dlmgr_import_intro">以前のバージョンでダウンロードした作品は、アップデートや機種変更のあと「ダウンロード済み」と認識されないことがあります。\n\n画像が入っているフォルダーを選ぶと、Shaft がファイル名を読み取り、作品 ID を判別できた画像のダウンロード記録を作り直します。\n\n· 読み取るのは選んだフォルダーだけです\n· ファイルの変更・移動・削除は行いません\n· 既存のダウンロード記録は上書きされません</string>
+    <string name="dlmgr_import_pick_folder">フォルダーを選択</string>
+    <string name="dlmgr_import_pick_failed">フォルダー選択画面を開けませんでした：%s</string>
+    <string name="dlmgr_import_failed">取り込みに失敗しました：%s</string>
+    <string name="dlmgr_import_scanning_title">スキャン中</string>
+    <string name="dlmgr_import_scanning_start">フォルダーを読み込み中…</string>
+    <string name="dlmgr_import_scanning_status">%1$d 件をスキャン · %2$d 件を判別</string>
+    <string name="dlmgr_import_preview_title">取り込みの確認</string>
+    <string name="dlmgr_import_confirm">取り込む</string>
+    <string name="dlmgr_import_stat_scanned">見つかった画像ファイル：%d</string>
+    <string name="dlmgr_import_stat_recognized">判別できた作品：%1$d 件（%2$d ページ）</string>
+    <string name="dlmgr_import_stat_existing">記録済みのためスキップ：%d ページ</string>
+    <string name="dlmgr_import_stat_new">今回追加：%1$d 作品 / %2$d 件</string>
+    <string name="dlmgr_import_stat_unrecognized">作品 ID を判別できず：%d 件</string>
+    <string name="dlmgr_import_empty_no_files">このフォルダーに画像ファイルは見つかりませんでした。</string>
+    <string name="dlmgr_import_empty_none_recognized">画像は見つかりましたが、ファイル名から作品 ID を読み取れないため、ダウンロード記録を作れません。\n\nShaft でダウンロードした画像であれば、ファイル名に作品 ID が残っているか確認してください。</string>
+    <string name="dlmgr_import_empty_all_existing">このフォルダーの %d 件はすべて記録済みです。取り込む必要はありません。</string>
+    <string name="dlmgr_import_writing">記録を書き込み中…</string>
+    <string name="dlmgr_import_done_title">取り込み完了</string>
+    <string name="dlmgr_import_done_message">%1$d 作品 / %2$d 件のダウンロード記録を作成しました。\n\nこれらの作品は「ダウンロード済み」と表示されます。</string>
+    <string name="dlmgr_import_enrich_now">作品情報を取得</string>
+    <string name="dlmgr_import_enrich_later">あとで</string>
+    <string name="dlmgr_import_enrich_message">取り込んだ記録には作品 ID しかないため、カードにはファイル名が表示されます。\n\nオンラインでタイトル・作者・カバーを取得できます。%1$d 作品、約 %2$d 分。途中でキャンセルしても次回続きから再開します。</string>
     <string name="dlmgr_done_layout_list">レイアウト: リスト</string>
     <string name="dlmgr_done_layout_grid">レイアウト: グリッド</string>
     <string name="dlmgr_done_layout_compact">レイアウト: コンパクト</string>

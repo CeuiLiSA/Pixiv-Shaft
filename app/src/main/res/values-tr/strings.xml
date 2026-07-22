@@ -1588,6 +1588,32 @@
     <string name="dlmgr_done_action_refresh">Yenile</string>
     <string name="dlmgr_done_action_clear_history">Kayıtları temizle</string>
     <string name="dlmgr_done_action_export">Dışa aktar</string>
+
+    <!-- Yerel indirmeleri içe aktar (issue #953) -->
+    <string name="dlmgr_import_title">Yerel indirmeleri içe aktar</string>
+    <string name="dlmgr_import_intro">Eski bir sürümle indirdiğiniz eserler, güncelleme veya cihaz değişikliğinden sonra “indirildi” olarak tanınmayabilir.\n\nBu görsellerin bulunduğu klasörü seçin; Shaft dosya adlarını okuyup eser kimliğini çözebildiği her görsel için indirme kaydını yeniden oluşturur.\n\n· Yalnızca seçtiğiniz klasör okunur\n· Hiçbir dosya değiştirilmez, taşınmaz veya silinmez\n· Mevcut indirme kayıtlarının üzerine yazılmaz</string>
+    <string name="dlmgr_import_pick_folder">Klasör seç</string>
+    <string name="dlmgr_import_pick_failed">Klasör seçici açılamadı: %s</string>
+    <string name="dlmgr_import_failed">İçe aktarma başarısız: %s</string>
+    <string name="dlmgr_import_scanning_title">Taranıyor</string>
+    <string name="dlmgr_import_scanning_start">Klasör okunuyor…</string>
+    <string name="dlmgr_import_scanning_status">%1$d dosya tarandı · %2$d tanındı</string>
+    <string name="dlmgr_import_preview_title">İçe aktarmayı onayla</string>
+    <string name="dlmgr_import_confirm">İçe aktar</string>
+    <string name="dlmgr_import_stat_scanned">Bulunan görsel dosyası: %d</string>
+    <string name="dlmgr_import_stat_recognized">Tanınan eser: %1$d (%2$d sayfa)</string>
+    <string name="dlmgr_import_stat_existing">Zaten kayıtlı, atlanacak: %d sayfa</string>
+    <string name="dlmgr_import_stat_new">Eklenecek: %1$d eser / %2$d kayıt</string>
+    <string name="dlmgr_import_stat_unrecognized">Eser kimliği tanınamadı: %d dosya</string>
+    <string name="dlmgr_import_empty_no_files">Bu klasörde görsel dosyası bulunamadı.</string>
+    <string name="dlmgr_import_empty_none_recognized">Görseller bulundu ancak dosya adlarından eser kimliği okunamadığı için indirme kaydı oluşturulamıyor.\n\nBu görselleri Shaft ile indirdiyseniz, eser kimliğinin dosya adında durduğundan emin olun.</string>
+    <string name="dlmgr_import_empty_all_existing">Bu klasördeki %d dosyanın tamamı zaten kayıtlı — içe aktarılacak bir şey yok.</string>
+    <string name="dlmgr_import_writing">Kayıtlar yazılıyor…</string>
+    <string name="dlmgr_import_done_title">İçe aktarma tamamlandı</string>
+    <string name="dlmgr_import_done_message">%1$d eser / %2$d indirme kaydı yeniden oluşturuldu.\n\nBu eserler artık “indirildi” olarak görünecek.</string>
+    <string name="dlmgr_import_enrich_now">Eser bilgilerini getir</string>
+    <string name="dlmgr_import_enrich_later">Sonra</string>
+    <string name="dlmgr_import_enrich_message">İçe aktarılan kayıtlarda yalnızca eser kimliği var, bu yüzden kartlarda dosya adı görünüyor.\n\nBaşlık, sanatçı ve kapak çevrimiçi getirilebilir. %1$d eser, yaklaşık %2$d dakika. İstediğiniz an iptal edebilirsiniz, bir dahaki sefere kaldığı yerden devam eder.</string>
     <string name="dlmgr_done_layout_list">Düzen: Liste</string>
     <string name="dlmgr_done_layout_grid">Düzen: Izgara</string>
     <string name="dlmgr_done_layout_compact">Düzen: Kompakt</string>

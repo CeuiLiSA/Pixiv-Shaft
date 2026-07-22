@@ -1588,6 +1588,32 @@
     <string name="dlmgr_done_action_refresh">Refresh</string>
     <string name="dlmgr_done_action_clear_history">Clear records</string>
     <string name="dlmgr_done_action_export">Export</string>
+
+    <!-- Import local downloads (issue #953) -->
+    <string name="dlmgr_import_title">Import local downloads</string>
+    <string name="dlmgr_import_intro">If you downloaded works with an older version, those images may no longer be recognised as “downloaded” after upgrading or switching devices.\n\nPick the folder holding those images and Shaft will read the file names, rebuilding download records for every image whose work ID it can identify.\n\n· Only the folder you pick is read\n· No file is modified, moved or deleted\n· Existing download records are never overwritten</string>
+    <string name="dlmgr_import_pick_folder">Pick folder</string>
+    <string name="dlmgr_import_pick_failed">Could not open the folder picker: %s</string>
+    <string name="dlmgr_import_failed">Import failed: %s</string>
+    <string name="dlmgr_import_scanning_title">Scanning</string>
+    <string name="dlmgr_import_scanning_start">Reading folder…</string>
+    <string name="dlmgr_import_scanning_status">%1$d files scanned · %2$d identified</string>
+    <string name="dlmgr_import_preview_title">Confirm import</string>
+    <string name="dlmgr_import_confirm">Import</string>
+    <string name="dlmgr_import_stat_scanned">Image files found: %d</string>
+    <string name="dlmgr_import_stat_recognized">Works identified: %1$d (%2$d pages)</string>
+    <string name="dlmgr_import_stat_existing">Already recorded, will skip: %d pages</string>
+    <string name="dlmgr_import_stat_new">To be added: %1$d works / %2$d records</string>
+    <string name="dlmgr_import_stat_unrecognized">Work ID not recognised: %d files</string>
+    <string name="dlmgr_import_empty_no_files">No image files found in this folder.</string>
+    <string name="dlmgr_import_empty_none_recognized">Images were found, but no work ID could be read from their file names, so no download record can be created.\n\nIf these images were downloaded by Shaft, check that the work ID is still part of the file name.</string>
+    <string name="dlmgr_import_empty_all_existing">All %d files in this folder already have download records — nothing to import.</string>
+    <string name="dlmgr_import_writing">Writing records…</string>
+    <string name="dlmgr_import_done_title">Import complete</string>
+    <string name="dlmgr_import_done_message">Rebuilt %1$d works / %2$d download records.\n\nThese works now show as “downloaded”.</string>
+    <string name="dlmgr_import_enrich_now">Fetch work details</string>
+    <string name="dlmgr_import_enrich_later">Later</string>
+    <string name="dlmgr_import_enrich_message">Imported records only carry the work ID, so cards show the file name.\n\nTitles, authors and covers can be fetched online. %1$d works, about %2$d minutes. You can cancel anytime and it will resume next time.</string>
     <string name="dlmgr_done_layout_list">Layout: List</string>
     <string name="dlmgr_done_layout_grid">Layout: Grid</string>
     <string name="dlmgr_done_layout_compact">Layout: Compact</string>

@@ -1588,6 +1588,32 @@
     <string name="dlmgr_done_action_refresh">Обновить</string>
     <string name="dlmgr_done_action_clear_history">Очистить записи</string>
     <string name="dlmgr_done_action_export">Экспорт</string>
+
+    <!-- Импорт локальных загрузок (issue #953) -->
+    <string name="dlmgr_import_title">Импорт локальных загрузок</string>
+    <string name="dlmgr_import_intro">Работы, загруженные в старой версии, после обновления или смены устройства могут перестать распознаваться как «загруженные».\n\nВыберите папку с этими изображениями — Shaft прочитает имена файлов и восстановит записи о загрузке для всех, где удастся определить ID работы.\n\n· Читается только выбранная папка\n· Файлы не изменяются, не перемещаются и не удаляются\n· Существующие записи не перезаписываются</string>
+    <string name="dlmgr_import_pick_folder">Выбрать папку</string>
+    <string name="dlmgr_import_pick_failed">Не удалось открыть выбор папки: %s</string>
+    <string name="dlmgr_import_failed">Ошибка импорта: %s</string>
+    <string name="dlmgr_import_scanning_title">Сканирование</string>
+    <string name="dlmgr_import_scanning_start">Чтение папки…</string>
+    <string name="dlmgr_import_scanning_status">Просмотрено файлов: %1$d · распознано: %2$d</string>
+    <string name="dlmgr_import_preview_title">Подтвердите импорт</string>
+    <string name="dlmgr_import_confirm">Импортировать</string>
+    <string name="dlmgr_import_stat_scanned">Найдено изображений: %d</string>
+    <string name="dlmgr_import_stat_recognized">Распознано работ: %1$d (страниц: %2$d)</string>
+    <string name="dlmgr_import_stat_existing">Уже есть записи, будут пропущены: %d стр.</string>
+    <string name="dlmgr_import_stat_new">Будет добавлено: работ %1$d / записей %2$d</string>
+    <string name="dlmgr_import_stat_unrecognized">ID работы не распознан: %d файлов</string>
+    <string name="dlmgr_import_empty_no_files">В этой папке не найдено изображений.</string>
+    <string name="dlmgr_import_empty_none_recognized">Изображения найдены, но ID работы не удалось прочитать из имён файлов, поэтому записи создать нельзя.\n\nЕсли эти изображения загружены через Shaft, проверьте, что ID работы остался в имени файла.</string>
+    <string name="dlmgr_import_empty_all_existing">Все %d файлов в этой папке уже имеют записи о загрузке — импортировать нечего.</string>
+    <string name="dlmgr_import_writing">Запись данных…</string>
+    <string name="dlmgr_import_done_title">Импорт завершён</string>
+    <string name="dlmgr_import_done_message">Восстановлено работ: %1$d, записей о загрузке: %2$d.\n\nТеперь эти работы отмечены как «загруженные».</string>
+    <string name="dlmgr_import_enrich_now">Загрузить сведения о работах</string>
+    <string name="dlmgr_import_enrich_later">Позже</string>
+    <string name="dlmgr_import_enrich_message">В импортированных записях есть только ID работы, поэтому на карточках показано имя файла.\n\nНазвания, авторов и обложки можно получить из сети: работ %1$d, примерно %2$d мин. Можно прервать в любой момент — в следующий раз продолжится с того же места.</string>
     <string name="dlmgr_done_layout_list">Вид: список</string>
     <string name="dlmgr_done_layout_grid">Вид: сетка</string>
     <string name="dlmgr_done_layout_compact">Вид: компактный</string>
