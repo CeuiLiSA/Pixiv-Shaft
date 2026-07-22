@@ -63,12 +63,29 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private val mIllustsBean: IllustsBean?
         get() = (activity as? ImageDetailActivity)?.mIllustsBean
 
+    /**
+     * 延迟派发过来的手势回调，现在还能不能安全地碰 fragment 的东西。
+     *
+     * 单击/长按都不是同步回调：自家的 [gestureDetector] 与 ZoomImage 的
+     * UnifiedGestureDetector 都靠 Handler 延后判定（onSingleTapConfirmed 要等完双击
+     * 判定窗 ~300ms，onLongPress 500ms）。用户点完立刻翻页/返回，这条消息照样会投递到
+     * 已经 detach 的 fragment 上 —— 此时 [viewModel] 的 lazy 首次取值走
+     * `requireActivity()`，直接抛
+     * `IllegalStateException: Fragment FragmentImageDetail{...} not attached to an activity.`
+     * （线上 Crashlytics）。baseBind / viewLifecycleOwner 同样已经失效。
+     *
+     * 手势的语义本来就是「作用在当前这一页上」，页面没了直接丢掉是正确行为，无需补偿。
+     */
+    private val isGestureTargetAlive: Boolean
+        get() = isAdded && view != null
+
     // PR#900：自定义双击「增量放大 + 长按归位」。
     // 仅在 Settings.isUseCustomDoubleTapZoom 开启时才会被访问/初始化；
     // 关闭时整条路径不参与，保持与未引入 PR 前完全一致的体验。
     private val gestureDetector by lazy {
         GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
+                if (!isGestureTargetAlive) return true
                 if (isAnimated) return true
                 isAnimated = true
                 val zoomable = baseBind.image.zoomable
@@ -230,6 +247,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             }
 
             override fun onLongPress(e: MotionEvent) {
+                if (!isGestureTargetAlive) return
                 if (!isAnimated && Shaft.sSettings.isUseCustomLongPressReset) {
                     val zoomable = baseBind.image.zoomable
                     val contentPoint = zoomable.touchPointToContentPointF(OffsetCompat(e.x, e.y))
@@ -251,6 +269,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             }
 
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                if (!isGestureTargetAlive) return true
                 viewModel.toggleFullscreen()
                 return true
             }
@@ -303,6 +322,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         } else {
             // 默认路径：onViewTapListener → setReadMode 的顺序与改前完全一致
             baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
+                // 线上崩溃点：ZoomImage 的 onSingleTapConfirmed 经 Handler 延迟派发，
+                // 打到已 detach 的 fragment 上时 viewModel 会走 requireActivity() 抛 ISE。
+                if (!isGestureTargetAlive) return@OnViewTapListener
                 viewModel.toggleFullscreen()
             }
         }
