@@ -4,6 +4,7 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import timber.log.Timber
 import java.io.IOException
+import java.util.concurrent.CancellationException
 
 /**
  * 把「okio/okhttp 内部缓冲被并发写坏」导致的进程崩溃，降级成「这一发请求失败」。
@@ -47,6 +48,11 @@ class BufferCorruptionGuardInterceptor : Interceptor {
         val request = chain.request()
         return try {
             chain.proceed(request)
+        } catch (e: CancellationException) {
+            // 坑：CancellationException 是 IllegalStateException 的子类，同时也是
+            // kotlinx.coroutines 的取消信号（typealias）。必须原样穿过去，
+            // 否则协程侧会把「取消」误读成「网络错误」。
+            throw e
         } catch (e: RuntimeException) {
             // IOException 不是 RuntimeException，正常网络错误走不到这里。
             Timber.e(e, "okhttp internal state corrupted, degraded to IOException: %s", request.url)

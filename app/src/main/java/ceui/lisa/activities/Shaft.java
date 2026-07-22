@@ -346,18 +346,21 @@ public class Shaft extends Application implements ServicesProvider {
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
-        OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(new OkHttpClient.Builder());
+        // 退回 H1.1 后同款 AIOOBE 仍在线上复现（栈里已经是 Http1ExchangeCodec.writeRequest），
+        // 说明成因不是 H2 帧缓冲，而是一条连接被两个 exchange 同时拿去写请求头。okhttp 连接池
+        // 那层改不动，这里兜住崩溃形态：把非 IOException 包成 IOException，让 okhttp 拆掉坏连接、
+        // 走 onFailure 而不是从 dispatcher 线程 uncaught 崩进程。详见该类注释。
+        // 必须是 network interceptor，且要挂在最外层才能连 ProgressManager 自己的 body 包装一起盖住
+        // ——ProgressManager.with() 内部就是 addNetworkInterceptor，所以得先加自己再交给它。
+        // 下载(Manager)、ugoira 由本 client newBuilder() 派生，自动继承；聊天 WebSocket 是独立 client，不在内。
+        OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(
+                new OkHttpClient.Builder()
+                        .addNetworkInterceptor(new ceui.lisa.http.BufferCorruptionGuardInterceptor()));
         // 图片客户端一律强制 HTTP/1.1。Glide 加载缩略图网格会在单条 H2 连接上并发开大量
         // stream，okhttp 的 Http2Writer 共享帧缓冲在这种高并发下会被写坏，抛出
         // ArrayIndexOutOfBoundsException(okio checkOffsetAndCount / AsyncTimeout.write)导致崩溃。
         // 下载(Manager)、ugoira 早已各自退回 H1.1，这里统一在源头兜住，非直连模式同样生效。
         glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
-        // 退回 H1.1 后同款 AIOOBE 仍在线上复现（栈里已经是 Http1ExchangeCodec.writeRequest），
-        // 说明成因不是 H2 帧缓冲，而是一条连接被两个 exchange 同时拿去写请求头。okhttp 连接池
-        // 那层改不动，这里兜住崩溃形态：把非 IOException 包成 IOException，让 okhttp 拆掉坏连接、
-        // 走 onFailure 而不是从 dispatcher 线程 uncaught 崩进程。详见该类注释。
-        // 必须是 network interceptor；下载(Manager)/ugoira/WebSocket 都由本 client newBuilder() 派生，自动继承。
-        glideBuilder.addNetworkInterceptor(new ceui.lisa.http.BufferCorruptionGuardInterceptor());
         // issue #865: 直连覆盖(HttpDns 硬编码 210.140.139.x + 无 SNI 的 TLS)只对
         // 原始 i.pximg.net 有效，会打死 pixiv.cat / 自定义反代。所以非 PIXIV 模式下
         // 图片客户端退回系统 DNS + 标准 TLS。API 客户端(Retro/Client 的 Cronet 直连)
