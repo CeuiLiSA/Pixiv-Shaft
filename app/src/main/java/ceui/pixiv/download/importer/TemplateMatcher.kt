@@ -213,7 +213,7 @@ class TemplateMatcher private constructor(
     }
 }
 
-/** `{page}` 渲染时的基准 —— 决定 [NameMatch.zeroBasedPage] 怎么换算。 */
+/** `{page}` 渲染时的基准 —— 决定文件名里的数字怎么换算回 0 基页码。 */
 enum class PageBase {
     /** 文件名里的 `p0` 就是第 0 页。 */
     ZERO,
@@ -237,18 +237,9 @@ data class NameMatch(
     val pageBase: PageBase,
     /** 命中的模板来源，给"识别方式"这类调试信息用。 */
     val source: String,
-) {
-    /**
-     * 换算成和 `IllustsBean` 一致的 0 基页码。基准未知时返回 null —— 调用方
-     * （[DownloadImporter]）会拿同一作品所有页的集合去推断，别在这里瞎猜。
-     */
-    val zeroBasedPage: Int?
-        get() = when {
-            printedPage == null -> 0
-            pageBase == PageBase.ZERO -> printedPage
-            pageBase == PageBase.ONE -> (printedPage - 1).coerceAtLeast(0)
-            else -> null
-        }
-}
+)
+// 想拿 0 基页码，走 PageBaseInference —— 单个 NameMatch 上不提供换算。
+// `p1` 是第 0 页还是第 1 页取决于页码基准，而基准要拿同一作品所有页一起判；
+// 只看一个文件名就换算，基准判错时会把第 N 页的本地图错配到第 N±1 页。
 
 private const val DEFAULT_DATE_FORMAT = "yyyyMMdd_HHmmss"

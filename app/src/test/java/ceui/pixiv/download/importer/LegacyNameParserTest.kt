@@ -110,16 +110,20 @@ class LegacyNameParserTest {
         assertNotNull(hit)
         assertEquals(123456789L, hit!!.illustId)
         assertEquals(PageBase.UNKNOWN, hit.pageBase)
-        // 文件名里压根没有页码 → 无论基准是什么都只可能是第 0 页，这里不该是 null
-        assertEquals(0, hit.zeroBasedPage)
+        // 文件名里压根没有页码 → 无论基准是什么都只可能是第 0 页
+        assertNull(hit.printedPage)
+        assertEquals(PageBase.ZERO, PageBaseInference.infer(listOf(hit)))
     }
 
     @Test
-    fun `启发式 有页码但基准未知时不猜`() {
-        val hit = NameParser.heuristic("完全没见过的命名 [123456789]_p3.webp")
-        assertNotNull(hit)
-        assertEquals(3, hit!!.printedPage)
-        assertNull("基准未知就不该给 0 基页码", hit.zeroBasedPage)
+    fun `启发式 整个作品的页码集合决定基准`() {
+        val zeroBased = listOf("x_[123456789]_p0.webp", "x_[123456789]_p1.webp")
+            .map { NameParser.heuristic(it)!! }
+        assertEquals(PageBase.ZERO, PageBaseInference.infer(zeroBased))
+
+        val oneBased = listOf("x_[123456789]_p1.webp", "x_[123456789]_p2.webp")
+            .map { NameParser.heuristic(it)!! }
+        assertEquals(PageBase.ONE, PageBaseInference.infer(oneBased))
     }
 
     @Test

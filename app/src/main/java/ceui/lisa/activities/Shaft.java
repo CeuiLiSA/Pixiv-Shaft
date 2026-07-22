@@ -299,6 +299,11 @@ public class Shaft extends Application implements ServicesProvider {
         // 后台跑、跑完置标志、幂等；跑完前 hasDownloadRecord 用旧 LIKE 兜底。
         ceui.lisa.database.DownloadIdBackfill.runIfNeeded(this);
 
+        // v41 page 列的一次性存量回填（issue #953）：从老记录的 fileName 反解出页码，
+        // 让「已存在则跳过」和详情页复用本地文件能按 (illustId, page) 命中老记录，
+        // 而不是只对之后新下载的生效。同样后台跑、跑完置标志、幂等。
+        ceui.lisa.database.DownloadPageBackfill.runIfNeeded(this);
+
         // 社区榜单事件上报（shaft-api-v2）。完全 fire-and-forget，失败静默，
         // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
         ceui.pixiv.events.EventReporter.INSTANCE.init(this);

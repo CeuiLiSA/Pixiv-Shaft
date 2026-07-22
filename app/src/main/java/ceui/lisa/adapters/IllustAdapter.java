@@ -165,23 +165,44 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             final Map<Integer, Uri> found = new HashMap<>();
             try {
                 DownloadDao dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao();
+
+                // 先按 (illustId, page) 查（v41 复合索引）。这条路跟文件叫什么名字无关，
+                // 所以用户换过命名模板、或记录是 DownloadImporter 从旧版命名的文件扫进来
+                // 的（issue #953），照样命中。
+                for (DownloadEntity e : dao.getDownloadedPages(illustId)) {
+                    if (released) return;
+                    if (e == null || e.getFilePath() == null || e.getFilePath().isEmpty()) continue;
+                    int page = e.getPage();
+                    if (page < 0 || page >= pageCount) continue;
+                    try {
+                        found.put(page, Uri.parse(e.getFilePath()));
+                    } catch (Exception ignore) {
+                        // 坏 URI 跳过，该页照常走网络
+                    }
+                }
+
+                // 再用旧的 fileName 主键路补漏：v41 之前的存量行 page 还是 -1
+                // （DownloadPageBackfill 没跑完 / 文件名解析不出页码）。只补上面没查到的页。
                 final List<String> fileNames = new ArrayList<>(pageCount);
                 final Map<String, Integer> pageByFileName = new HashMap<>(pageCount);
                 for (int i = 0; i < pageCount; i++) {
                     if (released) return;
+                    if (found.containsKey(i)) continue;
                     String fileName = FileCreator.customFileName(illust, i);
                     fileNames.add(fileName);
                     pageByFileName.put(fileName, i);
                 }
-                // 单次 IN 查询取代 N 次 Room 调用。Pixiv 多 P 上限远低于 SQLite 变量上限。
-                for (DownloadEntity e : dao.getDownloadsByFileNames(fileNames)) {
-                    if (released) return;
-                    if (e != null && e.getFilePath() != null && !e.getFilePath().isEmpty()) {
-                        try {
-                            Integer page = pageByFileName.get(e.getFileName());
-                            if (page != null) found.put(page, Uri.parse(e.getFilePath()));
-                        } catch (Exception ignore) {
-                            // 坏 URI 跳过，该页照常走网络
+                if (!fileNames.isEmpty()) {
+                    // 单次 IN 查询取代 N 次 Room 调用。Pixiv 多 P 上限远低于 SQLite 变量上限。
+                    for (DownloadEntity e : dao.getDownloadsByFileNames(fileNames)) {
+                        if (released) return;
+                        if (e != null && e.getFilePath() != null && !e.getFilePath().isEmpty()) {
+                            try {
+                                Integer page = pageByFileName.get(e.getFileName());
+                                if (page != null) found.put(page, Uri.parse(e.getFilePath()));
+                            } catch (Exception ignore) {
+                                // 坏 URI 跳过，该页照常走网络
+                            }
                         }
                     }
                 }

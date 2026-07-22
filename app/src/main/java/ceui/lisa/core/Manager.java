@@ -35,6 +35,7 @@ import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.DownloadLimitTypeUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.pixiv.download.RecordedPageProbe;
 import ceui.pixiv.download.aria2.Aria2Dispatcher;
 import ceui.pixiv.imageloader.ImageLoaderV3;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -574,6 +575,30 @@ public class Manager {
             boolean shouldSkip =
                     (factory instanceof Android10DownloadFactory22 && ((Android10DownloadFactory22) factory).isSkip())
                  || (factory instanceof SAFactory && ((SAFactory) factory).isSkip());
+
+            // facade 的 skip 只按**当前模板**渲染出的路径查文件系统。用户升级前用的是
+            // 别的命名规则、或记录是 DownloadImporter 从旧版命名的文件扫进来的
+            // (issue #953)，那条路径上什么都没有 —— 明明盘上躺着同一张图还是会重下一份，
+            // MediaStore 再给它加个 " (1)"。所以这里再按 (illustId, page) 问一次下载记录。
+            // 只在策略确实是「已存在则跳过」时生效；Rename 是用户明确要新文件，
+            // Replace 本来就要覆写，都不能被记录短路。gif 走的是 app cache 里的中间 zip，
+            // 不参与。整段已经在 Schedulers.io() 上，DB + fd 探测都安全。
+            if (!shouldSkip && !downloadItem.getIllust().isGif()) {
+                boolean skipPolicy =
+                        (factory instanceof Android10DownloadFactory22 && ((Android10DownloadFactory22) factory).isSkipPolicy())
+                     || (factory instanceof SAFactory && ((SAFactory) factory).isSkipPolicy());
+                if (skipPolicy) {
+                    shouldSkip = RecordedPageProbe.hasUsableRecord(
+                            context,
+                            downloadItem.getIllust().getId(),
+                            downloadItem.getIndex());
+                    if (shouldSkip) {
+                        Common.showLog("[DL] skip by download record, illust="
+                                + downloadItem.getIllust().getId() + " page=" + downloadItem.getIndex());
+                    }
+                }
+            }
+
             if (shouldSkip) {
                 Common.showLog("[DL] skip download (already exists), illust=" + downloadItem.getIllust().getId());
                 complete(downloadItem, true);
@@ -1002,6 +1027,9 @@ public class Manager {
                 downloadEntity.setFilePath(factory.getFileUri().toString());
                 // 已知 illust id，直接 set，insertDownload 就不必再解析 illustGson。
                 downloadEntity.setIllustId(downloadItem.getIllust().getId());
+                // v41 的 page 列：DownloadItem.index 就是 0 基页码。让「已存在则跳过」和
+                // 详情页复用本地文件能按 (illustId, page) 查，不依赖文件叫什么名字。
+                downloadEntity.setPage(downloadItem.getIndex());
                 AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(downloadEntity);
                 Common.showLog("[DL-CACHE] db inserted DownloadEntity fileName=" + downloadEntity.getFileName()
                         + " filePath=" + downloadEntity.getFilePath());

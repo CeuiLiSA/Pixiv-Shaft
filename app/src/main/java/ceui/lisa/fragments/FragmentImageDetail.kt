@@ -579,16 +579,23 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     /**
      * 按页码查 illust_download_table 里这一页已下载文件的 Uri（content:// 或 file://）。
-     * 文件名用 [FileCreator.customFileName]，与下载写库时同源，所以是精确的逐页匹配，
-     * 走主键索引（[ceui.lisa.database.DownloadDao.getDownloadByFileName]），大下载库下仍是
-     * O(log n)。返回 null 表示这页没下过 / 记录损坏，调用方回退网络。须在 IO 线程调用。
+     *
+     * 两条路，都走索引，大下载库下都是 O(log n)：
+     *  1. `(illustId, page)` 复合索引（v41）—— 跟文件叫什么名字无关，用户换过命名模板、
+     *     或记录是 `DownloadImporter` 从旧版命名的文件扫进来的（issue #953），照样命中。
+     *  2. 落空时退回 [FileCreator.customFileName] + 主键查询 —— v41 之前的存量行 page
+     *     还是 -1（回填没跑完 / 文件名解析不出页码），得靠这条兜。
+     *
+     * 返回 null 表示这页没下过 / 记录损坏，调用方回退网络。须在 IO 线程调用。
      */
     private fun findDownloadedPageUri(illust: IllustsBean, page: Int): Uri? {
         return try {
             val dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
-            val entity = dao.getDownloadByFileName(FileCreator.customFileName(illust, page))
-            val path = entity?.filePath
-            if (!path.isNullOrEmpty()) Uri.parse(path) else null
+            val path = dao.getDownloadedPage(illust.id.toLong(), page)?.filePath
+                ?.takeIf { it.isNotEmpty() }
+                ?: dao.getDownloadByFileName(FileCreator.customFileName(illust, page))
+                    ?.filePath?.takeIf { it.isNotEmpty() }
+            if (path != null) Uri.parse(path) else null
         } catch (t: Throwable) {
             Timber.w(t, "[ImageDetail] findDownloadedPageUri failed page=%d", page)
             null

@@ -114,9 +114,10 @@ object DownloadImporter {
         // 保留最新的那个，和"用户最近一次下载覆盖了旧的"直觉一致。
         val deduped = LinkedHashMap<String, PendingRow>()
         for ((illustId, entries) in byWork) {
+            // 基准按整个作品定，不用单个 hit 声明的那个 —— 理由见 PageBaseInference。
             val base = PageBaseInference.infer(entries.map { it.second })
             for ((file, hit) in entries) {
-                val page = hit.zeroBasedPage ?: PageBaseInference.toZeroBased(hit.printedPage, base)
+                val page = PageBaseInference.toZeroBased(hit.printedPage, base)
                 val row = PendingRow(
                     fileName = file.displayName,
                     docUri = file.docUri,
@@ -176,6 +177,7 @@ object DownloadImporter {
                     fileName = row.fileName
                     filePath = row.docUri.toString()
                     illustId = row.illustId
+                    page = row.zeroBasedPage
                     downloadTime = row.lastModified.takeIf { it > 0L } ?: System.currentTimeMillis()
                     illustGson = minimalIllustGson(row.illustId)
                 }
@@ -196,20 +198,31 @@ object DownloadImporter {
 }
 
 /**
- * 启发式命中（模板认不出、只从文件名抠出了数字）时，页码基准是未知的：
- * 单看 `xxx_p1.jpg` 分不清这是第 0 页还是第 1 页。
+ * 判定文件名里的 `p1` 到底是第 0 页还是第 1 页。
  *
- * 但把**同一作品的所有页**放在一起看就能定：出现过 `p0` 就是 0 基，最小值是 `p1`
- * 就是 1 基。模板匹配路径不会走到这里 —— 那条路的基准由模板本身确定
- * （[NameMatch.zeroBasedPage] 直接有值）。
+ * 单看一个文件名判不出来，但把**同一作品的所有页**放在一起看，证据就有强弱之分。
+ * 按可信度排序：
+ *
+ *  1. **出现过 `p0`** —— 铁证，1 基方案永远不会写出 `p0`。
+ *  2. **没有页码后缀** —— 单图作品，基准无所谓，都落在第 0 页。
+ *  3. **命中模板自己声明的基准** —— 用户当前配置的 `pageIndexFrom1`，或历史模板写死的那个。
+ *  4. 都没有（启发式命中，只从文件名抠出了数字）—— 按 1 基，Shaft 的 `pageIndexFrom1`
+ *     长期默认就是 true。
+ *
+ * 为什么不直接信模板声明的基准：同一个模板串在 [NameParser] 的候选表里会以两种基准
+ * 各注册一次（用户可能改过 `pageIndexFrom1`，盘上混着两种命名），谁先命中取决于候选
+ * 顺序 —— 那是个随机结果。而"这个作品有没有 p0"是实打实的证据。判错的后果不是查不到，
+ * 是把第 N 页的本地图错配到第 N±1 页，比查不到还糟，所以这里只信证据。
  */
 internal object PageBaseInference {
 
     fun infer(hits: List<NameMatch>): PageBase {
         val printed = hits.mapNotNull { it.printedPage }
-        // 全是单图 / 无页码后缀 —— 基准无所谓，都落在第 0 页。
         if (printed.isEmpty()) return PageBase.ZERO
-        return if (printed.min() == 0) PageBase.ZERO else PageBase.ONE
+        if (printed.min() == 0) return PageBase.ZERO
+        // 没出现 p0：可能真是 1 基，也可能是 0 基但第一页恰好不在扫描结果里。
+        // 退而求其次信模板声明的基准。
+        return hits.firstOrNull { it.pageBase != PageBase.UNKNOWN }?.pageBase ?: PageBase.ONE
     }
 
     fun toZeroBased(printedPage: Int?, base: PageBase): Int = when {

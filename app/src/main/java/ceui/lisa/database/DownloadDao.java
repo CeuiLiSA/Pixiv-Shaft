@@ -154,6 +154,48 @@ public interface DownloadDao {
     @Query("SELECT * FROM illust_download_table WHERE fileName IN (:fileNames)")
     List<DownloadEntity> getDownloadsByFileNames(List<String> fileNames);
 
+    /**
+     * 按 (作品, 页码) 取这个作品已下载的页。v41 的 {@code (illustId, page)} 复合索引，O(log n)。
+     *
+     * <p>取代 {@link #getDownloadsByFileNames} 那条"先用当前模板算出文件名再查主键"的路：
+     * 用户换过命名模板、或记录是 {@code DownloadImporter} 从旧版命名的文件扫进来的
+     * （issue #953），文件名根本对不上，只有按 id + 页码查才命中。调用方仍应在这里落空时
+     * 退回 fileName 查询 —— v41 之前的存量行 page 是 -1，回填跑完前查不到。
+     */
+    @Query("SELECT * FROM illust_download_table WHERE illustId = :illustId AND page >= 0")
+    List<DownloadEntity> getDownloadedPages(long illustId);
+
+    /**
+     * 「已存在则跳过」用：这一页有没有下载记录。返回 filePath 让调用方能再验一次文件
+     * 是否还在盘上 —— 只凭一条记录就跳过，用户删了文件之后会永远重下不回来。
+     */
+    @Query("SELECT * FROM illust_download_table WHERE illustId = :illustId AND page = :page LIMIT 1")
+    DownloadEntity getDownloadedPage(long illustId, int page);
+
+    // ---- v41 page 列的存量回填（DownloadPageBackfill 用）----
+
+    /**
+     * 取一批还有行没回填 page 的作品 id。
+     *
+     * <p><b>按作品取而不是按行取</b>：页码基准（文件名里的 {@code p0} 起还是 {@code p1} 起）
+     * 单看一个文件名判不出来，必须拿同一作品所有页一起推（见
+     * {@code PageBaseInference}）。逐行回填会在基准判错时把第 N 页的本地图错配到第 N±1 页
+     * —— 那比"查不到"还糟。
+     *
+     * <p>只投影 illustId，不碰 illustGson 那个 blob 列（30000+ 行 2GB+，扫它正是 v38 一路
+     * 在躲的事）。{@code (illustId, page)} 复合索引覆盖了整个查询。
+     */
+    @Query("SELECT DISTINCT illustId FROM illust_download_table WHERE page = -1 AND illustId > 0 LIMIT :limit")
+    List<Long> getIllustIdsNeedingPageBackfill(int limit);
+
+    /** 某个作品还没回填 page 的全部文件名。走 {@code (illustId, page)} 索引。 */
+    @Query("SELECT fileName FROM illust_download_table WHERE illustId = :illustId AND page = -1")
+    List<String> getFileNamesNeedingPageBackfill(long illustId);
+
+    /** 回填单行的 page（按主键 fileName 定位）。 */
+    @Query("UPDATE illust_download_table SET page = :page WHERE fileName = :fileName")
+    void setDownloadPage(String fileName, int page);
+
     @Query("SELECT * FROM illust_downloading_table")
     List<DownloadingEntity> getAllDownloading();
 

@@ -75,10 +75,11 @@ class NameParser private constructor(
             }
 
             // 2. 出厂模板。用户改过模板时这一条仍然有用 —— 盘上可能混着改模板之前下的图。
-            //    出厂配置 pageIndexFrom1 默认 true，两种基准都挂上，代价只是多一条候选。
+            //    只挂 1 基一份：出厂 pageIndexFrom1 默认就是 true，而且真实基准最终由
+            //    [PageBaseInference] 按整个作品的页码集合判定，这里带的基准只是没有证据
+            //    时的兜底。同一模板再挂一份 0 基是死代码 —— 正则完全相同，永远轮不到它。
             sources += DefaultTemplates.ILLUST to PageBase.ONE
-            sources += DefaultTemplates.ILLUST to PageBase.ZERO
-            sources += DefaultTemplates.UGOIRA to PageBase.ZERO
+            sources += DefaultTemplates.UGOIRA to PageBase.ONE
 
             // 3. 4.5.7 之前的 cell 命名。
             sources += LegacyNamePatterns.ALL

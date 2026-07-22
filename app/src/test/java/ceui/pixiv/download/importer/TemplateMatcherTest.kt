@@ -55,6 +55,13 @@ class TemplateMatcherTest {
     private fun baseOf(numbering: PageNumbering) =
         if (numbering.indexFrom1) PageBase.ONE else PageBase.ZERO
 
+    /**
+     * 单个 [NameMatch] 上不提供 0 基换算（基准要拿整个作品判，见 [PageBaseInference]）。
+     * 测试里就按"这个作品只扫到这一页"来推，等价于生产链路上的单页情形。
+     */
+    private fun NameMatch.zeroBased(): Int =
+        PageBaseInference.toZeroBased(printedPage, PageBaseInference.infer(listOf(this)))
+
     /** 用同一条模板渲染 + 解析，断言 id 和 0 基页码都能还原。 */
     private fun assertRoundTrip(
         template: String,
@@ -69,7 +76,7 @@ class TemplateMatcherTest {
         val hit = matcher!!.match(filename)
         assertNotNull("解析不出 '$filename'（模板 $template）", hit)
         assertEquals("id 还原错了（$filename）", meta.id, hit!!.illustId)
-        assertEquals("页码还原错了（$filename）", expectedZeroBasedPage, hit.zeroBasedPage)
+        assertEquals("页码还原错了（$filename）", expectedZeroBasedPage, hit.zeroBased())
     }
 
     // —— 出厂模板 ——
@@ -131,7 +138,7 @@ class TemplateMatcherTest {
             val hit = matcher!!.match(filename)
             assertNotNull("预设模板解析失败: $template → $filename", hit)
             assertEquals(template, m.id, hit!!.illustId)
-            assertEquals(template, 2, hit.zeroBasedPage)
+            assertEquals(template, 2, hit.zeroBased())
         }
     }
 
@@ -163,20 +170,38 @@ class TemplateMatcherTest {
     @Test
     fun `1 基模板的 p1 是第 0 页`() {
         val matcher = TemplateMatcher.compile(DefaultTemplates.ILLUST, PageBase.ONE)!!
-        assertEquals(0, matcher.match("t_123456789_p1.jpg")!!.zeroBasedPage)
-        assertEquals(4, matcher.match("t_123456789_p5.jpg")!!.zeroBasedPage)
+        assertEquals(0, matcher.match("t_123456789_p1.jpg")!!.zeroBased())
+        assertEquals(4, matcher.match("t_123456789_p5.jpg")!!.zeroBased())
     }
 
     @Test
     fun `0 基模板的 p0 是第 0 页`() {
         val matcher = TemplateMatcher.compile(DefaultTemplates.ILLUST, PageBase.ZERO)!!
-        assertEquals(0, matcher.match("t_123456789_p0.jpg")!!.zeroBasedPage)
-        assertEquals(5, matcher.match("t_123456789_p5.jpg")!!.zeroBasedPage)
+        assertEquals(0, matcher.match("t_123456789_p0.jpg")!!.zeroBased())
+        assertEquals(5, matcher.match("t_123456789_p5.jpg")!!.zeroBased())
     }
 
     @Test
-    fun `基准未知时不猜页码`() {
+    fun `基准未知时按 1 基兜底`() {
+        // 启发式命中、作品里也没扫到 p0 —— 没有任何证据，只能按 Shaft 长期的默认
+        // (pageIndexFrom1 = true) 兜底。
         val hit = NameMatch(illustId = 1L, printedPage = 3, pageBase = PageBase.UNKNOWN, source = "x")
-        assertNull(hit.zeroBasedPage)
+        assertEquals(PageBase.ONE, PageBaseInference.infer(listOf(hit)))
+        assertEquals(2, hit.zeroBased())
+    }
+
+    @Test
+    fun `同作品里出现 p0 时 证据压过模板声明的基准`() {
+        // 候选表里同一模板会以两种基准各注册一次，谁先命中是顺序决定的随机结果。
+        // 只要这个作品有 p0，就必须判成 0 基 —— 否则整本书的本地图会整体错位一页。
+        val declaredOne = TemplateMatcher.compile(DefaultTemplates.ILLUST, PageBase.ONE)!!
+        val hits = listOf(
+            declaredOne.match("t_123456789_p0.jpg")!!,
+            declaredOne.match("t_123456789_p1.jpg")!!,
+            declaredOne.match("t_123456789_p2.jpg")!!,
+        )
+        val base = PageBaseInference.infer(hits)
+        assertEquals(PageBase.ZERO, base)
+        assertEquals(listOf(0, 1, 2), hits.map { PageBaseInference.toZeroBased(it.printedPage, base) })
     }
 }
