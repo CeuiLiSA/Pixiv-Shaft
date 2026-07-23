@@ -1600,6 +1600,10 @@
     <string name="dlmgr_import_scanning_status">%1$d개 검사 · %2$d개 인식</string>
     <string name="dlmgr_import_preview_title">가져오기 확인</string>
     <string name="dlmgr_import_confirm">가져오기</string>
+    <string name="dlmgr_import_page_base_title">이전 페이지 번호의 시작 값</string>
+    <string name="dlmgr_import_page_base_message">%d개 파일에는 p1, p2…만 있어 이전 설정이 p0 또는 p1 중 어디에서 시작했는지 자동으로 판단할 수 없습니다.\n\n당시 사용한 설정을 선택하세요. 잘못 선택하면 로컬 이미지가 한 페이지씩 어긋납니다. 이전 기본값은 p1 시작입니다.</string>
+    <string name="dlmgr_import_page_base_zero">p0부터 시작</string>
+    <string name="dlmgr_import_page_base_one">p1부터 시작</string>
     <string name="dlmgr_import_stat_scanned">찾은 이미지 파일: %d</string>
     <string name="dlmgr_import_stat_recognized">인식한 작품: %1$d개(%2$d쪽)</string>
     <string name="dlmgr_import_stat_existing">이미 기록되어 건너뜀: %d쪽</string>

@@ -13,6 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.pixiv.download.importer.DownloadImporter
 import ceui.pixiv.download.importer.ImportMetadataEnricher
+import ceui.pixiv.download.importer.PageBase
 import ceui.pixiv.ui.bulk.FetchProgressDialog
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
@@ -171,7 +172,45 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.dlmgr_import_confirm) { d, _ ->
                 d.dismiss()
-                commit(plan)
+                confirmPageBaseOrCommit(plan)
+            }
+            .create()
+            .show()
+    }
+
+    /**
+     * 只有 `p1/p2/...`、没有 `p0` 的旧文件，单看文件名无法判断它来自 0 基还是 1 基配置。
+     * 以前直接把这些行写成 page=-2，结果只能点亮作品级“已下载”徽标，“已存在则跳过”
+     * 和详情页本地复用仍然失效。旧版页码基准是全局设置，所以这里让用户一次选择后，
+     * 在内存中的 [DownloadImporter.ImportPlan] 上补齐全部模棱两可的页码，再进入写库。
+     */
+    private fun confirmPageBaseOrCommit(plan: DownloadImporter.ImportPlan) {
+        if (plan.ambiguousPageRows == 0) {
+            commit(plan)
+            return
+        }
+        val ctx = host.context ?: return
+        QMUIDialog.MessageDialogBuilder(ctx)
+            .setTitle(R.string.dlmgr_import_page_base_title)
+            .setMessage(
+                host.getString(
+                    R.string.dlmgr_import_page_base_message,
+                    plan.ambiguousPageRows,
+                ),
+            )
+            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .addAction(R.string.cancel) { d, _ -> d.dismiss() }
+            .addAction(R.string.dlmgr_import_page_base_zero) { d, _ ->
+                d.dismiss()
+                commit(plan.resolveAmbiguousPages(PageBase.ZERO))
+            }
+            .addAction(
+                0,
+                R.string.dlmgr_import_page_base_one,
+                QMUIDialogAction.ACTION_PROP_POSITIVE,
+            ) { d, _ ->
+                d.dismiss()
+                commit(plan.resolveAmbiguousPages(PageBase.ONE))
             }
             .create()
             .show()

@@ -1746,6 +1746,10 @@
     <string name="dlmgr_import_scanning_status">已扫描 %1$d 个文件 · 已识别 %2$d 个</string>
     <string name="dlmgr_import_preview_title">确认导入</string>
     <string name="dlmgr_import_confirm">导入</string>
+    <string name="dlmgr_import_page_base_title">旧版页码从哪里开始？</string>
+    <string name="dlmgr_import_page_base_message">有 %d 个文件只出现了 p1、p2…，无法自动判断旧版设置是从 p0 还是 p1 开始。\n\n请选择当时使用的设置。选错会让本地图片与作品页码错位；旧版默认设置是从 p1 开始。</string>
+    <string name="dlmgr_import_page_base_zero">从 p0 开始</string>
+    <string name="dlmgr_import_page_base_one">从 p1 开始</string>
     <string name="dlmgr_import_stat_scanned">扫描到图片文件：%d</string>
     <string name="dlmgr_import_stat_recognized">识别出作品：%1$d 个（共 %2$d 页）</string>
     <string name="dlmgr_import_stat_existing">已有记录，将跳过：%d 页</string>

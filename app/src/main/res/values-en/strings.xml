@@ -1600,6 +1600,10 @@
     <string name="dlmgr_import_scanning_status">%1$d files scanned · %2$d identified</string>
     <string name="dlmgr_import_preview_title">Confirm import</string>
     <string name="dlmgr_import_confirm">Import</string>
+    <string name="dlmgr_import_page_base_title">Where did old page numbers start?</string>
+    <string name="dlmgr_import_page_base_message">%d files only contain p1, p2… so Shaft cannot tell whether the old setting started at p0 or p1.\n\nChoose the setting you used. A wrong choice shifts local images by one page; the old default started at p1.</string>
+    <string name="dlmgr_import_page_base_zero">Started at p0</string>
+    <string name="dlmgr_import_page_base_one">Started at p1</string>
     <string name="dlmgr_import_stat_scanned">Image files found: %d</string>
     <string name="dlmgr_import_stat_recognized">Works identified: %1$d (%2$d pages)</string>
     <string name="dlmgr_import_stat_existing">Already recorded, will skip: %d pages</string>

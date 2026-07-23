@@ -1600,6 +1600,10 @@
     <string name="dlmgr_import_scanning_status">%1$d 件をスキャン · %2$d 件を判別</string>
     <string name="dlmgr_import_preview_title">取り込みの確認</string>
     <string name="dlmgr_import_confirm">取り込む</string>
+    <string name="dlmgr_import_page_base_title">旧版のページ番号はどこから？</string>
+    <string name="dlmgr_import_page_base_message">%d 個のファイルには p1、p2… しかなく、旧版の設定が p0 始まりか p1 始まりか自動判定できません。\n\n当時使用していた設定を選んでください。間違えるとローカル画像が 1 ページずれます。旧版の初期設定は p1 始まりです。</string>
+    <string name="dlmgr_import_page_base_zero">p0 から開始</string>
+    <string name="dlmgr_import_page_base_one">p1 から開始</string>
     <string name="dlmgr_import_stat_scanned">見つかった画像ファイル：%d</string>
     <string name="dlmgr_import_stat_recognized">判別できた作品：%1$d 件（%2$d ページ）</string>
     <string name="dlmgr_import_stat_existing">記録済みのためスキップ：%d ページ</string>

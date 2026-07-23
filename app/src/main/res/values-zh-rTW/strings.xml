@@ -1602,6 +1602,10 @@
     <string name="dlmgr_import_scanning_status">已掃描 %1$d 個檔案 · 已辨識 %2$d 個</string>
     <string name="dlmgr_import_preview_title">確認匯入</string>
     <string name="dlmgr_import_confirm">匯入</string>
+    <string name="dlmgr_import_page_base_title">舊版頁碼從哪裡開始？</string>
+    <string name="dlmgr_import_page_base_message">有 %d 個檔案只出現了 p1、p2…，無法自動判斷舊版設定是從 p0 還是 p1 開始。\n\n請選擇當時使用的設定。選錯會讓本機圖片與作品頁碼錯位；舊版預設從 p1 開始。</string>
+    <string name="dlmgr_import_page_base_zero">從 p0 開始</string>
+    <string name="dlmgr_import_page_base_one">從 p1 開始</string>
     <string name="dlmgr_import_stat_scanned">掃描到圖片檔案：%d</string>
     <string name="dlmgr_import_stat_recognized">辨識出作品：%1$d 個（共 %2$d 頁）</string>
     <string name="dlmgr_import_stat_existing">已有紀錄，將略過：%d 頁</string>

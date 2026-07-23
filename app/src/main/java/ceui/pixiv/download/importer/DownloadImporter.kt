@@ -41,16 +41,18 @@ object DownloadImporter {
     /** 待写入的一行。 */
     data class PendingRow(
         val fileName: String,
-        val docUri: Uri,
+        /** SAF document Uri 的持久化字符串；计划阶段不需要持有 Android Uri 对象。 */
+        val docUri: String,
         val illustId: Long,
         /** 0 基页码；-2 表示文件名有页码但基准无法安全判定。 */
         val zeroBasedPage: Int,
+        /** 文件名里原样解析出的页码。仅在 [zeroBasedPage] 为 -2 时用于让用户选择基准。 */
+        val printedPage: Int?,
         val lastModified: Long,
     )
 
     /** [scanAndPlan] 的产出。写库前的完整预览，UI 直接照着渲染。 */
     data class ImportPlan(
-        val treeUri: Uri,
         val scannedFiles: Int,
         /** 解析出 id 的文件数。 */
         val recognizedFiles: Int,
@@ -65,6 +67,44 @@ object DownloadImporter {
     ) {
         val newRows: Int get() = rows.size
         val newWorks: Int get() = rows.mapTo(HashSet()) { it.illustId }.size
+
+        /**
+         * 文件名里有 `p1/p2/...`，但扫描结果没有 `p0`、配置里也没有可信页码基准的行数。
+         *
+         * 这类行不能直接以 page=-2 写库：作品级“已下载”徽标虽然会亮，但按
+         * `(illustId,page)` 实现的“已存在则跳过”和详情页本地复用仍然查不到，等于只修了
+         * issue #953 的一半。UI 必须让用户明确选择旧版从 p0 还是 p1 开始，再调用
+         * [resolveAmbiguousPages]。
+         */
+        val ambiguousPageRows: Int
+            get() = rows.count {
+                it.zeroBasedPage == DownloadPageBackfillPage.UNPARSEABLE &&
+                    it.printedPage != null
+            }
+
+        /**
+         * 用用户确认的旧版页码基准补齐模棱两可的行。旧版的 `isHasP0` 是全局设置，因此
+         * 一次导入选择一个基准即可；已经靠 p0 或持久化配置判明的行保持原值。
+         */
+        fun resolveAmbiguousPages(base: PageBase): ImportPlan {
+            require(base != PageBase.UNKNOWN) { "必须选择明确的页码基准" }
+            if (ambiguousPageRows == 0) return this
+            val resolvedRows = rows.map { row ->
+                if (
+                    row.zeroBasedPage == DownloadPageBackfillPage.UNPARSEABLE &&
+                    row.printedPage != null
+                ) {
+                    row.copy(
+                        zeroBasedPage = requireNotNull(
+                            PageBaseInference.toZeroBasedOrNull(row.printedPage, base),
+                        ),
+                    )
+                } else {
+                    row
+                }
+            }.sortedWith(compareBy({ it.illustId }, { it.zeroBasedPage }, { it.fileName }))
+            return copy(rows = resolvedRows)
+        }
     }
 
     data class ImportResult(val inserted: Int, val works: Int)
@@ -123,9 +163,10 @@ object DownloadImporter {
                     ?: DownloadPageBackfillPage.UNPARSEABLE
                 val row = PendingRow(
                     fileName = file.displayName,
-                    docUri = file.docUri,
+                    docUri = file.docUri.toString(),
                     illustId = illustId,
                     zeroBasedPage = page,
+                    printedPage = hit.printedPage,
                     lastModified = file.lastModified,
                 )
                 val prev = deduped[row.fileName]
@@ -149,7 +190,6 @@ object DownloadImporter {
             .sortedWith(compareBy({ it.illustId }, { it.zeroBasedPage }, { it.fileName }))
 
         ImportPlan(
-            treeUri = treeUri,
             scannedFiles = scannedCount,
             recognizedFiles = recognizedCount,
             works = byWork.size,
@@ -171,6 +211,9 @@ object DownloadImporter {
      * 真实的标题 / 作者 / 封面由 [ImportMetadataEnricher] 事后按需补。
      */
     suspend fun commit(context: Context, plan: ImportPlan): ImportResult = withContext(Dispatchers.IO) {
+        require(plan.ambiguousPageRows == 0) {
+            "仍有 ${plan.ambiguousPageRows} 条记录未选择页码基准"
+        }
         val dao = AppDatabase.getAppDatabase(context.applicationContext).downloadDao()
         var inserted = 0
         for (chunk in plan.rows.chunked(INSERT_CHUNK)) {
@@ -178,7 +221,7 @@ object DownloadImporter {
             val entities = chunk.map { row ->
                 DownloadEntity().apply {
                     fileName = row.fileName
-                    filePath = row.docUri.toString()
+                    filePath = row.docUri
                     illustId = row.illustId
                     page = row.zeroBasedPage
                     downloadTime = row.lastModified.takeIf { it > 0L } ?: System.currentTimeMillis()

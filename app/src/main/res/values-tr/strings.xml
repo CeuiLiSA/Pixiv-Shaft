@@ -1600,6 +1600,10 @@
     <string name="dlmgr_import_scanning_status">%1$d dosya tarandı · %2$d tanındı</string>
     <string name="dlmgr_import_preview_title">İçe aktarmayı onayla</string>
     <string name="dlmgr_import_confirm">İçe aktar</string>
+    <string name="dlmgr_import_page_base_title">Eski sayfa numaraları nereden başladı?</string>
+    <string name="dlmgr_import_page_base_message">%d dosyada yalnızca p1, p2… bulunduğu için eski ayarın p0 mı yoksa p1 ile mi başladığı belirlenemiyor.\n\nKullandığınız ayarı seçin. Yanlış seçim yerel görselleri bir sayfa kaydırır; eski varsayılan p1 ile başlardı.</string>
+    <string name="dlmgr_import_page_base_zero">p0 ile başladı</string>
+    <string name="dlmgr_import_page_base_one">p1 ile başladı</string>
     <string name="dlmgr_import_stat_scanned">Bulunan görsel dosyası: %d</string>
     <string name="dlmgr_import_stat_recognized">Tanınan eser: %1$d (%2$d sayfa)</string>
     <string name="dlmgr_import_stat_existing">Zaten kayıtlı, atlanacak: %d sayfa</string>

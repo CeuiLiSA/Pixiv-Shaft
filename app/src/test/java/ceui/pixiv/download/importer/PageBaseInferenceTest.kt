@@ -62,4 +62,60 @@ class PageBaseInferenceTest {
         assertEquals(PageBase.UNKNOWN, PageBaseInference.infer(hits))
         assertNull(PageBaseInference.toZeroBasedOrNull(1, PageBase.UNKNOWN))
     }
+
+    @Test
+    fun `用户选择 1 基后补齐导入计划里的未知页码`() {
+        val plan = ambiguousPlan()
+
+        val resolved = plan.resolveAmbiguousPages(PageBase.ONE)
+
+        assertEquals(2, plan.ambiguousPageRows)
+        assertEquals(0, resolved.ambiguousPageRows)
+        assertEquals(listOf(0, 1, 7), resolved.rows.map { it.zeroBasedPage })
+        // 计划是不可变快照，选择页码基准不能反向污染预览阶段的数据。
+        assertEquals(listOf(-2, -2, 7), plan.rows.map { it.zeroBasedPage })
+    }
+
+    @Test
+    fun `用户选择 0 基时只改未知页码 已确定的行保持不变`() {
+        val resolved = ambiguousPlan().resolveAmbiguousPages(PageBase.ZERO)
+
+        assertEquals(0, resolved.ambiguousPageRows)
+        assertEquals(listOf(1, 2, 7), resolved.rows.map { it.zeroBasedPage })
+    }
+
+    private fun ambiguousPlan() = DownloadImporter.ImportPlan(
+        scannedFiles = 3,
+        recognizedFiles = 3,
+        works = 1,
+        alreadyRecorded = 0,
+        unrecognized = 0,
+        unrecognizedSamples = emptyList(),
+        rows = listOf(
+            DownloadImporter.PendingRow(
+                fileName = "work_123456789_p1.jpg",
+                docUri = "content://downloads/p1",
+                illustId = 123456789L,
+                zeroBasedPage = -2,
+                printedPage = 1,
+                lastModified = 1L,
+            ),
+            DownloadImporter.PendingRow(
+                fileName = "work_123456789_p2.jpg",
+                docUri = "content://downloads/p2",
+                illustId = 123456789L,
+                zeroBasedPage = -2,
+                printedPage = 2,
+                lastModified = 2L,
+            ),
+            DownloadImporter.PendingRow(
+                fileName = "work_123456789_p7.jpg",
+                docUri = "content://downloads/p7",
+                illustId = 123456789L,
+                zeroBasedPage = 7,
+                printedPage = 7,
+                lastModified = 3L,
+            ),
+        ),
+    )
 }

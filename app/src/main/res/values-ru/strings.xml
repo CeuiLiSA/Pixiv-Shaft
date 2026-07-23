@@ -1600,6 +1600,10 @@
     <string name="dlmgr_import_scanning_status">Просмотрено файлов: %1$d · распознано: %2$d</string>
     <string name="dlmgr_import_preview_title">Подтвердите импорт</string>
     <string name="dlmgr_import_confirm">Импортировать</string>
+    <string name="dlmgr_import_page_base_title">С какого номера начинались страницы?</string>
+    <string name="dlmgr_import_page_base_message">В %d файлах встречаются только p1, p2… Поэтому нельзя определить, начиналась старая нумерация с p0 или p1.\n\nВыберите использованную настройку. Ошибка сдвинет локальные изображения на одну страницу; по умолчанию старая версия начинала с p1.</string>
+    <string name="dlmgr_import_page_base_zero">Начинать с p0</string>
+    <string name="dlmgr_import_page_base_one">Начинать с p1</string>
     <string name="dlmgr_import_stat_scanned">Найдено изображений: %d</string>
     <string name="dlmgr_import_stat_recognized">Распознано работ: %1$d (страниц: %2$d)</string>
     <string name="dlmgr_import_stat_existing">Уже есть записи, будут пропущены: %d стр.</string>
