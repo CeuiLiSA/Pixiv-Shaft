@@ -1,6 +1,7 @@
 package ceui.pixiv.download.importer
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
@@ -11,43 +12,54 @@ import org.junit.Test
  */
 class PageBaseInferenceTest {
 
-    private fun hit(printedPage: Int?) =
-        NameMatch(illustId = 1L, printedPage = printedPage, pageBase = PageBase.UNKNOWN, source = "t")
+    private fun hit(printedPage: Int?, pageBase: PageBase = PageBase.UNKNOWN) =
+        NameMatch(illustId = 1L, printedPage = printedPage, pageBase = pageBase, source = "t")
 
     @Test
     fun `出现 p0 就是 0 基`() {
         val hits = listOf(hit(0), hit(1), hit(2))
         assertEquals(PageBase.ZERO, PageBaseInference.infer(hits))
-        assertEquals(0, PageBaseInference.toZeroBased(0, PageBase.ZERO))
-        assertEquals(2, PageBaseInference.toZeroBased(2, PageBase.ZERO))
+        assertEquals(0, PageBaseInference.toZeroBasedOrNull(0, PageBase.ZERO))
+        assertEquals(2, PageBaseInference.toZeroBasedOrNull(2, PageBase.ZERO))
     }
 
     @Test
-    fun `最小是 p1 就是 1 基`() {
+    fun `只有 p1 起且没有可信声明时保持未知`() {
         val hits = listOf(hit(1), hit(2), hit(3))
-        assertEquals(PageBase.ONE, PageBaseInference.infer(hits))
-        assertEquals(0, PageBaseInference.toZeroBased(1, PageBase.ONE))
-        assertEquals(2, PageBaseInference.toZeroBased(3, PageBase.ONE))
+        assertEquals(PageBase.UNKNOWN, PageBaseInference.infer(hits))
+        assertNull(PageBaseInference.toZeroBasedOrNull(1, PageBase.UNKNOWN))
     }
 
     @Test
     fun `页码乱序也能推对`() {
         assertEquals(PageBase.ZERO, PageBaseInference.infer(listOf(hit(3), hit(0), hit(1))))
-        assertEquals(PageBase.ONE, PageBaseInference.infer(listOf(hit(4), hit(1), hit(2))))
+        assertEquals(PageBase.UNKNOWN, PageBaseInference.infer(listOf(hit(4), hit(1), hit(2))))
     }
 
     @Test
     fun `单图无页码时按 0 基`() {
         assertEquals(PageBase.ZERO, PageBaseInference.infer(listOf(hit(null))))
-        assertEquals(0, PageBaseInference.toZeroBased(null, PageBase.ZERO))
-        assertEquals(0, PageBaseInference.toZeroBased(null, PageBase.ONE))
+        assertEquals(0, PageBaseInference.toZeroBasedOrNull(null, PageBase.ZERO))
+        assertEquals(0, PageBaseInference.toZeroBasedOrNull(null, PageBase.ONE))
     }
 
     @Test
-    fun `只扫到中间几页时按最小值推 不会推出负页码`() {
-        // 用户只保留了 p3 p4 —— 推成 1 基，p3 落在第 2 页。宁可整体偏一页，
-        // 也不能出现负数把行写坏。
-        assertEquals(PageBase.ONE, PageBaseInference.infer(listOf(hit(3), hit(4))))
-        assertEquals(0, PageBaseInference.toZeroBased(0, PageBase.ONE))
+    fun `只扫到中间几页时不猜基准`() {
+        assertEquals(PageBase.UNKNOWN, PageBaseInference.infer(listOf(hit(3), hit(4))))
+    }
+
+    @Test
+    fun `可信的 1 基声明可以换算`() {
+        val hits = listOf(hit(1, PageBase.ONE), hit(2, PageBase.ONE))
+        assertEquals(PageBase.ONE, PageBaseInference.infer(hits))
+        assertEquals(0, PageBaseInference.toZeroBasedOrNull(1, PageBase.ONE))
+        assertEquals(1, PageBaseInference.toZeroBasedOrNull(2, PageBase.ONE))
+    }
+
+    @Test
+    fun `冲突的声明不建立页码映射`() {
+        val hits = listOf(hit(1, PageBase.ZERO), hit(2, PageBase.ONE))
+        assertEquals(PageBase.UNKNOWN, PageBaseInference.infer(hits))
+        assertNull(PageBaseInference.toZeroBasedOrNull(1, PageBase.UNKNOWN))
     }
 }

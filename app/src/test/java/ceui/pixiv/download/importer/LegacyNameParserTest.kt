@@ -1,5 +1,7 @@
 package ceui.pixiv.download.importer
 
+import ceui.lisa.download.FileCreator
+import ceui.lisa.model.CustomFileNameCell
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -123,7 +125,7 @@ class LegacyNameParserTest {
 
         val oneBased = listOf("x_[123456789]_p1.webp", "x_[123456789]_p2.webp")
             .map { NameParser.heuristic(it)!! }
-        assertEquals(PageBase.ONE, PageBaseInference.infer(oneBased))
+        assertEquals(PageBase.UNKNOWN, PageBaseInference.infer(oneBased))
     }
 
     @Test
@@ -163,6 +165,22 @@ class LegacyNameParserTest {
         assertNotNull(second)
         assertEquals(987654321L, second!!.illustId)
         assertEquals(first!!.source, second.source)
+    }
+
+    @Test
+    fun `旧版拖拽重排后仍按真实位置识别作品 ID`() {
+        val cells = listOf(
+            CustomFileNameCell("画师ID", "", FileCreator.USER_ID, true),
+            CustomFileNameCell("标题", "", FileCreator.ILLUST_TITLE, true),
+            CustomFileNameCell("作品ID", "", FileCreator.ILLUST_ID, true),
+            CustomFileNameCell("P数", "", FileCreator.P_SIZE, true),
+        )
+        val reordered = NameParser.forTemplates(LegacyNamePatterns.fromCells(cells, PageBase.ONE))
+        val hit = reordered.parse("55555_夏日祭り_123456789_p2.jpg")
+        assertNotNull(hit)
+        assertEquals(123456789L, hit!!.illustId)
+        assertEquals(PageBase.ONE, hit.pageBase)
+        assertEquals(1, PageBaseInference.toZeroBasedOrNull(hit.printedPage, hit.pageBase))
     }
 
     @Test

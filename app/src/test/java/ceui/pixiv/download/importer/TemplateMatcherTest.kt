@@ -60,7 +60,12 @@ class TemplateMatcherTest {
      * 测试里就按"这个作品只扫到这一页"来推，等价于生产链路上的单页情形。
      */
     private fun NameMatch.zeroBased(): Int =
-        PageBaseInference.toZeroBased(printedPage, PageBaseInference.infer(listOf(this)))
+        requireNotNull(
+            PageBaseInference.toZeroBasedOrNull(
+                printedPage,
+                PageBaseInference.infer(listOf(this)),
+            ),
+        )
 
     /** 用同一条模板渲染 + 解析，断言 id 和 0 基页码都能还原。 */
     private fun assertRoundTrip(
@@ -182,12 +187,11 @@ class TemplateMatcherTest {
     }
 
     @Test
-    fun `基准未知时按 1 基兜底`() {
-        // 启发式命中、作品里也没扫到 p0 —— 没有任何证据，只能按 Shaft 长期的默认
-        // (pageIndexFrom1 = true) 兜底。
+    fun `基准未知时不建立页码映射`() {
         val hit = NameMatch(illustId = 1L, printedPage = 3, pageBase = PageBase.UNKNOWN, source = "x")
-        assertEquals(PageBase.ONE, PageBaseInference.infer(listOf(hit)))
-        assertEquals(2, hit.zeroBased())
+        val base = PageBaseInference.infer(listOf(hit))
+        assertEquals(PageBase.UNKNOWN, base)
+        assertNull(PageBaseInference.toZeroBasedOrNull(hit.printedPage, base))
     }
 
     @Test
@@ -202,6 +206,9 @@ class TemplateMatcherTest {
         )
         val base = PageBaseInference.infer(hits)
         assertEquals(PageBase.ZERO, base)
-        assertEquals(listOf(0, 1, 2), hits.map { PageBaseInference.toZeroBased(it.printedPage, base) })
+        assertEquals(
+            listOf(0, 1, 2),
+            hits.map { PageBaseInference.toZeroBasedOrNull(it.printedPage, base) },
+        )
     }
 }

@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
@@ -52,6 +54,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.pixiv.download.RecordedPageProbe;
 import ceui.pixiv.utils.SketchPreloader;
 import ceui.pixiv.imageloader.ImageLoadState;
 import ceui.pixiv.imageloader.ImageLoadTask;
@@ -59,6 +62,16 @@ import ceui.pixiv.imageloader.ImageLoaderV3;
 import ceui.pixiv.ui.task.TaskStatus;
 
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
+
+    /**
+     * feed 里可能同时创建很多 adapter；每个实例各起一条 Thread 会在线程栈和调度上产生
+     * 尖峰。两个低优先级 worker 足够覆盖 Room + SAF 的阻塞读取，也不会挤占图片解码。
+     */
+    private static final ExecutorService LOCAL_SCAN_EXECUTOR = Executors.newFixedThreadPool(2, runnable -> {
+        Thread thread = new Thread(runnable, "illust-local-scan");
+        thread.setPriority(Thread.MIN_PRIORITY);
+        return thread;
+    });
 
     /** Reports per-page LoadTask status changes to the host (used by V3's retry-all banner). */
     public interface PageStatusListener {
@@ -161,8 +174,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         final int pageCount = Math.max(illust.getPage_count(), 1);
         final long illustId = illust.getId();
         localScanRunning = true;
-        new Thread(() -> {
-            final Map<Integer, Uri> found = new HashMap<>();
+        LOCAL_SCAN_EXECUTOR.execute(() -> {
+            if (released) return;
+            // 展开时会再扫一次，以发现“构造后新下载”的页。已经验过可读的页直接复用，
+            // 避免多 P 作品重复 openFileDescriptor。
+            final Map<Integer, Uri> found = new HashMap<>(localPageUris);
             try {
                 DownloadDao dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao();
 
@@ -173,11 +189,12 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     if (released) return;
                     if (e == null || e.filePath == null || e.filePath.isEmpty()) continue;
                     int page = e.page;
-                    if (page < 0 || page >= pageCount) continue;
-                    try {
-                        found.put(page, Uri.parse(e.filePath));
-                    } catch (Exception ignore) {
-                        // 坏 URI 跳过，该页照常走网络
+                    if (page < 0 || page >= pageCount || found.containsKey(page)) continue;
+                    Uri usable = RecordedPageProbe.usableUri(mContext, e.filePath);
+                    if (usable != null) {
+                        // 查询按下载时间倒序；同一页有重复记录时保留第一条仍可打开的，
+                        // 不让较新的孤儿行遮住仍完好的旧文件。
+                        found.put(page, usable);
                     }
                 }
 
@@ -197,11 +214,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     for (DownloadEntity e : dao.getDownloadsByFileNames(fileNames)) {
                         if (released) return;
                         if (e != null && e.getFilePath() != null && !e.getFilePath().isEmpty()) {
-                            try {
-                                Integer page = pageByFileName.get(e.getFileName());
-                                if (page != null) found.put(page, Uri.parse(e.getFilePath()));
-                            } catch (Exception ignore) {
-                                // 坏 URI 跳过，该页照常走网络
+                            Integer page = pageByFileName.get(e.getFileName());
+                            Uri usable = RecordedPageProbe.usableUri(mContext, e.getFilePath());
+                            if (page != null && usable != null) {
+                                found.put(page, usable);
                             }
                         }
                     }
@@ -225,7 +241,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     if (listener != null) listener.run();
                 }
             });
-        }, "illust-local-scan-" + illustId).start();
+        });
     }
 
     @NonNull

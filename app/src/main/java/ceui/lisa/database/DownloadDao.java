@@ -166,17 +166,19 @@ public interface DownloadDao {
      * 172P 的作品一次就是近 1MB 无谓 blob 读，而 feed 里每张卡片都会建一个
      * {@code IllustAdapter} 调这里。理由详见 {@link DownloadedPage}。
      */
-    @Query("SELECT fileName, filePath, page FROM illust_download_table WHERE illustId = :illustId AND page >= 0")
+    @Query("SELECT fileName, filePath, page FROM illust_download_table " +
+            "WHERE illustId = :illustId AND page >= 0 ORDER BY downloadTime DESC")
     List<DownloadedPage> getDownloadedPages(long illustId);
 
     /**
-     * 「已存在则跳过」用：这一页有没有下载记录。返回 filePath 让调用方能再验一次文件
-     * 是否还在盘上 —— 只凭一条记录就跳过，用户删了文件之后会永远重下不回来。
-     *
-     * <p>同样只投影三列：批量下载时每一页都要问一次，没必要每次拖一份 illustGson。
+     * 同一页的全部候选，新的记录优先。不能 {@code LIMIT 1}：用户换模板、重复下载或导入
+     * 旧目录后，同一个 (illustId,page) 可能有多行；任取一行若刚好已删除/失权，会无视
+     * 另一条仍可读的记录而再次下载。只投影三列，避免批量下载逐页探测时读取
+     * {@code illustGson} 大字段。
      */
-    @Query("SELECT fileName, filePath, page FROM illust_download_table WHERE illustId = :illustId AND page = :page LIMIT 1")
-    DownloadedPage getDownloadedPage(long illustId, int page);
+    @Query("SELECT fileName, filePath, page FROM illust_download_table " +
+            "WHERE illustId = :illustId AND page = :page ORDER BY downloadTime DESC")
+    List<DownloadedPage> getDownloadedPageCandidates(long illustId, int page);
 
     // ---- v41 page 列的存量回填（DownloadPageBackfill 用）----
 

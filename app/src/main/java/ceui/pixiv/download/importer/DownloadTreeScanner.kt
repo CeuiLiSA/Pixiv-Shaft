@@ -58,8 +58,8 @@ object DownloadTreeScanner {
     /**
      * 广度优先遍历 [treeUri]，每扫到一个图片文件就调一次 [onFile]。
      *
-     * 挂起函数，必须在 IO 上跑。每处理一层目录检查一次协程取消 —— 用户点"取消"
-     * 时最多再多读一层目录就停。
+     * 挂起函数，必须在 IO 上跑。每进入一层目录、以及目录内每 256 个 child 检查一次
+     * 协程取消，平铺 10 万文件时也能及时停下。
      *
      * @param onProgress 每读完一层目录回调一次 `(已扫文件数, 已进入目录数)`，给进度 UI 用。
      * @return 实际遍历到的图片文件总数（等于 [onFile] 的调用次数）。
@@ -80,6 +80,7 @@ object DownloadTreeScanner {
 
         var files = 0
         var dirs = 0
+        var entries = 0
         var lastProgressAt = 0L
         val visited = HashSet<String>()
         visited.add(rootDocId)
@@ -109,6 +110,12 @@ object DownloadTreeScanner {
                 val sizeIdx = c.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_SIZE)
                 val timeIdx = c.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
                 while (c.moveToNext()) {
+                    // 平铺目录可能一次返回 10 万个 child。只在“下一层目录”检查取消，
+                    // 用户点取消后仍会把整只 cursor 解析完；每 256 项检查一次，既能及时
+                    // 停止，也避免在最热的逐文件循环里每项都读 coroutineContext。
+                    if ((entries++ and 0xFF) == 0) {
+                        coroutineContext.ensureActive()
+                    }
                     val childId = c.getString(idIdx) ?: continue
                     val name = c.getString(nameIdx) ?: continue
                     val mime = c.getString(mimeIdx)

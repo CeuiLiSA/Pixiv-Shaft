@@ -43,7 +43,7 @@ object DownloadImporter {
         val fileName: String,
         val docUri: Uri,
         val illustId: Long,
-        /** 0 基页码。阶段二给表加 page 列后直接落库，现在只用于稳定排序。 */
+        /** 0 基页码；-2 表示文件名有页码但基准无法安全判定。 */
         val zeroBasedPage: Int,
         val lastModified: Long,
     )
@@ -117,7 +117,10 @@ object DownloadImporter {
             // 基准按整个作品定，不用单个 hit 声明的那个 —— 理由见 PageBaseInference。
             val base = PageBaseInference.infer(entries.map { it.second })
             for ((file, hit) in entries) {
-                val page = PageBaseInference.toZeroBased(hit.printedPage, base)
+                // 没有 p0、也没有可信设置时，0 基缺首页与 1 基完整集无法区分。
+                // 宁可写 -2 让按页查询落空，也不能猜错后把第 N 页显示成第 N±1 页。
+                val page = PageBaseInference.toZeroBasedOrNull(hit.printedPage, base)
+                    ?: DownloadPageBackfillPage.UNPARSEABLE
                 val row = PendingRow(
                     fileName = file.displayName,
                     docUri = file.docUri,
@@ -205,9 +208,9 @@ object DownloadImporter {
  *
  *  1. **出现过 `p0`** —— 铁证，1 基方案永远不会写出 `p0`。
  *  2. **没有页码后缀** —— 单图作品，基准无所谓，都落在第 0 页。
- *  3. **命中模板自己声明的基准** —— 用户当前配置的 `pageIndexFrom1`，或历史模板写死的那个。
- *  4. 都没有（启发式命中，只从文件名抠出了数字）—— 按 1 基，Shaft 的 `pageIndexFrom1`
- *     长期默认就是 true。
+ *  3. **命中可信配置声明的基准** —— 已持久化的当前配置，或旧版仍保留的 cell 设置。
+ *  4. 都没有（通用历史模板 / 启发式）—— 返回 [PageBase.UNKNOWN]，调用方必须把该行
+ *     标成不可解析，绝不能猜成 1 基。
  *
  * 为什么不直接信模板声明的基准：同一个模板串在 [NameParser] 的候选表里会以两种基准
  * 各注册一次（用户可能改过 `pageIndexFrom1`，盘上混着两种命名），谁先命中取决于候选
@@ -221,15 +224,26 @@ internal object PageBaseInference {
         if (printed.isEmpty()) return PageBase.ZERO
         if (printed.min() == 0) return PageBase.ZERO
         // 没出现 p0：可能真是 1 基，也可能是 0 基但第一页恰好不在扫描结果里。
-        // 退而求其次信模板声明的基准。
-        return hits.firstOrNull { it.pageBase != PageBase.UNKNOWN }?.pageBase ?: PageBase.ONE
+        // 只有所有可信声明一致时才采用；没有声明或声明冲突都必须保持 UNKNOWN。
+        val declared = hits.asSequence()
+            .map { it.pageBase }
+            .filter { it != PageBase.UNKNOWN }
+            .distinct()
+            .toList()
+        return declared.singleOrNull() ?: PageBase.UNKNOWN
     }
 
-    fun toZeroBased(printedPage: Int?, base: PageBase): Int = when {
+    fun toZeroBasedOrNull(printedPage: Int?, base: PageBase): Int? = when {
         printedPage == null -> 0
         base == PageBase.ONE -> (printedPage - 1).coerceAtLeast(0)
-        else -> printedPage
+        base == PageBase.ZERO -> printedPage
+        else -> null
     }
+}
+
+/** 与 v41 page 列约定一致；放这里避免 importer 反向依赖 database backfill。 */
+private object DownloadPageBackfillPage {
+    const val UNPARSEABLE = -2
 }
 
 /**

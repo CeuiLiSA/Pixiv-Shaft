@@ -1,19 +1,23 @@
 package ceui.pixiv.download.importer
 
+import ceui.lisa.activities.Shaft
+import ceui.lisa.model.CustomFileNameCell
 import ceui.pixiv.download.DownloadsRegistry
+import ceui.pixiv.download.config.DownloadConfigStore
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.template.DefaultTemplates
+import com.google.gson.reflect.TypeToken
 import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * 文件名 → `(illustId, 页码)` 的统一入口。按可信度依次尝试：
  *
- *  1. 用户**当前**配置的插画 / 动图模板 —— 命中率最高的情况是"用户其实没换过命名规则，
- *     只是文件被 MediaStore 权限挡住了"（见 issue #953 的第二种失败模式）。
- *  2. [DefaultTemplates] 的出厂模板。
- *  3. [LegacyNamePatterns] 里 4.5.7 之前那套 cell 命名的全部组合。
- *  4. [heuristic] 兜底：直接从文件名里抠数字。
+ *  1. 仍保留的旧版 cell 配置（含真实拖拽顺序）。
+ *  2. 用户**当前**配置的插画 / 动图模板。
+ *  3. [DefaultTemplates] 的出厂模板。
+ *  4. [LegacyNamePatterns] 里 4.5.7 之前那套 cell 命名的常见组合。
+ *  5. [heuristic] 兜底：直接从文件名里抠数字。
  *
  * **命中即上浮**：某条模板匹配成功后就被挪到队首。一个下载目录里的文件命名规则通常
  * 是同一套，所以第一个文件试几十条，后面几万个文件都只试一条。
@@ -64,22 +68,40 @@ class NameParser private constructor(
         private fun buildCandidates(): List<TemplateMatcher> {
             val sources = mutableListOf<Pair<String, PageBase>>()
 
-            // 1. 用户当前配置。页码基准直接读 DownloadConfig，不用猜。
+            // 0. 旧版 cell 设置仍保存在 Settings.fileNameJson 时，先按真实拖拽顺序还原。
+            //    这条必须排在当前模板前：文件形状可能相同，但只有旧设置知道作品 ID /
+            //    画师 ID 的位置以及当时 isHasP0 的值。
             runCatching {
-                val cfg = DownloadsRegistry.store.loadOrFallback()
-                val base = if (cfg.pageIndexFrom1) PageBase.ONE else PageBase.ZERO
+                val raw = Shaft.sSettings.fileNameJson
+                if (!raw.isNullOrBlank()) {
+                    val type = object : TypeToken<List<CustomFileNameCell>>() {}.type
+                    val cells: List<CustomFileNameCell> = Shaft.sGson.fromJson(raw, type)
+                    val base = if (Shaft.sSettings.isHasP0) PageBase.ZERO else PageBase.ONE
+                    sources += LegacyNamePatterns.fromCells(cells, base)
+                }
+            }.onFailure {
+                Timber.tag(TAG).w(it, "读取旧版文件名 cell 设置失败")
+            }
+
+            // 1. 用户当前配置。只有真正持久化过的配置，其页码基准才算证据；
+            //    首次运行 / 配置损坏时拿到的是 fallback，不能用它猜旧文件的基准。
+            runCatching {
+                val loaded = DownloadsRegistry.store.load()
+                val cfg = loaded.config
+                val base = if (loaded is DownloadConfigStore.LoadResult.Ok) {
+                    if (cfg.pageIndexFrom1) PageBase.ONE else PageBase.ZERO
+                } else {
+                    PageBase.UNKNOWN
+                }
                 sources += cfg.resolve(Bucket.Illust).template to base
                 sources += cfg.resolve(Bucket.Ugoira).template to base
             }.onFailure {
                 Timber.tag(TAG).w(it, "读取当前下载模板失败，只用内置候选")
             }
 
-            // 2. 出厂模板。用户改过模板时这一条仍然有用 —— 盘上可能混着改模板之前下的图。
-            //    只挂 1 基一份：出厂 pageIndexFrom1 默认就是 true，而且真实基准最终由
-            //    [PageBaseInference] 按整个作品的页码集合判定，这里带的基准只是没有证据
-            //    时的兜底。同一模板再挂一份 0 基是死代码 —— 正则完全相同，永远轮不到它。
-            sources += DefaultTemplates.ILLUST to PageBase.ONE
-            sources += DefaultTemplates.UGOIRA to PageBase.ONE
+            // 2. 出厂模板只证明“形状匹配”，不证明文件生成时采用哪种页码基准。
+            sources += DefaultTemplates.ILLUST to PageBase.UNKNOWN
+            sources += DefaultTemplates.UGOIRA to PageBase.UNKNOWN
 
             // 3. 4.5.7 之前的 cell 命名。
             sources += LegacyNamePatterns.ALL

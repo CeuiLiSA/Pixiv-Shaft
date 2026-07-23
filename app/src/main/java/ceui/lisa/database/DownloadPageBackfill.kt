@@ -27,7 +27,7 @@ import timber.log.Timber
  * 就是 0 基，最小是 `p1` 就是 1 基）。逐行猜的话，基准判错会把第 N 页的本地图错配到
  * 第 N±1 页 —— 详情页复用本地文件时直接显示错图，比"查不到"还糟。
  *
- * 每个作品一个事务；中途被杀不置标志，下次启动从剩余的续跑（幂等）。
+ * 每批作品一个事务；中途被杀不置标志，下次启动从剩余的续跑（幂等）。
  * 解析不出页码的行写 [UNPARSEABLE] 而不是留 -1 —— 留 -1 会让下一批又捞到同一批行，
  * 死循环。
  */
@@ -92,24 +92,34 @@ object DownloadPageBackfill {
                         continue
                     }
                     val rowsBefore = rows
+                    // 一批作品共用一个事务。下载库以单页作品为主，如果每个作品各开
+                    // 一个事务，3 万行就会放大成 3 万次 BEGIN/COMMIT，启动后台回填
+                    // 会持续抢占 I/O 和写锁。解析仍按作品分别做，写入原子性提升到整批。
+                    val updates = ArrayList<Pair<String, Int>>()
                     for (illustId in illustIds) {
                         val fileNames = dao.getFileNamesNeedingPageBackfill(illustId)
                         if (fileNames.isEmpty()) continue
                         // 先整批解析，拿到这个作品全部页的字面页码，才能定基准。
                         val parsed = fileNames.map { it to parser.parse(it) }
                         val base = PageBaseInference.infer(parsed.mapNotNull { it.second })
+                        for ((fileName, hit) in parsed) {
+                            val page = if (hit == null || isNovel(fileName)) {
+                                UNPARSEABLE
+                            } else {
+                                PageBaseInference.toZeroBasedOrNull(hit.printedPage, base)
+                                    ?: UNPARSEABLE
+                            }
+                            updates += fileName to page
+                        }
+                    }
+                    if (updates.isNotEmpty()) {
                         db.runInTransaction {
-                            for ((fileName, hit) in parsed) {
-                                val page = if (hit == null || isNovel(fileName)) {
-                                    UNPARSEABLE
-                                } else {
-                                    PageBaseInference.toZeroBased(hit.printedPage, base)
-                                }
-                                if (page >= 0) resolved++
+                            for ((fileName, page) in updates) {
                                 dao.setDownloadPage(fileName, page)
                             }
                         }
-                        rows += fileNames.size
+                        rows += updates.size
+                        resolved += updates.count { it.second >= 0 }
                     }
                     works += illustIds.size
                     // 这一批一行都没动却又查得到待回填的作品 —— 只可能是并发删除之类的

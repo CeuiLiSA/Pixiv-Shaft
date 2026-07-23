@@ -1,18 +1,22 @@
 package ceui.pixiv.download.importer
 
+import ceui.lisa.download.FileCreator
+import ceui.lisa.model.CustomFileNameCell
+
 /**
  * 4.5.7 以前那套 cell 式命名（`ceui.lisa.download.FileCreator.illustToFileName`，
  * 见 git `7ccb4fc9`）能产出的全部文件名形态，翻译成今天的模板语法后交给同一个
  * [TemplateMatcher] 编译 —— 不写第二套解析器。
  *
  * 旧实现的行为，逐条对上：
- *  - 7 个 cell 的**顺序写死**（标题 / 作品ID / P数 / 画师ID / 画师昵称 / 尺寸 / 创作时间），
- *    用户只能勾选，不能重排；勾中的部分之间用 `_` 连接。
+ *  - 默认顺序是标题 / 作品ID / P数 / 画师ID / 画师昵称 / 尺寸 / 创作时间，但旧设置页
+ *    支持拖拽重排。默认组合由 [ALL] 兜底；仍保存在 Settings.fileNameJson 里的真实顺序
+ *    由 [fromCells] 精确还原，避免作品 ID 和画师 ID 对调后误判。
  *  - 作品ID 默认必勾，所以这里生成的每条候选都带 `{id}` —— 不带 id 的文件名本来
  *    也还原不出 illustId。
  *  - P 数：`isHasP0()` 开 → `_p{index}`（0 基，单图也加）；关 → 仅多图 `_p{index+1}`（1 基）。
- *    两者渲染出的**形状**一样（`_pN`），差别只在基准，所以候选表里只需一条；到底是
- *    哪种由 [PageBaseInference] 按整个作品的页码集合判定。
+ *    两者渲染出的**形状**一样（`_pN`），没有 `p0` 时单靠文件名无法安全区分，所以通用
+ *    候选必须标 [PageBase.UNKNOWN]；只有仍保留旧设置的精确候选才携带当时的设置值。
  *  - 尺寸渲染成 `1920px*1080px`，随后 `deleteSpecialWords` 把 `*` 换成 `_`
  *    → 盘上实际是 `1920px_1080px`。
  *  - 创作时间是 `Common.getLocalYYYYMMDDHHMMSSFileString` = `yyyyMMdd_HHmmss`，
@@ -35,6 +39,44 @@ object LegacyNamePatterns {
      */
     val ALL: List<Pair<String, PageBase>> by lazy { buildAll() }
 
+    /**
+     * 按旧设置里保存的真实 cell 顺序生成精确模板。
+     *
+     * 旧版页码 cell 在 1 基单图时完全不输出，因此同时生成“有页码”和“无页码”两种形态；
+     * 0 基设置连单图也输出 p0，只需要有页码形态。
+     */
+    fun fromCells(
+        cells: List<CustomFileNameCell>,
+        pageBase: PageBase,
+    ): List<Pair<String, PageBase>> {
+        val enabled = cells.filter { it.isChecked }
+        if (enabled.none { it.code == FileCreator.ILLUST_ID }) return emptyList()
+
+        fun part(code: Int): String? = when (code) {
+            FileCreator.ILLUST_TITLE -> "{title}"
+            FileCreator.ILLUST_ID -> "{id}"
+            FileCreator.P_SIZE -> "p{page}"
+            FileCreator.USER_ID -> "{author_id}"
+            FileCreator.USER_NAME -> "{author}"
+            FileCreator.ILLUST_SIZE -> SIZE
+            FileCreator.CREATE_TIME -> CREATED
+            else -> null
+        }
+
+        fun build(includePage: Boolean): String {
+            val parts = enabled.mapNotNull { cell ->
+                if (!includePage && cell.code == FileCreator.P_SIZE) null else part(cell.code)
+            }
+            return parts.joinToString("_") + ".{ext}"
+        }
+
+        val out = mutableListOf(build(includePage = true) to pageBase)
+        if (pageBase != PageBase.ZERO && enabled.any { it.code == FileCreator.P_SIZE }) {
+            out += build(includePage = false) to pageBase
+        }
+        return out.distinctBy { it.first }
+    }
+
     private fun buildAll(): List<Pair<String, PageBase>> {
         val out = mutableListOf<Pair<String, PageBase>>()
         // 常见组合排前面：勾选项越少越常见（默认就是 标题+ID+P数）。
@@ -43,11 +85,9 @@ object LegacyNamePatterns {
             for (hasTitle in listOf(true, false)) {
                 for (tail in tails) {
                     val head = if (hasTitle) "{title}_" else ""
-                    // 一个模板串只挂一种基准。旧版 isHasP0 默认关 = 1 基，所以兜底用
-                    // ONE；真实基准最终由 [PageBaseInference] 按整个作品的页码集合判
-                    // （有 p0 就是 0 基），这里带的只是"一点证据都没有"时的默认值。
-                    // 同串再挂一份 0 基是死代码 —— 正则完全一样，永远轮不到它。
-                    out += ("$head{id}$page$tail.{ext}") to PageBase.ONE
+                    // 同一形状既可能来自 0 基也可能来自 1 基。没有 p0 时不可猜，
+                    // 否则会把本地第 N 页错配成第 N±1 页。
+                    out += ("$head{id}$page$tail.{ext}") to PageBase.UNKNOWN
                 }
             }
         }

@@ -21,6 +21,7 @@ import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
+import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.imageloader.Disposable
 import ceui.pixiv.imageloader.ImageLoadState
 import ceui.pixiv.imageloader.ImageLoaderV3
@@ -590,14 +591,14 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      */
     private fun findDownloadedPageUri(illust: IllustsBean, page: Int): Uri? {
         return try {
-            val dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
-            val path = dao.getDownloadedPage(illust.id.toLong(), page)?.filePath
-                ?.takeIf { it.isNotEmpty() }
-                ?: dao.getDownloadByFileName(FileCreator.customFileName(illust, page))
-                    ?.filePath?.takeIf { it.isNotEmpty() }
-            if (path != null) Uri.parse(path) else null
-        } catch (t: Throwable) {
-            Timber.w(t, "[ImageDetail] findDownloadedPageUri failed page=%d", page)
+            val context = Shaft.getContext()
+            RecordedPageProbe.findUsableUri(context, illust.id.toLong(), page)
+                ?: AppDatabase.getAppDatabase(context).downloadDao()
+                    .getDownloadByFileName(FileCreator.customFileName(illust, page))
+                    ?.filePath
+                    ?.let { RecordedPageProbe.usableUri(context, it) }
+        } catch (e: Exception) {
+            Timber.w(e, "[ImageDetail] findDownloadedPageUri failed page=%d", page)
             null
         }
     }

@@ -36,17 +36,38 @@ object RecordedPageProbe {
      */
     @JvmStatic
     fun hasUsableRecord(context: Context, illustId: Long, page: Int): Boolean {
-        if (illustId <= 0L || page < 0) return false
+        return findUsableUri(context, illustId, page) != null
+    }
+
+    /**
+     * 返回这一页第一条仍能打开的记录。按 downloadTime 从新到旧逐条验证，避免一条
+     * 孤儿记录遮住同页另一条完好的旧文件。
+     */
+    @JvmStatic
+    fun findUsableUri(context: Context, illustId: Long, page: Int): Uri? {
+        if (illustId <= 0L || page < 0) return null
         return try {
             val dao = AppDatabase.getAppDatabase(context.applicationContext).downloadDao()
-            val row = dao.getDownloadedPage(illustId, page) ?: return false
-            val path: String? = row.filePath
-            if (path.isNullOrEmpty()) return false
-            val uri = runCatching { Uri.parse(path) }.getOrNull() ?: return false
-            fileStillThere(context, uri)
-        } catch (t: Throwable) {
-            Timber.tag(TAG).w(t, "记录探测失败 illust=%d page=%d，按未下载处理", illustId, page)
-            false
+            for (row in dao.getDownloadedPageCandidates(illustId, page)) {
+                usableUri(context, row.filePath)?.let { return it }
+            }
+            null
+        } catch (e: Exception) {
+            Timber.tag(TAG).w(e, "记录探测失败 illust=%d page=%d，按未下载处理", illustId, page)
+            null
+        }
+    }
+
+    /** 把数据库里的路径解析成 Uri，并确认对应文件仍可读。 */
+    @JvmStatic
+    fun usableUri(context: Context, path: String?): Uri? {
+        if (path.isNullOrEmpty()) return null
+        return try {
+            val uri = Uri.parse(path)
+            if (fileStillThere(context, uri)) uri else null
+        } catch (e: Exception) {
+            Timber.tag(TAG).d(e, "本地下载路径解析失败: %s", path)
+            null
         }
     }
 
@@ -63,8 +84,8 @@ object RecordedPageProbe {
         context.contentResolver.openFileDescriptor(uri, "r")?.use { true } ?: false
     } catch (_: FileNotFoundException) {
         false
-    } catch (t: Throwable) {
-        Timber.tag(TAG).d(t, "打不开 %s，按文件已丢失处理", uri)
+    } catch (e: Exception) {
+        Timber.tag(TAG).d(e, "打不开 %s，按文件已丢失处理", uri)
         false
     }
 

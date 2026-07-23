@@ -122,21 +122,30 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
                     context = ctx.applicationContext,
                     treeUri = treeUri,
                 ) { scanned, recognized ->
-                    // 扫描在 IO 上跑，回调也在 IO —— 切回主线程再碰 View。
-                    host.view?.post {
-                        status.text = host.getString(
-                            R.string.dlmgr_import_scanning_status, scanned, recognized,
-                        )
+                    // 扫描在 IO 上跑，回调也在 IO。先用稳定的 Context 算好文本，再向
+                    // status 自己 post；Runnable 执行时绝不能再碰 host Fragment ——
+                    // 用户刚退出页面时 Fragment 可能已经 detach，host.getString() 会在
+                    // 主线程抛 IllegalStateException。
+                    val text = ctx.getString(
+                        R.string.dlmgr_import_scanning_status, scanned, recognized,
+                    )
+                    status.post {
+                        status.text = text
                     }
                 }
-                progressDialog.dismiss()
+                if (progressDialog.isShowing) runCatching { progressDialog.dismiss() }
                 showPreview(plan)
             } catch (ce: CancellationException) {
                 throw ce
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "扫描失败")
-                progressDialog.dismiss()
-                Common.showToast(host.getString(R.string.dlmgr_import_failed, e.message ?: ""))
+                Common.showToast(ctx.getString(R.string.dlmgr_import_failed, e.message ?: ""))
+            } finally {
+                // viewLifecycle 结束也会取消扫描；无论正常、失败还是取消，都收掉 Activity
+                // window，避免离开下载管理页后 loading dialog 继续悬着。
+                if (progressDialog.isShowing) runCatching { progressDialog.dismiss() }
+                // 用户取消后可能很快又发起一次扫描；旧任务收尾时不能把新任务句柄清掉。
+                if (scanJob === coroutineContext[Job]) scanJob = null
             }
         }
     }
@@ -207,7 +216,7 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
                 throw ce
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "导入写库失败")
-                Common.showToast(host.getString(R.string.dlmgr_import_failed, e.message ?: ""))
+                Common.showToast(ctx.getString(R.string.dlmgr_import_failed, e.message ?: ""))
                 null
             } finally {
                 // 放 finally：视图销毁导致协程取消时也收得掉，loading 不会挂在 activity 上泄漏窗口
