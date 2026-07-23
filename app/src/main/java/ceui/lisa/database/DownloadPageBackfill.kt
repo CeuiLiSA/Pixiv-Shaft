@@ -8,6 +8,7 @@ import ceui.pixiv.download.importer.PageBaseInference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -40,6 +41,12 @@ object DownloadPageBackfill {
     /** 试过了但文件名里解析不出页码。与"还没试过"的 -1 必须区分。 */
     const val UNPARSEABLE = -2
 
+    /** 等 [DownloadIdBackfill] 把 illustId 补出来的轮询间隔。 */
+    private const val ID_BACKFILL_POLL_MS = 2_000L
+
+    /** 最多等多久 —— 超时就不置标志，下次启动重来，别让协程挂着不走。 */
+    private const val MAX_WAIT_FOR_ID_BACKFILL_MS = 5 * 60 * 1000L
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @JvmStatic
@@ -61,9 +68,29 @@ object DownloadPageBackfill {
                 var works = 0
                 var rows = 0
                 var resolved = 0
+                var waitedForIdBackfill = 0L
+                var complete = true
                 while (true) {
                     val illustIds = dao.getIllustIdsNeedingPageBackfill(BATCH)
-                    if (illustIds.isEmpty()) break
+                    if (illustIds.isEmpty()) {
+                        // "捞不到待回填的作品"不等于"回填完了"。本查询要求 illustId > 0，
+                        // 而 v38 之前的存量行 illustId 还是 0，得等 DownloadIdBackfill 补上
+                        // 才看得见 —— 两个回填是在 Shaft.onCreate 里同时起的协程，从 <=4.5.7
+                        // 一步升上来的用户（issue #953 的正主）第一轮几乎必然什么都捞不到。
+                        // 这时候要是直接置一次性标志，那批行就永久卡在 page = -1，「已存在则
+                        // 跳过」和详情页复用又退回按文件名查 —— 正好是本 issue 要修的东西。
+                        if (DownloadIdBackfill.isComplete()) break
+                        if (waitedForIdBackfill >= MAX_WAIT_FOR_ID_BACKFILL_MS) {
+                            // id 回填自己也中断了（它同样不置标志，下次启动续跑）。
+                            // 这里跟着不置标志退出，下次启动一起重来。
+                            Timber.tag(TAG).w("等 illustId 回填超时，本轮不收工，下次启动续跑")
+                            complete = false
+                            break
+                        }
+                        delay(ID_BACKFILL_POLL_MS)
+                        waitedForIdBackfill += ID_BACKFILL_POLL_MS
+                        continue
+                    }
                     val rowsBefore = rows
                     for (illustId in illustIds) {
                         val fileNames = dao.getFileNamesNeedingPageBackfill(illustId)
@@ -86,15 +113,20 @@ object DownloadPageBackfill {
                     }
                     works += illustIds.size
                     // 这一批一行都没动却又查得到待回填的作品 —— 只可能是并发删除之类的
-                    // 竞态。再转一圈也是同样结果，直接收工，别死循环。
+                    // 竞态。再转一圈也是同样结果，别死循环；但也**不能**当成跑完了置标志，
+                    // 否则剩下的行永久卡在 page = -1。下次启动续跑。
                     if (rows == rowsBefore) {
                         Timber.tag(TAG).w("batch made no progress, stopping")
+                        complete = false
                         break
                     }
                 }
-                Shaft.getMMKV().encode(DONE_KEY, true)
+                if (complete) {
+                    Shaft.getMMKV().encode(DONE_KEY, true)
+                }
                 Timber.tag(TAG).i(
-                    "page backfill done, works=%d rows=%d resolved=%d", works, rows, resolved,
+                    "page backfill %s, works=%d rows=%d resolved=%d",
+                    if (complete) "done" else "partial", works, rows, resolved,
                 )
             } catch (t: Throwable) {
                 // 未置标志 → 下次启动续跑；期间按 (illustId, page) 查不到的行会退回
