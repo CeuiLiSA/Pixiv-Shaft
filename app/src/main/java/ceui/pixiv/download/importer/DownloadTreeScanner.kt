@@ -38,6 +38,13 @@ object DownloadTreeScanner {
     /** 目录数上限，防御被符号链接 / provider 实现绕出来的环。 */
     private const val MAX_DIRS = 50_000
 
+    /**
+     * 进度回调的最小间隔。UI 那头每次回调都要 post 到主线程 setText（= 一次布局），
+     * 而目录数上限是 [MAX_DIRS] 5 万 —— 一层一报会把主线程 looper 淹掉，扫描没结束
+     * 界面先 ANR。节流之后回调次数只跟耗时挂钩，跟目录数无关。
+     */
+    private const val PROGRESS_INTERVAL_MS = 150L
+
     private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif")
 
     private val PROJECTION = arrayOf(
@@ -73,6 +80,7 @@ object DownloadTreeScanner {
 
         var files = 0
         var dirs = 0
+        var lastProgressAt = 0L
         val visited = HashSet<String>()
         visited.add(rootDocId)
 
@@ -126,10 +134,24 @@ object DownloadTreeScanner {
                         ),
                     )
                     files++
+                    // 目录内也报进度：模板可以是全平铺的（`ShaftImages/{title}_{id}.jpg`），
+                    // 那样几万个文件全在一层，只在目录读完时报的话进度条整段不动。
+                    val t = System.currentTimeMillis()
+                    if (t - lastProgressAt >= PROGRESS_INTERVAL_MS) {
+                        lastProgressAt = t
+                        onProgress(files, dirs)
+                    }
                 }
             }
-            onProgress(files, dirs)
+            // 节流，理由见 [PROGRESS_INTERVAL_MS]。
+            val now = System.currentTimeMillis()
+            if (now - lastProgressAt >= PROGRESS_INTERVAL_MS) {
+                lastProgressAt = now
+                onProgress(files, dirs)
+            }
         }
+        // 收尾补一次，保证最终数字一定被报出去（最后一层可能刚好被节流吃掉）。
+        onProgress(files, dirs)
         return files
     }
 

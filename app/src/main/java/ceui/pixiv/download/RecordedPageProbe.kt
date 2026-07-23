@@ -40,7 +40,7 @@ object RecordedPageProbe {
         return try {
             val dao = AppDatabase.getAppDatabase(context.applicationContext).downloadDao()
             val row = dao.getDownloadedPage(illustId, page) ?: return false
-            val path = row.filePath
+            val path: String? = row.filePath
             if (path.isNullOrEmpty()) return false
             val uri = runCatching { Uri.parse(path) }.getOrNull() ?: return false
             fileStillThere(context, uri)

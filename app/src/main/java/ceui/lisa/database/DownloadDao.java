@@ -161,16 +161,22 @@ public interface DownloadDao {
      * 用户换过命名模板、或记录是 {@code DownloadImporter} 从旧版命名的文件扫进来的
      * （issue #953），文件名根本对不上，只有按 id + 页码查才命中。调用方仍应在这里落空时
      * 退回 fileName 查询 —— v41 之前的存量行 page 是 -1，回填跑完前查不到。
+     *
+     * <p>投影成 {@link DownloadedPage} 而不是 {@code SELECT *}：illustGson 单行几 KB，
+     * 172P 的作品一次就是近 1MB 无谓 blob 读，而 feed 里每张卡片都会建一个
+     * {@code IllustAdapter} 调这里。理由详见 {@link DownloadedPage}。
      */
-    @Query("SELECT * FROM illust_download_table WHERE illustId = :illustId AND page >= 0")
-    List<DownloadEntity> getDownloadedPages(long illustId);
+    @Query("SELECT fileName, filePath, page FROM illust_download_table WHERE illustId = :illustId AND page >= 0")
+    List<DownloadedPage> getDownloadedPages(long illustId);
 
     /**
      * 「已存在则跳过」用：这一页有没有下载记录。返回 filePath 让调用方能再验一次文件
      * 是否还在盘上 —— 只凭一条记录就跳过，用户删了文件之后会永远重下不回来。
+     *
+     * <p>同样只投影三列：批量下载时每一页都要问一次，没必要每次拖一份 illustGson。
      */
-    @Query("SELECT * FROM illust_download_table WHERE illustId = :illustId AND page = :page LIMIT 1")
-    DownloadEntity getDownloadedPage(long illustId, int page);
+    @Query("SELECT fileName, filePath, page FROM illust_download_table WHERE illustId = :illustId AND page = :page LIMIT 1")
+    DownloadedPage getDownloadedPage(long illustId, int page);
 
     // ---- v41 page 列的存量回填（DownloadPageBackfill 用）----
 

@@ -169,13 +169,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 // 先按 (illustId, page) 查（v41 复合索引）。这条路跟文件叫什么名字无关，
                 // 所以用户换过命名模板、或记录是 DownloadImporter 从旧版命名的文件扫进来
                 // 的（issue #953），照样命中。
-                for (DownloadEntity e : dao.getDownloadedPages(illustId)) {
+                for (ceui.lisa.database.DownloadedPage e : dao.getDownloadedPages(illustId)) {
                     if (released) return;
-                    if (e == null || e.getFilePath() == null || e.getFilePath().isEmpty()) continue;
-                    int page = e.getPage();
+                    if (e == null || e.filePath == null || e.filePath.isEmpty()) continue;
+                    int page = e.page;
                     if (page < 0 || page >= pageCount) continue;
                     try {
-                        found.put(page, Uri.parse(e.getFilePath()));
+                        found.put(page, Uri.parse(e.filePath));
                     } catch (Exception ignore) {
                         // 坏 URI 跳过，该页照常走网络
                     }
