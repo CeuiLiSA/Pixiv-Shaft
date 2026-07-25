@@ -38,7 +38,12 @@ android {
     }
 
     lint {
-        abortOnError false
+        // minSdk 24 但 compileSdk 36：越版本调用编译期无感，只在老机器上炸成
+        // NoSuchMethodError（见 #953 CommentComposerView 的 requireViewById）。
+        // 所以 lint 必须能卡住构建 —— 存量问题进 baseline，新引入的错误才报警。
+        abortOnError true
+        baseline = file('lint-baseline.xml')
+        fatal 'NewApi'
     }
 
     signingConfigs {

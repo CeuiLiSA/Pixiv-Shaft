@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.viewpager2.widget.ViewPager2
@@ -35,19 +36,21 @@ class CommentComposerView @JvmOverloads constructor(
     init {
         orientation = VERTICAL
         LayoutInflater.from(context).inflate(R.layout.view_comment_composer, this, true)
-        inputBar = requireViewById(R.id.comment_input_bar)
-        commentInput = requireViewById(R.id.comment_input)
-        sendButton = requireViewById(R.id.send_button)
-        emojiToggle = requireViewById(R.id.emoji_toggle)
-        emojiPanel = requireViewById(R.id.emoji_panel_container)
+        // ViewCompat.requireViewById, not View.requireViewById: the latter is API 28+ and blows up
+        // with NoSuchMethodError on minSdk-24 devices while this view is being inflated.
+        inputBar = ViewCompat.requireViewById(this, R.id.comment_input_bar)
+        commentInput = ViewCompat.requireViewById(this, R.id.comment_input)
+        sendButton = ViewCompat.requireViewById(this, R.id.send_button)
+        emojiToggle = ViewCompat.requireViewById(this, R.id.emoji_toggle)
+        emojiPanel = ViewCompat.requireViewById(this, R.id.emoji_panel_container)
         // Consume touches not handled by tabs/ViewPager children. Without this touch sink, events
         // on panel whitespace continue to the artwork RecyclerView underneath the overlay.
         emojiPanel.isClickable = true
         emojiPanel.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        emojiPager = requireViewById(R.id.emoji_pager)
-        tabKaomoji = requireViewById(R.id.tab_kaomoji)
-        tabStamp = requireViewById(R.id.tab_stamp)
-        panelDismiss = requireViewById(R.id.panel_dismiss)
+        emojiPager = ViewCompat.requireViewById(this, R.id.emoji_pager)
+        tabKaomoji = ViewCompat.requireViewById(this, R.id.tab_kaomoji)
+        tabStamp = ViewCompat.requireViewById(this, R.id.tab_stamp)
+        panelDismiss = ViewCompat.requireViewById(this, R.id.panel_dismiss)
     }
 
     internal fun applyPresentation(presentation: CommentComposerPresentation) {

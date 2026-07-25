@@ -6,8 +6,10 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:background">@drawable/v3_stat_chip_bg</item>
-        <item name="android:paddingHorizontal">12dp</item>
-        <item name="android:paddingVertical">6dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
         <item name="android:textColor">@color/v3_text_2</item>
         <item name="android:textSize">11sp</item>
         <item name="android:letterSpacing">0.04</item>
@@ -28,8 +30,10 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:background">@drawable/v3_status_badge_bg</item>
-        <item name="android:paddingHorizontal">8dp</item>
-        <item name="android:paddingVertical">3dp</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:paddingBottom">3dp</item>
         <item name="android:textSize">10sp</item>
         <item name="android:fontFamily">monospace</item>
         <item name="android:textStyle">bold</item>

@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import timber.log.Timber
 
 /**
@@ -69,6 +70,9 @@ object MediaStoreOrphanCleaner {
         }
     }
 
+    // 调用方 [cleanupPendingOrphans] 已在 Q 以下直接 return，这里把前置条件显式化，
+    // 免得 lint 把 setIncludePending 误报成越版本调用。
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun cleanupCollection(
         context: Context,
         collection: Uri,
