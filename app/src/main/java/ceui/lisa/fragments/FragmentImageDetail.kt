@@ -1,6 +1,7 @@
 package ceui.lisa.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.RectF
 import android.net.Uri
 import android.os.Bundle
@@ -76,9 +77,29 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      * （线上 Crashlytics）。baseBind / viewLifecycleOwner 同样已经失效。
      *
      * 手势的语义本来就是「作用在当前这一页上」，页面没了直接丢掉是正确行为，无需补偿。
+     *
+     * 注意这只是「该不该执行」的判断；「执行了会不会崩」由 [onAttach] 里预先兑现 lazy 兜底，
+     * 两者互不替代：漏了这个守卫最多是对着已离开的页面做一次无意义的 toggle，不会再崩。
      */
     private val isGestureTargetAlive: Boolean
         get() = isAdded && view != null
+
+    /**
+     * 在还 attach 着的时候把两个 activity 作用域的 VM lazy 兑现掉。
+     *
+     * [viewModel] / [translationViewModel] 的 ownerProducer 是 `requireActivity()`，只在 lazy
+     * **首次**取值时执行一次；取到后 ViewModelLazy 缓存实例，之后再取不碰 attach 状态。崩溃的成因
+     * 正是「首次取值发生在 detach 之后」—— [translationViewModel] 在 onViewCreated 就被取过所以从没崩，
+     * [viewModel] 只被手势回调用到，首次取值就是那条延迟派发的消息本身。
+     *
+     * onAttach 时 host 已就绪，在这里取值把首次取值点钉死在生命周期内，之后无论什么延迟回调打进来
+     * 都只是拿缓存实例，不会再抛 ISE。
+     */
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        viewModel
+        translationViewModel
+    }
 
     // PR#900：自定义双击「增量放大 + 长按归位」。
     // 仅在 Settings.isUseCustomDoubleTapZoom 开启时才会被访问/初始化；
