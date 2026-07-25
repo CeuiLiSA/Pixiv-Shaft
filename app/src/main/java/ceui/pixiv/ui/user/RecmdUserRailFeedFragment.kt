@@ -21,6 +21,7 @@ import ceui.pixiv.feeds.FeedUserRailSkeletonView
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 
@@ -83,7 +84,7 @@ class RecmdUserRailFeedFragment : FeedFragment() {
                     )
                 }
             },
-            recycle = { cell -> Glide.with(cell.binding.userHead).clear(cell.binding.userHead) },
+            recycle = { cell -> cell.binding.userHead.clearGlideOnRecycle() },
         ) { cell ->
             val user = cell.item.preview.user
             cell.binding.userName.text = user?.name ?: ""

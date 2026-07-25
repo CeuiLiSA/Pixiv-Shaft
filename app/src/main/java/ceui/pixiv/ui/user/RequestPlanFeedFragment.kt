@@ -22,6 +22,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexboxLayout
@@ -85,7 +86,7 @@ class RequestPlanFeedFragment : FeedFragment() {
             cell.binding.desc.setTextColor(palette.textSecondary)
             card.setOnClick { openPlan(cell.item) }
         },
-        recycle = { cell -> Glide.with(cell.binding.cover).clear(cell.binding.cover) },
+        recycle = { cell -> cell.binding.cover.clearGlideOnRecycle() },
     ) { cell ->
         val plan = cell.item.plan
         val dp = cell.binding.root.resources.displayMetrics.density

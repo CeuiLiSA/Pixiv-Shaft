@@ -20,6 +20,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -80,7 +81,7 @@ class PivisionFeedFragment : FeedFragment() {
             cell.binding.cta.setTextColor(palette.textAccent)
             card.setOnClick { openArticle(cell.item.article) }
         },
-        recycle = { cell -> Glide.with(cell.binding.cover).clear(cell.binding.cover) },
+        recycle = { cell -> cell.binding.cover.clearGlideOnRecycle() },
     ) { cell ->
         val article = cell.item.article
         Glide.with(cell.binding.cover)
