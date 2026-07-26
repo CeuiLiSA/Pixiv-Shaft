@@ -10723,17 +10723,6 @@
 
     <issue
         id="UnusedResources"
-        message="The resource `R.style.ReaderSelectionAction` appears to be unused"
-        errorLine1="    &lt;style name=&quot;ReaderSelectionAction&quot; parent=&quot;android:Widget.TextView&quot;>"
-        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/styles_reader.xml"
-            line="3"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
         message="The resource `R.drawable.tag_add_background` appears to be unused"
         errorLine1="&lt;shape xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
         errorLine2="^">
