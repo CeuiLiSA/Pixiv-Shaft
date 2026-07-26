@@ -45,6 +45,7 @@ import ceui.pixiv.ui.detail.SeriesAuthorFeedItem
 import ceui.pixiv.ui.detail.SeriesCaptionFeedItem
 import ceui.pixiv.ui.detail.SeriesSectionLabelFeedItem
 import ceui.pixiv.ui.user.UserActionReceiver
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -242,8 +243,8 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
     feedRenderer(
         inflate = CellNovelV3Binding::inflate,
         recycle = { cell ->
-            Glide.with(cell.binding.novelCover).clear(cell.binding.novelCover)
-            Glide.with(cell.binding.authorAvatar).clear(cell.binding.authorAvatar)
+            cell.binding.novelCover.clearGlideOnRecycle()
+            cell.binding.authorAvatar.clearGlideOnRecycle()
         },
     ) { cell ->
         val b = cell.binding

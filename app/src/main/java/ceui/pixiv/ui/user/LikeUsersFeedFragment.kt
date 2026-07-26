@@ -33,6 +33,7 @@ import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -109,6 +110,7 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(userGlide)
         setUpToolbar(binding, feedBinding.feedListView)
         // 标题读局部 val（零捕获），复刻 legacy getToolbarTitle。
         val illust = requireArguments().getSerializable(Params.CONTENT) as IllustsBean

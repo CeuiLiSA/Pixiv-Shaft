@@ -24,6 +24,7 @@ import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedViewModel
+import ceui.pixiv.utils.pinHostGlide
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import java.util.UUID
@@ -122,6 +123,7 @@ abstract class IllustFeedFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(illustGlide)
 
         // 广播协同（收藏回流 / 详情 pager 续拉 / 返回跟滚）与 ObjectPool 合池
         // 拆在独立协作件里，生命周期随 viewLifecycleOwner 自理

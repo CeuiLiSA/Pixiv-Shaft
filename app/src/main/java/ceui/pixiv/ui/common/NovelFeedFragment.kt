@@ -37,6 +37,7 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.ui.recommend.bindTrendingScore
 import ceui.pixiv.utils.playLikePressHaptic
+import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.RateAppManager
@@ -81,6 +82,7 @@ abstract class NovelFeedFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(novelGlide)
         // 其它列表/详情页收藏某小说 → 广播回流本列表(双向同步;沿用 legacy CommonReceiver 的广播契约)
         feedLikeSync<NovelFeedItem>(
             feedViewModel = feedViewModel,

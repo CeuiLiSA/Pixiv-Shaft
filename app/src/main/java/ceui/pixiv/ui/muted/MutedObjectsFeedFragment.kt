@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.muted
 
 import android.content.Intent
+import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -31,6 +33,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
+import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
@@ -87,6 +90,11 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
      * recycle 清理都走它，避免每次 bind 递归遍历 fragment 树找承载 fragment。
      */
     private val objectGlide: RequestManager by lazy { Glide.with(this) }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(objectGlide)
+    }
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
         return listOf(mutedObjectRenderer())
