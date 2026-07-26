@@ -101,6 +101,26 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         translationViewModel
     }
 
+    /**
+     * view 没了就把 [isAnimated] 这把动画闩复位。
+     *
+     * [isAnimated] 的语义是「此刻有一条缩放协程正在跑」：[gestureDetector] 的 onDoubleTap 同步置 true，
+     * 复位只写在协程尾部，而中间的 `zoomable.scale(animated = true)` 是挂起等动画的。动画没跑完就翻页，
+     * viewLifecycleOwner 的 scope 被取消，协程再也回不到那句复位 —— 闩就永久停在 true。
+     *
+     * 而 [gestureDetector] 与本字段都挂在 fragment 实例上，[BaseFragment] 又缓存 rootView 跨 view 复用，
+     * 所以滑回这一页时旧闩还在：onDoubleTap 的 `if (isAnimated) return` 与 onLongPress 的 `if (!isAnimated)`
+     * 双双短路，这一页的双击缩放和长按归位整场失效（仅 Settings.isUseCustomDoubleTapZoom 开启时这条路径生效）。
+     *
+     * scope 一取消就不可能再有协程把它置回 true，这里复位是安全的。
+     * [savedScale] / [zoomedToMax] / [isScaleMax] 是「当前这张图缩到哪一档」的记忆，view 实例被复用、
+     * 缩放状态也跟着留着，故意不动 —— 清了反而会和画面上真实的缩放对不上。
+     */
+    override fun onDestroyView() {
+        isAnimated = false
+        super.onDestroyView()
+    }
+
     // PR#900：自定义双击「增量放大 + 长按归位」。
     // 仅在 Settings.isUseCustomDoubleTapZoom 开启时才会被访问/初始化；
     // 关闭时整条路径不参与，保持与未引入 PR 前完全一致的体验。
