@@ -41,13 +41,14 @@ import ceui.pixiv.imageloader.ImageLoaderV3;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class Manager {
-
+    Map<String, Call> runningCalls = new ConcurrentHashMap<>();
     private final Context mContext = Shaft.getContext();
     private List<DownloadItem> content = new ArrayList<>();
     /**
@@ -416,6 +417,10 @@ public class Manager {
         for (DownloadItem item : contentSnapshot()) {
             if(item.getUuid().equals(uuid)){
                 item.setPaused(true);
+                Call call = runningCalls.remove(uuid);
+                if (call != null) {
+                    call.cancel();
+                }
                 Common.showLog("已暂停 " + uuid);
                 break;
             }
@@ -663,7 +668,6 @@ public class Manager {
                     cachedFile = null;
                 }
             }
-
             // 回主线程启动 RxJava 下载链（handle 赋值需要在一致的线程）
             AndroidSchedulers.mainThread().scheduleDirect(() ->
                 startDownloadChain(context, downloadItem, factory, cachedFile, targetUri, dlUrl, passSize));
@@ -758,7 +762,14 @@ public class Manager {
         int maxConc = Shaft.sSettings.getMaxConcurrentDownloads();
         if (maxConc < 1) maxConc = 1;
         if (maxConc > 5) maxConc = 5;
-        final boolean useStaging = maxConc > 1 && !"file".equals(targetUri.getScheme());
+        /**
+         * 这里可能需要更好的办法来处理直写的情况下如何做文件上的断点续写
+         * 用.part做临时可以省很多事情，毕竟谁也不知道其他系统的特性是否会发生意外的情况
+         * .part的好处就是我们一定有权限去读写
+         *
+         * **/
+        // final boolean useStaging = maxConc > 1 && !"file".equals(targetUri.getScheme());
+        final boolean useStaging = !"file".equals(targetUri.getScheme());
         final java.io.File stageFile;
         final long effectivePassSize;
         if (useStaging) {
@@ -777,11 +788,25 @@ public class Manager {
             // append=true 写 partial stage 就会让 stage 字节翻倍，commit 出去等于
             // 把损坏的图灌进相册。所以本地源永远从空 stage 重来 —— 反正拷贝是 ms
             // 级，没几个字节代价。
-            boolean canResumePartialStage = cachedFile == null
-                    && !downloadItem.shouldStartNewDownload()
-                    && stageFile.length() > 0;
-            if (canResumePartialStage) {
-                effectivePassSize = stageFile.length();
+            if (passSize > 0 || stageFile.exists()) {
+                // 检查 stage 文件是否存在且长度与内存值一致（避免写入错位）
+                if (stageFile.exists() && stageFile.length() == passSize) {
+                    effectivePassSize = passSize;
+                } else if (stageFile.exists() && stageFile.length() > 0) {
+                    // 磁盘长度有效，采用磁盘长度
+                    effectivePassSize = stageFile.length();
+                    downloadItem.setCurrentSize(effectivePassSize);
+                    // nonius 暂不更新，等获取 totalSize 后再计算
+                    Common.showLog("[STAGED-DL] disk size " + effectivePassSize + " differs from memory " + passSize + ", use disk size");
+                }
+                else {
+                    // 不一致，重置内存并删除旧文件
+                    Common.showLog("[STAGED-DL] stage file mismatch, reset");
+                    downloadItem.setCurrentSize(0);
+                    downloadItem.setNonius(0);
+                    if (stageFile.exists()) stageFile.delete();
+                    effectivePassSize = 0;
+                }
             } else {
                 if (stageFile.exists() && !stageFile.delete()) {
                     Common.showLog("[STAGED-DL] stale stage cleanup failed " + stageFile);
@@ -822,6 +847,13 @@ public class Manager {
                 } else {
                     Common.showLog("[DL-CACHE] begin network fetch, url=" + dlUrl
                             + " passSize=" + effectivePassSize + " staging=" + useStaging + " dst=" + targetUri);
+                    Call call = client.newCall(request);
+                    runningCalls.put(itemUuid, call);
+                    try {
+                        response = call.execute(); // 改用 call.execute()
+                    } finally {
+                        runningCalls.remove(itemUuid);
+                    }
                     response = client.newCall(request).execute();
                     if (!response.isSuccessful()) {
                         Common.showLog("[DL-CACHE] network HTTP " + response.code() + " url=" + dlUrl);
