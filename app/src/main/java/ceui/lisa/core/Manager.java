@@ -979,6 +979,9 @@ public class Manager {
         Response response = null;
         InputStream inputStream = null;
         OutputStream outputStream = null;
+        // commit 前的完整性基线：本次落盘后 .part 理应有多少字节。-1 = 未知（chunked /
+        // 无 Content-Length）时跳过校验。见下方 commit 前的 stageFile.length() 比对。
+        long expectedTotal = -1L;
         try {
             if (cachedFile != null) {
                 // 缓存命中：本地已有完整字节 → 从 0 覆写 stage（不续传），删旧 manifest。
@@ -986,7 +989,8 @@ public class Manager {
                 runCatchingDelete(metaFile);
                 inputStream = new java.io.FileInputStream(cachedFile);
                 outputStream = openStageStream(stageFile, 0);
-                pumpBytes(inputStream, outputStream, downloadItem, 0L, cachedFile.length(), emitter);
+                expectedTotal = cachedFile.length();
+                pumpBytes(inputStream, outputStream, downloadItem, 0L, expectedTotal, emitter);
                 if (emitter.isDisposed()) return;
                 closeQuietly(outputStream); outputStream = null;
                 closeQuietly(inputStream); inputStream = null;
@@ -1001,6 +1005,7 @@ public class Manager {
                     if (existingLen == mf.total) {
                         // 字节已齐（上次 commit 前断了 / commit 自身失败）→ 直接提交。
                         skipNetwork = true;
+                        expectedTotal = mf.total;
                         Common.showLog("[STAGED-DL] stage already complete (" + existingLen + "B), commit without fetch");
                     } else if (existingLen > mf.total) {
                         // partial 比总长还大 = 脏数据，整段重下。
@@ -1047,6 +1052,8 @@ public class Manager {
                         emitter.onError(new IOException("resume aborted (code=" + code + "), restart fresh"));
                         return;
                     }
+                    // FRESH / APPEND / ALREADY_COMPLETE 落盘后 .part 理应等于 dec.total。
+                    expectedTotal = dec.total;
                     if (dec.mode == StageStore.WriteMode.FRESH || dec.mode == StageStore.WriteMode.APPEND) {
                         if (body == null) {
                             emitter.onError(new IOException("Empty response body"));
@@ -1066,6 +1073,25 @@ public class Manager {
                     }
                     // ALREADY_COMPLETE：字节已在 stage 里，直接进 commit。
                     closeQuietly(response); response = null;
+                }
+            }
+
+            // —— commit 前的完整性闸门 ——
+            // .part 落盘长度必须等于已知总长，否则 commit 出去就是截断图。网络短读会被
+            // OkHttp 的 premature-EOF 抛错拦在前面；这里兜住的是本地侧的隐性截断 ——
+            // 典型：续传窗口内 cacheDir 被「清除缓存」/ 第三方清理软件抹掉 .part（目录还在），
+            // openStageStream 的 append 模式会**静默重建一个空文件**只写 tail，字节数就少了
+            // 前缀那一段。这类 .part 无法安全续传（不知道缺哪几段），直接清掉整段重下。
+            // total 未知（chunked / 无 Content-Length，expectedTotal<0）时无从校验，放行。
+            if (expectedTotal >= 0) {
+                long stagedLen = stageFile.length();
+                if (stagedLen != expectedTotal) {
+                    Common.showLog("[STAGED-DL] length mismatch stagedLen=" + stagedLen
+                            + " != expected=" + expectedTotal + ", reset + restart");
+                    StageStore.clear(stageDir, stageKey);
+                    emitter.onError(new IOException(
+                            "stage length mismatch: " + stagedLen + " != " + expectedTotal));
+                    return;
                 }
             }
 
