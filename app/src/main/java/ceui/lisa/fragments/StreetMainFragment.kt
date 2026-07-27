@@ -32,8 +32,10 @@ import ceui.loxia.CsrfTokenProvider
 import ceui.loxia.StreetContent
 import ceui.loxia.StreetThumbnail
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.widgets.LoadMoreScrollListener
+import ceui.pixiv.widgets.applyV3RefreshTheme
+import ceui.pixiv.widgets.scrollUpFrom
 import com.bumptech.glide.Glide
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,7 +61,7 @@ private const val EXTRACT_TOKEN_JS = """
 })()
 """
 
-class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
+class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
 
     private val viewModel: StreetMainViewModel by viewModels()
     private val adapter = StreetAdapter()
@@ -75,32 +77,34 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         baseBind.recyclerView.adapter = adapter
 
+        baseBind.refreshLayout.applyV3RefreshTheme()
+        // 列表隔着 listContainer 挂在刷新层下,顶部判定得自己接到 RecyclerView 上,
+        // 否则滚到中段往下拖也会被当成「已在顶部」触发刷新。
+        baseBind.refreshLayout.scrollUpFrom(baseBind.recyclerView)
         baseBind.refreshLayout.setOnRefreshListener { viewModel.refresh() }
-        baseBind.refreshLayout.setOnLoadMoreListener { viewModel.loadMore() }
+        // 翻页改由滚动触发(SwipeRefreshLayout 没有上拉 footer)。到底了就别再喂请求;
+        // 重入由 StreetMainViewModel.load 的 Loading 守卫兜住。
+        baseBind.recyclerView.addOnScrollListener(
+            LoadMoreScrollListener({ if (viewModel.hasMore) viewModel.loadMore() })
+        )
 
         viewModel.loadState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is StreetMainViewModel.LoadState.Refreshed -> {
                     adapter.notifyDataSetChanged()
-                    baseBind.refreshLayout.finishRefresh()
-                    baseBind.refreshLayout.setNoMoreData(!viewModel.hasMore)
+                    baseBind.refreshLayout.isRefreshing = false
                 }
                 is StreetMainViewModel.LoadState.LoadedMore -> {
                     adapter.notifyItemRangeInserted(state.insertStart, state.insertCount)
-                    baseBind.refreshLayout.finishLoadMore()
-                    baseBind.refreshLayout.setNoMoreData(!viewModel.hasMore)
                 }
                 is StreetMainViewModel.LoadState.Error -> {
-                    baseBind.refreshLayout.finishRefresh(false)
-                    baseBind.refreshLayout.finishLoadMore(false)
+                    baseBind.refreshLayout.isRefreshing = false
                     Toast.makeText(mContext, state.message, Toast.LENGTH_SHORT).show()
                 }
                 else -> Unit
             }
         }
     }
-
-    override fun getSmartRefreshLayout(): SmartRefreshLayout = baseBind.refreshLayout
 
     private var loginWebView: WebView? = null
 
@@ -166,7 +170,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
                 }
             }
         }
-        baseBind.refreshLayout.addView(webView)
+        baseBind.listContainer.addView(webView)
         webView.loadUrl("https://www.pixiv.net/")
     }
 
@@ -237,7 +241,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
             }
         }
 
-        baseBind.refreshLayout.addView(webView)
+        baseBind.listContainer.addView(webView)
         webView.loadUrl("https://accounts.pixiv.net/login")
     }
 
@@ -261,7 +265,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
 
     private fun cleanupWebView() {
         loginWebView?.let {
-            baseBind.refreshLayout.removeView(it)
+            baseBind.listContainer.removeView(it)
             it.destroy()
         }
         loginWebView = null

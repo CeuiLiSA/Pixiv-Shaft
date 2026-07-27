@@ -69,7 +69,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCa
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.CheckableDialogBuilder
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
 import kotlinx.coroutines.Dispatchers
@@ -77,7 +76,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
+class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     private val safeArgs by lazy { IllustArgs(requireArguments()) }
 
@@ -93,18 +92,6 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     public override fun initLayout() {
         mLayoutID = R.layout.fragment_illust
-    }
-
-    override fun init() {
-        // Don't call super.init() — SmartRefreshLayout is used only as a
-        // container in this fragment; FalsifyHeader/FalsifyFooter are no-ops.
-        // But SmartRefreshLayout still intercepts touch events for pull
-        // detection, which can call requestDisallowInterceptTouchEvent(true)
-        // and block ViewPager's horizontal swipe (observed on Android 16 +
-        // tablet devices).
-        val layout = smartRefreshLayout ?: return
-        layout.setEnableRefresh(false)
-        layout.setEnableLoadMore(false)
     }
 
     override fun initView() {
@@ -667,10 +654,6 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     override fun vertical() {
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
-    }
-
-    override fun getSmartRefreshLayout(): SmartRefreshLayout {
-        return baseBind.refreshLayout
     }
 
     companion object {

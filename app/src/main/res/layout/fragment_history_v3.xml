@@ -87,7 +87,7 @@
             </com.google.android.material.appbar.CollapsingToolbarLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
-        <com.scwang.smart.refresh.layout.SmartRefreshLayout
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/refresh_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -101,7 +101,7 @@
                 android:overScrollMode="never"
                 android:paddingHorizontal="6dp"
                 android:paddingBottom="24dp" />
-        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <LinearLayout
             android:id="@+id/empty_layout"

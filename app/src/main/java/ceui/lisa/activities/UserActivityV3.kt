@@ -21,9 +21,11 @@ import ceui.lisa.models.UserBean
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
+import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.V3Palette
+import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.loxia.Client
@@ -36,7 +38,6 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayoutMediator
 import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.scwang.smart.refresh.header.MaterialHeader
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -194,17 +195,29 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
      * 关注详情、Web 补充信息、插画/漫画作品 tab 一律不动。
      */
     private fun setupRefresh() {
-        baseBind.refreshLayout.setRefreshHeader(MaterialHeader(this).apply {
-            setColorSchemeColors(palette.textAccent)
-        })
-        // 转圈圈从 toolbar 之下开始,不顶着透明状态栏
+        baseBind.refreshLayout.applyV3RefreshTheme()
+        // 转圈圈从 toolbar 之下开始,不顶着透明状态栏。SwipeRefreshLayout 的偏移是
+        // 「起点 / 触发终点」两个像素值(SmartRefreshLayout 那边是单个 headerInsetStart),
+        // 终点再往下留一段拖拽行程,否则一按住就到位、没有下拉手感。
+        //
+        // 必须挡住「高度没变就别重设」:setProgressViewOffset 内部会 requestLayout,而
+        // addOnLayoutChangeListener 每次 layout 都回调(不管尺寸变没变),不挡就是无限 layout 循环。
+        var appliedToolbarHeight = -1
         baseBind.toolbar.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
-            baseBind.refreshLayout.setHeaderInsetStartPx(v.height)
+            val start = v.height
+            if (start == appliedToolbarHeight) return@addOnLayoutChangeListener
+            appliedToolbarHeight = start
+            baseBind.refreshLayout.setProgressViewOffset(
+                false,
+                start,
+                start + DensityUtil.dp2px(64f),
+            )
         }
         // CoordinatorLayout 套下拉刷新的官方解法:只在 AppBar 完全展开时 enable,
-        // 否则 SmartRefreshLayout 会拦截掉 AppBar 的展开手势。
+        // 否则 SwipeRefreshLayout 会拦截掉 AppBar 的展开手势
+        //(它的 canChildScrollUp 只问直接子 View CoordinatorLayout,问不到折叠头的状态)。
         baseBind.appBar.addOnOffsetChangedListener { _, verticalOffset ->
-            baseBind.refreshLayout.setEnableRefresh(verticalOffset >= 0)
+            baseBind.refreshLayout.isEnabled = verticalOffset >= 0
         }
         baseBind.refreshLayout.setOnRefreshListener { refreshUserDetail() }
     }
@@ -223,7 +236,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 }
 
                 override fun must() {
-                    baseBind.refreshLayout.finishRefresh()
+                    baseBind.refreshLayout.isRefreshing = false
                 }
             })
     }

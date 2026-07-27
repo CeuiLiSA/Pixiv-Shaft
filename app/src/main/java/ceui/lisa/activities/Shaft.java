@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,10 +18,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 import com.hjq.toast.ToastUtils;
 
-import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.getkeepsafe.relinker.ReLinker;
-import com.scwang.smart.refresh.header.ClassicsHeader;
-import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.tencent.mmkv.MMKV;
 
 import androidx.annotation.NonNull;
@@ -35,7 +31,6 @@ import ceui.lisa.notification.NetWorkStateReceiver;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
-import ceui.lisa.view.MyDeliveryHeader;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
@@ -77,15 +72,6 @@ public class Shaft extends Application implements ServicesProvider {
      */
     @SuppressLint("StaticFieldLeak")
     private static Context sContext = null;
-
-    static {
-        SmartRefreshLayout.setDefaultRefreshHeaderCreator((context, layout) -> {
-            return new ClassicsHeader(context);//.setTimeFormat(new DynamicTimeFormat("更新于 %s"));//指定为经典Header，默认是 贝塞尔雷达Header(BezierRadarHeader)
-        });
-
-        SmartRefreshLayout.setDefaultRefreshFooterCreator((context, layout) ->
-                new ClassicsFooter(context).setDrawableSize(20));
-    }
 
     public static Context getContext() {
         return sContext;
@@ -614,18 +600,6 @@ public class Shaft extends Application implements ServicesProvider {
             mmkv = MMKV.defaultMMKV();
         }
         return mmkv;
-    }
-
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        int currentNightMode = newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        switch (currentNightMode) {
-            case Configuration.UI_MODE_NIGHT_NO:
-            case Configuration.UI_MODE_NIGHT_YES:
-                MyDeliveryHeader.changeCloudColor(getContext());
-                break;
-        }
     }
 
     @Override

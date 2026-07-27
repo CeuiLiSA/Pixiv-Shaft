@@ -27,7 +27,7 @@
                 android:layout_height="match_parent"
                 android:layout_above="@+id/bottom_linear">
 
-                <com.scwang.smart.refresh.layout.SmartRefreshLayout
+                <FrameLayout
                     android:id="@+id/refreshLayout"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -76,7 +76,7 @@
 
                     </RelativeLayout>
 
-                </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+                </FrameLayout>
 
 
                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout

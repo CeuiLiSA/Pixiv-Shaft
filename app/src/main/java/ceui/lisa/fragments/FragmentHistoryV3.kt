@@ -20,11 +20,11 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.V3Palette
 import ceui.loxia.ObjectPool
+import ceui.pixiv.widgets.LoadMoreScrollListener
+import ceui.pixiv.widgets.applyV3RefreshTheme
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.scwang.smart.refresh.footer.ClassicsFooter
-import com.scwang.smart.refresh.header.MaterialHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -45,6 +45,15 @@ class FragmentHistoryV3 : Fragment() {
     private var searchJob: Job? = null
 
     private lateinit var listAdapter: HistoryV3Adapter
+
+    /** 滚动到底自动翻页；搜索态下由 [setupSearch] 关掉（可见列表已是 LIKE 结果，翻页无意义）。 */
+    private lateinit var loadMoreListener: LoadMoreScrollListener
+
+    /**
+     * 翻页重入保护。[LoadMoreScrollListener] 在一次滚动里会反复命中，而 [loadMore] 是
+     * 起协程读 Room 的异步操作——不挡住的话同一段 offset 会被并发读好几遍、重复 append 进列表。
+     */
+    private var isLoadingMore = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,10 +93,10 @@ class FragmentHistoryV3 : Fragment() {
         binding.recyclerView.itemAnimator = null
         binding.recyclerView.adapter = listAdapter
 
-        binding.refreshLayout.setRefreshHeader(MaterialHeader(requireContext()))
-        binding.refreshLayout.setRefreshFooter(ClassicsFooter(requireContext()))
+        binding.refreshLayout.applyV3RefreshTheme()
         binding.refreshLayout.setOnRefreshListener { loadFirst() }
-        binding.refreshLayout.setOnLoadMoreListener { loadMore() }
+        loadMoreListener = LoadMoreScrollListener({ loadMore() })
+        binding.recyclerView.addOnScrollListener(loadMoreListener)
 
         loadFirst()
     }
@@ -103,25 +112,32 @@ class FragmentHistoryV3 : Fragment() {
             totalCount = count
             rebuildIllustList()
             listAdapter.submit(data)
-            binding.refreshLayout.finishRefresh()
+            binding.refreshLayout.isRefreshing = false
             updateSubtitleAndEmpty()
         }
     }
 
     private fun loadMore() {
+        if (isLoadingMore) return
+        // 已经读到底就别再起协程：本地历史条数固定，到底之后每次滚动都空转一次 Room 查询
+        if (items.size >= totalCount) return
+        isLoadingMore = true
         viewLifecycleOwner.lifecycleScope.launch {
-            val offset = items.size
-            val (data, count) = withContext(Dispatchers.IO) {
-                val dao = AppDatabase.getAppDatabase(requireContext()).downloadDao()
-                dao.getAllViewHistory(PAGE_SIZE, offset) to dao.getViewHistoryCount()
+            try {
+                val offset = items.size
+                val (data, count) = withContext(Dispatchers.IO) {
+                    val dao = AppDatabase.getAppDatabase(requireContext()).downloadDao()
+                    dao.getAllViewHistory(PAGE_SIZE, offset) to dao.getViewHistoryCount()
+                }
+                if (data.isNotEmpty()) {
+                    listAdapter.append(data)
+                    appendIllusts(data)
+                }
+                totalCount = count
+                updateSubtitleAndEmpty()
+            } finally {
+                isLoadingMore = false
             }
-            if (data.isNotEmpty()) {
-                listAdapter.append(data)
-                appendIllusts(data)
-            }
-            totalCount = count
-            binding.refreshLayout.finishLoadMore()
-            updateSubtitleAndEmpty()
         }
     }
 
@@ -176,16 +192,16 @@ class FragmentHistoryV3 : Fragment() {
         MenuItemCompat.setOnActionExpandListener(searchItem, object : MenuItemCompat.OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem): Boolean {
                 binding.appBar.setExpanded(false, true)
-                binding.refreshLayout.setEnableLoadMore(false)
-                binding.refreshLayout.setEnableRefresh(false)
+                loadMoreListener.isEnabled = false
+                binding.refreshLayout.isEnabled = false
                 return true
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 searchQuery = null
                 searchJob?.cancel()
-                binding.refreshLayout.setEnableLoadMore(true)
-                binding.refreshLayout.setEnableRefresh(true)
+                loadMoreListener.isEnabled = true
+                binding.refreshLayout.isEnabled = true
                 loadFirst()
                 return true
             }

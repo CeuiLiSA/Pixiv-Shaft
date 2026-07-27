@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 
 import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
-import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.io.File;
@@ -52,7 +51,7 @@ import retrofit2.Response;
 import static android.app.Activity.RESULT_OK;
 import ceui.pixiv.session.SessionManager;
 
-public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> implements Display<Preset>, DatePickerDialog.OnDateSetListener {
+public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> implements Display<Preset>, DatePickerDialog.OnDateSetListener {
 
     private File imageFile = null;
 
@@ -325,10 +324,6 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
     private boolean isGlobal = false;
     private final boolean isDeleteProfileImage = false;
 
-    @Override
-    public SmartRefreshLayout getSmartRefreshLayout() {
-        return baseBind.refreshLayout;
-    }
 
     @Override
     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {

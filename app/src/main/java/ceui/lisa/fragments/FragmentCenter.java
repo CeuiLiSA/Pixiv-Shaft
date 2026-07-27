@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 
 import java.util.List;
 
@@ -49,7 +48,7 @@ import ceui.pixiv.ui.prime.PrimeTagIndexItem;
  * 每条货架横向缩略图,数据在 {@link DiscoverViewModel};「查看全部」跳原来的整页,零新后端。
  * 本月收藏 / 当前最热走自建 shaft-api-v2,Lite 渠道整段不展示。
  */
-public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
+public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
 
     private ceui.pixiv.ui.pivision.PivisionRailFeedFragment pivisionFragment = null;
     private DiscoverViewModel discoverVM = null;
@@ -288,10 +287,6 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
         }
     }
 
-    @Override
-    public SmartRefreshLayout getSmartRefreshLayout() {
-        return baseBind.refreshLayout;
-    }
 
     public void forceRefresh() {
         if (discoverVM != null) {

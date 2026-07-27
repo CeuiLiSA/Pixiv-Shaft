@@ -69,7 +69,7 @@
 
         </LinearLayout>
 
-        <com.scwang.smart.refresh.layout.SmartRefreshLayout
+        <FrameLayout
             android:id="@+id/refreshLayout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -655,7 +655,7 @@
 
             </androidx.core.widget.NestedScrollView>
 
-        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+        </FrameLayout>
 
     </LinearLayout>
 

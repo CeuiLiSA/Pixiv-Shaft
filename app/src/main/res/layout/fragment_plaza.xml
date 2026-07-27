@@ -40,7 +40,7 @@
             tools:text="广场" />
     </androidx.appcompat.widget.Toolbar>
 
-    <com.scwang.smart.refresh.layout.SmartRefreshLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh_layout"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -56,7 +56,7 @@
             android:clipToPadding="false"
             android:paddingTop="8dp"
             android:paddingBottom="80dp" />
-    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- 空状态：广场里没帖子时显示，按 ViewModel 状态切显隐 -->
     <TextView

@@ -99,9 +99,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     public void forceRefresh() {
         try {
             Fragment fragment = mFragments[baseBind.viewPager.getCurrentItem()];
-            if (fragment instanceof ListFragment) {
-                ((ListFragment) fragment).forceRefresh();
-            } else if (fragment instanceof FeedFragment) {
+            if (fragment instanceof FeedFragment) {
                 ((FeedFragment) fragment).forceRefresh();
             }
         } catch (Exception e) {

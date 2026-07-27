@@ -8,11 +8,10 @@
     <!-- 手动下拉刷新:只重新拉取用户详情 API 本身。
          CoordinatorLayout 套下拉刷新需配合 AppBar offset 监听
          (只在完全展开时 enable),见 UserActivityV3.setupRefresh()。 -->
-    <com.scwang.smart.refresh.layout.SmartRefreshLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:srlEnableLoadMore="false">
+        android:layout_height="match_parent">
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
@@ -426,5 +425,5 @@
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </layout>

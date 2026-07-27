@@ -6,8 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.bumptech.glide.Glide;
-import com.scwang.smart.refresh.header.FalsifyFooter;
-import com.scwang.smart.refresh.header.FalsifyHeader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,8 +57,6 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 startActivity(intent);
             }
         });
-        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-        baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
     }
 
     @Override

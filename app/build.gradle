@@ -186,13 +186,6 @@ dependencies {
 
     implementation 'com.github.lzyzsd:circleprogress:1.2.1'
 
-    def refresh_version = "2.1.0"
-    implementation "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖
-    implementation "io.github.scwang90:refresh-header-classics:$refresh_version"    //经典刷新头
-    implementation "io.github.scwang90:refresh-header-falsify:$refresh_version"     //虚拟刷新头
-    implementation "io.github.scwang90:refresh-header-material:$refresh_version"    //谷歌刷新头
-    implementation "io.github.scwang90:refresh-footer-classics:$refresh_version"    //经典加载
-
     implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
