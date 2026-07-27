@@ -28,6 +28,7 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.FragmentArtworkV3Binding
@@ -653,12 +654,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         chromeBind.fabBookmark.setOnLongClickListener {
             val illust = ObjectPool.get<IllustsBean>(illustId).value
                 ?: return@setOnLongClickListener true
-            startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                putExtra(Params.ILLUST_ID, illust.id)
-                putExtra(Params.DATA_TYPE, Params.TYPE_ILLUST)
-                putExtra(Params.TAG_NAMES, illust.tagNames)
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏")
-            })
+            SelectTagBottomSheet.show(
+                this, illust.id, Params.TYPE_ILLUST, illust.tagNames,
+            )
             true
         }
 

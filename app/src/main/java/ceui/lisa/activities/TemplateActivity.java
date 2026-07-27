@@ -45,7 +45,6 @@ import ceui.lisa.fragments.FragmentPv;
 import ceui.pixiv.ui.detail.RelatedIllustFeedFragment;
 import ceui.pixiv.ui.user.RelatedUserFeedFragment;
 import ceui.lisa.fragments.FragmentSAF;
-import ceui.pixiv.ui.bookmark.SelectTagFeedFragment;
 import ceui.lisa.fragments.FragmentSearch;
 import ceui.lisa.fragments.FragmentSettingsHub;
 import ceui.lisa.fragments.SettingsCatalog;
@@ -134,12 +133,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "按标签筛选": {
                     return BookedTagFeedFragment.newInstance(intent.getIntExtra(Params.DATA_TYPE, 0), intent.getStringExtra(EXTRA_KEYWORD));
                 }
-                case "按标签收藏": {
-                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
-                    String type = intent.getStringExtra(Params.DATA_TYPE);
-                    String[] tagNames = intent.getStringArrayExtra(Params.TAG_NAMES);
-                    return SelectTagFeedFragment.newInstance(id, type, tagNames);
-                }
+                // 「按标签收藏」不再走整页路由 —— 从右侧 push 进来一张 activity 对「就地收藏」
+                // 这种轻动作太重。现在由 ceui.pixiv.ui.bookmark.SelectTagBottomSheet 以 MD3
+                // bottom sheet 弹出，SelectTagFeedFragment 退化成它的列表 child。
                 case "关于软件":
                     return new FragmentAboutApp();
                 case "批量下载队列":

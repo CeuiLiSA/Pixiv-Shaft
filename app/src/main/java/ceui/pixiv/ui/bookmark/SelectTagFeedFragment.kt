@@ -2,18 +2,17 @@ package ceui.pixiv.ui.bookmark
 
 import android.os.Bundle
 import android.text.InputType
-import android.view.View
-import android.view.ViewGroup
 import android.content.Intent
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
+import android.content.res.ColorStateList
+import android.view.LayoutInflater
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.databinding.FragmentSelectTagFeedBinding
+import ceui.lisa.utils.V3Palette
 import ceui.lisa.databinding.RecySelectTagBinding
 import ceui.lisa.http.ErrorCtrl
 import ceui.lisa.http.Retro
@@ -34,9 +33,7 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.ui.common.awaitFirstValue
-import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
-import com.blankj.utilcode.util.BarUtils
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import io.reactivex.Observable
@@ -46,19 +43,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 「按标签收藏」表单页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentSB] + SAdapter +
+ * 「按标签收藏」的标签列表（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentSB] + SAdapter +
  * fragment_select_tag）。核心收藏入口，从插画/小说详情、瀑布流卡长按等 6+ 处进入。
  *
- * 这不是浏览列表，是一张**表单**：可勾选的收藏夹标签列表 + 私密开关 + 提交条（用所选标签给作品点赞）。
- * 选中态挂在可变的 [TagsBean]（`isSelected`/`is_registered`）上，逐格命令式翻（不走整表 diff，
- * 对齐 [ceui.pixiv.ui.muted.MutedUserFeedFragment] 的关注按钮）。
+ * 这不是浏览列表，是一张**表单**的主体：可勾选的收藏夹标签列表。选中态挂在可变的 [TagsBean]
+ * （`isSelected`/`is_registered`）上，逐格命令式翻（不走整表 diff，对齐
+ * [ceui.pixiv.ui.muted.MutedUserFeedFragment] 的关注按钮）。
  *
- * 全部行为一比一复刻 legacy（见各方法 KDoc）：同义词自动勾选（issue #904）、全选设置、添加标签、
- * 私密开关、提交（illust/novel × 有无标签四路 + toast + LIKED 广播 + finish）、底部条 navbar inset。
+ * # 宿主
+ *
+ * 本 fragment **只渲染列表**（用 [FeedFragment] 默认的 `fragment_feed` 布局），壳全部由
+ * [SelectTagBottomSheet] 提供：拖拽把手 / 标题 / 添加标签 / 私密开关 / 提交按钮。原先那套
+ * Toolbar + 底部条（fragment_select_tag_feed.xml）随「整页 activity 从右侧 push 进来」一起
+ * 撤掉了——收藏是就地完成的轻动作，不该离开当前页。
+ *
+ * 对宿主暴露三件事：[showAddTagDialog]、[submitStar]、以及内部的选中态收集；其余业务行为
+ * 一比一保留 legacy 语义：同义词自动勾选（issue #904）、全选设置、提交（illust/novel × 有无
+ * 标签四路 + toast + LIKED 广播）。
  */
-class SelectTagFeedFragment : FeedFragment(R.layout.fragment_select_tag_feed) {
-
-    private val binding by viewBinding(FragmentSelectTagFeedBinding::bind)
+class SelectTagFeedFragment : FeedFragment() {
 
     private val illustID: Int by lazy { arguments?.getInt(Params.ILLUST_ID) ?: 0 }
     private val type: String by lazy { arguments?.getString(Params.DATA_TYPE) ?: Params.TYPE_ILLUST }
@@ -86,40 +89,51 @@ class SelectTagFeedFragment : FeedFragment(R.layout.fragment_select_tag_feed) {
     /** 卡间距对齐 legacy ListFragment 默认的 LinearItemDecoration(12dp)（FragmentSB 未覆写列表形态）。 */
     override fun onListReady(listView: RecyclerView) {
         listView.addItemDecoration(LinearItemDecoration(12.ppppx))
+        letSheetTakeOverOverscroll(listView)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Toolbar（5 件套）：状态栏 inset 走 BarUtils 手动 padding（EdgeToEdge 下不用 fitsSystemWindows）。
-        binding.toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
-        binding.toolbar.setNavigationOnClickListener { requireActivity().finish() }
-        binding.toolbarTitle.text = getString(R.string.string_238)
-        binding.toolbar.inflateMenu(R.menu.add_tag)
-        binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_add) {
-                showAddTagDialog()
-                true
-            } else {
-                false
-            }
-        }
-
-        // 底部提交条：私密开关初值取设置；提交按钮点击 = submitStar。
-        binding.isPrivate.isChecked = Shaft.sSettings.isPrivateStar
-        binding.submitArea.setOnClickListener { submitStar() }
-
-        // 底部条 navbar inset：legacy 把 navigationBars 底 inset 当 bottomMargin 抬起 bottom_rela，逐字复刻。
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
-            val navInset = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            (binding.bottomRela.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
-                lp.bottomMargin = navInset.bottom
-                binding.bottomRela.layoutParams = lp
-            }
-            windowInsets
-        }
-        ViewCompat.requestApplyInsets(binding.root)
+    /**
+     * 让「列表滚到顶后继续下拉」能交接给宿主 sheet 拖拽关闭。
+     *
+     * [com.google.android.material.bottomsheet.BottomSheetBehavior.onStartNestedScroll] 里有一句
+     * `if (target != nestedScrollingChildRef.get()) return false`，而它记的那个 ref 来自
+     * `findScrollingChild()` —— 该方法返回**第一个** `isNestedScrollingEnabled` 的 view。feed 的
+     * 层级是 `FrameLayout > SwipeRefreshLayout > RecyclerView`，于是 ref 停在 SwipeRefreshLayout 上
+     * （[refreshEnabled] = false 只把它 `isEnabled` 关掉，不影响 nestedScrollingEnabled），而真正
+     * 发起嵌套滚动的 target 是 RecyclerView，两者对不上 → 交接被 return false 掉，表现为「列表到顶
+     * 后怎么拉 sheet 都不动」，只有从把手/标题这些非滚动区才拖得动。
+     *
+     * 关掉刷新层的 nested scrolling，`findScrollingChild` 就会继续下探到 RecyclerView，target 与 ref
+     * 一致，交接恢复。本页本来就不支持下拉刷新（[refreshEnabled] = false），无副作用；也不去动
+     * [ceui.pixiv.feeds.FeedFragment] 的公共实现，免得波及其它关刷新的页面。
+     */
+    private fun letSheetTakeOverOverscroll(listView: RecyclerView) {
+        (listView.parent as? SwipeRefreshLayout)?.isNestedScrollingEnabled = false
     }
+
+    /**
+     * 只给**行布局**套 Material3 主题的 inflater。
+     *
+     * recy_select_tag.xml 用的是 MD3 组件与属性（materialCardViewFilledStyle / MaterialCheckBox /
+     * textAppearanceBodyLarge），而本 App 主题继承 QMUI、不含这些属性，不包这层行 inflate 直接崩。
+     * 宿主 sheet 的 chrome 靠布局根上的 `android:theme` 拿 MD3，但那只覆盖 sheet 自己的视图树；
+     * child fragment 的视图由本 fragment 的 inflater 创建，够不着。
+     *
+     * **刻意不覆写 `onGetLayoutInflater`**：那样会把 MD3 合并进整棵 feed 视图树，而
+     * fragment_feed.xml 的首屏转圈是裸 ProgressBar、无显式 tint，会取到 inflation context 的
+     * colorAccent → 被 MD3 顶成基线紫，每次开 sheet 都看得见。收窄到行这一处就没这问题。
+     *
+     * cloneInContext 而非 `LayoutInflater.from`：保留 AppCompat 装的 Factory2。
+     */
+    private fun LayoutInflater.withMd3(): LayoutInflater = cloneInContext(
+        ContextThemeWrapper(
+            context,
+            com.google.android.material.R.style.Theme_Material3_DayNight_NoActionBar,
+        )
+    )
+
+    /** 强调色（勾选态）。App 主题色用户可换，故运行时取，不写死在 XML。 */
+    private val palette by lazy { V3Palette.from(requireContext()) }
 
     // ── 每行渲染 + 选中态 ────────────────────────────────────────────────
     /**
@@ -127,10 +141,20 @@ class SelectTagFeedFragment : FeedFragment(R.layout.fragment_select_tag_feed) {
      * 复选框自身不独立响应点击（回收复用会脏勾），整行点击统一走 [toggleSelection]。
      */
     private fun selectTagRenderer() = feedRenderer<SelectTagFeedItem, RecySelectTagBinding>(
-        inflate = RecySelectTagBinding::inflate,
+        inflate = { inflater, parent, attach ->
+            RecySelectTagBinding.inflate(inflater.withMd3(), parent, attach)
+        },
         create = { cell ->
             cell.binding.illustCount.isClickable = false
             cell.binding.illustCount.isFocusable = false
+            // MD3 基线紫 → 用户强调色。只需在 create 时染一次，回收复用不用重染。
+            cell.binding.illustCount.buttonTintList = ColorStateList(
+                arrayOf(
+                    intArrayOf(android.R.attr.state_checked),
+                    intArrayOf(-android.R.attr.state_checked),
+                ),
+                intArrayOf(palette.primary, palette.textSecondary),
+            )
             cell.binding.root.setOnClickListener { toggleSelection(cell) }
         },
     ) { cell -> bindTagRow(cell) }
@@ -157,8 +181,8 @@ class SelectTagFeedFragment : FeedFragment(R.layout.fragment_select_tag_feed) {
         cell.binding.illustCount.isChecked = newValue
     }
 
-    // ── 添加标签（toolbar 菜单 action_add）─────────────────────────────────
-    private fun showAddTagDialog() {
+    // ── 添加标签（宿主 sheet 的「添加标签」按钮调进来）──────────────────────
+    fun showAddTagDialog() {
         val activity = activity ?: return
         val builder = QMUIDialog.EditTextDialogBuilder(activity)
         builder.setTitle("添加标签")
@@ -209,19 +233,21 @@ class SelectTagFeedFragment : FeedFragment(R.layout.fragment_select_tag_feed) {
     // ── 提交 ────────────────────────────────────────────────────────────
     /**
      * 复刻 FragmentSB.submitStar：收集选中标签名 → 按 type × 有无标签四路调 postLike*；
-     * restrict = 私密开关 ? private : public。成功后 toast（私密/公开）+ [setFollowed] 广播 + finish。
+     * restrict = 私密开关 ? private : public。成功后 toast（私密/公开）+ [setFollowed] 广播，
+     * 再回调 [onSuccess] 让宿主收场（sheet 关掉自己）。
+     *
+     * 私密开关的真值由宿主持有（开关长在 sheet 的底部条上），所以从参数进来，不再自己读 view。
      *
      * 保留 legacy 的 RxJava + [ErrorCtrl] 链路，让错误处理与成功回调时序与旧版**逐字节一致**
      * （task 明确允许，且 ErrorCtrl 的错误解析无法在协程侧无损重写）。
      */
-    private fun submitStar() {
+    fun submitStar(isPrivate: Boolean, onSuccess: () -> Unit) {
         val activity = activity ?: return
         val selectedNames = feedViewModel.uiState.value.items
             .filterIsInstance<SelectTagFeedItem>()
             .filter { it.tag.isSelectedLocalOrRemote }
             .mapNotNull { it.tag.name }
 
-        val isPrivate = binding.isPrivate.isChecked
         val restrict = if (isPrivate) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
         val toastMsg = getString(
             if (isPrivate) R.string.like_novel_success_private else R.string.like_novel_success_public
@@ -250,11 +276,18 @@ class SelectTagFeedFragment : FeedFragment(R.layout.fragment_select_tag_feed) {
                 override fun next(nullResponse: NullResponse?) {
                     Common.showToast(toastMsg)
                     setFollowed(activity)
+                    onSuccess()
                 }
             })
     }
 
-    /** 复刻 FragmentSB.setFollowed：广播 LIKED_ILLUST/LIKED_NOVEL(ID + IS_LIKED=true) 通知别处刷新收藏态，再 finish。 */
+    /**
+     * 复刻 FragmentSB.setFollowed：广播 LIKED_ILLUST/LIKED_NOVEL(ID + IS_LIKED=true) 通知别处
+     * 刷新收藏态。
+     *
+     * 不再 `activity.finish()`——宿主已经从「整页 activity」变成 sheet，关闭动作交回给宿主
+     * （[submitStar] 的 onSuccess 回调），否则这里会把承载 sheet 的整个页面一起关掉。
+     */
     private fun setFollowed(activity: androidx.fragment.app.FragmentActivity) {
         val action = if (type == Params.TYPE_ILLUST) Params.LIKED_ILLUST else Params.LIKED_NOVEL
         val intent = Intent(action).apply {
@@ -262,7 +295,6 @@ class SelectTagFeedFragment : FeedFragment(R.layout.fragment_select_tag_feed) {
             putExtra(Params.IS_LIKED, true)
         }
         LocalBroadcastManager.getInstance(activity).sendBroadcast(intent)
-        activity.finish()
     }
 
     companion object {

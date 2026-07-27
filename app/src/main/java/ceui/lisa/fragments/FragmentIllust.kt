@@ -35,6 +35,7 @@ import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.adapters.IllustAdapter
+import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
@@ -377,13 +378,9 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         }
         baseBind.postLike.setOnLongClickListener(object : OnLongClickListener {
             override fun onLongClick(v: View): Boolean {
-                val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(Params.ILLUST_ID, illust.id)
-                intent.putExtra(Params.DATA_TYPE, Params.TYPE_ILLUST)
-                intent.putExtra(Params.TAG_NAMES, illust.tagNames)
-                intent.putExtra(Params.LAST_CLASS, javaClass.simpleName)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏")
-                startActivity(intent)
+                SelectTagBottomSheet.show(
+                    this@FragmentIllust, illust.id, Params.TYPE_ILLUST, illust.tagNames,
+                )
                 return true
             }
         })

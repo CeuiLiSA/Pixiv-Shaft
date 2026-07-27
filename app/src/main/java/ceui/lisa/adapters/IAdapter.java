@@ -30,6 +30,7 @@ import java.util.Locale;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.pixiv.ui.bookmark.SelectTagBottomSheet;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
@@ -135,12 +136,10 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(Params.ILLUST_ID, target.getId());
-                intent.putExtra(Params.DATA_TYPE, Params.TYPE_ILLUST);
-                intent.putExtra(Params.TAG_NAMES, target.getTagNames());
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
-                mContext.startActivity(intent);
+                // 「按标签收藏」改走 MD3 bottom sheet（原先是从右侧 push 进来的整页 activity）。
+                // 这里只有 Context，用 showFrom 解出宿主 FragmentActivity。
+                SelectTagBottomSheet.showFrom(
+                        mContext, target.getId(), Params.TYPE_ILLUST, target.getTagNames());
                 return true;
             }
         });
