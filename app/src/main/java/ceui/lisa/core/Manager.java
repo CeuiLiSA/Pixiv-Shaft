@@ -885,7 +885,17 @@ public class Manager {
                 downloadEntity = null;
             }
 
-            try { factory.finishWrite(); } catch (Throwable t) { Common.showLog("[DL] finishWrite failed: " + t); }
+            try {
+                factory.finishWrite();
+                // staged 的 stage（.part + manifest）在 finishWrite 成功后才清：清早了，
+                // dispose 恰好丢弃这条 onNext 时（observeOn 跳变窗口）目标行悬挂 pending、
+                // stage 又没了，冷启动 cleaner 会把写满的文件当孤儿删掉 → 整段重下。
+                // finishWrite 抛错时同理保留 stage —— pending 行终会被 cleaner 回收，
+                // 下次尝试凭完整 stage 走 skipNetwork 直接重新 commit。clear 幂等。
+                if (staged) {
+                    StageStore.clear(stageDir, stageKey);
+                }
+            } catch (Throwable t) { Common.showLog("[DL] finishWrite failed: " + t); }
             // 可选:把作品标签写进 JPEG 的 XMP 关键词(issue #938)。开关默认关,只处理 JPEG,
             // 内部包 try/catch —— 写元数据失败绝不影响这条已成功的下载。gif 会被扩展名过滤掉。
             // 开关前置判断:默认关时这条下载热路径零额外开销(不建 tag 列表、不读文件)。
@@ -967,10 +977,11 @@ public class Manager {
      *      - 206 起点对不上 / 416 字节矛盾：ABORT，弃 {@code .part} 整段重下；
      *      - 416 且已持有全部字节：直接提交现有 {@code .part}。
      *   3. commit 时才 {@link DownloadFileFactory#insert()} 建目标行 —— 中途暂停 / 失败
-     *      不会留下 0 字节 {@code .pending}。成功后删 {@code .part} + manifest。
+     *      不会留下 0 字节 {@code .pending}。{@code .part} + manifest 在订阅者侧
+     *      {@code finishWrite()} 成功后才删（见 startDownloadChain 的 onNext 消费块）。
      *
      * 暂停 / 取消（{@code emitter.isDisposed()}）时**保留** {@code .part} + manifest，
-     * 供下次续传；只有成功 commit 或 ABORT 才清理。
+     * 供下次续传；只有 finishWrite 成功或 ABORT 才清理。
      */
     private void runStagedTransfer(Context context, DownloadItem downloadItem,
             DownloadFileFactory factory, File cachedFile, String dlUrl,
@@ -1112,7 +1123,12 @@ public class Manager {
                 try { factory.abandonWrite(); } catch (Exception ignored) {}
                 return;
             }
-            StageStore.clear(stageDir, stageKey);
+            // stage 的清理**不在这里做**：onNext 与订阅者消费块之间隔着一次 observeOn(io)
+            // 调度跳变，dispose 落在这个窗口会把 onNext 静默丢掉 —— 若此时 stage 已清，
+            // 这条 IS_PENDING=1 的目标行没人 finishWrite，下次冷启动被 cleanupPendingOrphans
+            // 连文件一起删掉，一张已下完的图就白丢了。清理挪到订阅者侧 finishWrite 成功
+            // 之后（见 startDownloadChain 的 onNext 消费块）：onNext 被丢弃时 stage 仍在，
+            // 下次尝试走 skipNetwork → 重新 insert + commit，零字节浪费。
             emitter.onNext(targetUri.toString());
             emitter.onComplete();
         } finally {
