@@ -41,6 +41,14 @@ interface DownloadQueueDao {
     suspend fun bumpRetry(id: Long)
 
     /**
+     * 断点续传的「进度看门狗」用：本次尝试推进了字节前沿，就把重试计数清零，让
+     * 抖动线路只要每次都往前挪就能一直续，而不是在固定 MAX_RETRY 次后放弃
+     * （详见 [ceui.pixiv.ui.bulk.QueueDownloadManager] 的 progressWatermark）。
+     */
+    @Query("UPDATE download_queue SET retryCount = 0 WHERE id = :id")
+    suspend fun resetRetry(id: Long)
+
+    /**
      * 冷启动恢复：把上次崩溃时残留的 DOWNLOADING 重置为 PENDING。
      */
     @Query("UPDATE download_queue SET status = '${QueueStatus.PENDING}' WHERE status = '${QueueStatus.DOWNLOADING}'")

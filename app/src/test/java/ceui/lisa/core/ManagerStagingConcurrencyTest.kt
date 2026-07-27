@@ -222,61 +222,46 @@ class ManagerStagingConcurrencyTest {
     }
 
     /**
-     * 把上面两条结论焊到 Manager 的 useStaging 决策上。
+     * 把上面两条结论焊到 Manager 现在的 staging 决策上。
      *
-     * Manager.java:515 修复后的公式：
-     *   useStaging = maxConc > 1 && scheme != "file"
+     * 断点续传重构后，staging 不再由并发数决定，而是由**目标是否 content:// 语义**
+     * （`factory.targetIsContent()`）决定：
+     *   useStaging = targetIsContent   // MediaStore / SAF → true；file:// / gif zip → false
      *
-     * 列出（maxConc, cachedFile, scheme）组合下落到的 OutputStream：
+     *   | maxConc | targetIsContent | useStaging | 落点                       |
+     *   | 1       | true (content)  | true       | FileOutputStream(stage)    | ← 现在单流也 staging
+     *   | ≥2      | true (content)  | true       | FileOutputStream(stage)    |
+     *   | *       | false (file)    | false      | FileOutputStream 直写       |
      *
-     *   | maxConc | cachedFile | scheme  | useStaging | OutputStream            |
-     *   | 1       | *          | content | false      | contentResolver pipe    | ← 单流，无争用
-     *   | 1       | *          | file    | false      | FileOutputStream        |
-     *   | ≥2      | *          | content | true       | FileOutputStream(stage) | ← FIX
-     *   | ≥2      | *          | file    | false      | FileOutputStream        |
-     *
-     * 关键性质：
-     *   - maxConc=1 永远不 staging（两种 scheme 都不开 → 不影响只下 1-2 张的人）
-     *   - maxConc≥2 + content:// 永远 staging（不论 cachedFile 是否命中 → 修 root cause）
-     *   - file:// 永远不 staging（无 ContentProvider 介入）
+     * 为什么单流也 staging：content:// 直写会在暂停 / 失败时留下 0 字节 .pending 行
+     * （TG 群反馈的老问题），而 staging 把目标行的创建延后到 commit，从根上消掉泄漏，
+     * 同时给断点续传一个统一的本地落点。file:// 无 ContentProvider 介入，直写即可。
      */
     @Test
-    fun `useStaging fixed formula — maxConc=1 never stages, maxConc-ge-2 always stages on content scheme`() {
-        // 照抄 Manager.java 改后的公式
-        fun useStaging(maxConc: Int, scheme: String): Boolean =
-            maxConc > 1 && scheme != "file"
+    fun `useStaging formula — content scheme always stages regardless of concurrency, file never`() {
+        // 照抄 Manager 现在的判定：staging = 目标是 content://
+        fun useStaging(targetIsContent: Boolean): Boolean = targetIsContent
 
-        // maxConc=1：所有 scheme 都不 staging（保护"只下一两张"路径无开销）
-        for (scheme in listOf("content", "file")) {
-            assertTrue("maxConc=1 + scheme=$scheme should NOT stage", !useStaging(1, scheme))
-        }
-        // maxConc≥2 + content://：永远 staging（修 root cause）
-        for (n in 2..5) {
-            assertTrue("maxConc=$n + content:// MUST stage", useStaging(n, "content"))
-        }
-        // file:// 永远不 staging
         for (n in 1..5) {
-            assertTrue("maxConc=$n + file:// should NOT stage", !useStaging(n, "file"))
+            assertTrue("maxConc=$n + content:// MUST stage (含单流，堵 .pending 泄漏 + 统一续传落点)",
+                useStaging(true))
+            assertTrue("maxConc=$n + file:// should NOT stage (无 ContentProvider)",
+                !useStaging(false))
         }
     }
 
     /**
-     * 这个测试反过来证明"为什么旧公式 cachedFile==null && !file:// 是错的"——
-     * 用旧公式，maxConc=5 + cachedFile 命中 + content:// 这个组合会落到 SHARED，
-     * 触发本类 Test 1 复现的串行化症状。保留作为回归 hedge：以后谁动 useStaging
-     * 改回旧公式，这条会立刻把 bug 钉上来。
+     * 回归 hedge：曾经 staging 只在 maxConc>1 才开，导致 maxConc=1 content:// 直写，
+     * 暂停 / 失败留下 0 字节 .pending（以及断点续传只能靠脆弱的 uuid-key stage）。
+     * 现在 content:// 一律 staging。谁要是把它改回「只有多并发才 staging」，这条立刻翻。
      */
     @Test
-    fun `regression hedge — old formula used to leak cachedFile-hit + content into the SHARED path`() {
-        fun oldUseStaging(cachedFileNull: Boolean, scheme: String): Boolean =
-            cachedFileNull && scheme != "file"
-
-        val brokenCase = !oldUseStaging(/*cachedFileNull=*/ false, "content") /* = true */
+    fun `regression hedge — single-stream content download must still stage`() {
+        fun useStaging(targetIsContent: Boolean): Boolean = targetIsContent
         assertTrue(
-            "old useStaging formula left cachedFile + content:// on direct ContentResolver write — " +
-                "5 concurrent here is exactly the symptom in commit 4c16183b. " +
-                "Do not regress.",
-            brokenCase
+            "single-stream content:// must stage — otherwise pause/fail leaks a 0-byte .pending row " +
+                "and there is no stable resume landing spot. Do not regress to maxConc>1 gating.",
+            useStaging(/*targetIsContent=*/ true)
         )
     }
 

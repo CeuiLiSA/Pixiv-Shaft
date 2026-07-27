@@ -71,6 +71,12 @@ public class SAFactory implements DownloadFileFactory {
         return mUri != null ? mUri : insert();
     }
 
+    // 按 facade 解析出的 backend 判定 content:// 语义（探 scheme 不触发 open，零副作用）。
+    @Override
+    public boolean targetIsContent() {
+        return mPlan.getBackend().isContentScheme();
+    }
+
     @Override
     public void finishWrite() {
         if (mSettled) return;

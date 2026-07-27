@@ -36,6 +36,7 @@ import ceui.lisa.utils.DownloadLimitTypeUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.pixiv.download.RecordedPageProbe;
+import ceui.pixiv.download.StageStore;
 import ceui.pixiv.download.aria2.Aria2Dispatcher;
 import ceui.pixiv.imageloader.ImageLoaderV3;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -56,6 +57,12 @@ public class Manager {
      * page 各占一个 entry。stopOne(uuid) 只 dispose 那一个；stopAll() dispose 全部。
      */
     private final Map<String, Disposable> handles = new ConcurrentHashMap<>();
+    /**
+     * 正在写的 stage key（= sha256(url)）集合。断点续传把 {@code .part} 按 url 命名，
+     * url-key 不像 uuid 那样天然唯一（同一张图可能被重复入队），必须挡住两个传输
+     * 同时 append 同一个 {@code .part}。{@code startDownloadChain} 抢占，doFinally 释放。
+     */
+    private final java.util.Set<String> activeStageKeys = ConcurrentHashMap.newKeySet();
     private boolean isRunning = false;
 
     /**
@@ -612,42 +619,61 @@ public class Manager {
                 return;
             }
 
-            long fileSize = MediaStoreUtil.length(factory.query(), context);
-            long passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
-
-            Uri targetUri;
-            try {
-                targetUri = factory.insert();
-            } catch (Exception e) {
-                Common.showLog("[DL] factory.insert() failed: " + e);
-                e.printStackTrace();
-                // insert() 内部已自带 cleanup（MediaStoreBackend 在 openOutputStream
-                // 失败时会先 delete row 再抛），但 factory 还可能维护额外状态 ——
-                // 调一次 abandonWrite 兜底，幂等 + 内部判空。
-                try { factory.abandonWrite(); } catch (Exception ignored) {}
-                AndroidSchedulers.mainThread().scheduleDirect(() -> {
-                    Common.showToast(mContext.getString(R.string.string_365));
-                    complete(downloadItem, false);
-                    pumpAvailableSlots();
-                });
-                return;
-            }
-            if (targetUri == null) {
-                Common.showLog("[DL] factory.insert() returned null targetUri");
-                try { factory.abandonWrite(); } catch (Exception ignored) {}
-                AndroidSchedulers.mainThread().scheduleDirect(() -> {
-                    Common.showToast(mContext.getString(R.string.string_365));
-                    complete(downloadItem, false);
-                    pumpAvailableSlots();
-                });
-                return;
-            }
-
             final String dlUrl = downloadItem.getUrl();
             final boolean isGif = downloadItem.getIllust().isGif();
+            // content:// 目标（MediaStore / SAF）走 staging + 断点续传：目标行延迟到 commit
+            // 才建（见 startDownloadChain / runStagedTransfer）。file:// / gif 走直写。
+            final boolean staged = factory.targetIsContent();
+
+            final long passSize;
+            final Uri targetUri;
+            if (staged) {
+                // staged：续传 offset 来自本地 stage（sha256(url) 命名，跨会话稳定），
+                // 不看 MediaStore 现有长度；也不现在 insert（避免 0 字节 .pending 泄漏）。
+                passSize = 0;
+                targetUri = null;
+            } else {
+                // 直写路径（file:// / gif zip）：保持原逻辑 —— query 现有长度做 append 续传，
+                // 现在就 insert 打开目标。
+                long fileSize = MediaStoreUtil.length(factory.query(), context);
+                passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
+                Uri opened;
+                try {
+                    opened = factory.insert();
+                } catch (Exception e) {
+                    Common.showLog("[DL] factory.insert() failed: " + e);
+                    e.printStackTrace();
+                    // insert() 内部已自带 cleanup（MediaStoreBackend 在 openOutputStream
+                    // 失败时会先 delete row 再抛），但 factory 还可能维护额外状态 ——
+                    // 调一次 abandonWrite 兜底，幂等 + 内部判空。
+                    try { factory.abandonWrite(); } catch (Exception ignored) {}
+                    AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                        Common.showToast(mContext.getString(R.string.string_365));
+                        complete(downloadItem, false);
+                        pumpAvailableSlots();
+                    });
+                    return;
+                }
+                if (opened == null) {
+                    Common.showLog("[DL] factory.insert() returned null targetUri");
+                    try { factory.abandonWrite(); } catch (Exception ignored) {}
+                    AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                        Common.showToast(mContext.getString(R.string.string_365));
+                        complete(downloadItem, false);
+                        pumpAvailableSlots();
+                    });
+                    return;
+                }
+                targetUri = opened;
+            }
+
+            // 缓存命中探测（本地已有完整字节则跳过网络）：
+            //  - 续传进行中（staged: stage 已有字节；直写: passSize>0）→ 跳过 peek；
+            //  - gif → 跳过；其余 miss 时 cachedFile 为 null。
+            final long resumeBytes = staged ? stageLenForUrl(context, dlUrl) : passSize;
             final File cachedFile;
-            if (passSize != 0) {
-                Common.showLog("[DL-CACHE] skip peek, passSize=" + passSize + " (resume), url=" + dlUrl);
+            if (resumeBytes > 0) {
+                Common.showLog("[DL-CACHE] skip peek, resume in progress (" + resumeBytes + "B), url=" + dlUrl);
                 cachedFile = null;
             } else if (isGif) {
                 Common.showLog("[DL-CACHE] skip peek, illust isGif, url=" + dlUrl);
@@ -666,7 +692,7 @@ public class Manager {
 
             // 回主线程启动 RxJava 下载链（handle 赋值需要在一致的线程）
             AndroidSchedulers.mainThread().scheduleDirect(() ->
-                startDownloadChain(context, downloadItem, factory, cachedFile, targetUri, dlUrl, passSize));
+                startDownloadChain(context, downloadItem, factory, cachedFile, targetUri, dlUrl, passSize, staged));
         });
     }
 
@@ -732,241 +758,57 @@ public class Manager {
     }
 
     private void startDownloadChain(Context context, DownloadItem downloadItem,
-            DownloadFileFactory factory, File cachedFile, Uri targetUri, String dlUrl, long passSize) {
+            DownloadFileFactory factory, File cachedFile, Uri targetUri, String dlUrl,
+            long passSize, boolean staged) {
         // 下载专用 H1.1 client，规避 H2 stream priority 串行化（详见 getDownloadOkHttpClient）。
         OkHttpClient client = getDownloadOkHttpClient();
 
-        // ─── STAGED-DL 写入策略 ───
-        // content:// 目标 (MediaStore / SAF) 直接 openOutputStream 是 Binder pipe，
-        // N 流并发写时会被 MediaProvider 串行化：读循环卡 outputStream.write，OkHttp
-        // 接收 buffer 满，TCP window 缩 0，**服务器停发那几条流**。N=5 场景的视觉
-        // 后果就是 1 条跑满、其余进度近乎不动；首条结束后下一条才接着跑。
-        //
-        // 修法：先 stream 进 cacheDir/staging_dl/{uuid}.part（本地 FS 写零跨进程
-        // 锁），下完一次性 copy 到 targetUri。这样 N 流的字节读取永远不被 MediaStore
-        // 阻塞，commit 阶段虽然仍可能串行但只是几十 ms 量级，肉眼无感。
-        //
-        // 决策维度只有两个：
-        //   1. file:// 目标（用户配的纯路径）：无 ContentProvider 介入，永远不需要
-        //      staging。
-        //   2. maxConc=1：单流场景没有"多写者抢同一个 MediaProvider"的问题，staging
-        //      只是凭空多一次本地 copy；省了。
-        // 其余情况（content:// + 多并发）一律走 staging —— 不管源是网络流还是
-        // Glide 命中的本地缓存。瓶颈在写侧（Binder pipe），跟读侧是网络还是本地无关。
-        // 这条修正了 4c16183b 当时只盯网络反压、漏掉缓存命中也共用 MediaProvider
-        // 串行点的疏忽（详见 ManagerStagingConcurrencyTest）。
-        int maxConc = Shaft.sSettings.getMaxConcurrentDownloads();
-        if (maxConc < 1) maxConc = 1;
-        if (maxConc > 5) maxConc = 5;
-        final boolean useStaging = maxConc > 1 && !"file".equals(targetUri.getScheme());
-        final java.io.File stageFile;
-        final long effectivePassSize;
-        if (useStaging) {
-            java.io.File stageDir = new java.io.File(context.getCacheDir(), "staging_dl");
-            if (!stageDir.isDirectory() && !stageDir.mkdirs()) {
-                Common.showLog("[STAGED-DL] mkdirs failed " + stageDir);
-            }
-            stageFile = new java.io.File(stageDir, downloadItem.getUuid() + ".part");
-            // 入参 passSize 是 MediaStore 行的现有大小（旧续传逻辑），staging 模式
-            // 下只看 stage 文件实际长度。同会话 pause/resume 仍能续；冷启动跨会话
-            // 的旧 MediaStore 部分文件不再可续，重头来——不大问题。
-            //
-            // 一个微妙点：续传 stage 依赖 Range 头让服务器跳过 effectivePassSize
-            // 字节、剩下的追加到 stage 末尾。本地 cachedFile 路径没 Range 概念，
-            // FileInputStream(cachedFile) 永远从 offset 0 读完整字节；这时再用
-            // append=true 写 partial stage 就会让 stage 字节翻倍，commit 出去等于
-            // 把损坏的图灌进相册。所以本地源永远从空 stage 重来 —— 反正拷贝是 ms
-            // 级，没几个字节代价。
-            boolean canResumePartialStage = cachedFile == null
-                    && !downloadItem.shouldStartNewDownload()
-                    && stageFile.length() > 0;
-            if (canResumePartialStage) {
-                effectivePassSize = stageFile.length();
-            } else {
-                if (stageFile.exists() && !stageFile.delete()) {
-                    Common.showLog("[STAGED-DL] stale stage cleanup failed " + stageFile);
-                }
-                effectivePassSize = 0;
+        // ─── 断点续传 / staging 落点 ───
+        // content:// 目标（MediaStore / SAF）一律走 staging（staged=true）：网络字节先写
+        // cacheDir/staging_dl/{key}.part，直到 commit 才 factory.insert() 建目标行。好处：
+        //   1) 暂停 / 失败 / 进程被杀都不会留下 0 字节 .pending 行 —— 目标行根本还没建；
+        //   2) N 流并发写各自的 .part，不被 MediaProvider Binder pipe 串行化；
+        //   3) .part 以 sha256(url) 命名（StageStore），跨「失败重试 / 冷启动」稳定可寻回，
+        //      配 manifest 里的 validator + Content-Range 校验安全续传（见 runStagedTransfer）。
+        // file:// 目标（gif zip / 用户纯路径）走直写路径（staged=false，行为不变）。
+        final String itemUuid = downloadItem.getUuid();
+        final java.io.File stageDir = staged
+                ? new java.io.File(context.getCacheDir(), StageStore.STAGE_DIR_NAME) : null;
+        final String stageKey = staged ? StageStore.keyForUrl(dlUrl) : null;
+        final java.io.File stageFile = staged ? StageStore.partFile(stageDir, stageKey) : null;
+        final java.io.File metaFile = staged ? StageStore.metaFile(stageDir, stageKey) : null;
+
+        // 单主锁：同一个 url 不能有两个传输同时写同一个 .part（url-key 不像 uuid 那样
+        // 天然唯一，必须挡住并发）。content 层已按 url 去重，这里是二道保险。抢不到就
+        // 让本条失败，交给 pump / 队列重试 —— 那时另一条多半已 commit，record-probe 会 skip。
+        final boolean acquiredStage;
+        if (staged) {
+            acquiredStage = activeStageKeys.add(stageKey);
+            if (!acquiredStage) {
+                Common.showLog("[STAGED-DL] stage key busy, defer uuid=" + itemUuid + " url=" + dlUrl);
+                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    complete(downloadItem, false);
+                    pumpAvailableSlots();
+                });
+                return;
             }
         } else {
-            stageFile = null;
-            effectivePassSize = passSize;
+            acquiredStage = false;
         }
 
-        // issue #865: cache-miss downloads follow the same image host as
-        // on-screen images. downloadItem.getUrl() stays raw everywhere else
-        // (identity / dedup / peek key); only the actual network request is
-        // rewritten. No-op in the default PIXIV mode.
-        Request.Builder reqBuilder = new Request.Builder()
-                .url(ceui.lisa.http.ImageHostManager.INSTANCE.rewrite(downloadItem.getUrl()))
-                .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER);
-        if (effectivePassSize > 0) {
-            reqBuilder.addHeader("Range", "bytes=" + effectivePassSize + "-");
-        }
-        Request request = reqBuilder.build();
-
-        // 并发模式下：每个传输的 disposable 单独存到 handles，按 uuid key
-        final String itemUuid = downloadItem.getUuid();
         Disposable d = io.reactivex.Observable.<String>create(emitter -> {
-            Response response = null;
-            InputStream inputStream = null;
-            OutputStream outputStream = null;
             try {
-                long contentLength;
-                long copyStartNs = System.nanoTime();
-                if (cachedFile != null) {
-                    Common.showLog("[DL-CACHE] begin local copy, src=" + cachedFile.getAbsolutePath()
-                            + " dst=" + targetUri);
-                    inputStream = new java.io.FileInputStream(cachedFile);
-                    contentLength = cachedFile.length();
+                if (staged) {
+                    runStagedTransfer(context, downloadItem, factory, cachedFile, dlUrl,
+                            stageDir, stageKey, stageFile, metaFile, client, emitter);
                 } else {
-                    Common.showLog("[DL-CACHE] begin network fetch, url=" + dlUrl
-                            + " passSize=" + effectivePassSize + " staging=" + useStaging + " dst=" + targetUri);
-                    response = client.newCall(request).execute();
-                    if (!response.isSuccessful()) {
-                        Common.showLog("[DL-CACHE] network HTTP " + response.code() + " url=" + dlUrl);
-                        emitter.onError(new IOException("HTTP " + response.code()));
-                        return;
-                    }
-                    ResponseBody body = response.body();
-                    if (body == null) {
-                        Common.showLog("[DL-CACHE] network empty body url=" + dlUrl);
-                        emitter.onError(new IOException("Empty response body"));
-                        return;
-                    }
-                    inputStream = body.byteStream();
-                    contentLength = body.contentLength();
+                    runDirectTransfer(context, downloadItem, cachedFile, targetUri, dlUrl,
+                            passSize, client, emitter);
                 }
-
-                long totalSize = contentLength > 0 ? contentLength + effectivePassSize : 0;
-                Common.showLog("[DL-CACHE] contentLength=" + contentLength + " totalSize=" + totalSize
-                        + " source=" + (cachedFile != null ? "cache" : "network"));
-
-                if (useStaging) {
-                    // staging：写本地 cacheDir，effectivePassSize 已基于 stage 文件长度。
-                    // 父目录可能在排队期间被系统/「清除缓存」/ 第三方清理软件抹掉
-                    //（issue #885），openStageStream 兜底重建一次。续传场景下不重建
-                    // ——前 N 字节没法找回，硬接着写会落出截断图。
-                    outputStream = openStageStream(stageFile, effectivePassSize);
-                } else if ("file".equals(targetUri.getScheme())) {
-                    String path = targetUri.getPath();
-                    java.io.FileOutputStream fos = new java.io.FileOutputStream(path, effectivePassSize > 0);
-                    outputStream = fos;
-                } else {
-                    // 不走 staging：要么 file:// 直写（无 Provider），要么 maxConc=1
-                    // 单流（content:// 但没多写者抢 MediaProvider，开 staging 只是
-                    // 凭空多一次本地 copy）。两种情况下进 ContentResolver pipe 都安全。
-                    outputStream = context.getContentResolver().openOutputStream(targetUri, effectivePassSize > 0 ? "wa" : "w");
-                }
-                if (outputStream == null) {
-                    emitter.onError(new IOException("Cannot open output stream for " + targetUri));
-                    return;
-                }
-
-                byte[] buffer = new byte[8192];
-                long downloaded = effectivePassSize;
-                int lastProgress = 0;
-                long lastUpdateNs = 0L;
-                int len;
-                while ((len = inputStream.read(buffer)) != -1) {
-                    if (emitter.isDisposed()) {
-                        return;
-                    }
-                    outputStream.write(buffer, 0, len);
-                    downloaded += len;
-                    // 进度上报：原版只在 progress %% 跳变时才发，会有两个洞 —
-                    //  (a) totalSize=0（响应没 Content-Length，pixiv 有时是 chunked）
-                    //      → if 块整个不进，UI 永远 0%；
-                    //  (b) 大文件 % 跳变间隔大（如 50MB ≈ 几秒一跳）→ 多 P 之间
-                    //      看起来"有的快有的卡"。
-                    // 改成：% 跳变 **或** 距上次上报 ≥ 500ms 都强制更新一次；
-                    // totalSize=0 时 progress 留 0，但 currentSize/字节数仍会涨，
-                    // UI 至少能看到字节在流。
-                    long nowNs = System.nanoTime();
-                    int progress = totalSize > 0 ? (int) (downloaded * 100 / totalSize) : 0;
-                    boolean pctChanged = totalSize > 0 && progress != lastProgress;
-                    boolean timeElapsed = (nowNs - lastUpdateNs) > 500_000_000L; // 500ms
-                    if (pctChanged || timeElapsed) {
-                        lastProgress = progress;
-                        lastUpdateNs = nowNs;
-                        long finalDownloaded = downloaded;
-                        long finalTotal = totalSize;
-                        int finalProgress = progress;
-                        AndroidSchedulers.mainThread().scheduleDirect(() -> {
-                            DownloadProgress dp = new DownloadProgress(finalProgress, finalDownloaded, finalTotal);
-                            downloadItem.setNonius(finalProgress);
-                            downloadItem.setCurrentSize(finalDownloaded);
-                            downloadItem.setTotalSize(finalTotal);
-                            downloadItem.setState(DownloadItem.DownloadState.DOWNLOADING);
-                            Common.showLog("currentProgress " + finalProgress);
-                            // 进度变了 → 让 ManagerReactive.contentFlow 推一帧。
-                            // tryEmit 是 cheap，DROP_OLDEST 让高频 progress（5
-                            // 并发 ~500/s）自动合并成 collector 能跟上的速率。
-                            ManagerReactive.invalidate();
-                            try {
-                                // 用 item 自己的 uuid 查 callback —— 之前用 Manager 的静态
-                                // uuid 字段，并发模式下会拿错（被后启动的覆盖了）。
-                                Callback<DownloadProgress> c = getCallback(downloadItem.getUuid());
-                                if (c != null) {
-                                    c.doSomething(dp);
-                                }
-                            } catch (Exception e) {
-                                Common.showLog("Manager progress callback error: " + e.getMessage());
-                            }
-                        });
-                    }
-                }
-                outputStream.flush();
-                long elapsedMs = (System.nanoTime() - copyStartNs) / 1_000_000L;
-                Common.showLog("[DL-CACHE] write done source=" + (cachedFile != null ? "cache" : "network")
-                        + " bytes=" + downloaded + " elapsedMs=" + elapsedMs
-                        + " staging=" + useStaging + " dst=" + targetUri);
-
-                // STAGED-DL commit：stage → MediaStore Uri 一次性串行 copy，跟别条
-                // 下载的字节读循环不再纠缠在 MediaProvider pipe 上。读循环已彻底
-                // 走完所以不会再有 TCP 反压风险；commit 串行也只是几十 ms 量级。
-                if (useStaging) {
-                    try { outputStream.close(); } catch (Exception ignored) {}
-                    outputStream = null;  // 让 finally 不重复 close
-                    long commitStartNs = System.nanoTime();
-                    java.io.FileInputStream stageIn = null;
-                    OutputStream mediaOut = null;
-                    try {
-                        stageIn = new java.io.FileInputStream(stageFile);
-                        mediaOut = context.getContentResolver().openOutputStream(targetUri, "w");
-                        if (mediaOut == null) {
-                            emitter.onError(new IOException("staging commit: openOutputStream null for " + targetUri));
-                            return;
-                        }
-                        byte[] copyBuf = new byte[64 * 1024];
-                        int n;
-                        while ((n = stageIn.read(copyBuf)) != -1) {
-                            if (emitter.isDisposed()) return;
-                            mediaOut.write(copyBuf, 0, n);
-                        }
-                        mediaOut.flush();
-                    } finally {
-                        if (mediaOut != null) try { mediaOut.close(); } catch (Exception ignored) {}
-                        if (stageIn != null) try { stageIn.close(); } catch (Exception ignored) {}
-                    }
-                    long commitMs = (System.nanoTime() - commitStartNs) / 1_000_000L;
-                    Common.showLog("[STAGED-DL] commit done bytes=" + downloaded
-                            + " commitMs=" + commitMs + " dst=" + targetUri);
-                    if (!stageFile.delete()) {
-                        Common.showLog("[STAGED-DL] stage cleanup failed " + stageFile);
-                    }
-                }
-
-                emitter.onNext(targetUri.toString());
-                emitter.onComplete();
             } catch (Exception e) {
                 if (!emitter.isDisposed()) {
                     emitter.onError(e);
                 }
-            } finally {
-                if (inputStream != null) try { inputStream.close(); } catch (Exception ignored) {}
-                if (outputStream != null) try { outputStream.close(); } catch (Exception ignored) {}
-                if (response != null) try { response.close(); } catch (Exception ignored) {}
             }
         })
         .subscribeOn(Schedulers.io())
@@ -974,7 +816,11 @@ public class Manager {
         // 只有 UI 通知（广播、Toast）和 pump 回主线程。
         .observeOn(Schedulers.io())
         .doFinally(() -> {
-            // 这条传完了，把它的 disposable 从表里移除，主线程上 pump 下一个空闲槽位。
+            // 这条传完了：释放 stage 单主锁 + 把 disposable 从表里移除，主线程上 pump 下一个
+            // 空闲槽位。doFinally 对 onNext / onError / dispose(暂停) 都会跑，在这里释放锁最稳。
+            if (acquiredStage) {
+                activeStageKeys.remove(stageKey);
+            }
             handles.remove(itemUuid);
             Common.showLog("doFinally uuid=" + itemUuid);
             AndroidSchedulers.mainThread().scheduleDirect(this::pumpAvailableSlots);
@@ -1106,6 +952,308 @@ public class Manager {
             }
         });
         handles.put(itemUuid, d);
+    }
+
+    /**
+     * staged（content://）传输：网络字节 → 本地 {@code .part} → commit 到目标行。
+     *
+     * 断点续传的全部安全性都在这里：
+     *   1. {@code .part} 已有字节数 = 续传 offset。带 {@code Range: bytes=N-}；有
+     *      validator（ETag/Last-Modified）再带 {@code If-Range}，让服务器一个来回内
+     *      原子决定「资源没变→206 续传 / 变了→200 全量」。
+     *   2. 拿到响应后先经 {@link StageStore#decideWrite} 判定，**绝不盲目 append**：
+     *      - 200：服务器无视 Range（或首次），从 offset 0 覆写 {@code .part}；
+     *      - 206 且 Content-Range 起点 == 已有字节：追加；
+     *      - 206 起点对不上 / 416 字节矛盾：ABORT，弃 {@code .part} 整段重下；
+     *      - 416 且已持有全部字节：直接提交现有 {@code .part}。
+     *   3. commit 时才 {@link DownloadFileFactory#insert()} 建目标行 —— 中途暂停 / 失败
+     *      不会留下 0 字节 {@code .pending}。成功后删 {@code .part} + manifest。
+     *
+     * 暂停 / 取消（{@code emitter.isDisposed()}）时**保留** {@code .part} + manifest，
+     * 供下次续传；只有成功 commit 或 ABORT 才清理。
+     */
+    private void runStagedTransfer(Context context, DownloadItem downloadItem,
+            DownloadFileFactory factory, File cachedFile, String dlUrl,
+            java.io.File stageDir, String stageKey, java.io.File stageFile, java.io.File metaFile,
+            OkHttpClient client, io.reactivex.ObservableEmitter<String> emitter) throws Exception {
+        Response response = null;
+        InputStream inputStream = null;
+        OutputStream outputStream = null;
+        try {
+            if (cachedFile != null) {
+                // 缓存命中：本地已有完整字节 → 从 0 覆写 stage（不续传），删旧 manifest。
+                Common.showLog("[DL-CACHE] staged local copy, src=" + cachedFile.getAbsolutePath());
+                runCatchingDelete(metaFile);
+                inputStream = new java.io.FileInputStream(cachedFile);
+                outputStream = openStageStream(stageFile, 0);
+                pumpBytes(inputStream, outputStream, downloadItem, 0L, cachedFile.length(), emitter);
+                if (emitter.isDisposed()) return;
+                closeQuietly(outputStream); outputStream = null;
+                closeQuietly(inputStream); inputStream = null;
+            } else {
+                long existingLen = stageFile.length();
+                StageStore.Manifest mf = existingLen > 0 ? StageStore.readManifest(metaFile) : null;
+
+                // 预检：manifest 已知总长时，不必发网络请求就能判断 partial 状态，省一次
+                // 往返、也不依赖服务器 416 一定带 Content-Range。
+                boolean skipNetwork = false;
+                if (mf != null && mf.total >= 0) {
+                    if (existingLen == mf.total) {
+                        // 字节已齐（上次 commit 前断了 / commit 自身失败）→ 直接提交。
+                        skipNetwork = true;
+                        Common.showLog("[STAGED-DL] stage already complete (" + existingLen + "B), commit without fetch");
+                    } else if (existingLen > mf.total) {
+                        // partial 比总长还大 = 脏数据，整段重下。
+                        Common.showLog("[STAGED-DL] stage overshoot len=" + existingLen
+                                + " > total=" + mf.total + ", reset");
+                        StageStore.clear(stageDir, stageKey);
+                        existingLen = 0;
+                        mf = null;
+                    }
+                }
+
+                if (!skipNetwork) {
+                    // issue #865: 只有真正发出去的网络请求换 host；dlUrl 在别处（dedup / peek /
+                    // stage key）保持原值。默认 PIXIV 模式下 rewrite 是 no-op。
+                    Request.Builder rb = new Request.Builder()
+                            .url(ceui.lisa.http.ImageHostManager.INSTANCE.rewrite(dlUrl))
+                            .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER);
+                    if (existingLen > 0) {
+                        rb.addHeader("Range", "bytes=" + existingLen + "-");
+                        if (mf != null && mf.validator != null
+                                && (StageStore.VALIDATOR_ETAG.equals(mf.validatorType)
+                                    || StageStore.VALIDATOR_LASTMOD.equals(mf.validatorType))) {
+                            rb.addHeader("If-Range", mf.validator);
+                        }
+                    }
+                    Common.showLog("[STAGED-DL] fetch url=" + dlUrl + " existing=" + existingLen);
+                    response = client.newCall(rb.build()).execute();
+                    int code = response.code();
+                    // 416 也要放行进 decideWrite（可能意味着"字节已齐"）。
+                    if (!response.isSuccessful() && code != 416) {
+                        emitter.onError(new IOException("HTTP " + code));
+                        return;
+                    }
+                    ResponseBody body = response.body();
+                    long contentLength = body != null ? body.contentLength() : -1L;
+                    StageStore.WriteDecision dec = StageStore.decideWrite(
+                            code, response.header("Content-Range"), contentLength, existingLen);
+                    Common.showLog("[STAGED-DL] code=" + code + " mode=" + dec.mode
+                            + " startOffset=" + dec.startOffset + " total=" + dec.total);
+
+                    if (dec.mode == StageStore.WriteMode.ABORT) {
+                        // 无法安全续传：弃掉 partial + manifest，抛错让队列 retry 走整段重下。
+                        StageStore.clear(stageDir, stageKey);
+                        emitter.onError(new IOException("resume aborted (code=" + code + "), restart fresh"));
+                        return;
+                    }
+                    if (dec.mode == StageStore.WriteMode.FRESH || dec.mode == StageStore.WriteMode.APPEND) {
+                        if (body == null) {
+                            emitter.onError(new IOException("Empty response body"));
+                            return;
+                        }
+                        // 先落 manifest（validator + total）：哪怕这次中途断了，下次也能凭
+                        // If-Range 安全续传。
+                        StageStore.writeManifest(metaFile, StageStore.buildManifest(
+                                dlUrl, response.header("ETag"), response.header("Last-Modified"), dec.total));
+                        boolean append = dec.mode == StageStore.WriteMode.APPEND;
+                        inputStream = body.byteStream();
+                        outputStream = openStageStream(stageFile, append ? dec.startOffset : 0);
+                        pumpBytes(inputStream, outputStream, downloadItem, dec.startOffset, dec.total, emitter);
+                        if (emitter.isDisposed()) return;  // 暂停 / 取消：保留 stage 续传
+                        closeQuietly(outputStream); outputStream = null;
+                        closeQuietly(inputStream); inputStream = null;
+                    }
+                    // ALREADY_COMPLETE：字节已在 stage 里，直接进 commit。
+                    closeQuietly(response); response = null;
+                }
+            }
+
+            // —— commit：延迟 insert 目标行，写 stage → 目标；成功后删 stage + manifest ——
+            Uri targetUri = factory.insert();
+            if (targetUri == null) {
+                emitter.onError(new IOException("staging commit: factory.insert() returned null"));
+                return;
+            }
+            commitStageToTarget(context, stageFile, targetUri, emitter);
+            if (emitter.isDisposed()) return;
+            StageStore.clear(stageDir, stageKey);
+            emitter.onNext(targetUri.toString());
+            emitter.onComplete();
+        } finally {
+            closeQuietly(outputStream);
+            closeQuietly(inputStream);
+            closeQuietly(response);
+        }
+    }
+
+    /**
+     * 直写（file:// / gif zip）传输：保持历史行为不变 —— {@code passSize>0} 时带 Range
+     * 头 + append 模式续写目标文件，无 manifest / validator（file:// 没有 ContentProvider
+     * 的半成品窗口，暂停即续；跨失败续传只有 staged content:// 路径提供）。
+     */
+    private void runDirectTransfer(Context context, DownloadItem downloadItem, File cachedFile,
+            Uri targetUri, String dlUrl, long passSize, OkHttpClient client,
+            io.reactivex.ObservableEmitter<String> emitter) throws Exception {
+        Response response = null;
+        InputStream inputStream = null;
+        OutputStream outputStream = null;
+        try {
+            long contentLength;
+            if (cachedFile != null) {
+                Common.showLog("[DL-CACHE] direct local copy, src=" + cachedFile.getAbsolutePath()
+                        + " dst=" + targetUri);
+                inputStream = new java.io.FileInputStream(cachedFile);
+                contentLength = cachedFile.length();
+            } else {
+                Request.Builder rb = new Request.Builder()
+                        .url(ceui.lisa.http.ImageHostManager.INSTANCE.rewrite(dlUrl))
+                        .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER);
+                if (passSize > 0) {
+                    rb.addHeader("Range", "bytes=" + passSize + "-");
+                }
+                response = client.newCall(rb.build()).execute();
+                if (!response.isSuccessful()) {
+                    emitter.onError(new IOException("HTTP " + response.code()));
+                    return;
+                }
+                ResponseBody body = response.body();
+                if (body == null) {
+                    emitter.onError(new IOException("Empty response body"));
+                    return;
+                }
+                inputStream = body.byteStream();
+                contentLength = body.contentLength();
+            }
+
+            long totalSize = contentLength > 0 ? contentLength + passSize : 0;
+            if ("file".equals(targetUri.getScheme())) {
+                outputStream = new java.io.FileOutputStream(targetUri.getPath(), passSize > 0);
+            } else {
+                outputStream = context.getContentResolver()
+                        .openOutputStream(targetUri, passSize > 0 ? "wa" : "w");
+            }
+            if (outputStream == null) {
+                emitter.onError(new IOException("Cannot open output stream for " + targetUri));
+                return;
+            }
+            pumpBytes(inputStream, outputStream, downloadItem, passSize, totalSize, emitter);
+            if (emitter.isDisposed()) return;
+            closeQuietly(outputStream); outputStream = null;
+            emitter.onNext(targetUri.toString());
+            emitter.onComplete();
+        } finally {
+            closeQuietly(outputStream);
+            closeQuietly(inputStream);
+            closeQuietly(response);
+        }
+    }
+
+    /**
+     * 8KB buffer 拷贝主循环 + 节流进度上报。两条传输路径共用。
+     *
+     * {@code startOffset} 是已下字节基线（续传时 > 0）；进度按 {@code totalSize} 算，
+     * {@code totalSize<=0}（chunked / 无 Content-Length）时 progress 留 0 但字节数照涨。
+     * {@code emitter.isDisposed()}（暂停 / 取消）时**立即 return，不 flush** —— 已写进
+     * {@code .part} 的字节留在盘上正是续传要的；调用方据 {@code isDisposed()} 跳过 commit。
+     *
+     * @return 实际写到的总字节数（含 startOffset）。
+     */
+    private long pumpBytes(InputStream in, OutputStream out, DownloadItem item,
+            long startOffset, long totalSize, io.reactivex.ObservableEmitter<String> emitter) throws IOException {
+        byte[] buffer = new byte[8192];
+        long downloaded = startOffset;
+        int lastProgress = 0;
+        long lastUpdateNs = 0L;
+        int len;
+        while ((len = in.read(buffer)) != -1) {
+            if (emitter.isDisposed()) {
+                return downloaded;
+            }
+            out.write(buffer, 0, len);
+            downloaded += len;
+            long nowNs = System.nanoTime();
+            int progress = totalSize > 0 ? (int) (downloaded * 100 / totalSize) : 0;
+            boolean pctChanged = totalSize > 0 && progress != lastProgress;
+            boolean timeElapsed = (nowNs - lastUpdateNs) > 500_000_000L; // 500ms
+            if (pctChanged || timeElapsed) {
+                lastProgress = progress;
+                lastUpdateNs = nowNs;
+                long finalDownloaded = downloaded;
+                long finalTotal = totalSize;
+                int finalProgress = progress;
+                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    DownloadProgress dp = new DownloadProgress(finalProgress, finalDownloaded, finalTotal);
+                    item.setNonius(finalProgress);
+                    item.setCurrentSize(finalDownloaded);
+                    item.setTotalSize(finalTotal);
+                    item.setState(DownloadItem.DownloadState.DOWNLOADING);
+                    ManagerReactive.invalidate();
+                    try {
+                        Callback<DownloadProgress> c = getCallback(item.getUuid());
+                        if (c != null) {
+                            c.doSomething(dp);
+                        }
+                    } catch (Exception e) {
+                        Common.showLog("Manager progress callback error: " + e.getMessage());
+                    }
+                });
+            }
+        }
+        out.flush();
+        return downloaded;
+    }
+
+    /**
+     * stage → 目标 Uri 一次性串行 copy。读循环已走完，不再有 TCP 反压；commit 串行
+     * 只是几十 ms。{@code emitter.isDisposed()} 时中途 return（不删 stage，留给续传）。
+     */
+    private void commitStageToTarget(Context context, java.io.File stageFile, Uri targetUri,
+            io.reactivex.ObservableEmitter<String> emitter) throws IOException {
+        long t0 = System.nanoTime();
+        java.io.FileInputStream stageIn = null;
+        OutputStream mediaOut = null;
+        try {
+            stageIn = new java.io.FileInputStream(stageFile);
+            mediaOut = context.getContentResolver().openOutputStream(targetUri, "w");
+            if (mediaOut == null) {
+                throw new IOException("staging commit: openOutputStream null for " + targetUri);
+            }
+            byte[] copyBuf = new byte[64 * 1024];
+            int n;
+            while ((n = stageIn.read(copyBuf)) != -1) {
+                if (emitter.isDisposed()) return;
+                mediaOut.write(copyBuf, 0, n);
+            }
+            mediaOut.flush();
+        } finally {
+            closeQuietly(mediaOut);
+            closeQuietly(stageIn);
+        }
+        Common.showLog("[STAGED-DL] commit done ms=" + (System.nanoTime() - t0) / 1_000_000L
+                + " dst=" + targetUri);
+    }
+
+    private static void closeQuietly(java.io.Closeable c) {
+        if (c != null) {
+            try { c.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    private static void runCatchingDelete(java.io.File f) {
+        if (f != null) {
+            try { f.delete(); } catch (Exception ignored) {}
+        }
+    }
+
+    /** 某 url 对应 stage {@code .part} 的现有字节数（0 = 没有，可整段新下 / 允许缓存命中）。 */
+    private long stageLenForUrl(Context context, String url) {
+        try {
+            java.io.File dir = new java.io.File(context.getCacheDir(), StageStore.STAGE_DIR_NAME);
+            return StageStore.partFile(dir, StageStore.keyForUrl(url)).length();
+        } catch (Exception e) {
+            return 0L;
+        }
     }
 
     /**

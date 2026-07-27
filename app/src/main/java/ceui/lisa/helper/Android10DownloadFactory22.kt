@@ -71,6 +71,11 @@ class Android10DownloadFactory22(
 
     override fun getFileUri(): Uri = _uri ?: insert()
 
+    // GIF 写 app cache 的 file://；其余按 facade 解析出的 backend 判定。
+    // plan.open() 不在这里触发 —— backend 在 plan() 时就已解析好，探 scheme 零副作用。
+    override fun targetIsContent(): Boolean =
+        if (isGif) false else (plan?.backend?.isContentScheme ?: false)
+
     override fun finishWrite() {
         // GIF (ugoira zip) 写到 app cache，相册不关心，跳过即可。
         if (isGif) return

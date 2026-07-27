@@ -13,6 +13,9 @@ import java.io.FileOutputStream
  */
 class AppCacheBackend(private val context: Context) : StorageBackend {
 
+    // 纯 file:// —— externalCacheDir 下的本地文件，无 ContentProvider 介入。
+    override val isContentScheme: Boolean get() = false
+
     override fun open(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
         // Facade-enforced invariant: the path is guaranteed not to exist by the
         // time we get here (OverwritePolicy.Replace deleted; Rename shifted the
