@@ -127,6 +127,9 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
     private fun fetchCsrfViaWebView() {
         Timber.d("StreetMain: have cookie but no CSRF, fetching via WebView")
         baseBind.toolbarTitle.text = getString(R.string.street_title)
+        // CSRF 没就绪前下拉刷新必失败(refresh() 直接抛"token 未就绪"的 toast),先关掉手势,
+        // cleanupWebView 里恢复。legacy 的 FalsifyHeader 本来就不触发刷新,这是对齐旧行为。
+        baseBind.refreshLayout.isEnabled = false
 
         val webView = WebView(mContext).apply {
             visibility = View.GONE
@@ -194,6 +197,10 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
     private fun startWebLogin() {
         baseBind.toolbarTitle.text = getString(R.string.street_web_login_toolbar)
         baseBind.recyclerView.visibility = View.GONE
+        // 登录 WebView 盖满 listContainer 期间必须关掉下拉刷新:此时 scrollUpFrom 的唯一候选
+        // recyclerView 是 GONE,canChildScrollUp 恒 false → 在登录页里往回滚(手指下滑)会被
+        // SwipeRefreshLayout 拦截成刷新手势——既抢走 WebView 的滚动,又在登录中途乱发 refresh()。
+        baseBind.refreshLayout.isEnabled = false
 
         val ua = ClientManager.WEB_USER_AGENT
         val webView = WebView(mContext).apply {
@@ -271,6 +278,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         loginWebView = null
         baseBind.toolbarTitle.text = getString(R.string.street_title)
         baseBind.recyclerView.visibility = View.VISIBLE
+        baseBind.refreshLayout.isEnabled = true
     }
 
     override fun onDestroyView() {
