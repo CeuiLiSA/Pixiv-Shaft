@@ -1102,7 +1102,16 @@ public class Manager {
                 return;
             }
             commitStageToTarget(context, stageFile, targetUri, emitter);
-            if (emitter.isDisposed()) return;
+            if (emitter.isDisposed()) {
+                // 暂停 / 取消正好落在 commit 拷贝窗口内（insert() 已建目标行，但还没
+                // finishWrite 清 IS_PENDING）。不收口的话这条 partial pending 行会一直
+                // 悬挂到下次冷启动才被 cleanupPendingOrphans 扫掉 —— 现在就 abandonWrite
+                // 删掉它（只删本次 insert 刚建的那条，pre-existing 不动）。stage .part
+                // **不清**，留给续传：下次 stage 已齐 → skipNetwork → 重新 insert + commit。
+                // 注：进程被杀（非 dispose）走不到这里，那种残留仍靠冷启动 cleaner 兜底。
+                try { factory.abandonWrite(); } catch (Exception ignored) {}
+                return;
+            }
             StageStore.clear(stageDir, stageKey);
             emitter.onNext(targetUri.toString());
             emitter.onComplete();
