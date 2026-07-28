@@ -190,9 +190,12 @@ class FeedViewModel<Cursor : Any>(
         // Loading 防重入；Error 停手等用户点重试
         if (current.append !is LoadState.Idle) return
         val firstCursor = nextCursor ?: return
-        // 单飞守卫成立依赖 viewModelScope 是 Dispatchers.Main.immediate：launch 会同步跑到第一个
-        // 挂起点，append=Loading 在本函数返回前就提交，挡住紧接着的同步 onNearEnd 重入。若哪天把
-        // 调度器换成非 immediate 的 Main，这里会放进第二个 appendJob 把第一个悬空——改前先想清楚。
+        // 单飞的硬保证：上一个 appendJob 还活着（含已 launch 但尚未跑到 append=Loading 提交）就
+        // 直接返回。上面的状态快照检查挡不住这个窗口——它依赖「viewModelScope 是 Main.immediate、
+        // launch 同步跑到第一个挂起点」这个调度器行为，换成非 immediate 调度器（单测的
+        // StandardTestDispatcher 就是）同步重入会放进第二个 job 把第一个悬空。查 job 存活与
+        // 调度器无关，两层守卫叠加后重入在任何调度器下都安全。
+        if (appendJob?.isActive == true) return
         appendJob = viewModelScope.launch {
             _uiState.update { it.copy(append = LoadState.Loading) }
             try {

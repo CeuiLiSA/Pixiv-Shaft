@@ -83,6 +83,24 @@ class FeedViewModelTest {
     }
 
     @Test
+    fun `loadMore is single-flight even before the first job runs`() = runTest(dispatcher) {
+        val source = FakeSource(listOf(listOf(Row(1)), listOf(Row(2)), listOf(Row(3))))
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+        val countAfterRefresh = source.loadCount
+
+        // 同步连调两次：StandardTestDispatcher（非 immediate）下第一个 job 还没跑到
+        // append=Loading 提交，状态快照守卫看不见它——必须由 appendJob.isActive 挡住第二发，
+        // 否则会放进两个 job 重复拉同一页（onNearEnd 在一次布局里连触即此形态）
+        vm.loadMore()
+        vm.loadMore()
+        advanceUntilIdle()
+
+        assertEquals(countAfterRefresh + 1, source.loadCount)
+        assertEquals(listOf(Row(1), Row(2)), vm.uiState.value.items)
+    }
+
+    @Test
     fun `append error stops auto load until retry`() = runTest(dispatcher) {
         val source = FakeSource(listOf(listOf(Row(1)), listOf(Row(2))), failOn = 1)
         val vm = FeedViewModel(source)
