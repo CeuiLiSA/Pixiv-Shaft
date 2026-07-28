@@ -1765,6 +1765,30 @@
     <string name="dlmgr_import_enrich_later">以后再说</string>
     <string name="dlmgr_import_enrich_message">导入的记录目前只有作品 ID，卡片上显示的是文件名。\n\n可以联网逐个补全标题、作者和封面。共 %1$d 个作品，预计需要 %2$d 分钟，中途可以取消，下次会接着跑。</string>
 
+    <string name="rename_dl_title">重命名已下载文件</string>
+    <string name="rename_dl_card_body">更改命名格式只影响之后的新下载。这里可以把已经下载的插画 / 漫画 / 动图按当前格式批量改名。\n\n· 只改文件名，不移动、不删除任何文件\n· 下载记录同步更新，「已下载」识别不受影响\n· 小说文件不在范围内</string>
+    <string name="rename_dl_entry">按当前格式重命名</string>
+    <string name="rename_dl_intro">将扫描全部下载记录，把文件名与当前命名格式不一致的文件批量改名。\n\n· 只改文件名，不移动、不删除任何文件\n· 文件已丢失或信息不全的记录会自动跳过\n· 扫描阶段不做任何修改，改名前会先显示统计供确认</string>
+    <string name="rename_dl_scan">开始扫描</string>
+    <string name="rename_dl_scanning_title">正在扫描</string>
+    <string name="rename_dl_scanning_start">正在读取下载记录…</string>
+    <string name="rename_dl_scanning_status">已检查 %1$d 条记录 · 需改名 %2$d 个</string>
+    <string name="rename_dl_preview_title">确认重命名</string>
+    <string name="rename_dl_confirm">开始重命名</string>
+    <string name="rename_dl_empty">没有需要重命名的文件。</string>
+    <string name="rename_dl_stat_total">下载记录：%d 条</string>
+    <string name="rename_dl_stat_matching">已符合当前格式：%d 个</string>
+    <string name="rename_dl_stat_to_rename">将重命名：%d 个文件</string>
+    <string name="rename_dl_stat_missing">文件已不存在，跳过：%d</string>
+    <string name="rename_dl_stat_enrich">缺少作品信息（需先补全），跳过：%d</string>
+    <string name="rename_dl_stat_page">页码未知，跳过：%d</string>
+    <string name="rename_dl_stat_conflict">新名字与其他文件重复，跳过：%d</string>
+    <string name="rename_dl_stat_broken">记录数据异常，跳过：%d</string>
+    <string name="rename_dl_prompt_after_save">命名格式已更新。\n\n要把已经下载的文件也按新格式改名吗？会先扫描并显示统计，确认后才执行。</string>
+    <string name="rename_dl_later">以后再说</string>
+    <string name="rename_dl_go">去重命名</string>
+    <string name="rename_dl_failed">操作失败：%s</string>
+
     <string name="dlmgr_done_layout_list">布局：列表</string>
     <string name="dlmgr_done_layout_grid">布局：网格</string>
     <string name="dlmgr_done_layout_compact">布局：缩图</string>

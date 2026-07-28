@@ -204,6 +204,15 @@ public interface DownloadDao {
     @Query("UPDATE illust_download_table SET page = :page WHERE fileName = :fileName")
     void setDownloadPage(String fileName, int page);
 
+    /**
+     * 重命名一条下载记录（issue #567 的批量重命名）：文件在磁盘上改名成功后，把主键
+     * fileName 和 filePath（SAF 重命名后 document uri 会变）一起改过来。fileName 是主键，
+     * 目标名已存在时 SQLite 抛 constraint 异常 —— 调用方（RenameSweeper）在计划阶段已
+     * 去重，仍冲突则捕获并把磁盘文件名改回去，保持记录与磁盘一致。
+     */
+    @Query("UPDATE illust_download_table SET fileName = :newFileName, filePath = :newFilePath WHERE fileName = :oldFileName")
+    void renameDownload(String oldFileName, String newFileName, String newFilePath);
+
     @Query("SELECT * FROM illust_downloading_table")
     List<DownloadingEntity> getAllDownloading();
 

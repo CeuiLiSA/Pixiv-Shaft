@@ -50,6 +50,9 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     /** Currently focused template EditText — target for variable / condition chips. */
     private var focusedEditor: EditText? = null
 
+    /** 「把已下载文件重命名成当前格式」流程（issue #567）。 */
+    private val renameFlow by lazy(LazyThreadSafetyMode.NONE) { RenameDownloadedFilesFlow(this) }
+
     /**
      * One entry per bucket card, re-running that card's live preview. Lets the
      * page-padding switch refresh every preview in place instead of calling
@@ -120,6 +123,9 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
         addSectionTitle(root, getString(R.string.download_path_pad_page_title), topMarginDp = 18)
         addPadPageCard(root)
+
+        addSectionTitle(root, getString(R.string.rename_dl_title), topMarginDp = 18)
+        addRenameCard(root)
 
         USER_BUCKETS.forEach { (bucket, labelRes) ->
             addSectionTitle(root, getString(labelRes), topMarginDp = 18)
@@ -203,6 +209,17 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         DownloadsRegistry.invalidateBackends()
         ToastUtils.show(getString(R.string.download_path_preset_applied))
         render()
+        if (renameableTemplatesChanged(current, next)) renameFlow.promptAfterTemplateChange()
+    }
+
+    /**
+     * 插画 / 动图 bucket 的模板是否变了 —— 只有这两个 bucket 的文件在下载记录表里,
+     * 批量重命名（issue #567）只对它们有意义;小说 / 备份 / 日志的模板变动不触发追问。
+     */
+    private fun renameableTemplatesChanged(before: DownloadConfig, after: DownloadConfig): Boolean {
+        return listOf(Bucket.Illust, Bucket.Ugoira).any { bucket ->
+            before.resolve(bucket).template != after.resolve(bucket).template
+        }
     }
 
     // ---------------- Teaching card ----------------
@@ -471,6 +488,30 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         )
     }
 
+    // ---------------- Rename existing downloads (#567) ----------------
+
+    private fun addRenameCard(root: LinearLayout) {
+        val card = cardContainer()
+        card.addView(bodyText(getString(R.string.rename_dl_card_body)))
+        val btn = TextView(requireContext()).apply {
+            text = getString(R.string.rename_dl_entry)
+            setTextColor(0xFF6C5CE7.toInt())
+            setBackgroundResource(R.drawable.bg_v3_pill_secondary)
+            gravity = android.view.Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            setPadding(dp(24), dp(11), dp(24), dp(11))
+            textSize = 13f
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(14) }
+            setOnClickListener { renameFlow.start() }
+        }
+        card.addView(btn)
+        root.addView(card)
+    }
+
     // ---------------- Per-bucket card ----------------
 
     private fun addBucketSection(root: LinearLayout, bucket: Bucket) {
@@ -524,11 +565,13 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             )
             return
         }
-        DownloadsRegistry.store.update { cfg ->
+        val before = DownloadsRegistry.store.loadOrFallback()
+        val after = DownloadsRegistry.store.update { cfg ->
             val existing = cfg.perBucket[bucket] ?: BucketConfig()
             cfg.withBucket(bucket, existing.copy(template = source))
         }
         ToastUtils.show(getString(R.string.download_path_saved))
+        if (renameableTemplatesChanged(before, after)) renameFlow.promptAfterTemplateChange()
     }
 
     private fun refreshPreview(source: String, bucket: Bucket, out: TextView) {
@@ -569,6 +612,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
                 DownloadsRegistry.invalidateBackends()
                 ToastUtils.show(getString(R.string.download_path_reset_done))
                 render()
+                if (renameableTemplatesChanged(current, cleared)) renameFlow.promptAfterTemplateChange()
             }
         }
         root.addView(btn)

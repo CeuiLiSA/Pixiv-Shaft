@@ -92,8 +92,19 @@ object DownloadItems {
      * directory structure / naming the user configured for local downloads.
      */
     @JvmStatic
-    fun illustRelativePath(illust: IllustsBean, pageIndex: Int): RelativePath {
-        val item = illustPage(illust, pageIndex)
+    fun illustRelativePath(illust: IllustsBean, pageIndex: Int): RelativePath =
+        renderedPath(illustPage(illust, pageIndex))
+
+    /**
+     * Ugoira-bucket counterpart of [illustRelativePath] — the rendered GIF's
+     * template path. Used by the rename sweep (issue #567) to recompute what a
+     * recorded `.gif` download should be called under the active template.
+     */
+    @JvmStatic
+    fun ugoiraRelativePath(illust: IllustsBean): RelativePath =
+        renderedPath(ugoira(illust))
+
+    private fun renderedPath(item: DownloadItem): RelativePath {
         val config = DownloadsRegistry.store.loadOrFallback()
         val resolved = config.resolve(item.bucket)
         val rendered = SafeTemplateRender.render(
