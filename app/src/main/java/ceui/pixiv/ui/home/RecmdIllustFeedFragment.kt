@@ -22,6 +22,7 @@ import ceui.lisa.adapters.RAdapter
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.RecyRecmdHeaderBinding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.model.ListIllust
 import ceui.lisa.models.IllustsBean
@@ -245,8 +246,10 @@ open class RecmdIllustFeedFragment(
             if (!phase.isFirstPage) {
                 return listItems
             }
-            // 排行榜预览头不做内容过滤（对齐 legacy 直接展示 ranking_illusts）
+            // 排行榜预览头也要滤掉屏蔽的作品/标签/画师（issue #543：主列表滤了、这里不滤，
+            // 被屏蔽内容就从首页顶部漏出来）；R18/AI 口味过滤照旧不适用——榜单不是个性化推荐
             val rankBeans = rankingIllusts.mapNotNull { IllustFeedItem.beanOf(it) }
+                .filterNot { IllustNovelFilter.judge(it) }
             return if (rankBeans.isEmpty()) {
                 listItems
             } else {

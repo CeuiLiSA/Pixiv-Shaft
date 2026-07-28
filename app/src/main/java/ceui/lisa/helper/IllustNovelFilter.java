@@ -148,6 +148,10 @@ public class IllustNovelFilter {
         return sb.toString();
     }
 
+    public static boolean judge(Novel novel) {
+        return judgeID(novel) || judgeTag(novel) || judgeUserID(novel);
+    }
+
     public static boolean judgeID(Novel novel) {
         List<MuteEntity> temp = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getMutedIllusts();
         if (!Common.isEmpty(temp)) {
