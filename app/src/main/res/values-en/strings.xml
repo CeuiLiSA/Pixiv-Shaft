@@ -443,6 +443,7 @@
     <string name="string_242">Set naming scheme(press and drag)</string>
     <string name="string_243">Nothing here yet</string>
     <string name="list_load_failed_tap_retry">Failed to load. Tap to retry.</string>
+    <string name="feed_error_tap_retry">Tap to retry</string>
     <string name="string_244">Filter by label</string>
     <string name="string_245">Add to Personal Collection</string>
     <string name="string_246">Illustrations</string>

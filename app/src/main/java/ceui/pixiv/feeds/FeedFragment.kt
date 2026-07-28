@@ -24,6 +24,9 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentFeedBinding
 import ceui.lisa.utils.V3Palette
+import ceui.loxia.getHumanReadableMessage
+import ceui.loxia.requireNetworkStateManager
+import ceui.pixiv.utils.NetworkStateManager
 import kotlinx.coroutines.launch
 
 /**
@@ -144,6 +147,23 @@ abstract class FeedFragment(
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 feedViewModel.uiState.collect { state -> render(state) }
+            }
+        }
+
+        // 网络恢复自动重试：只认 NONE→online 的迁移，跳过 observe 注册时的粘性首发
+        //（判定对齐 [ceui.pixiv.ui.task.PageLoadRetryController]）。全屏错误自动整页重刷、
+        // 追加错误自动续上 footer——两者都只在用户本来就无事可做的错误态触发，幂等且不打扰。
+        // 「有内容兜底的刷新失败」刻意不自动 refresh：整代替换会清表回顶，把正在浏览
+        // 缓存内容的用户从半路拽走。
+        var lastNetworkType: NetworkStateManager.NetworkType? = null
+        requireNetworkStateManager().networkState.observe(viewLifecycleOwner) { type ->
+            val wasOffline = lastNetworkType == NetworkStateManager.NetworkType.NONE
+            lastNetworkType = type
+            if (!wasOffline || !type.isOnline) return@observe
+            val state = feedViewModel.uiState.value
+            when {
+                state.showFullscreenError -> feedViewModel.refresh()
+                state.append is LoadState.Error -> feedViewModel.retryAppend()
             }
         }
     }
@@ -267,14 +287,25 @@ abstract class FeedFragment(
         }
     }
 
-    /** 屏幕上有内容时刷新失败的提示，默认 Toast；子类可覆盖。 */
+    /** 屏幕上有内容时刷新失败的提示，默认 Toast 出人话文案；子类可覆盖。 */
     protected open fun onRefreshFailedWithContent(throwable: Throwable) {
         Toast.makeText(
             requireContext(),
-            getString(R.string.list_load_failed_tap_retry),
+            humanReadableErrorOf(throwable) ?: getString(R.string.list_load_failed_tap_retry),
             Toast.LENGTH_SHORT,
         ).show()
     }
+
+    /**
+     * 异常 → 人话，复用全 app 统一的映射（[getHumanReadableMessage]：服务端 user_message 优先，
+     * 断网 / 超时 / SSL / 反序列化按 AppError 分档取本地化文案）。映射自身出岔子（HttpException
+     * 错误体已被上一次渲染消费掉等）或映射出空白时返回 null，调用方退回通用文案——错误提示
+     * 这条路上不允许再抛出第二个异常。
+     */
+    protected fun humanReadableErrorOf(throwable: Throwable): String? =
+        runCatching { throwable.getHumanReadableMessage(requireContext()) }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() }
 
     /** 回到列表顶部（tab 双击、toolbar 点击等场景）。view 未创建时安全 no-op。 */
     fun scrollToTop() {
@@ -411,7 +442,11 @@ abstract class FeedFragment(
         binding.feedLoading.isVisible = showSpinner
 
         val stateText = when {
-            state.showFullscreenError -> getString(R.string.list_load_failed_tap_retry)
+            // 错误分档到文案（离线/超时/服务端 user_message/鉴权……），另起一行保住「点击重试」提示
+            state.showFullscreenError ->
+                humanReadableErrorOf((state.refresh as LoadState.Error).throwable)
+                    ?.let { "$it\n${getString(R.string.feed_error_tap_retry)}" }
+                    ?: getString(R.string.list_load_failed_tap_retry)
             state.showEmptyState -> emptyStateText
             else -> null
         }

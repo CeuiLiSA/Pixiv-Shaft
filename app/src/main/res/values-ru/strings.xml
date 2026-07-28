@@ -443,6 +443,7 @@
     <string name="string_242">Настроить схему имени файла (нажмите и перетащите)</string>
     <string name="string_243">Здесь пока ничего нет</string>
     <string name="list_load_failed_tap_retry">Не удалось загрузить. Нажмите, чтобы повторить.</string>
+    <string name="feed_error_tap_retry">Нажмите, чтобы повторить</string>
     <string name="string_244">Фильтр по метке</string>
     <string name="string_245">Добавить в личную коллекцию</string>
     <string name="string_246">Иллюстрации</string>

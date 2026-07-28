@@ -445,6 +445,7 @@
     <string name="string_242">設定命名管道（長按拖曳）</string>
     <string name="string_243">這裡什麼都沒有呢</string>
     <string name="list_load_failed_tap_retry">載入失敗，點擊重試</string>
+    <string name="feed_error_tap_retry">點擊重試</string>
     <string name="string_244">按標籤篩選</string>
     <string name="string_245">收藏到精華</string>
     <string name="string_246">插畫作品</string>

@@ -443,6 +443,7 @@
     <string name="string_242">Adlandırma şeması (Basılı tutup sürükle)</string>
     <string name="string_243">Burası boş</string>
     <string name="list_load_failed_tap_retry">Yüklenemedi. Yeniden denemek için dokunun.</string>
+    <string name="feed_error_tap_retry">Yeniden denemek için dokunun</string>
     <string name="string_244">Etikete göre filtrele</string>
     <string name="string_245">Koleksiyona ekle</string>
     <string name="string_246">Resimler</string>

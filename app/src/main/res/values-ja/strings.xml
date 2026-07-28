@@ -443,6 +443,7 @@
     <string name="string_242">ファイル名のフォーマットを編集</string>
     <string name="string_243">コンテンツなし</string>
     <string name="list_load_failed_tap_retry">読み込みに失敗しました。タップして再試行。</string>
+    <string name="feed_error_tap_retry">タップして再試行</string>
     <string name="string_244">タグでフィルター</string>
     <string name="string_245">すき！</string>
     <string name="string_246">イラスト作品</string>

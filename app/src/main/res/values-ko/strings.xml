@@ -443,6 +443,7 @@
     <string name="string_242">이름 설정 (드래그 앤 드 롭)</string>
     <string name="string_243">여기 아무것도 없어 요.</string>
     <string name="list_load_failed_tap_retry">불러오기 실패. 탭하여 재시도.</string>
+    <string name="feed_error_tap_retry">탭하여 재시도</string>
     <string name="string_244">라벨 로 선별 하 다</string>
     <string name="string_245">알짜 로 저장 하 다</string>
     <string name="string_246">삽화 작품</string>
