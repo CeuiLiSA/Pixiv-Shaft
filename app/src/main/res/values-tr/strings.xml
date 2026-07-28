@@ -1638,6 +1638,7 @@
     <string name="rename_dl_stat_page">Sayfa numarası bilinmiyor, atlandı: %d</string>
     <string name="rename_dl_stat_conflict">Yeni ad başka bir dosyayla çakışıyor, atlandı: %d</string>
     <string name="rename_dl_stat_broken">Bozuk kayıt verisi, atlandı: %d</string>
+    <string name="rename_dl_stat_cache_zip">Ugoira önbellek dosyası (dahili), atlandı: %d</string>
     <string name="rename_dl_prompt_after_save">Adlandırma biçimi güncellendi.\n\nİndirilmiş dosyalar da yeni biçime göre yeniden adlandırılsın mı? Önce tarama yapılıp özet gösterilir; onaylamadan hiçbir şey değişmez.</string>
     <string name="rename_dl_later">Daha sonra</string>
     <string name="rename_dl_go">Yeniden adlandır</string>

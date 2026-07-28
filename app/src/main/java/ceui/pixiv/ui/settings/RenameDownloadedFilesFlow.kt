@@ -149,6 +149,7 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
             plan.unknownPage to R.string.rename_dl_stat_page,
             plan.nameConflicts to R.string.rename_dl_stat_conflict,
             plan.broken to R.string.rename_dl_stat_broken,
+            plan.ugoiraCacheZips to R.string.rename_dl_stat_cache_zip,
         ).filter { it.first > 0 }
         if (skips.isNotEmpty()) {
             appendLine()

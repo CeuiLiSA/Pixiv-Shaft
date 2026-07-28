@@ -1638,6 +1638,7 @@
     <string name="rename_dl_stat_page">Неизвестен номер страницы, пропущено: %d</string>
     <string name="rename_dl_stat_conflict">Новое имя совпадает с другим файлом, пропущено: %d</string>
     <string name="rename_dl_stat_broken">Повреждённые данные записи, пропущено: %d</string>
+    <string name="rename_dl_stat_cache_zip">Кэш-файл угоиры (внутренний), пропущено: %d</string>
     <string name="rename_dl_prompt_after_save">Формат имён обновлён.\n\nПереименовать уже скачанные файлы в новый формат? Сначала выполняется сканирование со сводкой; ничего не меняется без подтверждения.</string>
     <string name="rename_dl_later">Позже</string>
     <string name="rename_dl_go">Переименовать</string>

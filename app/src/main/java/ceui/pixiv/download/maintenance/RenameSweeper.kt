@@ -65,6 +65,8 @@ object RenameSweeper {
         val nameConflicts: Int,
         /** illustGson 缺失 / 解析失败 / 模板渲染失败。 */
         val broken: Int,
+        /** 动图下载记录指向 app cache 里的中间 zip（内部文件），不参与改名。 */
+        val ugoiraCacheZips: Int,
     )
 
     /**
@@ -85,6 +87,7 @@ object RenameSweeper {
         var unknownPage = 0
         var nameConflicts = 0
         var broken = 0
+        var ugoiraCacheZips = 0
         var offset = 0
         while (true) {
             coroutineContext.ensureActive()
@@ -109,6 +112,14 @@ object RenameSweeper {
                     broken++
                     continue
                 }
+                // Manager 给动图记录的下载行 fileName 是「标题-id.zip」、filePath 指向
+                // app cache（Android10DownloadFactory22 → LegacyFile.gifZipFile）。
+                // unzipAndPlay 按这个固定名回找 zip 复用本地回放 —— 改名等于断掉回放，
+                // 且它本来就不是用户目录里的成品文件。只有 .gif 行（导入的成品）参与改名。
+                if (bean.isGif && !row.fileName.endsWith(".gif", ignoreCase = true)) {
+                    ugoiraCacheZips++
+                    continue
+                }
                 val pageIndex = when {
                     row.page >= 0 -> row.page
                     bean.page_count <= 1 -> 0
@@ -119,9 +130,8 @@ object RenameSweeper {
                     }
                 }
                 // 动图的最终产物是 GIF，走 Ugoira bucket 的模板；其余走 Illust bucket。
-                val isGifRow = bean.isGif && row.fileName.endsWith(".gif", ignoreCase = true)
                 val newName = runCatching {
-                    if (isGifRow) {
+                    if (bean.isGif) {
                         DownloadItems.ugoiraRelativePath(bean).filename
                     } else {
                         DownloadItems.illustRelativePath(bean, pageIndex).filename
@@ -158,6 +168,7 @@ object RenameSweeper {
             unknownPage = unknownPage,
             nameConflicts = nameConflicts,
             broken = broken,
+            ugoiraCacheZips = ugoiraCacheZips,
         )
     }
 

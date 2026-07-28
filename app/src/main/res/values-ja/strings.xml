@@ -1638,6 +1638,7 @@
     <string name="rename_dl_stat_page">ページ番号不明のためスキップ：%d</string>
     <string name="rename_dl_stat_conflict">新しい名前が他のファイルと重複するためスキップ：%d</string>
     <string name="rename_dl_stat_broken">記録データ異常のためスキップ：%d</string>
+    <string name="rename_dl_stat_cache_zip">うごイラのキャッシュファイル（内部用）のためスキップ：%d</string>
     <string name="rename_dl_prompt_after_save">命名形式を更新しました。\n\nダウンロード済みのファイルも新しい形式にリネームしますか？先にスキャンして統計を表示し、確認後に実行します。</string>
     <string name="rename_dl_later">あとで</string>
     <string name="rename_dl_go">リネームする</string>

@@ -1638,6 +1638,7 @@
     <string name="rename_dl_stat_page">Unknown page number, skipped: %d</string>
     <string name="rename_dl_stat_conflict">New name collides with another file, skipped: %d</string>
     <string name="rename_dl_stat_broken">Broken record data, skipped: %d</string>
+    <string name="rename_dl_stat_cache_zip">Ugoira cache file (internal), skipped: %d</string>
     <string name="rename_dl_prompt_after_save">Naming format updated.\n\nRename already-downloaded files to the new format too? A scan with a summary is shown first; nothing changes until you confirm.</string>
     <string name="rename_dl_later">Later</string>
     <string name="rename_dl_go">Rename now</string>

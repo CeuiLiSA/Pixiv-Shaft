@@ -1784,6 +1784,7 @@
     <string name="rename_dl_stat_page">页码未知，跳过：%d</string>
     <string name="rename_dl_stat_conflict">新名字与其他文件重复，跳过：%d</string>
     <string name="rename_dl_stat_broken">记录数据异常，跳过：%d</string>
+    <string name="rename_dl_stat_cache_zip">动图缓存文件（内部文件），跳过：%d</string>
     <string name="rename_dl_prompt_after_save">命名格式已更新。\n\n要把已经下载的文件也按新格式改名吗？会先扫描并显示统计，确认后才执行。</string>
     <string name="rename_dl_later">以后再说</string>
     <string name="rename_dl_go">去重命名</string>

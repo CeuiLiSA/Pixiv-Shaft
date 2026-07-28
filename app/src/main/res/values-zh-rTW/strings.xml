@@ -1640,6 +1640,7 @@
     <string name="rename_dl_stat_page">頁碼未知，跳過：%d</string>
     <string name="rename_dl_stat_conflict">新名稱與其他檔案重複，跳過：%d</string>
     <string name="rename_dl_stat_broken">紀錄資料異常，跳過：%d</string>
+    <string name="rename_dl_stat_cache_zip">動圖快取檔案（內部檔案），跳過：%d</string>
     <string name="rename_dl_prompt_after_save">命名格式已更新。\n\n要把已經下載的檔案也依新格式改名嗎？會先掃描並顯示統計，確認後才執行。</string>
     <string name="rename_dl_later">以後再說</string>
     <string name="rename_dl_go">去重新命名</string>

@@ -1638,6 +1638,7 @@
     <string name="rename_dl_stat_page">페이지 번호를 알 수 없어 건너뜀: %d</string>
     <string name="rename_dl_stat_conflict">새 이름이 다른 파일과 중복되어 건너뜀: %d</string>
     <string name="rename_dl_stat_broken">기록 데이터 이상으로 건너뜀: %d</string>
+    <string name="rename_dl_stat_cache_zip">우고이라 캐시 파일(내부 파일)로 건너뜀: %d</string>
     <string name="rename_dl_prompt_after_save">이름 형식이 갱신되었습니다.\n\n이미 다운로드한 파일도 새 형식으로 바꿀까요? 먼저 스캔해 통계를 보여주고, 확인 후에 실행합니다.</string>
     <string name="rename_dl_later">나중에</string>
     <string name="rename_dl_go">이름 바꾸러 가기</string>
