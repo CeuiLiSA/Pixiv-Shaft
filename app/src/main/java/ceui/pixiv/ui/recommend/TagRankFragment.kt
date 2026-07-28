@@ -45,6 +45,10 @@ class TagRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerSheet
         binding.toolbar.setNavigationOnClickListener { activity?.finish() }
         binding.rankSelector.setOnClickListener { openPicker() }
 
+        // 重建路径:先用恢复的 currentTag 裸显原文,不等 discoverTags 的网络往返
+        // (buckets 回来后 loadTags 会再 bind 一次补上翻译 + 计数)。
+        currentTag?.let { bindSelector(it) }
+
         loadTags()
     }
 
@@ -66,17 +70,18 @@ class TagRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerSheet
             } catch (e: Throwable) {
                 Timber.tag("TagRank").w(e, "discoverTags failed")
                 binding.rankLoading.visibility = View.GONE
+                // toast 两条路径都给:重建路径 feed 还活着但 picker 点不开,总得有个说法;
+                // 只有首装(什么都渲染不了)才连页面一起关。
+                Common.showToast(getString(R.string.tag_rank_load_failed))
                 if (firstBuild) {
-                    // 首装拿不到标签就什么都渲染不了;重建路径 feed 还活着,别把页面关了。
-                    Common.showToast(getString(R.string.tag_rank_load_failed))
                     activity?.finish()
                 }
                 return@launch
             }
             binding.rankLoading.visibility = View.GONE
             if (tags.isEmpty()) {
+                Common.showToast(getString(R.string.tag_rank_load_failed))
                 if (firstBuild) {
-                    Common.showToast(getString(R.string.tag_rank_load_failed))
                     activity?.finish()
                 }
                 return@launch
@@ -110,7 +115,7 @@ class TagRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerSheet
     private fun bindSelector(tag: String) {
         val bucket = buckets.find { it.tag == tag }
         binding.rankSelector.text = if (bucket != null) {
-            "${bucket.translated ?: bucket.tag} · ${formatCount(bucket.count)}"
+            "${bucket.translated ?: bucket.tag} · ${formatRankCount(bucket.count)}"
         } else {
             tag
         }
@@ -142,10 +147,6 @@ class TagRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerSheet
         private const val TYPE_ILLUST = "illust"
         /** sheet 列表条数。列表比 tab 装得下更多长尾;再多靠服务端 ?q= 搜索,以后要做再加。 */
         private const val TAG_LIST_COUNT = 50
-
-        /** 12345 → 「12.3k」,988 → 「988」。 */
-        private fun formatCount(n: Int): String =
-            if (n >= 1000) String.format("%.1fk", n / 1000f) else n.toString()
 
         @JvmStatic
         fun newInstance(): TagRankFragment = TagRankFragment()

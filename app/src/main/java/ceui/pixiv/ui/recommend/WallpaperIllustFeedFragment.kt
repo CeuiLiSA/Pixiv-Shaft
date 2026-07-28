@@ -18,8 +18,8 @@ import timber.log.Timber
 /**
  * 壁纸榜的**单个 screen tab**(feeds 框架版)。宿主是 [WallpaperRankFragment] 的 ViewPager,
  * 无参 [IllustFeedFragment](toolbar 在宿主)。`autoLoad = false`:只有两个 tab,一次两枪
- * 倒是打不死限流,但 RESUME_ONLY_CURRENT + 手动加载是这组宿主/子页的既定组合
- * (见 [YearRankIllustFeedFragment]),没理由单独破例。
+ * 倒是打不死限流,但 RESUME_ONLY_CURRENT + 手动加载是这组榜单子页的既定组合
+ * (论证见 [YearRankIllustFeedFragment]),没理由单独破例。
  */
 class WallpaperIllustFeedFragment : IllustFeedFragment() {
 

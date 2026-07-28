@@ -7,11 +7,13 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 
 /**
- * 标签专区的**单个 tag tab**(feeds 框架版)。宿主是 [TagRankFragment] 的 ViewPager,
- * 无参 [IllustFeedFragment](toolbar 在宿主),数据走 [BookmarkRankFeedSource] 带 ?tag=。
+ * 标签专区的 feed 子页(feeds 框架版)。宿主 [TagRankFragment] 按所选标签把本 fragment
+ * replace 进 feed_container,一次只有一个在场;无参 [IllustFeedFragment](toolbar 在宿主),
+ * 数据走 [BookmarkRankFeedSource] 带 ?tag=。
  *
- * ⚠️ `autoLoad = false` 不是可选的 —— 30 个 tag tab,理由同 [YearRankIllustFeedFragment]
- * (读端点限流 120 req/min/IP + CN 运营商级 NAT,自动加载会一次打 30 枪)。
+ * `autoLoad = false`:replace 进来即 RESUMED,首屏由 FeedFragment.onResume 的
+ * ensureLoaded 拉起,单 feed 在场时与 autoLoad=true 行为等价 —— 保持 false 是对齐
+ * 这组榜单子页的既定组合(见 [YearRankIllustFeedFragment])。
  */
 class TagRankIllustFeedFragment : IllustFeedFragment() {
 

@@ -31,8 +31,9 @@ private const val ARG_AI = "bookmark_rank_ai"
  * 热度 pill 显收藏数。
  *
  * TemplateActivity 用同一个 Fragment 承载「收藏榜」「AI 榜」两个入口 —— 区别只是给服务端
- * 多带一个 ?ai=only(同 [ArtistRankFeedFragment] 承载画师榜/均分榜的做法)。年代榜是另一个
- * 入口,ViewPager 装 [YearRankIllustFeedFragment],但共用下面的 [BookmarkRankFeedSource]。
+ * 多带一个 ?ai=only(同 [ArtistRankFeedFragment] 承载画师榜/均分榜的做法)。年代榜/标签专区
+ * 是另外的入口(「选择条 + bottom sheet」宿主,装 [YearRankIllustFeedFragment] /
+ * [TagRankIllustFeedFragment]),但共用下面的 [BookmarkRankFeedSource]。
  *
  * 为什么 AI 值得单独一个入口:AI 作品占服务端库存 45%,但在收藏榜**头部几乎不存在**
  * (前 1000 名里 0.0%、前 1 万名里 0.6%)—— 天花板 72314 收藏 vs 非 AI 的 990150。

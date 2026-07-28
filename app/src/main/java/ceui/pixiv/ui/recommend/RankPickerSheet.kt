@@ -16,6 +16,7 @@ import ceui.pixiv.utils.screenHeight
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -104,7 +105,12 @@ class RankPickerSheet : BottomSheetDialogFragment() {
         private val onPick: (String) -> Unit,
     ) : RecyclerView.Adapter<RowAdapter.RowHolder>() {
 
-        class RowHolder(val binding: ItemRankPickerRowBinding) : RecyclerView.ViewHolder(binding.root)
+        class RowHolder(val binding: ItemRankPickerRowBinding) : RecyclerView.ViewHolder(binding.root) {
+            // 布局默认字色(主题 resolve 后的值)。选中行染强调色后 holder 会被复用,
+            // 未选中行必须用这份快照染回去,不能指望 XML —— XML 只在 inflate 时生效一次。
+            val defaultPrimaryColor = binding.optionPrimary.textColors
+            val defaultCountColor = binding.optionCount.textColors
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RowHolder =
             RowHolder(ItemRankPickerRowBinding.inflate(
@@ -115,7 +121,7 @@ class RankPickerSheet : BottomSheetDialogFragment() {
         override fun onBindViewHolder(holder: RowHolder, position: Int) {
             val b = holder.binding
             b.optionPrimary.text = labels.getOrElse(position) { keys[position] }
-            b.optionCount.text = formatCount(counts.getOrElse(position) { 0 })
+            b.optionCount.text = formatRankCount(counts.getOrElse(position) { 0 })
             val sub = sublabels.getOrNull(position)?.takeIf { it.isNotEmpty() }
             if (sub != null) {
                 b.optionSecondary.text = sub
@@ -123,16 +129,17 @@ class RankPickerSheet : BottomSheetDialogFragment() {
             } else {
                 b.optionSecondary.visibility = View.GONE
             }
-            // 选中行:主文字染强调色。主题非 MD3,强调色统一代码 tint(见 sheet 布局注释)。
+            // 选中行:主文字染强调色;其余行染回默认色(holder 复用,不能只染不还)。
+            // 主题非 MD3,强调色统一代码 tint(见 sheet 布局注释)。
             if (position == selected) {
                 b.optionPrimary.setTextColor(palette.textAccent)
                 b.optionCount.setTextColor(palette.textAccent)
+            } else {
+                b.optionPrimary.setTextColor(holder.defaultPrimaryColor)
+                b.optionCount.setTextColor(holder.defaultCountColor)
             }
             b.root.setOnClickListener { onPick(keys[position]) }
         }
-
-        private fun formatCount(n: Int): String =
-            if (n >= 1000) String.format("%.1fk", n / 1000f) else n.toString()
     }
 
     companion object {
@@ -174,3 +181,10 @@ class RankPickerSheet : BottomSheetDialogFragment() {
         }
     }
 }
+
+/**
+ * 榜单场景的计数缩写:12345 → 「12.3k」,988 → 「988」。sheet 行 / 宿主选择条共用。
+ * Locale.US 钉死小数点 —— ru/tr 等 locale 的 %.1f 是逗号小数(「20,0k」),这里不合适。
+ */
+internal fun formatRankCount(n: Int): String =
+    if (n >= 1000) String.format(Locale.US, "%.1fk", n / 1000f) else n.toString()

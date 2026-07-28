@@ -7,14 +7,16 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 
 /**
- * 年代榜的**单个年份 tab**(feeds 框架版)。宿主是 [YearRankFragment] 的 ViewPager,所以
- * 用无参 [IllustFeedFragment](不带 toolbar —— toolbar 在宿主那儿),对齐
- * [HotWorksIllustFeedFragment] 的做法。
+ * 年代榜的 feed 子页(feeds 框架版)。宿主 [YearRankFragment] 按所选年份把本 fragment
+ * replace 进 feed_container,一次只有一个在场;无参 [IllustFeedFragment](不带 toolbar ——
+ * toolbar 在宿主那儿),对齐 [HotWorksIllustFeedFragment] 的做法。
  *
- * ⚠️ `autoLoad = false` 不是可选的:年代榜有 20 个年份 tab,自动加载会在进页面那一刻
- * 把所有 tab 的首屏一起打出去。服务端读端点限流 120 req/min/IP,而 CN 运营商级 NAT 会把
- * 上百个真实用户压在同一个出口 IP 后面 —— 一次性打 20 枪会把整个 NAT 后的用户一起打成 429。
- * 宿主 ViewPager 用 BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT,配上这个才是「滑到哪年拉哪年」。
+ * `autoLoad = false`:replace 进来即 RESUMED,首屏由 FeedFragment.onResume 的
+ * ensureLoaded 拉起,单 feed 在场时与 autoLoad=true 行为等价。历史上宿主是 20 个年份
+ * tab 的 ViewPager,autoLoad=false + RESUME_ONLY_CURRENT 是防齐射限流的硬要求
+ * (读端点 120 req/min/IP + CN 运营商级 NAT,一次打 20 枪会把整个 NAT 后的用户打成 429);
+ * 改成 sheet 选择后不再有齐射场景,保持 false 是延续既定组合,也给未来回到多 feed
+ * 结构留着这道闸。
  */
 class YearRankIllustFeedFragment : IllustFeedFragment() {
 

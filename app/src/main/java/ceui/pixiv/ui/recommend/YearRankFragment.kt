@@ -48,6 +48,10 @@ class YearRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerShee
         binding.toolbar.setNavigationOnClickListener { activity?.finish() }
         binding.rankSelector.setOnClickListener { openPicker() }
 
+        // 重建路径:先用恢复的 currentYear 裸显年份,不等 discoverYears 的网络往返
+        // (buckets 回来后 loadYears 会再 bind 一次补上计数)。
+        currentYear?.let { bindSelector(it) }
+
         loadYears()
     }
 
@@ -68,16 +72,18 @@ class YearRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerShee
             } catch (e: Throwable) {
                 Timber.tag("YearRank").w(e, "discoverYears failed")
                 binding.rankLoading.visibility = View.GONE
+                // toast 两条路径都给:重建路径 feed 还活着但 picker 点不开,总得有个说法;
+                // 只有首装(什么都渲染不了)才连页面一起关。
+                Common.showToast(getString(R.string.year_rank_load_failed))
                 if (firstBuild) {
-                    Common.showToast(getString(R.string.year_rank_load_failed))
                     activity?.finish()
                 }
                 return@launch
             }
             binding.rankLoading.visibility = View.GONE
             if (years.isEmpty()) {
+                Common.showToast(getString(R.string.year_rank_load_failed))
                 if (firstBuild) {
-                    Common.showToast(getString(R.string.year_rank_load_failed))
                     activity?.finish()
                 }
                 return@launch
@@ -110,7 +116,7 @@ class YearRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerShee
     private fun bindSelector(year: String) {
         val bucket = buckets.find { it.year == year }
         binding.rankSelector.text = if (bucket != null) {
-            "${bucket.year} · ${formatCount(bucket.count)}"
+            "${bucket.year} · ${formatRankCount(bucket.count)}"
         } else {
             year
         }
@@ -139,10 +145,6 @@ class YearRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerShee
         private const val KEY_CURRENT_YEAR = "year_rank_current_year"
         /** 服务端 enum,不是展示文案。年代榜目前只做插画(漫画/小说样本量太小)。 */
         private const val TYPE_ILLUST = "illust"
-
-        /** 1234 → 「1.2k」,988 → 「988」。 */
-        private fun formatCount(n: Int): String =
-            if (n >= 1000) String.format("%.1fk", n / 1000f) else n.toString()
 
         @JvmStatic
         fun newInstance(): YearRankFragment = YearRankFragment()
