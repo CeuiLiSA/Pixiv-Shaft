@@ -142,6 +142,7 @@ object SettingsCatalog {
         add(Entry(DOWNLOAD, "illust_long_press_download_rela", R.string.string_405, keywords = "长按 下载 long press"))
         add(Entry(DOWNLOAD, "toast_download_result_rela", R.string.toast_download_result, keywords = "提示 通知 完成 toast"))
         add(Entry(DOWNLOAD, "write_exif_tags_rela", R.string.setting_write_exif_tags_title, R.string.setting_write_exif_tags_desc, keywords = "标签 关键词 exif xmp 元数据 相册 keywords metadata tags dc:subject"))
+        add(Entry(DOWNLOAD, "silent_download_rela", R.string.setting_silent_download_title, R.string.setting_silent_download_desc, keywords = "低调 静默 隐藏 隐身 最近 微信 qq 相册 时间 recent hide silent wechat"))
         add(Entry(DOWNLOAD, "aria2_rela", R.string.aria2_settings_title, R.string.aria2_settings_entry_desc, keywords = "aria2 远程 nas rpc 服务器 remote"))
 
         // AI 功能

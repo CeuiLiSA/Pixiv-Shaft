@@ -318,6 +318,19 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         baseBind.writeExifTagsRela.setOnClickListener(v ->
                 baseBind.writeExifTags.performClick());
 
+        // 低调下载:时间戳回拨,不出现在相册 / 微信 / QQ 最近图片前排(issue #731)
+        baseBind.silentDownload.setChecked(Shaft.sSettings.isSilentDownload());
+        baseBind.silentDownload.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setSilentDownload(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.silentDownloadRela.setOnClickListener(v ->
+                baseBind.silentDownload.performClick());
+
         //下载限制类型
         final String[] DOWNLOAD_START_TYPE_NAMES = new String[]{
                 getString(DownloadLimitTypeUtil.DOWNLOAD_START_TYPE_IDS[0]),

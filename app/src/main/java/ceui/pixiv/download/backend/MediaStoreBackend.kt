@@ -144,7 +144,7 @@ class MediaStoreBackend(
             val existing = findUri(relPath) ?: reclaimOrphanRow(relPath)
             if (existing != null) {
                 try {
-                    return openExistingForReplace(existing, mime)
+                    return openExistingForReplace(existing, relPath, mime)
                 } catch (se: SecurityException) {
                     // Row exists but we don't own it; cannot in-place update.
                     // Log + fall through to fresh insert below. MediaStore on
@@ -179,12 +179,19 @@ class MediaStoreBackend(
      * In-place update path of [replace] — extracted so we can wrap it in a
      * single try/catch SecurityException and cleanly fall back to insert.
      */
-    private fun openExistingForReplace(existing: Uri, mime: String): StorageBackend.WriteHandle {
+    private fun openExistingForReplace(
+        existing: Uri,
+        relPath: RelativePath,
+        mime: String,
+    ): StorageBackend.WriteHandle {
+        val silent = SilentDownload.applies(mime)
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.MIME_TYPE, mime)
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
         context.contentResolver.update(existing, values, null, null)
+        // 变成 pending 的一刻起就要登记(理由见 openModern),所有退出路径 untrack。
+        InFlightMediaStoreWrites.track(existing)
         // If openOutputStream throws, restore IS_PENDING=0 on the
         // existing row before propagating — otherwise the pre-existing
         // file gets stuck as a `.pending-` orphan even though we never
@@ -200,13 +207,22 @@ class MediaStoreBackend(
                     null, null,
                 )
             }
+            InFlightMediaStoreWrites.untrack(existing)
             throw e
         }
         val onFinish: () -> Unit = {
+            // 时序同 openModern:先回拨 pending 文件 mtime,再发布,再兜底更新时间列。
+            if (silent) {
+                SilentDownload.backdatePendingFile(context.contentResolver, existing)
+            }
             val update = ContentValues().apply {
                 put(MediaStore.MediaColumns.IS_PENDING, 0)
             }
             context.contentResolver.update(existing, update, null, null)
+            if (silent) {
+                SilentDownload.backdateRow(context.contentResolver, existing, legacyFile(relPath))
+            }
+            InFlightMediaStoreWrites.untrack(existing)
         }
         // On abort during replace, restore IS_PENDING=0 — the row
         // pre-existed before we touched it, so deleting it would
@@ -219,6 +235,7 @@ class MediaStoreBackend(
                     null, null,
                 )
             }
+            InFlightMediaStoreWrites.untrack(existing)
         }
         return StorageBackend.WriteHandle(existing, stream, onFinish, onAbort)
     }
@@ -228,6 +245,7 @@ class MediaStoreBackend(
         // we get here. Always insert fresh so the row carries the correct mime.
         val collectionUri = collectionUri()
         val relativeDir = (listOf(collectionRoot()) + relPath.directory).joinToString("/") + "/"
+        val silent = SilentDownload.applies(mime)
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, relPath.filename)
             put(MediaStore.MediaColumns.RELATIVE_PATH, relativeDir)
@@ -236,9 +254,36 @@ class MediaStoreBackend(
             // otherwise gallery apps may cache a 0-byte thumbnail and never
             // refresh, which is what users see as "doesn't appear in gallery".
             put(MediaStore.MediaColumns.IS_PENDING, 1)
+            if (silent) {
+                // 低调下载:insert 时就带上回拨时间。DATE_ADDED 只在插入时赋值、
+                // 后续扫描不重算,这里是它最可靠的落点;onFinish 里的 backdateRow
+                // 作为 DATE_MODIFIED / DATE_TAKEN 的第二道保险。
+                put(MediaStore.MediaColumns.DATE_ADDED, SilentDownload.BACKDATE_SEC)
+                put(MediaStore.MediaColumns.DATE_MODIFIED, SilentDownload.BACKDATE_SEC)
+            }
         }
-        val target: Uri = context.contentResolver.insert(collectionUri, values)
-            ?: error("MediaStore insert failed for $relPath")
+        // 带日期列的 insert 在个别 OEM 上可能被拒 —— 去掉日期列重试一次。
+        // 低调下载开关绝不能让下载本身失败(少一道保险,onFinish 兜底仍在)。
+        val inserted: Uri? = try {
+            context.contentResolver.insert(collectionUri, values)
+        } catch (e: Exception) {
+            if (!silent) throw e
+            Timber.w(e, "MediaStoreBackend: insert with backdated date columns rejected, retrying without")
+            null
+        }
+        val target: Uri = inserted ?: run {
+            if (silent) {
+                values.remove(MediaStore.MediaColumns.DATE_ADDED)
+                values.remove(MediaStore.MediaColumns.DATE_MODIFIED)
+                context.contentResolver.insert(collectionUri, values)
+            } else {
+                null
+            }
+        } ?: error("MediaStore insert failed for $relPath")
+        // 登记在途写入:低调下载把 DATE_ADDED 回拨后,MediaStoreOrphanCleaner 的
+        // 60 秒时间闸认不出这是刚插入的行,必须显式登记防止被当孤儿清掉。
+        // 下面所有提前退出路径(rename guard / openOutputStream 失败)都要 untrack。
+        InFlightMediaStoreWrites.track(target)
         // OEM-rename guard: certain Android skins (HarmonyOS / MIUI / etc.)
         // silently rewrite the inserted row's RELATIVE_PATH when an existing
         // on-disk file collides with the one we're trying to write but its
@@ -263,6 +308,7 @@ class MediaStoreBackend(
                 relativeDir, actualRelativeDir, relPath,
             )
             runCatching { context.contentResolver.delete(target, null, null) }
+            InFlightMediaStoreWrites.untrack(target)
             // For human readability fall back to the collection root
             // (Pictures/Downloads) when the relative path has no directory
             // segments — joining an empty list yields "" and produces the
@@ -282,9 +328,15 @@ class MediaStoreBackend(
                 ?: error("openOutputStream returned null for $target")
         } catch (e: Exception) {
             runCatching { context.contentResolver.delete(target, null, null) }
+            InFlightMediaStoreWrites.untrack(target)
             throw e
         }
         val onFinish: () -> Unit = {
+            if (silent) {
+                // 低调下载:必须在清 IS_PENDING 之前回拨 pending 文件的 mtime,
+                // 发布扫描才会记下旧的 date_modified(见 backdatePendingFile 注释)。
+                SilentDownload.backdatePendingFile(context.contentResolver, target)
+            }
             // Clear IS_PENDING — this both makes the row visible to other apps
             // and fires a content observer notification that gallery apps use
             // to refresh their grid.
@@ -292,12 +344,17 @@ class MediaStoreBackend(
                 put(MediaStore.MediaColumns.IS_PENDING, 0)
             }
             context.contentResolver.update(target, update, null, null)
+            if (silent) {
+                SilentDownload.backdateRow(context.contentResolver, target, legacyFile(relPath))
+            }
+            InFlightMediaStoreWrites.untrack(target)
         }
         // On abort, delete the row we just inserted. The bytes are partial /
         // zero, the row is invisible to galleries (still IS_PENDING=1), and
         // the user's file manager shows it as `.pending-NNNN`. Clean exit.
         val onAbort: () -> Unit = {
             runCatching { context.contentResolver.delete(target, null, null) }
+            InFlightMediaStoreWrites.untrack(target)
         }
         return StorageBackend.WriteHandle(target, stream, onFinish, onAbort)
     }
@@ -318,7 +375,21 @@ class MediaStoreBackend(
         }
         val onFinish: () -> Unit = {
             // Pre-Q public-storage write — file is real, just tell MediaScanner.
-            MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mime), null)
+            if (SilentDownload.applies(mime)) {
+                // 低调下载:先回拨 mtime 再扫,scanner 照 mtime 记 date_modified;
+                // 但 DATE_ADDED 由 scanner 记为「现在」,pre-Q 没有行所有权限制,
+                // 扫完在回调里直接把时间列改掉,把另一半也回拨上。
+                SilentDownload.backdateFile(file)
+                MediaScannerConnection.scanFile(
+                    context, arrayOf(file.absolutePath), arrayOf(mime),
+                ) { _, scannedUri ->
+                    if (scannedUri != null) {
+                        SilentDownload.backdateRow(context.contentResolver, scannedUri, null)
+                    }
+                }
+            } else {
+                MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mime), null)
+            }
         }
         // On abort, only delete if we created the file ourselves — never
         // delete a pre-existing file the user already had on disk.

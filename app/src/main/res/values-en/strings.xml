@@ -840,6 +840,8 @@
     <string name="toast_download_result">Show an in-app notice when downloads complete</string>
     <string name="setting_write_exif_tags_title">Write tags into images on download</string>
     <string name="setting_write_exif_tags_desc">Embed tags as XMP keywords (dc:subject) in downloaded JPEGs so photo apps can organize by tag. JPEG only.</string>
+    <string name="setting_silent_download_title">Discreet download</string>
+    <string name="setting_silent_download_desc">Backdate saved images so they don\'t show up at the top of the gallery or chat apps\' recent photos.</string>
     <string name="title_home">Home</string>
     <string name="show_reply">Show replies</string>
     <string name="comments">Comments</string>

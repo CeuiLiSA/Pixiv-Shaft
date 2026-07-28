@@ -842,6 +842,8 @@
     <string name="toast_download_result">下載完成 APP 內提示</string>
     <string name="setting_write_exif_tags_title">下載時把標籤寫進圖片</string>
     <string name="setting_write_exif_tags_desc">為下載的 JPEG 寫入 XMP 關鍵字(dc:subject),方便相簿 / 圖片管理軟體依標籤整理。僅 JPEG。</string>
+    <string name="setting_silent_download_title">低調下載</string>
+    <string name="setting_silent_download_desc">把下載圖片的時間標記為很久以前,不出現在相簿和通訊軟體選圖清單的最前排。</string>
     <string name="title_home">Home</string>
     <string name="show_reply">查看回覆</string>
     <string name="comments">評論</string>

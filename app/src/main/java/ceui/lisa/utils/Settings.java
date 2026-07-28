@@ -158,6 +158,10 @@ public class Settings {
     // 每张多一次全文件重写,只有显式开启才付出这次 IO(issue #938)。
     private boolean writeTagsToImageExif = false;
 
+    // 低调下载:下载完成后把文件时间戳回拨到很早以前,不出现在相册及微信 / QQ
+    // 选图列表的「最近」前排(issue #731)。默认关。
+    private boolean silentDownload = false;
+
     private boolean saveViewHistory = true;
 
     // 浏览记录云同步(pixshaft-api)。默认开启,但首次会弹一次同意框让用户选择是否关闭。
@@ -525,6 +529,14 @@ public class Settings {
 
     public void setWriteTagsToImageExif(boolean writeTagsToImageExif) {
         this.writeTagsToImageExif = writeTagsToImageExif;
+    }
+
+    public boolean isSilentDownload() {
+        return silentDownload;
+    }
+
+    public void setSilentDownload(boolean silentDownload) {
+        this.silentDownload = silentDownload;
     }
 
     public String getIllustPath() {

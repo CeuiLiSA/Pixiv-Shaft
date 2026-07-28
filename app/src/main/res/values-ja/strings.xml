@@ -840,6 +840,8 @@
     <string name="toast_download_result">ダウンロード完了時に通知</string>
     <string name="setting_write_exif_tags_title">ダウンロード時に画像へタグを書き込む</string>
     <string name="setting_write_exif_tags_desc">ダウンロードした JPEG に XMP キーワード(dc:subject)としてタグを埋め込み、写真アプリでタグ管理できるようにします。JPEG のみ。</string>
+    <string name="setting_silent_download_title">目立たないダウンロード</string>
+    <string name="setting_silent_download_desc">保存した画像の日時を過去に設定し、ギャラリーやチャットアプリの「最近の画像」の先頭に表示されないようにします。</string>
     <string name="title_home">Home</string>
     <string name="show_reply">返信を表示</string>
     <string name="comments">コメント</string>

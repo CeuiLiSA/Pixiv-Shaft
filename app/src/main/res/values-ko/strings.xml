@@ -840,6 +840,8 @@
     <string name="toast_download_result">다운로드 완료 시 앱 내 알림 표시</string>
     <string name="setting_write_exif_tags_title">다운로드 시 이미지에 태그 기록</string>
     <string name="setting_write_exif_tags_desc">다운로드한 JPEG에 XMP 키워드(dc:subject)로 태그를 넣어 사진 앱에서 태그로 정리할 수 있게 합니다. JPEG만 지원.</string>
+    <string name="setting_silent_download_title">조용한 다운로드</string>
+    <string name="setting_silent_download_desc">저장된 이미지의 날짜를 과거로 설정해 갤러리나 채팅 앱의 최근 사진 상단에 표시되지 않도록 합니다.</string>
     <string name="title_home">Home</string>
     <string name="show_reply">답글 보기</string>
     <string name="comments">댓글</string>

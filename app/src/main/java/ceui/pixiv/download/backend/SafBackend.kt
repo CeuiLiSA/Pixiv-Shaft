@@ -68,7 +68,15 @@ class SafBackend(
             // For trees on non-primary volumes (SD card, USB) we may not be able
             // to derive a path — in that case we skip silently.
             resolveFsPath(doc.uri)?.let { fsPath ->
-                MediaScannerConnection.scanFile(context, arrayOf(fsPath), arrayOf(mime), null)
+                if (SilentDownload.applies(mime)) {
+                    // 低调下载:不主动通知 MediaScanner。扫描产生的行不归本 app 所有,
+                    // Q+ 上事后回拨时间列会被权限拒绝,mtime 也常被 scoped storage 挡下。
+                    // 干脆不广而告之 —— 文件立刻对相册 / 选图器完全不可见,等将来系统
+                    // 全盘重扫时才以(尽力回拨过的)mtime 入库,不会出现在「最近」前排。
+                    SilentDownload.backdateFile(File(fsPath))
+                } else {
+                    MediaScannerConnection.scanFile(context, arrayOf(fsPath), arrayOf(mime), null)
+                }
             }
         }
         // On abort, delete the SAF document we just created (always

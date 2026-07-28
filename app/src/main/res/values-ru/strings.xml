@@ -840,6 +840,8 @@
     <string name="toast_download_result">Показывать уведомление после завершения загрузки</string>
     <string name="setting_write_exif_tags_title">Записывать теги в изображения при загрузке</string>
     <string name="setting_write_exif_tags_desc">Встраивать теги как ключевые слова XMP (dc:subject) в загружаемые JPEG, чтобы фотоприложения могли сортировать по тегам. Только JPEG.</string>
+    <string name="setting_silent_download_title">Незаметная загрузка</string>
+    <string name="setting_silent_download_desc">Сохранённым изображениям присваивается старая дата, чтобы они не появлялись в начале галереи и списка недавних фото в мессенджерах.</string>
     <string name="title_home">Home</string>
     <string name="show_reply">Показать ответы</string>
     <string name="comments">Комментарии</string>
