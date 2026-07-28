@@ -1814,6 +1814,15 @@
     <string name="year_rank">연도별 순위</string>
     <string name="year_rank_title">연도별 북마크 순위</string>
     <string name="year_rank_load_failed">연도 목록을 불러오지 못했습니다</string>
+    <string name="tag_rank">태그별 순위</string>
+    <string name="tag_rank_title">태그별 순위</string>
+    <string name="tag_rank_load_failed">태그 목록을 불러오지 못했습니다</string>
+    <string name="tag_rank_pick">태그 선택</string>
+    <string name="year_rank_pick">연도 선택</string>
+    <string name="wallpaper_rank">배경화면 순위</string>
+    <string name="wallpaper_rank_title">배경화면 북마크 순위</string>
+    <string name="wallpaper_screen_phone">휴대폰</string>
+    <string name="wallpaper_screen_desktop">데스크톱</string>
     <string name="recent_window_live">실시간</string>
     <string name="recent_window_day">일간</string>
     <string name="recent_window_week">주간</string>

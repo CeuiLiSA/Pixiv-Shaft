@@ -89,19 +89,22 @@ class BookmarkRankFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_fe
  * 响应不实现 KListShow(item.bean 是 JsonObject),用不了 PixivFeedSource,手写 [FeedSource]
  * (同浏览量榜 [ViewRankFeedSource])。
  *
- * [ai] / [year] 为 null 时 Retrofit 不发该 query,即无筛选 —— 收藏榜、AI 榜、年代榜共用本 source,
- * 只是带的 query 不同。零 Fragment 捕获(全是构造进来的局部值,map 是伴生纯函数)。
+ * [ai] / [year] / [tag] 为 null 时 Retrofit 不发该 query,即无筛选 —— 收藏榜、AI 榜、年代榜、
+ * 标签专区共用本 source,只是带的 query 不同。零 Fragment 捕获(全是构造进来的局部值,
+ * map 是伴生纯函数)。
  */
 class BookmarkRankFeedSource(
     private val type: String = "illust",
     private val limitN: Int = 30,
     private val ai: String? = null,
     private val year: String? = null,
+    private val tag: String? = null,
 ) : FeedSource<String> {
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val resp: ShaftApiV2.MostBookmarkedResponse = if (cursor == null) {
-            ShaftApiV2Client.service.mostBookmarked(type = type, limit = limitN, ai = ai, year = year)
+            ShaftApiV2Client.service.mostBookmarked(
+                type = type, limit = limitN, ai = ai, year = year, tag = tag)
         } else {
             ShaftApiV2Client.service.mostBookmarkedByUrl(cursor)
         }

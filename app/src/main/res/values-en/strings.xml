@@ -1814,6 +1814,15 @@
     <string name="year_rank">By Year</string>
     <string name="year_rank_title">Ranking by Year</string>
     <string name="year_rank_load_failed">Failed to load year list</string>
+    <string name="tag_rank">By Tag</string>
+    <string name="tag_rank_title">Tag Zones</string>
+    <string name="tag_rank_load_failed">Failed to load tag list</string>
+    <string name="tag_rank_pick">Pick a tag</string>
+    <string name="year_rank_pick">Pick a year</string>
+    <string name="wallpaper_rank">Wallpapers</string>
+    <string name="wallpaper_rank_title">Wallpaper Ranking</string>
+    <string name="wallpaper_screen_phone">Phone</string>
+    <string name="wallpaper_screen_desktop">Desktop</string>
     <string name="recent_window_live">Live</string>
     <string name="recent_window_day">Daily ranking</string>
     <string name="recent_window_week">Weekly ranking</string>

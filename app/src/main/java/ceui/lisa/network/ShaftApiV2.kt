@@ -203,9 +203,11 @@ interface ShaftApiV2 {
         @Query("ai") ai: String? = null,
         @Query("year") year: String? = null,
         @Query("q") q: String? = null,
+        /** **精确** tag 名(服务端原文,不是 translated;区分大小写)。可选值见 [discoverTags]。 */
+        @Query("tag") tag: String? = null,
     ): MostBookmarkedResponse
 
-    /** 翻页专用:直接打 server 返回的 `next_url`(绝对 URL,已带 ai/year/q)。 */
+    /** 翻页专用:直接打 server 返回的 `next_url`(绝对 URL,已带 ai/year/q/tag)。 */
     @GET
     suspend fun mostBookmarkedByUrl(@Url url: String): MostBookmarkedResponse
 
@@ -218,6 +220,62 @@ interface ShaftApiV2 {
         /** 服务端回显的筛选值,没传就是 null。 */
         val ai: String? = null,
         val year: String? = null,
+        val tag: String? = null,
+    )
+
+    /**
+     * 「标签专区」的标签选择器数据源:热门标签按库内作品数降序(tag 原文 + 官方翻译 + 数量)。
+     * `tag` 是**原文**,直接透传给 [mostBookmarked] 的 tag 参数;UI 展示优先用 translated。
+     * [q] 子串模糊筛,原文/翻译都参与匹配(搜「碧蓝」能出「ブルーアーカイブ」)。
+     * complete=false 表示服务端衍生表还在回填(部署后 ~15 分钟),计数是部分值 —— 榜单
+     * 内容照常可用,只是数字偏小,客户端无需特殊处理。
+     */
+    @GET("api/v1/discover/tags")
+    suspend fun discoverTags(
+        @Query("type") type: String = "illust",
+        @Query("limit") limit: Int = 30,
+        @Query("offset") offset: Int = 0,
+        @Query("q") q: String? = null,
+    ): TagsResponse
+
+    data class TagsResponse(
+        val type: String,
+        val complete: Boolean = true,
+        val tags: List<TagBucket> = listOf(),
+        val next_url: String? = null,
+    )
+
+    data class TagBucket(
+        /** 服务端 enum 语义的原文 tag 名,透传给 [mostBookmarked],别本地化。 */
+        val tag: String = "",
+        /** pixiv 官方翻译(多为中文/英文),可空;展示优先用它。 */
+        val translated: String? = null,
+        val count: Int = 0,
+    )
+
+    /**
+     * 壁纸榜 —— 只含 illust,按 pixiv 总收藏数排(含 R-18)。
+     * screen=desktop 横图(w/h≥1.5 且 w≥1200);phone 竖图(h/w≥5/3 且 h≥1600)。
+     * item 复用 [TrendingWorkItem](target_id/bookmark_count/bean;服务端另带 width/height,
+     * bean 里本来就有,客户端不需要单独字段)。翻页跟随 next_url。
+     */
+    @GET("api/v1/discover/wallpapers")
+    suspend fun wallpapers(
+        @Query("screen") screen: String = "phone",
+        @Query("limit") limit: Int = 30,
+        @Query("offset") offset: Int = 0,
+    ): WallpapersResponse
+
+    /** 翻页专用:直接打 server 返回的 `next_url`(绝对 URL,已带 screen)。 */
+    @GET
+    suspend fun wallpapersByUrl(@Url url: String): WallpapersResponse
+
+    data class WallpapersResponse(
+        val screen: String,
+        val limit: Int,
+        val items: List<TrendingWorkItem>,
+        val offset: Int? = null,
+        val next_url: String? = null,
     )
 
     /**

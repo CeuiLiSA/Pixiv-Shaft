@@ -1814,6 +1814,15 @@
     <string name="year_rank">По годам</string>
     <string name="year_rank_title">Рейтинг по годам</string>
     <string name="year_rank_load_failed">Не удалось загрузить список годов</string>
+    <string name="tag_rank">По тегам</string>
+    <string name="tag_rank_title">Рейтинг по тегам</string>
+    <string name="tag_rank_load_failed">Не удалось загрузить список тегов</string>
+    <string name="tag_rank_pick">Выберите тег</string>
+    <string name="year_rank_pick">Выберите год</string>
+    <string name="wallpaper_rank">Обои</string>
+    <string name="wallpaper_rank_title">Рейтинг обоев</string>
+    <string name="wallpaper_screen_phone">Телефон</string>
+    <string name="wallpaper_screen_desktop">Рабочий стол</string>
     <string name="recent_window_live">В реальном времени</string>
     <string name="recent_window_day">За день</string>
     <string name="recent_window_week">За неделю</string>

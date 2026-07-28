@@ -1814,6 +1814,15 @@
     <string name="year_rank">年代別ランキング</string>
     <string name="year_rank_title">年代別ブックマークランキング</string>
     <string name="year_rank_load_failed">年リストの読み込みに失敗しました</string>
+    <string name="tag_rank">タグ別ランキング</string>
+    <string name="tag_rank_title">タグ別ランキング</string>
+    <string name="tag_rank_load_failed">タグリストの読み込みに失敗しました</string>
+    <string name="tag_rank_pick">タグを選択</string>
+    <string name="year_rank_pick">年を選択</string>
+    <string name="wallpaper_rank">壁紙ランキング</string>
+    <string name="wallpaper_rank_title">壁紙ブックマークランキング</string>
+    <string name="wallpaper_screen_phone">スマホ</string>
+    <string name="wallpaper_screen_desktop">デスクトップ</string>
     <string name="recent_window_live">リアルタイム</string>
     <string name="recent_window_day">日間</string>
     <string name="recent_window_week">週間</string>

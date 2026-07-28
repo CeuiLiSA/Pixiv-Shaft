@@ -418,6 +418,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             ceui.pixiv.ui.recommend.BookmarkRankFeedFragmentKt.AI_ONLY);
                 case "年代榜":
                     return ceui.pixiv.ui.recommend.YearRankFragment.newInstance();
+                case "标签榜":
+                    return ceui.pixiv.ui.recommend.TagRankFragment.newInstance();
+                case "壁纸榜":
+                    return ceui.pixiv.ui.recommend.WallpaperRankFragment.newInstance();
                 case "操作记录":
                     return new ceui.pixiv.ui.recommend.FragmentEventHistory();
                 case "批量下载Debug":

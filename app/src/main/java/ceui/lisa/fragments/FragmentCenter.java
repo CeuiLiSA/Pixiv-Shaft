@@ -96,6 +96,8 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             baseBind.catBookmarkRank.setVisibility(View.GONE);
             baseBind.catAiRank.setVisibility(View.GONE);
             baseBind.catYearRank.setVisibility(View.GONE);
+            baseBind.catTagRank.setVisibility(View.GONE);
+            baseBind.catWallpaperRank.setVisibility(View.GONE);
         }
 
         // ── 「查看全部」跳原来的整页 ──
@@ -115,6 +117,8 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.catBookmarkRank.setOnClickListener(v -> openFragment("收藏榜"));
         baseBind.catAiRank.setOnClickListener(v -> openFragment("AI榜"));
         baseBind.catYearRank.setOnClickListener(v -> openFragment("年代榜"));
+        baseBind.catTagRank.setOnClickListener(v -> openFragment("标签榜"));
+        baseBind.catWallpaperRank.setOnClickListener(v -> openFragment("壁纸榜"));
         baseBind.catWalk.setOnClickListener(v -> openFragment("画廊"));
         baseBind.catFollowNovel.setOnClickListener(v -> openFragment("关注者的小说"));
         baseBind.catDiscovery.setOnClickListener(v -> openFragment("发现"));
@@ -140,6 +144,8 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catBookmarkRank, palette, R.drawable.ic_like_heart_fill);
         styleCatChip(baseBind.catAiRank, palette, R.drawable.baseline_auto_awesome_24);
         styleCatChip(baseBind.catYearRank, palette, R.drawable.ic_date_range_black_24dp);
+        styleCatChip(baseBind.catTagRank, palette, R.drawable.ic_loyalty_black_24dp);
+        styleCatChip(baseBind.catWallpaperRank, palette, R.drawable.ic_setcat_photo);
         styleCatChip(baseBind.catWalk, palette, R.drawable.ic_collections_black_24dp);
         styleCatChip(baseBind.catFollowNovel, palette, R.drawable.ic_baseline_bookmark_24);
         styleCatChip(baseBind.catDiscovery, palette, R.drawable.ic_baseline_explore_24);

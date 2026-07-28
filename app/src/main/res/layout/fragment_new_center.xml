@@ -577,6 +577,42 @@
                             android:textSize="13sp" />
 
                         <TextView
+                            android:id="@+id/catTagRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/tag_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catWallpaperRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/wallpaper_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
                             android:id="@+id/catFollowNovel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

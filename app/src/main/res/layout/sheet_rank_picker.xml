@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  榜单选项选择 bottom sheet 壳(标签专区选标签 / 年代榜选年份):拖拽把手 / 标题 / 列表。
+  结构照抄 sheet_select_tag.xml 并裁掉 footer(单击即选即关,没有提交动作)。主题套
+  Theme.Material3 的理由、以及 dialog overlay 必须走 ThemeOverlay.App.BottomSheetDialog.*
+  的约束,见那份布局顶部注释。标题文案由 Kotlin 侧按宿主传参设置。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_m3e_sheet_top"
+    android:clipToOutline="true"
+    android:orientation="vertical"
+    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/drag_handle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" />
+
+    <TextView
+        android:id="@+id/sheet_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="12dp"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:textColor="?attr/colorOnSurface" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/option_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp" />
+
+</LinearLayout>
