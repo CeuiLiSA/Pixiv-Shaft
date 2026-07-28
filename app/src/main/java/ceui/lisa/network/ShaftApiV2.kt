@@ -254,8 +254,9 @@ interface ShaftApiV2 {
     )
 
     /**
-     * 壁纸榜 —— 只含 illust,按 pixiv 总收藏数排(含 R-18)。
-     * screen=desktop 横图(w/h≥1.5 且 w≥1200);phone 竖图(h/w≥5/3 且 h≥1600)。
+     * 壁纸榜 —— 只含 illust,按 pixiv 总收藏数排(含 R-18)。入选是服务端双闸:比例
+     * (desktop 横图 w/h≥1.5 且 w≥1200;phone 竖图 h/w≥5/3 且 h≥1600)**且**语义命中
+     * (tag/标题/简介带壁纸或风景词 —— 纯比例合格的图 95% 只是画得宽/长,不是壁纸)。
      * item 复用 [TrendingWorkItem](target_id/bookmark_count/bean;服务端另带 width/height,
      * bean 里本来就有,客户端不需要单独字段)。翻页跟随 next_url。
      */
