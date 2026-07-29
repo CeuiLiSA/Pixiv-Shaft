@@ -50,6 +50,10 @@ fun interface FeedSource<Cursor : Any> {
      *
      * 只在**命中缓存**时被问到：未命中时屏幕上没有内容可停留，仍然必须走网络。
      * 每次 [FeedViewModel.refresh] 现读（不是构造期快照），设置改完下次冷启即生效。
+     *
+     * ⚠️ 契约：必须是廉价的纯内存判断（读设置项 / 常量），**不要碰 IO、不要抛**。故意做成非
+     * suspend 就是为了表达这一点。它在 [FeedViewModel.refresh] 的网络 try 之外、主线程上被调用，
+     * 抛出来会经 viewModelScope 直奔线程默认处理器崩掉进程；要读磁盘请改用 [loadFromCache]。
      */
     fun refreshAfterCacheHit(): Boolean = true
 }
