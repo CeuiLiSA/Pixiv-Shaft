@@ -12,6 +12,7 @@
     <string name="action_qcode">"QRコードをスキャン "</string>
     <string name="title_activity_blank">BlankActivity</string>
     <string name="empty_list_1">コンテンツなし</string>
+    <string name="feature_empty_hint">まだ精華リストがありません\n作品一覧のメニューから「精華に追加」を選んでください</string>
     <string name="empty_list_2">コンテンツなし</string>
     <string name="empty_list_3">コンテンツなし</string>
     <string name="empty_list_4">コンテンツなし</string>

@@ -12,6 +12,7 @@
 
 
     <string name="empty_list_1">居然啥也没有</string>
+    <string name="feature_empty_hint">还没有收藏过精华\n在作品列表页的菜单里选「收藏到精华」</string>
     <string name="empty_list_2">居然啥也没有</string>
     <string name="empty_list_3">居然啥也没有</string>
     <string name="empty_list_4">居然啥也没有</string>

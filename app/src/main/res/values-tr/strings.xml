@@ -12,6 +12,7 @@
     <string name="action_qcode">QR kodu tara</string>
     <string name="title_activity_blank">Boş Sayfa</string>
     <string name="empty_list_1">Burası boş</string>
+    <string name="feature_empty_hint">Henüz kayıtlı seçki yok\nBir eser listesinin menüsünden “Seçkiye ekle” seçin</string>
     <string name="empty_list_2">Burası boş</string>
     <string name="empty_list_3">Burası boş</string>
     <string name="empty_list_4">Burası boş</string>

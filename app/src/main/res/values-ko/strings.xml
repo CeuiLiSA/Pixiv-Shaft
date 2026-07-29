@@ -12,6 +12,7 @@
     <string name="action_qcode">QR 코드 를 스캐닝 하 다.</string>
     <string name="title_activity_blank">공백 활성</string>
     <string name="empty_list_1">아무것도 없다 니.</string>
+    <string name="feature_empty_hint">아직 저장된 모음이 없습니다\n작품 목록 메뉴에서 ‘모음에 추가’를 선택하세요</string>
     <string name="empty_list_2">아무것도 없다 니.</string>
     <string name="empty_list_3">아무것도 없다 니.</string>
     <string name="empty_list_4">아무것도 없다 니.</string>

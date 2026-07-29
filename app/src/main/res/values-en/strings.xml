@@ -12,6 +12,7 @@
     <string name="action_qcode">Scan QR code</string>
     <string name="title_activity_blank">BlankActivity</string>
     <string name="empty_list_1">Actually had nothing</string>
+    <string name="feature_empty_hint">No featured lists yet\nUse “Add to featured” in an artwork list’s menu</string>
     <string name="empty_list_2">Actually had nothing</string>
     <string name="empty_list_3">Actually had nothing</string>
     <string name="empty_list_4">Actually had nothing</string>

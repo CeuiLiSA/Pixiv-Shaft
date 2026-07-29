@@ -503,6 +503,12 @@
         <item name="cornerSize">10dp</item>
     </style>
 
+    <!-- 精华卡片的预览缩略图：比 V3DownloadThumb 大一档，配 bg_v3_card 的 28dp 外圆角。 -->
+    <style name="ShapeAppearance.V3FeatureThumb" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
     <!-- 小说详情页可复制信息 chip：扁平浅灰胶囊，点击复制对应字段。 -->
     <style name="NovelInfoChip" parent="">
         <item name="android:layout_width">wrap_content</item>

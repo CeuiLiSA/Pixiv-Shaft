@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  精华列表页专属 toolbar 菜单。原来复用 R.menu.delete_all,带来两个问题:
+  - 「清空全部」是 showAsAction=always 的垃圾桶,和每张卡上「删这一条」的垃圾桶同图标不同语义;
+  - delete_all 里的导出/导入两项属于下载记录页,本页 onMenuItemClick 直接返回 false 不处理,
+    是两个点了没反应的死菜单项。
+  这里只留清空一项并收进 overflow —— 破坏性批量操作本来也不该是一次点击就能碰到的。
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_delete"
+        android:title="@string/delete_all"
+        app:showAsAction="never" />
+</menu>

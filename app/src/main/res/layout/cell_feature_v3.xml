@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  精华列表卡片（V3 + MD3-E）。取代 legacy recy_feature：那版是 ?attr/colorPrimary 实心紫
+  CardView + 三张无圆角无间隙的直铺图 + 白字日期占满一整条，整页被高饱和紫填满、图片被拉伸。
+
+  这版的取舍：
+  - 底走 bg_v3_card（v3_surface_1 + 0.5dp hairline + 28dp 圆角），压在 v3_bg 上靠层次而非
+    色块区分，日夜双模同一套；按压 ripple 用 bg_drawer_item_pill（同为 28dp mask，不出框）。
+  - 三张预览图各自 12dp 圆角 + 6dp 间隙，slot 不足时置 GONE 让剩下的按 weight 摊开，
+    不再出现空槽和被拉伸的封面。
+  - 信息层级翻正：图 > 类型 chip（这张卡是什么） > 添加时间（最弱，v3_text_3）。
+    legacy 把日期做成全卡最大最亮的字，是反的。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/bg_drawer_item_pill"
+    android:orientation="vertical"
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="14dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="112dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/user_show_one"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/user_show_two"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/user_show_three"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/illust_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_v3_chip"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:textColor="@color/v3_text_2"
+            android:textSize="12sp"
+            tools:text="插画作品" />
+
+        <TextView
+            android:id="@+id/star_size"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            tools:text="2026年07月29日 10:55 添加" />
+
+        <ImageView
+            android:id="@+id/delete_item"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/string_141"
+            android:padding="7dp"
+            android:src="@drawable/ic_delete_black_24dp"
+            app:tint="@color/v3_text_3" />
+    </LinearLayout>
+</LinearLayout>
