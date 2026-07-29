@@ -20,6 +20,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentPlazaPostDetailBinding
 import ceui.lisa.network.PlazaPost
 import ceui.pixiv.chat.base.launchSuspend
+import com.hjq.toast.Toaster
 import ceui.pixiv.chat.base.viewBinding
 import ceui.pixiv.chat.base.viewModels
 import ceui.pixiv.session.SessionManager
@@ -85,9 +86,7 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
         launchSuspend {
             viewModel.events.collect { ev ->
                 when (ev) {
-                    is PlazaPostDetailViewModel.Event.Toast -> android.widget.Toast
-                        .makeText(requireContext(), ev.message, android.widget.Toast.LENGTH_SHORT)
-                        .show()
+                    is PlazaPostDetailViewModel.Event.Toast -> Toaster.showShort(ev.message)
                     PlazaPostDetailViewModel.Event.DeletedAndClose -> requireActivity().finish()
                     PlazaPostDetailViewModel.Event.CommentSent -> {
                         binding.commentInput.text?.clear()

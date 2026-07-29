@@ -14,7 +14,7 @@ import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.MergedChapter
 import ceui.pixiv.ui.novel.reader.export.MergedNovelContent
 import ceui.pixiv.ui.novel.reader.export.MergedNovelWriters
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -68,7 +68,7 @@ object CrossSeriesDownloadTask {
             seriesList.forEachIndexed { index, seriesItem ->
                 val title = seriesItem.title.orEmpty()
                 val pos = index + 1
-                ToastUtils.show(
+                Toaster.show(
                     ctx.getString(
                         R.string.cross_series_download_starting_series,
                         pos, seriesList.size, title,
@@ -79,7 +79,7 @@ object CrossSeriesDownloadTask {
                         downloadOneSeriesToSingleFile(seriesItem, format)
                     }
                     successCount++
-                    ToastUtils.show(
+                    Toaster.show(
                         ctx.getString(R.string.cross_series_download_series_ok, title)
                     )
                 } catch (ex: CancellationException) {
@@ -90,7 +90,7 @@ object CrossSeriesDownloadTask {
                         seriesTitle = title,
                         reason = ex.message ?: ex::class.java.simpleName,
                     )
-                    ToastUtils.show(
+                    Toaster.show(
                         ctx.getString(
                             R.string.cross_series_download_series_failed,
                             title, ex.message ?: ""
@@ -99,7 +99,7 @@ object CrossSeriesDownloadTask {
                 }
                 if (pos < seriesList.size) delay(1500L)
             }
-            ToastUtils.show(
+            Toaster.show(
                 ctx.getString(
                     R.string.cross_series_download_all_done,
                     successCount, failures.size,
@@ -153,7 +153,7 @@ object CrossSeriesDownloadTask {
 
                     allNovels.forEachIndexed { cIdx, novel ->
                         val cPos = cIdx + 1
-                        ToastUtils.show(
+                        Toaster.show(
                             ctx.getString(
                                 R.string.cross_series_download_merge_progress,
                                 sPos, seriesList.size, cPos, allNovels.size,
@@ -200,11 +200,11 @@ object CrossSeriesDownloadTask {
                 val writer = MergedNovelWriters.forFormat(format)
                 val ok = withContext(Dispatchers.IO) { writer.write(ctx, content, destination) }
                 if (ok) {
-                    ToastUtils.show(
+                    Toaster.show(
                         ctx.getString(R.string.cross_series_download_merge_finished, destination.filename)
                     )
                 } else {
-                    ToastUtils.show(
+                    Toaster.show(
                         ctx.getString(R.string.cross_series_download_merge_failed_save)
                     )
                 }
@@ -213,7 +213,7 @@ object CrossSeriesDownloadTask {
                 throw ex
             } catch (ex: Exception) {
                 Timber.e(ex, "CrossSeriesDownloadTask.runAllMergedOne failed")
-                ToastUtils.show(ex.message ?: ex::class.java.simpleName)
+                Toaster.show(ex.message ?: ex::class.java.simpleName)
                 onFinished(false, -1)
             }
         }

@@ -13,7 +13,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -40,6 +39,7 @@ import ceui.lisa.utils.Dev
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import ceui.pixiv.i18n.AppLocales
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
 import kotlinx.coroutines.Job
@@ -460,8 +460,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         if (viewModel.isChecked.value == true) {
             block()
         } else {
-            Toast.makeText(requireContext(), getString(R.string.read_agreement), Toast.LENGTH_SHORT)
-                .show()
+            Toaster.showShort(getString(R.string.read_agreement))
         }
     }
 

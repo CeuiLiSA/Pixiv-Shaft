@@ -8,7 +8,6 @@ import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
@@ -36,6 +35,7 @@ import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.pixiv.widgets.scrollUpFrom
 import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -99,7 +99,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                 }
                 is StreetMainViewModel.LoadState.Error -> {
                     baseBind.refreshLayout.isRefreshing = false
-                    Toast.makeText(mContext, state.message, Toast.LENGTH_SHORT).show()
+                    Toaster.showShort(state.message)
                 }
                 else -> Unit
             }
@@ -168,7 +168,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                     if (CsrfTokenProvider.get() != null) {
                         viewModel.refresh()
                     } else {
-                        Toast.makeText(mContext, "无法获取 CSRF token，请重试", Toast.LENGTH_SHORT).show()
+                        Toaster.showShort("无法获取 CSRF token，请重试")
                     }
                 }
             }
@@ -235,7 +235,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                             MMKV.defaultMMKV().encode("web-api-csrf-token", token)
                         }
                         cleanupWebView()
-                        Toast.makeText(mContext, getString(R.string.street_web_login_success), Toast.LENGTH_SHORT).show()
+                        Toaster.showShort(getString(R.string.street_web_login_success))
                         viewModel.refresh()
                     }
                 }
@@ -365,7 +365,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                             putExtra(Params.PAGE_UUID, uuid)
                         })
                     } catch (_: Exception) {
-                        Toast.makeText(mContext, "加载失败", Toast.LENGTH_SHORT).show()
+                        Toaster.showShort("加载失败")
                     }
                 }
             }

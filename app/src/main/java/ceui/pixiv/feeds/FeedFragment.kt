@@ -4,7 +4,6 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
@@ -27,6 +26,7 @@ import ceui.lisa.utils.V3Palette
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.utils.NetworkStateManager
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.launch
 
 /**
@@ -289,11 +289,7 @@ abstract class FeedFragment(
 
     /** 屏幕上有内容时刷新失败的提示，默认 Toast 出人话文案；子类可覆盖。 */
     protected open fun onRefreshFailedWithContent(throwable: Throwable) {
-        Toast.makeText(
-            requireContext(),
-            humanReadableErrorOf(throwable) ?: getString(R.string.list_load_failed_tap_retry),
-            Toast.LENGTH_SHORT,
-        ).show()
+        Toaster.showShort(humanReadableErrorOf(throwable) ?: getString(R.string.list_load_failed_tap_retry))
     }
 
     /**

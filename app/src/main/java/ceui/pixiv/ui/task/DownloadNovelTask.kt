@@ -14,7 +14,7 @@ import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.RelativePath
 import com.blankj.utilcode.util.PathUtils
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -104,11 +104,11 @@ class DownloadNovelTask(
 
             val b = saveToDownloadsScopedStorage(context, destination, stringBuffer.toString())
             if (b) {
-                ToastUtils.show(context.getString(R.string.string_181))
+                Toaster.show(context.getString(R.string.string_181))
                 _status.value = TaskStatus.Finished
                 onEnd(Unit)
             } else {
-                ToastUtils.show(context.getString(R.string.save_novel_failed, fileName))
+                Toaster.show(context.getString(R.string.save_novel_failed, fileName))
                 onError(RuntimeException("saveToDownloadsScopedStorage returned false"))
             }
 

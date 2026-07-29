@@ -55,7 +55,7 @@ import ceui.pixiv.ui.task.PixivTaskType
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -249,7 +249,7 @@ class NovelSeriesFragment :
     private fun launchMergeDownload() {
         val detail = heroDetail()
         if (detail == null) {
-            ToastUtils.show(getString(R.string.merge_download_failed_empty))
+            Toaster.show(getString(R.string.merge_download_failed_empty))
             return
         }
         val dedup = loadedNovels().distinctBy { it.id }
@@ -296,7 +296,7 @@ class NovelSeriesFragment :
     private fun launchBatchDownloadSelected() {
         val novels = selectedNovels()
         if (novels.isEmpty()) {
-            ToastUtils.show(getString(R.string.batch_download_no_selection))
+            Toaster.show(getString(R.string.batch_download_no_selection))
             return
         }
         BatchDownloadNovelsTask(
@@ -316,7 +316,7 @@ class NovelSeriesFragment :
     private fun onBatchDownloadFinished(failures: List<FailedNovel>) {
         if (!isAdded) return
         if (failures.isEmpty()) {
-            ToastUtils.show(getString(R.string.batch_download_all_ok))
+            Toaster.show(getString(R.string.batch_download_all_ok))
             selectionModel.setMultiSelectMode(false)
             return
         }
@@ -340,7 +340,7 @@ class NovelSeriesFragment :
             override fun onEnd(humanReadableTask: HumanReadableTask, results: List<Novel>) {
                 if (!isAdded) return
                 if (results.isEmpty()) {
-                    ToastUtils.show(getString(R.string.merge_download_failed_empty))
+                    Toaster.show(getString(R.string.merge_download_failed_empty))
                     return
                 }
                 BatchDownloadNovelsTask(
@@ -376,7 +376,7 @@ class NovelSeriesFragment :
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (isAdded) ToastUtils.show(getString(R.string.task_status_error))
+                if (isAdded) Toaster.show(getString(R.string.task_status_error))
             } finally {
                 if (isAdded) progressView.hideProgress()
             }

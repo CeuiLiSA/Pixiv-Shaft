@@ -16,7 +16,7 @@ import android.view.Gravity;
 import com.blankj.utilcode.util.BarUtils;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
-import com.hjq.toast.ToastUtils;
+import com.hjq.toast.Toaster;
 
 import com.getkeepsafe.relinker.ReLinker;
 import com.tencent.mmkv.MMKV;
@@ -223,25 +223,6 @@ public class Shaft extends Application implements ServicesProvider {
                         Timber.w(t, "Suppressed text-selection drag shadow ISE on main thread");
                         continue;
                     }
-                    // Toast 的 view 被重复 addView。com.hjq:toast:8.8 的 ToastUtils.init 只
-                    // createTextView 一次，把这个 TextView（id 被硬设成 android.R.id.message =
-                    // 0x102000b）当作全进程唯一的 toast view 反复复用。API < 30 走 NormalToast
-                    // ——即系统 Toast$TN.handleShow——它只在 mView.getParent() != null 时
-                    // removeView（异步），且假定这个 view 归自己管；跨 Activity 复用时上一次的
-                    // 窗口可能还挂在别的 ViewRootImpl 上、又不在 mDyingViews 里，于是
-                    // WindowManagerGlobal.addView 抛 IllegalStateException。库内部
-                    // ToastHelper（API >= 30 的 CustomToast 路径）自己 catch 了这条，系统 TN
-                    // 这条没人接。要求 message 里同时出现 android:id/message：系统 toast 根布局
-                    // transient_notification 是 LinearLayout，应用自己的窗口根是 DecorView，
-                    // 只有 hjq 这个裸 TextView 会以这个 id 作为窗口根出现，所以不会吞掉应用
-                    // 自己重复 addView 的真 bug。丢一条 toast 好过崩进程。
-                    if (t instanceof IllegalStateException
-                            && t.getMessage() != null
-                            && t.getMessage().contains("has already been added to the window manager")
-                            && t.getMessage().contains("android:id/message")) {
-                        Timber.w(t, "Suppressed duplicated toast addView on main thread");
-                        continue;
-                    }
                     // android.app.RemoteServiceException$CrashedByAdbException：adb 的
                     // `am crash <pkg>` 或某些 OEM 侧 shell-induced 信号会通过
                     // ActivityThread$H 投递。这条异常的 class 是 @hide，没法 instanceof，
@@ -426,9 +407,9 @@ public class Shaft extends Application implements ServicesProvider {
         }
 
         //Init Toast utils
-        ToastUtils.init(this);
+        Toaster.init(this);
         int bottomOffset = BarUtils.getNavBarHeight() + (int) (48 * getResources().getDisplayMetrics().density);
-        ToastUtils.setGravity(Gravity.BOTTOM, 0, bottomOffset);
+        Toaster.setGravity(Gravity.BOTTOM, 0, bottomOffset);
 
         try {
             FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(

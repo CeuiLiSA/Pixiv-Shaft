@@ -31,6 +31,7 @@ import ceui.pixiv.ui.novel.reader.paginate.InlineTag
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
 import kotlin.math.roundToInt
 
 /**
@@ -566,11 +567,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
                                     )
                                     widget.context.startActivity(intent)
                                 } catch (_: Exception) {
-                                    android.widget.Toast.makeText(
-                                        widget.context,
-                                        tag.url,
-                                        android.widget.Toast.LENGTH_SHORT,
-                                    ).show()
+                                    Toaster.showShort(tag.url)
                                 }
                             }
                             override fun updateDrawState(ds: android.text.TextPaint) {

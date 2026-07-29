@@ -11,7 +11,6 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -38,6 +37,7 @@ import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.bulk.UgoiraInFlight
 import ceui.pixiv.ui.bulk.UgoiraPhase
 import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
@@ -105,7 +105,7 @@ class ActiveListV3Fragment : Fragment() {
             val ctx = context ?: return@onItemClick
             val clicked: IllustsBean = when (snap) {
                 is ActiveSnapshot.IllustEntry -> snap.item.illust ?: run {
-                    Toast.makeText(ctx, R.string.dlmgr_queue_open_unavailable, Toast.LENGTH_SHORT).show()
+                    Toaster.showShort(R.string.dlmgr_queue_open_unavailable)
                     return@onItemClick
                 }
                 is ActiveSnapshot.UgoiraEntry -> snap.bean

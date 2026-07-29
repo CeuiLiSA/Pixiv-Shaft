@@ -26,6 +26,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import com.blankj.utilcode.util.BarUtils
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 
@@ -148,9 +149,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
             viewModel.events.collect { ev ->
                 when (ev) {
                     is PlazaViewModel.Event.Toast ->
-                        android.widget.Toast.makeText(
-                            requireContext(), ev.message, android.widget.Toast.LENGTH_SHORT
-                        ).show()
+                        Toaster.showShort(ev.message)
                 }
             }
         }
@@ -168,9 +167,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
 
     private fun openCompose() {
         if (SessionManager.loggedInUid <= 0L) {
-            android.widget.Toast.makeText(
-                requireContext(), R.string.plaza_login_required, android.widget.Toast.LENGTH_SHORT
-            ).show()
+            Toaster.showShort(R.string.plaza_login_required)
             return
         }
         val intent = Intent(requireContext(), TemplateActivity::class.java)

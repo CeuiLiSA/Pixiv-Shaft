@@ -9,7 +9,6 @@ import android.text.TextUtils
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
@@ -38,6 +37,7 @@ import com.github.panpf.zoomimage.util.OffsetCompat
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import com.github.panpf.zoomimage.zoom.GestureType
 import com.github.panpf.zoomimage.zoom.ReadMode
+import com.hjq.toast.Toaster
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -264,21 +264,13 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                             val maxScale = zoomable.maxScaleState.value
                             if (afterScale >= maxScale - MAX_SCALE_EPSILON) {
                                 if (Shaft.sSettings.isUseCustomLongPressReset) {
-                                    Toast.makeText(
-                                        requireContext(),
-                                        R.string.double_tap_zoom_max_reached,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Toaster.showShort(R.string.double_tap_zoom_max_reached)
                                     if (viewModel.isFullscreenMode.value == true) {
                                         viewModel.toggleFullscreen()
                                     }
                                 } else {
                                     isScaleMax = true
-                                    Toast.makeText(
-                                        requireContext(),
-                                        R.string.double_tap_zoom_max_reached2,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Toaster.showShort(R.string.double_tap_zoom_max_reached2)
                                 }
                             }
                     }
@@ -397,7 +389,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     /** 进圈选模式:亮出框选层接管触摸,画完一框就退出并交给 VM 翻译。 */
     private fun enterManualSelection() {
         if (translationViewModel.running.value == true) {
-            Toast.makeText(requireContext(), R.string.string_ai_translate_in_progress, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.string_ai_translate_in_progress)
             return
         }
         val box = baseBind.selectionBoxView
@@ -432,13 +424,13 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         val zoomable = baseBind.image.zoomable
         val size = zoomable.contentSizeState.value
         if (size.width <= 0 || size.height <= 0) {
-            Toast.makeText(requireContext(), R.string.string_ai_manga_translate_failed, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.string_ai_manga_translate_failed)
             return
         }
         // 选区太小(细长误触)直接拦下,免得 OCR 拿到一条线
         val minPx = 16f * resources.displayMetrics.density
         if (screenRect.width() < minPx || screenRect.height() < minPx) {
-            Toast.makeText(requireContext(), R.string.string_ai_manga_manual_too_small, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.string_ai_manga_manual_too_small)
             return
         }
         val tl = zoomable.touchPointToContentPointF(OffsetCompat(screenRect.left, screenRect.top))
@@ -453,7 +445,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         // 只读已加载好的原图,图已显示、正常都是命中,不触发多余下载
         val file = ImageLoaderV3.peekFile(imageUrl)
         if (file == null) {
-            Toast.makeText(requireContext(), R.string.string_ai_ocr_failed, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.string_ai_ocr_failed)
             return
         }
         translationViewModel.startManualRegion(

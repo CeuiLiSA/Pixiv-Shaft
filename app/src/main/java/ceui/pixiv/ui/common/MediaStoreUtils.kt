@@ -15,7 +15,7 @@ import android.provider.MediaStore
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import com.blankj.utilcode.util.ImageUtils
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
@@ -53,14 +53,14 @@ fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
         // MediaStore writes and triggers MediaScanner for SAF / legacy paths.
         // Without this, gallery apps may not see the image until next rescan.
         handle.onFinish()
-        ToastUtils.show(context.getString(R.string.string_181))
+        Toaster.show(context.getString(R.string.string_181))
     }.onFailure { ex ->
         when (ex) {
             is IOException -> Timber.e("SaveImage IOException while saving image: ${ex.message}")
             is SecurityException -> Timber.e("SaveImage SecurityException: Permission issue: ${ex.message}")
             else -> Timber.e("SaveImage Unexpected error: ${ex.message}")
         }
-        ToastUtils.show(context.getString(R.string.save_image_failed, ex.message ?: ex.javaClass.simpleName))
+        Toaster.show(context.getString(R.string.save_image_failed, ex.message ?: ex.javaClass.simpleName))
     }
 }
 

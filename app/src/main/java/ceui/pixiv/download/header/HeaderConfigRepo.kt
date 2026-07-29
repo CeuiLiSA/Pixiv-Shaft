@@ -4,7 +4,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
@@ -70,7 +70,7 @@ object HeaderConfigRepo {
             mmkv.encode(KEY, gson.toJson(sanitize(store)))
         } catch (t: Throwable) {
             Timber.e(t, "HeaderConfigRepo.save failed")
-            ToastUtils.show(
+            Toaster.show(
                 Shaft.getContext().getString(
                     R.string.header_preset_save_failed,
                     t.message ?: t.javaClass.simpleName,

@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -37,6 +36,7 @@ import ceui.loxia.Novel
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
@@ -244,7 +244,7 @@ class DoneListV3Fragment : Fragment() {
     private fun openNovel(group: DownloadGroup) {
         val novelId = extractNovelId(group.latest)
         if (novelId <= 0L) {
-            Toast.makeText(requireContext(), R.string.dlmgr_open_novel_failed, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.dlmgr_open_novel_failed)
             return
         }
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
