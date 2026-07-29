@@ -205,6 +205,43 @@ public class Shaft extends Application implements ServicesProvider {
                         Timber.w(t, "Suppressed RecyclerView layout inconsistency on main thread");
                         continue;
                     }
+                    // "Drag shadow dimensions must be positive"：文本选择的拖拽。长按落在
+                    // 已选中的文字上时，framework 的 Editor.performLongClick 会走
+                    // startDragAndDrop，拖影由 Editor.getTextThumbnailBuilder 现场 inflate 一个
+                    // 纯 TextView、setText(选中段) 再 measure 得到；选区只剩换行 / 只剩宽度为 0
+                    // 的 span（小说阅读器 ReaderTextBlockView 会往段落间插 '\n' 并挂
+                    // ParagraphGapLineHeightSpan、LeadingMarginSpan）时量出来是 0，View
+                    // .startDragAndDrop 直接抛 IllegalStateException。和上面的 Magnifier NPE
+                    // 同源——都是 setTextIsSelectable(true) 才有的框架内部路径，而
+                    // View.startDragAndDrop / startDrag 都是 final，子类没法拦，host app 也无法
+                    // 阻止这个 measure 结果。丢掉这一次拖拽好过崩进程，选区本身还在。
+                    // 全仓没有任何一处调用拖拽 API（grep startDragAndDrop / DragShadowBuilder
+                    // 零命中），这句文案又是 AOSP 写死的，所以按 message 判定不会吞掉自家异常。
+                    if (t instanceof IllegalStateException
+                            && t.getMessage() != null
+                            && t.getMessage().contains("Drag shadow dimensions must be positive")) {
+                        Timber.w(t, "Suppressed text-selection drag shadow ISE on main thread");
+                        continue;
+                    }
+                    // Toast 的 view 被重复 addView。com.hjq:toast:8.8 的 ToastUtils.init 只
+                    // createTextView 一次，把这个 TextView（id 被硬设成 android.R.id.message =
+                    // 0x102000b）当作全进程唯一的 toast view 反复复用。API < 30 走 NormalToast
+                    // ——即系统 Toast$TN.handleShow——它只在 mView.getParent() != null 时
+                    // removeView（异步），且假定这个 view 归自己管；跨 Activity 复用时上一次的
+                    // 窗口可能还挂在别的 ViewRootImpl 上、又不在 mDyingViews 里，于是
+                    // WindowManagerGlobal.addView 抛 IllegalStateException。库内部
+                    // ToastHelper（API >= 30 的 CustomToast 路径）自己 catch 了这条，系统 TN
+                    // 这条没人接。要求 message 里同时出现 android:id/message：系统 toast 根布局
+                    // transient_notification 是 LinearLayout，应用自己的窗口根是 DecorView，
+                    // 只有 hjq 这个裸 TextView 会以这个 id 作为窗口根出现，所以不会吞掉应用
+                    // 自己重复 addView 的真 bug。丢一条 toast 好过崩进程。
+                    if (t instanceof IllegalStateException
+                            && t.getMessage() != null
+                            && t.getMessage().contains("has already been added to the window manager")
+                            && t.getMessage().contains("android:id/message")) {
+                        Timber.w(t, "Suppressed duplicated toast addView on main thread");
+                        continue;
+                    }
                     // android.app.RemoteServiceException$CrashedByAdbException：adb 的
                     // `am crash <pkg>` 或某些 OEM 侧 shell-induced 信号会通过
                     // ActivityThread$H 投递。这条异常的 class 是 @hide，没法 instanceof，
