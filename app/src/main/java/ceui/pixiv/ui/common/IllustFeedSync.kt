@@ -169,6 +169,12 @@ class IllustFeedPoolSync(
                     //
                     // 这里 return 时不推进扫描游标，所以网络那一代落地时（structureVersion 已自增）
                     // 照常全量重扫，缓存代跳过的条目会被新鲜实例补上。
+                    //
+                    // 例外：数据源关掉了「命中快照后自动刷新」（首页推荐的启动自动刷新开关）时没有
+                    // 「网络那一代」，快照就是终态，本页这一轮 loadMore 追加的真·网络页也一并被跳过。
+                    // 这是刻意选的安全侧：合池只是预热，漏了下游各自会补拉（V3 详情池未命中就回
+                    // v1/illust/detail，关注态由用户页自己拉），而放行会让最长 7 天的旧 bean 盖掉
+                    // 池里更新的收藏 / 关注态。别改成「追加时翻 false」，理由见 FeedUiState.itemsFromCache。
                     if (state.itemsFromCache) return@collect
                     val canScanTailOnly = state.structureVersion == scannedVersion &&
                             state.items.size >= scannedSize
