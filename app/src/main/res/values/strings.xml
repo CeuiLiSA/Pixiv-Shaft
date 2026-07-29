@@ -2397,4 +2397,7 @@
     <string name="drawer_section_discover">浏览与发现</string>
     <string name="drawer_section_mine">我的</string>
     <string name="drawer_section_records">记录与管理</string>
+    <!-- 启动时自动刷新首页推荐 (issue #955) -->
+    <string name="auto_refresh_home_feed">启动时自动刷新首页推荐</string>
+    <string name="auto_refresh_home_feed_desc">关闭后启动时直接展示上次的推荐内容，下拉刷新才换新一批</string>
 </resources>

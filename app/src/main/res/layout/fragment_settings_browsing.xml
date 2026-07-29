@@ -54,8 +54,31 @@
                 android:paddingEnd="16dp">
 
                 <RelativeLayout
+                    android:id="@+id/auto_refresh_home_feed_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/auto_refresh_home_feed" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/auto_refresh_home_feed_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/auto_refresh_home_feed"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/save_history_rela"
                     style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
                     android:background="@drawable/bg_m3_row_top">
 
                     <LinearLayout style="@style/M3SetTexts">

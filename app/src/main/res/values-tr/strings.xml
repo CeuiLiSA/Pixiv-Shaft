@@ -2225,4 +2225,7 @@
     <string name="request_ai_generated">Yapay zeka üretimi</string>
     <string name="request_ai_unknown">Bilinmiyor</string>
     <string name="request_go_commission">İstek gönder</string>
+    <!-- 启动时自动刷新首页推荐 (issue #955) -->
+    <string name="auto_refresh_home_feed">Açılışta ana sayfa önerilerini otomatik yenile</string>
+    <string name="auto_refresh_home_feed_desc">Kapalıyken açılışta son öneriler gösterilir; yeni içerik için aşağı çekip yenileyin</string>
 </resources>

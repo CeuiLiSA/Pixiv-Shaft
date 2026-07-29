@@ -2225,4 +2225,7 @@
     <string name="request_ai_generated">Сгенерировано ИИ</string>
     <string name="request_ai_unknown">Неизвестно</string>
     <string name="request_go_commission">Заказать</string>
+    <!-- 启动时自动刷新首页推荐 (issue #955) -->
+    <string name="auto_refresh_home_feed">Автообновление рекомендаций при запуске</string>
+    <string name="auto_refresh_home_feed_desc">Если выключено, при запуске показываются прошлые рекомендации; потяните вниз, чтобы обновить</string>
 </resources>

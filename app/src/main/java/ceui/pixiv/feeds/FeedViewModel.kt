@@ -98,18 +98,26 @@ class FeedViewModel<Cursor : Any>(
             }
 
             if (cached != null && cached.items.isNotEmpty()) {
+                // 数据源说「命中快照就别再自动刷了」（如首页推荐关掉了启动自动刷新，issue #955）：
+                // 这一代快照就是终态，refresh 直接收成 Idle，下面的网络段整段跳过。
+                val stayOnCache = !source.refreshAfterCacheHit()
                 nextCursor = cached.nextCursor
                 _uiState.update {
                     it.copy(
                         items = cached.items,
-                        // refresh 保持 Loading 表示网络刷新仍在下面进行；render 现成逻辑
-                        // isRefreshing = refresh is Loading && hasLoadedOnce 让全屏 loading
+                        // 常规路径下 refresh 保持 Loading 表示网络刷新仍在下面进行；render 现成
+                        // 逻辑 isRefreshing = refresh is Loading && hasLoadedOnce 让全屏 loading
                         // 让位给「内容 + 顶部刷新圈」。缓存旧游标翻页的竞态由 loadMore 现有的
                         // `refresh is Loading → return` 守卫免费挡住。
-                        refresh = LoadState.Loading,
+                        // stayOnCache 时没有后续网络段，直接收成 Idle：既不留假的转圈，也让
+                        // 快照的游标立刻可以翻页。
+                        refresh = if (stayOnCache) LoadState.Idle else LoadState.Loading,
                         append = LoadState.Idle,
                         reachedEnd = cached.nextCursor == null,
                         hasLoadedOnce = true,
+                        // 停在快照上时也**照样**置 true：这一代确实来自磁盘，副作用消费方
+                        //（IllustFeedPoolSync 喂 ObjectPool / 关注态）靠它门控，抹掉就会让陈旧
+                        // bean 把更新的收藏 / 关注态盖回去。
                         itemsFromCache = true,
                         // 整代替换：磁盘快照的条目实例与之前任何一代都无关
                         structureVersion = it.structureVersion + 1,
@@ -121,6 +129,10 @@ class FeedViewModel<Cursor : Any>(
                     "feeds: 本地优先数据已展示，距 refresh() 发起 %dms（%d 条）",
                     displayMs, cached.items.size,
                 )
+                if (stayOnCache) {
+                    Timber.d("feeds: 启动自动刷新已关闭，停在磁盘快照上，等用户下拉刷新")
+                    return@launch
+                }
             } else {
                 _uiState.update { it.copy(refresh = LoadState.Loading, append = LoadState.Idle) }
                 if (coldStart) {

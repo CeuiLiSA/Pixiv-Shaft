@@ -2227,4 +2227,7 @@
     <string name="request_ai_generated">AI 生成</string>
     <string name="request_ai_unknown">未知</string>
     <string name="request_go_commission">前往委託</string>
+    <!-- 启动时自动刷新首页推荐 (issue #955) -->
+    <string name="auto_refresh_home_feed">啟動時自動重新整理首頁推薦</string>
+    <string name="auto_refresh_home_feed_desc">關閉後啟動時直接顯示上次的推薦內容，下拉重新整理才換新一批</string>
 </resources>

@@ -81,6 +81,13 @@ open class RecmdIllustFeedFragment(
         cachedPixivFeedSource(
             slot = "recmd-$apiType",
             initialFetch = { Client.appApi.getRecommendedWorksWithRanking(apiType) },
+            // 「启动时自动刷新首页推荐」(issue #955)：关掉后冷启命中快照就停在快照上，
+            // 由用户下拉刷新才换一批——推荐流每次冷启整代替换，会让上次没翻完的作品直接消失。
+            // 只作用于首页那份实例：推荐漫画是从别处点进去的独立页面，不属于「启动」语义。
+            // lambda 每次刷新现读设置（不用重建数据源），效果本就只在下次冷启看得到。
+            refreshAfterCacheHit = {
+                dataType != TYPE_ILLUST || Shaft.sSettings.isAutoRefreshHomeFeed
+            },
         ) { resp, phase ->
             mapRecmdPage(resp.illusts, resp.ranking_illusts, phase, dataType)
         }

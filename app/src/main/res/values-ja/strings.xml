@@ -2225,4 +2225,7 @@
     <string name="request_ai_generated">AI生成</string>
     <string name="request_ai_unknown">不明</string>
     <string name="request_go_commission">リクエストする</string>
+    <!-- 启动时自动刷新首页推荐 (issue #955) -->
+    <string name="auto_refresh_home_feed">起動時にホームのおすすめを自動更新</string>
+    <string name="auto_refresh_home_feed_desc">オフにすると起動時に前回のおすすめをそのまま表示し、引っ張って更新すると新しい作品に入れ替わります</string>
 </resources>

@@ -472,9 +472,13 @@ class FeedViewModelTest {
         var cachedPage: FeedPage<Int>? = null,
         var failNetworkRefresh: Boolean = false,
         private val networkGate: CompletableDeferred<Unit>? = null,
+        /** 模拟「启动时自动刷新」设置项（issue #955）：false=命中快照就停在快照上。 */
+        private val autoRefreshAfterCacheHit: Boolean = true,
     ) : FeedSource<Int> {
         var loadFromCacheCount = 0
         var firstPageNetworkCount = 0
+
+        override fun refreshAfterCacheHit(): Boolean = autoRefreshAfterCacheHit
 
         override suspend fun loadFromCache(): FeedPage<Int>? {
             loadFromCacheCount++
@@ -677,5 +681,58 @@ class FeedViewModelTest {
         advanceUntilIdle()
         assertEquals(listOf(Row(10), Row(11), Row(12)), vm.uiState.value.items)
         assertTrue(vm.uiState.value.reachedEnd)
+    }
+
+    // ── 启动时不自动刷新（FeedSource.refreshAfterCacheHit，issue #955）────────────
+
+    @Test
+    fun `cache hit stays on snapshot when auto refresh is off`() = runTest(dispatcher) {
+        val source = FakeCacheableSource(
+            networkPages = listOf(listOf(Row(10), Row(11)), listOf(Row(12))),
+            cachedPage = FeedPage(listOf(Row(1), Row(2)), 1),
+            autoRefreshAfterCacheHit = false,
+        )
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+
+        // 冷启停在磁盘快照上：一次网络首屏都没发，也不留「刷新中」的尾巴
+        val state = vm.uiState.value
+        assertEquals(listOf(Row(1), Row(2)), state.items)
+        assertEquals(0, source.firstPageNetworkCount)
+        assertEquals(LoadState.Idle, state.refresh)
+        assertTrue(state.hasLoadedOnce)   // ColdStartSplashGate 靠它放行开屏动画
+        assertFalse(state.showFullscreenLoading)
+        assertFalse(state.showEmptyState)
+        // 这一代仍然来自磁盘：副作用消费方靠它门控，不能因为「不刷新了」就抹掉
+        assertTrue(state.itemsFromCache)
+        assertFalse(state.showingCache)   // 没有网络刷新在飞，不该显示「更新中」
+
+        // 快照的游标照常能往后翻
+        vm.loadMore()
+        advanceUntilIdle()
+        assertEquals(listOf(Row(1), Row(2), Row(12)), vm.uiState.value.items)
+
+        // 用户下拉刷新才换新一批
+        vm.refresh()
+        advanceUntilIdle()
+        assertEquals(1, source.firstPageNetworkCount)
+        assertEquals(listOf(Row(10), Row(11)), vm.uiState.value.items)
+        assertFalse(vm.uiState.value.itemsFromCache)
+    }
+
+    @Test
+    fun `auto refresh off still loads network when cache misses`() = runTest(dispatcher) {
+        // 没有快照就没有内容可停留，开关不该把首屏一起关掉（否则冷启是张空白页）
+        val source = FakeCacheableSource(
+            networkPages = listOf(listOf(Row(10))),
+            cachedPage = null,
+            autoRefreshAfterCacheHit = false,
+        )
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+
+        assertEquals(1, source.firstPageNetworkCount)
+        assertEquals(listOf(Row(10)), vm.uiState.value.items)
+        assertEquals(LoadState.Idle, vm.uiState.value.refresh)
     }
 }

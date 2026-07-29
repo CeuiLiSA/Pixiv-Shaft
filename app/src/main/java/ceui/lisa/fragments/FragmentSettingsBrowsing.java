@@ -28,6 +28,20 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
 
     @Override
     protected void initData() {
+        // 启动时自动刷新首页推荐（issue #955）。关掉后冷启动直接展示上次的推荐快照，
+        // 下次冷启才生效，所以提示语用「重启后生效」而不是通用的「设置成功」。
+        baseBind.autoRefreshHomeFeed.setChecked(Shaft.sSettings.isAutoRefreshHomeFeed());
+        baseBind.autoRefreshHomeFeed.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setAutoRefreshHomeFeed(isChecked);
+                Common.showToast(getString(R.string.please_restart_app), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.autoRefreshHomeFeedRela.setOnClickListener(v ->
+                baseBind.autoRefreshHomeFeed.performClick());
+
         baseBind.saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
         baseBind.saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override

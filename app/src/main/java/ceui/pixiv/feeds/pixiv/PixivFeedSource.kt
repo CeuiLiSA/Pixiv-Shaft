@@ -63,8 +63,16 @@ class PixivFeedSource<Resp : KListShow<*>>(
     private val cacheWriteScope: CoroutineScope = feedCacheWriteScope,
     /** 翻页门控：给出下一页游标，null = 到此为止。默认取响应自带的 nextUrl。 */
     private val nextCursorOf: (Resp) -> String? = { it.nextPageUrl?.takeIf(String::isNotEmpty) },
+    /**
+     * 冷启命中快照后还要不要网络刷新（见 [FeedSource.refreshAfterCacheHit]）。
+     * 每次刷新现读，所以设置项改完不必重建数据源。名字与被重写的方法刻意错开，
+     * 免得 `refreshAfterCacheHit()` 在类内解析到方法本身、写成无限递归。
+     */
+    private val shouldRefreshAfterCacheHit: () -> Boolean = { true },
     private val mapper: (response: Resp, phase: FeedLoadPhase) -> List<FeedItem>,
 ) : FeedSource<String> {
+
+    override fun refreshAfterCacheHit(): Boolean = shouldRefreshAfterCacheHit()
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val phase = if (cursor == null) FeedLoadPhase.FirstPage else FeedLoadPhase.NextPage
@@ -146,17 +154,22 @@ inline fun <reified Resp : KListShow<*>> pixivFeedSource(
  *     initialFetch = { Client.appApi.getRecommendedWorksWithRanking(apiType) },
  * ) { resp, phase -> mapRecmdPage(resp.illusts, resp.ranking_illusts, phase, dataType) }
  * ```
+ *
+ * [refreshAfterCacheHit] 传 `{ false }`（或读设置项的 lambda）即「命中快照就停在快照上，
+ * 不再自动刷新」，见 [FeedSource.refreshAfterCacheHit]。
  */
 inline fun <reified Resp : KListShow<*>> cachedPixivFeedSource(
     slot: String,
     maxAge: Duration = DEFAULT_FEED_CACHE_MAX_AGE,
     noinline initialFetch: suspend () -> Resp,
     noinline nextCursorOf: (Resp) -> String? = { it.nextPageUrl?.takeIf(String::isNotEmpty) },
+    noinline refreshAfterCacheHit: () -> Boolean = { true },
     noinline mapper: (response: Resp, phase: FeedLoadPhase) -> List<FeedItem>,
 ): PixivFeedSource<Resp> = PixivFeedSource(
     responseClass = Resp::class.java,
     initialFetch = initialFetch,
     cache = feedFirstPageCache(slot, Resp::class.java, maxAge),
     nextCursorOf = nextCursorOf,
+    shouldRefreshAfterCacheHit = refreshAfterCacheHit,
     mapper = mapper,
 )

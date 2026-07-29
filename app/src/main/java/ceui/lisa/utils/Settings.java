@@ -279,6 +279,10 @@ public class Settings {
     // 关闭时所有相关 UI（详情页匹配框/长按菜单项/管理页入口/自动导入/自动勾选）完全隐藏
     private boolean synonymDictEnabled = false;
 
+    // 冷启动时是否自动刷新首页推荐插画（issue #955），默认开启（保持本地优先的原语义）。
+    // 关掉后冷启命中磁盘快照就停在快照上，由用户下拉刷新才拉新内容
+    private boolean autoRefreshHomeFeed = true;
+
     /** @deprecated legacy display-name language；仅供 AppLocalesBootstrap 一次性迁移读取，请使用 {@link ceui.pixiv.i18n.AppLocales}。 */
     @Deprecated
     public String getAppLanguage() {
@@ -897,6 +901,14 @@ public class Settings {
 
     public void setSynonymDictEnabled(boolean synonymDictEnabled) {
         this.synonymDictEnabled = synonymDictEnabled;
+    }
+
+    public boolean isAutoRefreshHomeFeed() {
+        return autoRefreshHomeFeed;
+    }
+
+    public void setAutoRefreshHomeFeed(boolean autoRefreshHomeFeed) {
+        this.autoRefreshHomeFeed = autoRefreshHomeFeed;
     }
 
     // 插画二级详情：双击放大模式（false=ZoomImage 默认双击缩放，true=自定义增量双击+长按归位 PR#900）

@@ -2225,4 +2225,7 @@
     <string name="request_ai_generated">AI-generated</string>
     <string name="request_ai_unknown">Unknown</string>
     <string name="request_go_commission">Send a request</string>
+    <!-- 启动时自动刷新首页推荐 (issue #955) -->
+    <string name="auto_refresh_home_feed">Auto-refresh home recommendations on launch</string>
+    <string name="auto_refresh_home_feed_desc">When off, the last recommendations are shown on launch; pull to refresh for a new batch</string>
 </resources>

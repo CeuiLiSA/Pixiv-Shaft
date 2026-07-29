@@ -41,4 +41,15 @@ fun interface FeedSource<Cursor : Any> {
      *   重放会污染下游——用 [FeedLoadPhase.CacheRestore] 区分）。
      */
     suspend fun loadFromCache(): FeedPage<Cursor>? = null
+
+    /**
+     * 冷启命中磁盘快照之后，是否还要立刻发一次网络刷新覆盖它。默认 true（RemoteMediator 语义）。
+     *
+     * 返回 false 就停在快照上，由用户下拉刷新才拉新内容——「启动时不自动刷新首页推荐」这类
+     * 用户设置（issue #955）用它表达：推荐流每次冷启换一整批内容，会让上次没看完的作品直接消失。
+     *
+     * 只在**命中缓存**时被问到：未命中时屏幕上没有内容可停留，仍然必须走网络。
+     * 每次 [FeedViewModel.refresh] 现读（不是构造期快照），设置改完下次冷启即生效。
+     */
+    fun refreshAfterCacheHit(): Boolean = true
 }

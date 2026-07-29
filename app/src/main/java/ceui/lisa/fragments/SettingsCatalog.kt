@@ -94,6 +94,7 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "main_view_r18_rela", R.string.string_359, keywords = "r18 r页 主页 首页 涩图"))
 
         // 浏览与搜索
+        add(Entry(BROWSING, "auto_refresh_home_feed_rela", R.string.auto_refresh_home_feed, R.string.auto_refresh_home_feed_desc, keywords = "自动刷新 首页 推荐 启动 冷启动 换一批 错过 auto refresh home recommend"))
         add(Entry(BROWSING, "save_history_rela", R.string.save_view_history, keywords = "浏览历史 历史记录 足迹 history"))
         add(Entry(BROWSING, "cloud_history_sync_rela", R.string.cloud_history_sync, keywords = "云同步 历史同步 多设备 cloud sync"))
         add(Entry(BROWSING, "clear_cloud_history_rela", R.string.clear_cloud_history, keywords = "清除历史 删除云端 隐私 clear history"))

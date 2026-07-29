@@ -2225,4 +2225,7 @@
     <string name="request_ai_generated">AI 생성</string>
     <string name="request_ai_unknown">알 수 없음</string>
     <string name="request_go_commission">의뢰하기</string>
+    <!-- 启动时自动刷新首页推荐 (issue #955) -->
+    <string name="auto_refresh_home_feed">시작할 때 홈 추천 자동 새로고침</string>
+    <string name="auto_refresh_home_feed_desc">끄면 시작할 때 지난번 추천을 그대로 보여주고, 당겨서 새로고침해야 새 작품으로 바뀝니다</string>
 </resources>
