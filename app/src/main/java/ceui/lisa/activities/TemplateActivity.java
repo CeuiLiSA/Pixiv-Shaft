@@ -114,7 +114,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return SettingsCatalog.fragmentFor(
                             intent.getStringExtra(SettingsCatalog.EXTRA_CATEGORY));
                 case "推荐用户":
-                    // 与 FragmentRight#seeMore 配对：货架把自己那批快照存进 RecmdUserMap，
+                    // 与 FragmentRight#seeMore 配对：货架把自己那批快照存进 RecmdUserHandoff，
                     // 只把 key 传过来。取用/清理都归 RecmdUserFeedFragment 自己（数据落进 VM，
                     // 旋转不重拉；key 为 null 或 map 已失效时它自己退化成网络首屏）。
                     return ceui.pixiv.ui.user.RecmdUserFeedFragment.newInstance(

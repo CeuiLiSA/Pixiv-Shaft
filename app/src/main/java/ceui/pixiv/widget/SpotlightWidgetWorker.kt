@@ -11,8 +11,6 @@ import androidx.work.WorkerParameters
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.VActivity
-import ceui.lisa.core.Container
-import ceui.lisa.core.PageData
 import ceui.lisa.http.Retro
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
@@ -26,6 +24,7 @@ import com.bumptech.glide.request.RequestOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import java.util.UUID
 
 class SpotlightWidgetWorker(
     private val context: Context,
@@ -162,11 +161,10 @@ class SpotlightWidgetWorker(
 
         val openIntent = Intent(context, VActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            val pageData = PageData(listOf(illust))
-            Container.get().addPageToMap(pageData)
             putExtra(Params.POSITION, 0)
-            putExtra(Params.PAGE_UUID, pageData.uuid)
-            // 进程被杀后 Container 已空，靠 UUID 取不到数据；自带 bean 让 VActivity 重建 PageData
+            putExtra(Params.PAGE_UUID, UUID.randomUUID().toString())
+            // Widget 刷新时不预占进程级 Container；点击后由 VActivity
+            // 使用这份 bean 重建单页 PageData。
             putExtra(Params.WIDGET_ILLUST, illust)
         }
         val openPi = PendingIntent.getActivity(

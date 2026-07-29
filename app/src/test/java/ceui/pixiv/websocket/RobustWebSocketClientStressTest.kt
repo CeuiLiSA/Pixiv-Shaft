@@ -46,6 +46,9 @@ class RobustWebSocketClientStressTest {
 
     private lateinit var server: TestWebSocketServer
     private lateinit var okHttp: OkHttpClient
+    private val testMonotonicNowMillis: () -> Long = {
+        System.nanoTime() / 1_000_000L
+    }
 
     @Before
     fun setUp() {
@@ -118,6 +121,7 @@ class RobustWebSocketClientStressTest {
                 outgoingBufferSize = total + 100,
                 txQueueHighWaterMarkBytes = 16L * 1024 * 1024,
             ),
+            monotonicNowMillis = testMonotonicNowMillis,
         )
         try {
             client.connect()
@@ -161,6 +165,7 @@ class RobustWebSocketClientStressTest {
                     outgoingBufferSize = total + 100,
                     txQueueHighWaterMarkBytes = 16L * 1024 * 1024,
                 ),
+                monotonicNowMillis = testMonotonicNowMillis,
             )
             try {
                 client.connect()
@@ -234,6 +239,7 @@ class RobustWebSocketClientStressTest {
                 outgoingBufferSize = bufferSize,
                 backpressureStrategy = BackpressureStrategy.DropOldest,
             ),
+            monotonicNowMillis = testMonotonicNowMillis,
             webSocketFactory = fakeFactory.asFactory(),
         )
         try {
@@ -300,6 +306,7 @@ class RobustWebSocketClientStressTest {
                         jitterFactor = 0.0,
                     ),
                 ),
+                monotonicNowMillis = testMonotonicNowMillis,
             )
             try {
                 client.connect()
@@ -369,6 +376,7 @@ class RobustWebSocketClientStressTest {
                 outgoingBufferSize = bufferSize,
                 backpressureStrategy = BackpressureStrategy.Suspend,
             ),
+            monotonicNowMillis = testMonotonicNowMillis,
         )
         try {
             client.connect()
@@ -411,6 +419,7 @@ class RobustWebSocketClientStressTest {
                     pingIntervalMillis = 0,
                     outgoingBufferSize = 1_000,
                 ),
+                monotonicNowMillis = testMonotonicNowMillis,
             )
             client.connect()
             waitFor(timeoutMs = 5_000) { client.state.value is WebSocketState.Connected }
@@ -452,6 +461,7 @@ class RobustWebSocketClientStressTest {
                 txQueueHighWaterMarkBytes = 1_024, // minimum allowed
                 txBackpressurePollIntervalMillis = 5,
             ),
+            monotonicNowMillis = testMonotonicNowMillis,
         )
         try {
             client.connect()

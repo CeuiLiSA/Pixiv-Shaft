@@ -31,7 +31,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.loxia.ObjectPool;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
@@ -137,42 +136,36 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     if (position == (pageData.getList().size() - 1) || position == (pageData.getList().size() - 2)) {
                         String nextUrl = pageData.getNextUrl();
                         if (!TextUtils.isEmpty(nextUrl)) {
-                            if (!Container.get().isNetworking()) {
+                            if (pageData.tryStartNextPageLoad()) {
                                 Common.showLog("Container 去请求下一页 " + nextUrl);
-                                Retro.getAppApi().getNextIllust(nextUrl)
-                                        .subscribeOn(Schedulers.newThread())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe(new NullCtrl<ListIllust>() {
-                                            @Override
-                                            public void success(ListIllust listIllust) {
-                                                Mapper mapper = new Mapper<ListIllust>();
-                                                listIllust = (ListIllust) mapper.apply(listIllust);
-                                                Common.showLog("Container 下一页请求成功 ");
-                                                Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
-                                                intent.putExtra(Params.PAGE_UUID, pageUUID);
-                                                intent.putExtra(Params.CONTENT, listIllust);
-                                                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                                try {
+                                    Retro.getAppApi().getNextIllust(nextUrl)
+                                            .subscribeOn(Schedulers.newThread())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .doFinally(pageData::finishNextPageLoad)
+                                            .subscribe(new NullCtrl<ListIllust>() {
+                                                @Override
+                                                public void success(ListIllust listIllust) {
+                                                    Mapper mapper = new Mapper<ListIllust>();
+                                                    listIllust = (ListIllust) mapper.apply(listIllust);
+                                                    Common.showLog("Container 下一页请求成功 ");
+                                                    Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
+                                                    intent.putExtra(Params.PAGE_UUID, pageUUID);
+                                                    intent.putExtra(Params.CONTENT, listIllust);
+                                                    LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                                                // pageData.getList().addAll(listIllust.getList());
-                                                DeduplicateArrayList.addAllWithNoRepeat(pageData.getList(), listIllust.getList());
-                                                pageData.setNextUrl(listIllust.getNextUrl());
-                                                if (baseBind.viewPager.getAdapter() != null) {
-                                                    baseBind.viewPager.getAdapter().notifyDataSetChanged();
+                                                    // pageData.getList().addAll(listIllust.getList());
+                                                    DeduplicateArrayList.addAllWithNoRepeat(pageData.getList(), listIllust.getList());
+                                                    pageData.setNextUrl(listIllust.getNextUrl());
+                                                    if (baseBind.viewPager.getAdapter() != null) {
+                                                        baseBind.viewPager.getAdapter().notifyDataSetChanged();
+                                                    }
                                                 }
-                                            }
-
-                                            @Override
-                                            public void must() {
-                                                super.must();
-                                                Container.get().setNetworking(false);
-                                            }
-
-                                            @Override
-                                            public void subscribe(Disposable d) {
-                                                super.subscribe(d);
-                                                Container.get().setNetworking(true);
-                                            }
-                                        });
+                                            });
+                                } catch (RuntimeException e) {
+                                    pageData.finishNextPageLoad();
+                                    throw e;
+                                }
                             } else {
                                 Common.showLog("Container 不去请求下一页 00");
                             }
@@ -209,6 +202,9 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
     @Override
     protected void onDestroy() {
         PixivOperate.clearBack();
+        if (isFinishing()) {
+            Container.get().removePage(pageUUID);
+        }
         super.onDestroy();
     }
 

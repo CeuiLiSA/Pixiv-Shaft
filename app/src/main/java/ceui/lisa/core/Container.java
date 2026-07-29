@@ -1,18 +1,21 @@
 package ceui.lisa.core;
 
-import android.text.TextUtils;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import java.util.HashMap;
+/**
+ * Process-local handoff for artwork pages that are too large for Intent extras.
+ *
+ * Entries are owned by the receiving {@code VActivity}, which removes its page
+ * when the Activity finishes. A concurrent map keeps handoff safe even when a
+ * producer prepares a page off the main thread.
+ */
+public final class Container {
 
-import ceui.lisa.utils.Common;
-
-public class Container {
-
-    private HashMap<String, PageData> pages = new HashMap<>();
-    private boolean isNetworking = false;
+    private final Map<String, PageData> pages = new ConcurrentHashMap<>();
 
     /**
-     * 用 HashMap 存储，app杀掉之后就没有了
+     * 只在当前 app 进程内存储，进程结束后自然失效。
      *
      * @param pageData 一个插画列表
      */
@@ -21,48 +24,28 @@ public class Container {
             return;
         }
 
-        if (TextUtils.isEmpty(pageData.getUUID())) {
+        if (pageData.getUUID() == null || pageData.getUUID().isEmpty()) {
             return;
-        }
-
-        if (pages == null) {
-            pages = new HashMap<>();
         }
 
         pages.put(pageData.getUUID(), pageData);
-        Common.showLog("Container addPage " + pageData.getUUID());
     }
 
     public PageData getPage(String uuid) {
-        Common.showLog("Container getPage " + uuid);
-        if (TextUtils.isEmpty(uuid)) {
+        if (uuid == null || uuid.isEmpty()) {
             return null;
         }
-
-        if (pages == null || pages.size() == 0) {
-            return null;
-        }
-
         return pages.get(uuid);
     }
 
+    public void removePage(String uuid) {
+        if (uuid != null && !uuid.isEmpty()) {
+            pages.remove(uuid);
+        }
+    }
+
     public void clear() {
-        Common.showLog("Container clear ");
-        if (pages == null) {
-            pages = new HashMap<>();
-            return;
-        }
-        if (pages.size() != 0) {
-            pages.clear();
-        }
-    }
-
-    public boolean isNetworking() {
-        return isNetworking;
-    }
-
-    public void setNetworking(boolean networking) {
-        isNetworking = networking;
+        pages.clear();
     }
 
     private Container() {

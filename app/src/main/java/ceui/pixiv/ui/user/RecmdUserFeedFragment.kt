@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.fragments.RecmdUserMap
+import ceui.lisa.fragments.RecmdUserHandoff
 import ceui.lisa.fragments.RecmdUserSnapshot
 import ceui.loxia.Client
 import ceui.loxia.UserPreview
@@ -23,9 +23,9 @@ import java.util.concurrent.atomic.AtomicReference
  * TemplateActivity 宿主、自带 toolbar，复用 [UserFeedFragment] 的用户卡渲染 / 关注切换 /
  * LIKED_USER 广播同步。同一份数据的横向货架形态见 [RecmdUserRailFeedFragment]。
  *
- * ## 快照交接（[RecmdUserMap]）
+ * ## 快照交接（[RecmdUserHandoff]）
  * 动态页的推荐货架已经拉过一页 /v1/user/recommended 了，「查看更多」进本页时把那一批 + nextUrl
- * 经 [RecmdUserMap] 交接过来（key 走 arguments，多兆的数据本身不进 Intent，见 #820）。省掉一次
+ * 经 [RecmdUserHandoff] 交接过来（key 走 arguments，多兆的数据本身不进 Intent，见 #820）。省掉一次
  * 重复请求，也保证用户看到的还是刚才那批人——该接口每次调用返回的推荐都不一样，不交接的话
  * 「查看更多」会换成另一批人，货架上刚看中的画师就找不着了。
  *
@@ -63,7 +63,7 @@ class RecmdUserFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
     }
 
     /**
-     * 取走货架交接来的快照（消费即移除，避免 [RecmdUserMap] 泄漏）。没带 key（从别处直接进本页）、
+     * 取走货架交接来的快照（消费即移除，避免 [RecmdUserHandoff] 泄漏）。没带 key（从别处直接进本页）、
      * 或进程被杀后重建（map 随进程没了）都返回 null，退化成正常的网络首屏。
      *
      * 只在数据源构造时调用一次：旋转重建复用的是同一个 VM，不会重新走 source 工厂，
@@ -71,7 +71,7 @@ class RecmdUserFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
      */
     private fun consumeHandoff(): RecmdUserSnapshot? {
         val key = arguments?.getString(ARG_HANDOFF_KEY) ?: return null
-        return RecmdUserMap.store.remove(key)?.takeIf { it.items.isNotEmpty() }
+        return RecmdUserHandoff.take(key)?.takeIf { it.items.isNotEmpty() }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -97,7 +97,7 @@ class RecmdUserFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
         }
 
         /**
-         * [handoffKey] 为 [RecmdUserMap] 里那批货架数据的 key（由动态页「查看更多」放入）；
+         * [handoffKey] 为 [RecmdUserHandoff] 里那批货架数据的 key（由动态页「查看更多」放入）；
          * 没有交接数据时传 null，本页自己拉第一页。
          */
         @JvmStatic

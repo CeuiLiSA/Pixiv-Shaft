@@ -40,24 +40,23 @@ class DefaultTemplatesTest {
         }
     }
 
-    @Test fun `illust default nests r18 and ai only when flagged`() {
+    @Test fun `illust legacy default keeps r18 and ai in the shared folder`() {
         val t = Template.compile(DefaultTemplates.ILLUST)
         val plain = t.render(META.copy(flags = emptySet()), "jpg").joinTo()
         assertTrue("no R18 segment", !plain.contains("R18"))
         assertTrue("no AI segment", !plain.contains("/AI/"))
 
         val both = t.render(META.copy(flags = setOf(Flag.R18, Flag.AI)), "jpg").joinTo()
-        assertTrue("R18 segment present", both.contains("R18"))
-        assertTrue("AI segment present", both.contains("AI"))
+        assertEquals("flags do not change the legacy default path", plain, both)
     }
 
-    @Test fun `illust default appends page number only for multi-page`() {
+    @Test fun `illust default appends one based page number only for multi-page`() {
         val t = Template.compile(DefaultTemplates.ILLUST)
         val single = t.render(META.copy(totalPages = 1, page = 0), "jpg").filename
-        assertTrue("single page has no p suffix: $single", !single.contains("p0") && !single.contains(" p"))
+        assertEquals("作品タイトル_12345.jpg", single)
 
         val multi = t.render(META.copy(totalPages = 3, page = 2), "jpg").filename
-        assertTrue("multi page has p suffix: $multi", multi.contains(" p2"))
+        assertEquals("作品タイトル_12345_p3.jpg", multi)
     }
 
     @Test fun `compileAll produces one template per bucket`() {

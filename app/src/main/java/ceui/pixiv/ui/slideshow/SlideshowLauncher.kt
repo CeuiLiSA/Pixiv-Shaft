@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.slideshow
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import ceui.lisa.download.IllustDownload
@@ -132,9 +133,15 @@ object SlideshowLauncher {
         )
         val intent = Intent(context, SlideshowActivity::class.java).apply {
             putExtra(SlideshowActivity.EXTRA_SESSION_ID, sessionId)
+            if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        // Same activity-launch flag posture as ImageDetailActivity / VActivity uses. We avoid
-        // NEW_TASK so the slideshow stays in the host activity's task and back returns naturally.
-        context.startActivity(intent)
+        // Activity callers stay in the current task. A non-Activity Context
+        // needs NEW_TASK or Context.startActivity throws AndroidRuntimeException.
+        try {
+            context.startActivity(intent)
+        } catch (e: RuntimeException) {
+            SlideshowStore.remove(sessionId)
+            throw e
+        }
     }
 }
