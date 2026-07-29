@@ -415,6 +415,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
                 new DrawerEntry(R.id.novel_star, R.string.string_320),
                 new DrawerEntry(R.id.watch_later, R.string.watch_later),
                 new DrawerEntry(R.id.nav_pinned_tags, R.string.pinned_tags),
+                // 精华列:各处「收藏到精华」写进 feature_table 的本地列表快照。c3f08172 侧栏
+                // 「发现」分组瘦身时被连带删掉,但它不属于搬进「发现」tab 的那批(最新/热度标签/
+                // 特辑/本月收藏/当前最热),页面和 handler 一直都在——只是没入口,存了看不了。
+                new DrawerEntry(R.id.nav_feature, R.string.string_248),
                 new DrawerEntry(R.id.watchlist, R.string.watchlist),
                 new DrawerEntry(R.id.novel_markers, R.string.core_string_novel_marker),
                 new DrawerEntry(R.id.follow_user, R.string.string_321),
