@@ -284,7 +284,8 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                     .addAction(android.R.string.ok, (dialog, index) -> {
                         CharSequence entered = builder.getEditText().getText();
                         // 空输入 = 0 = 关闭；填不下的超大数同样归零（值列会显示「不限」，看得见），
-                        // 不让脏值落盘。输入框是 TYPE_CLASS_NUMBER，打不出负号。
+                        // 不让脏值落盘。负数也要归零——TYPE_CLASS_NUMBER 挡不住第三方输入法，
+                        // 搜狗在数字键盘上照样给 `-` 键（真机实测），所以 Math.max 这道不能省。
                         int parsed = 0;
                         try {
                             parsed = Integer.parseInt(entered == null ? "" : entered.toString().trim());
