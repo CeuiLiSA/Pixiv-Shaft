@@ -265,6 +265,10 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         });
         Common.showLog(className + url);
         mWebView = mAgentWeb.getWebCreator().getWebView();
+        // 放行第三方 cookie(WebView 默认屏蔽,和 WebFragment / StreetMainFragment 对齐)。
+        // 图搜的 Cloudflare Turnstile 跑在 challenges.cloudflare.com 的 iframe 里,对引擎域
+        // 是第三方——存不下验证状态就会「勾完真人框又弹回来」无限循环(#733 真机复现)。
+        CookieManager.getInstance().setAcceptThirdPartyCookies(mWebView, true);
         // 返回键会一路退网页历史(见 TemplateActivity 的 OnBackPressedDispatcher),
         // 退过头了就靠这个回去 —— 图搜搜半天被一次误触返回抹掉太亏(#733)。
         baseBind.ibForward.setOnClickListener(v -> {
