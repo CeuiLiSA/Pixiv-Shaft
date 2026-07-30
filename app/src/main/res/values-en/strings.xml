@@ -162,6 +162,7 @@
     <string name="novel_filter_unlimited">Off</string>
     <string name="novel_filter_chars">%1$d chars</string>
     <string name="novel_filter_input_hint">0 to disable</string>
+    <string name="novel_filter_range_invalid">Minimum novel length cannot exceed the maximum</string>
     <string name="language">Language</string>
     <string name="language_follow_system">Follow system</string>
     <string name="theme_mode">Theme</string>

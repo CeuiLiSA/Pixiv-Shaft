@@ -171,6 +171,7 @@
     <string name="novel_filter_unlimited">不限</string>
     <string name="novel_filter_chars">%1$d 字</string>
     <string name="novel_filter_input_hint">填 0 关闭</string>
+    <string name="novel_filter_range_invalid">小说正文字数下限不能大于上限</string>
     <string name="language">语言</string>
     <string name="language_follow_system">跟随系统</string>
     <string name="theme_mode">主题模式</string>

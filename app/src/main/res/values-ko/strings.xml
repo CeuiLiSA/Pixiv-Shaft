@@ -162,6 +162,7 @@
     <string name="novel_filter_unlimited">제한 없음</string>
     <string name="novel_filter_chars">%1$d자</string>
     <string name="novel_filter_input_hint">0이면 사용 안 함</string>
+    <string name="novel_filter_range_invalid">소설 본문 글자 수 하한은 상한보다 클 수 없습니다</string>
     <string name="language">언어.</string>
     <string name="language_follow_system">시스템 설정 따르기</string>
     <string name="theme_mode">테마 패턴</string>

@@ -162,6 +162,7 @@
     <string name="novel_filter_unlimited">Kapalı</string>
     <string name="novel_filter_chars">%1$d karakter</string>
     <string name="novel_filter_input_hint">Kapatmak için 0</string>
+    <string name="novel_filter_range_invalid">En az roman uzunluğu, en fazla uzunluktan büyük olamaz</string>
     <string name="language">Dil</string>
     <string name="language_follow_system">Sistem ayarı</string>
     <string name="theme_mode">Tema</string>

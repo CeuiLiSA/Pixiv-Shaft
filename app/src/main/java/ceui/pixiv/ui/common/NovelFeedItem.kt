@@ -50,14 +50,21 @@ class NovelFeedItem(
          * [skipR18Filter]：R18 专属榜单端点本身就是用来看 R18 的，别用全局 R18 过滤把它清空
          *（对齐插画侧 [ceui.pixiv.ui.common.IllustFeedItem.of] 的同名参数 / RankIllustRepo
          * 的 enableSkipR18Filter）。
+         *
+         * [skipSpamFilter]：给「用户自己存下来的小说」用（收藏列表）。字数/超长 tag 阈值
+         *（issue #743）是冲着**发现面**上的刷屏广告去的，不是用来裁剪自己的藏书的——用户主动
+         * 收藏过的东西，回来就得看得见（同 [ceui.pixiv.ui.watchlater.WatchLaterFeedFragment]
+         * 「存的时候能存，回来就得看得见」那条约定）。收藏了一篇 300 字的短文，不该因为设了
+         * 反刷屏下限就从收藏夹里消失。
          */
         fun of(
             novel: Novel,
             trendingScore: Float? = null,
             skipR18Filter: Boolean = false,
             skipMuteUserFilter: Boolean = false,
+            skipSpamFilter: Boolean = false,
         ): NovelFeedItem? {
-            return if (passesContentFilters(novel, skipR18Filter, skipMuteUserFilter)) {
+            return if (passesContentFilters(novel, skipR18Filter, skipMuteUserFilter, skipSpamFilter)) {
                 NovelFeedItem(novel, trendingScore)
             } else {
                 null
@@ -72,6 +79,7 @@ class NovelFeedItem(
             novel: Novel,
             skipR18Filter: Boolean,
             skipMuteUserFilter: Boolean = false,
+            skipSpamFilter: Boolean = false,
         ): Boolean {
             if (IllustNovelFilter.judgeTag(novel)) return false
             if (IllustNovelFilter.judgeID(novel)) return false
@@ -79,9 +87,10 @@ class NovelFeedItem(
             // 空页追载狂翻页；主动点进作者页就该看到其小说。
             if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(novel)) return false
             if (!skipR18Filter && IllustNovelFilter.judgeR18Filter(novel)) return false
-            // 正文字数区间 + 超长标签名自动屏蔽（issue #743）。三个阈值默认 0（关闭），
-            // 不让步 skipMuteUserFilter/skipR18Filter——它针对的是刷屏小说本身，不是某个作者或分级。
-            if (IllustNovelFilter.judgeNovelSpam(novel)) return false
+            // 正文字数区间 + 超长标签名自动屏蔽（issue #743）。三个阈值默认 0（关闭）。
+            // 只在收藏夹让步（skipSpamFilter，见 of 的 KDoc）；作者页/榜单不让步——刷屏号的
+            // 作者页本来就该被滤掉，那正是这个功能的目标。
+            if (!skipSpamFilter && IllustNovelFilter.judgeNovelSpam(novel)) return false
             return true
         }
     }

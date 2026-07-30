@@ -11,6 +11,7 @@ import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 
 import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
 
 import ceui.lisa.R;
@@ -159,21 +160,32 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                 R.string.novel_filter_min_text_length,
                 NOVEL_FILTER_SUGGESTED_MIN_TEXT_LENGTH,
                 () -> Shaft.sSettings.getNovelFilterMinTextLength(),
-                value -> Shaft.sSettings.setNovelFilterMinTextLength(value));
+                value -> Shaft.sSettings.setNovelFilterMinTextLength(value),
+                value -> {
+                    int max = Shaft.sSettings.getNovelFilterMaxTextLength();
+                    return (value > 0 && max > 0 && value > max)
+                            ? getString(R.string.novel_filter_range_invalid) : null;
+                });
         bindNovelFilterRow(
                 baseBind.novelFilterMaxTextLengthRela,
                 baseBind.novelFilterMaxTextLength,
                 R.string.novel_filter_max_text_length,
                 0,
                 () -> Shaft.sSettings.getNovelFilterMaxTextLength(),
-                value -> Shaft.sSettings.setNovelFilterMaxTextLength(value));
+                value -> Shaft.sSettings.setNovelFilterMaxTextLength(value),
+                value -> {
+                    int min = Shaft.sSettings.getNovelFilterMinTextLength();
+                    return (value > 0 && min > 0 && value < min)
+                            ? getString(R.string.novel_filter_range_invalid) : null;
+                });
         bindNovelFilterRow(
                 baseBind.novelFilterMaxTagNameLengthRela,
                 baseBind.novelFilterMaxTagNameLength,
                 R.string.novel_filter_max_tag_name_length,
                 NOVEL_FILTER_SUGGESTED_MAX_TAG_NAME_LENGTH,
                 () -> Shaft.sSettings.getNovelFilterMaxTagNameLength(),
-                value -> Shaft.sSettings.setNovelFilterMaxTagNameLength(value));
+                value -> Shaft.sSettings.setNovelFilterMaxTagNameLength(value),
+                null);
 
         // 搜索结果收藏量筛选
         final String searchFilter = Shaft.sSettings.getSearchFilter();
@@ -248,10 +260,14 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
 
     /**
      * 小说自动屏蔽阈值行：点开数字输入框，0 = 关闭（值列显示「不限」）。
-     * 三行只差 title / getter / setter，共用这一份。
+     * 三行只差 title / 建议值 / getter / setter / 校验，共用这一份。
+     *
+     * [validator] 返回非 null 的错误文案时 toast 并留在对话框里不落盘——用来挡「下限 > 上限」
+     * 这种不可能区间（那会把每个小说列表都清空，而用户完全看不出是自己设出来的）。
      */
     private void bindNovelFilterRow(View row, TextView valueText, int titleRes,
-                                    int suggested, IntSupplier getter, IntConsumer setter) {
+                                    int suggested, IntSupplier getter, IntConsumer setter,
+                                    IntFunction<String> validator) {
         valueText.setText(formatNovelFilterValue(getter.getAsInt()));
         row.setOnClickListener(v -> {
             QMUIDialog.EditTextDialogBuilder builder =
@@ -267,13 +283,19 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                     .addAction(android.R.string.cancel, (dialog, index) -> dialog.dismiss())
                     .addAction(android.R.string.ok, (dialog, index) -> {
                         CharSequence entered = builder.getEditText().getText();
-                        // 空输入 = 0 = 关闭；非法/负数同样归零，不让脏值落盘。
+                        // 空输入 = 0 = 关闭；填不下的超大数同样归零（值列会显示「不限」，看得见），
+                        // 不让脏值落盘。输入框是 TYPE_CLASS_NUMBER，打不出负号。
                         int parsed = 0;
                         try {
                             parsed = Integer.parseInt(entered == null ? "" : entered.toString().trim());
                         } catch (NumberFormatException ignored) {
                         }
                         parsed = Math.max(parsed, 0);
+                        String error = validator == null ? null : validator.apply(parsed);
+                        if (error != null) {
+                            Common.showToast(error, 3);
+                            return;
+                        }
                         setter.accept(parsed);
                         Local.setSettings(Shaft.sSettings);
                         valueText.setText(formatNovelFilterValue(parsed));

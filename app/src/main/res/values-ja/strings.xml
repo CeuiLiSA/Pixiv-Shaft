@@ -162,6 +162,7 @@
     <string name="novel_filter_unlimited">無制限</string>
     <string name="novel_filter_chars">%1$d 文字</string>
     <string name="novel_filter_input_hint">0 で無効</string>
+    <string name="novel_filter_range_invalid">小説本文の文字数の下限は上限を超えられません</string>
     <string name="language">言語</string>
     <string name="language_follow_system">システムに従う</string>
     <string name="theme_mode">テーマ</string>

@@ -153,7 +153,10 @@ class LikeNovelFeedFragment : NovelFeedFragment() {
                 ) {
                     return@mapNotNull null
                 }
-                NovelFeedItem.of(novel)
+                // 收藏夹让步「小说自动屏蔽」（issue #743）：字数/超长 tag 阈值是冲着发现面上的
+                // 刷屏广告去的，不该把用户自己收藏过的短文从藏书里抹掉。屏蔽 tag/画师/作品 ID
+                // 和 R18 过滤照旧生效——那几条是用户对特定对象的显式表态。
+                NovelFeedItem.of(novel, skipSpamFilter = true)
             }
         }
     }
