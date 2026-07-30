@@ -28,10 +28,6 @@ public class Params {
     public static final String FILE_PATH     = "file path";
     public static final String STAR_TYPE     = "star type";
     public static final String FLAG          = "flag";
-    public static final String RESPONSE      = "response";
-    public static final String MIME          = "mime";
-    public static final String ENCODING      = "encoding";
-    public static final String HISTORY_URL   = "history url";
     public static final String TYPE_ILLUST   = "illust";
     public static final String TYPE_NOVEL    = "novel";
     public static final String TYPE_MANGA    = "manga";
@@ -56,7 +52,6 @@ public class Params {
     public static final String MAIN_ACTIVITY_NAVIGATION_POSITION  = "main activity navigation position";
     public static final String FRAGMENT_SEARCH_CLIPBOARD_VALUE  = "fragment search clipboard value";
     public static final String MANGA_SERIES_ID  = "manga series id";
-    public static final String REVERSE_SEARCH_RESULT = "reverse result";
     public static final String REVERSE_SEARCH_IMAGE_URI = "reverse image uri";
 
 

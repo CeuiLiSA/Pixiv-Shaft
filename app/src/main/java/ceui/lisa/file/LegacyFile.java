@@ -17,6 +17,7 @@ public class LegacyFile {
 
     private static final String GIF_CACHE = "/gif cache";
     private static final String IMAGE_CACHE = "/image_manager_disk_cache";
+    private static final String REVERSE_SEARCH_CACHE = "/reverse_search";
 
     public static File imageCacheFolder(Context context) {
         File cacheDir = new File(context.getCacheDir().getPath() + IMAGE_CACHE);
@@ -24,6 +25,18 @@ public class LegacyFile {
             cacheDir.mkdirs();
         }
         Common.showLog("LegacyFile imageCacheFolder " + cacheDir.getPath());
+        return cacheDir;
+    }
+
+    /**
+     * 图搜待上传图片的落点。单独一个目录、不蹭 Glide 的 image_manager_disk_cache ——
+     * 这个目录要在 provider_paths.xml 里对 FileProvider 开放，开放面越小越好。
+     */
+    public static File reverseSearchCacheFolder(Context context) {
+        File cacheDir = new File(context.getCacheDir().getPath() + REVERSE_SEARCH_CACHE);
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs();
+        }
         return cacheDir;
     }
 

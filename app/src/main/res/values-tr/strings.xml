@@ -624,7 +624,7 @@
     <string name="string_408">Bağlantı hatalı</string>
     <string name="string_409">İndirince otomatik favoriye ekle</string>
     <string name="string_410">Resim boyutu sınırı aşıyor</string>
-    <string name="reverse_image_network_error">Bağlantı sıfırlandı; proxy gerekebilir. Ascii2D motorunu deneyin.</string>
+    <string name="reverse_image_copy_failed">Resim okunamadı. Lütfen yeniden seçin.</string>
     <string name="string_411">4. Grup</string>
     <string name="string_412">Doğum günü</string>
     <string name="string_413">Detay sayfası orijinal resmi görüntüler</string>

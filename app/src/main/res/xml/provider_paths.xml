@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path name="shared_images_internal" path="images/"/>
+    <cache-path name="reverse_search" path="reverse_search/"/>
     <cache-path name="wallpaper_share" path="wallpaper_share/"/>
     <external-cache-path name="gif cache" path="."/>
     <external-cache-path name="shared_images" path="images/"/>

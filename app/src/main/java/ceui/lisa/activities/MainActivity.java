@@ -41,7 +41,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
-import java.io.File;
 
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
@@ -58,7 +57,6 @@ import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
-import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import ceui.pixiv.session.SessionManager;
@@ -661,14 +659,16 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             try {
                 Uri imageUri = data.getData();
-                File innerImageFile = Common.copyUriToImageCacheFolder(imageUri);
-                Uri innerImageFileUri = Uri.fromFile(innerImageFile);
-                if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
+                if (!ReverseImage.isFileSizeOkToSearch(imageUri)) {
                     Common.showToast(getString(R.string.string_410));
                     return;
                 }
-                ReverseImage.reverse(innerImageFileUri,
-                        ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, innerImageFileUri));
+                Uri cachedImageUri = Common.copyUriToReverseSearchCache(imageUri);
+                if (cachedImageUri == null) {
+                    Common.showToast(getString(R.string.reverse_image_copy_failed));
+                    return;
+                }
+                ReverseImage.search(this, cachedImageUri, ReverseImage.DEFAULT_ENGINE);
             } catch (Exception e) {
                 e.printStackTrace();
             }

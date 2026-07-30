@@ -58,7 +58,6 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.ReverseResult;
 import ceui.loxia.ObjectPool;
 import ceui.loxia.ObjectType;
 import ceui.loxia.flag.FlagDescFragment;
@@ -121,10 +120,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             intent.getStringExtra(Params.USER_MODEL));
                 case "特辑":
                     return new FragmentPv();
-                case "以图搜图":
-                    ReverseResult result = intent.getParcelableExtra(Params.REVERSE_SEARCH_RESULT);
+                case "以图搜图": {
+                    // 搜索本身由 WebView 发（引擎都在 Cloudflare 质询后面，见 ReverseImage），
+                    // 这里只是把引擎上传页和待搜图片转交过去。
+                    String engineUrl = intent.getStringExtra(Params.URL);
+                    String engineName = intent.getStringExtra(Params.TITLE);
                     Uri imageUri = intent.getParcelableExtra(Params.REVERSE_SEARCH_IMAGE_URI);
-                    return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url(), imageUri);
+                    return FragmentWebView.newInstance(engineName, engineUrl, imageUri);
+                }
                 case "相关评论": {
                     return getCommentsFragment(intent);
                 }

@@ -507,17 +507,20 @@ public class Common {
     }
 
     /**
-     *  复制资源Uri到内部缓存，from com.blankj.utilcode.util.UriUtils
-     * @param uri
-     * @return cached file
+     * 把待搜图片复制进 cache/reverse_search/，并换成 FileProvider 的 content:// Uri。
+     *
+     * 换 Uri 是必须的：图搜的上传由 WebView 自己发起（见 {@link ReverseImage}），
+     * 它读文件走 ContentResolver，读不到我们私有目录里的 file:// 路径。
+     *
+     * @return FileProvider Uri，复制失败时为 null
      */
-    public static File copyUriToImageCacheFolder(Uri uri) {
+    public static Uri copyUriToReverseSearchCache(Uri uri) {
         InputStream is = null;
         try {
             is = Utils.getApp().getContentResolver().openInputStream(uri);
-            File file = new File(LegacyFile.imageCacheFolder(Utils.getApp()), String.valueOf(System.currentTimeMillis()));
+            File file = new File(LegacyFile.reverseSearchCacheFolder(Utils.getApp()), String.valueOf(System.currentTimeMillis()));
             FileIOUtils.writeFileFromIS(file.getAbsolutePath(), is);
-            return file;
+            return FileProvider.getUriForFile(Utils.getApp(), Utils.getApp().getPackageName() + ".provider", file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;

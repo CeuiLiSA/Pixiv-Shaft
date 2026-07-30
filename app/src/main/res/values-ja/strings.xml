@@ -624,7 +624,7 @@
     <string name="string_408">正しいURLを入力してください。</string>
     <string name="string_409">すき！した時にイラストをダウンロード</string>
     <string name="string_410">画像のサイズが制限を超えているため、画像検索ができません。</string>
-    <string name="reverse_image_network_error">接続がリセットされました。プロキシが必要かもしれません。Ascii2D エンジンをお試しください。</string>
+    <string name="reverse_image_copy_failed">画像の読み込みに失敗しました。もう一度選択してください。</string>
     <string name="string_411">第四グループ</string>
     <string name="string_412">誕生日</string>
     <string name="string_413">詳細ページでオリジナルの画質で表示</string>

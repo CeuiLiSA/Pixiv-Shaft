@@ -61,7 +61,6 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
-import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.ContextMenuTitleView;
 import ceui.pixiv.session.SessionManager;
 import com.tencent.mmkv.MMKV;
@@ -80,10 +79,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private static final String TAG = "FragmentWebView";
     private String title;
     private String url;
-    private String response = null;
-    private String mime = null;
-    private String encoding = null;
-    private String historyUrl = null;
     private boolean preferPreserve = false;
     private AgentWeb mAgentWeb;
     private WebView mWebView;
@@ -92,6 +87,10 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private final HttpDns httpDns = HttpDns.getInstance();
     private String mLongClickLinkText;
     private Uri reverseSearchImageUri;
+    /**
+     * 图搜：这张图还没喂给页面。喂进去一次就落下，之后页面里再点上传按钮走正常的系统选择器。
+     */
+    private boolean reverseUploadArmed = false;
     private ValueCallback<Uri> uploadMessage;
     private ValueCallback<Uri[]> uploadMessageAboveL;
 
@@ -99,12 +98,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     public void initBundle(Bundle bundle) {
         title = bundle.getString(Params.TITLE);
         url = bundle.getString(Params.URL);
-        response = bundle.getString(Params.RESPONSE);
-        mime = bundle.getString(Params.MIME);
-        encoding = bundle.getString(Params.ENCODING);
-        historyUrl = bundle.getString(Params.HISTORY_URL);
         preferPreserve = bundle.getBoolean(Params.PREFER_PRESERVE);
         reverseSearchImageUri = bundle.getParcelable(Params.REVERSE_SEARCH_IMAGE_URI);
+        reverseUploadArmed = reverseSearchImageUri != null;
     }
 
     public static FragmentWebView newInstance(String title, String url) {
@@ -126,16 +122,14 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         return fragment;
     }
 
-    // 反向搜索
-    public static FragmentWebView newInstance(String title, String url, String response,
-                                              String mime, String encoding, String history_url, Uri imageUri) {
+    /**
+     * 以图搜图：url 是引擎的上传页，imageUri 会在页面弹文件选择器时直接顶上去。
+     * 见 {@link ReverseImage} 里为什么上传必须由 WebView 自己发。
+     */
+    public static FragmentWebView newInstance(String title, String url, Uri imageUri) {
         Bundle args = new Bundle();
         args.putString(Params.TITLE, title);
         args.putString(Params.URL, url);
-        args.putString(Params.RESPONSE, response);
-        args.putString(Params.MIME, mime);
-        args.putString(Params.ENCODING, encoding);
-        args.putString(Params.HISTORY_URL, history_url);
         args.putParcelable(Params.REVERSE_SEARCH_IMAGE_URI, imageUri);
         FragmentWebView fragment = new FragmentWebView();
         fragment.setArguments(args);
@@ -160,12 +154,11 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         return true;
                     }
                     if (item.getItemId() == R.id.saucenao) {
-                        ReverseImage.reverse(reverseSearchImageUri,
-                                ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(mActivity, reverseSearchImageUri));
-
+                        ReverseImage.search(mActivity, reverseSearchImageUri,
+                                ReverseImage.ReverseProvider.SauceNao);
                     } else if (item.getItemId() == R.id.ascii2d) {
-                        ReverseImage.reverse(reverseSearchImageUri,
-                                ReverseImage.ReverseProvider.Ascii2D, new ReverseWebviewCallback(mActivity, reverseSearchImageUri));
+                        ReverseImage.search(mActivity, reverseSearchImageUri,
+                                ReverseImage.ReverseProvider.Ascii2D);
                     }
                     return true;
                 }
@@ -243,6 +236,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         if(shouldInjectCSS){
                             injectCSS();
                         }
+                        if (reverseUploadArmed) {
+                            triggerReverseUpload();
+                        }
                         super.onPageFinished(view, url);
                     }
                 })
@@ -260,18 +256,12 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             cookieManager.flush();
         }
 
-        if (response == null) {
-            mAgentWeb = ready.go(url);
-            baseBind.ibMenu.setVisibility(View.VISIBLE);
-            baseBind.ibMenu.setOnClickListener(v -> {
-                String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
-                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
-            });
-        } else {
-            baseBind.ibMenu.setVisibility(View.GONE);
-            mAgentWeb = ready.get();
-            mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, historyUrl);
-        }
+        mAgentWeb = ready.go(url);
+        baseBind.ibMenu.setVisibility(View.VISIBLE);
+        baseBind.ibMenu.setOnClickListener(v -> {
+            String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
+            mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
+        });
         Common.showLog(className + url);
         mWebView = mAgentWeb.getWebCreator().getWebView();
         WebSettings settings = mWebView.getSettings();
@@ -289,11 +279,51 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         mWebView.setWebChromeClient(new WebChromeClient(){
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                // 图搜：图片是调用方带进来的，直接顶上去，别再弹系统选择器让用户重挑一遍。
+                if (reverseUploadArmed && reverseSearchImageUri != null) {
+                    reverseUploadArmed = false;
+                    filePathCallback.onReceiveValue(new Uri[]{reverseSearchImageUri});
+                    return true;
+                }
                 uploadMessageAboveL = filePathCallback;
                 openImageChooserActivity();
                 return true;
             }
         });
+    }
+
+    /**
+     * 图搜：把图片喂进引擎页面自己的 file input，让页面来发这个上传 POST。
+     *
+     * <p>只认「页面里第一个 file input」，不写死各家引擎的选择器——SauceNAO 和 ascii2d 的上传
+     * 表单都只有一个文件输入框，选择器写细了只会随页面改版烂掉。</p>
+     *
+     * <p>不在这里直接 submit：WebView 把文件交给 input 是异步的，立刻 submit 会提交一个空表单。
+     * 所以先挂 change 监听，等文件真的落进 input 再提交。</p>
+     *
+     * <p>提交优先点表单自己的提交按钮而不是 {@code form.submit()}：后者会跳过 submit 事件，
+     * 也不会带上按钮的 name/value（ascii2d 的按钮就叫 {@code search}）。</p>
+     *
+     * <p>点不开选择器也不会走进死路：{@link #reverseUploadArmed} 还立着，用户自己点页面上的
+     * 上传按钮时 {@code onShowFileChooser} 一样会把这张图顶上去，只是多一次点击。</p>
+     */
+    private void triggerReverseUpload() {
+        mWebView.evaluateJavascript(
+                "(function(){"
+                        + "var i=document.querySelector('input[type=file]');"
+                        + "if(!i){return 'no-input';}"
+                        + "if(!i.dataset.shaftReverse){"
+                        + "i.dataset.shaftReverse='1';"
+                        + "i.addEventListener('change',function(){"
+                        + "if(!i.files||!i.files.length||!i.form){return;}"
+                        + "var b=i.form.querySelector('[type=submit]');"
+                        + "if(b){b.click();}else{i.form.submit();}"
+                        + "});"
+                        + "}"
+                        + "i.click();"
+                        + "return 'ok';"
+                        + "})()",
+                value -> Common.showLog(className + "reverse upload trigger " + value));
     }
 
     private static class LongClickHandler extends Handler {

@@ -4,12 +4,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-import java.io.File;
-
 import ceui.lisa.R;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ReverseImage;
-import ceui.lisa.utils.ReverseWebviewCallback;
 
 public class OutReversActivity extends OutWakeActivity {
 
@@ -22,15 +19,19 @@ public class OutReversActivity extends OutWakeActivity {
                     Bundle bundle = getIntent().getExtras();
                     if (bundle != null) {
                         Uri imageUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
-                        File innerImageFile = Common.copyUriToImageCacheFolder(imageUri);
-                        Uri innerImageFileUri = Uri.fromFile(innerImageFile);
-                        if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
+                        if (!ReverseImage.isFileSizeOkToSearch(imageUri)) {
                             Common.showToast(getString(R.string.string_410));
                             finish();
                             return;
                         }
-                        ReverseImage.reverse(innerImageFileUri,
-                                ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, innerImageFileUri));
+                        Uri cachedImageUri = Common.copyUriToReverseSearchCache(imageUri);
+                        if (cachedImageUri == null) {
+                            Common.showToast(getString(R.string.reverse_image_copy_failed));
+                            finish();
+                            return;
+                        }
+                        ReverseImage.search(this, cachedImageUri, ReverseImage.DEFAULT_ENGINE);
+                        finish();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

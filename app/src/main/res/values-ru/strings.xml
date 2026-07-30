@@ -624,7 +624,7 @@
     <string name="string_408">Неверный формат URL</string>
     <string name="string_409">Автоматически добавлять в закладки при скачивании</string>
     <string name="string_410">Размер исходного изображения превышает лимит</string>
-    <string name="reverse_image_network_error">Соединение сброшено. Возможно, нужен прокси. Попробуйте Ascii2D.</string>
+    <string name="reverse_image_copy_failed">Не удалось прочитать изображение. Выберите его ещё раз.</string>
     <string name="string_411">Четвёртая группа</string>
     <string name="string_412">День рождения</string>
     <string name="string_413">На странице деталей показывать оригинал изображения</string>
