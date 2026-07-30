@@ -91,6 +91,7 @@ class RecommendCardWidgetWorker(
         )
         views.setOnClickPendingIntent(R.id.widget_root, openPi)
         views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(widgetId))
+        views.setViewVisibility(R.id.widget_bookmark, android.view.View.GONE)
         manager.updateAppWidget(widgetId, views)
     }
 
@@ -150,6 +151,11 @@ class RecommendCardWidgetWorker(
         )
         views.setOnClickPendingIntent(R.id.widget_root, openPi)
         views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(widgetId))
+        views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
+        views.setOnClickPendingIntent(
+            R.id.widget_bookmark,
+            WidgetBookmarkReceiver.pendingIntent(context, "card/$widgetId", illust.id)
+        )
 
         manager.updateAppWidget(widgetId, views)
         return true

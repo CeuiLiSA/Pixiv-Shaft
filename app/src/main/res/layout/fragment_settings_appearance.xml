@@ -212,6 +212,26 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/widget_refresh_interval_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/v3_widget_refresh_interval_title" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/widget_refresh_interval"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/main_view_r18_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/bg_m3_row_bottom">

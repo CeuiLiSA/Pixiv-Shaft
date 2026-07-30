@@ -268,6 +268,9 @@ public class Settings {
     /** 同时下载的最大任务数（1-5）。1 = 严格串行（旧默认行为）。 */
     private int maxConcurrentDownloads = 1;
 
+    /** 桌面小组件换图间隔（分钟），只作用于推荐类小组件；日榜固定 6 小时。WorkManager 下限 15。 */
+    private int widgetRefreshIntervalMinutes = 30;
+
     // ===== aria2 远程下载（#692）：启用后图片下载任务通过 JSON-RPC 发给远端 aria2（如 NAS），不在本地落盘 =====
     private boolean aria2Enabled = false;
     /** aria2 JSON-RPC 端点，如 http://192.168.1.5:6800/jsonrpc */
@@ -845,6 +848,16 @@ public class Settings {
         if (n < 1) n = 1;
         if (n > 5) n = 5;
         this.maxConcurrentDownloads = n;
+    }
+
+    /** 低于 WorkManager 周期任务下限 15 的值视为损坏配置，按默认 30 处理 */
+    public int getWidgetRefreshIntervalMinutes() {
+        if (widgetRefreshIntervalMinutes < 15) return 30;
+        return widgetRefreshIntervalMinutes;
+    }
+
+    public void setWidgetRefreshIntervalMinutes(int minutes) {
+        this.widgetRefreshIntervalMinutes = minutes;
     }
 
     public boolean isAria2Enabled() {

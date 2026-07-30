@@ -91,6 +91,7 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
+        add(Entry(APPEARANCE, "widget_refresh_interval_rela", R.string.v3_widget_refresh_interval_title, keywords = "小组件 桌面 插件 widget 刷新 间隔 换图 频率 refresh interval"))
         add(Entry(APPEARANCE, "main_view_r18_rela", R.string.string_359, keywords = "r18 r页 主页 首页 涩图"))
 
         // 浏览与搜索

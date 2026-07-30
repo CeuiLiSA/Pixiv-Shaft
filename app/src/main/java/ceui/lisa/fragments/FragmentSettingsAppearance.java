@@ -26,6 +26,9 @@ import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.pixiv.ui.settings.ThemeColorCatalog;
+import ceui.pixiv.widget.RecommendCardWidgetProvider;
+import ceui.pixiv.widget.RecommendStripWidgetProvider;
+import ceui.pixiv.widget.SpotlightWidgetProvider;
 
 /** 设置 · 界面 */
 public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSettingsAppearanceBinding> {
@@ -237,6 +240,36 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         });
         baseBind.bottomBarOrderRela.setOnClickListener(v -> baseBind.orderSelect.performClick());
 
+        // 桌面小组件换图间隔（issue #641，只作用于推荐类小组件；日榜内容一天一变，固定 6 小时）
+        final int[] INTERVAL_MINUTES = new int[]{15, 30, 60, 120, 360};
+        final String[] INTERVAL_NAMES = new String[INTERVAL_MINUTES.length];
+        for (int i = 0; i < INTERVAL_MINUTES.length; i++) {
+            INTERVAL_NAMES[i] = intervalDisplay(INTERVAL_MINUTES[i]);
+        }
+        baseBind.widgetRefreshInterval.setText(
+                intervalDisplay(Shaft.sSettings.getWidgetRefreshIntervalMinutes()));
+        baseBind.widgetRefreshIntervalRela.setOnClickListener(v -> {
+            int checked = Arrays.binarySearch(INTERVAL_MINUTES,
+                    Shaft.sSettings.getWidgetRefreshIntervalMinutes());
+            final int index = checked >= 0 ? checked : 1; // 非预设值按默认 30 分钟高亮
+            new QMUIDialog.CheckableDialogBuilder(mActivity)
+                    .setCheckedIndex(index)
+                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .addItems(INTERVAL_NAMES, (dialog, which) -> {
+                        if (which != index) {
+                            Shaft.sSettings.setWidgetRefreshIntervalMinutes(INTERVAL_MINUTES[which]);
+                            Local.setSettings(Shaft.sSettings);
+                            baseBind.widgetRefreshInterval.setText(INTERVAL_NAMES[which]);
+                            // UPDATE 策略：已加到桌面的小组件立即按新间隔重排
+                            SpotlightWidgetProvider.schedulePeriodic(mContext);
+                            RecommendStripWidgetProvider.schedulePeriodic(mContext);
+                            RecommendCardWidgetProvider.schedulePeriodic(mContext);
+                        }
+                        dialog.dismiss();
+                    })
+                    .show();
+        });
+
         // APP主页显示R页面
         baseBind.mainViewR18.setChecked(Shaft.sSettings.isMainViewR18());
         baseBind.mainViewR18.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -248,6 +281,12 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             }
         });
         baseBind.mainViewR18Rela.setOnClickListener(v -> baseBind.mainViewR18.performClick());
+    }
+
+    private String intervalDisplay(int minutes) {
+        return minutes < 60
+                ? getString(R.string.v3_widget_interval_minutes, minutes)
+                : getString(R.string.v3_widget_interval_hours, minutes / 60);
     }
 
     private void setOrderName() {

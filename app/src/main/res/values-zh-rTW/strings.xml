@@ -122,6 +122,10 @@
     <string name="v3_widget_recommend_strip_description">Pixiv 推薦 · 三張</string>
     <string name="v3_widget_recommend_card_label">Pixiv 推薦 隨機卡片</string>
     <string name="v3_widget_recommend_card_description">隨機一張推薦作品，可縮放為 2×2 / 2×1</string>
+    <string name="v3_widget_refresh_interval_title">小工具換圖間隔</string>
+    <string name="v3_widget_interval_minutes">%d 分鐘</string>
+    <string name="v3_widget_interval_hours">%d 小時</string>
+    <string name="v3_widget_bookmark_failed">收藏失敗，請稍後再試</string>
     <string name="novel_tag">小說標籤</string>
     <string name="hot_tag">熱門標籤</string>
     <string name="ranking_illust">排行榜</string>

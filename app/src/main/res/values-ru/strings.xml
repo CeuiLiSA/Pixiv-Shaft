@@ -122,6 +122,10 @@
     <string name="v3_widget_recommend_strip_description">Pixiv: 3 рекомендации</string>
     <string name="v3_widget_recommend_card_label">Pixiv: карточка рекомендации</string>
     <string name="v3_widget_recommend_card_description">Одна случайная рекомендация, размер 2×2 или 2×1</string>
+    <string name="v3_widget_refresh_interval_title">Интервал обновления виджета</string>
+    <string name="v3_widget_interval_minutes">%d мин</string>
+    <string name="v3_widget_interval_hours">%d ч</string>
+    <string name="v3_widget_bookmark_failed">Не удалось добавить в закладки, попробуйте позже</string>
     <string name="novel_tag">Теги новелл</string>
     <string name="hot_tag">Популярные теги</string>
     <string name="ranking_illust">Популярное</string>

@@ -122,6 +122,10 @@
     <string name="v3_widget_recommend_strip_description">Pixiv おすすめ・3 枚</string>
     <string name="v3_widget_recommend_card_label">Pixiv おすすめ・カード</string>
     <string name="v3_widget_recommend_card_description">ランダムにおすすめ作品を 1 枚表示（2×2 / 2×1）</string>
+    <string name="v3_widget_refresh_interval_title">ウィジェット更新間隔</string>
+    <string name="v3_widget_interval_minutes">%d 分</string>
+    <string name="v3_widget_interval_hours">%d 時間</string>
+    <string name="v3_widget_bookmark_failed">ブックマークに失敗しました。後でもう一度お試しください</string>
     <string name="novel_tag">小説のタグ</string>
     <string name="hot_tag">人気のタグ</string>
     <string name="ranking_illust">ランキング</string>

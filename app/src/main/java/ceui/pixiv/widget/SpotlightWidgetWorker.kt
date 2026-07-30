@@ -92,6 +92,7 @@ class SpotlightWidgetWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_root, openPi)
+        views.setViewVisibility(R.id.widget_bookmark, android.view.View.GONE)
         manager.updateAppWidget(widgetId, views)
     }
 
@@ -173,6 +174,11 @@ class SpotlightWidgetWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_root, openPi)
+        views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
+        views.setOnClickPendingIntent(
+            R.id.widget_bookmark,
+            WidgetBookmarkReceiver.pendingIntent(context, "spotlight/$widgetId", illust.id)
+        )
 
         manager.updateAppWidget(widgetId, views)
         return true

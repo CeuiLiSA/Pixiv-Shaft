@@ -122,6 +122,10 @@
     <string name="v3_widget_recommend_strip_description">Pixiv 추천 · 3장</string>
     <string name="v3_widget_recommend_card_label">Pixiv 추천 · 카드</string>
     <string name="v3_widget_recommend_card_description">무작위 추천 작품 1장 (2×2 / 2×1)</string>
+    <string name="v3_widget_refresh_interval_title">위젯 새로고침 간격</string>
+    <string name="v3_widget_interval_minutes">%d분</string>
+    <string name="v3_widget_interval_hours">%d시간</string>
+    <string name="v3_widget_bookmark_failed">북마크에 실패했습니다. 나중에 다시 시도해 주세요</string>
     <string name="novel_tag">소설 꼬리표</string>
     <string name="hot_tag">인기 태그</string>
     <string name="ranking_illust">순위표</string>

@@ -122,6 +122,10 @@
     <string name="v3_widget_recommend_strip_description">Pixiv Recommend · 3 picks</string>
     <string name="v3_widget_recommend_card_label">Pixiv Recommend · Card</string>
     <string name="v3_widget_recommend_card_description">One random recommendation, resizable to 2×2 / 2×1</string>
+    <string name="v3_widget_refresh_interval_title">Widget refresh interval</string>
+    <string name="v3_widget_interval_minutes">%d min</string>
+    <string name="v3_widget_interval_hours">%d h</string>
+    <string name="v3_widget_bookmark_failed">Bookmark failed, please try again later</string>
     <string name="novel_tag">Novel tags</string>
     <string name="hot_tag">Popular Tags</string>
     <string name="ranking_illust">Popular</string>

@@ -10,6 +10,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import ceui.lisa.activities.Shaft
 import java.util.concurrent.TimeUnit
 
 /**
@@ -56,23 +57,26 @@ class RecommendCardWidgetProvider : AppWidgetProvider() {
         )
     }
 
-    private fun schedulePeriodic(context: Context) {
-        val request = PeriodicWorkRequestBuilder<RecommendCardWidgetWorker>(30, TimeUnit.MINUTES)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            WORK_NAME_PERIODIC,
-            ExistingPeriodicWorkPolicy.UPDATE,
-            request
-        )
-    }
-
     companion object {
         const val WORK_NAME_PERIODIC = "v3_recommend_card_periodic"
         const val WORK_NAME_ONE_SHOT = "v3_recommend_card_one_shot"
+
+        /** 设置页改完换图间隔后也会直接调这里，UPDATE 策略让新周期立即生效 */
+        @JvmStatic
+        fun schedulePeriodic(context: Context) {
+            val minutes = Shaft.sSettings.widgetRefreshIntervalMinutes.toLong()
+            val request = PeriodicWorkRequestBuilder<RecommendCardWidgetWorker>(minutes, TimeUnit.MINUTES)
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .build()
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                WORK_NAME_PERIODIC,
+                ExistingPeriodicWorkPolicy.UPDATE,
+                request
+            )
+        }
     }
 }
