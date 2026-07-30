@@ -28,6 +28,7 @@
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">共有</string>
     <string name="webview_handler_open_in_browser">ブラウザで開く</string>
+    <string name="webview_go_forward">進む</string>
     <string name="webview_handler_copy_link_addr">アドレスをコピー</string>
     <string name="webview_handler_copy_link_text">リンクテキストをコピー</string>
     <string name="webview_handler_download_link">リンク先をダウンロード</string>

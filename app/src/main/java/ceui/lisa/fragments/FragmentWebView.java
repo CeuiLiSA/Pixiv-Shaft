@@ -239,6 +239,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         if (reverseUploadArmed) {
                             triggerReverseUpload();
                         }
+                        syncForwardButton();
                         super.onPageFinished(view, url);
                     }
                 })
@@ -264,6 +265,13 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         });
         Common.showLog(className + url);
         mWebView = mAgentWeb.getWebCreator().getWebView();
+        // 返回键会一路退网页历史(见 TemplateActivity 的 OnBackPressedDispatcher),
+        // 退过头了就靠这个回去 —— 图搜搜半天被一次误触返回抹掉太亏(#733)。
+        baseBind.ibForward.setOnClickListener(v -> {
+            if (mWebView.canGoForward()) {
+                mWebView.goForward();
+            }
+        });
         WebSettings settings = mWebView.getSettings();
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
@@ -290,6 +298,20 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 return true;
             }
         });
+    }
+
+    /**
+     * 「前进」只在网页真有前进历史时露头，免得平时挂一个永远点不动的按钮。
+     *
+     * <p>只由 {@code onPageFinished} 驱动：{@code goForward()} 是异步的，紧跟着读
+     * {@code canGoForward()} 拿到的是旧值，等页面落地再同步才准。前进/后退都会走到
+     * {@code onPageFinished}，所以退过头时按钮会自己冒出来。</p>
+     */
+    private void syncForwardButton() {
+        if (mWebView == null) {
+            return;
+        }
+        baseBind.ibForward.setVisibility(mWebView.canGoForward() ? View.VISIBLE : View.GONE);
     }
 
     /**

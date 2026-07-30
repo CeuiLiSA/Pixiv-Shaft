@@ -28,6 +28,7 @@
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">分享</string>
     <string name="webview_handler_open_in_browser">在浏览器中打开</string>
+    <string name="webview_go_forward">前进</string>
     <string name="webview_handler_copy_link_addr">复制链接地址</string>
     <string name="webview_handler_copy_link_text">复制链接文本</string>
     <string name="webview_handler_download_link">下载链接</string>

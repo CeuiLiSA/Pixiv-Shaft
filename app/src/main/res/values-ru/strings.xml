@@ -28,6 +28,7 @@
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">Поделиться</string>
     <string name="webview_handler_open_in_browser">Открыть в браузере</string>
+    <string name="webview_go_forward">Вперёд</string>
     <string name="webview_handler_copy_link_addr">Копировать адрес ссылки</string>
     <string name="webview_handler_copy_link_text">Копировать текст ссылки</string>
     <string name="webview_handler_download_link">Ссылка для скачивания</string>

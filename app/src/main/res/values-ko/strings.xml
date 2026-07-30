@@ -28,6 +28,7 @@
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">함께 나누다</string>
     <string name="webview_handler_open_in_browser">브 라 우 저 에서 열기</string>
+    <string name="webview_go_forward">앞으로</string>
     <string name="webview_handler_copy_link_addr">링크 주소 복사</string>
     <string name="webview_handler_copy_link_text">링크 텍스트 복사</string>
     <string name="webview_handler_download_link">링크 다운로드</string>
