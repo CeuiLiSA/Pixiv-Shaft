@@ -191,7 +191,7 @@
                 <RelativeLayout
                     android:id="@+id/filter_rank_bookmarked_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/bg_m3_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -202,42 +202,6 @@
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/filter_rank_bookmarked"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/delete_star_illust_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/delete_star_illust" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/delete_star_illust"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/filter_invalid_bookmarks_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/filter_invalid_bookmarks" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/filter_invalid_bookmarks"
                         style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
@@ -343,7 +307,7 @@
                 <RelativeLayout
                     android:id="@+id/search_default_sort_type_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/bg_m3_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -357,6 +321,24 @@
                     <TextView
                         android:id="@+id/search_default_sort_type"
                         style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/delete_star_illust_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/delete_star_illust" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/delete_star_illust"
+                        style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
 

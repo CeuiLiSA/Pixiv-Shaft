@@ -96,7 +96,7 @@
                 <RelativeLayout
                     android:id="@+id/app_language_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/bg_m3_row_bottom">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -114,9 +114,69 @@
                 </RelativeLayout>
 
                 <RelativeLayout
-                    android:id="@+id/line_count_rela"
+                    android:id="@+id/navigation_init_position_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_m3_row_top">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_426" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/navigation_init_position"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/bottom_bar_order_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_342" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/order_select"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/main_view_r18_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_359" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/main_view_r18"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/line_count_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_m3_row_top">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -156,7 +216,7 @@
                 <RelativeLayout
                     android:id="@+id/show_novel_card_tags_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/bg_m3_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -172,49 +232,10 @@
                 </RelativeLayout>
 
                 <RelativeLayout
-                    android:id="@+id/navigation_init_position_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_426" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/navigation_init_position"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/bottom_bar_order_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_342" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/order_select"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
                     android:id="@+id/widget_refresh_interval_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_m3_row_single">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -228,24 +249,6 @@
                     <TextView
                         android:id="@+id/widget_refresh_interval"
                         style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/main_view_r18_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_359" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/main_view_r18"
-                        style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
 

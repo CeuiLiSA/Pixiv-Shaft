@@ -90,6 +90,24 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/filter_invalid_bookmarks_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/filter_invalid_bookmarks" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/filter_invalid_bookmarks"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/select_all_tag_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/bg_m3_row_mid">

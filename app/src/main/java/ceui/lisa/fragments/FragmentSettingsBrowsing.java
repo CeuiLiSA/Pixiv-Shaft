@@ -140,18 +140,6 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         });
         baseBind.deleteStarIllustRela.setOnClickListener(v -> baseBind.deleteStarIllust.performClick());
 
-        baseBind.filterInvalidBookmarks.setChecked(Shaft.sSettings.isFilterInvalidBookmarks());
-        baseBind.filterInvalidBookmarks.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setFilterInvalidBookmarks(isChecked);
-                Common.showToast(getString(R.string.string_428), 2);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.filterInvalidBookmarksRela.setOnClickListener(v ->
-                baseBind.filterInvalidBookmarks.performClick());
-
         // 小说列表自动屏蔽：正文字数下限/上限 + 超长标签名（issue #743）。
         // 三项默认 0（关闭）——升级上来的用户列表不会无声变短；点开时按建议值预填。
         bindNovelFilterRow(

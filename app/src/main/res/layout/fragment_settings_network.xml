@@ -112,7 +112,7 @@
                 <RelativeLayout
                     android:id="@+id/image_host_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/bg_m3_row_bottom">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -133,7 +133,8 @@
                 <RelativeLayout
                     android:id="@+id/show_large_thumbnail_image_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_m3_row_top">
 
                     <LinearLayout style="@style/M3SetTexts">
 
