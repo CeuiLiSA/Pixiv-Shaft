@@ -49,6 +49,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.os.BundleCompat;
 import androidx.appcompat.widget.Toolbar;
 import ceui.lisa.R;
 import android.webkit.CookieManager;
@@ -99,7 +100,8 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         title = bundle.getString(Params.TITLE);
         url = bundle.getString(Params.URL);
         preferPreserve = bundle.getBoolean(Params.PREFER_PRESERVE);
-        reverseSearchImageUri = bundle.getParcelable(Params.REVERSE_SEARCH_IMAGE_URI);
+        reverseSearchImageUri = BundleCompat.getParcelable(
+                bundle, Params.REVERSE_SEARCH_IMAGE_URI, Uri.class);
         reverseUploadArmed = reverseSearchImageUri != null;
     }
 
@@ -330,6 +332,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
      * 上传按钮时 {@code onShowFileChooser} 一样会把这张图顶上去，只是多一次点击。</p>
      */
     private void triggerReverseUpload() {
+        if (mWebView == null) {
+            return;
+        }
         mWebView.evaluateJavascript(
                 "(function(){"
                         + "var i=document.querySelector('input[type=file]');"

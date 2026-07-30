@@ -657,20 +657,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
-            try {
-                Uri imageUri = data.getData();
-                if (!ReverseImage.isFileSizeOkToSearch(imageUri)) {
-                    Common.showToast(getString(R.string.string_410));
-                    return;
-                }
-                Uri cachedImageUri = Common.copyUriToReverseSearchCache(imageUri);
-                if (cachedImageUri == null) {
-                    Common.showToast(getString(R.string.reverse_image_copy_failed));
-                    return;
-                }
-                ReverseImage.search(this, cachedImageUri, ReverseImage.DEFAULT_ENGINE);
-            } catch (Exception e) {
-                e.printStackTrace();
+            Uri imageUri = data == null ? null : data.getData();
+            if (imageUri != null) {
+                ReverseImage.searchFrom(this, imageUri, ReverseImage.DEFAULT_ENGINE, null);
             }
         }
     }

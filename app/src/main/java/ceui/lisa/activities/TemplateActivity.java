@@ -10,6 +10,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.core.content.IntentCompat;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -125,7 +126,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     // 这里只是把引擎上传页和待搜图片转交过去。
                     String engineUrl = intent.getStringExtra(Params.URL);
                     String engineName = intent.getStringExtra(Params.TITLE);
-                    Uri imageUri = intent.getParcelableExtra(Params.REVERSE_SEARCH_IMAGE_URI);
+                    Uri imageUri = IntentCompat.getParcelableExtra(
+                            intent, Params.REVERSE_SEARCH_IMAGE_URI, Uri.class);
                     return FragmentWebView.newInstance(engineName, engineUrl, imageUri);
                 }
                 case "相关评论": {

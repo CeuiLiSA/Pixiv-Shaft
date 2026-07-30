@@ -1,10 +1,14 @@
 package ceui.lisa.utils;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+
+import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 
 /**
@@ -27,6 +31,38 @@ public class ReverseImage {
 
     public static boolean isFileSizeOkToSearch(Uri fileUri) {
         return Common.isFileSizeOkToReverseSearch(fileUri, IMAGE_MAX_SIZE);
+    }
+
+    /**
+     * 从外部 Uri 起一次图搜：查大小 → 复制进缓存 → 打开引擎页。
+     *
+     * <p>前两步都在子线程。source 可能是云相册的 content://（Google Photos 这类只存云端的
+     * 图片），ContentResolver 读它会先联网下载——最多 15MB，放主线程足够撞 ANR。</p>
+     *
+     * @param after 准备结束后回主线程执行，成功失败都会走到。分享进来的那张中转 activity
+     *              用它来 finish（不能提前 finish：起 TemplateActivity 还要用它的 context）。
+     */
+    public static void searchFrom(Activity activity, Uri source, ReverseProvider provider,
+                                  @Nullable Runnable after) {
+        Common.showToast(activity.getString(R.string.loading_text));
+        new Thread(() -> {
+            final boolean sizeOk = isFileSizeOkToSearch(source);
+            final Uri cached = sizeOk ? Common.copyUriToReverseSearchCache(source) : null;
+            activity.runOnUiThread(() -> {
+                if (!activity.isFinishing() && !activity.isDestroyed()) {
+                    if (!sizeOk) {
+                        Common.showToast(activity.getString(R.string.string_410));
+                    } else if (cached == null) {
+                        Common.showToast(activity.getString(R.string.reverse_image_copy_failed));
+                    } else {
+                        search(activity, cached, provider);
+                    }
+                }
+                if (after != null) {
+                    after.run();
+                }
+            });
+        }, "reverse-image-prepare").start();
     }
 
     /**
