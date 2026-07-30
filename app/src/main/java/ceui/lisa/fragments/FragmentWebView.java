@@ -89,7 +89,8 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private String mLongClickLinkText;
     private Uri reverseSearchImageUri;
     /**
-     * 图搜：这张图还没喂给页面。喂进去一次就落下，之后页面里再点上传按钮走正常的系统选择器。
+     * 图搜：这张图还没喂给页面。用户点页面自己的上传按钮时顶上去，顶过一次就落下，
+     * 之后再点走正常的系统选择器。
      */
     private boolean reverseUploadArmed = false;
     private ValueCallback<Uri> uploadMessage;
@@ -125,8 +126,8 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     }
 
     /**
-     * 以图搜图：url 是引擎的上传页，imageUri 会在页面弹文件选择器时直接顶上去。
-     * 见 {@link ReverseImage} 里为什么上传必须由 WebView 自己发。
+     * 以图搜图：url 是引擎的上传页，用户点页面上的选择文件按钮时，imageUri 会直接顶上去，
+     * 不弹系统选择器让他重挑一遍。见 {@link ReverseImage} 里为什么上传必须由 WebView 自己发。
      */
     public static FragmentWebView newInstance(String title, String url, Uri imageUri) {
         Bundle args = new Bundle();
@@ -238,9 +239,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         if(shouldInjectCSS){
                             injectCSS();
                         }
-                        if (reverseUploadArmed) {
-                            triggerReverseUpload();
-                        }
                         syncForwardButton();
                         super.onPageFinished(view, url);
                     }
@@ -290,6 +288,11 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 // 图搜：图片是调用方带进来的，直接顶上去，别再弹系统选择器让用户重挑一遍。
+                //
+                // 这一步曾经想用 JS 自动完成（onPageFinished 里注入 input.click() 顺带挂 change
+                // 自动提交），真机验证证伪：Chromium 要求用户手势才肯开文件选择器，注入的 click
+                // 拿不到手势，选择器根本不弹，后面的 change 自动提交也就没机会跑。那段 JS 只留下
+                // 站点特定的脆弱选择器，已删。现在老老实实等用户点页面自己的按钮。
                 if (reverseUploadArmed && reverseSearchImageUri != null) {
                     reverseUploadArmed = false;
                     filePathCallback.onReceiveValue(new Uri[]{reverseSearchImageUri});
@@ -314,43 +317,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             return;
         }
         baseBind.ibForward.setVisibility(mWebView.canGoForward() ? View.VISIBLE : View.GONE);
-    }
-
-    /**
-     * 图搜：把图片喂进引擎页面自己的 file input，让页面来发这个上传 POST。
-     *
-     * <p>只认「页面里第一个 file input」，不写死各家引擎的选择器——SauceNAO 和 ascii2d 的上传
-     * 表单都只有一个文件输入框，选择器写细了只会随页面改版烂掉。</p>
-     *
-     * <p>不在这里直接 submit：WebView 把文件交给 input 是异步的，立刻 submit 会提交一个空表单。
-     * 所以先挂 change 监听，等文件真的落进 input 再提交。</p>
-     *
-     * <p>提交优先点表单自己的提交按钮而不是 {@code form.submit()}：后者会跳过 submit 事件，
-     * 也不会带上按钮的 name/value（ascii2d 的按钮就叫 {@code search}）。</p>
-     *
-     * <p>点不开选择器也不会走进死路：{@link #reverseUploadArmed} 还立着，用户自己点页面上的
-     * 上传按钮时 {@code onShowFileChooser} 一样会把这张图顶上去，只是多一次点击。</p>
-     */
-    private void triggerReverseUpload() {
-        if (mWebView == null) {
-            return;
-        }
-        mWebView.evaluateJavascript(
-                "(function(){"
-                        + "var i=document.querySelector('input[type=file]');"
-                        + "if(!i){return 'no-input';}"
-                        + "if(!i.dataset.shaftReverse){"
-                        + "i.dataset.shaftReverse='1';"
-                        + "i.addEventListener('change',function(){"
-                        + "if(!i.files||!i.files.length||!i.form){return;}"
-                        + "var b=i.form.querySelector('[type=submit]');"
-                        + "if(b){b.click();}else{i.form.submit();}"
-                        + "});"
-                        + "}"
-                        + "i.click();"
-                        + "return 'ok';"
-                        + "})()",
-                value -> Common.showLog(className + "reverse upload trigger " + value));
     }
 
     private static class LongClickHandler extends Handler {

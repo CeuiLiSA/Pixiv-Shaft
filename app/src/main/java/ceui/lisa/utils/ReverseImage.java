@@ -22,8 +22,14 @@ import ceui.lisa.activities.TemplateActivity;
  * 而质询页在 {@code loadDataWithBaseURL} 里没有真 origin、没有 cookie jar，永远解不开。</p>
  *
  * <p>所以上传这件事只能交给 WebView 自己做——它是真浏览器，能跑质询 JS、能存
- * cf_clearance。这个类现在只负责把「本地图片 + 引擎首页」递给
- * {@link ceui.lisa.fragments.FragmentWebView}，由它把图片喂进页面自己的 file input。</p>
+ * cf_clearance，质询解不开时也能把它如实显示给用户去点。这个类现在只负责把
+ * 「本地图片 + 引擎首页」递给 {@link ceui.lisa.fragments.FragmentWebView}，
+ * 用户在页面上点选择文件时，那张图会被直接顶进去，不用重挑一遍。</p>
+ *
+ * <p>Pixel 8 / Android 16 真机验证过的边界：上传 POST 发得出去、拿回来的是可交互的
+ * Cloudflare Turnstile（不是旧实现那个解不开的死页），但引擎侧仍可能反复下发质询——
+ * multipart 的文件体过不了质询重放，而且 WebView 的 UA 自带 {@code wv} 标记，本就更容易
+ * 被判定可疑。这属于引擎的风控范围，不是这里能修的，也不该靠伪造 UA 去绕。</p>
  */
 public class ReverseImage {
     public static final long IMAGE_MAX_SIZE = 15 * 1024 * 1024; // SauceNao limit: 15MB
