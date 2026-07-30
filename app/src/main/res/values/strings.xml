@@ -161,6 +161,16 @@
     <string name="slide_down_endless">相关作品无限下滑（可能出现重复）</string>
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜索结果收藏量筛选</string>
+    <string name="novel_filter_section">小说列表自动屏蔽</string>
+    <string name="novel_filter_min_text_length">小说正文字数下限</string>
+    <string name="novel_filter_min_text_length_desc">正文短于该字数的小说不显示在小说列表里，填 0 关闭</string>
+    <string name="novel_filter_max_text_length">小说正文字数上限</string>
+    <string name="novel_filter_max_text_length_desc">正文长于该字数的小说不显示在小说列表里，填 0 关闭</string>
+    <string name="novel_filter_max_tag_name_length">小说超长标签屏蔽</string>
+    <string name="novel_filter_max_tag_name_length_desc">任一标签名长于该字数的小说不显示，专治往标签里塞广告，填 0 关闭</string>
+    <string name="novel_filter_unlimited">不限</string>
+    <string name="novel_filter_chars">%1$d 字</string>
+    <string name="novel_filter_input_hint">填 0 关闭</string>
     <string name="language">语言</string>
     <string name="language_follow_system">跟随系统</string>
     <string name="theme_mode">主题模式</string>

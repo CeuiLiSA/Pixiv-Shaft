@@ -2,11 +2,16 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.text.InputType;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -20,6 +25,15 @@ import ceui.pixiv.session.SessionManager;
 
 /** 设置 · 浏览与搜索 */
 public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSettingsBrowsingBinding> {
+
+    /**
+     * 打开「小说超长标签屏蔽」时预填的建议值。日文正圈 tag 本来就能到十几字
+     * （如「ぼくたちは勉強ができない」12 字），阈值压太低会误伤正常作品，取 16。
+     */
+    private static final int NOVEL_FILTER_SUGGESTED_MAX_TAG_NAME_LENGTH = 16;
+
+    /** 打开「小说正文字数下限」时预填的建议值——广告位小说普遍只有几十到几百字。 */
+    private static final int NOVEL_FILTER_SUGGESTED_MIN_TEXT_LENGTH = 500;
 
     @Override
     public void initLayout() {
@@ -137,6 +151,30 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         baseBind.filterInvalidBookmarksRela.setOnClickListener(v ->
                 baseBind.filterInvalidBookmarks.performClick());
 
+        // 小说列表自动屏蔽：正文字数下限/上限 + 超长标签名（issue #743）。
+        // 三项默认 0（关闭）——升级上来的用户列表不会无声变短；点开时按建议值预填。
+        bindNovelFilterRow(
+                baseBind.novelFilterMinTextLengthRela,
+                baseBind.novelFilterMinTextLength,
+                R.string.novel_filter_min_text_length,
+                NOVEL_FILTER_SUGGESTED_MIN_TEXT_LENGTH,
+                () -> Shaft.sSettings.getNovelFilterMinTextLength(),
+                value -> Shaft.sSettings.setNovelFilterMinTextLength(value));
+        bindNovelFilterRow(
+                baseBind.novelFilterMaxTextLengthRela,
+                baseBind.novelFilterMaxTextLength,
+                R.string.novel_filter_max_text_length,
+                0,
+                () -> Shaft.sSettings.getNovelFilterMaxTextLength(),
+                value -> Shaft.sSettings.setNovelFilterMaxTextLength(value));
+        bindNovelFilterRow(
+                baseBind.novelFilterMaxTagNameLengthRela,
+                baseBind.novelFilterMaxTagNameLength,
+                R.string.novel_filter_max_tag_name_length,
+                NOVEL_FILTER_SUGGESTED_MAX_TAG_NAME_LENGTH,
+                () -> Shaft.sSettings.getNovelFilterMaxTagNameLength(),
+                value -> Shaft.sSettings.setNovelFilterMaxTagNameLength(value));
+
         // 搜索结果收藏量筛选
         final String searchFilter = Shaft.sSettings.getSearchFilter();
         baseBind.searchFilter.setText(PixivSearchParamUtil.getSizeName(searchFilter));
@@ -206,5 +244,50 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "同义词词典");
             startActivity(intent);
         });
+    }
+
+    /**
+     * 小说自动屏蔽阈值行：点开数字输入框，0 = 关闭（值列显示「不限」）。
+     * 三行只差 title / getter / setter，共用这一份。
+     */
+    private void bindNovelFilterRow(View row, TextView valueText, int titleRes,
+                                    int suggested, IntSupplier getter, IntConsumer setter) {
+        valueText.setText(formatNovelFilterValue(getter.getAsInt()));
+        row.setOnClickListener(v -> {
+            QMUIDialog.EditTextDialogBuilder builder =
+                    new QMUIDialog.EditTextDialogBuilder(mContext);
+            int current = getter.getAsInt();
+            // 当前关着就把建议值填进去，用户直接点确定即可开启（仍然可以清空/填 0 关掉）。
+            builder.setTitle(getString(titleRes))
+                    .setPlaceholder(getString(R.string.novel_filter_input_hint))
+                    .setDefaultText(current > 0 ? String.valueOf(current)
+                            : (suggested > 0 ? String.valueOf(suggested) : ""))
+                    .setInputType(InputType.TYPE_CLASS_NUMBER)
+                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .addAction(android.R.string.cancel, (dialog, index) -> dialog.dismiss())
+                    .addAction(android.R.string.ok, (dialog, index) -> {
+                        CharSequence entered = builder.getEditText().getText();
+                        // 空输入 = 0 = 关闭；非法/负数同样归零，不让脏值落盘。
+                        int parsed = 0;
+                        try {
+                            parsed = Integer.parseInt(entered == null ? "" : entered.toString().trim());
+                        } catch (NumberFormatException ignored) {
+                        }
+                        parsed = Math.max(parsed, 0);
+                        setter.accept(parsed);
+                        Local.setSettings(Shaft.sSettings);
+                        valueText.setText(formatNovelFilterValue(parsed));
+                        Common.showToast(getString(R.string.string_428), 2);
+                        dialog.dismiss();
+                    })
+                    .create()
+                    .show();
+        });
+    }
+
+    private String formatNovelFilterValue(int value) {
+        return value > 0
+                ? getString(R.string.novel_filter_chars, value)
+                : getString(R.string.novel_filter_unlimited);
     }
 }

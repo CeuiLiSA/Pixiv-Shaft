@@ -152,6 +152,16 @@
     <string name="slide_down_endless">Sonsuz ilgili eser göster</string>
     <string name="other_settings">Diğer</string>
     <string name="search_result_filter">Arama yaparken favori sayısına göre filtrele</string>
+    <string name="novel_filter_section">Roman listesi otomatik filtresi</string>
+    <string name="novel_filter_min_text_length">En az roman uzunluğu</string>
+    <string name="novel_filter_min_text_length_desc">Bu karakter sayısından kısa romanları roman listelerinde gizler. 0 kapatır.</string>
+    <string name="novel_filter_max_text_length">En fazla roman uzunluğu</string>
+    <string name="novel_filter_max_text_length_desc">Bu karakter sayısından uzun romanları roman listelerinde gizler. 0 kapatır.</string>
+    <string name="novel_filter_max_tag_name_length">Aşırı uzun etiketli romanları gizle</string>
+    <string name="novel_filter_max_tag_name_length_desc">Herhangi bir etiket adı bu uzunluğu aşan romanları gizler — etiketlere sıkıştırılan reklamları eler. 0 kapatır.</string>
+    <string name="novel_filter_unlimited">Kapalı</string>
+    <string name="novel_filter_chars">%1$d karakter</string>
+    <string name="novel_filter_input_hint">Kapatmak için 0</string>
     <string name="language">Dil</string>
     <string name="language_follow_system">Sistem ayarı</string>
     <string name="theme_mode">Tema</string>

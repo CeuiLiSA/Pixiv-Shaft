@@ -190,6 +190,19 @@ public class Settings {
     //小说列表点击 item 直接进 V3 正文（略过详情页），默认关闭
     private boolean novelListDirectToReader = false;
 
+    /**
+     * 小说列表自动屏蔽（issue #743）。三个阈值都是 0 = 关闭，只作用于小说列表，插画/漫画不受影响。
+     * 判定见 {@link ceui.lisa.helper.IllustNovelFilter#judgeNovelSpam}。
+     */
+    //正文字数低于该值的小说被屏蔽（0 = 不限）
+    private int novelFilterMinTextLength = 0;
+
+    //正文字数高于该值的小说被屏蔽（0 = 不限）
+    private int novelFilterMaxTextLength = 0;
+
+    //任意一个标签名长度超过该值的小说被屏蔽（0 = 不限）——刷广告的常把整句话塞进 tag 名
+    private int novelFilterMaxTagNameLength = 0;
+
     private String illustPath = "";
 
     private String novelPath = "";
@@ -761,6 +774,30 @@ public class Settings {
 
     public void setR18FilterTempEnable(boolean r18FilterTempEnable) {
         this.r18FilterTempEnable = r18FilterTempEnable;
+    }
+
+    public int getNovelFilterMinTextLength() {
+        return novelFilterMinTextLength;
+    }
+
+    public void setNovelFilterMinTextLength(int novelFilterMinTextLength) {
+        this.novelFilterMinTextLength = novelFilterMinTextLength;
+    }
+
+    public int getNovelFilterMaxTextLength() {
+        return novelFilterMaxTextLength;
+    }
+
+    public void setNovelFilterMaxTextLength(int novelFilterMaxTextLength) {
+        this.novelFilterMaxTextLength = novelFilterMaxTextLength;
+    }
+
+    public int getNovelFilterMaxTagNameLength() {
+        return novelFilterMaxTagNameLength;
+    }
+
+    public void setNovelFilterMaxTagNameLength(int novelFilterMaxTagNameLength) {
+        this.novelFilterMaxTagNameLength = novelFilterMaxTagNameLength;
     }
 
     public String getNavigationInitPosition() {

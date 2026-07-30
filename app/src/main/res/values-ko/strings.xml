@@ -152,6 +152,16 @@
     <string name="slide_down_endless">관련 작품 은 무한 한 하락 세 를 보일 수 있다.</string>
     <string name="other_settings">기타.</string>
     <string name="search_result_filter">검색 결과 저장량 선별</string>
+    <string name="novel_filter_section">소설 목록 자동 차단</string>
+    <string name="novel_filter_min_text_length">소설 본문 글자 수 하한</string>
+    <string name="novel_filter_min_text_length_desc">본문이 이 글자 수보다 짧은 소설을 소설 목록에서 숨깁니다. 0이면 사용 안 함.</string>
+    <string name="novel_filter_max_text_length">소설 본문 글자 수 상한</string>
+    <string name="novel_filter_max_text_length_desc">본문이 이 글자 수보다 긴 소설을 소설 목록에서 숨깁니다. 0이면 사용 안 함.</string>
+    <string name="novel_filter_max_tag_name_length">태그가 너무 긴 소설 차단</string>
+    <string name="novel_filter_max_tag_name_length_desc">태그 이름이 이 글자 수를 넘는 소설을 숨깁니다. 태그에 끼워 넣은 광고를 걸러냅니다. 0이면 사용 안 함.</string>
+    <string name="novel_filter_unlimited">제한 없음</string>
+    <string name="novel_filter_chars">%1$d자</string>
+    <string name="novel_filter_input_hint">0이면 사용 안 함</string>
     <string name="language">언어.</string>
     <string name="language_follow_system">시스템 설정 따르기</string>
     <string name="theme_mode">테마 패턴</string>

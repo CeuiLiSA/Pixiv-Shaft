@@ -242,6 +242,83 @@
 
                 </RelativeLayout>
 
+                <!-- 小说列表自动屏蔽（issue #743）：单独成节，别和上面的通用过滤挤在一张卡里 -->
+                <TextView
+                    style="@style/M3SetHeader"
+                    android:text="@string/novel_filter_section" />
+
+                <RelativeLayout
+                    android:id="@+id/novel_filter_min_text_length_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_top">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/novel_filter_min_text_length" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/novel_filter_min_text_length_desc" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/novel_filter_min_text_length"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/novel_filter_max_text_length_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/novel_filter_max_text_length" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/novel_filter_max_text_length_desc" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/novel_filter_max_text_length"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/novel_filter_max_tag_name_length_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/novel_filter_max_tag_name_length" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/novel_filter_max_tag_name_length_desc" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/novel_filter_max_tag_name_length"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
                 <RelativeLayout
                     android:id="@+id/search_filter_rela"
                     style="@style/M3SetRow"

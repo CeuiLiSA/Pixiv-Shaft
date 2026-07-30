@@ -152,6 +152,16 @@
     <string name="slide_down_endless">Показывать бесконечные похожие иллюстрации (возможны повторы)</string>
     <string name="other_settings">Другое</string>
     <string name="search_result_filter">Фильтр поиска по числу закладок</string>
+    <string name="novel_filter_section">Автофильтр списка новелл</string>
+    <string name="novel_filter_min_text_length">Минимальная длина новеллы</string>
+    <string name="novel_filter_min_text_length_desc">Скрывать из списков новеллы короче этого числа символов. 0 — выключено.</string>
+    <string name="novel_filter_max_text_length">Максимальная длина новеллы</string>
+    <string name="novel_filter_max_text_length_desc">Скрывать из списков новеллы длиннее этого числа символов. 0 — выключено.</string>
+    <string name="novel_filter_max_tag_name_length">Скрывать новеллы со слишком длинными тегами</string>
+    <string name="novel_filter_max_tag_name_length_desc">Скрывать новеллы, где имя любого тега длиннее этого значения — отсекает рекламу в тегах. 0 — выключено.</string>
+    <string name="novel_filter_unlimited">Выкл.</string>
+    <string name="novel_filter_chars">%1$d симв.</string>
+    <string name="novel_filter_input_hint">0 — выключить</string>
     <string name="language">Язык</string>
     <string name="language_follow_system">Как в системе</string>
     <string name="theme_mode">Тема</string>

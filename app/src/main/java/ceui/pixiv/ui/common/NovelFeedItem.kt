@@ -79,6 +79,9 @@ class NovelFeedItem(
             // 空页追载狂翻页；主动点进作者页就该看到其小说。
             if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(novel)) return false
             if (!skipR18Filter && IllustNovelFilter.judgeR18Filter(novel)) return false
+            // 正文字数区间 + 超长标签名自动屏蔽（issue #743）。三个阈值默认 0（关闭），
+            // 不让步 skipMuteUserFilter/skipR18Filter——它针对的是刷屏小说本身，不是某个作者或分级。
+            if (IllustNovelFilter.judgeNovelSpam(novel)) return false
             return true
         }
     }

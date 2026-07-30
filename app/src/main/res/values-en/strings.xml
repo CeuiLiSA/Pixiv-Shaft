@@ -152,6 +152,16 @@
     <string name="slide_down_endless">show infinite Related works (possible duplication)</string>
     <string name="other_settings">other</string>
     <string name="search_result_filter">Filter by number of Bookmarkes when searching</string>
+    <string name="novel_filter_section">Novel list auto-filter</string>
+    <string name="novel_filter_min_text_length">Minimum novel length</string>
+    <string name="novel_filter_min_text_length_desc">Hide novels shorter than this from novel lists. 0 disables.</string>
+    <string name="novel_filter_max_text_length">Maximum novel length</string>
+    <string name="novel_filter_max_text_length_desc">Hide novels longer than this from novel lists. 0 disables.</string>
+    <string name="novel_filter_max_tag_name_length">Hide novels with overlong tags</string>
+    <string name="novel_filter_max_tag_name_length_desc">Hide novels where any tag name is longer than this — catches ads stuffed into tags. 0 disables.</string>
+    <string name="novel_filter_unlimited">Off</string>
+    <string name="novel_filter_chars">%1$d chars</string>
+    <string name="novel_filter_input_hint">0 to disable</string>
     <string name="language">Language</string>
     <string name="language_follow_system">Follow system</string>
     <string name="theme_mode">Theme</string>

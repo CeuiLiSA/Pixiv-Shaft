@@ -92,7 +92,9 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 boolean isIdBanned = IllustNovelFilter.judgeID(novel);
                 boolean isUserBanned = IllustNovelFilter.judgeUserID(novel);
                 boolean isR18FilterBanned = !skipR18Filter && IllustNovelFilter.judgeR18Filter(novel);
-                if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned
+                // 小说专属：正文字数区间 + 超长标签名自动屏蔽（issue #743）。插画分支不挂。
+                boolean isSpamBanned = IllustNovelFilter.judgeNovelSpam(novel);
+                if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned || isSpamBanned
                         || searchR18Rejects(novel.getX_restrict() > 0)
                         || (searchOnlyAi && !novel.isCreatedByAI())) {   // 仅看 AI：剔除非 AI 小说
                     dash.add(o);
