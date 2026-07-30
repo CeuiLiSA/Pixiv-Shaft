@@ -4,6 +4,8 @@ import static ceui.lisa.helper.ThemeHelper.ThemeType.DARK_MODE;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.DEFAULT_MODE;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.LIGHT_MODE;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
@@ -256,14 +258,24 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     .setCheckedIndex(index)
                     .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                     .addItems(INTERVAL_NAMES, (dialog, which) -> {
-                        if (which != index) {
+                        // 按值比较而不是按 index：存量值不是预设值时 index 回退高亮在
+                        // 30 分钟，此时选 30 分钟仍然要落盘
+                        if (INTERVAL_MINUTES[which] != Shaft.sSettings.getWidgetRefreshIntervalMinutes()) {
                             Shaft.sSettings.setWidgetRefreshIntervalMinutes(INTERVAL_MINUTES[which]);
                             Local.setSettings(Shaft.sSettings);
                             baseBind.widgetRefreshInterval.setText(INTERVAL_NAMES[which]);
-                            // UPDATE 策略：已加到桌面的小组件立即按新间隔重排
-                            SpotlightWidgetProvider.schedulePeriodic(mContext);
-                            RecommendStripWidgetProvider.schedulePeriodic(mContext);
-                            RecommendCardWidgetProvider.schedulePeriodic(mContext);
+                            // UPDATE 策略：已加到桌面的小组件立即按新间隔重排。
+                            // 只重排桌面上确实有实例的——周期任务的存在与否由
+                            // onEnabled/onDisabled 管理，这里不能凭空创建
+                            if (hasWidget(SpotlightWidgetProvider.class)) {
+                                SpotlightWidgetProvider.schedulePeriodic(mContext);
+                            }
+                            if (hasWidget(RecommendStripWidgetProvider.class)) {
+                                RecommendStripWidgetProvider.schedulePeriodic(mContext);
+                            }
+                            if (hasWidget(RecommendCardWidgetProvider.class)) {
+                                RecommendCardWidgetProvider.schedulePeriodic(mContext);
+                            }
                         }
                         dialog.dismiss();
                     })
@@ -281,6 +293,11 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             }
         });
         baseBind.mainViewR18Rela.setOnClickListener(v -> baseBind.mainViewR18.performClick());
+    }
+
+    private boolean hasWidget(Class<?> providerClass) {
+        return AppWidgetManager.getInstance(mContext)
+                .getAppWidgetIds(new ComponentName(mContext, providerClass)).length > 0;
     }
 
     private String intervalDisplay(int minutes) {
