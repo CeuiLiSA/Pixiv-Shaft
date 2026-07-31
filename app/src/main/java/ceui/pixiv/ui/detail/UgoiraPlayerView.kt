@@ -34,9 +34,11 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.ui.bulk.UgoiraFrames
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -352,8 +354,9 @@ class UgoiraPlayerView @JvmOverloads constructor(
     /**
      * 播放器报「连续解码失败 / 解码线程异常」:帧文件多半被系统清缓存删了,而引擎内存缓存
      * 还指着死文件 —— 不处理的话画面永久冻结,连重试按钮都救不回来([startLoad] 会先命中
-     * `peekReadyInMemory` 拿到同一批死文件)。清掉引擎内存记录后自动重走一次完整 pipeline
-     * (重下 zip → 重落帧序列);同一版自愈过一次仍坏就只亮重试按钮,不无限循环烧流量。
+     * `peekReadyInMemory` 拿到同一批死文件)。清掉引擎内存记录、**并删掉盘上这版可疑目录**
+     * 后自动重走一次完整 pipeline(否则「文件都在但内容坏」时磁盘命中同一批坏文件,自愈
+     * 空转);同一版自愈过一次仍坏就只亮重试按钮,不无限循环烧流量。
      */
     private fun onPlaybackBroken(illust: IllustsBean, frames: UgoiraFrames) {
         if (playingDir != frames.dir.path) return // 过期回调(已换版/已停),不动现场
@@ -365,8 +368,15 @@ class UgoiraPlayerView @JvmOverloads constructor(
             retryButton.isVisible = true
         } else {
             autoHealedDir = frames.dir.path
-            Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d 帧解码失败,清内存缓存后自动重建", illust.id)
-            resumePlayback()
+            Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d 帧解码失败,清缓存后自动重建", illust.id)
+            val owner = boundOwner ?: return
+            owner.lifecycleScope.launch {
+                // 先删再 resume,保证重建的 pipeline 不会磁盘命中这批坏文件。
+                withContext(Dispatchers.IO) {
+                    runCatching { UgoiraEngine.purgeBrokenFrames(illust.id, frames.dir) }
+                }
+                resumePlayback()
+            }
         }
     }
 

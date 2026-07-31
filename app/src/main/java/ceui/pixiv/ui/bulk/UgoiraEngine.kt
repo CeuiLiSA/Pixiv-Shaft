@@ -204,6 +204,20 @@ object UgoiraEngine {
     }
 
     /**
+     * 播放器报「帧序列在盘上却解不出来」时用:清内存记录 + 锁内删掉这版帧目录。
+     * 「文件都在、数量也对、但内容坏」(断电截断类)时光清内存没用 —— 下一轮 pipeline 会
+     * 磁盘命中同一批坏文件,自愈变成空转;只有删掉目录才是真重建。IO 线程调用。
+     */
+    suspend fun purgeBrokenFrames(illustId: Int, dir: File) {
+        invalidate(illustId)
+        fileLockFor(illustId).withLock {
+            if (dir.deleteRecursively()) {
+                Timber.tag(UGOIRA_LOG_TAG).w("[engine] illust=%d 已删除疑似损坏的帧目录 %s", illustId, dir.name)
+            }
+        }
+    }
+
+    /**
      * RIFE 补帧开关切换时调用:内存里记的是旧变体(原速/补帧)的 gif,全清,下次按新开关重取。
      * 顺带清掉 [rifeHardFailed] —— 用户手动切开关就是「再试一次」的意思。
      */
@@ -229,20 +243,30 @@ object UgoiraEngine {
     fun sweepStaleRifeWork(context: Context) {
         engineScope.launch {
             runCatching {
-                val dirs = context.cacheDir.listFiles()
+                val rifeWork = context.cacheDir.listFiles()
                     ?.filter { it.isDirectory && it.name.startsWith(RIFE_WORK_PREFIX) }
-                    ?: return@runCatching
+                    .orEmpty()
+                // 顺带收 gif cache 里的 frames_*.tmp:writeFramesDir 写到一半被杀留下的半成品
+                // (十几 MB/条)。正主目录靠 readFramesDir 校验自愈,但 .tmp 只有同一条动图
+                // 再次重写时才会被顺手删,否则无人认领。
+                val tmpFrames = LegacyFile.gifCacheFolder(context).listFiles()
+                    ?.filter {
+                        it.isDirectory && it.name.startsWith(FRAMES_DIR_PREFIX) &&
+                            it.name.endsWith(FRAMES_TMP_SUFFIX)
+                    }
+                    .orEmpty()
                 var freed = 0L
                 var removed = 0
-                for (dir in dirs) {
-                    val id = dir.name.removePrefix(RIFE_WORK_PREFIX).toIntOrNull()
+                for (dir in rifeWork + tmpFrames) {
+                    val id = dir.name.removePrefix(RIFE_WORK_PREFIX).removePrefix(FRAMES_DIR_PREFIX)
+                        .takeWhile { it.isDigit() }.toIntOrNull()
                     if (id != null && synchronized(lock) { jobs.containsKey(id) }) continue
                     freed += dir.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
                     if (dir.deleteRecursively()) removed++
                 }
                 if (removed > 0) {
                     Timber.tag(UGOIRA_LOG_TAG)
-                        .i("[sweep] 清掉 %d 个残留补帧工作目录,回收 %d KB", removed, freed / 1024)
+                        .i("[sweep] 清掉 %d 个残留目录(rife_work / frames.tmp),回收 %d KB", removed, freed / 1024)
                 }
             }.onFailure { Timber.tag(UGOIRA_LOG_TAG).w(it, "[sweep] 清扫残留补帧目录失败") }
         }
@@ -373,7 +397,6 @@ object UgoiraEngine {
             var result: UgoiraFrames? = null
             fileLockFor(id).withLock {
                 val zipFile = LegacyFile.gifZipFile(ctx, illust)
-                var produced = false
                 try {
                     gate.withPermit {
                         Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 拿到并发额度,开始下载/解压", id)
@@ -430,67 +453,84 @@ object UgoiraEngine {
                         ?: writeFramesDir(baseDir, srcFrames, srcDelays)
                         ?: throw IllegalStateException("write base frames failed for illust=$id")
                     result = baseFrames
-                    produced = true
                     Timber.tag(UGOIRA_LOG_TAG).i(
                         "[pipeline] illust=%d 原速帧序列%s(%d帧,一圈%dms) 耗时 %dms",
                         id, if (cachedBase != null) "复用盘上已有" else "落盘",
                         baseFrames.files.size, baseFrames.totalMs, System.currentTimeMillis() - t0,
                     )
 
-                    // 3.5/4 RIFE 补帧(可选)。任何失败都保留上面的原速版,播放不因补帧挂掉。
+                    // 3.5/4 RIFE 补帧(可选)。任何失败都保留上面的原速版,播放不因补帧挂掉 ——
+                    // 这个承诺必须覆盖到**转存阶段的异常**:rife 输出的 PNG 被截断(磁盘满是
+                    // 现实触发源,补帧中间产物正是吃磁盘大户)时,writeFramesDir 的 decode 会
+                    // 直接抛,不兜住的话原速版明明已落盘,整条 pipeline 却报 FAILED 给用户看
+                    // 重试按钮。除取消外,补帧侧任何 Throwable 都只降级、不外抛。
                     if (useRife && RifeInterpolator.worthInterpolating(srcDelays)) {
-                        rifeGate.withPermit {
-                            flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, 0)
-                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 开始 (%d帧)", id, srcFrames.size)
-                            var lastQuarter = -1
-                            val pipelineJob = coroutineContext[Job]
-                            val rife = RifeInterpolator.interpolate(
-                                ctx, unzipFolder, srcDelays,
-                                workRoot = rifeWorkRoot,
-                                isActive = { pipelineJob?.isActive != false },
-                            ) { pct ->
-                                flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, pct)
-                                if (pct / 25 != lastQuarter) {
-                                    lastQuarter = pct / 25
-                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE %d%%", id, pct)
+                        try {
+                            rifeGate.withPermit {
+                                flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, 0)
+                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 开始 (%d帧)", id, srcFrames.size)
+                                var lastQuarter = -1
+                                val pipelineJob = coroutineContext[Job]
+                                val rife = RifeInterpolator.interpolate(
+                                    ctx, unzipFolder, srcDelays,
+                                    workRoot = rifeWorkRoot,
+                                    isActive = { pipelineJob?.isActive != false },
+                                ) { pct ->
+                                    flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, pct)
+                                    if (pct / 25 != lastQuarter) {
+                                        lastQuarter = pct / 25
+                                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE %d%%", id, pct)
+                                    }
                                 }
-                            }
-                            if (rife != null) {
-                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 完成 → %d帧", id, rife.delaysMs.size)
-                                coroutineContext.ensureActive()
-                                // 4/4 转存补帧结果为播放用 JPEG 序列(RIFE 出的是 PNG,280 帧要 50~110MB,必须转)
-                                gate.withPermit {
-                                    flow.value = UgoiraProgress(UgoiraPhase.ENCODE, 0)
-                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] 转存补帧帧序列开始", id)
-                                    var lastQ = -1
-                                    val rifeDir = framesDirFor(ctx, illust, true)
-                                    val converted = writeFramesDir(
-                                        rifeDir, sortedUgoiraFrames(rife.framesDir), rife.delaysMs,
-                                    ) { pct ->
-                                        flow.value = UgoiraProgress(UgoiraPhase.ENCODE, pct)
-                                        if (pct / 25 != lastQ) {
-                                            lastQ = pct / 25
-                                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] 转存 %d%%", id, pct)
+                                if (rife != null) {
+                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 完成 → %d帧", id, rife.delaysMs.size)
+                                    coroutineContext.ensureActive()
+                                    // 4/4 转存补帧结果为播放用 JPEG 序列(RIFE 出的是 PNG,280 帧要 50~110MB,必须转)
+                                    gate.withPermit {
+                                        flow.value = UgoiraProgress(UgoiraPhase.ENCODE, 0)
+                                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] 转存补帧帧序列开始", id)
+                                        var lastQ = -1
+                                        val rifeDir = framesDirFor(ctx, illust, true)
+                                        val converted = writeFramesDir(
+                                            rifeDir, sortedUgoiraFrames(rife.framesDir), rife.delaysMs,
+                                        ) { pct ->
+                                            flow.value = UgoiraProgress(UgoiraPhase.ENCODE, pct)
+                                            if (pct / 25 != lastQ) {
+                                                lastQ = pct / 25
+                                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] 转存 %d%%", id, pct)
+                                            }
+                                        }
+                                        if (converted != null) {
+                                            result = converted
+                                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 补帧帧序列就绪(%d帧,一圈%dms)", id, converted.files.size, converted.totalMs)
                                         }
                                     }
-                                    if (converted != null) {
-                                        result = converted
-                                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 补帧帧序列就绪(%d帧,一圈%dms)", id, converted.files.size, converted.totalMs)
-                                    }
+                                } else if (pipelineJob?.isActive != false) {
+                                    rifeHardFailed = true
+                                    Timber.tag(UGOIRA_LOG_TAG).w("[pipeline] illust=%d [3.5/4] INTERPOLATE 失败,本会话不再尝试补帧,保留原速版", id)
+                                } else {
+                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 被取消,保留原速版", id)
                                 }
-                            } else if (pipelineJob?.isActive != false) {
-                                rifeHardFailed = true
-                                Timber.tag(UGOIRA_LOG_TAG).w("[pipeline] illust=%d [3.5/4] INTERPOLATE 失败,本会话不再尝试补帧,保留原速版", id)
-                            } else {
-                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 被取消,保留原速版", id)
                             }
+                        } catch (c: CancellationException) {
+                            throw c
+                        } catch (t: Throwable) {
+                            // 不置 rifeHardFailed:rife 本身可能是好的,坏的是转存(磁盘满/坏 PNG),
+                            // 那是内容/环境级问题,下条动图未必复发。
+                            Timber.tag(UGOIRA_LOG_TAG).w(t, "[pipeline] illust=%d 补帧/转存异常,保留原速版继续", id)
                         }
                     } else if (useRife) {
                         Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 跳过(帧率已高或帧数超限)", id)
                     }
+
+                    // 走到这里 = 本轮正常收尾(原速版必在,补帧成败已定)。异常路径不经过这;
+                    // 取消(划走 abandon)也跳过 —— 与 [discardIntermediates] 的「只在成功路径
+                    // 调用」约定一致:取消在补帧中段时,重进还要拿 zip/解压帧接着补,删了就得重下。
+                    if (coroutineContext[Job]?.isActive != false) {
+                        discardIntermediates(id, zipFile, unzipFolder)
+                    }
                 } finally {
                     rifeWorkRoot.deleteRecursively()
-                    if (produced) discardIntermediates(id, zipFile, unzipFolder)
                 }
             }
             val r = result ?: throw IllegalStateException("no frames produced for illust=$id")
@@ -680,6 +720,7 @@ data class UgoiraFrames(
 }
 
 private const val FRAMES_DIR_PREFIX = "frames_"
+private const val FRAMES_TMP_SUFFIX = ".tmp"
 private const val FRAMES_DELAY_FILE = "delays.txt"
 private const val FRAME_JPEG_QUALITY = 92
 
@@ -723,7 +764,7 @@ internal suspend fun writeFramesDir(
     onProgress: (Int) -> Unit = {},
 ): UgoiraFrames? {
     if (srcFrames.isEmpty() || srcFrames.size != delaysMs.size) return null
-    val tmp = File(target.parentFile, target.name + ".tmp")
+    val tmp = File(target.parentFile, target.name + FRAMES_TMP_SUFFIX)
     tmp.deleteRecursively()
     tmp.mkdirs()
     val done = java.util.concurrent.atomic.AtomicInteger()
