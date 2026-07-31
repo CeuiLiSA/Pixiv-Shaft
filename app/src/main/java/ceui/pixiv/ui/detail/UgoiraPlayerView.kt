@@ -163,6 +163,9 @@ class UgoiraPlayerView @JvmOverloads constructor(
     private var player: FrameSequencePlayer? = null
     private var playingDir: String? = null
     private var playbackActive = false
+
+    /** 已为哪版帧序列自动自愈过(dir path)。同一版自愈一次仍坏就转手动重试,不无限循环重下。 */
+    private var autoHealedDir: String? = null
     private var boundOwner: LifecycleOwner? = null
     private var boundIllust: IllustsBean? = null
     private val lifecycleObserver = object : DefaultLifecycleObserver {
@@ -238,6 +241,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         boundOwner?.lifecycle?.removeObserver(lifecycleObserver)
         boundOwner = null
         boundIllust = null
+        autoHealedDir = null
         retryButton.setOnClickListener(null)
         retryButton.isVisible = false
         glide.clear(imageView)
@@ -333,13 +337,37 @@ class UgoiraPlayerView @JvmOverloads constructor(
         player?.stop()
         playingDir = frames.dir.path
         retryButton.isVisible = false
-        player = FrameSequencePlayer(frames.files, frames.delaysMs) { bmp ->
-            imageView.setImageBitmap(bmp)
-        }.also { it.start() }
+        player = FrameSequencePlayer(
+            frames.files,
+            frames.delaysMs,
+            onFrame = { bmp -> imageView.setImageBitmap(bmp) },
+            onError = { onPlaybackBroken(illust, frames) },
+        ).also { it.start() }
         Timber.tag(UGOIRA_LOG_TAG).i(
             "[player] illust=%d 开播 %s (%d帧, 一圈%dms, 补帧=%b)",
             illust.id, frames.dir.name, frames.files.size, frames.totalMs, frames.interpolated,
         )
+    }
+
+    /**
+     * 播放器报「连续解码失败 / 解码线程异常」:帧文件多半被系统清缓存删了,而引擎内存缓存
+     * 还指着死文件 —— 不处理的话画面永久冻结,连重试按钮都救不回来([startLoad] 会先命中
+     * `peekReadyInMemory` 拿到同一批死文件)。清掉引擎内存记录后自动重走一次完整 pipeline
+     * (重下 zip → 重落帧序列);同一版自愈过一次仍坏就只亮重试按钮,不无限循环烧流量。
+     */
+    private fun onPlaybackBroken(illust: IllustsBean, frames: UgoiraFrames) {
+        if (playingDir != frames.dir.path) return // 过期回调(已换版/已停),不动现场
+        UgoiraEngine.invalidate(illust.id)
+        val healedBefore = autoHealedDir == frames.dir.path
+        pausePlayback()
+        if (healedBefore) {
+            Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d 自愈后仍解码失败,转手动重试", illust.id)
+            retryButton.isVisible = true
+        } else {
+            autoHealedDir = frames.dir.path
+            Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d 帧解码失败,清内存缓存后自动重建", illust.id)
+            resumePlayback()
+        }
     }
 
     private fun renderProgress(p: UgoiraProgress) {

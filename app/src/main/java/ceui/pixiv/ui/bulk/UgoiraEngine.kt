@@ -336,6 +336,23 @@ object UgoiraEngine {
                 return it
             }
 
+            // 想要补帧版但盘上只有原速版:延迟就躺在 delays.txt 里,先判「值不值得补」。
+            // 帧率已高 / 帧数超限的动图**永远不会产出 _rife 目录**,而成功路径的
+            // [discardIntermediates] 已把 zip/解压帧删了 —— 不在这里提前判掉的话,这类动图
+            // 每次冷启动都会白白重下整个 zip、解压、再丢弃,循环往复。
+            if (useRife) {
+                readFramesDir(framesDirFor(ctx, illust, false), false)?.let { base ->
+                    if (!RifeInterpolator.worthInterpolating(base.delaysMs)) {
+                        publishFrames(id, base)
+                        Timber.tag(UGOIRA_LOG_TAG).i(
+                            "[pipeline] illust=%d 磁盘命中原速帧序列且不值得补帧(%d帧,最小延迟%dms),直接返回",
+                            id, base.files.size, base.delaysMs.min(),
+                        )
+                        return base
+                    }
+                }
+            }
+
             // 1/4 元数据(轻,不占并发额度)
             flow.value = UgoiraProgress(UgoiraPhase.FETCH_META)
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [1/4] FETCH_META 开始", id)

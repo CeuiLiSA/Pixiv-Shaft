@@ -38,11 +38,19 @@ class FrameSequencePlayer(
     private val files: List<File>,
     delaysMs: List<Int>,
     private val onFrame: (Bitmap) -> Unit,
+    private val onError: () -> Unit = {},
 ) {
 
     companion object {
         /** Bitmap 轮转池大小:正在显示 1 张 + 待取 1 张 + 正在解 1 张。 */
         private const val POOL_SIZE = 3
+
+        /**
+         * 连续解码失败多少帧算「帧源整个坏了」。单帧坏文件跳过就行;连续多帧都解不出,
+         * 基本只有一种可能 —— 帧目录被系统清缓存删了,而引擎内存缓存还指着死文件。
+         * 冻在预览图上没有意义,主线程回调 [onError] 让宿主 invalidate + 重建。
+         */
+        private const val MAX_CONSECUTIVE_DECODE_FAILURES = 3
 
         /**
          * 解码线程比显示时刻提前多少毫秒取帧号。太小则解出来就已经过期(白解一张),
@@ -166,6 +174,7 @@ class FrameSequencePlayer(
 
     private fun decodeLoop() {
         var lastIndex = -1
+        var consecutiveFailures = 0
         val opts = BitmapFactory.Options()
         while (running) {
             try {
@@ -180,7 +189,7 @@ class FrameSequencePlayer(
                     val gap = (want - lastIndex + files.size) % files.size
                     if (gap > 1) skippedCount += gap - 1
                 }
-                val reuse = synchronized(lock) { freePool.poll() }
+                var reuse = synchronized(lock) { freePool.poll() }
                 opts.inMutable = true
                 opts.inBitmap = reuse
                 val bmp = try {
@@ -189,14 +198,27 @@ class FrameSequencePlayer(
                     // inBitmap 尺寸/格式不匹配(理论上不会,帧尺寸一致):退回不复用
                     opts.inBitmap = null
                     reuse?.recycle()
+                    reuse = null
                     BitmapFactory.decodeFile(files[want].absolutePath, opts)
                 }
+                lastIndex = want
                 if (bmp == null) {
-                    lastIndex = want
+                    // 没用上的池 bitmap 归还,连续坏帧也不把池漏光
+                    reuse?.let { r ->
+                        synchronized(lock) {
+                            if (freePool.size < POOL_SIZE) freePool.offer(r) else r.recycle()
+                        }
+                    }
+                    if (++consecutiveFailures >= MAX_CONSECUTIVE_DECODE_FAILURES) {
+                        Timber.tag(UGOIRA_LOG_TAG)
+                            .w("[frames] 连续 %d 帧解码失败(帧文件疑似被清),停止并上报", consecutiveFailures)
+                        mainHandler.post { if (running) onError() }
+                        return
+                    }
                     continue
                 }
+                consecutiveFailures = 0
                 decodedCount++
-                lastIndex = want
                 synchronized(lock) {
                     // 主线程还没取走上一张 → 它已经过期了,直接回收(这也是丢帧)
                     pending?.let { if (it !== bmp) it.recycle() }
@@ -206,7 +228,8 @@ class FrameSequencePlayer(
             } catch (i: InterruptedException) {
                 return
             } catch (t: Throwable) {
-                Timber.tag(UGOIRA_LOG_TAG).w(t, "[frames] 解码线程异常,停止播放")
+                Timber.tag(UGOIRA_LOG_TAG).w(t, "[frames] 解码线程异常,停止播放并上报")
+                mainHandler.post { if (running) onError() }
                 return
             }
         }
