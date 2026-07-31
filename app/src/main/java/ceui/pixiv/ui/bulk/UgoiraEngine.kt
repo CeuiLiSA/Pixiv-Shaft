@@ -328,19 +328,25 @@ object UgoiraEngine {
             val unzipFolder = LegacyFile.gifUnzipFolder(ctx, illust)
             var encodeFrames: List<File>? = null
             var encodeDelays: List<Int>? = null
-            // 补帧工作目录整棵树(中间产物 + 输出帧)由最外层 finally 兜底删除 ——
-            // 成功/失败/任意取消点都不在磁盘残留,只留最终 gif。
+            // 补帧工作目录整棵树(中间产物 + 输出帧)由 finally 兜底删除 —— 成功/失败/任意
+            // 取消点都不在磁盘残留,只留最终 gif。这个 finally **必须在文件锁里面**:放到锁外的
+            // 话,本轮取消后下一轮 pipeline 一拿到锁就开始往 rife_work_<id> 里拷帧,而本轮的
+            // deleteRecursively 正在删同一棵树 —— 下一轮补帧会因「输出帧数不符」失败,还会被
+            // [rifeHardFailed] 误判成设备级故障,把整个会话的补帧静默关掉。
             val rifeWorkRoot = File(ctx.cacheDir, RIFE_WORK_PREFIX + id)
             // 最终落盘的变体:先按期望占位,补帧结果出来后改写(补帧没产出 → 原速变体)。
             var resultFile = preferredFile
-            try {
-                fileLockFor(id).withLock {
+            fileLockFor(id).withLock {
+                // zip 提到锁顶:成功收尾要连同解压帧一起删,下面两个出口都够得着。
+                val zipFile = LegacyFile.gifZipFile(ctx, illust)
+                // 成品真落盘了才算成功。失败/取消要留着 zip 和解压帧,下次进来接着用。
+                var produced = false
+                try {
                     gate.withPermit {
                         Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 拿到并发额度,开始下载/解压", id)
                         coroutineContext.ensureActive()
 
                         // 2/4 下载 zip
-                        val zipFile = LegacyFile.gifZipFile(ctx, illust)
                         if (!zipFile.isFile || zipFile.length() == 0L) {
                             flow.value = UgoiraProgress(UgoiraPhase.DOWNLOAD_ZIP)
                             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP 开始 -> %s", id, zipFile.name)
@@ -430,6 +436,7 @@ object UgoiraEngine {
                     if (resultFile != preferredFile && resultFile.isValidGif()) {
                         // 回落目标早就编好过(用户之前关着开关看过这条):直接用,省一次上百帧的编码
                         Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 回落原速变体且已在盘上 -> %s,跳过重编", id, resultFile.name)
+                        produced = true
                         return@withLock
                     }
 
@@ -467,9 +474,11 @@ object UgoiraEngine {
                             throw t
                         }
                     }
+                    produced = true
+                } finally {
+                    rifeWorkRoot.deleteRecursively()
+                    if (produced) discardIntermediates(id, zipFile, unzipFolder)
                 }
-            } finally {
-                rifeWorkRoot.deleteRecursively()
             }
             readyGifCache[id] = resultFile
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d ===== SUCCESS ===== %s (%d bytes) 耗时 %dms", id, resultFile.name, resultFile.length(), System.currentTimeMillis() - t0)
@@ -495,6 +504,26 @@ object UgoiraEngine {
             }
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d END", id)
         }
+    }
+
+    /**
+     * 成品 gif 已落盘 → zip 和解压帧就是死重量,趁还握着 per-illust 文件锁删掉。
+     *
+     * `gifCacheFolder` 没有任何自动淘汰(只有设置页一个手动按钮),而一条动图会在里面留下
+     * **三份**:zip、上百张解压帧、成品 gif。ugoira 的 zip 装的是 JPEG、基本没压缩,所以前两份
+     * 加起来约等于成品的两倍还多 —— 看几十条就是 GB 级。pipeline 本来就有「gif 不在盘上就重下
+     * 重解」的自愈路径,删掉不破坏幂等性;代价只是切换补帧开关后想要另一个变体时要重下一次 zip,
+     * 那不是高频操作。
+     *
+     * 必须在文件锁内调用,且只在成功路径调用 —— 失败/取消时留着中间产物,下次进来接着用。
+     */
+    internal fun discardIntermediates(id: Int, zipFile: File, unzipFolder: File) {
+        val freed = zipFile.length() +
+            (unzipFolder.listFiles()?.filter { it.isFile }?.sumOf { it.length() } ?: 0L)
+        runCatching { zipFile.delete() }
+        runCatching { unzipFolder.deleteRecursively() }
+        Timber.tag(UGOIRA_LOG_TAG)
+            .i("[pipeline] illust=%d 清掉中间产物(zip + 解压帧),回收 %d KB", id, freed / 1024)
     }
 
     private fun File.isValidGif() = isFile && length() > MIN_VALID_GIF_BYTES

@@ -179,6 +179,11 @@ suspend fun downloadUgoira(
                 throw t
             }
         }
+
+        // 5) 成品已落到用户目录 → cache 里的 zip / 解压帧就是死重量,趁还握着文件锁删掉。
+        //    gif cache 没有自动淘汰,批量下载几百条 ugoira 不清就是几十 GB。异常路径不会
+        //    走到这(直接抛出 withLock),中间产物留给重试复用。
+        UgoiraEngine.discardIntermediates(illustId, zipFile, unzipFolder)
     }
 }
 
