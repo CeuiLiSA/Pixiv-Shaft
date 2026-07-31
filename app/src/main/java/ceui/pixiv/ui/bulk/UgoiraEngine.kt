@@ -27,7 +27,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -85,6 +87,21 @@ object UgoiraEngine {
     // 重活(下载+解压+编码)的并发闸门。meta / 缓存命中不占额度。
     private val gate = Semaphore(MAX_CONCURRENT)
 
+    // RIFE 补帧是分钟级 GPU 任务,单独串行,不占 gate —— 否则一条在补帧,
+    // 只差几秒编码的普通动图也要排队分钟级;且 GPU 上多个 ncnn 进程并行只会互相拖慢。
+    private val rifeGate = Semaphore(1)
+
+    /**
+     * illustId -> 文件级互斥。播放引擎与保存链路([downloadUgoira])共写同一
+     * zip/.part/解压目录,「边看边存同一条」无锁并发写会把 zip 持久写坏 —— 落盘一个
+     * 损坏但非空的 zip 后,两条链路都因「已缓存」跳过重下,这条 ugoira 就坏死了。
+     * 锁对象极小,map 只增不减的滞留量级无害。
+     */
+    private val illustFileLocks = ConcurrentHashMap<Int, Mutex>()
+
+    internal fun fileLockFor(illustId: Int): Mutex =
+        illustFileLocks.computeIfAbsent(illustId) { Mutex() }
+
     /** illustId -> 已生成好的可播放 gif(内存快路径)。 */
     private val readyGifCache = ConcurrentHashMap<Int, File>()
 
@@ -106,17 +123,24 @@ object UgoiraEngine {
         }
 
     /**
-     * 同步 peek 已编好的可播放 gif(内存 or 磁盘 [LegacyFile.gifResultFile]),没有返回 null。
-     * 保存链路 [downloadUgoira] 用它复用播放引擎已产出的 gif —— 用户先看过就直接拷,
-     * 不再重下 zip / 重解压 / 重编上百帧。只读文件系统,须在 IO 线程调用。
+     * 同步 peek 已编好的可播放 gif,没有返回 null。变体选择是**确定性**的:只看
+     * 「当前开关 + 磁盘上有哪个变体」,不依赖本会话是否播过 —— 开关开且补帧变体在盘上
+     * 就给补帧版,否则退回已有的原速版(不为保存额外补帧)。保存链路 [downloadUgoira]
+     * 用它复用播放引擎已产出的 gif。只读文件系统,须在 IO 线程调用。
      */
     fun peekPlayableGif(illust: IllustsBean): File? {
-        val id = illust.id
-        readyGifCache[id]?.let { if (it.isValidGif()) return it }
-        val f = LegacyFile.gifResultFile(Shaft.getContext(), illust)
-        if (f.isValidGif()) {
-            readyGifCache[id] = f
-            return f
+        val ctx = Shaft.getContext()
+        val useRife = Shaft.sSettings.isUgoiraRifeEnable() && RifeInterpolator.isAvailable(ctx)
+        val preferred = resultFileFor(ctx, illust, useRife)
+        if (preferred.isValidGif()) {
+            readyGifCache[illust.id] = preferred
+            return preferred
+        }
+        if (useRife) {
+            // 补帧变体还没编出来,原速 gif 照样可用;不回写内存缓存 —— 播放器的内存
+            // 快路径要的是补帧变体,别让保存链路把原速版灌进去
+            val base = resultFileFor(ctx, illust, false)
+            if (base.isValidGif()) return base
         }
         return null
     }
@@ -189,7 +213,12 @@ object UgoiraEngine {
             return@synchronized
         }
         refs.remove(id)
-        val d = jobs[id] ?: return@synchronized
+        val d = jobs[id] ?: run {
+            // 任务已终态且无人观察:进度流一并清掉(防 map 只增不减);下个观察者
+            // 会拿到全新 flow(默认 FETCH_META),顺带不再看到上次残留的阶段标签
+            progressFlows.remove(id)
+            return@synchronized
+        }
         if (!d.isActive) return@synchronized // 已经编完了,不用管
         cancelTimers[id] = engineScope.launch {
             delay(ABANDON_GRACE_MS)
@@ -235,82 +264,94 @@ object UgoiraEngine {
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [1/4] FETCH_META 完成 frames=%d zipUrl=%s", id, frameCount, zipUrl)
             coroutineContext.ensureActive()
 
-            // 下载 / 解压 / 编码是重活,占并发额度:超过 MAX_CONCURRENT 的在 withPermit 排队等,
-            // 期间 last-phase 仍是 FETCH_META(诚实——它真的还没在下)。等待时若被划走取消,
-            // withPermit 的 acquire 可取消,直接不下,连额度都不占。
-            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 申请并发额度(空闲=%d)…", id, gate.availablePermits)
-            gate.withPermit {
-                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 拿到并发额度,开始下载/编码", id)
-                coroutineContext.ensureActive()
+            // 下载/解压/编码是重活,占 gate 并发额度;补帧是分钟级 GPU 任务,单独走 rifeGate
+            // 串行,不占 gate —— 否则一条在补帧,只差几秒编码的普通动图也要排队分钟级。
+            // 整段文件操作握 per-illust 文件锁,与保存链路 [downloadUgoira] 互斥。
+            // 排队等待期间 last-phase 仍是 FETCH_META(诚实——它真的还没在下);等待可取消,不占额度。
+            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 申请文件锁/并发额度(gate 空闲=%d)…", id, gate.availablePermits)
+            val unzipFolder = LegacyFile.gifUnzipFolder(ctx, illust)
+            var encodeFrames: List<File>? = null
+            var encodeDelays: List<Int>? = null
+            // 补帧工作目录整棵树(中间产物 + 输出帧)由最外层 finally 兜底删除 ——
+            // 成功/失败/任意取消点都不在磁盘残留,只留最终 gif。
+            val rifeWorkRoot = File(ctx.cacheDir, "rife_work_$id")
+            try {
+                fileLockFor(id).withLock {
+                    gate.withPermit {
+                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 拿到并发额度,开始下载/解压", id)
+                        coroutineContext.ensureActive()
 
-                // 2/4 下载 zip
-                val zipFile = LegacyFile.gifZipFile(ctx, illust)
-                if (!zipFile.isFile || zipFile.length() == 0L) {
-                    flow.value = UgoiraProgress(UgoiraPhase.DOWNLOAD_ZIP)
-                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP 开始 -> %s", id, zipFile.name)
-                    var lastQuarter = -1
-                    downloadZipTo(zipUrl, zipFile) { pct ->
-                        flow.value = UgoiraProgress(UgoiraPhase.DOWNLOAD_ZIP, pct)
-                        if (pct / 25 != lastQuarter) {
-                            lastQuarter = pct / 25
-                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP %d%%", id, pct)
+                        // 2/4 下载 zip
+                        val zipFile = LegacyFile.gifZipFile(ctx, illust)
+                        if (!zipFile.isFile || zipFile.length() == 0L) {
+                            flow.value = UgoiraProgress(UgoiraPhase.DOWNLOAD_ZIP)
+                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP 开始 -> %s", id, zipFile.name)
+                            var lastQuarter = -1
+                            downloadZipTo(zipUrl, zipFile) { pct ->
+                                flow.value = UgoiraProgress(UgoiraPhase.DOWNLOAD_ZIP, pct)
+                                if (pct / 25 != lastQuarter) {
+                                    lastQuarter = pct / 25
+                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP %d%%", id, pct)
+                                }
+                            }
+                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP 完成 (%d bytes)", id, zipFile.length())
+                        } else {
+                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP 跳过(zip 已缓存 %d bytes)", id, zipFile.length())
+                        }
+                        coroutineContext.ensureActive()
+
+                        // 3/4 解压。失败大概率 zip 本身坏了:删 zip 再抛,下次进来重新下载(自愈),
+                        // 不让一个坏 zip 因「已缓存」被永远跳过。
+                        val expected = resp.ugoira_metadata?.frames?.size ?: 0
+                        val onDisk = unzipFolder.listFiles()?.count { it.isFile } ?: 0
+                        if (onDisk == 0 || (expected > 0 && onDisk != expected)) {
+                            if (onDisk > 0) unzipFolder.listFiles()?.forEach { runCatching { it.delete() } }
+                            flow.value = UgoiraProgress(UgoiraPhase.EXTRACT)
+                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3/4] EXTRACT 开始 (磁盘有 %d 帧,期望 %d)", id, onDisk, expected)
+                            try {
+                                ZipUtils.unzipFile(zipFile, unzipFolder)
+                            } catch (t: Throwable) {
+                                runCatching { zipFile.delete() }
+                                throw t
+                            }
+                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3/4] EXTRACT 完成 (%d 帧)", id, unzipFolder.listFiles()?.size ?: 0)
+                        } else {
+                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3/4] EXTRACT 跳过(已解压 %d 帧)", id, onDisk)
                         }
                     }
-                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP 完成 (%d bytes)", id, zipFile.length())
-                } else {
-                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [2/4] DOWNLOAD_ZIP 跳过(zip 已缓存 %d bytes)", id, zipFile.length())
-                }
-                coroutineContext.ensureActive()
+                    coroutineContext.ensureActive()
 
-                // 3/4 解压
-                val unzipFolder = LegacyFile.gifUnzipFolder(ctx, illust)
-                val expected = resp.ugoira_metadata?.frames?.size ?: 0
-                val onDisk = unzipFolder.listFiles()?.count { it.isFile } ?: 0
-                if (onDisk == 0 || (expected > 0 && onDisk != expected)) {
-                    if (onDisk > 0) unzipFolder.listFiles()?.forEach { runCatching { it.delete() } }
-                    flow.value = UgoiraProgress(UgoiraPhase.EXTRACT)
-                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3/4] EXTRACT 开始 (磁盘有 %d 帧,期望 %d)", id, onDisk, expected)
-                    ZipUtils.unzipFile(zipFile, unzipFolder)
-                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3/4] EXTRACT 完成 (%d 帧)", id, unzipFolder.listFiles()?.size ?: 0)
-                } else {
-                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3/4] EXTRACT 跳过(已解压 %d 帧)", id, onDisk)
-                }
-                coroutineContext.ensureActive()
-
-                // 3.5/4 RIFE 补帧(可选):在编码前把帧序列翻倍、延迟减半。任何失败都回落
-                // 原始帧,播放不因补帧挂掉。补帧工作目录整棵树(中间产物 + 输出帧)由最外层
-                // finally 兜底删除 —— 成功/失败/任意取消点都不在磁盘残留,只留最终 gif。
-                var encodeFrames: List<File>? = null
-                var encodeDelays: List<Int>? = null
-                val rifeWorkRoot = File(ctx.cacheDir, "rife_work_$id")
-                try {
+                    // 3.5/4 RIFE 补帧(可选):在编码前把帧序列翻倍、延迟减半。任何失败都回落
+                    // 原始帧,播放不因补帧挂掉。
                     if (useRife) {
                         val srcFrames = sortedUgoiraFrames(unzipFolder)
                         val srcDelays = ugoiraDelays(srcFrames.size, resp)
                         if (RifeInterpolator.worthInterpolating(srcDelays)) {
-                            flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, 0)
-                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 开始 (%d帧)", id, srcFrames.size)
-                            var lastQuarter = -1
-                            // 协程取消不会 interrupt 阻塞线程 —— 把存活探针传给插值器,划走
-                            // 取消时它自行销毁 rife 子进程,立刻让出并发额度、停烧 GPU。
-                            val pipelineJob = coroutineContext[Job]
-                            val rife = RifeInterpolator.interpolate(
-                                ctx, unzipFolder, srcDelays,
-                                workRoot = rifeWorkRoot,
-                                isActive = { pipelineJob?.isActive != false },
-                            ) { pct ->
-                                flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, pct)
-                                if (pct / 25 != lastQuarter) {
-                                    lastQuarter = pct / 25
-                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE %d%%", id, pct)
+                            rifeGate.withPermit {
+                                flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, 0)
+                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 开始 (%d帧)", id, srcFrames.size)
+                                var lastQuarter = -1
+                                // 协程取消不会 interrupt 阻塞线程 —— 把存活探针传给插值器,划走
+                                // 取消时它自行销毁 rife 子进程,立刻让出额度、停烧 GPU。
+                                val pipelineJob = coroutineContext[Job]
+                                val rife = RifeInterpolator.interpolate(
+                                    ctx, unzipFolder, srcDelays,
+                                    workRoot = rifeWorkRoot,
+                                    isActive = { pipelineJob?.isActive != false },
+                                ) { pct ->
+                                    flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, pct)
+                                    if (pct / 25 != lastQuarter) {
+                                        lastQuarter = pct / 25
+                                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE %d%%", id, pct)
+                                    }
                                 }
-                            }
-                            if (rife != null) {
-                                encodeFrames = sortedUgoiraFrames(rife.framesDir)
-                                encodeDelays = rife.delaysMs
-                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 完成 → %d帧", id, encodeFrames.size)
-                            } else {
-                                Timber.tag(UGOIRA_LOG_TAG).w("[pipeline] illust=%d [3.5/4] INTERPOLATE 未产出(取消/失败),回落原始帧", id)
+                                if (rife != null) {
+                                    encodeFrames = sortedUgoiraFrames(rife.framesDir)
+                                    encodeDelays = rife.delaysMs
+                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 完成 → %d帧", id, rife.delaysMs.size)
+                                } else {
+                                    Timber.tag(UGOIRA_LOG_TAG).w("[pipeline] illust=%d [3.5/4] INTERPOLATE 未产出(取消/失败),回落原始帧", id)
+                                }
                             }
                         } else {
                             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 跳过(帧率已高或帧数超限)", id)
@@ -318,38 +359,43 @@ object UgoiraEngine {
                     }
                     coroutineContext.ensureActive()
 
-                    // 4/4 编码。先写 .part 再 rename —— Glide 永远不会读到半张 gif。
-                    flow.value = UgoiraProgress(UgoiraPhase.ENCODE, 0)
-                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] ENCODE 开始", id)
-                    resultFile.parentFile?.mkdirs()
-                    val temp = File(resultFile.parentFile, resultFile.name + ".part")
-                    try {
-                        var lastQuarter = -1
-                        val onEncodePct: (Int) -> Unit = { pct ->
-                            flow.value = UgoiraProgress(UgoiraPhase.ENCODE, pct)
-                            if (pct / 25 != lastQuarter) {
-                                lastQuarter = pct / 25
-                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] ENCODE %d%%", id, pct)
+                    gate.withPermit {
+                        // 4/4 编码。先写 .part 再 rename —— Glide 永远不会读到半张 gif。
+                        flow.value = UgoiraProgress(UgoiraPhase.ENCODE, 0)
+                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] ENCODE 开始", id)
+                        resultFile.parentFile?.mkdirs()
+                        val temp = File(resultFile.parentFile, resultFile.name + ".part")
+                        try {
+                            var lastQuarter = -1
+                            val onEncodePct: (Int) -> Unit = { pct ->
+                                flow.value = UgoiraProgress(UgoiraPhase.ENCODE, pct)
+                                if (pct / 25 != lastQuarter) {
+                                    lastQuarter = pct / 25
+                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] ENCODE %d%%", id, pct)
+                                }
                             }
-                        }
-                        BufferedOutputStream(FileOutputStream(temp)).use { bos ->
-                            if (encodeFrames != null && encodeDelays != null) {
-                                encodeFramesToGif(encodeFrames, encodeDelays, bos, onEncodePct)
-                            } else {
-                                encodeFramesToGif(unzipFolder, resp, bos, onEncodePct)
+                            // 读到局部 val 再判空:encodeFrames 在 withPermit 闭包里赋值,smart cast 不可用
+                            val frames = encodeFrames
+                            val delays = encodeDelays
+                            BufferedOutputStream(FileOutputStream(temp)).use { bos ->
+                                if (frames != null && delays != null) {
+                                    encodeFramesToGif(frames, delays, bos, onEncodePct)
+                                } else {
+                                    encodeFramesToGif(unzipFolder, resp, bos, onEncodePct)
+                                }
                             }
+                            if (resultFile.exists()) resultFile.delete()
+                            if (!temp.renameTo(resultFile)) {
+                                throw IllegalStateException("rename .part → ${resultFile.name} failed")
+                            }
+                        } catch (t: Throwable) {
+                            runCatching { temp.delete() }
+                            throw t
                         }
-                        if (resultFile.exists()) resultFile.delete()
-                        if (!temp.renameTo(resultFile)) {
-                            throw IllegalStateException("rename .part → ${resultFile.name} failed")
-                        }
-                    } catch (t: Throwable) {
-                        runCatching { temp.delete() }
-                        throw t
                     }
-                } finally {
-                    rifeWorkRoot.deleteRecursively()
                 }
+            } finally {
+                rifeWorkRoot.deleteRecursively()
             }
             readyGifCache[id] = resultFile
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d ===== SUCCESS ===== %s (%d bytes) 耗时 %dms", id, resultFile.name, resultFile.length(), System.currentTimeMillis() - t0)
@@ -370,6 +416,8 @@ object UgoiraEngine {
                     jobs.remove(id)
                     cancelTimers.remove(id)?.cancel()
                 }
+                // 无人观察(划走取消的终态)→ 进度流清掉;还有观察者时留给 releaseJob 收尾
+                if ((refs[id] ?: 0) == 0) progressFlows.remove(id)
             }
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d END", id)
         }

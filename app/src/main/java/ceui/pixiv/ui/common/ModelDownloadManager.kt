@@ -42,6 +42,7 @@ abstract class ModelDownloadManager {
         onProgress: (bytesRead: Long, totalBytes: Long) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
         val url = model.downloadUrl ?: return@withContext false
+        val tempZip = File(context.cacheDir, "model_dl_${model.assetDir}.zip")
         try {
             val request = Request.Builder().url(url).build()
             val response = client.newCall(request).execute()
@@ -54,7 +55,6 @@ abstract class ModelDownloadManager {
             val body = response.body ?: return@withContext false
             val totalBytes = body.contentLength()
 
-            val tempZip = File(context.cacheDir, "model_dl_${model.assetDir}.zip")
             body.byteStream().use { input ->
                 FileOutputStream(tempZip).use { output ->
                     val buffer = ByteArray(8192)
@@ -69,13 +69,21 @@ abstract class ModelDownloadManager {
                 }
             }
 
+            // 解压到 staging 目录,成功后整目录换入 —— 解压中途进程被杀不会留下
+            // 「文件 exists 但内容残缺」的半成品让 isModelReady 误判 ready。
             val dir = modelDir(context, model)
-            dir.mkdirs()
+            val staging = File(dir.parentFile, dir.name + ".staging")
+            staging.deleteRecursively()
+            staging.mkdirs()
             ZipInputStream(tempZip.inputStream()).use { zip ->
                 var entry = zip.nextEntry
                 while (entry != null) {
                     if (!entry.isDirectory) {
-                        val file = File(dir, entry.name)
+                        val file = File(staging, entry.name)
+                        // zip-slip 防护:条目名可能带 ../,canonical 路径必须落在目标目录内
+                        if (!file.canonicalPath.startsWith(staging.canonicalPath + File.separator)) {
+                            throw SecurityException("zip entry escapes target dir: ${entry.name}")
+                        }
                         file.parentFile?.mkdirs()
                         FileOutputStream(file).use { output ->
                             zip.copyTo(output)
@@ -85,8 +93,11 @@ abstract class ModelDownloadManager {
                     entry = zip.nextEntry
                 }
             }
-
-            tempZip.delete()
+            dir.deleteRecursively()
+            if (!staging.renameTo(dir)) {
+                staging.deleteRecursively()
+                throw IllegalStateException("rename ${staging.name} → ${dir.name} failed")
+            }
 
             val ready = model.modelFiles.all { File(dir, it).exists() }
             Timber.d("$logTag ${model.assetDir} download complete, ready=$ready")
@@ -94,6 +105,8 @@ abstract class ModelDownloadManager {
         } catch (e: Exception) {
             Timber.e(e, "$logTag download error: ${model.assetDir}")
             false
+        } finally {
+            tempZip.delete()
         }
     }
 

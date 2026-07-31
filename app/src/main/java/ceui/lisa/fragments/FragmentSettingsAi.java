@@ -140,6 +140,11 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
                             (d, i) -> {
                                 d.dismiss();
                                 mgr.deleteModel(mContext, model);
+                                // RIFE 模型删除后清掉播放引擎内存里记的补帧 gif —— 否则本会话
+                                // 看过的作品仍播补帧缓存、新作品走原速,同会话行为不一致
+                                if (mgr == ceui.pixiv.ui.interpolate.RifeModelManager.INSTANCE) {
+                                    ceui.pixiv.ui.bulk.UgoiraEngine.invalidateAll();
+                                }
                                 updateModelStatus();
                                 Common.showToast(getString(R.string.string_rembg_model_delete_done, model.getDisplayName()));
                             })

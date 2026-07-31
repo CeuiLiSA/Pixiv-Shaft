@@ -42,6 +42,13 @@ object RifeInterpolator {
     /** 补帧后总帧数上限:再多 GIF 编码耗时/体积都失控(70帧×4x=280 已是 20s+ 级)。 */
     private const val MAX_OUTPUT_FRAMES = 600
 
+    /**
+     * 单轮 pass 的墙钟硬上限。进程 hang(Vulkan 初始化死锁类故障)时 isActive 探针
+     * 只有「无人观察」才变 false,用户停在页面上就永远不触发 —— 这里兜底销毁,
+     * 不让 GPU 串行闸门被一个僵死进程永久占用。正常 300 帧 2x 远用不了这么久。
+     */
+    private const val PASS_TIMEOUT_MS = 10 * 60 * 1000L
+
     /** 模型在位 + 二进制在位,可以补。 */
     fun isAvailable(context: Context): Boolean {
         if (!RifeModelManager.isModelReady(context, RifeModel.RIFE_V4_6)) return false
@@ -207,9 +214,16 @@ object RifeInterpolator {
                     }
                 }
             }.apply { isDaemon = true; start() }
+            val deadline = System.currentTimeMillis() + PASS_TIMEOUT_MS
             while (process.isAlive) {
                 if (!isActive()) {
                     Timber.tag(TAG).i("调用方已取消,销毁 rife 进程")
+                    process.destroy()
+                    process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+                    return false
+                }
+                if (System.currentTimeMillis() > deadline) {
+                    Timber.tag(TAG).w("单轮补帧超过 %dms,疑似进程僵死,销毁", PASS_TIMEOUT_MS)
                     process.destroy()
                     process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
                     return false
