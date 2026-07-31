@@ -68,31 +68,35 @@ suspend fun downloadUgoira(
 
     Timber.tag(TAG).i("[UGOIRA] start illust=$illustId title=${illust.title}")
 
-    // 播放引擎已产出的成品 gif 直接拷进目标(V3 WriteHandle),跳过重编。
-    fun copyEngineGif(cachedGif: File) {
+    // 播放引擎已落盘的帧序列 → 直接编成 GIF 写进目标(V3 WriteHandle),跳过 meta/下载/解压。
+    //
+    // 播放链路现在产出的是 JPEG 帧序列而不是 GIF(GIF 在 Glide 里是纯 Java 软解,喂不动补帧的
+    // 20ms 预算),所以「保存」是唯一需要 GIF 的地方,也只有到这里才编。用户在详情页看过的话,
+    // 帧已经在盘上(补帧版优先),这里省掉的是下载 + 解压 + 补帧,只剩编码。
+    suspend fun encodeFromFrames(frames: UgoiraFrames) {
         val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust))
         if (handle == null) {
             Timber.tag(TAG).i("[UGOIRA] skip: target already exists illust=$illustId")
             return
         }
         try {
-            BufferedOutputStream(handle.stream).use { bos ->
-                cachedGif.inputStream().use { it.copyTo(bos) }
+            encodeSem.withPermit {
+                BufferedOutputStream(handle.stream).use { bos ->
+                    encodeFramesToGif(frames.files, frames.delaysMs, bos)
+                }
             }
             handle.onFinish()
-            Timber.tag(TAG).i("[UGOIRA] done via 播放引擎缓存 gif illust=$illustId (${cachedGif.length()} bytes) uri=${handle.uri}")
+            Timber.tag(TAG).i("[UGOIRA] done via 播放引擎帧序列 illust=$illustId (${frames.files.size}帧, rife=${frames.interpolated}) uri=${handle.uri}")
         } catch (t: Throwable) {
             runCatching { handle.onAbort() }
             throw t
         }
     }
 
-    // 0) 播放引擎可能已经把这条 ugoira 编成 gif 缓存了(用户在详情页看过)。有就直接拷进
-    //    目标,跳过 meta / 下载 zip / 解压 / 重编上百帧——省流量省 CPU。拷贝是纯 IO,不占
-    //    encodeSem(那把锁是给吃满帧 Bitmap 的编码用的)。
-    UgoiraEngine.peekPlayableGif(illust)?.let { cachedGif ->
+    // 0) 用户在详情页看过的话,帧序列已经在盘上(补帧版优先)。直接编,省掉 meta/下载/解压/补帧。
+    UgoiraEngine.peekPlayableFrames(illust)?.let { frames ->
         onPhase(UgoiraPhase.ENCODE)
-        copyEngineGif(cachedGif)
+        encodeFromFrames(frames)
         return@withContext
     }
 
@@ -115,10 +119,10 @@ suspend fun downloadUgoira(
     // 2-4) zip 下载 / 解压 / 编码全程握 per-illust 文件锁,与播放引擎互斥 —— 两边共写
     //    同一 zip/.part/解压目录,「边看边存同一条」无锁并发写会把 zip 持久写坏。
     UgoiraEngine.fileLockFor(illustId).withLock {
-        // 等锁期间播放引擎可能刚把这条编完(用户正在看):直接拷成品,不重做
-        UgoiraEngine.peekPlayableGif(illust)?.let { cachedGif ->
+        // 等锁期间播放引擎可能刚把帧序列落好(用户正在看):直接用,不重做
+        UgoiraEngine.peekPlayableFrames(illust)?.let { frames ->
             onPhase(UgoiraPhase.ENCODE)
-            copyEngineGif(cachedGif)
+            encodeFromFrames(frames)
             return@withContext
         }
 

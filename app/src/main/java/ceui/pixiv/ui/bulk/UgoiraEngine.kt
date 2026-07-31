@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,13 +55,13 @@ data class UgoiraProgress(val phase: UgoiraPhase, val percent: Int? = null)
 
 /**
  * Ugoira 播放引擎 —— 完全不耦合 UI 的「把一条 ugoira 变成可直接喂给 ImageLoader 的
- * GIF 文件」全链路。旧的 [ceui.lisa.fragments.FragmentSingleUgora] 把这套逻辑和
+ * 帧序列」全链路。旧的 [ceui.lisa.fragments.FragmentSingleUgora] 把这套逻辑和
  * 具体 View / LocalBroadcast(PLAY_GIF) / 全局 Manager 回调 / MMKV flag 缠在一起;
  * 这里抽成一个不认识任何 View 的引擎。
  *
  * **工作不挂 Fragment 生命周期**:每条 ugoira 的 meta→下载→解压→编码跑在引擎自己的
  * [engineScope],结果放进 [jobs] 里的共享 [Deferred]。退出详情页只会取消「等待 + 观察进度」,
- * 底层任务继续把 gif 编完落缓存;再进来 [loadPlayableGif] 直接命中缓存或 join 同一个还在跑的
+ * 底层任务继续把帧序列落缓存;再进来 [loadPlayableFrames] 直接命中缓存或 join 同一个还在跑的
  * 任务并接着显示进度——修「下 zip / 编码途中退出再进,一直卡加载」。
  *
  * **并发/回收**:详情页 ViewPager 会同时 resume 3 个页 + 来回滑动,不设限会有五六条 zip 同时下
@@ -73,8 +74,6 @@ data class UgoiraProgress(val phase: UgoiraPhase, val percent: Int? = null)
  * [encodeFramesToGif] / [ugoiraHttpClient]。
  */
 object UgoiraEngine {
-
-    private const val MIN_VALID_GIF_BYTES = 1024L
 
     /** 补帧工作目录前缀(internal cacheDir 下),命名只此一处 —— [sweepStaleRifeWork] 靠它认领残留。 */
     private const val RIFE_WORK_PREFIX = "rife_work_"
@@ -106,8 +105,27 @@ object UgoiraEngine {
     internal fun fileLockFor(illustId: Int): Mutex =
         illustFileLocks.computeIfAbsent(illustId) { Mutex() }
 
-    /** illustId -> 已生成好的可播放 gif(内存快路径)。 */
-    private val readyGifCache = ConcurrentHashMap<Int, File>()
+    /** illustId -> 已就绪的可播放帧序列(内存快路径)。 */
+    private val readyFramesCache = ConcurrentHashMap<Int, UgoiraFrames>()
+
+    /**
+     * illustId -> 可播帧序列广播。pipeline 只在**最终版**确定后发布一次(补帧成功=补帧版,
+     * 否则=原速版)—— 中途不发,免得先播一段 12.5fps 的再跳到 50fps。播放器在此之前保持
+     * 进度浮层,补帧进度照常走 [progressOf]。
+     */
+    private val framesFlows = ConcurrentHashMap<Int, MutableStateFlow<UgoiraFrames?>>()
+
+    /** 观察某条 ugoira 的可播帧序列(进来立刻拿当前值;null = 还没有任何一版可播)。 */
+    fun framesOf(illustId: Int): StateFlow<UgoiraFrames?> = framesFlowFor(illustId).asStateFlow()
+
+    private fun framesFlowFor(illustId: Int): MutableStateFlow<UgoiraFrames?> =
+        framesFlows.computeIfAbsent(illustId) { MutableStateFlow(readyFramesCache[illustId]) }
+
+    /** 落一版可播帧序列:写内存缓存 + 广播给正在看的播放器。 */
+    private fun publishFrames(id: Int, frames: UgoiraFrames) {
+        readyFramesCache[id] = frames
+        framesFlowFor(id).value = frames
+    }
 
     /**
      * 本会话是否已确认 rife 在这台机器上根本跑不起来(Vulkan 初始化失败 / 进程非 0 退出 /
@@ -125,7 +143,7 @@ object UgoiraEngine {
 
     // 下面三张表统一用 [lock] 保护:「查任务 + 改观察者计数 + 撤销/安排取消」要整体原子。
     private val lock = Any()
-    private val jobs = HashMap<Int, Deferred<File>>()   // illustId -> 正在跑的共享任务
+    private val jobs = HashMap<Int, Deferred<UgoiraFrames>>()   // illustId -> 正在跑的共享任务
     private val refs = HashMap<Int, Int>()              // illustId -> 当前观察者数
     private val cancelTimers = HashMap<Int, Job>()      // illustId -> 待触发的「划走取消」计时器
 
@@ -138,34 +156,51 @@ object UgoiraEngine {
         }
 
     /**
-     * 同步 peek 已编好的可播放 gif,没有返回 null。变体选择是**确定性**的:只看
-     * 「当前开关 + 磁盘上有哪个变体」,不依赖本会话是否播过 —— 开关开且补帧变体在盘上
-     * 就给补帧版,否则退回已有的原速版(不为保存额外补帧)。保存链路 [downloadUgoira]
-     * 用它复用播放引擎已产出的 gif。只读文件系统,须在 IO 线程调用。
+     * 保存链路([downloadUgoira])用:peek 已落盘的帧序列,优先补帧版,没有返回 null。
+     * 变体选择是**确定性**的 —— 只看「当前开关 + 磁盘上有哪版」,不依赖本会话是否播过。
+     * 只读文件系统,须在 IO 线程调用。
      */
-    fun peekPlayableGif(illust: IllustsBean): File? {
+    fun peekPlayableFrames(illust: IllustsBean): UgoiraFrames? {
         val ctx = Shaft.getContext()
         val useRife = Shaft.sSettings.isUgoiraRifeEnable() && RifeInterpolator.isAvailable(ctx)
-        val preferred = resultFileFor(ctx, illust, useRife)
-        if (preferred.isValidGif()) {
-            readyGifCache[illust.id] = preferred
-            return preferred
-        }
         if (useRife) {
-            // 补帧变体还没编出来,原速 gif 照样可用;不回写内存缓存 —— 播放器的内存
-            // 快路径要的是补帧变体,别让保存链路把原速版灌进去
-            val base = resultFileFor(ctx, illust, false)
-            if (base.isValidGif()) return base
+            readFramesDir(framesDirFor(ctx, illust, true), true)?.let { return it }
         }
-        return null
+        return readFramesDir(framesDirFor(ctx, illust, false), false)
     }
 
-    /** 纯内存 peek —— 已编好的 gif 直接给,不碰文件系统。播放器主线程「秒开」专用(零 IO,免 ANR)。 */
-    fun peekReadyInMemory(illustId: Int): File? = readyGifCache[illustId]
+    /**
+     * legacy 保存链路([ceui.lisa.download.IllustDownload].downloadGif)用:把已落盘的帧序列
+     * 编成一个**临时** GIF,交给 `OutPut.outPutGif` 拷进用户存储。
+     *
+     * 播放链路不再缓存 GIF(改播 JPEG 帧序列),所以这里现编 —— 但帧已经在盘上,省掉的仍是
+     * 下载 + 解压 + 补帧这三个大头。返回的临时文件**由调用方用完删除**;没有帧序列则返回
+     * null,调用方回退到完整链路。阻塞编码,须在 IO 线程调用。
+     */
+    @JvmStatic
+    fun encodeTempGifFromFrames(illust: IllustsBean): File? {
+        val frames = peekPlayableFrames(illust) ?: return null
+        val temp = File(Shaft.getContext().cacheDir, "ugoira_save_${illust.id}.gif")
+        return try {
+            BufferedOutputStream(FileOutputStream(temp)).use { bos ->
+                encodeFramesToGif(frames.files, frames.delaysMs, bos)
+            }
+            Timber.tag(UGOIRA_LOG_TAG).i("[save] illust=%d 由帧序列编出临时 GIF (%d帧, %d bytes)", illust.id, frames.files.size, temp.length())
+            temp
+        } catch (t: Throwable) {
+            runCatching { temp.delete() }
+            Timber.tag(UGOIRA_LOG_TAG).w(t, "[save] illust=%d 从帧序列编 GIF 失败,回退完整链路", illust.id)
+            null
+        }
+    }
 
-    /** gif 加载失败(疑似系统清了缓存目录)→ 清掉内存记录,下次 [loadPlayableGif] 走完整 pipeline 重新落盘。 */
+    /** 纯内存 peek —— 已就绪的帧序列直接给,不碰文件系统。播放器主线程「秒开」专用(零 IO,免 ANR)。 */
+    fun peekReadyInMemory(illustId: Int): UgoiraFrames? = readyFramesCache[illustId]
+
+    /** 帧加载失败(疑似系统清了缓存目录)→ 清掉内存记录,下次走完整 pipeline 重新落盘。 */
     fun invalidate(illustId: Int) {
-        readyGifCache.remove(illustId)
+        readyFramesCache.remove(illustId)
+        framesFlows.remove(illustId)
     }
 
     /**
@@ -174,7 +209,8 @@ object UgoiraEngine {
      */
     @JvmStatic
     fun invalidateAll() {
-        readyGifCache.clear()
+        readyFramesCache.clear()
+        framesFlows.clear()
         rifeHardFailed = false
     }
 
@@ -213,25 +249,16 @@ object UgoiraEngine {
     }
 
     /**
-     * 本次播放该用哪个 gif 变体。开关开 + 模型在位 → 补帧变体(独立缓存文件,
-     * 和原速 gif 互不覆盖,关掉开关旧缓存还能直接用);否则原文件。
-     */
-    private fun resultFileFor(ctx: Context, illust: IllustsBean, useRife: Boolean): File {
-        val base = LegacyFile.gifResultFile(ctx, illust)
-        return if (useRife) File(base.parentFile, base.nameWithoutExtension + "_rife.gif") else base
-    }
-
-    /**
-     * 拿可播放 GIF 文件。命中缓存直接返回;否则复用/新建一个引擎级共享任务并 await。
+     * 拿可播放帧序列(最终版:补帧开着就是补帧版)。命中缓存直接返回;否则复用/新建共享任务并 await。
+     * 想「尽早开播」的调用方应改用 [framesOf] —— pipeline 会先 emit 原速版再 emit 补帧版。
      * **await 被取消(Fragment 退出)不取消底层任务**,只把观察者计数减一;划走够久没人看才回收。
      */
-    suspend fun loadPlayableGif(illust: IllustsBean): File {
+    suspend fun loadPlayableFrames(illust: IllustsBean): UgoiraFrames {
         val id = illust.id
-        // 内存命中直接给,不做 isValidGif 的文件 stat —— loadPlayableGif 在播放器主线程调用,
-        // 不能碰文件系统(免 disk-on-main / ANR)。文件真被系统清了缓存,Glide 加载会失败,
-        // 播放器 onLoadFailed 里 invalidate 后再走完整 pipeline 重来。
-        readyGifCache[id]?.let {
-            Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableGif] illust=%d 内存缓存命中,直接播放 -> %s", id, it.name)
+        // 内存命中直接给,不做文件 stat —— 本方法在播放器主线程调用,不能碰文件系统
+        // (免 disk-on-main / ANR)。文件真被系统清了,解码会失败,播放器 invalidate 后重来。
+        readyFramesCache[id]?.let {
+            Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableFrames] illust=%d 内存缓存命中 -> %s", id, it.dir.name)
             return it
         }
         val deferred = acquireJob(illust)
@@ -243,16 +270,16 @@ object UgoiraEngine {
     }
 
     /** 观察者 +1,拿到(或新建)共享任务;撤销任何待触发的「划走取消」。 */
-    private fun acquireJob(illust: IllustsBean): Deferred<File> = synchronized(lock) {
+    private fun acquireJob(illust: IllustsBean): Deferred<UgoiraFrames> = synchronized(lock) {
         val id = illust.id
         val count = (refs[id] ?: 0) + 1
         refs[id] = count
         cancelTimers.remove(id)?.cancel() // 有人(重新)进来了,别取消
         jobs[id]?.let { existing ->
-            Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableGif] illust=%d join 正在跑的任务,await(观察者=%d)", id, count)
+            Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableFrames] illust=%d join 正在跑的任务,await(观察者=%d)", id, count)
             return@synchronized existing
         }
-        Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableGif] illust=%d 启动新任务,await", id)
+        Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableFrames] illust=%d 启动新任务,await", id)
         val d = engineScope.async { runPipeline(illust) }
         jobs[id] = d
         d
@@ -290,7 +317,7 @@ object UgoiraEngine {
         }
     }
 
-    private suspend fun runPipeline(illust: IllustsBean): File {
+    private suspend fun runPipeline(illust: IllustsBean): UgoiraFrames {
         val id = illust.id
         val flow = flowFor(id)
         val t0 = System.currentTimeMillis()
@@ -298,16 +325,15 @@ object UgoiraEngine {
         try {
             val ctx = Shaft.getContext()
 
-            // 磁盘上已有编好的最终 gif:直接用。补帧开关决定**期望**用哪个变体文件 ——
-            // 真正落盘的变体要等补帧跑完才定(见下面 [3.5/4] 之后),补帧没产出就落回原速变体。
             val useRife = Shaft.sSettings.isUgoiraRifeEnable() &&
                 !rifeHardFailed &&
                 RifeInterpolator.isAvailable(ctx)
-            val preferredFile = resultFileFor(ctx, illust, useRife)
-            if (preferredFile.isValidGif()) {
-                readyGifCache[id] = preferredFile
-                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 磁盘缓存命中 -> %s (%d bytes),直接返回", id, preferredFile.name, preferredFile.length())
-                return preferredFile
+
+            // 磁盘上已有想要的那一版帧序列:直接用。
+            readFramesDir(framesDirFor(ctx, illust, useRife), useRife)?.let {
+                publishFrames(id, it)
+                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 磁盘命中帧序列 -> %s (%d帧),直接返回", id, it.dir.name, it.files.size)
+                return it
             }
 
             // 1/4 元数据(轻,不占并发额度)
@@ -320,26 +346,16 @@ object UgoiraEngine {
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [1/4] FETCH_META 完成 frames=%d zipUrl=%s", id, frameCount, zipUrl)
             coroutineContext.ensureActive()
 
-            // 下载/解压/编码是重活,占 gate 并发额度;补帧是分钟级 GPU 任务,单独走 rifeGate
-            // 串行,不占 gate —— 否则一条在补帧,只差几秒编码的普通动图也要排队分钟级。
-            // 整段文件操作握 per-illust 文件锁,与保存链路 [downloadUgoira] 互斥。
-            // 排队等待期间 last-phase 仍是 FETCH_META(诚实——它真的还没在下);等待可取消,不占额度。
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 申请文件锁/并发额度(gate 空闲=%d)…", id, gate.availablePermits)
             val unzipFolder = LegacyFile.gifUnzipFolder(ctx, illust)
-            var encodeFrames: List<File>? = null
-            var encodeDelays: List<Int>? = null
-            // 补帧工作目录整棵树(中间产物 + 输出帧)由 finally 兜底删除 —— 成功/失败/任意
-            // 取消点都不在磁盘残留,只留最终 gif。这个 finally **必须在文件锁里面**:放到锁外的
+            // 补帧工作目录整棵树由 finally 兜底删除。这个 finally **必须在文件锁里面**:放到锁外的
             // 话,本轮取消后下一轮 pipeline 一拿到锁就开始往 rife_work_<id> 里拷帧,而本轮的
             // deleteRecursively 正在删同一棵树 —— 下一轮补帧会因「输出帧数不符」失败,还会被
             // [rifeHardFailed] 误判成设备级故障,把整个会话的补帧静默关掉。
             val rifeWorkRoot = File(ctx.cacheDir, RIFE_WORK_PREFIX + id)
-            // 最终落盘的变体:先按期望占位,补帧结果出来后改写(补帧没产出 → 原速变体)。
-            var resultFile = preferredFile
+            var result: UgoiraFrames? = null
             fileLockFor(id).withLock {
-                // zip 提到锁顶:成功收尾要连同解压帧一起删,下面两个出口都够得着。
                 val zipFile = LegacyFile.gifZipFile(ctx, illust)
-                // 成品真落盘了才算成功。失败/取消要留着 zip 和解压帧,下次进来接着用。
                 var produced = false
                 try {
                     gate.withPermit {
@@ -364,8 +380,7 @@ object UgoiraEngine {
                         }
                         coroutineContext.ensureActive()
 
-                        // 3/4 解压。失败大概率 zip 本身坏了:删 zip 再抛,下次进来重新下载(自愈),
-                        // 不让一个坏 zip 因「已缓存」被永远跳过。
+                        // 3/4 解压。失败大概率 zip 本身坏了:删 zip 再抛,下次进来重新下载(自愈)。
                         val expected = resp.ugoira_metadata?.frames?.size ?: 0
                         val onDisk = unzipFolder.listFiles()?.count { it.isFile } ?: 0
                         if (onDisk == 0 || (expected > 0 && onDisk != expected)) {
@@ -385,104 +400,83 @@ object UgoiraEngine {
                     }
                     coroutineContext.ensureActive()
 
-                    // 3.5/4 RIFE 补帧(可选):在编码前把帧序列翻倍、延迟减半。任何失败都回落
-                    // 原始帧,播放不因补帧挂掉。
-                    if (useRife) {
-                        val srcFrames = sortedUgoiraFrames(unzipFolder)
-                        val srcDelays = ugoiraDelays(srcFrames.size, resp)
-                        if (RifeInterpolator.worthInterpolating(srcDelays)) {
-                            rifeGate.withPermit {
-                                flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, 0)
-                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 开始 (%d帧)", id, srcFrames.size)
-                                var lastQuarter = -1
-                                // 协程取消不会 interrupt 阻塞线程 —— 把存活探针传给插值器,划走
-                                // 取消时它自行销毁 rife 子进程,立刻让出额度、停烧 GPU。
-                                val pipelineJob = coroutineContext[Job]
-                                val rife = RifeInterpolator.interpolate(
-                                    ctx, unzipFolder, srcDelays,
-                                    workRoot = rifeWorkRoot,
-                                    isActive = { pipelineJob?.isActive != false },
-                                ) { pct ->
-                                    flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, pct)
-                                    if (pct / 25 != lastQuarter) {
-                                        lastQuarter = pct / 25
-                                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE %d%%", id, pct)
-                                    }
-                                }
-                                if (rife != null) {
-                                    encodeFrames = sortedUgoiraFrames(rife.framesDir)
-                                    encodeDelays = rife.delaysMs
-                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 完成 → %d帧", id, rife.delaysMs.size)
-                                } else if (pipelineJob?.isActive != false) {
-                                    // 探针还活着却没产出 = 真失败(Vulkan 起不来 / 进程非 0 /
-                                    // 输出帧数不符),不是划走取消。设备级故障条条复发,本会话封停。
-                                    rifeHardFailed = true
-                                    Timber.tag(UGOIRA_LOG_TAG).w("[pipeline] illust=%d [3.5/4] INTERPOLATE 失败,本会话不再尝试补帧,回落原始帧", id)
-                                } else {
-                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 被取消,回落原始帧", id)
-                                }
-                            }
-                        } else {
-                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 跳过(帧率已高或帧数超限)", id)
-                        }
-                    }
-                    coroutineContext.ensureActive()
+                    val srcFrames = sortedUgoiraFrames(unzipFolder)
+                    val srcDelays = ugoiraDelays(srcFrames.size, resp)
+                    if (srcFrames.isEmpty()) throw IllegalStateException("no frames extracted for illust=$id")
 
-                    // 只有补帧**真产出了**才写 _rife 变体。不值得补 / 硬失败时落回原速变体 ——
-                    // 否则原速内容会顶着 _rife.gif 的名字被永久缓存:下次进来磁盘命中直接返回,
-                    // 补帧再也不会重试(在跑不动 rife 的机器上等于功能静默死掉),而且和 base gif
-                    // 在盘上存了一模一样的两份。取消路径已被上面的 ensureActive 拦掉,不会走到这。
-                    resultFile = resultFileFor(ctx, illust, encodeFrames != null && encodeDelays != null)
-                    if (resultFile != preferredFile && resultFile.isValidGif()) {
-                        // 回落目标早就编好过(用户之前关着开关看过这条):直接用,省一次上百帧的编码
-                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 回落原速变体且已在盘上 -> %s,跳过重编", id, resultFile.name)
-                        produced = true
-                        return@withLock
-                    }
+                    // 原速帧序列落盘。pixiv 解压出来就是 JPEG,writeFramesDir 走纯复制、不重编码,
+                    // 几十 ms 就好。**不在这里发布** —— 用户要的是「补帧完成才动」,不要先播一段
+                    // 低帧率的再跳变。它的作用是持久缓存 + 补帧失败/不适用时的回退版本。
+                    val baseDir = framesDirFor(ctx, illust, false)
+                    val baseFrames = readFramesDir(baseDir, false)
+                        ?: writeFramesDir(baseDir, srcFrames, srcDelays)
+                        ?: throw IllegalStateException("write base frames failed for illust=$id")
+                    result = baseFrames
+                    produced = true
+                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 原速帧序列落盘(%d帧,一圈%dms) 耗时 %dms", id, baseFrames.files.size, baseFrames.totalMs, System.currentTimeMillis() - t0)
 
-                    gate.withPermit {
-                        // 4/4 编码。先写 .part 再 rename —— Glide 永远不会读到半张 gif。
-                        flow.value = UgoiraProgress(UgoiraPhase.ENCODE, 0)
-                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] ENCODE 开始", id)
-                        resultFile.parentFile?.mkdirs()
-                        val temp = File(resultFile.parentFile, resultFile.name + ".part")
-                        try {
+                    // 3.5/4 RIFE 补帧(可选)。任何失败都保留上面的原速版,播放不因补帧挂掉。
+                    if (useRife && RifeInterpolator.worthInterpolating(srcDelays)) {
+                        rifeGate.withPermit {
+                            flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, 0)
+                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 开始 (%d帧)", id, srcFrames.size)
                             var lastQuarter = -1
-                            val onEncodePct: (Int) -> Unit = { pct ->
-                                flow.value = UgoiraProgress(UgoiraPhase.ENCODE, pct)
+                            val pipelineJob = coroutineContext[Job]
+                            val rife = RifeInterpolator.interpolate(
+                                ctx, unzipFolder, srcDelays,
+                                workRoot = rifeWorkRoot,
+                                isActive = { pipelineJob?.isActive != false },
+                            ) { pct ->
+                                flow.value = UgoiraProgress(UgoiraPhase.INTERPOLATE, pct)
                                 if (pct / 25 != lastQuarter) {
                                     lastQuarter = pct / 25
-                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] ENCODE %d%%", id, pct)
+                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE %d%%", id, pct)
                                 }
                             }
-                            // 读到局部 val 再判空:encodeFrames 在 withPermit 闭包里赋值,smart cast 不可用
-                            val frames = encodeFrames
-                            val delays = encodeDelays
-                            BufferedOutputStream(FileOutputStream(temp)).use { bos ->
-                                if (frames != null && delays != null) {
-                                    encodeFramesToGif(frames, delays, bos, onEncodePct)
-                                } else {
-                                    encodeFramesToGif(unzipFolder, resp, bos, onEncodePct)
+                            if (rife != null) {
+                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 完成 → %d帧", id, rife.delaysMs.size)
+                                coroutineContext.ensureActive()
+                                // 4/4 转存补帧结果为播放用 JPEG 序列(RIFE 出的是 PNG,280 帧要 50~110MB,必须转)
+                                gate.withPermit {
+                                    flow.value = UgoiraProgress(UgoiraPhase.ENCODE, 0)
+                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] 转存补帧帧序列开始", id)
+                                    var lastQ = -1
+                                    val rifeDir = framesDirFor(ctx, illust, true)
+                                    val converted = writeFramesDir(
+                                        rifeDir, sortedUgoiraFrames(rife.framesDir), rife.delaysMs,
+                                    ) { pct ->
+                                        flow.value = UgoiraProgress(UgoiraPhase.ENCODE, pct)
+                                        if (pct / 25 != lastQ) {
+                                            lastQ = pct / 25
+                                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [4/4] 转存 %d%%", id, pct)
+                                        }
+                                    }
+                                    if (converted != null) {
+                                        result = converted
+                                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 补帧帧序列就绪(%d帧,一圈%dms)", id, converted.files.size, converted.totalMs)
+                                    }
                                 }
+                            } else if (pipelineJob?.isActive != false) {
+                                rifeHardFailed = true
+                                Timber.tag(UGOIRA_LOG_TAG).w("[pipeline] illust=%d [3.5/4] INTERPOLATE 失败,本会话不再尝试补帧,保留原速版", id)
+                            } else {
+                                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 被取消,保留原速版", id)
                             }
-                            if (resultFile.exists()) resultFile.delete()
-                            if (!temp.renameTo(resultFile)) {
-                                throw IllegalStateException("rename .part → ${resultFile.name} failed")
-                            }
-                        } catch (t: Throwable) {
-                            runCatching { temp.delete() }
-                            throw t
                         }
+                    } else if (useRife) {
+                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 跳过(帧率已高或帧数超限)", id)
                     }
-                    produced = true
                 } finally {
                     rifeWorkRoot.deleteRecursively()
                     if (produced) discardIntermediates(id, zipFile, unzipFolder)
                 }
             }
-            readyGifCache[id] = resultFile
-            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d ===== SUCCESS ===== %s (%d bytes) 耗时 %dms", id, resultFile.name, resultFile.length(), System.currentTimeMillis() - t0)
-            return resultFile
+            val r = result ?: throw IllegalStateException("no frames produced for illust=$id")
+            // 只在最终版确定后发布一次:补帧成功就是补帧版,补帧失败/不适用/开关关着就是原速版。
+            // 中途不发布 —— 播放器要么不动,要么直接以最终帧率动起来。
+            publishFrames(id, r)
+            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d ===== SUCCESS ===== %s (%d帧) 耗时 %dms", id, r.dir.name, r.files.size, System.currentTimeMillis() - t0)
+            return r
         } catch (c: CancellationException) {
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 已取消(划走无人看 / 进程回收) 耗时 %dms", id, System.currentTimeMillis() - t0)
             throw c
@@ -490,16 +484,12 @@ object UgoiraEngine {
             Timber.tag(UGOIRA_LOG_TAG).e(t, "[pipeline] illust=%d ===== FAILED ===== 耗时 %dms", id, System.currentTimeMillis() - t0)
             throw t
         } finally {
-            // 只在 jobs[id] 还是「本协程」时才清理 —— 否则会误删并发 acquireJob 刚装进去的新任务
-            // (abandon 计时器已取消我并 remove 后,新观察者重开的 d2),让 d2 变成 map 外孤儿,
-            // 下一个 acquireJob 又建 d3,两条 pipeline 同写 gifZipFile.part → 可能损坏。
             val myJob = coroutineContext[Job]
             synchronized(lock) {
                 if (jobs[id] === myJob) {
                     jobs.remove(id)
                     cancelTimers.remove(id)?.cancel()
                 }
-                // 无人观察(划走取消的终态)→ 进度流清掉;还有观察者时留给 releaseJob 收尾
                 if ((refs[id] ?: 0) == 0) progressFlows.remove(id)
             }
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d END", id)
@@ -507,13 +497,12 @@ object UgoiraEngine {
     }
 
     /**
-     * 成品 gif 已落盘 → zip 和解压帧就是死重量,趁还握着 per-illust 文件锁删掉。
+     * 播放用帧序列已落盘 → zip 和解压帧就是死重量,趁还握着 per-illust 文件锁删掉。
      *
      * `gifCacheFolder` 没有任何自动淘汰(只有设置页一个手动按钮),而一条动图会在里面留下
-     * **三份**:zip、上百张解压帧、成品 gif。ugoira 的 zip 装的是 JPEG、基本没压缩,所以前两份
-     * 加起来约等于成品的两倍还多 —— 看几十条就是 GB 级。pipeline 本来就有「gif 不在盘上就重下
-     * 重解」的自愈路径,删掉不破坏幂等性;代价只是切换补帧开关后想要另一个变体时要重下一次 zip,
-     * 那不是高频操作。
+     * 多份:zip、上百张解压帧、播放用帧序列。ugoira 的 zip 装的是 JPEG、基本没压缩,所以前两份
+     * 加起来是笔实打实的开销 —— 看几十条就是 GB 级。pipeline 本来就有「帧序列不在盘上就重下
+     * 重解」的自愈路径,删掉不破坏幂等性。
      *
      * 必须在文件锁内调用,且只在成功路径调用 —— 失败/取消时留着中间产物,下次进来接着用。
      */
@@ -525,8 +514,6 @@ object UgoiraEngine {
         Timber.tag(UGOIRA_LOG_TAG)
             .i("[pipeline] illust=%d 清掉中间产物(zip + 解压帧),回收 %d KB", id, freed / 1024)
     }
-
-    private fun File.isValidGif() = isFile && length() > MIN_VALID_GIF_BYTES
 
     /** 元数据优先取 [Cache] 里已有的 [GifResponse],否则 getGifPackage 拉一次并回写缓存。 */
     private suspend fun fetchMeta(illustId: Int): GifResponse {
@@ -654,6 +641,172 @@ internal fun ugoiraDelays(frameCount: Int, resp: GifResponse): List<Int> {
     }
 }
 
+// ── 播放用帧序列 ─────────────────────────────────────────────────────────────
+// 播放不再走 GIF:GIF 在 Glide 里是纯 Java 软解 LZW(实测 490x445 单帧约 25ms),4x 补帧的
+// 20ms 预算根本喂不饱它,只能把动作拖慢。改成直接播 JPEG 帧序列 —— native 解码快数倍,
+// 且时序由 [FrameSequencePlayer] 的绝对时间轴掌控。GIF 只在用户点「保存」时才编。
+
+/** 可直接喂给 `FrameSequencePlayer` 的帧序列。[files] 与 [delaysMs] 一一对应。 */
+data class UgoiraFrames(
+    val dir: File,
+    val files: List<File>,
+    val delaysMs: List<Int>,
+    val interpolated: Boolean,
+) {
+    /** 一圈总时长 —— 补帧前后必须相等,播放器靠它做无缝升级。 */
+    val totalMs: Int get() = delaysMs.sum()
+}
+
+private const val FRAMES_DIR_PREFIX = "frames_"
+private const val FRAMES_DELAY_FILE = "delays.txt"
+private const val FRAME_JPEG_QUALITY = 92
+
+/** 帧序列目录:`frames_<id>` / `frames_<id>_rife`,和 gif 变体一样按开关分开存。 */
+internal fun framesDirFor(ctx: Context, illust: IllustsBean, interpolated: Boolean): File =
+    File(
+        LegacyFile.gifCacheFolder(ctx),
+        FRAMES_DIR_PREFIX + illust.id + if (interpolated) "_rife" else "",
+    )
+
+/**
+ * 读已落盘的帧序列。delays.txt 行数与 jpg 数量对不上就当没有(上次写到一半被杀),
+ * 返回 null 让调用方重做 —— 和 zip/解压那套完整性校验同一个思路。
+ */
+internal fun readFramesDir(dir: File, interpolated: Boolean): UgoiraFrames? {
+    val delayFile = File(dir, FRAMES_DELAY_FILE)
+    if (!delayFile.isFile) return null
+    val delays = runCatching {
+        delayFile.readLines().mapNotNull { it.trim().toIntOrNull() }
+    }.getOrNull()?.takeIf { it.isNotEmpty() } ?: return null
+    val files = (dir.listFiles() ?: emptyArray())
+        .filter { it.isFile && it.name.endsWith(".jpg") }
+        .sortedBy { it.nameWithoutExtension.toIntOrNull() ?: Int.MAX_VALUE }
+    if (files.size != delays.size) return null
+    return UgoiraFrames(dir, files, delays, interpolated)
+}
+
+/**
+ * 把 [srcFrames] 转存成播放用的 JPEG 序列 + delays.txt。
+ *
+ * 源已经是 JPEG(pixiv 解压帧)时**直接复制、不重编码** —— 原速那一档几乎零成本;
+ * 只有 RIFE 输出的 PNG 才需要解码再压 JPEG(PNG 存 280 帧要 50~110MB,必须转)。
+ *
+ * 转码并行 [FRAME_CONVERT_PARALLELISM] 路(实测 280 帧单线程约 4s)。先写 `.tmp` 目录再整体
+ * rename,中途被杀不会留下半套骗过 [readFramesDir]。
+ */
+internal suspend fun writeFramesDir(
+    target: File,
+    srcFrames: List<File>,
+    delaysMs: List<Int>,
+    onProgress: (Int) -> Unit = {},
+): UgoiraFrames? {
+    if (srcFrames.isEmpty() || srcFrames.size != delaysMs.size) return null
+    val tmp = File(target.parentFile, target.name + ".tmp")
+    tmp.deleteRecursively()
+    tmp.mkdirs()
+    val done = java.util.concurrent.atomic.AtomicInteger()
+    val total = srcFrames.size
+    try {
+        coroutineScope {
+            val sem = Semaphore(FRAME_CONVERT_PARALLELISM)
+            srcFrames.mapIndexed { i, src ->
+                async(Dispatchers.IO) {
+                    sem.withPermit {
+                        coroutineContext.ensureActive()
+                        val dst = File(tmp, "%08d.jpg".format(i))
+                        if (src.extension.equals("jpg", true) || src.extension.equals("jpeg", true)) {
+                            src.copyTo(dst, overwrite = true)
+                        } else {
+                            val bmp = BitmapFactory.decodeFile(src.absolutePath)
+                                ?: throw IllegalStateException("decode frame failed: $src")
+                            try {
+                                FileOutputStream(dst).use { out ->
+                                    bmp.compress(Bitmap.CompressFormat.JPEG, FRAME_JPEG_QUALITY, out)
+                                }
+                            } finally {
+                                bmp.recycle()
+                            }
+                        }
+                        onProgress(done.incrementAndGet() * 100 / total)
+                    }
+                }
+            }.forEach { it.await() }
+        }
+        File(tmp, FRAMES_DELAY_FILE).writeText(delaysMs.joinToString("\n"))
+        target.deleteRecursively()
+        if (!tmp.renameTo(target)) throw IllegalStateException("rename frames .tmp → ${target.name} failed")
+    } catch (t: Throwable) {
+        tmp.deleteRecursively()
+        throw t
+    }
+    return readFramesDir(target, target.name.endsWith("_rife"))
+}
+
+/** 帧转码并行度。IO + native 编解码混合,4 路足以吃满而不炸内存(每路峰值 2 张 Bitmap)。 */
+private const val FRAME_CONVERT_PARALLELISM = 4
+
+/** 全局调色板的训练样本预算(像素数)。约 360KB buffer,一次训练替代 N 次逐帧训练。 */
+private const val PALETTE_SAMPLE_PIXELS = 120_000
+
+/** 最多抽几帧参与全局调色板训练 —— 均匀铺满整条动图,不是只看开头。 */
+private const val PALETTE_SAMPLE_FRAMES = 8
+
+/** 样本少于这个数就不值得建全局调色板(帧太小,逐帧量化本来也不慢)。 */
+private const val PALETTE_MIN_SAMPLE_PIXELS = 1_000
+
+/**
+ * 帧内取样的跳跃步长(大素数)。**不能用线性步长** `i*nPix/take` —— 它在 take 整除 nPix
+ * 时退化成精确的固定步长,一旦该步长与图宽有大公约数就只采到那么几列像素,颜色分布严重
+ * 失真。实测(600x600、40 帧合成动画)线性取址在 take=1500 时步长恰为 240、gcd(240,600)=120,
+ * 只覆盖 5 个列,RMSE 从 4.4 劣化到 11.7;换成素数跳跃后各档稳定在 4.3~4.9。
+ *
+ * `i * 104729 % nPix` 在 gcd(104729, nPix)=1 时能遍历全部像素位置,取前 take 个即均匀散布。
+ * 104729 是素数且不含 2/3/5 因子,正常图片的 w*h 不可能含它作因子,互质恒成立。
+ */
+private const val PALETTE_STRIDE_PRIME = 104_729L
+
+/**
+ * 从整条动图里均匀抽样像素,喂给 [AnimatedGifEncoder.setGlobalPalette] 训练全局调色板。
+ * 返回 BGR 三元组数组(与编码器内部 `pixels` 布局一致);样本不足或帧全解码失败时返回
+ * null,调用方退回原来的逐帧调色板。
+ *
+ * 抽样策略两处都有意为之:
+ *  - **帧维度**均匀取 [PALETTE_SAMPLE_FRAMES] 张铺满整条动图,而不是只看开头几帧 ——
+ *    后半段才出现的颜色也要进调色板,否则那几帧会被映射到差很远的近似色。
+ *  - **帧内**用 [PALETTE_STRIDE_PRIME] 素数跳跃取址,避开「固定步长与图宽有公约数 →
+ *    只采到某几列」的失真(NeuQuant 内部用素数步长也是为了这个)。
+ *
+ * 成本是额外解码最多 8 帧(600x600 JPEG 约几十 ms),换掉 N-1 次 NeuQuant.learn()。
+ */
+private fun buildGlobalPalette(files: List<File>): ByteArray? {
+    if (files.isEmpty()) return null
+    val pickCount = minOf(files.size, PALETTE_SAMPLE_FRAMES)
+    val perFrame = PALETTE_SAMPLE_PIXELS / pickCount
+    val buf = ByteArray(PALETTE_SAMPLE_PIXELS * 3)
+    var w = 0
+    for (p in 0 until pickCount) {
+        val file = files[(p.toLong() * files.size / pickCount).toInt()]
+        val bmp: Bitmap = BitmapFactory.decodeFile(file.absolutePath) ?: continue
+        try {
+            val nPix = bmp.width * bmp.height
+            if (nPix <= 0) continue
+            val row = IntArray(nPix)
+            bmp.getPixels(row, 0, bmp.width, 0, 0, bmp.width, bmp.height)
+            val take = minOf(perFrame, nPix)
+            for (i in 0 until take) {
+                val px = row[(i.toLong() * PALETTE_STRIDE_PRIME % nPix).toInt()]
+                buf[w++] = (px and 0xFF).toByte()           // B
+                buf[w++] = ((px shr 8) and 0xFF).toByte()   // G
+                buf[w++] = ((px shr 16) and 0xFF).toByte()  // R
+            }
+        } finally {
+            bmp.recycle()
+        }
+    }
+    if (w / 3 < PALETTE_MIN_SAMPLE_PIXELS) return null
+    return if (w == buf.size) buf else buf.copyOf(w)
+}
+
 /** 按显式 [delaysMs] 逐帧编码(RIFE 补帧后延迟已减半,不再来自 metadata)。 */
 internal fun encodeFramesToGif(
     files: List<File>,
@@ -664,6 +817,9 @@ internal fun encodeFramesToGif(
     val encoder = AnimatedGifEncoder()
     encoder.start(out)
     encoder.setRepeat(0) // 无限循环
+    // 全局调色板:消掉逐帧调色板导致的帧间闪烁,同时省掉 N-1 次 NeuQuant 训练。
+    // 抽样失败(帧全解不开)就退回逐帧,不影响出片。
+    buildGlobalPalette(files)?.let { encoder.setGlobalPalette(it) }
     val total = files.size
     for ((i, f) in files.withIndex()) {
         encoder.setDelay(delaysMs.getOrElse(i) { 60 })
