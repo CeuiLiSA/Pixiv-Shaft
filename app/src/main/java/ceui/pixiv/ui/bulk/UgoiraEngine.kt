@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.bulk
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import ceui.lisa.activities.Shaft
@@ -75,6 +76,9 @@ object UgoiraEngine {
 
     private const val MIN_VALID_GIF_BYTES = 1024L
 
+    /** 补帧工作目录前缀(internal cacheDir 下),命名只此一处 —— [sweepStaleRifeWork] 靠它认领残留。 */
+    private const val RIFE_WORK_PREFIX = "rife_work_"
+
     // 同时最多几条 ugoira 在跑「下载+编码」重活。实测不设限时 1MB 的 zip 因互抢带宽下了 39s。
     private const val MAX_CONCURRENT = 2
 
@@ -104,6 +108,17 @@ object UgoiraEngine {
 
     /** illustId -> 已生成好的可播放 gif(内存快路径)。 */
     private val readyGifCache = ConcurrentHashMap<Int, File>()
+
+    /**
+     * 本会话是否已确认 rife 在这台机器上根本跑不起来(Vulkan 初始化失败 / 进程非 0 退出 /
+     * 输出帧数不符)。这类失败是设备/驱动级的,必然条条复发 —— 标记后直接当开关没开,
+     * 别让用户每条动图都白等几分钟 GPU。
+     *
+     * **取消不算失败**(用户划走是正常路径),只有「探针还活着却没产出」才置位。
+     * 开关重新切换或删模型([invalidateAll])会清掉,给用户一个显式的重试入口。
+     */
+    @Volatile
+    private var rifeHardFailed = false
 
     /** illustId -> 进度广播,跨 Fragment 共享。 */
     private val progressFlows = ConcurrentHashMap<Int, MutableStateFlow<UgoiraProgress>>()
@@ -153,17 +168,55 @@ object UgoiraEngine {
         readyGifCache.remove(illustId)
     }
 
-    /** RIFE 补帧开关切换时调用:内存里记的是旧变体(原速/补帧)的 gif,全清,下次按新开关重取。 */
+    /**
+     * RIFE 补帧开关切换时调用:内存里记的是旧变体(原速/补帧)的 gif,全清,下次按新开关重取。
+     * 顺带清掉 [rifeHardFailed] —— 用户手动切开关就是「再试一次」的意思。
+     */
     @JvmStatic
     fun invalidateAll() {
         readyGifCache.clear()
+        rifeHardFailed = false
+    }
+
+    /**
+     * 清扫上个进程留下的补帧中间产物。[runPipeline] 的 finally 会删掉 `rife_work_<id>`
+     * 整棵树,但那**要求进程还活着** —— 补帧是分钟级 + 满载 GPU,正是最容易被系统杀后台的
+     * 窗口;一挂就在内部 cache 留下中间帧(4x 那轮峰值约为源帧的 8 倍,几百 MB 量级),
+     * 而全项目没有任何东西会去收它。
+     *
+     * 冷启动调用即可(此时 [jobs] 必空,盘上的都是上次的残留)。仍然跳过正在跑的 illust,
+     * 这样将来从别处(比如清缓存入口)调也不会误删活着的工作目录。
+     *
+     * fire-and-forget:自己开协程走 IO,任何异常吞掉 —— 清不掉缓存不该影响启动。
+     */
+    @JvmStatic
+    fun sweepStaleRifeWork(context: Context) {
+        engineScope.launch {
+            runCatching {
+                val dirs = context.cacheDir.listFiles()
+                    ?.filter { it.isDirectory && it.name.startsWith(RIFE_WORK_PREFIX) }
+                    ?: return@runCatching
+                var freed = 0L
+                var removed = 0
+                for (dir in dirs) {
+                    val id = dir.name.removePrefix(RIFE_WORK_PREFIX).toIntOrNull()
+                    if (id != null && synchronized(lock) { jobs.containsKey(id) }) continue
+                    freed += dir.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+                    if (dir.deleteRecursively()) removed++
+                }
+                if (removed > 0) {
+                    Timber.tag(UGOIRA_LOG_TAG)
+                        .i("[sweep] 清掉 %d 个残留补帧工作目录,回收 %d KB", removed, freed / 1024)
+                }
+            }.onFailure { Timber.tag(UGOIRA_LOG_TAG).w(it, "[sweep] 清扫残留补帧目录失败") }
+        }
     }
 
     /**
      * 本次播放该用哪个 gif 变体。开关开 + 模型在位 → 补帧变体(独立缓存文件,
      * 和原速 gif 互不覆盖,关掉开关旧缓存还能直接用);否则原文件。
      */
-    private fun resultFileFor(ctx: android.content.Context, illust: IllustsBean, useRife: Boolean): File {
+    private fun resultFileFor(ctx: Context, illust: IllustsBean, useRife: Boolean): File {
         val base = LegacyFile.gifResultFile(ctx, illust)
         return if (useRife) File(base.parentFile, base.nameWithoutExtension + "_rife.gif") else base
     }
@@ -245,13 +298,16 @@ object UgoiraEngine {
         try {
             val ctx = Shaft.getContext()
 
-            // 磁盘上已有编好的最终 gif:直接用。补帧开关决定用哪个变体文件。
-            val useRife = Shaft.sSettings.isUgoiraRifeEnable() && RifeInterpolator.isAvailable(ctx)
-            val resultFile = resultFileFor(ctx, illust, useRife)
-            if (resultFile.isValidGif()) {
-                readyGifCache[id] = resultFile
-                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 磁盘缓存命中 -> %s (%d bytes),直接返回", id, resultFile.name, resultFile.length())
-                return resultFile
+            // 磁盘上已有编好的最终 gif:直接用。补帧开关决定**期望**用哪个变体文件 ——
+            // 真正落盘的变体要等补帧跑完才定(见下面 [3.5/4] 之后),补帧没产出就落回原速变体。
+            val useRife = Shaft.sSettings.isUgoiraRifeEnable() &&
+                !rifeHardFailed &&
+                RifeInterpolator.isAvailable(ctx)
+            val preferredFile = resultFileFor(ctx, illust, useRife)
+            if (preferredFile.isValidGif()) {
+                readyGifCache[id] = preferredFile
+                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 磁盘缓存命中 -> %s (%d bytes),直接返回", id, preferredFile.name, preferredFile.length())
+                return preferredFile
             }
 
             // 1/4 元数据(轻,不占并发额度)
@@ -274,7 +330,9 @@ object UgoiraEngine {
             var encodeDelays: List<Int>? = null
             // 补帧工作目录整棵树(中间产物 + 输出帧)由最外层 finally 兜底删除 ——
             // 成功/失败/任意取消点都不在磁盘残留,只留最终 gif。
-            val rifeWorkRoot = File(ctx.cacheDir, "rife_work_$id")
+            val rifeWorkRoot = File(ctx.cacheDir, RIFE_WORK_PREFIX + id)
+            // 最终落盘的变体:先按期望占位,补帧结果出来后改写(补帧没产出 → 原速变体)。
+            var resultFile = preferredFile
             try {
                 fileLockFor(id).withLock {
                     gate.withPermit {
@@ -349,8 +407,13 @@ object UgoiraEngine {
                                     encodeFrames = sortedUgoiraFrames(rife.framesDir)
                                     encodeDelays = rife.delaysMs
                                     Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 完成 → %d帧", id, rife.delaysMs.size)
+                                } else if (pipelineJob?.isActive != false) {
+                                    // 探针还活着却没产出 = 真失败(Vulkan 起不来 / 进程非 0 /
+                                    // 输出帧数不符),不是划走取消。设备级故障条条复发,本会话封停。
+                                    rifeHardFailed = true
+                                    Timber.tag(UGOIRA_LOG_TAG).w("[pipeline] illust=%d [3.5/4] INTERPOLATE 失败,本会话不再尝试补帧,回落原始帧", id)
                                 } else {
-                                    Timber.tag(UGOIRA_LOG_TAG).w("[pipeline] illust=%d [3.5/4] INTERPOLATE 未产出(取消/失败),回落原始帧", id)
+                                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d [3.5/4] INTERPOLATE 被取消,回落原始帧", id)
                                 }
                             }
                         } else {
@@ -358,6 +421,17 @@ object UgoiraEngine {
                         }
                     }
                     coroutineContext.ensureActive()
+
+                    // 只有补帧**真产出了**才写 _rife 变体。不值得补 / 硬失败时落回原速变体 ——
+                    // 否则原速内容会顶着 _rife.gif 的名字被永久缓存:下次进来磁盘命中直接返回,
+                    // 补帧再也不会重试(在跑不动 rife 的机器上等于功能静默死掉),而且和 base gif
+                    // 在盘上存了一模一样的两份。取消路径已被上面的 ensureActive 拦掉,不会走到这。
+                    resultFile = resultFileFor(ctx, illust, encodeFrames != null && encodeDelays != null)
+                    if (resultFile != preferredFile && resultFile.isValidGif()) {
+                        // 回落目标早就编好过(用户之前关着开关看过这条):直接用,省一次上百帧的编码
+                        Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 回落原速变体且已在盘上 -> %s,跳过重编", id, resultFile.name)
+                        return@withLock
+                    }
 
                     gate.withPermit {
                         // 4/4 编码。先写 .part 再 rename —— Glide 永远不会读到半张 gif。

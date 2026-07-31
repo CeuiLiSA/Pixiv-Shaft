@@ -39,8 +39,18 @@ object RifeInterpolator {
     /** 最高补帧倍率:每轮 2x,最多两轮。10fps 的典型动图 4x 后 40-50fps。 */
     private const val MAX_MULTIPLIER = 4
 
-    /** 补帧后总帧数上限:再多 GIF 编码耗时/体积都失控(70帧×4x=280 已是 20s+ 级)。 */
-    private const val MAX_OUTPUT_FRAMES = 600
+    /**
+     * 补帧后总帧数上限。GIF 是个很差的容器:Pixel 8 实测 600x600 的补帧成品单帧
+     * 56~187KB(画面越碎越大,4格漫画是最坏那档)、AnimatedGifEncoder 约 61ms/帧,
+     * 而 `gif cache` 没有任何自动淘汰。300 帧 ≈ 18~56MB / 18s 编码,已是上限。
+     *
+     * 这个常量同时管两件事,所以是渐变而非一刀切:
+     *  - [worthInterpolating]:源帧 N > MAX/2 完全不补
+     *  - [multiplierFor]:4x 要 N ≤ MAX/4,2x 要 N ≤ MAX/2
+     * 即 N≤75 吃满 4x、75~150 降 2x、150 以上不补。两处用的是同一个不等式,
+     * 改这个值不会破坏「通过 worthInterpolating ⇒ 倍率至少 2x」的一致性。
+     */
+    private const val MAX_OUTPUT_FRAMES = 300
 
     /**
      * 单轮 pass 的墙钟硬上限。进程 hang(Vulkan 初始化死锁类故障)时 isActive 探针

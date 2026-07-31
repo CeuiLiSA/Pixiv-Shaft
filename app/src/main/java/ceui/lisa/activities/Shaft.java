@@ -308,6 +308,11 @@ public class Shaft extends Application implements ServicesProvider {
         // 而不是只对之后新下载的生效。同样后台跑、跑完置标志、幂等。
         ceui.lisa.database.DownloadPageBackfill.runIfNeeded(this);
 
+        // 动图 RIFE 补帧的中间帧目录(cache/rife_work_*)残留清扫。正常路径由播放引擎的
+        // finally 兜底删除，但补帧是分钟级满载 GPU，正是最容易被系统杀后台的窗口，被杀就
+        // 留下几百 MB 中间 PNG 且没有任何东西会去收。后台跑、失败静默。
+        ceui.pixiv.ui.bulk.UgoiraEngine.sweepStaleRifeWork(this);
+
         // 社区榜单事件上报（shaft-api-v2）。完全 fire-and-forget，失败静默，
         // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
         ceui.pixiv.events.EventReporter.INSTANCE.init(this);
