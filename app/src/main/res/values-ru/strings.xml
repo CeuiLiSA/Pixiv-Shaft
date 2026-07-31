@@ -1730,6 +1730,7 @@
     <string name="v3_tag_menu_copy_original">Копировать тег</string>
     <string name="v3_tag_menu_copy_translation">Копировать перевод</string>
     <string name="v3_tag_menu_mute">Скрыть этот тег</string>
+    <string name="v3_tag_bar_collapse">Свернуть</string>
     <string name="experimental_section">Экспериментальное</string>
     <string name="site_recommend">Закладки за месяц</string>
     <string name="current_hot">Сейчас в тренде</string>

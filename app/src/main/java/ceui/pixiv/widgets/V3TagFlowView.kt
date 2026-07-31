@@ -46,11 +46,7 @@ class V3TagFlowView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : FlexboxLayout(context, attrs, defStyleAttr) {
-    /**
-     * 自定义 tag 显示文本。返回 Pair(主文本, 译名后缀)，返回 null 则使用默认渲染。
-     * 用于特殊 tag（如展开/收起）显示自定义文本。
-     */
-    var customTagDisplay: ((name: String, translated: String?) -> Pair<String, String?>?)? = null
+
     private val palette by lazy { V3Palette.from(context) }
     private var lastSignature: String? = null
     private var lastPairs: List<Pair<String, String?>> = emptyList()
@@ -130,6 +126,28 @@ class V3TagFlowView @JvmOverloads constructor(
             }
         }
 
+    /**
+     * 「+N」溢出块的点击回调。非空时溢出块可点击（带 touch scale），用于画师主页
+     * tag 筛选条的展开/收起（PR #947）；保持 null 则溢出块维持原样 —— 纯展示、
+     * 不可点击、不吃事件（列表卡片里点它应该继续穿透给卡片本身）。
+     * 是否挂监听在渲染时决定，所以要在 setTags*() 之前赋值。
+     */
+    var onOverflowClick: (() -> Unit)? = null
+
+    /**
+     * 溢出动作块的替代文本。[maxTags] 未触发折叠（无溢出）而本值非空时，末尾仍渲染
+     * 一个与「+N」同款式的动作块显示该文本 —— 展开态的「收起」就是这么来的。
+     * 触发折叠时忽略本值，始终显示「+N」。null（默认）= 无溢出就不渲染任何块。
+     */
+    var overflowActionText: String? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                lastSignature = null
+                renderPairs(lastPairs)
+            }
+        }
+
     private var _editor: EditText? = null
 
     /**
@@ -193,10 +211,6 @@ class V3TagFlowView @JvmOverloads constructor(
         }
         val lastIndex = visiblePairs.size - 1
         visiblePairs.forEachIndexed { idx, (name, translated) ->
-            val custom = customTagDisplay?.invoke(name, translated)
-            val displayName = custom?.first ?: name
-            val displayTranslated = if (custom != null) custom.second else translated
-            val isCustom = custom != null
             val endGap = when {
                 !isSingleRow -> gap
                 idx == lastIndex -> 0
@@ -204,15 +218,16 @@ class V3TagFlowView @JvmOverloads constructor(
             }
             val tv = TextView(context).apply {
                 text = buildString {
-                    if (showHashPrefix && !isCustom) append("# ")
-                    append(displayName)
-                    if (!displayTranslated.isNullOrBlank()) {
-                        append("  "); append(displayTranslated)
+                    if (showHashPrefix) append("# ")
+                    append(name)
+                    if (!translated.isNullOrBlank()) {
+                        append("  "); append(translated)
                     }
                 }
                 textSize = chipTextSize
                 setTextColor(palette.textTag)
                 background = tagBgState?.newDrawable()?.mutate()
+                // Trailing × icon for editable chip rows.
                 if (showRemoveIcon) {
                     val close = AppCompatResources
                         .getDrawable(context, R.drawable.ic_close_black_24dp)
@@ -222,6 +237,7 @@ class V3TagFlowView @JvmOverloads constructor(
                     setCompoundDrawablesRelative(null, null, close, null)
                     compoundDrawablePadding = 4.ppppx
                 }
+                // Shrink end padding when the × occupies space; otherwise the chip looks lopsided.
                 val endPadding = if (showRemoveIcon) (hPad - 4.ppppx) else hPad
                 setPaddingRelative(hPad, vPad, endPadding, vPad)
                 layoutParams = LayoutParams(
@@ -235,9 +251,9 @@ class V3TagFlowView @JvmOverloads constructor(
                     flexShrink = 0f
                 }
                 setOnClickListener {
-                    val customClick = onTagClick
-                    if (customClick != null) {
-                        customClick.invoke(name)
+                    val custom = onTagClick
+                    if (custom != null) {
+                        custom.invoke(name)
                     } else {
                         val intent = Intent(context, SearchActivity::class.java).apply {
                             putExtra(Params.KEY_WORD, name)
@@ -250,10 +266,6 @@ class V3TagFlowView @JvmOverloads constructor(
                 // refreshChipsUI 再 setOnTagLongClick），所以监听器无条件挂、回调在长按
                 // 触发时再取——和 onTagClick 同套路。
                 setOnLongClickListener {
-                    if (isCustom) {
-                        // 特殊项（如 +N/收起）不弹出菜单，消费事件
-                        return@setOnLongClickListener true
-                    }
                     val handler = onTagLongClick
                     if (handler != null) {
                         handler.invoke(name)
@@ -267,11 +279,14 @@ class V3TagFlowView @JvmOverloads constructor(
             addView(tv)
         }
 
-        // 「+N」折叠块：只显示折叠了多少个 tag，不可点击，弱化配色（textSecondary），
-        // 与小说 V3 系列详情页 item 一致。
-        if (overflowCount > 0) {
+        // 「+N」折叠块：显示折叠了多少个 tag，弱化配色（textSecondary），与小说 V3 系列
+        // 详情页 item 一致。默认不可点击、不吃事件（列表卡片里点它要穿透给卡片）；
+        // [onOverflowClick] 非空的调用方（画师主页 tag 筛选条）把它变成展开/收起开关，
+        // 无溢出时若 [overflowActionText] 非空则改显示该文本（展开态的「收起」）。
+        val actionText = if (overflowCount > 0) "+$overflowCount" else overflowActionText
+        if (actionText != null) {
             val more = TextView(context).apply {
-                text = "+$overflowCount"
+                text = actionText
                 textSize = chipTextSize
                 setTextColor(palette.textSecondary)
                 background = tagBgState?.newDrawable()?.mutate()
@@ -283,6 +298,14 @@ class V3TagFlowView @JvmOverloads constructor(
                     setMargins(0, 0, gap, bottomGap)
                     flexShrink = 0f
                 }
+                if (onOverflowClick != null) {
+                    // 回调晚读，与 onTagClick 同套路；是否挂监听仍看渲染时是否非空，
+                    // 免得给纯展示调用方平白挂上可点击语义。
+                    setOnClickListener { onOverflowClick?.invoke() }
+                }
+            }
+            if (onOverflowClick != null) {
+                applyTouchScale(more, 0.94f)
             }
             addView(more)
         }

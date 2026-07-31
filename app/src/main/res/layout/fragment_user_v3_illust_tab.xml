@@ -9,14 +9,15 @@
     android:orientation="vertical">
 
     <!-- 紧凑小号 chip 换行堆叠,行数由 UserV3IllustTabFragment 用 flexLines 折叠到最多 2 行
-         (「+N」块表达溢出),不用 maxLine —— 它会把末行放不下的 chip 硬切成半个。 -->
-    <!-- 用 NestedScrollView 包裹，maxHeight 限制最大高度，展开允许时滚动 -->
-    <androidx.core.widget.NestedScrollView
+         (「+N」块表达溢出),不用 maxLine —— 它会把末行放不下的 chip 硬切成半个。
+         点「+N」全量展开、点「收起」收合(PR #947):展开态由外层 MaxHeightNestedScrollView
+         封顶 200dp、超出内部滚动 —— 原生 NestedScrollView 不认 android:maxHeight,
+         所以用自定义子类。嵌套滚动分发在 Fragment 里代码关闭(构造函数会强开,XML 属性无效)。 -->
+    <ceui.pixiv.widgets.MaxHeightNestedScrollView
         android:id="@+id/tag_scroll_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:maxHeight="200dp"
-        android:fillViewport="true"
         android:scrollbars="none">
 
         <ceui.pixiv.widgets.V3TagFlowView
@@ -26,10 +27,9 @@
             android:paddingStart="20dp"
             android:paddingTop="8dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="8dp"
             android:visibility="gone"
             app:flexWrap="wrap" />
-    </androidx.core.widget.NestedScrollView>
+    </ceui.pixiv.widgets.MaxHeightNestedScrollView>
 
     <FrameLayout
         android:id="@+id/illust_list_container"

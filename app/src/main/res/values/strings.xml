@@ -1900,6 +1900,7 @@
     <string name="v3_tag_menu_copy_original">复制 tag 原文</string>
     <string name="v3_tag_menu_copy_translation">复制 tag 译文</string>
     <string name="v3_tag_menu_mute">屏蔽此 tag</string>
+    <string name="v3_tag_bar_collapse">收起</string>
 
     <string name="experimental_section">试验性</string>
     <string name="site_recommend">本月收藏</string>
