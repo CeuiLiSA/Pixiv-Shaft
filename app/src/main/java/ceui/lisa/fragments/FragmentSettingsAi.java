@@ -54,6 +54,20 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
             });
         }
 
+        // RIFE 补帧模型 — 动图(ugoira)AI 补帧,把 8-15fps 的动图插到 2 倍帧率
+        {
+            baseBind.rifeModelRela.setOnClickListener(v -> {
+                Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
+                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "RIFE补帧模型下载");
+                intent.putExtra("rife_model_name", ceui.pixiv.ui.interpolate.RifeModel.RIFE_V4_6.name());
+                startActivity(intent);
+            });
+            bindLongPressDeleteModel(
+                    baseBind.rifeModelRela,
+                    ceui.pixiv.ui.interpolate.RifeModelManager.INSTANCE,
+                    ceui.pixiv.ui.interpolate.RifeModel.RIFE_V4_6);
+        }
+
         // 气泡检测模型 (comic-text-detector) — 漫画翻译流水线的文本框/气泡检测阶段
         {
             baseBind.bubbleDetectorModelRela.setOnClickListener(v -> {
@@ -85,6 +99,12 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
 
     private void updateModelStatus() {
         if (baseBind == null) return;
+
+        ceui.pixiv.ui.interpolate.RifeModel rife = ceui.pixiv.ui.interpolate.RifeModel.RIFE_V4_6;
+        boolean rifeReady = ceui.pixiv.ui.interpolate.RifeModelManager.INSTANCE.isModelReady(mContext, rife);
+        baseBind.rifeModelStatus.setText(rifeReady
+                ? rife.getDisplayName()
+                : getString(R.string.string_model_not_ready, rife.getSizeLabel()));
 
         ceui.pixiv.ui.translate.ComicTextDetectorModel ctd = ceui.pixiv.ui.translate.ComicTextDetectorModel.CTD_BASE;
         boolean ctdReady = ceui.pixiv.ui.translate.ComicTextDetectorModelManager.INSTANCE.isModelReady(mContext, ctd);

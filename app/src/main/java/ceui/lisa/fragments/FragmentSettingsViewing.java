@@ -108,6 +108,28 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                         })
                         .show());
 
+        // 动图 RIFE AI 补帧,默认关闭。开到 on 且模型没下载时顺手把下载页拉起来——
+        // 开关保持 on,模型就位后下一次播放自动生效(引擎侧模型缺失会静默回落)。
+        baseBind.ugoiraRifeEnable.setChecked(Shaft.sSettings.isUgoiraRifeEnable());
+        baseBind.ugoiraRifeEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setUgoiraRifeEnable(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+                // 内存里可能记着旧变体(原速/补帧)的 gif,清掉,下次播放按新开关重取。
+                ceui.pixiv.ui.bulk.UgoiraEngine.invalidateAll();
+                if (isChecked && !ceui.pixiv.ui.interpolate.RifeInterpolator.INSTANCE.isAvailable(mContext)) {
+                    android.content.Intent intent =
+                            new android.content.Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
+                    intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "RIFE补帧模型下载");
+                    intent.putExtra("rife_model_name", ceui.pixiv.ui.interpolate.RifeModel.RIFE_V4_6.name());
+                    startActivity(intent);
+                }
+            }
+        });
+        baseBind.ugoiraRifeEnableRela.setOnClickListener(v -> baseBind.ugoiraRifeEnable.performClick());
+
         // 看图时保留状态栏(刘海/挖孔)区域（issue #724），默认关闭。
         baseBind.keepStatusBarWhenViewImage.setChecked(Shaft.sSettings.isKeepStatusBarWhenViewImage());
         baseBind.keepStatusBarWhenViewImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

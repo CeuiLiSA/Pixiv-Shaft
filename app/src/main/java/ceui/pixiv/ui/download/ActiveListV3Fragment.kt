@@ -626,6 +626,7 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
             UgoiraPhase.FETCH_META -> "FETCH META"
             UgoiraPhase.DOWNLOAD_ZIP -> "DOWNLOAD ZIP"
             UgoiraPhase.EXTRACT -> "EXTRACT"
+            UgoiraPhase.INTERPOLATE -> "RIFE 2X"
             UgoiraPhase.ENCODE -> "ENCODE GIF"
         }
         h.sizeText.text = phaseLabel

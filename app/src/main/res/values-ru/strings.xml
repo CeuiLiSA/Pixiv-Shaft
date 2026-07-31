@@ -2244,4 +2244,11 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">Автообновление рекомендаций при запуске</string>
     <string name="auto_refresh_home_feed_desc">Если выключено, при запуске показываются прошлые рекомендации; потяните вниз, чтобы обновить</string>
+    <string name="ugoira_rife_enable">ИИ-интерполяция кадров угоира (RIFE)</string>
+    <string name="ugoira_rife_enable_desc">Вставляет ИИ-кадры, повышая частоту до 4x (до потолка GIF 50fps). Требуется загрузка модели; кодирование занимает больше времени</string>
+    <string name="ugoira_interpolating">Интерполяция</string>
+    <string name="string_rife_model">Модель интерполяции кадров</string>
+    <string name="string_rife_download_title">Загрузить модель RIFE</string>
+    <string name="string_rife_download_subtitle">Для интерполяции кадров необходимо загрузить %1$s</string>
+    <string name="string_rife_download_done">Модель интерполяции загружена</string>
 </resources>

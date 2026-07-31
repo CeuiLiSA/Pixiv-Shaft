@@ -356,6 +356,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         // 其余(meta/解压)=加载中…;% 直接拼数字。
         val base = when (p.phase) {
             UgoiraPhase.DOWNLOAD_ZIP -> context.getString(R.string.now_downloading)
+            UgoiraPhase.INTERPOLATE -> context.getString(R.string.ugoira_interpolating)
             UgoiraPhase.ENCODE -> context.getString(R.string.ugoira_encoding)
             else -> context.getString(R.string.now_loading)
         }

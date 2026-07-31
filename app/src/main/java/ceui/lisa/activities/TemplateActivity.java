@@ -291,6 +291,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "翻译模型下载":
                     return ceui.pixiv.ui.translate.TranslationModelDownloadFragment.newInstance(
                             intent.getStringExtra("translation_model_name"));
+                case "RIFE补帧模型下载":
+                    return ceui.pixiv.ui.interpolate.RifeDownloadFragment.newInstance(
+                            intent.getStringExtra("rife_model_name"));
                 case "漫画OCR模型下载":
                     return ceui.pixiv.ui.translate.MangaOcrDownloadFragment.newInstance(
                             intent.getStringExtra("manga_ocr_model_name"));

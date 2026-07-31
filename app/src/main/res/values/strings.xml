@@ -2416,4 +2416,11 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">启动时自动刷新首页推荐</string>
     <string name="auto_refresh_home_feed_desc">关闭后启动时直接展示上次的推荐内容，下拉刷新才换新一批</string>
+    <string name="ugoira_rife_enable">动图 AI 补帧 (RIFE)</string>
+    <string name="ugoira_rife_enable_desc">在相邻帧之间插入 AI 生成的中间帧,自动补至最高 4 倍帧率(贴近 GIF 50fps 上限);首次使用需下载补帧模型,压制耗时会变长</string>
+    <string name="ugoira_interpolating">补帧中</string>
+    <string name="string_rife_model">补帧模型</string>
+    <string name="string_rife_download_title">下载 RIFE 补帧模型</string>
+    <string name="string_rife_download_subtitle">%1$s 需要额外下载以启用动图 AI 补帧</string>
+    <string name="string_rife_download_done">补帧模型下载完成</string>
 </resources>

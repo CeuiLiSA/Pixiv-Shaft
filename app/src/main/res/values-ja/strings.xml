@@ -2244,4 +2244,11 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">起動時にホームのおすすめを自動更新</string>
     <string name="auto_refresh_home_feed_desc">オフにすると起動時に前回のおすすめをそのまま表示し、引っ張って更新すると新しい作品に入れ替わります</string>
+    <string name="ugoira_rife_enable">うごイラ AI フレーム補間 (RIFE)</string>
+    <string name="ugoira_rife_enable_desc">AI が中間フレームを生成し最大4倍のフレームレートに(GIF の 50fps 上限まで)。初回は補間モデルのダウンロードが必要で、エンコードに時間がかかります</string>
+    <string name="ugoira_interpolating">フレーム補間中</string>
+    <string name="string_rife_model">フレーム補間モデル</string>
+    <string name="string_rife_download_title">RIFE モデルをダウンロード</string>
+    <string name="string_rife_download_subtitle">うごイラのフレーム補間には %1$s のダウンロードが必要です</string>
+    <string name="string_rife_download_done">補間モデルのダウンロード完了</string>
 </resources>

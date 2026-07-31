@@ -15,6 +15,7 @@ enum class UgoiraPhase {
     FETCH_META,     // getGifPackage 拿 zip url + frame delays
     DOWNLOAD_ZIP,   // 占 ugoira 总耗时大头的 zip 流式下载
     EXTRACT,        // unzip → cacheDir
+    INTERPOLATE,    // RIFE AI 补帧(可选,开关开启且模型在位才走)
     ENCODE,         // AnimatedGifEncoder 编 GIF + commit 进 V3 WriteHandle（串行）
 }
 

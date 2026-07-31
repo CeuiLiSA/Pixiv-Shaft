@@ -117,6 +117,7 @@ object SettingsCatalog {
         add(Entry(VIEWING, "artwork_v3_fab_order_rela", R.string.artwork_v3_fab_order_title, keywords = "按钮顺序 下载按钮 收藏按钮 左右 fab"))
         add(Entry(VIEWING, "novel_direct_reader_rela", R.string.novel_direct_reader, R.string.novel_direct_reader_desc, keywords = "小说 正文 阅读器 略过详情 跳过详情 直接阅读 novel reader skip detail"))
         add(Entry(VIEWING, "transform_type_rela", R.string.string_393, keywords = "翻页 动画 切页 过渡 特效 transformer"))
+        add(Entry(VIEWING, "ugoira_rife_enable_rela", R.string.ugoira_rife_enable, R.string.ugoira_rife_enable_desc, keywords = "动图 补帧 插帧 rife 帧率 60fps 顺滑 丝滑 ugoira interpolation"))
         add(Entry(VIEWING, "keep_status_bar_when_view_image_rela", R.string.keep_status_bar_when_view_image, keywords = "状态栏 刘海 挖孔 全屏 沉浸 notch"))
         add(Entry(VIEWING, "illust_detail_keep_screen_on_rela", R.string.string_451, keywords = "常亮 息屏 熄屏 屏幕 keep screen on"))
         add(Entry(VIEWING, "use_custom_double_tap_zoom_rela", R.string.use_custom_double_tap_zoom, keywords = "双击 放大 缩放 zoom"))
@@ -153,6 +154,7 @@ object SettingsCatalog {
         // AI 功能
         add(Entry(AI, "default_upscale_model_rela", R.string.string_default_upscale_model, keywords = "超分 放大 高清 修复 esrgan realcugan waifu2x upscale ai放大"))
         add(Entry(AI, "default_rembg_model_rela", R.string.string_default_rembg_model, keywords = "抠图 去背景 背景移除 透明 rembg"))
+        add(Entry(AI, "rife_model_rela", R.string.string_rife_model, keywords = "补帧 插帧 rife 动图 帧率 ugoira interpolation"))
         add(Entry(AI, "bubble_detector_model_rela", R.string.string_bubble_detector_model, keywords = "气泡 文本框 检测 漫画翻译 detector"))
         add(Entry(AI, "ocr_model_rela", R.string.string_ocr_model, keywords = "ocr 识别 文字 日文 漫画翻译"))
 

@@ -295,6 +295,10 @@ public class Settings {
     // 关闭时所有相关 UI（详情页匹配框/长按菜单项/管理页入口/自动导入/自动勾选）完全隐藏
     private boolean synonymDictEnabled = false;
 
+    // 动图(ugoira) RIFE AI 补帧，默认关闭。开启且补帧模型已下载时,播放引擎在编码前
+    // 对帧序列做 2x 插帧,帧率翻倍;模型未下载则静默回落原始帧率
+    private boolean ugoiraRifeEnable = false;
+
     // 冷启动时是否自动刷新首页推荐插画（issue #955），默认开启（保持本地优先的原语义）。
     // 关掉后冷启命中磁盘快照就停在快照上，由用户下拉刷新才拉新内容
     private boolean autoRefreshHomeFeed = true;
@@ -951,6 +955,14 @@ public class Settings {
 
     public void setSynonymDictEnabled(boolean synonymDictEnabled) {
         this.synonymDictEnabled = synonymDictEnabled;
+    }
+
+    public boolean isUgoiraRifeEnable() {
+        return ugoiraRifeEnable;
+    }
+
+    public void setUgoiraRifeEnable(boolean ugoiraRifeEnable) {
+        this.ugoiraRifeEnable = ugoiraRifeEnable;
     }
 
     public boolean isAutoRefreshHomeFeed() {

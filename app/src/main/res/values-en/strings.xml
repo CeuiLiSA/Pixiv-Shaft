@@ -2244,4 +2244,11 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">Auto-refresh home recommendations on launch</string>
     <string name="auto_refresh_home_feed_desc">When off, the last recommendations are shown on launch; pull to refresh for a new batch</string>
+    <string name="ugoira_rife_enable">Ugoira AI frame interpolation (RIFE)</string>
+    <string name="ugoira_rife_enable_desc">Insert AI-generated in-between frames, boosting frame rate up to 4x (near the 50fps GIF ceiling). Requires downloading the interpolation model; encoding takes longer</string>
+    <string name="ugoira_interpolating">Interpolating</string>
+    <string name="string_rife_model">Frame interpolation model</string>
+    <string name="string_rife_download_title">Download RIFE model</string>
+    <string name="string_rife_download_subtitle">%1$s needs to be downloaded to enable ugoira frame interpolation</string>
+    <string name="string_rife_download_done">Interpolation model downloaded</string>
 </resources>

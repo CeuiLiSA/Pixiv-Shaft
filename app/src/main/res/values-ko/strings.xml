@@ -2244,4 +2244,11 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">시작할 때 홈 추천 자동 새로고침</string>
     <string name="auto_refresh_home_feed_desc">끄면 시작할 때 지난번 추천을 그대로 보여주고, 당겨서 새로고침해야 새 작품으로 바뀝니다</string>
+    <string name="ugoira_rife_enable">움직이는 일러스트 AI 프레임 보간 (RIFE)</string>
+    <string name="ugoira_rife_enable_desc">AI 중간 프레임을 삽입해 최대 4배 프레임률로(GIF 50fps 상한까지). 보간 모델 다운로드가 필요하며 인코딩 시간이 길어집니다</string>
+    <string name="ugoira_interpolating">프레임 보간 중</string>
+    <string name="string_rife_model">프레임 보간 모델</string>
+    <string name="string_rife_download_title">RIFE 모델 다운로드</string>
+    <string name="string_rife_download_subtitle">프레임 보간을 사용하려면 %1$s 다운로드가 필요합니다</string>
+    <string name="string_rife_download_done">보간 모델 다운로드 완료</string>
 </resources>

@@ -2244,4 +2244,11 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">Açılışta ana sayfa önerilerini otomatik yenile</string>
     <string name="auto_refresh_home_feed_desc">Kapalıyken açılışta son öneriler gösterilir; yeni içerik için aşağı çekip yenileyin</string>
+    <string name="ugoira_rife_enable">Ugoira yapay zeka kare arası doldurma (RIFE)</string>
+    <string name="ugoira_rife_enable_desc">Yapay zeka ara kareler ekleyerek kare hızını 4 kata kadar artırır (GIF 50fps sınırına yakın). Model indirmek gerekir; kodlama daha uzun sürer</string>
+    <string name="ugoira_interpolating">Kare doldurma</string>
+    <string name="string_rife_model">Kare doldurma modeli</string>
+    <string name="string_rife_download_title">RIFE modelini indir</string>
+    <string name="string_rife_download_subtitle">Kare doldurma için %1$s indirilmelidir</string>
+    <string name="string_rife_download_done">Model indirildi</string>
 </resources>
