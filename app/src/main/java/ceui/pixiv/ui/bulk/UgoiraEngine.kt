@@ -408,12 +408,17 @@ object UgoiraEngine {
                     // 几十 ms 就好。**不在这里发布** —— 用户要的是「补帧完成才动」,不要先播一段
                     // 低帧率的再跳变。它的作用是持久缓存 + 补帧失败/不适用时的回退版本。
                     val baseDir = framesDirFor(ctx, illust, false)
-                    val baseFrames = readFramesDir(baseDir, false)
+                    val cachedBase = readFramesDir(baseDir, false)
+                    val baseFrames = cachedBase
                         ?: writeFramesDir(baseDir, srcFrames, srcDelays)
                         ?: throw IllegalStateException("write base frames failed for illust=$id")
                     result = baseFrames
                     produced = true
-                    Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 原速帧序列落盘(%d帧,一圈%dms) 耗时 %dms", id, baseFrames.files.size, baseFrames.totalMs, System.currentTimeMillis() - t0)
+                    Timber.tag(UGOIRA_LOG_TAG).i(
+                        "[pipeline] illust=%d 原速帧序列%s(%d帧,一圈%dms) 耗时 %dms",
+                        id, if (cachedBase != null) "复用盘上已有" else "落盘",
+                        baseFrames.files.size, baseFrames.totalMs, System.currentTimeMillis() - t0,
+                    )
 
                     // 3.5/4 RIFE 补帧(可选)。任何失败都保留上面的原速版,播放不因补帧挂掉。
                     if (useRife && RifeInterpolator.worthInterpolating(srcDelays)) {
