@@ -10,10 +10,19 @@ import java.io.File
  * 的 Android 交叉编译版,和超分同一条 ProcessBuilder + Vulkan 链路),在每对相邻帧之间插入
  * 一张 AI 中间帧,帧数翻倍、每帧延迟减半。
  *
+ * **一次 pass 直出 m 倍**,不做递归 2x。RIFE v4 是 timestep-conditioned 的,t=0.25 直接
+ * 从原始相邻帧算,比「先合成中点、再拿合成帧当输入插一次」画质好(后者伪影会叠加),
+ * 而且只启动一次进程(省一次 Vulkan 初始化)、不落中间帧(峰值磁盘减半)。
+ *
  * 循环缝处理:ugoira 是无限循环的,尾帧→首帧之间也要有中间帧。做法是把首帧复制一份
- * 追加到输入序列末尾(N+1 帧),用 `-n 2*(N+1)` 让 CLI 的均匀 timestep 正好落在
- * 「原帧 + 中点」上(scale=0.5),输出 2N+2 帧,丢掉最后两帧(首帧副本 + 其 clamp 重复),
- * 剩下 2N 帧首尾相接。
+ * 追加到输入序列末尾(M=N+1 帧),用 `-n m*(N+1)` 让 CLI 的均匀 timestep 正好落在
+ * 1/m 的整数倍上,取前 m*N 帧(fi 从 0 到 N-1/m),尾帧回到首帧的间隔也正好是 1/m。
+ *
+ * CLI 的 timestep 公式经真机实测钉死为 `fi = i * M / T`(M=输入帧数, T=`-n` 值),
+ * 且 fi 落在原帧上时是**逐字节透传**、超出范围时 clamp 重复末帧。验证方法:2 帧输入
+ * 跑 `-n 4` 得 [A, mid, B, B],跑 `-n 8` 得 [A, ¼, ½, ¾, B, B, B, B],且两次的
+ * ½ 帧 md5 相同 —— 若公式是 `i*(M-1)/(T-1)` 则 `-n 4` 应输出四帧互不相同。
+ * 这是整套循环缝推导唯一的承重假设,改倍率/帧数前先重跑这个探针。
  *
  * 失败即放弃:任何一步不对(模型没下 / 进程非 0 / 输出帧数不符)都返回 null,
  * 调用方回落到原始帧序列,播放永远不会因为补帧挂掉。调用方取消([interpolate] 的
@@ -36,7 +45,7 @@ object RifeInterpolator {
      */
     private const val TARGET_MIN_DELAY_MS = 20
 
-    /** 最高补帧倍率:每轮 2x,最多两轮。10fps 的典型动图 4x 后 40-50fps。 */
+    /** 最高补帧倍率(一次 pass 直出)。10fps 的典型动图 4x 后 40-50fps。 */
     private const val MAX_MULTIPLIER = 4
 
     /**
@@ -53,9 +62,9 @@ object RifeInterpolator {
     private const val MAX_OUTPUT_FRAMES = 300
 
     /**
-     * 单轮 pass 的墙钟硬上限。进程 hang(Vulkan 初始化死锁类故障)时 isActive 探针
+     * 单次 pass 的墙钟硬上限。进程 hang(Vulkan 初始化死锁类故障)时 isActive 探针
      * 只有「无人观察」才变 false,用户停在页面上就永远不触发 —— 这里兜底销毁,
-     * 不让 GPU 串行闸门被一个僵死进程永久占用。正常 300 帧 2x 远用不了这么久。
+     * 不让 GPU 串行闸门被一个僵死进程永久占用。实测 47帧×4x 只要 ~5s,远用不了这么久。
      */
     private const val PASS_TIMEOUT_MS = 10 * 60 * 1000L
 
@@ -98,7 +107,7 @@ object RifeInterpolator {
 
     /**
      * 同步阻塞跑完整补帧,须在 IO 线程调用。[unzipFolder] 是原始帧目录,
-     * [delays] 与帧一一对应。[onProgress] 0..100(多轮按轮次均分,轮内按输出帧文件数轮询)。
+     * [delays] 与帧一一对应。[onProgress] 0..100(按输出帧文件数轮询)。
      *
      * [isActive] 每 300ms 轮询一次:协程取消不会 interrupt 阻塞线程,调用方把存活探针
      * 传进来,变 false 时立刻销毁 rife 子进程并返回 null —— 不烧无人看的 GPU。
@@ -125,27 +134,13 @@ object RifeInterpolator {
         }
         val multiplier = multiplierFor(n, delays)
         if (multiplier < 2) return null
-        val passes = Integer.numberOfTrailingZeros(multiplier) // 2x→1轮, 4x→2轮
 
         val t0 = System.currentTimeMillis()
-        var srcFrames = frames
-        var lastOutDir: File? = null
+        val outDir = File(workRoot, "rife_out")
         try {
-            for (pass in 0 until passes) {
-                val outDir = File(workRoot, "rife_out_$pass")
-                val ok = runDoublePass(context, srcFrames, outDir, workRoot, isActive) { pct ->
-                    onProgress((pass * 100 + pct) / passes)
-                }
-                // 上一轮的中间产物用完即删(只在它不是调用方要拿走的目录时)
-                lastOutDir?.deleteRecursively()
-                if (!ok) {
-                    outDir.deleteRecursively()
-                    return null
-                }
-                srcFrames = (outDir.listFiles() ?: emptyArray())
-                    .filter { it.isFile }
-                    .sortedBy { it.nameWithoutExtension.toIntOrNull() ?: Int.MAX_VALUE }
-                lastOutDir = outDir
+            if (!runPass(context, frames, outDir, workRoot, multiplier, isActive, onProgress)) {
+                outDir.deleteRecursively()
+                return null
             }
 
             // 延迟:原帧 d 均分成 multiplier 段,逐段累积取整到 10ms 粒度 ——
@@ -162,26 +157,28 @@ object RifeInterpolator {
             onProgress(100)
             Timber.tag(TAG).i(
                 "补帧完成 %d帧 ×%d → %d帧 耗时 %dms",
-                n, multiplier, srcFrames.size, System.currentTimeMillis() - t0,
+                n, multiplier, n * multiplier, System.currentTimeMillis() - t0,
             )
-            return Result(lastOutDir!!, newDelays)
+            return Result(outDir, newDelays)
         } catch (t: Throwable) {
             Timber.tag(TAG).w(t, "补帧异常,放弃")
-            lastOutDir?.deleteRecursively()
+            outDir.deleteRecursively()
             return null
         }
     }
 
     /**
-     * 单轮 2x:输入帧列表 → [outDir] 出 2N 帧(尾→首循环缝也有中间帧)。
-     * 做法:输入目录 = 顺序重命名副本 + 追加首帧(N+1 帧),`-n 2*(N+1)` 让 CLI 的
-     * 均匀 timestep 正好落在「原帧 + 中点」上,输出丢掉最后两帧(首帧副本 + clamp 重复)。
+     * 一次 pass 出 [multiplier]×N 帧(尾→首循环缝也有中间帧)。
+     * 做法:输入目录 = 顺序重命名副本 + 追加首帧(M=N+1 帧),`-n multiplier*(N+1)` 让 CLI 的
+     * 均匀 timestep 落在 1/[multiplier] 的整数倍上;输出取前 multiplier*N 帧,
+     * 丢掉尾部 multiplier 帧(首帧副本 + 其 clamp 重复)。
      */
-    private fun runDoublePass(
+    private fun runPass(
         context: Context,
         frames: List<File>,
         outDir: File,
         workRoot: File,
+        multiplier: Int,
         isActive: () -> Boolean,
         onProgress: (Int) -> Unit,
     ): Boolean {
@@ -200,7 +197,7 @@ object RifeInterpolator {
             }
             frames.first().copyTo(File(inDir, "%08d.%s".format(n + 1, ext)))
 
-            val targetCount = 2 * (n + 1)
+            val targetCount = multiplier * (n + 1)
             val args = listOf(
                 executable.absolutePath,
                 "-i", inDir.absolutePath,
@@ -255,7 +252,8 @@ object RifeInterpolator {
                 Timber.tag(TAG).w("输出帧数 %d < 期望 %d,放弃", outputs.size, targetCount)
                 return false
             }
-            outputs.takeLast(outputs.size - 2 * n).forEach { runCatching { it.delete() } }
+            // 只留前 multiplier*N 帧:尾部 multiplier 帧是首帧副本(fi=N)及其 clamp 重复
+            outputs.takeLast(outputs.size - multiplier * n).forEach { runCatching { it.delete() } }
             return true
         } finally {
             inDir.deleteRecursively()
