@@ -11,7 +11,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
@@ -24,12 +23,12 @@ import ceui.pixiv.chat.base.viewModels
 import ceui.pixiv.chat.core.AppError
 import ceui.lisa.network.PlazaPost
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.widgets.LoadMoreScrollListener
+import ceui.pixiv.widgets.applyV3RefreshTheme
 import com.blankj.utilcode.util.BarUtils
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.scwang.smart.refresh.header.FalsifyFooter
-import com.scwang.smart.refresh.layout.api.RefreshLayout
-import com.scwang.smart.refresh.layout.listener.OnRefreshListener
 
 /**
  * 广场。Toolbar 右上 + → 进发帖页;右下 FAB 备份入口 (移动端 reach 友好)。
@@ -94,27 +93,16 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
         val layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.layoutManager = layoutManager
         binding.recyclerView.adapter = concatAdapter
-        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
-                if (dy <= 0) return
-                val total = layoutManager.itemCount
-                val lastVisible = layoutManager.findLastVisibleItemPosition()
-                if (lastVisible >= total - 4) viewModel.loadMore(requireContext())
-            }
-        })
+        // load-more 走 RecyclerView 滚动监听;SwipeRefreshLayout 只管下拉刷新,
+        // 上拉翻页没有手势入口,重入由 viewModel.loadMore 自己守卫。
+        binding.recyclerView.addOnScrollListener(
+            LoadMoreScrollListener({ viewModel.loadMore(requireContext()) })
+        )
 
-        binding.refreshLayout.setOnRefreshListener(object : OnRefreshListener {
-            override fun onRefresh(refreshLayout: RefreshLayout) {
-                viewModel.load(requireContext(), isSwipeRefresh = true)
-            }
-        })
-        // load-more 走 RecyclerView 滚动监听(上面 addOnScrollListener),
-        // SmartRefreshLayout 自带的 footer 鞋拉手势不参与触发 —— 不关掉的话
-        // 用户在 EndReached 后还能一直在底部拉出 rubber-band 动效。
-        // FalsifyFooter = 占位 no-op footer(跟 PixivFragment 同款),
-        // 再 setEnableLoadMore(false) 双保险锁掉底部拉动。
-        binding.refreshLayout.setRefreshFooter(FalsifyFooter(requireContext()))
-        binding.refreshLayout.setEnableLoadMore(false)
+        binding.refreshLayout.applyV3RefreshTheme()
+        binding.refreshLayout.setOnRefreshListener {
+            viewModel.load(requireContext(), isSwipeRefresh = true)
+        }
         binding.errorRetry.setOnClickListener { viewModel.load(requireContext()) }
 
         // 状态订阅 + 事件
@@ -144,7 +132,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
                 if (s.initialError != null) {
                     binding.errorText.text = getString(R.string.plaza_load_failed, s.initialError)
                 }
-                if (!s.isRefreshing) binding.refreshLayout.finishRefresh()
+                binding.refreshLayout.isRefreshing = s.isRefreshing
                 footerAdapter.setPagingState(
                     when (val p = s.paging) {
                         PlazaViewModel.PlazaPagingState.Idle -> PagingState.Idle
@@ -161,9 +149,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
             viewModel.events.collect { ev ->
                 when (ev) {
                     is PlazaViewModel.Event.Toast ->
-                        android.widget.Toast.makeText(
-                            requireContext(), ev.message, android.widget.Toast.LENGTH_SHORT
-                        ).show()
+                        Toaster.showShort(ev.message)
                 }
             }
         }
@@ -181,9 +167,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
 
     private fun openCompose() {
         if (SessionManager.loggedInUid <= 0L) {
-            android.widget.Toast.makeText(
-                requireContext(), R.string.plaza_login_required, android.widget.Toast.LENGTH_SHORT
-            ).show()
+            Toaster.showShort(R.string.plaza_login_required)
             return
         }
         val intent = Intent(requireContext(), TemplateActivity::class.java)

@@ -13,19 +13,15 @@ import ceui.lisa.interfaces.Display
 import ceui.lisa.models.NullResponse
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Common
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
-class FragmentWorkSpace : SwipeFragment<FragmentWorkSpaceBinding>(), Display<UserDetailResponse> {
+class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<UserDetailResponse> {
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_work_space
     }
 
-    override fun getSmartRefreshLayout(): SmartRefreshLayout {
-        return baseBind.refreshLayout
-    }
 
     public override fun initData() {
         Retro.getAppApi()

@@ -31,6 +31,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -73,6 +74,7 @@ class UserMangaSeriesFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(rowGlide)
         setUpToolbar(binding, feedBinding.feedListView)
         binding.toolbarTitle.text = getString(R.string.string_230)
         binding.toolbar.inflateMenu(R.menu.local_save)

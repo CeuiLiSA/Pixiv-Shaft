@@ -1,6 +1,5 @@
 package ceui.pixiv.websocket
 
-import android.os.SystemClock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -26,6 +25,7 @@ internal class ReconnectCoordinator(
     private val config: WebSocketConfig,
     private val authProvider: WebSocketAuthProvider?,
     private val scope: CoroutineScope,
+    private val monotonicNowMillis: () -> Long,
     private val host: Host,
 ) {
 
@@ -134,7 +134,7 @@ internal class ReconnectCoordinator(
             return
         }
 
-        val nextAt = SystemClock.uptimeMillis() + delayMs
+        val nextAt = monotonicNowMillis() + delayMs
         host.updateState(
             WebSocketState.Reconnecting(
                 attempt = reconnectAttempt,
@@ -196,7 +196,7 @@ internal class ReconnectCoordinator(
         provider: WebSocketAuthProvider,
         failure: FailureContext,
     ) {
-        val nextAt = SystemClock.uptimeMillis()
+        val nextAt = monotonicNowMillis()
         host.updateState(
             WebSocketState.Reconnecting(
                 attempt = reconnectAttempt,

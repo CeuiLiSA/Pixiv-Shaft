@@ -2,7 +2,6 @@ package ceui.pixiv.ui.download
 
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
@@ -10,6 +9,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.RelativePath
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import kotlinx.coroutines.CancellationException
@@ -46,9 +46,9 @@ import java.util.Locale
 internal object DownloadExportLinks {
 
     fun present(host: Fragment, urls: List<String>) {
-        val ctx = host.context ?: return
+        if (host.context == null) return
         if (urls.isEmpty()) {
-            Toast.makeText(ctx, R.string.dlmgr_done_export_empty, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.dlmgr_done_export_empty)
             return
         }
         val text = urls.joinToString("\n")
@@ -129,22 +129,16 @@ internal object DownloadExportLinks {
             }
             result.fold(
                 onSuccess = { saved ->
-                    Toast.makeText(
-                        ctx,
-                        host.getString(R.string.dlmgr_done_export_saved, saved.path),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                    Toaster.showLong(host.getString(R.string.dlmgr_done_export_saved, saved.path))
                     tryOpenSavedFile(host, saved.uri)
                 },
                 onFailure = { e ->
-                    Toast.makeText(
-                        ctx,
+                    Toaster.showLong(
                         host.getString(
                             R.string.dlmgr_done_export_save_failed,
                             e.message ?: e.javaClass.simpleName,
                         ),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                    )
                 },
             )
         }

@@ -15,7 +15,7 @@ import ceui.pixiv.ui.common.getFileSize
 import com.blankj.utilcode.util.PathUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -120,7 +120,7 @@ open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
     }
 
     open fun onEnd(humanReadableTask: HumanReadableTask, results: List<Item>) {
-        ToastUtils.show("全部结束")
+        Toaster.show("全部结束")
         Common.showLog("FetchAllTask all end ${this.results.size}")
     }
 }

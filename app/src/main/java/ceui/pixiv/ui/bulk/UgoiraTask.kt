@@ -14,6 +14,7 @@ import com.blankj.utilcode.util.ZipUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -67,26 +68,35 @@ suspend fun downloadUgoira(
 
     Timber.tag(TAG).i("[UGOIRA] start illust=$illustId title=${illust.title}")
 
-    // 0) 播放引擎可能已经把这条 ugoira 编成 gif 缓存了(用户在详情页看过)。有就直接拷进
-    //    目标,跳过 meta / 下载 zip / 解压 / 重编上百帧——省流量省 CPU。拷贝是纯 IO,不占
-    //    encodeSem(那把锁是给吃满帧 Bitmap 的编码用的)。
-    UgoiraEngine.peekPlayableGif(illust)?.let { cachedGif ->
-        onPhase(UgoiraPhase.ENCODE)
+    // 播放引擎已落盘的帧序列 → 直接编成 GIF 写进目标(V3 WriteHandle),跳过 meta/下载/解压。
+    //
+    // 播放链路现在产出的是 JPEG 帧序列而不是 GIF(GIF 在 Glide 里是纯 Java 软解,喂不动补帧的
+    // 20ms 预算),所以「保存」是唯一需要 GIF 的地方,也只有到这里才编。用户在详情页看过的话,
+    // 帧已经在盘上(补帧版优先),这里省掉的是下载 + 解压 + 补帧,只剩编码。
+    suspend fun encodeFromFrames(frames: UgoiraFrames) {
         val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust))
         if (handle == null) {
             Timber.tag(TAG).i("[UGOIRA] skip: target already exists illust=$illustId")
-            return@withContext
+            return
         }
         try {
-            BufferedOutputStream(handle.stream).use { bos ->
-                cachedGif.inputStream().use { it.copyTo(bos) }
+            encodeSem.withPermit {
+                BufferedOutputStream(handle.stream).use { bos ->
+                    encodeFramesToGif(frames.files, frames.delaysMs, bos)
+                }
             }
             handle.onFinish()
-            Timber.tag(TAG).i("[UGOIRA] done via 播放引擎缓存 gif illust=$illustId (${cachedGif.length()} bytes) uri=${handle.uri}")
+            Timber.tag(TAG).i("[UGOIRA] done via 播放引擎帧序列 illust=$illustId (${frames.files.size}帧, rife=${frames.interpolated}) uri=${handle.uri}")
         } catch (t: Throwable) {
             runCatching { handle.onAbort() }
             throw t
         }
+    }
+
+    // 0) 用户在详情页看过的话,帧序列已经在盘上(补帧版优先)。直接编,省掉 meta/下载/解压/补帧。
+    UgoiraEngine.peekPlayableFrames(illust)?.let { frames ->
+        onPhase(UgoiraPhase.ENCODE)
+        encodeFromFrames(frames)
         return@withContext
     }
 
@@ -106,56 +116,78 @@ suspend fun downloadUgoira(
         ?: throw IllegalStateException("ugoira zip url missing for illust=$illustId")
     coroutineContext.ensureActive()
 
-    // 2) 下载 zip（已存在且非空就跳过）—— internal cache，未来由 V3 cache 清理
-    val zipFile = LegacyFile.gifZipFile(ctx, illust)
-    if (!zipFile.isFile || zipFile.length() == 0L) {
-        onPhase(UgoiraPhase.DOWNLOAD_ZIP)
-        downloadZipTo(zipUrl, zipFile)
-    } else {
-        Timber.tag(TAG).i("[UGOIRA] zip already cached ($zipFile)")
-    }
-    coroutineContext.ensureActive()
-
-    // 3) 解压。完整性按 frames.size 比对：上次进程死在解压途中，folder 里可能有
-    //    不全的帧子集，第二次跑直接 skip 解压会编出残废 GIF。
-    //    数对不上 → 清空重解；zip 在本地 cache，几十毫秒级别开销，便宜。
-    val unzipFolder = LegacyFile.gifUnzipFolder(ctx, illust)
-    val expectedFrameCount = resp.ugoira_metadata?.frames?.size ?: 0
-    val onDiskFrameCount = unzipFolder.listFiles()?.count { it.isFile } ?: 0
-    if (onDiskFrameCount == 0 || (expectedFrameCount > 0 && onDiskFrameCount != expectedFrameCount)) {
-        if (onDiskFrameCount > 0) {
-            // 删现有内容，但保留 folder 本身
-            unzipFolder.listFiles()?.forEach { runCatching { it.delete() } }
-            Timber.tag(TAG).w("[UGOIRA] frame count mismatch (had=$onDiskFrameCount expect=$expectedFrameCount), re-extracting")
+    // 2-4) zip 下载 / 解压 / 编码全程握 per-illust 文件锁,与播放引擎互斥 —— 两边共写
+    //    同一 zip/.part/解压目录,「边看边存同一条」无锁并发写会把 zip 持久写坏。
+    UgoiraEngine.fileLockFor(illustId).withLock {
+        // 等锁期间播放引擎可能刚把帧序列落好(用户正在看):直接用,不重做
+        UgoiraEngine.peekPlayableFrames(illust)?.let { frames ->
+            onPhase(UgoiraPhase.ENCODE)
+            encodeFromFrames(frames)
+            return@withContext
         }
-        onPhase(UgoiraPhase.EXTRACT)
-        ZipUtils.unzipFile(zipFile, unzipFolder)
-        Timber.tag(TAG).i("[UGOIRA] unzipped ${unzipFolder.listFiles()?.size ?: 0} frames")
-    }
-    coroutineContext.ensureActive()
 
-    // 4) 直接编进 V3 WriteHandle —— 用户配置的 ugoira 命名模板 / 存储位置统一生效。
-    //    ENCODE phase 在 encodeSem.withPermit 里跑：等许可期间 last-emitted phase 仍是
-    //    上一步（DOWNLOAD_ZIP / EXTRACT），UI 显示是诚实的——它真的还没在 encode。
-    encodeSem.withPermit {
-        onPhase(UgoiraPhase.ENCODE)
-        val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust))
-        if (handle == null) {
-            // OverwritePolicy.Skip + 目标已存在；当作完成
-            Timber.tag(TAG).i("[UGOIRA] skip: target already exists illust=$illustId")
-            return@withPermit
+        // 2) 下载 zip（已存在且非空就跳过）—— internal cache，未来由 V3 cache 清理
+        val zipFile = LegacyFile.gifZipFile(ctx, illust)
+        if (!zipFile.isFile || zipFile.length() == 0L) {
+            onPhase(UgoiraPhase.DOWNLOAD_ZIP)
+            downloadZipTo(zipUrl, zipFile)
+        } else {
+            Timber.tag(TAG).i("[UGOIRA] zip already cached ($zipFile)")
         }
-        try {
-            BufferedOutputStream(handle.stream).use { bos ->
-                encodeFramesToGif(unzipFolder, resp, bos)
+        coroutineContext.ensureActive()
+
+        // 3) 解压。完整性按 frames.size 比对：上次进程死在解压途中，folder 里可能有
+        //    不全的帧子集，第二次跑直接 skip 解压会编出残废 GIF。
+        //    数对不上 → 清空重解；zip 在本地 cache，几十毫秒级别开销，便宜。
+        val unzipFolder = LegacyFile.gifUnzipFolder(ctx, illust)
+        val expectedFrameCount = resp.ugoira_metadata?.frames?.size ?: 0
+        val onDiskFrameCount = unzipFolder.listFiles()?.count { it.isFile } ?: 0
+        if (onDiskFrameCount == 0 || (expectedFrameCount > 0 && onDiskFrameCount != expectedFrameCount)) {
+            if (onDiskFrameCount > 0) {
+                // 删现有内容，但保留 folder 本身
+                unzipFolder.listFiles()?.forEach { runCatching { it.delete() } }
+                Timber.tag(TAG).w("[UGOIRA] frame count mismatch (had=$onDiskFrameCount expect=$expectedFrameCount), re-extracting")
             }
-            handle.onFinish()
-            Timber.tag(TAG).i("[UGOIRA] done illust=$illustId uri=${handle.uri}")
-        } catch (t: Throwable) {
-            // onAbort 让 backend 清掉部分写入的 .pending-NNNN 文件；不调用就会留 0 字节孤儿
-            runCatching { handle.onAbort() }
-            throw t
+            onPhase(UgoiraPhase.EXTRACT)
+            try {
+                ZipUtils.unzipFile(zipFile, unzipFolder)
+            } catch (t: Throwable) {
+                // 解压失败大概率 zip 本身坏了:删 zip 再抛,重试/下次重新下载(自愈)
+                runCatching { zipFile.delete() }
+                throw t
+            }
+            Timber.tag(TAG).i("[UGOIRA] unzipped ${unzipFolder.listFiles()?.size ?: 0} frames")
         }
+        coroutineContext.ensureActive()
+
+        // 4) 直接编进 V3 WriteHandle —— 用户配置的 ugoira 命名模板 / 存储位置统一生效。
+        //    ENCODE phase 在 encodeSem.withPermit 里跑：等许可期间 last-emitted phase 仍是
+        //    上一步（DOWNLOAD_ZIP / EXTRACT），UI 显示是诚实的——它真的还没在 encode。
+        encodeSem.withPermit {
+            onPhase(UgoiraPhase.ENCODE)
+            val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust))
+            if (handle == null) {
+                // OverwritePolicy.Skip + 目标已存在；当作完成
+                Timber.tag(TAG).i("[UGOIRA] skip: target already exists illust=$illustId")
+                return@withPermit
+            }
+            try {
+                BufferedOutputStream(handle.stream).use { bos ->
+                    encodeFramesToGif(unzipFolder, resp, bos)
+                }
+                handle.onFinish()
+                Timber.tag(TAG).i("[UGOIRA] done illust=$illustId uri=${handle.uri}")
+            } catch (t: Throwable) {
+                // onAbort 让 backend 清掉部分写入的 .pending-NNNN 文件；不调用就会留 0 字节孤儿
+                runCatching { handle.onAbort() }
+                throw t
+            }
+        }
+
+        // 5) 成品已落到用户目录 → cache 里的 zip / 解压帧就是死重量,趁还握着文件锁删掉。
+        //    gif cache 没有自动淘汰,批量下载几百条 ugoira 不清就是几十 GB。异常路径不会
+        //    走到这(直接抛出 withLock),中间产物留给重试复用。
+        UgoiraEngine.discardIntermediates(illustId, zipFile, unzipFolder)
     }
 }
 

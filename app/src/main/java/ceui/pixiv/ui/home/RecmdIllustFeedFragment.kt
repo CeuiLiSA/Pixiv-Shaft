@@ -22,6 +22,7 @@ import ceui.lisa.adapters.RAdapter
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.RecyRecmdHeaderBinding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.model.ListIllust
 import ceui.lisa.models.IllustsBean
@@ -80,6 +81,13 @@ open class RecmdIllustFeedFragment(
         cachedPixivFeedSource(
             slot = "recmd-$apiType",
             initialFetch = { Client.appApi.getRecommendedWorksWithRanking(apiType) },
+            // 「启动时自动刷新首页推荐」(issue #955)：关掉后冷启命中快照就停在快照上，
+            // 由用户下拉刷新才换一批——推荐流每次冷启整代替换，会让上次没翻完的作品直接消失。
+            // 只作用于首页那份实例：推荐漫画是从别处点进去的独立页面，不属于「启动」语义。
+            // lambda 每次刷新现读设置（不用重建数据源），效果本就只在下次冷启看得到。
+            refreshAfterCacheHit = {
+                dataType != TYPE_ILLUST || Shaft.sSettings.isAutoRefreshHomeFeed
+            },
         ) { resp, phase ->
             mapRecmdPage(resp.illusts, resp.ranking_illusts, phase, dataType)
         }
@@ -245,8 +253,10 @@ open class RecmdIllustFeedFragment(
             if (!phase.isFirstPage) {
                 return listItems
             }
-            // 排行榜预览头不做内容过滤（对齐 legacy 直接展示 ranking_illusts）
+            // 排行榜预览头也要滤掉屏蔽的作品/标签/画师（issue #543：主列表滤了、这里不滤，
+            // 被屏蔽内容就从首页顶部漏出来）；R18/AI 口味过滤照旧不适用——榜单不是个性化推荐
             val rankBeans = rankingIllusts.mapNotNull { IllustFeedItem.beanOf(it) }
+                .filterNot { IllustNovelFilter.judge(it) }
             return if (rankBeans.isEmpty()) {
                 listItems
             } else {

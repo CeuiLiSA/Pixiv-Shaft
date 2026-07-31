@@ -71,28 +71,6 @@
 
                 </RelativeLayout>
 
-                <RelativeLayout
-                    android:id="@+id/novel_direct_reader_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/novel_direct_reader" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/novel_direct_reader_desc" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/novel_direct_reader"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
                 <Space
                     android:id="@+id/artwork_v3_fab_order_divider"
                     android:layout_width="0dp"
@@ -119,6 +97,28 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/novel_direct_reader_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/novel_direct_reader" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/novel_direct_reader_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/novel_direct_reader"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/transform_type_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/bg_m3_row_mid">
@@ -135,6 +135,28 @@
                     <TextView
                         android:id="@+id/transform_type"
                         style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/ugoira_rife_enable_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/ugoira_rife_enable" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/ugoira_rife_enable_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/ugoira_rife_enable"
+                        style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
 

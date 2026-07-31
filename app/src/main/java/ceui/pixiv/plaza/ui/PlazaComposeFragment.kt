@@ -28,6 +28,7 @@ import ceui.pixiv.chat.base.viewModels
 import ceui.pixiv.session.SessionManager
 import com.blankj.utilcode.util.BarUtils
 import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 
 /**
@@ -118,9 +119,7 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_compose) {
         launchSuspend {
             viewModel.events.collect { ev ->
                 when (ev) {
-                    is PlazaComposeViewModel.Event.Toast -> android.widget.Toast
-                        .makeText(requireContext(), ev.message, android.widget.Toast.LENGTH_SHORT)
-                        .show()
+                    is PlazaComposeViewModel.Event.Toast -> Toaster.showShort(ev.message)
                     PlazaComposeViewModel.Event.Sent -> {
                         // Plaza 端 SharedFlow 已经 prepend 好新帖,回到 plaza 立即可见。
                         requireActivity().finish()
@@ -140,9 +139,7 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_compose) {
     private fun trySubmit() {
         val uid = SessionManager.loggedInUid
         if (uid <= 0L) {
-            android.widget.Toast.makeText(
-                requireContext(), R.string.plaza_login_required, android.widget.Toast.LENGTH_SHORT
-            ).show()
+            Toaster.showShort(R.string.plaza_login_required)
             return
         }
         viewModel.submit(requireContext(), binding.textInput.text?.toString() ?: "", uid)

@@ -1,6 +1,7 @@
 package ceui.lisa.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.RectF
 import android.net.Uri
 import android.os.Bundle
@@ -8,7 +9,6 @@ import android.text.TextUtils
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
@@ -21,6 +21,7 @@ import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
+import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.imageloader.Disposable
 import ceui.pixiv.imageloader.ImageLoadState
 import ceui.pixiv.imageloader.ImageLoaderV3
@@ -36,6 +37,7 @@ import com.github.panpf.zoomimage.util.OffsetCompat
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import com.github.panpf.zoomimage.zoom.GestureType
 import com.github.panpf.zoomimage.zoom.ReadMode
+import com.hjq.toast.Toaster
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,12 +65,69 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private val mIllustsBean: IllustsBean?
         get() = (activity as? ImageDetailActivity)?.mIllustsBean
 
+    /**
+     * 延迟派发过来的手势回调，现在还能不能安全地碰 fragment 的东西。
+     *
+     * 单击/长按都不是同步回调：自家的 [gestureDetector] 与 ZoomImage 的
+     * UnifiedGestureDetector 都靠 Handler 延后判定（onSingleTapConfirmed 要等完双击
+     * 判定窗 ~300ms，onLongPress 500ms）。用户点完立刻翻页/返回，这条消息照样会投递到
+     * 已经 detach 的 fragment 上 —— 此时 [viewModel] 的 lazy 首次取值走
+     * `requireActivity()`，直接抛
+     * `IllegalStateException: Fragment FragmentImageDetail{...} not attached to an activity.`
+     * （线上 Crashlytics）。baseBind / viewLifecycleOwner 同样已经失效。
+     *
+     * 手势的语义本来就是「作用在当前这一页上」，页面没了直接丢掉是正确行为，无需补偿。
+     *
+     * 注意这只是「该不该执行」的判断；「执行了会不会崩」由 [onAttach] 里预先兑现 lazy 兜底，
+     * 两者互不替代：漏了这个守卫最多是对着已离开的页面做一次无意义的 toggle，不会再崩。
+     */
+    private val isGestureTargetAlive: Boolean
+        get() = isAdded && view != null
+
+    /**
+     * 在还 attach 着的时候把两个 activity 作用域的 VM lazy 兑现掉。
+     *
+     * [viewModel] / [translationViewModel] 的 ownerProducer 是 `requireActivity()`，只在 lazy
+     * **首次**取值时执行一次；取到后 ViewModelLazy 缓存实例，之后再取不碰 attach 状态。崩溃的成因
+     * 正是「首次取值发生在 detach 之后」—— [translationViewModel] 在 onViewCreated 就被取过所以从没崩，
+     * [viewModel] 只被手势回调用到，首次取值就是那条延迟派发的消息本身。
+     *
+     * onAttach 时 host 已就绪，在这里取值把首次取值点钉死在生命周期内，之后无论什么延迟回调打进来
+     * 都只是拿缓存实例，不会再抛 ISE。
+     */
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        viewModel
+        translationViewModel
+    }
+
+    /**
+     * view 没了就把 [isAnimated] 这把动画闩复位。
+     *
+     * [isAnimated] 的语义是「此刻有一条缩放协程正在跑」：[gestureDetector] 的 onDoubleTap 同步置 true，
+     * 复位只写在协程尾部，而中间的 `zoomable.scale(animated = true)` 是挂起等动画的。动画没跑完就翻页，
+     * viewLifecycleOwner 的 scope 被取消，协程再也回不到那句复位 —— 闩就永久停在 true。
+     *
+     * 而 [gestureDetector] 与本字段都挂在 fragment 实例上，[BaseFragment] 又缓存 rootView 跨 view 复用，
+     * 所以滑回这一页时旧闩还在：onDoubleTap 的 `if (isAnimated) return` 与 onLongPress 的 `if (!isAnimated)`
+     * 双双短路，这一页的双击缩放和长按归位整场失效（仅 Settings.isUseCustomDoubleTapZoom 开启时这条路径生效）。
+     *
+     * scope 一取消就不可能再有协程把它置回 true，这里复位是安全的。
+     * [savedScale] / [zoomedToMax] / [isScaleMax] 是「当前这张图缩到哪一档」的记忆，view 实例被复用、
+     * 缩放状态也跟着留着，故意不动 —— 清了反而会和画面上真实的缩放对不上。
+     */
+    override fun onDestroyView() {
+        isAnimated = false
+        super.onDestroyView()
+    }
+
     // PR#900：自定义双击「增量放大 + 长按归位」。
     // 仅在 Settings.isUseCustomDoubleTapZoom 开启时才会被访问/初始化；
     // 关闭时整条路径不参与，保持与未引入 PR 前完全一致的体验。
     private val gestureDetector by lazy {
         GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
+                if (!isGestureTargetAlive) return true
                 if (isAnimated) return true
                 isAnimated = true
                 val zoomable = baseBind.image.zoomable
@@ -205,21 +264,13 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                             val maxScale = zoomable.maxScaleState.value
                             if (afterScale >= maxScale - MAX_SCALE_EPSILON) {
                                 if (Shaft.sSettings.isUseCustomLongPressReset) {
-                                    Toast.makeText(
-                                        requireContext(),
-                                        R.string.double_tap_zoom_max_reached,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Toaster.showShort(R.string.double_tap_zoom_max_reached)
                                     if (viewModel.isFullscreenMode.value == true) {
                                         viewModel.toggleFullscreen()
                                     }
                                 } else {
                                     isScaleMax = true
-                                    Toast.makeText(
-                                        requireContext(),
-                                        R.string.double_tap_zoom_max_reached2,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Toaster.showShort(R.string.double_tap_zoom_max_reached2)
                                 }
                             }
                     }
@@ -230,6 +281,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             }
 
             override fun onLongPress(e: MotionEvent) {
+                if (!isGestureTargetAlive) return
                 if (!isAnimated && Shaft.sSettings.isUseCustomLongPressReset) {
                     val zoomable = baseBind.image.zoomable
                     val contentPoint = zoomable.touchPointToContentPointF(OffsetCompat(e.x, e.y))
@@ -251,6 +303,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             }
 
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                if (!isGestureTargetAlive) return true
                 viewModel.toggleFullscreen()
                 return true
             }
@@ -303,6 +356,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         } else {
             // 默认路径：onViewTapListener → setReadMode 的顺序与改前完全一致
             baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
+                // 线上崩溃点：ZoomImage 的 onSingleTapConfirmed 经 Handler 延迟派发，
+                // 打到已 detach 的 fragment 上时 viewModel 会走 requireActivity() 抛 ISE。
+                if (!isGestureTargetAlive) return@OnViewTapListener
                 viewModel.toggleFullscreen()
             }
         }
@@ -333,7 +389,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     /** 进圈选模式:亮出框选层接管触摸,画完一框就退出并交给 VM 翻译。 */
     private fun enterManualSelection() {
         if (translationViewModel.running.value == true) {
-            Toast.makeText(requireContext(), R.string.string_ai_translate_in_progress, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.string_ai_translate_in_progress)
             return
         }
         val box = baseBind.selectionBoxView
@@ -368,13 +424,13 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         val zoomable = baseBind.image.zoomable
         val size = zoomable.contentSizeState.value
         if (size.width <= 0 || size.height <= 0) {
-            Toast.makeText(requireContext(), R.string.string_ai_manga_translate_failed, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.string_ai_manga_translate_failed)
             return
         }
         // 选区太小(细长误触)直接拦下,免得 OCR 拿到一条线
         val minPx = 16f * resources.displayMetrics.density
         if (screenRect.width() < minPx || screenRect.height() < minPx) {
-            Toast.makeText(requireContext(), R.string.string_ai_manga_manual_too_small, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.string_ai_manga_manual_too_small)
             return
         }
         val tl = zoomable.touchPointToContentPointF(OffsetCompat(screenRect.left, screenRect.top))
@@ -389,7 +445,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         // 只读已加载好的原图,图已显示、正常都是命中,不触发多余下载
         val file = ImageLoaderV3.peekFile(imageUrl)
         if (file == null) {
-            Toast.makeText(requireContext(), R.string.string_ai_ocr_failed, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.string_ai_ocr_failed)
             return
         }
         translationViewModel.startManualRegion(
@@ -557,18 +613,25 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     /**
      * 按页码查 illust_download_table 里这一页已下载文件的 Uri（content:// 或 file://）。
-     * 文件名用 [FileCreator.customFileName]，与下载写库时同源，所以是精确的逐页匹配，
-     * 走主键索引（[ceui.lisa.database.DownloadDao.getDownloadByFileName]），大下载库下仍是
-     * O(log n)。返回 null 表示这页没下过 / 记录损坏，调用方回退网络。须在 IO 线程调用。
+     *
+     * 两条路，都走索引，大下载库下都是 O(log n)：
+     *  1. `(illustId, page)` 复合索引（v41）—— 跟文件叫什么名字无关，用户换过命名模板、
+     *     或记录是 `DownloadImporter` 从旧版命名的文件扫进来的（issue #953），照样命中。
+     *  2. 落空时退回 [FileCreator.customFileName] + 主键查询 —— v41 之前的存量行 page
+     *     还是 -1（回填没跑完 / 文件名解析不出页码），得靠这条兜。
+     *
+     * 返回 null 表示这页没下过 / 记录损坏，调用方回退网络。须在 IO 线程调用。
      */
     private fun findDownloadedPageUri(illust: IllustsBean, page: Int): Uri? {
         return try {
-            val dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
-            val entity = dao.getDownloadByFileName(FileCreator.customFileName(illust, page))
-            val path = entity?.filePath
-            if (!path.isNullOrEmpty()) Uri.parse(path) else null
-        } catch (t: Throwable) {
-            Timber.w(t, "[ImageDetail] findDownloadedPageUri failed page=%d", page)
+            val context = Shaft.getContext()
+            RecordedPageProbe.findUsableUri(context, illust.id.toLong(), page)
+                ?: AppDatabase.getAppDatabase(context).downloadDao()
+                    .getDownloadByFileName(FileCreator.customFileName(illust, page))
+                    ?.filePath
+                    ?.let { RecordedPageProbe.usableUri(context, it) }
+        } catch (e: Exception) {
+            Timber.w(e, "[ImageDetail] findDownloadedPageUri failed page=%d", page)
             null
         }
     }

@@ -57,6 +57,41 @@ public class AnimatedGifEncoder {
 
     protected int sample = 10; // default sample interval for quantizer
 
+    protected byte[] globalColorTab; // 全局调色板(已转 RGB);非 null 时所有帧复用它
+
+    protected NeuQuant globalQuant; // 与 globalColorTab 配套的量化器,只用它的 map()
+
+    /**
+     * 用抽样自整条动图的像素(BGR 三元组)训练一份**全局调色板**,之后所有帧复用:
+     * 每帧不再各自跑一次 {@code NeuQuant.learn()},只做 {@code map()}。
+     *
+     * 解决两个问题:
+     * <ul>
+     * <li><b>画质</b>:逐帧独立调色板会让内容几乎相同的相邻帧量化到不同的 256 色,
+     * 静止区域的像素值在帧间轻微跳变,表现为肉眼可见的"沙沙"闪烁(palette shimmering),
+     * 在纯色/渐变背景上尤其明显。</li>
+     * <li><b>速度</b>:{@code learn()} 是每帧编码的耗时大头,N 帧只训练一次
+     * 等于省掉 N-1 次。</li>
+     * </ul>
+     *
+     * 同时所有帧改用 GCT、不再逐帧写 local color table(每帧另省 768 字节)。
+     *
+     * 必须在 {@link #start} 之后、第一次 {@link #addFrame} 之前调用。不调用则维持原来的
+     * 逐帧调色板行为 —— legacy 调用方(PixivOperate)不受影响。
+     *
+     * @param sampleBgr 抽样像素,每 3 字节一个 BGR 三元组,长度须为 3 的倍数
+     */
+    public void setGlobalPalette(byte[] sampleBgr) {
+        globalQuant = new NeuQuant(sampleBgr, sampleBgr.length, 1);
+        globalColorTab = globalQuant.process();
+        // NeuQuant 输出是 BGR,转成 GIF 调色板要的 RGB(与 analyzePixels 逐帧路径一致)
+        for (int i = 0; i < globalColorTab.length; i += 3) {
+            byte temp = globalColorTab[i];
+            globalColorTab[i] = globalColorTab[i + 2];
+            globalColorTab[i + 2] = temp;
+        }
+    }
+
     /**
      * Sets the delay time between each frame, or changes it for subsequent frames
      * (applies to last frame added).
@@ -149,7 +184,7 @@ public class AnimatedGifEncoder {
             }
             writeGraphicCtrlExt(); // write graphic control extension
             writeImageDesc(); // image descriptor
-            if (!firstFrame) {
+            if (!firstFrame && globalColorTab == null) {
                 writePalette(); // local color table
             }
             writePixels(); // encode and write pixel data
@@ -187,6 +222,8 @@ public class AnimatedGifEncoder {
         pixels = null;
         indexedPixels = null;
         colorTab = null;
+        globalColorTab = null;
+        globalQuant = null;
         closeStream = false;
         firstFrame = true;
 
@@ -285,15 +322,23 @@ public class AnimatedGifEncoder {
         int len = pixels.length;
         int nPix = len / 3;
         indexedPixels = new byte[nPix];
-        NeuQuant nq = new NeuQuant(pixels, len, sample);
-        // initialize quantizer
-        colorTab = nq.process(); // create reduced palette
-        // convert map from BGR to RGB
-        for (int i = 0; i < colorTab.length; i += 3) {
-            byte temp = colorTab[i];
-            colorTab[i] = colorTab[i + 2];
-            colorTab[i + 2] = temp;
-            usedEntry[i / 3] = false;
+        final NeuQuant nq;
+        if (globalQuant != null) {
+            // 全局调色板:跳过本帧的 learn()(编码耗时大头),直接复用整条动图那一份
+            nq = globalQuant;
+            colorTab = globalColorTab;
+            java.util.Arrays.fill(usedEntry, false);
+        } else {
+            nq = new NeuQuant(pixels, len, sample);
+            // initialize quantizer
+            colorTab = nq.process(); // create reduced palette
+            // convert map from BGR to RGB
+            for (int i = 0; i < colorTab.length; i += 3) {
+                byte temp = colorTab[i];
+                colorTab[i] = colorTab[i + 2];
+                colorTab[i + 2] = temp;
+                usedEntry[i / 3] = false;
+            }
         }
         // map image pixels to new palette
         int k = 0;
@@ -412,8 +457,8 @@ public class AnimatedGifEncoder {
         writeShort(width); // image size
         writeShort(height);
         // packed fields
-        if (firstFrame) {
-            // no LCT - GCT is used for first (or only) frame
+        if (firstFrame || globalColorTab != null) {
+            // no LCT —— 首帧、以及「全局调色板」模式下的所有帧,都直接引用 GCT
             out.write(0);
         } else {
             // specify normal LCT

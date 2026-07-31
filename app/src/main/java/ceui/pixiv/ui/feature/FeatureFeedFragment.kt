@@ -3,6 +3,7 @@ package ceui.pixiv.ui.feature
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -10,8 +11,8 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.database.AppDatabase
+import ceui.lisa.databinding.CellFeatureV3Binding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.databinding.RecyFeatureBinding
 import ceui.lisa.feature.FeatureEntity
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.MangaSeriesItem
@@ -29,6 +30,7 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -55,13 +57,11 @@ private const val PAGE_SIZE = 20
  * 宿主是 TemplateActivity 的独立页（自带 toolbar），数据是 feature_table 的本地 Room 记录，
  * offset 翻页。逐条对齐 legacy：
  * - toolbar 走 feeds 独立页统一的 fragment_toolbar_feed（webview 5 件套），标题「精华列表」，
- *   overflow 挂 R.menu.delete_all，只处理 action_delete（清空全部），其余菜单项维持 legacy 的
- *   「不处理」语义；
- * - 卡片抄 recy_feature：3 张预览图（先插画封面、不足 3 张再拿漫画系列封面补位）+「添加时间」
- *   + dataType + 删除按钮；点卡片按 dataType 分发到对应二级页，点删除弹确认框删单条；
+ *   overflow 挂本页专属的 R.menu.feature_list（只有清空一项，见该文件注释）；
+ * - 卡片走 cell_feature_v3（V3 + MD3-E，见该布局注释）：最多 3 张预览图（先插画封面、不足 3 张
+ *   再拿漫画系列封面补位）+ 类型 chip + 添加时间 + 删除按钮；点卡片按 dataType 分发到对应
+ *   二级页，点删除弹确认框删单条；
  * - LinearLayoutManager + 12dp 竖向间距（对齐 legacy verticalRecyclerView）。
- *
- * 空态维持框架默认「居然啥也没有」——legacy 也没有精华专属空文案。
  */
 class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
@@ -86,9 +86,10 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(featureGlide)
         setUpToolbar(binding, feedBinding.feedListView)
         binding.toolbarTitle.text = getString(R.string.string_249)
-        binding.toolbar.inflateMenu(R.menu.delete_all)
+        binding.toolbar.inflateMenu(R.menu.feature_list)
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.action_delete) {
                 confirmDeleteAll()
@@ -99,6 +100,9 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         }
     }
 
+    override val emptyStateText: CharSequence
+        get() = getString(R.string.feature_empty_hint)
+
     override fun onListReady(listView: RecyclerView) {
         listView.addItemDecoration(LinearItemDecoration(12.ppppx))
     }
@@ -107,8 +111,8 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         return listOf(featureRenderer())
     }
 
-    private fun featureRenderer() = feedRenderer<FeatureFeedItem, RecyFeatureBinding>(
-        inflate = RecyFeatureBinding::inflate,
+    private fun featureRenderer() = feedRenderer<FeatureFeedItem, CellFeatureV3Binding>(
+        inflate = CellFeatureV3Binding::inflate,
         create = { cell ->
             cell.binding.root.setOnClick { openFeature(cell.item.entity) }
             cell.binding.deleteItem.setOnClick { confirmDeleteSingle(cell.item.entity) }
@@ -119,7 +123,7 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         },
     ) { cell -> bindFeature(cell) }
 
-    private fun bindFeature(cell: FeedCell<FeatureFeedItem, RecyFeatureBinding>) {
+    private fun bindFeature(cell: FeedCell<FeatureFeedItem, CellFeatureV3Binding>) {
         val b = cell.binding
         val entity = cell.item.entity
         b.starSize.text = dateFormat.format(Date(entity.dateTime))
@@ -133,15 +137,22 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
                 entity.allMangaSeries.subList(0, min(3 - shows.size, entity.allMangaSeries.size))
             )
         }
-        val slots = listOf(b.userShowOne, b.userShowTwo, b.userShowThree)
-        slots.forEachIndexed { index, iv ->
-            val url = when (val show = shows.getOrNull(index)) {
-                is IllustsBean -> GlideUtil.getMediumImg(show)
-                is MangaSeriesItem -> GlideUtil.getUrl(show.cover_image_urls.medium)
-                else -> null
+        // 空槽整块 GONE：三个槽都是 weight=1，藏掉多余的槽会让剩下的自动摊开填满整行，
+        // 不会像 legacy 那样在只有 1～2 张封面时留下灰色空位。
+        listOf(b.userShowOne, b.userShowTwo, b.userShowThree)
+            .forEachIndexed { index, iv ->
+                iv.isVisible = index < shows.size
+                val url = when (val show = shows.getOrNull(index)) {
+                    is IllustsBean -> GlideUtil.getMediumImg(show)
+                    is MangaSeriesItem -> GlideUtil.getUrl(show.cover_image_urls.medium)
+                    else -> null
+                }
+                if (url == null) {
+                    featureGlide.clear(iv)
+                } else {
+                    featureGlide.load(url).placeholder(R.color.v3_surface_2).into(iv)
+                }
             }
-            featureGlide.load(url).placeholder(R.color.light_bg).into(iv)
-        }
     }
 
     /** 点卡片：按 dataType 分发到对应二级页（对齐 legacy 的 viewType==0 分支）。 */

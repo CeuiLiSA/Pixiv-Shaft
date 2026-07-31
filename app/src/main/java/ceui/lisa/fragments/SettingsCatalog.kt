@@ -82,18 +82,20 @@ object SettingsCatalog {
         add(Entry(NETWORK, "show_large_thumbnail_image_rela", R.string.string_450, R.string.string_334, keywords = "缩略图 大图 画质 流量 省流 加载速度 thumbnail"))
         add(Entry(NETWORK, "show_original_preview_image_rela", R.string.string_413, R.string.string_334, keywords = "原图 高清 画质 详情大图 加载 original"))
 
-        // 界面
+        // 界面（与布局分段同序：主题与语言 → 导航与主页 → 列表展示 → 桌面小组件）
         add(Entry(APPEARANCE, "theme_mode_rela", R.string.theme_mode, keywords = "夜间 暗色 深色 黑暗 日间 浅色 白天 跟随系统 dark light night mode"))
         add(Entry(APPEARANCE, "color_select_rela", R.string.string_324, keywords = "主题色 颜色 配色 强调色 粉色 accent color"))
         add(Entry(APPEARANCE, "app_language_rela", R.string.language, keywords = "语言 简体 繁体 英文 日文 韩文 中文 language english"))
-        add(Entry(APPEARANCE, "line_count_rela", R.string.string_336, keywords = "列数 几列 瀑布流 网格 columns grid"))
-        add(Entry(APPEARANCE, "layout_mode_rela", R.string.layout_mode, keywords = "瀑布流 线性 列表 关注动态 staggered linear"))
-        add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
         add(Entry(APPEARANCE, "main_view_r18_rela", R.string.string_359, keywords = "r18 r页 主页 首页 涩图"))
+        add(Entry(APPEARANCE, "line_count_rela", R.string.string_336, keywords = "列数 几列 瀑布流 网格 columns grid"))
+        add(Entry(APPEARANCE, "layout_mode_rela", R.string.layout_mode, keywords = "瀑布流 线性 列表 关注动态 staggered linear"))
+        add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))
+        add(Entry(APPEARANCE, "widget_refresh_interval_rela", R.string.v3_widget_refresh_interval_title, keywords = "小组件 桌面 插件 widget 刷新 间隔 换图 频率 refresh interval"))
 
         // 浏览与搜索
+        add(Entry(BROWSING, "auto_refresh_home_feed_rela", R.string.auto_refresh_home_feed, R.string.auto_refresh_home_feed_desc, keywords = "自动刷新 首页 推荐 启动 冷启动 换一批 错过 auto refresh home recommend"))
         add(Entry(BROWSING, "save_history_rela", R.string.save_view_history, keywords = "浏览历史 历史记录 足迹 history"))
         add(Entry(BROWSING, "cloud_history_sync_rela", R.string.cloud_history_sync, keywords = "云同步 历史同步 多设备 cloud sync"))
         add(Entry(BROWSING, "clear_cloud_history_rela", R.string.clear_cloud_history, keywords = "清除历史 删除云端 隐私 clear history"))
@@ -101,18 +103,21 @@ object SettingsCatalog {
         add(Entry(BROWSING, "r18_filter_default_enable_rela", R.string.string_414, R.string.string_415, keywords = "r18 过滤 屏蔽 安全模式 safe filter"))
         add(Entry(BROWSING, "delete_ai_illust_rela", R.string.delete_ai_illust, keywords = "ai 屏蔽ai 不看ai ai生成 aigc 过滤"))
         add(Entry(BROWSING, "filter_rank_bookmarked_rela", R.string.filter_rank_bookmarked, keywords = "排行榜 已收藏 过滤 去重 rank"))
-        add(Entry(BROWSING, "delete_star_illust_rela", R.string.delete_star_illust, keywords = "搜索 已收藏 过滤 去重"))
-        add(Entry(BROWSING, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品"))
+        add(Entry(BROWSING, "novel_filter_min_text_length_rela", R.string.novel_filter_min_text_length, R.string.novel_filter_min_text_length_desc, keywords = "小说 字数 太短 过短 屏蔽 刷屏 广告 spam novel length"))
+        add(Entry(BROWSING, "novel_filter_max_text_length_rela", R.string.novel_filter_max_text_length, R.string.novel_filter_max_text_length_desc, keywords = "小说 字数 太长 过长 屏蔽 spam novel length"))
+        add(Entry(BROWSING, "novel_filter_max_tag_name_length_rela", R.string.novel_filter_max_tag_name_length, R.string.novel_filter_max_tag_name_length_desc, keywords = "小说 标签 tag 超长 过长 屏蔽 广告 刷屏 spam"))
         add(Entry(BROWSING, "search_filter_rela", R.string.search_result_filter, keywords = "收藏量 热度 users入り 万users 筛选 bookmarks filter"))
         add(Entry(BROWSING, "search_default_sort_type_rela", R.string.string_439, keywords = "排序 时间 热门 最新 最旧 sort order"))
+        add(Entry(BROWSING, "delete_star_illust_rela", R.string.delete_star_illust, keywords = "搜索 已收藏 过滤 去重"))
         add(Entry(BROWSING, "synonym_dict_enable_rela", R.string.synonym_dict_enable, keywords = "同义词 词典 别名 标签翻译 synonym"))
         add(Entry(BROWSING, "synonym_dict_rela", R.string.synonym_dict_title, keywords = "同义词 词典 管理 导入 导出 合并 synonym"))
 
-        // 看图与详情
+        // 看图与详情（FAB 顺序行随 V3 开关显隐，紧贴 V3 行）
         add(Entry(VIEWING, "illust_detail_v3_rela", R.string.illust_detail_v3, keywords = "v3 沉浸式 详情页 新版 详情"))
-        add(Entry(VIEWING, "novel_direct_reader_rela", R.string.novel_direct_reader, R.string.novel_direct_reader_desc, keywords = "小说 正文 阅读器 略过详情 跳过详情 直接阅读 novel reader skip detail"))
         add(Entry(VIEWING, "artwork_v3_fab_order_rela", R.string.artwork_v3_fab_order_title, keywords = "按钮顺序 下载按钮 收藏按钮 左右 fab"))
+        add(Entry(VIEWING, "novel_direct_reader_rela", R.string.novel_direct_reader, R.string.novel_direct_reader_desc, keywords = "小说 正文 阅读器 略过详情 跳过详情 直接阅读 novel reader skip detail"))
         add(Entry(VIEWING, "transform_type_rela", R.string.string_393, keywords = "翻页 动画 切页 过渡 特效 transformer"))
+        add(Entry(VIEWING, "ugoira_rife_enable_rela", R.string.ugoira_rife_enable, R.string.ugoira_rife_enable_desc, keywords = "动图 补帧 插帧 rife 帧率 60fps 顺滑 丝滑 ugoira interpolation"))
         add(Entry(VIEWING, "keep_status_bar_when_view_image_rela", R.string.keep_status_bar_when_view_image, keywords = "状态栏 刘海 挖孔 全屏 沉浸 notch"))
         add(Entry(VIEWING, "illust_detail_keep_screen_on_rela", R.string.string_451, keywords = "常亮 息屏 熄屏 屏幕 keep screen on"))
         add(Entry(VIEWING, "use_custom_double_tap_zoom_rela", R.string.use_custom_double_tap_zoom, keywords = "双击 放大 缩放 zoom"))
@@ -123,6 +128,7 @@ object SettingsCatalog {
         // 收藏与互动
         add(Entry(BOOKMARKS, "show_like_button_rela", R.string.string_335, keywords = "私密收藏 非公开 私人 private bookmark"))
         add(Entry(BOOKMARKS, "hide_star_bar_rela", R.string.string_371, keywords = "隐藏 收藏按钮 我的收藏"))
+        add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品"))
         add(Entry(BOOKMARKS, "select_all_tag_rela", R.string.string_372, keywords = "标签 全选 tag 收藏"))
         add(Entry(BOOKMARKS, "show_related_when_star_rela", R.string.string_396, keywords = "相关作品 关联 推荐 related"))
         add(Entry(BOOKMARKS, "auto_follow_after_star_rela", R.string.string_456, keywords = "自动关注 关注 follow"))
@@ -135,18 +141,20 @@ object SettingsCatalog {
         add(Entry(DOWNLOAD, "overwrite_policy_rela", R.string.setting_overwrite_policy, keywords = "重复 覆盖 跳过 重命名 副本 同名 duplicate overwrite"))
         add(Entry(DOWNLOAD, "page_index_rela", R.string.setting_page_index, keywords = "页码 序号 p0 p1 多图 起始"))
         add(Entry(DOWNLOAD, "default_image_resolution_rela", R.string.setting_default_image_resolution, keywords = "清晰度 分辨率 画质 原图 保存 resolution"))
+        add(Entry(DOWNLOAD, "write_exif_tags_rela", R.string.setting_write_exif_tags_title, R.string.setting_write_exif_tags_desc, keywords = "标签 关键词 exif xmp 元数据 相册 keywords metadata tags dc:subject"))
         add(Entry(DOWNLOAD, "default_novel_format_rela", R.string.setting_default_novel_format, keywords = "小说 格式 txt epub pdf markdown 导出 export"))
         add(Entry(DOWNLOAD, "novel_header_rela", R.string.novel_header_settings_title, R.string.novel_header_settings_entry_desc, keywords = "信息头 元信息 头部 字段 作者信息 txt"))
         add(Entry(DOWNLOAD, "download_limit_type_rela", R.string.string_452, keywords = "限制 wifi 流量 蜂窝 移动网络 limit"))
         add(Entry(DOWNLOAD, "max_concurrent_downloads_rela", R.string.setting_max_concurrent_downloads, keywords = "并发 同时 多任务 线程 速度 concurrent"))
         add(Entry(DOWNLOAD, "illust_long_press_download_rela", R.string.string_405, keywords = "长按 下载 long press"))
         add(Entry(DOWNLOAD, "toast_download_result_rela", R.string.toast_download_result, keywords = "提示 通知 完成 toast"))
-        add(Entry(DOWNLOAD, "write_exif_tags_rela", R.string.setting_write_exif_tags_title, R.string.setting_write_exif_tags_desc, keywords = "标签 关键词 exif xmp 元数据 相册 keywords metadata tags dc:subject"))
+        add(Entry(DOWNLOAD, "silent_download_rela", R.string.setting_silent_download_title, R.string.setting_silent_download_desc, keywords = "低调 静默 隐藏 隐身 最近 微信 qq 相册 时间 recent hide silent wechat"))
         add(Entry(DOWNLOAD, "aria2_rela", R.string.aria2_settings_title, R.string.aria2_settings_entry_desc, keywords = "aria2 远程 nas rpc 服务器 remote"))
 
         // AI 功能
         add(Entry(AI, "default_upscale_model_rela", R.string.string_default_upscale_model, keywords = "超分 放大 高清 修复 esrgan realcugan waifu2x upscale ai放大"))
         add(Entry(AI, "default_rembg_model_rela", R.string.string_default_rembg_model, keywords = "抠图 去背景 背景移除 透明 rembg"))
+        add(Entry(AI, "rife_model_rela", R.string.string_rife_model, keywords = "补帧 插帧 rife 动图 帧率 ugoira interpolation"))
         add(Entry(AI, "bubble_detector_model_rela", R.string.string_bubble_detector_model, keywords = "气泡 文本框 检测 漫画翻译 detector"))
         add(Entry(AI, "ocr_model_rela", R.string.string_ocr_model, keywords = "ocr 识别 文字 日文 漫画翻译"))
 

@@ -1,6 +1,7 @@
 package ceui.pixiv.download.config
 
 import ceui.pixiv.download.model.Bucket
+import ceui.pixiv.download.template.PageNumbering
 
 /**
  * The full user-editable download configuration.
@@ -24,7 +25,13 @@ data class DownloadConfig(
     val wifiOnly: Boolean = false,
     /** true = page numbering starts at 1 (p1, p2, …); false = starts at 0 (p0, p1, …). */
     val pageIndexFrom1: Boolean = true,
+    /** true = zero-pad `{page}` so multi-page works sort correctly in galleries (#721). */
+    val padPageNumber: Boolean = false,
 ) {
+
+    /** The two page-numbering knobs as the template layer wants them. */
+    val pageNumbering: PageNumbering
+        get() = PageNumbering(indexFrom1 = pageIndexFrom1, padded = padPageNumber)
 
     fun resolve(bucket: Bucket): ResolvedBucket {
         require(bucket != Bucket.TempCache) {

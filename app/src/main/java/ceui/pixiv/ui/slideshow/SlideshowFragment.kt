@@ -487,7 +487,12 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
     }
 
     override fun onDestroy() {
-        sessionId?.let { SlideshowStore.remove(it) }
+        // Configuration changes recreate the Fragment and still need the
+        // process-local handoff. Release only when this slideshow is actually
+        // leaving the task.
+        if (activity?.isFinishing == true && activity?.isChangingConfigurations != true) {
+            sessionId?.let { SlideshowStore.remove(it) }
+        }
         super.onDestroy()
     }
 }

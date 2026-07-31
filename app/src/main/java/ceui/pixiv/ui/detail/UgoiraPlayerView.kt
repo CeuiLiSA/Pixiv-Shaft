@@ -31,17 +31,14 @@ import ceui.pixiv.ui.bulk.UgoiraEngine
 import ceui.pixiv.ui.bulk.UgoiraPhase
 import ceui.pixiv.ui.bulk.UgoiraProgress
 import ceui.pixiv.utils.ppppx
+import ceui.pixiv.ui.bulk.UgoiraFrames
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.gif.GifDrawable
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
-import java.io.File
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -165,7 +162,12 @@ class UgoiraPlayerView @JvmOverloads constructor(
     }
 
     private var job: Job? = null
+    private var player: FrameSequencePlayer? = null
+    private var playingDir: String? = null
     private var playbackActive = false
+
+    /** 已为哪版帧序列自动自愈过(dir path)。同一版自愈一次仍坏就转手动重试,不无限循环重下。 */
+    private var autoHealedDir: String? = null
     private var boundOwner: LifecycleOwner? = null
     private var boundIllust: IllustsBean? = null
     private val lifecycleObserver = object : DefaultLifecycleObserver {
@@ -241,6 +243,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         boundOwner?.lifecycle?.removeObserver(lifecycleObserver)
         boundOwner = null
         boundIllust = null
+        autoHealedDir = null
         retryButton.setOnClickListener(null)
         retryButton.isVisible = false
         glide.clear(imageView)
@@ -251,8 +254,11 @@ class UgoiraPlayerView @JvmOverloads constructor(
         playbackActive = false
         job?.cancel()
         job = null
-        // RequestManager 跟宿主 Activity；ViewPager 只把相邻 Fragment 降到 STARTED，Activity 仍
-        // RESUMED，单纯 GifDrawable.stop 可能被晚到的 Glide 回调再次启动。clear 才能彻底截断。
+        player?.stop()
+        player = null
+        playingDir = null
+        // 帧播放器的 Bitmap 由它自己回收;这里把 ImageView 上最后一张也摘掉,免得
+        // 离屏 holder 还压着一张全尺寸 Bitmap。
         glide.clear(imageView)
         imageView.setImageDrawable(null)
         hideOverlay()
@@ -265,84 +271,113 @@ class UgoiraPlayerView @JvmOverloads constructor(
         if (!isAttachedToWindow ||
             !owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
         ) return
-        val drawable = imageView.drawable
-        if (drawable is GifDrawable) {
-            drawable.start()
-            playbackActive = true
-        } else {
-            glide.load(GlideUtil.getLargeImage(illust)).into(imageView)
-            startLoad(owner, illust)
-        }
+        glide.load(GlideUtil.getLargeImage(illust)).into(imageView)
+        startLoad(owner, illust)
     }
 
     private fun startLoad(owner: LifecycleOwner, illust: IllustsBean) {
         playbackActive = true
         job?.cancel()
         retryButton.isVisible = false
-        // 秒开:内存已有编好的 gif 就直接播,不起协程、不显示浮层、不碰文件系统(主线程零 IO,不绕远路)。
-        UgoiraEngine.peekReadyInMemory(illust.id)?.let { ready ->
+        // 秒开:内存已有帧序列就立刻播,不等协程、不显示浮层(主线程零 IO,不碰文件系统)。
+        val ready = UgoiraEngine.peekReadyInMemory(illust.id)
+        if (ready != null) {
             hideOverlay()
-            Timber.tag(UGOIRA_LOG_TAG).i("[player] illust=%d 内存秒开 %s", illust.id, ready.name)
-            playGif(illust, ready)
-            return
+            Timber.tag(UGOIRA_LOG_TAG).i("[player] illust=%d 内存秒开 %s", illust.id, ready.dir.name)
+            playFrames(illust, ready)
+        } else {
+            // 起步进度归零。donut 环是 determinate,plain setProgress 直接置 0、无补间动画。
+            progressBar.progress = 0
+            overlay.isVisible = true
         }
-        // 起步进度归零。donut 环是 determinate,plain setProgress 直接置 0、无补间动画。
-        progressBar.progress = 0
-        overlay.isVisible = true
         Timber.tag(UGOIRA_LOG_TAG).i("[player] illust=%d startLoad", illust.id)
         job = owner.lifecycleScope.launch {
             // 观察引擎共享进度:再进来立刻拿到当前阶段。子协程,页面退出/播放完成随之取消。
             val progressJob = launch {
                 UgoiraEngine.progressOf(illust.id).collect { renderProgress(it) }
             }
+            // 帧序列就绪即开播。引擎只在最终版(补帧完成或确定不补)才发布,所以这里收到的
+            // 就是最终帧率 —— 补帧期间画面保持预览图 + 进度浮层,不会先动一段低帧率的。
+            val framesJob = launch {
+                UgoiraEngine.framesOf(illust.id).collect { frames ->
+                    if (frames != null) {
+                        progressJob.cancel()
+                        hideOverlay()
+                        playFrames(illust, frames)
+                    }
+                }
+            }
             try {
                 // await 被取消(页面退出)不会取消底层任务——它继续在引擎 scope 跑完落缓存。
-                val gif = UgoiraEngine.loadPlayableGif(illust)
+                UgoiraEngine.loadPlayableFrames(illust)
                 progressJob.cancel()
                 hideOverlay()
-                Timber.tag(UGOIRA_LOG_TAG).i("[player] illust=%d 拿到 gif,开始播放 %s", illust.id, gif.name)
-                playGif(illust, gif)
             } catch (c: CancellationException) {
                 Timber.tag(UGOIRA_LOG_TAG).i("[player] illust=%d 协程取消(页面退出/重绑),底层任务继续在后台跑", illust.id)
                 throw c
             } catch (t: Throwable) {
                 progressJob.cancel()
-                playbackActive = false
-                hideOverlay()
-                retryButton.isVisible = true
-                Timber.tag(UGOIRA_LOG_TAG).w(t, "[player] illust=%d 加载失败,显示重试", illust.id)
+                framesJob.cancel()
+                // 已经播上原速版了就别退回「重试」——补帧失败不该毁掉能看的画面
+                if (player == null) {
+                    playbackActive = false
+                    hideOverlay()
+                    retryButton.isVisible = true
+                }
+                Timber.tag(UGOIRA_LOG_TAG).w(t, "[player] illust=%d 加载失败(已在播=%b)", illust.id, player != null)
             }
         }
     }
 
-    /** Glide asGif 播放 + 失败自愈:文件被系统清了缓存目录 → invalidate 内存记录 + 显示重试
-     *  (重试走完整 pipeline 重下重编)。也是 loadPlayableGif 不做主线程 stat 的安全网。 */
-    private fun playGif(illust: IllustsBean, file: File) {
-        glide
-            .asGif()
-            .load(file)
-            .placeholder(imageView.drawable) // 保留预览图当占位,不闪白
-            .listener(object : RequestListener<GifDrawable> {
-                override fun onLoadFailed(
-                    e: GlideException?, model: Any?, target: Target<GifDrawable>, isFirstResource: Boolean,
-                ): Boolean {
-                    Timber.tag(UGOIRA_LOG_TAG).w(e, "[player] illust=%d gif 加载失败(疑似缓存被清),invalidate+显示重试", illust.id)
-                    playbackActive = false
-                    UgoiraEngine.invalidate(illust.id)
-                    hideOverlay()
-                    retryButton.isVisible = true
-                    return false
-                }
+    /**
+     * 换上一版帧序列开播。同一版重复回调直接忽略(StateFlow 会重放当前值);换版时旧播放器
+     * stop、新播放器 start —— 两版一圈时长相同,视觉上接得住。
+     */
+    private fun playFrames(illust: IllustsBean, frames: UgoiraFrames) {
+        if (playingDir == frames.dir.path) return
+        if (frames.files.isEmpty()) return
+        player?.stop()
+        playingDir = frames.dir.path
+        retryButton.isVisible = false
+        player = FrameSequencePlayer(
+            frames.files,
+            frames.delaysMs,
+            onFrame = { bmp -> imageView.setImageBitmap(bmp) },
+            onError = { onPlaybackBroken(illust, frames) },
+        ).also { it.start() }
+        Timber.tag(UGOIRA_LOG_TAG).i(
+            "[player] illust=%d 开播 %s (%d帧, 一圈%dms, 补帧=%b)",
+            illust.id, frames.dir.name, frames.files.size, frames.totalMs, frames.interpolated,
+        )
+    }
 
-                override fun onResourceReady(
-                    resource: GifDrawable, model: Any, target: Target<GifDrawable>?,
-                    source: DataSource, isFirstResource: Boolean,
-                ): Boolean {
-                    retryButton.isVisible = false
-                    return false
+    /**
+     * 播放器报「连续解码失败 / 解码线程异常」:帧文件多半被系统清缓存删了,而引擎内存缓存
+     * 还指着死文件 —— 不处理的话画面永久冻结,连重试按钮都救不回来([startLoad] 会先命中
+     * `peekReadyInMemory` 拿到同一批死文件)。清掉引擎内存记录、**并删掉盘上这版可疑目录**
+     * 后自动重走一次完整 pipeline(否则「文件都在但内容坏」时磁盘命中同一批坏文件,自愈
+     * 空转);同一版自愈过一次仍坏就只亮重试按钮,不无限循环烧流量。
+     */
+    private fun onPlaybackBroken(illust: IllustsBean, frames: UgoiraFrames) {
+        if (playingDir != frames.dir.path) return // 过期回调(已换版/已停),不动现场
+        UgoiraEngine.invalidate(illust.id)
+        val healedBefore = autoHealedDir == frames.dir.path
+        pausePlayback()
+        if (healedBefore) {
+            Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d 自愈后仍解码失败,转手动重试", illust.id)
+            retryButton.isVisible = true
+        } else {
+            autoHealedDir = frames.dir.path
+            Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d 帧解码失败,清缓存后自动重建", illust.id)
+            val owner = boundOwner ?: return
+            owner.lifecycleScope.launch {
+                // 先删再 resume,保证重建的 pipeline 不会磁盘命中这批坏文件。
+                withContext(Dispatchers.IO) {
+                    runCatching { UgoiraEngine.purgeBrokenFrames(illust.id, frames.dir) }
                 }
-            })
-            .into(imageView)
+                resumePlayback()
+            }
+        }
     }
 
     private fun renderProgress(p: UgoiraProgress) {
@@ -356,6 +391,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         // 其余(meta/解压)=加载中…;% 直接拼数字。
         val base = when (p.phase) {
             UgoiraPhase.DOWNLOAD_ZIP -> context.getString(R.string.now_downloading)
+            UgoiraPhase.INTERPOLATE -> context.getString(R.string.ugoira_interpolating)
             UgoiraPhase.ENCODE -> context.getString(R.string.ugoira_encoding)
             else -> context.getString(R.string.now_loading)
         }

@@ -4,9 +4,6 @@ import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
-import java.util.UUID;
-
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -306,9 +303,8 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
             // still want the detail page to show the same batch the
             // user was just looking at, so stash a snapshot under a
             // unique key and pass only the key.
-            handoffKey = UUID.randomUUID().toString();
-            RecmdUserMap.store.put(handoffKey, new RecmdUserSnapshot(
-                    new ArrayList<>(snapshot.getFirst()),
+            handoffKey = RecmdUserHandoff.put(new RecmdUserSnapshot(
+                    snapshot.getFirst(),
                     snapshot.getSecond()
             ));
             intent.putExtra(Params.USER_MODEL, handoffKey);
@@ -321,7 +317,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
         } catch (RuntimeException e) {
             Common.showLog("FragmentRight seeMore startActivity failed: " + e.getMessage());
             if (handoffKey != null) {
-                RecmdUserMap.store.remove(handoffKey);
+                RecmdUserHandoff.discard(handoffKey);
             }
             Common.showToast("打开页面失败，请稍后重试");
         }

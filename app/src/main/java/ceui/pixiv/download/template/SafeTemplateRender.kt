@@ -37,12 +37,12 @@ object SafeTemplateRender {
         bucket: Bucket,
         meta: ItemMeta,
         ext: String,
-        pageIndexFrom1: Boolean,
+        numbering: PageNumbering,
     ): RelativePath = try {
-        compiled(source).render(meta, ext, pageIndexFrom1)
+        compiled(source).render(meta, ext, numbering)
     } catch (e: Exception) {
         val fallback = DefaultTemplates.SOURCES[bucket] ?: DefaultTemplates.ILLUST
-        compiled(fallback).render(meta, ext, pageIndexFrom1)
+        compiled(fallback).render(meta, ext, numbering)
     }
 
     private fun compiled(source: String): Template =

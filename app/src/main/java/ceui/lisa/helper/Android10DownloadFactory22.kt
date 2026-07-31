@@ -7,6 +7,7 @@ import ceui.lisa.download.DownloadFileFactory
 import ceui.lisa.file.LegacyFile
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.config.DownloadItems
+import ceui.pixiv.download.config.OverwritePolicy
 
 /**
  * Legacy factory kept for binary compatibility with {@code Manager.downloadOne}.
@@ -70,6 +71,11 @@ class Android10DownloadFactory22(
 
     override fun getFileUri(): Uri = _uri ?: insert()
 
+    // GIF 写 app cache 的 file://；其余按 facade 解析出的 backend 判定。
+    // plan.open() 不在这里触发 —— backend 在 plan() 时就已解析好，探 scheme 零副作用。
+    override fun targetIsContent(): Boolean =
+        if (isGif) false else (plan?.backend?.isContentScheme ?: false)
+
     override fun finishWrite() {
         // GIF (ugoira zip) 写到 app cache，相册不关心，跳过即可。
         if (isGif) return
@@ -100,4 +106,14 @@ class Android10DownloadFactory22(
 
     /** Exposed so callers who want to short-circuit can check skip state. */
     fun isSkip(): Boolean = plan?.skip ?: false
+
+    /**
+     * 该 bucket 解析后的覆盖策略是不是「已存在则跳过」。
+     *
+     * `Manager.downloadOne` 用它决定要不要在 facade 说"不跳过"之后再问一次下载记录
+     * （[ceui.pixiv.download.RecordedPageProbe]）—— facade 只按当前模板算出的路径查
+     * 文件系统，认不出用别的命名规则存下来的旧文件（issue #953）。
+     * Rename 是用户明确要新文件、Replace 本来就要覆写，都不该被记录短路。
+     */
+    fun isSkipPolicy(): Boolean = plan?.overwrite == OverwritePolicy.Skip
 }

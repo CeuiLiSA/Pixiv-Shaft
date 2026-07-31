@@ -14,7 +14,7 @@ import ceui.lisa.databinding.FragmentAria2SettingsBinding
 import ceui.lisa.utils.Local
 import ceui.pixiv.download.aria2.Aria2Dispatcher
 import ceui.pixiv.ui.common.viewBinding
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -80,11 +80,11 @@ class Aria2SettingsFragment : Fragment(R.layout.fragment_aria2_settings) {
         val rpcUrl = binding.aria2RpcUrl.text.toString().trim()
 
         if (enabled && rpcUrl.isEmpty()) {
-            ToastUtils.show(getString(R.string.aria2_url_required))
+            Toaster.show(getString(R.string.aria2_url_required))
             return
         }
         if (rpcUrl.isNotEmpty() && !rpcUrl.startsWith("http://") && !rpcUrl.startsWith("https://")) {
-            ToastUtils.show(getString(R.string.aria2_url_invalid))
+            Toaster.show(getString(R.string.aria2_url_invalid))
             return
         }
 
@@ -94,13 +94,13 @@ class Aria2SettingsFragment : Fragment(R.layout.fragment_aria2_settings) {
         settings.aria2RpcSecret = binding.aria2RpcSecret.text.toString().trim()
         settings.aria2RemoteDir = binding.aria2RemoteDir.text.toString().trim()
         Local.setSettings(settings)
-        ToastUtils.show(getString(R.string.aria2_saved))
+        Toaster.show(getString(R.string.aria2_saved))
     }
 
     private fun testConnection() {
         val rpcUrl = binding.aria2RpcUrl.text.toString().trim()
         if (rpcUrl.isEmpty()) {
-            ToastUtils.show(getString(R.string.aria2_url_required))
+            Toaster.show(getString(R.string.aria2_url_required))
             return
         }
         val secret = binding.aria2RpcSecret.text.toString().trim()
@@ -115,12 +115,12 @@ class Aria2SettingsFragment : Fragment(R.layout.fragment_aria2_settings) {
                     Aria2Dispatcher.testConnection(rpcUrl, secret)
                 }
                 binding.aria2TestBtn.isEnabled = true
-                ToastUtils.show(getString(R.string.aria2_test_success, version))
+                Toaster.show(getString(R.string.aria2_test_success, version))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 binding.aria2TestBtn.isEnabled = true
-                ToastUtils.show(getString(R.string.aria2_test_failed, e.message ?: e.toString()))
+                Toaster.show(getString(R.string.aria2_test_failed, e.message ?: e.toString()))
             }
         }
     }

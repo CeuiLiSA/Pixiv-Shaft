@@ -24,7 +24,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
 import ceui.loxia.ClientManager
 import ceui.loxia.CsrfTokenProvider
-import com.scwang.smart.refresh.header.MaterialHeader
+import ceui.pixiv.widgets.applyV3RefreshTheme
 import com.tencent.mmkv.MMKV
 
 
@@ -98,8 +98,7 @@ class WebFragment : Fragment(R.layout.fragment_web) {
         }
 
         // 设置 SwipeRefreshLayout 的刷新监听器
-        binding.refreshLayout.setRefreshHeader(MaterialHeader(requireContext()))
-        binding.refreshLayout.setEnableLoadMore(false)
+        binding.refreshLayout.applyV3RefreshTheme()
         binding.refreshLayout.setOnRefreshListener { // 重新加载 WebView 页面
             binding.webView.reload()
         }
@@ -218,7 +217,7 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                 }
 
                 if (view != null) {
-                    refreshLayout.finishRefresh()
+                    refreshLayout.isRefreshing = false
                 }
             }
 
@@ -226,7 +225,7 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                 super.onPageStarted(view, url, favicon)
 
                 if (view != null) {
-                    refreshLayout.finishRefresh()
+                    refreshLayout.isRefreshing = false
                 }
             }
 

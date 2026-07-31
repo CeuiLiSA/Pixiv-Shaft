@@ -31,9 +31,6 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
      * The nextUrl variable is typically used in APIs to indicate the URL for the next page of results in a paginated response. Pagination is a common technique used to handle large datasets by splitting them into smaller, more manageable chunks.
      * */
     protected String nextUrl, uuid;
-    public Runnable onPreload = null;
-    public int preloadItemCount = 5;
-    private int scrollState = RecyclerView.SCROLL_STATE_IDLE;
 
     public BaseAdapter(@Nullable List<Item> targetList, Context context) {
         Common.showLog(getClass().getSimpleName() + " newInstance");
@@ -44,7 +41,6 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        checkPreload(position);
         int viewType = getItemViewType(position);
         if (viewType == ITEM_NORMAL) {
             int index = position - headerSize();
@@ -170,24 +166,5 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
      */
     public void setUuid(String uuid) {
         this.uuid = uuid;
-    }
-
-    @Override
-    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
-        super.onAttachedToRecyclerView(recyclerView);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                scrollState = newState;
-                super.onScrollStateChanged(recyclerView, newState);
-            }
-        });
-    }
-
-    private void checkPreload(int position){
-        if (onPreload != null && position == Math.max(getItemCount() - 1 - preloadItemCount, 0)
-                && scrollState != RecyclerView.SCROLL_STATE_IDLE) {
-            onPreload.run();
-        }
     }
 }

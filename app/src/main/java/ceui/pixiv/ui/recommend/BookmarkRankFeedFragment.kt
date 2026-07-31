@@ -31,8 +31,9 @@ private const val ARG_AI = "bookmark_rank_ai"
  * 热度 pill 显收藏数。
  *
  * TemplateActivity 用同一个 Fragment 承载「收藏榜」「AI 榜」两个入口 —— 区别只是给服务端
- * 多带一个 ?ai=only(同 [ArtistRankFeedFragment] 承载画师榜/均分榜的做法)。年代榜是另一个
- * 入口,ViewPager 装 [YearRankIllustFeedFragment],但共用下面的 [BookmarkRankFeedSource]。
+ * 多带一个 ?ai=only(同 [ArtistRankFeedFragment] 承载画师榜/均分榜的做法)。年代榜/标签专区
+ * 是另外的入口(「选择条 + bottom sheet」宿主,装 [YearRankIllustFeedFragment] /
+ * [TagRankIllustFeedFragment]),但共用下面的 [BookmarkRankFeedSource]。
  *
  * 为什么 AI 值得单独一个入口:AI 作品占服务端库存 45%,但在收藏榜**头部几乎不存在**
  * (前 1000 名里 0.0%、前 1 万名里 0.6%)—— 天花板 72314 收藏 vs 非 AI 的 990150。
@@ -89,19 +90,22 @@ class BookmarkRankFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_fe
  * 响应不实现 KListShow(item.bean 是 JsonObject),用不了 PixivFeedSource,手写 [FeedSource]
  * (同浏览量榜 [ViewRankFeedSource])。
  *
- * [ai] / [year] 为 null 时 Retrofit 不发该 query,即无筛选 —— 收藏榜、AI 榜、年代榜共用本 source,
- * 只是带的 query 不同。零 Fragment 捕获(全是构造进来的局部值,map 是伴生纯函数)。
+ * [ai] / [year] / [tag] 为 null 时 Retrofit 不发该 query,即无筛选 —— 收藏榜、AI 榜、年代榜、
+ * 标签专区共用本 source,只是带的 query 不同。零 Fragment 捕获(全是构造进来的局部值,
+ * map 是伴生纯函数)。
  */
 class BookmarkRankFeedSource(
     private val type: String = "illust",
     private val limitN: Int = 30,
     private val ai: String? = null,
     private val year: String? = null,
+    private val tag: String? = null,
 ) : FeedSource<String> {
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val resp: ShaftApiV2.MostBookmarkedResponse = if (cursor == null) {
-            ShaftApiV2Client.service.mostBookmarked(type = type, limit = limitN, ai = ai, year = year)
+            ShaftApiV2Client.service.mostBookmarked(
+                type = type, limit = limitN, ai = ai, year = year, tag = tag)
         } else {
             ShaftApiV2Client.service.mostBookmarkedByUrl(cursor)
         }

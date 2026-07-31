@@ -158,6 +158,10 @@ public class Settings {
     // 每张多一次全文件重写,只有显式开启才付出这次 IO(issue #938)。
     private boolean writeTagsToImageExif = false;
 
+    // 低调下载:下载完成后把文件时间戳回拨到很早以前,不出现在相册及微信 / QQ
+    // 选图列表的「最近」前排(issue #731)。默认关。
+    private boolean silentDownload = false;
+
     private boolean saveViewHistory = true;
 
     // 浏览记录云同步(pixshaft-api)。默认开启,但首次会弹一次同意框让用户选择是否关闭。
@@ -185,6 +189,19 @@ public class Settings {
 
     //小说列表点击 item 直接进 V3 正文（略过详情页），默认关闭
     private boolean novelListDirectToReader = false;
+
+    /**
+     * 小说列表自动屏蔽（issue #743）。三个阈值都是 0 = 关闭，只作用于小说列表，插画/漫画不受影响。
+     * 判定见 {@link ceui.lisa.helper.IllustNovelFilter#judgeNovelSpam}。
+     */
+    //正文字数低于该值的小说被屏蔽（0 = 不限）
+    private int novelFilterMinTextLength = 0;
+
+    //正文字数高于该值的小说被屏蔽（0 = 不限）
+    private int novelFilterMaxTextLength = 0;
+
+    //任意一个标签名长度超过该值的小说被屏蔽（0 = 不限）——刷广告的常把整句话塞进 tag 名
+    private int novelFilterMaxTagNameLength = 0;
 
     private String illustPath = "";
 
@@ -251,6 +268,9 @@ public class Settings {
     /** 同时下载的最大任务数（1-5）。1 = 严格串行（旧默认行为）。 */
     private int maxConcurrentDownloads = 1;
 
+    /** 桌面小组件换图间隔（分钟），只作用于推荐类小组件；日榜固定 6 小时。WorkManager 下限 15。 */
+    private int widgetRefreshIntervalMinutes = 30;
+
     // ===== aria2 远程下载（#692）：启用后图片下载任务通过 JSON-RPC 发给远端 aria2（如 NAS），不在本地落盘 =====
     private boolean aria2Enabled = false;
     /** aria2 JSON-RPC 端点，如 http://192.168.1.5:6800/jsonrpc */
@@ -274,6 +294,14 @@ public class Settings {
     // 同义词词典功能总开关（issue #904），默认关闭。
     // 关闭时所有相关 UI（详情页匹配框/长按菜单项/管理页入口/自动导入/自动勾选）完全隐藏
     private boolean synonymDictEnabled = false;
+
+    // 动图(ugoira) RIFE AI 补帧，默认关闭。开启且补帧模型已下载时,播放引擎在编码前
+    // 对帧序列做 2x 插帧,帧率翻倍;模型未下载则静默回落原始帧率
+    private boolean ugoiraRifeEnable = false;
+
+    // 冷启动时是否自动刷新首页推荐插画（issue #955），默认开启（保持本地优先的原语义）。
+    // 关掉后冷启命中磁盘快照就停在快照上，由用户下拉刷新才拉新内容
+    private boolean autoRefreshHomeFeed = true;
 
     /** @deprecated legacy display-name language；仅供 AppLocalesBootstrap 一次性迁移读取，请使用 {@link ceui.pixiv.i18n.AppLocales}。 */
     @Deprecated
@@ -527,6 +555,14 @@ public class Settings {
         this.writeTagsToImageExif = writeTagsToImageExif;
     }
 
+    public boolean isSilentDownload() {
+        return silentDownload;
+    }
+
+    public void setSilentDownload(boolean silentDownload) {
+        this.silentDownload = silentDownload;
+    }
+
     public String getIllustPath() {
         return TextUtils.isEmpty(illustPath) ? FILE_PATH_SINGLE : illustPath;
     }
@@ -747,6 +783,30 @@ public class Settings {
         this.r18FilterTempEnable = r18FilterTempEnable;
     }
 
+    public int getNovelFilterMinTextLength() {
+        return novelFilterMinTextLength;
+    }
+
+    public void setNovelFilterMinTextLength(int novelFilterMinTextLength) {
+        this.novelFilterMinTextLength = novelFilterMinTextLength;
+    }
+
+    public int getNovelFilterMaxTextLength() {
+        return novelFilterMaxTextLength;
+    }
+
+    public void setNovelFilterMaxTextLength(int novelFilterMaxTextLength) {
+        this.novelFilterMaxTextLength = novelFilterMaxTextLength;
+    }
+
+    public int getNovelFilterMaxTagNameLength() {
+        return novelFilterMaxTagNameLength;
+    }
+
+    public void setNovelFilterMaxTagNameLength(int novelFilterMaxTagNameLength) {
+        this.novelFilterMaxTagNameLength = novelFilterMaxTagNameLength;
+    }
+
     public String getNavigationInitPosition() {
         return navigationInitPosition;
     }
@@ -792,6 +852,16 @@ public class Settings {
         if (n < 1) n = 1;
         if (n > 5) n = 5;
         this.maxConcurrentDownloads = n;
+    }
+
+    /** 低于 WorkManager 周期任务下限 15 的值视为损坏配置，按默认 30 处理 */
+    public int getWidgetRefreshIntervalMinutes() {
+        if (widgetRefreshIntervalMinutes < 15) return 30;
+        return widgetRefreshIntervalMinutes;
+    }
+
+    public void setWidgetRefreshIntervalMinutes(int minutes) {
+        this.widgetRefreshIntervalMinutes = minutes;
     }
 
     public boolean isAria2Enabled() {
@@ -885,6 +955,22 @@ public class Settings {
 
     public void setSynonymDictEnabled(boolean synonymDictEnabled) {
         this.synonymDictEnabled = synonymDictEnabled;
+    }
+
+    public boolean isUgoiraRifeEnable() {
+        return ugoiraRifeEnable;
+    }
+
+    public void setUgoiraRifeEnable(boolean ugoiraRifeEnable) {
+        this.ugoiraRifeEnable = ugoiraRifeEnable;
+    }
+
+    public boolean isAutoRefreshHomeFeed() {
+        return autoRefreshHomeFeed;
+    }
+
+    public void setAutoRefreshHomeFeed(boolean autoRefreshHomeFeed) {
+        this.autoRefreshHomeFeed = autoRefreshHomeFeed;
     }
 
     // 插画二级详情：双击放大模式（false=ZoomImage 默认双击缩放，true=自定义增量双击+长按归位 PR#900）

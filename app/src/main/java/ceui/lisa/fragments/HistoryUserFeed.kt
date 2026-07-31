@@ -20,6 +20,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.utils.clearGlideOnRecycle
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -145,7 +146,7 @@ fun FragmentHistoryUserList.historyUserRenderer(): FeedRenderer<HistoryUserFeedI
                 cell.itemOrNull?.let { item -> confirmDeleteUserHistory(item.entity) }
             }
         },
-        recycle = { Glide.with(it.binding.userAvatar).clear(it.binding.userAvatar) },
+        recycle = { it.binding.userAvatar.clearGlideOnRecycle() },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item

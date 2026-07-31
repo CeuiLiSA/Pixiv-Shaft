@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.widget.SeekBar
-import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -32,6 +31,7 @@ import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.task.PageLoadRetryController
 import ceui.pixiv.ui.task.renderImageLoadStatusBanner
 import com.github.panpf.zoomimage.zoom.ContentScaleCompat
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -264,7 +264,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
                     is ComicReaderV3ViewModel.UiEvent.Toast -> {
                         val msg = if (event.args.isEmpty()) getString(event.resId)
                         else getString(event.resId, *event.args.toTypedArray())
-                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                        Toaster.showShort(msg)
                     }
                     is ComicReaderV3ViewModel.UiEvent.NavigateToReader -> {
                         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
@@ -387,7 +387,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         val illust = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.illust
         val series = illust?.series
         if (series == null || series.id == 0) {
-            Toast.makeText(requireContext(), R.string.comic_reader_no_series, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.comic_reader_no_series)
             return
         }
         ComicSeriesListSheet.newInstance(
@@ -400,7 +400,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     private fun showThumbsSheet() {
         val pages = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.pages
         if (pages.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), R.string.comic_reader_no_pages, Toast.LENGTH_SHORT).show(); return
+            Toaster.showShort(R.string.comic_reader_no_pages); return
         }
         ComicThumbsSheet().show(childFragmentManager, ComicThumbsSheet.TAG)
     }

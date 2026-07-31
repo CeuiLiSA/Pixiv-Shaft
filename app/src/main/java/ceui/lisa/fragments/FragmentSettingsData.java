@@ -36,6 +36,7 @@ import ceui.lisa.utils.Settings;
 import ceui.loxia.MoonSync;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.bulk.UgoiraEngine;
 
 /** 设置 · 备份与缓存 */
 public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsDataBinding> {
@@ -141,9 +142,24 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
 
         loadCacheSizeAsync(baseBind.gifCacheSize, LegacyFile.gifCacheFolder(mContext));
         baseBind.clearGifCache.setOnClickListener(v -> {
-            FileUtils.deleteAllInDir(LegacyFile.gifCacheFolder(mContext));
-            Common.showToast(getString(R.string.success_clearGifCache), 2);
-            loadCacheSizeAsync(baseBind.gifCacheSize, LegacyFile.gifCacheFolder(mContext));
+            // 删除走子线程:gif 缓存一条动图就是 zip + 上百张解压帧 + 成品 gif 三份,
+            // 重度用户上 GB,在点击回调里同步 deleteAllInDir 会直接 ANR。
+            final File gifCache = LegacyFile.gifCacheFolder(mContext);
+            final TextView sizeText = baseBind.gifCacheSize;
+            sizeText.setText("…");
+            new Thread(() -> {
+                FileUtils.deleteAllInDir(gifCache);
+                // 播放引擎的内存表还指着刚被删掉的文件。不清的话回详情页会命中
+                // peekReadyInMemory → Glide 加载失败 → 用户看到一个莫名其妙的「重试」。
+                UgoiraEngine.invalidateAll();
+                sizeText.post(() -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    Common.showToast(getString(R.string.success_clearGifCache), 2);
+                    loadCacheSizeAsync(sizeText, gifCache);
+                });
+            }, "gif-cache-clear").start();
         });
 
         // 清除批量下载关联数据 —— illust_download_table / download_queue 两张表

@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -82,6 +81,7 @@ import ceui.pixiv.ui.novel.reader.ui.SearchHitSheetCallback
 import ceui.pixiv.ui.novel.reader.ui.SearchHitsSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesListSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesNavCallback
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -555,13 +555,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     private fun togglePixivBookmark() {
         viewLifecycleOwner.lifecycleScope.launch {
-            Toast.makeText(requireContext(), viewModel.toggleBookmark(), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(viewModel.toggleBookmark())
         }
     }
 
     private fun togglePixivMarker() {
         viewLifecycleOwner.lifecycleScope.launch {
-            Toast.makeText(requireContext(), viewModel.toggleMarker(), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(viewModel.toggleMarker())
         }
     }
 
@@ -607,7 +607,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     .onFailure { if (it is CancellationException) throw it }
                     .getOrNull()
             if (novel == null) {
-                Toast.makeText(requireContext(), getString(R.string.msg_novel_loading), Toast.LENGTH_SHORT).show()
+                Toaster.showShort(getString(R.string.msg_novel_loading))
                 return@launch
             }
             showV3Menu {
@@ -628,9 +628,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 }
                 item(getString(R.string.menu_copy_link), R.drawable.ic_baseline_launch_24) {
                     if (ClipBoardUtils.setPrimaryClip(requireContext(), ClipData.newPlainText("pixiv-novel", NOVEL_URL_HEAD + novelId))) {
-                        Toast.makeText(requireContext(), getString(R.string.msg_link_copied), Toast.LENGTH_SHORT).show()
+                        Toaster.showShort(getString(R.string.msg_link_copied))
                     } else {
-                        Toast.makeText(requireContext(), getString(R.string.msg_copy_failed), Toast.LENGTH_SHORT).show()
+                        Toaster.showShort(getString(R.string.msg_copy_failed))
                     }
                 }
                 item(getString(R.string.menu_copy_novel_text), R.drawable.chat_ic_content_copy) {
@@ -649,16 +649,16 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private fun copyNovelBodyToClipboard() {
         val text = viewModel.buildBodyPlainText()
         if (text.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), getString(R.string.msg_novel_not_ready), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(getString(R.string.msg_novel_not_ready))
             return
         }
         try {
             val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             cm.setPrimaryClip(ClipData.newPlainText("pixiv-novel-text", text))
-            Toast.makeText(requireContext(), getString(R.string.msg_novel_text_copied, text.length), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(getString(R.string.msg_novel_text_copied, text.length))
         } catch (t: Throwable) {
             Timber.w(t, "copy novel text to clipboard failed, len=${text.length}")
-            Toast.makeText(requireContext(), getString(R.string.msg_copy_failed), Toast.LENGTH_LONG).show()
+            Toaster.showLong(getString(R.string.msg_copy_failed))
         }
     }
 
@@ -672,7 +672,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             }
             item(getString(R.string.menu_save_position), R.drawable.ic_baseline_bookmark_24) {
                 viewModel.addBookmarkAtCurrentPage(readerView?.currentPageIndex() ?: 0)
-                Toast.makeText(requireContext(), getString(R.string.msg_bookmark_saved), Toast.LENGTH_SHORT).show()
+                Toaster.showShort(getString(R.string.msg_bookmark_saved))
             }
             // 追更 (加入/取消)：仅当前小说有所属系列时才挂条目，文案按当前
             // [watchlistAdded] 在「加入追更列表」/「取消追更」之间切。点击走
@@ -690,7 +690,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             if (!isLocalSource) {
                 item(getString(R.string.menu_export), R.drawable.ic_baseline_get_app_24) {
                     if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
-                        Toast.makeText(requireContext(), getString(R.string.msg_novel_not_ready), Toast.LENGTH_SHORT).show()
+                        Toaster.showShort(getString(R.string.msg_novel_not_ready))
                         return@item
                     }
                     val defaultFormat = Shaft.sSettings.defaultNovelExportFormat
@@ -714,11 +714,11 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     }
 
     private fun executeExport(format: ExportFormat) {
-        Toast.makeText(requireContext(), getString(R.string.msg_export_start, getString(format.displayNameResId)), Toast.LENGTH_SHORT).show()
+        Toaster.showShort(getString(R.string.msg_export_start, getString(format.displayNameResId)))
         viewLifecycleOwner.lifecycleScope.launch {
             when (val result = viewModel.exportNovel(format)) {
-                is ExportResult.Success -> Toast.makeText(requireContext(), getString(R.string.msg_export_success, result.fileName), Toast.LENGTH_LONG).show()
-                is ExportResult.Failure -> Toast.makeText(requireContext(), getString(R.string.msg_export_fail, result.message), Toast.LENGTH_LONG).show()
+                is ExportResult.Success -> Toaster.showLong(getString(R.string.msg_export_success, result.fileName))
+                is ExportResult.Failure -> Toaster.showLong(getString(R.string.msg_export_fail, result.message))
             }
         }
     }
@@ -730,7 +730,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             .setTitle(getString(R.string.dialog_choose_highlight_color))
             .addItems(options.map { it.first }.toTypedArray()) { dialog, which ->
                 viewModel.addHighlight(sel.absoluteStart, sel.absoluteEnd, sel.text, options[which].second.argb)
-                Toast.makeText(requireContext(), getString(R.string.msg_highlighted), Toast.LENGTH_SHORT).show()
+                Toaster.showShort(getString(R.string.msg_highlighted))
                 clearSelection()
                 dialog.dismiss()
             }
@@ -764,7 +764,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     override fun onNoteSaved(annotationId: Long, charStart: Int, charEnd: Int, excerpt: String, noteText: String, color: Int) {
         if (noteText.isNotEmpty()) {
             viewModel.saveNote(annotationId, charStart, charEnd, excerpt, noteText, color)
-            Toast.makeText(requireContext(), getString(R.string.msg_note_saved), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(getString(R.string.msg_note_saved))
         }
         if (annotationId == 0L) clearSelection()
     }
@@ -848,7 +848,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             ?: return
         val charIndex = ceui.pixiv.ui.novel.reader.paginate.ContentParser.resolveJumpTarget(toks, target)
         if (charIndex == null) {
-            Toast.makeText(requireContext(), getString(R.string.msg_jump_target_invalid), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(getString(R.string.msg_jump_target_invalid))
             return
         }
         navigateToCharIndex(charIndex, animate = true)
@@ -872,7 +872,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private fun showChapterDrawer() {
         val outline = viewModel.getChapterOutline()
         if (outline.isEmpty()) {
-            Toast.makeText(requireContext(), getString(R.string.msg_no_chapters), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(getString(R.string.msg_no_chapters))
             return
         }
         val currentStart = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.currentCharIndex()
@@ -936,7 +936,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             if (outline.isEmpty()) {
                 if (forward) readerView?.flipForward() else readerView?.flipBackward()
             } else {
-                Toast.makeText(requireContext(), if (forward) getString(R.string.msg_last_chapter) else getString(R.string.msg_first_chapter), Toast.LENGTH_SHORT).show()
+                Toaster.showShort(if (forward) getString(R.string.msg_last_chapter) else getString(R.string.msg_first_chapter))
             }
         }
     }
@@ -963,21 +963,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 else if (forward) items.getOrNull(idx + 1) else items.getOrNull(idx - 1)
             }.onFailure { if (it is CancellationException) throw it }.getOrNull()
             if (neighbor == null || neighbor.id == 0L) {
-                Toast.makeText(
-                    requireContext(),
-                    if (forward) getString(R.string.msg_last_chapter) else getString(R.string.msg_first_chapter),
-                    Toast.LENGTH_SHORT,
-                ).show()
+                Toaster.showShort(if (forward) getString(R.string.msg_last_chapter) else getString(R.string.msg_first_chapter))
                 return@launch
             }
-            Toast.makeText(
-                requireContext(),
-                getString(
+            Toaster.showShort(getString(
                     if (forward) R.string.msg_jump_next_in_series else R.string.msg_jump_prev_in_series,
                     neighbor.title.orEmpty(),
-                ),
-                Toast.LENGTH_SHORT,
-            ).show()
+                ))
             val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
                 putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说正文")
                 putExtra(Params.NOVEL_ID, neighbor.id)
@@ -1032,21 +1024,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
-                    Toast.makeText(
-                        requireContext(),
-                        if (nextAdded) R.string.reader_watchlist_added_toast
-                        else R.string.reader_watchlist_removed_toast,
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    Toaster.showShort(if (nextAdded) R.string.reader_watchlist_added_toast else R.string.reader_watchlist_removed_toast)
                 },
                 { ex ->
                     Timber.e(ex, "toggleWatchlist failed")
                     watchlistAdded = !nextAdded
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.reader_watchlist_toggle_failed,
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    Toaster.showShort(R.string.reader_watchlist_toggle_failed)
                 },
             )
         watchlistDisposables.add(d)
@@ -1057,9 +1040,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private fun copySelection() {
         val sel = activeSelection ?: return
         if (ClipBoardUtils.setPrimaryClip(requireContext(), ClipData.newPlainText("novel selection", sel.text))) {
-            Toast.makeText(requireContext(), getString(R.string.msg_copied), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(getString(R.string.msg_copied))
         } else {
-            Toast.makeText(requireContext(), getString(R.string.msg_copy_failed), Toast.LENGTH_SHORT).show()
+            Toaster.showShort(getString(R.string.msg_copy_failed))
         }
     }
 
@@ -1076,14 +1059,14 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         val query = activeSelection?.text?.trim().orEmpty()
         if (query.isEmpty()) return
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.pixiv.net/tags/${Uri.encode(query)}/novels"))) }
-            .onFailure { Toast.makeText(requireContext(), getString(R.string.msg_no_browser), Toast.LENGTH_SHORT).show() }
+            .onFailure { Toaster.showShort(getString(R.string.msg_no_browser)) }
     }
 
     private fun searchSelectionOnWeb() {
         val query = activeSelection?.text?.trim().orEmpty()
         if (query.isEmpty()) return
         runCatching { startActivity(Intent(Intent.ACTION_WEB_SEARCH).apply { putExtra("query", query) }) }
-            .onFailure { Toast.makeText(requireContext(), getString(R.string.msg_no_app), Toast.LENGTH_SHORT).show() }
+            .onFailure { Toaster.showShort(getString(R.string.msg_no_app)) }
     }
 
     private fun translateSelection() {
@@ -1093,7 +1076,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             startActivity(Intent.createChooser(intent, getString(R.string.chooser_translate)))
         } else {
             runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://translate.google.com/?sl=auto&tl=zh-CN&text=${Uri.encode(sel.text)}&op=translate"))) }
-                .onFailure { Toast.makeText(requireContext(), getString(R.string.msg_no_translate_app), Toast.LENGTH_SHORT).show() }
+                .onFailure { Toaster.showShort(getString(R.string.msg_no_translate_app)) }
         }
     }
 

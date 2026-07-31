@@ -6,9 +6,7 @@ import ceui.lisa.core.FilterMapper
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
-import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.PixivSearchParamUtil
-import ceui.lisa.utils.SearchTypeUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.ui.prime.PrimeIllustLoader
 import ceui.pixiv.ui.search.SortType
@@ -58,7 +56,9 @@ class SearchIllustRepo @JvmOverloads constructor(
         if (sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE) {
             return loadTrendingBuiltinIllusts()
         }
-        PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD)
+        // 关键字写搜索历史已上移到 SearchActivity（首搜 initModel + 重搜 nowGo，按 id 去重收口）。
+        // 不再寄生在这里——原来会被上面的 trending_builtin 提前 return 跳过，且只有插画 tab 触发，
+        // 小说/作者 tab 与「内置热门榜」排序都漏写。
 
         // 收藏量两条桶并存：
         //  - bookmarkMin 走官方 `bookmark_num_min` query 参数（仅会员 popular 生效）

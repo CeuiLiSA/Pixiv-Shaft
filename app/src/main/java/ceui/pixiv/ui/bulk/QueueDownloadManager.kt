@@ -14,6 +14,7 @@ import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.db.queue.WorkType
+import ceui.pixiv.download.StageStore
 import ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -111,8 +112,25 @@ object QueueDownloadManager {
     ).also { it.tryEmit(Unit) }
 
     // —— 调度参数 ——
-    /** 单条 illust 全部 P FAILED 后的最大重试次数（对应 download_queue.retryCount） */
+    /**
+     * 「连续无进展」的最大重试次数（对应 download_queue.retryCount）。有断点续传后，
+     * 只要一次尝试推进了字节前沿就会 [DownloadQueueDao.resetRetry] 清零，所以这个上限
+     * 只在**完全下不动**（404 / 一直 0 字节）时才生效 —— 快速失败一条真下不了的。
+     */
     private const val MAX_RETRY = 3
+    /**
+     * 绝对重试硬顶：防止病态场景（服务器每次只吐几字节又断，进度看门狗永远判"有进展"）
+     * 把一条 illust 无限重试下去。正常抖动线路远到不了这个数就续完了。
+     */
+    private const val ABSOLUTE_MAX_RETRY = 50
+    /**
+     * 进度评分单位：完成一个 page 记 1 个单位（1TB，远超任何单文件字节数），page 内
+     * 已下字节直接累加。这样「某页下完被移出 content」也稳稳算作前进（page 项占主导），
+     * 单页 illust 的续传前沿推进也能被识别。见 [progressScore]。
+     */
+    private const val PAGE_SCORE_UNIT = 1_000_000_000_000L
+    /** 孤儿 stage 文件（.part / .part.meta）的最大存活期，冷启动扫一次回收，见 [StageStore.sweepOrphans]。 */
+    private const val STAGE_MAX_AGE_MS = 48L * 60 * 60 * 1000
     /** 主循环兜底 polling：即使 ticker 没动，也每隔一段时间复查一次 */
     private const val POLL_INTERVAL_MS = 800L
     /** canDownloadNow=false 时挂起的 sleep 周期 */
@@ -143,6 +161,32 @@ object QueueDownloadManager {
      * 该 map 只在 [loopJob] 单一协程内读写，不需要同步。
      */
     private val inFlight: LinkedHashMap<Long, InFlightIllust> = LinkedHashMap()
+
+    /**
+     * 断点续传进度看门狗的跨尝试状态，键 = download_queue.id。inFlight 每次 pull 都会
+     * 重建，装不下「历史最好进度」；这个 map 独立于 inFlight 存活，直到该行 SUCCESS /
+     * 终态 FAILED 才移除。只在 [loopJob] 单协程内读写，无需同步。
+     */
+    private val retryStates: HashMap<Long, RetryState> = HashMap()
+
+    private class RetryState(
+        /** 历史见过的最好 [progressScore]。 */
+        var bestScore: Long = 0L,
+        /** 总失败尝试次数（永不清零，用于 [ABSOLUTE_MAX_RETRY] 硬顶）。 */
+        var attempts: Int = 0,
+    )
+
+    /**
+     * 一条 illust 的当前进度评分：已完成 page 数 * [PAGE_SCORE_UNIT] + 在飞 page 的已下
+     * 字节和。单调代理「往前走了没」——某页下完被移出 content 会让 page 项 +1（远大于
+     * 字节项），单页 illust 的续传前沿推进则体现在字节项。用于判断该不该清零重试计数。
+     */
+    private fun progressScore(inf: InFlightIllust, remaining: List<DownloadItem>): Long {
+        val completed = (inf.totalPages - remaining.size).coerceAtLeast(0)
+        var bytes = 0L
+        for (p in remaining) bytes += p.currentSize.coerceAtLeast(0)
+        return completed * PAGE_SCORE_UNIT + bytes
+    }
 
     /**
      * Ugoira 任务专用 scope。independent of [scope] 的主循环 —— ugoira 一条要
@@ -228,6 +272,16 @@ object QueueDownloadManager {
                 val ctx = appContext ?: return@runCatching
                 MediaStoreOrphanCleaner.cleanupPendingOrphans(ctx)
             }.onFailure { Timber.tag(TAG).w(it, "cleanupPendingOrphans failed") }
+
+            // 断点续传的 stage 落点（cacheDir/staging_dl/*.part[.meta]）回收：永久失败 /
+            // 清空队列 / 崩溃残留的孤儿 .part 会一直占 cacheDir。正在下载的 .part 会被高频
+            // write 顶新 lastModified，只有真被遗弃的才老到被扫走，纯按年龄回收即安全。
+            runCatching {
+                val ctx = appContext ?: return@runCatching
+                val stageDir = java.io.File(ctx.cacheDir, StageStore.STAGE_DIR_NAME)
+                val swept = StageStore.sweepOrphans(stageDir, STAGE_MAX_AGE_MS, System.currentTimeMillis())
+                if (swept > 0) Timber.tag(TAG).i("[QUEUE-CONSUMER] swept $swept orphan stage files")
+            }.onFailure { Timber.tag(TAG).w(it, "stage sweep failed") }
 
             // 检查是否有需要恢复的批量下载 —— 不无脑继续，让用户决定
             val pending = runCatching { dao.countByStatus(QueueStatus.PENDING) }.getOrDefault(0)
@@ -387,6 +441,7 @@ object QueueDownloadManager {
             val remainingForThis = byIllust[inf.illustId.toInt()] ?: emptyList()
             when (kind) {
                 FinalizeKind.SUCCESS -> {
+                    retryStates.remove(inf.queueRowId)  // 进度看门狗状态随行终结
                     val ok = runCatching {
                         dao.updateStatus(
                             inf.queueRowId, QueueStatus.SUCCESS,
@@ -404,19 +459,37 @@ object QueueDownloadManager {
                 }
 
                 FinalizeKind.FAILED, FinalizeKind.STALLED -> {
-                    val canRetry = inf.retryCountAtPull + 1 < MAX_RETRY
+                    // —— 断点续传的进度看门狗 ——
+                    // 有了续传，每次尝试只把字节前沿往前推、不再从头来。所以「重试上限」的
+                    // 语义从"总尝试次数"改成"连续无进展次数"：本轮若比历史最好进度更前，就
+                    // 把重试计数清零，让抖动线路（十几 M 的图断了几十次）只要每次都往前挪
+                    // 就能一直续下去，而不是 MAX_RETRY 次后放弃。ABSOLUTE_MAX_RETRY 是防
+                    // 病态无限循环（每次只吐 1 字节又断）的硬顶。
+                    val st = retryStates.getOrPut(inf.queueRowId) { RetryState() }
+                    st.attempts++
+                    val score = progressScore(inf, remainingForThis)
+                    val madeProgress = score > st.bestScore
+                    if (madeProgress) st.bestScore = score
+                    val hardCapHit = st.attempts >= ABSOLUTE_MAX_RETRY
+                    val canRetry = !hardCapHit && (madeProgress || inf.retryCountAtPull + 1 < MAX_RETRY)
                     if (canRetry) {
-                        // 标回 PENDING 并 bumpRetry —— 失败的 page 留在 Manager.content 里
-                        // 让下一轮 fillSlots 走 retry path（FAILED→INIT 后继续跑）。
-                        // STALLED 例外：先把"卡住"的 page 强制 clearOne 让下一轮干净启动。
+                        // 标回 PENDING —— 失败的 page 留在 Manager.content 里让下一轮 fillSlots
+                        // 走 retry path（FAILED→INIT 后继续跑）。STALLED 例外：先把"卡住"的
+                        // page 强制 clearOne 让下一轮干净启动。
                         if (kind == FinalizeKind.STALLED) {
                             for (p in remainingForThis) {
                                 runCatching { Manager.get().clearOne(p.uuid) }
                                     .onFailure { Timber.tag(TAG).w(it, "clearOne stalled p=${p.uuid}") }
                             }
                         }
-                        runCatching { dao.bumpRetry(inf.queueRowId) }
-                            .onFailure { Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] bumpRetry failed id=${inf.queueRowId}") }
+                        // 有进展 → 清零重试计数（下次从 0 起算）；无进展 → 照常 +1 逼近 MAX_RETRY。
+                        if (madeProgress) {
+                            runCatching { dao.resetRetry(inf.queueRowId) }
+                                .onFailure { Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] resetRetry failed id=${inf.queueRowId}") }
+                        } else {
+                            runCatching { dao.bumpRetry(inf.queueRowId) }
+                                .onFailure { Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] bumpRetry failed id=${inf.queueRowId}") }
+                        }
                         runCatching {
                             dao.updateStatus(
                                 inf.queueRowId, QueueStatus.PENDING,
@@ -427,10 +500,11 @@ object QueueDownloadManager {
                         }
                         queueListInvalidations.tryEmit(Unit)
                         Timber.tag(TAG).i(
-                            "[QUEUE-CONSUMER] illust=${inf.illustId} retry " +
-                                    "(${inf.retryCountAtPull + 1}/$MAX_RETRY) kind=$kind"
+                            "[QUEUE-CONSUMER] illust=${inf.illustId} retry kind=$kind " +
+                                    "progress=$madeProgress attempts=${st.attempts} score=$score"
                         )
                     } else {
+                        retryStates.remove(inf.queueRowId)
                         // 终态失败：把残留的 FAILED P 从 content 清掉，免得长期下载活动后
                         // "下载中" tab 堆一堆 FAILED 行 / Manager.startAll 又把它们翻 INIT。
                         for (p in remainingForThis) {

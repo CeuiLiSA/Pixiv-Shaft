@@ -27,7 +27,7 @@ import com.blankj.utilcode.util.Utils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
-import com.hjq.toast.ToastUtils;
+import com.hjq.toast.Toaster;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -146,11 +146,11 @@ public class Common {
     }
 
     public static <T> void showToast(T t) {
-        ToastUtils.show(t);
+        Toaster.show(t);
     }
 
     public static void showToast(int id) {
-        ToastUtils.show(id);
+        Toaster.show(id);
     }
 
     /**
@@ -166,7 +166,7 @@ public class Common {
      * */
     //2成功， 3失败， 4info
     public static <T> void showToast(T t, int type) {
-        ToastUtils.show(t);
+        Toaster.show(t);
     }
 
     public static String getAppVersionCode(Context context) {
@@ -200,7 +200,11 @@ public class Common {
     }
 
     public static <T> void showToast(T t, boolean isLong) {
-        ToastUtils.show(t);
+        if (isLong) {
+            Toaster.showLong(t);
+        } else {
+            Toaster.showShort(t);
+        }
     }
 
     public static void copy(Context context, String s) {
@@ -485,46 +489,68 @@ public class Common {
     }
 
     /**
-     * 文件大小是否满足反向搜索条件
+     * 文件大小是否满足反向搜索条件。
+     *
+     * <p>查不到大小时放行，而不是拦下：SIZE 这一列不是 content provider 的义务，分享进来的
+     * Uri 经常压根没有它。拦下会弹「图像大小超过限制」——一句和事实相反的提示，不如把这张图
+     * 交给引擎自己去拒。</p>
+     *
+     * <p>原先这里有三个能直接崩的地方：{@code getColumnIndex} 查不到列时返回 -1 却照样拿去
+     * {@code getLong}；{@code moveToFirst()} 的返回值被丢掉，空游标一样往下走；游标没有
+     * try-finally，中途抛异常就泄漏。</p>
      *
      * @param uri 文件地址
      * @return 大小是否可搜索
      */
     public static boolean isFileSizeOkToReverseSearch(Uri uri, long maxImageSize) {
-        Cursor cursor = Shaft.getContext().getContentResolver().query(uri, null, null, null, null);
-        if (cursor == null) {
+        if (uri == null) {
             return false;
         }
-        int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
-        cursor.moveToFirst();
-        boolean ret = cursor.getLong(sizeIndex) <= maxImageSize;
-        cursor.close();
-        return ret;
+        try (Cursor cursor = Shaft.getContext().getContentResolver()
+                .query(uri, null, null, null, null)) {
+            if (cursor == null || !cursor.moveToFirst()) {
+                return true;
+            }
+            int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+            if (sizeIndex < 0 || cursor.isNull(sizeIndex)) {
+                return true;
+            }
+            return cursor.getLong(sizeIndex) <= maxImageSize;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
     }
 
     /**
-     *  复制资源Uri到内部缓存，from com.blankj.utilcode.util.UriUtils
-     * @param uri
-     * @return cached file
+     * 把待搜图片复制进 cache/reverse_search/，并换成 FileProvider 的 content:// Uri。
+     *
+     * 换 Uri 是必须的：图搜的上传由 WebView 自己发起（见 {@link ReverseImage}），
+     * 它读文件走 ContentResolver，读不到我们私有目录里的 file:// 路径。
+     *
+     * <p>跑在子线程（见 {@link ReverseImage#searchFrom}），所以异常一律吞在这里换成 null ——
+     * 漏出去的话没人接，直接把进程带走。{@code openInputStream} 会返回 null、
+     * {@code FileProvider.getUriForFile} 在路径没配进 provider_paths 时会抛 IAE，都在这个范围内。</p>
+     *
+     * @return FileProvider Uri，复制失败时为 null
      */
-    public static File copyUriToImageCacheFolder(Uri uri) {
-        InputStream is = null;
-        try {
-            is = Utils.getApp().getContentResolver().openInputStream(uri);
-            File file = new File(LegacyFile.imageCacheFolder(Utils.getApp()), String.valueOf(System.currentTimeMillis()));
-            FileIOUtils.writeFileFromIS(file.getAbsolutePath(), is);
-            return file;
-        } catch (FileNotFoundException e) {
+    public static Uri copyUriToReverseSearchCache(Uri uri) {
+        File folder = LegacyFile.reverseSearchCacheFolder(Utils.getApp());
+        // 只留最新那一张。这个目录不在设置页的「清理图片缓存」范围里，不清就是每搜一次
+        // 留一个最大 15MB 的文件、永远不掉。
+        FileUtils.deleteAllInDir(folder);
+        try (InputStream is = Utils.getApp().getContentResolver().openInputStream(uri)) {
+            if (is == null) {
+                return null;
+            }
+            File file = new File(folder, String.valueOf(System.currentTimeMillis()));
+            if (!FileIOUtils.writeFileFromIS(file.getAbsolutePath(), is)) {
+                return null;
+            }
+            return FileProvider.getUriForFile(Utils.getApp(), Utils.getApp().getPackageName() + ".provider", file);
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

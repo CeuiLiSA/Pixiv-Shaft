@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,12 +16,9 @@ import android.view.Gravity;
 import com.blankj.utilcode.util.BarUtils;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
-import com.hjq.toast.ToastUtils;
+import com.hjq.toast.Toaster;
 
-import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.getkeepsafe.relinker.ReLinker;
-import com.scwang.smart.refresh.header.ClassicsHeader;
-import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.tencent.mmkv.MMKV;
 
 import androidx.annotation.NonNull;
@@ -35,7 +31,6 @@ import ceui.lisa.notification.NetWorkStateReceiver;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
-import ceui.lisa.view.MyDeliveryHeader;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
@@ -77,15 +72,6 @@ public class Shaft extends Application implements ServicesProvider {
      */
     @SuppressLint("StaticFieldLeak")
     private static Context sContext = null;
-
-    static {
-        SmartRefreshLayout.setDefaultRefreshHeaderCreator((context, layout) -> {
-            return new ClassicsHeader(context);//.setTimeFormat(new DynamicTimeFormat("更新于 %s"));//指定为经典Header，默认是 贝塞尔雷达Header(BezierRadarHeader)
-        });
-
-        SmartRefreshLayout.setDefaultRefreshFooterCreator((context, layout) ->
-                new ClassicsFooter(context).setDrawableSize(20));
-    }
 
     public static Context getContext() {
         return sContext;
@@ -219,6 +205,24 @@ public class Shaft extends Application implements ServicesProvider {
                         Timber.w(t, "Suppressed RecyclerView layout inconsistency on main thread");
                         continue;
                     }
+                    // "Drag shadow dimensions must be positive"：文本选择的拖拽。长按落在
+                    // 已选中的文字上时，framework 的 Editor.performLongClick 会走
+                    // startDragAndDrop，拖影由 Editor.getTextThumbnailBuilder 现场 inflate 一个
+                    // 纯 TextView、setText(选中段) 再 measure 得到；选区只剩换行 / 只剩宽度为 0
+                    // 的 span（小说阅读器 ReaderTextBlockView 会往段落间插 '\n' 并挂
+                    // ParagraphGapLineHeightSpan、LeadingMarginSpan）时量出来是 0，View
+                    // .startDragAndDrop 直接抛 IllegalStateException。和上面的 Magnifier NPE
+                    // 同源——都是 setTextIsSelectable(true) 才有的框架内部路径，而
+                    // View.startDragAndDrop / startDrag 都是 final，子类没法拦，host app 也无法
+                    // 阻止这个 measure 结果。丢掉这一次拖拽好过崩进程，选区本身还在。
+                    // 全仓没有任何一处调用拖拽 API（grep startDragAndDrop / DragShadowBuilder
+                    // 零命中），这句文案又是 AOSP 写死的，所以按 message 判定不会吞掉自家异常。
+                    if (t instanceof IllegalStateException
+                            && t.getMessage() != null
+                            && t.getMessage().contains("Drag shadow dimensions must be positive")) {
+                        Timber.w(t, "Suppressed text-selection drag shadow ISE on main thread");
+                        continue;
+                    }
                     // android.app.RemoteServiceException$CrashedByAdbException：adb 的
                     // `am crash <pkg>` 或某些 OEM 侧 shell-induced 信号会通过
                     // ActivityThread$H 投递。这条异常的 class 是 @hide，没法 instanceof，
@@ -299,6 +303,16 @@ public class Shaft extends Application implements ServicesProvider {
         // 后台跑、跑完置标志、幂等；跑完前 hasDownloadRecord 用旧 LIKE 兜底。
         ceui.lisa.database.DownloadIdBackfill.runIfNeeded(this);
 
+        // v41 page 列的一次性存量回填（issue #953）：从老记录的 fileName 反解出页码，
+        // 让「已存在则跳过」和详情页复用本地文件能按 (illustId, page) 命中老记录，
+        // 而不是只对之后新下载的生效。同样后台跑、跑完置标志、幂等。
+        ceui.lisa.database.DownloadPageBackfill.runIfNeeded(this);
+
+        // 动图 RIFE 补帧的中间帧目录(cache/rife_work_*)残留清扫。正常路径由播放引擎的
+        // finally 兜底删除，但补帧是分钟级满载 GPU，正是最容易被系统杀后台的窗口，被杀就
+        // 留下几百 MB 中间 PNG 且没有任何东西会去收。后台跑、失败静默。
+        ceui.pixiv.ui.bulk.UgoiraEngine.sweepStaleRifeWork(this);
+
         // 社区榜单事件上报（shaft-api-v2）。完全 fire-and-forget，失败静默，
         // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
         ceui.pixiv.events.EventReporter.INSTANCE.init(this);
@@ -346,7 +360,21 @@ public class Shaft extends Application implements ServicesProvider {
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
-        OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(new OkHttpClient.Builder());
+        // 退回 H1.1 后同款 AIOOBE 仍在线上复现（栈里已经是 Http1ExchangeCodec.writeRequest），
+        // 说明成因不是 H2 帧缓冲，而是一条连接被两个 exchange 同时拿去写请求头。okhttp 连接池
+        // 那层改不动，这里兜住崩溃形态：把非 IOException 包成 IOException，让 okhttp 拆掉坏连接、
+        // 走 onFailure 而不是从 dispatcher 线程 uncaught 崩进程。详见该类注释。
+        // 必须是 network interceptor，且要挂在最外层才能连 ProgressManager 自己的 body 包装一起盖住
+        // ——ProgressManager.with() 内部就是 addNetworkInterceptor，所以得先加自己再交给它。
+        // 下载(Manager)、ugoira 由本 client newBuilder() 派生，自动继承；聊天 WebSocket 是独立 client，不在内。
+        OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(
+                new OkHttpClient.Builder()
+                        .addNetworkInterceptor(new ceui.lisa.http.BufferCorruptionGuardInterceptor()));
+        // 图片客户端一律强制 HTTP/1.1。Glide 加载缩略图网格会在单条 H2 连接上并发开大量
+        // stream，okhttp 的 Http2Writer 共享帧缓冲在这种高并发下会被写坏，抛出
+        // ArrayIndexOutOfBoundsException(okio checkOffsetAndCount / AsyncTimeout.write)导致崩溃。
+        // 下载(Manager)、ugoira 早已各自退回 H1.1，这里统一在源头兜住，非直连模式同样生效。
+        glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
         // issue #865: 直连覆盖(HttpDns 硬编码 210.140.139.x + 无 SNI 的 TLS)只对
         // 原始 i.pximg.net 有效，会打死 pixiv.cat / 自定义反代。所以非 PIXIV 模式下
         // 图片客户端退回系统 DNS + 标准 TLS。API 客户端(Retro/Client 的 Cronet 直连)
@@ -356,7 +384,7 @@ public class Shaft extends Application implements ServicesProvider {
             // 图片走 https://i.pximg.net 原始 URL，在 OkHttp 层面：
             // 1. 自定义 DNS 绕过 DNS 污染
             // 2. 无 SNI 的 TLS 绕过 GFW（图片服务器不要求 SNI）
-            // 3. 强制 HTTP/1.1 避免 H2 复用连接被 GFW 整体干扰
+            // 3. HTTP/1.1 已在上面统一强制（既避免 H2 写坏崩溃，也避免 H2 复用连接被 GFW 整体干扰）
             try {
                 ceui.lisa.http.TrustAllCertManager trustManager = new ceui.lisa.http.TrustAllCertManager();
                 glideBuilder.sslSocketFactory(new ceui.lisa.http.RubySSLSocketFactory(), trustManager);
@@ -365,7 +393,6 @@ public class Shaft extends Application implements ServicesProvider {
                 Timber.e(e, "Direct-connect SSL init error");
             }
             glideBuilder.dns(ceui.lisa.http.HttpDns.getInstance());
-            glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
             glideBuilder.connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS);
             glideBuilder.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
         }
@@ -385,9 +412,9 @@ public class Shaft extends Application implements ServicesProvider {
         }
 
         //Init Toast utils
-        ToastUtils.init(this);
+        Toaster.init(this);
         int bottomOffset = BarUtils.getNavBarHeight() + (int) (48 * getResources().getDisplayMetrics().density);
-        ToastUtils.setGravity(Gravity.BOTTOM, 0, bottomOffset);
+        Toaster.setGravity(Gravity.BOTTOM, 0, bottomOffset);
 
         try {
             FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
@@ -596,18 +623,6 @@ public class Shaft extends Application implements ServicesProvider {
             mmkv = MMKV.defaultMMKV();
         }
         return mmkv;
-    }
-
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        int currentNightMode = newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        switch (currentNightMode) {
-            case Configuration.UI_MODE_NIGHT_NO:
-            case Configuration.UI_MODE_NIGHT_YES:
-                MyDeliveryHeader.changeCloudColor(getContext());
-                break;
-        }
     }
 
     @Override

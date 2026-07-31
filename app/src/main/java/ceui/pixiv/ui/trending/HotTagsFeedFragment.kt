@@ -24,6 +24,7 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
@@ -92,7 +93,7 @@ class HotTagsFeedFragment : FeedFragment() {
             cell.binding.root.setOnLongClickListener { openIllustDetail(cell.item.bean) }
         },
         recycle = { cell ->
-            Glide.with(cell.binding.illustImage).clear(cell.binding.illustImage)
+            cell.binding.illustImage.clearGlideOnRecycle()
         },
     ) { cell ->
         val trendingTag = cell.item.trendingTag

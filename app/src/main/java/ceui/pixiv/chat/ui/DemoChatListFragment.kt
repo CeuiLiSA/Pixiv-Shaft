@@ -13,7 +13,6 @@ import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -51,6 +50,7 @@ import ceui.pixiv.chat.data.RoomChatMessageStore
 import ceui.pixiv.chat.vm.ChatListViewModel
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.websocket.WebSocketState
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -379,10 +379,10 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         when (action) {
             MessageActionsSheet.ACTION_COPY -> copyMessage(localKey)
             MessageActionsSheet.ACTION_REPLY -> {
-                Toast.makeText(requireContext(), "回复（TODO）", Toast.LENGTH_SHORT).show()
+                Toaster.showShort("回复（TODO）")
             }
             MessageActionsSheet.ACTION_FORWARD -> {
-                Toast.makeText(requireContext(), "转发（TODO）", Toast.LENGTH_SHORT).show()
+                Toaster.showShort("转发（TODO）")
             }
             MessageActionsSheet.ACTION_DELETE -> confirmDeleteMessage(localKey)
         }
@@ -394,7 +394,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             ?.text ?: return
         val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("message", text))
-        Toast.makeText(requireContext(), "已复制", Toast.LENGTH_SHORT).show()
+        Toaster.showShort("已复制")
     }
 
     private fun confirmDeleteMessage(localKey: String) {
@@ -415,7 +415,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         val dao = ChatDatabase.getInstance(requireContext()).chatMessageDao()
         viewLifecycleOwner.lifecycleScope.launch {
             dao.deleteByLocalKey(localKey)
-            Toast.makeText(requireContext(), "已删除", Toast.LENGTH_SHORT).show()
+            Toaster.showShort("已删除")
         }
     }
 
@@ -491,7 +491,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         viewLifecycleOwner.lifecycleScope.launch {
             val accepted = viewModel.sendText(text)
             if (!accepted) {
-                Toast.makeText(requireContext(), "发送失败,请稍后重试", Toast.LENGTH_SHORT).show()
+                Toaster.showShort("发送失败,请稍后重试")
                 return@launch
             }
             binding.btnSend.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
@@ -548,12 +548,12 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             if (err.code == "rate_limited") {
                 rateLimitCoolDown = true
                 refreshSendEnabled()
-                Toast.makeText(requireContext(), "发送太频繁,请稍候", Toast.LENGTH_SHORT).show()
+                Toaster.showShort("发送太频繁,请稍候")
                 delay(1_000)
                 rateLimitCoolDown = false
                 refreshSendEnabled()
             } else {
-                Toast.makeText(requireContext(), friendlyChatErrorMessage(err), Toast.LENGTH_SHORT).show()
+                Toaster.showShort(friendlyChatErrorMessage(err))
             }
         }
     }
@@ -590,11 +590,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      */
     private suspend fun observeReplacedByOtherDevice() {
         ShaftChatGateway.replacedByOtherDevice.collect {
-            Toast.makeText(
-                requireContext(),
-                "账号在其它设备登录,聊天已断开",
-                Toast.LENGTH_LONG,
-            ).show()
+            Toaster.showLong("账号在其它设备登录,聊天已断开")
         }
     }
 
@@ -606,11 +602,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      */
     private suspend fun observeFatalAuth() {
         ShaftChatGateway.fatalAuth.collect {
-            Toast.makeText(
-                requireContext(),
-                "聊天认证失败 — 请检查系统时间是否正确,或重新登录",
-                Toast.LENGTH_LONG,
-            ).show()
+            Toaster.showLong("聊天认证失败 — 请检查系统时间是否正确,或重新登录")
         }
     }
 

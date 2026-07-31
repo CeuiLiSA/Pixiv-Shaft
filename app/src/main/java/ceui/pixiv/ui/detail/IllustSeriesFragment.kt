@@ -27,7 +27,7 @@ import ceui.pixiv.ui.common.openIllustsInViewer
 import ceui.pixiv.ui.common.toggleIllustBookmark
 import ceui.pixiv.ui.novel.NovelSeriesHeaderActionReceiver
 import ceui.pixiv.utils.ppppx
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -137,7 +137,7 @@ class IllustSeriesFragment :
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (isAdded) ToastUtils.show(getString(R.string.task_status_error))
+                if (isAdded) Toaster.show(getString(R.string.task_status_error))
             } finally {
                 if (isAdded) progressView.hideProgress()
             }

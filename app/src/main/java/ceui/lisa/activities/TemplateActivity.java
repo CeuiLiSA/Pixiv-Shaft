@@ -10,6 +10,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.core.content.IntentCompat;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -45,7 +46,6 @@ import ceui.lisa.fragments.FragmentPv;
 import ceui.pixiv.ui.detail.RelatedIllustFeedFragment;
 import ceui.pixiv.ui.user.RelatedUserFeedFragment;
 import ceui.lisa.fragments.FragmentSAF;
-import ceui.pixiv.ui.bookmark.SelectTagFeedFragment;
 import ceui.lisa.fragments.FragmentSearch;
 import ceui.lisa.fragments.FragmentSettingsHub;
 import ceui.lisa.fragments.SettingsCatalog;
@@ -59,7 +59,6 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.ReverseResult;
 import ceui.loxia.ObjectPool;
 import ceui.loxia.ObjectType;
 import ceui.loxia.flag.FlagDescFragment;
@@ -115,17 +114,22 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return SettingsCatalog.fragmentFor(
                             intent.getStringExtra(SettingsCatalog.EXTRA_CATEGORY));
                 case "推荐用户":
-                    // 与 FragmentRight#seeMore 配对：货架把自己那批快照存进 RecmdUserMap，
+                    // 与 FragmentRight#seeMore 配对：货架把自己那批快照存进 RecmdUserHandoff，
                     // 只把 key 传过来。取用/清理都归 RecmdUserFeedFragment 自己（数据落进 VM，
                     // 旋转不重拉；key 为 null 或 map 已失效时它自己退化成网络首屏）。
                     return ceui.pixiv.ui.user.RecmdUserFeedFragment.newInstance(
                             intent.getStringExtra(Params.USER_MODEL));
                 case "特辑":
                     return new FragmentPv();
-                case "以图搜图":
-                    ReverseResult result = intent.getParcelableExtra(Params.REVERSE_SEARCH_RESULT);
-                    Uri imageUri = intent.getParcelableExtra(Params.REVERSE_SEARCH_IMAGE_URI);
-                    return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url(), imageUri);
+                case "以图搜图": {
+                    // 搜索本身由 WebView 发（引擎都在 Cloudflare 质询后面，见 ReverseImage），
+                    // 这里只是把引擎上传页和待搜图片转交过去。
+                    String engineUrl = intent.getStringExtra(Params.URL);
+                    String engineName = intent.getStringExtra(Params.TITLE);
+                    Uri imageUri = IntentCompat.getParcelableExtra(
+                            intent, Params.REVERSE_SEARCH_IMAGE_URI, Uri.class);
+                    return FragmentWebView.newInstance(engineName, engineUrl, imageUri);
+                }
                 case "相关评论": {
                     return getCommentsFragment(intent);
                 }
@@ -134,12 +138,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "按标签筛选": {
                     return BookedTagFeedFragment.newInstance(intent.getIntExtra(Params.DATA_TYPE, 0), intent.getStringExtra(EXTRA_KEYWORD));
                 }
-                case "按标签收藏": {
-                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
-                    String type = intent.getStringExtra(Params.DATA_TYPE);
-                    String[] tagNames = intent.getStringArrayExtra(Params.TAG_NAMES);
-                    return SelectTagFeedFragment.newInstance(id, type, tagNames);
-                }
+                // 「按标签收藏」不再走整页路由 —— 从右侧 push 进来一张 activity 对「就地收藏」
+                // 这种轻动作太重。现在由 ceui.pixiv.ui.bookmark.SelectTagBottomSheet 以 MD3
+                // bottom sheet 弹出，SelectTagFeedFragment 退化成它的列表 child。
                 case "关于软件":
                     return new FragmentAboutApp();
                 case "批量下载队列":
@@ -290,6 +291,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "翻译模型下载":
                     return ceui.pixiv.ui.translate.TranslationModelDownloadFragment.newInstance(
                             intent.getStringExtra("translation_model_name"));
+                case "RIFE补帧模型下载":
+                    return ceui.pixiv.ui.interpolate.RifeDownloadFragment.newInstance(
+                            intent.getStringExtra("rife_model_name"));
                 case "漫画OCR模型下载":
                     return ceui.pixiv.ui.translate.MangaOcrDownloadFragment.newInstance(
                             intent.getStringExtra("manga_ocr_model_name"));
@@ -422,6 +426,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             ceui.pixiv.ui.recommend.BookmarkRankFeedFragmentKt.AI_ONLY);
                 case "年代榜":
                     return ceui.pixiv.ui.recommend.YearRankFragment.newInstance();
+                case "标签榜":
+                    return ceui.pixiv.ui.recommend.TagRankFragment.newInstance();
+                case "壁纸榜":
+                    return ceui.pixiv.ui.recommend.WallpaperRankFragment.newInstance();
                 case "操作记录":
                     return new ceui.pixiv.ui.recommend.FragmentEventHistory();
                 case "批量下载Debug":

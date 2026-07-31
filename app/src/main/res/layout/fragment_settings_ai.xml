@@ -96,6 +96,26 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/rife_model_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_rife_model" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/rife_model_status"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/bubble_detector_model_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/bg_m3_row_mid">

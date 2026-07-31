@@ -25,6 +25,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
+import ceui.pixiv.utils.clearGlideOnRecycle
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -291,7 +292,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
                 cell.itemOrNull?.illust?.user?.id?.let { uid -> openHistoryUser(uid) }
             }
         },
-        recycle = { Glide.with(it.binding.illustImage).clear(it.binding.illustImage) },
+        recycle = { it.binding.illustImage.clearGlideOnRecycle() },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item
@@ -374,7 +375,7 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
                 cell.itemOrNull?.novel?.user?.id?.let { uid -> openHistoryUser(uid) }
             }
         },
-        recycle = { Glide.with(it.binding.illustImage).clear(it.binding.illustImage) },
+        recycle = { it.binding.illustImage.clearGlideOnRecycle() },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item

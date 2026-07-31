@@ -1,5 +1,6 @@
 package ceui.pixiv.websocket
 
+import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlinx.coroutines.channels.Channel
 import okhttp3.Response
@@ -55,9 +56,22 @@ class TestWebSocketServer {
     }
 
     fun shutdown() {
+        // MockWebServer waits for upgraded WebSocket connections to finish.
+        // A production client closes gracefully, so the peer acknowledgement
+        // can still be in flight when @After reaches this method and make the
+        // test worker wait for the server timeout. Tests are already over at
+        // this point: force-cancel every remaining peer before shutting down.
+        activeSockets.toList().forEach { socket ->
+            try {
+                socket.cancel()
+            } catch (_: RuntimeException) {
+                // best-effort fixture cleanup
+            }
+        }
+        activeSockets.clear()
         try {
             server.shutdown()
-        } catch (_: Throwable) {
+        } catch (_: IOException) {
             // ignore — best-effort cleanup
         }
         serverEvents.close()
@@ -73,14 +87,12 @@ class TestWebSocketServer {
      * frame in [serverEvents] before echoing.
      */
     fun enqueueEchoUpgrade() {
-        enqueueUpgrade(object : RecordingListener() {
+        enqueueUpgrade(object : WebSocketListener() {
             override fun onMessage(webSocket: WebSocket, text: String) {
-                super.onMessage(webSocket, text)
                 webSocket.send(text)
             }
 
             override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-                super.onMessage(webSocket, bytes)
                 webSocket.send(bytes)
             }
         })
@@ -92,7 +104,7 @@ class TestWebSocketServer {
      * client → server flow without echo noise.
      */
     fun enqueueSilentUpgrade() {
-        enqueueUpgrade(RecordingListener())
+        enqueueUpgrade(object : WebSocketListener() {})
     }
 
     /**
@@ -101,9 +113,8 @@ class TestWebSocketServer {
      * the reconnect path under server-initiated closure.
      */
     fun enqueueClosingUpgrade(code: Int = 1000, reason: String = "test close") {
-        enqueueUpgrade(object : RecordingListener() {
+        enqueueUpgrade(object : WebSocketListener() {
             override fun onMessage(webSocket: WebSocket, text: String) {
-                super.onMessage(webSocket, text)
                 webSocket.close(code, reason)
             }
         })
@@ -120,45 +131,52 @@ class TestWebSocketServer {
      * [serverEvents] and [activeSockets].
      */
     fun enqueueUpgrade(delegate: WebSocketListener) {
-        server.enqueue(MockResponse().withWebSocketUpgrade(delegate))
+        val recordingDelegate = object : WebSocketListener() {
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                activeSockets.add(webSocket)
+                serverEvents.trySend(ServerEvent.Open(webSocket))
+                delegate.onOpen(webSocket, response)
+            }
+
+            override fun onMessage(webSocket: WebSocket, text: String) {
+                serverEvents.trySend(ServerEvent.Text(text))
+                delegate.onMessage(webSocket, text)
+            }
+
+            override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+                serverEvents.trySend(ServerEvent.Binary(bytes))
+                delegate.onMessage(webSocket, bytes)
+            }
+
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                serverEvents.trySend(ServerEvent.Closing(code, reason))
+                try {
+                    delegate.onClosing(webSocket, code, reason)
+                } finally {
+                    // A peer-initiated close is only half of the WebSocket
+                    // handshake. Acknowledge it so MockWebServer does not keep
+                    // the upgraded connection alive until its timeout.
+                    webSocket.close(code, reason)
+                }
+            }
+
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                activeSockets.remove(webSocket)
+                serverEvents.trySend(ServerEvent.Closed(code, reason))
+                delegate.onClosed(webSocket, code, reason)
+            }
+
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                activeSockets.remove(webSocket)
+                serverEvents.trySend(ServerEvent.Failure(t))
+                delegate.onFailure(webSocket, t, response)
+            }
+        }
+        server.enqueue(MockResponse().withWebSocketUpgrade(recordingDelegate))
     }
 
     /** Force-close every active server socket with [code]/[reason]. */
     fun closeAll(code: Int = 1011, reason: String = "test forced close") {
         activeSockets.toList().forEach { it.close(code, reason) }
-    }
-
-    /**
-     * Base [WebSocketListener] that records every event into [serverEvents]
-     * and tracks live sockets in [activeSockets]. Subclasses can override to
-     * add behavior on top.
-     */
-    open inner class RecordingListener : WebSocketListener() {
-        override fun onOpen(webSocket: WebSocket, response: Response) {
-            activeSockets.add(webSocket)
-            serverEvents.trySend(ServerEvent.Open(webSocket))
-        }
-
-        override fun onMessage(webSocket: WebSocket, text: String) {
-            serverEvents.trySend(ServerEvent.Text(text))
-        }
-
-        override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-            serverEvents.trySend(ServerEvent.Binary(bytes))
-        }
-
-        override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-            serverEvents.trySend(ServerEvent.Closing(code, reason))
-        }
-
-        override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-            activeSockets.remove(webSocket)
-            serverEvents.trySend(ServerEvent.Closed(code, reason))
-        }
-
-        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-            activeSockets.remove(webSocket)
-            serverEvents.trySend(ServerEvent.Failure(t))
-        }
     }
 }

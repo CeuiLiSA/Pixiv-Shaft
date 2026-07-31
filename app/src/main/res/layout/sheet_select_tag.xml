@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「按标签收藏」MD3-Expressive bottom sheet 的 chrome。取代原先从右侧 push 进来的
+  TemplateActivity 整页（fragment_select_tag_feed.xml + Toolbar）。
+
+  职责切分：本布局只管壳（拖拽把手 / 标题 / 添加标签 / 私密开关 / 提交），中间
+  FragmentContainerView 里塞 [ceui.pixiv.ui.bookmark.SelectTagFeedFragment]——它退回
+  FeedFragment 的默认布局（纯列表），业务逻辑（同义词自动勾选、addTag、submitStar）一行没动。
+
+  root 用 match_parent + behavior.maxHeight 限高（对齐 dialog_search_filter_v3.xml），
+  这样 header/footer 钉住、中间列表自己滚。
+
+  # 主题
+  root 挂 Theme.Material3.DayNight.NoActionBar（同 chat_sheet_message_actions.xml 的做法）：
+  本 App 主题继承 QMUI、不含 MD3 属性，不套这层则 MaterialButton / MaterialSwitch /
+  BottomSheetDragHandleView 全部 inflate 不出来。代价是 colorPrimary 会退回 MD3 基线紫，
+  跟用户在设置里选的强调色（AppTheme.Index0..9）打架 —— 所以强调色统一由 Kotlin 侧
+  用 V3Palette 运行时 tint 回来（见 SelectTagBottomSheet.applyAccent）。
+  注意 dialog 的 theme overlay 仍必须是 ThemeOverlay.App.BottomSheetDialog.*（走老 design 库的
+  Widget.Design.BottomSheet.Modal）——换成 Material3 的 bottomSheetStyle 会因主题缺 MD3 motion
+  属性在 inflate 时直接崩，详见 styles.xml 里那段注释。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_m3e_sheet_top"
+    android:clipToOutline="true"
+    android:orientation="vertical"
+    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/drag_handle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" />
+
+    <!-- 标题行：MD3-E 用更大的 headline 排版；右侧「添加标签」是 tonal 按钮（次操作） -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/sheet_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/string_238"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textColor="?attr/colorOnSurface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_tag"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/string_14"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- 标签列表宿主：SelectTagFeedFragment(FeedFragment 默认布局 = 纯列表) -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/tag_list_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- 底部提交条：MD3 switch + 胶囊 filled 按钮（主操作）。id 沿用 legacy 语义 -->
+    <LinearLayout
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/private_star_s"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/string_89"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/is_private"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/submit_area"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:layout_marginStart="12dp"
+            android:paddingStart="28dp"
+            android:paddingEnd="28dp"
+            android:text="@string/string_90"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
+
+</LinearLayout>

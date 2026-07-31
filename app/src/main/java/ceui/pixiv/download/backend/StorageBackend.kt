@@ -19,6 +19,14 @@ import java.io.OutputStream
  */
 interface StorageBackend {
 
+    /**
+     * 目标是否落在 `content://` 语义之上（MediaStore / SAF），需要经过
+     * ContentProvider 提交、存在 IS_PENDING 半成品窗口。`Manager` 用它决定要不要
+     * 走 staging（先写本地 `.part`、提交时才建目标行，避免 0 字节 `.pending` 泄漏 +
+     * 提供统一的断点续传落点）。[AppCacheBackend] 是纯 `file://`，覆写为 `false`。
+     */
+    val isContentScheme: Boolean get() = true
+
     fun open(relPath: RelativePath, mime: String): WriteHandle
 
     fun exists(relPath: RelativePath): Boolean

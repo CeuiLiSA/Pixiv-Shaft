@@ -40,6 +40,18 @@ public class FragmentSettingsBookmarks extends SettingsPageFragment<FragmentSett
         });
         baseBind.hideStarBarRela.setOnClickListener(v -> baseBind.hideStarBar.performClick());
 
+        baseBind.filterInvalidBookmarks.setChecked(Shaft.sSettings.isFilterInvalidBookmarks());
+        baseBind.filterInvalidBookmarks.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setFilterInvalidBookmarks(isChecked);
+                Common.showToast(getString(R.string.string_428), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.filterInvalidBookmarksRela.setOnClickListener(v ->
+                baseBind.filterInvalidBookmarks.performClick());
+
         baseBind.selectAllTag.setChecked(Shaft.sSettings.isStarWithTagSelectAll());
         baseBind.selectAllTag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override

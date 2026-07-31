@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.system.Os
 import ceui.lisa.activities.Shaft
+import ceui.pixiv.download.backend.SilentDownload
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 
@@ -108,9 +109,14 @@ object ExifKeywordWriter {
                 Timber.w(t, "[ExifTags] rewrite failed, rolling back original bytes uri=%s", uri)
                 runCatching { resolver.openOutputStream(uri, "wt")?.use { it.write(original) } }
                     .onFailure { Timber.e(it, "[ExifTags] ROLLBACK ALSO FAILED, file may be damaged uri=%s", uri) }
+                // 回滚重写同样会刷新 mtime,低调下载下也要再回拨一次(内部全 best-effort)。
+                SilentDownload.backdateUri(resolver, uri)
                 throw t
             }
             Timber.i("[ExifTags] OK wrote %d keywords, %d->%d bytes, uri=%s", tags.size, original.size, newSize, uri)
+            // 低调下载:上面的整文件重写会把 mtime / date_modified 刷回「现在」,
+            // 把刚回拨过的文件重新顶回「最近图片」前排 —— 写完再回拨一次。
+            SilentDownload.backdateUri(resolver, uri)
         }.onFailure { Timber.w(it, "[ExifTags] write skipped (exception) uri=%s", uri) }
     }
 

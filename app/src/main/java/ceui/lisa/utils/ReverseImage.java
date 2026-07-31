@@ -1,117 +1,102 @@
 package ceui.lisa.utils;
 
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 
-import com.blankj.utilcode.util.UriUtils;
+import androidx.annotation.Nullable;
 
-import java.util.concurrent.TimeUnit;
+import ceui.lisa.R;
+import ceui.lisa.activities.TemplateActivity;
 
-import ceui.lisa.http.Ascii2DApi;
-import ceui.lisa.http.IqdbApi;
-import ceui.lisa.http.Retro;
-import ceui.lisa.http.SauceNaoApi;
-import ceui.lisa.http.TinEyeApi;
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Response;
-
-//TinEye会报Internal Server Error,原因暂时不明
-//没找到给出的Api,都使用了网页版
-//暂时想法是使用webview.load(response),可能有更好的解决方案
+/**
+ * 以图搜图。
+ *
+ * <p>早先的实现是自己用 OkHttp 发 multipart POST，再把返回的 HTML 塞进 WebView 的
+ * {@code loadDataWithBaseURL} 回放。这条路已经彻底走不通了（#733）：SauceNAO 和 ascii2d
+ * 都把上传接口放到了 Cloudflare 的 JS 质询后面，headless 请求一律拿到
+ * {@code 403 cf-mitigated: challenge} 的「Just a moment...」页
+ * （换 UA、补 Rails 的 authenticity_token、补全套浏览器指纹头都试过，全是 403），
+ * 而质询页在 {@code loadDataWithBaseURL} 里没有真 origin、没有 cookie jar，永远解不开。</p>
+ *
+ * <p>所以上传这件事只能交给 WebView 自己做——它是真浏览器，能跑质询 JS、能存
+ * cf_clearance，质询解不开时也能把它如实显示给用户去点。这个类现在只负责把
+ * 「本地图片 + 引擎首页」递给 {@link ceui.lisa.fragments.FragmentWebView}，
+ * 用户在页面上点选择文件时，那张图会被直接顶进去，不用重挑一遍。</p>
+ *
+ * <p>Pixel 8 / Android 16 真机验证过的边界：上传 POST 发得出去、拿回来的是可交互的
+ * Cloudflare Turnstile（不是旧实现那个解不开的死页），但引擎侧仍可能反复下发质询——
+ * multipart 的文件体过不了质询重放，而且 WebView 的 UA 自带 {@code wv} 标记，本就更容易
+ * 被判定可疑。这属于引擎的风控范围，不是这里能修的，也不该靠伪造 UA 去绕。</p>
+ */
 public class ReverseImage {
-    private static final String IQDB_BASE_URL = "https://iqdb.org/";
-    private static final String SAUCENAO_BASE_URL = "https://saucenao.com/";
-    private static final String TINEYE_BASE_URL = "https://www.tineye.com/";
-    private static final String ASCII2D_BASE_URL = "https://ascii2d.net/";
     public static final long IMAGE_MAX_SIZE = 15 * 1024 * 1024; // SauceNao limit: 15MB
     public static final ReverseProvider DEFAULT_ENGINE = ReverseProvider.SauceNao;
 
-    public static boolean isFileSizeOkToSearch(Uri fileUri, ReverseProvider reverseProvider){
+    public static boolean isFileSizeOkToSearch(Uri fileUri) {
         return Common.isFileSizeOkToReverseSearch(fileUri, IMAGE_MAX_SIZE);
     }
 
-    public static void reverse(Uri imageUri, ReverseProvider reverseProvider, Callback callback) {
-        byte[] file = UriUtils.uri2Bytes(imageUri);
-        RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-        Object o = Retro.create(reverseProvider.base_url, reverseProvider.apiClass);
-        //    enum不能使用泛型,刚好Retrofit的Api Interface 不能继承,搞不了花里胡哨了
-        Observable<Response<ResponseBody>> observable;
-        MultipartBody.Part formData;
-        switch (reverseProvider.name()) {
-            case "Iqdb":
-                formData = MultipartBody.Part.createFormData("file", "pixiv_image.png", requestBody);
-                observable = ((IqdbApi) o).query(formData);
-                break;
-            case "SauceNao":
-                formData = MultipartBody.Part.createFormData("file", "pixiv_image.png", requestBody);
-                observable = ((SauceNaoApi) o).query(formData).timeout(30, TimeUnit.SECONDS);
-                break;
-            case "TinEye":
-                formData = MultipartBody.Part.createFormData("image", "pixiv_image.png", requestBody);
-                observable = ((TinEyeApi) o).query(formData);
-                break;
-            case "Ascii2D":
-                formData = MultipartBody.Part.createFormData("file", "pixiv_image.png", requestBody);
-                observable = ((Ascii2DApi) o).query(formData).timeout(30, TimeUnit.SECONDS);
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + reverseProvider.name());
-        }
-
-        observable.subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Response<ResponseBody>>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        callback.onSubscribe(d);
+    /**
+     * 从外部 Uri 起一次图搜：查大小 → 复制进缓存 → 打开引擎页。
+     *
+     * <p>前两步都在子线程。source 可能是云相册的 content://（Google Photos 这类只存云端的
+     * 图片），ContentResolver 读它会先联网下载——最多 15MB，放主线程足够撞 ANR。</p>
+     *
+     * @param after 准备结束后回主线程执行，成功失败都会走到。分享进来的那张中转 activity
+     *              用它来 finish（不能提前 finish：起 TemplateActivity 还要用它的 context）。
+     */
+    public static void searchFrom(Activity activity, Uri source, ReverseProvider provider,
+                                  @Nullable Runnable after) {
+        Common.showToast(activity.getString(R.string.loading_text));
+        new Thread(() -> {
+            final boolean sizeOk = isFileSizeOkToSearch(source);
+            final Uri cached = sizeOk ? Common.copyUriToReverseSearchCache(source) : null;
+            activity.runOnUiThread(() -> {
+                if (!activity.isFinishing() && !activity.isDestroyed()) {
+                    if (!sizeOk) {
+                        Common.showToast(activity.getString(R.string.string_410));
+                    } else if (cached == null) {
+                        Common.showToast(activity.getString(R.string.reverse_image_copy_failed));
+                    } else {
+                        search(activity, cached, provider);
                     }
-
-                    @Override
-                    public void onNext(Response<ResponseBody> response) {
-                        callback.onNext(response);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        callback.onError(e);
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-
+                }
+                if (after != null) {
+                    after.run();
+                }
+            });
+        }, "reverse-image-prepare").start();
     }
 
+    /**
+     * 打开引擎的上传页，并把 imageUri 预挂给该页面的文件选择器。
+     *
+     * @param imageUri 必须是 FileProvider 的 content:// Uri，见
+     *                 {@link Common#copyUriToReverseSearchCache(Uri)}
+     */
+    public static void search(Context context, Uri imageUri, ReverseProvider provider) {
+        Intent intent = new Intent(context, TemplateActivity.class);
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "以图搜图");
+        intent.putExtra(Params.TITLE, provider.displayName);
+        intent.putExtra(Params.URL, provider.uploadPageUrl);
+        intent.putExtra(Params.REVERSE_SEARCH_IMAGE_URI, imageUri);
+        context.startActivity(intent);
+    }
 
     public enum ReverseProvider {
-        Iqdb(IQDB_BASE_URL, IqdbApi.class), SauceNao(SAUCENAO_BASE_URL, SauceNaoApi.class), TinEye(TINEYE_BASE_URL, TinEyeApi.class), Ascii2D(ASCII2D_BASE_URL, Ascii2DApi.class);
+        SauceNao("SauceNao", "https://saucenao.com/"),
+        Ascii2D("Ascii2D", "https://ascii2d.net/");
 
-        public final String base_url;
-        public Class<?> apiClass;
+        public final String displayName;
+        /** 引擎的上传页。WebView 先真实 GET 这一页拿到 cookie，再由页面自己 POST。 */
+        public final String uploadPageUrl;
 
-        ReverseProvider(String baseUrl, Class<?> apiClass) {
-            this.base_url = baseUrl;
-            this.apiClass = apiClass;
+        ReverseProvider(String displayName, String uploadPageUrl) {
+            this.displayName = displayName;
+            this.uploadPageUrl = uploadPageUrl;
         }
-    }
-
-
-    public interface Callback {
-        void onSubscribe(Disposable d);
-
-        void onNext(Response<ResponseBody> response);
-
-        void onError(Throwable e);
     }
 }

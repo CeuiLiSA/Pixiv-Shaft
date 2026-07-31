@@ -12,7 +12,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
@@ -28,6 +27,7 @@ import ceui.pixiv.ui.synonym.SynonymOperate
 import ceui.pixiv.utils.ppppx
 import com.google.android.flexbox.AlignItems
 import com.google.android.flexbox.FlexboxLayout
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 
 /**
@@ -392,9 +392,9 @@ class V3TagFlowView @JvmOverloads constructor(
 
     private fun copyToClipboard(text: String) {
         if (ClipBoardUtils.setPrimaryClip(context, ClipData.newPlainText("pixiv-tag", text))) {
-            Toast.makeText(context, R.string.has_copyed, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.has_copyed)
         } else {
-            Toast.makeText(context, R.string.msg_copy_failed, Toast.LENGTH_SHORT).show()
+            Toaster.showShort(R.string.msg_copy_failed)
         }
     }
 
@@ -404,7 +404,7 @@ class V3TagFlowView @JvmOverloads constructor(
             this.translated_name = translated
         }
         PixivOperate.muteTag(bean)
-        Toast.makeText(context, R.string.string_382, Toast.LENGTH_SHORT).show()
+        Toaster.showShort(R.string.string_382)
     }
 
     private fun applyTouchScale(view: View, scale: Float) {

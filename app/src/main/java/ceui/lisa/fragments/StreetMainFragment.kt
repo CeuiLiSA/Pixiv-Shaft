@@ -8,7 +8,6 @@ import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
@@ -32,8 +31,11 @@ import ceui.loxia.CsrfTokenProvider
 import ceui.loxia.StreetContent
 import ceui.loxia.StreetThumbnail
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.widgets.LoadMoreScrollListener
+import ceui.pixiv.widgets.applyV3RefreshTheme
+import ceui.pixiv.widgets.scrollUpFrom
 import com.bumptech.glide.Glide
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import com.hjq.toast.Toaster
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,7 +61,7 @@ private const val EXTRACT_TOKEN_JS = """
 })()
 """
 
-class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
+class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
 
     private val viewModel: StreetMainViewModel by viewModels()
     private val adapter = StreetAdapter()
@@ -75,32 +77,34 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         baseBind.recyclerView.adapter = adapter
 
+        baseBind.refreshLayout.applyV3RefreshTheme()
+        // 列表隔着 listContainer 挂在刷新层下,顶部判定得自己接到 RecyclerView 上,
+        // 否则滚到中段往下拖也会被当成「已在顶部」触发刷新。
+        baseBind.refreshLayout.scrollUpFrom(baseBind.recyclerView)
         baseBind.refreshLayout.setOnRefreshListener { viewModel.refresh() }
-        baseBind.refreshLayout.setOnLoadMoreListener { viewModel.loadMore() }
+        // 翻页改由滚动触发(SwipeRefreshLayout 没有上拉 footer)。到底了就别再喂请求;
+        // 重入由 StreetMainViewModel.load 的 Loading 守卫兜住。
+        baseBind.recyclerView.addOnScrollListener(
+            LoadMoreScrollListener({ if (viewModel.hasMore) viewModel.loadMore() })
+        )
 
         viewModel.loadState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is StreetMainViewModel.LoadState.Refreshed -> {
                     adapter.notifyDataSetChanged()
-                    baseBind.refreshLayout.finishRefresh()
-                    baseBind.refreshLayout.setNoMoreData(!viewModel.hasMore)
+                    baseBind.refreshLayout.isRefreshing = false
                 }
                 is StreetMainViewModel.LoadState.LoadedMore -> {
                     adapter.notifyItemRangeInserted(state.insertStart, state.insertCount)
-                    baseBind.refreshLayout.finishLoadMore()
-                    baseBind.refreshLayout.setNoMoreData(!viewModel.hasMore)
                 }
                 is StreetMainViewModel.LoadState.Error -> {
-                    baseBind.refreshLayout.finishRefresh(false)
-                    baseBind.refreshLayout.finishLoadMore(false)
-                    Toast.makeText(mContext, state.message, Toast.LENGTH_SHORT).show()
+                    baseBind.refreshLayout.isRefreshing = false
+                    Toaster.showShort(state.message)
                 }
                 else -> Unit
             }
         }
     }
-
-    override fun getSmartRefreshLayout(): SmartRefreshLayout = baseBind.refreshLayout
 
     private var loginWebView: WebView? = null
 
@@ -123,6 +127,9 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
     private fun fetchCsrfViaWebView() {
         Timber.d("StreetMain: have cookie but no CSRF, fetching via WebView")
         baseBind.toolbarTitle.text = getString(R.string.street_title)
+        // CSRF 没就绪前下拉刷新必失败(refresh() 直接抛"token 未就绪"的 toast),先关掉手势,
+        // cleanupWebView 里恢复。legacy 的 FalsifyHeader 本来就不触发刷新,这是对齐旧行为。
+        baseBind.refreshLayout.isEnabled = false
 
         val webView = WebView(mContext).apply {
             visibility = View.GONE
@@ -161,12 +168,12 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
                     if (CsrfTokenProvider.get() != null) {
                         viewModel.refresh()
                     } else {
-                        Toast.makeText(mContext, "无法获取 CSRF token，请重试", Toast.LENGTH_SHORT).show()
+                        Toaster.showShort("无法获取 CSRF token，请重试")
                     }
                 }
             }
         }
-        baseBind.refreshLayout.addView(webView)
+        baseBind.listContainer.addView(webView)
         webView.loadUrl("https://www.pixiv.net/")
     }
 
@@ -190,6 +197,10 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
     private fun startWebLogin() {
         baseBind.toolbarTitle.text = getString(R.string.street_web_login_toolbar)
         baseBind.recyclerView.visibility = View.GONE
+        // 登录 WebView 盖满 listContainer 期间必须关掉下拉刷新:此时 scrollUpFrom 的唯一候选
+        // recyclerView 是 GONE,canChildScrollUp 恒 false → 在登录页里往回滚(手指下滑)会被
+        // SwipeRefreshLayout 拦截成刷新手势——既抢走 WebView 的滚动,又在登录中途乱发 refresh()。
+        baseBind.refreshLayout.isEnabled = false
 
         val ua = ClientManager.WEB_USER_AGENT
         val webView = WebView(mContext).apply {
@@ -224,7 +235,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
                             MMKV.defaultMMKV().encode("web-api-csrf-token", token)
                         }
                         cleanupWebView()
-                        Toast.makeText(mContext, getString(R.string.street_web_login_success), Toast.LENGTH_SHORT).show()
+                        Toaster.showShort(getString(R.string.street_web_login_success))
                         viewModel.refresh()
                     }
                 }
@@ -237,7 +248,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
             }
         }
 
-        baseBind.refreshLayout.addView(webView)
+        baseBind.listContainer.addView(webView)
         webView.loadUrl("https://accounts.pixiv.net/login")
     }
 
@@ -261,12 +272,13 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
 
     private fun cleanupWebView() {
         loginWebView?.let {
-            baseBind.refreshLayout.removeView(it)
+            baseBind.listContainer.removeView(it)
             it.destroy()
         }
         loginWebView = null
         baseBind.toolbarTitle.text = getString(R.string.street_title)
         baseBind.recyclerView.visibility = View.VISIBLE
+        baseBind.refreshLayout.isEnabled = true
     }
 
     override fun onDestroyView() {
@@ -353,7 +365,7 @@ class StreetMainFragment : SwipeFragment<FragmentBaseListBinding>() {
                             putExtra(Params.PAGE_UUID, uuid)
                         })
                     } catch (_: Exception) {
-                        Toast.makeText(mContext, "加载失败", Toast.LENGTH_SHORT).show()
+                        Toaster.showShort("加载失败")
                     }
                 }
             }

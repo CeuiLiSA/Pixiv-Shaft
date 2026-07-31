@@ -2,7 +2,6 @@ package ceui.pixiv.ui.common
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.HapticFeedbackConstants
@@ -12,7 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyIllustStaggerBinding
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -82,12 +81,9 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             // 爱心长按 → 按标签收藏（对齐 IAdapter）
             cell.binding.likeButton.setOnLongClickListener {
                 val bean = cell.item.bean
-                startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                    putExtra(Params.ILLUST_ID, bean.id)
-                    putExtra(Params.DATA_TYPE, Params.TYPE_ILLUST)
-                    putExtra(Params.TAG_NAMES, bean.tagNames)
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏")
-                })
+                SelectTagBottomSheet.show(
+                    this@staggerIllustRenderer, bean.id, Params.TYPE_ILLUST, bean.tagNames,
+                )
                 true
             }
         },

@@ -54,8 +54,31 @@
                 android:paddingEnd="16dp">
 
                 <RelativeLayout
+                    android:id="@+id/auto_refresh_home_feed_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/auto_refresh_home_feed" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/auto_refresh_home_feed_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/auto_refresh_home_feed"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/save_history_rela"
                     style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
                     android:background="@drawable/bg_m3_row_top">
 
                     <LinearLayout style="@style/M3SetTexts">
@@ -168,7 +191,7 @@
                 <RelativeLayout
                     android:id="@+id/filter_rank_bookmarked_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/bg_m3_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -183,39 +206,80 @@
 
                 </RelativeLayout>
 
-                <RelativeLayout
-                    android:id="@+id/delete_star_illust_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                <!-- 小说列表自动屏蔽（issue #743）：单独成节，别和上面的通用过滤挤在一张卡里 -->
+                <TextView
+                    style="@style/M3SetHeader"
+                    android:text="@string/novel_filter_section" />
 
-                    <LinearLayout style="@style/M3SetTexts">
+                <RelativeLayout
+                    android:id="@+id/novel_filter_min_text_length_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_top">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
 
                         <TextView
                             style="@style/M3SetTitle"
-                            android:text="@string/delete_star_illust" />
+                            android:text="@string/novel_filter_min_text_length" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/novel_filter_min_text_length_desc" />
                     </LinearLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/delete_star_illust"
-                        style="@style/M3SetSwitch" />
+                    <TextView
+                        android:id="@+id/novel_filter_min_text_length"
+                        style="@style/M3SetValue" />
 
                 </RelativeLayout>
 
                 <RelativeLayout
-                    android:id="@+id/filter_invalid_bookmarks_rela"
+                    android:id="@+id/novel_filter_max_text_length_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/bg_m3_row_mid">
 
-                    <LinearLayout style="@style/M3SetTexts">
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
 
                         <TextView
                             style="@style/M3SetTitle"
-                            android:text="@string/filter_invalid_bookmarks" />
+                            android:text="@string/novel_filter_max_text_length" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/novel_filter_max_text_length_desc" />
                     </LinearLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/filter_invalid_bookmarks"
-                        style="@style/M3SetSwitch" />
+                    <TextView
+                        android:id="@+id/novel_filter_max_text_length"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/novel_filter_max_tag_name_length_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/novel_filter_max_tag_name_length" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/novel_filter_max_tag_name_length_desc" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/novel_filter_max_tag_name_length"
+                        style="@style/M3SetValue" />
 
                 </RelativeLayout>
 
@@ -243,7 +307,7 @@
                 <RelativeLayout
                     android:id="@+id/search_default_sort_type_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/bg_m3_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -257,6 +321,24 @@
                     <TextView
                         android:id="@+id/search_default_sort_type"
                         style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/delete_star_illust_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/delete_star_illust" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/delete_star_illust"
+                        style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
 

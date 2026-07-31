@@ -49,6 +49,7 @@ import ceui.pixiv.ui.prime.PrimeIllustLoader;
 import ceui.pixiv.ui.search.SearchHintViewModel;
 import ceui.pixiv.ui.search.v3.SearchFilterV3BottomSheet;
 import ceui.pixiv.ui.search.v3.SearchFilterV3LegacyBridge;
+import io.reactivex.schedulers.Schedulers;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
@@ -83,6 +84,28 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
         isPremium = SessionManager.INSTANCE.isPremium();
         searchModel.getIsPremium().setValue(isPremium);
+
+        // 首搜写历史：无论从哪儿带关键字进来（输入框搜索/提示词/热标签/详情页标签/发现/深链…），
+        // 都在这唯一入口收口一次。首搜走 ensureLoaded 不发 nowGo，所以和下面的重搜 observer 不重复。
+        recordKeywordHistory(keyWord);
+    }
+
+    /**
+     * 关键字搜索写历史的唯一收口：首搜（{@link #initModel()} 拿到的 keyWord）与重搜（nowGo）都走这里，
+     * 由 {@link PixivOperate#insertSearchHistory} 按 id（keyword.hashCode()+type）去重——同词只留一条。
+     * 原先写入寄生在 {@code SearchIllustRepo.initApi}，会被 trending_builtin 提前 return 跳过、
+     * 且只有插画 tab 触发；上移到这里后所有入口、所有 tab、所有排序都稳定写一条。
+     */
+    private void recordKeywordHistory(String keyword) {
+        if (keyword == null) return;
+        final String trimmed = keyword.trim();
+        if (trimmed.isEmpty()) return;
+        // 写库甩到 IO 线程：insertSearchHistory 是主键读 + 单条插入，search_table 极小虽轻，
+        // 但 initModel / nowGo 都跑在主线程，统一挪开不碰主线程 Room（对齐本仓
+        // insertIllustViewHistory 等既有做法）。fire-and-forget，去重靠 id REPLACE，乱序无碍；
+        // 只捕获 String + 静态方法，不持有 Activity，无泄漏。
+        Schedulers.io().scheduleDirect(() ->
+                PixivOperate.insertSearchHistory(trimmed, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD));
     }
 
     @Override
@@ -355,6 +378,12 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         hintViewModel.getHintsVisible().observe(this, visible -> {
             animateHintList(visible != null && visible);
         });
+
+        // 重搜写历史：results 页每次真正发起搜索（软键盘回车 / 提交 chip / 点提示词 / 筛选应用）
+        // 都会给 nowGo 一脚，这里统一收口写一条（去重）。首搜不发 nowGo（走 ensureLoaded），
+        // 已在 initModel 写过，故两者不重复。读 keyword 而非 chip：nowGo 一定在 keyword 落定后才发。
+        searchModel.getNowGo().observe(this, ignored ->
+                recordKeywordHistory(searchModel.getKeyword().getValue()));
 
         // V3 filter sheet 替代老 FragmentFilter 抽屉。bridge 启动后会持续把
         // V3 SearchViewModel 的 illustFilter / novelFilter 翻译到 SearchModel，

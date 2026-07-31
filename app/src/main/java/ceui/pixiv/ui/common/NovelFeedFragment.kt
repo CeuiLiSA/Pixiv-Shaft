@@ -15,6 +15,7 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyNovelBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
@@ -37,6 +38,7 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.ui.recommend.bindTrendingScore
 import ceui.pixiv.utils.playLikePressHaptic
+import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.RateAppManager
@@ -81,6 +83,7 @@ abstract class NovelFeedFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(novelGlide)
         // 其它列表/详情页收藏某小说 → 广播回流本列表(双向同步;沿用 legacy CommonReceiver 的广播契约)
         feedLikeSync<NovelFeedItem>(
             feedViewModel = feedViewModel,
@@ -314,13 +317,13 @@ abstract class NovelFeedFragment(
         })
     }
 
-    /** 爱心长按进「按标签收藏」（对齐 NAdapter；接收方按 int ILLUST_ID 读，沿用 legacy 语义）。 */
+    /** 爱心长按弹「按标签收藏」sheet（对齐 NAdapter；接收方按 int ILLUST_ID 读，沿用 legacy 语义）。 */
     private fun openNovelTagBookmark(novel: Novel) {
-        startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(Params.ILLUST_ID, novel.id.toInt())
-            putExtra(Params.DATA_TYPE, Params.TYPE_NOVEL)
-            putExtra(Params.TAG_NAMES, novel.tags.orEmpty().mapNotNull { it.name }.toTypedArray())
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏")
-        })
+        SelectTagBottomSheet.show(
+            this,
+            novel.id.toInt(),
+            Params.TYPE_NOVEL,
+            novel.tags.orEmpty().mapNotNull { it.name }.toTypedArray(),
+        )
     }
 }

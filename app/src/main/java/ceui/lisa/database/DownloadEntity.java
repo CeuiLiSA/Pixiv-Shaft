@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey;
 import java.io.Serializable;
 
 @Entity(tableName = "illust_download_table",
-        indices = {@Index("illustId")})
+        indices = {@Index("illustId"), @Index({"illustId", "page"})})
 public final class DownloadEntity implements Serializable {
 
     @PrimaryKey()
@@ -34,6 +34,32 @@ public final class DownloadEntity implements Serializable {
      */
     @ColumnInfo(defaultValue = "0")
     private long illustId;
+
+    /**
+     * 这一行对应作品的第几页（0 基，与 {@code IllustsBean.meta_pages} 的下标一致）。
+     * v41 新增，配合 {@code (illustId, page)} 复合索引。
+     *
+     * <p>之前"这一页下过没"只能拿 {@code FileCreator.customFileName} 算出**当前模板**下
+     * 的文件名去查主键 —— 用户换过模板、或记录是 {@code DownloadImporter} 从旧版命名的
+     * 文件扫进来的，就永远查不中。有了这一列，查询按 (作品, 页码) 走，跟文件叫什么名字
+     * 彻底解耦。
+     *
+     * <p>两个负数哨兵，别混：
+     * <ul>
+     *   <li>{@code -1} = 还没回填过（v41 之前的存量行）。{@code DownloadPageBackfill}
+     *       只捞这一类。</li>
+     *   <li>{@code -2} = 回填试过了但文件名解析不出页码。**必须与 -1 区分**，否则回填
+     *       每一批都会重新捞到同一批行，永远跑不完。</li>
+     * </ul>
+     * 两种情况下按 (illustId, page) 的查询都自然落空，调用方退回原来的 fileName 主键
+     * 查询，不产生回归。
+     *
+     * <p>同 {@link #illustId} 的告警：{@code @ColumnInfo(defaultValue)} 必须与迁移里的
+     * {@code ADD COLUMN ... DEFAULT} 一致，**改这里等于改 v41 identity hash，改了必须
+     * 升版本号**，否则已迁到 v41 的设备会报 "Room cannot verify data integrity" 崩。
+     */
+    @ColumnInfo(defaultValue = "-1")
+    private int page = -1;
 
     public String getFilePath() {
         return filePath;
@@ -90,5 +116,13 @@ public final class DownloadEntity implements Serializable {
 
     public void setIllustId(long illustId) {
         this.illustId = illustId;
+    }
+
+    public int getPage() {
+        return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
     }
 }

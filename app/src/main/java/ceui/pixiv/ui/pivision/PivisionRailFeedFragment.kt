@@ -25,6 +25,7 @@ import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 
@@ -103,7 +104,7 @@ class PivisionRailFeedFragment : FeedFragment(R.layout.fragment_pivision_rail_fe
             cell.binding.category.setTextColor(palette.floatingPillContent)
             card.setOnClick { openArticle(cell.item.article) }
         },
-        recycle = { cell -> Glide.with(cell.binding.cover).clear(cell.binding.cover) },
+        recycle = { cell -> cell.binding.cover.clearGlideOnRecycle() },
     ) { cell ->
         val article = cell.item.article
         Glide.with(cell.binding.cover)

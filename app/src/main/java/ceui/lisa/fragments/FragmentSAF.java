@@ -43,7 +43,7 @@ public class FragmentSAF extends BaseFragment<FragmentSafBinding> {
                     }
                 } catch (Throwable t) {
                     t.printStackTrace();
-                    com.hjq.toast.ToastUtils.show(getString(R.string.saf_write_failed,
+                    com.hjq.toast.Toaster.show(getString(R.string.saf_write_failed,
                             t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
                 }
             }

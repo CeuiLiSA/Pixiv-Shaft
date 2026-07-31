@@ -98,18 +98,26 @@ class FeedViewModel<Cursor : Any>(
             }
 
             if (cached != null && cached.items.isNotEmpty()) {
+                // 数据源说「命中快照就别再自动刷了」（如首页推荐关掉了启动自动刷新，issue #955）：
+                // 这一代快照就是终态，refresh 直接收成 Idle，下面的网络段整段跳过。
+                val stayOnCache = !source.refreshAfterCacheHit()
                 nextCursor = cached.nextCursor
                 _uiState.update {
                     it.copy(
                         items = cached.items,
-                        // refresh 保持 Loading 表示网络刷新仍在下面进行；render 现成逻辑
-                        // isRefreshing = refresh is Loading && hasLoadedOnce 让全屏 loading
+                        // 常规路径下 refresh 保持 Loading 表示网络刷新仍在下面进行；render 现成
+                        // 逻辑 isRefreshing = refresh is Loading && hasLoadedOnce 让全屏 loading
                         // 让位给「内容 + 顶部刷新圈」。缓存旧游标翻页的竞态由 loadMore 现有的
                         // `refresh is Loading → return` 守卫免费挡住。
-                        refresh = LoadState.Loading,
+                        // stayOnCache 时没有后续网络段，直接收成 Idle：既不留假的转圈，也让
+                        // 快照的游标立刻可以翻页。
+                        refresh = if (stayOnCache) LoadState.Idle else LoadState.Loading,
                         append = LoadState.Idle,
                         reachedEnd = cached.nextCursor == null,
                         hasLoadedOnce = true,
+                        // 停在快照上时也**照样**置 true：这一代确实来自磁盘，副作用消费方
+                        //（IllustFeedPoolSync 喂 ObjectPool / 关注态）靠它门控，抹掉就会让陈旧
+                        // bean 把更新的收藏 / 关注态盖回去。
                         itemsFromCache = true,
                         // 整代替换：磁盘快照的条目实例与之前任何一代都无关
                         structureVersion = it.structureVersion + 1,
@@ -121,6 +129,10 @@ class FeedViewModel<Cursor : Any>(
                     "feeds: 本地优先数据已展示，距 refresh() 发起 %dms（%d 条）",
                     displayMs, cached.items.size,
                 )
+                if (stayOnCache) {
+                    Timber.d("feeds: 启动自动刷新已关闭，停在磁盘快照上，等用户下拉刷新")
+                    return@launch
+                }
             } else {
                 _uiState.update { it.copy(refresh = LoadState.Loading, append = LoadState.Idle) }
                 if (coldStart) {
@@ -190,9 +202,12 @@ class FeedViewModel<Cursor : Any>(
         // Loading 防重入；Error 停手等用户点重试
         if (current.append !is LoadState.Idle) return
         val firstCursor = nextCursor ?: return
-        // 单飞守卫成立依赖 viewModelScope 是 Dispatchers.Main.immediate：launch 会同步跑到第一个
-        // 挂起点，append=Loading 在本函数返回前就提交，挡住紧接着的同步 onNearEnd 重入。若哪天把
-        // 调度器换成非 immediate 的 Main，这里会放进第二个 appendJob 把第一个悬空——改前先想清楚。
+        // 单飞的硬保证：上一个 appendJob 还活着（含已 launch 但尚未跑到 append=Loading 提交）就
+        // 直接返回。上面的状态快照检查挡不住这个窗口——它依赖「viewModelScope 是 Main.immediate、
+        // launch 同步跑到第一个挂起点」这个调度器行为，换成非 immediate 调度器（单测的
+        // StandardTestDispatcher 就是）同步重入会放进第二个 job 把第一个悬空。查 job 存活与
+        // 调度器无关，两层守卫叠加后重入在任何调度器下都安全。
+        if (appendJob?.isActive == true) return
         appendJob = viewModelScope.launch {
             _uiState.update { it.copy(append = LoadState.Loading) }
             try {

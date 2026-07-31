@@ -12,6 +12,7 @@
 
 
     <string name="empty_list_1">居然啥也没有</string>
+    <string name="feature_empty_hint">还没有收藏过精华\n在作品列表页的菜单里选「收藏到精华」</string>
     <string name="empty_list_2">居然啥也没有</string>
     <string name="empty_list_3">居然啥也没有</string>
     <string name="empty_list_4">居然啥也没有</string>
@@ -27,6 +28,7 @@
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">分享</string>
     <string name="webview_handler_open_in_browser">在浏览器中打开</string>
+    <string name="webview_go_forward">前进</string>
     <string name="webview_handler_copy_link_addr">复制链接地址</string>
     <string name="webview_handler_copy_link_text">复制链接文本</string>
     <string name="webview_handler_download_link">下载链接</string>
@@ -129,6 +131,10 @@
     <string name="v3_widget_recommend_strip_description">Pixiv 推荐 · 三张</string>
     <string name="v3_widget_recommend_card_label">Pixiv 推荐 随机卡片</string>
     <string name="v3_widget_recommend_card_description">随机一张推荐作品，可缩放为 2×2 / 2×1</string>
+    <string name="v3_widget_refresh_interval_title">小组件换图间隔</string>
+    <string name="v3_widget_interval_minutes">%d 分钟</string>
+    <string name="v3_widget_interval_hours">%d 小时</string>
+    <string name="v3_widget_bookmark_failed">收藏失败，请稍后再试</string>
     <string name="novel_tag">小说标签</string>
     <string name="hot_tag">热门标签</string>
     <string name="ranking_illust">排行榜</string>
@@ -160,6 +166,17 @@
     <string name="slide_down_endless">相关作品无限下滑（可能出现重复）</string>
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜索结果收藏量筛选</string>
+    <string name="novel_filter_section">小说列表自动屏蔽</string>
+    <string name="novel_filter_min_text_length">小说正文字数下限</string>
+    <string name="novel_filter_min_text_length_desc">正文短于该字数的小说不显示在小说列表里，填 0 关闭</string>
+    <string name="novel_filter_max_text_length">小说正文字数上限</string>
+    <string name="novel_filter_max_text_length_desc">正文长于该字数的小说不显示在小说列表里，填 0 关闭</string>
+    <string name="novel_filter_max_tag_name_length">小说超长标签屏蔽</string>
+    <string name="novel_filter_max_tag_name_length_desc">任一标签名长于该字数的小说不显示，专治往标签里塞广告，填 0 关闭</string>
+    <string name="novel_filter_unlimited">不限</string>
+    <string name="novel_filter_chars">%1$d 字</string>
+    <string name="novel_filter_input_hint">填 0 关闭</string>
+    <string name="novel_filter_range_invalid">小说正文字数下限不能大于上限</string>
     <string name="language">语言</string>
     <string name="language_follow_system">跟随系统</string>
     <string name="theme_mode">主题模式</string>
@@ -465,6 +482,7 @@
     <string name="string_242">设置命名方式（长按拖拽）</string>
     <string name="string_243">这里什么都没有呢</string>
     <string name="list_load_failed_tap_retry">加载失败，点击重试</string>
+    <string name="feed_error_tap_retry">点击重试</string>
     <string name="string_244">按标签筛选</string>
     <string name="string_245">收藏到精华</string>
     <string name="string_246">插画作品</string>
@@ -638,7 +656,7 @@
     <string name="string_408">网址格式不正确</string>
     <string name="string_409">下载时自动收藏</string>
     <string name="string_410">以图搜源图像大小超过限制</string>
-    <string name="reverse_image_network_error">连接被重置,可能需要代理;可改用 Ascii2D 引擎</string>
+    <string name="reverse_image_copy_failed">读取图片失败,请重新选择</string>
     <string name="string_411">四群</string>
     <string name="string_412">生日</string>
     <string name="string_413">详情页面显示原图</string>
@@ -866,6 +884,8 @@
     <string name="toast_download_result">下载完成App内提示</string>
     <string name="setting_write_exif_tags_title">下载时把标签写进图片</string>
     <string name="setting_write_exif_tags_desc">给下载的 JPEG 写入 XMP 关键词(dc:subject),方便相册 / 图管软件按标签管理。仅 JPEG。</string>
+    <string name="setting_silent_download_title">低调下载</string>
+    <string name="setting_silent_download_desc">把下载图片的时间标记为很久以前,不出现在相册和微信 / QQ 选图列表的最前排。</string>
     <string name="title_home" translatable="false">Home</string>
     <string name="show_reply">查看回复</string>
     <string name="comments">评论</string>
@@ -1440,6 +1460,16 @@
     <string name="download_path_teach_var_id">作品 ID（如 123456789），建议必加，避免同名覆盖</string>
     <string name="download_path_teach_var_title">作品标题</string>
     <string name="download_path_teach_var_page">当前是第几张图，从 0 开始</string>
+    <string name="download_path_pad_page_title">多图页码补零</string>
+    <string name="download_path_pad_page_switch_label">给页码补零（p2 → p02）</string>
+    <string name="download_path_pad_page_on">已开启</string>
+    <string name="download_path_pad_page_off">已关闭</string>
+    <string name="download_path_pad_page_body">相册和文件管理器是按文件名逐个字符比大小的，所以 p10 会排到 p2 前面，一套多图的顺序就乱了。\n开启后，{page} 会自动补 0，补到和本作品最大页码一样宽（4 张图 → p01…p04，150 张图 → p001…p150），顺序就正常了。\n只影响之后新下载的文件，已经下好的不会重命名。</string>
+    <string name="download_path_pad_page_example_off">关闭时，相册里会这样排</string>
+    <string name="download_path_pad_page_example_on">开启后</string>
+    <string name="download_path_pad_page_hint">想固定位数，可以在模板里直接写 {page:000}（三位）或 {page:0000}（四位）；模板里写死的位数优先于这个开关。</string>
+    <string name="download_path_pad_page_toast_on">已开启页码补零</string>
+    <string name="download_path_pad_page_toast_off">已关闭页码补零</string>
     <string name="download_path_teach_var_pages">本作品总张数</string>
     <string name="download_path_teach_var_ext">文件扩展名（跟随源文件，如 png / jpg / gif）</string>
     <string name="download_path_teach_var_author">作者昵称</string>
@@ -1724,6 +1754,62 @@
     <string name="dlmgr_done_action_refresh">刷新</string>
     <string name="dlmgr_done_action_clear_history">清空记录</string>
     <string name="dlmgr_done_action_export">导出</string>
+
+    <!-- 导入本地下载（issue #953）：旧版下载的图片新版认不出来，扫描用户授权的目录重建记录 -->
+    <string name="dlmgr_import_title">导入本地下载</string>
+    <string name="dlmgr_import_intro">如果你之前用旧版本下载过作品，升级或换机后这些图片可能不再被识别为「已下载」。\n\n选择存放这些图片的文件夹，Shaft 会读取其中的文件名，为能识别出作品 ID 的图片补建下载记录。\n\n· 只读取你选择的这个文件夹\n· 不会修改、移动或删除任何文件\n· 已有的下载记录不会被覆盖</string>
+    <string name="dlmgr_import_pick_folder">选择文件夹</string>
+    <string name="dlmgr_import_pick_failed">无法打开文件夹选择器：%s</string>
+    <string name="dlmgr_import_failed">导入失败：%s</string>
+    <string name="dlmgr_import_scanning_title">正在扫描</string>
+    <string name="dlmgr_import_scanning_start">正在读取目录…</string>
+    <string name="dlmgr_import_scanning_status">已扫描 %1$d 个文件 · 已识别 %2$d 个</string>
+    <string name="dlmgr_import_preview_title">确认导入</string>
+    <string name="dlmgr_import_confirm">导入</string>
+    <string name="dlmgr_import_page_base_title">旧版页码从哪里开始？</string>
+    <string name="dlmgr_import_page_base_message">有 %d 个文件只出现了 p1、p2…，无法自动判断旧版设置是从 p0 还是 p1 开始。\n\n请选择当时使用的设置。选错会让本地图片与作品页码错位；旧版默认设置是从 p1 开始。</string>
+    <string name="dlmgr_import_page_base_zero">从 p0 开始</string>
+    <string name="dlmgr_import_page_base_one">从 p1 开始</string>
+    <string name="dlmgr_import_stat_scanned">扫描到图片文件：%d</string>
+    <string name="dlmgr_import_stat_recognized">识别出作品：%1$d 个（共 %2$d 页）</string>
+    <string name="dlmgr_import_stat_existing">已有记录，将跳过：%d 页</string>
+    <string name="dlmgr_import_stat_new">本次新增：%1$d 个作品 / %2$d 条记录</string>
+    <string name="dlmgr_import_stat_unrecognized">无法识别作品 ID：%d 个文件</string>
+    <string name="dlmgr_import_empty_no_files">这个文件夹里没有找到图片文件。</string>
+    <string name="dlmgr_import_empty_none_recognized">扫描到了图片，但文件名里认不出作品 ID，无法建立下载记录。\n\n如果这些图片是 Shaft 下载的，请确认文件名中保留了作品 ID。</string>
+    <string name="dlmgr_import_empty_all_existing">这个文件夹里的 %d 个文件都已经有下载记录了，无需导入。</string>
+    <string name="dlmgr_import_writing">正在写入记录…</string>
+    <string name="dlmgr_import_done_title">导入完成</string>
+    <string name="dlmgr_import_done_message">已补建 %1$d 个作品 / %2$d 条下载记录。\n\n这些作品现在会显示为「已下载」。</string>
+    <string name="dlmgr_import_enrich_now">补全作品信息</string>
+    <string name="dlmgr_import_enrich_later">以后再说</string>
+    <string name="dlmgr_import_enrich_message">导入的记录目前只有作品 ID，卡片上显示的是文件名。\n\n可以联网逐个补全标题、作者和封面。共 %1$d 个作品，预计需要 %2$d 分钟，中途可以取消，下次会接着跑。</string>
+
+    <string name="rename_dl_title">重命名已下载文件</string>
+    <string name="rename_dl_card_body">更改命名格式只影响之后的新下载。这里可以把已经下载的插画 / 漫画 / 动图按当前格式批量改名。\n\n· 只改文件名，不移动、不删除任何文件\n· 下载记录同步更新，「已下载」识别不受影响\n· 小说文件不在范围内</string>
+    <string name="rename_dl_entry">按当前格式重命名</string>
+    <string name="rename_dl_intro">将扫描全部下载记录，把文件名与当前命名格式不一致的文件批量改名。\n\n· 只改文件名，不移动、不删除任何文件\n· 文件已丢失或信息不全的记录会自动跳过\n· 扫描阶段不做任何修改，改名前会先显示统计供确认</string>
+    <string name="rename_dl_scan">开始扫描</string>
+    <string name="rename_dl_scanning_title">正在扫描</string>
+    <string name="rename_dl_scanning_start">正在读取下载记录…</string>
+    <string name="rename_dl_scanning_status">已检查 %1$d 条记录 · 需改名 %2$d 个</string>
+    <string name="rename_dl_preview_title">确认重命名</string>
+    <string name="rename_dl_confirm">开始重命名</string>
+    <string name="rename_dl_empty">没有需要重命名的文件。</string>
+    <string name="rename_dl_stat_total">下载记录：%d 条</string>
+    <string name="rename_dl_stat_matching">已符合当前格式：%d 个</string>
+    <string name="rename_dl_stat_to_rename">将重命名：%d 个文件</string>
+    <string name="rename_dl_stat_missing">文件已不存在，跳过：%d</string>
+    <string name="rename_dl_stat_enrich">缺少作品信息（需先补全），跳过：%d</string>
+    <string name="rename_dl_stat_page">页码未知，跳过：%d</string>
+    <string name="rename_dl_stat_conflict">新名字与其他文件重复，跳过：%d</string>
+    <string name="rename_dl_stat_broken">记录数据异常，跳过：%d</string>
+    <string name="rename_dl_stat_cache_zip">动图缓存文件（内部文件），跳过：%d</string>
+    <string name="rename_dl_prompt_after_save">命名格式已更新。\n\n要把已经下载的文件也按新格式改名吗？会先扫描并显示统计，确认后才执行。</string>
+    <string name="rename_dl_later">以后再说</string>
+    <string name="rename_dl_go">去重命名</string>
+    <string name="rename_dl_failed">操作失败：%s</string>
+
     <string name="dlmgr_done_layout_list">布局：列表</string>
     <string name="dlmgr_done_layout_grid">布局：网格</string>
     <string name="dlmgr_done_layout_compact">布局：缩图</string>
@@ -1918,6 +2004,15 @@
     <string name="year_rank">年代榜</string>
     <string name="year_rank_title">年代收藏榜</string>
     <string name="year_rank_load_failed">年份列表加载失败</string>
+    <string name="tag_rank">标签榜</string>
+    <string name="tag_rank_title">标签专区</string>
+    <string name="tag_rank_load_failed">标签列表加载失败</string>
+    <string name="tag_rank_pick">选择标签</string>
+    <string name="year_rank_pick">选择年份</string>
+    <string name="wallpaper_rank">壁纸榜</string>
+    <string name="wallpaper_rank_title">壁纸收藏榜</string>
+    <string name="wallpaper_screen_phone">手机</string>
+    <string name="wallpaper_screen_desktop">桌面</string>
     <!-- 当前最热的窗口下拉(实时流 / 实时日·周·月榜) -->
     <string name="recent_window_live">实时</string>
     <string name="recent_window_day">日榜</string>
@@ -2319,4 +2414,14 @@
     <string name="drawer_section_discover">浏览与发现</string>
     <string name="drawer_section_mine">我的</string>
     <string name="drawer_section_records">记录与管理</string>
+    <!-- 启动时自动刷新首页推荐 (issue #955) -->
+    <string name="auto_refresh_home_feed">启动时自动刷新首页推荐</string>
+    <string name="auto_refresh_home_feed_desc">关闭后启动时直接展示上次的推荐内容，下拉刷新才换新一批</string>
+    <string name="ugoira_rife_enable">动图 AI 补帧 (RIFE)</string>
+    <string name="ugoira_rife_enable_desc">在相邻帧之间插入 AI 生成的中间帧,自动补至最高 4 倍帧率(贴近 GIF 50fps 上限);首次使用需下载补帧模型,压制耗时会变长</string>
+    <string name="ugoira_interpolating">补帧中</string>
+    <string name="string_rife_model">补帧模型</string>
+    <string name="string_rife_download_title">下载 RIFE 补帧模型</string>
+    <string name="string_rife_download_subtitle">%1$s 需要额外下载以启用动图 AI 补帧</string>
+    <string name="string_rife_download_done">补帧模型下载完成</string>
 </resources>

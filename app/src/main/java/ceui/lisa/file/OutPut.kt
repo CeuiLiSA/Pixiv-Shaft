@@ -58,7 +58,9 @@ object OutPut {
 
     @JvmStatic
     fun outPutBackupFile(context: Context, from: File, fileName: String) {
-        writeRaw(Bucket.Backup, "ShaftBackups/$fileName", "application/zip", from, R.string.save_backup_failed)
+        // 备份文件本身就是 JSON（Shaft-Backup.json），之前写成 application/zip 会让
+        // MediaStore 按 MIME 给文件补一个 .zip 后缀，看起来像压缩包实则不是（#949）。
+        writeRaw(Bucket.Backup, "ShaftBackups/$fileName", "application/json", from, R.string.save_backup_failed)
     }
 
     @JvmStatic

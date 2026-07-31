@@ -19,6 +19,7 @@ import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
+import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -60,6 +61,7 @@ abstract class UserFeedFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(userGlide)
         // 关注态跨列表同步：其它页/本页关注某用户 → LIKED_USER 广播回流
         feedLikeSync<UserFeedItem>(
             feedViewModel = feedViewModel,

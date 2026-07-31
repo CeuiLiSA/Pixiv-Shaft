@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.reflect.TypeToken;
-import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +32,7 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;
 
-public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
+public class FragmentFileName extends BaseLazyFragment<FragmentFileNameBinding> {
 
     private IllustsBean illust;
     private final List<CustomFileNameCell> allItems = new ArrayList<>();
@@ -179,8 +178,4 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
         Common.showToast("保存成功！");
     }
 
-    @Override
-    public SmartRefreshLayout getSmartRefreshLayout() {
-        return baseBind.refreshLayout;
-    }
 }

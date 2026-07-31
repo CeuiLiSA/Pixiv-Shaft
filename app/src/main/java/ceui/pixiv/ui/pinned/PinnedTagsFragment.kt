@@ -138,7 +138,7 @@ class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
                     withContext(Dispatchers.IO) { searchDao().deleteSearchEntity(entity) }
                     feedViewModel.refresh()
                 }
-                // Toast 走 application-context 的 ToastUtils,fragment 已 detach 时也安全；
+                // Toast 走 Toaster,窗口挂在栈顶 Activity 上而不是 fragment,已 detach 时也安全；
                 // 用 int 资源是为了避免 dialog 回调里 getString() 撞上 fragment 未 attach 抛 ISE。
                 Common.showToast(R.string.unpin_tag_success)
                 dialog.dismiss()

@@ -23,6 +23,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.novel.NovelSeriesFragment
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
@@ -121,8 +122,8 @@ internal fun WatchlistFeedFragment.watchlistMangaRenderer():
             cell.binding.userHead.setOnClick { openSeriesAuthor(cell.item.series) }
         },
         recycle = { cell ->
-            Glide.with(cell.binding.cover).clear(cell.binding.cover)
-            Glide.with(cell.binding.userHead).clear(cell.binding.userHead)
+            cell.binding.cover.clearGlideOnRecycle()
+            cell.binding.userHead.clearGlideOnRecycle()
         },
     ) { cell ->
         bindWatchlistCard(
@@ -160,8 +161,8 @@ internal fun WatchlistFeedFragment.watchlistNovelRenderer():
             cell.binding.userHead.setOnClick { openSeriesAuthor(cell.item.series) }
         },
         recycle = { cell ->
-            Glide.with(cell.binding.cover).clear(cell.binding.cover)
-            Glide.with(cell.binding.userHead).clear(cell.binding.userHead)
+            cell.binding.cover.clearGlideOnRecycle()
+            cell.binding.userHead.clearGlideOnRecycle()
         },
     ) { cell ->
         bindWatchlistCard(

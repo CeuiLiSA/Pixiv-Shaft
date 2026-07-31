@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
@@ -52,6 +54,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.pixiv.download.RecordedPageProbe;
 import ceui.pixiv.utils.SketchPreloader;
 import ceui.pixiv.imageloader.ImageLoadState;
 import ceui.pixiv.imageloader.ImageLoadTask;
@@ -59,6 +62,16 @@ import ceui.pixiv.imageloader.ImageLoaderV3;
 import ceui.pixiv.ui.task.TaskStatus;
 
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
+
+    /**
+     * feed 里可能同时创建很多 adapter；每个实例各起一条 Thread 会在线程栈和调度上产生
+     * 尖峰。两个低优先级 worker 足够覆盖 Room + SAF 的阻塞读取，也不会挤占图片解码。
+     */
+    private static final ExecutorService LOCAL_SCAN_EXECUTOR = Executors.newFixedThreadPool(2, runnable -> {
+        Thread thread = new Thread(runnable, "illust-local-scan");
+        thread.setPriority(Thread.MIN_PRIORITY);
+        return thread;
+    });
 
     /** Reports per-page LoadTask status changes to the host (used by V3's retry-all banner). */
     public interface PageStatusListener {
@@ -161,27 +174,51 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         final int pageCount = Math.max(illust.getPage_count(), 1);
         final long illustId = illust.getId();
         localScanRunning = true;
-        new Thread(() -> {
-            final Map<Integer, Uri> found = new HashMap<>();
+        LOCAL_SCAN_EXECUTOR.execute(() -> {
+            if (released) return;
+            // 展开时会再扫一次，以发现“构造后新下载”的页。已经验过可读的页直接复用，
+            // 避免多 P 作品重复 openFileDescriptor。
+            final Map<Integer, Uri> found = new HashMap<>(localPageUris);
             try {
                 DownloadDao dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao();
+
+                // 先按 (illustId, page) 查（v41 复合索引）。这条路跟文件叫什么名字无关，
+                // 所以用户换过命名模板、或记录是 DownloadImporter 从旧版命名的文件扫进来
+                // 的（issue #953），照样命中。
+                for (ceui.lisa.database.DownloadedPage e : dao.getDownloadedPages(illustId)) {
+                    if (released) return;
+                    if (e == null || e.filePath == null || e.filePath.isEmpty()) continue;
+                    int page = e.page;
+                    if (page < 0 || page >= pageCount || found.containsKey(page)) continue;
+                    Uri usable = RecordedPageProbe.usableUri(mContext, e.filePath);
+                    if (usable != null) {
+                        // 查询按下载时间倒序；同一页有重复记录时保留第一条仍可打开的，
+                        // 不让较新的孤儿行遮住仍完好的旧文件。
+                        found.put(page, usable);
+                    }
+                }
+
+                // 再用旧的 fileName 主键路补漏：v41 之前的存量行 page 还是 -1
+                // （DownloadPageBackfill 没跑完 / 文件名解析不出页码）。只补上面没查到的页。
                 final List<String> fileNames = new ArrayList<>(pageCount);
                 final Map<String, Integer> pageByFileName = new HashMap<>(pageCount);
                 for (int i = 0; i < pageCount; i++) {
                     if (released) return;
+                    if (found.containsKey(i)) continue;
                     String fileName = FileCreator.customFileName(illust, i);
                     fileNames.add(fileName);
                     pageByFileName.put(fileName, i);
                 }
-                // 单次 IN 查询取代 N 次 Room 调用。Pixiv 多 P 上限远低于 SQLite 变量上限。
-                for (DownloadEntity e : dao.getDownloadsByFileNames(fileNames)) {
-                    if (released) return;
-                    if (e != null && e.getFilePath() != null && !e.getFilePath().isEmpty()) {
-                        try {
+                if (!fileNames.isEmpty()) {
+                    // 单次 IN 查询取代 N 次 Room 调用。Pixiv 多 P 上限远低于 SQLite 变量上限。
+                    for (DownloadEntity e : dao.getDownloadsByFileNames(fileNames)) {
+                        if (released) return;
+                        if (e != null && e.getFilePath() != null && !e.getFilePath().isEmpty()) {
                             Integer page = pageByFileName.get(e.getFileName());
-                            if (page != null) found.put(page, Uri.parse(e.getFilePath()));
-                        } catch (Exception ignore) {
-                            // 坏 URI 跳过，该页照常走网络
+                            Uri usable = RecordedPageProbe.usableUri(mContext, e.getFilePath());
+                            if (page != null && usable != null) {
+                                found.put(page, usable);
+                            }
                         }
                     }
                 }
@@ -204,7 +241,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     if (listener != null) listener.run();
                 }
             });
-        }, "illust-local-scan-" + illustId).start();
+        });
     }
 
     @NonNull
@@ -359,7 +396,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         detachTaskObservers(holder);
 
         // 复用前重置「顶层原图」overlay，避免上一条的原图盖在这次的图上。底层 large 由各渲染路径自行覆盖。
-        Glide.with(mFragment).clear(holder.baseBind.illustHd);
+        // 走构造期就兑现好的 fragmentRequestManager，别在这里 Glide.with(mFragment)：那条重载会
+        // requireNonNull(fragment.getContext())，绑卡若赶在 fragment 已 detach 时打进来就是 NPE。
+        fragmentRequestManager.clear(holder.baseBind.illustHd);
         holder.baseBind.illustHd.setImageDrawable(null);
         holder.baseBind.illustHd.setVisibility(View.GONE);
 

@@ -45,6 +45,7 @@ import ceui.pixiv.ui.detail.SeriesAuthorFeedItem
 import ceui.pixiv.ui.detail.SeriesCaptionFeedItem
 import ceui.pixiv.ui.detail.SeriesSectionLabelFeedItem
 import ceui.pixiv.ui.user.UserActionReceiver
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -242,8 +243,8 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
     feedRenderer(
         inflate = CellNovelV3Binding::inflate,
         recycle = { cell ->
-            Glide.with(cell.binding.novelCover).clear(cell.binding.novelCover)
-            Glide.with(cell.binding.authorAvatar).clear(cell.binding.authorAvatar)
+            cell.binding.novelCover.clearGlideOnRecycle()
+            cell.binding.authorAvatar.clearGlideOnRecycle()
         },
     ) { cell ->
         val b = cell.binding
@@ -287,12 +288,17 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
         b.badgeAi.isVisible = novel.novel_ai_type == 2
 
         bindNovelCardTags(b, novel, palette)
-        // 绑定时从 ObjectPool 读最新收藏态：卡片回收复用后不会回退成加载时的旧值。
-        bindNovelCardBookmark(b, (ObjectPool.get<Novel>(novel.id).value ?: novel).is_bookmarked == true)
+        // 绑定时从 ObjectPool 读最新收藏态/收藏数：卡片回收复用后不会回退成加载时的旧值。
+        val pooled = ObjectPool.get<Novel>(novel.id).value ?: novel
+        bindNovelCardBookmark(b, pooled.is_bookmarked == true, pooled.total_bookmarks, fmt)
         b.bookmarkBtn.setOnClick { sender ->
-            // 乐观切态：先本地翻心，再交给 receiver 走网络 + ObjectPool。
-            val nowBookmarked = (ObjectPool.get<Novel>(novel.id).value ?: novel).is_bookmarked == true
-            bindNovelCardBookmark(b, !nowBookmarked)
+            // 乐观切态：先本地翻心 + 收藏数 ±1，再交给 receiver 走网络 + ObjectPool。
+            val now = ObjectPool.get<Novel>(novel.id).value ?: novel
+            val nowBookmarked = now.is_bookmarked == true
+            val nextCount = now.total_bookmarks?.let {
+                (if (nowBookmarked) it - 1 else it + 1).coerceAtLeast(0)
+            }
+            bindNovelCardBookmark(b, !nowBookmarked, nextCount, fmt)
             sender.findActionReceiverOrNull<NovelActionReceiver>()
                 ?.onClickBookmarkNovel(sender as ProgressIndicator, novel.id)
         }
@@ -320,10 +326,18 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
         applyCardTouchScale(b.root, 0.98f)
     }
 
-private fun bindNovelCardBookmark(b: CellNovelV3Binding, bookmarked: Boolean) {
+private fun bindNovelCardBookmark(
+    b: CellNovelV3Binding,
+    bookmarked: Boolean,
+    totalBookmarks: Int?,
+    fmt: NumberFormat,
+) {
     b.bookmarkBtn.setImageResource(if (bookmarked) R.drawable.icon_liked else R.drawable.icon_not_liked)
     b.bookmarkBtn.imageTintList = if (bookmarked) null
         else ColorStateList.valueOf(b.root.context.getColor(R.color.v3_text_3))
+    // 收藏数字段缺失时整条隐藏，不显示 0 —— 0 会被读成「没人收藏」而不是「不知道」。
+    b.bookmarkCount.isVisible = totalBookmarks != null
+    if (totalBookmarks != null) b.bookmarkCount.text = fmt.format(totalBookmarks)
 }
 
 private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel, palette: V3Palette) {

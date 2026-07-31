@@ -15,11 +15,10 @@ import ceui.lisa.databinding.TagItemBinding
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.viewmodel.UserViewModel
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
 
-class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
+class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
 
     private lateinit var mUserViewModel: UserViewModel
 
@@ -31,9 +30,6 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
         mUserViewModel = ViewModelProvider(mActivity).get(UserViewModel::class.java)
     }
 
-    override fun getSmartRefreshLayout(): SmartRefreshLayout {
-        return baseBind.refreshLayout
-    }
 
     override fun initData() {
         val data = mUserViewModel.user.value ?: return
@@ -53,9 +49,21 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
         if (data.profile.total_novel_series > 0) {
             content.add(getString(R.string.string_257)+ ": " + data.profile.total_novel_series)
         }
-        if (data.profile.total_illust_bookmarks_public > 0) {
-            content.add(getString(R.string.string_164) + ":" + data.profile.total_illust_bookmarks_public)
-        }
+        // 插画/漫画收藏。不能拿 total_illust_bookmarks_public 当显示门控:pixiv 的
+        // /v2/user/detail 只对「自己」返回这个字段,看别人时它整个不在 profile 里
+        // (实测别人的 profile 字段止于 badge,压根没有这一项),Gson 落到 Models.kt 的默认 0,
+        // 于是别人的主页永远看不到收藏入口。而收藏页走的是 /v1/user/bookmarks/illust,
+        // 跟这个计数毫无关系,对任意 userId 都拉得到。
+        // 跟同组的「小说收藏」「相关用户」以及 V3 的收藏 tab(UserActivityV3 里无条件 add)
+        // 保持一致:入口恒显,计数只在拿得到(即看自己)时作为后缀补上。
+        content.add(
+            getString(R.string.string_164) +
+                if (data.profile.total_illust_bookmarks_public > 0) {
+                    ": " + data.profile.total_illust_bookmarks_public
+                } else {
+                    ""
+                }
+        )
         content.add(getString(R.string.string_192)) //小说收藏
         content.add(getString(R.string.string_436)) //相关用户
         baseBind.tagLayout.adapter = object : TagAdapter<String>(content) {
@@ -147,11 +155,5 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
         }
     }
 
-    override fun enableLoadMore(): Boolean {
-        return false
-    }
 
-    override fun enableRefresh(): Boolean {
-        return false
-    }
 }

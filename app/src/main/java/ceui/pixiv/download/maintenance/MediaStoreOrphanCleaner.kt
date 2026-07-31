@@ -7,6 +7,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
+import ceui.pixiv.download.backend.InFlightMediaStoreWrites
 import timber.log.Timber
 
 /**
@@ -69,6 +71,9 @@ object MediaStoreOrphanCleaner {
         }
     }
 
+    // 调用方 [cleanupPendingOrphans] 已在 Q 以下直接 return，这里把前置条件显式化，
+    // 免得 lint 把 setIncludePending 误报成越版本调用。
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun cleanupCollection(
         context: Context,
         collection: Uri,
@@ -99,6 +104,10 @@ object MediaStoreOrphanCleaner {
             val idCol = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
             while (c.moveToNext() && deleted < budget) {
                 val id = c.getLong(idCol)
+                // 低调下载会把 DATE_ADDED 回拨到 2007,上面的 60 秒时间闸对这类
+                // 在途行失效 —— 用进程内登记表再兜一道,跳过当前正在写入的行。
+                // 上一会话的真孤儿不在表里(进程重启即清空),照常删。
+                if (InFlightMediaStoreWrites.contains(id)) continue
                 val rowUri = ContentUris.withAppendedId(collection, id)
                 runCatching { resolver.delete(rowUri, null, null) }
                     .onSuccess { if (it > 0) deleted++ }

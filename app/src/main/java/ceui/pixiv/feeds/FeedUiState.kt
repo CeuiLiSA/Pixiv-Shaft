@@ -29,6 +29,14 @@ data class FeedUiState(
      * [FeedSource] 边界内的 mapper；住在 Fragment 层、靠 collect 本状态驱动的副作用消费方
      * （[ceui.pixiv.ui.common.IllustFeedPoolSync] 喂 ObjectPool / 关注态）拿不到 phase，只能读这个字段。
      * 新增此类消费方时务必门控它，否则陈旧 bean 会把更新的收藏 / 关注态盖回去。
+     *
+     * ⚠️ 数据源关掉「命中快照后自动刷新」（[FeedSource.refreshAfterCacheHit] 返回 false，如首页推荐
+     * 的启动自动刷新开关）时，快照这一代是**终态**：不会有网络那一代来把它翻成 false，而且
+     * [FeedViewModel.loadMore] 从此可以在它为 true 期间追加真·网络页。所以本字段的含义要按
+     * 「这一代**起源**是磁盘」读，不能当成「列表里每一条都是陈旧的」。副作用消费方保持整代跳过
+     * 即可——跳过是安全那一侧（顶多少一次预热，下游各自会补拉）；千万别为了照顾追加的尾部
+     * 就在追加时把它翻成 false：随后任意一次 [FeedViewModel.mutateItems]（收藏广播绕回等）
+     * 会推进 structureVersion 触发全量重扫，把陈旧的缓存前缀一起喂下去，正是门控要挡的事。
      */
     val itemsFromCache: Boolean = false,
     /**

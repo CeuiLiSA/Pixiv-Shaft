@@ -21,8 +21,15 @@ object ShaftHmac {
     /**
      * Compute `HMAC_SHA256(secretAscii, payload)` and return the digest as
      * a lowercase hex string.
+     *
+     * Empty secret → empty signature, **not** an exception:`SecretKeySpec`
+     * 对空 key 直接抛 `IllegalArgumentException`,而没配 `SHAFT_EVENTS_HMAC` 的
+     * 构建(fork / 本地无 secret)`BuildConfig` 里就是空串——按 build.gradle 里
+     * 写明的契约,这类构建应该拿到服务端 401 走各自的错误 UI,而不是一进广场/
+     * 聊天就整个进程崩掉。空签名喂给服务端正好得到那个 401。
      */
     fun signHex(payload: String, secretAscii: String): String {
+        if (secretAscii.isEmpty()) return ""
         val mac = Mac.getInstance("HmacSHA256")
         mac.init(SecretKeySpec(secretAscii.toByteArray(Charsets.UTF_8), "HmacSHA256"))
         return mac.doFinal(payload.toByteArray(Charsets.UTF_8)).toHex()

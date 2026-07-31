@@ -10,7 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import ceui.lisa.R
-import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.CellNovelActionsBinding
 import ceui.lisa.databinding.CellNovelCaptionBinding
 import ceui.lisa.databinding.CellNovelHeaderBinding
@@ -59,15 +59,10 @@ interface NovelActionsReceiver {
 }
 
 internal fun openTagBookmarkForNovel(sender: View, novel: Novel) {
-    val ctx = sender.context
+    // 只有 View / Context，用 showFrom 解出宿主 FragmentActivity 弹 sheet
+    // （原先是 startActivity 一张从右侧 push 进来的整页）。
     val tagNames = novel.tags.orEmpty().mapNotNull { it.name }.toTypedArray()
-    val intent = Intent(ctx, TemplateActivity::class.java).apply {
-        putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏")
-        putExtra(Params.ILLUST_ID, novel.id.toInt())
-        putExtra(Params.DATA_TYPE, Params.TYPE_NOVEL)
-        putExtra(Params.TAG_NAMES, tagNames)
-    }
-    ctx.startActivity(intent)
+    SelectTagBottomSheet.showFrom(sender.context, novel.id.toInt(), Params.TYPE_NOVEL, tagNames)
 }
 
 // ── FeedItem 模型（都以 novelId 为身份；实际小说数据由渲染器观察 ObjectPool 取）─────

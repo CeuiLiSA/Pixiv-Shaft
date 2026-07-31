@@ -37,6 +37,33 @@ public interface DownloadDao {
         insert(entity);
     }
 
+    /**
+     * 批量写入且**不覆盖**已有行 —— 只给 {@code DownloadImporter}（扫描导入本地文件，
+     * issue #953）用。
+     *
+     * 绝不能让导入走 {@link #insertDownload}：那条路是 REPLACE，而本表主键只有
+     * fileName。用户盘上一个同名文件就会把真实下载记录整行顶掉（丢 filePath 和完整
+     * illustGson），扫一次目录能静默毁掉一大片记录。IGNORE 语义下已有行原样保留，
+     * 导入是纯增量的，重复扫同一个目录也是幂等的。
+     */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    void insertIgnoreAll(List<DownloadEntity> entities);
+
+    /**
+     * 这批 fileName 里哪些已经在库里 —— 导入前算"将跳过多少"用，让用户在真正写库
+     * 之前就看到准确的数字。调用方需按 SQLite 变量上限（999）分片。
+     */
+    @Query("SELECT fileName FROM illust_download_table WHERE fileName IN (:fileNames)")
+    List<String> filterExistingFileNames(List<String> fileNames);
+
+    /**
+     * 把某个作品所有下载行的 illustGson 换成完整版。导入时先写的是
+     * {@code {"id":123}} 这种最小 JSON，{@code ImportMetadataEnricher} 回
+     * v1/illust/detail 拉到真数据后用这个覆盖，卡片上就有标题 / 作者 / 封面了。
+     */
+    @Query("UPDATE illust_download_table SET illustGson = :illustGson WHERE illustId = :illustId")
+    void updateIllustGsonByIllustId(long illustId, String illustGson);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertDownloading(DownloadingEntity entity);
 
@@ -126,6 +153,65 @@ public interface DownloadDao {
      */
     @Query("SELECT * FROM illust_download_table WHERE fileName IN (:fileNames)")
     List<DownloadEntity> getDownloadsByFileNames(List<String> fileNames);
+
+    /**
+     * 按 (作品, 页码) 取这个作品已下载的页。v41 的 {@code (illustId, page)} 复合索引，O(log n)。
+     *
+     * <p>取代 {@link #getDownloadsByFileNames} 那条"先用当前模板算出文件名再查主键"的路：
+     * 用户换过命名模板、或记录是 {@code DownloadImporter} 从旧版命名的文件扫进来的
+     * （issue #953），文件名根本对不上，只有按 id + 页码查才命中。调用方仍应在这里落空时
+     * 退回 fileName 查询 —— v41 之前的存量行 page 是 -1，回填跑完前查不到。
+     *
+     * <p>投影成 {@link DownloadedPage} 而不是 {@code SELECT *}：illustGson 单行几 KB，
+     * 172P 的作品一次就是近 1MB 无谓 blob 读，而 feed 里每张卡片都会建一个
+     * {@code IllustAdapter} 调这里。理由详见 {@link DownloadedPage}。
+     */
+    @Query("SELECT fileName, filePath, page FROM illust_download_table " +
+            "WHERE illustId = :illustId AND page >= 0 ORDER BY downloadTime DESC")
+    List<DownloadedPage> getDownloadedPages(long illustId);
+
+    /**
+     * 同一页的全部候选，新的记录优先。不能 {@code LIMIT 1}：用户换模板、重复下载或导入
+     * 旧目录后，同一个 (illustId,page) 可能有多行；任取一行若刚好已删除/失权，会无视
+     * 另一条仍可读的记录而再次下载。只投影三列，避免批量下载逐页探测时读取
+     * {@code illustGson} 大字段。
+     */
+    @Query("SELECT fileName, filePath, page FROM illust_download_table " +
+            "WHERE illustId = :illustId AND page = :page ORDER BY downloadTime DESC")
+    List<DownloadedPage> getDownloadedPageCandidates(long illustId, int page);
+
+    // ---- v41 page 列的存量回填（DownloadPageBackfill 用）----
+
+    /**
+     * 取一批还有行没回填 page 的作品 id。
+     *
+     * <p><b>按作品取而不是按行取</b>：页码基准（文件名里的 {@code p0} 起还是 {@code p1} 起）
+     * 单看一个文件名判不出来，必须拿同一作品所有页一起推（见
+     * {@code PageBaseInference}）。逐行回填会在基准判错时把第 N 页的本地图错配到第 N±1 页
+     * —— 那比"查不到"还糟。
+     *
+     * <p>只投影 illustId，不碰 illustGson 那个 blob 列（30000+ 行 2GB+，扫它正是 v38 一路
+     * 在躲的事）。{@code (illustId, page)} 复合索引覆盖了整个查询。
+     */
+    @Query("SELECT DISTINCT illustId FROM illust_download_table WHERE page = -1 AND illustId > 0 LIMIT :limit")
+    List<Long> getIllustIdsNeedingPageBackfill(int limit);
+
+    /** 某个作品还没回填 page 的全部文件名。走 {@code (illustId, page)} 索引。 */
+    @Query("SELECT fileName FROM illust_download_table WHERE illustId = :illustId AND page = -1")
+    List<String> getFileNamesNeedingPageBackfill(long illustId);
+
+    /** 回填单行的 page（按主键 fileName 定位）。 */
+    @Query("UPDATE illust_download_table SET page = :page WHERE fileName = :fileName")
+    void setDownloadPage(String fileName, int page);
+
+    /**
+     * 重命名一条下载记录（issue #567 的批量重命名）：文件在磁盘上改名成功后，把主键
+     * fileName 和 filePath（SAF 重命名后 document uri 会变）一起改过来。fileName 是主键，
+     * 目标名已存在时 SQLite 抛 constraint 异常 —— 调用方（RenameSweeper）在计划阶段已
+     * 去重，仍冲突则捕获并把磁盘文件名改回去，保持记录与磁盘一致。
+     */
+    @Query("UPDATE illust_download_table SET fileName = :newFileName, filePath = :newFilePath WHERE fileName = :oldFileName")
+    void renameDownload(String oldFileName, String newFileName, String newFilePath);
 
     @Query("SELECT * FROM illust_downloading_table")
     List<DownloadingEntity> getAllDownloading();

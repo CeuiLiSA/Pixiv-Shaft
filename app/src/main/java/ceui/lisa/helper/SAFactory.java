@@ -12,6 +12,7 @@ import ceui.pixiv.download.Downloads;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.backend.StorageBackend;
 import ceui.pixiv.download.config.DownloadItems;
+import ceui.pixiv.download.config.OverwritePolicy;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 
@@ -70,6 +71,12 @@ public class SAFactory implements DownloadFileFactory {
         return mUri != null ? mUri : insert();
     }
 
+    // 按 facade 解析出的 backend 判定 content:// 语义（探 scheme 不触发 open，零副作用）。
+    @Override
+    public boolean targetIsContent() {
+        return mPlan.getBackend().isContentScheme();
+    }
+
     @Override
     public void finishWrite() {
         if (mSettled) return;
@@ -97,5 +104,17 @@ public class SAFactory implements DownloadFileFactory {
 
     public boolean isSkip() {
         return mPlan.getSkip();
+    }
+
+    /**
+     * 该 bucket 解析后的覆盖策略是不是「已存在则跳过」。
+     *
+     * {@code Manager.downloadOne} 用它决定要不要在 facade 说"不跳过"之后再问一次下载
+     * 记录（{@link ceui.pixiv.download.RecordedPageProbe}）—— facade 只按当前模板算出的
+     * 路径查文件系统，认不出用别的命名规则存下来的旧文件（issue #953）。
+     * Rename 是用户明确要新文件、Replace 本来就要覆写，都不该被记录短路。
+     */
+    public boolean isSkipPolicy() {
+        return mPlan.getOverwrite() == OverwritePolicy.Skip;
     }
 }

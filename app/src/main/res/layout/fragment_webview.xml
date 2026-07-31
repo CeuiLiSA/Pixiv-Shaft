@@ -42,6 +42,18 @@
                 android:contentDescription="@string/webview_handler_open_in_browser"
                 android:src="@drawable/ic_baseline_launch_24" />
 
+            <!-- 声明在 ib_menu 之后 = 落在它左边（Toolbar 的 end 重力子 View 从右往左排）。
+                 只在网页真有前进历史时出现，见 FragmentWebView#syncForwardButton。 -->
+            <ImageButton
+                android:id="@+id/ib_forward"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginEnd="12dp"
+                android:contentDescription="@string/webview_go_forward"
+                android:src="@drawable/baseline_arrow_forward_24"
+                android:visibility="gone" />
+
         </androidx.appcompat.widget.Toolbar>
 
 

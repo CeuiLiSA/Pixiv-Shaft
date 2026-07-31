@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import android.content.Intent
-import android.widget.Toast
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
@@ -35,6 +34,7 @@ import ceui.pixiv.db.queue.DownloadQueueRow
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
@@ -101,7 +101,7 @@ class QueueListV3Fragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val bean = loadIllustForRow(dao, row.id)
                 if (bean == null) {
-                    Toast.makeText(ctx, R.string.dlmgr_queue_open_unavailable, Toast.LENGTH_SHORT).show()
+                    Toaster.showShort(R.string.dlmgr_queue_open_unavailable)
                 } else {
                     runCatching { ObjectPool.updateIllust(bean) }
                     openVActivity(ctx, bean)

@@ -4,6 +4,8 @@ import static ceui.lisa.helper.ThemeHelper.ThemeType.DARK_MODE;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.DEFAULT_MODE;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.LIGHT_MODE;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
@@ -26,6 +28,9 @@ import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.pixiv.ui.settings.ThemeColorCatalog;
+import ceui.pixiv.widget.RecommendCardWidgetProvider;
+import ceui.pixiv.widget.RecommendStripWidgetProvider;
+import ceui.pixiv.widget.SpotlightWidgetProvider;
 
 /** 设置 · 界面 */
 public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSettingsAppearanceBinding> {
@@ -237,6 +242,46 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         });
         baseBind.bottomBarOrderRela.setOnClickListener(v -> baseBind.orderSelect.performClick());
 
+        // 桌面小组件换图间隔（issue #641，只作用于推荐类小组件；日榜内容一天一变，固定 6 小时）
+        final int[] INTERVAL_MINUTES = new int[]{15, 30, 60, 120, 360};
+        final String[] INTERVAL_NAMES = new String[INTERVAL_MINUTES.length];
+        for (int i = 0; i < INTERVAL_MINUTES.length; i++) {
+            INTERVAL_NAMES[i] = intervalDisplay(INTERVAL_MINUTES[i]);
+        }
+        baseBind.widgetRefreshInterval.setText(
+                intervalDisplay(Shaft.sSettings.getWidgetRefreshIntervalMinutes()));
+        baseBind.widgetRefreshIntervalRela.setOnClickListener(v -> {
+            int checked = Arrays.binarySearch(INTERVAL_MINUTES,
+                    Shaft.sSettings.getWidgetRefreshIntervalMinutes());
+            final int index = checked >= 0 ? checked : 1; // 非预设值按默认 30 分钟高亮
+            new QMUIDialog.CheckableDialogBuilder(mActivity)
+                    .setCheckedIndex(index)
+                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .addItems(INTERVAL_NAMES, (dialog, which) -> {
+                        // 按值比较而不是按 index：存量值不是预设值时 index 回退高亮在
+                        // 30 分钟，此时选 30 分钟仍然要落盘
+                        if (INTERVAL_MINUTES[which] != Shaft.sSettings.getWidgetRefreshIntervalMinutes()) {
+                            Shaft.sSettings.setWidgetRefreshIntervalMinutes(INTERVAL_MINUTES[which]);
+                            Local.setSettings(Shaft.sSettings);
+                            baseBind.widgetRefreshInterval.setText(INTERVAL_NAMES[which]);
+                            // UPDATE 策略：已加到桌面的小组件立即按新间隔重排。
+                            // 只重排桌面上确实有实例的——周期任务的存在与否由
+                            // onEnabled/onDisabled 管理，这里不能凭空创建
+                            if (hasWidget(SpotlightWidgetProvider.class)) {
+                                SpotlightWidgetProvider.schedulePeriodic(mContext);
+                            }
+                            if (hasWidget(RecommendStripWidgetProvider.class)) {
+                                RecommendStripWidgetProvider.schedulePeriodic(mContext);
+                            }
+                            if (hasWidget(RecommendCardWidgetProvider.class)) {
+                                RecommendCardWidgetProvider.schedulePeriodic(mContext);
+                            }
+                        }
+                        dialog.dismiss();
+                    })
+                    .show();
+        });
+
         // APP主页显示R页面
         baseBind.mainViewR18.setChecked(Shaft.sSettings.isMainViewR18());
         baseBind.mainViewR18.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -248,6 +293,17 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             }
         });
         baseBind.mainViewR18Rela.setOnClickListener(v -> baseBind.mainViewR18.performClick());
+    }
+
+    private boolean hasWidget(Class<?> providerClass) {
+        return AppWidgetManager.getInstance(mContext)
+                .getAppWidgetIds(new ComponentName(mContext, providerClass)).length > 0;
+    }
+
+    private String intervalDisplay(int minutes) {
+        return minutes < 60
+                ? getString(R.string.v3_widget_interval_minutes, minutes)
+                : getString(R.string.v3_widget_interval_hours, minutes / 60);
     }
 
     private void setOrderName() {

@@ -20,7 +20,8 @@ import com.bumptech.glide.Glide
 /**
  * Activity-scoped ViewModel：宿主 Fragment 进入 reader 时把当前 illust 的页面 URL 列表
  * 写进来；ThumbsSheet 通过 [activityViewModels] 拉取，避免把 200 条 URL 走 Bundle 引发
- * TransactionTooLargeException（与 #820 RecmdUserMap 同类问题）。
+ * TransactionTooLargeException（与 #820
+ * [ceui.lisa.fragments.RecmdUserHandoff] 同类问题）。
  */
 class ComicReaderPagesProvider : ViewModel() {
     var pages: List<ComicReaderV3ViewModel.ComicPage> = emptyList()

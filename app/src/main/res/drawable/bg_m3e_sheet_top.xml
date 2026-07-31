@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MD3-Expressive 风格 sheet 背景：v3_bg 实底 + 顶部 28dp 圆角。
+     比 bg_v3_sheet_top(16dp) / reader_settings_sheet_bg(20dp) 更圆——Expressive 的
+     形状语汇就是「更大的圆角 + 更松的留白」。配色仍走 v3_bg，跟随日夜模式。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/v3_bg" />
+    <corners
+        android:topLeftRadius="28dp"
+        android:topRightRadius="28dp"
+        android:bottomLeftRadius="0dp"
+        android:bottomRightRadius="0dp" />
+</shape>

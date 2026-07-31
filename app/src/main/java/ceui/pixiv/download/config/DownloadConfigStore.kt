@@ -2,7 +2,7 @@ package ceui.pixiv.download.config
 
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
 
@@ -61,7 +61,7 @@ class DownloadConfigStore(
             store.encode(KEY, DownloadConfigJson.toJson(config))
         } catch (t: Throwable) {
             Timber.e(t, "DownloadConfigStore.save failed")
-            ToastUtils.show(
+            Toaster.show(
                 Shaft.getContext().getString(
                     R.string.download_settings_save_failed,
                     t.message ?: t.javaClass.simpleName,

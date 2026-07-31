@@ -1,50 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  「按标签收藏」的一行收藏夹标签，MD3-Expressive 列表项：
+  filled card（tonal 容器）+ 20dp 大圆角 + MaterialCheckBox + MD3 排版。
+
+  MD3 属性（?attr/materialCardViewFilledStyle / textAppearanceBodyLarge / colorOnSurface）
+  之所以能解析，靠 [ceui.pixiv.ui.bookmark.SelectTagFeedFragment] 的 selectTagRenderer 在
+  inflate 时用 withMd3() 把 inflater 包进 Theme.Material3 的 ContextThemeWrapper —— 本 App
+  主题继承 QMUI，不含 MD3 属性；刻意只包行布局、不覆写 onGetLayoutInflater，理由见 withMd3
+  的 KDoc。勾选态的强调色由 fragment 运行时 tint，不吃 MD3 基线紫。
+
+  id 沿用 legacy（star_size / illust_count），渲染器与选中态逻辑一行没动。
+-->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <data>
+    <data />
 
-    </data>
-
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        style="?attr/materialCardViewFilledStyle"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:clickable="true"
-        app:cardCornerRadius="@dimen/four_dp"
-        app:cardElevation="2dp"
-        android:foreground="?attr/selectableItemBackground"
-        android:layout_height="wrap_content">
+        android:focusable="true"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp">
 
-
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="12dp">
 
             <TextView
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="@color/rank_text_color"
-                android:layout_margin="@dimen/sixteen_dp"
-                android:layout_width="match_parent"
                 android:id="@+id/star_size"
-                android:singleLine="true"
-                android:maxLines="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:ellipsize="end"
-                android:layout_toStartOf="@+id/illust_count"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_height="wrap_content" />
+                android:singleLine="true"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface" />
 
-
-            <CheckBox
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:textColor="@color/white"
-                android:layout_alignParentEnd="true"
-                android:layout_width="wrap_content"
-                android:layout_centerVertical="true"
+            <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/illust_count"
-                android:layout_height="wrap_content" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp" />
 
-        </RelativeLayout>
+        </LinearLayout>
 
-
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 </layout>

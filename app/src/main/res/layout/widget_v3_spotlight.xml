@@ -7,14 +7,32 @@
     android:orientation="horizontal"
     android:padding="8dp">
 
-    <ImageView
-        android:id="@+id/widget_cover"
+    <FrameLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="62"
-        android:background="@drawable/v3_widget_cover_placeholder"
-        android:contentDescription="@null"
-        android:scaleType="fitXY" />
+        android:layout_weight="62">
+
+        <ImageView
+            android:id="@+id/widget_cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/v3_widget_cover_placeholder"
+            android:contentDescription="@null"
+            android:scaleType="fitXY" />
+
+        <ImageView
+            android:id="@+id/widget_bookmark"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="6dp"
+            android:background="@drawable/v3_widget_refresh_scrim"
+            android:contentDescription="@null"
+            android:padding="6dp"
+            android:src="@drawable/ic_widget_heart"
+            android:tint="#E6FFFFFF"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="0dp"

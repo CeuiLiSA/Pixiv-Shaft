@@ -49,6 +49,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.os.BundleCompat;
 import androidx.appcompat.widget.Toolbar;
 import ceui.lisa.R;
 import android.webkit.CookieManager;
@@ -61,7 +62,6 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
-import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.ContextMenuTitleView;
 import ceui.pixiv.session.SessionManager;
 import com.tencent.mmkv.MMKV;
@@ -80,10 +80,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private static final String TAG = "FragmentWebView";
     private String title;
     private String url;
-    private String response = null;
-    private String mime = null;
-    private String encoding = null;
-    private String historyUrl = null;
     private boolean preferPreserve = false;
     private AgentWeb mAgentWeb;
     private WebView mWebView;
@@ -92,6 +88,11 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private final HttpDns httpDns = HttpDns.getInstance();
     private String mLongClickLinkText;
     private Uri reverseSearchImageUri;
+    /**
+     * 图搜：这张图还没喂给页面。用户点页面自己的上传按钮时顶上去，顶过一次就落下，
+     * 之后再点走正常的系统选择器。
+     */
+    private boolean reverseUploadArmed = false;
     private ValueCallback<Uri> uploadMessage;
     private ValueCallback<Uri[]> uploadMessageAboveL;
 
@@ -99,12 +100,10 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     public void initBundle(Bundle bundle) {
         title = bundle.getString(Params.TITLE);
         url = bundle.getString(Params.URL);
-        response = bundle.getString(Params.RESPONSE);
-        mime = bundle.getString(Params.MIME);
-        encoding = bundle.getString(Params.ENCODING);
-        historyUrl = bundle.getString(Params.HISTORY_URL);
         preferPreserve = bundle.getBoolean(Params.PREFER_PRESERVE);
-        reverseSearchImageUri = bundle.getParcelable(Params.REVERSE_SEARCH_IMAGE_URI);
+        reverseSearchImageUri = BundleCompat.getParcelable(
+                bundle, Params.REVERSE_SEARCH_IMAGE_URI, Uri.class);
+        reverseUploadArmed = reverseSearchImageUri != null;
     }
 
     public static FragmentWebView newInstance(String title, String url) {
@@ -126,16 +125,14 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         return fragment;
     }
 
-    // 反向搜索
-    public static FragmentWebView newInstance(String title, String url, String response,
-                                              String mime, String encoding, String history_url, Uri imageUri) {
+    /**
+     * 以图搜图：url 是引擎的上传页，用户点页面上的选择文件按钮时，imageUri 会直接顶上去，
+     * 不弹系统选择器让他重挑一遍。见 {@link ReverseImage} 里为什么上传必须由 WebView 自己发。
+     */
+    public static FragmentWebView newInstance(String title, String url, Uri imageUri) {
         Bundle args = new Bundle();
         args.putString(Params.TITLE, title);
         args.putString(Params.URL, url);
-        args.putString(Params.RESPONSE, response);
-        args.putString(Params.MIME, mime);
-        args.putString(Params.ENCODING, encoding);
-        args.putString(Params.HISTORY_URL, history_url);
         args.putParcelable(Params.REVERSE_SEARCH_IMAGE_URI, imageUri);
         FragmentWebView fragment = new FragmentWebView();
         fragment.setArguments(args);
@@ -160,12 +157,11 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         return true;
                     }
                     if (item.getItemId() == R.id.saucenao) {
-                        ReverseImage.reverse(reverseSearchImageUri,
-                                ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(mActivity, reverseSearchImageUri));
-
+                        ReverseImage.search(mActivity, reverseSearchImageUri,
+                                ReverseImage.ReverseProvider.SauceNao);
                     } else if (item.getItemId() == R.id.ascii2d) {
-                        ReverseImage.reverse(reverseSearchImageUri,
-                                ReverseImage.ReverseProvider.Ascii2D, new ReverseWebviewCallback(mActivity, reverseSearchImageUri));
+                        ReverseImage.search(mActivity, reverseSearchImageUri,
+                                ReverseImage.ReverseProvider.Ascii2D);
                     }
                     return true;
                 }
@@ -243,6 +239,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         if(shouldInjectCSS){
                             injectCSS();
                         }
+                        syncForwardButton();
                         super.onPageFinished(view, url);
                     }
                 })
@@ -260,20 +257,25 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             cookieManager.flush();
         }
 
-        if (response == null) {
-            mAgentWeb = ready.go(url);
-            baseBind.ibMenu.setVisibility(View.VISIBLE);
-            baseBind.ibMenu.setOnClickListener(v -> {
-                String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
-                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
-            });
-        } else {
-            baseBind.ibMenu.setVisibility(View.GONE);
-            mAgentWeb = ready.get();
-            mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, historyUrl);
-        }
+        mAgentWeb = ready.go(url);
+        baseBind.ibMenu.setVisibility(View.VISIBLE);
+        baseBind.ibMenu.setOnClickListener(v -> {
+            String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
+            mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
+        });
         Common.showLog(className + url);
         mWebView = mAgentWeb.getWebCreator().getWebView();
+        // 放行第三方 cookie(WebView 默认屏蔽,和 WebFragment / StreetMainFragment 对齐)。
+        // 图搜的 Cloudflare Turnstile 跑在 challenges.cloudflare.com 的 iframe 里,对引擎域
+        // 是第三方——存不下验证状态就会「勾完真人框又弹回来」无限循环(#733 真机复现)。
+        CookieManager.getInstance().setAcceptThirdPartyCookies(mWebView, true);
+        // 返回键会一路退网页历史(见 TemplateActivity 的 OnBackPressedDispatcher),
+        // 退过头了就靠这个回去 —— 图搜搜半天被一次误触返回抹掉太亏(#733)。
+        baseBind.ibForward.setOnClickListener(v -> {
+            if (mWebView.canGoForward()) {
+                mWebView.goForward();
+            }
+        });
         WebSettings settings = mWebView.getSettings();
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
@@ -289,11 +291,36 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         mWebView.setWebChromeClient(new WebChromeClient(){
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                // 图搜：图片是调用方带进来的，直接顶上去，别再弹系统选择器让用户重挑一遍。
+                //
+                // 这一步曾经想用 JS 自动完成（onPageFinished 里注入 input.click() 顺带挂 change
+                // 自动提交），真机验证证伪：Chromium 要求用户手势才肯开文件选择器，注入的 click
+                // 拿不到手势，选择器根本不弹，后面的 change 自动提交也就没机会跑。那段 JS 只留下
+                // 站点特定的脆弱选择器，已删。现在老老实实等用户点页面自己的按钮。
+                if (reverseUploadArmed && reverseSearchImageUri != null) {
+                    reverseUploadArmed = false;
+                    filePathCallback.onReceiveValue(new Uri[]{reverseSearchImageUri});
+                    return true;
+                }
                 uploadMessageAboveL = filePathCallback;
                 openImageChooserActivity();
                 return true;
             }
         });
+    }
+
+    /**
+     * 「前进」只在网页真有前进历史时露头，免得平时挂一个永远点不动的按钮。
+     *
+     * <p>只由 {@code onPageFinished} 驱动：{@code goForward()} 是异步的，紧跟着读
+     * {@code canGoForward()} 拿到的是旧值，等页面落地再同步才准。前进/后退都会走到
+     * {@code onPageFinished}，所以退过头时按钮会自己冒出来。</p>
+     */
+    private void syncForwardButton() {
+        if (mWebView == null) {
+            return;
+        }
+        baseBind.ibForward.setVisibility(mWebView.canGoForward() ? View.VISIBLE : View.GONE);
     }
 
     private static class LongClickHandler extends Handler {

@@ -503,6 +503,12 @@
         <item name="cornerSize">10dp</item>
     </style>
 
+    <!-- 精华卡片的预览缩略图：比 V3DownloadThumb 大一档，配 bg_v3_card 的 28dp 外圆角。 -->
+    <style name="ShapeAppearance.V3FeatureThumb" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
     <!-- 小说详情页可复制信息 chip：扁平浅灰胶囊，点击复制对应字段。 -->
     <style name="NovelInfoChip" parent="">
         <item name="android:layout_width">wrap_content</item>
@@ -523,8 +529,10 @@
     <style name="Chat.ActionRow" parent="">
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center_vertical</item>
-        <item name="android:paddingHorizontal">24dp</item>
-        <item name="android:paddingVertical">14dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
         <item name="android:background">?attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>

@@ -50,7 +50,7 @@ import ceui.pixiv.db.synonym.SynonymTargetEntity;
                 SynonymTagEntity.class, // 同义词词典-同义词（v36, issue #904）
                 FeedCacheEntity.class, // feeds 框架本地优先首屏快照（v39）
         },
-        version = 40,
+        version = 41,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -384,6 +384,26 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * v40 -> v41：给 illust_download_table 加 page 列 + (illustId, page) 复合索引。
+     *
+     * 之前"这一页下过没"只能用 FileCreator.customFileName 算出**当前模板**下的文件名去查
+     * 主键 —— 用户换过命名模板、或记录是 DownloadImporter 从旧版命名的文件扫进来的
+     * （issue #953），就永远查不中：徽标显示未下载、「已存在则跳过」失效、详情页也复用不了
+     * 本地文件。加这一列后按 (作品, 页码) 查，跟文件叫什么名字彻底解耦。
+     *
+     * ADD COLUMN 是 O(1) 不重写行；存量行 page 先留 -1（= 未知，查询自然落空并退回旧的
+     * fileName 路径，无回归），由 DownloadPageBackfill 后台一次性回填。
+     * 索引名必须与 Room 由 @Index({"illustId","page"}) 生成的一致：index_<table>_<col>_<col>。
+     */
+    private static final Migration MIGRATION_40_41 = new Migration(40, 41) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE illust_download_table ADD COLUMN page INTEGER NOT NULL DEFAULT -1");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_illust_download_table_illustId_page ON illust_download_table(illustId, page)");
+        }
+    };
+
     private static AppDatabase INSTANCE;
 
     // synchronized：同义词词典（issue #904）让 Rx 后台线程（SelectTagRepo.mapper）也会触发
@@ -413,6 +433,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             .addMigrations(MIGRATION_37_38) // 注册 37 -> 38 迁移 (illust_download_table.illustId 索引列)
                             .addMigrations(MIGRATION_38_39) // 注册 38 -> 39 迁移 (feed_cache_table 本地优先首屏快照)
                             .addMigrations(MIGRATION_39_40) // 注册 39 -> 40 迁移 (删除 illust_recmd_table)
+                            .addMigrations(MIGRATION_40_41) // 注册 40 -> 41 迁移 (illust_download_table.page 列, issue #953)
                             .build();
         }
         return INSTANCE;

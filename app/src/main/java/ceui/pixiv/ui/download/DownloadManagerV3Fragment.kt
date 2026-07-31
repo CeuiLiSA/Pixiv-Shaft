@@ -1,11 +1,14 @@
 package ceui.pixiv.ui.download
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -20,6 +23,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.core.Manager
+import ceui.lisa.utils.Common
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -46,6 +50,29 @@ class DownloadManagerV3Fragment : Fragment() {
     private var tabs: TabLayout? = null
     private var pager: ViewPager2? = null
     private var pageCallback: ViewPager2.OnPageChangeCallback? = null
+
+    /** 「已完成」tab 的导入本地下载流程（issue #953）。 */
+    private val importFlow by lazy { ImportLocalDownloadsFlow(this) }
+
+    /**
+     * SAF 选目录的 launcher。`registerForActivityResult` 必须在 fragment 到达 STARTED
+     * 之前注册,所以只能挂在字段初始化上,不能等点菜单时再建。
+     */
+    private val importPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+        val uri = result.data?.data ?: return@registerForActivityResult
+        importFlow.onTreePicked(uri)
+    }
+
+    private fun launchImportPicker(intent: Intent) {
+        try {
+            importPickerLauncher.launch(intent)
+        } catch (e: Exception) {
+            Common.showToast(getString(R.string.dlmgr_import_pick_failed, e.message ?: ""))
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -83,6 +110,7 @@ class DownloadManagerV3Fragment : Fragment() {
         val exportItem = toolbar.menu.findItem(R.id.action_export)
         val pauseToggleItem = toolbar.menu.findItem(R.id.action_pause_toggle)
         val searchItem = toolbar.menu.findItem(R.id.action_search)
+        val importItem = toolbar.menu.findItem(R.id.action_import)
         setupDoneSearch(searchItem)
         // 必须清 iconTintList — Toolbar 默认会拿 colorControlNormal 强行覆盖
         // menu icon 的颜色,把 vector 自带的 fillColor=v3_text_1 压成淡色
@@ -112,6 +140,12 @@ class DownloadManagerV3Fragment : Fragment() {
                     }
                     true
                 }
+                // issue #953:扫描用户授权的目录，把旧版下载但新版认不出来的图片
+                // 补成下载记录。全程只读所选目录、不改不删文件,写库也只增不覆盖。
+                R.id.action_import -> {
+                    importFlow.start { intent -> launchImportPicker(intent) }
+                    true
+                }
                 else -> false
             }
         }
@@ -119,6 +153,7 @@ class DownloadManagerV3Fragment : Fragment() {
             exportItem?.isVisible = pos == 0 || pos == 2
             pauseToggleItem?.isVisible = pos == 1
             searchItem?.isVisible = pos == 2
+            importItem?.isVisible = pos == 2
             // tab 切走时强制收起搜索框 + 清空 query，避免被遗留的 isIconified=false
             // 在其它 tab 出现时夹带一份过滤态。
             if (pos != 2 && searchItem?.isActionViewExpanded == true) {

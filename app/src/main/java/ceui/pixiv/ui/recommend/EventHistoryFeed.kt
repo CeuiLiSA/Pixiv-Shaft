@@ -24,6 +24,7 @@ import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
+import ceui.pixiv.utils.clearGlideOnRecycle
 import com.bumptech.glide.Glide
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -133,7 +134,7 @@ fun eventHistoryRenderer(): FeedRenderer<EventHistoryFeedItem, CellEventHistoryB
                 cell.itemOrNull?.parsed?.openIntent?.invoke(v.context)
             }
         },
-        recycle = { Glide.with(it.binding.thumb).clear(it.binding.thumb) },
+        recycle = { it.binding.thumb.clearGlideOnRecycle() },
     ) { cell ->
         val binding = cell.binding
         val ev = cell.item.item

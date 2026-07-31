@@ -2,11 +2,17 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.text.InputType;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+
+import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
+import java.util.function.IntSupplier;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -21,6 +27,15 @@ import ceui.pixiv.session.SessionManager;
 /** 设置 · 浏览与搜索 */
 public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSettingsBrowsingBinding> {
 
+    /**
+     * 打开「小说超长标签屏蔽」时预填的建议值。日文正圈 tag 本来就能到十几字
+     * （如「ぼくたちは勉強ができない」12 字），阈值压太低会误伤正常作品，取 16。
+     */
+    private static final int NOVEL_FILTER_SUGGESTED_MAX_TAG_NAME_LENGTH = 16;
+
+    /** 打开「小说正文字数下限」时预填的建议值——广告位小说普遍只有几十到几百字。 */
+    private static final int NOVEL_FILTER_SUGGESTED_MIN_TEXT_LENGTH = 500;
+
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_browsing;
@@ -28,6 +43,20 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
 
     @Override
     protected void initData() {
+        // 启动时自动刷新首页推荐（issue #955）。关掉后冷启动直接展示上次的推荐快照，
+        // 下次冷启才生效，所以提示语用「重启后生效」而不是通用的「设置成功」。
+        baseBind.autoRefreshHomeFeed.setChecked(Shaft.sSettings.isAutoRefreshHomeFeed());
+        baseBind.autoRefreshHomeFeed.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setAutoRefreshHomeFeed(isChecked);
+                Common.showToast(getString(R.string.please_restart_app), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.autoRefreshHomeFeedRela.setOnClickListener(v ->
+                baseBind.autoRefreshHomeFeed.performClick());
+
         baseBind.saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
         baseBind.saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -111,17 +140,40 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         });
         baseBind.deleteStarIllustRela.setOnClickListener(v -> baseBind.deleteStarIllust.performClick());
 
-        baseBind.filterInvalidBookmarks.setChecked(Shaft.sSettings.isFilterInvalidBookmarks());
-        baseBind.filterInvalidBookmarks.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setFilterInvalidBookmarks(isChecked);
-                Common.showToast(getString(R.string.string_428), 2);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.filterInvalidBookmarksRela.setOnClickListener(v ->
-                baseBind.filterInvalidBookmarks.performClick());
+        // 小说列表自动屏蔽：正文字数下限/上限 + 超长标签名（issue #743）。
+        // 三项默认 0（关闭）——升级上来的用户列表不会无声变短；点开时按建议值预填。
+        bindNovelFilterRow(
+                baseBind.novelFilterMinTextLengthRela,
+                baseBind.novelFilterMinTextLength,
+                R.string.novel_filter_min_text_length,
+                NOVEL_FILTER_SUGGESTED_MIN_TEXT_LENGTH,
+                () -> Shaft.sSettings.getNovelFilterMinTextLength(),
+                value -> Shaft.sSettings.setNovelFilterMinTextLength(value),
+                value -> {
+                    int max = Shaft.sSettings.getNovelFilterMaxTextLength();
+                    return (value > 0 && max > 0 && value > max)
+                            ? getString(R.string.novel_filter_range_invalid) : null;
+                });
+        bindNovelFilterRow(
+                baseBind.novelFilterMaxTextLengthRela,
+                baseBind.novelFilterMaxTextLength,
+                R.string.novel_filter_max_text_length,
+                0,
+                () -> Shaft.sSettings.getNovelFilterMaxTextLength(),
+                value -> Shaft.sSettings.setNovelFilterMaxTextLength(value),
+                value -> {
+                    int min = Shaft.sSettings.getNovelFilterMinTextLength();
+                    return (value > 0 && min > 0 && value < min)
+                            ? getString(R.string.novel_filter_range_invalid) : null;
+                });
+        bindNovelFilterRow(
+                baseBind.novelFilterMaxTagNameLengthRela,
+                baseBind.novelFilterMaxTagNameLength,
+                R.string.novel_filter_max_tag_name_length,
+                NOVEL_FILTER_SUGGESTED_MAX_TAG_NAME_LENGTH,
+                () -> Shaft.sSettings.getNovelFilterMaxTagNameLength(),
+                value -> Shaft.sSettings.setNovelFilterMaxTagNameLength(value),
+                null);
 
         // 搜索结果收藏量筛选
         final String searchFilter = Shaft.sSettings.getSearchFilter();
@@ -192,5 +244,61 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "同义词词典");
             startActivity(intent);
         });
+    }
+
+    /**
+     * 小说自动屏蔽阈值行：点开数字输入框，0 = 关闭（值列显示「不限」）。
+     * 三行只差 title / 建议值 / getter / setter / 校验，共用这一份。
+     *
+     * [validator] 返回非 null 的错误文案时 toast 并留在对话框里不落盘——用来挡「下限 > 上限」
+     * 这种不可能区间（那会把每个小说列表都清空，而用户完全看不出是自己设出来的）。
+     */
+    private void bindNovelFilterRow(View row, TextView valueText, int titleRes,
+                                    int suggested, IntSupplier getter, IntConsumer setter,
+                                    IntFunction<String> validator) {
+        valueText.setText(formatNovelFilterValue(getter.getAsInt()));
+        row.setOnClickListener(v -> {
+            QMUIDialog.EditTextDialogBuilder builder =
+                    new QMUIDialog.EditTextDialogBuilder(mContext);
+            int current = getter.getAsInt();
+            // 当前关着就把建议值填进去，用户直接点确定即可开启（仍然可以清空/填 0 关掉）。
+            builder.setTitle(getString(titleRes))
+                    .setPlaceholder(getString(R.string.novel_filter_input_hint))
+                    .setDefaultText(current > 0 ? String.valueOf(current)
+                            : (suggested > 0 ? String.valueOf(suggested) : ""))
+                    .setInputType(InputType.TYPE_CLASS_NUMBER)
+                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .addAction(android.R.string.cancel, (dialog, index) -> dialog.dismiss())
+                    .addAction(android.R.string.ok, (dialog, index) -> {
+                        CharSequence entered = builder.getEditText().getText();
+                        // 空输入 = 0 = 关闭；填不下的超大数同样归零（值列会显示「不限」，看得见），
+                        // 不让脏值落盘。负数也要归零——TYPE_CLASS_NUMBER 挡不住第三方输入法，
+                        // 搜狗在数字键盘上照样给 `-` 键（真机实测），所以 Math.max 这道不能省。
+                        int parsed = 0;
+                        try {
+                            parsed = Integer.parseInt(entered == null ? "" : entered.toString().trim());
+                        } catch (NumberFormatException ignored) {
+                        }
+                        parsed = Math.max(parsed, 0);
+                        String error = validator == null ? null : validator.apply(parsed);
+                        if (error != null) {
+                            Common.showToast(error, 3);
+                            return;
+                        }
+                        setter.accept(parsed);
+                        Local.setSettings(Shaft.sSettings);
+                        valueText.setText(formatNovelFilterValue(parsed));
+                        Common.showToast(getString(R.string.string_428), 2);
+                        dialog.dismiss();
+                    })
+                    .create()
+                    .show();
+        });
+    }
+
+    private String formatNovelFilterValue(int value) {
+        return value > 0
+                ? getString(R.string.novel_filter_chars, value)
+                : getString(R.string.novel_filter_unlimited);
     }
 }

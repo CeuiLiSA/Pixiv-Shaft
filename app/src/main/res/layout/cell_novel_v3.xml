@@ -208,6 +208,23 @@
                     android:textSize="11sp"
                     tools:text="3小时前" />
 
+                <!-- 收藏数(issue #951 评论):贴在爱心左侧,方便在系列里横向比较各话人气 -->
+                <TextView
+                    android:id="@+id/bookmark_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="2dp"
+                    android:drawablePadding="3dp"
+                    android:gravity="center_vertical"
+                    android:letterSpacing="0.01"
+                    android:maxLines="1"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    app:drawableStartCompat="@drawable/ic_favorite_black_24dp"
+                    app:drawableTint="#ff445b"
+                    tools:text="8,172" />
+
                 <!-- Bookmark button -->
                 <ceui.loxia.ProgressImageButton
                     android:id="@+id/bookmark_btn"

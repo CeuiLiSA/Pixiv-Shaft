@@ -354,6 +354,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     fileName = FileCreator.customFileName(illust, page)
                     downloadTime = System.currentTimeMillis()
                     filePath = handle.uri.toString()
+                    // v41 的 page 列 —— 与 Manager 成功分支一致，让按 (illustId, page) 的
+                    // 查询也能命中「保存这一张」写下的记录。
+                    this.page = page
                 }
                 // insertDownload 会从 illustGson 顶层 id 补上 illustId（走 v38 索引）。
                 AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)

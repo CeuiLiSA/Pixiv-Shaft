@@ -157,7 +157,7 @@
                 <RelativeLayout
                     android:id="@+id/premium_space"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/bg_m3_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -173,7 +173,8 @@
                 <RelativeLayout
                     android:id="@+id/login_out"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_m3_row_single">
 
                     <LinearLayout style="@style/M3SetTexts">
 

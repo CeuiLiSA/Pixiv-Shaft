@@ -25,6 +25,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+private fun jvmMonotonicMillis(): Long = System.nanoTime() / 1_000_000L
+
 /**
  * Integration tests for [RobustWebSocketClient] driven by a real
  * [TestWebSocketServer] (MockWebServer with `withWebSocketUpgrade`).
@@ -64,6 +66,7 @@ class RobustWebSocketClientTest {
         authProvider: WebSocketAuthProvider? = null,
         maxAuthRefreshAttempts: Int = 1,
         connectivityObserver: ConnectivityObserver? = null,
+        monotonicNowMillis: () -> Long = ::jvmMonotonicMillis,
     ) = RobustWebSocketClient(
         baseClient = okHttp,
         config = WebSocketConfig(
@@ -76,6 +79,7 @@ class RobustWebSocketClientTest {
         ),
         authProvider = authProvider,
         connectivityObserver = connectivityObserver,
+        monotonicNowMillis = monotonicNowMillis,
     )
 
     /**
@@ -273,6 +277,42 @@ class RobustWebSocketClientTest {
     }
     }
 
+    @Test
+    fun `connection timestamp comes from injected uptime clock`() { runBlocking {
+        server.enqueueEchoUpgrade()
+        val client = newClient(monotonicNowMillis = { 12_345L })
+        try {
+            client.connect()
+            client.awaitConnected()
+
+            assertEquals(WebSocketState.Connected(sinceMillis = 12_345L), client.state.value)
+        } finally {
+            client.close()
+        }
+    }
+    }
+
+    @Test
+    fun `reconnect deadline uses the same injected uptime clock`() { runBlocking {
+        server.enqueueRejection(code = 503)
+        val client = newClient(
+            reconnectStrategy = ReconnectStrategy { _, _ -> 5_000L },
+            monotonicNowMillis = { 12_345L },
+        )
+        try {
+            client.connect()
+            val reconnecting = withTimeout(5.seconds) {
+                client.state.first { it is WebSocketState.Reconnecting }
+            } as WebSocketState.Reconnecting
+
+            assertEquals(5_000L, reconnecting.delayMillis)
+            assertEquals(17_345L, reconnecting.nextAttemptAtMillis)
+        } finally {
+            client.close()
+        }
+    }
+    }
+
     // ── 3. Idempotent connect ─────────────────────────────────────────────────
 
     @Test
@@ -380,8 +420,9 @@ class RobustWebSocketClientTest {
                 // Cancel the underlying socket — listener will fire onFailure
                 // asynchronously and the natural reconnect path kicks in. We
                 // detect the second connection by waiting for a *second* Open
-                // event in the recorder (sinceMillis can't be used because
-                // SystemClock.uptimeMillis() is mocked to 0 in unit tests).
+                // event in the recorder. sinceMillis is a monotonic timestamp,
+                // not a connection identity and is not guaranteed to change
+                // between two very fast handshakes.
                 val openCountBefore = synchronized(recorder.events) {
                     recorder.events.count { it is WebSocketEvent.Open }
                 }
@@ -540,6 +581,7 @@ class RobustWebSocketClientTest {
                     jitterFactor = 0.0,
                 ),
             ),
+            monotonicNowMillis = ::jvmMonotonicMillis,
             webSocketFactory = fakeFactory.asFactory(),
         )
         try {
@@ -645,6 +687,7 @@ class RobustWebSocketClientTest {
                     jitterFactor = 0.0,
                 ),
             ),
+            monotonicNowMillis = ::jvmMonotonicMillis,
         )
         try {
             client.connect()
@@ -1213,6 +1256,7 @@ class RobustWebSocketClientTest {
                     jitterFactor = 0.0,
                 ),
             ),
+            monotonicNowMillis = ::jvmMonotonicMillis,
         )
         try {
             client.connect()

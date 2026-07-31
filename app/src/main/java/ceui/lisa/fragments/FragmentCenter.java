@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 
 import java.util.List;
 
@@ -49,7 +48,7 @@ import ceui.pixiv.ui.prime.PrimeTagIndexItem;
  * 每条货架横向缩略图,数据在 {@link DiscoverViewModel};「查看全部」跳原来的整页,零新后端。
  * 本月收藏 / 当前最热走自建 shaft-api-v2,Lite 渠道整段不展示。
  */
-public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
+public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
 
     private ceui.pixiv.ui.pivision.PivisionRailFeedFragment pivisionFragment = null;
     private DiscoverViewModel discoverVM = null;
@@ -97,6 +96,8 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
             baseBind.catBookmarkRank.setVisibility(View.GONE);
             baseBind.catAiRank.setVisibility(View.GONE);
             baseBind.catYearRank.setVisibility(View.GONE);
+            baseBind.catTagRank.setVisibility(View.GONE);
+            baseBind.catWallpaperRank.setVisibility(View.GONE);
         }
 
         // ── 「查看全部」跳原来的整页 ──
@@ -116,6 +117,8 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
         baseBind.catBookmarkRank.setOnClickListener(v -> openFragment("收藏榜"));
         baseBind.catAiRank.setOnClickListener(v -> openFragment("AI榜"));
         baseBind.catYearRank.setOnClickListener(v -> openFragment("年代榜"));
+        baseBind.catTagRank.setOnClickListener(v -> openFragment("标签榜"));
+        baseBind.catWallpaperRank.setOnClickListener(v -> openFragment("壁纸榜"));
         baseBind.catWalk.setOnClickListener(v -> openFragment("画廊"));
         baseBind.catFollowNovel.setOnClickListener(v -> openFragment("关注者的小说"));
         baseBind.catDiscovery.setOnClickListener(v -> openFragment("发现"));
@@ -141,6 +144,8 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catBookmarkRank, palette, R.drawable.ic_like_heart_fill);
         styleCatChip(baseBind.catAiRank, palette, R.drawable.baseline_auto_awesome_24);
         styleCatChip(baseBind.catYearRank, palette, R.drawable.ic_date_range_black_24dp);
+        styleCatChip(baseBind.catTagRank, palette, R.drawable.ic_loyalty_black_24dp);
+        styleCatChip(baseBind.catWallpaperRank, palette, R.drawable.ic_setcat_photo);
         styleCatChip(baseBind.catWalk, palette, R.drawable.ic_collections_black_24dp);
         styleCatChip(baseBind.catFollowNovel, palette, R.drawable.ic_baseline_bookmark_24);
         styleCatChip(baseBind.catDiscovery, palette, R.drawable.ic_baseline_explore_24);
@@ -288,10 +293,6 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
         }
     }
 
-    @Override
-    public SmartRefreshLayout getSmartRefreshLayout() {
-        return baseBind.refreshLayout;
-    }
 
     public void forceRefresh() {
         if (discoverVM != null) {

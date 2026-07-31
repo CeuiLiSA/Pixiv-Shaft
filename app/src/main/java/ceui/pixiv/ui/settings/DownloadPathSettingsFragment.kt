@@ -28,7 +28,7 @@ import ceui.pixiv.download.template.DefaultTemplates
 import ceui.pixiv.download.template.TemplateSamples
 import ceui.pixiv.download.template.TemplateValidator
 import ceui.pixiv.ui.common.viewBinding
-import com.hjq.toast.ToastUtils
+import com.hjq.toast.Toaster
 
 /**
  * Download path / filename settings, styled to the V3 design language used by
@@ -49,6 +49,16 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
     /** Currently focused template EditText — target for variable / condition chips. */
     private var focusedEditor: EditText? = null
+
+    /** 「把已下载文件重命名成当前格式」流程（issue #567）。 */
+    private val renameFlow by lazy(LazyThreadSafetyMode.NONE) { RenameDownloadedFilesFlow(this) }
+
+    /**
+     * One entry per bucket card, re-running that card's live preview. Lets the
+     * page-padding switch refresh every preview in place instead of calling
+     * [render], which would rebuild the editors and discard unsaved edits.
+     */
+    private val previewRefreshers = mutableListOf<() -> Unit>()
 
     private val USER_BUCKETS = listOf(
         Bucket.Illust to R.string.download_path_bucket_illust,
@@ -91,16 +101,31 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         render()
     }
 
+    override fun onDestroyView() {
+        // Refreshers close over the bucket cards; without this they would keep
+        // a dead view hierarchy alive until the next render().
+        previewRefreshers.clear()
+        focusedEditor = null
+        super.onDestroyView()
+    }
+
     private fun render() {
         val root = binding.contentRoot
         root.removeAllViews()
         focusedEditor = null
+        previewRefreshers.clear()
 
         addSectionTitle(root, getString(R.string.download_path_presets_title), topMarginDp = 2)
         addPresetCards(root)
 
         addSectionTitle(root, getString(R.string.download_path_teach_section_intro), topMarginDp = 18)
         addTeachingCard(root)
+
+        addSectionTitle(root, getString(R.string.download_path_pad_page_title), topMarginDp = 18)
+        addPadPageCard(root)
+
+        addSectionTitle(root, getString(R.string.rename_dl_title), topMarginDp = 18)
+        addRenameCard(root)
 
         USER_BUCKETS.forEach { (bucket, labelRes) ->
             addSectionTitle(root, getString(labelRes), topMarginDp = 18)
@@ -175,11 +200,26 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         val current = DownloadsRegistry.store.loadOrFallback()
         val images = current.defaults.storage
         val downloads = current.perBucket[Bucket.Novel]?.storage ?: images
-        val next = ConfigPresets.of(id, images, downloads)
+        // Presets define paths only — carry the user's numbering preferences over.
+        val next = ConfigPresets.of(id, images, downloads).copy(
+            pageIndexFrom1 = current.pageIndexFrom1,
+            padPageNumber = current.padPageNumber,
+        )
         DownloadsRegistry.store.save(next)
         DownloadsRegistry.invalidateBackends()
-        ToastUtils.show(getString(R.string.download_path_preset_applied))
+        Toaster.show(getString(R.string.download_path_preset_applied))
         render()
+        if (renameableTemplatesChanged(current, next)) renameFlow.promptAfterTemplateChange()
+    }
+
+    /**
+     * 插画 / 动图 bucket 的模板是否变了 —— 只有这两个 bucket 的文件在下载记录表里,
+     * 批量重命名（issue #567）只对它们有意义;小说 / 备份 / 日志的模板变动不触发追问。
+     */
+    private fun renameableTemplatesChanged(before: DownloadConfig, after: DownloadConfig): Boolean {
+        return listOf(Bucket.Illust, Bucket.Ugoira).any { bucket ->
+            before.resolve(bucket).template != after.resolve(bucket).template
+        }
     }
 
     // ---------------- Teaching card ----------------
@@ -320,7 +360,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private fun insertIntoFocused(snippet: String) {
         val editor = focusedEditor
         if (editor == null) {
-            ToastUtils.show(getString(R.string.download_path_teach_tip_focus))
+            Toaster.show(getString(R.string.download_path_teach_tip_focus))
             return
         }
         val editable: Editable = editor.editableText
@@ -333,11 +373,143 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private fun replaceFocused(template: String) {
         val editor = focusedEditor
         if (editor == null) {
-            ToastUtils.show(getString(R.string.download_path_teach_tip_focus))
+            Toaster.show(getString(R.string.download_path_teach_tip_focus))
             return
         }
         editor.setText(template)
         editor.setSelection(template.length)
+    }
+
+    // ---------------- Page-number padding switch (#721) ----------------
+
+    /**
+     * Sample filenames for the on / off comparison. Deliberately literal rather
+     * than rendered from the user's template: the point being made is about
+     * *sort order*, which only shows up across several files at once, and these
+     * are listed in the order a gallery app would actually display them.
+     */
+    private val PAD_OFF_SAMPLE = listOf("夏日祭_123456789_p1.jpg", "夏日祭_123456789_p10.jpg", "夏日祭_123456789_p2.jpg")
+    private val PAD_ON_SAMPLE = listOf("夏日祭_123456789_p01.jpg", "夏日祭_123456789_p02.jpg", "夏日祭_123456789_p10.jpg")
+
+    private fun addPadPageCard(root: LinearLayout) {
+        val card = cardContainer()
+
+        val header = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+        header.addView(
+            TextView(requireContext()).apply {
+                text = getString(R.string.download_path_pad_page_switch_label)
+                textSize = 14f
+                setTextColor(resources.getColor(R.color.v3_text_1, null))
+                setTypeface(typeface, Typeface.BOLD)
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            },
+        )
+        val toggle = TextView(requireContext()).apply {
+            textSize = 13f
+            gravity = android.view.Gravity.CENTER
+            setPadding(dp(20), dp(9), dp(20), dp(9))
+            isClickable = true
+            isFocusable = true
+        }
+        header.addView(toggle)
+        card.addView(header)
+
+        fun paint(on: Boolean) {
+            toggle.text = getString(
+                if (on) R.string.download_path_pad_page_on else R.string.download_path_pad_page_off,
+            )
+            toggle.setBackgroundResource(
+                if (on) R.drawable.bg_v3_pill_primary else R.drawable.bg_v3_pill_secondary,
+            )
+            toggle.setTextColor(if (on) resources.getColor(R.color.white, null) else 0xFF6C5CE7.toInt())
+        }
+        paint(DownloadsRegistry.store.loadOrFallback().padPageNumber)
+
+        toggle.setOnClickListener {
+            val next = DownloadsRegistry.store
+                .update { it.copy(padPageNumber = !it.padPageNumber) }
+                .padPageNumber
+            paint(next)
+            // Previews below render through the store, so they only pick this up
+            // once explicitly refreshed.
+            previewRefreshers.forEach { refresh -> refresh() }
+            Toaster.show(
+                getString(
+                    if (next) R.string.download_path_pad_page_toast_on
+                    else R.string.download_path_pad_page_toast_off,
+                ),
+            )
+        }
+
+        card.addView(
+            bodyText(getString(R.string.download_path_pad_page_body)).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { topMargin = dp(12) }
+            },
+        )
+
+        card.addView(subHeader(getString(R.string.download_path_pad_page_example_off), topDp = 14))
+        card.addView(sampleBlock(PAD_OFF_SAMPLE))
+        card.addView(subHeader(getString(R.string.download_path_pad_page_example_on), topDp = 12))
+        card.addView(sampleBlock(PAD_ON_SAMPLE))
+
+        card.addView(
+            TextView(requireContext()).apply {
+                text = getString(R.string.download_path_pad_page_hint)
+                textSize = 12f
+                setTextColor(resources.getColor(R.color.v3_text_3, null))
+                setLineSpacing(0f, 1.3f)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { topMargin = dp(14) }
+            },
+        )
+
+        root.addView(card)
+    }
+
+    private fun sampleBlock(lines: List<String>): View = TextView(requireContext()).apply {
+        text = lines.joinToString("\n")
+        textSize = 12f
+        typeface = Typeface.MONOSPACE
+        setTextColor(resources.getColor(R.color.v3_text_2, null))
+        setBackgroundResource(R.drawable.bg_v3_chip)
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        setLineSpacing(0f, 1.25f)
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        )
+    }
+
+    // ---------------- Rename existing downloads (#567) ----------------
+
+    private fun addRenameCard(root: LinearLayout) {
+        val card = cardContainer()
+        card.addView(bodyText(getString(R.string.rename_dl_card_body)))
+        val btn = TextView(requireContext()).apply {
+            text = getString(R.string.rename_dl_entry)
+            setTextColor(0xFF6C5CE7.toInt())
+            setBackgroundResource(R.drawable.bg_v3_pill_secondary)
+            gravity = android.view.Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            setPadding(dp(24), dp(11), dp(24), dp(11))
+            textSize = 13f
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(14) }
+            setOnClickListener { renameFlow.start() }
+        }
+        card.addView(btn)
+        root.addView(card)
     }
 
     // ---------------- Per-bucket card ----------------
@@ -368,6 +540,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         templateEdit.addTextChangedListener {
             refreshPreview(it?.toString().orEmpty(), bucket, previewView)
         }
+        previewRefreshers += { refreshPreview(templateEdit.text.toString(), bucket, previewView) }
         templateEdit.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) focusedEditor = v as EditText
         }
@@ -386,17 +559,19 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private fun saveBucketTemplate(bucket: Bucket, source: String) {
         val result = TemplateValidator.validate(source, bucket)
         if (!result.ok) {
-            ToastUtils.show(
+            Toaster.show(
                 getString(R.string.download_path_invalid_template) +
                     "\n" + result.errors.joinToString("\n") { it.message },
             )
             return
         }
-        DownloadsRegistry.store.update { cfg ->
+        val before = DownloadsRegistry.store.loadOrFallback()
+        val after = DownloadsRegistry.store.update { cfg ->
             val existing = cfg.perBucket[bucket] ?: BucketConfig()
             cfg.withBucket(bucket, existing.copy(template = source))
         }
-        ToastUtils.show(getString(R.string.download_path_saved))
+        Toaster.show(getString(R.string.download_path_saved))
+        if (renameableTemplatesChanged(before, after)) renameFlow.promptAfterTemplateChange()
     }
 
     private fun refreshPreview(source: String, bucket: Bucket, out: TextView) {
@@ -424,15 +599,20 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
             ).apply { topMargin = dp(22); gravity = android.view.Gravity.CENTER_HORIZONTAL }
             setOnClickListener {
                 val current = DownloadsRegistry.store.loadOrFallback()
+                // Reset clears *templates*; the numbering preferences are a
+                // separate user choice and survive it.
                 val cleared = DownloadConfig(
                     defaults = current.defaults,
                     perBucket = emptyMap(),
                     wifiOnly = current.wifiOnly,
+                    pageIndexFrom1 = current.pageIndexFrom1,
+                    padPageNumber = current.padPageNumber,
                 )
                 DownloadsRegistry.store.save(cleared)
                 DownloadsRegistry.invalidateBackends()
-                ToastUtils.show(getString(R.string.download_path_reset_done))
+                Toaster.show(getString(R.string.download_path_reset_done))
                 render()
+                if (renameableTemplatesChanged(current, cleared)) renameFlow.promptAfterTemplateChange()
             }
         }
         root.addView(btn)

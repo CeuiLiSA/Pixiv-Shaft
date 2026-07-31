@@ -33,6 +33,7 @@ import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -70,6 +71,7 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(rowGlide)
         setUpToolbar(binding, feedBinding.feedListView)
         binding.toolbarTitle.text = getString(R.string.core_string_novel_marker)
     }

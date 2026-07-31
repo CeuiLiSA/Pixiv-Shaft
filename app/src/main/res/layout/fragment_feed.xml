@@ -54,10 +54,13 @@
             android:src="@mipmap/empty_img"
             android:visibility="gone" />
 
+        <!-- gravity=center：错误态是「具体原因\n点击重试」两行（FeedFragment.render），
+             不设的话第二行在 wrap_content 宽度内左对齐，歪在插画正下方。 -->
         <TextView
             android:id="@+id/feed_state_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:padding="16dp"
             android:textColor="?android:attr/textColorSecondary"
             android:textSize="14sp"

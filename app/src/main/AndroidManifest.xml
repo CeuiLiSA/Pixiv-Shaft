@@ -274,6 +274,10 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/v3_recommend_card_widget_info" />
         </receiver>
+
+        <receiver
+            android:name="ceui.pixiv.widget.WidgetBookmarkReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

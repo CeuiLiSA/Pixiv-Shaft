@@ -19,6 +19,7 @@ import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -57,8 +58,8 @@ fun timelineIllustRenderer(
         }
     },
     recycle = { cell ->
-        Glide.with(cell.binding.illustImage).clear(cell.binding.illustImage)
-        Glide.with(cell.binding.userIcon).clear(cell.binding.userIcon)
+        cell.binding.illustImage.clearGlideOnRecycle()
+        cell.binding.userIcon.clearGlideOnRecycle()
         // tag 是「这张 ImageView 上已经加载了什么」的凭证，清图时必须一并清，
         // 否则复用到恰好同 url 同尺寸的条目时会以为图还在而漏加载
         cell.binding.illustImage.tag = null

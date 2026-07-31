@@ -122,6 +122,14 @@ class RobustWebSocketClient internal constructor(
     private val connectivityObserver: ConnectivityObserver? = null,
     parentContext: CoroutineContext = Dispatchers.IO,
     /**
+     * Single uptime-millis source for connection and reconnect state.
+     *
+     * Production passes [SystemClock.uptimeMillis] so existing consumers may
+     * safely compare state timestamps with the Android uptime clock. Local JVM
+     * tests inject a fake because the Android framework stub is not executable.
+     */
+    private val monotonicNowMillis: () -> Long,
+    /**
      * Test seam — produces the underlying [WebSocket] for an outgoing
      * connection attempt. Defaults to OkHttp's real `newWebSocket`. Tests can
      * pass a fake that synthesises `onOpen` immediately and records sent
@@ -150,7 +158,7 @@ class RobustWebSocketClient internal constructor(
         authProvider = authProvider,
         connectivityObserver = connectivityObserver,
         parentContext = parentContext,
-        webSocketFactory = { c, r, l -> c.newWebSocket(r, l) },
+        monotonicNowMillis = SystemClock::uptimeMillis,
     )
 
     // ── Tuned OkHttpClient ────────────────────────────────────────────────────
@@ -327,7 +335,10 @@ class RobustWebSocketClient internal constructor(
     // ── Reconnect coordinator ─────────────────────────────────────────────────
 
     private val reconnect = ReconnectCoordinator(
-        config, authProvider, scope,
+        config = config,
+        authProvider = authProvider,
+        scope = scope,
+        monotonicNowMillis = monotonicNowMillis,
         host = object : ReconnectCoordinator.Host {
             override val isStopped: Boolean get() = closed || stopRequested
             override fun currentState(): WebSocketState = _state.value
@@ -711,7 +722,7 @@ class RobustWebSocketClient internal constructor(
                     return@synchronized
                 }
                 reconnect.onConnectSuccess()
-                _state.value = WebSocketState.Connected(SystemClock.uptimeMillis())
+                _state.value = WebSocketState.Connected(monotonicNowMillis())
                 Timber.tag(TAG).i("Connected ✓ (HTTP ${response.code})")
             }
             _events.tryEmit(WebSocketEvent.Open)

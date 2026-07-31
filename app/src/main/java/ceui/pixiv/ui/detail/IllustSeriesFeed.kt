@@ -43,6 +43,7 @@ import ceui.pixiv.ui.common.bindCopyLinkChip
 import ceui.pixiv.ui.common.bindOpenLinkChip
 import ceui.pixiv.ui.novel.NovelSeriesHeaderActionReceiver
 import ceui.loxia.Client
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import androidx.fragment.app.Fragment
@@ -217,7 +218,7 @@ fun seriesAuthorRenderer(): FeedRenderer<SeriesAuthorFeedItem, SectionV3ArtistBi
     feedRenderer(
         inflate = SectionV3ArtistBinding::inflate,
         fullSpan = true,
-        recycle = { Glide.with(it.binding.artistAvatar).clear(it.binding.artistAvatar) },
+        recycle = { it.binding.artistAvatar.clearGlideOnRecycle() },
     ) { cell ->
         val b = cell.binding
         val user = cell.item.user
@@ -340,7 +341,7 @@ fun seriesSectionLabelRenderer(): FeedRenderer<SeriesSectionLabelFeedItem, ItemV
 fun mangaEpisodeRenderer(): FeedRenderer<MangaEpisodeFeedItem, CellMangaSeriesItemBinding> =
     feedRenderer(
         inflate = CellMangaSeriesItemBinding::inflate,
-        recycle = { Glide.with(it.binding.cover).clear(it.binding.cover) },
+        recycle = { it.binding.cover.clearGlideOnRecycle() },
     ) { cell ->
         val b = cell.binding
         val illust = cell.item.illust

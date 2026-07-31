@@ -11,6 +11,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.RankActivity
 import ceui.lisa.databinding.RecyRankNovelHorizontalBinding
 import ceui.lisa.databinding.RecyRecmdHeaderBinding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.view.LinearItemHorizontalDecoration
@@ -92,17 +93,19 @@ class RecmdNovelFeedFragment : NovelFeedFragment() {
     companion object {
         /**
          * 页响应 → 条目。跑在 Default 线程、被 VM 长期持有，放伴生对象保证零捕获。
-         * 首屏把 ranking_novels 拼成排行榜预览头插到最前（不做内容过滤，对齐 legacy 直接展示）。
+         * 首屏把 ranking_novels 拼成排行榜预览头插到最前。预览头同样滤掉屏蔽的作品/标签/作者
+         *（issue #543，同插画侧 mapRecmdPage）；R18 口味过滤照旧不适用。
          */
         private fun mapRecmdNovelPage(
             novels: List<Novel>,
-            rankNovels: List<Novel>,
+            rankingNovels: List<Novel>,
             phase: FeedLoadPhase,
         ): List<FeedItem> {
             val listItems = novels.mapNotNull { NovelFeedItem.of(it) }
             if (!phase.isFirstPage) {
                 return listItems
             }
+            val rankNovels = rankingNovels.filterNot { IllustNovelFilter.judge(it) }
             return if (rankNovels.isEmpty()) {
                 listItems
             } else {

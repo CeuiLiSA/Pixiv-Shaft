@@ -25,6 +25,19 @@
         android:textSize="12sp" />
 
     <ImageView
+        android:id="@+id/widget_bookmark"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="8dp"
+        android:background="@drawable/v3_widget_refresh_scrim"
+        android:contentDescription="@null"
+        android:padding="7dp"
+        android:src="@drawable/ic_widget_heart"
+        android:tint="#E6FFFFFF"
+        android:visibility="gone" />
+
+    <ImageView
         android:id="@+id/widget_refresh"
         android:layout_width="32dp"
         android:layout_height="32dp"
