@@ -126,6 +126,28 @@ class V3TagFlowView @JvmOverloads constructor(
             }
         }
 
+    /**
+     * 「+N」溢出块的点击回调。非空时溢出块可点击（带 touch scale），用于画师主页
+     * tag 筛选条的展开/收起（PR #947）；保持 null 则溢出块维持原样 —— 纯展示、
+     * 不可点击、不吃事件（列表卡片里点它应该继续穿透给卡片本身）。
+     * 是否挂监听在渲染时决定，所以要在 setTags*() 之前赋值。
+     */
+    var onOverflowClick: (() -> Unit)? = null
+
+    /**
+     * 溢出动作块的替代文本。[maxTags] 未触发折叠（无溢出）而本值非空时，末尾仍渲染
+     * 一个与「+N」同款式的动作块显示该文本 —— 展开态的「收起」就是这么来的。
+     * 触发折叠时忽略本值，始终显示「+N」。null（默认）= 无溢出就不渲染任何块。
+     */
+    var overflowActionText: String? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                lastSignature = null
+                renderPairs(lastPairs)
+            }
+        }
+
     private var _editor: EditText? = null
 
     /**
@@ -257,11 +279,14 @@ class V3TagFlowView @JvmOverloads constructor(
             addView(tv)
         }
 
-        // 「+N」折叠块：只显示折叠了多少个 tag，不可点击，弱化配色（textSecondary），
-        // 与小说 V3 系列详情页 item 一致。
-        if (overflowCount > 0) {
+        // 「+N」折叠块：显示折叠了多少个 tag，弱化配色（textSecondary），与小说 V3 系列
+        // 详情页 item 一致。默认不可点击、不吃事件（列表卡片里点它要穿透给卡片）；
+        // [onOverflowClick] 非空的调用方（画师主页 tag 筛选条）把它变成展开/收起开关，
+        // 无溢出时若 [overflowActionText] 非空则改显示该文本（展开态的「收起」）。
+        val actionText = if (overflowCount > 0) "+$overflowCount" else overflowActionText
+        if (actionText != null) {
             val more = TextView(context).apply {
-                text = "+$overflowCount"
+                text = actionText
                 textSize = chipTextSize
                 setTextColor(palette.textSecondary)
                 background = tagBgState?.newDrawable()?.mutate()
@@ -273,6 +298,14 @@ class V3TagFlowView @JvmOverloads constructor(
                     setMargins(0, 0, gap, bottomGap)
                     flexShrink = 0f
                 }
+                if (onOverflowClick != null) {
+                    // 回调晚读，与 onTagClick 同套路；是否挂监听仍看渲染时是否非空，
+                    // 免得给纯展示调用方平白挂上可点击语义。
+                    setOnClickListener { onOverflowClick?.invoke() }
+                }
+            }
+            if (onOverflowClick != null) {
+                applyTouchScale(more, 0.94f)
             }
             addView(more)
         }
