@@ -5,12 +5,14 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.text.TextUtils
+import android.text.method.LinkMovementMethod
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -235,7 +237,13 @@ internal fun ArtworkV3Fragment.descRenderer() =
         val b = cell.binding
         if (b.description.tag != cell.item.caption) {
             b.description.tag = cell.item.caption
-            b.description.setHtml(cell.item.caption)
+            // HtmlTextView.setHtml 遇到含 <a> 链接的 caption 会直接吐出空串——经典版
+            // FragmentIllust 在 #552 就换掉了,V3 一直没跟上(#960「带链接的简介看不到」)。
+            // 同款修法:HtmlCompat 渲染 + LinkMovementMethod 让链接可点。
+            b.description.text = HtmlCompat.fromHtml(
+                cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT
+            )
+            b.description.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 

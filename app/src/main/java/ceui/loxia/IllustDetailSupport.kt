@@ -26,6 +26,17 @@ fun IllustsBean.isFullDetail(): Boolean {
 }
 
 /**
+ * issue #960: pixiv 的列表接口(动态 v2/illust/follow、收藏列表等)会不定期对部分作品返回
+ * 空 caption(pixiv 侧行为,上游 pixivpy#363 同现象),而 [isFullDetail] 只看图片字段——
+ * 列表 bean 一律判 full,详情页据此跳过回源,简介就时有时无。
+ * caption 非空可直接信;为空时只有 detail 接口整体覆盖过([ObjectPool.hasFullIllustVersion])
+ * 才算「确认过真没有简介」,否则详情页应回 v1/illust/detail 补拉一次。
+ */
+fun IllustsBean.hasTrustedCaption(): Boolean {
+    return !caption.isNullOrEmpty() || ObjectPool.hasFullIllustVersion(id.toLong())
+}
+
+/**
  * 回 v1/illust/detail 拉完整版,整体覆盖(isFullVersion)进 ObjectPool 并返回。
  * 作品已删 / 不可见 / 网络失败返回 null —— 此时不覆盖,保留池里已有数据,由调用方降级处理。
  */

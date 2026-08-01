@@ -12,6 +12,7 @@ import ceui.loxia.Comment
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.fetchFullIllustDetail
+import ceui.loxia.hasTrustedCaption
 import ceui.loxia.isFullDetail
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.feeds.FeedItem
@@ -71,7 +72,9 @@ class ArtworkV3FeedSource(
      */
     private suspend fun resolveFullIllust(): IllustsBean? {
         val existing = ObjectPool.get<IllustsBean>(illustId).value
-        if (existing != null && existing.isFullDetail()) {
+        // hasTrustedCaption:列表接口会不定期掐掉部分作品的 caption(#960),isFullDetail
+        // 只看图片字段挡不住;caption 为空且没被 detail 确认过时也要回源补拉。
+        if (existing != null && existing.isFullDetail() && existing.hasTrustedCaption()) {
             Timber.tag(ARTWORK_LAZY_TAG).d("resolveFullIllust: 池里已是完整版,零 API 直接用 illustId=%d", illustId)
             return existing
         }

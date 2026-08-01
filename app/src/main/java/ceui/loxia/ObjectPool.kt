@@ -110,6 +110,9 @@ object ObjectPool {
 
     inline fun <reified ObjectT : ModelObject> updateObjectPool(obj: ObjectT, isFullVersion: Boolean) {
         val key = ObjectKey(obj.objectUniqueId, obj.objectType)
+        if (isFullVersion) {
+            fullVersionKeys.add(key)
+        }
         val storedObject = store[key]
         if (storedObject == null) {
             store[key] = MutableLiveData(obj)
@@ -128,6 +131,19 @@ object ObjectPool {
             }
         }
         Log.d("updateObjectPool", "对象池大小：${store.size}")
+    }
+
+    /**
+     * 收到过 isFullVersion=true(detail 接口整体覆盖)更新的 key。详情页用它区分
+     * 「列表接口不定期掐掉的空 caption」和「detail 确认过的真无简介」:前者要回源补拉,
+     * 后者不该反复白拉(#960,见 [hasTrustedCaption])。进程内存活即可,
+     * 重启后代价不过是每个空简介作品多拉一次 detail。
+     */
+    @PublishedApi
+    internal val fullVersionKeys = mutableSetOf<ObjectKey>()
+
+    fun hasFullIllustVersion(illustId: Long): Boolean {
+        return ObjectKey(illustId, ObjectSpec.POST) in fullVersionKeys
     }
 
     @PublishedApi

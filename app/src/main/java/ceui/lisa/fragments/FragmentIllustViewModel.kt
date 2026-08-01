@@ -15,6 +15,7 @@ import ceui.lisa.utils.Common
 import ceui.loxia.ObjectPool
 import ceui.loxia.fetchFullIllustDetail
 import ceui.loxia.fetchIllustPageDimensions
+import ceui.loxia.hasTrustedCaption
 import ceui.loxia.isFullDetail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,7 +53,9 @@ class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
         // 拉取失败则保留现有(精简)数据 —— GlideUtil / IllustDownload 已加空值兜底,不会崩,降级显示封面。
         viewModelScope.launch {
             val cur = ObjectPool.get<IllustsBean>(illustId).value
-            if (cur == null || !cur.isFullDetail()) {
+            // hasTrustedCaption:列表接口会不定期掐掉部分作品的 caption(#960),caption 为空
+            // 且没被 detail 确认过时也回源补拉,落池后 illust observer 自动重渲染简介。
+            if (cur == null || !cur.isFullDetail() || !cur.hasTrustedCaption()) {
                 fetchFullIllustDetail(illustId)
             }
         }
