@@ -262,29 +262,12 @@ class MediaStoreBackend(
                 put(MediaStore.MediaColumns.DATE_MODIFIED, SilentDownload.BACKDATE_SEC)
             }
         }
-        // 带日期列的 insert 在个别 OEM 上可能被拒 —— 去掉日期列重试一次。
-        // 低调下载开关绝不能让下载本身失败(少一道保险,onFinish 兜底仍在)。
-        val inserted: Uri? = try {
-            context.contentResolver.insert(collectionUri, values)
-        } catch (e: Exception) {
-            if (!silent) throw e
-            Timber.w(e, "MediaStoreBackend: insert with backdated date columns rejected, retrying without")
-            null
-        }
-        val target: Uri = inserted ?: run {
-            if (silent) {
-                values.remove(MediaStore.MediaColumns.DATE_ADDED)
-                values.remove(MediaStore.MediaColumns.DATE_MODIFIED)
-                context.contentResolver.insert(collectionUri, values)
-            } else {
-                null
-            }
-        } ?: error("MediaStore insert failed for $relPath")
+        var target: Uri = insertPendingRow(collectionUri, values, silent, relPath)
         // 登记在途写入:低调下载把 DATE_ADDED 回拨后,MediaStoreOrphanCleaner 的
         // 60 秒时间闸认不出这是刚插入的行,必须显式登记防止被当孤儿清掉。
         // 下面所有提前退出路径(rename guard / openOutputStream 失败)都要 untrack。
         InFlightMediaStoreWrites.track(target)
-        // OEM-rename guard: certain Android skins (HarmonyOS / MIUI / etc.)
+        // OEM-rename guard: certain Android skins (HarmonyOS / MIUI / vivo etc.)
         // silently rewrite the inserted row's RELATIVE_PATH when an existing
         // on-disk file collides with the one we're trying to write but its
         // MediaStore row isn't visible to us. The result the user sees is
@@ -294,31 +277,52 @@ class MediaStoreBackend(
         // We can't talk the OS out of doing this, but we can refuse to
         // commit bytes to the wrong place: verify the actual
         // RELATIVE_PATH on the row we just got, and if it was altered,
-        // delete the row and surface a clear error to the caller.
-        val actualRelativeDir = queryRelativePath(target)
+        // first try to self-heal (below), then delete the row and surface
+        // an actionable error to the caller.
+        var actualRelativeDir = queryRelativePath(target)
         if (actualRelativeDir != null && !relativePathsEqual(actualRelativeDir, relativeDir)) {
-            // Detail goes to the log so we can correlate user reports with the
-            // specific file/path; the user-visible exception keeps a short,
-            // actionable message because it propagates straight to a toast.
             Timber.w(
                 "MediaStoreBackend: OEM auto-renamed insert from '%s' to '%s' for %s. " +
                     "On-disk file at the requested path likely owned by another package " +
-                    "or hidden from MediaStore on this OEM (HarmonyOS / MIUI / etc.). " +
-                    "Aborting write to avoid scattering files into the wrong directory.",
+                    "or hidden from MediaStore on this OEM. Trying reclaim-and-retry.",
                 relativeDir, actualRelativeDir, relPath,
             )
             runCatching { context.contentResolver.delete(target, null, null) }
             InFlightMediaStoreWrites.untrack(target)
-            // For human readability fall back to the collection root
-            // (Pictures/Downloads) when the relative path has no directory
-            // segments — joining an empty list yields "" and produces the
-            // confusing "无法写入 /" message.
-            val displayDir = if (relPath.directory.isNotEmpty()) {
-                relPath.directory.joinToString("/")
-            } else {
-                collectionRoot()
+            // 自愈重试(仅一次):目录被改名的典型诱因是请求路径上有一个 MediaStore
+            // 看不见的同名盘上文件(换机迁移/文件管理器拷入,issue #958)。强制扫描
+            // 把它收编成可见 row 后重新 insert,MediaProvider 就会走正常的「文件名
+            // 加 (1) 后缀」冲突解决,而不是把整个目录改名 —— bytes 落在用户配置的
+            // 目录里,代价只是文件名多个后缀。
+            var healed = false
+            if (legacyFile(relPath).exists() && reclaimOrphanRow(relPath) != null) {
+                target = insertPendingRow(collectionUri, values, silent, relPath)
+                InFlightMediaStoreWrites.track(target)
+                actualRelativeDir = queryRelativePath(target)
+                healed = actualRelativeDir == null ||
+                    relativePathsEqual(actualRelativeDir, relativeDir)
+                if (!healed) {
+                    runCatching { context.contentResolver.delete(target, null, null) }
+                    InFlightMediaStoreWrites.untrack(target)
+                }
             }
-            error("下载目录被系统占用，无法写入 $displayDir/，请在文件管理器删掉同名旧文件后重试")
+            if (!healed) {
+                // For human readability fall back to the collection root
+                // (Pictures/Downloads) when the relative path has no directory
+                // segments — joining an empty list yields "" and produces the
+                // confusing "无法写入 /" message.
+                val displayDir = if (relPath.directory.isNotEmpty()) {
+                    relPath.directory.joinToString("/")
+                } else {
+                    collectionRoot()
+                }
+                // 提示必须可执行:问题出在整个目录被系统改写(归属异常),不是某个
+                // 同名旧文件 —— 旧文案叫用户「删同名旧文件」在这种场景下无从下手。
+                error(
+                    "下载目录被系统改写（$displayDir/ → $actualRelativeDir），无法写入。" +
+                        "请在文件管理器把该文件夹整体重命名或移走，或在下载设置中更换下载路径后重试",
+                )
+            }
         }
         // If openOutputStream throws after the row was inserted, the row
         // would otherwise be left stranded as a `.pending-NNNN` 0-byte file.
@@ -357,6 +361,35 @@ class MediaStoreBackend(
             InFlightMediaStoreWrites.untrack(target)
         }
         return StorageBackend.WriteHandle(target, stream, onFinish, onAbort)
+    }
+
+    /**
+     * Insert the IS_PENDING=1 row for [openModern]. 带日期列的 insert 在个别
+     * OEM 上可能被拒 —— 低调下载时去掉日期列重试一次(低调下载开关绝不能让
+     * 下载本身失败;少一道保险,onFinish 兜底仍在)。
+     */
+    private fun insertPendingRow(
+        collectionUri: Uri,
+        values: ContentValues,
+        silent: Boolean,
+        relPath: RelativePath,
+    ): Uri {
+        val inserted: Uri? = try {
+            context.contentResolver.insert(collectionUri, values)
+        } catch (e: Exception) {
+            if (!silent) throw e
+            Timber.w(e, "MediaStoreBackend: insert with backdated date columns rejected, retrying without")
+            null
+        }
+        return inserted ?: run {
+            if (silent) {
+                values.remove(MediaStore.MediaColumns.DATE_ADDED)
+                values.remove(MediaStore.MediaColumns.DATE_MODIFIED)
+                context.contentResolver.insert(collectionUri, values)
+            } else {
+                null
+            }
+        } ?: error("MediaStore insert failed for $relPath")
     }
 
     private fun openLegacy(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
@@ -436,16 +469,19 @@ class MediaStoreBackend(
 
     /**
      * Compare two MediaStore `RELATIVE_PATH` strings ignoring trailing
-     * slash. The platform docs spell the value as `Pictures/MyAlbum` (no
-     * trailing slash) but most apps — including this one — pass values
-     * *with* a trailing slash, and AOSP / OEM forks differ on whether
-     * they normalise it on write. A bare equality check here would
-     * therefore raise false positives in [openModern]'s rename guard
-     * every time the OS chose the canonical-without-slash form on
-     * read-back.
+     * slash and letter case. The platform docs spell the value as
+     * `Pictures/MyAlbum` (no trailing slash) but most apps — including
+     * this one — pass values *with* a trailing slash, and AOSP / OEM
+     * forks differ on whether they normalise it on write. Case matters
+     * too: emulated external storage is case-insensitive, so when the
+     * on-disk directory is a case variant of the requested one,
+     * MediaProvider merges the insert into it and reads back the
+     * *existing* directory's casing — same physical directory, not a
+     * rename. A case-sensitive check here made [openModern]'s rename
+     * guard hard-fail every single download in that state (issue #958).
      */
     private fun relativePathsEqual(a: String, b: String): Boolean =
-        a.trimEnd('/') == b.trimEnd('/')
+        a.trimEnd('/').equals(b.trimEnd('/'), ignoreCase = true)
 
     /**
      * Read back the [MediaStore.MediaColumns.RELATIVE_PATH] the OS actually
