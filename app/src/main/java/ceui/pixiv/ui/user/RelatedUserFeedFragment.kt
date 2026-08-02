@@ -10,6 +10,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.UserFeedFragment
 import ceui.pixiv.ui.common.UserFeedItem
+import ceui.pixiv.ui.common.toUserFeedItems
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 
@@ -32,7 +33,7 @@ class RelatedUserFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed)
         val userId = userId
         pixivFeedSource(
             initialFetch = { Client.appApi.getRelatedUsers(userId) },
-        ) { resp, _ -> resp.user_previews.map { UserFeedItem(it) } }
+        ) { resp, _ -> resp.user_previews.toUserFeedItems() }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

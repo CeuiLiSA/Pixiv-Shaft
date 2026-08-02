@@ -53,7 +53,10 @@ class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
 
     private val binding by viewBinding(FragmentPinnedTagsBinding::bind)
 
-    override val feedViewModel by feedViewModels<String> {
+    // autoLoad = false：本页刻意每次可见都重查一遍本地库（下面的 repeatOnLifecycle(STARTED) 里
+    // refresh），首屏那次也由它负责。留着默认的 autoLoad 只会让 VM 的 init refresh 与它撞在一起，
+    // 第一次 DB 查询必被后来的 refresh 取消重来（refresh 永远赢），白跑一趟。
+    override val feedViewModel by feedViewModels<String>(autoLoad = false) {
         FeedSource { _ ->
             val items = withContext(Dispatchers.IO) {
                 searchDao().getAllPinned()

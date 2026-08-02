@@ -25,7 +25,7 @@ import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
-import ceui.loxia.launchSuspend
+import ceui.loxia.getHumanReadableMessage
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
@@ -45,10 +45,33 @@ import ceui.pixiv.widgets.RateAppManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /** 收藏态局部重绑的 payload 标记（按引用识别）。 */
 private val PAYLOAD_NOVEL_BOOKMARK = Any()
+
+/**
+ * 小说收藏提交用的进程级 scope（对齐插画侧：那边走 [ceui.lisa.utils.PixivOperate.postLike] 的全局
+ * Rx 链，同样不随 view 死）。
+ *
+ * 收藏是**用户已经按下去的意图**，一旦乐观态写进了比 view 长命的 VM，请求就必须发完——挂
+ * `viewLifecycleOwner.lifecycleScope` 的话（`ceui.loxia.launchSuspend` 就是），点完立刻返回上一页
+ * 会让协程被取消：请求可能根本没到服务端，而 VM 里的乐观态还在（回退分支挂在 `catch (Exception)`
+ * 之后，CancellationException 直接 rethrow 跳过它），回到列表显示已收藏、服务端却没有，且再无回滚时机。
+ *
+ * Main.immediate：回调（updateItems / toast / 广播）都要在主线程，且点击当帧同步跑到第一个挂起点。
+ * SupervisorJob + handler：单次收藏失败不牵连其它，且游离 scope 里的漏网异常不许崩进程。
+ */
+private val novelBookmarkScope = CoroutineScope(
+    SupervisorJob() +
+        Dispatchers.Main.immediate +
+        CoroutineExceptionHandler { _, t -> Timber.w(t, "小说收藏协程异常，忽略") }
+)
 
 /**
  * 小说列表页的共享基类（对齐插画侧 [IllustFeedFragment]）。子类只声明数据源
@@ -206,14 +229,26 @@ abstract class NovelFeedFragment(
         button.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(button.context, color))
     }
 
+    /** VM 里当前这条小说的最新条目（真源）；已被刷新挤掉则 null。对齐 [IllustFeedFragment.currentIllustItem]。 */
+    private fun currentNovelItem(novelId: Long): NovelFeedItem? {
+        return feedViewModel.uiState.value.items
+            .firstOrNull { it is NovelFeedItem && it.novel.id == novelId } as? NovelFeedItem
+    }
+
     /**
      * 收藏切换：点按当帧乐观翻心 + updateItems 落地(DiffUtil 局部重绑),再走 loxia 网络。
      * 与 legacy NAdapter.postLikeNovel 逐条对齐:尊重私密收藏 / 成功 toast / 收藏后自动关注作者 /
-     * 事件埋点 / RateApp / 发 LIKED_NOVEL 广播同步其它列表。网络失败回退并由 launchSuspend 弹错误框。
+     * 事件埋点 / RateApp / 发 LIKED_NOVEL 广播同步其它列表。网络失败回退并弹 toast。
      */
     private fun toggleNovelLike(cell: FeedCell<NovelFeedItem, RecyNovelBinding>) {
-        val novel = cell.item.novel
-        val novelId = novel.id
+        // 收藏态的真源是 VM 的当前状态，不是 cell.item —— 后者是 adapter **已提交的快照**，要等
+        // ListAdapter 后台 diff 落地才经 cell.attach 换新（下面那行注释自己写了「至少一两帧」）。
+        // 读 cell.item 的后果：连点两下时第二下仍看到上一下之前的旧态，把「取消收藏」反转成
+        // 「再收藏一次」——心不回灰、两条 toast、两次 addNovelBookmark，取消这个操作直接丢失。
+        // 插画侧 staggerIllustRenderer 早已这么修，此处对齐。
+        val tapped = cell.itemOrNull ?: return
+        val novelId = tapped.novel.id
+        val novel = (currentNovelItem(novelId) ?: tapped).novel
         val target = novel.is_bookmarked != true
         // 乐观：当帧翻心（异步 updateItems 至少要等 ListAdapter diff 落地一两帧）
         renderNovelLike(cell.binding.like, target)
@@ -225,8 +260,12 @@ abstract class NovelFeedFragment(
         }
         applyNovelBookmark(novelId, target)
         val restrict = if (Shaft.sSettings.isPrivateStar()) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
-        launchSuspend {
-            // 只有收藏网络调用本身失败才回退 UI + 弹错误框。收藏成功之后的埋点/toast/关注/广播
+        // VM 先取成局部值：提交跑在比 view 长命的 scope 上，此后一律不再碰 Fragment
+        //（见 [novelBookmarkScope]；Fragment 已销毁时碰它的属性可能抛）。
+        val viewModel = feedViewModel
+        val appContext = Shaft.getContext()
+        novelBookmarkScope.launch {
+            // 只有收藏网络调用本身失败才回退 UI + 提示。收藏成功之后的埋点/toast/关注/广播
             // 都是「收藏已成功」的后续动作,任一失败都不能把已成功的收藏回退掉误导用户
             //（对齐 legacy postLikeNovel:自动关注是独立 fire-and-forget,失败静默）。
             try {
@@ -238,8 +277,17 @@ abstract class NovelFeedFragment(
             } catch (ce: CancellationException) {
                 throw ce
             } catch (ex: Exception) {
-                applyNovelBookmark(novelId, !target) // 回退条目状态,可见卡片重绑爱心
-                throw ex // 交给 launchSuspend 弹错误框
+                // 回退条目状态,可见卡片重绑爱心
+                applyNovelBookmark(viewModel, novelId, !target)
+                Timber.e(ex, "小说收藏失败")
+                // 文案映射自身也可能出岔子（HttpException 的错误体只能读一次等），
+                // 或映射出空白 —— 错误提示这条路上不允许再抛第二个异常、也不该弹空 toast。
+                val message = runCatching { ex.getHumanReadableMessage(appContext) }
+                    .getOrNull()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: appContext.getString(R.string.v3_widget_bookmark_failed)
+                Common.showToast(message)
+                return@launch
             }
 
             // ↓ 收藏已提交成功,以下副作用失败均不回退收藏
@@ -251,7 +299,7 @@ abstract class NovelFeedFragment(
                 novel,
             )
             Common.showToast(
-                getString(
+                appContext.getString(
                     when {
                         !target -> R.string.cancel_like_illust
                         restrict == Params.TYPE_PUBLIC -> R.string.like_novel_success_public
@@ -280,7 +328,15 @@ abstract class NovelFeedFragment(
     }
 
     private fun applyNovelBookmark(novelId: Long, liked: Boolean) {
-        feedViewModel.updateItems(NovelFeedItem::class.java) { item ->
+        applyNovelBookmark(feedViewModel, novelId, liked)
+    }
+
+    private fun applyNovelBookmark(
+        viewModel: FeedViewModel<String>,
+        novelId: Long,
+        liked: Boolean,
+    ) {
+        viewModel.updateItems(NovelFeedItem::class.java) { item ->
             if (item.novel.id == novelId) item.withBookmarked(liked) else item
         }
     }

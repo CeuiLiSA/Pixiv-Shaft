@@ -50,6 +50,9 @@ class IllustSeriesFragment :
 
     private val seriesId: Long by lazy { arguments?.getLong(ARG_SERIES_ID, 0L) ?: 0L }
 
+    /** 追更（watchlist）切换是否在飞，防连点重复请求。只在主线程读写。 */
+    private var watchlistInFlight = false
+
     override val feedViewModel by feedViewModels {
         val id = seriesId
         IllustSeriesFeedSource(id)
@@ -118,6 +121,10 @@ class IllustSeriesFragment :
     override fun onClickToggleWatchlist(progressView: ProgressImageButton) {
         val hero = feedViewModel.uiState.value.items
             .filterIsInstance<MangaHeroFeedItem>().firstOrNull() ?: return
+        // 防连点：乐观翻转发生在网络回来之后，所以快速双击时两次协程会读到同一个
+        // watchlist_added 快照，发出两个同向请求（第二个必然被服务端拒掉、只弹一句错误 toast）。
+        if (watchlistInFlight) return
+        watchlistInFlight = true
         progressView.showProgress()
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -139,6 +146,7 @@ class IllustSeriesFragment :
             } catch (e: Exception) {
                 if (isAdded) Toaster.show(getString(R.string.task_status_error))
             } finally {
+                watchlistInFlight = false
                 if (isAdded) progressView.hideProgress()
             }
         }

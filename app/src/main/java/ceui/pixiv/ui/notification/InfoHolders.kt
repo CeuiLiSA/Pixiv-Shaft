@@ -6,7 +6,6 @@ import ceui.lisa.databinding.CellInfoEntryBinding
 import ceui.loxia.CategorizedInfo
 import ceui.loxia.InfoItem
 import ceui.pixiv.feeds.FeedItem
-import ceui.pixiv.utils.setOnClick
 
 /**
  * feeds 框架条目：Latest 聚合页里每个分类前的小标题。点 "查看更多" → 下钻该分类的完整 list。
@@ -21,19 +20,14 @@ data class InfoCategoryHeaderFeedItem(
     override val feedKey: Any get() = -(category.category_id.toLong() + 1L)
 }
 
-/** 分类小标题 cell 的实际渲染逻辑。整行不响应点击,只有"查看更多"自己接事件。 */
-fun CellInfoCategoryHeaderBinding.bindInfoCategoryHeader(
-    item: InfoCategoryHeaderFeedItem,
-    onClickMore: (CategorizedInfo) -> Unit,
-) {
+/**
+ * 分类小标题 cell 的实际渲染逻辑。整行不响应点击,只有"查看更多"自己接事件。
+ * 只画内容、不挂监听——按框架约定监听在 renderer 的 `create` 里挂一次（用 `cell.item` 取当下条目）。
+ */
+fun CellInfoCategoryHeaderBinding.bindInfoCategoryHeader(item: InfoCategoryHeaderFeedItem) {
     categoryTitle.text = item.category.category_title.orEmpty()
     categoryMore.isVisible = item.showMore
-    if (item.showMore) {
-        categoryMore.setOnClick { onClickMore(item.category) }
-    } else {
-        categoryMore.setOnClickListener(null)
-        categoryMore.isClickable = false
-    }
+    categoryMore.isClickable = item.showMore
 }
 
 /** feeds 框架条目，被 [InfoLatestFragment] 和 [InfoCategoryListFragment] 共用。 */
@@ -41,10 +35,9 @@ data class InfoEntryFeedItem(val item: InfoItem) : FeedItem {
     override val feedKey: Any get() = item.id
 }
 
-/** 公告条目 cell 的实际渲染逻辑。 */
-fun CellInfoEntryBinding.bindInfoEntry(item: InfoItem, onClick: (InfoItem) -> Unit) {
+/** 公告条目 cell 的实际渲染逻辑（点击监听同样归 renderer 的 `create`）。 */
+fun CellInfoEntryBinding.bindInfoEntry(item: InfoItem) {
     infoTitle.text = item.title.orEmpty()
     infoDate.text = item.date?.take(10).orEmpty() // "2026-04-21T13:00:00+09:00" → "2026-04-21"
     infoRecentDot.isVisible = item.is_recent
-    infoEntryRoot.setOnClick { onClick(item) }
 }

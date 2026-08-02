@@ -18,6 +18,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
 
 /**
  * /v1/info/list?cid=N 的下钻页（feeds 框架版）:某分类完整列表,带分页(走 KListShow.next_url，
@@ -64,7 +65,13 @@ class InfoCategoryListFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     private fun infoEntryRenderer() = feedRenderer<InfoEntryFeedItem, CellInfoEntryBinding>(
         inflate = CellInfoEntryBinding::inflate,
+        create = { cell ->
+            cell.binding.infoEntryRoot.setOnClick {
+                val item = cell.itemOrNull?.item ?: return@setOnClick
+                openInfoUrl(requireContext(), item)
+            }
+        },
     ) { cell ->
-        cell.binding.bindInfoEntry(cell.item.item) { item -> openInfoUrl(requireContext(), item) }
+        cell.binding.bindInfoEntry(cell.item.item)
     }
 }

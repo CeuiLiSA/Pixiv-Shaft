@@ -14,7 +14,22 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /** shaft-api-v2 两条热度榜口径：TRENDING=本月收藏(当前周收藏加权榜)/RECENT=当前最热(实时流·日周月榜)。 */
-enum class HotWorksSource { TRENDING, RECENT }
+enum class HotWorksSource {
+    TRENDING,
+    RECENT;
+
+    companion object {
+        /**
+         * 按名字解析，认不出就退回 [TRENDING]。
+         *
+         * 别用 `valueOf`：它对认不出的名字抛 IllegalArgumentException，而这个值来自 arguments
+         * Bundle——系统重建时恢复出来的东西不该有能力把页面打崩。取不准就退回默认 tab，
+         * 比崩一次好。
+         */
+        fun ofName(name: String?): HotWorksSource =
+            entries.firstOrNull { it.name == name } ?: TRENDING
+    }
+}
 
 /** 热度值：trending 取加权 score，recent 取窗口内 bookmark_count（recent 的 score 恒 0）。 */
 private fun ShaftApiV2.TrendingWorkItem.hotScore(source: HotWorksSource): Float =

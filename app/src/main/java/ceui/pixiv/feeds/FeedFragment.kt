@@ -70,13 +70,28 @@ abstract class FeedFragment(
     protected open val loadMoreEnabled: Boolean = true
 
     /**
-     * 是否允许下拉刷新。与 [loadMoreEnabled] 对称：横向 rail / 嵌在别人滚动容器里的货架覆写为 false
-     * （它们的手势归宿主，自己吃掉下拉会打架）。
+     * 下拉刷新的**静态**开关（装配列表时读一次）。与 [loadMoreEnabled] 对称：横向 rail / 嵌在
+     * 别人滚动容器里的货架覆写为 false（它们的手势归宿主，自己吃掉下拉会打架）。
      *
-     * 有这个钩子之前，唯一需要它的页面只能伸手进 `feedBinding.feedRefreshLayout.isEnabled = false`——
-     * 那是全仓唯一一处绕过框架直操内部 binding 的地方，正是「缺了对称钩子」逼出来的。
+     * 运行时要开关（如进入本地过滤态时临时禁用下拉）用 [setRefreshEnabled]，别伸手进
+     * `feedBinding.feedRefreshLayout`。
      */
     protected open val refreshEnabled: Boolean = true
+
+    /**
+     * 运行时开关下拉刷新。用于「页面进入某种临时态就不该整页重刷」的场景——收藏标签页进入
+     * 本地过滤态就是（列表此刻显示的是筛选结果，下拉刷新会把它整代换掉）。
+     *
+     * 有这个方法之前，唯一需要它的页面只能伸手进 `feedBinding.feedRefreshLayout.isEnabled = ...`：
+     * 那是绕过框架直操内部 binding 的唯一一处，正是「缺了运行时钩子」逼出来的（静态的
+     * [refreshEnabled] 只在装配时读一次，表达不了临时态）。view 未创建时安全 no-op。
+     *
+     * ⚠️ 不改 [refreshEnabled] 的取值：[rebuildList] 重装列表会按静态值回到默认，
+     * 临时态的开关归调用方自己在重装后重新表达。
+     */
+    protected fun setRefreshEnabled(enabled: Boolean) {
+        _binding?.feedRefreshLayout?.isEnabled = enabled
+    }
 
     private var _binding: FragmentFeedBinding? = null
     protected val feedBinding: FragmentFeedBinding
@@ -151,20 +166,31 @@ abstract class FeedFragment(
         }
 
         // 网络恢复自动重试：只认 NONE→online 的迁移，跳过 observe 注册时的粘性首发
-        //（判定对齐 [ceui.pixiv.ui.task.PageLoadRetryController]）。全屏错误自动整页重刷、
-        // 追加错误自动续上 footer——两者都只在用户本来就无事可做的错误态触发，幂等且不打扰。
-        // 「有内容兜底的刷新失败」刻意不自动 refresh：整代替换会清表回顶，把正在浏览
-        // 缓存内容的用户从半路拽走。
+        //（判定对齐 [ceui.pixiv.ui.task.PageLoadRetryController]）。具体重试什么见 [onNetworkRestored]。
         var lastNetworkType: NetworkStateManager.NetworkType? = null
         requireNetworkStateManager().networkState.observe(viewLifecycleOwner) { type ->
             val wasOffline = lastNetworkType == NetworkStateManager.NetworkType.NONE
             lastNetworkType = type
             if (!wasOffline || !type.isOnline) return@observe
-            val state = feedViewModel.uiState.value
-            when {
-                state.showFullscreenError -> feedViewModel.refresh()
-                state.append is LoadState.Error -> feedViewModel.retryAppend()
-            }
+            onNetworkRestored()
+        }
+    }
+
+    /**
+     * 断网 → 有网的迁移回调（不含 observe 注册时的粘性首发）。
+     *
+     * 基类默认重试用户本来就无事可做的错误态：全屏错误整页重刷、追加错误续上 footer，两者幂等
+     * 且不打扰。「有内容兜底的刷新失败」刻意不自动 refresh：整代替换会清表回顶，把正在浏览缓存
+     * 内容的用户从半路拽走。
+     *
+     * 页面自己还有别的东西要在联网后补拉（如详情页那些懒加载区块，它们的触发信号只有 attach，
+     * holder 停在屏幕内就再也不会重试）时覆写本方法，**记得调 super**。
+     */
+    protected open fun onNetworkRestored() {
+        val state = feedViewModel.uiState.value
+        when {
+            state.showFullscreenError -> feedViewModel.refresh()
+            state.append is LoadState.Error -> feedViewModel.retryAppend()
         }
     }
 

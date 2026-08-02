@@ -18,6 +18,7 @@ import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
+import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
@@ -122,7 +123,14 @@ abstract class UserFeedFragment(
         val size = ctx.resources.displayMetrics.widthPixels / 3
         val slots = listOf(b.userShowOne, b.userShowTwo, b.userShowThree)
         slots.forEach { iv ->
-            iv.layoutParams = iv.layoutParams.apply { width = size; height = size }
+            // 尺寸没变就别赋值：setLayoutParams 无条件触发 requestLayout，而这里是 fling 帧路径上
+            // 每张卡跑 3 次。屏宽只在旋转/分屏时变，那时 holder 本来就会重新走一遍 bind。
+            val lp = iv.layoutParams
+            if (lp.width != size || lp.height != size) {
+                lp.width = size
+                lp.height = size
+                iv.layoutParams = lp
+            }
         }
         val illusts = preview.illusts
         slots.forEachIndexed { i, iv ->
@@ -142,33 +150,69 @@ abstract class UserFeedFragment(
         b.postLikeUser.text = getString(if (followed) R.string.post_unfollow else R.string.post_follow)
     }
 
+    /** VM 里当前这个用户的最新条目（真源）；已被刷新挤掉则 null。 */
+    private fun currentUserItem(userId: Long): UserFeedItem? {
+        return feedViewModel.uiState.value.items
+            .firstOrNull { it is UserFeedItem && it.user?.id == userId } as? UserFeedItem
+    }
+
     private fun toggleFollow(cell: FeedCell<UserFeedItem, RecyUserPreviewBinding>) {
-        val user = cell.item.user ?: return
+        // 关注态的真源是 VM 的当前状态，不是 cell.item —— 后者是 adapter **已提交的快照**，要等
+        // ListAdapter 后台 diff 落地才换新。读 cell.item 的后果：连点两下时第二下仍看到上一下之前
+        // 的旧态，把「取消关注」反转成「再关注一次」，取消这个操作直接丢失（与插画/小说卡同一 bug 类）。
+        val tapped = cell.itemOrNull?.user ?: return
+        val userId = tapped.id
+        val user = currentUserItem(userId)?.user ?: tapped
         val target = user.is_followed != true
         renderFollow(cell.binding, target) // 当帧翻文案（异步 updateItems 落地兜底）
-        applyFollow(user.id, target)
+        applyFollow(userId, target)
         // 复用 legacy follow op：发 LIKED_USER 广播 + ObjectPool + toast + 埋点（无损）。
+        // 失败回滚：全局 Rx 链没有回调的话，乐观态会一直留到用户下拉刷新才被纠正。
+        // VM 先取成局部值——回调可能在本 Fragment 销毁之后才到，届时不再碰 Fragment 属性。
+        val viewModel = feedViewModel
+        val rollback = Runnable { applyFollow(viewModel, userId, !target) }
         if (target) {
-            PixivOperate.postFollowUser(user.id.toInt(), Params.TYPE_PUBLIC)
+            PixivOperate.postFollowUser(userId.toInt(), Params.TYPE_PUBLIC, rollback)
         } else {
-            PixivOperate.postUnFollowUser(user.id.toInt())
+            PixivOperate.postUnFollowUser(userId.toInt(), rollback)
         }
     }
 
     /** 长按 = 私密关注（沿用 legacy 的长按语义）。 */
     private fun privateFollow(cell: FeedCell<UserFeedItem, RecyUserPreviewBinding>) {
-        val user = cell.item.user ?: return
+        val user = cell.itemOrNull?.user ?: return
+        val userId = user.id
+        // 长按恒为「私密关注」（目标态固定 true），所以不必像 toggleFollow 那样回 VM 读当前态；
+        // 但失败仍要回滚到「未关注」。
         renderFollow(cell.binding, true)
-        applyFollow(user.id, true)
-        PixivOperate.postFollowUser(user.id.toInt(), Params.TYPE_PRIVATE)
+        applyFollow(userId, true)
+        val viewModel = feedViewModel
+        PixivOperate.postFollowUser(userId.toInt(), Params.TYPE_PRIVATE) {
+            applyFollow(viewModel, userId, false)
+        }
     }
 
     private fun applyFollow(userId: Long, followed: Boolean) {
-        feedViewModel.updateItems(UserFeedItem::class.java) { item ->
+        applyFollow(feedViewModel, userId, followed)
+    }
+
+    private fun applyFollow(viewModel: FeedViewModel<*>, userId: Long, followed: Boolean) {
+        viewModel.updateItems(UserFeedItem::class.java) { item ->
             if (item.user?.id == userId) item.withFollowed(followed) else item
         }
     }
 }
+
+/**
+ * [UserPreview] 列表 → [UserFeedItem] 列表：**丢掉 user 为 null 的预览**。
+ *
+ * [UserFeedItem.feedKey] 取 `user?.id ?: 0L`，多条 user 为 null 的预览会全部塌成同一个身份 0L，
+ * 被框架的 `dedupByIdentity` 静默丢弃到只剩一条；而且这种条目连头像、名字、点击进画师页都没有，
+ * 本来就没有展示价值。与其让去重兜底，不如在映射处就滤掉（[ceui.pixiv.ui.user.RecmdUserFeedFragment]
+ * 的 mapUsers 早就是这么做的，此处让其余用户列表对齐）。
+ */
+fun List<UserPreview>.toUserFeedItems(): List<UserFeedItem> =
+    filter { it.user != null }.map(::UserFeedItem)
 
 /**
  * 用户 feed 条目：持 loxia [UserPreview]（含 [User] + 预览插画）。feeds 框架的用户列表基建

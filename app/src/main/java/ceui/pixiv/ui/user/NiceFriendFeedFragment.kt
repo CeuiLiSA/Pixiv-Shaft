@@ -10,6 +10,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.UserFeedFragment
 import ceui.pixiv.ui.common.UserFeedItem
+import ceui.pixiv.ui.common.toUserFeedItems
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 
@@ -40,7 +41,7 @@ class NiceFriendFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) 
         // 零捕获：先把 Fragment 属性取成局部 val 再进 source 的 lambda
         val userId = userId
         pixivFeedSource({ Client.appApi.getUserPixivFriends(userId) }) { resp, _ ->
-            resp.user_previews.map { UserFeedItem(it) }
+            resp.user_previews.toUserFeedItems()
         }
     }
 

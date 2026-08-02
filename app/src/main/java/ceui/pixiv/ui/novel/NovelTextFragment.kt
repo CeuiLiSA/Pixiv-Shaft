@@ -53,6 +53,7 @@ import com.hjq.toast.Toaster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.util.UUID
 
 /**
@@ -128,15 +129,20 @@ class NovelTextFragment :
         }
         ViewCompat.requestApplyInsets(view)
 
-        // 浏览历史：小说数据到位后记一次。
+        // 浏览历史：小说数据到位后记一次。gson 往返（整个 Novel 序列化再反序列化）+ 入库都不便宜，
+        // 切后台跑——这条是纯旁路副作用，没人等它的结果，不该占进页那一帧的主线程。
         ObjectPool.get<Novel>(novelId).observe(viewLifecycleOwner) { novel ->
             if (novel != null && !viewHistoryInserted) {
                 viewHistoryInserted = true
-                val bean = Shaft.sGson.fromJson(
-                    Shaft.sGson.toJson(novel),
-                    ceui.lisa.models.NovelBean::class.java,
-                )
-                ceui.lisa.utils.PixivOperate.insertNovelViewHistory(bean)
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    runCatching {
+                        val bean = Shaft.sGson.fromJson(
+                            Shaft.sGson.toJson(novel),
+                            ceui.lisa.models.NovelBean::class.java,
+                        )
+                        ceui.lisa.utils.PixivOperate.insertNovelViewHistory(bean)
+                    }.onFailure { Timber.w(it, "小说浏览历史写入失败(忽略)") }
+                }
             }
         }
 

@@ -143,6 +143,10 @@ class HistoryFeedSource(
 
     private suspend fun loadPage(cursor: String?): FeedPage<String> = withContext(Dispatchers.IO) {
         val query = searchVm.query.value?.trim().orEmpty().ifEmpty { null }
+        // 只在首页加载时记账：翻页沿用同一个搜索词，不该改写「这一代列表对应哪个词」。
+        // 记在 activity 作用域的 searchVm 里，本 tab 的视图 / Fragment 重建都冲不掉，
+        // 重建后 [FragmentHistoryList] 据此判断要不要补刷。
+        if (cursor == null) searchVm.markQueryApplied(historyType, query)
         if (query != null) {
             // 搜索：单页、无翻页（nextCursor = null）
             val entities = if (useRemote()) {
@@ -184,9 +188,10 @@ class HistoryFeedSource(
         // 是两套完全不同的语义，只是都被 FeedSource<String> 挤进了同一个 String。过去这里直接
         // `cursor.toIntOrNull() ?: 0` 硬转，两条路都是错的：
         // - 不透明 token（如 base64）转不出 → 退成 0 → 返回本地第 1 页。那页全是已加载过的重复
-        //   id，被 loadMore 的 dedupByIdentity 滤空 → 空页追载按 30/60/90… 往后跳，
-        //   MAX_EMPTY_PAGE_HOPS=5 只覆盖本地前 150 条；已加载超过 150 条时五跳全是重复 →
-        //   reachedEnd 永久置位，列表再也翻不动（只能下拉刷新救回来）。
+        //   id，被 loadMore 的 dedupByIdentity 滤空 → 空页追载按 30/60/90… 往后跳，而
+        //   FeedViewModel.MAX_EMPTY_PAGE_HOPS 只有个位数（当前 2），只覆盖本地最前面的几页；
+        //   已加载内容超出那个范围时每一跳都是重复 → reachedEnd 永久置位，列表再也翻不动
+        //   （只能下拉刷新救回来）。
         // - 若服务端游标恰好是纯数字（秒级时间戳），toIntOrNull() 会**成功** → offset 十几亿 →
         //   查回空页 → 当场判到底。更隐蔽。
         // 所以本地游标显式带前缀：认得出的才是本地 offset，认不出的一律当「从头开始本地翻页」。

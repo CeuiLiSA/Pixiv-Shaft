@@ -19,6 +19,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.UserFeedFragment
 import ceui.pixiv.ui.common.UserFeedItem
+import ceui.pixiv.ui.common.toUserFeedItems
 import ceui.pixiv.ui.common.setUpToolbar
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
@@ -72,7 +73,7 @@ class FollowUserFeedFragment : UserFeedFragment() {
         pixivFeedSource({
             // offset 只作用于首屏；refresh 时重读 jump.startOffset，翻页照常走响应的 next_url
             Client.appApi.getFollowingUsers(uid, restrict, jump.startOffset.takeIf { it > 0 })
-        }) { resp, _ -> resp.user_previews.map { UserFeedItem(it) } }
+        }) { resp, _ -> resp.user_previews.toUserFeedItems() }
     }
 
     // 内嵌 FragmentCollection 的 pager（无底栏）时补底部手势条 inset；带 toolbar 独立页由

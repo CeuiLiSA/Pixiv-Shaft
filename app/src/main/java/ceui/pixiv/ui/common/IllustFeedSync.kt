@@ -190,12 +190,22 @@ class IllustFeedPoolSync(
                     // 都不再合池，详情页从此渲染陈旧数据），异常还会经无 handler 的 lifecycleScope
                     // 直奔线程默认处理器崩掉进程。合池是旁路职责，失败绝不该拖垮浏览。
                     val freshBeans = mutableListOf<IllustsBean>()
+                    // 本轮打算记进 pooledBeans 的实例，**先攒着不落账**：一旦落了账，重试时
+                    // `pooledBeans[id] !== bean` 就不再成立，这批 bean 会被永久判定为「已合过池」，
+                    // 下面 catch 里承诺的「下次数据变化重扫」根本补不回来（尤其 fill 在循环外，
+                    // 它一抛错，整批 bean 就再也不会 fill）。全部成功之后才统一记账。
+                    val staged = HashMap<Long, IllustsBean>()
                     try {
                         itemsToScan.forEach { item ->
                             poolableBeansOf(item).forEach { bean ->
-                                if (syncViewModel.pooledBeans.put(bean.id.toLong(), bean) !== bean) {
+                                val id = bean.id.toLong()
+                                // staged 兼作本轮内去重（同一实例在一次扫描里出现两次时只合一次），
+                                // 这正是原先 put 的返回值顺带干的活。
+                                val known = staged[id] ?: syncViewModel.pooledBeans[id]
+                                if (known !== bean) {
                                     ObjectPool.updateIllust(bean)
                                     freshBeans.add(bean)
+                                    staged[id] = bean
                                 }
                             }
                         }
@@ -208,8 +218,9 @@ class IllustFeedPoolSync(
                         Timber.w(ex, "feeds: 合池失败，跳过本次扫描（下次数据变化重扫）")
                         return@collect
                     }
-                    // 扫描游标在**成功之后**才推进：失败时保持旧游标，下一次发射会重扫这批条目。
-                    // （放在扫描前推进的话，抛错那批就被永久判定为「已扫过」，再也进不了池。）
+                    // 合池记账与扫描游标都在**成功之后**才推进：失败时两者都保持原样，
+                    // 下一次发射会重扫这批条目并真的重合一次。
+                    syncViewModel.pooledBeans.putAll(staged)
                     scannedItems = state.items
                     scannedSize = state.items.size
                     scannedVersion = state.structureVersion

@@ -11,6 +11,7 @@ import ceui.pixiv.feeds.pixiv.PixivFeedSource
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.UserFeedFragment
 import ceui.pixiv.ui.common.UserFeedItem
+import ceui.pixiv.ui.common.toUserFeedItems
 
 /**
  * 搜索「用户」tab（feeds 框架版，替代 legacy FragmentSearchUser + UAdapter）。复用 [UserFeedFragment]
@@ -32,7 +33,7 @@ class SearchUserFeedFragment : UserFeedFragment() {
                 val word = searchModel.keyword.value?.trim().orEmpty()
                 if (word.isEmpty()) UserPreviewResponse() else Client.appApi.searchUser(word)
             },
-        ) { resp, _ -> resp.user_previews.map { UserFeedItem(it) } }
+        ) { resp, _ -> resp.user_previews.toUserFeedItems() }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

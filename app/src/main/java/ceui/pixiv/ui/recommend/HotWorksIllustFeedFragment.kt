@@ -18,7 +18,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 class HotWorksIllustFeedFragment : IllustFeedFragment() {
 
     private val source: HotWorksSource by lazy(LazyThreadSafetyMode.NONE) {
-        HotWorksSource.valueOf(requireArguments().getString(ARG_SOURCE) ?: HotWorksSource.TRENDING.name)
+        HotWorksSource.ofName(requireArguments().getString(ARG_SOURCE))
     }
     private val type: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(ARG_TYPE) ?: TYPE_ILLUST

@@ -317,7 +317,19 @@ class FeedViewModel<Cursor : Any>(
 
     /**
      * 整表编辑的通用入口：替换 / 插入 / 删除都可以由此表达。
-     * 传入函数必须是纯函数（不要在里面做 IO）。
+     *
+     * [edit] 必须是纯函数（不要在里面做 IO）。
+     *
+     * 唯一被承认的例外是「把同一次变更同步到该条目的其它共享表示」这一类**幂等**副作用
+     * （典型：[ceui.pixiv.ui.common.IllustFeedItem.withBookmarked] 就地写共享 bean + 同步
+     * ObjectPool——那一刀必须落在变更点，理由见它自己的 KDoc）。它成立的依据是两条，缺一不可：
+     * - VM 的状态变更全部发生在主线程，`MutableStateFlow.update` 因此不会有 CAS 争用、
+     *   不会重放 lambda；
+     * - 副作用幂等，即便重放也只是重复写同一个值。
+     * 反过来说：**别在 [edit] 里改新旧两代条目共享的可变对象**（那等于把 DiffUtil 的 oldItem
+     * 一起改掉，内容比较从此看不见变化），也别做任何非幂等或跨线程的事。需要那种编辑时，
+     * 把副作用挪到调用点、[edit] 只负责产出新列表（[ceui.pixiv.ui.user.LikeUsersFeedFragment]
+     * 的 applyFollowed 就是这么写的）。
      *
      * [structural] 默认 true：编辑可能在任意位置替换 / 插入 / 删除条目，让
      * [FeedUiState.structureVersion] 自增，强制增量消费方（如 IllustFeedPoolSync）全量重扫。

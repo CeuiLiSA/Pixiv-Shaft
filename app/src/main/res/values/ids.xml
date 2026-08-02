@@ -78,4 +78,8 @@
 
     <item type="id" name="user_head_icon_tag" />
     <item type="id" name="inflated_views_cache" />
+
+    <!-- 小说简介卡已渲染的 caption 原文：ObjectPool 每次发射(含任意一次收藏切换)都会重跑
+         简介绑定，用它短路掉 caption 没变时的 fromHtml 解析 + MovementMethod 重建 -->
+    <item type="id" name="novel_caption_rendered" />
 </resources>

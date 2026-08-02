@@ -78,7 +78,12 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
     // 内嵌 UserActivityV3 tab(无底栏)时,列表底部补手势条 inset;带 toolbar 独立页由 setUpToolbar 自理
     override val applyBottomSafeInset: Boolean = true
 
-    override val feedViewModel by feedViewModels {
+    // autoLoad = false：本页会作为 UserActivityV3 的「小说系列」tab 挂进 ViewPager2，而 pager 会在
+    // 用户滑到相邻位置时就把 fragment 建出来。默认的 autoLoad 会在 onViewCreated 首次访问
+    // feedViewModel 时（VM 的 init）直接发请求——tab 从没被打开也请求了。同宿主的漫画 / 小说 /
+    // 约稿 tab 全是 autoLoad=false，此处对齐；首屏由 FeedFragment.onResume 的 ensureLoaded 补，
+    // 独立 TemplateActivity 形态（一进来就 RESUMED）不受影响。
+    override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获：只从 arguments / intent 取出 userID(int)，source 仅持有这个基本类型，不碰 Fragment/View。
         // legacy 从 activity intent 读 USER_ID；newInstance 存进 args，这里 args 优先、缺失回退 intent。
         val userID = arguments?.getInt(ARG_USER_ID, 0)?.takeIf { it != 0 }

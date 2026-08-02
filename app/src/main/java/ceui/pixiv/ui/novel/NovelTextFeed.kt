@@ -306,7 +306,11 @@ fun novelCaptionRenderer(
         inflate = CellNovelCaptionBinding::inflate,
         fullSpan = true,
         create = { cell -> cell.binding.lifecycleOwner = lifecycleOwner },
-        recycle = { cell -> slots[cell]?.detach() },
+        recycle = { cell ->
+            slots[cell]?.detach()
+            // 复用到另一条小说时不能沿用上一条的「已渲染 caption」短路标记
+            cell.binding.caption.setTag(R.id.novel_caption_rendered, null)
+        },
     ) { cell ->
         val b = cell.binding
         val ctx = b.root.context
@@ -314,6 +318,11 @@ fun novelCaptionRenderer(
         b.novel = liveNovel
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }.rebind(liveNovel) { novel ->
             val rawCaption = novel.caption.orEmpty()
+            // 本 observer 挂在 ObjectPool 上，这条小说**任何**字段的更新（收藏切换最常见）都会
+            // 让它重新发射，而下面的 fromHtml 解析 + CustomLinkMovementMethod 重建都不便宜。
+            // caption 原文没变就整段跳过——视图上现有的富文本与监听仍然是对的。
+            if (b.caption.getTag(R.id.novel_caption_rendered) == rawCaption) return@rebind
+            b.caption.setTag(R.id.novel_caption_rendered, rawCaption)
             val hasCaption = rawCaption.isNotEmpty()
             val normalizedCaption = rawCaption.replace("\r\n", "\n").replace("\n", "<br/>")
             if (hasCaption) {

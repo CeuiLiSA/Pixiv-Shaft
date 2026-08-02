@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -27,6 +28,9 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 「某人收藏的插画/漫画」列表页（feeds 框架版，替代 legacy FragmentLikeIllust +
@@ -132,17 +136,25 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
 
     /** 收藏到精华（对齐 legacy：前 5 条快照入库，uuid 固定 = 同页重复收藏只留一份）。 */
     private fun saveToFeature() {
+        // 快照在主线程取（读的是 VM 当前状态），gson 序列化 + Room 写入切 IO：
+        // DAO 是阻塞式的，本页其它 DB 操作也都切了 IO。
         val entity = FeatureEntity().also {
             it.uuid = "$userId$DATA_TYPE_FEATURE"
             it.isShowToolbar = showToolbar
             it.dataType = DATA_TYPE_FEATURE
-            it.illustJson = Common.cutToJson(currentIllustItems().map { item -> item.bean })
             it.userID = userId
             it.starType = starType
             it.dateTime = System.currentTimeMillis()
         }
-        AppDatabase.getAppDatabase(requireContext()).downloadDao().insertFeature(entity)
-        Common.showToast("已收藏到精华")
+        val beans = currentIllustItems().map { item -> item.bean }
+        val appContext = Shaft.getContext()
+        viewLifecycleOwner.lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                entity.illustJson = Common.cutToJson(beans)
+                AppDatabase.getAppDatabase(appContext).downloadDao().insertFeature(entity)
+            }
+            Common.showToast("已收藏到精华")
+        }
     }
 
     companion object {

@@ -15,6 +15,9 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
+import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 
 /**
  * "通知" tab 内容页（feeds 框架版）。父 NotificationPagerFragment 自带 toolbar + tab bar
@@ -39,14 +42,28 @@ class NotificationListFragment : FeedFragment() {
         return listOf(notificationRenderer())
     }
 
+    /** 头像 / 缩略图的 Glide 请求管理器，建一次复用（对齐各列表页的 pinHostGlide 惯例）。 */
+    private val notificationGlide: RequestManager by lazy { Glide.with(this) }
+
     private fun notificationRenderer() = feedRenderer<NotificationFeedItem, CellNotificationBinding>(
         inflate = CellNotificationBinding::inflate,
+        create = { cell ->
+            // 监听在 create 挂一次（框架约定），点击时用 cell.item 取当下条目
+            cell.binding.notificationRoot.setOnClick {
+                val item = cell.itemOrNull?.item ?: return@setOnClick
+                requireContext().routeNotificationTargetUrl(item.target_url)
+            }
+            cell.binding.viewMoreButton.setOnClick {
+                val item = cell.itemOrNull?.item ?: return@setOnClick
+                onClickViewMore(item)
+            }
+        },
+        recycle = { cell ->
+            notificationGlide.clear(cell.binding.leftAvatar)
+            notificationGlide.clear(cell.binding.rightThumb)
+        },
     ) { cell ->
-        cell.binding.bindNotification(
-            cell.item.item,
-            onClickNotification = { item -> requireContext().routeNotificationTargetUrl(item.target_url) },
-            onClickViewMore = ::onClickViewMore,
-        )
+        cell.binding.bindNotification(cell.item.item, notificationGlide)
     }
 
     private fun onClickViewMore(item: NotificationItem) {

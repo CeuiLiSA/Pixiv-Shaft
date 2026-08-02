@@ -208,13 +208,13 @@ class BookedTagFeedFragment : FeedFragment(R.layout.fragment_booked_tag_feed) {
         val q = currentQuery.lowercase(Locale.getDefault())
         if (q.isEmpty()) {
             // 退出过滤态:恢复下拉刷新,列表还原成全量(fullList === 当前 items 时 mutateItems 免费 no-op)。
-            feedBinding.feedRefreshLayout.isEnabled = refreshEnabled
+            setRefreshEnabled(refreshEnabled)
             val restore = fullList
             feedViewModel.mutateItems { restore }
         } else {
             // 进入过滤态:禁用下拉刷新(对齐 legacy setEnableRefresh(false)),按 name/译名 contains 筛,
             // 隐藏虚拟行(count==-1)。空结果 → items 变空 → 框架自动亮空态。
-            feedBinding.feedRefreshLayout.isEnabled = false
+            setRefreshEnabled(false)
             val filtered = fullList.filter { item ->
                 item is BookedTagFeedItem && item.tag.count != -1 && item.tag.matches(q)
             }

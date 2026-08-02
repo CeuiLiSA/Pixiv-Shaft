@@ -121,7 +121,9 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         }
         b.title.text = novel.title
         b.date.text = novel.create_date?.take(10).orEmpty()
-        b.author.text = novel.user.name
+        // user / image_urls 是 legacy bean 的 Java 字段（Kotlin 看到的是平台类型），
+        // 服务端 marked_novels 正常都会带，但脏数据不该把整页 fling 崩掉——一律走安全调用。
+        b.author.text = novel.user?.name.orEmpty()
         b.howManyWord.text = String.format(Locale.getDefault(), "%d字", novel.text_length)
         b.bookmarkCount.text = novel.total_bookmarks.toString()
         b.novelTag.setAdapter(object : TagAdapter<TagsBean>(novel.tags.orEmpty()) {
@@ -132,7 +134,7 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
                 return tv
             }
         })
-        rowGlide.load(GlideUtil.getUrl(novel.image_urls.maxImage)).into(b.cover)
+        rowGlide.load(GlideUtil.getUrl(novel.image_urls?.maxImage)).into(b.cover)
         rowGlide.load(GlideUtil.getHead(novel.user)).into(b.userHead)
     }
 

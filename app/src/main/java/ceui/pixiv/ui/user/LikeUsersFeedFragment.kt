@@ -27,9 +27,9 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
+import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
@@ -87,15 +87,7 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             val id = intent?.getIntExtra(Params.ID, 0) ?: return
             if (id == 0) return
             val liked = intent.getBooleanExtra(Params.IS_LIKED, false)
-            feedViewModel.updateItems<LikeUserFeedItem> { item ->
-                if (item.user.id == id && item.user.isIs_followed != liked) {
-                    item.user.isIs_followed = liked
-                    // 非 data class：换实例（feedKey 不变）强制 DiffUtil 重绑该行，bind 读回新关注态。
-                    LikeUserFeedItem(item.user)
-                } else {
-                    item
-                }
-            }
+            applyFollowed(feedViewModel, id, liked)
         }
     }
 
@@ -142,12 +134,15 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     private fun bindRow(cell: FeedCell<LikeUserFeedItem, RecySimpleUserBinding>) {
         val b = cell.binding
-        val user = cell.item.user
+        val item = cell.item
+        val user = item.user
         b.userName.text = user.name
         userGlide.load(GlideUtil.getUrl(user.profile_image_urls?.medium))
             .error(R.drawable.no_profile)
             .into(b.userHead)
-        renderFollow(b, user.isIs_followed)
+        // 读条目上的不可变快照，不读可变 bean：bean 是新旧两代条目共享的同一个实例，
+        // 拿它渲染的话「关注态变了」这件事在 DiffUtil 眼里根本不存在（见 [LikeUserFeedItem]）。
+        renderFollow(b, item.followed)
     }
 
     /** 关注按钮文案：已关注 / 关注。 */
@@ -160,25 +155,57 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         Common.showUser(requireContext(), user)
     }
 
-    /** 关注 / 取关切换：就地翻 bean 状态 + 按钮文案（对齐 legacy 的命令式重绘，不 notify）。 */
-    private fun toggleFollow(cell: FeedCell<LikeUserFeedItem, RecySimpleUserBinding>) {
-        val user = cell.item.user
-        if (user.isIs_followed) {
-            PixivOperate.postUnFollowUser(user.id)
-            user.isIs_followed = false
-        } else {
-            PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC)
-            user.isIs_followed = true
-        }
-        renderFollow(cell.binding, user.isIs_followed)
+    /** VM 里这个用户当前的关注态（真源，adapter 快照可能还没跟上）。 */
+    private fun currentFollowed(userId: Int): Boolean? {
+        return feedViewModel.uiState.value.items
+            .firstOrNull { it is LikeUserFeedItem && it.user.id == userId }
+            ?.let { (it as LikeUserFeedItem).followed }
     }
 
-    /** 长按按钮 = 私密关注（沿用 legacy 的长按语义）。 */
+    /**
+     * 关注态落地：先把可变 bean 校准到目标态，再换条目实例驱动 DiffUtil 重绑。
+     *
+     * bean 的就地修改**必须留在 transform 外**：[ceui.pixiv.feeds.FeedViewModel.mutateItems]
+     * 的 edit 契约是纯函数（它可能被 StateFlow 重放），而且新旧两代条目共享同一个 bean 实例，
+     * 在 transform 里改它等于把 DiffUtil 的 oldItem 内容一起改掉。
+     */
+    private fun applyFollowed(viewModel: FeedViewModel<String>, userId: Int, followed: Boolean) {
+        viewModel.uiState.value.items.forEach { item ->
+            if (item is LikeUserFeedItem && item.user.id == userId) {
+                item.user.isIs_followed = followed
+            }
+        }
+        viewModel.updateItems(LikeUserFeedItem::class.java) { item ->
+            if (item.user.id == userId) item.withFollowed(followed) else item
+        }
+    }
+
+    /** 关注 / 取关切换：乐观翻按钮文案 + 落地条目状态，失败回滚。 */
+    private fun toggleFollow(cell: FeedCell<LikeUserFeedItem, RecySimpleUserBinding>) {
+        // 真源是 VM 当前状态而非 cell.item（adapter 已提交的快照）：连点两下时读快照会把
+        // 「取关」反转成「再关注一次」。与插画 / 小说 / 用户卡同一 bug 类。
+        val user = cell.itemOrNull?.user ?: return
+        val target = !(currentFollowed(user.id) ?: user.isIs_followed)
+        renderFollow(cell.binding, target)
+        val viewModel = feedViewModel
+        applyFollowed(viewModel, user.id, target)
+        val rollback = Runnable { applyFollowed(viewModel, user.id, !target) }
+        if (target) {
+            PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC, rollback)
+        } else {
+            PixivOperate.postUnFollowUser(user.id, rollback)
+        }
+    }
+
+    /** 长按按钮 = 私密关注（沿用 legacy 的长按语义）。目标态恒为「已关注」，失败回滚。 */
     private fun privateFollow(cell: FeedCell<LikeUserFeedItem, RecySimpleUserBinding>) {
-        val user = cell.item.user
-        PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
-        user.isIs_followed = true
+        val user = cell.itemOrNull?.user ?: return
         renderFollow(cell.binding, true)
+        val viewModel = feedViewModel
+        applyFollowed(viewModel, user.id, true)
+        PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE) {
+            applyFollowed(viewModel, user.id, false)
+        }
     }
 
     companion object {
@@ -196,9 +223,27 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 /**
  * 点赞用户条目：持 legacy [UserBean]。
  * feedKey 用画师 id（[UserBean.getId] 返回 int，同类内唯一稳定）。
+ *
+ * [followed] 是关注态的**不可变快照**，刻意不直接读 [user] 的 `isIs_followed`：[UserBean] 是可变
+ * 的 legacy bean，而刷新前后 / 乐观更新前后的两代条目共享同一个实例——把渲染建立在可变字段上，
+ * 「关注态变了」在 DiffUtil 眼里就是不存在的（oldItem 的内容会被一起改掉）。换实例 + 值字段
+ * 才让内容比较成立。bean 本身仍会被同步（下游 legacy 路径要读），但那是 transform 之外的事，
+ * 见 [LikeUsersFeedFragment.applyFollowed]。
  */
-class LikeUserFeedItem(val user: UserBean) : FeedItem {
+class LikeUserFeedItem(
+    val user: UserBean,
+    val followed: Boolean = user.isIs_followed,
+) : FeedItem {
+
     override val feedKey: Any get() = user.id
+
+    override fun equals(other: Any?): Boolean =
+        other is LikeUserFeedItem && other.user === user && other.followed == followed
+
+    override fun hashCode(): Int = System.identityHashCode(user) * 31 + followed.hashCode()
+
+    fun withFollowed(value: Boolean): LikeUserFeedItem =
+        if (followed == value) this else LikeUserFeedItem(user, value)
 }
 
 /**

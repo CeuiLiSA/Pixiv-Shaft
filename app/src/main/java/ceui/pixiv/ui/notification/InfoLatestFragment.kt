@@ -19,6 +19,7 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.utils.ppppx
+import ceui.pixiv.utils.setOnClick
 
 /**
  * "公告" tab 首屏（feeds 框架版）:/v1/info/latest 聚合视图,header + 4-5 个 entry / 分类。
@@ -48,14 +49,26 @@ class InfoLatestFragment : FeedFragment() {
     private fun infoCategoryHeaderRenderer() =
         feedRenderer<InfoCategoryHeaderFeedItem, CellInfoCategoryHeaderBinding>(
             inflate = CellInfoCategoryHeaderBinding::inflate,
+            create = { cell ->
+                cell.binding.categoryMore.setOnClick {
+                    val item = cell.itemOrNull ?: return@setOnClick
+                    if (item.showMore) onClickInfoCategoryMore(item.category)
+                }
+            },
         ) { cell ->
-            cell.binding.bindInfoCategoryHeader(cell.item, ::onClickInfoCategoryMore)
+            cell.binding.bindInfoCategoryHeader(cell.item)
         }
 
     private fun infoEntryRenderer() = feedRenderer<InfoEntryFeedItem, CellInfoEntryBinding>(
         inflate = CellInfoEntryBinding::inflate,
+        create = { cell ->
+            cell.binding.infoEntryRoot.setOnClick {
+                val item = cell.itemOrNull?.item ?: return@setOnClick
+                openInfoUrl(requireContext(), item)
+            }
+        },
     ) { cell ->
-        cell.binding.bindInfoEntry(cell.item.item) { item -> openInfoUrl(requireContext(), item) }
+        cell.binding.bindInfoEntry(cell.item.item)
     }
 
     private fun onClickInfoCategoryMore(category: CategorizedInfo) {

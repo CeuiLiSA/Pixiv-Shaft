@@ -100,10 +100,21 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
             }
         }
         // host toolbar 的 SearchView 输入通过 activity-scope SharedVM 下发；query 变化重刷。
-        // drop(1)：首屏由 feedViewModels 的 autoLoad 已按当前 query 拉过，跳过初始重放避免重复请求。
+        //
+        // 按「与上次真正拉过的 query 是否相同」判重，而不是 drop(1) 跳过首发：query 归 activity
+        // 作用域，本 tab 的视图销毁期间（三 tab pager，滑远了会销毁）它照样会变，等本 tab 重建时
+        // drop(1) 恰好把这次变化当成粘性首发丢掉，而 ensureLoaded 又因 hasLoadedOnce 已置位不再
+        // 拉——列表内容就与搜索框里的词对不上了。记录已应用值则不论中间隔了几次视图重建都成立。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                searchVm.query.drop(1).collect { feedViewModel.refresh() }
+                searchVm.query.collect { query ->
+                    // 还没出过首屏时不插手：首屏归 ensureLoaded（autoLoad=false 的懒加载约定），
+                    // 它自会按当时的 query 拉。
+                    if (!feedViewModel.uiState.value.hasLoadedOnce) return@collect
+                    val normalized = query?.trim().orEmpty().ifEmpty { null }
+                    if (searchVm.isQueryApplied(historyType, normalized)) return@collect
+                    feedViewModel.refresh()
+                }
             }
         }
         // 旋转等 view 重建时选择态可能还留着，但 host toolbar 已回普通态 → 复位。

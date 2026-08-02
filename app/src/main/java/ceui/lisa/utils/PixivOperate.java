@@ -105,11 +105,29 @@ public class PixivOperate {
     }
 
     public static void postFollowUser(int userID, String followType) {
+        postFollowUser(userID, followType, null);
+    }
+
+    /**
+     * @param onFailure 关注失败时的回调（主线程），用于让调用方回滚乐观翻转的 UI。
+     *                  传 null 即沿用老行为：只由 {@link ErrorCtrl} 弹错误 toast，不回滚。
+     *                  失败回调**必须**由调用方提供——本方法是 fire-and-forget 的全局 Rx 链，
+     *                  没有回调的话乐观态会一直留在列表里，直到用户下拉刷新才被纠正。
+     */
+    public static void postFollowUser(int userID, String followType, Runnable onFailure) {
         Retro.getAppApi().postFollow(
                         userID, followType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
+
+                    @Override
+                    public void error(Throwable e) {
+                        super.error(e);
+                        if (onFailure != null) {
+                            onFailure.run();
+                        }
+                    }
 
                     @Override
                     public void next(NullResponse nullResponse) {
@@ -138,11 +156,24 @@ public class PixivOperate {
     }
 
     public static void postUnFollowUser(int userID) {
+        postUnFollowUser(userID, null);
+    }
+
+    /** @param onFailure 取消关注失败时的回调（主线程），语义见 {@link #postFollowUser(int, String, Runnable)}。 */
+    public static void postUnFollowUser(int userID, Runnable onFailure) {
         Retro.getAppApi().postUnFollow(
                         userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
+                    @Override
+                    public void error(Throwable e) {
+                        super.error(e);
+                        if (onFailure != null) {
+                            onFailure.run();
+                        }
+                    }
+
                     @Override
                     public void next(NullResponse nullResponse) {
                         Intent intent = new Intent(Params.LIKED_USER);

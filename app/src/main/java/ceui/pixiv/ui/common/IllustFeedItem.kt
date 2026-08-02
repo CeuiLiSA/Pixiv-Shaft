@@ -69,6 +69,12 @@ class IllustFeedItem(
      *
      * 幂等：已是目标态直接原样返回（对齐 [UserFeedItem.withFollowed]）。本页自己发起的收藏会经
      * LIKED_ILLUST 广播绕回自己，没有这个守卫就会白白多跑一轮全表 diff + 全表池重扫。
+     *
+     * ⚠️ 本方法带副作用，而它通常在 [ceui.pixiv.feeds.FeedViewModel.mutateItems] 的 transform
+     * 里被调用——那里的契约是纯函数。这是被明确承认的例外（见 mutateItems 的 KDoc），依据是：
+     * 副作用幂等 + VM 状态变更全在主线程（`MutableStateFlow.update` 因此不重放 lambda）。
+     * 另外注意 [bean] 是新旧两代条目共享的实例，就地写它意味着**内容比较看不见收藏态变化**——
+     * 这里靠 [illust] 走 copy 来让相等性真的变，两者缺一不可，别只改 bean。
      */
     fun withBookmarked(liked: Boolean): IllustFeedItem {
         if (illust.is_bookmarked == liked && bean.isIs_bookmarked == liked) return this

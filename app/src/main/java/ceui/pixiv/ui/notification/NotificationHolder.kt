@@ -8,19 +8,24 @@ import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.DateParse
 import ceui.loxia.NotificationItem
 import ceui.pixiv.feeds.FeedItem
-import ceui.pixiv.utils.setOnClick
-import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 
 /** feeds 框架条目，被 [NotificationListFragment] 和 [NotificationViewMoreFragment] 共用。 */
 data class NotificationFeedItem(val item: NotificationItem) : FeedItem {
     override val feedKey: Any get() = item.id
 }
 
-/** 通知 cell 的实际渲染逻辑，两处 feeds renderer 共用，避免逻辑漂移。 */
+/**
+ * 通知 cell 的实际渲染逻辑，两处 feeds renderer 共用，避免逻辑漂移。
+ *
+ * 只画内容、不挂点击监听：按框架约定监听在 renderer 的 `create` 里挂一次（用 `cell.item` 取
+ * 当下条目），bind 阶段每次都 setOnClick 会在 fling 帧路径上白白分配一堆 lambda。
+ * 图片用调用方传进来的 [glide]（每页建一次复用），配套的 `recycle` 负责清请求，
+ * 否则复用的 holder 会先闪一下上一条通知的图。
+ */
 fun CellNotificationBinding.bindNotification(
     item: NotificationItem,
-    onClickNotification: (NotificationItem) -> Unit,
-    onClickViewMore: (NotificationItem) -> Unit,
+    glide: RequestManager,
 ) {
     val context = root.context
     val content = item.content
@@ -39,10 +44,11 @@ fun CellNotificationBinding.bindNotification(
     // 头像:优先 left_image(作品方图),其次 left_icon(头像),都没有时挂占位。
     val avatarUrl = content?.left_image ?: content?.left_icon
     if (!avatarUrl.isNullOrEmpty()) {
-        Glide.with(context).load(GlideUrlChild(avatarUrl))
+        glide.load(GlideUrlChild(avatarUrl))
             .placeholder(R.drawable.chat_avatar_placeholder)
             .into(leftAvatar)
     } else {
+        glide.clear(leftAvatar)
         leftAvatar.setImageResource(R.drawable.chat_avatar_placeholder)
     }
 
@@ -50,10 +56,11 @@ fun CellNotificationBinding.bindNotification(
     val rightUrl = content?.right_image ?: content?.right_icon
     if (!rightUrl.isNullOrEmpty()) {
         rightThumb.isVisible = true
-        Glide.with(context).load(GlideUrlChild(rightUrl))
+        glide.load(GlideUrlChild(rightUrl))
             .placeholder(R.drawable.bg_loading_placeholder)
             .into(rightThumb)
     } else {
+        glide.clear(rightThumb)
         rightThumb.isVisible = false
     }
 
@@ -66,10 +73,7 @@ fun CellNotificationBinding.bindNotification(
     if (groupTitle != null) {
         viewMoreButton.isVisible = true
         viewMoreButton.text = context.getString(R.string.notification_view_more_chip, groupTitle)
-        viewMoreButton.setOnClick { onClickViewMore(item) }
     } else {
         viewMoreButton.isVisible = false
     }
-
-    notificationRoot.setOnClick { onClickNotification(item) }
 }

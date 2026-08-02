@@ -363,6 +363,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         sectionLoader?.onVisible(section)
     }
 
+    /**
+     * 联网后补拉加载失败的区块。区块的触发信号只有 holder 的 attach，用户如果就停在
+     * 那一屏不动（评论/相关区块正在转圈时最常见），不补这一下就再也没有重试时机。
+     */
+    override fun onNetworkRestored() {
+        super.onNetworkRestored()
+        sectionLoader?.retryFailed()
+    }
+
     private fun attachArtistFollowObserver(authorId: Long) {
         if (authorId <= 0L || authorId == artistObservedUserId) return
         artistObservedUserId = authorId
@@ -641,9 +650,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         chromeBind.fabBookmark.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
             val willBookmark = !illust.isIs_bookmarked
+            // 「未收藏」这一支必须与权威渲染（下面 isBookmarked observer 用的 palette.floatingPillContent）
+            // 取同一个色：写死白色的话，取消收藏当帧会闪一帧白，随后才被 observer 纠回胶囊内容色——
+            // 浅色主题下那一帧几乎看不见图标。
             chromeBind.fabBookmark.imageTintList = ColorStateList.valueOf(
                 if (willBookmark) requireContext().getColor(R.color.has_bookmarked)
-                else android.graphics.Color.WHITE,
+                else palette.floatingPillContent,
             )
             PixivOperate.postLikeDefaultStarType(illust)
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {

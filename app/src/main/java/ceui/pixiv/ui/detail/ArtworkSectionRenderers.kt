@@ -136,20 +136,37 @@ class ArtworkDetailPanelItem(val illust: IllustsBean) : FeedItem {
     override fun hashCode() = System.identityHashCode(illust)
 }
 
-/** 评论预览(懒):comments == null 表示还没拉。 */
+/**
+ * 评论预览(懒)。
+ *
+ * ⚠️ 「拉过没有」是 [fetched] 说了算，**不是** `comments == null`。两者曾经是同一个信号，
+ * 结果是这样一条 bug：弱网下评论区块懒加载失败（[SectionLoader] 把它移出 triggered、条目仍
+ * `comments == null`）→ 用户在输入框发了一条评论 → [prepend] 把 comments 从 null 变成
+ * `[新评论]` → 渲染器的重试触发条件 `comments == null` 从此永不成立 → 本视图生命周期内评论区
+ * 只剩用户自己那一条，服务端已有的评论全部看不到。本地插入与「已从服务端拉过」是两件事，分开表达。
+ */
 data class ArtworkCommentsItem(
     val illustId: Int,
     val illustTitle: String,
     val illustAuthorId: Int,
     val comments: List<Comment>? = null,
+    /** 是否已成功从服务端拉过一次评论预览。false = 还该（重）拉，与本地已插入几条无关。 */
+    val fetched: Boolean = false,
 ) : FeedItem {
     override val feedKey: Any get() = "artwork_comments"
 
+    /** 还在等首次拉取结果（本地也没有可展示的评论）→ 渲染加载态。 */
+    val isLoading: Boolean
+        get() = !fetched && comments == null
+
     /** 懒加载拉到的评论并入(本地已发的排前,按 id 去重)。 */
     fun withComments(loaded: List<Comment>) =
-        copy(comments = ((comments ?: emptyList()) + loaded).distinctBy { it.id })
+        copy(
+            comments = ((comments ?: emptyList()) + loaded).distinctBy { it.id },
+            fetched = true,
+        )
 
-    /** 本地新发的顶层评论插到最前(按 id 去重)。 */
+    /** 本地新发的顶层评论插到最前(按 id 去重)。刻意不动 [fetched]：发评论不等于拉过评论。 */
     fun prepend(comment: Comment) =
         copy(comments = (listOf(comment) + (comments ?: emptyList())).distinctBy { it.id })
 }
@@ -458,7 +475,9 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
         inflate = SectionV3CommentsBinding::inflate,
         fullSpan = true,
         attach = { cell ->
-            if (cell.item.comments == null) onSectionVisible(ArtworkSection.COMMENTS)
+            // 按「拉过没有」判定，不是按「列表空不空」——本地发出的评论不能顶替服务端拉取
+            // （见 [ArtworkCommentsItem.fetched]）。
+            if (!cell.item.fetched) onSectionVisible(ArtworkSection.COMMENTS)
         },
     ) { cell ->
         val item = cell.item
@@ -481,23 +500,26 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
         b.addCommentAvatar.binding_loadUserIcon(SessionManager.loggedInUser)
         b.addCommentEntry.setOnClick { showComposer() }
 
-        renderCommentsPreview(b, item.comments, item.illustAuthorId)
+        renderCommentsPreview(b, item)
     }
 
 private fun ArtworkV3Fragment.renderCommentsPreview(
     b: SectionV3CommentsBinding,
-    comments: List<Comment>?,
-    illustAuthorId: Int,
+    item: ArtworkCommentsItem,
 ) {
     val ctx = requireContext()
-    val isLoading = comments == null
+    val illustAuthorId = item.illustAuthorId
+    val isLoading = item.isLoading
     b.commentsLoading.isVisible = isLoading
     b.commentsList.isVisible = !isLoading
     if (isLoading) {
         b.commentsEmpty.isVisible = false
         return
     }
-    b.commentsEmpty.isVisible = comments!!.isEmpty()
+    // 非加载态时 comments 一定非空引用：isLoading 的定义已覆盖 (!fetched && comments == null)，
+    // 剩下 fetched=true（withComments 必给出列表）或本地已 prepend 过（列表非空）两种情形。
+    val comments = item.comments ?: emptyList()
+    b.commentsEmpty.isVisible = comments.isEmpty()
 
     // 评论列表实例不变(滚动来回重绑)就跳过重新 inflate 三张预览卡;发新评论 / 首次拉到会换实例。
     if (b.commentsList.tag === comments) return

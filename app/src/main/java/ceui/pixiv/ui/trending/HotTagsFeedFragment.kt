@@ -51,15 +51,19 @@ class HotTagsFeedFragment : FeedFragment() {
         // 零捕获约定（见 feedViewModels 文档）：contentType 取成局部值，不把 Fragment 钉进 VM
         val contentType = contentType
         pixivFeedSource({ Client.appApi.trendingTags(contentType) }) { resp, _ ->
-            resp.trend_tags.mapIndexed { index, trendingTag ->
-                // 详情页 / Glide 走 legacy IllustsBean，映射线程一次性转好
-                val bean = trendingTag.illust?.let { IllustFeedItem.beanOf(it) }
-                if (index == 0) {
-                    HotTagHeaderItem(trendingTag, bean)
-                } else {
-                    HotTagGridItem(trendingTag, bean)
+            // 先滤掉无标签名的脏数据：feedKey 取的就是标签名，多条空名会全塌成同一个身份被框架
+            // 的 dedupByIdentity 静默丢到只剩一条；何况没有名字的标签本来也点不出搜索结果。
+            resp.trend_tags
+                .filter { !it.tag.isNullOrEmpty() }
+                .mapIndexed { index, trendingTag ->
+                    // 详情页 / Glide 走 legacy IllustsBean，映射线程一次性转好
+                    val bean = trendingTag.illust?.let { IllustFeedItem.beanOf(it) }
+                    if (index == 0) {
+                        HotTagHeaderItem(trendingTag, bean)
+                    } else {
+                        HotTagGridItem(trendingTag, bean)
+                    }
                 }
-            }
         }
     }
 

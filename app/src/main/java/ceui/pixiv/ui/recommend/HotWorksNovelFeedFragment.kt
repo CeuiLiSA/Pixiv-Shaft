@@ -13,7 +13,7 @@ import ceui.pixiv.ui.common.NovelFeedFragment
 class HotWorksNovelFeedFragment : NovelFeedFragment() {
 
     private val source: HotWorksSource by lazy(LazyThreadSafetyMode.NONE) {
-        HotWorksSource.valueOf(requireArguments().getString(ARG_SOURCE) ?: HotWorksSource.TRENDING.name)
+        HotWorksSource.ofName(requireArguments().getString(ARG_SOURCE))
     }
     private val window: String? by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(ARG_WINDOW)

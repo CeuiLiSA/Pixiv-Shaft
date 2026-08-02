@@ -237,7 +237,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     private fun refreshUserDetail() {
         // 用 v2/for_ios:多带 is_accept_request(驱动「约稿中」tab),字段与 UA 无关
         Retro.getAppApi().getUserDetailV2(userId)
-            .subscribeOn(Schedulers.newThread())
+            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserDetailResponse>() {
                 override fun success(userResponse: UserDetailResponse) {
@@ -257,7 +257,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.progress.visibility = View.VISIBLE
         // 用 v2/for_ios:多带 is_accept_request(驱动「约稿中」tab),字段与 UA 无关
         Retro.getAppApi().getUserDetailV2(userId)
-            .subscribeOn(Schedulers.newThread())
+            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserDetailResponse>() {
                 override fun success(userResponse: UserDetailResponse) {

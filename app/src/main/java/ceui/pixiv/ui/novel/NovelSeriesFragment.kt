@@ -241,56 +241,62 @@ class NovelSeriesFragment :
         }.show(childFragmentManager, SeriesDownloadOptionsSheet.TAG)
     }
 
-    private var pendingMergeAction: ((ExportFormat) -> Unit)? = null
-
     private fun heroDetail() = feedViewModel.uiState.value.items
         .filterIsInstance<NovelSeriesHeroFeedItem>().firstOrNull()?.series
 
+    /**
+     * 合并下载：只负责弹格式选择，真正的动作在 [onExportFormatChosen] 里按当时的 VM 状态重建。
+     *
+     * 刻意**不**把动作攒成一个 `pendingMergeAction` 闭包挂在 Fragment 字段上：[ExportSheet] 是
+     * DialogFragment，旋转 / 切深色会重建宿主 Fragment，而对话框由 FragmentManager 自动恢复并
+     * 回调到**新**实例上——旧实例的字段连同闭包一起没了，用户选完格式点确定会静默无反应。
+     * 合并要用的数据（系列详情、已加载章节）全都住在比 view 长命的 VM 里，现取即可。
+     */
     private fun launchMergeDownload() {
+        if (heroDetail() == null) {
+            Toaster.show(getString(R.string.merge_download_failed_empty))
+            return
+        }
+        ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+    }
+
+    override fun onExportFormatChosen(format: ExportFormat) {
         val detail = heroDetail()
         if (detail == null) {
             Toaster.show(getString(R.string.merge_download_failed_empty))
             return
         }
         val dedup = loadedNovels().distinctBy { it.id }
-        pendingMergeAction = { format ->
-            val stopSignal = AtomicBoolean(false)
-            val flow = MergeDownloadNovelSeriesTask.bulkMergeNovelSeries(
-                seriesDetail = detail,
-                knownNovels = dedup,
-                format = format,
-                stopSignal = stopSignal,
-            )
-            val config = FetchProgressDialog.Config(
-                title = "merge-novel-series",
-                headerCmd = "\$ merge-novel-series --format=${format.extension} --stream --verbose",
-                showOpenManager = false,
-                itemNoun = "chapters",
-                stepNoun = "ch",
-                completedVerb = "merged",
-                canceledVerb = "kept",
-                closeHintRes = R.string.merge_novel_dialog_close_hint,
-                canceledLineRes = R.string.merge_novel_dialog_canceled,
-                stopRequestedLineRes = R.string.merge_novel_dialog_stop_requested,
-                doneTitleRes = R.string.merge_novel_dialog_done_title,
-                doneTotalRes = R.string.merge_novel_dialog_done_total,
-                donePagesRes = R.string.merge_novel_dialog_done_pages,
-                doneExtraRes = emptyList(),
-                failedTitleRes = R.string.merge_novel_dialog_failed_title,
-                failedMessageRes = R.string.merge_novel_dialog_failed_message,
-                failedPartialRes = R.string.merge_novel_dialog_failed_partial,
-                cancelMode = FetchProgressDialog.CancelMode.COOPERATIVE,
-                keepOpenUntilDone = true,
-                onCancelRequested = { stopSignal.set(true) },
-            )
-            FetchProgressDialog.show(requireActivity().supportFragmentManager, flow, config)
-        }
-        ExportSheet().show(childFragmentManager, ExportSheet.TAG)
-    }
-
-    override fun onExportFormatChosen(format: ExportFormat) {
-        pendingMergeAction?.invoke(format)
-        pendingMergeAction = null
+        val stopSignal = AtomicBoolean(false)
+        val flow = MergeDownloadNovelSeriesTask.bulkMergeNovelSeries(
+            seriesDetail = detail,
+            knownNovels = dedup,
+            format = format,
+            stopSignal = stopSignal,
+        )
+        val config = FetchProgressDialog.Config(
+            title = "merge-novel-series",
+            headerCmd = "\$ merge-novel-series --format=${format.extension} --stream --verbose",
+            showOpenManager = false,
+            itemNoun = "chapters",
+            stepNoun = "ch",
+            completedVerb = "merged",
+            canceledVerb = "kept",
+            closeHintRes = R.string.merge_novel_dialog_close_hint,
+            canceledLineRes = R.string.merge_novel_dialog_canceled,
+            stopRequestedLineRes = R.string.merge_novel_dialog_stop_requested,
+            doneTitleRes = R.string.merge_novel_dialog_done_title,
+            doneTotalRes = R.string.merge_novel_dialog_done_total,
+            donePagesRes = R.string.merge_novel_dialog_done_pages,
+            doneExtraRes = emptyList(),
+            failedTitleRes = R.string.merge_novel_dialog_failed_title,
+            failedMessageRes = R.string.merge_novel_dialog_failed_message,
+            failedPartialRes = R.string.merge_novel_dialog_failed_partial,
+            cancelMode = FetchProgressDialog.CancelMode.COOPERATIVE,
+            keepOpenUntilDone = true,
+            onCancelRequested = { stopSignal.set(true) },
+        )
+        FetchProgressDialog.show(requireActivity().supportFragmentManager, flow, config)
     }
 
     private fun launchBatchDownloadSelected() {
