@@ -2252,4 +2252,16 @@
     <string name="string_rife_download_title">RIFE モデルをダウンロード</string>
     <string name="string_rife_download_subtitle">うごイラのフレーム補間には %1$s のダウンロードが必要です</string>
     <string name="string_rife_download_done">補間モデルのダウンロード完了</string>
+    <!-- issue #959: pixiv アカウント単位のブロック（ローカルのミュートとは別物） -->
+    <string name="pixiv_block_menu">このユーザーを Pixiv でブロック…</string>
+    <string name="pixiv_block_title">Pixiv ブロック</string>
+    <string name="pixiv_block_message">「%1$s」をブロックすると、フォロー・ブックマーク・コメント・メッセージができなくなります。\n\nこれは Pixiv アカウントに保存されます（ローカルのミュートとは別です）。</string>
+    <string name="pixiv_unblock_message">「%1$s」はすでに Pixiv のブロックリストにあります。解除しますか？</string>
+    <string name="pixiv_block_action">ブロック</string>
+    <string name="pixiv_unblock_action">ブロック解除</string>
+    <string name="pixiv_block_done">「%1$s」をブロックしました</string>
+    <string name="pixiv_unblock_done">「%1$s」のブロックを解除しました</string>
+    <string name="pixiv_block_checking">ブロック状態を確認中…</string>
+    <string name="pixiv_block_submitting">送信中…</string>
+    <string name="pixiv_block_need_web_login">ブロックは Pixiv ウェブ版の機能です。先にウェブ版へ一度ログインしてセッションを同期してください。</string>
 </resources>

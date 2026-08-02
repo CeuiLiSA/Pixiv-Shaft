@@ -631,6 +631,27 @@ data class WebResponse<T> (
     val body: T? = null,
 ) : Serializable
 
+// issue #959: pixiv 官方「拉黑」(网页端 ブロック,不是本地屏蔽)。
+// /ajax/block/list?target_id=N 会把目标本人也放进 block_items,那一条 isTarget=true,
+// 读它的 isBlocked 就是当前拉黑态 —— 不必翻完整张名单。
+data class BlockListBody(
+    val block_items: List<BlockItem>? = null,
+    val has_more_blocks: Boolean = false,
+) : Serializable
+
+data class BlockItem(
+    val userId: String? = null,
+    val label: String? = null,
+    val isBlocked: Boolean = false,
+    val isTarget: Boolean = false,
+) : Serializable
+
+/** /ajax/block/save 的请求体,action 只接受 block / unblock。 */
+data class BlockSaveRequest(
+    val user_id: String,
+    val action: String,
+) : Serializable
+
 // 网页 ajax /ajax/illust/{id}/pages 的 body 元素:每一 P 的真实原图宽高。
 // app-api 的 meta_pages 每项只有 image_urls、不带宽高,这里补上,供详情页多 P 下载前预置展示高度。
 // 只取宽高(urls 等其余字段 gson 忽略)。见 IllustAdapter.seedPageDimensions。

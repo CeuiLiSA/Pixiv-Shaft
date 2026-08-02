@@ -35,10 +35,21 @@ object Client {
     fun reset() {
         _appApi = null
         _appApi = clientManager.createAPPAPI(API::class.java)
+        // 网页 API 也带直连拦截器,直连开关切换后必须一起重建,否则要重启 App 才生效。
+        _webApi = null
     }
 
-    val webApi: PixivWebApi by lazy {
-        clientManager.createWebAPIService(PixivWebApi::class.java)
+    private var _webApi: PixivWebApi? = null
+
+    val webApi: PixivWebApi get() {
+        val _api = _webApi
+        return if (_api != null) {
+            _api
+        } else {
+            val impl = clientManager.createWebAPIService(PixivWebApi::class.java)
+            _webApi = impl
+            impl
+        }
     }
 
     val moonAPI: MoonAPI by lazy {
@@ -124,6 +135,10 @@ class ClientManager {
         httpBuilder.addInterceptor(HttpLoggingInterceptor().apply {
             setLevel(HttpLoggingInterceptor.Level.BODY)
         })
+        // issue #959: www.pixiv.net 也走直连(Cronet QUIC + CF IP),否则网页端专属功能
+        // (拉黑、Web 首页、按 tag 筛作品…)在没梯子的网络上一律超时。
+        applyDirectConnect(httpBuilder)
+
         return Retrofit.Builder()
             .baseUrl(WEB_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())

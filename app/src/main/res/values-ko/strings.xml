@@ -2252,4 +2252,16 @@
     <string name="string_rife_download_title">RIFE 모델 다운로드</string>
     <string name="string_rife_download_subtitle">프레임 보간을 사용하려면 %1$s 다운로드가 필요합니다</string>
     <string name="string_rife_download_done">보간 모델 다운로드 완료</string>
+    <!-- issue #959: pixiv 계정 단위 차단 (로컬 뮤트와 다름) -->
+    <string name="pixiv_block_menu">Pixiv에서 이 사용자 차단…</string>
+    <string name="pixiv_block_title">Pixiv 차단</string>
+    <string name="pixiv_block_message">“%1$s”을(를) 차단하면 팔로우, 북마크, 댓글, 메시지를 보낼 수 없습니다.\n\n이 설정은 Pixiv 계정에 저장되며 로컬 차단과는 다릅니다.</string>
+    <string name="pixiv_unblock_message">“%1$s”은(는) 이미 Pixiv 차단 목록에 있습니다. 차단을 해제할까요?</string>
+    <string name="pixiv_block_action">차단</string>
+    <string name="pixiv_unblock_action">차단 해제</string>
+    <string name="pixiv_block_done">“%1$s”을(를) 차단했습니다</string>
+    <string name="pixiv_unblock_done">“%1$s”의 차단을 해제했습니다</string>
+    <string name="pixiv_block_checking">차단 상태 확인 중…</string>
+    <string name="pixiv_block_submitting">전송 중…</string>
+    <string name="pixiv_block_need_web_login">차단은 Pixiv 웹 기능입니다. 먼저 웹 버전에 한 번 로그인해 세션을 동기화하세요.</string>
 </resources>

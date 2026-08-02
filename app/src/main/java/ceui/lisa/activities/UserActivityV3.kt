@@ -666,6 +666,13 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 }
                 mUserViewModel.refreshEvent.value = Event(100, 0L)
             }
+            // issue #959: pixiv 账号级「拉黑」,和上面那条纯本地的「屏蔽」是两回事,菜单里并列摆着。
+            labels.add(getString(R.string.pixiv_block_menu))
+            actions.add {
+                ceui.pixiv.ui.user.PixivBlockOperate.showBlockDialog(
+                    this, data.user.id.toLong(), data.user.name.orEmpty()
+                )
+            }
         }
         if (labels.isEmpty()) return
 

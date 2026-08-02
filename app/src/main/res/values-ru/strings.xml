@@ -2252,4 +2252,16 @@
     <string name="string_rife_download_title">Загрузить модель RIFE</string>
     <string name="string_rife_download_subtitle">Для интерполяции кадров необходимо загрузить %1$s</string>
     <string name="string_rife_download_done">Модель интерполяции загружена</string>
+    <!-- issue #959: блокировка на уровне аккаунта Pixiv (не локальное скрытие) -->
+    <string name="pixiv_block_menu">Заблокировать пользователя на Pixiv…</string>
+    <string name="pixiv_block_title">Блокировка Pixiv</string>
+    <string name="pixiv_block_message">После блокировки «%1$s» он не сможет подписываться на вас, добавлять в закладки и комментировать ваши работы, а также писать вам.\n\nЭто сохраняется в вашем аккаунте Pixiv — это не локальное скрытие.</string>
+    <string name="pixiv_unblock_message">«%1$s» уже в списке заблокированных на Pixiv. Разблокировать?</string>
+    <string name="pixiv_block_action">Заблокировать</string>
+    <string name="pixiv_unblock_action">Разблокировать</string>
+    <string name="pixiv_block_done">«%1$s» заблокирован</string>
+    <string name="pixiv_unblock_done">«%1$s» разблокирован</string>
+    <string name="pixiv_block_checking">Проверка статуса блокировки…</string>
+    <string name="pixiv_block_submitting">Отправка…</string>
+    <string name="pixiv_block_need_web_login">Блокировка — функция веб-версии Pixiv. Войдите один раз в веб-версию, чтобы синхронизировать сессию.</string>
 </resources>

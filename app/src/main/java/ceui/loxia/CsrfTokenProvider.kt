@@ -1,5 +1,7 @@
 package ceui.loxia
 
+import ceui.lisa.activities.Shaft
+import ceui.lisa.http.CronetInterceptor
 import ceui.pixiv.session.SessionManager
 import com.tencent.mmkv.MMKV
 import okhttp3.OkHttpClient
@@ -29,8 +31,14 @@ object CsrfTokenProvider {
     /**
      * Fetch a fresh token from the Pixiv homepage. Call from a background thread.
      */
-    private val client: OkHttpClient by lazy {
-        OkHttpClient.Builder().followRedirects(true).build()
+    private fun buildClient(): OkHttpClient {
+        val builder = OkHttpClient.Builder().followRedirects(true)
+        // issue #959: 直连下 www.pixiv.net 同样打不通,token 兜底抓取必须走 Cronet,
+        // 否则「拉黑」在没梯子时永远卡在「CSRF token 未就绪」。每次现建:直连开关随时可切。
+        if (Shaft.sSettings?.isDirectConnect == true) {
+            builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+        }
+        return builder.build()
     }
 
     fun fetch(): String? {
@@ -46,7 +54,7 @@ object CsrfTokenProvider {
                 .addHeader("Cookie", cookies)
                 .addHeader("User-Agent", ClientManager.WEB_USER_AGENT)
                 .build()
-            val response = client.newCall(request).execute()
+            val response = buildClient().newCall(request).execute()
             Timber.d("CsrfToken: HTTP ${response.code}, url=${response.request.url}")
             val body = response.use { it.body?.string() }
             if (body == null) {

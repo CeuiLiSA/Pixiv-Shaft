@@ -2252,4 +2252,16 @@
     <string name="string_rife_download_title">Download RIFE model</string>
     <string name="string_rife_download_subtitle">%1$s needs to be downloaded to enable ugoira frame interpolation</string>
     <string name="string_rife_download_done">Interpolation model downloaded</string>
+    <!-- issue #959: pixiv account-level block, different from the local mute -->
+    <string name="pixiv_block_menu">Block this user on Pixiv…</string>
+    <string name="pixiv_block_title">Pixiv block</string>
+    <string name="pixiv_block_message">After blocking “%1$s”, they can no longer follow you, bookmark or comment on your works, or send you messages.\n\nThis is saved to your Pixiv account — it is not the local mute.</string>
+    <string name="pixiv_unblock_message">“%1$s” is already on your Pixiv block list. Unblock them?</string>
+    <string name="pixiv_block_action">Block</string>
+    <string name="pixiv_unblock_action">Unblock</string>
+    <string name="pixiv_block_done">Blocked “%1$s”</string>
+    <string name="pixiv_unblock_done">Unblocked “%1$s”</string>
+    <string name="pixiv_block_checking">Checking block status…</string>
+    <string name="pixiv_block_submitting">Submitting…</string>
+    <string name="pixiv_block_need_web_login">Blocking is a Pixiv web feature. Sign in to the web version once so the session can be synced.</string>
 </resources>

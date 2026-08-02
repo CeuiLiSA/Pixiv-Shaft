@@ -2252,4 +2252,16 @@
     <string name="string_rife_download_title">RIFE modelini indir</string>
     <string name="string_rife_download_subtitle">Kare doldurma için %1$s indirilmelidir</string>
     <string name="string_rife_download_done">Model indirildi</string>
+    <!-- issue #959: Pixiv hesap düzeyinde engelleme (yerel sessize almadan farklı) -->
+    <string name="pixiv_block_menu">Bu kullanıcıyı Pixiv\'de engelle…</string>
+    <string name="pixiv_block_title">Pixiv engelleme</string>
+    <string name="pixiv_block_message">“%1$s” engellendikten sonra sizi takip edemez, eserlerinizi favorilere ekleyemez veya yorumlayamaz, size mesaj gönderemez.\n\nBu, Pixiv hesabınıza kaydedilir — yerel sessize alma ile aynı şey değildir.</string>
+    <string name="pixiv_unblock_message">“%1$s” zaten Pixiv engel listenizde. Engeli kaldırılsın mı?</string>
+    <string name="pixiv_block_action">Engelle</string>
+    <string name="pixiv_unblock_action">Engeli kaldır</string>
+    <string name="pixiv_block_done">“%1$s” engellendi</string>
+    <string name="pixiv_unblock_done">“%1$s” engeli kaldırıldı</string>
+    <string name="pixiv_block_checking">Engelleme durumu kontrol ediliyor…</string>
+    <string name="pixiv_block_submitting">Gönderiliyor…</string>
+    <string name="pixiv_block_need_web_login">Engelleme bir Pixiv web özelliğidir. Oturumun eşitlenmesi için önce web sürümünde bir kez oturum açın.</string>
 </resources>

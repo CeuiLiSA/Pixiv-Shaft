@@ -74,4 +74,27 @@ interface PixivWebApi {
         @Header("x-csrf-token") csrfToken: String,
         @Body request: StreetRequest,
     ): StreetResponse
+
+    /**
+     * issue #959: 读某个画师当前的 pixiv 官方拉黑态。带 target_id 时返回的
+     * block_items 里必含目标本人一条(isTarget=true),看它的 isBlocked 即可。
+     * 需要网页 cookie。
+     */
+    @GET("/ajax/block/list")
+    suspend fun getBlockList(
+        @Query("target_id") targetId: Long,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 24,
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<BlockListBody>
+
+    /**
+     * issue #959: 拉黑 / 取消拉黑某画师(pixiv 账号级,不是本地屏蔽)。
+     * 需要网页 cookie + x-csrf-token。
+     */
+    @POST("/ajax/block/save")
+    suspend fun saveBlock(
+        @Header("x-csrf-token") csrfToken: String,
+        @Body request: BlockSaveRequest,
+    ): WebResponse<Any>
 }
