@@ -309,9 +309,14 @@ class UgoiraPlayerView @JvmOverloads constructor(
             }
             try {
                 // await 被取消(页面退出)不会取消底层任务——它继续在引擎 scope 跑完落缓存。
-                UgoiraEngine.loadPlayableFrames(illust)
+                val frames = UgoiraEngine.loadPlayableFrames(illust)
                 progressJob.cancel()
                 hideOverlay()
+                // 兜底直接播 await 结果:加载中途 invalidate/invalidateAll(切补帧开关、清缓存)
+                // 会把 framesFlows 里的条目换新,引擎 publish 到新 flow,上面 framesJob 订阅的
+                // 旧 flow 永远收不到 —— 不兜这一手画面就冻在预览图上且无重试按钮。
+                // playFrames 按 dir 去重,framesJob 已播过同一版时这里是 no-op。
+                playFrames(illust, frames)
             } catch (c: CancellationException) {
                 Timber.tag(UGOIRA_LOG_TAG).i("[player] illust=%d 协程取消(页面退出/重绑),底层任务继续在后台跑", illust.id)
                 throw c
