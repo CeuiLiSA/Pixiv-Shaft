@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.user
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +22,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 
 /**
  * issue #959: pixiv 官方「拉黑」(网页端 ブロック)。
@@ -42,6 +44,15 @@ object PixivBlockOperate {
 
     private fun Activity.isAlive(): Boolean = !isFinishing && !isDestroyed
 
+    /**
+     * 请求飞在半空时 Activity 被销毁 → 协程取消 → 走到这里。此时窗口已经没了,dismiss 会抛
+     * `IllegalArgumentException: View not attached to window manager`;但**不** dismiss 又会留下
+     * 一条 WindowLeaked。所以照常 dismiss,只把这一类拆窗异常吞掉 —— 吞的是清理动作，不是业务错误。
+     */
+    private fun Dialog.safeDismiss() {
+        runCatching { if (isShowing) dismiss() }
+    }
+
     private fun hasWebCookie(): Boolean {
         val cookie = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "")
         return cookie?.contains("PHPSESSID") == true
@@ -59,6 +70,8 @@ object PixivBlockOperate {
             showWebLoginNeeded(activity)
             return
         }
+        // 名字空着时用 ID 兜,免得确认框读成「拉黑「」后…」。
+        val name = userName.ifBlank { userId.toString() }
 
         val loading = QMUITipDialog.Builder(activity)
             .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
@@ -67,18 +80,38 @@ object PixivBlockOperate {
         loading.show()
 
         activity.lifecycleScope.launch {
+            // 失败只记下来、不在 catch 里弹窗:那会和还没收掉的 loading 叠一瞬。
+            var failure: Throwable? = null
             val isBlocked = try {
                 withContext(Dispatchers.IO) { queryBlocked(userId) }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (ex: Throwable) {
-                if (activity.isAlive()) Common.showToast(ex.toUserMessage(activity))
+                failure = ex
                 null
             } finally {
-                if (loading.isShowing && activity.isAlive()) loading.dismiss()
+                loading.safeDismiss()
             }
-            if (isBlocked == null || !activity.isAlive()) return@launch
-            showConfirm(activity, userId, userName, isBlocked)
+            if (!activity.isAlive()) return@launch
+            val err = failure
+            if (err != null) {
+                reportFailure(activity, err)
+                return@launch
+            }
+            if (isBlocked == null) return@launch
+            showConfirm(activity, userId, name, isBlocked)
+        }
+    }
+
+    /**
+     * 401 / 403 在这条链路上基本只有一个原因:网页 cookie 过期或失效。与其丢一句
+     * 「没有权限执行此操作」让用户自己猜,不如直接把他送回网页登录 —— 那正是唯一的修法。
+     */
+    private fun reportFailure(activity: AppCompatActivity, ex: Throwable) {
+        if (!activity.isAlive()) return
+        when ((ex as? HttpException)?.code()) {
+            401, 403 -> showWebLoginNeeded(activity)
+            else -> Common.showToast(ex.toUserMessage(activity))
         }
     }
 
@@ -135,18 +168,22 @@ object PixivBlockOperate {
         loading.show()
 
         activity.lifecycleScope.launch {
-            val ok = try {
+            var failure: Throwable? = null
+            try {
                 withContext(Dispatchers.IO) { saveBlock(userId, block, retried = false) }
-                true
             } catch (ce: CancellationException) {
                 throw ce
             } catch (ex: Throwable) {
-                if (activity.isAlive()) Common.showToast(ex.toUserMessage(activity))
-                false
+                failure = ex
             } finally {
-                if (loading.isShowing && activity.isAlive()) loading.dismiss()
+                loading.safeDismiss()
             }
-            if (!ok || !activity.isAlive()) return@launch
+            if (!activity.isAlive()) return@launch
+            val err = failure
+            if (err != null) {
+                reportFailure(activity, err)
+                return@launch
+            }
             Common.showToast(
                 activity.getString(
                     if (block) R.string.pixiv_block_done else R.string.pixiv_unblock_done,
@@ -156,21 +193,34 @@ object PixivBlockOperate {
         }
     }
 
-    /** token 过期时清缓存重抓一次再试(对齐 StreetMainViewModel.callApi 的做法)。 */
+    /**
+     * csrf 失效时 pixiv 回的是 **HTTP 403**(不是 200 + `error:true`),所以清 token 重来只能挂在
+     * [HttpException] 上。业务性失败(已拉黑 / 不能拉黑自己 …)才走 `error:true` —— 那种情况**绝不能**
+     * 清 token:这份 token 是「Web 首页」等功能共用的,清掉等于顺手把别人也弄坏,而直连下
+     * [CsrfTokenProvider.fetch] 未必抓得回来(Cloudflare 可能对裸请求下 JS challenge),
+     * 只能重走一次网页登录。
+     */
     private suspend fun saveBlock(userId: Long, block: Boolean, retried: Boolean) {
         val csrf = CsrfTokenProvider.get()
             ?: CsrfTokenProvider.fetch()
             ?: throw RuntimeException("CSRF token 未就绪，请重新同步网页登录")
 
-        val response = Client.webApi.saveBlock(
-            csrf,
-            BlockSaveRequest(user_id = userId.toString(), action = if (block) "block" else "unblock"),
-        )
-        if (response.error == true) {
-            if (!retried) {
+        val response = try {
+            Client.webApi.saveBlock(
+                csrf,
+                BlockSaveRequest(
+                    user_id = userId.toString(),
+                    action = if (block) "block" else "unblock",
+                ),
+            )
+        } catch (ex: HttpException) {
+            if (!retried && (ex.code() == 403 || ex.code() == 400)) {
                 CsrfTokenProvider.clear()
                 return saveBlock(userId, block, retried = true)
             }
+            throw ex
+        }
+        if (response.error == true) {
             throw RuntimeException(response.message.orEmpty().ifEmpty { "block/save failed" })
         }
     }

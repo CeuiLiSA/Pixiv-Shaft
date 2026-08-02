@@ -39,6 +39,9 @@ object Client {
         _webApi = null
     }
 
+    // @Volatile:reset() 可能在设置页线程写,而读者散在各个 UI/IO 协程里 —— 没它切完直连开关
+    // 有的线程还会拿到旧客户端。
+    @Volatile
     private var _webApi: PixivWebApi? = null
 
     val webApi: PixivWebApi get() {
