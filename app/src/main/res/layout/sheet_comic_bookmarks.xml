@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  root 必须挂 Theme.Material3.DayNight.NoActionBar：本 App 主题继承 QMUI（AppCompat 系，
+  不含 MD3 属性），而 PixivBottomSheet 不指定 dialog theme，BottomSheetDialog 会回落到
+  Theme.Design.Light.BottomSheetDialog —— 同样不是 Theme.MaterialComponents 后代。
+  不套这层，下面的 MaterialButton 会在 ThemeEnforcement.checkMaterialTheme 直接 inflate 崩。
+  同 sheet_select_tag.xml / chat_view_state_error.xml 的做法。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="0dp">
+    android:padding="0dp"
+    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
 
     <LinearLayout
         android:layout_width="match_parent"
