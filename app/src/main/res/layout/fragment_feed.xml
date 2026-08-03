@@ -65,5 +65,25 @@
             android:textColor="?android:attr/textColorSecondary"
             android:textSize="14sp"
             android:visibility="gone" />
+
+        <!-- 空态的可选动作按钮(FeedFragment.emptyStateAction)。空态光给一句解释、把用户堵在
+             死胡同里没有意义——能一键去修的就摆个按钮。刻意用 TextView 而不是 MaterialButton:
+             本布局会被 AppCompat 宿主(TemplateActivity)加载,缺 Material3 attrs 会崩,
+             同 fragment_comments_feed.xml 的取舍。 -->
+        <TextView
+            android:id="@+id/feed_state_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_v3_button_primary"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:minWidth="96dp"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="11dp"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:visibility="gone" />
     </LinearLayout>
 </FrameLayout>

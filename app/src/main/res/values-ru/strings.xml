@@ -2265,5 +2265,5 @@
     <string name="pixiv_block_checking">Проверка статуса блокировки…</string>
     <string name="pixiv_block_submitting">Отправка…</string>
     <string name="pixiv_block_need_web_login">Блокировка — функция веб-версии Pixiv. Войдите один раз в веб-версию, чтобы синхронизировать сессию.</string>
-    <string name="user_tag_filter_empty_need_web_login">Ничего не найдено.\nФильтр по тегам идёт через веб-API Pixiv, область видимости которого отличается от приложения (без синхронизированной веб-сессии работы R-18 и «чувствительные» скрыты). Если работы по этому тегу должны быть, войдите один раз через «Веб-главную» и повторите.</string>
+    <string name="user_tag_filter_empty_need_web_login">Работы не найдены.\nФильтр по тегам использует веб-API pixiv. Войдите один раз через веб, чтобы увидеть все работы.</string>
 </resources>

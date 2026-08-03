@@ -288,6 +288,15 @@ abstract class FeedFragment(
     protected open val emptyStateText: CharSequence
         get() = getString(R.string.empty_list_1)
 
+    /**
+     * 空态下可选的动作按钮：`标题 to 点击动作`，返回 null 就只显示文案（默认）。
+     *
+     * 给那些「空是有原因、而且原因能一键去修」的页面用——光把原因写成一段话、再让用户自己
+     * 去菜单里翻入口，等于把人堵在死胡同。只在空态显示，错误态走框架统一的「点击重试」。
+     */
+    protected open val emptyStateAction: Pair<CharSequence, () -> Unit>?
+        get() = null
+
     /** 默认竖排线性；网格用 [gridLayoutManager]，瀑布流直接返回 StaggeredGridLayoutManager。 */
     protected open fun onCreateLayoutManager(): RecyclerView.LayoutManager {
         return LinearLayoutManager(requireContext())
@@ -485,6 +494,17 @@ abstract class FeedFragment(
             binding.feedEmptyImage.setImageResource(stateImage)
         }
         binding.feedEmptyImage.isVisible = stateImage != 0
+
+        // 动作按钮只跟空态走：错误态已经有「点击重试」，加载态更没得点。
+        val action = if (state.showEmptyState) emptyStateAction else null
+        binding.feedStateAction.isVisible = action != null
+        if (action != null) {
+            binding.feedStateAction.text = action.first
+            binding.feedStateAction.setOnClickListener { action.second() }
+        } else {
+            binding.feedStateAction.setOnClickListener(null)
+        }
+
         binding.feedStateContainer.isVisible = showSpinner || stateText != null
 
         // 有内容兜底时的刷新失败只提示一次，不打断浏览；已消费标记在 VM（旋转重建不重复提示）

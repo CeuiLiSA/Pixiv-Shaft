@@ -2265,5 +2265,5 @@
     <string name="pixiv_block_checking">Engelleme durumu kontrol ediliyor…</string>
     <string name="pixiv_block_submitting">Gönderiliyor…</string>
     <string name="pixiv_block_need_web_login">Engelleme bir Pixiv web özelliğidir. Oturumun eşitlenmesi için önce web sürümünde bir kez oturum açın.</string>
-    <string name="user_tag_filter_empty_need_web_login">Eşleşen eser yok.\nEtiket filtresi Pixiv\'in web API\'si üzerinden çalışır ve görünürlük kapsamı uygulamadan farklıdır (web oturumu eşitlenmediğinde R-18 ve hassas eserler görünmez). Bu etikette eser olduğundan eminseniz Web Ana Sayfa\'dan bir kez oturum açıp tekrar deneyin.</string>
+    <string name="user_tag_filter_empty_need_web_login">Eser bulunamadı.\nEtiket filtresi pixiv web API\'sini kullanır. Tüm eserleri görmek için web\'de bir kez giriş yapın.</string>
 </resources>

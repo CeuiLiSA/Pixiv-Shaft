@@ -1,8 +1,10 @@
 package ceui.pixiv.ui.user
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
+import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.http.Retro
 import ceui.lisa.models.ImageUrlsBean
@@ -63,12 +65,12 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
     /**
      * 这一页有个结构性错位：筛选条上的 tag 是 [ceui.lisa.activities.UserV3IllustTabFragment]
      * 从 **app-api**（已登录视角）首屏作品本地聚合出来的，而筛选本身走 **www.pixiv.net 的 ajax**。
-     * 两边可见范围不一定重合 —— 没同步过网页 cookie 时后者是匿名身份，看不到 R-18 / 敏感作品
-     * （实测匿名 `search?mode=r18` 只返 xRestrict:0）。所以「chip 明明在，点进去 0 件」是可能的。
+     * 没同步网页 cookie 时后者是匿名身份，看不到敏感作品，于是「chip 明明在，点进去 0 件」。
      *
-     * ⚠️ 这是**推测出的可能成因，不是 issue #956 的实证结论**：#956 报的画师(86104346)全部作品都是
-     * 全年龄，chip 栏 Top-20 逐个打接口全部有结果，那边的空结果至今没复现。所以文案只给线索、
-     * 不下断言 —— 真只是这个 tag 没作品时，也不能把人往网页登录上带偏。
+     * 已实证（画师 86104346）：app-api 视角 70 件、匿名网页只见 51 件，差的 19 件里
+     * `x_restrict > 0` 的只有 2 件，其余全是 `sanity_level` 4/6 的敏感作品。tag「ケイ」名下
+     * 唯一那件正在其中，所以匿名恒 0；同步网页 cookie 后立刻筛出 1 件。
+     * 主因是 sanity_level 而非 R-18，文案别写成「R-18」误导。
      */
     override val emptyStateText: CharSequence
         get() = if (SessionManager.hasWebCookie) {
@@ -76,6 +78,39 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
         } else {
             getString(R.string.user_tag_filter_empty_need_web_login)
         }
+
+    /** 缺网页会话时直接把「去登录」摆在空态上——原因写得再清楚，也不该让用户自己去侧边栏翻入口。 */
+    override val emptyStateAction: Pair<CharSequence, () -> Unit>?
+        get() = if (SessionManager.hasWebCookie) {
+            null
+        } else {
+            getString(R.string.street_web_login_confirm) to {
+                startActivity(
+                    Intent(requireContext(), TemplateActivity::class.java).apply {
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页")
+                    }
+                )
+            }
+        }
+
+    /**
+     * 从空态那个「去登录」跳出去登完回来时，页面还停在旧的空结果上——用户刚登完却看见
+     * 同一句「需要登录」和同一个按钮。同步到网页会话就自动重拉一次。
+     * 只在「走时没有、回来有了」这一档触发，别把普通的切后台回来也变成刷新。
+     */
+    private var hadWebCookieOnPause = false
+
+    override fun onPause() {
+        super.onPause()
+        hadWebCookieOnPause = SessionManager.hasWebCookie
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!hadWebCookieOnPause && SessionManager.hasWebCookie) {
+            feedViewModel.refresh()
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

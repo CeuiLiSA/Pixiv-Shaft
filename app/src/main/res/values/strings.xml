@@ -2439,5 +2439,5 @@
     <string name="pixiv_block_need_web_login">拉黑是 Pixiv 网页端功能，需要先完成一次网页登录来同步会话信息。</string>
     <!-- 画师页 chip 来自 app-api、筛选走网页 ajax，两边可见范围可能不一致；只给线索不下断言，
          见 UserIllustByTagFeedFragment.emptyStateText 的 KDoc（非 issue #956 的实证成因） -->
-    <string name="user_tag_filter_empty_need_web_login">没有筛到作品。\n按标签筛选走的是 Pixiv 网页接口，可见范围和 App 不完全一致（未同步网页登录时看不到 R-18 / 敏感作品）。确定这个标签下有作品的话，可以去「Web 首页」登录一次再试。</string>
+    <string name="user_tag_filter_empty_need_web_login">没有筛到作品。\n按标签筛选走的是 Pixiv 网页接口，需要在网页里登录一次才能看到全部作品。</string>
 </resources>

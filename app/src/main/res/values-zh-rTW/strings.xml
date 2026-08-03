@@ -2267,5 +2267,5 @@
     <string name="pixiv_block_checking">正在查詢封鎖狀態…</string>
     <string name="pixiv_block_submitting">正在提交…</string>
     <string name="pixiv_block_need_web_login">封鎖是 Pixiv 網頁端功能，需要先完成一次網頁登入以同步工作階段資訊。</string>
-    <string name="user_tag_filter_empty_need_web_login">沒有篩到作品。\n依標籤篩選走的是 Pixiv 網頁介面，可見範圍和 App 不完全一致（未同步網頁登入時看不到 R-18 / 敏感作品）。確定這個標籤下有作品的話，可以去「Web 首頁」登入一次再試。</string>
+    <string name="user_tag_filter_empty_need_web_login">沒有篩到作品。\n依標籤篩選走的是 Pixiv 網頁介面，需要在網頁裡登入一次才能看到全部作品。</string>
 </resources>
