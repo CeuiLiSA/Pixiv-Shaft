@@ -12,7 +12,6 @@ import ceui.loxia.Comment
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.fetchFullIllustDetail
-import ceui.loxia.hasTrustedCaption
 import ceui.loxia.isFullDetail
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.feeds.FeedItem
@@ -69,12 +68,15 @@ class ArtworkV3FeedSource(
      * 3. 拉取失败 / 已删,但池里有(精简)bean → 降级用它(issue #569:按 Tag 筛选等);
      * 4. 池空 + 拉取失败(离线深链接 / widget 冷启)→ 退回 modern [Illust] 池 → 浏览历史 DB,
      *    桥回 legacy 池后返回,避免离线时看过的作品也整页空白(对齐 legacy loadData 的兜底链)。
+     *
+     * ⚠️ 这一步是**首屏的阻塞路径**:它一走网络,整页就没有任何条目可提交,详情页(骨架图为 null)
+     * 会画出全屏转圈。所以判据只能问一件事——「池里这条 bean 够不够把首屏画出来」,也就是
+     * [isFullDetail] 的图片字段。**不要**再往这里挂「顺便补个字段」类的条件:那类补拉一律走后台
+     * (见 [ArtworkV3ViewModel] 的 caption 补拉),落池后靠 observer 增量改条目。
      */
     private suspend fun resolveFullIllust(): IllustsBean? {
         val existing = ObjectPool.get<IllustsBean>(illustId).value
-        // hasTrustedCaption:列表接口会不定期掐掉部分作品的 caption(#960),isFullDetail
-        // 只看图片字段挡不住;caption 为空且没被 detail 确认过时也要回源补拉。
-        if (existing != null && existing.isFullDetail() && existing.hasTrustedCaption()) {
+        if (existing != null && existing.isFullDetail()) {
             Timber.tag(ARTWORK_LAZY_TAG).d("resolveFullIllust: 池里已是完整版,零 API 直接用 illustId=%d", illustId)
             return existing
         }

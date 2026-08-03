@@ -66,6 +66,7 @@ import ceui.pixiv.ui.task.renderImageLoadStatusBanner
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import timber.log.Timber
 
 /**
  * 插画详情页(feeds 框架版)。整页 = 一张异构瀑布流:顶部大图页 + header 区块(全 fullSpan)+
@@ -220,15 +221,19 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
         })
 
-        // 关注态:观察作者 UserBean,变更后重算 Artist 条目(关注切换只这条重绑)
+        // 关注态:观察作者 UserBean,变更后重算 Artist 条目(关注切换只这条重绑)。
+        // 顺带接住 caption 后台补拉的落地(见 ArtworkV3ViewModel.ensureTrustedCaption)。
         ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
-            val authorId = illust?.user?.id?.toLong() ?: return@observe
+            illust ?: return@observe
+            syncDescSection(illust.caption)
+            val authorId = illust.user?.id?.toLong() ?: return@observe
             attachArtistFollowObserver(authorId)
         }
     }
 
     override fun onResume() {
         super.onResume()
+        artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
     }
 
@@ -376,6 +381,47 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     override fun onNetworkRestored() {
         super.onNetworkRestored()
         sectionLoader?.retryFailed()
+    }
+
+    /**
+     * 把池里那条 bean 的 caption 同步到简介块。首屏是拿列表 bean 直接画的(不为了简介去阻塞,
+     * 见 [ArtworkV3ViewModel] 的 caption 补拉),所以简介可能**晚到**、也可能一开始压根没这条目。
+     *
+     * 只做「补上 / 换内容」,不做「抹掉」:池会被各种精简来源覆盖(作者其他作品、相关作品列表都会
+     * 合池),拿一次空 caption 去删已经显示出来的简介,就成了简介闪一下又没了。
+     *
+     * 位置锚在 [ArtworkTagsItem] 之前——对齐 [ArtworkV3FeedSource.buildArtworkHeaderItems] 的
+     * 区块顺序(Hero /(Series)/ Artist / Desc / Tags / ...)。tags 块是无条件产出的,锚点稳定。
+     * 没变化时原样返回同一个 list,[FeedViewModel.mutateItems] 据此判定 no-op,所以这个观察者
+     * 每次因收藏 / 关注变更 fire 都是免费的。
+     *
+     * ⚠️ 这条插入可能与 fling 同帧落地(简介比首屏晚 ~0.5s,用户很可能正在滚)。它安全的前提是
+     * [onListReady] 把 itemAnimator 关掉了 —— 没有 itemAnimator 就不跑 SGLM 的 predictive
+     * 预布局,也就绕开了 [ceui.lisa.helper.StaggeredManager] 注释里那个「fling + 插入同帧」的
+     * AOSP 越界。谁要把动画开回来,先想清楚这里。
+     */
+    private fun syncDescSection(caption: String?) {
+        if (caption.isNullOrEmpty()) return
+        feedViewModel.mutateItems { items ->
+            val at = items.indexOfFirst { it is ArtworkDescItem }
+            if (at >= 0) {
+                if ((items[at] as ArtworkDescItem).caption == caption) {
+                    items
+                } else {
+                    items.toMutableList().apply { this[at] = ArtworkDescItem(caption) }
+                }
+            } else {
+                val anchor = items.indexOfFirst { it is ArtworkTagsItem }
+                if (anchor < 0) {
+                    items // header 还没建出来(首屏仍在飞),等下一次 fire
+                } else {
+                    Timber.tag(ARTWORK_LAZY_TAG)
+                        .d("简介块后台补入 illustId=%d len=%d", illustId, caption.length)
+                    items.subList(0, anchor) + ArtworkDescItem(caption) +
+                            items.subList(anchor, items.size)
+                }
+            }
+        }
     }
 
     private fun attachArtistFollowObserver(authorId: Long) {
