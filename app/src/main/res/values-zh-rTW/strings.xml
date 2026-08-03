@@ -2256,16 +2256,16 @@
     <string name="string_rife_download_subtitle">%1$s 需要額外下載以啟用動圖 AI 補幀</string>
     <string name="string_rife_download_done">補幀模型下載完成</string>
     <!-- issue #959: pixiv 官方封鎖（網頁端 ブロック），有別於純本機的「屏蔽」 -->
-    <string name="pixiv_block_menu">在 Pixiv 封鎖此繪師…</string>
-    <string name="pixiv_block_title">Pixiv 封鎖</string>
-    <string name="pixiv_block_message">封鎖「%1$s」後，對方將無法追蹤你、收藏或留言你的作品，也無法傳訊息給你。\n\n這會寫入你的 Pixiv 帳號，和本機「屏蔽」不是同一回事。</string>
-    <string name="pixiv_unblock_message">「%1$s」已在你的 Pixiv 封鎖名單中，要解除封鎖嗎？</string>
+    <string name="pixiv_block_menu">封鎖此繪師…</string>
+    <string name="pixiv_block_title">封鎖</string>
+    <string name="pixiv_block_message">封鎖「%1$s」後，對方將無法追蹤你、收藏或留言你的作品，也無法傳訊息給你。\n\n這會寫入你的帳號，和本機「屏蔽」不是同一回事。</string>
+    <string name="pixiv_unblock_message">「%1$s」已在你的封鎖名單中，要解除封鎖嗎？</string>
     <string name="pixiv_block_action">封鎖</string>
     <string name="pixiv_unblock_action">解除封鎖</string>
     <string name="pixiv_block_done">已封鎖「%1$s」</string>
     <string name="pixiv_unblock_done">已解除封鎖「%1$s」</string>
     <string name="pixiv_block_checking">正在查詢封鎖狀態…</string>
     <string name="pixiv_block_submitting">正在提交…</string>
-    <string name="pixiv_block_need_web_login">封鎖是 Pixiv 網頁端功能，需要先完成一次網頁登入以同步工作階段資訊。</string>
+    <string name="pixiv_block_need_web_login">封鎖是網頁端功能，需要先完成一次網頁登入以同步工作階段資訊。</string>
     <string name="user_tag_filter_empty_need_web_login">沒有篩到作品。\n依標籤篩選走的是 Pixiv 網頁介面，需要在網頁裡登入一次才能看到全部作品。</string>
 </resources>
