@@ -15,6 +15,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 
+/** 广告：`pure_ad` 是 pixiv 自家投放脚本，`pixiv_ads_ad` 是外部广告位，两者都不进列表。 */
+private val AD_KINDS = setOf("pure_ad", "pixiv_ads_ad")
+
+/** 单卡内容（进瀑布流的一格）。 */
+internal val WORK_KINDS = setOf("illust", "manga", "novel", "collection")
+
+/** 通栏货架（横向条，占满两列）。 */
+internal const val KIND_CAROUSEL = "carousel"
+internal const val KIND_TAGS_CAROUSEL = "tags_carousel"
+
 class StreetMainViewModel : ViewModel() {
 
     private val _items = MutableLiveData<List<StreetContent>>(emptyList())
@@ -32,6 +42,9 @@ class StreetMainViewModel : ViewModel() {
     private val loadedNovelIds = mutableListOf<String>()
     private val loadedCollectionIds = mutableListOf<String>()
 
+    /** 已经出过的货架 key，见 [renderable]。刷新时清空。 */
+    private val seenRails = mutableSetOf<String>()
+
     fun refresh() = load(refresh = true)
     fun loadMore() = load(refresh = false)
 
@@ -44,18 +57,20 @@ class StreetMainViewModel : ViewModel() {
                 val request = buildRequest(refresh)
                 val response = callApi(request, retried = false)
 
-                val contents = response.body?.contents?.filter {
-                    it.kind == "illust" || it.kind == "manga" || it.kind == "novel" || it.kind == "collection"
-                } ?: emptyList()
-                nextParams = response.body?.nextParams
-
-                // 累积 ID
+                // 清空必须在 renderable 之前：货架去重靠 seenRails，刷新时不先清就会把
+                // 新一轮首屏的「精选新作」当成上一轮的重复条给滤掉。
                 if (refresh) {
                     loadedIllustIds.clear()
                     loadedMangaIds.clear()
                     loadedNovelIds.clear()
                     loadedCollectionIds.clear()
+                    seenRails.clear()
                 }
+
+                val current = if (refresh) emptyList() else (_items.value ?: emptyList())
+                val contents = renderable(response.body?.contents)
+                nextParams = response.body?.nextParams
+
                 for (c in response.body?.contents.orEmpty()) {
                     val tid = c.thumbnails?.firstOrNull()?.id ?: continue
                     when (c.kind) {
@@ -66,7 +81,6 @@ class StreetMainViewModel : ViewModel() {
                     }
                 }
 
-                val current = if (refresh) emptyList() else (_items.value ?: emptyList())
                 _items.value = current + contents
                 _loadState.value = if (refresh) {
                     LoadState.Refreshed
@@ -78,6 +92,31 @@ class StreetMainViewModel : ViewModel() {
             }
         }
     }
+
+    /**
+     * 服务端 contents → 真正进列表的条目。丢广告，丢分隔线，其余能画的全留下。
+     *
+     * 分隔线（`separator`）不进列表：它在瀑布流里只能做通栏条，一条就把两列强行对齐一次，
+     * 单卡区被切碎后左右两列各留一大片空白。网页端是单列流才吃得下这个语义。
+     *
+     * 货架（carousel / tags_carousel）要跨页去重：翻页请求只带「看过哪些作品」（vhi/vhn/…），
+     * 没有任何字段能告诉服务端货架已经给过了，于是**每一页都会原样再下发一次**「精选新作」
+     * 和热门标签 —— 不拦就是同一条货架在列表里刷屏。按 listType 认，一次会话里只留第一条。
+     */
+    private fun renderable(contents: List<StreetContent>?): List<StreetContent> =
+        contents.orEmpty().filter { c ->
+            when (c.kind) {
+                in AD_KINDS -> false
+                in WORK_KINDS -> c.thumbnails?.firstOrNull() != null
+                // 货架空了就没什么可展开的，通栏一条空标题反而突兀
+                KIND_CAROUSEL ->
+                    !c.thumbnails.isNullOrEmpty() &&
+                        seenRails.add("$KIND_CAROUSEL:${c.listType ?: c.title.orEmpty()}")
+                KIND_TAGS_CAROUSEL ->
+                    !c.trendTags.isNullOrEmpty() && seenRails.add(KIND_TAGS_CAROUSEL)
+                else -> false
+            }
+        }
 
     private fun buildRequest(refresh: Boolean): StreetRequest {
         return if (refresh) {

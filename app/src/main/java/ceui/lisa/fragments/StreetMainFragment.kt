@@ -8,11 +8,15 @@ import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.ImageView
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
+import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.VActivity
@@ -22,6 +26,9 @@ import ceui.lisa.databinding.FragmentBaseListBinding
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import ceui.lisa.databinding.ItemStreetContentBinding
+import ceui.lisa.databinding.ItemStreetRailBinding
+import ceui.lisa.databinding.ItemStreetRailTagBinding
+import ceui.lisa.databinding.ItemStreetRailWorkBinding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
@@ -29,8 +36,12 @@ import ceui.loxia.Client
 import ceui.loxia.ClientManager
 import ceui.loxia.CsrfTokenProvider
 import ceui.loxia.StreetContent
+import ceui.loxia.StreetPage
+import ceui.loxia.StreetPickup
 import ceui.loxia.StreetThumbnail
+import ceui.loxia.StreetTrendTag
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.utils.ppppx
 import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.pixiv.widgets.scrollUpFrom
@@ -41,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Locale
 import java.util.UUID
 
 /**
@@ -77,6 +89,48 @@ private val CSRF_TOKEN_FORMAT = Regex("[a-f0-9]{32}")
 private const val CSRF_MAX_ATTEMPTS = 3
 private const val CSRF_RETRY_DELAY_MS = 1000L
 
+private const val STREET_SPAN_COUNT = 2
+
+/** 展示宽高比（高/宽）的钳制区间，对齐 IAdapter / IllustStaggerRenderer 的瀑布流口径。 */
+private const val MIN_HEIGHT_RATIO = 0.6f
+private const val MAX_HEIGHT_RATIO = 2.0f
+
+/**
+ * 小说封面比例。`/ajax/street/v2/main` 的 novel 缩略图只给一个裸 url、没有任何尺寸字段，
+ * 但封面一律走 `c/600x600/novel-cover-master`，pixiv 统一压成 427x600（实测三张同尺寸）。
+ */
+private const val NOVEL_COVER_HEIGHT_RATIO = 600f / 427f
+
+/**
+ * 合集缩略图比例。collection 同样不给尺寸字段，但 url 里写死了 `/288x288/thumbnail`，是正方形。
+ * 顺带说明：这个 embed.pixiv.net 地址实测恒回 400，图根本加载不出来 —— 正因如此更要提前定高，
+ * 否则整张卡会塌成两行字。
+ */
+private const val COLLECTION_THUMB_HEIGHT_RATIO = 1f
+
+/** 兜底比例：真遇到既没尺寸也没约定的类型，按正方形排，至少不会塌。 */
+private const val FALLBACK_HEIGHT_RATIO = 1f
+
+/** 列表条目类型。两种通栏货架 + 半栏单卡 + 尾部转圈。 */
+private const val TYPE_WORK = 0
+private const val TYPE_RAIL_WORKS = 1
+private const val TYPE_RAIL_TAGS = 2
+private const val TYPE_FOOTER = 3
+
+/** 货架内部（横向条）的格子类型，两种格子共用一个 RecycledViewPool，必须各占一号。 */
+private const val TYPE_RAIL_CELL_WORK = 10
+private const val TYPE_RAIL_CELL_TAG = 11
+
+/** 内容边距 6dp（列表）+ 6dp（卡片外边距）= V3 的 12dp。货架自己也按这个口径对齐。 */
+private const val LIST_EDGE_DP = 6
+private const val CARD_MARGIN_DP = 6
+
+/** 货架格子边长，与 item_street_rail_work / _tag 里的 120dp 对应。 */
+private const val RAIL_CELL_SIZE_DP = 120
+
+/** pixiv 对「评论本体是表情/贴纸」的 pickup 回的占位串，没有可读文本。 */
+private const val PICKUP_STAMP_PLACEHOLDER = "(normal)"
+
 class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
 
     private val viewModel: StreetMainViewModel by viewModels()
@@ -90,8 +144,13 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         baseBind.toolbar.setNavigationOnClickListener { activity?.finish() }
         baseBind.toolbarTitle.text = getString(R.string.street_title)
         baseBind.recyclerView.layoutManager =
-            StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+            StaggeredGridLayoutManager(STREET_SPAN_COUNT, StaggeredGridLayoutManager.VERTICAL)
         baseBind.recyclerView.adapter = adapter
+        // 内容边距分两半：列表出这 6dp，卡片自己的 layout_margin 出另 6dp —— 加起来是 V3 的
+        // 12dp，而卡与卡之间自然是 12dp 沟。通栏货架吃到的只有列表这 6dp，它内部再补 6dp，
+        // 于是标题、首个格子和单卡左边缘落在同一条线上。
+        baseBind.recyclerView.setPadding(LIST_EDGE_DP.ppppx, 0, LIST_EDGE_DP.ppppx, 0)
+        baseBind.recyclerView.clipToPadding = false
 
         baseBind.refreshLayout.applyV3RefreshTheme()
         // 列表隔着 listContainer 挂在刷新层下,顶部判定得自己接到 RecyclerView 上,
@@ -106,15 +165,36 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
 
         viewModel.loadState.observe(viewLifecycleOwner) { state ->
             when (state) {
+                // 在跑但页面还空着 = 首屏,借下拉刷新那圈当加载指示(它本来只在手势时转,
+                // 首次进来直接白屏,用户看不出到底是在加载还是拉空了);已有内容则是翻页,
+                // 转圈落到列表尾部。
+                is StreetMainViewModel.LoadState.Loading -> {
+                    if (adapter.itemCount == 0) {
+                        // 首屏这一发可能早于刷新层完成布局,那时置 isRefreshing 是不显示的;
+                        // post 到布局后再置,并复查还在不在加载,免得请求已经回来了还留个空转的圈。
+                        baseBind.refreshLayout.post {
+                            if (viewModel.loadState.value == StreetMainViewModel.LoadState.Loading) {
+                                baseBind.refreshLayout.isRefreshing = true
+                            }
+                        }
+                    } else {
+                        adapter.syncFooter(true)
+                    }
+                }
                 is StreetMainViewModel.LoadState.Refreshed -> {
+                    adapter.resetFooter(viewModel.hasMore)
                     adapter.notifyDataSetChanged()
                     baseBind.refreshLayout.isRefreshing = false
                 }
                 is StreetMainViewModel.LoadState.LoadedMore -> {
+                    // 先按数据的增量报,再单独校尾部那一条 —— 两件事混在一次 notify 里
+                    // 会差出一条,RecyclerView 直接抛 Inconsistency。
                     adapter.notifyItemRangeInserted(state.insertStart, state.insertCount)
+                    adapter.syncFooter(viewModel.hasMore)
                 }
                 is StreetMainViewModel.LoadState.Error -> {
                     baseBind.refreshLayout.isRefreshing = false
+                    adapter.syncFooter(false)
                     Toaster.showShort(state.message)
                 }
                 else -> Unit
@@ -373,20 +453,67 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
 
     // ---- Adapter ---------------------------------------------------------------
 
-    private inner class StreetAdapter : RecyclerView.Adapter<StreetViewHolder>() {
+    /**
+     * 三种条目：单卡（半栏）+ 作品货架 / 标签货架（两者通栏）。
+     * 通栏靠 [StaggeredGridLayoutManager.LayoutParams.isFullSpan]，在 bind 时按类型现设。
+     */
+    private inner class StreetAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+        /** 所有货架共用一个回收池：横向条的卡片长得一样，跨货架复用能省掉大量 inflate。 */
+        private val railPool = RecyclerView.RecycledViewPool()
 
         private val data get() = viewModel.items.value ?: emptyList()
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StreetViewHolder {
-            val binding = ItemStreetContentBinding.inflate(layoutInflater, parent, false)
-            return StreetViewHolder(binding)
+        /**
+         * 尾部转圈是否在列表里。它参与 [getItemCount]，所以只能通过 [syncFooter] 改 ——
+         * 改一步必须紧跟一次 notify，否则 RecyclerView 会拿「宣称的增量」和「真实条数」对不上。
+         */
+        var footerShown = false
+            private set
+
+        override fun getItemViewType(position: Int): Int {
+            if (position >= data.size) return TYPE_FOOTER
+            return when (data[position].kind) {
+                KIND_CAROUSEL -> TYPE_RAIL_WORKS
+                KIND_TAGS_CAROUSEL -> TYPE_RAIL_TAGS
+                else -> TYPE_WORK
+            }
         }
 
-        override fun onBindViewHolder(holder: StreetViewHolder, position: Int) {
-            holder.bind(data[position])
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
+            when (viewType) {
+                TYPE_RAIL_WORKS, TYPE_RAIL_TAGS ->
+                    RailViewHolder(ItemStreetRailBinding.inflate(layoutInflater, parent, false), railPool)
+                TYPE_FOOTER -> object : RecyclerView.ViewHolder(
+                    layoutInflater.inflate(R.layout.section_v3_loading_more, parent, false)
+                ) {}
+                else ->
+                    StreetViewHolder(ItemStreetContentBinding.inflate(layoutInflater, parent, false))
+            }
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            (holder.itemView.layoutParams as? StaggeredGridLayoutManager.LayoutParams)?.isFullSpan =
+                holder !is StreetViewHolder
+            when (holder) {
+                is RailViewHolder -> holder.bind(data[position])
+                is StreetViewHolder -> holder.bind(data[position])
+                else -> Unit
+            }
         }
 
-        override fun getItemCount(): Int = data.size
+        override fun getItemCount(): Int = data.size + if (footerShown) 1 else 0
+
+        /** 只在真的要变时动，且自己把那一条 notify 发全。 */
+        fun syncFooter(show: Boolean) {
+            if (footerShown == show) return
+            footerShown = show
+            if (show) notifyItemInserted(data.size) else notifyItemRemoved(data.size)
+        }
+
+        /** 配合 notifyDataSetChanged 用：不单独发 notify，由调用方一并刷新。 */
+        fun resetFooter(show: Boolean) {
+            footerShown = show
+        }
     }
 
     private inner class StreetViewHolder(
@@ -399,8 +526,14 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
 
             binding.titleText.text = thumb.title.orEmpty()
             binding.authorText.text = thumb.userName.orEmpty()
+            binding.badgeType.text = metaLine(thumb, kind)
+            bindPickup(binding, content.pickup)
 
-            binding.badgeType.text = kind
+            binding.badgeR18.isVisible = (thumb.xRestrict ?: 0) > 0
+            // aiType: 1 = 人工, 2 = AI 生成（网页端同款口径）
+            binding.badgeAi.isVisible = thumb.aiType == 2
+            binding.badgeOriginal.isVisible = thumb.isOriginal == true
+
             val pageCount = thumb.pageCount ?: 0
             if (pageCount > 1) {
                 binding.badgePage.visibility = View.VISIBLE
@@ -409,12 +542,23 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                 binding.badgePage.visibility = View.GONE
             }
 
-            val imageUrl = resolveImageUrl(thumb, kind)
+            val display = resolveDisplay(thumb, kind)
             val iv = binding.thumbImage
-            if (imageUrl != null) {
+            // 先定高再加载：格子多高只跟元数据有关，跟图片到没到、能不能到都无关。
+            iv.setHeightRatio(display.heightRatio)
+            if (display.url != null) {
                 iv.visibility = View.VISIBLE
+                // 请求尺寸显式 override，让请求宽高比恒等于展示宽高比 —— centerCrop 下
+                // into(ImageView) 会按「请求尺寸」的比例在解码阶段裁图，交给 Glide 自己量
+                // 就会读到复用卡片上一条目残留的旧宽高（setHeightRatio 只 requestLayout，
+                // bind 又发生在 measure 之前），图会被裁成一小块还发糊。同 IllustStaggerRenderer。
+                val columnWidth = columnWidthPx
                 Glide.with(mContext)
-                    .load(GlideUrlChild(imageUrl))
+                    .load(GlideUrlChild(display.url))
+                    .override(columnWidth, (columnWidth * display.heightRatio).toInt())
+                    // 占位底色 = 骨架块同款；collection 那种恒 400 的图也就停在这个色块上，
+                    // 卡片不会塌、标题不会顶到 badge 上。
+                    .placeholder(R.color.feed_skeleton_block)
                     .into(iv)
             } else {
                 iv.visibility = View.GONE
@@ -424,10 +568,251 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         }
     }
 
-    private fun resolveImageUrl(thumb: StreetThumbnail, kind: String): String? = when (kind) {
-        "illust", "manga" -> thumb.pages?.firstOrNull()?.urls?.best
-        "novel", "collection" -> thumb.url
-        else -> null
+    // ---- 通栏货架 ---------------------------------------------------------------
+
+    private inner class RailViewHolder(
+        private val binding: ItemStreetRailBinding,
+        pool: RecyclerView.RecycledViewPool,
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.railRv.layoutManager =
+                LinearLayoutManager(mContext, RecyclerView.HORIZONTAL, false)
+            binding.railRv.setRecycledViewPool(pool)
+        }
+
+        fun bind(content: StreetContent) {
+            if (content.kind == KIND_TAGS_CAROUSEL) {
+                binding.railLabel.text = getString(R.string.street_label_trending_tags)
+                binding.railSeeAll.isVisible = false
+                binding.railRv.adapter = TrendTagAdapter(
+                    content.trendTags.orEmpty(),
+                    content.thumbnails.orEmpty(),
+                )
+            } else {
+                binding.railLabel.text = content.title.orEmpty()
+                val seeAll = content.seeAllUrl
+                binding.railSeeAll.isVisible = !seeAll.isNullOrBlank()
+                binding.railSeeAll.setOnClickListener { openWebPath(content.title, seeAll) }
+                binding.railRv.adapter = RailWorkAdapter(content.thumbnails.orEmpty())
+            }
+        }
+    }
+
+    private inner class RailWorkAdapter(
+        private val items: List<StreetThumbnail>,
+    ) : RecyclerView.Adapter<RailWorkViewHolder>() {
+
+        // 与 [TrendTagAdapter] 共用一个 RecycledViewPool，view type 必须区分开，
+        // 否则池子会把标签格递给作品 holder（两边默认都是 0）。
+        override fun getItemViewType(position: Int) = TYPE_RAIL_CELL_WORK
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+            RailWorkViewHolder(ItemStreetRailWorkBinding.inflate(layoutInflater, parent, false))
+
+        override fun onBindViewHolder(holder: RailWorkViewHolder, position: Int) {
+            holder.bind(items[position])
+        }
+
+        override fun getItemCount() = items.size
+    }
+
+    private inner class RailWorkViewHolder(
+        private val binding: ItemStreetRailWorkBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(thumb: StreetThumbnail) {
+            binding.workTitle.text = thumb.title.orEmpty()
+            binding.workAuthor.text = thumb.userName.orEmpty()
+            binding.badgeR18.isVisible = (thumb.xRestrict ?: 0) > 0
+            val pageCount = thumb.pageCount ?: 0
+            binding.pagesBadge.isVisible = pageCount > 1
+            if (pageCount > 1) binding.pagesBadge.text = "${pageCount}P"
+            loadSquare(binding.workImage, thumb)
+            // 货架里作品的类型挂在 thumbnail 自己身上（content.kind 恒为 "carousel"）。
+            // 图那一层自己 clickable（为了 ripple），点击到不了 root，两层都得挂。
+            val open = View.OnClickListener { onItemClick(thumb, thumb.type ?: "illust") }
+            binding.workBox.setOnClickListener(open)
+            binding.root.setOnClickListener(open)
+        }
+    }
+
+    private inner class TrendTagAdapter(
+        private val tags: List<StreetTrendTag>,
+        private val covers: List<StreetThumbnail>,
+    ) : RecyclerView.Adapter<TrendTagViewHolder>() {
+
+        override fun getItemViewType(position: Int) = TYPE_RAIL_CELL_TAG
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+            TrendTagViewHolder(ItemStreetRailTagBinding.inflate(layoutInflater, parent, false))
+
+        override fun onBindViewHolder(holder: TrendTagViewHolder, position: Int) {
+            // trendTags 与 thumbnails 在响应里按下标一一对应；万一某天不对齐了，缺图也不能崩
+            holder.bind(tags[position], covers.getOrNull(position))
+        }
+
+        override fun getItemCount() = tags.size
+    }
+
+    private inner class TrendTagViewHolder(
+        private val binding: ItemStreetRailTagBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(tag: StreetTrendTag, cover: StreetThumbnail?) {
+            val name = tag.name.orEmpty()
+            binding.tagName.text = "#$name"
+            val translated = tag.translatedName?.takeIf { it.isNotBlank() && it != name }
+            binding.tagTranslated.isVisible = translated != null
+            binding.tagTranslated.text = translated.orEmpty()
+            val count = tag.taggedCount ?: 0
+            binding.tagCount.isVisible = count > 0
+            if (count > 0) binding.tagCount.text = formatCount(count)
+            loadSquare(binding.tagImage, cover)
+            // 同 RailWorkViewHolder：图那一层 clickable，点击落不到 root，两层都要挂
+            val open = View.OnClickListener {
+                if (name.isEmpty()) return@OnClickListener
+                startActivity(Intent(mContext, SearchActivity::class.java).apply {
+                    putExtra(Params.KEY_WORD, name)
+                    putExtra(Params.INDEX, 0)
+                })
+            }
+            binding.tagBox.setOnClickListener(open)
+            binding.root.setOnClickListener(open)
+        }
+    }
+
+    /** 货架格子是正方形，正好吃 540x540 那档方裁缩略图，不必去拉等比的 master1200。 */
+    private fun loadSquare(target: ImageView, thumb: StreetThumbnail?) {
+        val url = thumb?.pages?.firstOrNull()?.urls?.let { it.medium ?: it.small ?: it.standard }
+            ?: thumb?.url
+        if (url == null) {
+            Glide.with(mContext).clear(target)
+            target.setImageDrawable(null)
+            return
+        }
+        Glide.with(mContext)
+            .load(GlideUrlChild(url))
+            .override(RAIL_CELL_SIZE_DP.ppppx)
+            .placeholder(R.color.v3_surface_2)
+            .into(target)
+    }
+
+    /** 站点相对路径（如 `/bookmark_new_illust.php`）→ 内置浏览器。 */
+    private fun openWebPath(title: String?, path: String?) {
+        val url = path?.takeIf { it.isNotBlank() }?.let {
+            if (it.startsWith("http")) it else "https://www.pixiv.net$it"
+        } ?: return
+        startActivity(Intent(mContext, TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+            putExtra(Params.URL, url)
+            putExtra(Params.TITLE, title ?: getString(R.string.street_title))
+        })
+    }
+
+    // ---- 单卡细节 ---------------------------------------------------------------
+
+    /**
+     * 卡片底部那行 allCaps 小字。kind 之外把该类型独有的计数补上 —— 这些字段响应里一直有：
+     * 小说给字数（[StreetThumbnail.useWordCount] 决定按「字」还是「文字」计）和收藏数，
+     * 漫画给话数。
+     */
+    private fun metaLine(thumb: StreetThumbnail, kind: String): String {
+        val parts = mutableListOf(kind)
+        when (kind) {
+            "novel" -> {
+                val words = if (thumb.useWordCount == true) thumb.wordCount else thumb.textCount
+                words?.takeIf { it > 0 }?.let {
+                    parts += getString(R.string.street_meta_words, formatCount(it))
+                }
+                thumb.bookmarkCount?.takeIf { it > 0 }?.let {
+                    parts += getString(R.string.street_meta_bookmarks, formatCount(it))
+                }
+            }
+            "manga" -> thumb.episodeCount?.takeIf { it > 0 }?.let {
+                parts += getString(R.string.street_meta_episodes, formatCount(it))
+            }
+        }
+        return parts.joinToString(" · ")
+    }
+
+    /**
+     * pickup：这条内容是被谁的哪句评论捞上首页的。响应里一直带着，之前整块没用。
+     * 评论本体是表情/贴纸时 pixiv 回的是 `(normal)` 占位，那就只报人名。
+     */
+    private fun bindPickup(binding: ItemStreetContentBinding, pickup: StreetPickup?) {
+        if (pickup?.userName.isNullOrBlank()) {
+            binding.pickupRow.isVisible = false
+            return
+        }
+        binding.pickupRow.isVisible = true
+        val name = pickup!!.userName.orEmpty()
+        val comment = pickup.comment?.trim()
+            ?.takeIf { it.isNotEmpty() && it != PICKUP_STAMP_PLACEHOLDER }
+        binding.pickupText.text = if (comment != null) {
+            getString(R.string.street_pickup_comment, name, comment)
+        } else {
+            getString(R.string.street_pickup_plain, name)
+        }
+        val avatar = pickup.profileImageUrl
+        if (avatar.isNullOrBlank()) {
+            binding.pickupAvatar.setImageResource(R.drawable.v3_widget_avatar_placeholder)
+        } else {
+            Glide.with(mContext)
+                .load(GlideUrlChild(avatar))
+                .placeholder(R.drawable.v3_widget_avatar_placeholder)
+                .into(binding.pickupAvatar)
+        }
+    }
+
+    private fun formatCount(value: Int): String = String.format(Locale.getDefault(), "%,d", value)
+
+    /**
+     * 单卡里图片的真实宽度（px）：列宽扣掉列表自身的横向 padding 和卡片外边距。
+     * 取 LayoutManager 实时宽度（measure 先于绑定，旋转后已是新方向的值），首帧兜底屏宽。
+     */
+    private val columnWidthPx: Int
+        get() {
+            val listWidth = baseBind.recyclerView.layoutManager?.width?.takeIf { it > 0 }
+                ?: resources.displayMetrics.widthPixels
+            val inner = listWidth - LIST_EDGE_DP.ppppx * 2
+            return (inner / STREET_SPAN_COUNT - CARD_MARGIN_DP.ppppx * 2).coerceAtLeast(1)
+        }
+
+    private data class ThumbDisplay(val url: String?, val heightRatio: Float)
+
+    /**
+     * 一条内容的图 + 展示宽高比。四类 kind 的尺寸都能在 bind 时确定，不必等 Glide 解码：
+     *
+     * - illust / manga：`pages[0].width/height` 就是原图尺寸，而取用的 `1200x1200_standard`
+     *   （master1200）是等比缩，比例一致，直接可用。
+     * - novel：响应没有尺寸字段，封面按 pixiv 统一规格算（[NOVEL_COVER_HEIGHT_RATIO]）。
+     * - collection：响应没有尺寸字段，但 url 里写死 288x288，正方形。
+     */
+    private fun resolveDisplay(thumb: StreetThumbnail, kind: String): ThumbDisplay = when (kind) {
+        "illust", "manga" -> {
+            val page = thumb.pages?.firstOrNull()
+            // pages 缺失（旧字段名/新类型）时退回裸 url，比例交给兜底值，别把整条丢掉。
+            ThumbDisplay(page?.urls?.best ?: thumb.url, page.heightRatio())
+        }
+        "novel" -> ThumbDisplay(thumb.url, NOVEL_COVER_HEIGHT_RATIO)
+        "collection" -> ThumbDisplay(thumb.url, COLLECTION_THUMB_HEIGHT_RATIO)
+        else -> ThumbDisplay(null, FALLBACK_HEIGHT_RATIO)
+    }
+
+    /**
+     * 原图宽高 → 展示宽高比。钳到 [MIN_HEIGHT_RATIO, MAX_HEIGHT_RATIO]：pixiv 上 1:2 以上的
+     * 长条并不少见（实测有 4085x8850），不钳的话一张卡就能吃掉两屏。钳到的那部分由
+     * centerCrop 裁掉，区间内的比例则严丝合缝，centerCrop 等价于 fitCenter，不会有裁切。
+     */
+    private fun StreetPage?.heightRatio(): Float {
+        val w = this?.width ?: 0
+        val h = this?.height ?: 0
+        return if (w > 0 && h > 0) {
+            (h.toFloat() / w).coerceIn(MIN_HEIGHT_RATIO, MAX_HEIGHT_RATIO)
+        } else {
+            FALLBACK_HEIGHT_RATIO
+        }
     }
 
     private fun onItemClick(thumb: StreetThumbnail, kind: String) {

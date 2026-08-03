@@ -1585,6 +1585,13 @@
     <string name="street_web_login_success">登录成功</string>
     <string name="street_csrf_failed">没能取到网页会话凭据，请重新登录一次。</string>
     <string name="street_title">Web 首页</string>
+    <string name="street_label_trending_tags">热门标签</string>
+    <!-- pickup：某条内容是被谁的哪句评论捞上首页的 -->
+    <string name="street_pickup_comment">%1$s：%2$s</string>
+    <string name="street_pickup_plain">%1$s 推荐了这篇</string>
+    <string name="street_meta_words">%1$s 字</string>
+    <string name="street_meta_bookmarks">%1$s 收藏</string>
+    <string name="street_meta_episodes">%1$s 话</string>
 
     <!-- Comic Reader V3 -->
     <string name="comic_reader_back">返回</string>

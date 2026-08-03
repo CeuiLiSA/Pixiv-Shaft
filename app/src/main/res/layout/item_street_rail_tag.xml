@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  热门标签货架的一格：代表作缩略图 + `#标签` + 译名 + 作品数。
+  trendTags 与 thumbnails 在响应里是按下标一一对应的（9 个标签配 9 张代表作），
+  所以图和标签同格展示，不是随便配的图。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:orientation="vertical">
+
+        <!-- clickable 是 ripple 的前提，但它也会把点击吃在这一层、传不到 root，
+             所以点击监听必须同时挂在这个 box 和 root 上（见 bind）。 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/tag_box"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/v3_ripple_card14">
+
+            <ImageView
+                android:id="@+id/tag_image"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="@color/v3_surface_2"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="@drawable/v3_glass_surface"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tag_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/v3_badge_pages_bg"
+                android:includeFontPadding="false"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textColor="@android:color/white"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:text="13109" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/tag_name"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_ambient_primary"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="#桐藤ナギサ" />
+
+        <TextView
+            android:id="@+id/tag_translated"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_3"
+            android:textSize="10sp"
+            android:visibility="gone"
+            tools:text="Nagisa Kirifuji"
+            tools:visibility="visible" />
+    </LinearLayout>
+</layout>

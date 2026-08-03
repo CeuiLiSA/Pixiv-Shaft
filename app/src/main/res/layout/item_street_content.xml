@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Web 首页单卡（illust / manga / novel / collection）。V3 口径：18dp 圆角 + 1.5dp 高度的
+  v3_bg 卡、图底 v3_surface_2、标题 13sp bold v3_text_1、作者 11sp v3_text_3、
+  底部一行 allCaps 小字做元信息 —— 对齐 cell_history_illust_v3。
+-->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
@@ -8,88 +13,191 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="6dp"
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="@dimen/eight_dp"
-        app:cardElevation="0dp">
+        app:cardBackgroundColor="@color/v3_bg"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="1.5dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white_and_black">
+            android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/thumb_image"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter" />
+                android:layout_height="wrap_content">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="@dimen/six_dp">
+                <!-- 高度由 setHeightRatio 在 onMeasure 时按真实列宽算出（对齐 recy_illust_stagger）。
+                     这里曾经是 wrap_content + adjustViewBounds 的普通 ImageView：高度完全由解码后的
+                     位图决定，bind 那一刻是 0 —— StaggeredGridLayoutManager 先按「只有两行文字」的
+                     高度把卡片排进去，图回来再撑开重排；collection 缩略图（embed.pixiv.net）恒 400，
+                     那张卡就永远塌成两行字，标题还会顶到 badge 上。宽高比在 bind 时就能算出来
+                     （见 StreetMainFragment.resolveDisplay），不该等 Glide。 -->
+                <ceui.lisa.view.DynamicHeightImageView
+                    android:id="@+id/thumb_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/v3_surface_2"
+                    android:contentDescription="@null"
+                    android:scaleType="centerCrop" />
 
-                <TextView
-                    android:id="@+id/badge_type"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/tag_stroke"
-                    android:includeFontPadding="false"
-                    android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="@dimen/two_dp"
-                    android:paddingEnd="@dimen/four_dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/always_white"
-                    android:textSize="11sp"
-                    tools:text="illust" />
+                    android:layout_gravity="top|start"
+                    android:layout_margin="8dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/badge_r18"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/v3_novel_r18_badge_bg"
+                        android:includeFontPadding="false"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="2dp"
+                        android:text="@string/v3_novel_r18"
+                        android:textColor="@android:color/white"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/badge_ai"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/v3_novel_ai_badge_bg"
+                        android:includeFontPadding="false"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="2dp"
+                        android:text="@string/v3_detail_ai"
+                        android:textColor="@android:color/white"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <!-- 小说 isOriginal：响应里给了，原创/二创对读者是真信息 -->
+                    <TextView
+                        android:id="@+id/badge_original"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/v3_novel_original_badge_bg"
+                        android:includeFontPadding="false"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="2dp"
+                        android:text="@string/v3_novel_original"
+                        android:textColor="@android:color/white"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/badge_page"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/four_dp"
-                    android:background="@drawable/tag_stroke"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/v3_badge_pages_bg"
                     android:includeFontPadding="false"
-                    android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="@dimen/two_dp"
-                    android:paddingEnd="@dimen/four_dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/always_white"
-                    android:textSize="11sp"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
                     android:visibility="gone"
-                    tools:text="3P" />
-            </LinearLayout>
+                    tools:text="3P"
+                    tools:visibility="visible" />
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/thumb_image"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:paddingHorizontal="12dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="12dp">
 
                 <TextView
                     android:id="@+id/title_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="@color/rank_text_color"
+                    android:letterSpacing="-0.02"
+                    android:maxLines="2"
+                    android:textColor="@color/v3_text_1"
                     android:textSize="13sp"
+                    android:textStyle="bold"
                     tools:text="イラストのタイトル" />
 
                 <TextView
                     android:id="@+id/author_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="4dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="@color/secondary_text_color"
+                    android:textColor="@color/v3_text_3"
                     android:textSize="11sp"
                     tools:text="作者名" />
+
+                <!-- pickup：这条内容是被谁的哪句评论「捞」上首页的。响应里一直有，之前整块没用。
+                     引一条真人评价比任何推荐理由都直白，所以放在标题下面第一眼能看到的位置。 -->
+                <LinearLayout
+                    android:id="@+id/pickup_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_v3_chip"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="6dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/pickup_avatar"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="6dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/v3_widget_avatar_placeholder" />
+
+                    <TextView
+                        android:id="@+id/pickup_text"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="11sp"
+                        tools:text="太好看了" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/badge_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:ellipsize="end"
+                    android:letterSpacing="0.06"
+                    android:maxLines="1"
+                    android:textAllCaps="true"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    tools:text="ILLUST" />
             </LinearLayout>
-        </RelativeLayout>
+        </LinearLayout>
     </androidx.cardview.widget.CardView>
 </layout>

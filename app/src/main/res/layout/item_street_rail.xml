@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  通栏横向货架（carousel / tags_carousel 共用）。V3 口径同 section_v3_author_works：
+  标题行 allCaps + 0.12 字距 + v3_text_3，右侧「查看更多」用 v3_ambient_primary；
+  横向 RecyclerView 全出血 —— padding 挂在 RV 自身 + clipToPadding=false，静止时首尾卡停在
+  12dp 内容边距上与标题对齐，滑动中卡片能画进 padding 区贴满屏宽（padding 挂外层容器会被裁）。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="6dp"
+        android:paddingBottom="18dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="6dp">
+
+            <TextView
+                android:id="@+id/rail_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:letterSpacing="0.12"
+                android:maxLines="1"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="精选新作" />
+
+            <TextView
+                android:id="@+id/rail_see_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="12dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="4dp"
+                android:text="@string/see_more"
+                android:textColor="@color/v3_ambient_primary"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rail_rv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            android:paddingHorizontal="6dp" />
+    </LinearLayout>
+</layout>

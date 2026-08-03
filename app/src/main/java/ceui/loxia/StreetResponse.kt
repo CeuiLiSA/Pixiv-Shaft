@@ -21,6 +21,12 @@ data class StreetContent(
     val trendTags: List<StreetTrendTag>? = null,
     /** separator only */
     val id: String? = null,
+    /** carousel only：货架标题，如「精选新作」 */
+    val title: String? = null,
+    /** carousel only：站点相对路径，如 `/bookmark_new_illust.php` */
+    val seeAllUrl: String? = null,
+    /** carousel only：货架语义，如 `new_works` */
+    val listType: String? = null,
 ) : Serializable
 
 data class StreetThumbnail(
@@ -49,6 +55,8 @@ data class StreetThumbnail(
     val text: String? = null,
     val textCount: Int? = null,
     val wordCount: Int? = null,
+    /** true = 该语种按「字数」计（中日），false = 按「文字数」，跟网页端口径一致 */
+    val useWordCount: Boolean? = null,
     val bookmarkCount: Int? = null,
     val isOriginal: Boolean? = null,
     /** collection */
