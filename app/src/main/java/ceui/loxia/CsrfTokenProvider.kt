@@ -28,6 +28,9 @@ object CsrfTokenProvider {
         store.encode(KEY_CSRF, token)
     }
 
+    /** 缓存优先，没有就现抓。[fetch] 是阻塞 I/O，**必须在后台线程调用**。 */
+    fun getOrFetch(): String? = get() ?: fetch()
+
     /**
      * Fetch a fresh token from the Pixiv homepage. Call from a background thread.
      */
@@ -43,7 +46,7 @@ object CsrfTokenProvider {
 
     fun fetch(): String? {
         return try {
-            val cookies = store.decodeString(SessionManager.COOKIE_KEY, "") ?: ""
+            val cookies = SessionManager.normalizeWebCookie(store.decodeString(SessionManager.COOKIE_KEY, ""))
             Timber.d("CsrfToken: cookie length=${cookies.length}, empty=${cookies.isEmpty()}")
             if (cookies.isEmpty()) {
                 Timber.w("CsrfToken: no web cookie stored, cannot fetch token")
@@ -80,7 +83,11 @@ object CsrfTokenProvider {
     }
 
     private fun parseToken(html: String): String? {
-        val tokenRegex = Regex(""""token"\s*:\s*"([a-f0-9]{32})"""")
+        // 引号写成可选转义：pixiv 改版到 Next.js 后 token 埋在 __NEXT_DATA__ 的**嵌套 JSON
+        // 字符串**里，原文是 \"token\":\"<32hex>\"。按裸引号匹配三条 pattern 会一起落空，
+        // 这条 OkHttp 兜底链路(拉黑用的就是它)于是恒返 null。与 StreetMainFragment 的
+        // EXTRACT_TOKEN_JS 用同一形态。
+        val tokenRegex = Regex("""token\\?"\s*:\s*\\?"([a-f0-9]{32})""")
 
         // Pattern 1: legacy <meta id="meta-global-data" content='...'>
         val metaRegex = Regex("""id="meta-global-data"\s+content='([^']+)'""")

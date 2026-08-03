@@ -70,6 +70,8 @@ public final class DrawerIconCatalog {
             return R.drawable.ic_baseline_dns_24;
         } else if (actionId == R.id.nav_tag_popular_export) {
             return R.drawable.ic_v3_export_24;
+        } else if (actionId == R.id.nav_web_home) {
+            return R.drawable.ic_setcat_globe;
         } else if (actionId == R.id.nav_prime_tags || actionId == R.id.nav_current_hot) {
             return R.drawable.outline_whatshot_24;
         } else if (actionId == R.id.nav_new_work) {

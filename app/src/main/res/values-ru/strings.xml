@@ -1458,6 +1458,7 @@
     <string name="street_web_login_confirm">Войти</string>
     <string name="street_web_login_toolbar">Вход в веб-версию Pixiv</string>
     <string name="street_web_login_success">Вход выполнен</string>
+    <string name="street_csrf_failed">Не удалось получить учётные данные веб-сессии. Войдите ещё раз.</string>
     <string name="street_title">Веб-главная</string>
     <string name="comic_reader_back">Назад</string>
     <string name="comic_reader_more">Ещё</string>

@@ -1460,6 +1460,7 @@
     <string name="street_web_login_confirm">去登入</string>
     <string name="street_web_login_toolbar">登入 Pixiv 網頁版</string>
     <string name="street_web_login_success">登入成功</string>
+    <string name="street_csrf_failed">未能取得網頁工作階段憑證，請重新登入一次。</string>
     <string name="street_title">Web 首頁</string>
     <string name="comic_reader_back">返回</string>
     <string name="comic_reader_more">更多</string>

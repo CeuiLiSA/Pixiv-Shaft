@@ -43,23 +43,39 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.UUID
 
+/**
+ * 从页面里抠 CSRF token。
+ *
+ * 引号必须写成可选转义（`token\"` / `token"`）：pixiv 现在把 token 埋在 `__NEXT_DATA__` 的
+ * **嵌套 JSON 字符串**里，textContent 拿到的原文是 `\"token\":\"<32hex>\"`——按裸引号
+ * (`"token":"…"`) 匹配一个都对不上，三条策略会一起落空、回 null。
+ * `window.pixiv.context` / `globalInitData` 是 Next.js 改版前的老全局量，现已不存在；
+ * `meta-global-data` 同理。留着不碍事，真正命中的是 `__NEXT_DATA__` 那条。
+ */
 private const val EXTRACT_TOKEN_JS = """
 (function() {
+    var RE = /token\\?"\s*:\s*\\?"([a-f0-9]{32})/;
     var meta = document.getElementById('meta-global-data');
     if (meta) {
         var c = meta.getAttribute('content');
-        var m = c && c.match(/"token"\s*:\s*"([a-f0-9]{32})"/);
+        var m = c && c.match(RE);
         if (m) return m[1];
     }
     var nd = document.getElementById('__NEXT_DATA__');
     if (nd) {
-        var m2 = nd.textContent.match(/"token"\s*:\s*"([a-f0-9]{32})"/);
+        var m2 = nd.textContent.match(RE);
         if (m2) return m2[1];
     }
-    var m3 = document.documentElement.innerHTML.match(/"token"\s*:\s*"([a-f0-9]{32})"/);
+    var m3 = document.documentElement.innerHTML.match(RE);
     return m3 ? m3[1] : null;
 })()
 """
+
+private val CSRF_TOKEN_FORMAT = Regex("[a-f0-9]{32}")
+
+/** 首屏偶尔要等一拍才把 __NEXT_DATA__ 挂上，Cloudflare 挑战页也会白占一次 onPageFinished。 */
+private const val CSRF_MAX_ATTEMPTS = 3
+private const val CSRF_RETRY_DELAY_MS = 1000L
 
 class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
 
@@ -108,9 +124,63 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
 
     private var loginWebView: WebView? = null
 
+    /**
+     * 在 [view] 上取 CSRF token；取不到就隔 [CSRF_RETRY_DELAY_MS] 再试，最多 [CSRF_MAX_ATTEMPTS] 次，
+     * 仍失败则退到 [CsrfTokenProvider.fetch]（OkHttp 直抓首页，跟 WebView 是两条独立链路）。
+     * 全部落空才回调 null。
+     *
+     * 单次 evaluateJavascript 即判死过于脆弱：抓不到时既没有重试，调用方又照样弹「登录成功」，
+     * 紧接着列表刷新再弹一条「CSRF token 未就绪」——用户看到的就是"登录成功了还报错"。
+     */
+    private fun extractCsrfToken(view: WebView, attempt: Int = 1, onResult: (String?) -> Unit) {
+        view.evaluateJavascript(EXTRACT_TOKEN_JS) { result ->
+            val token = result?.trim('"')?.takeIf { CSRF_TOKEN_FORMAT.matches(it) }
+            Timber.d("StreetMain: csrf attempt $attempt token=${token?.take(8)}")
+            when {
+                token != null -> {
+                    CsrfTokenProvider.set(token)
+                    onResult(token)
+                }
+                attempt < CSRF_MAX_ATTEMPTS -> view.postDelayed({
+                    // WebView 可能已被 cleanupWebView 销毁，销毁后再 evaluate 会崩。
+                    if (loginWebView === view) extractCsrfToken(view, attempt + 1, onResult)
+                }, CSRF_RETRY_DELAY_MS)
+                // 绑 viewLifecycleOwner:页面被销毁时协程一起取消,onResult 不会在
+                // baseBind 已失效之后再回来碰 UI。
+                else -> viewLifecycleOwner.lifecycleScope.launch {
+                    val fallback = withContext(Dispatchers.IO) { CsrfTokenProvider.fetch() }
+                    Timber.d("StreetMain: csrf okhttp fallback token=${fallback?.take(8)}")
+                    onResult(fallback)
+                }
+            }
+        }
+    }
+
+    /**
+     * cookie 有了但 CSRF token 拿不到。这一页没 token 就发不出请求，放任下拉刷新只会把
+     * 「CSRF token 未就绪」反复弹一遍。给一条明确提示 + 重新登录的入口，别让用户空转。
+     */
+    private fun onCsrfUnavailable() {
+        baseBind.refreshLayout.isEnabled = false
+        Toaster.showShort(getString(R.string.street_csrf_failed))
+        showWebLoginDialog()
+    }
+
+    /**
+     * 网页会话已失效（pixiv 把首页重定向回了登录页）。留着那份 cookie 只会让下次进来
+     * 继续走"静默取 token"然后继续失败，直接清掉、重新登录。
+     */
+    private fun onWebSessionExpired() {
+        Timber.d("StreetMain: web session expired, clearing cookie")
+        MMKV.defaultMMKV().removeValueForKey(SessionManager.COOKIE_KEY)
+        CsrfTokenProvider.clear()
+        showWebLoginDialog()
+    }
+
     override fun lazyData() {
         val cookies = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "")
-        if (cookies.isNullOrEmpty() || !cookies.contains("PHPSESSID")) {
+        if (!SessionManager.isLoggedInWebCookie(cookies)) {
+            // 含匿名 PHPSESSID 的旧存量也走这里重新登录,不然会卡在「拿不到 CSRF token」。
             showWebLoginDialog()
         } else if (CsrfTokenProvider.get() == null) {
             // 有 cookie 但没 CSRF token，用 WebView 静默提取
@@ -151,25 +221,29 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                // 会话失效时 pixiv 把首页重定向回登录页 —— 再等 token 是等不到的。原来这里
+                // 直接 return，WebView 就一直挂着不清理，用户对着一个永远空白的列表没有提示。
+                if (url?.contains("accounts.pixiv.net") == true) {
+                    cleanupWebView()
+                    onWebSessionExpired()
+                    return
+                }
                 if (url?.contains("www.pixiv.net") != true) return
-                view?.evaluateJavascript(EXTRACT_TOKEN_JS) { result ->
-                    val token = result?.trim('"')?.takeIf { it.matches(Regex("[a-f0-9]{32}")) }
-                    Timber.d("StreetMain: evaluateJavascript token=${token?.take(8)}")
-                    if (token != null) {
-                        MMKV.defaultMMKV().encode("web-api-csrf-token", token)
-                    }
+                val webView = view ?: return
+                extractCsrfToken(webView) { token ->
                     // 顺便更新 cookie（WebView 可能刷新了 cf_clearance 等）
                     CookieManager.getInstance().getCookie("https://www.pixiv.net")?.let { freshCookie ->
-                        if (freshCookie.contains("PHPSESSID")) {
-                            MMKV.defaultMMKV().putString(SessionManager.COOKIE_KEY, freshCookie)
+                        // 只在仍是登录态时回写:会话过期后 WebView 拿到的是匿名 PHPSESSID,
+                        // 覆盖上去等于把已登录的那份悄悄降级成匿名。
+                        if (SessionManager.isLoggedInWebCookie(freshCookie)) {
+                            MMKV.defaultMMKV().putString(
+                                SessionManager.COOKIE_KEY,
+                                SessionManager.normalizeWebCookie(freshCookie),
+                            )
                         }
                     }
                     cleanupWebView()
-                    if (CsrfTokenProvider.get() != null) {
-                        viewModel.refresh()
-                    } else {
-                        Toaster.showShort("无法获取 CSRF token，请重试")
-                    }
+                    if (token != null) viewModel.refresh() else onCsrfUnavailable()
                 }
             }
         }
@@ -195,6 +269,9 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
     }
 
     private fun startWebLogin() {
+        // 复位:登录可能被重来一次(取不到 token 后又走了一遍引导)。不清掉的话第二轮的
+        // onPageFinished 会直接跳过 checkAndSaveCookie,新 cookie 永远存不下来。
+        cookieSaved = false
         baseBind.toolbarTitle.text = getString(R.string.street_web_login_toolbar)
         baseBind.recyclerView.visibility = View.GONE
         // 登录 WebView 盖满 listContainer 期间必须关掉下拉刷新:此时 scrollUpFrom 的唯一候选
@@ -228,15 +305,18 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                     checkAndSaveCookie()
                 } else if (url?.contains("www.pixiv.net") == true) {
                     // 登录完成后 WebView 加载了首页，用 JS 提取 CSRF token
-                    view?.evaluateJavascript(EXTRACT_TOKEN_JS) { result ->
-                        val token = result?.trim('"')?.takeIf { it.matches(Regex("[a-f0-9]{32}")) }
-                        Timber.d("StreetMain: login evaluateJavascript token=${token?.take(8)}")
-                        if (token != null) {
-                            MMKV.defaultMMKV().encode("web-api-csrf-token", token)
-                        }
+                    val webView = view ?: return
+                    extractCsrfToken(webView) { token ->
                         cleanupWebView()
-                        Toaster.showShort(getString(R.string.street_web_login_success))
-                        viewModel.refresh()
+                        if (token != null) {
+                            Toaster.showShort(getString(R.string.street_web_login_success))
+                            viewModel.refresh()
+                        } else {
+                            // 这里曾经无条件报「登录成功」，紧接着 refresh() 再弹一条
+                            // 「CSRF token 未就绪」——两条自相矛盾的 toast 一起糊在用户脸上，
+                            // 而 WebView 已销毁，除了退出重进没有任何重试手段。
+                            onCsrfUnavailable()
+                        }
                     }
                 }
             }
@@ -257,11 +337,15 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
     private fun checkAndSaveCookie() {
         if (cookieSaved) return
         val cookie = CookieManager.getInstance().getCookie("https://www.pixiv.net") ?: return
-        if (!cookie.contains("PHPSESSID")) return
+        // 必须是「已登录」的 PHPSESSID(<uid>_<hash>)。这里曾经只判 contains("PHPSESSID"),
+        // 而登录页一加载 pixiv 就先发匿名 PHPSESSID —— 于是 onPageFinished 第一帧就判成功、
+        // 跳走首页、cleanupWebView 把登录框拆掉,用户压根没机会输账号密码;存下的匿名 cookie
+        // 还让 hasWebCookie 恒真,连「去登录」的引导都被关掉。见 SessionManager.isLoggedInWebCookie。
+        if (!SessionManager.isLoggedInWebCookie(cookie)) return
 
         cookieSaved = true
         Timber.d("StreetMain: PHPSESSID found, saving cookie")
-        MMKV.defaultMMKV().putString(SessionManager.COOKIE_KEY, cookie)
+        MMKV.defaultMMKV().putString(SessionManager.COOKIE_KEY, SessionManager.normalizeWebCookie(cookie))
         CsrfTokenProvider.clear()
 
         // Cookie 拿到了，接下来用 WebView 加载 pixiv.net 首页来提取 CSRF token

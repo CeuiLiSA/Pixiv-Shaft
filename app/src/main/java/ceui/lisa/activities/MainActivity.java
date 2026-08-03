@@ -451,6 +451,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
                 new DrawerEntry(R.id.nav_saf_perf_test, R.string.saf_perf_test_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_network_test, R.string.nav_network_test_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_tag_popular_export, R.string.tag_popular_export_entry, isDebugBuild),
+                // 中心页那个「Web 首页」chip 至今是 showComingSoon() 占位,StreetMainFragment
+                // 一直没有可用入口。而网页登录(同步 PHPSESSID)只能从这个页面走,拉黑、按 tag
+                // 筛画师作品都指着它 —— 没入口等于那些功能对普通用户是死的。渠道划分对齐
+                // FragmentCenter 的同名 chip:Lite 不出现。
+                new DrawerEntry(R.id.nav_web_home, R.string.street_title, experimentalAllowed),
         });
     }
 
@@ -595,6 +600,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         } else if (id == R.id.nav_tag_popular_export) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签热度导出");
+        } else if (id == R.id.nav_web_home) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页");
         } else if (id == R.id.nav_chat_room) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天室");

@@ -13,6 +13,7 @@ import ceui.loxia.StreetResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 
 class StreetMainViewModel : ViewModel() {
 
@@ -92,11 +93,23 @@ class StreetMainViewModel : ViewModel() {
     }
 
     private suspend fun callApi(request: StreetRequest, retried: Boolean): StreetResponse {
-        val csrf = CsrfTokenProvider.get()
+        // 缓存里没有就现抓一次,别直接判死 —— 「CSRF token 未就绪」对用户来说没有任何可操作性。
+        val csrf = withContext(Dispatchers.IO) { CsrfTokenProvider.getOrFetch() }
             ?: throw RuntimeException("CSRF token 未就绪，请重试")
 
-        val response = withContext(Dispatchers.IO) {
-            Client.webApi.getStreetMain(csrf, request)
+        val response = try {
+            withContext(Dispatchers.IO) {
+                Client.webApi.getStreetMain(csrf, request)
+            }
+        } catch (ex: HttpException) {
+            // token 会在 cookie 没变的情况下自行轮换,过期后服务端直接回 400/403。Retrofit
+            // 把它抛成 HttpException,压根走不到下面 error==true 那条重试分支 —— 于是坏 token
+            // 一直缓存着,用户每次刷新都吃同一句「HTTP 400」,登录得再对也好不了。
+            if (!retried && (ex.code() == 400 || ex.code() == 403)) {
+                CsrfTokenProvider.clear()
+                return callApi(request, retried = true)
+            }
+            throw ex
         }
 
         if (response.error == true && !retried) {

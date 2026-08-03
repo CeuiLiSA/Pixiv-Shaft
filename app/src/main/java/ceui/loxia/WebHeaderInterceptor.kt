@@ -27,7 +27,9 @@ class WebHeaderInterceptor : Interceptor {
     }
 
     private fun addHeader(before: Request.Builder): Request.Builder {
-        val cookies = prefStore.getString(SessionManager.COOKIE_KEY, "") ?: ""
+        // 去重后再发：存量里可能是「匿名 PHPSESSID 在前、登录态在后」的重复串，原样发出去
+        // 服务端只认前一条，等于白登录。见 SessionManager.normalizeWebCookie。
+        val cookies = SessionManager.normalizeWebCookie(prefStore.getString(SessionManager.COOKIE_KEY, ""))
 //        val end = cookies.substring(1, cookies.length - 1)
 //        val end2 = end.replace("first_visit_datetime", "first_visit_datetime_pc")
         Common.showLog("dsaadsdsaaww2 get ${cookies}")

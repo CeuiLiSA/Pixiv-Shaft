@@ -1458,6 +1458,7 @@
     <string name="street_web_login_confirm">Giriş Yap</string>
     <string name="street_web_login_toolbar">Pixiv Web\'e giriş yap</string>
     <string name="street_web_login_success">Giriş başarılı</string>
+    <string name="street_csrf_failed">Web oturum kimlik bilgisi alınamadı. Lütfen tekrar giriş yapın.</string>
     <string name="street_title">Web Ana Sayfa</string>
     <string name="comic_reader_back">Geri</string>
     <string name="comic_reader_more">Daha fazla</string>

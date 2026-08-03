@@ -1458,6 +1458,7 @@
     <string name="street_web_login_confirm">로그인</string>
     <string name="street_web_login_toolbar">Pixiv 웹에 로그인</string>
     <string name="street_web_login_success">로그인 성공</string>
+    <string name="street_csrf_failed">웹 세션 자격 증명을 가져오지 못했습니다. 다시 로그인해 주세요.</string>
     <string name="street_title">웹 홈</string>
     <string name="comic_reader_back">뒤로</string>
     <string name="comic_reader_more">더보기</string>

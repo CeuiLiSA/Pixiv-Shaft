@@ -111,11 +111,12 @@ class WebFragment : Fragment(R.layout.fragment_web) {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 if (args.saveCookies) {
-                    // 始终从 www.pixiv.net 域取 cookie，确保拿到 PHPSESSID
+                    // 始终从 www.pixiv.net 域取 cookie，确保拿到 PHPSESSID。只认已登录的那种
+                    // （<uid>_<hash>）——匿名 PHPSESSID 存下去会把 hasWebCookie 骗成真。
                     val cookie = CookieManager.getInstance().getCookie("https://www.pixiv.net")
-                    if (!cookie.isNullOrEmpty() && cookie.contains("PHPSESSID")) {
+                    if (SessionManager.isLoggedInWebCookie(cookie)) {
                         Common.showLog("dsaadsdsaaww2 set $cookie")
-                        prefStore.putString(SessionManager.COOKIE_KEY, cookie)
+                        prefStore.putString(SessionManager.COOKIE_KEY, SessionManager.normalizeWebCookie(cookie))
                     }
                     // 在 pixiv 页面提取 CSRF token
                     if (url?.contains("www.pixiv.net") == true && view != null) {

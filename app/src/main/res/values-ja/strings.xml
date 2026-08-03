@@ -1458,6 +1458,7 @@
     <string name="street_web_login_confirm">ログインする</string>
     <string name="street_web_login_toolbar">pixiv Webにログイン</string>
     <string name="street_web_login_success">ログイン成功</string>
+    <string name="street_csrf_failed">ウェブセッションの認証情報を取得できませんでした。もう一度ログインしてください。</string>
     <string name="street_title">Web ホーム</string>
     <string name="comic_reader_back">戻る</string>
     <string name="comic_reader_more">その他</string>

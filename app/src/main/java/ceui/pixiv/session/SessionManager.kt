@@ -56,7 +56,55 @@ object SessionManager {
      * （拉黑、按 tag 筛画师作品…）要先判这一条。
      */
     val hasWebCookie: Boolean
-        get() = prefStore.getString(COOKIE_KEY, "")?.contains("PHPSESSID") == true
+        get() = isLoggedInWebCookie(prefStore.getString(COOKIE_KEY, ""))
+
+    /**
+     * 这份 cookie 是不是**已登录**的网页会话。
+     *
+     * 判据不能是「含 PHPSESSID」：pixiv 在登录页刚打开、用户还没输账号密码时就会先发一个
+     * **匿名** PHPSESSID（纯 32 位 hex）。按含即算数的话，登录 WebView 会在 onPageFinished
+     * 的第一帧就判成功并被拆掉，用户根本来不及登录；而存下来的匿名 cookie 又让
+     * [hasWebCookie] 恒真，反过来把「去网页登录一次」的引导也一并关掉。
+     *
+     * 登录态的 PHPSESSID 形如 `<uid>_<hash>`，以数字前缀为准。
+     */
+    fun isLoggedInWebCookie(cookie: String?): Boolean =
+        cookie != null && LOGGED_IN_PHPSESSID.containsMatchIn(cookie)
+
+    private val LOGGED_IN_PHPSESSID = Regex("""PHPSESSID=\d+_""")
+    private val LOGGED_IN_SESSION_VALUE = Regex("""\d+_.+""")
+
+    /**
+     * 按名字去重 [CookieManager.getCookie] 拼出来的 cookie 串。
+     *
+     * 它会把 `.pixiv.net` 和 `www.pixiv.net` 两个域下的同名 cookie 一并吐出来，登录前后
+     * 各写过一次 PHPSESSID 时就并排出现两条：
+     * `…; PHPSESSID=<匿名hash>; …; PHPSESSID=<uid>_<hash>; …`。
+     * 服务端只认先出现的那条，于是「明明带着登录 cookie，却仍被当匿名」——画师按 tag 筛选
+     * 恒 0 件就是这么来的。
+     *
+     * 同名取最后一条（新值覆盖旧值）；PHPSESSID 额外保护：已经收下登录态的那条后，
+     * 不再被后面的匿名值盖回去。
+     */
+    fun normalizeWebCookie(raw: String?): String {
+        if (raw.isNullOrBlank()) return ""
+        val byName = LinkedHashMap<String, String>()
+        for (part in raw.split(';')) {
+            val pair = part.trim()
+            val eq = pair.indexOf('=')
+            if (eq <= 0) continue
+            val name = pair.substring(0, eq)
+            val value = pair.substring(eq + 1)
+            if (name == "PHPSESSID" &&
+                byName[name]?.let { LOGGED_IN_SESSION_VALUE.matches(it) } == true &&
+                !LOGGED_IN_SESSION_VALUE.matches(value)
+            ) {
+                continue
+            }
+            byName[name] = value
+        }
+        return byName.entries.joinToString("; ") { "${it.key}=${it.value}" }
+    }
 
     val loggedInUid: Long
         get() {
