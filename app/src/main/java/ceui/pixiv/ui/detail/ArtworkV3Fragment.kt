@@ -278,12 +278,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     position: Int,
                 ) {
                     super.onBindViewHolder(holder, position)
-                    // 多 P(非折叠,即 2P):点图进漫画阅读器(对齐 legacy 匿名子类)。
+                    // 多 P 漫画(非折叠,即 2P):点图进漫画阅读器。必须同时判类型——只看
+                    // page_count 会把 2P 插画也送进漫画阅读器(#961);3P+ 那条折叠分支的漫画入口
+                    // 也是 type == "manga" 才出胶囊(见 CollapsibleIllustAdapter),两边保持一致。
                     // 必须挂在 itemView 而不是 illust 上:super 把「长按下载」挂的是 itemView,
                     // 而一个 clickable 却不 longClickable 的子 View 会把触摸整条吃掉——长按既到不了
                     // itemView 的 longClick,抬手时又照常 performClick,表现成「长按变成打开大图」(#957)。
                     // 同挂 itemView 后长按优先:performLongClick 返回 true 即抑制这次 click。
-                    if (illust.page_count > 1) {
+                    if ("manga" == illust.type && illust.page_count > 1) {
                         holder.itemView.setOnClickListener { openComicReader() }
                     }
                 }
