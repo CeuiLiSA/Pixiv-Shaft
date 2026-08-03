@@ -90,6 +90,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var recyHeight = 0
     private lateinit var aiHelper: IllustAiHelper
 
+    // ObjectPool 的每一次发射都会重跑一遍 updateIllust(收藏回流是最常见的一次),下面这组状态用来
+    // 让「重建图片区」「重建标签区」「挂 sheet callback」「发头像 Glide 请求」这几件带视觉副作用的
+    // 事只在真需要时做——否则收藏一下整页就闪一次(#962)。跟着 view 走,onDestroyView 里清掉。
+    private var renderedImageSignature: String? = null
+    private var renderedTagSignature: String? = null
+    private var bottomSheetCallbackAttached = false
+    private var sheetDeltaY = 0
+    private var loadedAvatarUrl: String? = null
+
     public override fun initLayout() {
         mLayoutID = R.layout.fragment_illust
     }
@@ -374,19 +383,27 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun setupTags(illust: IllustsBean) {
-        // 同义词词典「标签匹配关系」框（issue #904）
-        baseBind.synonymMatch.setWorkTags(illust.tags)
-        baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(illust.tags) {
-            override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
-                val tv = LayoutInflater.from(mContext).inflate(
-                    R.layout.recy_single_line_text_new, parent, false
-                ) as TextView
-                var tag = s.name
-                if (!TextUtils.isEmpty(s.translated_name)) {
-                    tag = tag + "/" + s.translated_name
+        // 标签区重建 = 整片 chip 全部拆掉重新 inflate,肉眼就是一次闪烁。池发射(收藏回流等)带不来
+        // 新标签,所以只在标签本身真的变了才重建;点击/长按监听照常重挂,始终闭包到最新的 bean(#962)。
+        val tagSignature = illust.tags.orEmpty().joinToString("|") {
+            "${it.name.orEmpty()}/${it.translated_name.orEmpty()}"
+        }
+        if (tagSignature != renderedTagSignature) {
+            renderedTagSignature = tagSignature
+            // 同义词词典「标签匹配关系」框（issue #904）
+            baseBind.synonymMatch.setWorkTags(illust.tags)
+            baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(illust.tags) {
+                override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
+                    val tv = LayoutInflater.from(mContext).inflate(
+                        R.layout.recy_single_line_text_new, parent, false
+                    ) as TextView
+                    var tag = s.name
+                    if (!TextUtils.isEmpty(s.translated_name)) {
+                        tag = tag + "/" + s.translated_name
+                    }
+                    tv.text = tag
+                    return tv
                 }
-                tv.text = tag
-                return tv
             }
         }
         baseBind.illustTag.setOnTagClickListener { view, position, parent ->
@@ -440,6 +457,23 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.userId.setOnClick { Common.copy(mContext, illust.user.id.toString()) }
     }
 
+    /**
+     * 图片区（RecyclerView + adapter）真正依赖的数据指纹。指纹没变就不重建 adapter（#962）。
+     * 覆盖面对齐 [IllustAdapter] / [UgoiraPlayerAdapter] 实际读的字段：
+     * 用哪个 adapter([isGif])、几页([page_count])、pos0 定高([width]/[height])、各页图 url。
+     * 精简 bean → detail 全量覆盖（#569：池里 bean 缺分页图/原图）这一步 url 会从无到有，
+     * 指纹必变，图片区照样重建；而收藏回流那种「只动 is_bookmarked / total_bookmarks」的
+     * 池发射指纹不变，不再触发重建。
+     */
+    private fun imageAreaSignature(illust: IllustsBean): String {
+        val urls = if (illust.page_count <= 1) {
+            illust.meta_single_page?.original_image_url.orEmpty()
+        } else {
+            illust.meta_pages?.joinToString("|") { it.image_urls?.original.orEmpty() }.orEmpty()
+        }
+        return "${illust.isGif()}|${illust.page_count}|${illust.width}x${illust.height}|$urls"
+    }
+
     private fun setupBottomSheet(illust: IllustsBean) {
         val sheetBehavior: BottomSheetBehavior<*> = BottomSheetBehavior.from(baseBind.coreLinear)
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
@@ -456,30 +490,41 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 params.height = slideMaxHeight
                 baseBind.coreLinear.layoutParams = params
                 val bottomCardHeight = baseBind.bottomBar.height
-                val deltaY = slideMaxHeight - baseBind.bottomBar.height
+                sheetDeltaY = slideMaxHeight - baseBind.bottomBar.height
                 sheetBehavior.setPeekHeight(bottomCardHeight, true)
 
                 val headParams = baseBind.helperView.layoutParams
                 headParams.height = bottomCardHeight - DensityUtil.dp2px(16.0f)
                 baseBind.helperView.layoutParams = headParams
-                sheetBehavior.addBottomSheetCallback(object : BottomSheetCallback() {
-                    override fun onStateChanged(bottomSheet: View, newState: Int) {}
-                    override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                        baseBind.refreshLayout.translationY = -deltaY * slideOffset * 0.7f
-                    }
-                })
-                baseBind.recyclerView.layoutManager = LinearLayoutManager(mContext)
+                // 每次发射都重挂一个 callback 会让它无限累积(同一次 onSlide 被回调 N 次),挂一次就够。
+                // deltaY 走字段而不是闭包:sheet 会随内容(简介补拉到货)重新量高,回调必须用最新的那份。
+                if (!bottomSheetCallbackAttached) {
+                    bottomSheetCallbackAttached = true
+                    sheetBehavior.addBottomSheetCallback(object : BottomSheetCallback() {
+                        override fun onStateChanged(bottomSheet: View, newState: Int) {}
+                        override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                            baseBind.refreshLayout.translationY = -sheetDeltaY * slideOffset * 0.7f
+                        }
+                    })
+                }
                 recyHeight = baseBind.recyclerView.height
-                if (illust.isGif()) {
-                    // ugoira 内联播放:以前 VActivity 把动图甩去独立的 FragmentSingleUgora,
-                    // 现在留在本页,用解耦的 UgoiraPlayerAdapter 进页即自动加载+播放。
-                    val maxHeight = resources.displayMetrics.heightPixels * 3 / 4
-                    baseBind.recyclerView.adapter =
-                        UgoiraPlayerAdapter(illust, viewLifecycleOwner, maxHeight)
-                } else {
-                    val adapter = IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
-                    baseBind.recyclerView.adapter = adapter
-                    vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+                // 上面的高度测算每次都要跑(简介补拉到货后 sheet 要重新长高),但图片区不能跟着重建:
+                // 换 layoutManager + new adapter = 所有大图从零重新加载,这就是收藏一下整页闪一次的原因(#962)。
+                val signature = imageAreaSignature(illust)
+                if (signature != renderedImageSignature) {
+                    renderedImageSignature = signature
+                    baseBind.recyclerView.layoutManager = LinearLayoutManager(mContext)
+                    if (illust.isGif()) {
+                        // ugoira 内联播放:以前 VActivity 把动图甩去独立的 FragmentSingleUgora,
+                        // 现在留在本页,用解耦的 UgoiraPlayerAdapter 进页即自动加载+播放。
+                        val maxHeight = resources.displayMetrics.heightPixels * 3 / 4
+                        baseBind.recyclerView.adapter =
+                            UgoiraPlayerAdapter(illust, viewLifecycleOwner, maxHeight)
+                    } else {
+                        val adapter = IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
+                        baseBind.recyclerView.adapter = adapter
+                        vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+                    }
                 }
                 baseBind.coreLinear.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
@@ -584,8 +629,13 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun loadUserAvatar(illust: IllustsBean) {
+        val url = illust.user?.profile_image_urls?.medium
+        // Glide 的 into() 会先清空 target 再起新请求,即使命中内存缓存也会空一帧。池每发射一次就
+        // 重发一次 → 收藏一下头像闪一下(#962)。url 没变、图还在,就什么都不用做。
+        if (url == loadedAvatarUrl && baseBind.userHead.drawable != null) return
+        loadedAvatarUrl = url
         Glide.with(mContext)
-            .load(GlideUtil.getUrl(illust.user?.profile_image_urls?.medium))
+            .load(GlideUtil.getUrl(url))
             .error(R.drawable.no_profile)
             .into(baseBind.userHead)
     }
@@ -649,6 +699,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        renderedImageSignature = null
+        renderedTagSignature = null
+        bottomSheetCallbackAttached = false
+        sheetDeltaY = 0
+        loadedAvatarUrl = null
         super.onDestroyView()
     }
 
