@@ -34,6 +34,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
+import ceui.lisa.adapters.AbstractIllustAdapter
 import ceui.lisa.adapters.IllustAdapter
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
@@ -525,6 +526,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                         baseBind.recyclerView.adapter = adapter
                         vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
                     }
+                } else {
+                    // 不重建,但 bean 实例可能已被池的 merge 换成新的一份(收藏态就在里面)。
+                    // 只顶掉引用、不动视图,免得 adapter 的长按下载和跳二级详情读到过期的收藏态。
+                    (baseBind.recyclerView.adapter as? AbstractIllustAdapter<*>)?.rebindIllust(illust)
                 }
                 baseBind.coreLinear.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
