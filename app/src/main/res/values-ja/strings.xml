@@ -2264,5 +2264,5 @@
     <string name="pixiv_block_checking">ブロック状態を確認中…</string>
     <string name="pixiv_block_submitting">送信中…</string>
     <string name="pixiv_block_need_web_login">ブロックは Pixiv ウェブ版の機能です。先にウェブ版へ一度ログインしてセッションを同期してください。</string>
-    <string name="user_tag_filter_empty_need_web_login">該当する作品がありません。\nタグ絞り込みは pixiv のウェブ API を使うため、ウェブセッション未同期だと全年齢作品しか取得できません。Web ホームから一度ログインしてお試しください。</string>
+    <string name="user_tag_filter_empty_need_web_login">該当する作品がありません。\nタグ絞り込みは pixiv のウェブ API を経由しており、アプリとは表示範囲が異なります（ウェブセッション未同期だと R-18・センシティブ作品は見えません）。作品があるはずの場合は Web ホームから一度ログインしてお試しください。</string>
 </resources>

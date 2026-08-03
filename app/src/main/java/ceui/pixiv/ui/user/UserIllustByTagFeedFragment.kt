@@ -61,10 +61,14 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
     override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
 
     /**
-     * issue #956: 筛选条上的 tag 是从 app-api（已登录，看得到 R-18/敏感作品）的首屏作品聚合出来的，
-     * 而筛选本身走 www.pixiv.net 的 ajax —— 没同步过网页 cookie 时那是**匿名**身份，只返回全年龄
-     * 作品。于是「主页明明有这个 tag，点进来一件都没有」。默认那句「居然啥也没有」在这里等于没说，
-     * 空态直接告诉他去哪补这一次网页登录。
+     * 这一页有个结构性错位：筛选条上的 tag 是 [ceui.lisa.activities.UserV3IllustTabFragment]
+     * 从 **app-api**（已登录视角）首屏作品本地聚合出来的，而筛选本身走 **www.pixiv.net 的 ajax**。
+     * 两边可见范围不一定重合 —— 没同步过网页 cookie 时后者是匿名身份，看不到 R-18 / 敏感作品
+     * （实测匿名 `search?mode=r18` 只返 xRestrict:0）。所以「chip 明明在，点进去 0 件」是可能的。
+     *
+     * ⚠️ 这是**推测出的可能成因，不是 issue #956 的实证结论**：#956 报的画师(86104346)全部作品都是
+     * 全年龄，chip 栏 Top-20 逐个打接口全部有结果，那边的空结果至今没复现。所以文案只给线索、
+     * 不下断言 —— 真只是这个 tag 没作品时，也不能把人往网页登录上带偏。
      */
     override val emptyStateText: CharSequence
         get() = if (SessionManager.hasWebCookie) {
