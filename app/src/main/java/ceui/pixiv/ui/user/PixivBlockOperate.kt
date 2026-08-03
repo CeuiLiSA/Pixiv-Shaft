@@ -17,7 +17,6 @@ import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
-import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,11 +52,6 @@ object PixivBlockOperate {
         runCatching { if (isShowing) dismiss() }
     }
 
-    private fun hasWebCookie(): Boolean {
-        val cookie = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "")
-        return cookie?.contains("PHPSESSID") == true
-    }
-
     /**
      * 画师页「更多」菜单里的入口：先读当前拉黑态,再按状态弹确认框。
      *
@@ -66,7 +60,7 @@ object PixivBlockOperate {
      */
     fun showBlockDialog(activity: AppCompatActivity, userId: Long, userName: String) {
         if (!activity.isAlive()) return
-        if (!hasWebCookie()) {
+        if (!SessionManager.hasWebCookie) {
             showWebLoginNeeded(activity)
             return
         }

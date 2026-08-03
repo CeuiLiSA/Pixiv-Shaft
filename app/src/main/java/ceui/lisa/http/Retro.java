@@ -46,9 +46,30 @@ public class Retro {
      * issue #569: www.pixiv.net 网页 ajax 的 RxJava 客户端。带 {@link ceui.loxia.WebHeaderInterceptor}
      * 注入已同步的网页 cookie(没同步则匿名,公开作品仍可拿)。Retrofit/OkHttpClient 缓存为单例,
      * 翻页时复用连接池(cookie 在拦截器里按请求实时读取,单例不影响其新鲜度)。
+     * <p>
+     * issue #956: 直连拦截器是在**构建时**按开关注入的,所以开关一变就得重建
+     * ({@link #resetWebApi()}),否则「按 tag 筛画师作品」这条只走网页 ajax 的链路要重启
+     * App 才吃到直连 —— 表现就是刚打开直连、点标签一直转圈到超时。
      */
     public static WebApi getWebApi() {
-        return WebHolder.webRetrofit.create(WebApi.class);
+        WebApi api = sWebApi;
+        if (api == null) {
+            synchronized (Retro.class) {
+                api = sWebApi;
+                if (api == null) {
+                    api = buildWebRetrofit().create(WebApi.class);
+                    sWebApi = api;
+                }
+            }
+        }
+        return api;
+    }
+
+    /** 直连开关变化后丢弃旧的网页客户端,下次取用时按新开关重建。 */
+    public static void resetWebApi() {
+        synchronized (Retro.class) {
+            sWebApi = null;
+        }
     }
 
     public static void refreshAppApi() {
@@ -161,9 +182,8 @@ public class Retro {
                 .build();
     }
 
-    private static class WebHolder {
-        private static final Retrofit webRetrofit = buildWebRetrofit();
-    }
+    // volatile:设置页线程写(resetWebApi),读者散在各个 UI/IO 协程里。
+    private static volatile WebApi sWebApi;
 
     private static Retrofit buildPlainRetrofit(String baseUrl) {
         OkHttpClient.Builder builder = getLogClient();

@@ -2436,4 +2436,6 @@
     <string name="pixiv_block_checking">正在查询拉黑状态…</string>
     <string name="pixiv_block_submitting">正在提交…</string>
     <string name="pixiv_block_need_web_login">拉黑是 Pixiv 网页端功能，需要先完成一次网页登录来同步会话信息。</string>
+    <!-- issue #956: 画师页按 tag 筛作品走网页 ajax，没同步网页 cookie 时是匿名身份，只筛得到全年龄作品 -->
+    <string name="user_tag_filter_empty_need_web_login">没有筛到作品。\n按标签筛选走的是 Pixiv 网页接口，未同步网页登录时只能筛到全年龄作品，去「Web 首页」登录一次再试。</string>
 </resources>

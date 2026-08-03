@@ -2264,4 +2264,5 @@
     <string name="pixiv_block_checking">Engelleme durumu kontrol ediliyor…</string>
     <string name="pixiv_block_submitting">Gönderiliyor…</string>
     <string name="pixiv_block_need_web_login">Engelleme bir Pixiv web özelliğidir. Oturumun eşitlenmesi için önce web sürümünde bir kez oturum açın.</string>
+    <string name="user_tag_filter_empty_need_web_login">Eşleşen eser yok.\nEtikete göre filtreleme Pixiv\'in web API\'sini kullanır; web oturumu eşitlenmediğinde yalnızca tüm yaşlara uygun eserler görünür. Web Ana Sayfa\'dan bir kez oturum açıp tekrar deneyin.</string>
 </resources>

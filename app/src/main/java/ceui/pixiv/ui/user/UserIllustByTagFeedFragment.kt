@@ -16,6 +16,7 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.awaitFirstValue
@@ -59,6 +60,19 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
     // 筛选条，刚关注完点进来立刻复现。详情页 isFullDetail 守卫会回拉全量，不缺这份。
     override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
 
+    /**
+     * issue #956: 筛选条上的 tag 是从 app-api（已登录，看得到 R-18/敏感作品）的首屏作品聚合出来的，
+     * 而筛选本身走 www.pixiv.net 的 ajax —— 没同步过网页 cookie 时那是**匿名**身份，只返回全年龄
+     * 作品。于是「主页明明有这个 tag，点进来一件都没有」。默认那句「居然啥也没有」在这里等于没说，
+     * 空态直接告诉他去哪补这一次网页登录。
+     */
+    override val emptyStateText: CharSequence
+        get() = if (SessionManager.hasWebCookie) {
+            super.emptyStateText
+        } else {
+            getString(R.string.user_tag_filter_empty_need_web_login)
+        }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpToolbar(binding, feedBinding.feedListView)
@@ -95,6 +109,14 @@ class UserIllustByTagFeedSource(
         val resp = Retro.getWebApi()
             .getUserIllustsByTag(userId.toLong(), tag, offset, PAGE_SIZE, "userSetting", "zh")
             .awaitFirstValue()
+        // 网页 ajax 的业务错误(限流、参数非法、要求登录…)是 HTTP 200 + error:true + body:null。
+        // 不认这一层的话 works 空、total 0，会被渲染成「筛出来 0 件」的空白页 —— 用户既看不到
+        // 原因也点不到重试。抛出去交给 feeds 的错误态(issue #956)。
+        if (resp.error == true) {
+            throw RuntimeException(
+                resp.message.orEmpty().ifEmpty { "user/illusts/tag failed" }
+            )
+        }
         val body = resp.body
         val works = body?.works ?: emptyList()
         val total = body?.total ?: 0

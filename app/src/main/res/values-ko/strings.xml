@@ -2264,4 +2264,5 @@
     <string name="pixiv_block_checking">차단 상태 확인 중…</string>
     <string name="pixiv_block_submitting">전송 중…</string>
     <string name="pixiv_block_need_web_login">차단은 Pixiv 웹 기능입니다. 먼저 웹 버전에 한 번 로그인해 세션을 동기화하세요.</string>
+    <string name="user_tag_filter_empty_need_web_login">일치하는 작품이 없습니다.\n태그 필터는 Pixiv 웹 API를 사용하며, 웹 세션이 동기화되지 않으면 전체 연령가 작품만 보입니다. 웹 홈에서 한 번 로그인한 뒤 다시 시도하세요.</string>
 </resources>

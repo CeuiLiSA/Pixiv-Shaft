@@ -2264,4 +2264,5 @@
     <string name="pixiv_block_checking">Checking block status…</string>
     <string name="pixiv_block_submitting">Submitting…</string>
     <string name="pixiv_block_need_web_login">Blocking is a Pixiv web feature. Sign in to the web version once so the session can be synced.</string>
+    <string name="user_tag_filter_empty_need_web_login">Nothing matched.\nTag filtering uses Pixiv\'s web API — without a synced web session only all-ages works are visible. Sign in once from Web Home and try again.</string>
 </resources>

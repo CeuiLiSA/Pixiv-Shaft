@@ -52,6 +52,9 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                 baseBind.useSecureDnsGroup.setVisibility(isChecked ? View.VISIBLE : View.GONE);
                 if (changed) {
                     Retro.refreshAppApi();
+                    // issue #956: 网页 ajax 的 Rx 客户端也带直连拦截器，漏掉它的话
+                    // 「按 tag 筛画师作品」要重启 App 才吃到直连。
+                    Retro.resetWebApi();
                     Client.INSTANCE.reset();
                 }
             }
