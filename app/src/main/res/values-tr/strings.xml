@@ -1363,7 +1363,7 @@
     <string name="download_path_teach_var_h">Görsel yüksekliği (piksel)</string>
     <string name="download_path_teach_var_created">Yayınlanma zamanı. Örneğin {created:yyyy} veya {created:yyyy-MM-dd} biçimi kullanılabilir</string>
     <string name="download_path_teach_var_series">Romanın ait olduğu seri adı (seride değilse boş)</string>
-    <string name="download_path_teach_var_series_order">Bu bölümün serideki sırası (yalnızca seriden toplu indirmede dolu olur; {series_order:00} ile basamak sayısı sabitlenebilir)</string>
+    <string name="download_path_teach_var_series_order">Bu bölümün serideki sırası (seri listesi sırasına göre; {series_order:00} ile basamak sayısı sabitlenebilir)</string>
     <string name="download_path_teach_section_cond">Koşul blokları (eklemek için dokunun)</string>
     <string name="download_path_teach_cond_r18">Yalnızca R18 eserler için &quot;R18/&quot; alt klasörü ekle</string>
     <string name="download_path_teach_cond_ai">Yalnızca AI eserler için &quot;AI/&quot; alt klasörü ekle</string>

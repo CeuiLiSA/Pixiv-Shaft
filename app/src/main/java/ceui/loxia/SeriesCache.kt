@@ -121,6 +121,20 @@ object SeriesCache {
         }
     }
 
+    /**
+     * 本篇在系列**可见列表**里的 1-based 位置，下载文件名的 `{series_order}` 用
+     * （issue #964）。与系列页批量下载的编号同源同序——注意不能用 webview
+     * payload 里的 contentOrder：那个把已删除的章节也计数，列表第 30 篇会算出
+     * 38。命中缓存零网络；未命中按 [loadNovelSeries] 翻页拉取。找不到时返回
+     * null（列表被 maxPages 截断的超长系列同样如此——宁可不编号也不编错号；
+     * 能在已加载前缀里找到的话，前缀是从第 1 篇起连续的，位置一定正确）。
+     */
+    suspend fun novelPositionInSeries(seriesId: Long, novelId: Long): Int? {
+        val data = loadNovelSeries(seriesId)
+        val idx = data.items.indexOfFirst { it.id == novelId }
+        return if (idx >= 0) idx + 1 else null
+    }
+
     fun invalidate(seriesId: Long) {
         synchronized(illustStore) { illustStore.remove(seriesId) }
         synchronized(novelStore) { novelStore.remove(seriesId) }

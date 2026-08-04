@@ -6,6 +6,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
+import ceui.loxia.SeriesCache
 import ceui.loxia.WebNovel
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.RelativePath
@@ -43,9 +44,9 @@ object NovelExportManager {
             DownloadItems.novelDestinationFromLoxia(
                 novel,
                 extOverride = format.extension,
-                // 从 payload 的前后篇导航推算系列序号，让单篇下载 / 导出和
-                // 系列批量下载渲染出同一个文件名（issue #964）。
-                seriesOrder = DownloadItems.seriesOrderOf(webNovel),
+                // 序号取「系列可见列表位置」（SeriesCache，reader 场景通常已缓存），
+                // 让单篇下载 / 导出和系列批量下载渲染出同一个文件名（issue #964）。
+                seriesOrder = seriesOrderOf(novel),
             )
         } else {
             // No loxia Novel — only the web payload. Best-effort meta;
@@ -78,6 +79,23 @@ object NovelExportManager {
             recordDownload(novel, result)
         }
         result
+    }
+
+    /**
+     * 本篇在系列中的 1-based 序号；不在系列里 / 拉不到系列列表时返回 null
+     * （`{series_order}` 渲染为空）。序号查询失败绝不能拖垮导出本身——
+     * 吞掉网络异常但放行取消。
+     */
+    private suspend fun seriesOrderOf(novel: Novel): Int? {
+        val seriesId = novel.series?.id?.takeIf { it > 0 } ?: return null
+        return try {
+            SeriesCache.novelPositionInSeries(seriesId, novel.id)
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (t: Throwable) {
+            Timber.w(t, "series order lookup failed for novel ${novel.id}, exporting without order")
+            null
+        }
     }
 
     // 同 FragmentNovelHolder 旧版「保存」逻辑：以 NOVEL_KEY+id 作为主键，让

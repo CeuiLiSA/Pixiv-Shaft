@@ -1363,7 +1363,7 @@
     <string name="download_path_teach_var_h">画像の高さ（ピクセル）</string>
     <string name="download_path_teach_var_created">投稿日時。{created:yyyy} や {created:yyyy-MM-dd} のように形式を指定できます</string>
     <string name="download_path_teach_var_series">所属シリーズのタイトル（シリーズ外の場合は空）</string>
-    <string name="download_path_teach_var_series_order">シリーズ内での話数（シリーズからの一括ダウンロード時のみ有効。{series_order:00} で桁数を固定できます）</string>
+    <string name="download_path_teach_var_series_order">シリーズ内での話数（シリーズ一覧の並び順。{series_order:00} で桁数を固定できます）</string>
     <string name="download_path_teach_section_cond">条件ブロック（タップで挿入）</string>
     <string name="download_path_teach_cond_r18">R18 作品にのみ「R18/」サブフォルダを追加</string>
     <string name="download_path_teach_cond_ai">AI 作品にのみ「AI/」サブフォルダを追加</string>

@@ -1365,7 +1365,7 @@
     <string name="download_path_teach_var_h">圖片高度（像素）</string>
     <string name="download_path_teach_var_created">投稿時間，格式可自訂，例如 {created:yyyy}、{created:yyyy-MM-dd}</string>
     <string name="download_path_teach_var_series">所屬系列名稱（小說；不在系列中時為空）</string>
-    <string name="download_path_teach_var_series_order">本篇在系列中的序號（僅「從系列批次下載」時有值；可寫 {series_order:00} 固定位數）</string>
+    <string name="download_path_teach_var_series_order">本篇在系列中的序號（依系列列表順序；可寫 {series_order:00} 固定位數）</string>
     <string name="download_path_teach_section_cond">條件塊（點擊插入）</string>
     <string name="download_path_teach_cond_r18">僅對 R18 作品加入「R18/」子資料夾</string>
     <string name="download_path_teach_cond_ai">僅對 AI 作品加入「AI/」子資料夾</string>

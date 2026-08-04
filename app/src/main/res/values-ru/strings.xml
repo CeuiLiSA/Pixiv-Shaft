@@ -1363,7 +1363,7 @@
     <string name="download_path_teach_var_h">Высота изображения (в пикселях)</string>
     <string name="download_path_teach_var_created">Время публикации. Формат можно задать, например {created:yyyy} или {created:yyyy-MM-dd}</string>
     <string name="download_path_teach_var_series">Название серии, к которой относится новелла (пусто, если не в серии)</string>
-    <string name="download_path_teach_var_series_order">Номер главы в серии (задан только при пакетной загрузке из серии; {series_order:00} фиксирует число разрядов)</string>
+    <string name="download_path_teach_var_series_order">Номер главы в серии (по порядку списка серии; {series_order:00} фиксирует число разрядов)</string>
     <string name="download_path_teach_section_cond">Блоки условий (нажмите для вставки)</string>
     <string name="download_path_teach_cond_r18">Добавлять подпапку &quot;R18/&quot; только для работ R18</string>
     <string name="download_path_teach_cond_ai">Добавлять подпапку &quot;AI/&quot; только для AI-работ</string>

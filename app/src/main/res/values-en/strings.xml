@@ -1363,7 +1363,7 @@
     <string name="download_path_teach_var_h">Image height (pixels)</string>
     <string name="download_path_teach_var_created">Posting time. The format can be customized, for example {created:yyyy} or {created:yyyy-MM-dd}</string>
     <string name="download_path_teach_var_series">Series title the novel belongs to (empty when not in a series)</string>
-    <string name="download_path_teach_var_series_order">Position of this chapter in its series (only set when batch-downloading from a series; write {series_order:00} to pin the width)</string>
+    <string name="download_path_teach_var_series_order">Position of this chapter in its series (by series list order; write {series_order:00} to pin the width)</string>
     <string name="download_path_teach_section_cond">Conditions (tap to insert)</string>
     <string name="download_path_teach_cond_r18">Add the &quot;R18/&quot; subfolder only for R18 works</string>
     <string name="download_path_teach_cond_ai">Add the &quot;AI/&quot; subfolder only for AI works</string>

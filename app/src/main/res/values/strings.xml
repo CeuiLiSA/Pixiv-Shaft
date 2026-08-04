@@ -1479,7 +1479,7 @@
     <string name="download_path_teach_var_h">图片高度（像素）</string>
     <string name="download_path_teach_var_created">投稿时间，格式可自定义，如 {created:yyyy}、{created:yyyy-MM-dd}</string>
     <string name="download_path_teach_var_series">所属系列名称（小说；不在系列中时为空）</string>
-    <string name="download_path_teach_var_series_order">本篇在系列中的序号（仅「从系列批量下载」时有值；可写 {series_order:00} 固定位数）</string>
+    <string name="download_path_teach_var_series_order">本篇在系列中的序号（按系列列表顺序；可写 {series_order:00} 固定位数）</string>
 
     <string name="download_path_teach_section_cond">条件块（点击插入）</string>
     <string name="download_path_teach_cond_r18">只有 R18 作品才加 "R18/" 子目录</string>

@@ -163,9 +163,10 @@ object DownloadItems {
         novel: Novel,
         extOverride: String? = null,
         /**
-         * 本篇在系列中的 1-based 序号 + 系列总篇数，只有「从系列批量下载」
-         * （[ceui.pixiv.ui.task.BatchDownloadNovelsTask]）能提供；单篇下载 /
-         * 阅读器导出拿不到顺序，`{series_order}` 渲染成空串。
+         * 本篇在系列**可见列表**中的 1-based 位置 + 系列总篇数。批量下载
+         * （[ceui.pixiv.ui.task.BatchDownloadNovelsTask]）取列表下标，单篇
+         * 导出查 [ceui.loxia.SeriesCache]——两边必须同源，才能渲染出同一个
+         * 文件名。拿不到时传 null，`{series_order}` 渲染成空串。
          */
         seriesOrder: Int? = null,
         seriesTotal: Int? = null,
@@ -399,27 +400,6 @@ object DownloadItems {
         if ((novel.x_restrict ?: 0) > 0) out += Flag.R18
         if (seriesTitleOf(novel.series?.title) != null) out += Flag.Series
         return out
-    }
-
-    /**
-     * 从网页版正文 payload 推算「本篇在系列中的 1-based 序号」。payload 不直接
-     * 给本篇的序号，但 `seriesNavigation` 的前后篇带 `contentOrder`（1-based）：
-     * 有上一篇则 prev + 1；没有上一篇但确实在系列里，本篇就是第 1 篇；
-     * prev 序号解析不出来时退回 next - 1；都拿不到返回 null（`{series_order}`
-     * 渲染为空）。
-     *
-     * 单篇下载 / 阅读器导出反正都要拉这份 payload，用它就能和系列批量下载
-     * （列表位置）渲染出**同一个**文件名，否则同一章两个入口出两份文件
-     * （issue #964 真机验证时踩到的）。
-     */
-    @JvmStatic
-    fun seriesOrderOf(web: ceui.loxia.WebNovel?): Int? {
-        if (web?.seriesId.isNullOrBlank()) return null
-        val nav = web?.seriesNavigation ?: return null
-        nav.prevNovel?.contentOrder?.toIntOrNull()?.let { return it + 1 }
-        if (nav.prevNovel == null) return 1
-        nav.nextNovel?.contentOrder?.toIntOrNull()?.let { if (it > 1) return it - 1 }
-        return null
     }
 
     /**
