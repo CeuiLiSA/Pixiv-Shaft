@@ -305,13 +305,28 @@ class NovelSeriesFragment :
             Toaster.show(getString(R.string.batch_download_no_selection))
             return
         }
+        // 系列位置按已加载的完整章节序列算，不能按选中子集的下标算——
+        // 勾选第 3、5、9 章时，文件名 / 信息头里要的是 3、5、9 而不是 1、2、3。
+        val ordered = loadedNovels().distinctBy { it.id }
         BatchDownloadNovelsTask(
             activity = requireActivity(),
             novels = novels,
             onFinished = { failures -> onBatchDownloadFinished(failures) },
-            orderIsSeriesPosition = true,
+            seriesPositions = seriesPositionsOf(ordered),
+            seriesTotal = seriesTotalCount(loadedCount = ordered.size),
         )
     }
+
+    /** novelId → 1-based 系列位置。[ordered] 必须是从系列第 1 篇起的有序列表。 */
+    private fun seriesPositionsOf(ordered: List<Novel>): Map<Long, Int> =
+        ordered.withIndex().associate { (i, n) -> n.id to i + 1 }
+
+    /**
+     * 系列总篇数优先取系列详情的 content_count；hero 卡尚未加载成功时退回
+     * 已加载章节数（此时多半也只下载得到这些）。
+     */
+    private fun seriesTotalCount(loadedCount: Int): Int =
+        heroDetail()?.content_count?.takeIf { it > 0 } ?: loadedCount
 
     private fun selectedNovels(): List<Novel> {
         val selected = selectionModel.selectedIds.value.orEmpty()
@@ -349,11 +364,14 @@ class NovelSeriesFragment :
                     Toaster.show(getString(R.string.merge_download_failed_empty))
                     return
                 }
+                // FetchAllTask 拉到的就是整个系列的有序章节，位置 = 下标 + 1。
+                val ordered = results.distinctBy { it.id }
                 BatchDownloadNovelsTask(
                     activity = requireActivity(),
                     novels = results,
                     onFinished = { failures -> onBatchDownloadFinished(failures) },
-                    orderIsSeriesPosition = true,
+                    seriesPositions = seriesPositionsOf(ordered),
+                    seriesTotal = ordered.size,
                 )
             }
         }

@@ -46,18 +46,19 @@ class BatchDownloadNovelsTask(
     private val onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
     private val onFinished: (failures: List<FailedNovel>) -> Unit,
     /**
-     * 当 [novels] 是「同一个系列的章节按系列顺序」（NovelSeriesFragment 走的就是
-     * 这条路径）时设为 true，下载时把 1-based 位置 + 总数交给 [NovelHeaderRenderer]，
-     * 用户在「信息头设置」勾选「本篇在系列中的序号」就能看到「第 X 章 / 共 Y 章」。
-     * 同一份序号也会喂给路径模板的 `{series_order}` 变量（issue #964）。
+     * novelId → 本篇在**系列**中的 1-based 位置（不是在 [novels] 里的位置——
+     * 多选下载时两者不同：勾选第 3、5、9 章，`novels` 里的下标是 1、2、3，
+     * 而系列位置必须还是 3、5、9）。由调用方按系列完整顺序计算。
      *
-     * 「未归类作品」之类不是同一系列的批量场景保持 false（默认），
+     * 位置 + [seriesTotal] 同时喂给 [NovelHeaderRenderer]（「第 X / Y 篇」，
+     * issue #710）和路径模板的 `{series_order}` 变量（issue #964）。
+     *
+     * 「未归类作品」之类不是同一系列的批量场景保持 null（默认），
      * 这种情况下 NovelHeaderRenderer 自身也会因为 isSeriesChapter=false 而跳过该字段。
-     *
-     * 修复 issue #710：作者在 Pixiv 上手工重排过章节后，正文里写死的 `[chapter:N]`
-     * 标签序号会和系列顺序对不上；启用本字段后用户能看到无歧义的位置。
      */
-    private val orderIsSeriesPosition: Boolean = false,
+    private val seriesPositions: Map<Long, Int>? = null,
+    /** 系列总篇数（不是 [novels].size——多选时后者只是选中数）。 */
+    private val seriesTotal: Int? = null,
 ) {
 
     init {
@@ -79,7 +80,7 @@ class BatchDownloadNovelsTask(
                 val done = index + 1
                 try {
                     withContext(Dispatchers.IO) {
-                        downloadOne(novel, seriesIndex = if (orderIsSeriesPosition) done else null)
+                        downloadOne(novel, seriesIndex = seriesPositions?.get(novel.id))
                     }
                 } catch (ex: Exception) {
                     Timber.e(ex, "BatchDownloadNovelsTask: failed on ${novel.id} (${novel.title})")
@@ -105,10 +106,11 @@ class BatchDownloadNovelsTask(
     private suspend fun downloadOne(novel: Novel, seriesIndex: Int?) {
         val ctx = Shaft.getContext()
         // 序号 / 总数同时喂给路径模板（{series_order}，issue #964）和下方的信息头。
+        val total = seriesTotal.takeIf { seriesIndex != null }
         val destination: RelativePath = DownloadItems.novelDestinationFromLoxia(
             novel,
             seriesOrder = seriesIndex,
-            seriesTotal = if (seriesIndex != null) novels.size else null,
+            seriesTotal = total,
         )
         val fileName = destination.filename
 
@@ -133,7 +135,7 @@ class BatchDownloadNovelsTask(
                     preset = HeaderConfigRepo.activePreset(),
                     isSeriesChapter = novel.series != null,
                     seriesIndex = seriesIndex,
-                    seriesTotal = if (seriesIndex != null) novels.size else null,
+                    seriesTotal = total,
                 )
             )
             append("\n")
