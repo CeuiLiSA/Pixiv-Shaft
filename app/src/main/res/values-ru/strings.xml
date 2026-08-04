@@ -1032,6 +1032,8 @@
     <string name="v3_page_count_many">%d стр.</string>
     <string name="v3_expand_all_pages_title">Показать оставшиеся %1$d стр.</string>
     <string name="v3_collapse_pages_title">Свернуть</string>
+    <string name="v3_desc_expand">Развернуть</string>
+    <string name="v3_desc_collapse">Свернуть</string>
     <string name="v3_expand_all_subtitle">Нажмите, чтобы открыть все иллюстрации</string>
     <string name="v3_detail_artwork_id">ID иллюстрации</string>
     <string name="v3_detail_user_id">ID пользователя</string>

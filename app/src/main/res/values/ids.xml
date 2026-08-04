@@ -83,4 +83,6 @@
     <!-- 小说简介卡已渲染的 caption 原文：ObjectPool 每次发射(含任意一次收藏切换)都会重跑
          简介绑定，用它短路掉 caption 没变时的 fromHtml 解析 + MovementMethod 重建 -->
     <item type="id" name="novel_caption_rendered" />
+    <!-- ArtworkV3 简介待执行的单次 pre-draw；重绑/回收时据此取消旧回调。 -->
+    <item type="id" name="v3_desc_predraw_listener" />
 </resources>

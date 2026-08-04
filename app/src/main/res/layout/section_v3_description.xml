@@ -29,5 +29,17 @@
         android:textColorLink="@color/v3_blue"
         android:textIsSelectable="true"
         android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/desc_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="4dp"
+        android:text="@string/v3_desc_expand"
+        android:textColor="@color/v3_blue"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 </LinearLayout>
 

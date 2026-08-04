@@ -1032,6 +1032,8 @@
     <string name="v3_page_count_many">%d sayfa</string>
     <string name="v3_expand_all_pages_title">Kalan %1$d sayfayı genişlet</string>
     <string name="v3_collapse_pages_title">Daralt</string>
+    <string name="v3_desc_expand">Devamını göster</string>
+    <string name="v3_desc_collapse">Daralt</string>
     <string name="v3_expand_all_subtitle">Tüm illüstrasyonları görmek için dokunun</string>
     <string name="v3_detail_artwork_id">Eser ID</string>
     <string name="v3_detail_user_id">Kullanıcı ID</string>

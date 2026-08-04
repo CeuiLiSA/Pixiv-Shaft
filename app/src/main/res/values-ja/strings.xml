@@ -1032,6 +1032,8 @@
     <string name="v3_page_count_many">%d ページ</string>
     <string name="v3_expand_all_pages_title">残り %1$d ページを展開</string>
     <string name="v3_collapse_pages_title">折りたたむ</string>
+    <string name="v3_desc_expand">もっと見る</string>
+    <string name="v3_desc_collapse">折りたたむ</string>
     <string name="v3_expand_all_subtitle">タップしてすべてのイラストを表示</string>
     <string name="v3_detail_artwork_id">作品 ID</string>
     <string name="v3_detail_user_id">ユーザー ID</string>

@@ -1034,6 +1034,8 @@
     <string name="v3_page_count_many">%d 頁</string>
     <string name="v3_expand_all_pages_title">展開剩餘 %1$d 頁</string>
     <string name="v3_collapse_pages_title">收起</string>
+    <string name="v3_desc_expand">展開</string>
+    <string name="v3_desc_collapse">收起</string>
     <string name="v3_expand_all_subtitle">點擊查看全部插畫</string>
     <string name="v3_detail_artwork_id">作品 ID</string>
     <string name="v3_detail_user_id">使用者 ID</string>

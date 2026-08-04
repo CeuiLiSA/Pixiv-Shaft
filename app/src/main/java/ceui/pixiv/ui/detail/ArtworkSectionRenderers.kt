@@ -13,6 +13,8 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
+import androidx.core.view.OneShotPreDrawListener
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -249,6 +251,7 @@ internal fun ArtworkV3Fragment.descRenderer() =
     feedRenderer<ArtworkDescItem, SectionV3DescriptionBinding>(
         inflate = SectionV3DescriptionBinding::inflate,
         fullSpan = true,
+        recycle = { cell -> clearPendingDescPreDraw(cell.binding) },
     ) { cell ->
         // HTML 解析对长 caption 不便宜;caption 不变(滚动来回重绑)就跳过重解析。
         val b = cell.binding
@@ -257,12 +260,69 @@ internal fun ArtworkV3Fragment.descRenderer() =
             // HtmlTextView.setHtml 遇到含 <a> 链接的 caption 会直接吐出空串——经典版
             // FragmentIllust 在 #552 就换掉了,V3 一直没跟上(#960「带链接的简介看不到」)。
             // 同款修法:HtmlCompat 渲染 + LinkMovementMethod 让链接可点。
-            b.description.text = HtmlCompat.fromHtml(
+            descFullCaption = HtmlCompat.fromHtml(
                 cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT
             )
             b.description.movementMethod = LinkMovementMethod.getInstance()
         }
+        applyDescCollapseState(b)
+        b.descToggle.setOnClickListener {
+            descExpanded = !descExpanded
+            applyDescCollapseState(b)
+            if (!descExpanded) scrollDescBackIntoView(b.root)
+        }
     }
+
+/** 简介折叠阈值(#965):超过这个行数才折,issue 建议 3~5 行,取上限。 */
+private const val DESC_COLLAPSED_LINES = 5
+
+/**
+ * 超长简介折叠(#965)。折叠不能只靠 maxLines:无 ellipsize 时 layout 仍排全文,被裁的
+ * 行只是藏在可视区外,textIsSelectable 的点按(bringPointIntoView)和 LinkMovementMethod
+ * 的拖动都会把隐藏行滚出来,表现为「点一下简介顶部/底部,文字自己变了」。所以折叠态在
+ * 文本层面截到第 [DESC_COLLAPSED_LINES] 行止:layout 高度 == 可视高度,无处可滚;可见
+ * 部分的链接照常可点。全文行数要等 layout 出来才知道,截断和 toggle 可见性都放
+ * doOnPreDraw 里做:先摆全文让 TextView 排版,量出超长再换截断文本。每次注册前主动取消
+ * 同一个 TextView 上尚未执行的旧回调,并在执行时复核 caption/full 身份,避免同帧重绑时旧
+ * caption 的回调覆盖新内容。
+ */
+private fun ArtworkV3Fragment.applyDescCollapseState(b: SectionV3DescriptionBinding) {
+    val full = descFullCaption ?: return
+    val expectedCaption = b.description.tag
+    b.description.maxLines = if (descExpanded) Int.MAX_VALUE else DESC_COLLAPSED_LINES
+    b.description.text = full
+    b.description.scrollTo(0, 0)
+    b.descToggle.setText(
+        if (descExpanded) R.string.v3_desc_collapse else R.string.v3_desc_expand
+    )
+    clearPendingDescPreDraw(b)
+    lateinit var request: OneShotPreDrawListener
+    request = b.description.doOnPreDraw {
+        // 新一次 bind/toggle 已取代本次请求时绝不再碰当前 holder。
+        if (b.description.getTag(R.id.v3_desc_predraw_listener) !== request) {
+            return@doOnPreDraw
+        }
+        b.description.setTag(R.id.v3_desc_predraw_listener, null)
+        if (b.description.tag != expectedCaption || descFullCaption !== full) {
+            return@doOnPreDraw
+        }
+        val layout = b.description.layout ?: return@doOnPreDraw
+        val overflow = layout.lineCount > DESC_COLLAPSED_LINES
+        b.descToggle.isVisible = overflow
+        if (!descExpanded && overflow) {
+            // 即使平台 Layout 给出异常 offset,也不能让展示逻辑把详情页带崩。
+            val end = layout.getLineEnd(DESC_COLLAPSED_LINES - 1).coerceIn(0, full.length)
+            b.description.text = full.subSequence(0, end).trimEnd()
+        }
+    }
+    b.description.setTag(R.id.v3_desc_predraw_listener, request)
+}
+
+private fun clearPendingDescPreDraw(b: SectionV3DescriptionBinding) {
+    (b.description.getTag(R.id.v3_desc_predraw_listener) as? OneShotPreDrawListener)
+        ?.removeListener()
+    b.description.setTag(R.id.v3_desc_predraw_listener, null)
+}
 
 internal fun ArtworkV3Fragment.statsRenderer() =
     feedRenderer<ArtworkStatsItem, SectionV3StatsBinding>(

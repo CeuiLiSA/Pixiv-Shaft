@@ -123,6 +123,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 详情面板展开态归 Fragment(而非 cell tag):滚走再滚回不会被重绑重置(对齐 legacy VH 字段)。 */
     internal var detailPanelExpanded = true
 
+    /** 超长简介展开态(#965):同上归 Fragment,默认折叠。 */
+    internal var descExpanded = false
+
+    /** 解析好的完整简介(#965):折叠态显示的是截断文本,展开/重绑时从这里取回全文。 */
+    internal var descFullCaption: CharSequence? = null
+
     // 关闭下拉刷新(详情页 feeds 版不支持)
     override val refreshEnabled: Boolean = false
 
@@ -422,6 +428,21 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 }
             }
         }
+    }
+
+    /**
+     * 收起超长简介后把简介块拉回视口顶部(#965)。收起按钮在简介**末尾**,长简介收起时
+     * 视口锚点还停在原来的绝对偏移,块一缩几千像素,画面就跳到更下面的区块去了;
+     * 简介顶部仍在屏内(短简介)时无此问题,不动。
+     */
+    internal fun scrollDescBackIntoView(itemView: View) {
+        if (itemView.top >= 0) return
+        val rv = feedBinding.feedListView
+        val pos = rv.getChildAdapterPosition(itemView)
+        if (pos == RecyclerView.NO_POSITION) return
+        val lm = rv.layoutManager
+        if (lm is StaggeredGridLayoutManager) lm.scrollToPositionWithOffset(pos, 0)
+        else rv.scrollToPosition(pos)
     }
 
     private fun attachArtistFollowObserver(authorId: Long) {

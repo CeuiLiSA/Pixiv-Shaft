@@ -1032,6 +1032,8 @@
     <string name="v3_page_count_many">%d 페이지</string>
     <string name="v3_expand_all_pages_title">남은 %1$d페이지 펼치기</string>
     <string name="v3_collapse_pages_title">접기</string>
+    <string name="v3_desc_expand">더 보기</string>
+    <string name="v3_desc_collapse">접기</string>
     <string name="v3_expand_all_subtitle">탭하여 모든 일러스트 보기</string>
     <string name="v3_detail_artwork_id">작품 ID</string>
     <string name="v3_detail_user_id">사용자 ID</string>
