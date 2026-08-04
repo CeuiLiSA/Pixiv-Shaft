@@ -40,7 +40,13 @@ object NovelExportManager {
         tokens: List<ContentToken>,
     ): ExportResult = withContext(Dispatchers.IO) {
         val destination: RelativePath = if (novel != null) {
-            DownloadItems.novelDestinationFromLoxia(novel, extOverride = format.extension)
+            DownloadItems.novelDestinationFromLoxia(
+                novel,
+                extOverride = format.extension,
+                // 从 payload 的前后篇导航推算系列序号，让单篇下载 / 导出和
+                // 系列批量下载渲染出同一个文件名（issue #964）。
+                seriesOrder = DownloadItems.seriesOrderOf(webNovel),
+            )
         } else {
             // No loxia Novel — only the web payload. Best-effort meta;
             // templates that lean on author/created get blanks, but the
