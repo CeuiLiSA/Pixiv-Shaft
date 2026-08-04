@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
@@ -125,6 +126,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      */
     private final Set<Integer> overlaySizedPages = ConcurrentHashMap.newKeySet();
 
+    /**
+     * 已成功显示过一次底图的页码,用于区分「首次显示 / 回收重绑」(#963):首显带 crossFade 淡入,
+     * 避免深色模式下从暗占位硬切到亮图闪眼;回收重绑(滑走再滑回)则 dontAnimate 直接贴图,
+     * 保住 d66956e3 消掉的「重绑从灰底淡入一闪」。{@link #release()} 时清空。
+     */
+    private final Set<Integer> shownPages = ConcurrentHashMap.newKeySet();
+
     public IllustAdapter(FragmentActivity activity, Fragment fragment, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mActivity = activity;
@@ -157,6 +165,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         localPagesChangedListener = null;
         pageRatio.clear();
         overlaySizedPages.clear();
+        shownPages.clear();
         mainHandler.removeCallbacksAndMessages(null);
     }
 
@@ -489,10 +498,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                             Object model, String guardUrl, boolean isFinal) {
         String shortUrl = guardUrl.substring(guardUrl.lastIndexOf('/') + 1);
         RequestManager requestManager = mFragment != null ? Glide.with(mFragment) : Glide.with(mContext);
-        // 底层 large 不做 crossFade:它是「秒显占位」,命中内存/磁盘缓存时本应瞬间出图。带 crossFade
-        // 时,滑到底再滑回顶、这页被回收清图后重绑,large 会从灰底 loading_placeholder 淡入 → 一闪。
-        // 去掉过渡让缓存命中直接贴图,零闪;真·原图仍由 renderOverlay 的 crossFade 淡入盖上,观感不减。
-        requestManager
+        // 首显 crossFade、重绑 dontAnimate(#963):首次显示从深色占位淡入,避免暗环境下亮图硬切闪眼;
+        // 滑走再滑回的回收重绑(shownPages 已记录)直接贴图,保住 d66956e3 消掉的「重绑从灰底淡入一闪」。
+        // 内存缓存命中时 Glide 的 crossFade 工厂本就返回 NoTransition(同帧出图、无闪),秒显不受影响。
+        boolean firstShow = !shownPages.contains(position);
+        RequestBuilder<Bitmap> request = requestManager
                 .asBitmap()
                 .load(model)
                 .transform(new LargeBitmapScaleTransformer())
@@ -500,8 +510,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 // → onlyRetrieveFromCache:只在 large 已被外面瀑布流预热进内存/磁盘缓存时秒显,没命中就立即
                 // 失败、不为占位单独走网络下 large(兜住「pos 0 但 large 未预热」的极少数入口)。
                 // isFinal=true(仅 large 模式,large 就是最终图)→ 允许走网络,必须真正下下来展示。
-                .onlyRetrieveFromCache(!isFinal)
-                .dontAnimate()
+                .onlyRetrieveFromCache(!isFinal);
+        request = firstShow
+                ? request.transition(BitmapTransitionOptions.withCrossFade())
+                : request.dontAnimate();
+        request
                 .listener(new RequestListener<Bitmap>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object m, Target<Bitmap> target, boolean isFirstResource) {
@@ -521,6 +534,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     public boolean onResourceReady(Bitmap resource, Object m, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
                         if (!guardUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
                         Timber.d("[IllustAdapter] base(large) OK pos=%d, isFinal=%b, ds=%s, url=%s", position, isFinal, dataSource.name(), shortUrl);
+                        shownPages.add(position);
                         holder.baseBind.reload.setVisibility(View.GONE);
                         if (isFinal) {
                             holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
@@ -657,12 +671,17 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         holder.baseBind.reload.setOnClickListener(v -> loadIllust(holder, position, changeSize));
 
         RequestManager requestManager = mFragment != null ? Glide.with(mFragment) : Glide.with(mContext);
-        // 本地文件同样去掉 crossFade:回收重绑时直接贴图,不从灰底淡入(与 renderBase 一致,消除一闪)。
-        requestManager
+        // 与 renderBase 同一口径(#963):首显 crossFade 淡入(硬盘直读等待期间眼睛已适应暗底,
+        // 硬切最刺眼的正是本路径),回收重绑 dontAnimate 直接贴图不从灰底淡入。
+        boolean firstShow = !shownPages.contains(position);
+        RequestBuilder<Bitmap> request = requestManager
                 .asBitmap()
                 .load(localUri)
-                .transform(new LargeBitmapScaleTransformer())
-                .dontAnimate()
+                .transform(new LargeBitmapScaleTransformer());
+        request = firstShow
+                ? request.transition(BitmapTransitionOptions.withCrossFade())
+                : request.dontAnimate();
+        request
                 .listener(new RequestListener<Bitmap>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
@@ -689,6 +708,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
                         if (!imageUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
+                        shownPages.add(position);
                         holder.baseBind.reload.setVisibility(View.GONE);
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                         rememberDecodedRatio(holder, position, changeSize, resource);
