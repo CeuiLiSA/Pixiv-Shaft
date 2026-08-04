@@ -7,6 +7,7 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
@@ -96,6 +97,9 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
         val ctx = host.context ?: return
         val status = TextView(ctx).apply {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            // 手工 new 的 view 不在 QMUI skin 管辖内，默认文字色是浅色主题的深灰，
+            // 夜间压在深色 dialog 底上看不见 —— 跟 dialog 标题一样用日/夜自适应色。
+            setTextColor(ContextCompat.getColor(ctx, R.color.rank_text_color))
             text = host.getString(R.string.dlmgr_import_scanning_start)
         }
         val progressDialog = object : QMUIDialog.CustomDialogBuilder(ctx) {
