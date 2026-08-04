@@ -222,22 +222,22 @@ object RifeInterpolator {
                 }
             }.apply { isDaemon = true; start() }
             val deadline = System.currentTimeMillis() + PASS_TIMEOUT_MS
-            while (process.isAlive) {
+            while (process.isAliveCompat()) {
                 if (!isActive()) {
                     Timber.tag(TAG).i("调用方已取消,销毁 rife 进程")
                     process.destroy()
-                    process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+                    process.waitForCompat(2_000)
                     return false
                 }
                 if (System.currentTimeMillis() > deadline) {
                     Timber.tag(TAG).w("单轮补帧超过 %dms,疑似进程僵死,销毁", PASS_TIMEOUT_MS)
                     process.destroy()
-                    process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+                    process.waitForCompat(2_000)
                     return false
                 }
                 val done = outDir.listFiles()?.size ?: 0
                 onProgress((done * 100 / targetCount).coerceAtMost(99))
-                if (!process.waitFor(300, java.util.concurrent.TimeUnit.MILLISECONDS)) continue
+                if (!process.waitForCompat(300)) continue
             }
             logThread.join(2000)
             if (process.exitValue() != 0) {
@@ -259,4 +259,26 @@ object RifeInterpolator {
             inDir.deleteRecursively()
         }
     }
+}
+
+// Process.isAlive / waitFor(timeout) 都要 API 26（minSdk 24，lintVital 拦 release
+// 构建）。exitValue 在进程未退出时抛 ISE，是 API 1 的等价判活；带超时的等待用
+// 判活 + sleep 轮询近似——这里本来就是 300ms 粒度的轮询循环，不需要精确唤醒。
+
+private fun Process.isAliveCompat(): Boolean =
+    try {
+        exitValue()
+        false
+    } catch (_: IllegalThreadStateException) {
+        true
+    }
+
+/** 等进程退出，最多 [timeoutMs] 毫秒；返回 true = 已退出。 */
+private fun Process.waitForCompat(timeoutMs: Long): Boolean {
+    val deadline = System.currentTimeMillis() + timeoutMs
+    while (isAliveCompat()) {
+        if (System.currentTimeMillis() >= deadline) return false
+        Thread.sleep(50)
+    }
+    return true
 }
