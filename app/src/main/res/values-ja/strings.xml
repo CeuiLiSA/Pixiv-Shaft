@@ -1279,7 +1279,7 @@
     <string name="download_path_preset_by_author">作者ごとに分類</string>
     <string name="download_path_preset_by_author_and_date">作者 + 年月ごとに分類</string>
     <string name="download_path_preset_by_author_multi_page_group">作者ごとに分類 + 複数ページ作品はサブフォルダ作成</string>
-    <string name="download_path_preset_by_series">小説をシリーズごとに分類（画像は作者ごとのまま）</string>
+    <string name="download_path_preset_by_series">小説をシリーズごとに分類</string>
     <string name="download_path_preset_minimal">最小構成（ID のみ）</string>
     <string name="download_path_preset_r_filter">R18 / AI を強制的に別フォルダ化</string>
     <string name="download_path_preset_detailed">詳細（タイトル+ID+P+作者+サイズ+時刻）</string>

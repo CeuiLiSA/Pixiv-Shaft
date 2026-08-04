@@ -1279,7 +1279,7 @@
     <string name="download_path_preset_by_author">Yazara göre grupla</string>
     <string name="download_path_preset_by_author_and_date">Yazara + yıl/aya göre grupla</string>
     <string name="download_path_preset_by_author_multi_page_group">Yazara göre grupla + çok sayfalı eserler için alt klasör</string>
-    <string name="download_path_preset_by_series">Romanlar seriye göre (görseller yazara göre kalır)</string>
+    <string name="download_path_preset_by_series">Romanlar seriye göre</string>
     <string name="download_path_preset_minimal">Minimal (yalnızca ID)</string>
     <string name="download_path_preset_r_filter">R18 / AI için ayrı klasör zorla</string>
     <string name="download_path_preset_detailed">Ayrıntılı (başlık+ID+P+yazar+boyut+zaman)</string>

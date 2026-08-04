@@ -1279,7 +1279,7 @@
     <string name="download_path_preset_by_author">Group by author</string>
     <string name="download_path_preset_by_author_and_date">Group by author + year/month</string>
     <string name="download_path_preset_by_author_multi_page_group">Group by author + subfolders for multi-page works</string>
-    <string name="download_path_preset_by_series">Novels by series (images still by author)</string>
+    <string name="download_path_preset_by_series">Novels by series</string>
     <string name="download_path_preset_minimal">Minimal (ID only)</string>
     <string name="download_path_preset_r_filter">Force separate folders for R18 / AI</string>
     <string name="download_path_preset_detailed">Detailed (title+ID+P+artist+size+time)</string>

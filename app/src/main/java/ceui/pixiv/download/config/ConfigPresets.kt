@@ -158,8 +158,8 @@ object ConfigPresets {
         )
 
     /**
-     * 小说按「作者/系列/序号 标题」三层落盘（issue #964），图和动图保持按作者分组。
-     * `{series_order}` 只有系列批量下载能拿到；单篇下载序号渲染为空，
+     * 小说按「系列/序号 标题」落盘（issue #964），系列层上面不套作者层；
+     * 图和动图保持按作者分组。序号拿不到时（如单篇下载）渲染为空，
      * 前导空格会被 FsSanitizer 裁掉，不会留下孤立分隔符。
      */
     fun bySeries(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
@@ -174,7 +174,7 @@ object ConfigPresets {
                     storage  = imagesStorage,
                 ),
                 Bucket.Novel  to BucketConfig(
-                    template = "Shaft/Novels/{author} ({author_id})/[?series:{series}/{series_order} ]{title} {id}.txt",
+                    template = "Shaft/Novels/[?series:{series}/{series_order} ]{title} {id}.txt",
                     storage  = downloadsStorage,
                 ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),

@@ -1279,7 +1279,7 @@
     <string name="download_path_preset_by_author">작가별 분류</string>
     <string name="download_path_preset_by_author_and_date">작가 + 연월별 분류</string>
     <string name="download_path_preset_by_author_multi_page_group">작가별 분류 + 다중 페이지 작품 하위 폴더 생성</string>
-    <string name="download_path_preset_by_series">소설을 시리즈별로 분류 (이미지는 작가별 유지)</string>
+    <string name="download_path_preset_by_series">소설을 시리즈별로 분류</string>
     <string name="download_path_preset_minimal">최소(ID만)</string>
     <string name="download_path_preset_r_filter">R18 / AI 강제 분리</string>
     <string name="download_path_preset_detailed">상세(제목+ID+P+작가+크기+시간)</string>

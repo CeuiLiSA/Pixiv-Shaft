@@ -1279,7 +1279,7 @@
     <string name="download_path_preset_by_author">Группировать по автору</string>
     <string name="download_path_preset_by_author_and_date">Группировать по автору + году/месяцу</string>
     <string name="download_path_preset_by_author_multi_page_group">Группировка по автору + подпапки для многостраничных работ</string>
-    <string name="download_path_preset_by_series">Новеллы по сериям (картинки по-прежнему по авторам)</string>
+    <string name="download_path_preset_by_series">Новеллы по сериям</string>
     <string name="download_path_preset_minimal">Минимум (только ID)</string>
     <string name="download_path_preset_r_filter">Разделять R18 / AI по папкам</string>
     <string name="download_path_preset_detailed">Подробно (название+ID+P+автор+размер+время)</string>
