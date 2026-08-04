@@ -177,7 +177,7 @@ object DownloadItems {
                     title = novel.title.orEmpty(),
                     author = Author(novel.user?.id?.toLong() ?: 0L, novel.user?.name.orEmpty()),
                     createdAt = parseInstant(novel.create_date),
-                    flags = seriesFlagOf(novel.series?.title),
+                    flags = flagsOfLoxiaNovel(novel),
                     seriesTitle = seriesTitleOf(novel.series?.title),
                     seriesOrder = seriesOrder,
                     seriesTotal = seriesTotal,
@@ -385,6 +385,18 @@ object DownloadItems {
     private fun flagsOfNovel(novel: NovelBean): Set<Flag> {
         val out = mutableSetOf<Flag>()
         if (novel.x_restrict > 0) out += Flag.R18
+        if (seriesTitleOf(novel.series?.title) != null) out += Flag.Series
+        return out
+    }
+
+    /**
+     * loxia [Novel] 版本的 [flagsOfNovel]。R18 必须在这里补上：内置 rFilter 预置的
+     * 小说模板是 `[?R18:R18][?!R18:SFW]`，此前这条路径的 meta 不带任何 flag，
+     * R18 小说会被 `[?!R18:SFW]` 误归进 SFW/ 目录。
+     */
+    private fun flagsOfLoxiaNovel(novel: Novel): Set<Flag> {
+        val out = mutableSetOf<Flag>()
+        if ((novel.x_restrict ?: 0) > 0) out += Flag.R18
         if (seriesTitleOf(novel.series?.title) != null) out += Flag.Series
         return out
     }
