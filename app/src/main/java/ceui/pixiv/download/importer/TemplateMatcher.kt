@@ -177,7 +177,7 @@ class TemplateMatcher private constructor(
                     pageGroup = ++groupCount
                     pattern.append("(\\d{1,6})")
                 }
-                "pages", "author_id", "w", "h" -> pattern.append("(?:\\d{1,12})")
+                "pages", "author_id", "w", "h", "series_order" -> pattern.append("(?:\\d{1,12})")
                 "ext" -> pattern.append("(?:[A-Za-z0-9]{1,8})")
                 "created" -> pattern.append(datePattern(node.format))
                 // title / author 以及任何将来新增的文本变量：惰性 + 限长。

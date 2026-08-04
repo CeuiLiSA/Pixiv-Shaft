@@ -49,6 +49,7 @@ class BatchDownloadNovelsTask(
      * 当 [novels] 是「同一个系列的章节按系列顺序」（NovelSeriesFragment 走的就是
      * 这条路径）时设为 true，下载时把 1-based 位置 + 总数交给 [NovelHeaderRenderer]，
      * 用户在「信息头设置」勾选「本篇在系列中的序号」就能看到「第 X 章 / 共 Y 章」。
+     * 同一份序号也会喂给路径模板的 `{series_order}` 变量（issue #964）。
      *
      * 「未归类作品」之类不是同一系列的批量场景保持 false（默认），
      * 这种情况下 NovelHeaderRenderer 自身也会因为 isSeriesChapter=false 而跳过该字段。
@@ -103,7 +104,12 @@ class BatchDownloadNovelsTask(
      */
     private suspend fun downloadOne(novel: Novel, seriesIndex: Int?) {
         val ctx = Shaft.getContext()
-        val destination: RelativePath = DownloadItems.novelDestinationFromLoxia(novel)
+        // 序号 / 总数同时喂给路径模板（{series_order}，issue #964）和下方的信息头。
+        val destination: RelativePath = DownloadItems.novelDestinationFromLoxia(
+            novel,
+            seriesOrder = seriesIndex,
+            seriesTotal = if (seriesIndex != null) novels.size else null,
+        )
         val fileName = destination.filename
 
         // Skip already-downloaded files. DownloadNovelTask uses the same

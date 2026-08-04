@@ -237,6 +237,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         Token("{w}", "{w}", R.string.download_path_teach_var_w),
         Token("{h}", "{h}", R.string.download_path_teach_var_h),
         Token("{created:yyyyMMdd_HHmmss}", "{created:…}", R.string.download_path_teach_var_created),
+        Token("{series}", "{series}", R.string.download_path_teach_var_series),
+        Token("{series_order}", "{series_order}", R.string.download_path_teach_var_series_order),
     )
 
     private val CONDITION_TOKENS = listOf(
@@ -245,6 +247,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         Token("[?p>1: p{page}]", "[?p>1:…]", R.string.download_path_teach_cond_multipage),
         Token("[?!p>1:]", "[?!p>1:…]", R.string.download_path_teach_cond_singlepage),
         Token("[?!R18:safe/]", "[?!R18:safe/]", R.string.download_path_teach_cond_not_r18),
+        Token("[?series:{series}/]", "[?series:…]", R.string.download_path_teach_cond_series),
     )
 
     private data class Example(val template: String, val labelRes: Int)
@@ -256,6 +259,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         Example("Shaft/{author} ({author_id})/[?p>1:{title} {id}/]{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_multi_page_group_label),
         Example("Shaft/{created:yyyy}/{created:yyyy-MM}/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_date_label),
         Example("Shaft/[?R18:R18/][?AI:AI/]{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_r18_label),
+        Example("Shaft/Novels/{author}/[?series:{series}/{series_order} ]{title} {id}.txt", R.string.download_path_teach_example_novel_series_label),
     )
 
     private fun addTeachingCard(root: LinearLayout) {

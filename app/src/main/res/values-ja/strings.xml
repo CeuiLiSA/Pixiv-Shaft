@@ -1361,12 +1361,15 @@
     <string name="download_path_teach_var_w">画像の幅（ピクセル）</string>
     <string name="download_path_teach_var_h">画像の高さ（ピクセル）</string>
     <string name="download_path_teach_var_created">投稿日時。{created:yyyy} や {created:yyyy-MM-dd} のように形式を指定できます</string>
+    <string name="download_path_teach_var_series">所属シリーズのタイトル（シリーズ外の場合は空）</string>
+    <string name="download_path_teach_var_series_order">シリーズ内での話数（シリーズからの一括ダウンロード時のみ有効。{series_order:00} で桁数を固定できます）</string>
     <string name="download_path_teach_section_cond">条件ブロック（タップで挿入）</string>
     <string name="download_path_teach_cond_r18">R18 作品にのみ「R18/」サブフォルダを追加</string>
     <string name="download_path_teach_cond_ai">AI 作品にのみ「AI/」サブフォルダを追加</string>
     <string name="download_path_teach_cond_multipage">複数ページ作品にのみ適用（/ を含めてサブフォルダ作成可）</string>
     <string name="download_path_teach_cond_singlepage">単ページ作品にのみ適用（[?p&gt;1:] の逆）</string>
     <string name="download_path_teach_cond_not_r18">非 R18 作品にのみ「safe/」サブフォルダを追加</string>
+    <string name="download_path_teach_cond_series">シリーズ所属の作品にのみ「シリーズ名/」サブフォルダを追加</string>
     <string name="download_path_teach_section_examples">よく使う例（タップで現在のテンプレートに適用）</string>
     <string name="download_path_teach_example_classic_label">Shaft クラシック</string>
     <string name="download_path_teach_example_by_author_label">作者ごとに分類</string>
@@ -1374,6 +1377,7 @@
     <string name="download_path_teach_example_flat_label">フラット：すべての作品を 1 つのフォルダに保存</string>
     <string name="download_path_teach_example_date_label">年月ごとに分類</string>
     <string name="download_path_teach_example_r18_label">R18 / AI フォルダ + 作者ごとに分類</string>
+    <string name="download_path_teach_example_novel_series_label">小説：シリーズごとにフォルダ + 話数</string>
     <string name="download_path_teach_tip_focus">先に対象 bucket のテンプレート入力欄を選択してから、変数・条件・例をタップしてください</string>
     <string name="download_path_preset_apply">適用</string>
     <string name="download_path_preset_preview_prefix">例：</string>

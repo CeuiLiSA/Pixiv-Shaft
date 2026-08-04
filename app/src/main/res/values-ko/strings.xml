@@ -1361,12 +1361,15 @@
     <string name="download_path_teach_var_w">이미지 너비(픽셀)</string>
     <string name="download_path_teach_var_h">이미지 높이(픽셀)</string>
     <string name="download_path_teach_var_created">게시 시간. {created:yyyy}, {created:yyyy-MM-dd}처럼 형식을 지정할 수 있습니다</string>
+    <string name="download_path_teach_var_series">소설이 속한 시리즈 제목 (시리즈에 속하지 않으면 비어 있음)</string>
+    <string name="download_path_teach_var_series_order">시리즈 내 이 화의 순번 (시리즈에서 일괄 다운로드할 때만 값이 있음. {series_order:00}로 자릿수 고정 가능)</string>
     <string name="download_path_teach_section_cond">조건 블록(탭하여 삽입)</string>
     <string name="download_path_teach_cond_r18">R18 작품일 때만 &quot;R18/&quot; 하위 폴더 추가</string>
     <string name="download_path_teach_cond_ai">AI 작품일 때만 &quot;AI/&quot; 하위 폴더 추가</string>
     <string name="download_path_teach_cond_multipage">다중 페이지 작품에만 적용(/ 포함 가능, 하위 폴더 생성 가능)</string>
     <string name="download_path_teach_cond_singlepage">단일 페이지 작품에만 적용([?p&gt;1:]의 반대)</string>
     <string name="download_path_teach_cond_not_r18">비 R18 작품일 때만 &quot;safe/&quot; 하위 폴더 추가</string>
+    <string name="download_path_teach_cond_series">시리즈에 속한 작품일 때만 “시리즈명/” 하위 폴더 추가</string>
     <string name="download_path_teach_section_examples">자주 쓰는 예시(탭하여 현재 템플릿에 적용)</string>
     <string name="download_path_teach_example_classic_label">Shaft 클래식</string>
     <string name="download_path_teach_example_by_author_label">작가별 분류</string>
@@ -1374,6 +1377,7 @@
     <string name="download_path_teach_example_flat_label">플랫: 모든 작품을 하나의 폴더에 저장</string>
     <string name="download_path_teach_example_date_label">연월별 분류</string>
     <string name="download_path_teach_example_r18_label">R18 / AI 폴더 + 작가별 분류</string>
+    <string name="download_path_teach_example_novel_series_label">소설: 시리즈별 폴더 + 화 번호</string>
     <string name="download_path_teach_tip_focus">먼저 해당 bucket의 템플릿 입력칸을 선택한 뒤 변수, 조건, 예시를 탭해야 그곳에 삽입됩니다</string>
     <string name="download_path_preset_apply">적용</string>
     <string name="download_path_preset_preview_prefix">예:</string>

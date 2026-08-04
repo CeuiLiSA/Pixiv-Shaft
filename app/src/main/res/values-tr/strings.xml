@@ -1361,12 +1361,15 @@
     <string name="download_path_teach_var_w">Görsel genişliği (piksel)</string>
     <string name="download_path_teach_var_h">Görsel yüksekliği (piksel)</string>
     <string name="download_path_teach_var_created">Yayınlanma zamanı. Örneğin {created:yyyy} veya {created:yyyy-MM-dd} biçimi kullanılabilir</string>
+    <string name="download_path_teach_var_series">Romanın ait olduğu seri adı (seride değilse boş)</string>
+    <string name="download_path_teach_var_series_order">Bu bölümün serideki sırası (yalnızca seriden toplu indirmede dolu olur; {series_order:00} ile basamak sayısı sabitlenebilir)</string>
     <string name="download_path_teach_section_cond">Koşul blokları (eklemek için dokunun)</string>
     <string name="download_path_teach_cond_r18">Yalnızca R18 eserler için &quot;R18/&quot; alt klasörü ekle</string>
     <string name="download_path_teach_cond_ai">Yalnızca AI eserler için &quot;AI/&quot; alt klasörü ekle</string>
     <string name="download_path_teach_cond_multipage">Yalnızca çok sayfalı eserlerde geçerli olur (/ ile alt klasör de oluşturabilir)</string>
     <string name="download_path_teach_cond_singlepage">Yalnızca tek sayfalı eserlerde geçerli olur ([?p&gt;1:] koşulunun tersi)</string>
     <string name="download_path_teach_cond_not_r18">Yalnızca R18 olmayan eserler için &quot;safe/&quot; alt klasörü ekle</string>
+    <string name="download_path_teach_cond_series">Yalnızca bir seriye ait romanlar için “seri adı/” alt klasörü ekle</string>
     <string name="download_path_teach_section_examples">Sık kullanılan örnekler (geçerli şablona uygulamak için dokunun)</string>
     <string name="download_path_teach_example_classic_label">Shaft classic</string>
     <string name="download_path_teach_example_by_author_label">Yazara göre grupla</string>
@@ -1374,6 +1377,7 @@
     <string name="download_path_teach_example_flat_label">Düz yapı: tüm eserleri tek klasörde topla</string>
     <string name="download_path_teach_example_date_label">Yıl ve aya göre grupla</string>
     <string name="download_path_teach_example_r18_label">R18 / AI klasörleri + yazara göre gruplama</string>
+    <string name="download_path_teach_example_novel_series_label">Romanlar: seri başına klasör + bölüm numarası</string>
     <string name="download_path_teach_tip_focus">Önce ilgili bölümün şablon giriş alanına dokunun, sonra değişkenlere, koşullara veya örneklere dokunun</string>
     <string name="download_path_preset_apply">Uygula</string>
     <string name="download_path_preset_preview_prefix">Örnek:</string>

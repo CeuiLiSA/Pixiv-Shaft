@@ -60,7 +60,7 @@ object TemplateValidator {
         return Result(issues, compiled)
     }
 
-    private val PAGE_MASK_REGEX = Regex("\\{(page1?):([^}]*)\\}")
+    private val PAGE_MASK_REGEX = Regex("\\{(page1?|series_order):([^}]*)\\}")
 
     /**
      * `{page:000}` pins a zero-pad width. Rendering ignores a malformed mask so

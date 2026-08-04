@@ -1361,12 +1361,15 @@
     <string name="download_path_teach_var_w">Image width (pixels)</string>
     <string name="download_path_teach_var_h">Image height (pixels)</string>
     <string name="download_path_teach_var_created">Posting time. The format can be customized, for example {created:yyyy} or {created:yyyy-MM-dd}</string>
+    <string name="download_path_teach_var_series">Series title the novel belongs to (empty when not in a series)</string>
+    <string name="download_path_teach_var_series_order">Position of this chapter in its series (only set when batch-downloading from a series; write {series_order:00} to pin the width)</string>
     <string name="download_path_teach_section_cond">Conditions (tap to insert)</string>
     <string name="download_path_teach_cond_r18">Add the &quot;R18/&quot; subfolder only for R18 works</string>
     <string name="download_path_teach_cond_ai">Add the &quot;AI/&quot; subfolder only for AI works</string>
     <string name="download_path_teach_cond_multipage">Applies only to multi-page works (can include / to create subfolders)</string>
     <string name="download_path_teach_cond_singlepage">Applies only to single-page works (the opposite of [?p&gt;1:])</string>
     <string name="download_path_teach_cond_not_r18">Add the &quot;safe/&quot; subfolder only for non-R18 works</string>
+    <string name="download_path_teach_cond_series">Add the “series title/” subfolder only when the novel belongs to a series</string>
     <string name="download_path_teach_section_examples">Common templates (tap to apply to the current template)</string>
     <string name="download_path_teach_example_classic_label">Shaft classic</string>
     <string name="download_path_teach_example_by_author_label">Group by author</string>
@@ -1374,6 +1377,7 @@
     <string name="download_path_teach_example_flat_label">Flat: put all works in one folder</string>
     <string name="download_path_teach_example_date_label">Group by year/month</string>
     <string name="download_path_teach_example_r18_label">R18 / AI subfolders + by author</string>
+    <string name="download_path_teach_example_novel_series_label">Novels: folder per series + chapter number</string>
     <string name="download_path_teach_tip_focus">Tap a template field for a bucket first, then tap variables, conditions, or examples to insert them there</string>
     <string name="download_path_preset_apply">Apply</string>
     <string name="download_path_preset_preview_prefix">Example:</string>

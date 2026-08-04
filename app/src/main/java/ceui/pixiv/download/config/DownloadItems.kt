@@ -74,6 +74,7 @@ object DownloadItems {
             width = null,
             height = null,
             flags = flagsOfNovel(novel),
+            seriesTitle = seriesTitleOf(novel.series?.title),
         ),
     )
 
@@ -158,7 +159,17 @@ object DownloadItems {
      */
     @JvmStatic
     @JvmOverloads
-    fun novelDestinationFromLoxia(novel: Novel, extOverride: String? = null): RelativePath =
+    fun novelDestinationFromLoxia(
+        novel: Novel,
+        extOverride: String? = null,
+        /**
+         * 本篇在系列中的 1-based 序号 + 系列总篇数，只有「从系列批量下载」
+         * （[ceui.pixiv.ui.task.BatchDownloadNovelsTask]）能提供；单篇下载 /
+         * 阅读器导出拿不到顺序，`{series_order}` 渲染成空串。
+         */
+        seriesOrder: Int? = null,
+        seriesTotal: Int? = null,
+    ): RelativePath =
         novelDestination(
             novelItem(
                 ItemMeta(
@@ -166,6 +177,10 @@ object DownloadItems {
                     title = novel.title.orEmpty(),
                     author = Author(novel.user?.id?.toLong() ?: 0L, novel.user?.name.orEmpty()),
                     createdAt = parseInstant(novel.create_date),
+                    flags = seriesFlagOf(novel.series?.title),
+                    seriesTitle = seriesTitleOf(novel.series?.title),
+                    seriesOrder = seriesOrder,
+                    seriesTotal = seriesTotal,
                 ),
             ),
             extOverride = extOverride,
@@ -224,6 +239,8 @@ object DownloadItems {
                     seriesDetail.user?.name.orEmpty(),
                 ),
                 createdAt = Instant.now(),
+                flags = seriesFlagOf(seriesDetail.title),
+                seriesTitle = seriesTitleOf(seriesDetail.title),
             ),
         ),
         mergeFileName,
@@ -249,6 +266,8 @@ object DownloadItems {
                     seriesItem.user?.name.orEmpty(),
                 ),
                 createdAt = Instant.now(),
+                flags = seriesFlagOf(seriesItem.title),
+                seriesTitle = seriesTitleOf(seriesItem.title),
             ),
         ),
         mergeFileName,
@@ -366,8 +385,20 @@ object DownloadItems {
     private fun flagsOfNovel(novel: NovelBean): Set<Flag> {
         val out = mutableSetOf<Flag>()
         if (novel.x_restrict > 0) out += Flag.R18
+        if (seriesTitleOf(novel.series?.title) != null) out += Flag.Series
         return out
     }
+
+    /**
+     * Pixiv 对不在系列中的小说返回 `series: {}` 空对象，反序列化后对象非 null
+     * 但字段全空 —— 判定「真的在系列里」必须看标题非空（与
+     * [ceui.pixiv.download.header.NovelHeaderRenderer] 的判法一致），
+     * 不能只判 `series != null`。
+     */
+    private fun seriesTitleOf(raw: String?): String? = raw?.takeIf { it.isNotBlank() }
+
+    private fun seriesFlagOf(raw: String?): Set<Flag> =
+        if (seriesTitleOf(raw) != null) setOf(Flag.Series) else emptySet()
 
     private fun pageOriginalUrl(illust: IllustsBean, index: Int): String =
         if (illust.page_count <= 1) {

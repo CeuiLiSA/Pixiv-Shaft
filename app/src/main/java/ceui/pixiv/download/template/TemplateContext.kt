@@ -33,6 +33,10 @@ class TemplateContext(
             "ext" -> ext
             "author" -> meta.author.name
             "author_id" -> meta.author.id.toString()
+            // 系列变量（issue #964）：不在系列中 / 来源拿不到时渲染成空串，
+            // RelativePath.parse 会把由此产生的空目录段折叠掉。
+            "series" -> meta.seriesTitle.orEmpty()
+            "series_order" -> meta.seriesOrder?.let { orderNumber(it, format) }.orEmpty()
             "w" -> meta.width?.toString().orEmpty()
             "h" -> meta.height?.toString().orEmpty()
             "created" -> formatInstant(format)
@@ -61,6 +65,20 @@ class TemplateContext(
      */
     private fun pageNumber(value: Int, format: String?): String =
         value.toString().padStart(explicitWidth(format) ?: autoWidth(), '0')
+
+    /**
+     * `{series_order}` — same shape as [pageNumber]: an explicit `{series_order:00}`
+     * mask wins; otherwise the global padding switch pads to the series' total
+     * chapter count so chapters sort as text (floor 2, mirroring [autoWidth]).
+     */
+    private fun orderNumber(value: Int, format: String?): String =
+        value.toString().padStart(explicitWidth(format) ?: seriesOrderAutoWidth(), '0')
+
+    private fun seriesOrderAutoWidth(): Int {
+        if (!numbering.padded) return 1
+        val highest = maxOf(meta.seriesTotal ?: 1, meta.seriesOrder ?: 1)
+        return maxOf(2, highest.toString().length)
+    }
 
     /**
      * `{page:000}` — width is the number of zeros.

@@ -33,7 +33,10 @@ object TemplateSamples {
         title = "Example Novel: Chapter 1",
         author = Author(12345L, "Example Author"),
         createdAt = CREATED,
-        flags = setOf(Flag.R18),
+        flags = setOf(Flag.R18, Flag.Series),
+        seriesTitle = "Example Series",
+        seriesOrder = 3,
+        seriesTotal = 12,
     )
 
     val UGOIRA_SAMPLE = ItemMeta(
