@@ -169,7 +169,7 @@ class PdfExporter : NovelExporter {
         }
         document.close()
         if (uri == null) return ExportResult.Failure("无法写入 Downloads")
-        return ExportResult.Success(uri, destination.filename, format)
+        return ExportResult.Success(uri, destination.joinTo(), format)
     }
 
     /** Tracks the current PDF page's canvas cursor (y position). */

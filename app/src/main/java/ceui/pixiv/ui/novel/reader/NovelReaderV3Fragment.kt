@@ -718,7 +718,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         Toaster.showShort(getString(R.string.msg_export_start, getString(format.displayNameResId)))
         viewLifecycleOwner.lifecycleScope.launch {
             when (val result = viewModel.exportNovel(format)) {
-                is ExportResult.Success -> Toaster.showLong(getString(R.string.msg_export_success, result.fileName))
+                is ExportResult.Success -> Toaster.showLong(getString(R.string.msg_export_success, result.displayPath))
                 is ExportResult.Failure -> Toaster.showLong(getString(R.string.msg_export_fail, result.message))
             }
         }

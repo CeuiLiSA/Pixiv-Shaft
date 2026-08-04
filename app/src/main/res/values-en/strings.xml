@@ -1181,7 +1181,7 @@
     <string name="msg_novel_loading">Novel info not loaded yet, try again later</string>
     <string name="msg_novel_not_ready">Novel not loaded yet</string>
     <string name="msg_export_start">Starting export %s…</string>
-    <string name="msg_export_success">Exported to Downloads/ShaftNovels/%s</string>
+    <string name="msg_export_success">Exported to %s</string>
     <string name="msg_export_fail">Export failed: %s</string>
     <string name="msg_operation_fail">Operation failed: %s</string>
     <string name="msg_load_fail">Load failed</string>

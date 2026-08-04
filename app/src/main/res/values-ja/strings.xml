@@ -1181,7 +1181,7 @@
     <string name="msg_novel_loading">小説情報がまだ読み込まれていません。後でもう一度お試しください</string>
     <string name="msg_novel_not_ready">小説がまだ読み込まれていません</string>
     <string name="msg_export_start">%s をエクスポート中…</string>
-    <string name="msg_export_success">Downloads/ShaftNovels/%s にエクスポートしました</string>
+    <string name="msg_export_success">%s にエクスポートしました</string>
     <string name="msg_export_fail">エクスポート失敗：%s</string>
     <string name="msg_operation_fail">操作失敗：%s</string>
     <string name="msg_load_fail">読み込み失敗</string>

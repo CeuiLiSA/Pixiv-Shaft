@@ -229,7 +229,7 @@ class NovelTextFragment :
             }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }
             when (result) {
                 is ExportResult.Success -> Toaster.show(
-                    appContext.getString(R.string.msg_export_success, result.fileName)
+                    appContext.getString(R.string.msg_export_success, result.displayPath)
                 )
                 is ExportResult.Failure -> Toaster.show(
                     appContext.getString(R.string.msg_export_fail, result.message)

@@ -1183,7 +1183,7 @@
     <string name="msg_novel_loading">小說資訊尚未載入，請稍後再試</string>
     <string name="msg_novel_not_ready">小說尚未載入完成</string>
     <string name="msg_export_start">開始匯出 %s…</string>
-    <string name="msg_export_success">已匯出到 Downloads/ShaftNovels/%s</string>
+    <string name="msg_export_success">已匯出到 %s</string>
     <string name="msg_export_fail">匯出失敗：%s</string>
     <string name="msg_operation_fail">操作失敗：%s</string>
     <string name="msg_load_fail">載入失敗</string>

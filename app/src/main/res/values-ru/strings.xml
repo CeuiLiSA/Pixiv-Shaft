@@ -1181,7 +1181,7 @@
     <string name="msg_novel_loading">Информация о новелле ещё не загружена, попробуйте позже</string>
     <string name="msg_novel_not_ready">Новелла ещё не загружена</string>
     <string name="msg_export_start">Начинаем экспорт %s…</string>
-    <string name="msg_export_success">Экспортировано в Downloads/ShaftNovels/%s</string>
+    <string name="msg_export_success">Экспортировано в %s</string>
     <string name="msg_export_fail">Ошибка экспорта: %s</string>
     <string name="msg_operation_fail">Ошибка операции: %s</string>
     <string name="msg_load_fail">Не удалось загрузить</string>

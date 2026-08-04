@@ -1181,7 +1181,7 @@
     <string name="msg_novel_loading">소설 정보가 아직 로드되지 않았습니다. 나중에 다시 시도하세요</string>
     <string name="msg_novel_not_ready">소설이 아직 로드되지 않았습니다</string>
     <string name="msg_export_start">%s 내보내기 중…</string>
-    <string name="msg_export_success">Downloads/ShaftNovels/%s 로 내보냈습니다</string>
+    <string name="msg_export_success">%s 로 내보냈습니다</string>
     <string name="msg_export_fail">내보내기 실패: %s</string>
     <string name="msg_operation_fail">작업 실패: %s</string>
     <string name="msg_load_fail">로드 실패</string>

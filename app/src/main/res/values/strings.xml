@@ -1267,7 +1267,7 @@
     <string name="msg_novel_loading">小说信息还没加载，请稍后再试</string>
     <string name="msg_novel_not_ready">小说还没加载完成</string>
     <string name="msg_export_start">开始导出 %s…</string>
-    <string name="msg_export_success">已导出到 Downloads/ShaftNovels/%s</string>
+    <string name="msg_export_success">已导出到 %s</string>
     <string name="msg_export_fail">导出失败：%s</string>
     <string name="msg_operation_fail">操作失败：%s</string>
     <string name="msg_load_fail">加载失败</string>

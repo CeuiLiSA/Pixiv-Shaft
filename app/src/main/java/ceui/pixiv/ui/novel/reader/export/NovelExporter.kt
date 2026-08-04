@@ -41,6 +41,10 @@ enum class ExportFormat(
 }
 
 sealed class ExportResult {
-    data class Success(val uri: Uri, val fileName: String, val format: ExportFormat) : ExportResult()
+    /**
+     * [displayPath] 是模板渲染出的完整相对路径（目录 + 文件名），给成功 toast
+     * 展示用——路径由用户模板决定，不能在文案里写死目录前缀。
+     */
+    data class Success(val uri: Uri, val displayPath: String, val format: ExportFormat) : ExportResult()
     data class Failure(val message: String, val cause: Throwable? = null) : ExportResult()
 }

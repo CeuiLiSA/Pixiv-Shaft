@@ -75,7 +75,7 @@ class EpubExporter : NovelExporter {
             }
         } ?: return ExportResult.Failure("无法写入 Downloads")
 
-        return ExportResult.Success(uri, destination.filename, format)
+        return ExportResult.Success(uri, destination.joinTo(), format)
     }
 
     private fun buildChapterXhtml(

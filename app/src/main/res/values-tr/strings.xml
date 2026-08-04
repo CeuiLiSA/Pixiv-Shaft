@@ -1181,7 +1181,7 @@
     <string name="msg_novel_loading">Roman bilgisi henüz yüklenmedi, daha sonra deneyin</string>
     <string name="msg_novel_not_ready">Roman henüz yüklenmedi</string>
     <string name="msg_export_start">%s dışa aktarılıyor…</string>
-    <string name="msg_export_success">Downloads/ShaftNovels/%s konumuna aktarıldı</string>
+    <string name="msg_export_success">%s konumuna aktarıldı</string>
     <string name="msg_export_fail">Dışa aktarma başarısız: %s</string>
     <string name="msg_operation_fail">İşlem başarısız: %s</string>
     <string name="msg_load_fail">Yükleme başarısız</string>
