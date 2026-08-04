@@ -27,6 +27,7 @@ import ceui.pixiv.imageloader.ImageLoadState
 import ceui.pixiv.imageloader.ImageLoaderV3
 import ceui.pixiv.imageloader.observeState
 import ceui.pixiv.ui.common.deleteImageById
+import ceui.pixiv.ui.common.enableTileBitmapFilter
 import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.saveImageToGallery
 import ceui.pixiv.ui.translate.MangaOcrModel
@@ -322,6 +323,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun initView() {
+        // 低分屏上子采样瓦片未过滤缩小绘制会满屏锯齿（#735），开双线性过滤
+        baseBind.image.enableTileBitmapFilter()
         baseBind.emptyActionButton.setOnClickListener { v: View? -> loadImage() }
         //插画二级详情保持屏幕常亮
         if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
