@@ -2189,7 +2189,6 @@
     <string name="image_host_custom_hint">https://your.proxy</string>
     <string name="image_host_custom_empty">プロキシ URL を入力してください</string>
     <string name="image_host_restart_hint">アプリを再起動すると反映されます</string>
-    <string name="comment_translate_to_zh">中国語に翻訳</string>
     <string name="comment_emoji_picker">絵文字</string>
     <string name="comment_emoji_tab_kaomoji">絵文字</string>
     <string name="comment_emoji_tab_stamp">スタンプ</string>

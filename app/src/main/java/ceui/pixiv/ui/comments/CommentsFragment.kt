@@ -221,8 +221,8 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
                 item(getString(R.string.string_173), R.drawable.baseline_content_copy_24) {
                     ClipBoardUtils.putTextIntoClipboard(requireContext(), commentText)
                 }
-                item(getString(R.string.comment_translate_to_zh), R.drawable.ic_baseline_translate_24) {
-                    translateCommentToChinese(commentText)
+                item(getString(R.string.string_translate_caption), R.drawable.ic_baseline_translate_24) {
+                    translateComment(commentText)
                 }
             }
             if (!isOwn) {

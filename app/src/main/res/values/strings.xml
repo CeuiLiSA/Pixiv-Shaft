@@ -2393,7 +2393,6 @@
     <string name="image_host_custom_hint">https://你的反代域名</string>
     <string name="image_host_custom_empty">反代地址不能为空</string>
     <string name="image_host_restart_hint">重启 App 后生效</string>
-    <string name="comment_translate_to_zh">翻译成中文</string>
     <string name="comment_emoji_picker">表情</string>
     <string name="comment_emoji_tab_kaomoji">绘文字</string>
     <string name="comment_emoji_tab_stamp">表情贴图</string>

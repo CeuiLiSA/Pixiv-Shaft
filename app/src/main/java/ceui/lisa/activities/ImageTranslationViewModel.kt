@@ -20,6 +20,7 @@ import ceui.pixiv.ui.translate.MangaOcrRecognizer
 import ceui.pixiv.ui.translate.TextEraser
 import ceui.pixiv.ui.translate.TextMask
 import ceui.pixiv.ui.translate.TextRenderer
+import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.promptProxyNeededIfPossible
 import ceui.pixiv.ui.upscale.MangaOcr
 import ceui.pixiv.ui.upscale.OcrTextRegion
@@ -146,8 +147,8 @@ class ImageTranslationViewModel : ViewModel() {
         try {
             GoogleWebTranslator.translateBatch(
                 inputs = regions.map { it.text },
-                outputLang = "zh-CN",
-                onItem = { i, zh -> translations[i] = zh },
+                outputLang = appTranslateTargetLang(),
+                onItem = { i, translated -> translations[i] = translated },
             )
         } catch (e: Exception) {
             // Google Translate 在国内被墙,大概率是代理没开;给个明确提示别让用户当 app bug
@@ -258,14 +259,14 @@ class ImageTranslationViewModel : ViewModel() {
 
             // 4. 翻译(单条)
             _status.postValue(Status(app.getString(R.string.ocr_translating)))
-            val zh = try {
+            val translated = try {
                 translateSingle(ocr.text)
             } catch (e: Exception) {
                 Timber.e(e, "manual: translate failed")
                 promptProxyNeededIfPossible()
                 return
             }
-            if (zh.isBlank()) {
+            if (translated.isBlank()) {
                 promptProxyNeededIfPossible()
                 return
             }
@@ -273,7 +274,7 @@ class ImageTranslationViewModel : ViewModel() {
             // 5. 擦字 + 回填到底图,产出新 PNG
             _status.postValue(Status(app.getString(R.string.ocr_writeback_running)))
             val outFile = withContext(Dispatchers.IO) {
-                runCatching { renderManualOnto(app, ocr.base, pageIndex, ocr.region.copy(text = ocr.text), zh) }
+                runCatching { renderManualOnto(app, ocr.base, pageIndex, ocr.region.copy(text = ocr.text), translated) }
                     .onFailure { Timber.e(it, "manual: render failed") }.getOrNull()
             }
             if (outFile == null) {
@@ -344,8 +345,8 @@ class ImageTranslationViewModel : ViewModel() {
         var out = ""
         GoogleWebTranslator.translateBatch(
             inputs = listOf(text),
-            outputLang = "zh-CN",
-            onItem = { _, zh -> out = zh },
+            outputLang = appTranslateTargetLang(),
+            onItem = { _, translated -> out = translated },
         )
         return out
     }
@@ -359,12 +360,12 @@ class ImageTranslationViewModel : ViewModel() {
         base: Bitmap,
         pageIndex: Int,
         region: OcrTextRegion,
-        zh: String,
+        translated: String,
     ): File {
         val erased = TextEraser.eraseText(base, listOf(region), null)
         try {
             val canvas = Canvas(erased)
-            TextRenderer.renderTranslations(canvas, listOf(region), mapOf(0 to zh))
+            TextRenderer.renderTranslations(canvas, listOf(region), mapOf(0 to translated))
             val out = File(
                 app.cacheDir,
                 "manga_translated_p${pageIndex}_${System.currentTimeMillis()}.png"

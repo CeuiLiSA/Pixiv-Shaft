@@ -93,7 +93,7 @@ object TextRenderer {
                 region.text.take(40), text.take(40)
             )
 
-            // 中文译文一律横排:日文竖排气泡翻译成中文后,中文竖排极不自然,
+            // 译文一律横排:日文竖排气泡翻出中文/俄文等目标语言后,继续竖排极不自然,
             // 业界翻译工具(manga-image-translator / BallonsTranslator)默认行为也是如此。
             renderHorizontalText(canvas, paint, strokePaint, text,
                 regionLeft + padX, regionTop + padY, innerWidth, innerHeight)

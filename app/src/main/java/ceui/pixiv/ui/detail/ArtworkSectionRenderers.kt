@@ -55,7 +55,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.comments.CommentEmojiSpanner
-import ceui.pixiv.ui.comments.translateCommentToChinese
+import ceui.pixiv.ui.comments.translateComment
 import ceui.pixiv.ui.user.binding_loadUserIcon
 import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.ppppx
@@ -567,8 +567,8 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
                     item(ctx.getString(R.string.string_173), R.drawable.baseline_content_copy_24) {
                         ClipBoardUtils.putTextIntoClipboard(ctx, text)
                     }
-                    item(ctx.getString(R.string.comment_translate_to_zh), R.drawable.ic_baseline_translate_24) {
-                        translateCommentToChinese(text)
+                    item(ctx.getString(R.string.string_translate_caption), R.drawable.ic_baseline_translate_24) {
+                        translateComment(text)
                     }
                 }
                 item(ctx.getString(R.string.string_174), R.drawable.ic_supervisor_account_black_24dp) {

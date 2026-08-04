@@ -2189,7 +2189,6 @@
     <string name="image_host_custom_hint">https://your.proxy</string>
     <string name="image_host_custom_empty">프록시 URL을 입력하세요</string>
     <string name="image_host_restart_hint">앱을 다시 시작하면 적용됩니다</string>
-    <string name="comment_translate_to_zh">중국어로 번역</string>
     <string name="comment_emoji_picker">이모티콘</string>
     <string name="comment_emoji_tab_kaomoji">이모티콘</string>
     <string name="comment_emoji_tab_stamp">스티커</string>

@@ -59,6 +59,7 @@ import ceui.pixiv.ui.novel.reader.render.NovelReaderView
 import ceui.pixiv.ui.novel.reader.render.NovelScrollReaderView
 import ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView
 import ceui.pixiv.ui.novel.reader.render.PageOverlays
+import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
 import ceui.pixiv.ui.novel.reader.ui.AnnotationSheetCallback
@@ -1075,7 +1076,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         if (intent.resolveActivity(requireContext().packageManager) != null) {
             startActivity(Intent.createChooser(intent, getString(R.string.chooser_translate)))
         } else {
-            runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://translate.google.com/?sl=auto&tl=zh-CN&text=${Uri.encode(sel.text)}&op=translate"))) }
+            runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://translate.google.com/?sl=auto&tl=${appTranslateTargetLang()}&text=${Uri.encode(sel.text)}&op=translate"))) }
                 .onFailure { Toaster.showShort(getString(R.string.msg_no_translate_app)) }
         }
     }
