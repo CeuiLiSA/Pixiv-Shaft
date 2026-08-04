@@ -339,6 +339,21 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         binding.readerLoading.trackColor = ColorUtils.setAlphaComponent(theme.accentColor, 0x33)
     }
 
+    /**
+     * 加载环要一直盖到「正文真正上屏」为止,不能只看 loadState。纵向模式在
+     * loadState→Loaded 时 rebindScrollViewIfActive() 已经把 tokens 贴上去了;
+     * 横向翻页模式还要等 pagination 在 novel-paginate 线程上排完版才 rv.bind(),
+     * 万字小说这一段在中低端机上能到 1 秒,期间屏幕只剩背景色。
+     */
+    private fun updateLoadingVisibility() {
+        val state = viewModel.loadState.value
+        val contentReady = ReaderSettings.readingDirection == ReadingDirection.Vertical ||
+            viewModel.pagination.value != null
+        val showLoading = state is NovelReaderV3ViewModel.LoadState.Loading ||
+            (state is NovelReaderV3ViewModel.LoadState.Loaded && !contentReady)
+        binding.readerLoading.visibility = if (showLoading) View.VISIBLE else View.GONE
+    }
+
     // ---- Observe ------------------------------------------------------------
 
     private fun observeReaderState(
@@ -370,7 +385,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
 
         viewModel.loadState.observe(viewLifecycleOwner) { state ->
-            binding.readerLoading.visibility = if (state is NovelReaderV3ViewModel.LoadState.Loading) View.VISIBLE else View.GONE
+            updateLoadingVisibility()
             binding.readerError.visibility = if (state is NovelReaderV3ViewModel.LoadState.Error) View.VISIBLE else View.GONE
             if (state is NovelReaderV3ViewModel.LoadState.Error) binding.readerError.text = state.message
             if (state is NovelReaderV3ViewModel.LoadState.Loaded) {
@@ -385,6 +400,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
 
         viewModel.pagination.observe(viewLifecycleOwner) { pag ->
+            updateLoadingVisibility()
             if (pag == null) return@observe
             if (ReaderSettings.readingDirection == ReadingDirection.Vertical) return@observe
             rv.setStyle(pag.style, pag.geometry)
@@ -477,6 +493,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             lastPushedSnapshot = null
             pushStyleAndGeometryIfReady()
         }
+        // 纵向切横向时 rv 之前一直是 GONE(宽高为 0,从没排过版),pagination 还是
+        // null,正文要等这次 repaginate 才有——补一次判定把加载环显示出来。
+        updateLoadingVisibility()
     }
 
     private fun ensureScrollReaderView(chrome: ReaderChrome): NovelScrollReaderView {
