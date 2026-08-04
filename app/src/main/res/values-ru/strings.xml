@@ -1279,6 +1279,7 @@
     <string name="download_path_preset_by_author">Группировать по автору</string>
     <string name="download_path_preset_by_author_and_date">Группировать по автору + году/месяцу</string>
     <string name="download_path_preset_by_author_multi_page_group">Группировка по автору + подпапки для многостраничных работ</string>
+    <string name="download_path_preset_by_series">Новеллы по сериям (картинки по-прежнему по авторам)</string>
     <string name="download_path_preset_minimal">Минимум (только ID)</string>
     <string name="download_path_preset_r_filter">Разделять R18 / AI по папкам</string>
     <string name="download_path_preset_detailed">Подробно (название+ID+P+автор+размер+время)</string>
@@ -1378,6 +1379,7 @@
     <string name="download_path_teach_example_date_label">Группировка по году и месяцу</string>
     <string name="download_path_teach_example_r18_label">Папки R18 / AI + группировка по автору</string>
     <string name="download_path_teach_example_novel_series_label">Новеллы: папка на серию + номер главы</string>
+    <string name="download_path_teach_example_novel_series_flat_label">Новеллы: папка только по серии (без уровня автора)</string>
     <string name="download_path_teach_tip_focus">Сначала нажмите на поле шаблона нужного bucket, затем на переменную, условие или пример — только тогда вставка пойдёт туда</string>
     <string name="download_path_preset_apply">Применить</string>
     <string name="download_path_preset_preview_prefix">Например:</string>

@@ -157,6 +157,31 @@ object ConfigPresets {
             ),
         )
 
+    /**
+     * 小说按「作者/系列/序号 标题」三层落盘（issue #964），图和动图保持按作者分组。
+     * `{series_order}` 只有系列批量下载能拿到；单篇下载序号渲染为空，
+     * 前导空格会被 FsSanitizer 裁掉，不会留下孤立分隔符。
+     */
+    fun bySeries(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
+        DownloadConfig(
+            defaults = BucketDefaults(
+                template = "Shaft/{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}",
+                storage  = imagesStorage,
+            ),
+            perBucket = mapOf(
+                Bucket.Ugoira to BucketConfig(
+                    template = "Shaft/{author} ({author_id})/{title} {id}.gif",
+                    storage  = imagesStorage,
+                ),
+                Bucket.Novel  to BucketConfig(
+                    template = "Shaft/Novels/{author} ({author_id})/[?series:{series}/{series_order} ]{title} {id}.txt",
+                    storage  = downloadsStorage,
+                ),
+                Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
+                Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
+            ),
+        )
+
     /** 最短路径——只保留 ID + 扩展名，路径由存储卷自己决定。 */
     fun minimal(imagesStorage: StorageChoice, downloadsStorage: StorageChoice): DownloadConfig =
         DownloadConfig(
@@ -222,6 +247,7 @@ object ConfigPresets {
         ByAuthor,
         ByAuthorAndDate,
         ByAuthorMultiPageGroup,
+        BySeries,
         Minimal,
         RFilter,
         Detailed,
@@ -239,6 +265,7 @@ object ConfigPresets {
         Id.ByAuthor                -> byAuthor(imagesStorage, downloadsStorage)
         Id.ByAuthorAndDate         -> byAuthorAndDate(imagesStorage, downloadsStorage)
         Id.ByAuthorMultiPageGroup  -> byAuthorMultiPageGroup(imagesStorage, downloadsStorage)
+        Id.BySeries                -> bySeries(imagesStorage, downloadsStorage)
         Id.Minimal                 -> minimal(imagesStorage, downloadsStorage)
         Id.RFilter                 -> rFilter(imagesStorage, downloadsStorage)
         Id.Detailed                -> detailed(imagesStorage, downloadsStorage)

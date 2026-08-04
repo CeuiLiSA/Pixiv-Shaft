@@ -140,6 +140,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private data class PresetInfo(
         val id: ConfigPresets.Id,
         val labelRes: Int,
+        /** 预览行展示哪个 bucket 的模板；默认插画（对大多数预设最有信息量）。 */
+        val previewBucket: Bucket = Bucket.Illust,
     )
 
     private val PRESETS = listOf(
@@ -150,6 +152,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         PresetInfo(ConfigPresets.Id.ByAuthor,        R.string.download_path_preset_by_author),
         PresetInfo(ConfigPresets.Id.ByAuthorAndDate, R.string.download_path_preset_by_author_and_date),
         PresetInfo(ConfigPresets.Id.ByAuthorMultiPageGroup, R.string.download_path_preset_by_author_multi_page_group),
+        // 卖点在小说 bucket，预览也展示小说路径——展示插画路径的话和 ByAuthor 看不出区别。
+        PresetInfo(ConfigPresets.Id.BySeries,        R.string.download_path_preset_by_series, previewBucket = Bucket.Novel),
         PresetInfo(ConfigPresets.Id.Minimal,         R.string.download_path_preset_minimal),
         PresetInfo(ConfigPresets.Id.RFilter,         R.string.download_path_preset_r_filter),
         PresetInfo(ConfigPresets.Id.Detailed,        R.string.download_path_preset_detailed),
@@ -176,15 +180,15 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     }
 
     /**
-     * Produces a 1-line illustration of what the preset would produce for the
-     * Illust bucket — the most visually informative sample for users scanning
-     * presets.
+     * Produces a 1-line illustration of what the preset would produce for its
+     * [PresetInfo.previewBucket] — Illust for most presets, Novel for the
+     * novel-focused ones.
      */
     private fun previewFor(preset: PresetInfo): CharSequence {
         val config = ConfigPresets.of(preset.id, placeholderImages(), placeholderDownloads())
-        val template = config.resolve(Bucket.Illust).template
+        val template = config.resolve(preset.previewBucket).template
         return getString(R.string.download_path_preset_preview_prefix) + " " +
-            when (val r = TemplateSamples.preview(template, Bucket.Illust)) {
+            when (val r = TemplateSamples.preview(template, preset.previewBucket)) {
                 is TemplateSamples.Preview.Ok      -> r.cleaned.joinTo()
                 is TemplateSamples.Preview.Failure -> "⚠"
             }
@@ -260,6 +264,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         Example("Shaft/{created:yyyy}/{created:yyyy-MM}/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_date_label),
         Example("Shaft/[?R18:R18/][?AI:AI/]{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_r18_label),
         Example("Shaft/Novels/{author}/[?series:{series}/{series_order} ]{title} {id}.txt", R.string.download_path_teach_example_novel_series_label),
+        Example("Shaft/Novels/[?series:{series}/{series_order} ]{title} {id}.txt", R.string.download_path_teach_example_novel_series_flat_label),
     )
 
     private fun addTeachingCard(root: LinearLayout) {

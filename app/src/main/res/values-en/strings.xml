@@ -1279,6 +1279,7 @@
     <string name="download_path_preset_by_author">Group by author</string>
     <string name="download_path_preset_by_author_and_date">Group by author + year/month</string>
     <string name="download_path_preset_by_author_multi_page_group">Group by author + subfolders for multi-page works</string>
+    <string name="download_path_preset_by_series">Novels by series (images still by author)</string>
     <string name="download_path_preset_minimal">Minimal (ID only)</string>
     <string name="download_path_preset_r_filter">Force separate folders for R18 / AI</string>
     <string name="download_path_preset_detailed">Detailed (title+ID+P+artist+size+time)</string>
@@ -1378,6 +1379,7 @@
     <string name="download_path_teach_example_date_label">Group by year/month</string>
     <string name="download_path_teach_example_r18_label">R18 / AI subfolders + by author</string>
     <string name="download_path_teach_example_novel_series_label">Novels: folder per series + chapter number</string>
+    <string name="download_path_teach_example_novel_series_flat_label">Novels: folder per series only (no author level)</string>
     <string name="download_path_teach_tip_focus">Tap a template field for a bucket first, then tap variables, conditions, or examples to insert them there</string>
     <string name="download_path_preset_apply">Apply</string>
     <string name="download_path_preset_preview_prefix">Example:</string>

@@ -1281,6 +1281,7 @@
     <string name="download_path_preset_by_author">依作者分類</string>
     <string name="download_path_preset_by_author_and_date">依作者 + 年月分類</string>
     <string name="download_path_preset_by_author_multi_page_group">依作者分類 + 多頁作品建立子資料夾</string>
+    <string name="download_path_preset_by_series">小說依系列分組（圖仍依作者）</string>
     <string name="download_path_preset_minimal">極簡（僅 ID）</string>
     <string name="download_path_preset_r_filter">R18 / AI 強制分資料夾</string>
     <string name="download_path_preset_detailed">詳細（標題+ID+P+作者+尺寸+時間）</string>
@@ -1380,6 +1381,7 @@
     <string name="download_path_teach_example_date_label">依年月分類</string>
     <string name="download_path_teach_example_r18_label">R18 / AI 分目錄 + 依作者分類</string>
     <string name="download_path_teach_example_novel_series_label">小說：依系列建目錄 + 章節序號</string>
+    <string name="download_path_teach_example_novel_series_flat_label">小說：純依系列建目錄（不依作者）</string>
     <string name="download_path_teach_tip_focus">先點選某個 bucket 的模板輸入框，再點變數、條件或範例，才會插入到那裡</string>
     <string name="download_path_preset_apply">套用</string>
     <string name="download_path_preset_preview_prefix">例如：</string>

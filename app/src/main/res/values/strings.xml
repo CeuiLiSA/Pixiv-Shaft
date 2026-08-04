@@ -1391,6 +1391,7 @@
     <string name="download_path_preset_by_author">按作者分组</string>
     <string name="download_path_preset_by_author_and_date">按作者 + 年月分组</string>
     <string name="download_path_preset_by_author_multi_page_group">按作者分组 + 多P建子文件夹</string>
+    <string name="download_path_preset_by_series">小说按系列分组（图仍按作者）</string>
     <string name="download_path_preset_minimal">极简（只用 ID）</string>
     <string name="download_path_preset_r_filter">R18 / AI 强制分桶</string>
     <string name="download_path_preset_detailed">详细（标题+ID+P+画师+尺寸+时间）</string>
@@ -1496,6 +1497,7 @@
     <string name="download_path_teach_example_date_label">按年月分组</string>
     <string name="download_path_teach_example_r18_label">R18 / AI 分目录 + 按作者</string>
     <string name="download_path_teach_example_novel_series_label">小说：按系列建目录 + 章节序号</string>
+    <string name="download_path_teach_example_novel_series_flat_label">小说：纯按系列建目录（不按作者）</string>
 
     <string name="download_path_teach_tip_focus">先点一下某个 bucket 的模板输入框，再来点变量/条件/范例，才会插入到那里</string>
     <string name="download_path_preset_apply">套用</string>

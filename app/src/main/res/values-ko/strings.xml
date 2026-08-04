@@ -1279,6 +1279,7 @@
     <string name="download_path_preset_by_author">작가별 분류</string>
     <string name="download_path_preset_by_author_and_date">작가 + 연월별 분류</string>
     <string name="download_path_preset_by_author_multi_page_group">작가별 분류 + 다중 페이지 작품 하위 폴더 생성</string>
+    <string name="download_path_preset_by_series">소설을 시리즈별로 분류 (이미지는 작가별 유지)</string>
     <string name="download_path_preset_minimal">최소(ID만)</string>
     <string name="download_path_preset_r_filter">R18 / AI 강제 분리</string>
     <string name="download_path_preset_detailed">상세(제목+ID+P+작가+크기+시간)</string>
@@ -1378,6 +1379,7 @@
     <string name="download_path_teach_example_date_label">연월별 분류</string>
     <string name="download_path_teach_example_r18_label">R18 / AI 폴더 + 작가별 분류</string>
     <string name="download_path_teach_example_novel_series_label">소설: 시리즈별 폴더 + 화 번호</string>
+    <string name="download_path_teach_example_novel_series_flat_label">소설: 시리즈 폴더만 (작가 계층 없음)</string>
     <string name="download_path_teach_tip_focus">먼저 해당 bucket의 템플릿 입력칸을 선택한 뒤 변수, 조건, 예시를 탭해야 그곳에 삽입됩니다</string>
     <string name="download_path_preset_apply">적용</string>
     <string name="download_path_preset_preview_prefix">예:</string>
