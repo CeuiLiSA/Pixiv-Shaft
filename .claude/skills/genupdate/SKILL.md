@@ -5,7 +5,7 @@ description: Cut a Pixiv-Shaft release — bump version, tag, draft a concise ch
 
 # /genupdate — Pixiv-Shaft 发版流水线
 
-把「改版本号 → commit/push → tag → 写 changelog → 建 release → 传 APK」一把梭。每步都要先看上次怎么做的，不要凭记忆推。
+把「改版本号 → commit/push → tag → CI 自动 build/建 release → 补 changelog」一把梭。每步都要先看上次怎么做的，不要凭记忆推。
 
 约束（项目偏好，别违反）：
 - **直接 push 到 `classic`**，不开 PR、不开 feature branch
@@ -101,38 +101,42 @@ v4.7.1 更新日志
 
 **草稿先给用户过一遍**，他改完再上传。
 
-### 4. 建 release (latest)
+### 4. 等 CI 出 release（v4.8.3 起全自动）
+
+**tag push 就是发版触发器**——`.github/workflows/gradle.yml` 对 `v*.*.*` tag 自动：
+build release APK → 命名 `PixShaft_{ver}_classic.apk`（classic 分支）→ 算 SHA-1/SHA-256 →
+建 release 并上传 APK。**不要手动 `gh release create`，也不要本机 build / 上传 APK。**
 
 ```bash
-gh release create vX.Y.Z \
-  --repo CeuiLiSA/Pixiv-Shaft \
-  --title "vX.Y.Z" \
-  --latest \
-  --notes "$(cat <<'EOF'
-<上面 user 通过的 changelog>
-EOF
-)"
+gh run list --repo CeuiLiSA/Pixiv-Shaft -L 3          # 找到 tag 触发的 run
+gh run watch <run_id> --repo CeuiLiSA/Pixiv-Shaft     # 等它跑完（约 10 分钟,建议挂后台）
 ```
 
-不依赖 GitHub CI（项目没用 CI 出 APK），APK 用户本机已 build 好，直接进第 5 步。
+**watch 的退出码不可信，跑完必须 `gh run view <run_id>` 看每步的 ✓/X。**
+如果 `Build release apk` 挂在 `lintVitalGithubRelease`：那是 debug 构建不跑的
+release-only lint（NewApi fatal 常客），修掉 → commit → 把 tag 挪到新 head
+（`git push origin :refs/tags/vX.Y.Z && git tag -d ... && git tag ... HEAD && git push origin vX.Y.Z`）
+→ CI 会重跑。release 还没建出来时挪 tag 无损失，不必等用户确认。
 
-### 5. 传 APK
+### 5. 补 release notes
 
-APK 永远在 `app/github/release/app-github-release.apk`（项目根的相对路径），用户本机 build 出来的。按约定改名后上传：
+CI 建的 release notes 是兜底文案「Release vX.Y.Z」+ SHA 校验块（tag 是 lightweight，
+没 message 可提取）。用 `gh release edit` 把用户过完的 changelog 写进去，
+**末尾保留 CI 算好的 SHA 块**（从旧 body 里抄）：
 
 ```bash
-cp app/github/release/app-github-release.apk /tmp/PixShaft_X.Y.Z_classic.apk
-gh release upload vX.Y.Z /tmp/PixShaft_X.Y.Z_classic.apk --repo CeuiLiSA/Pixiv-Shaft
-rm /tmp/PixShaft_X.Y.Z_classic.apk
+gh release view vX.Y.Z --repo CeuiLiSA/Pixiv-Shaft --json body -q .body   # 抄 SHA 块
+gh release edit vX.Y.Z --repo CeuiLiSA/Pixiv-Shaft --latest --notes "<changelog + SHA 块>"
 ```
-
-如果这条路径找不到 APK：**不要 build，也不要等任何 CI**，直接告诉用户「请先本地 build」然后停下来。
 
 最后输出三条链接：release page、APK 下载链接、tag 链接。
 
 ## 常见 trap
 
-- **APK 不存在**：停，让用户去 build，不要替他跑 `./gradlew assembleGithubRelease`（耗时长 + 签名钥匙在他手里）
-- **versionCode 算错**：约定是 `major * 10000 + minor * 100 + patch * 10`（4.7.1 → 40710），照搬上一版本数学规律即可，对不上要停下问
+- **lintVital 拦发版**：release 构建才跑 `lintVitalGithubRelease`，NewApi 是 fatal——
+  平时 debug 全绿不代表能发版。修复要 pre-26 等价实现，不要塞 baseline
+- **versionCode**：近期规律是每版 **+100**（4.8.0→41000、4.8.1→41100、4.8.2→41300、
+  4.8.3→41400），不是老公式 `major*10000+minor*100+patch*10`；对不上停下问
 - **GitHub release 已存在**：用 `gh release edit` 改 notes，不要 delete-recreate（download_count 会丢）
-- **tag 已 push 但指错**：见第 2 步的 force-tag 流程，先跟用户确认
+- **tag 已 push 但指错**：release 已建出来（有下载数）时移动 tag 要先跟用户确认；
+  release 还没建出来（CI 失败）时直接挪
