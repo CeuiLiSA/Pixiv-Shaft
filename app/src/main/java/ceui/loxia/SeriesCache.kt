@@ -122,12 +122,15 @@ object SeriesCache {
     }
 
     /**
-     * 本篇在系列**可见列表**里的 1-based 位置，下载文件名的 `{series_order}` 用
-     * （issue #964）。与系列页批量下载的编号同源同序——注意不能用 webview
-     * payload 里的 contentOrder：那个把已删除的章节也计数，列表第 30 篇会算出
-     * 38。命中缓存零网络；未命中按 [loadNovelSeries] 翻页拉取。找不到时返回
-     * null（列表被 maxPages 截断的超长系列同样如此——宁可不编号也不编错号；
-     * 能在已加载前缀里找到的话，前缀是从第 1 篇起连续的，位置一定正确）。
+     * 本篇在系列列表里的 1-based 位置，下载文件名的 `{series_order}` 用
+     * （issue #964）。与系列页批量下载的编号同源同序，正常情况下也等于
+     * pixiv 的官方话数（webview payload 的 contentOrder / 详情的
+     * content_count——#964 实测三者一致）。注意它可能和**作者写在标题里的
+     * 编号**错位：作者插入「24.5」这类番外后标题编号会落后于实际话数，
+     * 那是标题文本，不作为序号依据。命中缓存零网络；未命中按
+     * [loadNovelSeries] 翻页拉取。找不到时返回 null（列表被 maxPages 截断的
+     * 超长系列同样如此——宁可不编号也不编错号；能在已加载前缀里找到的话，
+     * 前缀是从第 1 篇起连续的，位置一定正确）。
      */
     suspend fun novelPositionInSeries(seriesId: Long, novelId: Long): Int? {
         val data = loadNovelSeries(seriesId)
