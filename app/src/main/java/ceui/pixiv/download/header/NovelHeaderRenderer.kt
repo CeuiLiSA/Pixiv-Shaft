@@ -22,6 +22,7 @@ object NovelHeaderRenderer {
         novel: Novel,
         preset: HeaderPreset,
         isSeriesChapter: Boolean,
+        /** 本篇在系列中的 1-based 位置（BatchDownloadNovelsTask 传的就是 index+1），原样展示。 */
         seriesIndex: Int? = null,
         seriesTotal: Int? = null,
     ): String {
@@ -68,7 +69,7 @@ object NovelHeaderRenderer {
             HeaderField.SeriesIndex -> {
                 val idx = seriesIndex ?: return null
                 val total = seriesTotal?.toString() ?: "?"
-                "序号：第 ${idx + 1} / $total 篇"
+                "序号：第 $idx / $total 篇"
             }
         }
     }
