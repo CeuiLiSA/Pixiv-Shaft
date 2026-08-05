@@ -51,9 +51,18 @@ class DownloadsFacadeTest {
      */
     private class FakeBackend(private val existing: MutableSet<String> = mutableSetOf()) : StorageBackend {
         val deleted = mutableListOf<RelativePath>()
+        var existsCalls = 0
+        var skipProbeCalls = 0
         override fun open(relPath: RelativePath, mime: String): StorageBackend.WriteHandle =
             error("FakeBackend.open not supported in pure unit tests — see kdoc")
-        override fun exists(relPath: RelativePath): Boolean = relPath.joinTo() in existing
+        override fun exists(relPath: RelativePath): Boolean {
+            existsCalls++
+            return relPath.joinTo() in existing
+        }
+        override fun skipIfExists(relPath: RelativePath, mime: String): Boolean {
+            skipProbeCalls++
+            return exists(relPath)
+        }
         override fun delete(relPath: RelativePath): Boolean {
             deleted += relPath
             return existing.remove(relPath.joinTo())
@@ -102,6 +111,32 @@ class DownloadsFacadeTest {
         val facade = Downloads(configWith(overwrite = OverwritePolicy.Skip), { backend })
         val plan = facade.plan(item)
         assertFalse("should not skip", plan.skip)
+    }
+
+    @Test fun `resolvePath never touches the backend even under Skip policy`() {
+        // 名字计算路径（DownloadItem 构造函数、scanLocalDownloads）在主线程高频调用，
+        // 绝不能触发 Skip 的 createFile 碰撞探测或任何后端 IO。
+        val facade = Downloads(configWith(overwrite = OverwritePolicy.Skip)) {
+            error("resolvePath must not resolve a backend")
+        }
+        assertEquals(listOf("d", "a 1.png"), facade.resolvePath(item).segments)
+    }
+
+    @Test fun `skip decision in plan goes through skipIfExists so SAF can probe cheaply`() {
+        val backend = FakeBackend()
+        backend.seed("d/a 1.png")
+        val facade = Downloads(configWith(overwrite = OverwritePolicy.Skip), { backend })
+        assertTrue(facade.plan(item).skip)
+        assertEquals(1, backend.skipProbeCalls)
+    }
+
+    @Test fun `existsAt probes existence without createFile-style side effects`() {
+        val backend = FakeBackend()
+        backend.seed("d/a 1.png")
+        val facade = Downloads(configWith(overwrite = OverwritePolicy.Skip), { backend })
+        assertTrue(facade.existsAt(item))
+        assertEquals(1, backend.existsCalls)
+        assertEquals("existsAt must not use the Skip probe", 0, backend.skipProbeCalls)
     }
 
     @Test fun `open returns null when plan is skip`() {

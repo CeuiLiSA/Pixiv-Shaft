@@ -50,23 +50,25 @@ public class FileCreator {
             var item = illust.isGif()
                     ? DownloadItems.ugoira(illust)
                     : DownloadItems.illustPage(illust, index);
-            var plan = DownloadsRegistry.getDownloads().plan(item);
-            return plan.getBackend().exists(plan.getPath());
+            return DownloadsRegistry.getDownloads().existsAt(item);
         } catch (Throwable t) {
             return false;
         }
     }
 
+    // 名字计算走 resolvePath 而不是 plan()：plan 的 Skip 分支在 SAF 下用
+    // createFile 碰撞探测（有真实 IO 和文件副作用），而这两个方法会被
+    // DownloadItem 构造函数在主线程、以及浏览时的 scanLocalDownloads 逐页调用。
     public static String customFileName(IllustsBean illustsBean, int index) {
-        var plan = DownloadsRegistry.getDownloads().plan(
-                DownloadItems.illustPage(illustsBean, index));
-        return plan.getPath().getFilename();
+        return DownloadsRegistry.getDownloads()
+                .resolvePath(DownloadItems.illustPage(illustsBean, index))
+                .getFilename();
     }
 
     public static String customGifFileName(IllustsBean illustsBean) {
-        var plan = DownloadsRegistry.getDownloads().plan(
-                DownloadItems.ugoira(illustsBean));
-        return plan.getPath().getFilename();
+        return DownloadsRegistry.getDownloads()
+                .resolvePath(DownloadItems.ugoira(illustsBean))
+                .getFilename();
     }
 
     /**

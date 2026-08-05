@@ -8,7 +8,6 @@ import androidx.documentfile.provider.DocumentFile;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.models.IllustsBean;
-import ceui.pixiv.download.Downloads;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadItems;
 
@@ -45,8 +44,9 @@ public class SAFile {
             ceui.pixiv.download.model.DownloadItem item = illust.isGif()
                     ? DownloadItems.ugoira(illust)
                     : DownloadItems.illustPage(illust, index);
-            Downloads.Plan plan = DownloadsRegistry.getDownloads().plan(item);
-            return plan.getBackend().exists(plan.getPath());
+            // existsAt 是纯存在性探测；不要走 plan() —— 它的 Skip 分支在 SAF 下
+            // 会用 createFile 碰撞探测，这里只是查询，不该产生文件副作用。
+            return DownloadsRegistry.getDownloads().existsAt(item);
         } catch (Throwable t) {
             return false;
         }

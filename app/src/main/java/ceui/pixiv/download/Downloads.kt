@@ -50,8 +50,8 @@ class Downloads(
         val resolved: ResolvedBucket = resolveBucket(item.bucket)
 
         // Resilient render: a malformed persisted template must not crash the
-        // download (it is rendered eagerly inside the legacy DownloadItem
-        // constructor on the main thread, before any caller can catch). On
+        // download (the legacy DownloadItem constructor renders eagerly via
+        // resolvePath on the main thread, before any caller can catch). On
         // failure SafeTemplateRender falls back to the bucket default.
         val raw: RelativePath = SafeTemplateRender.render(
             resolved.template, item.bucket, item.meta, item.ext, configProvider().pageNumbering,
@@ -60,6 +60,32 @@ class Downloads(
         val backend: StorageBackend = backendFactory(resolved.storage)
         val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite, item.mime)
         return Plan(item, finalPath, backend, resolved.overwrite, skip)
+    }
+
+    /**
+     * Render + sanitize only — no overwrite-policy probing, no backend I/O,
+     * safe on the main thread. For callers that need an item's canonical
+     * path/name (DB keys, UI labels, record lookups) without deciding a
+     * download. The actual on-disk name may still differ where the policy
+     * says so (Rename suffixes, SAF provider auto-rename) — that decision
+     * belongs to [plan] at download time, on a worker thread.
+     */
+    fun resolvePath(item: DownloadItem): RelativePath {
+        val resolved: ResolvedBucket = resolveBucket(item.bucket)
+        val raw: RelativePath = SafeTemplateRender.render(
+            resolved.template, item.bucket, item.meta, item.ext, configProvider().pageNumbering,
+        )
+        return FsSanitizer.clean(raw)
+    }
+
+    /**
+     * Whether a file already sits at [item]'s canonical path. Pure existence
+     * probe — never creates anything (unlike the Skip branch of [plan], whose
+     * SAF fast path probes via createFile). Blocking I/O — worker thread only.
+     */
+    fun existsAt(item: DownloadItem): Boolean {
+        val resolved: ResolvedBucket = resolveBucket(item.bucket)
+        return backendFactory(resolved.storage).exists(resolvePath(item))
     }
 
     /**
