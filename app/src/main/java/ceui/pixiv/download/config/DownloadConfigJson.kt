@@ -35,7 +35,16 @@ object DownloadConfigJson {
     /** Human-readable form — used only for explicit import/export UI. */
     fun toPrettyJson(config: DownloadConfig): String = pretty.toJson(config)
 
-    fun fromJson(json: String): DownloadConfig = compact.fromJson(json, DownloadConfig::class.java)
+    fun fromJson(json: String): DownloadConfig {
+        val parsed = compact.fromJson(json, DownloadConfig::class.java)
+        // 前向兼容：更新的版本可能已往 perBucket 写入本版本不认识的 Bucket 名，
+        // Gson 会把未知枚举键反序列化成 null —— 下游 mapValues/copy 一碰就 NPE
+        // （applyGlobalStorage 在带 NovelSeries 配置的旧 base 构建上真炸过）。
+        // 读入时直接丢弃未知桶，让老版本按「没配置过」回退到 defaults。
+        @Suppress("SENSELESS_COMPARISON", "USELESS_CAST")
+        val known = parsed.perBucket.filterKeys { it != null }
+        return if (known.size == parsed.perBucket.size) parsed else parsed.copy(perBucket = known)
+    }
 
     private object StorageChoiceAdapter : JsonSerializer<StorageChoice>, JsonDeserializer<StorageChoice> {
 

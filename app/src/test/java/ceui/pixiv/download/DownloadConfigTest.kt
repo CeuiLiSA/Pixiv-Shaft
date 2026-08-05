@@ -4,6 +4,7 @@ import ceui.pixiv.download.config.BucketConfig
 import ceui.pixiv.download.config.BucketDefaults
 import ceui.pixiv.download.config.ConfigPresets
 import ceui.pixiv.download.config.DownloadConfig
+import ceui.pixiv.download.config.DownloadConfigJson
 import ceui.pixiv.download.config.OverwritePolicy
 import ceui.pixiv.download.config.StorageChoice
 import ceui.pixiv.download.model.Bucket
@@ -17,6 +18,24 @@ class DownloadConfigTest {
         template = "default/{id}.{ext}",
         storage = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images),
     )
+
+    @Test fun `fromJson drops bucket keys this version does not know`() {
+        // 更新的版本往 perBucket 写了本版本没有的 Bucket 名 —— Gson 会给出 null 键，
+        // 曾让 applyGlobalStorage 的 mapValues 直接 NPE（授权静默失败）。必须在读入时丢弃。
+        val json = """
+            {"version":1,
+             "defaults":{"template":"d/{id}.{ext}",
+                         "storage":{"kind":"media_store","collection":"Images"},
+                         "overwrite":"Replace"},
+             "perBucket":{
+                "Novel":{"template":"novels/{id}.txt"},
+                "BucketFromTheFuture":{"template":"future/{id}.{ext}"}}}
+        """.trimIndent()
+        val cfg = DownloadConfigJson.fromJson(json)
+        assertEquals(setOf(Bucket.Novel), cfg.perBucket.keys)
+        // 反序列化出的配置要能安全走完 copy/mapValues 一类的全量遍历。
+        cfg.copy(perBucket = cfg.perBucket.mapValues { (_, bc) -> bc })
+    }
 
     @Test fun `resolve falls back to defaults when no override`() {
         val cfg = DownloadConfig(defaults = defaults)
