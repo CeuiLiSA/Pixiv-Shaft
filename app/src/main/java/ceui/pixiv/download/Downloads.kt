@@ -58,7 +58,7 @@ class Downloads(
         )
         val cleaned: RelativePath = FsSanitizer.clean(raw)
         val backend: StorageBackend = backendFactory(resolved.storage)
-        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite)
+        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite, item.mime)
         return Plan(item, finalPath, backend, resolved.overwrite, skip)
     }
 
@@ -87,7 +87,7 @@ class Downloads(
         val resolved = configProvider().resolve(bucket)
         val cleaned = FsSanitizer.clean(rawPath)
         val backend = backendFactory(resolved.storage)
-        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite)
+        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite, mime)
         if (skip) return null
         return if (resolved.overwrite == OverwritePolicy.Replace) {
             backend.replace(finalPath, mime)
@@ -103,15 +103,20 @@ class Downloads(
         path: RelativePath,
         backend: StorageBackend,
         policy: OverwritePolicy,
+        mime: String,
     ): Pair<RelativePath, Boolean> = when (policy) {
-        OverwritePolicy.Skip    -> path to backend.exists(path)
+        OverwritePolicy.Skip    -> path to backend.skipIfExists(path, mime)
         OverwritePolicy.Replace -> {
             // Don't delete here — backend.replace() handles it in a
             // platform-friendly way (e.g. MediaStore updates in place
             // instead of delete + insert to avoid deletion alerts).
             path to false
         }
-        OverwritePolicy.Rename  -> nextFreePath(path, backend) to false
+        OverwritePolicy.Rename  -> {
+            // SAF模式下交由提供者（DocumentFile.createFile 会自动加  (X) 后缀）处理。缺陷为不能Toast不是自动重名的文件夹名称
+            // 理论createFile后可以拿到自动重命名后的文件
+            (if (backend.autoRenamesOnConflict) path else nextFreePath(path, backend)) to false
+        }
     }
 
     /**
