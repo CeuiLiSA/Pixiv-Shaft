@@ -169,10 +169,8 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
                     .show();
         });
 
-        // 文件重复时（OverwritePolicy）
-        // SAF 模式下这个 setting 被锁住,因为 SafBackend.replace 已经 override 成
-        // 不检测重复(目录 3 万+ 文件后 findFile 会退化成 O(N²)),所以 Skip/Replace/
-        // Rename 三个语义不再适用,统一显示成「自动产生副本 · 不可改」+ toast 解释。
+        // 文件重复时（OverwritePolicy）—— SAF 模式也可选:SafBackend 用 createFile
+        // 碰撞探测实现 Skip/Replace,不再依赖 O(N) findFile,历史上的锁定已解除(#967)。
         final String[] POLICY_NAMES = new String[]{
                 getString(R.string.download_path_policy_skip),
                 getString(R.string.download_path_policy_replace),
@@ -181,16 +179,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         final OverwritePolicy[] POLICY_VALUES = OverwritePolicy.values();
         refreshOverwritePolicyRow();
         baseBind.overwritePolicyRela.setOnClickListener(v -> {
-            /*
-            if (DownloadsRegistry.isSaf()) {
-                new QMUIDialog.MessageDialogBuilder(mActivity)
-                        .setTitle(R.string.setting_overwrite_policy_saf_locked_title)
-                        .setMessage(R.string.setting_overwrite_policy_saf_locked_message)
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                        .addAction(0, getString(R.string.button_ok), (dialog, index) -> dialog.dismiss())
-                        .show();
-                return;
-            }*/
             OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
             new QMUIDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(cur.ordinal())
@@ -429,20 +417,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
 
     private void refreshOverwritePolicyRow() {
         if (baseBind == null) return;
-        /*
-        if (DownloadsRegistry.isSaf()) {
-            baseBind.overwritePolicy.setText(R.string.setting_overwrite_policy_saf_locked);
-            baseBind.overwritePolicy.setAlpha(0.5f);
-        } else {
-            OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
-            String[] names = new String[]{
-                    getString(R.string.download_path_policy_skip),
-                    getString(R.string.download_path_policy_replace),
-                    getString(R.string.download_path_policy_rename)
-            };
-            baseBind.overwritePolicy.setText(names[cur.ordinal()]);
-            baseBind.overwritePolicy.setAlpha(1.0f);
-        }*/
         OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
         String[] names = new String[]{
                 getString(R.string.download_path_policy_skip),

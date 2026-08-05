@@ -1336,9 +1336,6 @@
     <string name="download_path_policy_replace">Заменять</string>
     <string name="download_path_policy_rename">Переименовывать</string>
     <string name="setting_overwrite_policy">Если файл уже существует</string>
-    <string name="setting_overwrite_policy_saf_locked">Авто-суффикс · заблокировано</string>
-    <string name="setting_overwrite_policy_saf_locked_title">Почему пункт заблокирован</string>
-    <string name="setting_overwrite_policy_saf_locked_message">В режиме SAF при совпадении имени всегда создаётся копия \"(1)\". Пропуск, замена и переименование отключены.\n\nfindFile в SAF реализован как listFiles + линейный поиск, поэтому одна проверка существования файла стоит O(N), а при каждом сохранении вызывается несколько раз. В итоге сложность вырождается в O(N²): чем больше файлов в папке, тем медленнее сохранение.</string>
     <string name="setting_storage_choice">Место хранения</string>
     <string name="setting_storage_pictures">Системная галерея (Pictures)</string>
     <string name="setting_storage_downloads">Папка Downloads</string>

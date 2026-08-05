@@ -1336,9 +1336,6 @@
     <string name="download_path_policy_replace">既存なら上書き</string>
     <string name="download_path_policy_rename">既存ならリネーム</string>
     <string name="setting_overwrite_policy">同名ファイルがある場合</string>
-    <string name="setting_overwrite_policy_saf_locked">自動コピー作成 · 変更不可</string>
-    <string name="setting_overwrite_policy_saf_locked_title">ここを変更できない理由</string>
-    <string name="setting_overwrite_policy_saf_locked_message">SAFモードでは重複時に自動的に「(1)」サフィックス付きのコピーを作成します。スキップ／上書き／リネームは無効化されています。\n\nSAFの findFile は listFiles + 線形スキャンで実装されているため、1ファイルの存在確認に O(N) のコストがかかり、保存ごとに複数回呼び出されます。結果として全体が O(N²) の時間計算量に退化します。ファイルが増えるほど二次関数的に遅くなります。</string>
     <string name="setting_storage_choice">保存場所</string>
     <string name="setting_storage_pictures">システムギャラリー（Pictures）</string>
     <string name="setting_storage_downloads">Downloads フォルダ</string>

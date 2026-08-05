@@ -1336,9 +1336,6 @@
     <string name="download_path_policy_replace">이미 있으면 덮어쓰기</string>
     <string name="download_path_policy_rename">이미 있으면 이름 변경</string>
     <string name="setting_overwrite_policy">같은 파일이 있을 때</string>
-    <string name="setting_overwrite_policy_saf_locked">자동 사본 생성 · 변경 불가</string>
-    <string name="setting_overwrite_policy_saf_locked_title">여기를 변경할 수 없는 이유</string>
-    <string name="setting_overwrite_policy_saf_locked_message">SAF 모드에서는 중복 시 자동으로 \"(1)\" 사본을 만듭니다. 건너뛰기 / 덮어쓰기 / 이름 변경은 비활성화되어 있습니다.\n\nSAF의 findFile은 listFiles + 선형 스캔으로 구현되어 있어 파일 하나의 존재 확인에 O(N)이 들고, 한 번 저장할 때마다 여러 번 호출되기 때문에 전체적으로 O(N²) 시간 복잡도로 퇴화합니다. 파일이 많아질수록 이차적으로 느려집니다.</string>
     <string name="setting_storage_choice">저장 위치</string>
     <string name="setting_storage_pictures">시스템 갤러리(Pictures)</string>
     <string name="setting_storage_downloads">Downloads 폴더</string>

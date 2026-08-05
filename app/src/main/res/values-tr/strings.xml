@@ -1336,9 +1336,6 @@
     <string name="download_path_policy_replace">Dosya varsa üzerine yaz</string>
     <string name="download_path_policy_rename">Dosya varsa yeniden adlandır</string>
     <string name="setting_overwrite_policy">Dosya zaten varsa</string>
-    <string name="setting_overwrite_policy_saf_locked">Otomatik kopya · değiştirilemez</string>
-    <string name="setting_overwrite_policy_saf_locked_title">Burası neden kilitli</string>
-    <string name="setting_overwrite_policy_saf_locked_message">SAF modunda aynı adda dosya varsa otomatik olarak \"(1)\" kopyası oluşturulur. Atla / Üzerine yaz / Yeniden adlandır devre dışıdır.\n\nSAF\'ın findFile uygulaması listFiles + doğrusal tarama olduğundan tek bir dosyanın varlığını kontrol etmek O(N) maliyetindedir ve her kayıtta birkaç kez çağrılır — genel davranış O(N²) zaman karmaşıklığına düşer. Klasördeki dosya sayısı arttıkça kayıt karesel olarak yavaşlar.</string>
     <string name="setting_storage_choice">Depolama konumu</string>
     <string name="setting_storage_pictures">Sistem galerisi (Pictures)</string>
     <string name="setting_storage_downloads">Downloads klasörü</string>

@@ -1338,9 +1338,6 @@
     <string name="download_path_policy_replace">已存在則覆蓋</string>
     <string name="download_path_policy_rename">已存在則重新命名</string>
     <string name="setting_overwrite_policy">檔案重複時</string>
-    <string name="setting_overwrite_policy_saf_locked">自動產生副本 · 不可改</string>
-    <string name="setting_overwrite_policy_saf_locked_title">為什麼這裡無法修改</string>
-    <string name="setting_overwrite_policy_saf_locked_message">SAF 模式下重名時會自動產生「(1)」副本，無法選 Skip / Replace / Rename。\n\n這是因為 SAF API 的 findFile 實作是 listFiles + 線性掃描，單目錄內檢測一個檔案是否存在的成本是 O(N)，每次儲存又會呼叫多次 — 整體退化為 O(N²) 時間複雜度。檔案越多越慢，且增速是二次的。</string>
     <string name="setting_storage_choice">儲存位置</string>
     <string name="setting_storage_pictures">系統相簿（Pictures）</string>
     <string name="setting_storage_downloads">下載資料夾（Downloads）</string>

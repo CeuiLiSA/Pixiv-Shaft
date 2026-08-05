@@ -1336,9 +1336,6 @@
     <string name="download_path_policy_replace">Replace if the file exists</string>
     <string name="download_path_policy_rename">Rename if the file exists</string>
     <string name="setting_overwrite_policy">When a file already exists</string>
-    <string name="setting_overwrite_policy_saf_locked">Auto-suffix · locked</string>
-    <string name="setting_overwrite_policy_saf_locked_title">Why this is locked</string>
-    <string name="setting_overwrite_policy_saf_locked_message">Under SAF, duplicates always get a \"(1)\" sibling. Skip / Replace / Rename are disabled.\n\nSAF\'s findFile is implemented as listFiles + linear scan, so one existence check costs O(N), and each save runs it several times — the overall behaviour degrades to O(N²) time complexity. The more files in the directory, the quadratically slower it gets.</string>
     <string name="setting_storage_choice">Storage location</string>
     <string name="setting_storage_pictures">System gallery (Pictures)</string>
     <string name="setting_storage_downloads">Downloads folder</string>
