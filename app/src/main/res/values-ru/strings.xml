@@ -157,6 +157,8 @@
     <string name="slide_down_endless">Показывать бесконечные похожие иллюстрации (возможны повторы)</string>
     <string name="other_settings">Другое</string>
     <string name="search_result_filter">Фильтр поиска по числу закладок</string>
+    <string name="search_exit_confirm">Подтверждение выхода из результатов поиска</string>
+    <string name="search_exit_confirm_desc">Если включено, для выхода со страницы результатов поиска нужно дважды нажать «Назад» в течение 2 секунд, что защищает от случайного выхода</string>
     <string name="novel_filter_section">Автофильтр списка новелл</string>
     <string name="novel_filter_min_text_length">Минимальная длина новеллы</string>
     <string name="novel_filter_min_text_length_desc">Скрывать из списков новеллы короче этого числа символов. 0 — выключено.</string>

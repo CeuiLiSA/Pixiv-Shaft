@@ -157,6 +157,8 @@
     <string name="slide_down_endless">show infinite Related works (possible duplication)</string>
     <string name="other_settings">other</string>
     <string name="search_result_filter">Filter by number of Bookmarkes when searching</string>
+    <string name="search_exit_confirm">Confirm before leaving search results</string>
+    <string name="search_exit_confirm_desc">When enabled, you need to press back twice within 2 seconds to leave the search results page, preventing accidental exits</string>
     <string name="novel_filter_section">Novel list auto-filter</string>
     <string name="novel_filter_min_text_length">Minimum novel length</string>
     <string name="novel_filter_min_text_length_desc">Hide novels shorter than this from novel lists. 0 disables.</string>

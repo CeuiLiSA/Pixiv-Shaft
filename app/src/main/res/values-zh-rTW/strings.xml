@@ -157,6 +157,8 @@
     <string name="slide_down_endless">相關作品無限下滑（可能出現重複）</string>
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜尋結果收藏量篩選</string>
+    <string name="search_exit_confirm">搜尋結果退出二次確認</string>
+    <string name="search_exit_confirm_desc">開啟後，在搜尋結果頁需在 2 秒內按兩次返回鍵才會退出，防止誤觸</string>
     <string name="novel_filter_section">小說列表自動封鎖</string>
     <string name="novel_filter_min_text_length">小說正文字數下限</string>
     <string name="novel_filter_min_text_length_desc">正文短於該字數的小說不顯示在小說列表裡，填 0 關閉</string>

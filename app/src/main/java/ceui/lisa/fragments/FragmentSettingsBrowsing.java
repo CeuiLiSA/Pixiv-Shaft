@@ -215,6 +215,19 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                         .create()
                         .show());
 
+        // 搜索结果页退出二次确认（issue #939），默认关闭
+        baseBind.searchExitConfirm.setChecked(Shaft.sSettings.isSearchExitConfirm());
+        baseBind.searchExitConfirm.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setSearchExitConfirm(isChecked);
+                Common.showToast(getString(R.string.string_428), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.searchExitConfirmRela.setOnClickListener(v ->
+                baseBind.searchExitConfirm.performClick());
+
         // 同义词词典功能总开关（issue #904），默认关闭。
         // 关闭时所有相关 UI（详情页匹配框/长按菜单项/管理页入口/自动导入/自动勾选）完全隐藏。
         baseBind.synonymDictEnable.setChecked(Shaft.sSettings.isSynonymDictEnabled());

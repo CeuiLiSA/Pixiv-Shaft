@@ -157,6 +157,8 @@
     <string name="slide_down_endless">Sonsuz ilgili eser göster</string>
     <string name="other_settings">Diğer</string>
     <string name="search_result_filter">Arama yaparken favori sayısına göre filtrele</string>
+    <string name="search_exit_confirm">Arama sonuçlarından çıkarken onay iste</string>
+    <string name="search_exit_confirm_desc">Etkinleştirildiğinde, arama sonuçları sayfasından çıkmak için 2 saniye içinde iki kez geri tuşuna basmanız gerekir; yanlışlıkla çıkış önlenir</string>
     <string name="novel_filter_section">Roman listesi otomatik filtresi</string>
     <string name="novel_filter_min_text_length">En az roman uzunluğu</string>
     <string name="novel_filter_min_text_length_desc">Bu karakter sayısından kısa romanları roman listelerinde gizler. 0 kapatır.</string>

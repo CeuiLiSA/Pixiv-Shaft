@@ -59,6 +59,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private int index = 0;
     private int mPosition = 0;
     private boolean isPremium = false;
+    private long mExitTime;
     private final java.util.List<String> committedTags = new java.util.ArrayList<>();
     private SearchHintViewModel hintViewModel;
 
@@ -391,6 +392,25 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         SearchFilterV3LegacyBridge.INSTANCE.install(this, searchModel);
         // 关掉抽屉的触摸响应——抽屉里没东西了，避免侧边盲区误触。
         baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_NONE);
+
+        // 搜索结果退出二次确认（issue #939，默认关闭）：只拦系统返回（手势/按键）——
+        // 长滑之后误触退出就是从这条路来的；工具栏返回箭头是明确点击，不拦。
+        // 交互对齐 MainActivity.exit()：2 秒内按两次返回才退出，第一次只 toast 提示。
+        // 开关状态每次返回时现读，从设置页改完回来立即生效，无需重建 Activity。
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (Shaft.sSettings.isSearchExitConfirm()
+                        && System.currentTimeMillis() - mExitTime > 2000) {
+                    Common.showToast(getString(R.string.double_click_finish));
+                    mExitTime = System.currentTimeMillis();
+                    return;
+                }
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+                setEnabled(true);
+            }
+        });
     }
 
     /**

@@ -157,6 +157,8 @@
     <string name="slide_down_endless">関連作品を無限に表示（重複する可能性あり）</string>
     <string name="other_settings">その他</string>
     <string name="search_result_filter">すき！の数で検索結果をフィルター</string>
+    <string name="search_exit_confirm">検索結果ページの終了確認</string>
+    <string name="search_exit_confirm_desc">オンにすると、検索結果ページでは2秒以内に戻る操作を2回しないと退出せず、誤操作を防ぎます</string>
     <string name="novel_filter_section">小説リストの自動非表示</string>
     <string name="novel_filter_min_text_length">小説本文の文字数の下限</string>
     <string name="novel_filter_min_text_length_desc">本文がこの文字数より短い小説を小説リストに表示しません。0 で無効。</string>

@@ -166,6 +166,8 @@
     <string name="slide_down_endless">相关作品无限下滑（可能出现重复）</string>
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜索结果收藏量筛选</string>
+    <string name="search_exit_confirm">搜索结果退出二次确认</string>
+    <string name="search_exit_confirm_desc">开启后，在搜索结果页需在 2 秒内按两次返回键才会退出，防止误触</string>
     <string name="novel_filter_section">小说列表自动屏蔽</string>
     <string name="novel_filter_min_text_length">小说正文字数下限</string>
     <string name="novel_filter_min_text_length_desc">正文短于该字数的小说不显示在小说列表里，填 0 关闭</string>

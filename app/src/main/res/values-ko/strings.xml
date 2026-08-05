@@ -157,6 +157,8 @@
     <string name="slide_down_endless">관련 작품 은 무한 한 하락 세 를 보일 수 있다.</string>
     <string name="other_settings">기타.</string>
     <string name="search_result_filter">검색 결과 저장량 선별</string>
+    <string name="search_exit_confirm">검색 결과 종료 확인</string>
+    <string name="search_exit_confirm_desc">켜면 검색 결과 페이지에서 2초 안에 뒤로 가기를 두 번 눌러야 나가지며, 실수로 나가는 것을 방지합니다</string>
     <string name="novel_filter_section">소설 목록 자동 차단</string>
     <string name="novel_filter_min_text_length">소설 본문 글자 수 하한</string>
     <string name="novel_filter_min_text_length_desc">본문이 이 글자 수보다 짧은 소설을 소설 목록에서 숨깁니다. 0이면 사용 안 함.</string>

@@ -325,6 +325,28 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/search_exit_confirm_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/search_exit_confirm" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/search_exit_confirm_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/search_exit_confirm"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/delete_star_illust_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/bg_m3_row_bottom">
