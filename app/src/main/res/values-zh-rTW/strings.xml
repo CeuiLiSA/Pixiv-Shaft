@@ -1322,6 +1322,12 @@
     <string name="download_path_bucket_illust">插畫 / 漫畫</string>
     <string name="download_path_bucket_ugoira">動圖（最終 GIF）</string>
     <string name="download_path_bucket_novel">小說</string>
+    <string name="download_path_bucket_novel_series">小說系列 · 合併下載</string>
+    <string name="download_path_quick_template_label">快捷範本（點一下直接套用）</string>
+    <string name="download_path_quick_merge_default">預設</string>
+    <string name="download_path_quick_merge_by_author">放作者目錄</string>
+    <string name="download_path_quick_merge_by_series">放系列目錄</string>
+    <string name="download_path_quick_merge_author_date">作者 + 年月</string>
     <string name="download_path_bucket_backup">備份檔案</string>
     <string name="download_path_bucket_log">日誌檔案</string>
     <string name="download_path_storage_mediastore_images">MediaStore / Pictures</string>
@@ -1370,6 +1376,7 @@
     <string name="download_path_teach_var_created">投稿時間，格式可自訂，例如 {created:yyyy}、{created:yyyy-MM-dd}</string>
     <string name="download_path_teach_var_series">所屬系列名稱（小說；不在系列中時為空）</string>
     <string name="download_path_teach_var_series_order">本篇在系列中的序號（依系列列表順序；可寫 {series_order:00} 固定位數）</string>
+    <string name="download_path_teach_var_chapters">合集裡的章節數（合併下載專用；單篇下載時為所屬系列的總篇數）</string>
     <string name="download_path_teach_section_cond">條件塊（點擊插入）</string>
     <string name="download_path_teach_cond_r18">僅對 R18 作品加入「R18/」子資料夾</string>
     <string name="download_path_teach_cond_ai">僅對 AI 作品加入「AI/」子資料夾</string>
@@ -1386,6 +1393,7 @@
     <string name="download_path_teach_example_r18_label">R18 / AI 分目錄 + 依作者分類</string>
     <string name="download_path_teach_example_novel_series_label">小說：依系列建目錄 + 章節序號</string>
     <string name="download_path_teach_example_novel_series_flat_label">小說：純依系列建目錄（不依作者）</string>
+    <string name="download_path_teach_example_novel_merge_label">合集：放作者目錄</string>
     <string name="download_path_teach_tip_focus">先點選某個 bucket 的模板輸入框，再點變數、條件或範例，才會插入到那裡</string>
     <string name="download_path_preset_apply">套用</string>
     <string name="download_path_preset_preview_prefix">例如：</string>

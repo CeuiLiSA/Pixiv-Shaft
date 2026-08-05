@@ -37,6 +37,9 @@ class TemplateContext(
             // RelativePath.parse 会把由此产生的空目录段折叠掉。
             "series" -> meta.seriesTitle.orEmpty()
             "series_order" -> meta.seriesOrder?.let { orderNumber(it, format) }.orEmpty()
+            // 系列章节数：合并下载（Bucket.NovelSeries）拿的是这一份合集里实际写进去
+            // 的章节数，单篇下载拿的是所在系列的总篇数；两者都拿不到时渲染成空串。
+            "chapters" -> meta.seriesTotal?.toString().orEmpty()
             "w" -> meta.width?.toString().orEmpty()
             "h" -> meta.height?.toString().orEmpty()
             "created" -> formatInstant(format)

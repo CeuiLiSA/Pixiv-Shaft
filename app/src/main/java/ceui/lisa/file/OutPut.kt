@@ -56,6 +56,16 @@ object OutPut {
         writeRawPath(Bucket.Novel, path, "text/plain", from, R.string.save_novel_failed)
     }
 
+    /**
+     * 同 [outPutNovel]，但落的是「小说系列 · 合并下载」桶——存储位置 / 覆盖策略跟
+     * 用户给合集配的那一套走，路径来自
+     * [ceui.pixiv.download.config.DownloadItems.novelSeriesMergeDestinationForSeriesItem]。
+     */
+    @JvmStatic
+    fun outPutNovelSeriesMerge(context: Context, from: File, path: RelativePath) {
+        writeRawPath(Bucket.NovelSeries, path, "text/plain", from, R.string.save_novel_failed)
+    }
+
     @JvmStatic
     fun outPutBackupFile(context: Context, from: File, fileName: String) {
         // 备份文件本身就是 JSON（Shaft-Backup.json），之前写成 application/zip 会让

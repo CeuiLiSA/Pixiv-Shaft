@@ -131,6 +131,9 @@ object CrossSeriesDownloadTask {
             try {
                 val chapters = mutableListOf<MergedChapter>()
                 var skippedChapters = 0
+                // chapters 里还混着每个系列的分隔头，单独计一份真实章节数喂给
+                // 文件名模板的 {chapters}。
+                var mergedChapters = 0
 
                 seriesList.forEachIndexed { sIdx, seriesItem ->
                     val sPos = sIdx + 1
@@ -169,6 +172,7 @@ object CrossSeriesDownloadTask {
                                 text = DownloadNovelTask.replaceBrWithNewLine(wNovel.text),
                                 webNovel = wNovel,
                             )
+                            mergedChapters++
                         } catch (ex: CancellationException) {
                             throw ex
                         } catch (ex: Exception) {
@@ -181,9 +185,12 @@ object CrossSeriesDownloadTask {
                 }
 
                 val mergeName = buildMergedFileName(authorName, authorId, format)
-                val destination = DownloadItems.novelMergeDestinationForAuthor(
+                // 这一份不属于任何系列，模板只出目录，文件名仍由这里定。
+                val destination = DownloadItems.novelSeriesMergeDestinationForAuthor(
                     authorId = authorId,
                     authorName = authorName,
+                    chapterCount = mergedChapters,
+                    ext = format.extension,
                     mergeFileName = mergeName,
                 )
                 val content = MergedNovelContent(
@@ -262,8 +269,14 @@ object CrossSeriesDownloadTask {
             if (cPos < allNovels.size) delay(1500L)
         }
 
-        val mergeName = buildPerSeriesFileName(detail.title.orEmpty(), detail.id, format)
-        val destination = DownloadItems.novelMergeDestination(detail, mergeName)
+        // 目录 + 文件名都走「小说系列 · 合并下载」模板；抓失败的章节不算进
+        // {chapters}，文件名如实反映这份合集里到底有几章。
+        val destination = DownloadItems.novelSeriesMergeDestination(
+            seriesDetail = detail,
+            chapterCount = chapters.size,
+            ext = format.extension,
+            r18 = allNovels.any { (it.x_restrict ?: 0) > 0 },
+        )
         val content = MergedNovelContent(
             displayTitle = detail.title.orEmpty(),
             author = detail.user?.name,
@@ -318,16 +331,6 @@ object CrossSeriesDownloadTask {
         val html = Client.appApi.getNovelText(novel.id).string()
         return WebNovelParser.parsePixivObject(html)?.novel
             ?: throw RuntimeException("invalid web novel: ${novel.id}")
-    }
-
-    private fun buildPerSeriesFileName(
-        rawTitle: String,
-        seriesId: Long,
-        format: ExportFormat,
-    ): String {
-        val sanitized = rawTitle.replace(Regex("[\\\\/:*?\"<>|]"), "").trim().take(40)
-        val base = if (sanitized.isEmpty()) "novel_series_$seriesId" else sanitized
-        return "${base}_合集_ID${seriesId}.${format.extension}"
     }
 
     private fun buildMergedFileName(

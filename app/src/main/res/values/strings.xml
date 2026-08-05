@@ -1433,6 +1433,12 @@
     <string name="download_path_bucket_illust">插画 / 漫画</string>
     <string name="download_path_bucket_ugoira">动图（GIF 最终结果）</string>
     <string name="download_path_bucket_novel">小说</string>
+    <string name="download_path_bucket_novel_series">小说系列 · 合并下载</string>
+    <string name="download_path_quick_template_label">快捷模板（点一下直接套用）</string>
+    <string name="download_path_quick_merge_default">默认</string>
+    <string name="download_path_quick_merge_by_author">放作者目录</string>
+    <string name="download_path_quick_merge_by_series">放系列目录</string>
+    <string name="download_path_quick_merge_author_date">作者 + 年月</string>
     <string name="download_path_bucket_backup">备份文件</string>
     <string name="download_path_bucket_log">日志文件</string>
     <string name="download_path_storage_mediastore_images">MediaStore / Pictures</string>
@@ -1484,6 +1490,7 @@
     <string name="download_path_teach_var_created">投稿时间，格式可自定义，如 {created:yyyy}、{created:yyyy-MM-dd}</string>
     <string name="download_path_teach_var_series">所属系列名称（小说；不在系列中时为空）</string>
     <string name="download_path_teach_var_series_order">本篇在系列中的序号（按系列列表顺序；可写 {series_order:00} 固定位数）</string>
+    <string name="download_path_teach_var_chapters">合集里的章节数（合并下载专用；单篇下载时为所在系列的总篇数）</string>
 
     <string name="download_path_teach_section_cond">条件块（点击插入）</string>
     <string name="download_path_teach_cond_r18">只有 R18 作品才加 "R18/" 子目录</string>
@@ -1502,6 +1509,7 @@
     <string name="download_path_teach_example_r18_label">R18 / AI 分目录 + 按作者</string>
     <string name="download_path_teach_example_novel_series_label">小说：按系列建目录 + 章节序号</string>
     <string name="download_path_teach_example_novel_series_flat_label">小说：纯按系列建目录（不按作者）</string>
+    <string name="download_path_teach_example_novel_merge_label">合集：放作者目录</string>
 
     <string name="download_path_teach_tip_focus">先点一下某个 bucket 的模板输入框，再来点变量/条件/范例，才会插入到那里</string>
     <string name="download_path_preset_apply">套用</string>

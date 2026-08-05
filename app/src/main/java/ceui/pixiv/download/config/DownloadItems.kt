@@ -212,26 +212,28 @@ object DownloadItems {
     )
 
     /**
-     * Resolve the directory portion (everything except the filename) of the
-     * user's Novel-bucket template, evaluated against [seriesDetail]. Series
-     * merges (合集) don't fit per-novel templates — they have their own
-     * filename — but the user still wants them next to their other novels,
-     * so we render the template and keep only the directory.
+     * 合并下载（单系列全章节合成一份）的完整落盘路径：目录 **和** 文件名都来自
+     * 用户的 [Bucket.NovelSeries] 模板（issue #964）。此前这里只取小说模板的目录、
+     * 文件名写死成 `<系列名>_合集_ID<id>`，用户既改不了名字，也没法把合集挪出
+     * 小说模板里的 `{series}/` 子目录。
      *
-     * Returned path's filename is the caller-supplied [mergeFileName].
+     * [chapterCount] 是这份合集里**实际写进去**的章节数（用户中途停止就是截短后
+     * 的数量），渲染成 `{chapters}`；[ext] 是导出格式的扩展名，渲染成 `{ext}`。
+     * [r18] 由调用方看抓到的章节判定——系列接口本身不返回 x_restrict。
      *
-     * Caveat — the meta passed in uses [Instant.now] for `createdAt`,
-     * because [NovelSeriesDetail] does not expose a publication / last-
-     * updated timestamp. Date-bucketing presets (`byDate`,
-     * `byAuthorAndDate`) therefore file the merge under the **download
-     * day's** year/month, not the series' true publication month.
+     * Caveat — meta 的 `createdAt` 只能用 [Instant.now]：[NovelSeriesDetail] 不带
+     * 发布 / 更新时间。按日期分组的预设因此把合集归到**下载当天**的年月，而不是
+     * 系列真实的发布月。
      */
     @JvmStatic
-    fun novelMergeDestination(
+    @JvmOverloads
+    fun novelSeriesMergeDestination(
         seriesDetail: NovelSeriesDetail,
-        mergeFileName: String,
-    ): RelativePath = novelDestinationWithName(
-        novelItem(
+        chapterCount: Int,
+        ext: String,
+        r18: Boolean = false,
+    ): RelativePath = novelDestination(
+        novelSeriesItem(
             ItemMeta(
                 id = seriesDetail.id,
                 title = seriesDetail.title.orEmpty(),
@@ -240,25 +242,30 @@ object DownloadItems {
                     seriesDetail.user?.name.orEmpty(),
                 ),
                 createdAt = Instant.now(),
-                flags = seriesFlagOf(seriesDetail.title),
+                flags = seriesFlagOf(seriesDetail.title) + r18Flag(r18),
                 seriesTitle = seriesTitleOf(seriesDetail.title),
+                seriesTotal = chapterCount.takeIf { it > 0 },
             ),
+            ext,
         ),
-        mergeFileName,
-    )
+        extOverride = null,
+    ).withExportExtension(ext)
 
     /**
-     * Java-side variant of [novelMergeDestination] taking the legacy
-     * [NovelSeriesItem] model. Same semantics: directory from the user's
-     * Novel-bucket template, filename from [mergeFileName]. Same
-     * `createdAt = Instant.now()` caveat as [novelMergeDestination].
+     * Java-side variant of [novelSeriesMergeDestination] taking the legacy
+     * [NovelSeriesItem] model. Same semantics; [chapterCount] there is the
+     * series' declared `content_count` (that path merges whatever the caller
+     * already assembled and has no per-chapter tally of its own).
      */
     @JvmStatic
-    fun novelMergeDestinationForSeriesItem(
+    @JvmOverloads
+    fun novelSeriesMergeDestinationForSeriesItem(
         seriesItem: NovelSeriesItem,
-        mergeFileName: String,
-    ): RelativePath = novelDestinationWithName(
-        novelItem(
+        chapterCount: Int,
+        ext: String,
+        r18: Boolean = false,
+    ): RelativePath = novelDestination(
+        novelSeriesItem(
             ItemMeta(
                 id = seriesItem.id.toLong(),
                 title = seriesItem.title.orEmpty(),
@@ -267,40 +274,41 @@ object DownloadItems {
                     seriesItem.user?.name.orEmpty(),
                 ),
                 createdAt = Instant.now(),
-                flags = seriesFlagOf(seriesItem.title),
+                flags = seriesFlagOf(seriesItem.title) + r18Flag(r18),
                 seriesTitle = seriesTitleOf(seriesItem.title),
+                seriesTotal = chapterCount.takeIf { it > 0 },
             ),
+            ext,
         ),
-        mergeFileName,
-    )
+        extOverride = null,
+    ).withExportExtension(ext)
 
     /**
-     * Variant of [novelMergeDestination] for paths where no series detail
-     * is available (e.g. cross-series "all merged into one" output keyed
-     * only by author). The directory is resolved from the active Novel-
-     * bucket template and [mergeFileName] is used verbatim as the
-     * filename.
+     * 跨系列「全部合成一份」的落盘路径：这份文件不属于任何一个系列，`{series}` /
+     * `{id}` 无从谈起，所以只从 [Bucket.NovelSeries] 模板取**目录**（用户挑的合集
+     * 目录对它同样生效），文件名用调用方给的 [mergeFileName]。
      *
-     * Same `createdAt = Instant.now()` caveat as [novelMergeDestination]
-     * — date-bucketing presets file under the download day. `title` is
-     * left blank: the rendered filename is discarded anyway by
-     * [novelDestinationWithName], and any custom template that includes
-     * `{title}` in its **directory** part would otherwise produce a
-     * nonsensical folder named after the merge filename.
+     * 同样有 `createdAt = Instant.now()` 的 caveat。`title` 留空：渲染出的文件名
+     * 反正会被 [novelDestinationWithName] 丢掉，而自定义模板若在**目录**部分用了
+     * `{title}`，留着系列名反倒会造出一个莫名其妙的文件夹。
      */
     @JvmStatic
-    fun novelMergeDestinationForAuthor(
+    fun novelSeriesMergeDestinationForAuthor(
         authorId: Int,
         authorName: String?,
+        chapterCount: Int,
+        ext: String,
         mergeFileName: String,
     ): RelativePath = novelDestinationWithName(
-        novelItem(
+        novelSeriesItem(
             ItemMeta(
                 id = 0L,
                 title = "",
                 author = Author(authorId.toLong(), authorName.orEmpty()),
                 createdAt = Instant.now(),
+                seriesTotal = chapterCount.takeIf { it > 0 },
             ),
+            ext,
         ),
         mergeFileName,
     )
@@ -318,6 +326,28 @@ object DownloadItems {
         sourceUrl = "",
         meta = meta,
     )
+
+    /**
+     * [novelItem] 的合并下载版：桶是 [Bucket.NovelSeries]，扩展名跟着导出格式走
+     * （TXT / MD / EPUB / PDF 都用同一条模板，靠 `{ext}` 区分）。
+     */
+    private fun novelSeriesItem(meta: ItemMeta, ext: String): DownloadItem = DownloadItem(
+        bucket = Bucket.NovelSeries,
+        ext = ext,
+        mime = novelMimeOf(ext),
+        sourceUrl = "",
+        meta = meta,
+    )
+
+    private fun novelMimeOf(ext: String): String = when (ext.lowercase()) {
+        "md"   -> "text/markdown"
+        "epub" -> "application/epub+zip"
+        "pdf"  -> "application/pdf"
+        else   -> "text/plain"
+    }
+
+    private fun r18Flag(r18: Boolean): Set<Flag> =
+        if (r18) setOf(Flag.R18) else emptySet()
 
     /**
      * Render → sanitize → optionally swap extension on the last segment.
@@ -356,6 +386,25 @@ object DownloadItems {
         val finalName = FsSanitizer.cleanSegment(overrideName, preserveExtension = true)
         return RelativePath(cleaned.directory + finalName)
     }
+
+    /**
+     * 合并下载的兜底：模板里把后缀写死成 `.txt`（或干脆不写后缀）时，导出 EPUB /
+     * PDF 会得到一个打不开的假文件。只在结尾是**已知导出后缀**时替换、没有后缀时
+     * 追加——不能无脑按最后一个点切，系列名里带点（`Vol.1 合集`）会被腰斩。
+     */
+    private fun RelativePath.withExportExtension(ext: String): RelativePath {
+        val name = filename
+        if (name.endsWith(".$ext", ignoreCase = true)) return this
+        val current = name.substringAfterLast('.', "")
+        val fixed = if (current.lowercase() in EXPORT_EXTENSIONS) {
+            swapExtension(name, ext)
+        } else {
+            "$name.$ext"
+        }
+        return RelativePath(directory + fixed)
+    }
+
+    private val EXPORT_EXTENSIONS = setOf("txt", "md", "epub", "pdf")
 
     private fun swapExtension(filename: String, newExt: String): String {
         val dot = filename.lastIndexOf('.')

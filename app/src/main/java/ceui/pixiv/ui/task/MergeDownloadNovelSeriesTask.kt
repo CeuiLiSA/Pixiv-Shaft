@@ -110,8 +110,15 @@ object MergeDownloadNovelSeriesTask {
         }
 
         // ── 3) 写文件 ──
-        val mergeName = buildMergeFileName(seriesDetail, format)
-        val destination = DownloadItems.novelMergeDestination(seriesDetail, mergeName)
+        // 目录 + 文件名全部由「小说系列 · 合并下载」模板渲染（issue #964）。章节数
+        // 报实抓到的那个：用户中途停止时产物就是截短版，文件名不该谎报全集。
+        val destination = DownloadItems.novelSeriesMergeDestination(
+            seriesDetail = seriesDetail,
+            chapterCount = chapters.size,
+            ext = format.extension,
+            r18 = allNovels.any { (it.x_restrict ?: 0) > 0 },
+        )
+        val mergeName = destination.filename
         emit(FetchEvent.WritingFile(mergeName))
 
         val content = MergedNovelContent(
@@ -192,13 +199,6 @@ object MergeDownloadNovelSeriesTask {
         val html = Client.appApi.getNovelText(novel.id).string()
         return WebNovelParser.parsePixivObject(html)?.novel
             ?: throw RuntimeException("invalid web novel: ${novel.id}")
-    }
-
-    fun buildMergeFileName(detail: NovelSeriesDetail, format: ExportFormat): String {
-        val raw = detail.title.orEmpty()
-        val sanitized = raw.replace(Regex("[\\\\/:*?\"<>|]"), "").trim().take(40)
-        val base = if (sanitized.isEmpty()) "novel_series_${detail.id}" else sanitized
-        return "${base}_合集_ID${detail.id}.${format.extension}"
     }
 
     private const val CHAPTER_DELAY_MS = 1500L

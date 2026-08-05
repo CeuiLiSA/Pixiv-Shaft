@@ -1320,6 +1320,12 @@
     <string name="download_path_bucket_illust">Illustration / manga</string>
     <string name="download_path_bucket_ugoira">Ugoira (final GIF)</string>
     <string name="download_path_bucket_novel">Novel</string>
+    <string name="download_path_bucket_novel_series">Novel series · merged download</string>
+    <string name="download_path_quick_template_label">Quick templates (tap to apply)</string>
+    <string name="download_path_quick_merge_default">Default</string>
+    <string name="download_path_quick_merge_by_author">Author folder</string>
+    <string name="download_path_quick_merge_by_series">Series folder</string>
+    <string name="download_path_quick_merge_author_date">Author + month</string>
     <string name="download_path_bucket_backup">Backup files</string>
     <string name="download_path_bucket_log">Log files</string>
     <string name="download_path_storage_mediastore_images">MediaStore / Pictures</string>
@@ -1368,6 +1374,7 @@
     <string name="download_path_teach_var_created">Posting time. The format can be customized, for example {created:yyyy} or {created:yyyy-MM-dd}</string>
     <string name="download_path_teach_var_series">Series title the novel belongs to (empty when not in a series)</string>
     <string name="download_path_teach_var_series_order">Position of this chapter in its series (by series list order; write {series_order:00} to pin the width)</string>
+    <string name="download_path_teach_var_chapters">Chapter count of the merged file (merged downloads only; for a single novel it is the series total)</string>
     <string name="download_path_teach_section_cond">Conditions (tap to insert)</string>
     <string name="download_path_teach_cond_r18">Add the &quot;R18/&quot; subfolder only for R18 works</string>
     <string name="download_path_teach_cond_ai">Add the &quot;AI/&quot; subfolder only for AI works</string>
@@ -1384,6 +1391,7 @@
     <string name="download_path_teach_example_r18_label">R18 / AI subfolders + by author</string>
     <string name="download_path_teach_example_novel_series_label">Novels: folder per series + chapter number</string>
     <string name="download_path_teach_example_novel_series_flat_label">Novels: folder per series only (no author level)</string>
+    <string name="download_path_teach_example_novel_merge_label">Merged file: under the author folder</string>
     <string name="download_path_teach_tip_focus">Tap a template field for a bucket first, then tap variables, conditions, or examples to insert them there</string>
     <string name="download_path_preset_apply">Apply</string>
     <string name="download_path_preset_preview_prefix">Example:</string>

@@ -39,6 +39,21 @@ object TemplateSamples {
         seriesTotal = 12,
     )
 
+    /**
+     * 合并下载的合集文件：id / title 都是**系列**的，`{chapters}` 是这份合集里的
+     * 章节数。没有单篇序号，所以不给 seriesOrder——模板里写了 `{series_order}`
+     * 的话预览就是空串，和真实渲染一致。
+     */
+    val NOVEL_SERIES_SAMPLE = ItemMeta(
+        id = 1234567L,
+        title = "Example Series",
+        author = Author(12345L, "Example Author"),
+        createdAt = CREATED,
+        flags = setOf(Flag.Series),
+        seriesTitle = "Example Series",
+        seriesTotal = 12,
+    )
+
     val UGOIRA_SAMPLE = ItemMeta(
         id = 88888L,
         title = "うごイラ sample",
@@ -48,16 +63,18 @@ object TemplateSamples {
     )
 
     private val DEFAULT_EXT: Map<Bucket, String> = mapOf(
-        Bucket.Illust    to "jpg",
-        Bucket.Ugoira    to "gif",
-        Bucket.Novel     to "txt",
-        Bucket.Backup    to "zip",
-        Bucket.Log       to "txt",
-        Bucket.TempCache to "bin",
+        Bucket.Illust      to "jpg",
+        Bucket.Ugoira      to "gif",
+        Bucket.Novel       to "txt",
+        Bucket.NovelSeries to "txt",
+        Bucket.Backup      to "zip",
+        Bucket.Log         to "txt",
+        Bucket.TempCache   to "bin",
     )
 
     private fun sampleFor(bucket: Bucket): ItemMeta = when (bucket) {
         Bucket.Novel -> NOVEL_SAMPLE
+        Bucket.NovelSeries -> NOVEL_SERIES_SAMPLE
         Bucket.Ugoira -> UGOIRA_SAMPLE
         else -> ILLUST_SAMPLE
     }

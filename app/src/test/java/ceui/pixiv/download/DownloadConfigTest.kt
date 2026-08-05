@@ -115,7 +115,9 @@ class DownloadConfigTest {
     @Test fun `all presets produce valid configs for every user bucket`() {
         val images = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
         val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
-        val userBuckets = listOf(Bucket.Illust, Bucket.Ugoira, Bucket.Novel, Bucket.Backup, Bucket.Log)
+        val userBuckets = listOf(
+            Bucket.Illust, Bucket.Ugoira, Bucket.Novel, Bucket.NovelSeries, Bucket.Backup, Bucket.Log,
+        )
         for (id in ConfigPresets.Id.entries) {
             val cfg = ConfigPresets.of(id, images, downloads)
             for (bucket in userBuckets) {

@@ -16,7 +16,11 @@ data class ItemMeta(
     val seriesTitle: String? = null,
     /** 本篇在系列可见列表中的 1-based 位置；批量下载取列表下标，单篇导出查 SeriesCache。 */
     val seriesOrder: Int? = null,
-    /** 系列总篇数，与 [seriesOrder] 同源，用于 {series_order} 自动补零的宽度。 */
+    /**
+     * 系列篇数：单篇下载时与 [seriesOrder] 同源，是所在系列的总篇数，用于
+     * {series_order} 自动补零的宽度；合并下载（[Bucket.NovelSeries]）时是这一份
+     * 合集里实际写进去的章节数。两种场合都由 `{chapters}` 变量读出。
+     */
     val seriesTotal: Int? = null,
 ) {
     fun has(flag: Flag): Boolean = flag in flags

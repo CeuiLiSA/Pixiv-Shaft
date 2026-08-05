@@ -8,6 +8,7 @@ import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import ceui.loxia.WebNovel
+import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.RelativePath
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
@@ -23,7 +24,8 @@ import java.util.zip.ZipOutputStream
  * 是从 Web API 字符串里抠的），所以另开一套抽象，避免硬把 [String] 塞进 token AST。
  *
  * 文件命名 / 目录由 caller 通过 [RelativePath] 决定 —— writer 只负责把内容按格式
- * 落盘。所有 writer 都走 [ExportUtils.saveToDownloads] 写 MediaStore Novel bucket。
+ * 落盘。所有 writer 都走 [ExportUtils.saveToDownloads] 写 [Bucket.NovelSeries] 桶
+ * ——合集的存储位置 / 覆盖策略跟用户给「小说系列 · 合并下载」配的那套走。
  */
 interface MergedNovelWriter {
     val format: ExportFormat
@@ -176,7 +178,7 @@ private object MergedTxtWriter : MergedNovelWriter {
                 append("\n\n")
             }
         }
-        val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType) { out ->
+        val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType, Bucket.NovelSeries) { out ->
             out.write(text.toByteArray(Charsets.UTF_8))
         }
         return uri != null
@@ -212,7 +214,7 @@ private object MergedMarkdownWriter : MergedNovelWriter {
                 }
             }
         }
-        val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType) { out ->
+        val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType, Bucket.NovelSeries) { out ->
             out.write(text.toByteArray(Charsets.UTF_8))
         }
         return uri != null
@@ -314,7 +316,7 @@ private object MergedPdfWriter : MergedNovelWriter {
         }
         state.finish(document)
 
-        val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType) { out ->
+        val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType, Bucket.NovelSeries) { out ->
             document.writeTo(out)
         }
         document.close()
@@ -483,7 +485,7 @@ private object MergedEpubWriter : MergedNovelWriter {
         val opf = buildContentOpf(novelId, title, author, images.keys)
         val ncx = buildTocNcx(novelId, title, tokenized)
 
-        val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType) { out ->
+        val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType, Bucket.NovelSeries) { out ->
             ZipOutputStream(out).use { zip ->
                 storeEntry(zip, "mimetype", "application/epub+zip".toByteArray(Charsets.US_ASCII))
                 deflateEntry(zip, "META-INF/container.xml", CONTAINER_XML.toByteArray(Charsets.UTF_8))

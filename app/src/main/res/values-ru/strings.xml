@@ -1320,6 +1320,12 @@
     <string name="download_path_bucket_illust">Иллюстрации / манга</string>
     <string name="download_path_bucket_ugoira">Ugoira (итоговый GIF)</string>
     <string name="download_path_bucket_novel">Роман</string>
+    <string name="download_path_bucket_novel_series">Серия новелл · объединённая загрузка</string>
+    <string name="download_path_quick_template_label">Быстрые шаблоны (нажмите, чтобы применить)</string>
+    <string name="download_path_quick_merge_default">По умолчанию</string>
+    <string name="download_path_quick_merge_by_author">Папка автора</string>
+    <string name="download_path_quick_merge_by_series">Папка серии</string>
+    <string name="download_path_quick_merge_author_date">Автор + месяц</string>
     <string name="download_path_bucket_backup">Резервные файлы</string>
     <string name="download_path_bucket_log">Файлы журналов</string>
     <string name="download_path_storage_mediastore_images">MediaStore / Pictures</string>
@@ -1368,6 +1374,7 @@
     <string name="download_path_teach_var_created">Время публикации. Формат можно задать, например {created:yyyy} или {created:yyyy-MM-dd}</string>
     <string name="download_path_teach_var_series">Название серии, к которой относится новелла (пусто, если не в серии)</string>
     <string name="download_path_teach_var_series_order">Номер главы в серии (по порядку списка серии; {series_order:00} фиксирует число разрядов)</string>
+    <string name="download_path_teach_var_chapters">Число глав в объединённом файле (только для объединённой загрузки; для одной новеллы — всего глав в серии)</string>
     <string name="download_path_teach_section_cond">Блоки условий (нажмите для вставки)</string>
     <string name="download_path_teach_cond_r18">Добавлять подпапку &quot;R18/&quot; только для работ R18</string>
     <string name="download_path_teach_cond_ai">Добавлять подпапку &quot;AI/&quot; только для AI-работ</string>
@@ -1384,6 +1391,7 @@
     <string name="download_path_teach_example_r18_label">Папки R18 / AI + группировка по автору</string>
     <string name="download_path_teach_example_novel_series_label">Новеллы: папка на серию + номер главы</string>
     <string name="download_path_teach_example_novel_series_flat_label">Новеллы: папка только по серии (без уровня автора)</string>
+    <string name="download_path_teach_example_novel_merge_label">Сборник: в папку автора</string>
     <string name="download_path_teach_tip_focus">Сначала нажмите на поле шаблона нужного bucket, затем на переменную, условие или пример — только тогда вставка пойдёт туда</string>
     <string name="download_path_preset_apply">Применить</string>
     <string name="download_path_preset_preview_prefix">Например:</string>

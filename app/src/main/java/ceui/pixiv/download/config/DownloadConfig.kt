@@ -1,6 +1,7 @@
 package ceui.pixiv.download.config
 
 import ceui.pixiv.download.model.Bucket
+import ceui.pixiv.download.template.DefaultTemplates
 import ceui.pixiv.download.template.PageNumbering
 
 /**
@@ -38,10 +39,17 @@ data class DownloadConfig(
             "Bucket.TempCache is not user-configurable; resolve it through Downloads, not DownloadConfig"
         }
         val override = perBucket[bucket]
+        // [Bucket.NovelSeries] 是后加的桶：升级用户持久化的配置里没有它的条目，
+        // 空缺字段若照常掉回 defaults，合集文件会拿到插画模板 + 图片卷（Pictures/）。
+        // 所以模板缺省用它自己的默认值，存储 / 覆盖策略先跟小说走（同为 Downloads
+        // 类文本产物），再退到 defaults。
+        val inherited = if (bucket == Bucket.NovelSeries) perBucket[Bucket.Novel] else null
+        val fallbackTemplate =
+            if (bucket == Bucket.NovelSeries) DefaultTemplates.NOVEL_SERIES else defaults.template
         return ResolvedBucket(
-            template  = override?.template  ?: defaults.template,
-            storage   = override?.storage   ?: defaults.storage,
-            overwrite = override?.overwrite ?: defaults.overwrite,
+            template  = override?.template  ?: fallbackTemplate,
+            storage   = override?.storage   ?: inherited?.storage   ?: defaults.storage,
+            overwrite = override?.overwrite ?: inherited?.overwrite ?: defaults.overwrite,
         )
     }
 

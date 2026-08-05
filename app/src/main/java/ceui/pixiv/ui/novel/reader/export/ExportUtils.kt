@@ -19,7 +19,8 @@ import java.util.concurrent.TimeUnit
 internal object ExportUtils {
 
     /**
-     * Insert a fresh entry under the active Novel bucket at [destination]
+     * Insert a fresh entry under [bucket] (the active Novel bucket by default;
+     * merged series files pass [Bucket.NovelSeries]) at [destination]
      * (full directory + filename, already rendered through the user's active
      * naming preset — see
      * [ceui.pixiv.download.config.DownloadItems.novelDestinationFromLoxia]),
@@ -36,10 +37,11 @@ internal object ExportUtils {
         context: Context,
         destination: RelativePath,
         mimeType: String,
+        bucket: Bucket = Bucket.Novel,
         writer: (OutputStream) -> Unit,
     ): Uri? {
         val handle = DownloadsRegistry.downloads.openRaw(
-            Bucket.Novel,
+            bucket,
             destination,
             mimeType,
         ) ?: return null

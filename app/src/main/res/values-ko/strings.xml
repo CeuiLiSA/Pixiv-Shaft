@@ -1320,6 +1320,12 @@
     <string name="download_path_bucket_illust">일러스트 / 만화</string>
     <string name="download_path_bucket_ugoira">움직이는 이미지(최종 GIF)</string>
     <string name="download_path_bucket_novel">소설</string>
+    <string name="download_path_bucket_novel_series">소설 시리즈 · 병합 다운로드</string>
+    <string name="download_path_quick_template_label">빠른 템플릿 (탭하면 바로 적용)</string>
+    <string name="download_path_quick_merge_default">기본값</string>
+    <string name="download_path_quick_merge_by_author">작가 폴더</string>
+    <string name="download_path_quick_merge_by_series">시리즈 폴더</string>
+    <string name="download_path_quick_merge_author_date">작가 + 연월</string>
     <string name="download_path_bucket_backup">백업 파일</string>
     <string name="download_path_bucket_log">로그 파일</string>
     <string name="download_path_storage_mediastore_images">MediaStore / Pictures</string>
@@ -1368,6 +1374,7 @@
     <string name="download_path_teach_var_created">게시 시간. {created:yyyy}, {created:yyyy-MM-dd}처럼 형식을 지정할 수 있습니다</string>
     <string name="download_path_teach_var_series">소설이 속한 시리즈 제목 (시리즈에 속하지 않으면 비어 있음)</string>
     <string name="download_path_teach_var_series_order">시리즈 내 이 화의 순번 (시리즈 목록 순서 기준. {series_order:00}로 자릿수 고정 가능)</string>
+    <string name="download_path_teach_var_chapters">병합 파일의 화 수 (병합 다운로드 전용. 단편은 시리즈 전체 편수)</string>
     <string name="download_path_teach_section_cond">조건 블록(탭하여 삽입)</string>
     <string name="download_path_teach_cond_r18">R18 작품일 때만 &quot;R18/&quot; 하위 폴더 추가</string>
     <string name="download_path_teach_cond_ai">AI 작품일 때만 &quot;AI/&quot; 하위 폴더 추가</string>
@@ -1384,6 +1391,7 @@
     <string name="download_path_teach_example_r18_label">R18 / AI 폴더 + 작가별 분류</string>
     <string name="download_path_teach_example_novel_series_label">소설: 시리즈별 폴더 + 화 번호</string>
     <string name="download_path_teach_example_novel_series_flat_label">소설: 시리즈 폴더만 (작가 계층 없음)</string>
+    <string name="download_path_teach_example_novel_merge_label">병합본: 작가 폴더에 저장</string>
     <string name="download_path_teach_tip_focus">먼저 해당 bucket의 템플릿 입력칸을 선택한 뒤 변수, 조건, 예시를 탭해야 그곳에 삽입됩니다</string>
     <string name="download_path_preset_apply">적용</string>
     <string name="download_path_preset_preview_prefix">예:</string>

@@ -267,12 +267,13 @@ public class IllustDownload {
     }
 
     public static void downloadNovel(BaseActivity<?> activity, NovelSeriesItem novelSeriesItem, String content, Callback<Uri> targetCallback) {
-        // 文件名仍按系列合集惯例（NovelSeries_<id>_Chapter_1~N_<title>.txt），
-        // 但目录从用户当前的 Novel 命名预设里取——和 Kotlin 端的
+        // 目录和文件名都交给「小说系列 · 合并下载」模板（默认仍渲染成旧的
+        // NovelSeries_<id>_Chapter_1~N_<title>.txt）——和 Kotlin 端的
         // MergeDownloadNovelSeriesTask、CrossSeriesDownloadTask 走同一规则。
-        String mergeName = FileCreator.deleteSpecialWords("NovelSeries_" + novelSeriesItem.getId() + "_Chapter_1~" + novelSeriesItem.getContent_count() + "_" + novelSeriesItem.getTitle() + ".txt");
-        RelativePath path = DownloadItems.novelMergeDestinationForSeriesItem(novelSeriesItem, mergeName);
-        downloadNovel(activity, path, content, targetCallback);
+        // 章节数这条路径没有实抓计数，只能用系列声明的 content_count。
+        RelativePath path = DownloadItems.novelSeriesMergeDestinationForSeriesItem(
+                novelSeriesItem, novelSeriesItem.getContent_count(), "txt");
+        downloadNovel(activity, path, content, true, targetCallback);
     }
 
     public static String truncateTitle(String title, int maxLength) {
@@ -333,6 +334,15 @@ public class IllustDownload {
      * to keep FileProvider URIs human-readable for the share callback.
      */
     public static void downloadNovel(BaseActivity<?> activity, RelativePath path, String content, Callback<Uri> targetCallback) {
+        downloadNovel(activity, path, content, false, targetCallback);
+    }
+
+    /**
+     * [isSeriesMerge] 决定落进哪个下载桶：合并下载的合集走
+     * {@link ceui.pixiv.download.model.Bucket#NovelSeries}（用户可以给它单独配
+     * 存储位置 / 覆盖策略），单篇小说走 {@link ceui.pixiv.download.model.Bucket#Novel}。
+     */
+    public static void downloadNovel(BaseActivity<?> activity, RelativePath path, String content, boolean isSeriesMerge, Callback<Uri> targetCallback) {
         check(activity, new FeedBack() {
             @Override
             public void doSomething() {
@@ -342,7 +352,11 @@ public class IllustDownload {
                     outStream.write(content.getBytes());
                     outStream.close();
                     Common.showLog("downloadNovel path " + path.joinTo("/"));
-                    OutPut.outPutNovel(activity, textFile, path);
+                    if (isSeriesMerge) {
+                        OutPut.outPutNovelSeriesMerge(activity, textFile, path);
+                    } else {
+                        OutPut.outPutNovel(activity, textFile, path);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

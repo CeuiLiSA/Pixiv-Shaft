@@ -64,6 +64,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         Bucket.Illust to R.string.download_path_bucket_illust,
         Bucket.Ugoira to R.string.download_path_bucket_ugoira,
         Bucket.Novel  to R.string.download_path_bucket_novel,
+        // 合并下载的合集单独一张卡：它的目录 / 文件名和单篇小说互不牵连（issue #964）。
+        Bucket.NovelSeries to R.string.download_path_bucket_novel_series,
         Bucket.Backup to R.string.download_path_bucket_backup,
         Bucket.Log    to R.string.download_path_bucket_log,
     )
@@ -243,6 +245,7 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         Token("{created:yyyyMMdd_HHmmss}", "{created:…}", R.string.download_path_teach_var_created),
         Token("{series}", "{series}", R.string.download_path_teach_var_series),
         Token("{series_order}", "{series_order}", R.string.download_path_teach_var_series_order),
+        Token("{chapters}", "{chapters}", R.string.download_path_teach_var_chapters),
     )
 
     private val CONDITION_TOKENS = listOf(
@@ -265,6 +268,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         Example("Shaft/[?R18:R18/][?AI:AI/]{author} ({author_id})/{title} {id}[?p>1: p{page}].{ext}", R.string.download_path_teach_example_r18_label),
         Example("Shaft/Novels/{author}/[?series:{series}/{series_order} ]{title} {id}.txt", R.string.download_path_teach_example_novel_series_label),
         Example("Shaft/Novels/[?series:{series}/{series_order} ]{title} {id}.txt", R.string.download_path_teach_example_novel_series_flat_label),
+        // 合并下载专用：合集不进系列子目录，直接落作者目录（issue #964 的诉求）。
+        Example("Shaft/Novels/{author} ({author_id})/{series} 合集 1~{chapters} {id}.{ext}", R.string.download_path_teach_example_novel_merge_label),
     )
 
     private fun addTeachingCard(root: LinearLayout) {
@@ -523,6 +528,92 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
 
     // ---------------- Per-bucket card ----------------
 
+    /**
+     * 「点一下直接套用」的现成模板，挂在具体某张 bucket 卡片上。目前只有合并下载
+     * 这张需要：它的模板最不好手写（`{chapters}` / `{series}` 都是合集专属），而
+     * 教学卡里的范例按钮要先点中输入框才认，用户嫌绕（issue #964）。
+     */
+    private data class QuickTemplate(val labelRes: Int, val template: String)
+
+    private val QUICK_TEMPLATES: Map<Bucket, List<QuickTemplate>> = mapOf(
+        Bucket.NovelSeries to listOf(
+            QuickTemplate(
+                R.string.download_path_quick_merge_default,
+                DefaultTemplates.NOVEL_SERIES,
+            ),
+            QuickTemplate(
+                R.string.download_path_quick_merge_by_author,
+                "Shaft/Novels/{author} ({author_id})/{series} 合集 1~{chapters} {id}.{ext}",
+            ),
+            QuickTemplate(
+                R.string.download_path_quick_merge_by_series,
+                "Shaft/Novels/{series}/{series} 合集 1~{chapters} {id}.{ext}",
+            ),
+            QuickTemplate(
+                R.string.download_path_quick_merge_author_date,
+                "Shaft/Novels/{author} ({author_id})/{created:yyyy-MM}/{series} 合集 1~{chapters} {id}.{ext}",
+            ),
+        ),
+    )
+
+    /**
+     * 标题 + 一排 chip。点 chip = 填进 [editor] 并立即保存（和顶部预设卡「套用」
+     * 一样是一步到位），预览由 editor 的 TextWatcher 自己刷新。
+     */
+    private fun quickTemplateRow(
+        quick: List<QuickTemplate>,
+        editor: EditText,
+        bucket: Bucket,
+    ): View {
+        val col = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(14) }
+        }
+        col.addView(
+            TextView(requireContext()).apply {
+                text = getString(R.string.download_path_quick_template_label)
+                textSize = 13f
+                setTextColor(resources.getColor(R.color.v3_text_3, null))
+            },
+        )
+        val scroll = HorizontalScrollView(requireContext()).apply {
+            isHorizontalScrollBarEnabled = false
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = dp(6) }
+        }
+        val row = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
+        quick.forEach { item ->
+            row.addView(
+                TextView(requireContext()).apply {
+                    text = getString(item.labelRes)
+                    textSize = 13f
+                    setTextColor(0xFF6C5CE7.toInt())
+                    setBackgroundResource(R.drawable.bg_v3_pill_secondary)
+                    setPadding(dp(16), dp(8), dp(16), dp(8))
+                    isClickable = true
+                    isFocusable = true
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    ).apply { setMargins(0, 0, dp(6), 0) }
+                    setOnClickListener {
+                        editor.setText(item.template)
+                        editor.setSelection(item.template.length)
+                        saveBucketTemplate(bucket, item.template)
+                    }
+                },
+            )
+        }
+        scroll.addView(row)
+        col.addView(scroll)
+        return col
+    }
+
     private fun addBucketSection(root: LinearLayout, bucket: Bucket) {
         val inflater = LayoutInflater.from(requireContext())
         val cell = inflater.inflate(R.layout.cell_download_bucket, root, false) as LinearLayout
@@ -552,6 +643,15 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         previewRefreshers += { refreshPreview(templateEdit.text.toString(), bucket, previewView) }
         templateEdit.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) focusedEditor = v as EditText
+        }
+
+        // 快捷模板排在这张卡自己的输入框正下方（不是页面顶部那堆预设 / 教学 chip
+        // 里），紧挨着它要改的那个框，也不跟别的桶抢位置。
+        QUICK_TEMPLATES[bucket]?.let { quick ->
+            cell.addView(
+                quickTemplateRow(quick, templateEdit, bucket),
+                cell.indexOfChild(templateEdit) + 1,
+            )
         }
 
         cell.findViewById<TextView>(R.id.bucket_save).setOnClickListener {

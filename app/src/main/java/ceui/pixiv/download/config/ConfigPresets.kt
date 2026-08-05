@@ -11,6 +11,10 @@ import ceui.pixiv.download.template.DefaultTemplates
  * inherit from each other so the end state of "apply preset X" is
  * deterministic and does not depend on what was there before.
  *
+ * 每套预设都同时给 [Bucket.NovelSeries]（合并下载的合集文件）配一条模板，目录
+ * 跟着该预设的小说目录走、文件名统一带系列名 + 章节数；不配的话合集会掉回
+ * [DefaultTemplates.NOVEL_SERIES]，和预设的其余部分对不上。
+ *
  * 预设覆盖面：
  * - [shaftClassic] — 与 4.5.7 及之前版本字节级一致（插画/动图），旧数据零迁移识别。
  * - [modern] — 新的 `Shaft/Illusts/{author} ({author_id})/` 结构，R18/AI 嵌套子目录。
@@ -35,6 +39,7 @@ object ConfigPresets {
             perBucket = mapOf(
                 Bucket.Ugoira to BucketConfig(template = DefaultTemplates.UGOIRA, storage = imagesStorage),
                 Bucket.Novel  to BucketConfig(template = DefaultTemplates.NOVEL,  storage = downloadsStorage),
+                Bucket.NovelSeries to BucketConfig(template = DefaultTemplates.NOVEL_SERIES, storage = downloadsStorage),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
                 Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
             ),
@@ -56,6 +61,10 @@ object ConfigPresets {
                     template = "Shaft/Novels/{author} ({author_id})/{title} {id}.txt",
                     storage  = downloadsStorage,
                 ),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/Novels/{author} ({author_id})/{series} 合集 1~{chapters} {id}.{ext}",
+                    storage  = downloadsStorage,
+                ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
                 Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
             ),
@@ -70,6 +79,10 @@ object ConfigPresets {
             perBucket = mapOf(
                 Bucket.Ugoira to BucketConfig(template = "Shaft/{title} {id}.gif", storage = imagesStorage),
                 Bucket.Novel  to BucketConfig(template = "Shaft/{title} {id}.txt", storage = downloadsStorage),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/{series} 合集 1~{chapters} {id}.{ext}",
+                    storage  = downloadsStorage,
+                ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP,  storage = downloadsStorage),
                 Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,     storage = downloadsStorage),
             ),
@@ -90,6 +103,10 @@ object ConfigPresets {
                     template = "Shaft/Novels/{created:yyyy}/{created:yyyy-MM}/{title} {id}.txt",
                     storage  = downloadsStorage,
                 ),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/Novels/{created:yyyy}/{created:yyyy-MM}/{series} 合集 1~{chapters} {id}.{ext}",
+                    storage  = downloadsStorage,
+                ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
                 Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
             ),
@@ -108,6 +125,10 @@ object ConfigPresets {
                 ),
                 Bucket.Novel  to BucketConfig(
                     template = "Shaft/{author} ({author_id})/{title} {id}.txt",
+                    storage  = downloadsStorage,
+                ),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/{author} ({author_id})/{series} 合集 1~{chapters} {id}.{ext}",
                     storage  = downloadsStorage,
                 ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
@@ -131,6 +152,10 @@ object ConfigPresets {
                     template = "Shaft/Novels/{author} ({author_id})/{created:yyyy-MM}/{title} {id}.txt",
                     storage  = downloadsStorage,
                 ),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/Novels/{author} ({author_id})/{created:yyyy-MM}/{series} 合集 1~{chapters} {id}.{ext}",
+                    storage  = downloadsStorage,
+                ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
                 Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
             ),
@@ -150,6 +175,10 @@ object ConfigPresets {
                 ),
                 Bucket.Novel  to BucketConfig(
                     template = "Shaft/{author} ({author_id})/{title} {id}.txt",
+                    storage  = downloadsStorage,
+                ),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/{author} ({author_id})/{series} 合集 1~{chapters} {id}.{ext}",
                     storage  = downloadsStorage,
                 ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
@@ -177,6 +206,10 @@ object ConfigPresets {
                     template = "Shaft/Novels/[?series:{series}/{series_order} ]{title} {id}.txt",
                     storage  = downloadsStorage,
                 ),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/Novels/{series}/{series} 合集 1~{chapters} {id}.{ext}",
+                    storage  = downloadsStorage,
+                ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
                 Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
             ),
@@ -192,6 +225,10 @@ object ConfigPresets {
             perBucket = mapOf(
                 Bucket.Ugoira to BucketConfig(template = "Shaft/{id}.gif", storage = imagesStorage),
                 Bucket.Novel  to BucketConfig(template = "Shaft/{id}.txt", storage = downloadsStorage),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/{id}.{ext}",
+                    storage  = downloadsStorage,
+                ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
                 Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
             ),
@@ -213,6 +250,10 @@ object ConfigPresets {
                     template = "ShaftNovels/{title}_{id}_{author_id}_{author}_{created:yyyyMMdd_HHmmss}.txt",
                     storage  = downloadsStorage,
                 ),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/Novels/{series}_合集_{id}_{chapters}章_{author_id}_{author}_{created:yyyyMMdd_HHmmss}.{ext}",
+                    storage  = downloadsStorage,
+                ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
                 Bucket.Log    to BucketConfig(template = DefaultTemplates.LOG,    storage = downloadsStorage),
             ),
@@ -232,6 +273,10 @@ object ConfigPresets {
                 ),
                 Bucket.Novel  to BucketConfig(
                     template = "Shaft/Novels/[?R18:R18][?!R18:SFW]/{author} ({author_id})/{title} {id}.txt",
+                    storage  = downloadsStorage,
+                ),
+                Bucket.NovelSeries to BucketConfig(
+                    template = "Shaft/Novels/[?R18:R18][?!R18:SFW]/{author} ({author_id})/{series} 合集 1~{chapters} {id}.{ext}",
                     storage  = downloadsStorage,
                 ),
                 Bucket.Backup to BucketConfig(template = DefaultTemplates.BACKUP, storage = downloadsStorage),
