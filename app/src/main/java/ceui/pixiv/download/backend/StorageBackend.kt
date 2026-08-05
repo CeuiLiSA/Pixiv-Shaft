@@ -27,9 +27,23 @@ interface StorageBackend {
      */
     val isContentScheme: Boolean get() = true
 
+    /**
+     * Whether the underlying provider resolves name collisions itself by
+     * auto-suffixing ("name (1).jpg") instead of the facade probing for a
+     * free name. True for SAF: `DocumentFile.createFile` already returns a
+     * suffixed document on conflict, so the Rename policy skips existence
+     * checks and lets the provider own the rename.
+     */
+    val autoRenamesOnConflict: Boolean get() = false
+
     fun open(relPath: RelativePath, mime: String): WriteHandle
 
     fun exists(relPath: RelativePath): Boolean
+
+    /**
+     * SAF模式下会重写本函数，见[ceui.pixiv.download.backend.SafBackend.skipIfExists]
+     */
+    fun skipIfExists(relPath: RelativePath, mime: String): Boolean = exists(relPath)
 
     fun delete(relPath: RelativePath): Boolean
 

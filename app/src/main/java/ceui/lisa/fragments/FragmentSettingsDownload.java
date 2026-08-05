@@ -181,6 +181,7 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         final OverwritePolicy[] POLICY_VALUES = OverwritePolicy.values();
         refreshOverwritePolicyRow();
         baseBind.overwritePolicyRela.setOnClickListener(v -> {
+            /*
             if (DownloadsRegistry.isSaf()) {
                 new QMUIDialog.MessageDialogBuilder(mActivity)
                         .setTitle(R.string.setting_overwrite_policy_saf_locked_title)
@@ -189,7 +190,7 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
                         .addAction(0, getString(R.string.button_ok), (dialog, index) -> dialog.dismiss())
                         .show();
                 return;
-            }
+            }*/
             OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
             new QMUIDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(cur.ordinal())
@@ -428,6 +429,7 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
 
     private void refreshOverwritePolicyRow() {
         if (baseBind == null) return;
+        /*
         if (DownloadsRegistry.isSaf()) {
             baseBind.overwritePolicy.setText(R.string.setting_overwrite_policy_saf_locked);
             baseBind.overwritePolicy.setAlpha(0.5f);
@@ -440,7 +442,15 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             };
             baseBind.overwritePolicy.setText(names[cur.ordinal()]);
             baseBind.overwritePolicy.setAlpha(1.0f);
-        }
+        }*/
+        OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
+        String[] names = new String[]{
+                getString(R.string.download_path_policy_skip),
+                getString(R.string.download_path_policy_replace),
+                getString(R.string.download_path_policy_rename)
+        };
+        baseBind.overwritePolicy.setText(names[cur.ordinal()]);
+        baseBind.overwritePolicy.setAlpha(1.0f);
     }
 
     /** aria2 远程下载入口行的状态文字：已启用时显示 RPC 地址，否则显示功能简介。 */
