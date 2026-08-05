@@ -36,8 +36,7 @@ import java.util.Locale
  *  1. 调用方在 IO 线程把 [IllustsBean] 列表喂给 [originalUrlsOf] 抽出 url 列表
  *  2. 主线程 [present] 弹二选一菜单：保存为 .txt / 通过系统分享面板发出
  *  3. 落盘走 [ceui.pixiv.download.Downloads.openRaw]
- *     ([Bucket.Log], `ShaftFiles/pixiv-links-yyyyMMdd-HHmmss.txt`)，跟
- *     [ceui.lisa.file.OutPut.outPutFile] 现有 Log bucket 路径保持一致。
+ *     ([Bucket.Log], `ShaftFiles/pixiv-links-yyyyMMdd-HHmmss.txt`)。
  *  4. 落盘成功后**尝试**用第三方 app 打开 .txt，见 [tryOpenSavedFile]。
  *
  * 调用方负责把"从 IllustsBean 抽 url"放在 IO 线程，[present] 主线程接收

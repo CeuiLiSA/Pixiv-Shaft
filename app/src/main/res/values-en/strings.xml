@@ -1431,7 +1431,6 @@
     <string name="save_image_failed">Failed to save image: %1$s</string>
     <string name="save_novel_failed">Failed to save novel: %1$s</string>
     <string name="save_backup_failed">Failed to save backup: %1$s</string>
-    <string name="save_file_failed">Failed to save file: %1$s</string>
     <string name="save_gif_failed">Failed to save GIF: %1$s</string>
     <string name="save_gif_exists">GIF already exists</string>
     <string name="save_gif_success">GIF saved</string>

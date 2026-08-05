@@ -1431,7 +1431,6 @@
     <string name="save_image_failed">Görsel kaydedilemedi: %1$s</string>
     <string name="save_novel_failed">Roman kaydedilemedi: %1$s</string>
     <string name="save_backup_failed">Yedek kaydedilemedi: %1$s</string>
-    <string name="save_file_failed">Dosya kaydedilemedi: %1$s</string>
     <string name="save_gif_failed">GIF kaydedilemedi: %1$s</string>
     <string name="save_gif_exists">GIF zaten var</string>
     <string name="save_gif_success">GIF kaydedildi</string>

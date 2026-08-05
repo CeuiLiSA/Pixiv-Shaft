@@ -1553,7 +1553,6 @@
     <string name="save_image_failed">图片保存失败：%1$s</string>
     <string name="save_novel_failed">小说保存失败：%1$s</string>
     <string name="save_backup_failed">备份保存失败：%1$s</string>
-    <string name="save_file_failed">文件保存失败：%1$s</string>
     <string name="save_gif_failed">GIF 保存失败：%1$s</string>
     <string name="save_gif_exists">GIF 已存在</string>
     <string name="save_gif_success">GIF 保存成功</string>

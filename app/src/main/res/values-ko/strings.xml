@@ -1431,7 +1431,6 @@
     <string name="save_image_failed">이미지 저장 실패: %1$s</string>
     <string name="save_novel_failed">소설 저장 실패: %1$s</string>
     <string name="save_backup_failed">백업 저장 실패: %1$s</string>
-    <string name="save_file_failed">파일 저장 실패: %1$s</string>
     <string name="save_gif_failed">GIF 저장 실패: %1$s</string>
     <string name="save_gif_exists">GIF가 이미 존재합니다</string>
     <string name="save_gif_success">GIF 저장 완료</string>

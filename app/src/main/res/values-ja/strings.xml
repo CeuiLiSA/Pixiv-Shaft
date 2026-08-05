@@ -1431,7 +1431,6 @@
     <string name="save_image_failed">画像の保存に失敗しました：%1$s</string>
     <string name="save_novel_failed">小説の保存に失敗しました：%1$s</string>
     <string name="save_backup_failed">バックアップの保存に失敗しました：%1$s</string>
-    <string name="save_file_failed">ファイルの保存に失敗しました：%1$s</string>
     <string name="save_gif_failed">GIF の保存に失敗しました：%1$s</string>
     <string name="save_gif_exists">GIF はすでに存在します</string>
     <string name="save_gif_success">GIF を保存しました</string>

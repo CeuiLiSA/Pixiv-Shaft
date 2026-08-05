@@ -1433,7 +1433,6 @@
     <string name="save_image_failed">圖片儲存失敗：%1$s</string>
     <string name="save_novel_failed">小說儲存失敗：%1$s</string>
     <string name="save_backup_failed">備份儲存失敗：%1$s</string>
-    <string name="save_file_failed">檔案儲存失敗：%1$s</string>
     <string name="save_gif_failed">GIF 儲存失敗：%1$s</string>
     <string name="save_gif_exists">GIF 已存在</string>
     <string name="save_gif_success">GIF 儲存成功</string>

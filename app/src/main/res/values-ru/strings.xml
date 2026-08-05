@@ -1431,7 +1431,6 @@
     <string name="save_image_failed">Не удалось сохранить изображение: %1$s</string>
     <string name="save_novel_failed">Не удалось сохранить роман: %1$s</string>
     <string name="save_backup_failed">Не удалось сохранить резервную копию: %1$s</string>
-    <string name="save_file_failed">Не удалось сохранить файл: %1$s</string>
     <string name="save_gif_failed">Не удалось сохранить GIF: %1$s</string>
     <string name="save_gif_exists">GIF уже существует</string>
     <string name="save_gif_success">GIF сохранён</string>

@@ -42,45 +42,11 @@ object OutPut {
         }
     }
 
-    /**
-     * Write a novel temp file into the user's Novel bucket at [path].
-     * The path comes from the active naming preset — see
-     * [ceui.pixiv.download.config.DownloadItems.novelDestinationFromBean]
-     * — so callers must pass the full relative path (directory + filename).
-     * Hardcoding `ShaftNovels/` here was the legacy bypass that kept the
-     * Java download path on its own naming scheme regardless of user
-     * settings.
-     */
-    @JvmStatic
-    fun outPutNovel(context: Context, from: File, path: RelativePath) {
-        writeRawPath(Bucket.Novel, path, "text/plain", from, R.string.save_novel_failed)
-    }
-
-    /**
-     * 同 [outPutNovel]，但落的是「小说系列 · 合并下载」桶——存储位置 / 覆盖策略跟
-     * 用户给合集配的那一套走，路径来自
-     * [ceui.pixiv.download.config.DownloadItems.novelSeriesMergeDestinationForSeriesItem]。
-     */
-    @JvmStatic
-    fun outPutNovelSeriesMerge(context: Context, from: File, path: RelativePath) {
-        writeRawPath(Bucket.NovelSeries, path, "text/plain", from, R.string.save_novel_failed)
-    }
-
     @JvmStatic
     fun outPutBackupFile(context: Context, from: File, fileName: String) {
         // 备份文件本身就是 JSON（Shaft-Backup.json），之前写成 application/zip 会让
         // MediaStore 按 MIME 给文件补一个 .zip 后缀，看起来像压缩包实则不是（#949）。
         writeRaw(Bucket.Backup, "ShaftBackups/$fileName", "application/json", from, R.string.save_backup_failed)
-    }
-
-    @JvmStatic
-    fun outPutFile(context: Context, from: File, fileName: String) {
-        writeRaw(Bucket.Log, "ShaftFiles/$fileName", "text/plain", from, R.string.save_file_failed)
-    }
-
-    @JvmStatic
-    fun outPutToDownload(context: Context, from: File, path: String, fileName: String) {
-        writeRaw(Bucket.Log, "$path/$fileName", "text/plain", from, R.string.save_file_failed)
     }
 
     private fun writeRaw(bucket: Bucket, rawPath: String, mime: String, from: File, failedMsgId: Int) {

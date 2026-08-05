@@ -1,8 +1,6 @@
 package ceui.pixiv.download.config
 
 import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.NovelBean
-import ceui.lisa.models.NovelSeriesItem
 import ceui.loxia.Novel
 import ceui.loxia.NovelSeriesDetail
 import ceui.pixiv.download.DownloadsRegistry
@@ -19,7 +17,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
 
 /**
- * Factories that adapt legacy data models ([IllustsBean], [NovelBean]) into the
+ * Factories that adapt legacy data models ([IllustsBean]) into the
  * new [DownloadItem] domain type. Kept separate from [DownloadItem] itself so
  * the core model stays free of Pixiv-specific imports.
  */
@@ -58,34 +56,6 @@ object DownloadItems {
         meta = metaOf(illust, pageIndex = null),
     )
 
-    @JvmStatic
-    fun novel(novel: NovelBean): DownloadItem = DownloadItem(
-        bucket = Bucket.Novel,
-        ext = "txt",
-        mime = "text/plain",
-        sourceUrl = "",
-        meta = ItemMeta(
-            id = novel.id.toLong(),
-            title = novel.title.orEmpty(),
-            author = Author(novel.user?.id?.toLong() ?: 0L, novel.user?.name.orEmpty()),
-            createdAt = parseInstant(novel.create_date),
-            page = null,
-            totalPages = 1,
-            width = null,
-            height = null,
-            flags = flagsOfNovel(novel),
-            seriesTitle = seriesTitleOf(novel.series?.title),
-        ),
-    )
-
-    /**
-     * Render the template-based filename for a single illust page.
-     * Use this everywhere instead of the legacy `buildPixivWorksFileName`.
-     */
-    @JvmStatic
-    fun illustFileName(illust: IllustsBean, pageIndex: Int): String =
-        illustRelativePath(illust, pageIndex).filename
-
     /**
      * Full sanitized [RelativePath] (directory + filename) for a single illust
      * page, rendered through the user's active naming template. Used by the
@@ -115,40 +85,10 @@ object DownloadItems {
     }
 
     /**
-     * Render the template-based filename for a novel.
-     * Use this everywhere instead of the legacy `buildPixivNovelFileName`.
-     */
-    @JvmStatic
-    fun novelFileName(novelBean: NovelBean): String =
-        novelDestination(novel(novelBean), extOverride = null).filename
-
-    /**
-     * Full sanitized [RelativePath] (directory + filename) for a novel
-     * from the legacy [NovelBean] model. Mirrors [novelDestinationFromLoxia]
-     * but for the Java-era download path that still flows through
-     * [ceui.lisa.download.IllustDownload]. Without this, the Java side
-     * would have to keep hardcoding `ShaftNovels/{Novel_id_title}.txt` and
-     * sidestep the user's naming preset entirely.
-     */
-    @JvmStatic
-    fun novelDestinationFromBean(novelBean: NovelBean): RelativePath =
-        novelDestination(novel(novelBean), extOverride = null)
-
-    /**
-     * Novel from the loxia [Novel] model (used by V3 novel detail).
-     * Returns just the basename — for MediaStore DISPLAY_NAME lookups.
-     */
-    @JvmStatic
-    fun novelFileNameFromLoxia(novel: Novel): String =
-        novelDestinationFromLoxia(novel).filename
-
-    /**
      * Full sanitized [RelativePath] (directory + filename) for a novel from
      * the loxia [Novel] model, rendered through the user's active naming
-     * preset. Use this — not [novelFileNameFromLoxia] — when you actually
-     * want to write the file: callers that only pass the filename strip the
-     * directory portion of the user's template, which silently breaks
-     * `byAuthor` / `byDate` / `detailed` presets.
+     * preset. 只取 filename 的调用方会把模板里的目录部分丢掉，`byAuthor` /
+     * `byDate` / `detailed` 这些预设会静默失效——要写文件就用这个完整路径。
      *
      * All four ReaderV3 export formats funnel through this method: TXT
      * passes `extOverride = "txt"` (a no-op swap, since the bundled novel
@@ -244,38 +184,6 @@ object DownloadItems {
                 createdAt = Instant.now(),
                 flags = seriesFlagOf(seriesDetail.title) + r18Flag(r18),
                 seriesTitle = seriesTitleOf(seriesDetail.title),
-                seriesTotal = chapterCount.takeIf { it > 0 },
-            ),
-            ext,
-        ),
-        extOverride = null,
-    ).withExportExtension(ext)
-
-    /**
-     * Java-side variant of [novelSeriesMergeDestination] taking the legacy
-     * [NovelSeriesItem] model. Same semantics; [chapterCount] there is the
-     * series' declared `content_count` (that path merges whatever the caller
-     * already assembled and has no per-chapter tally of its own).
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun novelSeriesMergeDestinationForSeriesItem(
-        seriesItem: NovelSeriesItem,
-        chapterCount: Int,
-        ext: String,
-        r18: Boolean = false,
-    ): RelativePath = novelDestination(
-        novelSeriesItem(
-            ItemMeta(
-                id = seriesItem.id.toLong(),
-                title = seriesItem.title.orEmpty(),
-                author = Author(
-                    seriesItem.user?.id?.toLong() ?: 0L,
-                    seriesItem.user?.name.orEmpty(),
-                ),
-                createdAt = Instant.now(),
-                flags = seriesFlagOf(seriesItem.title) + r18Flag(r18),
-                seriesTitle = seriesTitleOf(seriesItem.title),
                 seriesTotal = chapterCount.takeIf { it > 0 },
             ),
             ext,
@@ -432,17 +340,10 @@ object DownloadItems {
         return out
     }
 
-    private fun flagsOfNovel(novel: NovelBean): Set<Flag> {
-        val out = mutableSetOf<Flag>()
-        if (novel.x_restrict > 0) out += Flag.R18
-        if (seriesTitleOf(novel.series?.title) != null) out += Flag.Series
-        return out
-    }
-
     /**
-     * loxia [Novel] 版本的 [flagsOfNovel]。R18 必须在这里补上：内置 rFilter 预置的
-     * 小说模板是 `[?R18:R18][?!R18:SFW]`，此前这条路径的 meta 不带任何 flag，
-     * R18 小说会被 `[?!R18:SFW]` 误归进 SFW/ 目录。
+     * 小说的 flag 集。R18 必须在这里补上：内置 rFilter 预置的小说模板是
+     * `[?R18:R18][?!R18:SFW]`，此前这条路径的 meta 不带任何 flag，R18 小说会被
+     * `[?!R18:SFW]` 误归进 SFW/ 目录。
      */
     private fun flagsOfLoxiaNovel(novel: Novel): Set<Flag> {
         val out = mutableSetOf<Flag>()
