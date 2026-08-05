@@ -46,19 +46,29 @@ android {
         fatal 'NewApi'
     }
 
-    signingConfigs {
-        debug {
-            storeFile file("../keystore.jks")
-            storePassword "123456"
-            keyAlias 'CeuiLiSA'
-            keyPassword '123456'
-        }
+    // 签名材料不进 git。来源按优先级：
+    //   1. 仓库根目录的 keystore.properties（gitignored，本机开发用）
+    //   2. 环境变量 SHAFT_KEYSTORE_*（CI 从 Secrets 注入，见 .github/workflows/gradle.yml）
+    //   3. 都没有 → fallback 到 Android 默认 debug 签名，外部贡献者 clone 即可构建
+    def ksProps = new Properties()
+    def ksPropsFile = rootProject.file("keystore.properties")
+    if (ksPropsFile.exists()) {
+        ksPropsFile.withInputStream { ksProps.load(it) }
+    }
+    def ksStoreFile = ksProps.getProperty("storeFile") ?: System.getenv("SHAFT_KEYSTORE_FILE")
+    def ksStorePassword = ksProps.getProperty("storePassword") ?: System.getenv("SHAFT_KEYSTORE_PASSWORD")
+    def ksKeyAlias = ksProps.getProperty("keyAlias") ?: System.getenv("SHAFT_KEY_ALIAS")
+    def ksKeyPassword = ksProps.getProperty("keyPassword") ?: System.getenv("SHAFT_KEY_PASSWORD")
+    def hasShaftKeystore = ksStoreFile != null && rootProject.file(ksStoreFile).exists()
 
-        release {
-            storeFile file("../keystore.jks")
-            storePassword "123456"
-            keyAlias 'CeuiLiSA'
-            keyPassword '123456'
+    signingConfigs {
+        if (hasShaftKeystore) {
+            shaft {
+                storeFile rootProject.file(ksStoreFile)
+                storePassword ksStorePassword
+                keyAlias ksKeyAlias
+                keyPassword ksKeyPassword
+            }
         }
     }
 
@@ -81,7 +91,8 @@ android {
             minifyEnabled false
             buildConfigField "boolean", "IS_DEBUG_MODE", "true"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            // debug 也用正式 key（有的话）：跟历史行为一致，debug 包能覆盖安装旧 debug 包
+            signingConfig hasShaftKeystore ? signingConfigs.shaft : signingConfigs.debug
 
             applicationIdSuffix ".cshaft"
             resValue "string", "app_name", "Shaft(Debug)"
@@ -90,7 +101,7 @@ android {
             minifyEnabled false
             buildConfigField "boolean", "IS_DEBUG_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            signingConfig hasShaftKeystore ? signingConfigs.shaft : signingConfigs.debug
 
             applicationIdSuffix ".pshaft"
             resValue "string", "app_name", "Shaft"

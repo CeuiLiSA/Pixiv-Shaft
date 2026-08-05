@@ -54,6 +54,31 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 签名材料从 Secrets 注入（keystore 与密码已从仓库移除）。
+      # keystore 解码到 $RUNNER_TEMP（仓库外）——历史 tag 的提交里还跟踪着
+      # keystore.jks，写进仓库根目录会让后面的 git checkout 撞 untracked 冲突。
+      # keystore.properties 从未被任何提交跟踪，放根目录安全。
+      # fork 的 PR 拿不到 Secrets → 跳过，build.gradle 降级为 debug 默认签名。
+      - name: Set up signing material
+        env:
+          KEYSTORE_B64: ${{ secrets.SHAFT_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.SHAFT_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SHAFT_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SHAFT_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
+            {
+              echo "storeFile=$RUNNER_TEMP/keystore.jks"
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=$KEY_ALIAS"
+              echo "keyPassword=$KEY_PASSWORD"
+            } > keystore.properties
+            echo "Signing material ready"
+          else
+            echo "No signing secrets (fork build), falling back to default debug signing"
+          fi
+
       - name: Detect branch
         if: github.ref_type == 'branch'
         run: |

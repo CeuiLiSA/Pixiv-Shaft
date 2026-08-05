@@ -16,3 +16,5 @@
 ncnn.zip
 .kotlin/
 .claude/scheduled_tasks.lock
+/keystore.jks
+/keystore.properties
