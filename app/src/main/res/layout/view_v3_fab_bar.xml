@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  悬浮「下载 + 收藏」胶囊,一级 V3 详情页(fragment_artwork_v3)与二级大图页
+  (activity_image_detail)共用,状态着色/顺序偏好/底距等共享逻辑见 V3FabBarController。
+  颜色只是深色默认值:一级页由 controller.applyPalette 按 palette 重刷;二级大图页纯黑底,
+  直接用默认值。摆放位置(layout_gravity / margin)由各 include 处给出。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fab_bar"
+    android:layout_width="wrap_content"
+    android:layout_height="48dp"
+    android:background="@drawable/bg_v3_fab_bar"
+    android:elevation="12dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="6dp">
+
+    <FrameLayout
+        android:id="@+id/fab_download_container"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless">
+
+        <ImageView
+            android:id="@+id/fab_download"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false"
+            android:contentDescription="@null"
+            android:focusable="false"
+            android:padding="8dp"
+            android:src="@drawable/ic_file_download_black_24dp"
+            app:tint="@color/white" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/fab_download_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="false"
+            android:visibility="gone"
+            app:indicatorColor="@color/white"
+            app:indicatorSize="24dp"
+            app:trackColor="@color/voice_record_track_color"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="3dp" />
+    </FrameLayout>
+
+    <View
+        android:id="@+id/fab_divider"
+        android:layout_width="1dp"
+        android:layout_height="24dp"
+        android:layout_marginHorizontal="2dp"
+        android:background="#33FFFFFF" />
+
+    <ImageView
+        android:id="@+id/fab_bookmark"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@null"
+        android:padding="8dp"
+        android:src="@drawable/ic_favorite_black_24dp"
+        app:tint="@color/white" />
+
+</LinearLayout>

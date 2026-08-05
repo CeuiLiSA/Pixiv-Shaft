@@ -30,7 +30,12 @@ import ceui.lisa.utils.QMUIMenuPopup
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
+import ceui.lisa.databinding.ViewV3FabBarBinding
 import ceui.lisa.download.FileCreator
+import ceui.loxia.ObjectPool
+import ceui.pixiv.ui.detail.DownloadFab
+import ceui.pixiv.ui.detail.V3FabBarController
+import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.ExifKeywordWriter
 import ceui.pixiv.download.config.DownloadItems
@@ -75,9 +80,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private var localIllust: List<String>? = ArrayList()
     private var currentPage: TextView? = null
     private var downloadSingle: TextView? = null
-    private var currentSize: TextView? = null
     private var index = 0
     private val viewModel by viewModels<ToggleToolnarViewModel>()
+
+    /** 「二级详情」的下载 + 收藏胶囊(与一级 V3 详情页共用),仅该模式下装配。 */
+    private var fabBar: V3FabBarController? = null
 
     override fun initLayout(): Int {
         return R.layout.activity_image_detail
@@ -123,12 +130,12 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
         }
         if ("二级详情" == dataType) {
-            currentSize = findViewById(R.id.current_size)
             currentPage = findViewById(R.id.current_page)
-            downloadSingle = findViewById(R.id.download_this_one)
             mIllustsBean = intent.getSerializableExtra("illust") as IllustsBean?
             index = intent.getIntExtra("index", 0)
             if (mIllustsBean == null) {
+                // 没有 bean 就装配不了任何点击语义,别留一个看得见点不动的胶囊
+                findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
                 return
             }
             val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
@@ -169,32 +176,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
             }
             baseBind!!.viewPager.currentItem = index
+            setupFabBar()
             checkDownload(index)
-            downloadSingle?.setOnClickListener {
-                val illust = mIllustsBean ?: return@setOnClickListener
-                val page = baseBind!!.viewPager.currentItem
-                if (illust.isGif) {
-                    // ugoira/gif 要 zip→帧→gif 渲染,简单文件拷贝救不了,保留原下载链路(它做 unzipAndPlay)。
-                    IllustDownload.downloadIllustCertainPage(illust, page, mContext as BaseActivity<*>)
-                    if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
-                        PixivOperate.postLikeDefaultStarType(illust)
-                    }
-                    return@setOnClickListener
-                }
-                val imageUrl = IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
-                    ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
-                    ?: return@setOnClickListener
-                lifecycleScope.launch {
-                    val ok = saveLoadedIllustPage(illust, page, imageUrl)
-                    if (ok) {
-                        Common.showToast(R.string.string_181)
-                        checkDownload(page)
-                        if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
-                            PixivOperate.postLikeDefaultStarType(illust)
-                        }
-                    }
-                }
-            }
             baseBind!!.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
                 override fun onPageScrolled(i: Int, v: Float, i1: Int) {
                 }
@@ -228,10 +211,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
         } else if (ceui.pixiv.ui.common.ImageUrlViewer.DATA_TYPE_URL_SINGLE == dataType) {
             findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
+            findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
             currentPage = findViewById(R.id.current_page)
-            currentPage?.visibility = View.INVISIBLE
-            downloadSingle = findViewById(R.id.download_this_one)
-            downloadSingle?.visibility = View.INVISIBLE
             val singleUrl = intent.getStringExtra(Params.URL)
             val singleTitle = intent.getStringExtra(Params.TITLE)
             if (singleUrl.isNullOrEmpty()) {
@@ -248,8 +229,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
         } else if ("下载详情" == dataType) {
             findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
+            findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
             currentPage = findViewById(R.id.current_page)
+            // 该模式下这个「按钮」只当文件路径标签用(历史行为),不参与下载
             downloadSingle = findViewById(R.id.download_this_one)
+            downloadSingle?.visibility = View.VISIBLE
             localIllust = intent.getSerializableExtra("illust") as List<String>?
             index = intent.getIntExtra("index", 0)
 
@@ -299,13 +283,81 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
     }
 
+    /**
+     * 「二级详情」装配底部下载 + 收藏胶囊(布局/着色/顺序偏好/底距逻辑与一级 V3 详情页
+     * 共用 [V3FabBarController];点击语义归本页:下载 = 保存**当前页**,收藏 = 收藏整个作品)。
+     */
+    private fun setupFabBar() {
+        val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
+        val fabBar = V3FabBarController(fabBind)
+        this.fabBar = fabBar
+        fabBar.applyDownloadOrderPreference()
+        // 底距落在「胶囊 + 页码」整行上,页码跟着胶囊一起动
+        fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
+
+        // 收藏态:先按 intent 带来的 bean 画一次,再观察 ObjectPool 里同 id 的权威 bean(若有)
+        mIllustsBean?.let { fabBar.setBookmarked(it.isIs_bookmarked) }
+        mIllustsBean?.id?.toLong()?.let { id ->
+            ObjectPool.get<IllustsBean>(id).observe(this) { bean ->
+                bean?.let { fabBar.setBookmarked(it.isIs_bookmarked) }
+            }
+        }
+
+        fabBind.fabDownloadContainer.setOnClick {
+            val illust = likeTargetIllust() ?: return@setOnClick
+            val page = baseBind!!.viewPager.currentItem
+            if (illust.isGif) {
+                // ugoira/gif 要 zip→帧→gif 渲染,简单文件拷贝救不了,保留原下载链路(它做 unzipAndPlay)。
+                IllustDownload.downloadIllustCertainPage(illust, page, mContext as BaseActivity<*>)
+                autoLikeAfterDownloadIfNeeded(illust, fabBar)
+                return@setOnClick
+            }
+            val imageUrl = IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
+                ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
+                ?: return@setOnClick
+            lifecycleScope.launch {
+                val ok = saveLoadedIllustPage(illust, page, imageUrl)
+                if (ok) {
+                    Common.showToast(R.string.string_181)
+                    checkDownload(page)
+                    autoLikeAfterDownloadIfNeeded(illust, fabBar)
+                }
+            }
+        }
+
+        fabBind.fabBookmark.setOnClick {
+            val illust = likeTargetIllust() ?: return@setOnClick
+            val willBookmark = !illust.isIs_bookmarked
+            // 乐观着色,权威态由上面的 ObjectPool 观察兜底(与 ArtworkV3Fragment 同款)
+            fabBar.setBookmarked(willBookmark)
+            PixivOperate.postLikeDefaultStarType(illust)
+            if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {
+                IllustDownload.downloadIllustAllPages(illust)
+            }
+        }
+    }
+
+    /** 收藏/取消收藏作用于整个作品:优先取 ObjectPool 里的权威 bean(与一级详情共享乐观态),退回 intent 副本。 */
+    private fun likeTargetIllust(): IllustsBean? =
+        mIllustsBean?.let { ObjectPool.get<IllustsBean>(it.id.toLong()).value ?: it }
+
+    private fun autoLikeAfterDownloadIfNeeded(illust: IllustsBean, fabBar: V3FabBarController) {
+        if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
+            fabBar.setBookmarked(true)
+            PixivOperate.postLikeDefaultStarType(illust)
+        }
+    }
+
     private fun checkDownload(i: Int) {
         val illust = mIllustsBean ?: return
         lifecycleScope.launch {
             val downloaded = withContext(Dispatchers.IO) {
                 Common.isIllustDownloaded(illust, i)
             }
-            downloadSingle?.visibility = if (downloaded) View.INVISIBLE else View.VISIBLE
+            // 快速翻页时旧页的 DB 探测可能晚于新页返回,过期结果不能盖掉当前页的状态
+            if (baseBind?.viewPager?.currentItem != i) return@launch
+            // 对齐一级 V3 详情页:已下载的页显示绿色「已下载」勾,而不是把按钮藏起来
+            fabBar?.renderDownload(if (downloaded) DownloadFab.Done else DownloadFab.Idle)
         }
     }
 

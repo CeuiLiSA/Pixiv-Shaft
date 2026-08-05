@@ -4,13 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.ColorStateList
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
-import androidx.annotation.ColorInt
-import androidx.annotation.DrawableRes
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -113,6 +110,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private var _chromeBind: FragmentArtworkV3Binding? = null
     private val chromeBind get() = checkNotNull(_chromeBind) { "view 尚未创建或已销毁" }
 
+    // 悬浮下载/收藏胶囊的共享逻辑(与二级大图页共用),随视图创建/销毁
+    private var _fabBarController: V3FabBarController? = null
+    private val fabBarController get() = checkNotNull(_fabBarController) { "view 尚未创建或已销毁" }
+
     private var commentComposer: CommentComposerController? = null
     private var composerActive = false
     private var fabShown = true
@@ -175,6 +176,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _chromeBind = FragmentArtworkV3Binding.bind(view)
+        _fabBarController = V3FabBarController(chromeBind.fabBar)
         sectionLoader = SectionLoader(illustId, feedViewModel, viewLifecycleOwner)
 
         // 旋转 / 视图重建:feedViewModel 的列表存活(可能是展开态),但 pageAdapter 会重建为
@@ -259,6 +261,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 旧值 → 关注更新不再触发。区块懒加载的去重集随 sectionLoader 一起丢弃、新视图重建。
         artistObservedUserId = 0L
         sectionLoader = null
+        _fabBarController = null
         _chromeBind = null
         super.onDestroyView()
     }
@@ -459,20 +462,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // ── 悬浮下载 / 收藏胶囊 ─────────────────────────────────────────────────────
 
     private fun setupFabBar() {
-        val density = resources.displayMetrics.density
-        chromeBind.fabBar.background = palette.floatingPillBg(999f * density)
-        val pillContent = palette.floatingPillContent
-        chromeBind.fabDownload.imageTintList = ColorStateList.valueOf(pillContent)
-        chromeBind.fabDivider.setBackgroundColor(V3Palette.withAlpha(pillContent, 0.20f))
-        chromeBind.fabDownloadProgress.setIndicatorColor(pillContent)
-        chromeBind.fabDownloadProgress.trackColor = V3Palette.withAlpha(pillContent, 0.20f)
+        fabBarController.applyPalette(palette)
 
         artworkViewModel.isBookmarked.observe(viewLifecycleOwner) { bookmarked ->
-            chromeBind.fabBookmark.imageTintList = ColorStateList.valueOf(
-                if (bookmarked) requireContext().getColor(R.color.has_bookmarked) else pillContent,
-            )
+            fabBarController.setBookmarked(bookmarked)
         }
-        artworkViewModel.downloadFabState.observe(viewLifecycleOwner) { renderDownloadFab(it) }
+        artworkViewModel.downloadFabState.observe(viewLifecycleOwner) { state ->
+            if (view == null) return@observe
+            fabBarController.renderDownload(state)
+        }
         // 网页 ajax 的每页真实宽高到达 → 喂给顶部大图 adapter,预置各页展示 ratio(下载前就摆准高度)。
         // adapter 懒建:值先到就由 ensurePageAdapter 补,adapter 先建就由这里补——两序都覆盖。
         artworkViewModel.pageDimensions.observe(viewLifecycleOwner) { dims ->
@@ -480,34 +478,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
     }
 
-    private fun renderDownloadFab(state: DownloadFab) {
-        if (view == null) return
-        when (state) {
-            DownloadFab.Idle ->
-                paintFab(R.drawable.ic_file_download_black_24dp, palette.floatingPillContent)
-
-            DownloadFab.Done ->
-                paintFab(R.drawable.ic_file_download_done_24dp, requireContext().getColor(R.color.has_downloaded))
-
-            is DownloadFab.Downloading -> {
-                chromeBind.fabDownload.visibility = View.INVISIBLE
-                chromeBind.fabDownloadProgress.visibility = View.VISIBLE
-                chromeBind.fabDownloadProgress.setProgressCompat(state.percent, true)
-            }
-        }
-    }
-
-    private fun paintFab(@DrawableRes iconRes: Int, @ColorInt tint: Int) {
-        chromeBind.fabDownloadProgress.visibility = View.GONE
-        chromeBind.fabDownload.visibility = View.VISIBLE
-        chromeBind.fabDownload.setImageResource(iconRes)
-        chromeBind.fabDownload.imageTintList = ColorStateList.valueOf(tint)
-    }
-
     private fun hideFabBar(immediate: Boolean = false) {
         if (!fabShown && !immediate) return
         fabShown = false
-        val fabBar = chromeBind.fabBar
+        val fabBar = chromeBind.fabBar.root
         fabBar.animate().cancel()
         val hiddenTranslation = fabBar.height + 100f
         if (immediate) {
@@ -529,7 +503,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (composerActive) return // 内联输入栏浮着时不放回胶囊
         if (fabShown) return
         fabShown = true
-        val fabBar = chromeBind.fabBar
+        val fabBar = chromeBind.fabBar.root
         fabBar.animate().cancel()
         fabBar.visibility = View.VISIBLE
         fabBar.animate().translationY(0f).alpha(1f).setDuration(FAB_ANIMATION_DURATION_MS).start()
@@ -613,13 +587,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             v.setPadding(v.paddingLeft, insets.top, v.paddingRight, v.paddingBottom)
             windowInsets
         }
-        ViewCompat.setOnApplyWindowInsetsListener(chromeBind.fabBar) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            val lp = v.layoutParams as FrameLayout.LayoutParams
-            lp.bottomMargin = insets.bottom + 24.ppppx
-            v.layoutParams = lp
-            windowInsets
-        }
+        // 胶囊底距(导航栏 inset + 24dp)与二级大图页共用同一套逻辑,保证两页落点一致
+        fabBarController.attachBottomInsetMargin()
         // 列表铺到屏幕最底,底 padding = navBar inset 让末条停在导航栏之上(clipToPadding=false 已设)
         val listView = feedBinding.feedListView
         listView.clipToPadding = false
@@ -648,27 +617,17 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         chromeBind.toolbar.setNavigationOnClickListener { requireActivity().finish() }
 
         // 下载 / 收藏顺序偏好
-        if (!Shaft.sSettings.isArtworkV3FabDownloadOnLeft) {
-            val bar = chromeBind.fabBar
-            val download = chromeBind.fabDownloadContainer
-            val bookmark = chromeBind.fabBookmark
-            bar.removeView(download)
-            bar.removeView(bookmark)
-            bar.addView(bookmark, 0)
-            bar.addView(download)
-        }
+        fabBarController.applyDownloadOrderPreference()
 
-        chromeBind.fabDownloadContainer.setOnClick {
+        chromeBind.fabBar.fabDownloadContainer.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
             artworkViewModel.triggerDownload()
             if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
-                chromeBind.fabBookmark.imageTintList = ColorStateList.valueOf(
-                    requireContext().getColor(R.color.has_bookmarked),
-                )
+                fabBarController.setBookmarked(true)
                 PixivOperate.postLikeDefaultStarType(illust)
             }
         }
-        chromeBind.fabDownloadContainer.setOnLongClickListener {
+        chromeBind.fabBar.fabDownloadContainer.setOnLongClickListener {
             val illust = ObjectPool.get<IllustsBean>(illustId).value
                 ?: return@setOnLongClickListener true
             val baseAct = requireActivity() as? ceui.lisa.activities.BaseActivity<*>
@@ -720,23 +679,19 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
         })
 
-        chromeBind.fabBookmark.setOnClick {
+        chromeBind.fabBar.fabBookmark.setOnClick {
             val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
             val willBookmark = !illust.isIs_bookmarked
-            // 「未收藏」这一支必须与权威渲染（下面 isBookmarked observer 用的 palette.floatingPillContent）
-            // 取同一个色：写死白色的话，取消收藏当帧会闪一帧白，随后才被 observer 纠回胶囊内容色——
-            // 浅色主题下那一帧几乎看不见图标。
-            chromeBind.fabBookmark.imageTintList = ColorStateList.valueOf(
-                if (willBookmark) requireContext().getColor(R.color.has_bookmarked)
-                else palette.floatingPillContent,
-            )
+            // 乐观着色与权威渲染(isBookmarked observer)同走 controller,取同一个内容色,
+            // 避免取消收藏当帧闪一帧错色(详见 V3FabBarController.setBookmarked)。
+            fabBarController.setBookmarked(willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {
                 IllustDownload.downloadIllustAllPages(illust)
             }
         }
 
-        chromeBind.fabBookmark.setOnLongClickListener {
+        chromeBind.fabBar.fabBookmark.setOnLongClickListener {
             val illust = ObjectPool.get<IllustsBean>(illustId).value
                 ?: return@setOnLongClickListener true
             SelectTagBottomSheet.show(

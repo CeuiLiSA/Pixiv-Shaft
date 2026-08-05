@@ -30,53 +30,60 @@
             android:tint="@android:color/white"
             android:visibility="gone" />
 
-        <RelativeLayout
+        <!-- 注意别用 RelativeLayout + alignParentBottom + bottomMargin 摆胶囊:
+             wrap_content 的 RelativeLayout 会把 alignParentBottom 子 view 的 bottomMargin 吃掉 -->
+        <FrameLayout
             android:id="@+id/bottom_rela"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:paddingHorizontal="20dp">
 
-            <TextView
-                android:id="@+id/current_size"
+            <!-- 「二级详情」:下载 + 收藏胶囊(与一级 V3 详情页共用)+ 右侧页码。
+                 整行吃 24dp + 导航栏 inset 的底距(V3FabBarController.attachBottomInsetMargin),
+                 与一级页胶囊落点一致,页码跟随胶囊垂直居中。 -->
+            <FrameLayout
+                android:id="@+id/fab_bar_row"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/download_this_one"
-                android:layout_marginEnd="@dimen/eight_dp"
-                android:layout_marginBottom="5dp"
-                android:layout_toStartOf="@+id/download_this_one"
-                android:ellipsize="end"
-                android:gravity="start"
-                android:singleLine="true"
-                android:textColor="@android:color/white" />
+                android:layout_height="48dp"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="24dp">
 
+                <include
+                    layout="@layout/view_v3_fab_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_horizontal" />
+
+                <TextView
+                    android:id="@+id/current_page"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:gravity="center_vertical"
+                    android:shadowColor="@android:color/black"
+                    android:shadowRadius="3"
+                    android:textColor="@android:color/white" />
+
+            </FrameLayout>
+
+            <!-- 「下载详情」模式复用底部中央位置显示本地文件路径(历史行为) -->
             <ceui.loxia.ProgressTextButton
                 android:id="@+id/download_this_one"
                 style="@style/GreenShiningButton"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"
-                android:layout_centerHorizontal="true"
+                android:layout_gravity="bottom|center_horizontal"
                 android:layout_marginBottom="40dp"
                 android:ellipsize="middle"
                 android:gravity="center"
                 android:paddingHorizontal="16dp"
                 android:text="@string/string_7"
+                android:visibility="gone"
                 app:ptb_progress_stroke_width="3dp"
                 app:ptb_progress_width="14dp" />
 
-            <TextView
-                android:id="@+id/current_page"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/download_this_one"
-                android:layout_marginBottom="5dp"
-                android:layout_toEndOf="@+id/download_this_one"
-                android:gravity="end"
-                android:shadowColor="@android:color/black"
-                android:shadowRadius="3"
-                android:textColor="@android:color/white" />
-
-        </RelativeLayout>
+        </FrameLayout>
 
     </RelativeLayout>
 </layout>

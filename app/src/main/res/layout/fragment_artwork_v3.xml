@@ -125,69 +125,14 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Floating action bar (download + bookmark) -->
-    <LinearLayout
+    <!-- Floating action bar (download + bookmark),与二级大图页共用,见 view_v3_fab_bar.xml -->
+    <include
         android:id="@+id/fab_bar"
+        layout="@layout/view_v3_fab_bar"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_v3_fab_bar"
-        android:elevation="12dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="6dp">
-
-        <FrameLayout
-            android:id="@+id/fab_download_container"
-            android:layout_width="60dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless">
-
-            <ImageView
-                android:id="@+id/fab_download"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clickable="false"
-                android:contentDescription="@null"
-                android:focusable="false"
-                android:padding="8dp"
-                android:src="@drawable/ic_file_download_black_24dp"
-                app:tint="@color/white" />
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/fab_download_progress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:indeterminate="false"
-                android:visibility="gone"
-                app:indicatorColor="@color/white"
-                app:indicatorSize="24dp"
-                app:trackColor="@color/voice_record_track_color"
-                app:trackCornerRadius="4dp"
-                app:trackThickness="3dp" />
-        </FrameLayout>
-
-        <!-- 颜色只是深色模式默认值,浅色模式由 ArtworkV3Fragment 按 palette.floatingPillContent 重刷 -->
-        <View
-            android:id="@+id/fab_divider"
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:layout_marginHorizontal="2dp"
-            android:background="#33FFFFFF" />
-
-        <ImageView
-            android:id="@+id/fab_bookmark"
-            android:layout_width="60dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@null"
-            android:padding="8dp"
-            android:src="@drawable/ic_favorite_black_24dp"
-            app:tint="@color/white" />
-
-    </LinearLayout>
+        android:layout_marginBottom="24dp" />
 
     <!-- 评论输入浮层:平时不常驻(整条透明、输入栏 GONE),点评论区「留下你的评论吧」入口才浮出。 -->
     <LinearLayout
