@@ -216,7 +216,13 @@ public interface DownloadDao {
     @Query("SELECT * FROM illust_downloading_table")
     List<DownloadingEntity> getAllDownloading();
 
-    @Query("SELECT * FROM illust_downloading_table ORDER BY rowid DESC LIMIT :limit")
+    /**
+     * 取最近 :limit 条（裁剪防 OOM），但按**入队顺序**（rowid ASC）返回 ——
+     * Manager.restore 会原样重建 content，直接 DESC 会让冷启动后整条队列倒序下载。
+     */
+    @Query("SELECT * FROM illust_downloading_table WHERE rowid IN "
+            + "(SELECT rowid FROM illust_downloading_table ORDER BY rowid DESC LIMIT :limit) "
+            + "ORDER BY rowid ASC")
     List<DownloadingEntity> getRecentDownloading(int limit);
 
     @Query("DELETE FROM illust_downloading_table WHERE rowid NOT IN (SELECT rowid FROM illust_downloading_table ORDER BY rowid DESC LIMIT :keep)")
