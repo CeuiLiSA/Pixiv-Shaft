@@ -13,11 +13,11 @@ import ceui.lisa.BuildConfig.BUILD_TYPE
 import ceui.pixiv.download.model.RelativePath
 import timber.log.Timber
 import java.io.File
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+
+private const val TAG = "SafBackend"
 
 /**
  * Strategy: write under a user-chosen tree URI ([treeUri]) using [DocumentFile].
@@ -40,63 +40,44 @@ class SafBackend(
         val thread: Thread,
         val startTime: Long
     )
-    // Parent doc cache — segments are stable within a download burst, so after
-    // the first hit we skip the per-save findFile chain entirely.
-    // @Volatile private var dirCache: Pair<List<String>, DocumentFile>? = null
-
     /**
-     * 对content://...  做个小小的手术，把 空格(X) 抹掉
-     * 通过createFile的特性，只要给回
-     * content://com.android.externalstorage.documents/tree/primary%3A.bbb%2Fddd/document/primary%3A.bbb%2Fddd%2FShaftImages%2Fphoto%20(1).jpg
-     * 那么ShaftImages里必定有photo.jpg
-     * 直接改写成
-     * content://com.android.externalstorage.documents/tree/primary%3A.bbb%2Fddd/document/primary%3A.bbb%2Fddd%2FShaftImages%2Fphoto.jpg
-     * **/
-    fun cleanFileNameInUri(uriString: String): String {
-        // 1. 找到最后一个 / 的位置
+     * 对 createFile 因碰撞自动改名后返回的 document URI 做手术，剥掉
+     * 提供者追加的 " (X)" 后缀，反推出已存在旧文件的 URI：
+     * .../document/...%2Fphoto%20(1).jpg → .../document/...%2Fphoto.jpg
+     * （能返回 "photo (1).jpg" 就说明目录里必有 "photo.jpg"。）
+     *
+     * 编解码必须用 [Uri.decode]/[Uri.encode]：URLDecoder 会把文件名里的
+     * 字面 "+" 解码成空格，标题含 "+" 的作品会算错旧文件 URI，白白掉进
+     * 慢速兜底。
+     */
+    private fun cleanFileNameInUri(uriString: String): String {
         val lastSlash = uriString.lastIndexOf('/')
         if (lastSlash == -1) return uriString
 
-        // 2. 分离路径和文件名
         val pathPart = uriString.substring(0, lastSlash + 1)
-        val encodedFileName = uriString.substring(lastSlash + 1)
-
-        // 3. 解码文件名（处理 %20 等编码）
-        val decodedFileName = URLDecoder.decode(encodedFileName, StandardCharsets.UTF_8.name())
-
-        // 4. 清理文件名：移除 (数字) 和多余空格
+        val decodedFileName = Uri.decode(uriString.substring(lastSlash + 1))
         val cleanedFileName = decodedFileName
-            .replace(Regex("\\(\\d+\\)(?=\\.\\w+$)"), "")  // 移除 (数字)
+            .replace(Regex("\\(\\d+\\)(?=\\.\\w+$)"), "")  // 移除扩展名前的 (数字)
             .replace(Regex("\\s+(?=\\.\\w+$)"), "")        // 移除扩展名前的空格
-
-        // 5. 重新编码文件名（保留 UTF-8 编码）
-        val newEncodedFileName = URLEncoder.encode(cleanedFileName, StandardCharsets.UTF_8.name())
-            .replace("+", "%20")  // URLEncoder 默认将空格编码为 +，要转为 %20
-
-        // 6. 组合返回
-        return pathPart + newEncodedFileName
+        return pathPart + Uri.encode(cleanedFileName)
     }
 
-    /**
-     * 防御性检查content://是否正确，是否是文件
-     * **/
-    fun isActualFile(context: Context, uri: Uri): Boolean {
+    /** 防御性检查：URI 是否指向一个真实存在、且不是目录的 document。 */
+    private fun isActualFile(uri: Uri): Boolean {
         if (!isDocumentUri(context, uri)) {
             return false
         }
         try {
             context.contentResolver.query(
                 uri,
-                arrayOf<String?>(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
                 null, null, null
             ).use { cursor ->
                 if (cursor != null && cursor.moveToFirst()) {
-                    val mimeType = cursor.getString(0)
-                    // 如果 MIME 类型不是目录，则视为文件
-                    return DocumentsContract.Document.MIME_TYPE_DIR != mimeType
+                    return DocumentsContract.Document.MIME_TYPE_DIR != cursor.getString(0)
                 }
             }
-        } catch (_: java.lang.Exception) {
+        } catch (_: Exception) {
             return false
         }
         return false
@@ -111,74 +92,89 @@ class SafBackend(
         val created = parent.createFile(mime, relPath.filename)
             ?: error("DocumentFile.createFile returned null for $relPath under $treeUri")
         if (created.name == relPath.filename) {
-            return handleFor(created, owned = true, mime)
+            return handleFor(created, mime)
         }
-        //优先利用createFile自动重名后的URL扔进cleanFileNameInUri处理
-        val crenellated = cleanFileNameInUri(created.uri.toString())
+        // 碰撞：createFile 返回了自动改名的 " (X)" 文档。从它的 URI 反推旧文件
+        // URI，删旧再重建 —— 常数次 IPC 完成真覆盖，不触碰 O(N) 的目录扫描。
+        val cleanedUri = cleanFileNameInUri(created.uri.toString()).toUri()
         runCatching { created.delete() }
-        if (isActualFile(context,crenellated.toUri())) {
+        if (isActualFile(cleanedUri)) {
             try {
-                Timber.tag("deleteDocument").d(crenellated.toUri().toString())
-
-                if (deleteDocument(context.contentResolver, crenellated.toUri())) {
+                Timber.tag(TAG).d("replace: delete via cleaned uri %s", cleanedUri)
+                if (deleteDocument(context.contentResolver, cleanedUri)) {
                     val fresh = parent.createFile(mime, relPath.filename)
                         ?: error("DocumentFile.createFile returned null for $relPath under $treeUri")
-                    return handleFor(fresh, owned = true, mime)
+                    return handleFor(fresh, mime)
                 }
             } catch (e: Exception) {
-                Timber.e(e)
+                Timber.tag(TAG).e(e)
             }
         }
-        // 如果上面删除失败，旧尝从提供者处构造URL
+        // URI 手术落空（提供者的重名规则和预期不符等）：按 externalstorage 的
+        // docId 结构直接构造目标 URI 再试一次。
         val rootDocId = DocumentsContract.getTreeDocumentId(treeUri)
         val dirRelativePath = relPath.directory.joinToString("/")
         val dirDocId = if (dirRelativePath.isEmpty()) rootDocId else "$rootDocId/$dirRelativePath"
-
-        val name = relPath.filename
-        val fileDocId = "$dirDocId/$name"
-        val targetFileUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, fileDocId)
-        if (isActualFile(context, targetFileUri)) {
+        val targetFileUri =
+            DocumentsContract.buildDocumentUriUsingTree(treeUri, "$dirDocId/${relPath.filename}")
+        if (isActualFile(targetFileUri)) {
             try {
-                Timber.tag("deleteDocument").d(crenellated.toUri().toString())
+                Timber.tag(TAG).d("replace: delete via direct doc id %s", targetFileUri)
                 if (deleteDocument(context.contentResolver, targetFileUri)) {
                     val fresh = parent.createFile(mime, relPath.filename)
                         ?: error("DocumentFile.createFile returned null for $relPath under $treeUri")
-                    return handleFor(fresh, owned = true, mime)
+                    return handleFor(fresh, mime)
                 }
             } catch (e: Exception) {
-                Timber.e(e)
+                Timber.tag(TAG).e(e)
             }
         }
-        // 仍然失败由findExistingDocument兜底
-        Timber.tag("findExistingDocument").w("进入耗时兜底")
+        // 仍然失败：O(N) 兜底，一次 query 拉全目录建 id 映射后按名删除。
+        Timber.tag(TAG).w("replace: falling back to O(N) findExistingDocument for %s", relPath)
         val existing = findExistingDocument(parent, relPath.filename)
         if (existing != null && existing.isFile) {
-            if (!existing.delete()) Timber.tag("删除旧文件").d("失败")
+            if (!existing.delete()) {
+                Timber.tag(TAG).w("replace: stale file not deleted, provider will suffix: %s", existing.uri)
+            }
         }
 
         val fresh = parent.createFile(mime, relPath.filename)
             ?: error("DocumentFile.createFile returned null for $relPath under $treeUri")
-        return handleFor(fresh, owned = true, mime)
+        return handleFor(fresh, mime)
     }
 
     override fun open(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
         val parent = ensureDirectory(relPath.directory)
         val doc = parent.createFile(mime, relPath.filename)
             ?: error("DocumentFile.createFile returned null for $relPath under $treeUri")
-        return handleFor(doc, owned = true, mime)
+        return handleFor(doc, mime)
     }
 
     /**
-     * 利用createFile的重名自动添加后缀的特性，只需判断返回名称是否与relPath.filename一致
-     * 以绕过O(N)的findFile操作。这里理论上还可以规避一致的情况下仍做一次delete
+     * Skip 探测：createFile 碰撞时提供者会自动加 " (X)" 后缀，比较返回名与请求名
+     * 即可判定「已存在」，绕开 O(N) 的 findFile。探测文档用完即删。
      */
-    override fun skipIfExists(relPath: RelativePath, mime: String): Boolean = runCatching {
+    override fun skipIfExists(relPath: RelativePath, mime: String): Boolean = try {
         val parent = ensureDirectory(relPath.directory)
-        val probe = parent.createFile(mime, relPath.filename) ?: return@runCatching false
-        val duplicate = probe.name != relPath.filename
-        runCatching { probe.delete() }
-        duplicate
-    }.getOrDefault(false)
+        val probe = parent.createFile(mime, relPath.filename)
+        if (probe == null) {
+            false
+        } else {
+            val duplicate = probe.name != relPath.filename
+            val deleted = runCatching { probe.delete() }.getOrDefault(false)
+            if (!deleted) {
+                // 探测文档删不掉会在目标名（或其 " (X)" 变体）下留一个 0 字节文件；
+                // 留在目标名下时之后每次 Skip 都会碰撞成「已存在」。绝不能静默。
+                Timber.tag(TAG).w("skipIfExists: probe not deleted, leaving %s", probe.uri)
+            }
+            duplicate
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.tag(TAG).w(e, "skipIfExists probe failed for %s — treating as not-exists", relPath)
+        false
+    }
 
     /**
      * 一次性拉子目录下的所有文件列表，后续可做缓存以缓解query的高时间成本
@@ -218,22 +214,14 @@ class SafBackend(
     }
 
 
-    /**
-     * 理论上可以做同文件的覆写，但现在先抛弃掉旧文件
-     */
-    private fun handleFor(
-        doc: DocumentFile,
-        owned: Boolean,
-        mime: String,
-        mode: String = "rwt",
-    ): StorageBackend.WriteHandle {
+    private fun handleFor(doc: DocumentFile, mime: String): StorageBackend.WriteHandle {
         // If openOutputStream throws, delete the empty document before
         // propagating so we don't leak 0-byte SAF files (issue #857).
         val stream = try {
-            context.contentResolver.openOutputStream(doc.uri, mode)
+            context.contentResolver.openOutputStream(doc.uri, "rwt")
                 ?: error("openOutputStream returned null for ${doc.uri}")
         } catch (e: Exception) {
-            if (owned) runCatching { doc.delete() }
+            runCatching { doc.delete() }
             throw e
         }
         val onFinish: () -> Unit = {
@@ -254,10 +242,10 @@ class SafBackend(
                 }
             }
         }
+        // On abort, delete the SAF document we just created (always
+        // unconditional — createFile produced a fresh document we own).
         val onAbort: () -> Unit = {
-            // Only delete documents this backend created; a pre-existing
-            // document (owned = false) must survive an aborted download.
-            if (owned) runCatching { doc.delete() }
+            runCatching { doc.delete() }
         }
         return StorageBackend.WriteHandle(doc.uri, stream, onFinish, onAbort)
     }
