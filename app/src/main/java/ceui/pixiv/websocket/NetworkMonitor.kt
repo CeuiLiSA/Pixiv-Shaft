@@ -58,7 +58,17 @@ class NetworkMonitor(
 
     val isConnected: Boolean
         get() {
-            val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
+            // Same SecurityException risk as registerNetworkCallback below —
+            // ConnectivityService.getNetworkCapabilities also runs the caller
+            // through AppOpsManager.checkPackage. Assume online so the caller
+            // falls back to its own retry logic instead of dying on a binder
+            // callback thread.
+            val caps = try {
+                cm.getNetworkCapabilities(cm.activeNetwork)
+            } catch (e: SecurityException) {
+                Timber.tag(TAG).w(e, "getNetworkCapabilities denied — assuming ONLINE")
+                return true
+            } ?: return false
             return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         }
 
@@ -89,14 +99,33 @@ class NetworkMonitor(
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
-        cm.registerNetworkCallback(request, callback)
+        // Some OEM ROMs (observed on EMUI, whose HwConnectivityService sits in
+        // the crash trace) reject the request inside
+        // AppOpsManager.checkPackage with "Package android does not belong to
+        // <uid>". This flow runs inside shareIn()'s coroutine, so an escaping
+        // throw here reaches the default uncaught handler and kills the whole
+        // process — for a signal that is only a fast-reconnect optimisation.
+        // Degrade to "no connectivity updates" instead: the initial value is
+        // still emitted and RobustWebSocketClient keeps its normal backoff.
+        val registered = try {
+            cm.registerNetworkCallback(request, callback)
+            true
+        } catch (e: SecurityException) {
+            Timber.tag(TAG).w(e, "registerNetworkCallback denied — connectivity updates disabled")
+            false
+        }
         // Emit initial state
         val initial = isConnected
         Timber.tag(TAG).i("initial connectivity = %s", if (initial) "ONLINE" else "OFFLINE")
         trySend(initial)
         awaitClose {
+            if (!registered) return@awaitClose
             Timber.tag(TAG).d("unregistering NetworkCallback")
-            cm.unregisterNetworkCallback(callback)
+            try {
+                cm.unregisterNetworkCallback(callback)
+            } catch (e: SecurityException) {
+                Timber.tag(TAG).w(e, "unregisterNetworkCallback denied")
+            }
         }
     }.distinctUntilChanged()
         // Log every transition AFTER distinctUntilChanged so we only see real
