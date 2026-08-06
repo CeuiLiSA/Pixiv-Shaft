@@ -127,6 +127,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 超长简介展开态(#965):同上归 Fragment,默认折叠。 */
     internal var descExpanded = false
 
+    /**
+     * 一键跳评论(#970)落点后是否还在钉基线:首跳时评论/作者作品/相关往往都还是加载态,
+     * 视口下方内容不够,SGLM 修 end gap 会把评论块顶离 toolbar 基线;且各区块落地时序不定,
+     * 补对一次不够——数据每变一次就补对一次(见 [alignCommentsIfPending]),直到下方内容
+     * 足够(end gap 不会再动它)才算收敛。用户一拖动即作废,不抢用户的滚动。
+     */
+    private var commentsJumpRealign = false
+
     /** 解析好的完整简介(#965):折叠态显示的是截断文本,展开/重绑时从这里取回全文。 */
     internal var descFullCaption: CharSequence? = null
 
@@ -166,6 +174,17 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         listView.addItemDecoration(RelatedOnlySpaceDecoration(8.ppppx, spanCount))
         // header 区块(fullSpan)在 notifyItemChanged 时的默认变更动画会打乱 SGLM 的 fullSpan 追踪。
         listView.itemAnimator = null
+        // 跳评论(#970)基线收敛:懒加载区块每次落地(change/insert)都可能触发 end-gap 修正,
+        // 数据一变就再对一次。观察者随本次 install 的 adapter 一起活/一起丢,不需手动反注册。
+        feedAdapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
+                scheduleCommentsRealign()
+            }
+
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                scheduleCommentsRealign()
+            }
+        })
     }
 
     // 详情页首屏是大图 + header,不是瀑布流网格——瀑布流骨架图会误导。用居中转圈圈(对齐 legacy)。
@@ -222,10 +241,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         handleSystemInsets()
         setupComposer()
 
-        // 隐藏 / 显示悬浮胶囊(滚动)
+        // 隐藏 / 显示悬浮胶囊(滚动);用户主动拖动时作废还欠着的跳评论基线校正
         feedBinding.feedListView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 if (dy > 8) hideFabBar() else if (dy < -8) showFabBar()
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) commentsJumpRealign = false
             }
         })
 
@@ -464,6 +487,32 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         } else {
             feedBinding.feedListView.scrollToPosition(pos)
         }
+        commentsJumpRealign = true
+    }
+
+    /** 数据变更后把基线校正排到下一帧(布局落定后再量);flag 不亮时零开销。 */
+    private fun scheduleCommentsRealign() {
+        if (!commentsJumpRealign) return
+        feedBinding.feedListView.post { alignCommentsIfPending() }
+    }
+
+    /**
+     * 基线收敛一步:评论块顶不在 [FragmentArtworkV3Binding.topOverlayColumn] 底缘就再锚一次;
+     * 已在基线上且列表还能继续下滚(下方内容已够,end-gap 修正不会再动它)才算收敛完毕。
+     */
+    private fun alignCommentsIfPending() {
+        if (!commentsJumpRealign || _chromeBind == null) return
+        val fa = feedAdapter ?: return
+        val pos = fa.currentList.indexOfFirst { it is ArtworkCommentsItem }
+        if (pos < 0) return
+        val rv = feedBinding.feedListView
+        val target = chromeBind.topOverlayColumn.bottom
+        val vh = rv.findViewHolderForAdapterPosition(pos)
+        if (vh != null && vh.itemView.top == target) {
+            if (rv.canScrollVertically(1)) commentsJumpRealign = false
+            return
+        }
+        (rv.layoutManager as? StaggeredGridLayoutManager)?.scrollToPositionWithOffset(pos, target)
     }
 
     private fun attachArtistFollowObserver(authorId: Long) {
@@ -482,7 +531,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun setupFabBar() {
         fabBarController.applyPalette(palette)
 
-        // 一键跳转评论区(#970):设置里可关,默认开。
+        // 一键跳转评论区(#970):默认关,设置「看图与详情」里手动打开。
         if (Shaft.sSettings.isArtworkV3ShowCommentJumpFab) {
             fabBarController.setCommentJumpVisible(true)
             chromeBind.fabBar.fabComment.setOnClick { scrollToCommentsSection() }

@@ -88,7 +88,7 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.artworkV3FabOrderRela.setOnClickListener(v ->
                 baseBind.artworkV3FabOrderSelect.performClick());
 
-        // V3详情页 悬浮胶囊「跳转评论区」按钮（issue #970），默认开启
+        // V3详情页 悬浮胶囊「跳转评论区」按钮（issue #970），默认关闭
         baseBind.artworkV3CommentJump.setChecked(Shaft.sSettings.isArtworkV3ShowCommentJumpFab());
         baseBind.artworkV3CommentJump.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
