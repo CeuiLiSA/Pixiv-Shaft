@@ -21,16 +21,22 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.io.File;
+import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentSettingsDataBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.BackupUtils;
+import ceui.lisa.utils.BackupUtils.BackupEntity;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
 import ceui.loxia.MoonSync;
@@ -233,12 +239,82 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             try {
                 Uri uri = data.getData();
                 String fileString = new String(UriUtils.uri2Bytes(uri));
-                boolean restoreResult = BackupUtils.restoreBackups(mContext, fileString);
-                Common.showToast(restoreResult ? getString(R.string.restore_success) : getString(R.string.restore_failed));
+                BackupEntity restored = BackupUtils.restoreBackupEntity(mContext, fileString);
+                if (restored != null) {
+                    Common.showToast(getString(R.string.restore_success));
+                    if (!SessionManager.INSTANCE.isLoggedIn()) {
+                        maybePromptRestoreAccount(restored.getUserEntityList());
+                    }
+                } else {
+                    Common.showToast(getString(R.string.restore_failed));
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 无账号登录状态下，还原的备份中若带有登录账号，弹窗询问是否立即恢复登录。
+     * 选择「是」则切到备份中最近登录的账号并重启进主页瀑布流；选择「稍后自行切换」
+     * 则账号已保留在本地账号列表，可稍后自行切换。
+     */
+    private void maybePromptRestoreAccount(List<UserEntity> accounts) {
+        final UserModel target = pickLatestBackupAccount(accounts);
+        if (target == null) {
+            return;
+        }
+        if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) {
+            return;
+        }
+        new QMUIDialog.MessageDialogBuilder(getActivity())
+                .setTitle(R.string.restore_found_account_title)
+                .setMessage(R.string.restore_found_account_message)
+                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .addAction(R.string.restore_switch_later, new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                    }
+                })
+                .addAction(0, R.string.restore_switch_now, QMUIDialogAction.ACTION_PROP_POSITIVE, new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                        target.getUser().setIs_login(true);
+                        Local.saveUser(target);
+                        Dev.refreshUser = true;
+                        Common.restart();
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    /** 取备份中最近一次登录的账号；token 不完整（非真实登录账号）时返回 null。 */
+    private UserModel pickLatestBackupAccount(List<UserEntity> accounts) {
+        if (accounts == null || accounts.isEmpty()) {
+            return null;
+        }
+        UserEntity best = null;
+        for (UserEntity entity : accounts) {
+            if (best == null || entity.getLoginTime() > best.getLoginTime()) {
+                best = entity;
+            }
+        }
+        if (best == null) {
+            return null;
+        }
+        try {
+            UserModel userModel = Shaft.sGson.fromJson(best.getUserGson(), UserModel.class);
+            if (userModel != null && userModel.getUser() != null
+                    && !TextUtils.isEmpty(userModel.getRawAccessToken())
+                    && !TextUtils.isEmpty(userModel.getRefresh_token())) {
+                return userModel;
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
     private void loadCacheSizeAsync(TextView target, File folder) {

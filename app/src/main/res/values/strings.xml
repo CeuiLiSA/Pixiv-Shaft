@@ -7,6 +7,9 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">设置</string>
     <string name="action_import">从剪切板导入</string>
+    <string name="action_browser_login">自选浏览器进行登录</string>
+    <string name="action_browser_signup">自选浏览器进行注册</string>
+    <string name="browser_dialog_found_title">查找到了这些</string>
     <string name="action_qcode">扫描二维码</string>
     <string name="title_activity_blank">BlankActivity</string>
 
@@ -872,6 +875,10 @@
     <string name="success_clear_bulk_download_cache">批量下载关联数据已清除</string>
     <string name="restore_success">还原成功</string>
     <string name="restore_failed">还原失败</string>
+    <string name="restore_found_account_title">从备份中发现账号</string>
+    <string name="restore_found_account_message">是否立即恢复登录状态？</string>
+    <string name="restore_switch_later">稍后自行切换</string>
+    <string name="restore_switch_now">是</string>
     <string name="backup_success">备份成功</string>
     <string name="color_shiYinPurple">矢尹紫</string>
     <string name="color_classicBlue">经典蓝</string>
@@ -2269,6 +2276,7 @@
     <string name="email_backup_do_restore">恢复并登录</string>
     <string name="email_backup_settings_entry">账号备份到邮箱</string>
     <string name="email_backup_login_entry">已备份过？从邮箱恢复登录</string>
+    <string name="email_backup_login_entry_hint">导出过剪切板？通过设置导出过备份文件？看看右上角</string>
     <string name="email_backup_bound_title">已备份</string>
     <string name="email_backup_bound_email">已加密备份到 %1$s</string>
     <string name="email_backup_bound_time">备份时间 %1$s</string>
@@ -2478,8 +2486,8 @@
     <string name="pixiv_unblock_done">已取消拉黑「%1$s」</string>
     <string name="pixiv_block_checking">正在查询拉黑状态…</string>
     <string name="pixiv_block_submitting">正在提交…</string>
-    <string name="pixiv_block_need_web_login">拉黑是网页端功能，需要先完成一次网页登录来同步会话信息。</string>
+    <string name="pixiv_block_need_web_login">该功能通过网页接口实现，需要额外进行一次网页登录。</string>
     <!-- 画师页 chip 来自 app-api、筛选走网页 ajax，两边可见范围可能不一致；只给线索不下断言，
          见 UserIllustByTagFeedFragment.emptyStateText 的 KDoc（非 issue #956 的实证成因） -->
-    <string name="user_tag_filter_empty_need_web_login">没有筛到作品。\n按标签筛选走的是 Pixiv 网页接口，需要在网页里登录一次才能看到全部作品。</string>
+    <string name="user_tag_filter_empty_need_web_login">没有筛到作品。\n该功能通过网页接口实现，需要额外进行一次网页登录才能看到该标签下的全部作品</string>
 </resources>

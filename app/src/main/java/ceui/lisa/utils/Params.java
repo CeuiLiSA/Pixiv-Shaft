@@ -53,6 +53,7 @@ public class Params {
     public static final String FRAGMENT_SEARCH_CLIPBOARD_VALUE  = "fragment search clipboard value";
     public static final String MANGA_SERIES_ID  = "manga series id";
     public static final String REVERSE_SEARCH_IMAGE_URI = "reverse image uri";
+    public static final String AUTO_WEB_LOGIN = "auto web login";
 
 
     public static final String VIEW_PAGER_MUTED  = "muted history viewpager";

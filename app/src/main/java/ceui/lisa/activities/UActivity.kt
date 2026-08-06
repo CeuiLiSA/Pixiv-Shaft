@@ -214,6 +214,20 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 labels.add("跳转到漫画…")
                 actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
             }
+            // 与 V3 的「更多」菜单对齐：自己的页面也要能进相关用户和下载管理
+            labels.add(getString(R.string.string_436)) // 相关用户
+            actions.add {
+                val intent = Intent(mContext, TemplateActivity::class.java)
+                intent.putExtra(Params.USER_ID, data.user.id)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关用户")
+                startActivity(intent)
+            }
+            labels.add(getString(R.string.bulk_user_menu_open_download_manager))
+            actions.add {
+                val intent = Intent(mContext, TemplateActivity::class.java)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理")
+                startActivity(intent)
+            }
             if (!isSelf) {
                 labels.add(
                     if (isMuted) getString(R.string.cancel_block_this_users_work)

@@ -9,6 +9,9 @@
     <string name="nav_header_desc">Заголовок бокового меню</string>
     <string name="action_settings">Настройки</string>
     <string name="action_import">Импорт из буфера обмена</string>
+    <string name="action_browser_login">Войти через выбранный браузер</string>
+    <string name="action_browser_signup">Зарегистрироваться через выбранный браузер</string>
+    <string name="browser_dialog_found_title">Найдено следующее</string>
     <string name="action_qcode">Сканировать QR-код</string>
     <string name="title_activity_blank">Пустой экран</string>
     <string name="empty_list_1">Здесь ничего нет</string>
@@ -845,6 +848,10 @@
     <string name="success_clear_bulk_download_cache">Данные массовых загрузок очищены</string>
     <string name="restore_success">Восстановлено</string>
     <string name="restore_failed">Не удалось восстановить</string>
+    <string name="restore_found_account_title">В резервной копии найден аккаунт</string>
+    <string name="restore_found_account_message">Восстановить состояние входа сейчас?</string>
+    <string name="restore_switch_later">Переключу позже</string>
+    <string name="restore_switch_now">Да</string>
     <string name="backup_success">Резервная копия создана</string>
     <string name="color_shiYinPurple">Фиолетовый Shiin</string>
     <string name="color_classicBlue">Классический синий</string>
@@ -2056,6 +2063,7 @@
     <string name="email_backup_do_restore">Восстановить и войти</string>
     <string name="email_backup_settings_entry">Резервная копия аккаунта в почту</string>
     <string name="email_backup_login_entry">Уже есть копия? Восстановить из почты</string>
+    <string name="email_backup_login_entry_hint">Экспортировали в буфер обмена? Экспортировали резервную копию в настройках? Загляните в правый верхний угол.</string>
     <string name="email_backup_bound_title">Сохранено</string>
     <string name="email_backup_bound_email">Зашифрованная копия в %1$s</string>
     <string name="email_backup_bound_time">Дата копии: %1$s</string>
@@ -2278,6 +2286,6 @@
     <string name="pixiv_unblock_done">«%1$s» разблокирован</string>
     <string name="pixiv_block_checking">Проверка статуса блокировки…</string>
     <string name="pixiv_block_submitting">Отправка…</string>
-    <string name="pixiv_block_need_web_login">Блокировка — функция веб-версии. Войдите один раз в веб-версию, чтобы синхронизировать сессию.</string>
-    <string name="user_tag_filter_empty_need_web_login">Работы не найдены.\nФильтр по тегам использует веб-API pixiv. Войдите один раз через веб, чтобы увидеть все работы.</string>
+    <string name="pixiv_block_need_web_login">Эта функция работает через веб-интерфейс, поэтому нужно дополнительно войти через веб.</string>
+    <string name="user_tag_filter_empty_need_web_login">Работы не найдены.\nЭта функция работает через веб-интерфейс, поэтому, чтобы увидеть все работы по этому тегу, нужно дополнительно войти через веб</string>
 </resources>

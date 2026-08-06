@@ -9,6 +9,9 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
     <string name="action_import">Import from clipboard</string>
+    <string name="action_browser_login">Log in with a browser of your choice</string>
+    <string name="action_browser_signup">Sign up with a browser of your choice</string>
+    <string name="browser_dialog_found_title">Found these</string>
     <string name="action_qcode">Scan QR code</string>
     <string name="title_activity_blank">BlankActivity</string>
     <string name="empty_list_1">Actually had nothing</string>
@@ -845,6 +848,10 @@
     <string name="success_clear_bulk_download_cache">Bulk download data cleared</string>
     <string name="restore_success">Restore successful</string>
     <string name="restore_failed">Restore failed</string>
+    <string name="restore_found_account_title">Account found in backup</string>
+    <string name="restore_found_account_message">Restore the login state now?</string>
+    <string name="restore_switch_later">I\'ll switch later</string>
+    <string name="restore_switch_now">Yes</string>
     <string name="backup_success">Backup successful</string>
     <string name="color_shiYinPurple">Shiin Purple</string>
     <string name="color_classicBlue">Classic Blue</string>
@@ -2056,6 +2063,7 @@
     <string name="email_backup_do_restore">Restore and sign in</string>
     <string name="email_backup_settings_entry">Back up account to email</string>
     <string name="email_backup_login_entry">Already backed up? Restore from email</string>
+    <string name="email_backup_login_entry_hint">Exported to clipboard? Exported a backup file in Settings? Check the top-right corner.</string>
     <string name="email_backup_bound_title">Backed up</string>
     <string name="email_backup_bound_email">Encrypted backup to %1$s</string>
     <string name="email_backup_bound_time">Backed up on %1$s</string>
@@ -2278,6 +2286,6 @@
     <string name="pixiv_unblock_done">Unblocked “%1$s”</string>
     <string name="pixiv_block_checking">Checking block status…</string>
     <string name="pixiv_block_submitting">Submitting…</string>
-    <string name="pixiv_block_need_web_login">Blocking is a web feature. Sign in to the web version once so the session can be synced.</string>
-    <string name="user_tag_filter_empty_need_web_login">No works found.\nTag filtering uses Pixiv\'s web API. Sign in on the web once to see all works.</string>
+    <string name="pixiv_block_need_web_login">This feature works through the web interface, so you need to sign in on the web once more.</string>
+    <string name="user_tag_filter_empty_need_web_login">No works found.\nThis feature works through the web interface, so you need to sign in on the web once more to see all works under this tag.</string>
 </resources>

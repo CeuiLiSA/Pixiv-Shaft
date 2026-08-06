@@ -9,6 +9,9 @@
     <string name="nav_header_desc">항 법 제목</string>
     <string name="action_settings">설치</string>
     <string name="action_import">클립보드 에서 가 져 오기</string>
+    <string name="action_browser_login">원하는 브라우저로 로그인</string>
+    <string name="action_browser_signup">원하는 브라우저로 가입</string>
+    <string name="browser_dialog_found_title">다음을 찾았습니다</string>
     <string name="action_qcode">QR 코드 를 스캐닝 하 다.</string>
     <string name="title_activity_blank">공백 활성</string>
     <string name="empty_list_1">아무것도 없다 니.</string>
@@ -845,6 +848,10 @@
     <string name="success_clear_bulk_download_cache">일괄 다운로드 관련 데이터가 삭제되었습니다</string>
     <string name="restore_success">복원 성공</string>
     <string name="restore_failed">복원 실패</string>
+    <string name="restore_found_account_title">백업에서 계정을 찾았습니다</string>
+    <string name="restore_found_account_message">지금 로그인 상태를 복원할까요?</string>
+    <string name="restore_switch_later">나중에 직접 전환</string>
+    <string name="restore_switch_now">예</string>
     <string name="backup_success">백업 성공</string>
     <string name="color_shiYinPurple">시인 퍼플</string>
     <string name="color_classicBlue">클래식 블루</string>
@@ -2056,6 +2063,7 @@
     <string name="email_backup_do_restore">복원하고 로그인</string>
     <string name="email_backup_settings_entry">계정을 이메일에 백업</string>
     <string name="email_backup_login_entry">이미 백업했나요? 이메일에서 복원</string>
+    <string name="email_backup_login_entry_hint">클립보드로 내보냈나요? 설정에서 백업 파일을 내보냈나요? 오른쪽 위를 확인해 보세요.</string>
     <string name="email_backup_bound_title">백업됨</string>
     <string name="email_backup_bound_email">%1$s(으)로 암호화 백업됨</string>
     <string name="email_backup_bound_time">백업 시간 %1$s</string>
@@ -2278,6 +2286,6 @@
     <string name="pixiv_unblock_done">“%1$s”의 차단을 해제했습니다</string>
     <string name="pixiv_block_checking">차단 상태 확인 중…</string>
     <string name="pixiv_block_submitting">전송 중…</string>
-    <string name="pixiv_block_need_web_login">차단은 웹 기능입니다. 먼저 웹 버전에 한 번 로그인해 세션을 동기화하세요.</string>
-    <string name="user_tag_filter_empty_need_web_login">작품을 찾지 못했습니다.\n태그 필터는 pixiv 웹 API를 사용합니다. 모든 작품을 보려면 웹에서 한 번 로그인하세요.</string>
+    <string name="pixiv_block_need_web_login">이 기능은 웹 인터페이스로 동작하므로, 추가로 웹에 한 번 더 로그인해야 합니다.</string>
+    <string name="user_tag_filter_empty_need_web_login">작품을 찾지 못했습니다.\n이 기능은 웹 인터페이스로 동작하므로, 이 태그의 모든 작품을 보려면 웹에 한 번 더 로그인해야 합니다</string>
 </resources>

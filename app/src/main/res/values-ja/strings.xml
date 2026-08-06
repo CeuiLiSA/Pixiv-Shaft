@@ -9,6 +9,9 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">設定</string>
     <string name="action_import">クリップボードからインポート</string>
+    <string name="action_browser_login">好きなブラウザでログイン</string>
+    <string name="action_browser_signup">好きなブラウザで登録</string>
+    <string name="browser_dialog_found_title">こちらが見つかりました</string>
     <string name="action_qcode">"QRコードをスキャン "</string>
     <string name="title_activity_blank">BlankActivity</string>
     <string name="empty_list_1">コンテンツなし</string>
@@ -845,6 +848,10 @@
     <string name="success_clear_bulk_download_cache">一括ダウンロード関連データを削除しました</string>
     <string name="restore_success">復元しました</string>
     <string name="restore_failed">復元できませんでした</string>
+    <string name="restore_found_account_title">バックアップからアカウントを検出</string>
+    <string name="restore_found_account_message">すぐにログイン状態を復元しますか？</string>
+    <string name="restore_switch_later">あとで自分で切り替える</string>
+    <string name="restore_switch_now">はい</string>
     <string name="backup_success">"バックアップしました。保存先： "</string>
     <string name="color_shiYinPurple">矢尹紫</string>
     <string name="color_classicBlue">クラシックブルー</string>
@@ -2056,6 +2063,7 @@
     <string name="email_backup_do_restore">復元してログイン</string>
     <string name="email_backup_settings_entry">アカウントをメールにバックアップ</string>
     <string name="email_backup_login_entry">バックアップ済み？メールから復元</string>
+    <string name="email_backup_login_entry_hint">クリップボードに書き出した？設定でバックアップファイルを書き出した？右上を見てみて。</string>
     <string name="email_backup_bound_title">バックアップ済み</string>
     <string name="email_backup_bound_email">%1$s に暗号化バックアップ済み</string>
     <string name="email_backup_bound_time">バックアップ日時 %1$s</string>
@@ -2278,6 +2286,6 @@
     <string name="pixiv_unblock_done">「%1$s」のブロックを解除しました</string>
     <string name="pixiv_block_checking">ブロック状態を確認中…</string>
     <string name="pixiv_block_submitting">送信中…</string>
-    <string name="pixiv_block_need_web_login">ブロックはウェブ版の機能です。先にウェブ版へ一度ログインしてセッションを同期してください。</string>
-    <string name="user_tag_filter_empty_need_web_login">作品が見つかりませんでした。\nタグ絞り込みは pixiv のウェブ API を使います。すべての作品を見るにはウェブで一度ログインしてください。</string>
+    <string name="pixiv_block_need_web_login">この機能はウェブインターフェースで動作するため、追加で一度ウェブにログインする必要があります。</string>
+    <string name="user_tag_filter_empty_need_web_login">作品が見つかりませんでした。\nこの機能はウェブインターフェースで動作するため、このタグのすべての作品を見るには、追加でウェブに一度ログインする必要があります</string>
 </resources>

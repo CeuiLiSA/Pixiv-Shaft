@@ -261,7 +261,11 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         val cookies = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "")
         if (!SessionManager.isLoggedInWebCookie(cookies)) {
             // 含匿名 PHPSESSID 的旧存量也走这里重新登录,不然会卡在「拿不到 CSRF token」。
-            showWebLoginDialog()
+            if (autoStartWebLogin()) {
+                startWebLogin()
+            } else {
+                showWebLoginDialog()
+            }
         } else if (CsrfTokenProvider.get() == null) {
             // 有 cookie 但没 CSRF token，用 WebView 静默提取
             fetchCsrfViaWebView()
@@ -269,6 +273,10 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             viewModel.refresh()
         }
     }
+
+    /** 从按 tag 筛选的空态「去登录」进入时直接开始网页登录，不弹确认对话框。 */
+    private fun autoStartWebLogin(): Boolean =
+        activity?.intent?.getBooleanExtra(Params.AUTO_WEB_LOGIN, false) == true
 
     /**
      * Cookie 已有，但 CSRF token 缺失。用隐藏 WebView 加载 pixiv.net，
@@ -390,7 +398,12 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                         cleanupWebView()
                         if (token != null) {
                             Toaster.showShort(getString(R.string.street_web_login_success))
-                            viewModel.refresh()
+                            if (autoStartWebLogin()) {
+                                // 从标签筛选空态进入：登录完成直接返回来源页，来源页在 onResume 里自动刷新
+                                activity?.finish()
+                            } else {
+                                viewModel.refresh()
+                            }
                         } else {
                             // 这里曾经无条件报「登录成功」，紧接着 refresh() 再弹一条
                             // 「CSRF token 未就绪」——两条自相矛盾的 toast 一起糊在用户脸上，

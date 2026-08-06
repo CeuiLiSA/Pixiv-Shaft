@@ -108,6 +108,10 @@ public class BackupUtils {
     }
 
     public static boolean restoreBackups(Context context, String backupString) {
+        return restoreBackupEntity(context, backupString) != null;
+    }
+
+    public static BackupEntity restoreBackupEntity(Context context, String backupString) {
         try {
             BackupEntity backupEntity = Shaft.sGson.fromJson(backupString, BackupEntity.class);
             // 下载配置自己吞掉所有异常：解析不了就保持本机现状，不影响其余数据还原。
@@ -156,10 +160,10 @@ public class BackupUtils {
                 }
             }
 
-            return true;
+            return backupEntity;
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 }

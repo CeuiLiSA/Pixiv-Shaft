@@ -1,7 +1,9 @@
 package ceui.lisa.fragments
 
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.text.SpannableString
@@ -39,13 +41,18 @@ import ceui.lisa.utils.Dev
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import ceui.pixiv.i18n.AppLocales
+import ceui.pixiv.login.PixivLogin
 import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -154,6 +161,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     // ── Toolbar ──
 
     private fun setupToolbar() {
+        // 登录页左上角返回选语言页（图标只在进入登录页后显示）
+        baseBind.toolbar.setNavigationOnClickListener { backToLanguagePage() }
         baseBind.toolbar.inflateMenu(R.menu.login_menu)
         baseBind.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -174,9 +183,139 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                     true
                 }
 
+                R.id.action_browser_login -> {
+                    // 启动协程：避免在主线程执行 PackageManager 查询和 loadLabel
+                    lifecycleScope.launch {
+                        val url = PixivLogin.startLoginUrl()
+                        val title = getString(R.string.browser_dialog_found_title)
+
+                        // 1. 异步获取浏览器数据
+                        val browsers = withContext(Dispatchers.IO) {
+                            getBrowserList(url)
+                        }
+
+                        // 2. 切回主线程渲染弹窗
+                        renderBrowserDialog(url, title, browsers)
+                    }
+                    true
+                }
+
+                R.id.action_browser_signup -> {
+                    lifecycleScope.launch {
+                        val url = PixivLogin.startSignUrl()
+                        val title = getString(R.string.browser_dialog_found_title)
+
+                        // 1. 异步获取浏览器数据
+                        val browsers = withContext(Dispatchers.IO) {
+                            getBrowserList(url)
+                        }
+
+                        // 2. 切回主线程渲染弹窗
+                        renderBrowserDialog(url, title, browsers)
+                    }
+                    true
+                }
+
                 else -> false
             }
         }
+    }
+
+    /** 自建「打开方式」弹窗：列出已安装的浏览器，用显式 Intent 打开 URL。 */
+// 1. 数据结构：用于传递给 UI 层的干净数据
+    data class BrowserItem(
+        val label: String,
+        val packageName: String,
+        val activityName: String
+    )
+
+    // 2. 纯逻辑函数：获取浏览器列表（可在协程/后台线程调用）
+    private fun getBrowserList(url: String): List<BrowserItem> {
+        val openIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE) // 明确要求可从网页启动
+        }
+        val pm = requireContext().packageManager
+        val resolvers = pm.queryIntentActivities(openIntent, PackageManager.MATCH_ALL)
+
+        // 非纯粹浏览器的活动名称黑名单
+        val blacklistedNames = setOf(
+            "com.taobao.browser.BrowserActivity",// 淘宝
+            "com.taobao.live.h5.BrowserActivityH",//淘宝2
+            "com.taobao.live.h5.TransparentWebViewActivity",//淘宝3
+            "com.jingdong.app.mall.open.BrowserActivity",// 京东
+            "com.taobao.live.h5.BrowserActivity",// 淘宝特价版
+            "com.litetao.app.MNWebActivity",//淘宝特价版2
+            "com.xunlei.downloadprovider.launch.LaunchActivity2",// 迅雷
+            "com.tmall.wireless.splash.SchemeHandlerActivity",// 天猫
+            "com.tencent.hunyuan.app.chat.biz.openfile.ExternalOpeFileActivity",// 腾讯元宝
+            "com.baidu.searchbox.BoxBrowserActivity",// 百度（推荐）
+            "com.UCMobile.main.UCMobile.DefaultBrowserEntry",// UC浏览器（推荐）
+            "com.yxcorp.gifshow.growth.applink.GrowthAppLinkActivityHttpRecommend",// 快手极速版
+        )
+
+        // 优先显示的浏览器包名关键词
+        val priorityKeywords = listOf(
+            "chrome",
+            "via",
+            "firefox"
+        )
+
+        return resolvers
+            .filter { resolveInfo ->
+                // 1. 先过滤活动名称：不在黑名单中的才保留
+                Timber.tag("getBrowserList-name").d(resolveInfo.activityInfo.name)
+                !blacklistedNames.contains(resolveInfo.activityInfo.name)
+            }
+            .map { resolveInfo ->
+                // 2. 过滤后再执行耗时的 loadLabel 操作，提升性能
+                BrowserItem(
+                    label = resolveInfo.loadLabel(pm).toString(),
+                    packageName = resolveInfo.activityInfo.packageName,
+                    activityName = resolveInfo.activityInfo.name
+                )
+            }
+            .sortedWith(compareBy<BrowserItem> { item ->
+                // 优先级：匹配关键词的排前面（返回0），不匹配的排后面（返回1）
+                val isPriority = priorityKeywords.any { keyword ->
+                    item.packageName.contains(keyword, ignoreCase = true) ||
+                            item.label.contains(keyword, ignoreCase = true)
+                }
+                if (isPriority) 0 else 1
+            }.thenBy { it.label }) // 同组内按名称排序
+    }
+
+    // 3. 纯渲染函数：只负责接收数据并刷 UI
+    private fun renderBrowserDialog(
+        url: String,
+        dialogTitle: String,
+        browserList: List<BrowserItem>
+    ) {
+        if (browserList.isEmpty()) {
+            Common.showToast(getString(R.string.msg_no_browser))
+            return
+        }
+
+        val labels = browserList.map { it.label }.toTypedArray()
+
+        MenuDialogBuilder(mContext)
+            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+            .setTitle(dialogTitle)
+            .addItems(labels) { dialog, which ->
+                dialog.dismiss()
+                val targetBrowser = browserList[which]
+
+                // 组装精确跳转的 Intent
+                val launchIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                    component = ComponentName(targetBrowser.packageName, targetBrowser.activityName)
+                }
+
+                try {
+                    startActivity(launchIntent)
+                } catch (_: ActivityNotFoundException) {
+                    Common.showToast(getString(R.string.msg_no_browser))
+                }
+            }
+            .show()
     }
 
     // ── Language page ──
@@ -305,6 +444,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         AppLocales.applyConfigurationInPlace(requireActivity(), selectedTag)
 
         relocalizeLoginPage()
+        baseBind.toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_shadow)
         crossFadeLanguagePageToLoginPage()
     }
 
@@ -317,6 +457,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         page.loginButton.text = getString(R.string.now_login)
         page.signButton.text = getString(R.string.now_sign)
         page.restoreFromEmail.text = getString(R.string.email_backup_login_entry)
+        page.restoreFromEmailHint.text = getString(R.string.email_backup_login_entry_hint)
         // 协议链接里的 SpannableString 也是 inflate 时算的，要重塞 —— 内部 getString(...) 此刻
         // 已经走新 locale 了。
         setupTermsText(page.firstText)
@@ -340,6 +481,25 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         langPage.animate().alpha(0f).setDuration(dur).withEndAction {
             langPage.visibility = View.GONE
         }.start()
+    }
+
+    /** 从登录页返回选语言页：反向交叉淡入淡出，并恢复问候语轮播。 */
+    private fun backToLanguagePage() {
+        val langPage = baseBind.languagePage.root
+        val loginPage = baseBind.loginPage.root
+        val dur = 300L
+
+        baseBind.toolbar.navigationIcon = null
+
+        langPage.visibility = View.VISIBLE
+        langPage.alpha = 0f
+        langPage.animate().alpha(1f).setDuration(dur).start()
+
+        loginPage.animate().alpha(0f).setDuration(dur).withEndAction {
+            loginPage.visibility = View.GONE
+        }.start()
+
+        startGreetingCycle()
     }
 
     // ── Login page ──
