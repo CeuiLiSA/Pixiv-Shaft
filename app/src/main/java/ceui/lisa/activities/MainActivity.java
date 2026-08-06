@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -70,6 +71,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
     public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};
     private long mExitTime;
     private Fragment[] baseFragments = null;
+    // 与 baseFragments 一一对应的底部菜单 item id;TAB 顺序可配置后,
+    // id 和位置的关系不再固定,所有 id<->position 换算都查这张表
+    private int[] tabMenuIds = null;
 
     /**
      * 开屏动画安全兜底超时：万一首页推荐插画 tab 没能按预期跑到（异常 / 未来改了默认
@@ -91,7 +95,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
      * keepOnScreenCondition 只等 ColdStartSplashGate（首页推荐插画 tab 的本地优先裁决），
      * 不等网络；安全超时兜底见 SPLASH_SAFETY_TIMEOUT_MS。
      *
-     * 只有这次冷启动真的会落在首页推荐插画 tab（getNavigationInitPosition()==0）时，
+     * 只有这次冷启动真的会落在首页推荐插画 tab（FragmentLeft，位置随 TAB 顺序设置变化）时，
      * 才值得等：用户设置了「启动到最近使用的页」或把默认 tab 指到别处时，
      * RecmdIllustFeedFragment(插画) 根本不会被创建，ColdStartSplashGate 永远等不到
      * Fragment 那边的信号，只能靠安全超时兜底——那样每次冷启动都白等满 1200ms，
@@ -106,7 +110,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         splashScreen.setKeepOnScreenCondition(() -> !ColdStartSplashGate.isResolved());
         super.onCreate(savedInstanceState);
-        if (baseFragments == null || getNavigationInitPosition() != 0) {
+        if (baseFragments == null || !(baseFragments[getNavigationInitPosition()] instanceof FragmentLeft)) {
             ColdStartSplashGate.markResolved();
         } else {
             new Handler(Looper.getMainLooper())
@@ -165,22 +169,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         baseBind.navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if (item.getItemId() == R.id.action_1) {
-                    baseBind.viewPager.setCurrentItem(0);
-                    return true;
-                } else if (item.getItemId() == R.id.action_2) {
-                    baseBind.viewPager.setCurrentItem(1);
-                    return true;
-                } else if (item.getItemId() == R.id.action_3) {
-                    baseBind.viewPager.setCurrentItem(2);
-                    return true;
-                } else if (item.getItemId() == R.id.action_4) {
-                    baseBind.viewPager.setCurrentItem(3);
-                    return true;
-                } else if (item.getItemId() == R.id.action_5) {
-                    // 「我」始终在最末位:非 R18 模式 = 3,R18 模式 = 4
-                    baseBind.viewPager.setCurrentItem(baseFragments.length - 1);
-                    return true;
+                if (tabMenuIds == null) {
+                    return false;
+                }
+                for (int i = 0; i < tabMenuIds.length; i++) {
+                    if (tabMenuIds[i] == item.getItemId()) {
+                        baseBind.viewPager.setCurrentItem(i);
+                        return true;
+                    }
                 }
                 return false;
             }
@@ -223,19 +219,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
 
             @Override
             public void onPageSelected(int position) {
-                if (position == 0) {
-                    baseBind.navigationView.setSelectedItemId(R.id.action_1);
-                } else if (position == 1) {
-                    baseBind.navigationView.setSelectedItemId(R.id.action_2);
-                } else if (position == 2) {
-                    baseBind.navigationView.setSelectedItemId(R.id.action_3);
-                } else if (position == 3) {
-                    // 非 R18 模式 position 3 就是「我」(action_4 在该菜单不存在);R18 模式 position 3 才是 R18 (action_4)
-                    boolean isR18Tab = baseFragments[3] instanceof FragmentViewPager;
-                    baseBind.navigationView.setSelectedItemId(isR18Tab ? R.id.action_4 : R.id.action_5);
-                } else if (position == 4) {
-                    // 仅 R18 模式存在 position 4 = 「我」
-                    baseBind.navigationView.setSelectedItemId(R.id.action_5);
+                if (tabMenuIds != null && position < tabMenuIds.length) {
+                    baseBind.navigationView.setSelectedItemId(tabMenuIds[position]);
                 }
             }
 
@@ -269,44 +254,41 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
     }
 
     private void initFragment() {
+        // 底部 TAB:前三个内容页(推荐/发现/动态)按设置的顺序排列,R18 与「我」固定在末尾。
+        // 六种顺序对应设置页 string_343~348 的排列;menu xml 无法换序,菜单按最终顺序
+        // 程序化构建(#969:换序的消费端在「主页显示R18」改造时丢失,此后设置一直不生效)
+        final int[][] TAB_ORDERS = {{0, 1, 2}, {0, 2, 1}, {1, 0, 2}, {1, 2, 0}, {2, 0, 1}, {2, 1, 0}};
+        final int[] TAB_MENU_IDS = {R.id.action_1, R.id.action_2, R.id.action_3};
+        final int[] TAB_TITLES = {R.string.recommend, R.string.discover, R.string.whats_new};
+        final int[] TAB_ICONS = {R.drawable.ic_tuijian, R.drawable.ic_discover, R.drawable.ic_dongtai};
+        final Fragment[] contentPages = {new FragmentLeft(), new FragmentCenter(), new FragmentRight()};
+
+        final int orderIndex = Shaft.sSettings.getBottomBarOrder();
+        final int[] order = TAB_ORDERS[orderIndex >= 0 && orderIndex < TAB_ORDERS.length ? orderIndex : 0];
+
+        boolean showR18Tab = Shaft.sSettings.isMainViewR18();
         boolean showMeTab = Dev.showMeTab;
-        if (Shaft.sSettings.isMainViewR18()) {
-            baseBind.navigationView.inflateMenu(R.menu.main_activity0_with_r18);
-            if (showMeTab) {
-                baseFragments = new Fragment[]{
-                        new FragmentLeft(),
-                        new FragmentCenter(),
-                        new FragmentRight(),
-                        FragmentViewPager.newInstance(Params.VIEW_PAGER_R18),
-                        new MeFragment(),
-                };
-            } else {
-                baseFragments = new Fragment[]{
-                        new FragmentLeft(),
-                        new FragmentCenter(),
-                        new FragmentRight(),
-                        FragmentViewPager.newInstance(Params.VIEW_PAGER_R18),
-                };
-            }
-        } else {
-            baseBind.navigationView.inflateMenu(R.menu.main_activity0);
-            if (showMeTab) {
-                baseFragments = new Fragment[]{
-                        new FragmentLeft(),
-                        new FragmentCenter(),
-                        new FragmentRight(),
-                        new MeFragment(),
-                };
-            } else {
-                baseFragments = new Fragment[]{
-                        new FragmentLeft(),
-                        new FragmentCenter(),
-                        new FragmentRight(),
-                };
-            }
+        int count = order.length + (showR18Tab ? 1 : 0) + (showMeTab ? 1 : 0);
+        baseFragments = new Fragment[count];
+        tabMenuIds = new int[count];
+        Menu menu = baseBind.navigationView.getMenu();
+        int position = 0;
+        for (int tab : order) {
+            baseFragments[position] = contentPages[tab];
+            tabMenuIds[position] = TAB_MENU_IDS[tab];
+            menu.add(Menu.NONE, TAB_MENU_IDS[tab], Menu.NONE, TAB_TITLES[tab]).setIcon(TAB_ICONS[tab]);
+            position++;
         }
-        if (!showMeTab) {
-            baseBind.navigationView.getMenu().removeItem(R.id.action_5);
+        if (showR18Tab) {
+            baseFragments[position] = FragmentViewPager.newInstance(Params.VIEW_PAGER_R18);
+            tabMenuIds[position] = R.id.action_4;
+            menu.add(Menu.NONE, R.id.action_4, Menu.NONE, R.string.string_r).setIcon(R.drawable.ic_xiongbu);
+            position++;
+        }
+        if (showMeTab) {
+            baseFragments[position] = new MeFragment();
+            tabMenuIds[position] = R.id.action_5;
+            menu.add(Menu.NONE, R.id.action_5, Menu.NONE, R.string.me_tab).setIcon(R.drawable.ic_me);
         }
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
