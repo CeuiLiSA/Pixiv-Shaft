@@ -114,6 +114,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.catArtistRank.setOnClickListener(v -> openFragment("画师榜"));
         baseBind.catArtistAvgRank.setOnClickListener(v -> openFragment("画师均分榜"));
         baseBind.catViewRank.setOnClickListener(v -> openFragment("浏览量榜"));
+        baseBind.catPixivComic.setOnClickListener(v -> openFragment("pixiv漫画"));
         baseBind.catBookmarkRank.setOnClickListener(v -> openFragment("收藏榜"));
         baseBind.catAiRank.setOnClickListener(v -> openFragment("AI榜"));
         baseBind.catYearRank.setOnClickListener(v -> openFragment("年代榜"));

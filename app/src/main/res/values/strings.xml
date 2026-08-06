@@ -1003,6 +1003,9 @@
     <string name="artwork_link">作品链接：%1$s</string>
     <string name="user_link">作者链接：%1$s</string>
     <string name="prime_tags">热度标签</string>
+    <string name="pixiv_comic">pixiv 漫画</string>
+    <string name="comic_stories_count">全 %1$d 话</string>
+    <string name="comic_badge_new">新连载</string>
     <string name="pinned_tags">置顶标签</string>
     <string name="clear_pinned_tags_msg">这将会取消所有置顶标签</string>
     <string name="pinned_tags_cleared">已取消所有置顶标签</string>

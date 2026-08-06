@@ -521,6 +521,25 @@
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
+                        <!-- pixiv 漫画官方连载首页(comic.pixiv.net,复用主 app 的 token) -->
+                        <TextView
+                            android:id="@+id/catPixivComic"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/pixiv_comic"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
                         <!-- 收藏榜 / AI 榜 / 年代榜:shaft-api-v2 discover/most-bookmarked,Lite 里 GONE -->
                         <TextView
                             android:id="@+id/catBookmarkRank"

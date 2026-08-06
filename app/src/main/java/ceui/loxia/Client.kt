@@ -37,6 +37,22 @@ object Client {
         _appApi = clientManager.createAPPAPI(API::class.java)
         // 网页 API 也带直连拦截器,直连开关切换后必须一起重建,否则要重启 App 才生效。
         _webApi = null
+        // comic 同理:它也 applyDirectConnect,漏了这行切完直连开关漫画页还是走旧客户端。
+        _comicApi = null
+    }
+
+    @Volatile
+    private var _comicApi: ComicApi? = null
+
+    val comicApi: ComicApi get() {
+        val _api = _comicApi
+        return if (_api != null) {
+            _api
+        } else {
+            val impl = clientManager.createComicService(ComicApi::class.java)
+            _comicApi = impl
+            impl
+        }
     }
 
     // @Volatile:reset() 可能在设置页线程写,而读者散在各个 UI/IO 协程里 —— 没它切完直连开关
@@ -82,6 +98,9 @@ class ClientManager {
 
         // pixshaft-api: browse-history backend, real public domain.
         const val PIXSHAFT_API_HOST = "https://pixshaft.com/"
+
+        // pixiv COMIC。和 app-api 同一套 OAuth token,只是换个 host。
+        const val COMIC_API_HOST = "https://comic.pixiv.net/"
 
         /**
          * 所有 Web API 请求和 WebView 统一使用的 User-Agent。
@@ -181,6 +200,33 @@ class ClientManager {
         applyDirectConnect(httpBuilder)
         return Retrofit.Builder()
             .baseUrl(PIXSHAFT_API_HOST)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(httpBuilder.build())
+            .build()
+            .create(service)
+    }
+
+    /**
+     * pixiv COMIC。除了 baseUrl 之外和 [createAPPAPI] 完全一致 —— 同一套 Bearer、同一套
+     * 401/token 刷新逻辑,所以 [HeaderInterceptor] / [TokenFetcherInterceptor] 直接复用。
+     * comic.pixiv.net 和 app-api 一样在墙内不可达,必须跟着走直连。
+     */
+    fun <T> createComicService(service: Class<T>): T {
+        val httpBuilder = OkHttpClient.Builder()
+            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+
+        httpBuilder.addInterceptor(HeaderInterceptor())
+        httpBuilder.addInterceptor(TokenFetcherInterceptor())
+        httpBuilder.addInterceptor(HttpLoggingInterceptor().apply {
+            setLevel(HttpLoggingInterceptor.Level.BASIC)
+        })
+        applyDirectConnect(httpBuilder)
+
+        return Retrofit.Builder()
+            .baseUrl(COMIC_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())
             .client(httpBuilder.build())
             .build()

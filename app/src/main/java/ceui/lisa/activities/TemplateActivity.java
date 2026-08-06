@@ -418,6 +418,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return ceui.pixiv.ui.recommend.ArtistRankFeedFragment.newInstance("avg");
                 case "浏览量榜":
                     return ceui.pixiv.ui.recommend.ViewRankFeedFragment.newInstance();
+                case "pixiv漫画":
+                    return new ceui.pixiv.ui.comic.ComicTopFeedFragment();
                 case "收藏榜":
                     return ceui.pixiv.ui.recommend.BookmarkRankFeedFragment.newInstance(null);
                 case "AI榜":

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pixiv COMIC 首页顶部轮播(整行)。内层横向 RecyclerView,adapter 在 ComicTopFeed 里挂。
+     banner 原图 600x300,高度 150dp 正好对上 2:1。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="8dp">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/banner_list"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="12dp" />
+</FrameLayout>
