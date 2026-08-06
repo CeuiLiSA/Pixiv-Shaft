@@ -132,6 +132,21 @@ fun fetchWebIllustFallbackAsync(illustId: Long, onResult: Callback<IllustsBean?>
 // app 的 caption 渲染(fromHtml)会把它当相对路径,解开成真实地址。
 private val WEB_JUMP_LINK = Regex("(?<=href=\")/jump\\.php\\?([^\"]+)(?=\")")
 
+/**
+ * 网页 ajax 的时间戳是 UTC(+00:00),app-api 全是 JST(+09:00),而 DateParse 的展示
+ * 逻辑直接取字符串本地部分 —— 不换算的话发布时间会差 9 小时。统一换算成 +09:00 形式;
+ * 解析不动的字符串原样保留(展示层对非 25 位串有 FAKE_DATE 兜底)。
+ */
+private fun webDateToAppDate(webDate: String): String {
+    return runCatching {
+        val pattern = "yyyy-MM-dd'T'HH:mm:ssXXX"
+        val parsed = java.text.SimpleDateFormat(pattern, java.util.Locale.US).parse(webDate)!!
+        java.text.SimpleDateFormat(pattern, java.util.Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("GMT+09:00")
+        }.format(parsed)
+    }.getOrDefault(webDate)
+}
+
 private fun WebIllustUrls.toImageUrlsBean(): ImageUrlsBean {
     val web = this
     return ImageUrlsBean().apply {
@@ -153,13 +168,16 @@ private fun WebIllustBody.toIllustsBean(illustId: Long, webPages: List<WebIllust
             else -> "illust"
         }
         caption = body.description?.replace(WEB_JUMP_LINK) { m ->
-            URLDecoder.decode(m.groupValues[1], "UTF-8")
+            // 单条链接畸形(坏 % 序列)只保留原样,不让 IllegalArgumentException
+            // 把整个 web 兜底炸回「无法显示」
+            runCatching { URLDecoder.decode(m.groupValues[1], "UTF-8") }
+                .getOrDefault(m.value)
         }
         restrict = body.restrict
         x_restrict = body.xRestrict
         sanity_level = body.sl
         illust_ai_type = body.aiType
-        create_date = body.createDate
+        create_date = body.createDate?.let(::webDateToAppDate)
         page_count = body.pageCount
         width = body.width
         height = body.height

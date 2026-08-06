@@ -34,7 +34,11 @@ enum class ArtworkSection {
                 // 正常返回让 SectionLoader 记成功不再触发,条目渲染成人类可读的报错文案
                 // (服务端 user_message,如「找不到页面」)。其余 HTTP 错误照旧抛给三层重试。
                 if (e.code() != 404) throw e
-                val message = e.getHumanReadableMessage(Shaft.getContext())
+                // runCatching 跟 NovelFeedFragment 同款:取文案自身再失败也不能把
+                // 「定论性 404」升级回通用重试路径
+                val context = Shaft.getContext()
+                val message = runCatching { e.getHumanReadableMessage(context) }
+                    .getOrDefault(context.getString(ceui.lisa.R.string.msg_load_fail))
                 vm.updateItems<ArtworkCommentsItem> { it.withLoadFailed(message) }
                 return
             }
