@@ -38,6 +38,14 @@ class V3FabBarController(val binding: ViewV3FabBarBinding) {
         binding.fabDivider.setBackgroundColor(V3Palette.withAlpha(contentColor, 0.20f))
         binding.fabDownloadProgress.setIndicatorColor(contentColor)
         binding.fabDownloadProgress.trackColor = V3Palette.withAlpha(contentColor, 0.20f)
+        binding.fabComment.imageTintList = ColorStateList.valueOf(contentColor)
+        binding.fabCommentDivider.setBackgroundColor(V3Palette.withAlpha(contentColor, 0.20f))
+    }
+
+    /** 跳转评论区段(#970):仅一级 V3 详情页放出(点击行为由调用方挂在 fabComment 上)。 */
+    fun setCommentJumpVisible(visible: Boolean) {
+        binding.fabCommentDivider.visibility = if (visible) View.VISIBLE else View.GONE
+        binding.fabComment.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     fun renderDownload(state: DownloadFab) {
@@ -85,7 +93,8 @@ class V3FabBarController(val binding: ViewV3FabBarBinding) {
             bar.removeView(download)
             bar.removeView(bookmark)
             bar.addView(bookmark, 0)
-            bar.addView(download)
+            // 插回中间分隔线之后,而不是 append 到末尾——评论段(#970)要保持在最右。
+            bar.addView(download, bar.indexOfChild(binding.fabDivider) + 1)
         }
     }
 

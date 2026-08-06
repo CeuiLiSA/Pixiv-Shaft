@@ -824,6 +824,8 @@
     <string name="artwork_v3_fab_order_title">下载/收藏按钮顺序</string>
     <string name="artwork_v3_fab_order_download_left">左侧下载，右侧收藏</string>
     <string name="artwork_v3_fab_order_bookmark_left">左侧收藏，右侧下载</string>
+    <string name="artwork_v3_comment_jump_title">跳转评论区按钮</string>
+    <string name="artwork_v3_comment_jump_desc">悬浮胶囊中显示一键跳到评论区的按钮</string>
     <string name="string_452">下载限制类型</string>
     <string name="string_453">不自动下载</string>
     <string name="string_454">分享首图</string>

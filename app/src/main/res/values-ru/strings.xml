@@ -797,6 +797,8 @@
     <string name="artwork_v3_fab_order_title">Порядок кнопок «Скачать» и «Закладка»</string>
     <string name="artwork_v3_fab_order_download_left">Скачать слева, закладка справа</string>
     <string name="artwork_v3_fab_order_bookmark_left">Закладка слева, скачать справа</string>
+    <string name="artwork_v3_comment_jump_title">Кнопка перехода к комментариям</string>
+    <string name="artwork_v3_comment_jump_desc">Показывать на плавающей панели кнопку быстрого перехода к комментариям</string>
     <string name="string_452">Тип ограничения загрузки</string>
     <string name="string_453">Не запускать автоматически</string>
     <string name="string_454">Поделиться первым изображением</string>

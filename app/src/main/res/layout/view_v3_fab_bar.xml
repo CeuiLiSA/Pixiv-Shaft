@@ -64,4 +64,25 @@
         android:src="@drawable/ic_favorite_black_24dp"
         app:tint="@color/white" />
 
+    <!-- 跳转评论区(#970):默认 gone,只有一级 V3 详情页且设置开启时由 controller 放出;
+         二级大图页没有评论区,保持隐藏。 -->
+    <View
+        android:id="@+id/fab_comment_divider"
+        android:layout_width="1dp"
+        android:layout_height="24dp"
+        android:layout_marginHorizontal="2dp"
+        android:background="#33FFFFFF"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/fab_comment"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@null"
+        android:padding="8dp"
+        android:src="@drawable/ic_baseline_comment_24"
+        android:visibility="gone"
+        app:tint="@color/white" />
+
 </LinearLayout>

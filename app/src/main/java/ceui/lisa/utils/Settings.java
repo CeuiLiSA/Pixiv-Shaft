@@ -1027,6 +1027,17 @@ public class Settings {
         this.artworkV3FabDownloadOnLeft = artworkV3FabDownloadOnLeft;
     }
 
+    // 插画V3详情页：悬浮胶囊显示「跳转评论区」按钮（issue #970），默认开启
+    private boolean artworkV3ShowCommentJumpFab = true;
+
+    public boolean isArtworkV3ShowCommentJumpFab() {
+        return artworkV3ShowCommentJumpFab;
+    }
+
+    public void setArtworkV3ShowCommentJumpFab(boolean artworkV3ShowCommentJumpFab) {
+        this.artworkV3ShowCommentJumpFab = artworkV3ShowCommentJumpFab;
+    }
+
     private String defaultUpscaleModel = "";
 
     public String getDefaultUpscaleModel() {

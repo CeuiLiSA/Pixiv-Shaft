@@ -88,6 +88,19 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.artworkV3FabOrderRela.setOnClickListener(v ->
                 baseBind.artworkV3FabOrderSelect.performClick());
 
+        // V3详情页 悬浮胶囊「跳转评论区」按钮（issue #970），默认开启
+        baseBind.artworkV3CommentJump.setChecked(Shaft.sSettings.isArtworkV3ShowCommentJumpFab());
+        baseBind.artworkV3CommentJump.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setArtworkV3ShowCommentJumpFab(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.artworkV3CommentJumpRela.setOnClickListener(v ->
+                baseBind.artworkV3CommentJump.performClick());
+
         // 作品二级详情翻页模式
         String[] transformerNames = PageTransformerHelper.getTransformerNames();
         baseBind.transformType.setText(transformerNames[PageTransformerHelper.getCurrentTransformerIndex()]);
@@ -220,6 +233,7 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         }
         baseBind.artworkV3FabOrderRela.setVisibility(visibility);
         baseBind.artworkV3FabOrderDivider.setVisibility(visibility);
+        baseBind.artworkV3CommentJumpRela.setVisibility(visibility);
     }
 
     private void setupCustomZoomScaleAdjust() {

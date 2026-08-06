@@ -448,6 +448,24 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         else rv.scrollToPosition(pos)
     }
 
+    /**
+     * 一键跳到评论预览区(#970)。评论条目随首屏 header 一并产出(见
+     * [ArtworkV3FeedSource.buildArtworkHeaderItems]),首屏还在飞时 pos 找不到,静默不动。
+     * offset 用悬浮顶栏实际底缘,让区块落在 toolbar 之下而不是被它盖住;落位后区块 attach
+     * 自然触发评论懒加载。
+     */
+    private fun scrollToCommentsSection() {
+        val fa = feedAdapter ?: return
+        val pos = fa.currentList.indexOfFirst { it is ArtworkCommentsItem }
+        if (pos < 0) return
+        val lm = feedBinding.feedListView.layoutManager
+        if (lm is StaggeredGridLayoutManager) {
+            lm.scrollToPositionWithOffset(pos, chromeBind.topOverlayColumn.bottom)
+        } else {
+            feedBinding.feedListView.scrollToPosition(pos)
+        }
+    }
+
     private fun attachArtistFollowObserver(authorId: Long) {
         if (authorId <= 0L || authorId == artistObservedUserId) return
         artistObservedUserId = authorId
@@ -463,6 +481,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private fun setupFabBar() {
         fabBarController.applyPalette(palette)
+
+        // 一键跳转评论区(#970):设置里可关,默认开。
+        if (Shaft.sSettings.isArtworkV3ShowCommentJumpFab) {
+            fabBarController.setCommentJumpVisible(true)
+            chromeBind.fabBar.fabComment.setOnClick { scrollToCommentsSection() }
+        }
 
         artworkViewModel.isBookmarked.observe(viewLifecycleOwner) { bookmarked ->
             fabBarController.setBookmarked(bookmarked)

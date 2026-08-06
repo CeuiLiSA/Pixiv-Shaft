@@ -797,6 +797,8 @@
     <string name="artwork_v3_fab_order_title">İndirme/yer imi düğme sırası</string>
     <string name="artwork_v3_fab_order_download_left">Sol indir, sağ yer imi</string>
     <string name="artwork_v3_fab_order_bookmark_left">Sol yer imi, sağ indir</string>
+    <string name="artwork_v3_comment_jump_title">Yorumlara atla düğmesi</string>
+    <string name="artwork_v3_comment_jump_desc">Yüzen çubukta yorum bölümüne hızlı geçiş düğmesini göster</string>
     <string name="string_452">İndirme sınırı</string>
     <string name="string_453">Otomatik başlat</string>
     <string name="string_454">İlk resmi paylaş</string>
