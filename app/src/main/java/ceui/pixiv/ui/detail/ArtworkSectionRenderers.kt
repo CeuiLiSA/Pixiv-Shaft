@@ -154,19 +154,29 @@ data class ArtworkCommentsItem(
     val comments: List<Comment>? = null,
     /** 是否已成功从服务端拉过一次评论预览。false = 还该（重）拉，与本地已插入几条无关。 */
     val fetched: Boolean = false,
+    /**
+     * #592: 评论接口对 app-api 屏蔽的作品永久 404,重试无意义 —— 存下人类可读的报错文案
+     * (getHumanReadableMessage,优先服务端 user_message)渲染出来,而不是转圈
+     * (转圈=还在等结果,而这里已经有结果了:拉不到)。
+     */
+    val loadFailedMessage: String? = null,
 ) : FeedItem {
     override val feedKey: Any get() = "artwork_comments"
 
-    /** 还在等首次拉取结果（本地也没有可展示的评论）→ 渲染加载态。 */
+    /** 还在等首次拉取结果（本地也没有可展示的评论、也没有定论性失败）→ 渲染加载态。 */
     val isLoading: Boolean
-        get() = !fetched && comments == null
+        get() = !fetched && loadFailedMessage == null && comments == null
 
     /** 懒加载拉到的评论并入(本地已发的排前,按 id 去重)。 */
     fun withComments(loaded: List<Comment>) =
         copy(
             comments = ((comments ?: emptyList()) + loaded).distinctBy { it.id },
             fetched = true,
+            loadFailedMessage = null,
         )
+
+    /** 定论性失败(永久 404):不再等、不再重试,渲染报错文案。 */
+    fun withLoadFailed(message: String) = copy(loadFailedMessage = message)
 
     /** 本地新发的顶层评论插到最前(按 id 去重)。刻意不动 [fetched]：发评论不等于拉过评论。 */
     fun prepend(comment: Comment) =
@@ -576,10 +586,11 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
         b.commentsEmpty.isVisible = false
         return
     }
-    // 非加载态时 comments 一定非空引用：isLoading 的定义已覆盖 (!fetched && comments == null)，
-    // 剩下 fetched=true（withComments 必给出列表）或本地已 prepend 过（列表非空）两种情形。
+    // 非加载态时 comments 可能仍是 null(定论性失败),统一空列表处理。
     val comments = item.comments ?: emptyList()
     b.commentsEmpty.isVisible = comments.isEmpty()
+    // 同一个 TextView 兼任空态和失败态:「还没有评论」是拉成功且为空,报错文案是拉不到(#592)
+    b.commentsEmpty.text = item.loadFailedMessage ?: ctx.getString(R.string.v3_no_comments_yet)
 
     // 评论列表实例不变(滚动来回重绑)就跳过重新 inflate 三张预览卡;发新评论 / 首次拉到会换实例。
     if (b.commentsList.tag === comments) return

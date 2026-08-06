@@ -2,12 +2,15 @@ package ceui.pixiv.ui.detail
 
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import ceui.lisa.activities.Shaft
+import ceui.loxia.getHumanReadableMessage
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.updateItems
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import timber.log.Timber
 
 /**
@@ -24,7 +27,17 @@ enum class ArtworkSection {
     /** 评论预览:前 3 条塞进 [ArtworkCommentsItem]。 */
     COMMENTS {
         override suspend fun load(illustId: Long, vm: FeedViewModel<String>) {
-            val comments = fetchArtworkComments(illustId)
+            val comments = try {
+                fetchArtworkComments(illustId)
+            } catch (e: HttpException) {
+                // #592: app-api 屏蔽的作品评论接口是永久 404,自动重试/网络恢复重试都无意义;
+                // 正常返回让 SectionLoader 记成功不再触发,条目渲染成人类可读的报错文案
+                // (服务端 user_message,如「找不到页面」)。其余 HTTP 错误照旧抛给三层重试。
+                if (e.code() != 404) throw e
+                val message = e.getHumanReadableMessage(Shaft.getContext())
+                vm.updateItems<ArtworkCommentsItem> { it.withLoadFailed(message) }
+                return
+            }
             vm.updateItems<ArtworkCommentsItem> { it.withComments(comments) }
         }
     },

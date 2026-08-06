@@ -163,7 +163,10 @@ internal suspend fun fetchArtworkRelated(
     items to parsed.next_url
 }
 
-/** 评论预览(前 3 条)。错误交给 SectionLoader（可重试），取消必须透传。main-safe。 */
+/**
+ * 评论预览(前 3 条)。错误交给调用方 [ArtworkSection.COMMENTS](永久 404 标失败态,
+ * 其余交 SectionLoader 重试),取消必须透传。main-safe。
+ */
 internal suspend fun fetchArtworkComments(illustId: Long): List<Comment> = withContext(Dispatchers.IO) {
     Timber.tag(ARTWORK_LAZY_TAG).d("API 发出: 评论预览 illustId=%d", illustId)
     Client.appApi.getIllustComments(illustId).comments.take(3)
