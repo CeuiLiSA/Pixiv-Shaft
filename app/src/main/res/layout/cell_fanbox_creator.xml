@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FANBOX 首页「为您推荐的创作者」卡片。对齐网页版:顶部一排主页展示图(profileItems)
+  → 头像 + 名字 + 分类 → 简介两行。
+
+  ⚠️ 同 cell_fanbox_post:宿主是 QMUI/AppCompat 主题,不能用 MaterialCardView。
+  卡底 bg_v3_card,展示图圆角靠 renderer 里 clipToOutline 裁。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:stateListAnimator="@animator/button_press_scale">
+
+    <!-- 主页展示图:等宽四格。服务端给不满四张时,多余的格子 GONE(见 renderer)。 -->
+    <LinearLayout
+        android:id="@+id/preview_row"
+        android:layout_width="match_parent"
+        android:layout_height="104dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/preview_0"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/preview_1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_weight="1"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/preview_2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_weight="1"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/preview_3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_weight="1"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="14dp">
+
+        <!-- 同 cell_fanbox_post:不能加 android:background,riv_oval 裁不掉它,会露四个角。 -->
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/creator_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            app:riv_oval="true" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/creator_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="-0.01"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="上倉エク" />
+
+            <TextView
+                android:id="@+id/category"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="插画"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- R-18 放信息行:展示图可能一张都没有,压在上面就没地方显示了。 -->
+        <TextView
+            android:id="@+id/badge_r18"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/v3_novel_r18_badge_bg"
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="5dp"
+            android:text="@string/v3_novel_r18"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <!-- 已关注 / 已赞助 状态胶囊,都没有时 GONE。 -->
+        <TextView
+            android:id="@+id/relation_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_v3_pill"
+            android:paddingHorizontal="11dp"
+            android:paddingVertical="5dp"
+            android:textColor="@color/v3_text_2"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="已赞助"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:ellipsize="end"
+        android:lineSpacingMultiplier="1.2"
+        android:maxLines="2"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/v3_text_2"
+        android:textSize="13sp"
+        android:visibility="gone"
+        tools:text="FANBOXの更新は「月1〜2回」程度、都合によってはない場合もございます"
+        tools:visibility="visible" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="16dp" />
+</LinearLayout>

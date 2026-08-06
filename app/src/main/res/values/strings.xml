@@ -1005,6 +1005,12 @@
     <string name="prime_tags">热度标签</string>
     <string name="pixiv_comic">pixiv 漫画</string>
     <string name="fanbox_entry">pixiv FANBOX</string>
+    <string name="fanbox_tab_posts">投稿</string>
+    <string name="fanbox_tab_creators">推荐创作者</string>
+    <string name="fanbox_fee_badge">%1$d 日元</string>
+    <string name="fanbox_fee_free">免费</string>
+    <string name="fanbox_supported">已赞助</string>
+    <string name="fanbox_followed">已关注</string>
     <string name="comic_stories_count">全 %1$d 话</string>
     <string name="comic_badge_new">新连载</string>
     <string name="pinned_tags">置顶标签</string>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FANBOX 首页「投稿」卡片。结构对齐网页版:封面 → 作者行(头像 + 名字/日期 + 月费胶囊)
+  → 标题 → 受限时的解锁提示。列表接口不返回正文,所以只有标题/摘要,点开落回网页看全文。
+
+  ⚠️ 用普通 LinearLayout 而非 MaterialCardView —— 宿主是 QMUI/AppCompat 主题,
+  MaterialCardView 需 Material3 主题会直接崩(同 recy_select_tag 的先例)。
+  卡底走 bg_v3_card(28dp 圆角 + hairline),封面圆角靠 renderer 里 clipToOutline 裁。
+  卡间距由列表的 LinearItemDecoration 统一给,cell 本身不加 margin。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:stateListAnimator="@animator/button_press_scale">
+
+    <!-- 封面原图 1200x630(≈40:21)。父容器是 LinearLayout 给不了 dimensionRatio,
+         直接定高 + centerCrop,视觉和网页版一致。 -->
+    <!-- 无封面的帖子(cover 为 null,实测存在)整块收起,否则会留一大片 184dp 空白。 -->
+    <ImageView
+        android:id="@+id/cover"
+        android:layout_width="match_parent"
+        android:layout_height="184dp"
+        android:background="@color/v3_surface_2"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        tools:visibility="visible" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="14dp">
+
+        <!-- 不要给 RoundedImageView 加 android:background:riv_oval 只裁 drawable,
+             背景是整块矩形画在底下,会露出四个角。占位色交给 Glide 的 placeholder。 -->
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/creator_icon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            app:riv_oval="true" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/creator_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="絵守未來® - Miku Emori" />
+
+            <TextView
+                android:id="@+id/published_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="2026年8月3日 13:06" />
+        </LinearLayout>
+
+        <!-- R-18 放信息行而不是压封面上:有的帖子没有封面,压上去就没地方显示了。 -->
+        <TextView
+            android:id="@+id/badge_r18"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/v3_novel_r18_badge_bg"
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="5dp"
+            android:text="@string/v3_novel_r18"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/fee_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_v3_pill"
+            android:paddingHorizontal="11dp"
+            android:paddingVertical="5dp"
+            android:textColor="@color/v3_text_2"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="498 日元" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:ellipsize="end"
+        android:letterSpacing="-0.01"
+        android:lineSpacingMultiplier="1.15"
+        android:maxLines="2"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/v3_text_1"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        tools:text="京チラ見せ🌌" />
+
+    <TextView
+        android:id="@+id/excerpt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:lineSpacingMultiplier="1.2"
+        android:maxLines="2"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/v3_text_2"
+        android:textSize="13sp"
+        android:visibility="gone"
+        tools:text="摘要文本"
+        tools:visibility="visible" />
+
+    <!-- 标签。服务端给 List<String>,拼成 #a #b 单行截断 —— 卡片高度可控,信息不丢。 -->
+    <TextView
+        android:id="@+id/tags"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/v3_text_3"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:text="#illustration #イラスト"
+        tools:visibility="visible" />
+
+    <!-- 互动数据:接口本来就返回,别浪费。 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/like_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="5dp"
+            android:gravity="center_vertical"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            app:drawableStartCompat="@drawable/ic_heart_outline_16"
+            tools:text="38" />
+
+        <TextView
+            android:id="@+id/comment_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:drawablePadding="5dp"
+            android:gravity="center_vertical"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            app:drawableStartCompat="@drawable/ic_comment_outline_16"
+            tools:text="2" />
+    </LinearLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="16dp" />
+</LinearLayout>

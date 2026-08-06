@@ -590,13 +590,21 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页");
         } else if (id == R.id.nav_fanbox) {
-            // 走「网页链接」这条现成路由(FragmentWebView),不是 WebFragment —— 后者是个
-            // 没有 toolbar 的裸 WebView,外观和 App 其余页面对不上。
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-            intent.putExtra(Params.URL, "https://www.fanbox.cc/");
-            intent.putExtra(Params.TITLE, getString(R.string.fanbox_entry));
-            intent.putExtra(Params.PREFER_PRESERVE, true);
+            if (ceui.pixiv.ui.fanbox.FanboxHomeFeedKt.hasFanboxSession()) {
+                // 有 FANBOXSESSID 才进原生首页 —— post.listHome 未登录一律 401,
+                // 直接进去只会看到一屏错误态。
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "FANBOX首页");
+            } else {
+                // 没登录过:送去网页版登录。cookie 存在 WebView 的 CookieManager 里,
+                // 登完下次点进来 hasFanboxSession() 就为真,自动走原生。
+                // 走「网页链接」这条现成路由(FragmentWebView,带标准 toolbar),
+                // 不是 WebFragment —— 后者是个没有 toolbar 的裸 WebView,外观对不上。
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra(Params.URL, "https://www.fanbox.cc/");
+                intent.putExtra(Params.TITLE, getString(R.string.fanbox_entry));
+                intent.putExtra(Params.PREFER_PRESERVE, true);
+            }
         } else if (id == R.id.nav_chat_room) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天室");

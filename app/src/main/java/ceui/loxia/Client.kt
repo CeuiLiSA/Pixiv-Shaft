@@ -39,6 +39,21 @@ object Client {
         _webApi = null
         // comic 同理:它也 applyDirectConnect,漏了这行切完直连开关漫画页还是走旧客户端。
         _comicApi = null
+        _fanboxApi = null
+    }
+
+    @Volatile
+    private var _fanboxApi: FanboxApi? = null
+
+    val fanboxApi: FanboxApi get() {
+        val _api = _fanboxApi
+        return if (_api != null) {
+            _api
+        } else {
+            val impl = clientManager.createFanboxService(FanboxApi::class.java)
+            _fanboxApi = impl
+            impl
+        }
     }
 
     @Volatile
@@ -101,6 +116,9 @@ class ClientManager {
 
         // pixiv COMIC。和 app-api 同一套 OAuth token,只是换个 host。
         const val COMIC_API_HOST = "https://comic.pixiv.net/"
+
+        // pixiv FANBOX。cookie 认证,和 OAuth 那套无关,见 FanboxHeaderInterceptor。
+        const val FANBOX_API_HOST = "https://api.fanbox.cc/"
 
         /**
          * 所有 Web API 请求和 WebView 统一使用的 User-Agent。
@@ -227,6 +245,32 @@ class ClientManager {
 
         return Retrofit.Builder()
             .baseUrl(COMIC_API_HOST)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(httpBuilder.build())
+            .build()
+            .create(service)
+    }
+
+    /**
+     * pixiv FANBOX。不挂 [HeaderInterceptor](那套 Bearer 在 FANBOX 无效),只挂
+     * [FanboxHeaderInterceptor] 带 Origin + WebView cookie。api.fanbox.cc 在墙内不可达,
+     * 跟着走直连。
+     */
+    fun <T> createFanboxService(service: Class<T>): T {
+        val httpBuilder = OkHttpClient.Builder()
+            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+
+        httpBuilder.addInterceptor(FanboxHeaderInterceptor())
+        httpBuilder.addInterceptor(HttpLoggingInterceptor().apply {
+            setLevel(HttpLoggingInterceptor.Level.BASIC)
+        })
+        applyDirectConnect(httpBuilder)
+
+        return Retrofit.Builder()
+            .baseUrl(FANBOX_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())
             .client(httpBuilder.build())
             .build()
