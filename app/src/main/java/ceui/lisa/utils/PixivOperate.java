@@ -69,6 +69,7 @@ import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.viewmodel.AppLevelViewModel;
+import ceui.loxia.IllustDetailSupportKt;
 import ceui.loxia.ObjectPool;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -463,23 +464,17 @@ public class PixivOperate {
                         ObjectPool.INSTANCE.updateIllust(illust);
                         //Check the permission to view the illustration
                         if (illust.getId() == 0 || !illust.isVisible()) {
-                            Common.showToast(R.string.string_206);
+                            // #592: app-api 屏蔽(visible=false)的作品走网页 ajax 兜底
+                            IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
+                                if (webIllust != null) {
+                                    openIllustDetail(context, webIllust);
+                                } else {
+                                    Common.showToast(R.string.string_206);
+                                }
+                            });
                             return;
                         }
-                        //Get the user who posts the illustration
-                        UserBean user = illust.getUser();
-                        if (user != null) {
-                            Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
-                        }
-
-                        final PageData pageData = new PageData(
-                                Collections.singletonList(illustSearchResponse.getIllust()));
-                        Container.get().addPageToMap(pageData);
-
-                        Intent intent = new Intent(context, VActivity.class);
-                        intent.putExtra(Params.POSITION, 0);
-                        intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
-                        context.startActivity(intent);
+                        openIllustDetail(context, illust);
                     }
 
                     @Override
@@ -503,24 +498,30 @@ public class PixivOperate {
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
                         IllustsBean illust = illustSearchResponse.getIllust();
-                        if (illust != null) {
-                            UserBean user = illust.getUser();
-                            if (user != null) {
-                                Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
-                            }
-
-                            final PageData pageData = new PageData(
-                                    Collections.singletonList(illust));
-                            Container.get().addPageToMap(pageData);
-
-                            Intent intent = new Intent(context, VActivity.class);
-                            intent.putExtra(Params.POSITION, 0);
-                            intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
-                            context.startActivity(intent);
-
-                            if (success != null) {
-                                success.doSomething(null);
-                            }
+                        if (illust == null) {
+                            return;
+                        }
+                        if (illust.getId() == 0 || !illust.isVisible()) {
+                            // #592: 深链接/搜索打开被 app-api 屏蔽的作品,原先会直接进
+                            // 占位图页;改走网页 ajax 兜底,拿不到才报「无法显示」
+                            IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
+                                if (webIllust != null) {
+                                    openIllustDetail(context, webIllust);
+                                    if (success != null) {
+                                        success.doSomething(null);
+                                    }
+                                } else {
+                                    Common.showToast(R.string.string_206);
+                                    if (fail != null) {
+                                        fail.doSomething(null);
+                                    }
+                                }
+                            });
+                            return;
+                        }
+                        openIllustDetail(context, illust);
+                        if (success != null) {
+                            success.doSomething(null);
                         }
                     }
 
@@ -535,6 +536,22 @@ public class PixivOperate {
                         OutWakeActivity.isNetWorking = false;
                     }
                 });
+    }
+
+    /** 按 ID 打开作品详情页的公共尾段:同步关注态 → 建单作品 PageData → 进 VActivity。 */
+    private static void openIllustDetail(Context context, IllustsBean illust) {
+        UserBean user = illust.getUser();
+        if (user != null) {
+            Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
+        }
+
+        final PageData pageData = new PageData(Collections.singletonList(illust));
+        Container.get().addPageToMap(pageData);
+
+        Intent intent = new Intent(context, VActivity.class);
+        intent.putExtra(Params.POSITION, 0);
+        intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
+        context.startActivity(intent);
     }
 
     public static void getNovelByID(long novel, Context context,

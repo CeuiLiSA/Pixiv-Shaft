@@ -652,12 +652,57 @@ data class BlockSaveRequest(
     val action: String,
 ) : Serializable
 
-// 网页 ajax /ajax/illust/{id}/pages 的 body 元素:每一 P 的真实原图宽高。
-// app-api 的 meta_pages 每项只有 image_urls、不带宽高,这里补上,供详情页多 P 下载前预置展示高度。
-// 只取宽高(urls 等其余字段 gson 忽略)。见 IllustAdapter.seedPageDimensions。
+// 网页 ajax /ajax/illust/{id}/pages 的 body 元素:每一 P 的真实原图宽高与图片地址。
+// 宽高供详情页多 P 下载前预置展示高度(见 IllustAdapter.seedPageDimensions);
+// urls 供 #592 受限作品 web 兜底时拼 meta_pages。
 data class WebIllustPage(
     val width: Int = 0,
     val height: Int = 0,
+    val urls: WebIllustUrls? = null,
+) : Serializable
+
+// issue #592: 网页 ajax /ajax/illust/{id} 的 body。app-api 对部分作品(常见于简介带贩售/
+// 外链的,不限 R18)返回 visible=false 的空壳,网页 ajax 不受限;只取映射 IllustsBean
+// 所需的字段。两处 urls 形状略有不同:detail 是 mini/thumb,pages 是 thumb_mini,合用一个类。
+data class WebIllustBody(
+    val illustTitle: String? = null,
+    val description: String? = null,
+    val illustType: Int = 0,
+    val createDate: String? = null,
+    val restrict: Int = 0,
+    val xRestrict: Int = 0,
+    val sl: Int = 0,
+    val urls: WebIllustUrls? = null,
+    val tags: WebIllustTags? = null,
+    val userId: String? = null,
+    val userName: String? = null,
+    val userAccount: String? = null,
+    val width: Int = 0,
+    val height: Int = 0,
+    val pageCount: Int = 0,
+    val bookmarkCount: Int = 0,
+    val viewCount: Int = 0,
+    val aiType: Int = 0,
+    val bookmarkData: Any? = null,
+) : Serializable
+
+data class WebIllustUrls(
+    val mini: String? = null,
+    val thumb: String? = null,
+    val thumb_mini: String? = null,
+    val small: String? = null,
+    val regular: String? = null,
+    val original: String? = null,
+) : Serializable
+
+data class WebIllustTags(
+    val tags: List<WebIllustTag>? = null,
+) : Serializable
+
+// translation 的 key 是站点返回语言(实际观察恒为 "en" 但值随 lang 参数变),取首个值即可。
+data class WebIllustTag(
+    val tag: String? = null,
+    val translation: Map<String, String>? = null,
 ) : Serializable
 
 // issue #569: 网页版「按 Tag 筛选画师作品」接口 /ajax/user/{id}/illusts/tag 的响应体。

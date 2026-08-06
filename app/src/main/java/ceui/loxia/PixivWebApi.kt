@@ -14,8 +14,15 @@ interface PixivWebApi {
     @GET("/rpc/index.php?mode=latest_message_threads2&num=10&offset=0")
     suspend fun getMessageList()
 
+    /**
+     * issue #592: 作品详情。app-api 对部分作品返回 visible=false 的空壳时用它兜底,
+     * SFW 无 cookie 也能拿,R18 detail 亦可匿名拉到。
+     */
     @GET("/ajax/illust/{illust_id}")
-    suspend fun getWebIllust(@Path("illust_id") illust_id: Long)
+    suspend fun getWebIllust(
+        @Path("illust_id") illust_id: Long,
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<WebIllustBody>
 
     /**
      * 每一 P 的真实原图宽高(app-api 的 meta_pages 只给 image_urls、不带宽高)。详情页多 P 用它在
