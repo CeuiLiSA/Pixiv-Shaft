@@ -277,6 +277,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         commentComposer = null
         composerActive = false
         fabShown = true
+        // 跳评论的基线钉扎(#970)随视图作废:留着的话,视图重建(回退栈重显/旋转)后首次
+        // render 的数据落地就会把新列表拽去评论区。
+        commentsJumpRealign = false
         pageAdapter?.release()
         pageAdapter = null
         // 本视图生命周期内的一次性 guard 随视图销毁归零。否则同一 Fragment 实例视图重建(回退栈
@@ -357,6 +360,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     /** 折叠 adapter 的展开态回调:驱动 feed 列表增删剩余页 + 浮动「收起」胶囊。 */
     private fun onPagesExpandedChanged(expanded: Boolean) {
+        // 展开/收起本身就带滚动意图(收起要回顶),它触发的条目增删不能再被跳评论的
+        // 基线钉扎(#970)拽回评论区——收起胶囊点击不经过 DRAGGING,得在这里主动作废。
+        commentsJumpRealign = false
         val pill = chromeBind.collapsePill
         pill.animate().cancel()
         if (expanded) {
@@ -490,9 +496,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         commentsJumpRealign = true
     }
 
-    /** 数据变更后把基线校正排到下一帧(布局落定后再量);flag 不亮时零开销。 */
+    /**
+     * 数据变更后把基线校正排到下一帧(布局落定后再量);flag 不亮时零开销。
+     * ⚠️ 必须先验视图还活着再碰 feedBinding:FeedAdapter 的 diff 是异步的,在飞的一次
+     * submitList 可能在 onDestroyView 之后才派发到旧 adapter 的 observer。
+     */
     private fun scheduleCommentsRealign() {
-        if (!commentsJumpRealign) return
+        if (!commentsJumpRealign || _chromeBind == null) return
         feedBinding.feedListView.post { alignCommentsIfPending() }
     }
 
