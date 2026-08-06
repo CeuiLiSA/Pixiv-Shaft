@@ -287,7 +287,14 @@ public class Shaft extends Application implements ServicesProvider {
 
         // issue #931: 平板大屏双栏（Activity Embedding）。规则必须在任何 Activity
         // 拉起前注册好，冷启动首帧才是左 1/3 信息流 + 右 2/3 详情；手机窗口不受影响。
-        ceui.pixiv.ui.embedding.TabletActivityEmbedding.INSTANCE.install(this);
+        // 守卫理由同上面的 WorkManager：AE 要触碰 OEM 的 WM Extensions（HarmonyOS/EMUI
+        // 这层出过 #853 类怪癖），一个纯可选的平板增强不配让全量用户启动崩溃——
+        // 注册失败就退回没有分栏的老行为。
+        try {
+            ceui.pixiv.ui.embedding.TabletActivityEmbedding.INSTANCE.install(this);
+        } catch (Throwable t) {
+            Timber.w(t, "Activity Embedding rule install failed, tablet split disabled");
+        }
 
         // 旧 widget 删了但 WorkManager DB 里还残留它们的 PeriodicWork，
         // 系统会反复 ClassNotFoundException。一次性清理。
