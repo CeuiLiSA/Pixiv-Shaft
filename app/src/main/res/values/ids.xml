@@ -44,6 +44,7 @@
     <item type="id" name="nav_plaza" />
     <item type="id" name="nav_tag_popular_export" />
     <item type="id" name="nav_web_home" />
+    <item type="id" name="nav_fanbox" />
 
     <item type="id" name="initial_insets" />
     <item type="id" name="action_bar_item" />

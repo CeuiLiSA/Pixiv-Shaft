@@ -438,6 +438,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
                 // 筛画师作品都指着它 —— 没入口等于那些功能对普通用户是死的。渠道划分对齐
                 // FragmentCenter 的同名 chip:Lite 不出现。
                 new DrawerEntry(R.id.nav_web_home, R.string.street_title, experimentalAllowed),
+                // FANBOX 没有官方 App、也没有可直连的完整 API(未登录只能浏览列表,post.info 恒 403,
+                // 正文要 FANBOXSESSID),所以先用 WebView 兜着。Lite 不出现:同渠道口径,Play 版
+                // 不带这类站外付费内容入口。
+                new DrawerEntry(R.id.nav_fanbox, R.string.fanbox_entry, !isLite),
         });
     }
 
@@ -585,6 +589,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         } else if (id == R.id.nav_web_home) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页");
+        } else if (id == R.id.nav_fanbox) {
+            // 走「网页链接」这条现成路由(FragmentWebView),不是 WebFragment —— 后者是个
+            // 没有 toolbar 的裸 WebView,外观和 App 其余页面对不上。
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+            intent.putExtra(Params.URL, "https://www.fanbox.cc/");
+            intent.putExtra(Params.TITLE, getString(R.string.fanbox_entry));
+            intent.putExtra(Params.PREFER_PRESERVE, true);
         } else if (id == R.id.nav_chat_room) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天室");
