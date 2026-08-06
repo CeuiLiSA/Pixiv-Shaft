@@ -285,6 +285,10 @@ public class Shaft extends Application implements ServicesProvider {
 
         SessionManager.INSTANCE.initialize();
 
+        // issue #931: 平板大屏双栏（Activity Embedding）。规则必须在任何 Activity
+        // 拉起前注册好，冷启动首帧才是左 1/3 信息流 + 右 2/3 详情；手机窗口不受影响。
+        ceui.pixiv.ui.embedding.TabletActivityEmbedding.INSTANCE.install(this);
+
         // 旧 widget 删了但 WorkManager DB 里还残留它们的 PeriodicWork，
         // 系统会反复 ClassNotFoundException。一次性清理。
         try {

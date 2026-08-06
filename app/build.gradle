@@ -180,6 +180,8 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "androidx.core:core-ktx:1.13.1"
+    // issue #931: 平板大屏双栏（Activity Embedding 分栏规则）
+    implementation "androidx.window:window:1.5.1"
     // 原本由 navigation-fragment-ktx 传递引入,移除 Navigation 后需直接声明,
     // 提供 Fragment.viewModels() / activityViewModels() 等 KTX 扩展。
     implementation "androidx.fragment:fragment-ktx:1.8.5"

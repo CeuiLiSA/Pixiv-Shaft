@@ -53,6 +53,11 @@
         android:theme="@style/AppTheme"
         tools:ignore="UnusedAttribute">
 
+        <!-- issue #931: 声明使用 Activity Embedding 分栏（Android 14+ 系统按它放行嵌入） -->
+        <property
+            android:name="android.window.PROPERTY_ACTIVITY_EMBEDDING_SPLITS_ENABLED"
+            android:value="true" />
+
         <!-- AppCompat per-app locale backport (Android 12-) -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
@@ -222,6 +227,9 @@
             android:name="ceui.pixiv.ui.slideshow.SlideshowActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden"
             android:theme="@style/SlideshowTheme" />
+        <activity
+            android:name="ceui.pixiv.ui.embedding.SplitPlaceholderActivity"
+            android:exported="false" />
 
         <receiver
             android:name="ceui.pixiv.widget.SpotlightWidgetProvider"
