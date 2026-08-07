@@ -66,7 +66,7 @@ class YearRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerShee
         binding.rankLoading.visibility = if (firstBuild) View.VISIBLE else View.GONE
         viewLifecycleOwner.lifecycleScope.launch {
             val years = try {
-                ShaftApiV2Client.service.discoverYears(type = TYPE_ILLUST).years
+                ShaftApiV2Client.service.discoverYears(type = TYPE_ILLUST).years.orEmpty()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {

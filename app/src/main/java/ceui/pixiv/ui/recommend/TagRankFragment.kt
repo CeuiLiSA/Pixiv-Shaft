@@ -64,7 +64,7 @@ class TagRankFragment : Fragment(R.layout.fragment_rank_picker), RankPickerSheet
         binding.rankLoading.visibility = if (firstBuild) View.VISIBLE else View.GONE
         viewLifecycleOwner.lifecycleScope.launch {
             val tags = try {
-                ShaftApiV2Client.service.discoverTags(type = TYPE_ILLUST, limit = TAG_LIST_COUNT).tags
+                ShaftApiV2Client.service.discoverTags(type = TYPE_ILLUST, limit = TAG_LIST_COUNT).tags.orEmpty()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {

@@ -241,7 +241,8 @@ interface ShaftApiV2 {
     data class TagsResponse(
         val type: String,
         val complete: Boolean = true,
-        val tags: List<TagBucket> = listOf(),
+        // 同 YearsResponse.years:Gson 不走 Kotlin 默认值,缺字段即 null。
+        val tags: List<TagBucket>? = null,
         val next_url: String? = null,
     )
 
@@ -291,7 +292,8 @@ interface ShaftApiV2 {
 
     data class YearsResponse(
         val type: String,
-        val years: List<YearBucket> = listOf(),
+        // Gson 反射构造不执行 Kotlin 默认值,body 缺该字段时就是 null —— 声明可空,调用方 orEmpty()。
+        val years: List<YearBucket>? = null,
     )
 
     data class YearBucket(
