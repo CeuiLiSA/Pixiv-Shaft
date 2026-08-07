@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  正文里的一段文字。段落(`p`)和小标题(`header`)共用这个 cell,靠代码切字号/字重 ——
+  两者的差别只有这两项,拆成两套 layout 没有收益。
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/body_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:lineSpacingMultiplier="1.35"
+    android:paddingHorizontal="4dp"
+    android:textColor="@color/v3_text_1"
+    android:textIsSelectable="true"
+    android:textSize="15sp"
+    tools:text="正文段落" />

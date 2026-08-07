@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  正文里打不开的东西:附件(file)和站外嵌入(embed / url_embed)共用这一张卡。
+  主标题放文件名或站点域名,副标题放大小或完整链接;点了都是丢给外部浏览器。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp"
+    android:stateListAnimator="@animator/button_press_scale">
+
+    <TextView
+        android:id="@+id/link_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="middle"
+        android:maxLines="1"
+        android:textColor="@color/v3_text_1"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        tools:text="设定资料集.zip" />
+
+    <TextView
+        android:id="@+id/link_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/v3_text_3"
+        android:textSize="12sp"
+        tools:text="12.4 MB" />
+</LinearLayout>

@@ -43,7 +43,7 @@ import com.bumptech.glide.Glide
  * 认证是 cookie 制,靠用户先在 FANBOX 网页里登录一次 —— 缺 FANBOXSESSID 时侧边栏那个入口
  * 会直接把人送去网页版(见 MainActivity),不会进到这里来看一屏 401。
  *
- * 帖子正文拿不到(post.info 恒 403、post.get 不含 body),所以点卡片一律落回网页。
+ * 点卡片进原生详情页(含正文),创作者卡片还没有原生页,仍然落回网页。
  */
 class FanboxHomeFragment : Fragment(R.layout.viewpager_with_tablayout), ViewPagerFragment {
 
@@ -130,7 +130,7 @@ class FanboxPostFeedFragment : FeedFragment() {
         cell.binding.commentCount.text = post.commentCount.toString()
         cell.binding.badgeR18.isVisible = post.hasAdultContent
         // cover 可能整个是 null(实测有),不收起来会留一大片空白。
-        val coverUrl = post.cover?.url.orEmpty()
+        val coverUrl = post.coverUrl
         cell.binding.cover.isVisible = coverUrl.isNotEmpty()
         if (coverUrl.isNotEmpty()) {
             Glide.with(cell.binding.cover)

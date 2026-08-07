@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  正文里的一张图。高度由代码按接口给的 width/height 算,不用 adjustViewBounds ——
+  那个要等图解码完才知道尺寸,列表里会先塌成一条再弹开。
+-->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/body_image"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:background="@drawable/bg_v3_card"
+    android:contentDescription="@null"
+    android:foreground="?attr/selectableItemBackground"
+    android:scaleType="fitCenter" />

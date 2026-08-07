@@ -1,5 +1,7 @@
 package ceui.loxia
 
+import ceui.lisa.utils.Common
+import com.google.gson.Gson
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Url
@@ -14,8 +16,8 @@ import retrofit2.http.Url
  *
  * 另一个必需项是 `Origin: https://www.fanbox.cc` —— 不带这个头一律 400,和登录态无关。
  *
- * 注意 `post.info` / `post.get` 都拿不到正文块(前者恒 403,后者的 post 对象没有 body 字段),
- * 所以这里只做列表,帖子正文仍然要落回 WebView。
+ * 正文(`post.info`)**不在这个接口里** —— 那个端点被 Cloudflare 单独挡了非浏览器客户端,
+ * OkHttp 一律 403,只能走 [FanboxWebBridge]。这里放的都是 OkHttp 能直连的部分。
  */
 interface FanboxApi {
 
@@ -35,8 +37,8 @@ interface FanboxApi {
     suspend fun creatorListRecommended(@Query("limit") limit: Int = 10): FanboxCreatorListResponse
 
     /**
-     * 帖子元数据。注意响应是 `body.post`,而且 **post 对象里没有 body 字段** ——
-     * 正文得靠 post.info,但那个恒 403(连网页端自己调都失败),所以详情页只有元数据。
+     * 帖子元数据。响应是 `body.post`,post 对象里**没有 body 字段** ——
+     * 正文要另外走 [FanboxWebBridge] 打 post.info。这里是正文取不到时的兜底。
      */
     @GET("post.get")
     suspend fun postGet(@Query("postId") postId: String): FanboxPostDetailResponse
@@ -52,6 +54,25 @@ interface FanboxApi {
     @GET("plan.listCreator")
     suspend fun planListCreator(@Query("creatorId") creatorId: String): FanboxPlanListResponse
 }
+
+/**
+ * post.info —— 唯一带正文的接口,而且**只能从 WebView 里发**(见 [FanboxWebBridge])。
+ * 响应外壳和 post.get 一样是 `body.post`,只是 post 对象里多了 `type` / `body`,
+ * 封面字段也换成了平的 `coverImageUrl`(不是列表接口那个 `cover.url`)。
+ *
+ * 返回 null = 被 CF 挡了 / 没登录 / 超时 / 解析不出来,调用方应退回 [FanboxApi.postGet]。
+ */
+suspend fun fetchFanboxPostInfo(postId: String): FanboxPost? {
+    val raw = FanboxWebBridge.get("https://api.fanbox.cc/post.info?postId=$postId") ?: return null
+    return runCatching {
+        fanboxGson.fromJson(raw, FanboxPostDetailResponse::class.java).body?.post
+    }.getOrElse {
+        Common.showLog("fetchFanboxPostInfo 解析失败 postId=$postId: $it")
+        null
+    }
+}
+
+private val fanboxGson by lazy { Gson() }
 
 data class FanboxPostDetailResponse(
     val body: FanboxPostWrapper?
@@ -114,8 +135,10 @@ data class FanboxPostList(
 )
 
 /**
- * 一条投稿。**列表接口不返回正文**,[excerpt] 常常也是空串 —— 付费墙后的帖子
+ * 一条投稿。**列表接口和 post.get 都不返回正文**,[excerpt] 常常也是空串 —— 付费墙后的帖子
  * ([isRestricted] 为 true)服务端只给到封面和标题。
+ *
+ * [type] / [body] 只有走 [FanboxWebBridge] 打 post.info 才有;其余入口一律为 null。
  */
 data class FanboxPost(
     val id: String,
@@ -131,6 +154,101 @@ data class FanboxPost(
     val hasAdultContent: Boolean,
     val cover: FanboxCover?,
     val excerpt: String?,
+    val type: String?,
+    val body: FanboxPostBody?,
+    val coverImageUrl: String?,
+) {
+    /**
+     * 封面。列表接口给的是结构化的 [cover],post.info 给的是平的 [coverImageUrl],
+     * 同一个 model 两种来源,取值统一走这里。
+     */
+    val coverUrl: String get() = cover?.url?.takeIf { it.isNotEmpty() } ?: coverImageUrl.orEmpty()
+}
+
+/**
+ * 正文。字段按 [FanboxPost.type] 分家(schema 抄自网页 bundle 里那份 TypeBox 定义):
+ *
+ * - `article`:[blocks] + 四张 map,块里只存 id,资源要去 map 里查。
+ * - `image`:[text] + [images];`file`:[text] + [files];`text`:只有 [text]。
+ * - `video`:[text] + video(没做,原生播不了 YouTube/Vimeo 那些外链)。
+ * - `entry`:[html],是整段富文本 HTML,没有结构化块。
+ *
+ * 受限帖子(未赞助)服务端整块给 null —— 有 post 无 body 是正常态,不是解析失败。
+ */
+data class FanboxPostBody(
+    val text: String?,
+    val html: String?,
+    val images: List<FanboxImage>?,
+    val files: List<FanboxFile>?,
+    val blocks: List<FanboxBlock>?,
+    val imageMap: Map<String, FanboxImage>?,
+    val fileMap: Map<String, FanboxFile>?,
+    val embedMap: Map<String, FanboxEmbed>?,
+    val urlEmbedMap: Map<String, FanboxUrlEmbed>?,
+)
+
+/**
+ * 正文块。[type] 取值 `p` / `header` / `image` / `file` / `embed` / `url_embed`,
+ * 每种只填自己那一个字段。
+ */
+data class FanboxBlock(
+    val type: String?,
+    val text: String?,
+    val imageId: String?,
+    val fileId: String?,
+    val embedId: String?,
+    val urlEmbedId: String?,
+    val links: List<FanboxBlockLink>?,
+    val styles: List<FanboxBlockStyle>?,
+)
+
+/** 段落里的一段装饰。服务端目前只发 `bold` 一种。 */
+data class FanboxBlockStyle(
+    val type: String?,
+    val offset: Int,
+    val length: Int,
+)
+
+/** 段落里的一段超链接。offset/length 是 UTF-16 码元下标,可以直接喂 Spannable。 */
+data class FanboxBlockLink(
+    val offset: Int,
+    val length: Int,
+    val url: String?,
+)
+
+data class FanboxImage(
+    val id: String?,
+    val extension: String?,
+    val width: Int,
+    val height: Int,
+    val originalUrl: String?,
+    val thumbnailUrl: String?,
+)
+
+data class FanboxFile(
+    val id: String?,
+    val name: String?,
+    val extension: String?,
+    val size: Long,
+    val url: String?,
+)
+
+/** 旧式站外嵌入(twitter / youtube 之类),只给服务商和内容 id,链接要自己拼。 */
+data class FanboxEmbed(
+    val id: String?,
+    val serviceProvider: String?,
+    val contentId: String?,
+)
+
+/**
+ * 新式嵌入。[type] 为 `default` 时才有 [url];`fanbox.post` / `fanbox.creator`
+ * 指向站内,`html` / `html.card` 是一段 HTML —— 后三种这里只当作「打不开的卡片」处理。
+ */
+data class FanboxUrlEmbed(
+    val id: String?,
+    val type: String?,
+    val url: String?,
+    val host: String?,
 )
 
 data class FanboxUser(
