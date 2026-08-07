@@ -11,7 +11,12 @@ buildscript {
         google()
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
-        maven { url "https://jitpack.io" }
+        maven {
+            url "https://jitpack.io"
+            // 「只兜 com.github.*」不能只写在注释里：加 content filter 后其余坐标
+            // 根本不会去 jitpack 发请求，也防止它抢答非 GitHub 坐标。
+            content { includeGroupByRegex 'com\\.github\\..*' }
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.3'
@@ -39,7 +44,12 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
+        maven {
+            url 'https://jitpack.io'
+            // 本仓所有 jitpack 坐标都是 com.github.*；过滤掉其余 group，别的依赖
+            // 不再对 jitpack 发注定 404 的探测请求。
+            content { includeGroupByRegex 'com\\.github\\..*' }
+        }
         maven { url 'https://maven.aliyun.com/repository/public/' }
 //        mavenLocal()
     }

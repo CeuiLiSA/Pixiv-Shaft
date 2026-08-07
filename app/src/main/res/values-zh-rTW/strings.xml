@@ -9,6 +9,9 @@
     <string name="nav_header_desc">標題導航</string>
     <string name="action_settings">設定</string>
     <string name="action_import">從剪貼簿導入</string>
+    <string name="action_browser_login">自選瀏覽器進行登入</string>
+    <string name="action_browser_signup">自選瀏覽器進行註冊</string>
+    <string name="browser_dialog_found_title">查找到了這些</string>
     <string name="action_qcode">掃描 QR 碼</string>
     <string name="title_activity_blank">BlankActivity</string>
     <string name="empty_list_1">居然什麼也沒有</string>
@@ -847,6 +850,10 @@
     <string name="success_clear_bulk_download_cache">批次下載關聯資料已清除</string>
     <string name="restore_success">還原成功</string>
     <string name="restore_failed">還原失敗</string>
+    <string name="restore_found_account_title">從備份中發現帳號</string>
+    <string name="restore_found_account_message">是否立即恢復登入狀態？</string>
+    <string name="restore_switch_later">稍後自行切換</string>
+    <string name="restore_switch_now">是</string>
     <string name="backup_success">備份成功</string>
     <string name="color_shiYinPurple">矢尹紫</string>
     <string name="color_classicBlue">經典藍</string>
@@ -2058,6 +2065,7 @@
     <string name="email_backup_do_restore">還原並登入</string>
     <string name="email_backup_settings_entry">帳號備份到電子郵件</string>
     <string name="email_backup_login_entry">已備份過？從電子郵件還原登入</string>
+    <string name="email_backup_login_entry_hint">匯出過剪貼簿？透過設定匯出過備份檔案？看看右上角</string>
     <string name="email_backup_bound_title">已備份</string>
     <string name="email_backup_bound_email">已加密備份到 %1$s</string>
     <string name="email_backup_bound_time">備份時間 %1$s</string>
@@ -2280,6 +2288,6 @@
     <string name="pixiv_unblock_done">已解除封鎖「%1$s」</string>
     <string name="pixiv_block_checking">正在查詢封鎖狀態…</string>
     <string name="pixiv_block_submitting">正在提交…</string>
-    <string name="pixiv_block_need_web_login">封鎖是網頁端功能，需要先完成一次網頁登入以同步工作階段資訊。</string>
-    <string name="user_tag_filter_empty_need_web_login">沒有篩到作品。\n依標籤篩選走的是 Pixiv 網頁介面，需要在網頁裡登入一次才能看到全部作品。</string>
+    <string name="pixiv_block_need_web_login">該功能透過網頁介面實作，需要額外進行一次網頁登入。</string>
+    <string name="user_tag_filter_empty_need_web_login">沒有篩到作品。\n該功能透過網頁介面實作，需要額外進行一次網頁登入才能看到該標籤下的全部作品</string>
 </resources>

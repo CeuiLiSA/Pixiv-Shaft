@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Params
 import ceui.loxia.BlockSaveRequest
 import ceui.loxia.Client
 import ceui.loxia.CsrfTokenProvider
@@ -230,6 +231,7 @@ object PixivBlockOperate {
                 activity.startActivity(
                     Intent(activity, TemplateActivity::class.java).apply {
                         putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页")
+                        putExtra(Params.AUTO_WEB_LOGIN, true)
                     }
                 )
             }

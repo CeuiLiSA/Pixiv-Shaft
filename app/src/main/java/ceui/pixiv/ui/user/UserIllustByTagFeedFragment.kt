@@ -88,6 +88,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
                 startActivity(
                     Intent(requireContext(), TemplateActivity::class.java).apply {
                         putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页")
+                        putExtra(Params.AUTO_WEB_LOGIN, true)
                     }
                 )
             }

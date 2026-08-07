@@ -148,15 +148,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         LocalBroadcastManager.getInstance(this).registerReceiver(profileReadyReceiver, profileFilter);
 
         initDrawerHeader();
-        baseBind.drawerHeader.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent userIntent = new Intent(mContext, UActivity.class);
-                userIntent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
-                startActivity(userIntent);
-                baseBind.drawerLayout.closeDrawer(GravityCompat.START);
-            }
-        });
+        baseBind.drawerHeader.setOnClickListener(v -> openMyUserPage());
+        // 侧边栏头像单击进自己主页；长按仍是 R18 临时过滤开关
+        baseBind.userHead.setOnClickListener(v -> openMyUserPage());
         baseBind.userHead.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -649,6 +643,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
                     }
                 })
                 .show();
+    }
+
+    private void openMyUserPage() {
+        Intent userIntent = new Intent(mContext, UActivity.class);
+        userIntent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
+        startActivity(userIntent);
+        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
     }
 
     private void initDrawerHeader() {

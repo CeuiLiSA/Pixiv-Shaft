@@ -1,7 +1,9 @@
 package ceui.lisa.fragments
 
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.text.SpannableString
@@ -39,13 +41,17 @@ import ceui.lisa.utils.Dev
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import ceui.pixiv.i18n.AppLocales
+import ceui.pixiv.login.PixivLogin
 import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -154,6 +160,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     // ── Toolbar ──
 
     private fun setupToolbar() {
+        // 登录页左上角返回选语言页（图标只在进入登录页后显示）
+        baseBind.toolbar.setNavigationOnClickListener { backToLanguagePage() }
         baseBind.toolbar.inflateMenu(R.menu.login_menu)
         baseBind.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -174,9 +182,96 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                     true
                 }
 
+                R.id.action_browser_login -> {
+                    showBrowserPicker(PixivLogin.startLoginUrl())
+                    true
+                }
+
+                R.id.action_browser_signup -> {
+                    showBrowserPicker(PixivLogin.startSignUrl())
+                    true
+                }
+
                 else -> false
             }
         }
+    }
+
+    // ── Browser picker ──
+
+    private data class BrowserItem(
+        val label: String,
+        val packageName: String,
+        val activityName: String,
+    )
+
+    /**
+     * 自建「打开方式」弹窗：列出已安装的浏览器，选中后用显式 Intent 打开 [url]。
+     * 不直接 ACTION_VIEW 交给系统，是因为国内 ROM 上电商 / 下载器类 App 会抢 https
+     * 打开权，登录 URL 被劫走就完成不了 OAuth。
+     */
+    private fun showBrowserPicker(url: String) {
+        // PackageManager 查询和 loadLabel 都是跨进程调用，放 IO 线程；pm 必须在主线程
+        // 先取好再进协程 —— IO 块里调 requireContext() 会在 fragment 恰好销毁时抛
+        // IllegalStateException 直接崩掉。
+        val pm = requireContext().packageManager
+        viewLifecycleOwner.lifecycleScope.launch {
+            val browsers = withContext(Dispatchers.IO) { queryBrowsers(pm) }
+            showBrowserDialog(url, browsers)
+        }
+    }
+
+    /** 枚举已安装的真浏览器，常用浏览器排前，其余按名称排。 */
+    private fun queryBrowsers(pm: PackageManager): List<BrowserItem> {
+        // 框架枚举浏览器的标准姿势：scheme-only 的 "https:"（无 host）。真浏览器的
+        // intent-filter 只声明 scheme、能接任意网址，所以匹配；只注册了特定 host
+        // deep link 的 App（官方 pixiv 客户端、本应用自己之类）因为 filter 带
+        // authority、要求 URI 提供 host，天然不匹配，不用逐个点名。
+        val browserProbe = Intent(Intent.ACTION_VIEW, Uri.fromParts("https", "", null)).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+        return pm.queryIntentActivities(browserProbe, PackageManager.MATCH_ALL)
+            // 同样按 scheme 通配注册的劫持类 App（电商 / 下载器）筛不出来，黑名单兜底。
+            .filterNot { it.activityInfo.name in HIJACKER_ACTIVITY_NAMES }
+            .map { resolveInfo ->
+                BrowserItem(
+                    label = resolveInfo.loadLabel(pm).toString(),
+                    packageName = resolveInfo.activityInfo.packageName,
+                    activityName = resolveInfo.activityInfo.name,
+                )
+            }
+            .sortedWith(compareBy<BrowserItem> { item ->
+                val isPriority = PRIORITY_BROWSER_KEYWORDS.any { keyword ->
+                    item.packageName.contains(keyword, ignoreCase = true) ||
+                            item.label.contains(keyword, ignoreCase = true)
+                }
+                if (isPriority) 0 else 1
+            }.thenBy { it.label })
+    }
+
+    private fun showBrowserDialog(url: String, browsers: List<BrowserItem>) {
+        if (browsers.isEmpty()) {
+            Common.showToast(getString(R.string.msg_no_browser))
+            return
+        }
+
+        MenuDialogBuilder(mContext)
+            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+            .setTitle(getString(R.string.browser_dialog_found_title))
+            .addItems(browsers.map { it.label }.toTypedArray()) { dialog, which ->
+                dialog.dismiss()
+                val target = browsers[which]
+                val launchIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                    component = ComponentName(target.packageName, target.activityName)
+                }
+                try {
+                    startActivity(launchIntent)
+                } catch (_: ActivityNotFoundException) {
+                    // 弹窗挂着的这段时间里目标浏览器可能刚好被卸载
+                    Common.showToast(getString(R.string.msg_no_browser))
+                }
+            }
+            .show()
     }
 
     // ── Language page ──
@@ -305,6 +400,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         AppLocales.applyConfigurationInPlace(requireActivity(), selectedTag)
 
         relocalizeLoginPage()
+        baseBind.toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_shadow)
         crossFadeLanguagePageToLoginPage()
     }
 
@@ -317,6 +413,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         page.loginButton.text = getString(R.string.now_login)
         page.signButton.text = getString(R.string.now_sign)
         page.restoreFromEmail.text = getString(R.string.email_backup_login_entry)
+        page.restoreFromEmailHint.text = getString(R.string.email_backup_login_entry_hint)
         // 协议链接里的 SpannableString 也是 inflate 时算的，要重塞 —— 内部 getString(...) 此刻
         // 已经走新 locale 了。
         setupTermsText(page.firstText)
@@ -342,6 +439,25 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         }.start()
     }
 
+    /** 从登录页返回选语言页：反向交叉淡入淡出，并恢复问候语轮播。 */
+    private fun backToLanguagePage() {
+        val langPage = baseBind.languagePage.root
+        val loginPage = baseBind.loginPage.root
+        val dur = 300L
+
+        baseBind.toolbar.navigationIcon = null
+
+        langPage.visibility = View.VISIBLE
+        langPage.alpha = 0f
+        langPage.animate().alpha(1f).setDuration(dur).start()
+
+        loginPage.animate().alpha(0f).setDuration(dur).withEndAction {
+            loginPage.visibility = View.GONE
+        }.start()
+
+        startGreetingCycle()
+    }
+
     // ── Login page ──
 
     private fun setupLoginPage() {
@@ -363,6 +479,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         // 此入口无需登录即可触达，是 Play 自动化测试检测到邮箱外传的位置。
         if (BuildConfig.IS_LITE) {
             page.restoreFromEmail.visibility = View.GONE
+            // 提示紧挨在邮箱恢复入口下面，入口没了提示也一起藏，别留一句悬空的话
+            page.restoreFromEmailHint.visibility = View.GONE
         } else {
             page.restoreFromEmail.setOnClickListener {
                 startActivity(Intent(mContext, TemplateActivity::class.java).apply {
@@ -467,6 +585,30 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private fun dp(value: Float): Int = (value * resources.displayMetrics.density).roundToInt()
 
     private data class Greeting(val tag: String, val hero: String, val subtitle: String)
+
+    companion object {
+        /**
+         * 声明了通配 http/https（handleAllWebDataURI 筛不掉）、但并非浏览器的
+         * 劫持类 App，按 activity 全名点名排除。
+         */
+        private val HIJACKER_ACTIVITY_NAMES = setOf(
+            "com.taobao.browser.BrowserActivity", // 淘宝
+            "com.taobao.live.h5.BrowserActivityH", // 淘宝
+            "com.taobao.live.h5.TransparentWebViewActivity", // 淘宝
+            "com.jingdong.app.mall.open.BrowserActivity", // 京东
+            "com.taobao.live.h5.BrowserActivity", // 淘宝特价版
+            "com.litetao.app.MNWebActivity", // 淘宝特价版
+            "com.xunlei.downloadprovider.launch.LaunchActivity2", // 迅雷
+            "com.tmall.wireless.splash.SchemeHandlerActivity", // 天猫
+            "com.tencent.hunyuan.app.chat.biz.openfile.ExternalOpeFileActivity", // 腾讯元宝
+            "com.baidu.searchbox.BoxBrowserActivity", // 百度
+            "com.UCMobile.main.UCMobile.DefaultBrowserEntry", // UC浏览器
+            "com.yxcorp.gifshow.growth.applink.GrowthAppLinkActivityHttpRecommend", // 快手极速版
+        )
+
+        /** 常用「纯浏览器」关键词，选择列表里置顶。 */
+        private val PRIORITY_BROWSER_KEYWORDS = listOf("chrome", "via", "firefox")
+    }
 }
 
 fun SpannableString.setLinkSpan(
