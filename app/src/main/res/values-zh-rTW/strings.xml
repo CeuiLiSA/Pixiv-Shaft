@@ -2065,7 +2065,6 @@
     <string name="email_backup_do_restore">還原並登入</string>
     <string name="email_backup_settings_entry">帳號備份到電子郵件</string>
     <string name="email_backup_login_entry">已備份過？從電子郵件還原登入</string>
-    <string name="email_backup_login_entry_hint">匯出過剪貼簿？透過設定匯出過備份檔案？看看右上角</string>
     <string name="email_backup_bound_title">已備份</string>
     <string name="email_backup_bound_email">已加密備份到 %1$s</string>
     <string name="email_backup_bound_time">備份時間 %1$s</string>

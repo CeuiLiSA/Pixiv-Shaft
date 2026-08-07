@@ -2063,7 +2063,6 @@
     <string name="email_backup_do_restore">복원하고 로그인</string>
     <string name="email_backup_settings_entry">계정을 이메일에 백업</string>
     <string name="email_backup_login_entry">이미 백업했나요? 이메일에서 복원</string>
-    <string name="email_backup_login_entry_hint">클립보드로 내보냈나요? 설정에서 백업 파일을 내보냈나요? 오른쪽 위를 확인해 보세요.</string>
     <string name="email_backup_bound_title">백업됨</string>
     <string name="email_backup_bound_email">%1$s(으)로 암호화 백업됨</string>
     <string name="email_backup_bound_time">백업 시간 %1$s</string>

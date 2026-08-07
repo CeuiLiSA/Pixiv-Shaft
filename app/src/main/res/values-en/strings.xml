@@ -2063,7 +2063,6 @@
     <string name="email_backup_do_restore">Restore and sign in</string>
     <string name="email_backup_settings_entry">Back up account to email</string>
     <string name="email_backup_login_entry">Already backed up? Restore from email</string>
-    <string name="email_backup_login_entry_hint">Exported to clipboard? Exported a backup file in Settings? Check the top-right corner.</string>
     <string name="email_backup_bound_title">Backed up</string>
     <string name="email_backup_bound_email">Encrypted backup to %1$s</string>
     <string name="email_backup_bound_time">Backed up on %1$s</string>

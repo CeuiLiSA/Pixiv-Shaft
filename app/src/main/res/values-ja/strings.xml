@@ -2063,7 +2063,6 @@
     <string name="email_backup_do_restore">復元してログイン</string>
     <string name="email_backup_settings_entry">アカウントをメールにバックアップ</string>
     <string name="email_backup_login_entry">バックアップ済み？メールから復元</string>
-    <string name="email_backup_login_entry_hint">クリップボードに書き出した？設定でバックアップファイルを書き出した？右上を見てみて。</string>
     <string name="email_backup_bound_title">バックアップ済み</string>
     <string name="email_backup_bound_email">%1$s に暗号化バックアップ済み</string>
     <string name="email_backup_bound_time">バックアップ日時 %1$s</string>

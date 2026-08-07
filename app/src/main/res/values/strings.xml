@@ -2276,7 +2276,6 @@
     <string name="email_backup_do_restore">恢复并登录</string>
     <string name="email_backup_settings_entry">账号备份到邮箱</string>
     <string name="email_backup_login_entry">已备份过？从邮箱恢复登录</string>
-    <string name="email_backup_login_entry_hint">导出过剪切板？通过设置导出过备份文件？看看右上角</string>
     <string name="email_backup_bound_title">已备份</string>
     <string name="email_backup_bound_email">已加密备份到 %1$s</string>
     <string name="email_backup_bound_time">备份时间 %1$s</string>

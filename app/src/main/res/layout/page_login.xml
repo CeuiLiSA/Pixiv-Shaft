@@ -58,19 +58,6 @@
                 android:textColor="@color/white"
                 android:textSize="13sp" />
 
-            <TextView
-                android:id="@+id/restore_from_email_hint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="14dp"
-                android:alpha="0.7"
-                android:gravity="center"
-                android:paddingHorizontal="12dp"
-                android:text="@string/email_backup_login_entry_hint"
-                android:textColor="@color/white"
-                android:textSize="11sp" />
-
             <LinearLayout
                 android:id="@+id/checkbox_one"
                 android:layout_width="match_parent"

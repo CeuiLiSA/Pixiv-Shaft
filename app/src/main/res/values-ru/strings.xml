@@ -2063,7 +2063,6 @@
     <string name="email_backup_do_restore">Восстановить и войти</string>
     <string name="email_backup_settings_entry">Резервная копия аккаунта в почту</string>
     <string name="email_backup_login_entry">Уже есть копия? Восстановить из почты</string>
-    <string name="email_backup_login_entry_hint">Экспортировали в буфер обмена? Экспортировали резервную копию в настройках? Загляните в правый верхний угол.</string>
     <string name="email_backup_bound_title">Сохранено</string>
     <string name="email_backup_bound_email">Зашифрованная копия в %1$s</string>
     <string name="email_backup_bound_time">Дата копии: %1$s</string>

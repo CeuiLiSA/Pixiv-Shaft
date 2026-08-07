@@ -413,7 +413,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         page.loginButton.text = getString(R.string.now_login)
         page.signButton.text = getString(R.string.now_sign)
         page.restoreFromEmail.text = getString(R.string.email_backup_login_entry)
-        page.restoreFromEmailHint.text = getString(R.string.email_backup_login_entry_hint)
         // 协议链接里的 SpannableString 也是 inflate 时算的，要重塞 —— 内部 getString(...) 此刻
         // 已经走新 locale 了。
         setupTermsText(page.firstText)
@@ -479,8 +478,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         // 此入口无需登录即可触达，是 Play 自动化测试检测到邮箱外传的位置。
         if (BuildConfig.IS_LITE) {
             page.restoreFromEmail.visibility = View.GONE
-            // 提示紧挨在邮箱恢复入口下面，入口没了提示也一起藏，别留一句悬空的话
-            page.restoreFromEmailHint.visibility = View.GONE
         } else {
             page.restoreFromEmail.setOnClickListener {
                 startActivity(Intent(mContext, TemplateActivity::class.java).apply {
