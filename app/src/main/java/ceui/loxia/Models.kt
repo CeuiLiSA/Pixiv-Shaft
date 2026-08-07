@@ -670,6 +670,8 @@ data class BlockSaveRequest(
 
 // 网页 ajax /ajax/illust/{id}/pages 的 body 元素:每一 P 的真实原图宽高与图片地址。
 // 宽高供详情页多 P 下载前预置展示高度(见 IllustAdapter.seedPageDimensions);
+// 详情页多 P 先用 IllustsBean 的 width/height 当「最开始的空白容器」,
+// 这里的 width/height 是每 P 真实原图宽高,供 ajax 精修。
 // urls 供 #592 受限作品 web 兜底时拼 meta_pages。
 data class WebIllustPage(
     val width: Int = 0,

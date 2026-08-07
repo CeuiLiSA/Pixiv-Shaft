@@ -99,6 +99,10 @@ class CollapsibleIllustAdapter(
      * 原样不动、依旧无黑边贴顶。
      */
     private fun floorCoverHeight(holder: ViewHolder<RecyIllustDetailBinding>) {
+        // 只对漫画宽封面和单 P 插画兜高:多 P 插画首图保持真比例,不做 maxHeight 垫高
+        // 否则宽幅插画（P > 3）的首图在 V3 沉浸式里会错误的出现上下空白边
+        // 漫画保留兜高,是为了托住「展开剩余 X 张」胶囊不顶进 toolbar(见 8c8665711)。
+        if ("manga" != illust.type || illust.page_count != 1) return
         val image = holder.baseBind.illust
         val w = illust.width
         val h = illust.height

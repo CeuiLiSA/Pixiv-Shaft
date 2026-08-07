@@ -56,8 +56,9 @@ class ArtworkV3ViewModel(
     }
 
     // ── 每页真实宽高(网页 ajax /ajax/illust/{id}/pages)──
-    // app-api 的 meta_pages 不带每 P 宽高;这里补上,供顶部大图在下载前按真 ratio 预置各页高度,
-    // 消除多 P 首帧「兜底高→自然高」的跳。Fragment 观察 [pageDimensions] 喂给 IllustAdapter。
+    // 详情页先用 IllustsBean 的 width/height 当空白容器;这里再补每 P 真实原图宽高,供顶部大图
+    // 在下载前按真 ratio 预置各页高度,消除多 P 首帧「占位比→自然比」的跳。
+    // Fragment 观察 [pageDimensions] 喂给 IllustAdapter。
     private val _pageDimensions = MutableLiveData<List<IntArray>>()
 
     /** 每一 P 的 [width, height],按页序;缺 cookie / 接口失败则不发射(沿用解码后异步定高)。 */

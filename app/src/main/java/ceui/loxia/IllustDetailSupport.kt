@@ -232,8 +232,9 @@ private fun WebIllustBody.toIllustsBean(illustId: Long, webPages: List<WebIllust
 
 /**
  * 网页 ajax `/ajax/illust/{id}/pages` 拉每一 P 的真实原图宽高（`[width, height]`,按页序）。
- * app-api 的 meta_pages 只有 image_urls、不带宽高;详情页多 P 靠它在下载前预置每页展示 ratio,
- * 消除「兜底高→自然高」的首帧跳(见 IllustAdapter.seedPageDimensions)。
+ * 注:详情页多 P 在真实宽高到来前,先用 {@code IllustsBean} 的 width/height当
+ * 「最开始的空白容器」(见 IllustAdapter.applyRatioOrPlaceholder);这里的网页 ajax 再补每 P 真实
+ * 原图宽高做精修,把后续页展示高度摆准,消除「占位比→自然比」的首帧跳(见 IllustAdapter.seedPageDimensions)。
  *
  * SFW 作品无 cookie 也能拿;R18 / 受限 / 删除作品或缺 cookie 时接口返回 error/空 → 返回 null,
  * 调用方沿用「图片解码后异步定高」的兜底,**不影响使用**。协程取消照常向上抛,不吞。

@@ -115,6 +115,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      *   <li>兜底(无 cookie / 精简 bean 无尺寸):图片解码后由 {@link #rememberDecodedRatio}
      *       用位图宽高定下。</li>
      * </ul>
+     * 真 ratio 尚未确定时,先用 {@link IllustsBean#getWidth()}/{@code getHeight()}
+     * 当「最开始的空白容器」(见 {@link #applyRatioOrPlaceholder}),图片解码后仍校正进本表。
      * 缓存进此表 → 滑走再回、回收重绑时首帧直接套用,消除抖动;{@link #release()} 时清空。
      */
     private final Map<Integer, Float> pageRatio = new ConcurrentHashMap<>();
@@ -329,8 +331,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     }
 
     /**
-     * ratio 已知就套用(首帧即终值),未知就退回占位高({@code maxHeight} 或布局默认)并返回
-     * {@code changeSize=true} —— 让 {@link #loadIllust} 走「解码后定 ratio」的兜底路径。
+     * ratio 已知就套用(首帧即终值);未知时先用 {@link IllustsBean#getWidth()}/{@code getHeight()}
+     * (第 0 页真比)当「最开始的空白容器」,仍返回 {@code changeSize=true}——让 {@link #loadIllust}
+     * 走「解码后定 ratio」的兜底路径,用位图真尺寸覆盖占位;bean 也没有尺寸才退回固定占位高
+     * ({@code maxHeight} 或布局默认)。
      * @return changeSize:true 表示 ratio 未知、需解码后定。
      */
     private boolean applyRatioOrPlaceholder(ViewHolder<RecyIllustDetailBinding> holder, int position) {
@@ -339,8 +343,14 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             holder.baseBind.illust.setHeightRatio(ratio);
             return false;
         }
-        int placeholder = maxHeight > 0 ? maxHeight : holder.baseBind.illust.getLayoutParams().height;
-        setFixedHeight(holder, placeholder);
+        int w = allIllust.getWidth();
+        int h = allIllust.getHeight();
+        if (w > 0 && h > 0) {
+            holder.baseBind.illust.setHeightRatio((float) h / w);
+            return true;
+        }
+        int placeholderHeight = maxHeight > 0 ? maxHeight : holder.baseBind.illust.getLayoutParams().height;
+        setFixedHeight(holder, placeholderHeight);
         return true;
     }
 
@@ -550,7 +560,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * 兜底路径:该页 ratio 事先未知(无网页 ajax 尺寸、精简 bean 无有效 meta 宽高)时,图片解码完成后
      * 用位图宽高定下并缓存该页展示 ratio,并即时套到 {@link ceui.lisa.view.DynamicHeightImageView}。
      * 缓存进 {@link #pageRatio} → 回收重绑首帧直接套用,不再「占位高→自然高」跳。仅 {@code changeSize}
-     * (ratio 未知)页生效;ratio 已知的页高度绑定时就摆正,不进此路径。
+     * (ratio 未知)页生效——绑定时即使已用 {@link IllustsBean#getWidth()}/{@code getHeight()} 垫了
+     * 空白容器(见 {@link #applyRatioOrPlaceholder}),也仍走这里校正为真 ratio;ratio 已知的页高度
+     * 绑定时就摆正,不进此路径。
      */
     private void rememberDecodedRatio(ViewHolder<RecyIllustDetailBinding> holder, int position,
                                       boolean changeSize, Bitmap resource) {
@@ -571,9 +583,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * 后续页首次绑定时,{@link ceui.lisa.view.DynamicHeightImageView} 用真实宽 × ratio 算高,首帧就量
      * 在终值上,消除那一跳。ratio 与解码兜底同一套口径,不会二次跳。
      * <p>{@code dims} 按页序:{@code dims.get(i) = {width, height}} 对应第 i 页。cookie 缺失 / 接口
-     * 失败时上层根本不会调用它 → 保持解码后定 ratio 的兜底行为。<b>静默写表、不 notify</b>:已在屏的页
-     * 保留各自的解码兜底(强行 rebind 会闪),尚未绑定的页(折叠 3P+ 展开、上滑新上屏)自然读表命中——
-     * 正是首帧跳最明显的场景。
+     * 失败时上层根本不会调用它 → 页仍先用 {@link IllustsBean#getWidth()}/{@code getHeight()} 当
+     * 空白容器、图片解码后再校正(见 {@link #applyRatioOrPlaceholder})。<b>静默写表、不 notify</b>:
+     * 已在屏的页保留各自当前的占位/解码比(强行 rebind 会闪),尚未绑定的页(折叠 3P+ 展开、上滑新上屏)
+     * 自然读表命中——正是首帧跳最明显的场景。
      */
     public void seedPageDimensions(@Nullable List<int[]> dims) {
         if (released || dims == null || dims.isEmpty()) {

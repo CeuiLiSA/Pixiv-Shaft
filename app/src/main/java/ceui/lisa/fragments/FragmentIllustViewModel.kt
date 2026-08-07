@@ -35,7 +35,8 @@ class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
     val hasDownload: LiveData<Boolean> = _hasDownload
 
     // ── 每页真实宽高(网页 ajax /ajax/illust/{id}/pages)──
-    // 与 ArtworkV3ViewModel 同一套:多 P 时提前拿到每页宽高,让顶部大图下载前就按真 ratio 摆准高度。
+    // 与 ArtworkV3ViewModel 同一套:详情页先用 IllustsBean 的 width/height 当空白容器;
+    // 多 P 时提前拿到每页真实宽高,让顶部大图下载前就按真 ratio 摆准高度。
     // Fragment 观察 [pageDimensions] 喂给 IllustAdapter.seedPageDimensions;缺 cookie/失败静默降级。
     private val _pageDimensions = MutableLiveData<List<IntArray>>()
 
