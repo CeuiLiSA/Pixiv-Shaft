@@ -52,7 +52,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -184,35 +183,12 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 }
 
                 R.id.action_browser_login -> {
-                    // 启动协程：避免在主线程执行 PackageManager 查询和 loadLabel
-                    lifecycleScope.launch {
-                        val url = PixivLogin.startLoginUrl()
-                        val title = getString(R.string.browser_dialog_found_title)
-
-                        // 1. 异步获取浏览器数据
-                        val browsers = withContext(Dispatchers.IO) {
-                            getBrowserList(url)
-                        }
-
-                        // 2. 切回主线程渲染弹窗
-                        renderBrowserDialog(url, title, browsers)
-                    }
+                    showBrowserPicker(PixivLogin.startLoginUrl())
                     true
                 }
 
                 R.id.action_browser_signup -> {
-                    lifecycleScope.launch {
-                        val url = PixivLogin.startSignUrl()
-                        val title = getString(R.string.browser_dialog_found_title)
-
-                        // 1. 异步获取浏览器数据
-                        val browsers = withContext(Dispatchers.IO) {
-                            getBrowserList(url)
-                        }
-
-                        // 2. 切回主线程渲染弹窗
-                        renderBrowserDialog(url, title, browsers)
-                    }
+                    showBrowserPicker(PixivLogin.startSignUrl())
                     true
                 }
 
@@ -221,97 +197,77 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         }
     }
 
-    /** 自建「打开方式」弹窗：列出已安装的浏览器，用显式 Intent 打开 URL。 */
-// 1. 数据结构：用于传递给 UI 层的干净数据
-    data class BrowserItem(
+    // ── Browser picker ──
+
+    private data class BrowserItem(
         val label: String,
         val packageName: String,
-        val activityName: String
+        val activityName: String,
     )
 
-    // 2. 纯逻辑函数：获取浏览器列表（可在协程/后台线程调用）
-    private fun getBrowserList(url: String): List<BrowserItem> {
-        val openIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
-            addCategory(Intent.CATEGORY_BROWSABLE) // 明确要求可从网页启动
-        }
+    /**
+     * 自建「打开方式」弹窗：列出已安装的浏览器，选中后用显式 Intent 打开 [url]。
+     * 不直接 ACTION_VIEW 交给系统，是因为国内 ROM 上电商 / 下载器类 App 会抢 https
+     * 打开权，登录 URL 被劫走就完成不了 OAuth。
+     */
+    private fun showBrowserPicker(url: String) {
+        // PackageManager 查询和 loadLabel 都是跨进程调用，放 IO 线程；pm 必须在主线程
+        // 先取好再进协程 —— IO 块里调 requireContext() 会在 fragment 恰好销毁时抛
+        // IllegalStateException 直接崩掉。
         val pm = requireContext().packageManager
-        val resolvers = pm.queryIntentActivities(openIntent, PackageManager.MATCH_ALL)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val browsers = withContext(Dispatchers.IO) { queryBrowsers(pm) }
+            showBrowserDialog(url, browsers)
+        }
+    }
 
-        // 非纯粹浏览器的活动名称黑名单
-        val blacklistedNames = setOf(
-            "com.taobao.browser.BrowserActivity",// 淘宝
-            "com.taobao.live.h5.BrowserActivityH",//淘宝2
-            "com.taobao.live.h5.TransparentWebViewActivity",//淘宝3
-            "com.jingdong.app.mall.open.BrowserActivity",// 京东
-            "com.taobao.live.h5.BrowserActivity",// 淘宝特价版
-            "com.litetao.app.MNWebActivity",//淘宝特价版2
-            "com.xunlei.downloadprovider.launch.LaunchActivity2",// 迅雷
-            "com.tmall.wireless.splash.SchemeHandlerActivity",// 天猫
-            "com.tencent.hunyuan.app.chat.biz.openfile.ExternalOpeFileActivity",// 腾讯元宝
-            "com.baidu.searchbox.BoxBrowserActivity",// 百度（推荐）
-            "com.UCMobile.main.UCMobile.DefaultBrowserEntry",// UC浏览器（推荐）
-            "com.yxcorp.gifshow.growth.applink.GrowthAppLinkActivityHttpRecommend",// 快手极速版
-        )
-
-        // 优先显示的浏览器包名关键词
-        val priorityKeywords = listOf(
-            "chrome",
-            "via",
-            "firefox"
-        )
-
-        return resolvers
-            .filter { resolveInfo ->
-                // 1. 先过滤活动名称：不在黑名单中的才保留
-                Timber.tag("getBrowserList-name").d(resolveInfo.activityInfo.name)
-                !blacklistedNames.contains(resolveInfo.activityInfo.name)
-            }
+    /** 枚举已安装的真浏览器，常用浏览器排前，其余按名称排。 */
+    private fun queryBrowsers(pm: PackageManager): List<BrowserItem> {
+        // 框架枚举浏览器的标准姿势：scheme-only 的 "https:"（无 host）。真浏览器的
+        // intent-filter 只声明 scheme、能接任意网址，所以匹配；只注册了特定 host
+        // deep link 的 App（官方 pixiv 客户端、本应用自己之类）因为 filter 带
+        // authority、要求 URI 提供 host，天然不匹配，不用逐个点名。
+        val browserProbe = Intent(Intent.ACTION_VIEW, Uri.fromParts("https", "", null)).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+        return pm.queryIntentActivities(browserProbe, PackageManager.MATCH_ALL)
+            // 同样按 scheme 通配注册的劫持类 App（电商 / 下载器）筛不出来，黑名单兜底。
+            .filterNot { it.activityInfo.name in HIJACKER_ACTIVITY_NAMES }
             .map { resolveInfo ->
-                // 2. 过滤后再执行耗时的 loadLabel 操作，提升性能
                 BrowserItem(
                     label = resolveInfo.loadLabel(pm).toString(),
                     packageName = resolveInfo.activityInfo.packageName,
-                    activityName = resolveInfo.activityInfo.name
+                    activityName = resolveInfo.activityInfo.name,
                 )
             }
             .sortedWith(compareBy<BrowserItem> { item ->
-                // 优先级：匹配关键词的排前面（返回0），不匹配的排后面（返回1）
-                val isPriority = priorityKeywords.any { keyword ->
+                val isPriority = PRIORITY_BROWSER_KEYWORDS.any { keyword ->
                     item.packageName.contains(keyword, ignoreCase = true) ||
                             item.label.contains(keyword, ignoreCase = true)
                 }
                 if (isPriority) 0 else 1
-            }.thenBy { it.label }) // 同组内按名称排序
+            }.thenBy { it.label })
     }
 
-    // 3. 纯渲染函数：只负责接收数据并刷 UI
-    private fun renderBrowserDialog(
-        url: String,
-        dialogTitle: String,
-        browserList: List<BrowserItem>
-    ) {
-        if (browserList.isEmpty()) {
+    private fun showBrowserDialog(url: String, browsers: List<BrowserItem>) {
+        if (browsers.isEmpty()) {
             Common.showToast(getString(R.string.msg_no_browser))
             return
         }
 
-        val labels = browserList.map { it.label }.toTypedArray()
-
         MenuDialogBuilder(mContext)
             .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-            .setTitle(dialogTitle)
-            .addItems(labels) { dialog, which ->
+            .setTitle(getString(R.string.browser_dialog_found_title))
+            .addItems(browsers.map { it.label }.toTypedArray()) { dialog, which ->
                 dialog.dismiss()
-                val targetBrowser = browserList[which]
-
-                // 组装精确跳转的 Intent
+                val target = browsers[which]
                 val launchIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
-                    component = ComponentName(targetBrowser.packageName, targetBrowser.activityName)
+                    component = ComponentName(target.packageName, target.activityName)
                 }
-
                 try {
                     startActivity(launchIntent)
                 } catch (_: ActivityNotFoundException) {
+                    // 弹窗挂着的这段时间里目标浏览器可能刚好被卸载
                     Common.showToast(getString(R.string.msg_no_browser))
                 }
             }
@@ -523,6 +479,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         // 此入口无需登录即可触达，是 Play 自动化测试检测到邮箱外传的位置。
         if (BuildConfig.IS_LITE) {
             page.restoreFromEmail.visibility = View.GONE
+            // 提示紧挨在邮箱恢复入口下面，入口没了提示也一起藏，别留一句悬空的话
+            page.restoreFromEmailHint.visibility = View.GONE
         } else {
             page.restoreFromEmail.setOnClickListener {
                 startActivity(Intent(mContext, TemplateActivity::class.java).apply {
@@ -627,6 +585,30 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private fun dp(value: Float): Int = (value * resources.displayMetrics.density).roundToInt()
 
     private data class Greeting(val tag: String, val hero: String, val subtitle: String)
+
+    companion object {
+        /**
+         * 声明了通配 http/https（handleAllWebDataURI 筛不掉）、但并非浏览器的
+         * 劫持类 App，按 activity 全名点名排除。
+         */
+        private val HIJACKER_ACTIVITY_NAMES = setOf(
+            "com.taobao.browser.BrowserActivity", // 淘宝
+            "com.taobao.live.h5.BrowserActivityH", // 淘宝
+            "com.taobao.live.h5.TransparentWebViewActivity", // 淘宝
+            "com.jingdong.app.mall.open.BrowserActivity", // 京东
+            "com.taobao.live.h5.BrowserActivity", // 淘宝特价版
+            "com.litetao.app.MNWebActivity", // 淘宝特价版
+            "com.xunlei.downloadprovider.launch.LaunchActivity2", // 迅雷
+            "com.tmall.wireless.splash.SchemeHandlerActivity", // 天猫
+            "com.tencent.hunyuan.app.chat.biz.openfile.ExternalOpeFileActivity", // 腾讯元宝
+            "com.baidu.searchbox.BoxBrowserActivity", // 百度
+            "com.UCMobile.main.UCMobile.DefaultBrowserEntry", // UC浏览器
+            "com.yxcorp.gifshow.growth.applink.GrowthAppLinkActivityHttpRecommend", // 快手极速版
+        )
+
+        /** 常用「纯浏览器」关键词，选择列表里置顶。 */
+        private val PRIORITY_BROWSER_KEYWORDS = listOf("chrome", "via", "firefox")
+    }
 }
 
 fun SpannableString.setLinkSpan(
