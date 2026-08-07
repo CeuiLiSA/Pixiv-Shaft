@@ -2148,6 +2148,10 @@
     <string name="ai_translate_test_success">テスト成功：%1$s</string>
     <string name="ai_translate_test_failed">テスト失敗：%1$s</string>
     <string name="ai_translate_failed_title">AI 翻訳に失敗しました</string>
+    <string name="ai_translate_fetch_models">モデル一覧を取得</string>
+    <string name="ai_translate_fetch_models_empty">モデルが見つかりません</string>
+    <string name="ai_translate_fetch_models_failed">取得失敗：%1$s</string>
+    <string name="ai_translate_toggle_key_visibility">API key の表示切替</string>
     <string name="synonym_dict_title">同義語辞書</string>
     <string name="synonym_dict_enable">同義語辞書を有効化</string>
     <string name="keep_status_bar_when_view_image">画像表示時にステータスバー領域を残す</string>

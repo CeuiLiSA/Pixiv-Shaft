@@ -157,6 +157,8 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
+    // JVM 单测里 android.jar 的 org.json 是 Stub!,真实现放前面顶掉(AiTranslator 测试用)
+    testImplementation("org.json:json:20231013")
 
     // AndroidX Test - JUnit Runner
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

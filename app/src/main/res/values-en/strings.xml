@@ -2148,6 +2148,10 @@
     <string name="ai_translate_test_success">Test succeeded: %1$s</string>
     <string name="ai_translate_test_failed">Test failed: %1$s</string>
     <string name="ai_translate_failed_title">AI translation failed</string>
+    <string name="ai_translate_fetch_models">Fetch model list</string>
+    <string name="ai_translate_fetch_models_empty">No models found</string>
+    <string name="ai_translate_fetch_models_failed">Fetch failed: %1$s</string>
+    <string name="ai_translate_toggle_key_visibility">Show or hide API key</string>
     <string name="synonym_dict_title">Synonym Dictionary</string>
     <string name="synonym_dict_enable">Enable synonym dictionary</string>
     <string name="keep_status_bar_when_view_image">Keep status bar area when viewing images</string>

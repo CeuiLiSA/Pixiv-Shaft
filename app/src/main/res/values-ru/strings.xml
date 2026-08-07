@@ -2148,6 +2148,10 @@
     <string name="ai_translate_test_success">Тест успешен: %1$s</string>
     <string name="ai_translate_test_failed">Тест не удался: %1$s</string>
     <string name="ai_translate_failed_title">Ошибка AI-перевода</string>
+    <string name="ai_translate_fetch_models">Получить список моделей</string>
+    <string name="ai_translate_fetch_models_empty">Модели не найдены</string>
+    <string name="ai_translate_fetch_models_failed">Не удалось получить: %1$s</string>
+    <string name="ai_translate_toggle_key_visibility">Показать или скрыть API key</string>
     <string name="synonym_dict_title">Словарь синонимов</string>
     <string name="synonym_dict_enable">Включить словарь синонимов</string>
     <string name="keep_status_bar_when_view_image">Оставлять область статус-бара при просмотре изображений</string>

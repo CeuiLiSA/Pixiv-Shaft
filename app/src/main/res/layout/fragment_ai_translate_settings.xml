@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/v3_bg">
@@ -122,6 +123,58 @@
                     android:textColorHint="@color/v3_text_3"
                     android:textSize="14sp" />
 
+                <!-- 常用服务一键填入(服务名是专名,不进翻译) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/ai_translate_preset_openai"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:text="OpenAI"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="12sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/ai_translate_preset_deepseek"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:text="DeepSeek"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="12sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/ai_translate_preset_siliconflow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:text="SiliconFlow"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="12sp"
+                        tools:ignore="HardcodedText" />
+                </LinearLayout>
+
                 <!-- API key -->
                 <TextView
                     android:layout_width="wrap_content"
@@ -131,32 +184,71 @@
                     android:textColor="@color/v3_text_3"
                     android:textSize="13sp" />
 
-                <EditText
-                    android:id="@+id/ai_translate_api_key"
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:autofillHints=""
-                    android:background="@drawable/bg_v3_chip"
-                    android:fontFamily="monospace"
-                    android:hint="@string/ai_translate_api_key_hint"
-                    android:importantForAutofill="no"
-                    android:inputType="text|textNoSuggestions"
-                    android:maxLines="1"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="12dp"
-                    android:textColor="@color/v3_text_1"
-                    android:textColorHint="@color/v3_text_3"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="6dp">
 
-                <!-- 模型名 -->
-                <TextView
-                    android:layout_width="wrap_content"
+                    <EditText
+                        android:id="@+id/ai_translate_api_key"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:autofillHints=""
+                        android:background="@drawable/bg_v3_chip"
+                        android:fontFamily="monospace"
+                        android:hint="@string/ai_translate_api_key_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="textPassword|textNoSuggestions"
+                        android:maxLines="1"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="48dp"
+                        android:paddingVertical="12dp"
+                        android:textColor="@color/v3_text_1"
+                        android:textColorHint="@color/v3_text_3"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/ai_translate_api_key_toggle"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="4dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/ai_translate_toggle_key_visibility"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_visibility_off_black_24dp"
+                        app:tint="@color/v3_text_3" />
+                </FrameLayout>
+
+                <!-- 模型名(右侧可从接口拉取列表) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:text="@string/ai_translate_model_label"
-                    android:textColor="@color/v3_text_3"
-                    android:textSize="13sp" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/ai_translate_model_label"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/ai_translate_fetch_models_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp"
+                        android:text="@string/ai_translate_fetch_models"
+                        android:textColor="#6C5CE7"
+                        android:textSize="13sp" />
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/ai_translate_model"

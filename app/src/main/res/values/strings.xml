@@ -2368,6 +2368,10 @@
     <string name="ai_translate_test_success">测试成功：%1$s</string>
     <string name="ai_translate_test_failed">测试失败：%1$s</string>
     <string name="ai_translate_failed_title">AI 翻译失败</string>
+    <string name="ai_translate_fetch_models">获取模型列表</string>
+    <string name="ai_translate_fetch_models_empty">未获取到模型</string>
+    <string name="ai_translate_fetch_models_failed">获取失败：%1$s</string>
+    <string name="ai_translate_toggle_key_visibility">显示或隐藏 API Key</string>
 
     <!-- 同义词词典（issue #904 按标签收藏优化）ceui.pixiv.db.synonym / ceui.pixiv.ui.synonym -->
     <string name="synonym_dict_title">同义词词典</string>

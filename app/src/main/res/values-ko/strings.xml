@@ -2148,6 +2148,10 @@
     <string name="ai_translate_test_success">테스트 성공: %1$s</string>
     <string name="ai_translate_test_failed">테스트 실패: %1$s</string>
     <string name="ai_translate_failed_title">AI 번역 실패</string>
+    <string name="ai_translate_fetch_models">모델 목록 가져오기</string>
+    <string name="ai_translate_fetch_models_empty">모델을 찾을 수 없습니다</string>
+    <string name="ai_translate_fetch_models_failed">가져오기 실패: %1$s</string>
+    <string name="ai_translate_toggle_key_visibility">API key 표시 전환</string>
     <string name="synonym_dict_title">동의어 사전</string>
     <string name="synonym_dict_enable">동의어 사전 사용</string>
     <string name="keep_status_bar_when_view_image">이미지 볼 때 상태 표시줄 영역 유지</string>

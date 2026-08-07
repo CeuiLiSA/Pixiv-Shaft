@@ -2148,6 +2148,10 @@
     <string name="ai_translate_test_success">Test başarılı: %1$s</string>
     <string name="ai_translate_test_failed">Test başarısız: %1$s</string>
     <string name="ai_translate_failed_title">AI çevirisi başarısız</string>
+    <string name="ai_translate_fetch_models">Model listesini al</string>
+    <string name="ai_translate_fetch_models_empty">Model bulunamadı</string>
+    <string name="ai_translate_fetch_models_failed">Alınamadı: %1$s</string>
+    <string name="ai_translate_toggle_key_visibility">API key göster veya gizle</string>
     <string name="synonym_dict_title">Eş Anlamlılar Sözlüğü</string>
     <string name="synonym_dict_enable">Eş anlamlılar sözlüğünü etkinleştir</string>
     <string name="keep_status_bar_when_view_image">Resimleri görüntülerken durum çubuğu alanını koru</string>
