@@ -225,12 +225,15 @@ object QueueDownloadManager {
     private val batchSuccessCount = java.util.concurrent.atomic.AtomicInteger(0)
     private val batchFailedCount = java.util.concurrent.atomic.AtomicInteger(0)
 
-    /** 队列真正跑空（无 PENDING、无 illust/ugoira inflight）时弹汇总 Toast 并清零计数。 */
+    /**
+     * 队列真正跑空（无 PENDING、无 illust/ugoira inflight）时弹汇总 Toast 并清零计数。
+     * 不受 isToastDownloadResult 开关控制：那个开关灭的是「逐张刷屏」，整批一条的
+     * 汇总正是 #950 要的完成反馈，关掉开关的用户也需要知道批量下载结束了。
+     */
     private fun maybeToastBatchSummary() {
         val success = batchSuccessCount.getAndSet(0)
         val failed = batchFailedCount.getAndSet(0)
         if (success == 0 && failed == 0) return
-        if (!Shaft.sSettings.isToastDownloadResult()) return
         val ctx = appContext ?: return
         Common.showToast(ctx.getString(R.string.bulk_download_summary, success + failed, success, failed))
     }
