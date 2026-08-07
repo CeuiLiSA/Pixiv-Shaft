@@ -34,8 +34,9 @@ interface DownloadQueueDao {
     @Query("SELECT * FROM download_queue WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): DownloadQueueEntity?
 
+    /** @return 受影响行数；行已被「清空全部」删掉时为 0，调用方据此跳过批量汇总计数。 */
     @Query("UPDATE download_queue SET status = :newStatus, errorMsg = :err, finishedAt = :finishedAt WHERE id = :id")
-    suspend fun updateStatus(id: Long, newStatus: String, err: String? = null, finishedAt: Long? = null)
+    suspend fun updateStatus(id: Long, newStatus: String, err: String? = null, finishedAt: Long? = null): Int
 
     @Query("UPDATE download_queue SET retryCount = retryCount + 1 WHERE id = :id")
     suspend fun bumpRetry(id: Long)

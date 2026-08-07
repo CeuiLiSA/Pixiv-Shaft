@@ -469,8 +469,7 @@ object QueueDownloadManager {
             when (kind) {
                 FinalizeKind.SUCCESS -> {
                     retryStates.remove(inf.queueRowId)  // 进度看门狗状态随行终结
-                    batchSuccessCount.incrementAndGet()
-                    val ok = runCatching {
+                    val updated = runCatching {
                         dao.updateStatus(
                             inf.queueRowId, QueueStatus.SUCCESS,
                             finishedAt = System.currentTimeMillis()
@@ -479,10 +478,13 @@ object QueueDownloadManager {
                         // 关键 DB 失败必须 ERROR 级 —— 这条行会卡 DOWNLOADING，幸好
                         // [runMainLoop] idle 路径里有 resurrectInProgress 兜底。
                         Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] mark SUCCESS failed id=${inf.queueRowId}")
-                    }.isSuccess
+                    }.getOrDefault(0)
+                    // 只有行还真实存在（没被「清空全部」删掉）才计入批量汇总，
+                    // 否则清空后队列跑空会弹一条幽灵「批量下载完成」。
+                    if (updated > 0) batchSuccessCount.incrementAndGet()
                     queueListInvalidations.tryEmit(Unit)
                     Timber.tag(TAG).i(
-                        "[QUEUE-CONSUMER] illust=${inf.illustId} SUCCESS (db=${if (ok) "ok" else "fail"})"
+                        "[QUEUE-CONSUMER] illust=${inf.illustId} SUCCESS (db=${if (updated > 0) "ok" else "miss"})"
                     )
                 }
 
@@ -533,14 +535,13 @@ object QueueDownloadManager {
                         )
                     } else {
                         retryStates.remove(inf.queueRowId)
-                        batchFailedCount.incrementAndGet()
                         // 终态失败：把残留的 FAILED P 从 content 清掉，免得长期下载活动后
                         // "下载中" tab 堆一堆 FAILED 行 / Manager.startAll 又把它们翻 INIT。
                         for (p in remainingForThis) {
                             runCatching { Manager.get().clearOne(p.uuid) }
                                 .onFailure { Timber.tag(TAG).w(it, "clearOne terminal-fail p=${p.uuid}") }
                         }
-                        runCatching {
+                        val updated = runCatching {
                             dao.updateStatus(
                                 inf.queueRowId, QueueStatus.FAILED,
                                 err = if (kind == FinalizeKind.STALLED) "stalled" else "all pages failed",
@@ -548,7 +549,9 @@ object QueueDownloadManager {
                             )
                         }.onFailure {
                             Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] mark FAILED failed id=${inf.queueRowId}")
-                        }
+                        }.getOrDefault(0)
+                        // 同 SUCCESS 分支：行已被清空时不计入汇总
+                        if (updated > 0) batchFailedCount.incrementAndGet()
                         queueListInvalidations.tryEmit(Unit)
                         Timber.tag(TAG).w(
                             "[QUEUE-CONSUMER] illust=${inf.illustId} permanently FAILED kind=$kind"
@@ -814,13 +817,14 @@ object QueueDownloadManager {
                 downloadUgoira(bean, ugoiraEncodeSem) { phase ->
                     setUgoiraPhase(row.id, bean, phase)
                 }
-                runCatching {
+                val updated = runCatching {
                     dao.updateStatus(
                         row.id, QueueStatus.SUCCESS,
                         finishedAt = System.currentTimeMillis()
                     )
-                }
-                batchSuccessCount.incrementAndGet()
+                }.getOrDefault(0)
+                // 行已被「清空全部」删掉（deleteAll 赛跑赢了 encode）时不计入批量汇总
+                if (updated > 0) batchSuccessCount.incrementAndGet()
                 Timber.tag(TAG).i("[QUEUE-CONSUMER] ugoira success illust=${row.illustId}")
             } catch (cancellation: kotlinx.coroutines.CancellationException) {
                 // pause / clearAll 路径：把行翻回 PENDING，让 resume 时主循环再 pull。
@@ -835,13 +839,13 @@ object QueueDownloadManager {
                         dao.updateStatus(row.id, QueueStatus.PENDING, err = e.message)
                     }
                 } else {
-                    batchFailedCount.incrementAndGet()
-                    runCatching {
+                    val updated = runCatching {
                         dao.updateStatus(
                             row.id, QueueStatus.FAILED, err = e.message,
                             finishedAt = System.currentTimeMillis()
                         )
-                    }
+                    }.getOrDefault(0)
+                    if (updated > 0) batchFailedCount.incrementAndGet()
                 }
             } finally {
                 // finally 在已取消协程里 dao.updateStatus 会立刻抛 CancellationException
