@@ -5,19 +5,19 @@ import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.loxia.launchSuspend
-import ceui.pixiv.ui.translate.GoogleWebTranslator
 import ceui.pixiv.ui.translate.appTranslateTargetLang
-import ceui.pixiv.ui.translate.promptProxyNeededIfPossible
+import ceui.pixiv.ui.translate.currentTranslator
+import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
 /**
- * 长按评论「翻译」:走项目里现成的谷歌网页翻译([GoogleWebTranslator]),译成 **app 内语言**
- * (见 [appTranslateTargetLang],不是写死中文);译文用 QMUIDialog 弹出、可一键复制;
- * 失败(多半是谷歌被墙没开代理)复用 [promptProxyNeededIfPossible] 给出明确提示,别让用户当成
- * app 的 bug。弹窗挂 SkinManager 跟随日夜皮肤。
+ * 长按评论「翻译」:走 [currentTranslator](内置谷歌网页翻译,或用户配置的自定义 AI 引擎 #975),
+ * 译成 **app 内语言**(见 [appTranslateTargetLang],不是写死中文);译文用 QMUIDialog 弹出、
+ * 可一键复制;失败复用 [promptTranslateFailedIfPossible] 按引擎给出明确提示(谷歌 → 需要代理,
+ * AI → 真实错误),别让用户当成 app 的 bug。弹窗挂 SkinManager 跟随日夜皮肤。
  */
 fun Fragment.translateComment(text: String?) {
     val src = text?.trim().orEmpty()
@@ -26,16 +26,16 @@ fun Fragment.translateComment(text: String?) {
     Common.showToast(R.string.string_translating)
     launchSuspend {
         val translated = try {
-            GoogleWebTranslator.translate(src, appTranslateTargetLang())
+            currentTranslator().translate(src, appTranslateTargetLang())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Timber.e(e, "translate comment failed")
-            promptProxyNeededIfPossible()
+            promptTranslateFailedIfPossible(e)
             return@launchSuspend
         }
         if (translated.isBlank()) {
-            promptProxyNeededIfPossible()
+            promptTranslateFailedIfPossible(null)
             return@launchSuspend
         }
         QMUIDialog.MessageDialogBuilder(ctx)

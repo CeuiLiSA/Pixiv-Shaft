@@ -282,6 +282,17 @@ public class Settings {
     /** 远端下载目录（aria2 的 dir 选项），可空 = 使用 aria2 全局配置 */
     private String aria2RemoteDir = "";
 
+    // ===== 自定义 AI 翻译（#975）：启用后评论/漫画翻译走 OpenAI 兼容接口，替代内置 Google web 端点 =====
+    private boolean aiTranslateEnabled = false;
+    /** OpenAI 兼容 base URL，如 https://api.openai.com/v1（自动补 /chat/completions） */
+    private String aiTranslateBaseUrl = "";
+    /** API key，本地部署（Ollama 等）可空 */
+    private String aiTranslateApiKey = "";
+    /** 模型名，如 gpt-4o-mini / deepseek-chat / sakura-14b */
+    private String aiTranslateModel = "";
+    /** 自定义系统提示词，可空 = 使用内置翻译提示词 */
+    private String aiTranslatePrompt = "";
+
     /** 已完成 tab 的列表展示模式（0=横向列表，1=网格 2 列，2=紧凑缩图 4 列）。1 = 旧默认。 */
     private int doneListLayoutMode = 1;
 
@@ -904,6 +915,46 @@ public class Settings {
 
     public void setAria2RemoteDir(String aria2RemoteDir) {
         this.aria2RemoteDir = aria2RemoteDir;
+    }
+
+    public boolean isAiTranslateEnabled() {
+        return aiTranslateEnabled;
+    }
+
+    public void setAiTranslateEnabled(boolean aiTranslateEnabled) {
+        this.aiTranslateEnabled = aiTranslateEnabled;
+    }
+
+    public String getAiTranslateBaseUrl() {
+        return aiTranslateBaseUrl == null ? "" : aiTranslateBaseUrl;
+    }
+
+    public void setAiTranslateBaseUrl(String aiTranslateBaseUrl) {
+        this.aiTranslateBaseUrl = aiTranslateBaseUrl;
+    }
+
+    public String getAiTranslateApiKey() {
+        return aiTranslateApiKey == null ? "" : aiTranslateApiKey;
+    }
+
+    public void setAiTranslateApiKey(String aiTranslateApiKey) {
+        this.aiTranslateApiKey = aiTranslateApiKey;
+    }
+
+    public String getAiTranslateModel() {
+        return aiTranslateModel == null ? "" : aiTranslateModel;
+    }
+
+    public void setAiTranslateModel(String aiTranslateModel) {
+        this.aiTranslateModel = aiTranslateModel;
+    }
+
+    public String getAiTranslatePrompt() {
+        return aiTranslatePrompt == null ? "" : aiTranslatePrompt;
+    }
+
+    public void setAiTranslatePrompt(String aiTranslatePrompt) {
+        this.aiTranslatePrompt = aiTranslatePrompt;
     }
 
     /** clamp 到 [0,2]，0=LIST, 1=GRID, 2=COMPACT */

@@ -18,6 +18,31 @@ import timber.log.Timber
  * 调用方仍会走原 toast 路径,不会缺少错误反馈。
  */
 internal fun promptProxyNeededIfPossible() {
+    showTranslateDialogIfPossible { activity ->
+        QMUIDialog.MessageDialogBuilder(activity)
+            .setTitle(R.string.translate_proxy_required_title)
+            .setMessage(R.string.translate_proxy_required_message)
+    }
+}
+
+/**
+ * 翻译失败的统一提示:走自定义 AI 引擎(#975)时「需要代理」是误导 — 失败多半是
+ * key 无效/模型名错/服务没起,把真实错误摆给用户;走 Google 引擎才提示代理。
+ */
+internal fun promptTranslateFailedIfPossible(e: Exception?) {
+    if (!AiTranslator.isActive()) {
+        promptProxyNeededIfPossible()
+        return
+    }
+    val detail = e?.message ?: e?.toString() ?: ""
+    showTranslateDialogIfPossible { activity ->
+        QMUIDialog.MessageDialogBuilder(activity)
+            .setTitle(R.string.ai_translate_failed_title)
+            .setMessage(detail.ifBlank { activity.getString(R.string.ai_translate_failed_title) })
+    }
+}
+
+private fun showTranslateDialogIfPossible(build: (Activity) -> QMUIDialog.MessageDialogBuilder) {
     val activity: Activity? = ActivityUtils.getTopActivity()
     if (activity == null || activity.isFinishing || activity.isDestroyed) {
         Timber.tag("TranslateProxyHint").w("no resumed activity, skip dialog")
@@ -26,9 +51,7 @@ internal fun promptProxyNeededIfPossible() {
     activity.runOnUiThread {
         if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
         try {
-            QMUIDialog.MessageDialogBuilder(activity)
-                .setTitle(R.string.translate_proxy_required_title)
-                .setMessage(R.string.translate_proxy_required_message)
+            build(activity)
                 .setSkinManager(QMUISkinManager.defaultInstance(activity))
                 .addAction(0, android.R.string.ok, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                     d.dismiss()

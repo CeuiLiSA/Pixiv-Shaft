@@ -138,7 +138,7 @@
                 <RelativeLayout
                     android:id="@+id/ocr_model_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/bg_m3_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -151,6 +151,26 @@
 
                     <TextView
                         android:id="@+id/ocr_model_status"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/ai_translate_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/ai_translate_settings_title" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/ai_translate_status"
                         style="@style/M3SetValue" />
 
                 </RelativeLayout>

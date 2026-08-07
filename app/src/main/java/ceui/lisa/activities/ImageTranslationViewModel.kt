@@ -14,14 +14,14 @@ import ceui.loxia.asLiveData
 import ceui.pixiv.ui.translate.BubbleAreaFinder
 import ceui.pixiv.ui.translate.ComicTextDetector
 import ceui.pixiv.ui.translate.ComicTextDetectorModel
-import ceui.pixiv.ui.translate.GoogleWebTranslator
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.translate.MangaOcrRecognizer
 import ceui.pixiv.ui.translate.TextEraser
 import ceui.pixiv.ui.translate.TextMask
 import ceui.pixiv.ui.translate.TextRenderer
 import ceui.pixiv.ui.translate.appTranslateTargetLang
-import ceui.pixiv.ui.translate.promptProxyNeededIfPossible
+import ceui.pixiv.ui.translate.currentTranslator
+import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import ceui.pixiv.ui.upscale.MangaOcr
 import ceui.pixiv.ui.upscale.OcrTextRegion
 import ceui.pixiv.ui.upscale.scaledBy
@@ -140,25 +140,25 @@ class ImageTranslationViewModel : ViewModel() {
             return
         }
 
-        // 3. Google batch 翻译 — 一次 POST 打包全部 region,中途没有有意义的进度,
-        //    所以只 post 一个 indeterminate 状态盖住几秒 HTTP 等待,不再每 chunk 闪 N/N
+        // 3. batch 翻译(Google web 或自定义 AI 引擎 #975)— 一次请求打包全部 region,
+        //    中途没有有意义的进度,所以只 post 一个 indeterminate 状态盖住 HTTP 等待,不再每 chunk 闪 N/N
         _status.postValue(Status(app.getString(R.string.ocr_translating)))
         val translations = mutableMapOf<Int, String>()
         try {
-            GoogleWebTranslator.translateBatch(
+            currentTranslator().translateBatch(
                 inputs = regions.map { it.text },
                 outputLang = appTranslateTargetLang(),
                 onItem = { i, translated -> translations[i] = translated },
             )
         } catch (e: Exception) {
-            // Google Translate 在国内被墙,大概率是代理没开;给个明确提示别让用户当 app bug
-            Timber.e(e, "GoogleWebTranslator.translateBatch failed")
-            promptProxyNeededIfPossible()
+            // 按引擎给明确提示(谷歌被墙 → 需要代理;AI → 真实错误),别让用户当 app bug
+            Timber.e(e, "translateBatch failed")
+            promptTranslateFailedIfPossible(e)
             return
         }
         if (translations.isEmpty()) {
-            // batch 走完了但一条没回 — 多半也是代理半通不通(per-item fallback 全失败)
-            promptProxyNeededIfPossible()
+            // batch 走完了但一条没回 — Google 多半是代理半通不通(per-item fallback 全失败)
+            promptTranslateFailedIfPossible(null)
             return
         }
 
@@ -263,11 +263,11 @@ class ImageTranslationViewModel : ViewModel() {
                 translateSingle(ocr.text)
             } catch (e: Exception) {
                 Timber.e(e, "manual: translate failed")
-                promptProxyNeededIfPossible()
+                promptTranslateFailedIfPossible(e)
                 return
             }
             if (translated.isBlank()) {
-                promptProxyNeededIfPossible()
+                promptTranslateFailedIfPossible(null)
                 return
             }
 
@@ -343,7 +343,7 @@ class ImageTranslationViewModel : ViewModel() {
 
     private suspend fun translateSingle(text: String): String {
         var out = ""
-        GoogleWebTranslator.translateBatch(
+        currentTranslator().translateBatch(
             inputs = listOf(text),
             outputLang = appTranslateTargetLang(),
             onItem = { _, translated -> out = translated },

@@ -95,6 +95,13 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
                     ceui.pixiv.ui.translate.MangaOcrModelManager.INSTANCE,
                     ceui.pixiv.ui.translate.MangaOcrModel.MANGA_OCR_BASE);
         }
+
+        // 自定义 AI 翻译（#975）— OpenAI 兼容接口替代内置 Google web 翻译
+        baseBind.aiTranslateRela.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
+            intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "自定义AI翻译");
+            startActivity(intent);
+        });
     }
 
     private void updateModelStatus() {
@@ -117,6 +124,11 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
         baseBind.ocrModelStatus.setText(ocrReady
                 ? ocr.getDisplayName()
                 : getString(R.string.string_model_not_ready, ocr.getSizeLabel()));
+
+        // 已配置并启用 → 显示模型名；否则显示「未设置」
+        baseBind.aiTranslateStatus.setText(ceui.pixiv.ui.translate.AiTranslator.INSTANCE.isActive()
+                ? Shaft.sSettings.getAiTranslateModel()
+                : getString(R.string.string_not_set));
     }
 
     // 长按 Settings 模型行直接删除。未下载状态长按提示用户先下载；

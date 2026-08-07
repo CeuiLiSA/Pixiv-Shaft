@@ -1,0 +1,136 @@
+package ceui.pixiv.ui.settings
+
+import android.os.Bundle
+import android.view.View
+import android.widget.ImageView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import ceui.lisa.R
+import ceui.lisa.activities.Shaft
+import ceui.lisa.databinding.FragmentAiTranslateSettingsBinding
+import ceui.lisa.utils.Local
+import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.translate.AiTranslator
+import com.hjq.toast.Toaster
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+
+/**
+ * 自定义 AI 翻译设置页（#975）。
+ *
+ * 配置 OpenAI 兼容接口（base URL + API key + 模型名 + 可选自定义提示词）；启用后
+ * 评论翻译与漫画翻译改走该接口（[AiTranslator]），替代内置的 Google web 端点。
+ * base URL 可指向任何兼容服务：OpenAI / DeepSeek 等云端，或 Ollama、llama.cpp
+ * server（Sakura 模型）等本地部署（本地服务 key 可留空）。
+ *
+ * 视觉风格与保存/测试交互对齐 [Aria2SettingsFragment]（bg_v3 卡片 + pill 按钮 +
+ * layout_toolbar 重着色）。
+ */
+class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_settings) {
+
+    private val binding by viewBinding(FragmentAiTranslateSettingsBinding::bind)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setUpToolbar()
+        loadSettings()
+
+        binding.aiTranslateSaveBtn.setOnClickListener { save() }
+        binding.aiTranslateTestBtn.setOnClickListener { testConfig() }
+    }
+
+    private fun setUpToolbar() {
+        // 共用的 layout_toolbar 是给深色图片背景设计的（白字 + 浅色返回箭头），
+        // V3 浅色背景上需要重着色 —— 与 Aria2SettingsFragment 同款处理。
+        val toolbar = binding.toolbarLayout
+        toolbar.naviTitle.apply {
+            text = getString(R.string.ai_translate_settings_title)
+            setTextColor(resources.getColor(R.color.v3_text_1, null))
+            setTextAppearance(R.style.textMontserratBold)
+            textSize = 18f
+        }
+        (toolbar.naviBack as ImageView).setColorFilter(resources.getColor(R.color.v3_text_1, null))
+        toolbar.naviBack.setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+        toolbar.naviMore.visibility = View.GONE
+
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar.root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(top = bars.top + dp(10))
+            insets
+        }
+        ViewCompat.requestApplyInsets(toolbar.root)
+    }
+
+    private fun loadSettings() {
+        val settings = Shaft.sSettings
+        binding.aiTranslateEnableSwitch.isChecked = settings.isAiTranslateEnabled
+        binding.aiTranslateBaseUrl.setText(settings.aiTranslateBaseUrl)
+        binding.aiTranslateApiKey.setText(settings.aiTranslateApiKey)
+        binding.aiTranslateModel.setText(settings.aiTranslateModel)
+        binding.aiTranslatePrompt.setText(settings.aiTranslatePrompt)
+    }
+
+    private fun save() {
+        val enabled = binding.aiTranslateEnableSwitch.isChecked
+        val baseUrl = binding.aiTranslateBaseUrl.text.toString().trim()
+        val model = binding.aiTranslateModel.text.toString().trim()
+
+        if (enabled && (baseUrl.isEmpty() || model.isEmpty())) {
+            Toaster.show(getString(R.string.ai_translate_config_required))
+            return
+        }
+        if (baseUrl.isNotEmpty() && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            Toaster.show(getString(R.string.ai_translate_url_invalid))
+            return
+        }
+
+        val settings = Shaft.sSettings
+        settings.isAiTranslateEnabled = enabled
+        settings.aiTranslateBaseUrl = baseUrl
+        settings.aiTranslateApiKey = binding.aiTranslateApiKey.text.toString().trim()
+        settings.aiTranslateModel = model
+        settings.aiTranslatePrompt = binding.aiTranslatePrompt.text.toString().trim()
+        Local.setSettings(settings)
+        Toaster.show(getString(R.string.aria2_saved))
+    }
+
+    private fun testConfig() {
+        val baseUrl = binding.aiTranslateBaseUrl.text.toString().trim()
+        val model = binding.aiTranslateModel.text.toString().trim()
+        if (baseUrl.isEmpty() || model.isEmpty()) {
+            Toaster.show(getString(R.string.ai_translate_config_required))
+            return
+        }
+        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            Toaster.show(getString(R.string.ai_translate_url_invalid))
+            return
+        }
+        val apiKey = binding.aiTranslateApiKey.text.toString().trim()
+        val prompt = binding.aiTranslatePrompt.text.toString().trim()
+
+        binding.aiTranslateTestBtn.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            // CancellationException 必须重新抛出（测试期间退出页面 → scope 取消）：
+            // 吞掉会继续访问已销毁的 binding 直接 crash —— 与 Aria2SettingsFragment 同款守卫。
+            try {
+                val translated = AiTranslator.testConfig(baseUrl, apiKey, model, prompt)
+                binding.aiTranslateTestBtn.isEnabled = true
+                Toaster.show(getString(R.string.ai_translate_test_success, translated))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                binding.aiTranslateTestBtn.isEnabled = true
+                Toaster.show(getString(R.string.ai_translate_test_failed, e.message ?: e.toString()))
+            }
+        }
+    }
+
+    private fun dp(v: Int): Int =
+        (v * resources.displayMetrics.density).toInt()
+}

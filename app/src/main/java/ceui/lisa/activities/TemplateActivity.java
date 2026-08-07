@@ -331,6 +331,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new ceui.pixiv.ui.settings.DownloadPathSettingsFragment();
                 case "aria2远程下载":
                     return new ceui.pixiv.ui.settings.Aria2SettingsFragment();
+                case "自定义AI翻译":
+                    return new ceui.pixiv.ui.settings.AiTranslateSettingsFragment();
                 case "小说信息头":
                     return new ceui.pixiv.ui.settings.NovelHeaderSettingsFragment();
                 case "捐赠":
