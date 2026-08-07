@@ -2,6 +2,7 @@ package ceui.pixiv.ui.bulk
 
 import android.app.Application
 import android.content.Context
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
@@ -9,6 +10,7 @@ import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.DownloadLimitTypeUtil
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
@@ -215,6 +217,24 @@ object QueueDownloadManager {
     private val ugoiraInFlightRowIds: MutableSet<Long> =
         java.util.Collections.synchronizedSet(mutableSetOf())
 
+    /**
+     * 本轮批量的收口计数（issue #950）：队列产生的 page 不逐条弹 Toast（DownloadItem.silent），
+     * 改为整批跑空时弹一条「成功 x / 失败 y」汇总。illust 在主循环单协程记账，ugoira 在
+     * [ugoiraScope] 多线程记账，所以用 Atomic。跑空弹完即清零，下一批重新起算。
+     */
+    private val batchSuccessCount = java.util.concurrent.atomic.AtomicInteger(0)
+    private val batchFailedCount = java.util.concurrent.atomic.AtomicInteger(0)
+
+    /** 队列真正跑空（无 PENDING、无 illust/ugoira inflight）时弹汇总 Toast 并清零计数。 */
+    private fun maybeToastBatchSummary() {
+        val success = batchSuccessCount.getAndSet(0)
+        val failed = batchFailedCount.getAndSet(0)
+        if (success == 0 && failed == 0) return
+        if (!Shaft.sSettings.isToastDownloadResult()) return
+        val ctx = appContext ?: return
+        Common.showToast(ctx.getString(R.string.bulk_download_summary, success + failed, success, failed))
+    }
+
     // [UgoiraPhase] / [UgoiraInFlight] 已移到 UgoiraTypes.kt（同包，引用方式不变：直接写名字）
 
     /**
@@ -359,6 +379,10 @@ object QueueDownloadManager {
                 val hasPending = runCatching { dao.countByStatus(QueueStatus.PENDING) > 0 }
                     .getOrDefault(false)
                 if (!hasPending) {
+                    // ugoira 行在 DB 里是 DOWNLOADING、也不在 inFlight，得单独确认没在飞
+                    if (ugoiraInFlightRowIds.isEmpty()) {
+                        maybeToastBatchSummary()
+                    }
                     Timber.tag(TAG).i("[QUEUE-CONSUMER] idle, awaiting next tickle")
                     tickle.receive()
                     continue
@@ -442,6 +466,7 @@ object QueueDownloadManager {
             when (kind) {
                 FinalizeKind.SUCCESS -> {
                     retryStates.remove(inf.queueRowId)  // 进度看门狗状态随行终结
+                    batchSuccessCount.incrementAndGet()
                     val ok = runCatching {
                         dao.updateStatus(
                             inf.queueRowId, QueueStatus.SUCCESS,
@@ -505,6 +530,7 @@ object QueueDownloadManager {
                         )
                     } else {
                         retryStates.remove(inf.queueRowId)
+                        batchFailedCount.incrementAndGet()
                         // 终态失败：把残留的 FAILED P 从 content 清掉，免得长期下载活动后
                         // "下载中" tab 堆一堆 FAILED 行 / Manager.startAll 又把它们翻 INIT。
                         for (p in remainingForThis) {
@@ -580,6 +606,7 @@ object QueueDownloadManager {
                     val di = DownloadItem(infNeedingPage.bean, i)
                     di.url = IllustDownload.getUrl(infNeedingPage.bean, i)
                     di.showUrl = IllustDownload.getShowUrl(infNeedingPage.bean, i)
+                    di.isSilent = true  // 批量 page 不逐条弹 Toast，跑空时统一弹汇总（issue #950）
                     Manager.get().addTask(di)
                 }.onFailure {
                     Timber.tag(TAG).w(
@@ -790,6 +817,7 @@ object QueueDownloadManager {
                         finishedAt = System.currentTimeMillis()
                     )
                 }
+                batchSuccessCount.incrementAndGet()
                 Timber.tag(TAG).i("[QUEUE-CONSUMER] ugoira success illust=${row.illustId}")
             } catch (cancellation: kotlinx.coroutines.CancellationException) {
                 // pause / clearAll 路径：把行翻回 PENDING，让 resume 时主循环再 pull。
@@ -804,6 +832,7 @@ object QueueDownloadManager {
                         dao.updateStatus(row.id, QueueStatus.PENDING, err = e.message)
                     }
                 } else {
+                    batchFailedCount.incrementAndGet()
                     runCatching {
                         dao.updateStatus(
                             row.id, QueueStatus.FAILED, err = e.message,

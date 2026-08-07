@@ -1558,6 +1558,7 @@
     <string name="bulk_type_illust">插畫</string>
     <string name="bulk_type_manga">漫畫</string>
     <string name="bulk_select_title">批次下載 · 選擇作品</string>
+    <string name="bulk_download_summary">批次下載完成：共 %1$d 個，成功 %2$d，失敗 %3$d</string>
     <string name="bulk_select_select_all">全選</string>
     <string name="bulk_select_clear_all">取消全選</string>
     <string name="history_multi_select">多選</string>

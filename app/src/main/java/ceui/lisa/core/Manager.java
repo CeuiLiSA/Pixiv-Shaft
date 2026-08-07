@@ -743,13 +743,13 @@ public class Manager {
                 ManagerReactive.invalidate();
             });
             try { complete(downloadItem, true); } catch (Throwable t) { Common.showLog("[ARIA2] complete(success) failed: " + t); }
-            if (Shaft.sSettings.isToastDownloadResult()) {
+            if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
                 AndroidSchedulers.mainThread().scheduleDirect(() ->
                         Common.showToast(mContext.getString(R.string.aria2_task_sent, downloadItem.getName())));
             }
         }, throwable -> {
             Common.showLog("[ARIA2] dispatch failed: " + throwable);
-            if (Shaft.sSettings.isToastDownloadResult()) {
+            if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
                 Common.showToast(mContext.getString(R.string.aria2_send_failed, String.valueOf(throwable.getMessage())));
             }
             complete(downloadItem, false);
@@ -914,7 +914,7 @@ public class Manager {
             // 广播放第二个 Runnable，跟 content.remove 顺序保留（main thread FIFO）。
             final DownloadEntity finalEntity = downloadEntity;
             AndroidSchedulers.mainThread().scheduleDirect(() -> {
-                if (Shaft.sSettings.isToastDownloadResult()) {
+                if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
                     Common.showToast(downloadItem.getName() + mContext.getString(R.string.has_been_downloaded));
                 }
                 {
@@ -935,7 +935,7 @@ public class Manager {
         }, throwable -> {
             //下载失败，处理相关逻辑
             Common.showLog("Manager download error: " + throwable.getMessage());
-            if (Shaft.sSettings.isToastDownloadResult()) {
+            if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
                 Common.showToast("下载失败，原因：" + throwable.toString());
             }
             Common.showLog("下载失败，原因：" + throwable.toString());

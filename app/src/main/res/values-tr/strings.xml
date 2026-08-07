@@ -1556,6 +1556,7 @@
     <string name="bulk_type_illust">illüstrasyonlar</string>
     <string name="bulk_type_manga">manga</string>
     <string name="bulk_select_title">Toplu indirme · Eserleri seç</string>
+    <string name="bulk_download_summary">Toplu indirme tamamlandı: toplam %1$d, %2$d başarılı, %3$d başarısız</string>
     <string name="bulk_select_select_all">Tümünü seç</string>
     <string name="bulk_select_clear_all">Seçimi kaldır</string>
     <string name="history_multi_select">Çoklu seçim</string>

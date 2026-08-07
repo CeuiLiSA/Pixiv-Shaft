@@ -1715,6 +1715,7 @@
 
     <!-- Bulk select page -->
     <string name="bulk_select_title">批量下载 · 选择作品</string>
+    <string name="bulk_download_summary">批量下载完成：共 %1$d 个，成功 %2$d，失败 %3$d</string>
     <string name="bulk_select_select_all">全选</string>
     <string name="bulk_select_clear_all">取消全选</string>
 

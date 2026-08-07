@@ -1556,6 +1556,7 @@
     <string name="bulk_type_illust">일러스트</string>
     <string name="bulk_type_manga">만화</string>
     <string name="bulk_select_title">일괄 다운로드 · 작품 선택</string>
+    <string name="bulk_download_summary">일괄 다운로드 완료: 총 %1$d개, 성공 %2$d개, 실패 %3$d개</string>
     <string name="bulk_select_select_all">전체 선택</string>
     <string name="bulk_select_clear_all">선택 해제</string>
     <string name="history_multi_select">다중 선택</string>

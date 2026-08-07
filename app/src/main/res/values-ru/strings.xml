@@ -1556,6 +1556,7 @@
     <string name="bulk_type_illust">иллюстрации</string>
     <string name="bulk_type_manga">манга</string>
     <string name="bulk_select_title">Массовая загрузка · Выбор работ</string>
+    <string name="bulk_download_summary">Массовая загрузка завершена: всего %1$d, успешно %2$d, с ошибкой %3$d</string>
     <string name="bulk_select_select_all">Выбрать всё</string>
     <string name="bulk_select_clear_all">Снять выбор</string>
     <string name="history_multi_select">Выбрать несколько</string>

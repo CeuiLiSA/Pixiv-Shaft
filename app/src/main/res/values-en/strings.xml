@@ -1556,6 +1556,7 @@
     <string name="bulk_type_illust">illustrations</string>
     <string name="bulk_type_manga">manga</string>
     <string name="bulk_select_title">Batch download · Select works</string>
+    <string name="bulk_download_summary">Batch download finished: %1$d total, %2$d succeeded, %3$d failed</string>
     <string name="bulk_select_select_all">Select all</string>
     <string name="bulk_select_clear_all">Deselect all</string>
     <string name="history_multi_select">Multi-select</string>

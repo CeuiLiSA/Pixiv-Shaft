@@ -21,6 +21,9 @@ public class DownloadItem implements Serializable {
     private boolean autoSave = true;
     private int state = DownloadState.INIT;
     private boolean paused = false;
+    // 批量队列产生的 page 不逐条弹完成/失败 Toast，由队列收口时统一弹汇总（issue #950）。
+    // 参与序列化：冷启动 Manager.restore 带回的批量 page 也要保持静默。
+    private boolean silent = false;
     private int nonius = 0;
     private transient long currentSize = 0;
     private transient long totalSize = 0;
@@ -88,6 +91,14 @@ public class DownloadItem implements Serializable {
 
     public void setAutoSave(boolean autoSave) {
         this.autoSave = autoSave;
+    }
+
+    public boolean isSilent() {
+        return silent;
+    }
+
+    public void setSilent(boolean silent) {
+        this.silent = silent;
     }
 
     public boolean isSame(DownloadItem next) {

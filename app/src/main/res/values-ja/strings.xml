@@ -1556,6 +1556,7 @@
     <string name="bulk_type_illust">イラスト</string>
     <string name="bulk_type_manga">マンガ</string>
     <string name="bulk_select_title">一括ダウンロード · 作品を選択</string>
+    <string name="bulk_download_summary">一括ダウンロード完了：全%1$d件、成功%2$d件、失敗%3$d件</string>
     <string name="bulk_select_select_all">すべて選択</string>
     <string name="bulk_select_clear_all">選択解除</string>
     <string name="history_multi_select">複数選択</string>
