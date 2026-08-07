@@ -87,6 +87,8 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
 
         // 本月收藏 / 当前最热 / 画师榜 / 均分榜 / 浏览量榜 / 收藏榜 / AI 榜 / 年代榜
         // 走自建 shaft-api-v2,Lite 渠道不展示 —— GONE。
+        // pixiv 漫画(comic.pixiv.net)虽然不依赖自建后端,但同样是 app-api 之外的站外内容源,
+        // 和 Web 首页 / FANBOX 一个口径:Lite 不出现。
         if (BuildConfig.IS_LITE) {
             baseBind.siteSection.setVisibility(View.GONE);
             baseBind.recentSection.setVisibility(View.GONE);
@@ -98,6 +100,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             baseBind.catYearRank.setVisibility(View.GONE);
             baseBind.catTagRank.setVisibility(View.GONE);
             baseBind.catWallpaperRank.setVisibility(View.GONE);
+            baseBind.catPixivComic.setVisibility(View.GONE);
         }
 
         // ── 「查看全部」跳原来的整页 ──

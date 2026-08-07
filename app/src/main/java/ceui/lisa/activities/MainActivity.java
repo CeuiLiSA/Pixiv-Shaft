@@ -429,12 +429,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
                 new DrawerEntry(R.id.nav_tag_popular_export, R.string.tag_popular_export_entry, isDebugBuild),
                 // 中心页那个「Web 首页」chip 至今是 showComingSoon() 占位,StreetMainFragment
                 // 一直没有可用入口。而网页登录(同步 PHPSESSID)只能从这个页面走,拉黑、按 tag
-                // 筛画师作品都指着它 —— 没入口等于那些功能对普通用户是死的。渠道划分对齐
-                // FragmentCenter 的同名 chip:Lite 不出现。
-                new DrawerEntry(R.id.nav_web_home, R.string.street_title, experimentalAllowed),
-                // FANBOX 没有官方 App、也没有可直连的完整 API(未登录只能浏览列表,post.info 恒 403,
-                // 正文要 FANBOXSESSID),所以先用 WebView 兜着。Lite 不出现:同渠道口径,Play 版
-                // 不带这类站外付费内容入口。
+                // 筛画师作品都指着它 —— 没入口等于那些功能对普通用户是死的。用 !isLite 而不是
+                // experimentalAllowed:后者在 Lite debug 下仍然放行,和 FragmentCenter 那个直接
+                // 认 IS_LITE 的同名 chip 对不齐,Lite 就是所有 buildType 都不出现。
+                new DrawerEntry(R.id.nav_web_home, R.string.street_title, !isLite),
+                // FANBOX 没有官方 App,网页那套 API 里 post.info 还被 Cloudflare 挡了非浏览器
+                // 客户端(正文得靠 FanboxWebBridge 从 WebView 里发)。Lite 不出现:同渠道口径,
+                // Play 版不带这类站外付费内容入口。
                 new DrawerEntry(R.id.nav_fanbox, R.string.fanbox_entry, !isLite),
         });
     }
