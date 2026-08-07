@@ -7,6 +7,9 @@
         <item name="colorPrimaryDark">#4749a0</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
         <item name="colorSwitchThumbNormal">#F1F1F1</item>
+        <!-- QMUI 只把这个 attr 用在 TextView 的 android:textColorHighlight 上(TextView.Compat /
+             QMUITextAppearance),覆盖它 == 只换文字选中高亮色,不碰别的按压态。 -->
+        <item name="qmui_skin_support_color_background_pressed">@color/text_selection_highlight</item>
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>

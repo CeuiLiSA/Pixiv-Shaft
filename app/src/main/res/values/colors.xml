@@ -225,6 +225,10 @@
     <color name="v3_border_1">#0A000000</color>
     <color name="v3_border_2">#0F000000</color>
     <color name="v3_menu_bg">#F5F5F5</color>
+    <!-- 长按选中文字的高亮底色。QMUI 的 TextView.Compat 把它钉成了不透明的
+         qmui_config_color_background_pressed(#EEEFF1),且库里没有 night 版,深色模式下
+         浅色正文压在浅灰块上直接看不见(#973)。日间沿用原值,夜间换成白色 scrim。 -->
+    <color name="text_selection_highlight">#EEEFF1</color>
     <color name="v3_text_1">#1A1A2E</color>
     <color name="v3_text_2">#991A1A2E</color>
     <color name="v3_text_3">#551A1A2E</color>

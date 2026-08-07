@@ -104,6 +104,8 @@
     <color name="v3_border_1">#0AFFFFFF</color>
     <color name="v3_border_2">#0FFFFFFF</color>
     <color name="v3_menu_bg">#1A1A2E</color>
+    <!-- 选中高亮:36% 白 scrim,在近黑背景上看得出选区,浅色正文压上去仍可读 (#973) -->
+    <color name="text_selection_highlight">#5CFFFFFF</color>
     <color name="v3_text_1">#F4F4F8</color>
     <color name="v3_text_2">#9EF4F4F8</color>
     <color name="v3_text_3">#5CF4F4F8</color>
