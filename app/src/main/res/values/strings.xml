@@ -1014,6 +1014,13 @@
     <string name="fanbox_section_comments">评论</string>
     <string name="fanbox_open_in_web">正文需在网页中查看 ›</string>
     <string name="fanbox_comments_locked">赞助后可查看评论</string>
+    <string name="user_tag_advanced_search">高级搜索</string>
+    <string name="user_tag_sheet_title">高级搜索</string>
+    <string name="user_tag_sheet_hint">输入关键字</string>
+    <string name="user_tag_section_works">作品标签</string>
+    <string name="user_tag_sheet_no_match">没有匹配的标签</string>
+    <string name="user_tag_sheet_no_tag">这位画师还没有作品标签</string>
+    <string name="user_tag_sheet_failed">标签加载失败，请稍后重试</string>
     <string name="fanbox_followed">已关注</string>
     <string name="comic_stories_count">全 %1$d 话</string>
     <string name="comic_badge_new">新连载</string>
@@ -2024,7 +2031,6 @@
     <string name="v3_tag_menu_copy_original">复制 tag 原文</string>
     <string name="v3_tag_menu_copy_translation">复制 tag 译文</string>
     <string name="v3_tag_menu_mute">屏蔽此 tag</string>
-    <string name="v3_tag_bar_collapse">收起</string>
 
     <string name="experimental_section">试验性</string>
     <string name="site_recommend">本月收藏</string>

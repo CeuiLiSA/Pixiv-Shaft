@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「高级搜索」里的一行标签,MD3-E 分段行。
+
+  背景刻意不写在 XML 里:分段圆角(段首/段尾 20dp、段中 5dp)取决于该行在列表中的位置,
+  且填充色要跟用户选的强调色走(V3Palette.cardFill / cardHairline,本 App 主题非 Material3,
+  拿不到 MD3 的 colorSurfaceContainer),所以由 UserTagSearchSheet 在 onBindViewHolder 里
+  按 position 生成 RippleDrawable 挂上。行间 2dp 透明间隙 = layout_marginBottom。
+
+  副标题会被 renderer 收起:没有译名的 tag 直接把 `#原tag` 放到主标题位,
+  留一行空副标题会让整列节奏乱掉(全量列表里没译名的约占四成)。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="14dp"
+    android:layout_marginBottom="2dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="18dp"
+    android:paddingVertical="14dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tag_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:letterSpacing="-0.01"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="碧蓝档案" />
+
+        <TextView
+            android:id="@+id/tag_sub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_3"
+            android:textSize="13sp"
+            tools:text="#ブルーアーカイブ" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tag_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:minWidth="46dp"
+        android:paddingHorizontal="11dp"
+        android:paddingVertical="5dp"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:text="227" />
+</LinearLayout>

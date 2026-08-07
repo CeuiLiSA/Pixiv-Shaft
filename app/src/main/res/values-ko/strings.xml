@@ -1832,7 +1832,6 @@
     <string name="v3_tag_menu_copy_original">태그 원문 복사</string>
     <string name="v3_tag_menu_copy_translation">번역 복사</string>
     <string name="v3_tag_menu_mute">이 태그 차단</string>
-    <string name="v3_tag_bar_collapse">접기</string>
     <string name="experimental_section">실험적</string>
     <string name="site_recommend">이번 달 북마크</string>
     <string name="current_hot">지금 인기</string>

@@ -2,7 +2,6 @@ package ceui.lisa.activities
 
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Rect
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
@@ -220,17 +219,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.appBar.addOnOffsetChangedListener { _, verticalOffset ->
             baseBind.refreshLayout.isEnabled = verticalOffset >= 0
         }
-        // 插画 tab 的 tag 筛选条展开后是个内层滚动容器(tag_scroll_container),滚离顶部后
-        // 下拉必须先把它滚回去,不能被这里抢去触发刷新 —— canChildScrollUp 同样问不到它,
-        // 挂回调补上。fragment view 随 ViewPager2 建/毁,findViewById 每次现查,不持引用
-        // 就不用管生命周期;ViewPager2 会把邻页 view 留在窗外,getGlobalVisibleRect 挡住
-        // 「别的 tab 上残留 scrollY 把下拉刷新堵死」。
-        val visibleRect = Rect()
-        baseBind.refreshLayout.setOnChildScrollUpCallback { layout, _ ->
-            val tagScroll = layout.findViewById<View?>(R.id.tag_scroll_container)
-            tagScroll != null && tagScroll.canScrollVertically(-1) &&
-                tagScroll.getGlobalVisibleRect(visibleRect)
-        }
+        // 这里原本挂了个 setOnChildScrollUpCallback,补 canChildScrollUp 问不到插画 tab
+        // 那个内层 tag 滚动容器的问题。筛选条的「+N」展开态移除后,它恒为 2 行、不再可滚,
+        // 容器本身也从布局里去掉了 —— 回调随之失去意义,不留空壳。
         baseBind.refreshLayout.setOnRefreshListener { refreshUserDetail() }
     }
 

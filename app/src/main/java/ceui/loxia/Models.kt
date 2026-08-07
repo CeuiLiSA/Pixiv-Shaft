@@ -241,6 +241,22 @@ data class FrequentTag(
     val tag_translation: String? = null,
 ) : Serializable
 
+/**
+ * 画师全量作品标签 —— `/ajax/user/{id}/illusts/tags?all=1&lang=zh` 的 body 项,
+ * 网页版画师页「高级搜索」面板的数据源。
+ *
+ * 两个反直觉的点:
+ * - **服务端不按 [cnt] 排序**(实测原始顺序既不是频次也不是五十音),要按热度展示必须自己排;
+ * - [tag_translation] 只有带 `lang` 参数时才有值,且并非每个 tag 都有译名(实测约六成),
+ *   没有译名的条目应直接把 `#原tag` 当主标题显示,而不是留一行空白。
+ */
+data class UserWorkTag(
+    val tag: String? = null,
+    val tag_translation: String? = null,
+    val tag_yomigana: String? = null,
+    val cnt: Int = 0,
+) : Serializable
+
 data class WebUserDetail(
     val userId: String? = null,
     val name: String? = null,

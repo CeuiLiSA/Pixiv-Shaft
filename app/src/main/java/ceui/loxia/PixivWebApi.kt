@@ -40,6 +40,22 @@ interface PixivWebApi {
         @Query("lang") lang: String = "zh",
     ): WebResponse<List<FrequentTag>>
 
+    /**
+     * 画师的**全量**作品标签(网页版画师页「高级搜索」面板的数据源)。
+     *
+     * 网页在进画师页时就一次性把它拉完,所以点开面板不再发任何请求 —— 这里同样一次拿全,
+     * 无分页、无需 cookie(匿名可拿)。实测某画师返回 1933 条。
+     *
+     * `all=1` 比不带多出一小撮 tag;`lang` 决定 [UserWorkTag.tag_translation] 是否有值。
+     * 另有 `illustmanga/tags`(插画+漫画)、`manga/tags` 两个同构变体,按 tab 取用。
+     */
+    @GET("/ajax/user/{user_id}/illusts/tags")
+    suspend fun getUserIllustTags(
+        @Path("user_id") userId: Long,
+        @Query("all") all: Int = 1,
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<List<UserWorkTag>>
+
     @GET("/ajax/user/{user_id}")
     suspend fun getWebUserDetail(
         @Path("user_id") userId: Long,

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 画师主页「插画」Tab 容器:顶部标签筛选条(跟随页面横滑) + 下方内嵌插画列表。
+<!-- 画师主页「插画」Tab 容器:顶部标签筛选条 + 下方内嵌插画列表。
      筛选条放页面内而不是 AppBar 的 pinned 区 —— 否则左右切 tab 时列表滑走了它还钉着不动。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -8,28 +8,20 @@
     android:background="@color/v3_bg"
     android:orientation="vertical">
 
-    <!-- 紧凑小号 chip 换行堆叠,行数由 UserV3IllustTabFragment 用 flexLines 折叠到最多 2 行
-         (「+N」块表达溢出),不用 maxLine —— 它会把末行放不下的 chip 硬切成半个。
-         点「+N」全量展开、点「收起」收合(PR #947):展开态由外层 MaxHeightNestedScrollView
-         封顶 200dp、超出内部滚动 —— 原生 NestedScrollView 不认 android:maxHeight,
-         所以用自定义子类。嵌套滚动分发在 Fragment 里代码关闭(构造函数会强开,XML 属性无效)。 -->
-    <ceui.pixiv.widgets.MaxHeightNestedScrollView
-        android:id="@+id/tag_scroll_container"
+    <!-- 紧凑小号 chip 换行堆叠,固定 2 行:行数由 UserV3IllustTabFragment 用 flexLines
+         离屏收敛(maxTags),不用 maxLine —— 它会把末行放不下的 chip 硬切成半个。
+         末尾恒有一个「高级搜索」动作块,点开 UserTagSearchSheet 看画师全量 tag。
+         PR #947 的「+N」展开态已移除,连带外层 MaxHeightNestedScrollView 一起去掉:
+         内容恒为 2 行,没有可滚的东西,留着只会白白吃掉一层嵌套滚动分发。 -->
+    <ceui.pixiv.widgets.V3TagFlowView
+        android:id="@+id/illust_filter_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="200dp"
-        android:scrollbars="none">
-
-        <ceui.pixiv.widgets.V3TagFlowView
-            android:id="@+id/illust_filter_bar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="20dp"
-            android:paddingTop="8dp"
-            android:paddingEnd="20dp"
-            android:visibility="gone"
-            app:flexWrap="wrap" />
-    </ceui.pixiv.widgets.MaxHeightNestedScrollView>
+        android:paddingStart="20dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="20dp"
+        android:visibility="gone"
+        app:flexWrap="wrap" />
 
     <FrameLayout
         android:id="@+id/illust_list_container"

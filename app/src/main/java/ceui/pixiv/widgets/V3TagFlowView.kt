@@ -135,11 +135,27 @@ class V3TagFlowView @JvmOverloads constructor(
     var onOverflowClick: (() -> Unit)? = null
 
     /**
-     * 溢出动作块的替代文本。[maxTags] 未触发折叠（无溢出）而本值非空时，末尾仍渲染
-     * 一个与「+N」同款式的动作块显示该文本 —— 展开态的「收起」就是这么来的。
-     * 触发折叠时忽略本值，始终显示「+N」。null（默认）= 无溢出就不渲染任何块。
+     * 末尾动作块的文本。**非空时优先于「+N」** —— 画师主页筛选条要的是一个恒定的
+     * 「高级搜索」入口，而不是"折叠了几个"的计数（折叠数对用户没有信息量：点进去看到的
+     * 是画师全量 tag，不止被折叠的那几个）。
+     * null（默认）= 回落到原行为：有溢出显示「+N」，无溢出不渲染任何块。
      */
     var overflowActionText: String? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                lastSignature = null
+                renderPairs(lastPairs)
+            }
+        }
+
+    /**
+     * 末尾动作块的前置图标（drawable res）。仅在 [onOverflowClick] 非空 —— 即动作块真的
+     * 可点 —— 时渲染，纯展示的「+N」不带图标。
+     * 尺寸显式 setBounds 跟随 chip 字号：矢量图 intrinsic 一般是 24dp，直接挂上去会比
+     * 11.5sp 的 chip 文字高一倍。
+     */
+    var overflowActionIcon: Int? = null
         set(value) {
             if (field != value) {
                 field = value
@@ -279,16 +295,19 @@ class V3TagFlowView @JvmOverloads constructor(
             addView(tv)
         }
 
-        // 「+N」折叠块：显示折叠了多少个 tag，弱化配色（textSecondary），与小说 V3 系列
-        // 详情页 item 一致。默认不可点击、不吃事件（列表卡片里点它要穿透给卡片）；
-        // [onOverflowClick] 非空的调用方（画师主页 tag 筛选条）把它变成展开/收起开关，
-        // 无溢出时若 [overflowActionText] 非空则改显示该文本（展开态的「收起」）。
-        val actionText = if (overflowCount > 0) "+$overflowCount" else overflowActionText
+        // 末尾动作块。两种角色：
+        // - 纯展示「+N」：显示折叠了多少个 tag，弱化配色（textSecondary），与小说 V3 系列
+        //   详情页 item 一致；不可点击、不吃事件（列表卡片里点它要穿透给卡片）。
+        // - 真动作（[onOverflowClick] 非空，如画师主页的「高级搜索」）：强调色文字 +
+        //   可选前置图标 + touch scale，让它读起来是个入口而不是计数。
+        // [overflowActionText] 非空时始终用它，见该属性的 KDoc。
+        val actionText = overflowActionText ?: if (overflowCount > 0) "+$overflowCount" else null
         if (actionText != null) {
+            val isAction = onOverflowClick != null
             val more = TextView(context).apply {
                 text = actionText
                 textSize = chipTextSize
-                setTextColor(palette.textSecondary)
+                setTextColor(if (isAction) palette.textAccent else palette.textSecondary)
                 background = tagBgState?.newDrawable()?.mutate()
                 setPaddingRelative(hPad, vPad, hPad, vPad)
                 layoutParams = LayoutParams(
@@ -298,7 +317,16 @@ class V3TagFlowView @JvmOverloads constructor(
                     setMargins(0, 0, gap, bottomGap)
                     flexShrink = 0f
                 }
-                if (onOverflowClick != null) {
+                if (isAction) {
+                    overflowActionIcon?.let { iconRes ->
+                        AppCompatResources.getDrawable(context, iconRes)?.mutate()?.let { icon ->
+                            val size = (chipTextSize * density).toInt()
+                            icon.setBounds(0, 0, size, size)
+                            icon.setTint(palette.textAccent)
+                            setCompoundDrawablesRelative(icon, null, null, null)
+                            compoundDrawablePadding = 4.ppppx
+                        }
+                    }
                     // 回调晚读，与 onTagClick 同套路；是否挂监听仍看渲染时是否非空，
                     // 免得给纯展示调用方平白挂上可点击语义。
                     setOnClickListener { onOverflowClick?.invoke() }

@@ -1832,7 +1832,6 @@
     <string name="v3_tag_menu_copy_original">Copy tag name</string>
     <string name="v3_tag_menu_copy_translation">Copy translation</string>
     <string name="v3_tag_menu_mute">Mute this tag</string>
-    <string name="v3_tag_bar_collapse">Collapse</string>
     <string name="experimental_section">Experimental</string>
     <string name="site_recommend">This Month\'s Bookmarks</string>
     <string name="current_hot">Trending Now</string>

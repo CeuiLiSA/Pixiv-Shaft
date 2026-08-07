@@ -1832,7 +1832,6 @@
     <string name="v3_tag_menu_copy_original">タグ名をコピー</string>
     <string name="v3_tag_menu_copy_translation">翻訳をコピー</string>
     <string name="v3_tag_menu_mute">このタグをミュート</string>
-    <string name="v3_tag_bar_collapse">閉じる</string>
     <string name="experimental_section">実験的</string>
     <string name="site_recommend">今月のブックマーク</string>
     <string name="current_hot">急上昇</string>
