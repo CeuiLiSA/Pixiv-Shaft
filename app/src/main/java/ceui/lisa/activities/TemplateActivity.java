@@ -422,6 +422,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new ceui.pixiv.ui.comic.ComicTopFeedFragment();
                 case "FANBOX首页":
                     return new ceui.pixiv.ui.fanbox.FanboxHomeFragment();
+                case "FANBOX帖子":
+                    return ceui.pixiv.ui.fanbox.FanboxPostDetailFragment.newInstance(
+                            intent.getStringExtra(
+                                    ceui.pixiv.ui.fanbox.FanboxPostDetailFragment.ARG_POST_ID));
                 case "收藏榜":
                     return ceui.pixiv.ui.recommend.BookmarkRankFeedFragment.newInstance(null);
                 case "AI榜":

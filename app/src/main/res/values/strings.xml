@@ -1010,6 +1010,10 @@
     <string name="fanbox_fee_badge">%1$d 日元</string>
     <string name="fanbox_fee_free">免费</string>
     <string name="fanbox_supported">已赞助</string>
+    <string name="fanbox_section_plans">赞助方案</string>
+    <string name="fanbox_section_comments">评论</string>
+    <string name="fanbox_open_in_web">正文需在网页中查看 ›</string>
+    <string name="fanbox_comments_locked">赞助后可查看评论</string>
     <string name="fanbox_followed">已关注</string>
     <string name="comic_stories_count">全 %1$d 话</string>
     <string name="comic_badge_new">新连载</string>

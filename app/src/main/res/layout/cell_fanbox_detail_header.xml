@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FANBOX 帖子详情头部。网页版能看到的元数据这里全有:封面、标题、作者、时间、月费、
+  R-18、标签、点赞/评论数、摘要。
+
+  正文那块单独一个 notice —— post.info 恒 403、post.get 不含 body、列表接口对可读帖也给
+  null,正文在客户端拿不到,不做假装能显示的空壳。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/cover"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@color/v3_surface_2"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:letterSpacing="-0.01"
+        android:lineSpacingMultiplier="1.15"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/v3_text_1"
+        android:textSize="21sp"
+        android:textStyle="bold"
+        tools:text="京チラ見せ🌌" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="14dp">
+
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/creator_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            app:riv_oval="true" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/creator_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="絵守未來® - Miku Emori" />
+
+            <TextView
+                android:id="@+id/published_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                tools:text="2026-08-03 14:06" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/badge_r18"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/v3_novel_r18_badge_bg"
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="5dp"
+            android:text="@string/v3_novel_r18"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/fee_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_v3_pill"
+            android:paddingHorizontal="11dp"
+            android:paddingVertical="5dp"
+            android:textColor="@color/v3_text_2"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="498 日元" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/excerpt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:lineSpacingMultiplier="1.3"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/v3_text_2"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:text="摘要"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tags"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:lineSpacingMultiplier="1.3"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/v3_text_3"
+        android:textSize="13sp"
+        android:visibility="gone"
+        tools:text="#illustration #イラスト"
+        tools:visibility="visible" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/like_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="6dp"
+            android:gravity="center_vertical"
+            android:textColor="@color/v3_text_3"
+            android:textSize="13sp"
+            app:drawableStartCompat="@drawable/ic_heart_outline_16"
+            tools:text="38" />
+
+        <TextView
+            android:id="@+id/comment_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:drawablePadding="6dp"
+            android:gravity="center_vertical"
+            android:textColor="@color/v3_text_3"
+            android:textSize="13sp"
+            app:drawableStartCompat="@drawable/ic_comment_outline_16"
+            tools:text="2" />
+    </LinearLayout>
+
+    <!-- 正文不可得的说明 + 去网页看。文案不含歧义:不是加载失败,是接口拿不到。 -->
+    <TextView
+        android:id="@+id/body_notice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_v3_pill"
+        android:gravity="center"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp"
+        android:text="@string/fanbox_open_in_web"
+        android:textColor="@color/v3_text_2"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="16dp" />
+</LinearLayout>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 赞助方案卡片。网页版付费墙那个「方案列表」按钮点开就是这些。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:stateListAnimator="@animator/button_press_scale">
+
+    <ImageView
+        android:id="@+id/plan_cover"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:background="@color/v3_surface_2"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="14dp">
+
+        <TextView
+            android:id="@+id/plan_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/v3_text_1"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="【新プラン】４９８円コース" />
+
+        <TextView
+            android:id="@+id/plan_fee"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_v3_pill"
+            android:paddingHorizontal="11dp"
+            android:paddingVertical="5dp"
+            android:textColor="@color/v3_text_2"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="498 日元" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/plan_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:lineSpacingMultiplier="1.25"
+        android:maxLines="3"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/v3_text_2"
+        android:textSize="13sp"
+        android:visibility="gone"
+        tools:text="方案说明"
+        tools:visibility="visible" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="16dp" />
+</LinearLayout>

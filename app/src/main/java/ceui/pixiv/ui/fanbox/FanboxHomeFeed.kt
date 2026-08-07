@@ -144,12 +144,12 @@ class FanboxPostFeedFragment : FeedFragment() {
             .into(cell.binding.creatorIcon)
     }
 
+    /** 进原生详情页(元数据 + 赞助方案 + 评论);正文在详情页里再引导去网页。 */
     private fun openPost(post: FanboxPost) {
-        val creatorId = post.creatorId.orEmpty()
-        openFanboxWeb(
-            if (creatorId.isEmpty()) "https://www.fanbox.cc/"
-            else "https://www.fanbox.cc/@$creatorId/posts/${post.id}"
-        )
+        startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, "FANBOX帖子")
+            putExtra(FanboxPostDetailFragment.ARG_POST_ID, post.id)
+        })
     }
 
     companion object {

@@ -33,7 +33,76 @@ interface FanboxApi {
      */
     @GET("creator.listRecommended")
     suspend fun creatorListRecommended(@Query("limit") limit: Int = 10): FanboxCreatorListResponse
+
+    /**
+     * 帖子元数据。注意响应是 `body.post`,而且 **post 对象里没有 body 字段** ——
+     * 正文得靠 post.info,但那个恒 403(连网页端自己调都失败),所以详情页只有元数据。
+     */
+    @GET("post.get")
+    suspend fun postGet(@Query("postId") postId: String): FanboxPostDetailResponse
+
+    /** 帖子评论。详情页唯一还能拿到的「内容」—— post.info 恒 403,正文取不到。 */
+    @GET("post.getComments")
+    suspend fun postGetComments(
+        @Query("postId") postId: String,
+        @Query("limit") limit: Int = 20,
+    ): FanboxCommentResponse
+
+    /** 创作者的赞助方案。网页版付费墙那个「方案列表」按钮背后就是它。 */
+    @GET("plan.listCreator")
+    suspend fun planListCreator(@Query("creatorId") creatorId: String): FanboxPlanListResponse
 }
+
+data class FanboxPostDetailResponse(
+    val body: FanboxPostWrapper?
+)
+
+data class FanboxPostWrapper(
+    val post: FanboxPost?
+)
+
+data class FanboxCommentResponse(
+    val body: FanboxCommentBody?
+)
+
+data class FanboxCommentBody(
+    val viewMode: String?,
+    val commentList: FanboxCommentList?,
+)
+
+data class FanboxCommentList(
+    val items: List<FanboxComment>?,
+    val nextUrl: String?,
+)
+
+/** [replies] 是楼中楼;服务端已经嵌好,不用再请求一次。 */
+data class FanboxComment(
+    val id: String,
+    val body: String?,
+    val createdDatetime: String?,
+    val likeCount: Int,
+    val isLiked: Boolean,
+    val user: FanboxUser?,
+    val replies: List<FanboxComment>?,
+)
+
+data class FanboxPlanListResponse(
+    val body: FanboxPlanList?
+)
+
+data class FanboxPlanList(
+    val plans: List<FanboxPlan>?
+)
+
+data class FanboxPlan(
+    val id: String,
+    val title: String?,
+    val fee: Int,
+    val description: String?,
+    val coverImageUrl: String?,
+    val creatorId: String?,
+    val hasAdultContent: Boolean,
+)
 
 data class FanboxPostListResponse(
     val body: FanboxPostList?

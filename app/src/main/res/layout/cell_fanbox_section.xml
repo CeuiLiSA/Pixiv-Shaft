@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 详情页的分区标题(方案 / 评论)。整行,不带卡底。 -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/section_title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:letterSpacing="-0.01"
+    android:paddingHorizontal="4dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="4dp"
+    android:textColor="@color/v3_text_1"
+    android:textSize="17sp"
+    android:textStyle="bold"
+    tools:text="评论" />

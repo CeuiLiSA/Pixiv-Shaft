@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  分区里的一行说明(目前只有「评论被赞助门槛挡住」)。和头部的 body_notice 同一套 pill 样式,
+  但不可点 —— 点了也没有能去的地方,评论在网页端同样要赞助才可见。
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/notice_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_pill"
+    android:gravity="center"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp"
+    android:textColor="@color/v3_text_3"
+    android:textSize="13sp"
+    tools:text="赞助后可查看评论" />
