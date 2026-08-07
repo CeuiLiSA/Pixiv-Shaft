@@ -23,63 +23,100 @@
                 android:id="@+id/toolbar"
                 layout="@layout/toolbar_layout" />
 
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/email_address"
+            <!--
+                原为 com.rengwuxian.materialedittext.MaterialEditText（2016 年起停止维护，
+                依赖已随之移除）。met_floatingLabel 的浮动标签由 TextInputLayout 原生提供，
+                met_singleLineEllipsis 等价于 inputType=text + maxLines=1，
+                met_baseColor/met_primaryColor 交回主题的 colorAccent/colorControlActivated。
+                textColor 仍显式指向 @color/dark_text —— values-night 有覆盖，保住日/夜双色。
+
+                style 必须是 Widget.Design.* 而不是 Widget.Material3.*：AppTheme 的祖先是
+                QMUI.Compat（AppCompat 系），不是 Theme.MaterialComponents。M3 的 widget style
+                带 enforceMaterialTheme=true，构造时 ThemeEnforcement 会抛
+                "requires your app theme to be Theme.MaterialComponents"，而 Shaft 的全局
+                looper catch 会把它吞掉 —— 表现是整页空白、logcat 只有一条 System.err，
+                极难排查。同一个坑在 fragment_comments_feed.xml 里也记了一笔。
+                Design 系不 enforce，且直接吃 AppCompat 的 colorAccent，反而保住了 App 的
+                动态主题色；视觉上也更接近原来的 MaterialEditText（下划线 + 浮动标签）。
+            -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Design.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/twenty_four_dp"
                 android:layout_marginTop="40dp"
                 android:layout_marginEnd="@dimen/twenty_four_dp"
-                android:hint="@string/email_address"
-                app:met_floatingLabel="highlight"
-                app:met_baseColor="@color/rank_text_color"
-                app:met_primaryColor="?attr/colorPrimary"
-                app:met_textColor="@color/dark_text"
-                app:met_singleLineEllipsis="true" />
+                android:hint="@string/email_address">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/email_address"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="@color/dark_text" />
+            </com.google.android.material.textfield.TextInputLayout>
 
 
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/pixiv_id"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Design.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/twenty_four_dp"
                 android:layout_marginTop="@dimen/sixteen_dp"
                 android:layout_marginEnd="@dimen/twenty_four_dp"
-                android:hint="@string/string_51"
-                app:met_floatingLabel="highlight"
-                app:met_baseColor="@color/rank_text_color"
-                app:met_primaryColor="?attr/colorPrimary"
-                app:met_textColor="@color/dark_text"
-                app:met_singleLineEllipsis="true" />
+                android:hint="@string/string_51">
 
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/user_old_password"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/pixiv_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="@color/dark_text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!--
+                这一栏整体显隐由 FragmentEditAccount 按 has_password 切换，所以 id 挂在
+                TextInputLayout 上：只 GONE 掉内层 EditText 会留下空的外框和标签。
+            -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/user_old_password_layout"
+                style="@style/Widget.Design.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/twenty_four_dp"
                 android:layout_marginTop="@dimen/sixteen_dp"
                 android:layout_marginEnd="@dimen/twenty_four_dp"
                 android:hint="@string/string_10"
-                app:met_floatingLabel="highlight"
-                app:met_baseColor="@color/rank_text_color"
-                app:met_primaryColor="?attr/colorPrimary"
-                app:met_textColor="@color/dark_text"
-                app:met_singleLineEllipsis="true"
-                android:visibility="gone"/>
+                android:visibility="gone">
 
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/user_new_password"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/user_old_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="@color/dark_text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Design.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/twenty_four_dp"
                 android:layout_marginTop="@dimen/sixteen_dp"
                 android:layout_marginEnd="@dimen/twenty_four_dp"
-                android:hint="@string/string_52"
-                app:met_floatingLabel="highlight"
-                app:met_baseColor="@color/rank_text_color"
-                app:met_primaryColor="?attr/colorPrimary"
-                app:met_textColor="@color/dark_text"
-                app:met_singleLineEllipsis="true" />
+                android:hint="@string/string_52">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/user_new_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="@color/dark_text" />
+            </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>
 

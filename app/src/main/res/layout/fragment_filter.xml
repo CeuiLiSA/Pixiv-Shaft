@@ -148,7 +148,7 @@
                 android:layout_toEndOf="@id/start_end_date_s"
                 android:layout_alignTop="@id/start_end_date_s"
                 android:layout_alignBottom="@id/start_end_date_s"
-                android:src="@drawable/met_ic_clear"
+                android:src="@drawable/ic_cancel_black_24dp"
                 app:tint="?attr/colorPrimary">
 
             </ImageView>

@@ -2,16 +2,16 @@
 
 buildscript {
     ext.kotlin_version = '2.1.20'
+    // 顺序即解析顺序：先 google()/mavenCentral() 命中绝大多数坐标，jitpack 垫底只兜
+    // com.github.* 。曾经排在最前的 jcenter / oss.jfrog.org / jsoup.org / jboss /
+    // sonatype-snapshots 已全部移除——jcenter 2021 年 sunset、oss.jfrog.org 实测 404、
+    // jsoup.org 压根不是 maven 仓库（jsoup 在 mavenCentral），后两个本仓无任何坐标使用。
+    // 它们只会让每个依赖多做几次注定失败的 HTTP 往返，并在域名彻底撤掉那天变成构建事故。
     repositories {
-        maven { url "https://jitpack.io" }
-        maven { url "https://repository.jboss.org/maven2" }
-        maven { url 'https://jcenter.bintray.com/' }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "https://oss.jfrog.org/libs-snapshot" }
-        maven { url "https://plugins.gradle.org/m2/" }
-        maven { url "https://jsoup.org/" }
-        mavenCentral()
         google()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://jitpack.io" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.3'
@@ -34,16 +34,12 @@ plugins {
 }
 
 allprojects {
+    // 同上：死仓库已移除，google()/mavenCentral() 提到最前。
+    // aliyun 保留在末位作为国内网络的兜底镜像。
     repositories {
-        maven { url 'https://jitpack.io' }
-        maven { url 'https://jcenter.bintray.com/' }
-        maven { url "https://repository.jboss.org/maven2" }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "https://oss.jfrog.org/libs-snapshot" }
-        maven { url "https://plugins.gradle.org/m2/" }
-        maven { url "https://jsoup.org/" }
-        mavenCentral()
         google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
         maven { url 'https://maven.aliyun.com/repository/public/' }
 //        mavenLocal()
     }
