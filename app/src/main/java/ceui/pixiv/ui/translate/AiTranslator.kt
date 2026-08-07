@@ -164,10 +164,10 @@ object AiTranslator : Translator {
         val apiKey = overrideApiKey ?: settings.aiTranslateApiKey
         val model = overrideModel ?: settings.aiTranslateModel
 
+        // 不带 temperature:推理系模型(o 系列/gpt-5 家族)对非默认值直接 400,缺省值全家通用
         val body = JSONObject().apply {
             put("model", model)
             put("stream", false)
-            put("temperature", 0.1)
             put("messages", JSONArray().apply {
                 put(JSONObject().put("role", "system").put("content", systemPrompt))
                 put(JSONObject().put("role", "user").put("content", userContent))
