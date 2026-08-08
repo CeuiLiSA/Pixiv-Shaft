@@ -125,7 +125,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private var sectionLoader: SectionLoader? = null
     private var artistObservedUserId: Long = 0L
-    private var muteObservedUserId: Int = 0
+    private var muteObserved = false
 
     /** 详情面板展开态归 Fragment(而非 cell tag):滚走再滚回不会被重绑重置(对齐 legacy VH 字段)。 */
     internal var detailPanelExpanded = true
@@ -275,9 +275,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 消费方,「屏蔽这个作品」点完页面纹丝不动(#983)。
      */
     private fun attachMuteObserver(illust: IllustsBean) {
-        val userId = illust.user?.userId ?: return
-        if (userId == muteObservedUserId) return
-        muteObservedUserId = userId
+        if (muteObserved) return
+        muteObserved = true
+        // 经典同款 userId ?: 0 兜底:user 缺失/解析失败(#592 web 兜底 bean 可能 id=0)时,
+        // 作品屏蔽的观察也要照常接线,画师侧退化成恒 null。只接一次——按 userId 重接会留下
+        // 两个 mediator 同时观察,二者发射顺序不定,旧 mediator 的过期值可能盖掉新值。
+        val userId = illust.user?.userId ?: 0
         val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
         combineLatest(
             dao.getIllustMuteEntityByID(illust.id),
@@ -341,7 +344,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 重显等)后,旧 viewLifecycleOwner 上的观察已随视图销毁,而 artistObservedUserId 还钉着
         // 旧值 → 关注更新不再触发。区块懒加载的去重集随 sectionLoader 一起丢弃、新视图重建。
         artistObservedUserId = 0L
-        muteObservedUserId = 0
+        muteObserved = false
         sectionLoader = null
         _fabBarController = null
         _chromeBind = null
