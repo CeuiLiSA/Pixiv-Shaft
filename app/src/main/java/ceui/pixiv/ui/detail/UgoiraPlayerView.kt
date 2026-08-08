@@ -23,6 +23,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import ceui.lisa.activities.Shaft
 import ceui.lisa.R
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
@@ -142,6 +143,39 @@ class UgoiraPlayerView @JvmOverloads constructor(
         )
     }
 
+    // 「开始播放（下载）」按钮：关闭「动图自动播放」时显示在图片中间，点击才拉数据 →
+    // 下载 → 解压 → 编码 → 播放。样式与「重试」按钮同一套视觉语言。
+    private val playButton = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(18.ppppx, 9.ppppx, 20.ppppx, 9.ppppx)
+        isClickable = true
+        isFocusable = true
+        isVisible = false
+        background = buildRetryPill()
+        addView(
+            ImageView(context).apply {
+                setImageResource(R.drawable.ic_baseline_play_arrow_24)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
+            },
+            LinearLayout.LayoutParams(18.ppppx, 16.ppppx).apply { marginEnd = 7.ppppx },
+        )
+        addView(
+            TextView(context).apply {
+                setText(R.string.ugoira_start_play_button)
+                setTextColor(0xFFFFFFFF.toInt())
+                textSize = 14f
+                typeface = Typeface.DEFAULT_BOLD
+                letterSpacing = 0.02f
+            },
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ),
+        )
+    }
+
     /** 主题实心圆角胶囊 + 白色按压波纹(裁到胶囊形状)。 */
     private fun buildRetryPill(): Drawable {
         val radius = 999f
@@ -194,6 +228,10 @@ class UgoiraPlayerView @JvmOverloads constructor(
             retryButton,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER),
         )
+        addView(
+            playButton,
+            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER),
+        )
     }
 
     /** 绑定一条 ugoira。进入即自动拉数据 → 下载 → 解压 → 编码 → 播放。 */
@@ -226,6 +264,10 @@ class UgoiraPlayerView @JvmOverloads constructor(
             pausePlayback()
             startLoad(owner, illust)
         }
+        playButton.setOnClickListener {
+            pausePlayback()
+            startLoad(owner, illust)
+        }
         resumePlayback()
     }
 
@@ -246,6 +288,8 @@ class UgoiraPlayerView @JvmOverloads constructor(
         autoHealedDir = null
         retryButton.setOnClickListener(null)
         retryButton.isVisible = false
+        playButton.setOnClickListener(null)
+        playButton.isVisible = false
         glide.clear(imageView)
         imageView.setImageDrawable(null)
     }
@@ -261,6 +305,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         // 离屏 holder 还压着一张全尺寸 Bitmap。
         glide.clear(imageView)
         imageView.setImageDrawable(null)
+        playButton.isVisible = false
         hideOverlay()
     }
 
@@ -272,12 +317,19 @@ class UgoiraPlayerView @JvmOverloads constructor(
             !owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
         ) return
         glide.load(GlideUtil.getLargeImage(illust)).into(imageView)
+        // 关闭「动图自动播放」时：只打底预览图并显示中间按钮，任何路径（进页/左右切回/
+        // 滚回屏幕/已缓存秒开）都不自动拉数据或播放，只有点按钮才 startLoad。
+        if (!Shaft.sSettings.isAutoPlayUgoira()) {
+            playButton.isVisible = true
+            return
+        }
         startLoad(owner, illust)
     }
 
     private fun startLoad(owner: LifecycleOwner, illust: IllustsBean) {
         playbackActive = true
         job?.cancel()
+        playButton.isVisible = false
         retryButton.isVisible = false
         // 秒开:内存已有帧序列就立刻播,不等协程、不显示浮层(主线程零 IO,不碰文件系统)。
         val ready = UgoiraEngine.peekReadyInMemory(illust.id)

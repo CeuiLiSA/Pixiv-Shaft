@@ -2294,6 +2294,8 @@
     <string name="ugoira_rife_enable">Ugoira AI frame interpolation (RIFE)</string>
     <string name="ugoira_rife_enable_desc">Insert AI-generated in-between frames, boosting frame rate up to 4x (near the 50fps GIF ceiling). Requires downloading the interpolation model; encoding takes longer</string>
     <string name="ugoira_interpolating">Interpolating</string>
+    <string name="ugoira_auto_play">Auto-play ugoira</string>
+    <string name="ugoira_start_play_button">Start playback (download)</string>
     <string name="string_rife_model">Frame interpolation model</string>
     <string name="string_rife_download_title">Download RIFE model</string>
     <string name="string_rife_download_subtitle">%1$s needs to be downloaded to enable ugoira frame interpolation</string>
