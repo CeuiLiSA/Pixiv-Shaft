@@ -15,12 +15,12 @@ import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.blankj.utilcode.util.FileUtils;
-import com.blankj.utilcode.util.UriUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -70,11 +70,20 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                     .addAction(R.string.sure, new QMUIDialogAction.ActionListener() {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
-                            String backupString = BackupUtils.getBackupString(mContext, builder.isChecked());
-                            IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity, "Shaft-Backup.json", backupString, new Callback<Uri>() {
+                            final boolean backupViewHistory = builder.isChecked();
+                            // 走 fileWriter 流式导出:读库 + 序列化 + 落盘全在 IO 线程逐批直写文件,
+                            // 不再在主线程把整张历史表 toJson 成巨型 String(大历史库 OOM/ANR,#981)。
+                            IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity, "Shaft-Backup.json", (Callback<File>) textFile -> {
+                                try {
+                                    BackupUtils.writeBackupToFile(mContext, backupViewHistory, textFile);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }, new Callback<Uri>() {
                                 @Override
                                 public void doSomething(Uri t) {
-                                    Common.showToast(getString(R.string.backup_success) + backupTargetFolder());
+                                    // mContext.getString:回调是异步回主线程的,fragment 可能已 detach
+                                    Common.showToast(mContext.getString(R.string.backup_success) + backupTargetFolder());
                                 }
                             });
                             dialog.dismiss();
@@ -236,21 +245,38 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK && data != null) {
-            try {
-                Uri uri = data.getData();
-                String fileString = new String(UriUtils.uri2Bytes(uri));
-                BackupEntity restored = BackupUtils.restoreBackupEntity(mContext, fileString);
-                if (restored != null) {
-                    Common.showToast(getString(R.string.restore_success));
-                    if (!SessionManager.INSTANCE.isLoggedIn()) {
-                        maybePromptRestoreAccount(restored.getUserEntityList());
-                    }
-                } else {
-                    Common.showToast(getString(R.string.restore_failed));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            Uri uri = data.getData();
+            if (uri == null) {
+                return;
             }
+            // 解析 + 入库挪去工作线程,并直接流式读 Uri —— 不再在主线程把整个备份文件
+            // 读成 byte[] 再复制成 String 后全量解析(大备份 OOM/ANR,#981)。
+            final android.content.Context appContext = mContext.getApplicationContext();
+            final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+            new Thread(() -> {
+                BackupEntity restored = null;
+                try (java.io.InputStream inputStream = appContext.getContentResolver().openInputStream(uri)) {
+                    if (inputStream != null) {
+                        restored = BackupUtils.restoreBackupEntity(appContext, inputStream);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                final BackupEntity result = restored;
+                main.post(() -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    if (result != null) {
+                        Common.showToast(getString(R.string.restore_success));
+                        if (!SessionManager.INSTANCE.isLoggedIn()) {
+                            maybePromptRestoreAccount(result.getUserEntityList());
+                        }
+                    } else {
+                        Common.showToast(getString(R.string.restore_failed));
+                    }
+                });
+            }, "backup-restore").start();
         }
     }
 

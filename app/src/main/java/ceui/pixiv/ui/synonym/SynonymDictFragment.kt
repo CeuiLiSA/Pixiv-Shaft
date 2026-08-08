@@ -275,7 +275,8 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
             IllustDownload.downloadBackupFile(
                 act, SynonymBuiltinDict.ASSET_NAME, json,
                 Callback<Uri> {
-                    Common.showToast(getString(R.string.synonym_export_builtin_raw_success))
+                    // act.getString:回调是异步回主线程的,fragment 可能已 detach
+                    Common.showToast(act.getString(R.string.synonym_export_builtin_raw_success))
                 },
             )
         }
@@ -294,7 +295,7 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
             IllustDownload.downloadBackupFile(
                 act, SynonymDictBackup.FILE_NAME, json,
                 Callback<Uri> {
-                    Common.showToast(getString(R.string.synonym_export_success, count))
+                    Common.showToast(act.getString(R.string.synonym_export_success, count))
                 },
             )
         }

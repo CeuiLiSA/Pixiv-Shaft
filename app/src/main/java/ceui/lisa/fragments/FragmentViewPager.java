@@ -244,7 +244,8 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                         List<MuteEntity> all = AppDatabase.getAppDatabase(mContext)
                                 .searchDao().getAllMuteEntities();
                         if (all == null || all.isEmpty()) {
-                            Common.showToast(getString(R.string.mute_records_export_empty));
+                            // mContext.getString:fileWriter 现在跑在 IO 线程,fragment 可能已 detach
+                            Common.showToast(mContext.getString(R.string.mute_records_export_empty));
                             return;
                         }
                         try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(new FileOutputStream(file)))) {
@@ -256,7 +257,7 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        Common.showToast(getString(R.string.mute_records_export_success, all.size()));
+                        Common.showToast(mContext.getString(R.string.mute_records_export_success, all.size()));
                     }
                 }, null);
     }

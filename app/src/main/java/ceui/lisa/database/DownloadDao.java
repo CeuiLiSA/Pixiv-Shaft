@@ -254,6 +254,13 @@ public interface DownloadDao {
     void insert(IllustHistoryEntity illustHistoryEntity);
 
     /**
+     * 批量写入浏览历史。备份还原走这里:一批一个事务,几千上万行逐条 insert
+     * (每条一个事务)在低端机上要跑几十秒(#981)。
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertHistories(List<IllustHistoryEntity> illustHistoryEntities);
+
+    /**
      * 删除一个浏览历史
      *
      * @param userEntity
@@ -276,14 +283,6 @@ public interface DownloadDao {
      */
     @Query("SELECT * FROM illust_table ORDER BY time DESC LIMIT :limit OFFSET :offset")
     List<IllustHistoryEntity> getAllViewHistory(int limit, int offset);
-
-    /**
-     * 查询所有浏览历史
-     *
-     * @return
-     */
-    @Query("SELECT * FROM illust_table")
-    List<IllustHistoryEntity> getAllViewHistoryEntities();
 
     /**
      * 只取 illustID 列,给 DiscoveryPool 之类只需要 id 集合的调用方用。

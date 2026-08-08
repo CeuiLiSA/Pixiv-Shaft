@@ -1,6 +1,8 @@
 package ceui.lisa.download;
 
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 
 import androidx.core.content.FileProvider;
@@ -12,6 +14,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -261,47 +264,36 @@ public class IllustDownload {
     }
 
     public static void downloadBackupFile(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback){
-        check(activity, new FeedBack() {
-            @Override
-            public void doSomething() {
-                File textFile = LegacyFile.textFile(activity, displayName);
-                try {
-                    OutputStream outStream = new FileOutputStream(textFile);
-                    outStream.write(content.getBytes());
-                    outStream.close();
-                    Common.showLog("downloadBackupFile displayName " + textFile.getName());
-                    OutPut.outPutBackupFile(activity, textFile, textFile.getName());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Uri fileURI = FileProvider.getUriForFile(activity,
-                        activity.getApplicationContext().getPackageName() + ".provider", textFile);
-                if (targetCallback != null) {
-                    targetCallback.doSomething(fileURI);
-                }
+        downloadBackupFile(activity, displayName, textFile -> {
+            try (OutputStream outStream = new FileOutputStream(textFile)) {
+                outStream.write(content.getBytes());
+            } catch (IOException e) {
+                // 抛回统一的落盘链路兜外层 catch,跳过 MediaStore 复制
+                throw new RuntimeException(e);
             }
-        });
+        }, targetCallback);
     }
 
+    /**
+     * 文件写出 + MediaStore 复制都在 IO 线程执行(点击回调里同步写大文件会
+     * ANR,见 #981),targetCallback 回主线程,fileWriter 里可以放心读库/序列化。
+     */
     public static void downloadBackupFile(BaseActivity<?> activity, String displayName, Callback<File> fileWriter, Callback<Uri> targetCallback){
-        check(activity, new FeedBack() {
-            @Override
-            public void doSomething() {
-                File textFile = LegacyFile.textFile(activity, displayName);
-                try {
-                    fileWriter.doSomething(textFile);
-                    Common.showLog("downloadBackupFile displayName " + textFile.getName());
-                    OutPut.outPutBackupFile(activity, textFile, textFile.getName());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Uri fileURI = FileProvider.getUriForFile(activity,
-                        activity.getApplicationContext().getPackageName() + ".provider", textFile);
-                if (targetCallback != null) {
-                    targetCallback.doSomething(fileURI);
-                }
+        check(activity, () -> Schedulers.io().scheduleDirect(() -> {
+            File textFile = LegacyFile.textFile(activity, displayName);
+            try {
+                fileWriter.doSomething(textFile);
+                Common.showLog("downloadBackupFile displayName " + textFile.getName());
+                OutPut.outPutBackupFile(activity, textFile, textFile.getName());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        });
+            Uri fileURI = FileProvider.getUriForFile(activity,
+                    activity.getApplicationContext().getPackageName() + ".provider", textFile);
+            if (targetCallback != null) {
+                new Handler(Looper.getMainLooper()).post(() -> targetCallback.doSomething(fileURI));
+            }
+        }));
     }
 
     public static String getUrl(IllustsBean illust, int index) {

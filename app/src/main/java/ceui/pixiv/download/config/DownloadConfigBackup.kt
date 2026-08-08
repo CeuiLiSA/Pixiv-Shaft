@@ -24,9 +24,8 @@ object DownloadConfigBackup {
     /**
      * 当前配置的 JSON 快照，写进备份文件 / 云端 payload。
      *
-     * 绝不抛异常：设置页那个「备份」按钮是主线程 dialog 回调里直接调
-     * [ceui.lisa.utils.BackupUtils.getBackupString]，外面没有 try，这里炸了就是
-     * 整个备份崩掉。真出问题就返回空串——宁可这份备份少一段下载配置。
+     * 绝不抛异常：备份链路 [ceui.lisa.utils.BackupUtils.writeBackupToFile] 里这段
+     * 炸了就是整个备份崩掉。真出问题就返回空串——宁可这份备份少一段下载配置。
      */
     @JvmStatic
     fun export(): String = try {

@@ -43,6 +43,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Tab wrapper for the browsing-history page.
@@ -358,18 +360,25 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
      */
     private fun exportHistory() {
         val act = activity as? BaseActivity<*> ?: return
+        val appContext = act.applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
-            val (json, count) = withContext(Dispatchers.IO) {
-                BrowseHistoryBackup.exportToJson(act)
+            val hasData = withContext(Dispatchers.IO) {
+                BrowseHistoryBackup.hasAnythingToExport(appContext)
             }
-            if (count == 0) {
+            if (!hasData) {
                 Common.showToast(act.getString(R.string.view_history_export_empty))
                 return@launch
             }
+            // fileWriter 流式导出:分页读库逐条直写文件,不再全量 toJson 成巨型
+            // String(大历史库 OOM,#981);落盘链路本身也已在 IO 线程。
+            val exported = AtomicInteger()
             IllustDownload.downloadBackupFile(
-                act, BROWSE_HISTORY_FILE_NAME, json,
+                act, BROWSE_HISTORY_FILE_NAME,
+                Callback<File> { file ->
+                    exported.set(BrowseHistoryBackup.exportToFile(appContext, file))
+                },
                 Callback<Uri> {
-                    Common.showToast(act.getString(R.string.view_history_export_success, count))
+                    Common.showToast(act.getString(R.string.view_history_export_success, exported.get()))
                 },
             )
         }

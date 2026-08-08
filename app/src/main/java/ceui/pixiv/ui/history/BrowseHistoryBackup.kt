@@ -12,9 +12,13 @@ import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import com.google.gson.JsonParser
+import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 
 /**
  * 浏览记录的本地备份导出 / 导入(issue #890)。
@@ -50,14 +54,53 @@ object BrowseHistoryBackup {
         val userHistory: List<GeneralEntity>? = null,
     )
 
-    /** 读全部本地浏览历史 → JSON 串 + 总条数。空时返回 count=0,调用方据此提示「无可导出」。 */
-    fun exportToJson(context: Context): Pair<String, Int> {
+    /** 分页读库时的批大小,任何时刻内存里只有一批实体(#981)。 */
+    private const val EXPORT_PAGE_SIZE = 500
+
+    /** 有任何可导出的本地历史吗?空时调用方提示「无可导出」,不落盘空文件。 */
+    fun hasAnythingToExport(context: Context): Boolean {
         val db = AppDatabase.getAppDatabase(context)
-        val illust = db.downloadDao().getAllViewHistoryEntities() ?: emptyList()
-        val users = db.generalDao()
-            .getByRecordType(RecordType.VIEW_USER_HISTORY, 0, Int.MAX_VALUE)
-        val payload = Payload(illust, users)
-        return Shaft.sGson.toJson(payload) to (illust.size + users.size)
+        return db.downloadDao().viewHistoryCount > 0 ||
+            db.generalDao().getByRecordType(RecordType.VIEW_USER_HISTORY, 0, 1).isNotEmpty()
+    }
+
+    /**
+     * 流式导出全部本地浏览历史到 [target],返回总条数。字段名与旧版
+     * `Shaft.sGson.toJson(Payload)` 一致,导出的文件 [importFromJson] 照常认。
+     * 之前是全表读出 + 全量 toJson 成巨型 String,大历史库直接 OOM(#981)。
+     */
+    fun exportToFile(context: Context, target: File): Int {
+        val db = AppDatabase.getAppDatabase(context)
+        var count = 0
+        JsonWriter(OutputStreamWriter(FileOutputStream(target), Charsets.UTF_8).buffered()).use { writer ->
+            writer.beginObject()
+            writer.name("illustHistory")
+            writer.beginArray()
+            var offset = 0
+            while (true) {
+                val page = db.downloadDao().getAllViewHistory(EXPORT_PAGE_SIZE, offset).orEmpty()
+                if (page.isEmpty()) break
+                page.forEach { Shaft.sGson.toJson(it, IllustHistoryEntity::class.java, writer) }
+                count += page.size
+                if (page.size < EXPORT_PAGE_SIZE) break
+                offset += page.size
+            }
+            writer.endArray()
+            writer.name("userHistory")
+            writer.beginArray()
+            offset = 0
+            while (true) {
+                val page = db.generalDao().getByRecordType(RecordType.VIEW_USER_HISTORY, offset, EXPORT_PAGE_SIZE)
+                if (page.isEmpty()) break
+                page.forEach { Shaft.sGson.toJson(it, GeneralEntity::class.java, writer) }
+                count += page.size
+                if (page.size < EXPORT_PAGE_SIZE) break
+                offset += page.size
+            }
+            writer.endArray()
+            writer.endObject()
+        }
+        return count
     }
 
     /**
