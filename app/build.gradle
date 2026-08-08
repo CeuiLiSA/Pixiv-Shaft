@@ -150,6 +150,12 @@ android {
     }
 }
 
+// DateFormatPatternStringsTest 在运行时直接读 src/main/res 校验各 locale 的日期 pattern 字符串,
+// 但 res 不在单测任务的默认输入里——不声明的话,纯翻译改动会被 up-to-date 跳过,守门形同虚设。
+tasks.withType(Test).configureEach {
+    inputs.dir('src/main/res').withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 dependencies {
     testImplementation("junit:junit:4.13.2")
     // websocket 测试(来自上游 Peanut)需要的 mock server 与协程测试调度器;
