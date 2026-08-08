@@ -27,6 +27,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.R
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
+import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.ui.bulk.UGOIRA_LOG_TAG
 import ceui.pixiv.ui.bulk.UgoiraEngine
 import ceui.pixiv.ui.bulk.UgoiraPhase
@@ -34,6 +35,7 @@ import ceui.pixiv.ui.bulk.UgoiraProgress
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.ui.bulk.UgoiraFrames
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -195,15 +197,57 @@ class UgoiraPlayerView @JvmOverloads constructor(
         overlay.isVisible = false
     }
 
+    /**
+     * 打底预览图：先用列表页大概率已缓存的 medium 秒出，再让 large 异步覆盖，
+     * 避免进详情页时 large 首次网络下载导致的长时间空白。
+     */
+    private fun loadPreview(illust: IllustsBean) {
+        if (previewIllustId == illust.id && imageView.drawable != null) return
+        previewIllustId = illust.id
+        val large = GlideUtil.getLargeImage(illust) ?: return
+        val mediumUrl = illust.image_urls?.medium?.takeIf { it.isNotBlank() }
+        glide.clear(imageView)
+
+        var builder = glide.load(large)
+        if (mediumUrl != null) {
+            // 有 medium：它大概率已在列表缓存，秒出打底；large 到位后直接替换，不做淡入。
+            builder = builder.thumbnail(glide.load(GlideUrlChild(mediumUrl)))
+            builder.into(imageView)
+        } else {
+            // 没有 medium：等 large 从网络/硬盘到达后淡入。
+            builder
+                .transition(DrawableTransitionOptions.withCrossFade(300))
+                .into(imageView)
+        }
+    }
+
+    /** 关闭自动播放时按钮直接显示，不做淡入——左右切入不会出现动画闪烁。 */
+    private fun showPlayButton() {
+        if (playButton.isVisible && playButton.alpha == 1f) return
+        playButton.animate().cancel()
+        playButton.isVisible = true
+        playButton.alpha = 1f
+    }
+
+    private fun hidePlayButton() {
+        playButton.animate().cancel()
+        playButton.isVisible = false
+        playButton.alpha = 1f
+    }
+
     private var job: Job? = null
     private var player: FrameSequencePlayer? = null
     private var playingDir: String? = null
     private var playbackActive = false
+    /** 点过播放且帧序列还没就绪（下载/解压/压制中）。切走再切回时继续显示进度、不弹按钮。 */
+    private var downloadInFlight = false
 
     /** 已为哪版帧序列自动自愈过(dir path)。同一版自愈一次仍坏就转手动重试,不无限循环重下。 */
     private var autoHealedDir: String? = null
     private var boundOwner: LifecycleOwner? = null
     private var boundIllust: IllustsBean? = null
+    /** 当前已加载/在加载的预览图对应的作品 id，用于重进去重。 */
+    private var previewIllustId: Int? = null
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onResume(owner: LifecycleOwner) {
             resumePlayback()
@@ -238,6 +282,12 @@ class UgoiraPlayerView @JvmOverloads constructor(
     fun bind(owner: LifecycleOwner, illust: IllustsBean, maxHeight: Int) {
         if (boundIllust?.id != illust.id) {
             pausePlayback()
+            // 换了一条作品：旧的预览/帧画面不能残留，等新预览就位。
+            downloadInFlight = false
+            hideOverlay()
+            previewIllustId = null
+            glide.clear(imageView)
+            imageView.setImageDrawable(null)
         }
         if (boundOwner !== owner) {
             boundOwner?.lifecycle?.removeObserver(lifecycleObserver)
@@ -255,8 +305,11 @@ class UgoiraPlayerView @JvmOverloads constructor(
 
         // 预览图打底(拿到 gif 前先显示首帧/大图)。同一 holder 的无关重绑不能把正在播的 GIF
         // 又替换回预览图。
-        if (!playbackActive) {
-            glide.load(GlideUtil.getLargeImage(illust)).into(imageView)
+        if (!playbackActive) loadPreview(illust)
+        // 关闭自动播放时，按钮在预加载（view 创建）阶段就显示，不依赖页面激活；
+        // 左右切入时按钮跟着页面一起进来，不会中途闪现；无论是否点过播放都显示。
+        if (!playbackActive && !Shaft.sSettings.isAutoPlayUgoira()) {
+            showPlayButton()
         }
 
         Timber.tag(UGOIRA_LOG_TAG).i("[player] illust=%d bind %dx%d", illust.id, illust.width, illust.height)
@@ -289,7 +342,12 @@ class UgoiraPlayerView @JvmOverloads constructor(
         retryButton.setOnClickListener(null)
         retryButton.isVisible = false
         playButton.setOnClickListener(null)
+        playButton.animate().cancel()
         playButton.isVisible = false
+        playButton.alpha = 1f
+        downloadInFlight = false
+        hideOverlay()
+        previewIllustId = null
         glide.clear(imageView)
         imageView.setImageDrawable(null)
     }
@@ -301,12 +359,18 @@ class UgoiraPlayerView @JvmOverloads constructor(
         player?.stop()
         player = null
         playingDir = null
-        // 帧播放器的 Bitmap 由它自己回收;这里把 ImageView 上最后一张也摘掉,免得
-        // 离屏 holder 还压着一张全尺寸 Bitmap。
-        glide.clear(imageView)
-        imageView.setImageDrawable(null)
-        playButton.isVisible = false
-        hideOverlay()
+        // 不在这里清 ImageView；开关关闭时：下载/压制中保留进度浮层，否则把按钮放回来，
+        // 左右切回秒显、无弹跳；真正释放放在 recycle()（holder 进回收池）再做。
+        if (!Shaft.sSettings.isAutoPlayUgoira) {
+            if (downloadInFlight) {
+                // 保持进度浮层可见，切回继续显示进度，不弹按钮。
+            } else {
+                showPlayButton()
+                hideOverlay()
+            }
+        } else {
+            hideOverlay()
+        }
     }
 
     private fun resumePlayback() {
@@ -316,11 +380,16 @@ class UgoiraPlayerView @JvmOverloads constructor(
         if (!isAttachedToWindow ||
             !owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
         ) return
-        glide.load(GlideUtil.getLargeImage(illust)).into(imageView)
+        loadPreview(illust)
         // 关闭「动图自动播放」时：只打底预览图并显示中间按钮，任何路径（进页/左右切回/
         // 滚回屏幕/已缓存秒开）都不自动拉数据或播放，只有点按钮才 startLoad。
-        if (!Shaft.sSettings.isAutoPlayUgoira()) {
-            playButton.isVisible = true
+        if (!Shaft.sSettings.isAutoPlayUgoira) {
+            if (downloadInFlight) {
+                // 之前点过播放、下载还在进行：切回继续走下载→播放，显示进度。
+                startLoad(owner, illust)
+            } else {
+                showPlayButton()
+            }
             return
         }
         startLoad(owner, illust)
@@ -328,8 +397,9 @@ class UgoiraPlayerView @JvmOverloads constructor(
 
     private fun startLoad(owner: LifecycleOwner, illust: IllustsBean) {
         playbackActive = true
+        downloadInFlight = true
         job?.cancel()
-        playButton.isVisible = false
+        hidePlayButton()
         retryButton.isVisible = false
         // 秒开:内存已有帧序列就立刻播,不等协程、不显示浮层(主线程零 IO,不碰文件系统)。
         val ready = UgoiraEngine.peekReadyInMemory(illust.id)
@@ -378,6 +448,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
                 // 已经播上原速版了就别退回「重试」——补帧失败不该毁掉能看的画面
                 if (player == null) {
                     playbackActive = false
+                    downloadInFlight = false
                     hideOverlay()
                     retryButton.isVisible = true
                 }
@@ -393,6 +464,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
     private fun playFrames(illust: IllustsBean, frames: UgoiraFrames) {
         if (playingDir == frames.dir.path) return
         if (frames.files.isEmpty()) return
+        downloadInFlight = false
         player?.stop()
         playingDir = frames.dir.path
         retryButton.isVisible = false
@@ -422,6 +494,8 @@ class UgoiraPlayerView @JvmOverloads constructor(
         pausePlayback()
         if (healedBefore) {
             Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d 自愈后仍解码失败,转手动重试", illust.id)
+            // pausePlayback 会按开关把播放按钮放回来，这里只留「重试」，避免两个按钮叠一起。
+            hidePlayButton()
             retryButton.isVisible = true
         } else {
             autoHealedDir = frames.dir.path
