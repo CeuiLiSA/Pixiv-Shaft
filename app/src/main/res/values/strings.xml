@@ -595,6 +595,8 @@
     <string name="string_347">动态 - 推荐 - 发现</string>
     <string name="string_348">动态 - 发现 - 推荐</string>
     <string name="string_349">%d列</string>
+    <!-- string_350 / string_351 是 SimpleDateFormat 的 pattern：翻译时 pattern 字母（yMdHm）不能动，
+         其中夹带的 ASCII 字面词必须用单引号包住（如 \'Added\'），否则运行时直接崩（Illegal pattern character）。 -->
     <string name="string_350">MM月dd日 HH:mm</string>
     <string name="string_351">yyyy年MM月dd日 HH:mm 添加</string>
     <string name="string_352">确定删除这条记录吗</string>

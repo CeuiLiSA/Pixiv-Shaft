@@ -571,8 +571,8 @@
     <string name="string_347">Akış - Önerilenler - Keşfet</string>
     <string name="string_348">Akış - Keşfet - Önerilenler</string>
     <string name="string_349" tools:ignore="PluralsCandidate">%d sütun</string>
-    <string name="string_350">GG-AA SS:dd</string>
-    <string name="string_351">yyyy-AA-GG SS:dd eklendi</string>
+    <string name="string_350">dd-MM HH:mm</string>
+    <string name="string_351">dd-MM-yyyy HH:mm \'eklendi\'</string>
     <string name="string_352">Bu kaydı silmek istediğine emin misin?</string>
     <string name="string_353">Gizlenen Etiketler</string>
     <string name="string_354">Gizlenen Eserler</string>
