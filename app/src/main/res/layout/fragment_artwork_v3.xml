@@ -150,4 +150,51 @@
             tools:visibility="visible" />
     </LinearLayout>
 
+    <!-- 已屏蔽遮罩(对齐经典 fragment_illust 的 abandoned_frame):作品/画师命中屏蔽记录时全屏盖住
+         整页(含 chrome)。clickable 挡住底下列表——经典是直接隐藏 content_frame,这里内容仍在。 -->
+    <FrameLayout
+        android:id="@+id/abandoned_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/cancel_mute_illust"
+                style="@style/BlueShiningButton"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_marginBottom="20dp"
+                android:paddingHorizontal="20dp"
+                android:text="@string/action_unmute_work" />
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/cancel_mute_user"
+                style="@style/BlueShiningButton"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_marginBottom="20dp"
+                android:paddingHorizontal="20dp"
+                android:text="@string/action_unmute_user" />
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/leave"
+                style="@style/RedShiningButton"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_marginBottom="20dp"
+                android:paddingHorizontal="20dp"
+                android:text="@string/action_leave_page" />
+        </LinearLayout>
+    </FrameLayout>
+
 </FrameLayout>

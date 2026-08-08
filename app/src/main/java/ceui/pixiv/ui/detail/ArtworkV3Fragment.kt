@@ -16,6 +16,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -28,6 +29,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.lisa.dialogs.MuteDialog
@@ -43,6 +45,7 @@ import ceui.lisa.utils.V3Palette
 import ceui.lisa.core.Mapper
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
+import ceui.loxia.combineLatest
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.chat.base.panel.PanelState
 import ceui.pixiv.feeds.FeedItem
@@ -63,6 +66,8 @@ import ceui.pixiv.ui.task.renderImageLoadStatusBanner
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -120,6 +125,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private var sectionLoader: SectionLoader? = null
     private var artistObservedUserId: Long = 0L
+    private var muteObservedUserId: Int = 0
 
     /** 详情面板展开态归 Fragment(而非 cell tag):滚走再滚回不会被重绑重置(对齐 legacy VH 字段)。 */
     internal var detailPanelExpanded = true
@@ -257,8 +263,57 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
             illust ?: return@observe
             syncDescSection(illust.caption)
+            attachMuteObserver(illust)
             val authorId = illust.user?.id?.toLong() ?: return@observe
             attachArtistFollowObserver(authorId)
+        }
+    }
+
+    /**
+     * 屏蔽遮罩(对齐经典 [ceui.lisa.fragments.FragmentIllust] 的 observeMuteStatus):作品或画师
+     * 命中屏蔽记录时全屏盖住整页,给出取消屏蔽 / 离开入口。V3 原先只有菜单里的写库动作、没有任何
+     * 消费方,「屏蔽这个作品」点完页面纹丝不动(#983)。
+     */
+    private fun attachMuteObserver(illust: IllustsBean) {
+        val userId = illust.user?.userId ?: return
+        if (userId == muteObservedUserId) return
+        muteObservedUserId = userId
+        val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
+        combineLatest(
+            dao.getIllustMuteEntityByID(illust.id),
+            dao.getUserMuteEntityByIDLiveData(userId),
+        ).observe(viewLifecycleOwner) { (illustEntity, userEntity) ->
+            chromeBind.abandonedFrame.isVisible = illustEntity != null || userEntity != null
+            chromeBind.cancelMuteIllust.isVisible = illustEntity != null
+            chromeBind.cancelMuteUser.isVisible = userEntity != null
+            if (illustEntity != null) {
+                chromeBind.cancelMuteIllust.setOnClick {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        it.showProgress()
+                        delay(600L)
+                        dao.deleteMuteEntity(illustEntity)
+                        it.hideProgress()
+                    }
+                }
+            }
+            if (userEntity != null) {
+                chromeBind.cancelMuteUser.setOnClick {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        it.showProgress()
+                        delay(600L)
+                        dao.deleteMuteEntity(userEntity)
+                        it.hideProgress()
+                    }
+                }
+            }
+            chromeBind.leave.setOnClick {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    it.showProgress()
+                    delay(600L)
+                    requireActivity().finish()
+                    it.hideProgress()
+                }
+            }
         }
     }
 
@@ -286,6 +341,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 重显等)后,旧 viewLifecycleOwner 上的观察已随视图销毁,而 artistObservedUserId 还钉着
         // 旧值 → 关注更新不再触发。区块懒加载的去重集随 sectionLoader 一起丢弃、新视图重建。
         artistObservedUserId = 0L
+        muteObservedUserId = 0
         sectionLoader = null
         _fabBarController = null
         _chromeBind = null
