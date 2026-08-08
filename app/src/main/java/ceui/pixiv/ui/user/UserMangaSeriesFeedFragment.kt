@@ -3,7 +3,9 @@ package ceui.pixiv.ui.user
 import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -42,8 +44,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * 「漫画系列作品」列表页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentMangaSeries] +
- * MangaSeriesAdapter）。某画师的漫画系列总览，宿主是 TemplateActivity，用 feeds 独立页统一的
- * fragment_toolbar_feed（webview 5 件套 toolbar），toolbar 标题 [R.string.string_230]。
+ * MangaSeriesAdapter）。某画师的漫画系列总览，toolbar 标题 [R.string.string_230]。
  *
  * 卡形与交互 1:1 复刻 legacy MangaSeriesAdapter 的 recy_manga_series（databinding 生成的
  * [RecyMangaSeriesBinding] 天然实现 ViewBinding，直接喂 [feedRenderer]，对齐 NovelMarkersFeedFragment
@@ -52,7 +53,7 @@ import kotlinx.coroutines.withContext
  * toolbar 菜单沿用 legacy 的 [R.menu.local_save]，只处理 action_bookmark：把当前整份列表收藏成
  * 一条精华（FeatureEntity），DB 写入切 IO（对齐记忆里的「DB 写 IO」约束）。
  */
-class UserMangaSeriesFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
+class UserMangaSeriesFeedFragment : FeedFragment() {
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
@@ -60,7 +61,25 @@ class UserMangaSeriesFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed)
     private val userID: Int
         get() = requireArguments().getInt(Params.USER_ID)
 
-    override val feedViewModel by feedViewModels {
+    /**
+     * 两种形态,对齐 [UserNovelSeriesFeedFragment]:
+     * - 独立(TemplateActivity「漫画系列作品」,showToolbar=true,legacy 默认):自带返回箭头 + 标题 +
+     *   收藏成精华菜单;
+     * - 内嵌(UserActivityV3「漫画系列」Tab,showToolbar=false):去掉 toolbar,否则 Tab 里会多顶一条头。
+     */
+    private val showToolbar: Boolean by lazy(LazyThreadSafetyMode.NONE) {
+        requireArguments().getBoolean(Params.FLAG, true)
+    }
+
+    // 内嵌 UserActivityV3 tab(无底栏)时,列表底部补手势条 inset;带 toolbar 独立页由 setUpToolbar 自理
+    override val applyBottomSafeInset: Boolean = true
+
+    // autoLoad = false：本页会作为 UserActivityV3 的「漫画系列」tab 挂进 ViewPager2，而 pager 会在
+    // 用户滑到相邻位置时就把 fragment 建出来。默认的 autoLoad 会在 onViewCreated 首次访问
+    // feedViewModel 时（VM 的 init）直接发请求——tab 从没被打开也请求了。同宿主的漫画 / 小说 /
+    // 小说系列 tab 全是 autoLoad=false，此处对齐；首屏由 FeedFragment.onResume 的 ensureLoaded 补，
+    // 独立 TemplateActivity 形态（一进来就 RESUMED）不受影响。
+    override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获：只把 userID(Int) 读成局部 val 按值传给 source，source 自持 repo、不碰 Fragment / View。
         val uid = requireArguments().getInt(Params.USER_ID)
         UserMangaSeriesFeedSource(uid)
@@ -72,9 +91,22 @@ class UserMangaSeriesFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed)
      */
     private val rowGlide: RequestManager by lazy { Glide.with(this) }
 
+    // showToolbar 是运行时参数,系统重建只走无参构造,不能靠构造器传 contentLayoutId,
+    // 改在这里按参数选骨架(两张布局都带同结构的 feed_root)。对齐 UserNovelSeriesFeedFragment。
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        val layoutId = if (showToolbar) R.layout.fragment_toolbar_feed else R.layout.fragment_feed
+        return inflater.inflate(layoutId, container, false)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         pinHostGlide(rowGlide)
+        // 内嵌 tab 无 toolbar:跳过标题 / 返回箭头 / 收藏成精华菜单(它们都挂在 toolbar 上)。
+        if (!showToolbar) return
         setUpToolbar(binding, feedBinding.feedListView)
         binding.toolbarTitle.text = getString(R.string.string_230)
         binding.toolbar.inflateMenu(R.menu.local_save)
@@ -155,10 +187,12 @@ class UserMangaSeriesFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed)
 
     companion object {
         @JvmStatic
-        fun newInstance(userID: Int): UserMangaSeriesFeedFragment {
+        @JvmOverloads
+        fun newInstance(userID: Int, showToolbar: Boolean = true): UserMangaSeriesFeedFragment {
             return UserMangaSeriesFeedFragment().apply {
                 arguments = Bundle().apply {
                     putInt(Params.USER_ID, userID)
+                    putBoolean(Params.FLAG, showToolbar)
                 }
             }
         }
