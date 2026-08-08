@@ -105,7 +105,7 @@ class NovelTextFeedSource(private val novelId: Long) : FeedSource<Int> {
             ObjectPool.update(it)
             it.user?.let { user -> ObjectPool.update(user) }
         }
-        if (hasLoadedOnce) refreshNovelText()
+        if (cursor == null && hasLoadedOnce) refreshNovelText()
         hasLoadedOnce = true
         val items = mutableListOf<FeedItem>()
         items.add(NovelHeaderFeedItem(novelId))
@@ -126,8 +126,9 @@ class NovelTextFeedSource(private val novelId: Long) : FeedSource<Int> {
      */
     private suspend fun refreshNovelText() {
         NovelTextCache.evict(novelId)
-        val html = Client.appApi.getNovelText(novelId).string()
         withContext(Dispatchers.Default) {
+            // .string() 对 10 万字级正文做 MB 级字符集解码，和解析/分词一起留在 Default 上
+            val html = Client.appApi.getNovelText(novelId).string()
             val web = WebNovelParser.parsePixivObject(html)?.novel
                 ?: error(Shaft.getContext().getString(R.string.msg_parse_fail))
             NovelTextCache.put(novelId, NovelTextCache.Entry(web, ContentParser.tokenize(web)))
