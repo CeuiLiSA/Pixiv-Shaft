@@ -2297,6 +2297,8 @@
     <string name="ugoira_rife_enable">動圖 AI 補幀 (RIFE)</string>
     <string name="ugoira_rife_enable_desc">在相鄰幀之間插入 AI 生成的中間幀,自動補至最高 4 倍幀率(貼近 GIF 50fps 上限);首次使用需下載補幀模型,壓製耗時會變長</string>
     <string name="ugoira_interpolating">補幀中</string>
+    <string name="ugoira_auto_play">動圖自動播放</string>
+    <string name="ugoira_start_play_button">開始播放（下載）</string>
     <string name="string_rife_model">補幀模型</string>
     <string name="string_rife_download_title">下載 RIFE 補幀模型</string>
     <string name="string_rife_download_subtitle">%1$s 需要額外下載以啟用動圖 AI 補幀</string>

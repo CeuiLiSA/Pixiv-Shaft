@@ -315,6 +315,10 @@ public class Settings {
     // 对帧序列做 2x 插帧,帧率翻倍;模型未下载则静默回落原始帧率
     private boolean ugoiraRifeEnable = false;
 
+    // 详情页动图(ugoira)自动播放,默认开启(行为不变)。关闭后进详情不自动下载/播放,
+    // 图片中间显示「开始播放(下载)」按钮;已缓存或左右切回也不自动播,点按钮才开始。
+    private boolean autoPlayUgoira = true;
+
     // 冷启动时是否自动刷新首页推荐插画（issue #955），默认开启（保持本地优先的原语义）。
     // 关掉后冷启命中磁盘快照就停在快照上，由用户下拉刷新才拉新内容
     private boolean autoRefreshHomeFeed = true;
@@ -1035,6 +1039,14 @@ public class Settings {
 
     public void setUgoiraRifeEnable(boolean ugoiraRifeEnable) {
         this.ugoiraRifeEnable = ugoiraRifeEnable;
+    }
+
+    public boolean isAutoPlayUgoira() {
+        return autoPlayUgoira;
+    }
+
+    public void setAutoPlayUgoira(boolean autoPlayUgoira) {
+        this.autoPlayUgoira = autoPlayUgoira;
     }
 
     public boolean isAutoRefreshHomeFeed() {

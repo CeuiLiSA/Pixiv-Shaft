@@ -119,6 +119,7 @@ object SettingsCatalog {
         add(Entry(VIEWING, "novel_direct_reader_rela", R.string.novel_direct_reader, R.string.novel_direct_reader_desc, keywords = "小说 正文 阅读器 略过详情 跳过详情 直接阅读 novel reader skip detail"))
         add(Entry(VIEWING, "transform_type_rela", R.string.string_393, keywords = "翻页 动画 切页 过渡 特效 transformer"))
         add(Entry(VIEWING, "ugoira_rife_enable_rela", R.string.ugoira_rife_enable, R.string.ugoira_rife_enable_desc, keywords = "动图 补帧 插帧 rife 帧率 60fps 顺滑 丝滑 ugoira interpolation"))
+        add(Entry(VIEWING, "ugoira_auto_play_rela", R.string.ugoira_auto_play, keywords = "动图 自动播放 自动下载 播放 gif ugoira auto play download"))
         add(Entry(VIEWING, "keep_status_bar_when_view_image_rela", R.string.keep_status_bar_when_view_image, keywords = "状态栏 刘海 挖孔 全屏 沉浸 notch"))
         add(Entry(VIEWING, "illust_detail_keep_screen_on_rela", R.string.string_451, keywords = "常亮 息屏 熄屏 屏幕 keep screen on"))
         add(Entry(VIEWING, "use_custom_double_tap_zoom_rela", R.string.use_custom_double_tap_zoom, keywords = "双击 放大 缩放 zoom"))

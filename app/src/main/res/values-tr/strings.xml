@@ -2295,6 +2295,8 @@
     <string name="ugoira_rife_enable">Ugoira yapay zeka kare arası doldurma (RIFE)</string>
     <string name="ugoira_rife_enable_desc">Yapay zeka ara kareler ekleyerek kare hızını 4 kata kadar artırır (GIF 50fps sınırına yakın). Model indirmek gerekir; kodlama daha uzun sürer</string>
     <string name="ugoira_interpolating">Kare doldurma</string>
+    <string name="ugoira_auto_play">Ugoira otomatik oynatma</string>
+    <string name="ugoira_start_play_button">Oynatmayı başlat (indir)</string>
     <string name="string_rife_model">Kare doldurma modeli</string>
     <string name="string_rife_download_title">RIFE modelini indir</string>
     <string name="string_rife_download_subtitle">Kare doldurma için %1$s indirilmelidir</string>

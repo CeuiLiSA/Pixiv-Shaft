@@ -2295,6 +2295,8 @@
     <string name="ugoira_rife_enable">うごイラ AI フレーム補間 (RIFE)</string>
     <string name="ugoira_rife_enable_desc">AI が中間フレームを生成し最大4倍のフレームレートに(GIF の 50fps 上限まで)。初回は補間モデルのダウンロードが必要で、エンコードに時間がかかります</string>
     <string name="ugoira_interpolating">フレーム補間中</string>
+    <string name="ugoira_auto_play">うごイラを自動再生</string>
+    <string name="ugoira_start_play_button">再生を開始（ダウンロード）</string>
     <string name="string_rife_model">フレーム補間モデル</string>
     <string name="string_rife_download_title">RIFE モデルをダウンロード</string>
     <string name="string_rife_download_subtitle">うごイラのフレーム補間には %1$s のダウンロードが必要です</string>

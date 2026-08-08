@@ -143,6 +143,18 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         });
         baseBind.ugoiraRifeEnableRela.setOnClickListener(v -> baseBind.ugoiraRifeEnable.performClick());
 
+        //动画(ugoira) 自动播放，默认开启。关闭后详情页不自动下载/播放，在图片中间显示「开始播放（下载）」按钮。
+        baseBind.ugoiraAutoPlay.setChecked(Shaft.sSettings.isAutoPlayUgoira());
+        baseBind.ugoiraAutoPlay.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setAutoPlayUgoira(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.ugoiraAutoPlayRela.setOnClickListener(v -> baseBind.ugoiraAutoPlay.performClick());
+
         // 看图时保留状态栏(刘海/挖孔)区域（issue #724），默认关闭。
         baseBind.keepStatusBarWhenViewImage.setChecked(Shaft.sSettings.isKeepStatusBarWhenViewImage());
         baseBind.keepStatusBarWhenViewImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
