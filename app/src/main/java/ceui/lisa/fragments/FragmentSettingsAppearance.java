@@ -181,6 +181,19 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         baseBind.showNovelCardTagsRela.setOnClickListener(v ->
                 baseBind.showNovelCardTags.performClick());
 
+        // 小说列表卡片标签折叠
+        baseBind.collapseNovelCardTags.setChecked(Shaft.sSettings.isCollapseNovelCardTags());
+        baseBind.collapseNovelCardTags.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setCollapseNovelCardTags(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.collapseNovelCardTagsRela.setOnClickListener(v ->
+                baseBind.collapseNovelCardTags.performClick());
+
         // 首页导航栏初始化位置
         String navigationInitPositionSettingValue = Shaft.sSettings.getNavigationInitPosition();
         final String navigationInitPosition = !TextUtils.isEmpty(navigationInitPositionSettingValue)

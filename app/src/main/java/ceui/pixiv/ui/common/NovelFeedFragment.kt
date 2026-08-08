@@ -204,13 +204,14 @@ abstract class NovelFeedFragment(
         // AI 生成角标（novel_ai_type == 2，与 card/v3/history/detail 同口径）
         b.badgeAi.isVisible = novel.novel_ai_type == 2
 
-        // 标签流：尊重「显示标签」设置，关时喂空列表折叠。compact + 去 # 前缀 + 超 6 折叠成「+N」，
+        // 标签流：尊重「显示标签」设置，关时喂空列表折叠。compact + 去 # 前缀，
+        // 「标签折叠」开关开启时超 6 个折叠成「+N」，关闭时 maxTags=-1 全量展示；
         // searchIndex=1 让点击跳搜索页「小说」tab。
         val tags = if (Shaft.sSettings.isShowNovelCardTags()) novel.tags.orEmpty() else emptyList()
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
-        b.novelTag.maxTags = 6
+        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()
 

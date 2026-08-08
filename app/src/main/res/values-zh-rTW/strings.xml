@@ -1011,6 +1011,7 @@
     <string name="rate_dialog_maybe_later">以後再說</string>
     <string name="rate_dialog_never">不再提醒</string>
     <string name="show_novel_card_tags_setting">小說列表顯示標籤</string>
+    <string name="collapse_novel_card_tags_setting">小說列表標籤摺疊</string>
     <string name="string_discovery">發現</string>
     <string name="download_records_export">匯出下載記錄</string>
     <string name="download_records_import">匯入下載記錄</string>

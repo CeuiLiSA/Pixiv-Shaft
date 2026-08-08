@@ -151,6 +151,9 @@ public class Settings {
     //小说卡片是否显示标签
     private boolean showNovelCardTags = true;
 
+    //小说列表卡片标签是否折叠（超过 6 个换成「+N」），默认折叠
+    private boolean collapseNovelCardTags = true;
+
     //直接下载单个作品所有P
     private boolean directDownloadAllImage = true;
 
@@ -984,6 +987,14 @@ public class Settings {
 
     public void setShowNovelCardTags(boolean showNovelCardTags) {
         this.showNovelCardTags = showNovelCardTags;
+    }
+
+    public boolean isCollapseNovelCardTags() {
+        return collapseNovelCardTags;
+    }
+
+    public void setCollapseNovelCardTags(boolean collapseNovelCardTags) {
+        this.collapseNovelCardTags = collapseNovelCardTags;
     }
 
     public boolean isIllustDetailKeepScreenOn() {
