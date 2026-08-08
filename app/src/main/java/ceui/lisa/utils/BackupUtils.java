@@ -192,6 +192,9 @@ public class BackupUtils {
     public static BackupEntity restoreBackupEntity(Context context, InputStream inputStream) {
         try (JsonReader reader = new JsonReader(new BufferedReader(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8)))) {
+            // 旧还原链路是 Gson.fromJson(String),全程 lenient;这里对齐,
+            // 否则带 BOM / 轻微不规范的旧备份文件会在 strict 模式下解析失败。
+            reader.setLenient(true);
             BackupEntity backupEntity = new BackupEntity();
             DownloadDao downloadDao = AppDatabase.getAppDatabase(context).downloadDao();
             reader.beginObject();

@@ -275,23 +275,39 @@ public class IllustDownload {
     }
 
     /**
-     * 文件写出 + MediaStore 复制都在 IO 线程执行(点击回调里同步写大文件会
+     * 文件写出 + MediaStore 复制都在工作线程执行(点击回调里同步写大文件会
      * ANR,见 #981),targetCallback 回主线程,fileWriter 里可以放心读库/序列化。
+     * 用 single() 而不是 io():同名临时文件是共享的,导出进行中用户再点一次
+     * 备份,io() 会两个任务并发 truncate + 交错写同一个文件,产出损坏的备份;
+     * single() 全局单线程,天然串行。
      */
     public static void downloadBackupFile(BaseActivity<?> activity, String displayName, Callback<File> fileWriter, Callback<Uri> targetCallback){
-        check(activity, () -> Schedulers.io().scheduleDirect(() -> {
-            File textFile = LegacyFile.textFile(activity, displayName);
+        // 外层 try/catch 与回调处的 try/catch 都是在保持旧行为:旧实现里整个
+        // feedback(含 getUriForFile 和 targetCallback)都跑在 check() 自带的
+        // try/catch 里,异步化后不能让这些异常变成 Rx undeliverable / 主线程崩溃
+        check(activity, () -> Schedulers.single().scheduleDirect(() -> {
             try {
-                fileWriter.doSomething(textFile);
-                Common.showLog("downloadBackupFile displayName " + textFile.getName());
-                OutPut.outPutBackupFile(activity, textFile, textFile.getName());
+                File textFile = LegacyFile.textFile(activity, displayName);
+                try {
+                    fileWriter.doSomething(textFile);
+                    Common.showLog("downloadBackupFile displayName " + textFile.getName());
+                    OutPut.outPutBackupFile(activity, textFile, textFile.getName());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Uri fileURI = FileProvider.getUriForFile(activity,
+                        activity.getApplicationContext().getPackageName() + ".provider", textFile);
+                if (targetCallback != null) {
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        try {
+                            targetCallback.doSomething(fileURI);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-            }
-            Uri fileURI = FileProvider.getUriForFile(activity,
-                    activity.getApplicationContext().getPackageName() + ".provider", textFile);
-            if (targetCallback != null) {
-                new Handler(Looper.getMainLooper()).post(() -> targetCallback.doSomething(fileURI));
             }
         }));
     }
