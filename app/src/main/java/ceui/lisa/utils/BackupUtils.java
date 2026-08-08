@@ -30,7 +30,9 @@ import ceui.lisa.database.SearchDao;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.feature.FeatureEntity;
+import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadConfigBackup;
+import ceui.pixiv.download.config.DownloadConfigStore;
 
 public class BackupUtils {
 
@@ -261,9 +263,19 @@ public class BackupUtils {
         // 必须排在 Local.setSettings 之前：本机若还没有 V3 配置，store 会用当前
         // Settings 的 downloadWay / rootPathUri 兜底，先还原 Settings 就会把备份里
         // 别的设备的 SAF 目录当成本机的兜底值。
-        DownloadConfigBackup.restore(backupEntity.getDownloadConfigV3());
+        boolean restoredV3 = DownloadConfigBackup.restore(backupEntity.getDownloadConfigV3());
         Settings settings = backupEntity.getSettings();
         if (settings != null) {
+            if (!restoredV3) {
+                // 备份里没有 V3 下载配置段（旧版备份 / 导出失败的空段）时 restore 不落盘，
+                // 上面的时序保护就失效了：store 若还停在 FirstRun，必须先把当前兜底配置
+                // 钉住，否则下一行覆盖遗留字段后，firstRunFallback 会把备份里异机的
+                // 死 SAF 树当成本机兜底（#984 同款症状）。Corrupt 状态不动，留给修复链路。
+                DownloadConfigStore.LoadResult loaded = DownloadsRegistry.getStore().load();
+                if (loaded instanceof DownloadConfigStore.LoadResult.FirstRun) {
+                    DownloadsRegistry.getStore().save(loaded.getConfig());
+                }
+            }
             Local.setSettings(settings);
         }
         AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
