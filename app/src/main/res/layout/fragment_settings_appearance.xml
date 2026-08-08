@@ -216,7 +216,7 @@
                 <RelativeLayout
                     android:id="@+id/show_novel_card_tags_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/bg_m3_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -227,6 +227,24 @@
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/show_novel_card_tags"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/collapse_novel_card_tags_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/collapse_novel_card_tags_setting" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/collapse_novel_card_tags"
                         style="@style/M3SetSwitch" />
 
                 </RelativeLayout>

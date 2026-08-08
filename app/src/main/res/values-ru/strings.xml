@@ -1009,6 +1009,7 @@
     <string name="rate_dialog_maybe_later">Позже</string>
     <string name="rate_dialog_never">Больше не спрашивать</string>
     <string name="show_novel_card_tags_setting">Показывать теги на карточках новелл</string>
+    <string name="collapse_novel_card_tags_setting">Сворачивать теги на карточках новелл</string>
     <string name="string_discovery">Обзор</string>
     <string name="download_records_export">Экспорт истории загрузок</string>
     <string name="download_records_import">Импорт истории загрузок</string>
