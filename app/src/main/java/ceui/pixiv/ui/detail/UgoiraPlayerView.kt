@@ -221,18 +221,13 @@ class UgoiraPlayerView @JvmOverloads constructor(
         }
     }
 
-    /** 关闭自动播放时按钮直接显示，不做淡入——左右切入不会出现动画闪烁。 */
+    /** 关闭自动播放时按钮直接显隐，不做淡入——左右切入不会出现动画闪烁。 */
     private fun showPlayButton() {
-        if (playButton.isVisible && playButton.alpha == 1f) return
-        playButton.animate().cancel()
         playButton.isVisible = true
-        playButton.alpha = 1f
     }
 
     private fun hidePlayButton() {
-        playButton.animate().cancel()
         playButton.isVisible = false
-        playButton.alpha = 1f
     }
 
     private var job: Job? = null
@@ -308,7 +303,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         if (!playbackActive) loadPreview(illust)
         // 关闭自动播放时，按钮在预加载（view 创建）阶段就显示，不依赖页面激活；
         // 左右切入时按钮跟着页面一起进来，不会中途闪现；无论是否点过播放都显示。
-        if (!playbackActive && !Shaft.sSettings.isAutoPlayUgoira()) {
+        if (!playbackActive && !Shaft.sSettings.isAutoPlayUgoira) {
             showPlayButton()
         }
 
@@ -342,9 +337,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         retryButton.setOnClickListener(null)
         retryButton.isVisible = false
         playButton.setOnClickListener(null)
-        playButton.animate().cancel()
         playButton.isVisible = false
-        playButton.alpha = 1f
         downloadInFlight = false
         hideOverlay()
         previewIllustId = null

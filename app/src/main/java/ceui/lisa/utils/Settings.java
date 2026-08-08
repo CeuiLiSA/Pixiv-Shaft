@@ -312,9 +312,8 @@ public class Settings {
     // 对帧序列做 2x 插帧,帧率翻倍;模型未下载则静默回落原始帧率
     private boolean ugoiraRifeEnable = false;
 
-    // auto play ugoira on detail page; default true. When disabled, show a center
-    // "start playback (download)" button instead of auto download/play, and never
-    // auto-play on swipe-back even if frames are already cached.
+    // 详情页动图(ugoira)自动播放,默认开启(行为不变)。关闭后进详情不自动下载/播放,
+    // 图片中间显示「开始播放(下载)」按钮;已缓存或左右切回也不自动播,点按钮才开始。
     private boolean autoPlayUgoira = true;
 
     // 冷启动时是否自动刷新首页推荐插画（issue #955），默认开启（保持本地优先的原语义）。
