@@ -28,7 +28,6 @@ import ceui.lisa.core.Manager;
 
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.OutPut;
-import ceui.lisa.file.SAFile;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
@@ -40,6 +39,8 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.ImageUrlsBean;
 import ceui.lisa.models.MetaPagesBean;
 import ceui.loxia.ObjectPool;
+import ceui.pixiv.download.DownloadsRegistry;
+import ceui.pixiv.download.config.StorageChoice;
 import ceui.pixiv.ui.bulk.UgoiraEngine;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -373,57 +374,45 @@ public class IllustDownload {
         return urls.getLarge();
     }
 
+    /**
+     * 下载前的 SAF 可用性闸门。只认 V3 下载配置（DownloadsRegistry）：实际写盘的
+     * 两个 factory 早已只走下载 facade，遗留 Settings.downloadWay/rootPathUri 是
+     * 另一套状态——还原异机备份会把它写成一棵本机无授权的死树，而 V3 侧校验后
+     * 已回落本地存储，旧闸门就会在明明要写本地目录时错误弹「已授权的下载目录
+     * 不存在」并拦下备份/下载（#984）。
+     */
     public static void check(BaseActivity<?> activity, FeedBack feedBack) {
-        if (Shaft.sSettings.getDownloadWay() == 1) {
-            if (TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
+        StorageChoice storage = DownloadsRegistry.currentImagesStorage();
+        if (storage instanceof StorageChoice.Saf) {
+            DocumentFile root = null;
+            try {
+                root = DocumentFile.fromTreeUri(activity, ((StorageChoice.Saf) storage).getTreeUri());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (root == null || !root.exists() || !root.isDirectory()) {
                 activity.setFeedBack(feedBack);
                 new QMUIDialog.MessageDialogBuilder(activity)
                         .setTitle(activity.getResources().getString(R.string.string_143))
-                        .setMessage(activity.getResources().getString(R.string.string_313))
+                        .setMessage(activity.getResources().getString(R.string.string_365))
                         .setSkinManager(QMUISkinManager.defaultInstance(activity))
                         .addAction(0, activity.getResources().getString(R.string.string_142),
                                 QMUIDialogAction.ACTION_PROP_NEGATIVE,
                                 (dialog, index) -> dialog.dismiss())
-                        .addAction(0, activity.getResources().getString(R.string.string_312),
+                        .addAction(0, activity.getResources().getString(R.string.string_366),
                                 (dialog, index) -> {
                                     dialog.dismiss();
                                     BaseActivity.launchSafTreePicker(activity);
                                 })
                         .show();
-            } else {
-                DocumentFile root = SAFile.rootFolder(activity);
-                if (root == null || !root.exists() || !root.isDirectory()) {
-                    activity.setFeedBack(feedBack);
-                    new QMUIDialog.MessageDialogBuilder(activity)
-                            .setTitle(activity.getResources().getString(R.string.string_143))
-                            .setMessage(activity.getResources().getString(R.string.string_365))
-                            .setSkinManager(QMUISkinManager.defaultInstance(activity))
-                            .addAction(0, activity.getResources().getString(R.string.string_142),
-                                    QMUIDialogAction.ACTION_PROP_NEGATIVE,
-                                    (dialog, index) -> dialog.dismiss())
-                            .addAction(0, activity.getResources().getString(R.string.string_366),
-                                    (dialog, index) -> {
-                                        dialog.dismiss();
-                                        BaseActivity.launchSafTreePicker(activity);
-                                    })
-                            .show();
-                } else {
-                    if (feedBack != null) {
-                        try {
-                            feedBack.doSomething();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+                return;
             }
-        } else {
-            if (feedBack != null) {
-                try {
-                    feedBack.doSomething();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        }
+        if (feedBack != null) {
+            try {
+                feedBack.doSomething();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

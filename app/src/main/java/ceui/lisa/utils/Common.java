@@ -55,6 +55,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.session.SessionManager;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.database.AppDatabase;
@@ -381,18 +382,19 @@ public class Common {
 
     /**
      * 检查插画是否已经下载过
+     * SAF 与否只认 V3 下载配置——遗留 downloadWay 在还原异机备份后会与实际存储脱节（#984）。
      * */
     public static boolean isIllustDownloaded(IllustsBean illust) {
         try {
             if (illust.getPage_count() == 1) {
-                if (Shaft.sSettings.getDownloadWay() == 1) {
+                if (DownloadsRegistry.isSaf()) {
                     return SAFile.isFileExists(Shaft.getContext(), illust);
                 } else {
                     return FileCreator.isExist(illust, 0);
                 }
             } else {
                 IntStream pageIndexStream = IntStream.range(0, illust.getPage_count());
-                if (Shaft.sSettings.getDownloadWay() == 1) {
+                if (DownloadsRegistry.isSaf()) {
                     return pageIndexStream
                             .allMatch(index -> SAFile.isFileExists(Shaft.getContext(), illust, index));
                 } else {
@@ -412,13 +414,13 @@ public class Common {
     public static boolean isIllustDownloaded(IllustsBean illust, int index) {
         try {
             if (illust.getPage_count() == 1) {
-                if (Shaft.sSettings.getDownloadWay() == 1) {
+                if (DownloadsRegistry.isSaf()) {
                     return SAFile.isFileExists(Shaft.getContext(), illust);
                 } else {
                     return FileCreator.isExist(illust, 0);
                 }
             } else {
-                if (Shaft.sSettings.getDownloadWay() == 1) {
+                if (DownloadsRegistry.isSaf()) {
                     return SAFile.isFileExists(Shaft.getContext(), illust, index);
                 } else {
                     return FileCreator.isExist(illust, index);

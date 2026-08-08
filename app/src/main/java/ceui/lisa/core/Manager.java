@@ -35,6 +35,7 @@ import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.DownloadLimitTypeUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.RecordedPageProbe;
 import ceui.pixiv.download.StageStore;
 import ceui.pixiv.download.aria2.Aria2Dispatcher;
@@ -562,7 +563,9 @@ public class Manager {
         Schedulers.io().scheduleDirect(() -> {
             DownloadFileFactory factory;
             try {
-                if (Shaft.sSettings.getDownloadWay() == 0 || downloadItem.getIllust().isGif()) {
+                // SAF 与否只认 V3 下载配置，不读遗留 downloadWay（#984）；
+                // 两个 factory 反正都走下载 facade，这里只决定 gif 之外的壳。
+                if (!DownloadsRegistry.isSaf() || downloadItem.getIllust().isGif()) {
                     factory = new Android10DownloadFactory22(context, downloadItem);
                 } else {
                     factory = new SAFactory(context, downloadItem);
