@@ -211,7 +211,7 @@ abstract class NovelFeedFragment(
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
-        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
+        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags()) 6 else -1
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()
 
