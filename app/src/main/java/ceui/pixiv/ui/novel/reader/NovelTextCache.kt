@@ -23,6 +23,10 @@ object NovelTextCache {
         cache.put(novelId, entry)
     }
 
+    fun evict(novelId: Long) {
+        cache.remove(novelId)
+    }
+
     fun clear() {
         cache.evictAll()
     }

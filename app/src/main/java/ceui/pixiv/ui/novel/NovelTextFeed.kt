@@ -10,6 +10,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
+import ceui.lisa.fragments.WebNovelParser
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.CellNovelActionsBinding
 import ceui.lisa.databinding.CellNovelCaptionBinding
@@ -39,9 +41,13 @@ import ceui.pixiv.ui.common.bindCopyLinkChip
 import ceui.pixiv.ui.common.bindOpenLinkChip
 import ceui.pixiv.ui.common.NovelActionReceiver
 import ceui.pixiv.ui.detail.SeriesAuthorFeedItem
+import ceui.pixiv.ui.novel.reader.NovelTextCache
+import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.extractPixivId
 import ceui.pixiv.utils.setOnClick
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.text.NumberFormat
 
@@ -90,11 +96,17 @@ data class NovelCaptionFeedItem(val novelId: Long) : FeedItem {
 // ── FeedSource：单页，无分页（一篇小说的固定 6 张卡）──────────────────────
 
 class NovelTextFeedSource(private val novelId: Long) : FeedSource<Int> {
+
+    /** 首次 load 后置 true；本源单页无翻页，之后每次 load(null) 都是下拉刷新。 */
+    private var hasLoadedOnce = false
+
     override suspend fun load(cursor: Int?): FeedPage<Int> {
         val novel = Client.appApi.getNovel(novelId).novel?.also {
             ObjectPool.update(it)
             it.user?.let { user -> ObjectPool.update(user) }
         }
+        if (hasLoadedOnce) refreshNovelText()
+        hasLoadedOnce = true
         val items = mutableListOf<FeedItem>()
         items.add(NovelHeaderFeedItem(novelId))
         (novel?.user ?: ObjectPool.get<Novel>(novelId).value?.user)?.let { user: User ->
@@ -105,6 +117,21 @@ class NovelTextFeedSource(private val novelId: Long) : FeedSource<Int> {
         items.add(NovelTagsFeedItem(novelId))
         items.add(NovelCaptionFeedItem(novelId))
         return FeedPage(items, null)
+    }
+
+    /**
+     * 下拉刷新时无条件换新正文缓存（issue #976）：[NovelTextCache] 无过期机制，作者改文后
+     * 进程内命中的永远是旧正文，而 app API 的 novel 对象没有更新时间字段，无从自动判断失效。
+     * 先逐出旧条目——即使后面拉取/解析失败，阅读器再进也会走网络拿新的，绝不退回旧缓存。
+     */
+    private suspend fun refreshNovelText() {
+        NovelTextCache.evict(novelId)
+        val html = Client.appApi.getNovelText(novelId).string()
+        withContext(Dispatchers.Default) {
+            val web = WebNovelParser.parsePixivObject(html)?.novel
+                ?: error(Shaft.getContext().getString(R.string.msg_parse_fail))
+            NovelTextCache.put(novelId, NovelTextCache.Entry(web, ContentParser.tokenize(web)))
+        }
     }
 }
 
