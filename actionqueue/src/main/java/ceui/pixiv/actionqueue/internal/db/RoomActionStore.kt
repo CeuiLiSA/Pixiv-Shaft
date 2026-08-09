@@ -56,8 +56,13 @@ internal class RoomActionStore(private val context: Context) : ActionStore {
 
     override suspend fun releaseToPending(id: Long): Unit = dao.releaseToPending(id)
 
-    override suspend fun rescheduleForRetry(id: Long, notBeforeMs: Long): Unit =
-        dao.rescheduleForRetry(id, notBeforeMs)
+    override suspend fun rescheduleForRetry(id: Long, notBeforeMs: Long, countAttempt: Boolean) {
+        if (countAttempt) {
+            dao.rescheduleForRetry(id, notBeforeMs)
+        } else {
+            dao.rescheduleKeepingAttempt(id, notBeforeMs)
+        }
+    }
 
     override suspend fun markFailed(id: Long, reason: String): Unit =
         dao.markFailed(id, reason.take(MAX_ERROR_LEN))

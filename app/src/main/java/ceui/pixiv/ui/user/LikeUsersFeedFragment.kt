@@ -187,25 +187,22 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         val user = cell.itemOrNull?.user ?: return
         val target = !(currentFollowed(user.id) ?: user.isIs_followed)
         renderFollow(cell.binding, target)
-        val viewModel = feedViewModel
-        applyFollowed(viewModel, user.id, target)
-        val rollback = Runnable { applyFollowed(viewModel, user.id, !target) }
+        applyFollowed(feedViewModel, user.id, target)
+        // 失败回滚由 PixivActionQueue 统一做：它会带相反的值再发一次 LIKED_USER，
+        // 本页的 followSyncReceiver 收到就把条目拨回去（applyFollowed 幂等）。
         if (target) {
-            PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC, rollback)
+            PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC)
         } else {
-            PixivOperate.postUnFollowUser(user.id, rollback)
+            PixivOperate.postUnFollowUser(user.id)
         }
     }
 
-    /** 长按按钮 = 私密关注（沿用 legacy 的长按语义）。目标态恒为「已关注」，失败回滚。 */
+    /** 长按按钮 = 私密关注（沿用 legacy 的长按语义）。目标态恒为「已关注」，失败由队列广播回滚。 */
     private fun privateFollow(cell: FeedCell<LikeUserFeedItem, RecySimpleUserBinding>) {
         val user = cell.itemOrNull?.user ?: return
         renderFollow(cell.binding, true)
-        val viewModel = feedViewModel
-        applyFollowed(viewModel, user.id, true)
-        PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE) {
-            applyFollowed(viewModel, user.id, false)
-        }
+        applyFollowed(feedViewModel, user.id, true)
+        PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
     }
 
     companion object {

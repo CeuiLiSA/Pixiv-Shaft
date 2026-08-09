@@ -86,6 +86,10 @@ internal interface ActionDao {
     )
     suspend fun rescheduleForRetry(id: Long, notBeforeMs: Long)
 
+    /** 同上但不消耗重试预算，见 [ceui.pixiv.actionqueue.ActionOutcome.Retry.countsAsAttempt]。 */
+    @Query("UPDATE queued_action SET status = 'PENDING', notBefore = :notBeforeMs WHERE id = :id")
+    suspend fun rescheduleKeepingAttempt(id: Long, notBeforeMs: Long)
+
     @Query("UPDATE queued_action SET status = 'FAILED', lastError = :reason WHERE id = :id")
     suspend fun markFailed(id: Long, reason: String)
 

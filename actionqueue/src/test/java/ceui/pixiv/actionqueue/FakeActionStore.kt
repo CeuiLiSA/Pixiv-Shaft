@@ -135,11 +135,11 @@ internal class FakeActionStore : ActionStore {
         row(id)?.status = Status.PENDING
     }
 
-    override suspend fun rescheduleForRetry(id: Long, notBeforeMs: Long) {
+    override suspend fun rescheduleForRetry(id: Long, notBeforeMs: Long, countAttempt: Boolean) {
         checkFailure()
         row(id)?.apply {
             status = Status.PENDING
-            attempt += 1
+            if (countAttempt) attempt += 1
             notBefore = notBeforeMs
         }
     }

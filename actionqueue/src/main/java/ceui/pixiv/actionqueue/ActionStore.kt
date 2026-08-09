@@ -66,8 +66,13 @@ public interface ActionStore {
     /** 放回 PENDING 且**不**增加尝试次数。用于队列被主动停止时归还在手的行。 */
     public suspend fun releaseToPending(id: Long)
 
-    /** 尝试次数 +1，放回 PENDING，并把 notBefore 推到 [notBeforeMs]。保持原有的排队顺序。 */
-    public suspend fun rescheduleForRetry(id: Long, notBeforeMs: Long)
+    /**
+     * 放回 PENDING 并把 notBefore 推到 [notBeforeMs]。保持原有的排队顺序（id 不变）。
+     *
+     * @param countAttempt 尝试次数要不要 +1。断网这类「请求根本没发出去」的失败传 false，
+     *                     见 [ActionOutcome.Retry.countsAsAttempt]。
+     */
+    public suspend fun rescheduleForRetry(id: Long, notBeforeMs: Long, countAttempt: Boolean)
 
     /** 终态失败，留在库里供调用方回滚后清理。 */
     public suspend fun markFailed(id: Long, reason: String)

@@ -338,8 +338,8 @@ public class ActionQueue(
             }
 
             is ActionOutcome.Retry -> {
-                val attemptsMade = action.attempt + 1
-                if (attemptsMade >= policy.maxAttempts) {
+                val attemptsMade = action.attempt + if (outcome.countsAsAttempt) 1 else 0
+                if (outcome.countsAsAttempt && attemptsMade >= policy.maxAttempts) {
                     val reason = "failed after $attemptsMade attempts: " +
                         (outcome.cause?.message ?: "unknown error")
                     store.markFailed(action.id, reason)
@@ -352,10 +352,12 @@ public class ActionQueue(
                         random = random,
                     )
                     val retryAt = clock.nowMs() + cooldown
-                    // 整队冷却而不是单条退避：429 是账号级的，只退避失败那条，
-                    // 后面的照发只会接着撞。
-                    setCooldown(retryAt)
-                    store.rescheduleForRetry(action.id, retryAt)
+                    // 429 是账号级速率限制，只退避失败那条、后面的照发只会接着撞，所以整队一起冻；
+                    // 而 400 / 401 这种只说明这一条不行，冻整队等于让一条坏行连累别人的收藏。
+                    if (outcome.scope == RetryScope.QUEUE) {
+                        setCooldown(retryAt)
+                    }
+                    store.rescheduleForRetry(action.id, retryAt, outcome.countsAsAttempt)
                     _events.tryEmit(ActionEvent.Retrying(action, retryAt, outcome.cause))
                 }
             }

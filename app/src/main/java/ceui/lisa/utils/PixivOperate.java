@@ -79,6 +79,7 @@ import retrofit2.Callback;
 
 import ceui.pixiv.events.EventReporter;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.actions.PixivActions;
 import ceui.pixiv.widgets.RateAppManager;
 
 import static com.blankj.utilcode.util.ColorUtils.getColor;
@@ -105,101 +106,29 @@ public class PixivOperate {
         call.enqueue(callback);
     }
 
-    public static void postFollowUser(int userID, String followType) {
-        postFollowUser(userID, followType, null);
-    }
-
     /**
-     * @param onFailure 关注失败时的回调（主线程），用于让调用方回滚乐观翻转的 UI。
-     *                  传 null 即沿用老行为：只由 {@link ErrorCtrl} 弹错误 toast，不回滚。
-     *                  失败回调**必须**由调用方提供——本方法是 fire-and-forget 的全局 Rx 链，
-     *                  没有回调的话乐观态会一直留在列表里，直到用户下拉刷新才被纠正。
+     * 关注。**只是 {@link PixivActions#setUserFollow} 的 legacy 封装**——本地状态（ObjectPool、
+     * AppLevelViewModel、LIKED_USER 广播）当帧生效，真正的请求由 PixivActionQueue 限流后发出。
+     * <p>
+     * 之所以不再自己打接口：这个方法和 PixivActions 都拿 ObjectPool 的关注态当真源，两条路并存时
+     * 只要队列还在冷却，「详情页关注 → 列表里取关」就会以相反的顺序落到服务端，最终状态与用户
+     * 最后一次操作相反（见 NovelReaderV3ViewModel.toggleBookmark 上那段同类问题的注释）。
+     * <p>
+     * 成功 toast 一并去掉了：这一刻请求还没发出去，报成功是骗用户，而失败时队列几分钟后还会补一个
+     * 「操作失败」的 toast 自相矛盾。反馈由按钮自己的关注态承担，失败时队列会把它拨回去并广播。
+     * 埋点与发现画像同样挪到了队列的成功回调里（{@code PixivActionQueue.report}）——发出去就撤不回来的
+     * 东西必须等服务端确认。
      */
-    public static void postFollowUser(int userID, String followType, Runnable onFailure) {
-        Retro.getAppApi().postFollow(
-                        userID, followType)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<NullResponse>() {
-
-                    @Override
-                    public void error(Throwable e) {
-                        super.error(e);
-                        if (onFailure != null) {
-                            onFailure.run();
-                        }
-                    }
-
-                    @Override
-                    public void next(NullResponse nullResponse) {
-                        RateAppManager.INSTANCE.onUserEngaged();
-                        Intent intent = new Intent(Params.LIKED_USER);
-                        intent.putExtra(Params.ID, userID);
-                        intent.putExtra(Params.IS_LIKED, true);
-                        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-
-                        ObjectPool.INSTANCE.followUser(userID);
-                        if (Params.TYPE_PUBLIC.equals(followType)) {
-                            Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC);
-                            Common.showToast(getString(R.string.like_success_public));
-                        } else {
-                            Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE);
-                            Common.showToast(getString(R.string.like_success_private));
-                        }
-
-                        // 关注行为更新画像
-                        Common.showLog("Discovery/Hook followUser userId=" + userID);
-                        ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onFollowUser((long) userID);
-
-                        EventReporter.INSTANCE.reportFollowUser((long) userID, true);
-                    }
-                });
+    public static void postFollowUser(int userID, String followType) {
+        PixivActions.setUserFollow((long) userID, true, followType);
     }
 
     public static void postUnFollowUser(int userID) {
-        postUnFollowUser(userID, null);
-    }
-
-    /** @param onFailure 取消关注失败时的回调（主线程），语义见 {@link #postFollowUser(int, String, Runnable)}。 */
-    public static void postUnFollowUser(int userID, Runnable onFailure) {
-        Retro.getAppApi().postUnFollow(
-                        userID)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<NullResponse>() {
-                    @Override
-                    public void error(Throwable e) {
-                        super.error(e);
-                        if (onFailure != null) {
-                            onFailure.run();
-                        }
-                    }
-
-                    @Override
-                    public void next(NullResponse nullResponse) {
-                        Intent intent = new Intent(Params.LIKED_USER);
-                        intent.putExtra(Params.ID, userID);
-                        intent.putExtra(Params.IS_LIKED, false);
-                        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                        Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
-                        ObjectPool.INSTANCE.unFollowUser(userID);
-                        Common.showToast(getString(R.string.cancel_like));
-
-                        // 取消关注更新画像
-                        Common.showLog("Discovery/Hook unfollowUser userId=" + userID);
-                        ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onUnfollowUser((long) userID);
-
-                        EventReporter.INSTANCE.reportFollowUser((long) userID, false);
-                    }
-                });
+        PixivActions.setUserFollow((long) userID, false, Params.TYPE_PUBLIC);
     }
 
     public static void postLikeDefaultStarType(IllustsBean illustsBean) {
-        if (Shaft.sSettings.isPrivateStar()) {
-            postLike(illustsBean, Params.TYPE_PRIVATE, false, 0);
-        } else {
-            postLike(illustsBean, Params.TYPE_PUBLIC, false, 0);
-        }
+        postLike(illustsBean, PixivActions.defaultBookmarkRestrict(), false, 0);
     }
 
     public static void postLike(IllustsBean illustsBean, String starType) {
@@ -211,145 +140,60 @@ public class PixivOperate {
     }
 
     /**
+     * 收藏 / 取消收藏（按 {@code illustsBean} 当前状态取反）。
+     *
+     * <p>**只是 {@link PixivActions#setIllustBookmark(IllustsBean, boolean, String)} 的 legacy 封装**：
+     * bean、ObjectPool 里的两个表示和 LIKED_ILLUST 广播当帧全部改掉，真正的请求由
+     * PixivActionQueue 串行限流后发出，撞 429 整队冷却并自动重试，进程被杀后下次启动继续发。
+     * 收藏后自动关注作者也由那一层负责（同样进队列）。
+     *
+     * <p>不再自己打接口的理由与 {@link #postFollowUser(int, String)} 相同：两条并行的写路径都拿
+     * ObjectPool 当真源，队列还在冷却时它们会以相反的顺序落到服务端。而且这里原本是「点一次发一次」，
+     * 正是连点爱心撞 429 的来源。
+     *
+     * <p>成功 toast、埋点、发现画像的处理见 {@link #postFollowUser(int, String)} 的说明，同理。
+     *
+     * @param showRelated    收藏成功后顺带拉相关作品并广播 FRAGMENT_ADD_RELATED_DATA。这是一次**读**
+     *                       请求，不受收藏队列的限流约束，仍然当场发出。
+     * @param index          legacy adapter 位置语义，随广播回传（feeds 接收器改按作品 id 锚定）。
      * @param sourcePageUuid 发起收藏的列表页 uuid，随 FRAGMENT_ADD_RELATED_DATA 广播回传，
      *                       让相关作品只被发起收藏的那张列表认领（feeds 页传，legacy 调用点传 null
      *                       走宽松的按 id 锚定兜底）。
      */
     public static void postLike(IllustsBean illustsBean, String starType, boolean showRelated,
                                 int index, String sourcePageUuid) {
-        postLike(illustsBean, starType, showRelated, index, sourcePageUuid, null);
-    }
-
-    /**
-     * @param onFailed 网络失败时回调（主线程），供调用方回滚自己的 UI 状态。可为 null。
-     *                 bean 自身的 is_bookmarked 由本方法回滚，不需要调用方管。
-     */
-    public static void postLike(IllustsBean illustsBean, String starType, boolean showRelated,
-                                int index, String sourcePageUuid, Runnable onFailed) {
         if (illustsBean == null) {
             return;
         }
 
-        // 乐观写在发请求之前（下面两个分支），失败必须还原。
-        // 不还原的后果不只是「心的颜色错了」：postLike 是按 bean 当前的 is_bookmarked 决定发
-        // 收藏还是取消的，bean 停在乐观值 → 用户下一次点击会被反转成相反的操作（想收藏，结果
-        // 先白发一个 dislike，得点两下才收上）。所以这一刀必须落在 bean 上，而不是只让各 UI
-        // 层自己回滚自己的副本。
-        final boolean wasBookmarked = illustsBean.isIs_bookmarked();
+        final boolean willBookmark = !illustsBean.isIs_bookmarked();
+        PixivActions.setIllustBookmark(illustsBean, willBookmark, starType);
 
-        if (illustsBean.isIs_bookmarked()) { //已收藏
-            illustsBean.setIs_bookmarked(false);
-            Retro.getAppApi().postDislikeIllust(illustsBean.getId())
+        // 收藏的时候，顺便请求这个作品的相关作品
+        if (willBookmark && showRelated) {
+            Retro.getAppApi().relatedIllust(illustsBean.getId())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
+                    .subscribe(new NullCtrl<ListIllust>() {
                         @Override
-                        public void error(Throwable e) {
-                            super.error(e); // 保留既有的本地化错误 toast
-                            illustsBean.setIs_bookmarked(wasBookmarked);
-                            if (onFailed != null) {
-                                onFailed.run();
-                            }
-                        }
-
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            Intent intent = new Intent(Params.LIKED_ILLUST);
+                        public void success(ListIllust listIllust) {
+                            Intent intent = new Intent(Params.FRAGMENT_ADD_RELATED_DATA);
+                            intent.putExtra(Params.CONTENT, listIllust);
+                            intent.putExtra(Params.INDEX, index);
+                            // feeds 版推荐页按被收藏作品 id 锚定插入位置（index 是 legacy
+                            // adapter 位置语义，跨列表广播时不可靠）
                             intent.putExtra(Params.ID, illustsBean.getId());
-                            intent.putExtra(Params.IS_LIKED, false);
+                            if (sourcePageUuid != null) {
+                                intent.putExtra(Params.PAGE_UUID, sourcePageUuid);
+                            }
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                            Common.showToast(getString(R.string.cancel_like_illust));
-
-                            EventReporter.INSTANCE.report(
-                                    EventReporter.Type.UNBOOKMARK,
-                                    "manga".equals(illustsBean.getType())
-                                            ? EventReporter.Target.MANGA
-                                            : EventReporter.Target.ILLUST,
-                                    (long) illustsBean.getId(),
-                                    illustsBean);
+                            // 寄生收集：收藏时的相关作品进发现池
+                            Common.showLog("Discovery/Hook postLike star_related illust=" + illustsBean.getId() + " got " + (listIllust.getIllusts() != null ? listIllust.getIllusts().size() : 0) + " related");
+                            ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.collect(
+                                    listIllust.getIllusts(), "star_related:" + illustsBean.getId());
                         }
                     });
-        } else { //没有收藏
-            illustsBean.setIs_bookmarked(true);
-            Retro.getAppApi().postLikeIllust(illustsBean.getId(), starType)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-                        @Override
-                        public void error(Throwable e) {
-                            super.error(e); // 保留既有的本地化错误 toast
-                            illustsBean.setIs_bookmarked(wasBookmarked);
-                            if (onFailed != null) {
-                                onFailed.run();
-                            }
-                        }
-
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            RateAppManager.INSTANCE.onUserEngaged();
-                            Intent intent = new Intent(Params.LIKED_ILLUST);
-                            intent.putExtra(Params.ID, illustsBean.getId());
-                            intent.putExtra(Params.IS_LIKED, true);
-                            LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-
-                            if (Params.TYPE_PUBLIC.equals(starType)) {
-                                Common.showToast(getString(R.string.like_novel_success_public));
-                            } else {
-                                Common.showToast(getString(R.string.like_novel_success_private));
-                            }
-
-                            // 收藏行为更新画像：提升画师和标签偏好，让后续推荐更精准
-                            Common.showLog("Discovery/Hook bookmarkIllust id=" + illustsBean.getId());
-                            ceui.pixiv.db.discovery.ProfileManager.INSTANCE.onBookmarkIllust(illustsBean);
-
-                            EventReporter.INSTANCE.report(
-                                    EventReporter.Type.BOOKMARK,
-                                    "manga".equals(illustsBean.getType())
-                                            ? EventReporter.Target.MANGA
-                                            : EventReporter.Target.ILLUST,
-                                    (long) illustsBean.getId(),
-                                    illustsBean);
-
-                            //收藏后自动关注作者
-                            if (Shaft.sSettings.isAutoFollowAfterStar()
-                                    && illustsBean.getUser() != null
-                                    && !illustsBean.getUser().isIs_followed()) {
-                                postFollowUser(illustsBean.getUser().getId(), Params.TYPE_PUBLIC);
-                                illustsBean.getUser().setIs_followed(true);
-                            }
-
-                            // 收藏后自动下载（issue #722 / #880）由 UI 主动收藏调用点触发,
-                            // 不在公共 postLike 回调里下,避免"下载时自动收藏 -> 又触发全本下载"循环。
-                        }
-                    });
-
-            //收藏的时候，顺便请求这个作品的相关作品
-            if (showRelated) {
-                Retro.getAppApi().relatedIllust(illustsBean.getId())
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new NullCtrl<ListIllust>() {
-                            @Override
-                            public void success(ListIllust listIllust) {
-                                Intent intent = new Intent(Params.FRAGMENT_ADD_RELATED_DATA);
-                                intent.putExtra(Params.CONTENT, listIllust);
-                                intent.putExtra(Params.INDEX, index);
-                                // feeds 版推荐页按被收藏作品 id 锚定插入位置（index 是 legacy
-                                // adapter 位置语义，跨列表广播时不可靠）
-                                intent.putExtra(Params.ID, illustsBean.getId());
-                                if (sourcePageUuid != null) {
-                                    intent.putExtra(Params.PAGE_UUID, sourcePageUuid);
-                                }
-                                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-
-                                // 寄生收集：收藏时的相关作品进发现池
-                                Common.showLog("Discovery/Hook postLike star_related illust=" + illustsBean.getId() + " got " + (listIllust.getIllusts() != null ? listIllust.getIllusts().size() : 0) + " related");
-                                ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.collect(
-                                        listIllust.getIllusts(), "star_related:" + illustsBean.getId());
-                            }
-                        });
-            }
         }
         PixivOperate.insertIllustViewHistory(illustsBean);
     }

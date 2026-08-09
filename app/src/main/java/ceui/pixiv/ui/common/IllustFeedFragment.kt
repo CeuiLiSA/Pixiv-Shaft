@@ -19,6 +19,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
+import ceui.pixiv.actions.PixivActions
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -176,26 +177,23 @@ abstract class IllustFeedFragment(
         item.bean.setIs_bookmarked(uiLiked)
         val willBookmark = !uiLiked
         val illustId = item.illust.id
-        // showRelatedOnStar 时 postLike 收藏成功后会拉相关作品并广播 FRAGMENT_ADD_RELATED_DATA；
+        // showRelatedOnStar 时 postLike 会顺带拉相关作品并广播 FRAGMENT_ADD_RELATED_DATA；
         // index 是 legacy 位置语义（feeds 接收器改按广播里的作品 id 锚定），照传兼容；
-        // 带上本列表 uuid，广播只被发起收藏的列表认领（多个推荐页同时存活时不串扰）
+        // 带上本列表 uuid，广播只被发起收藏的列表认领（多个推荐页同时存活时不串扰）。
+        //
+        // 不再传失败回调：收藏改走 PixivActionQueue 之后，终态失败由队列统一回滚，并带着
+        // 相反的值重发一次 LIKED_ILLUST —— 本列表的 FeedLikeSync 收到就把条目拨回去
+        //（withBookmarked 幂等）。回调式回滚反而会让队列在冷却几分钟后去碰一个早已销毁的
+        // Fragment 持有的 VM。
         PixivOperate.postLike(
             item.bean,
-            if (Shaft.sSettings.isPrivateStar()) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC,
+            PixivActions.defaultBookmarkRestrict(),
             showRelatedOnStar,
             feedViewModel.uiState.value.items.indexOfFirst {
                 it is IllustFeedItem && it.illust.id == illustId
             },
             syncViewModel.listPageUuid,
-        ) {
-            // 网络失败回滚乐观态（对齐 NovelFeedFragment.toggleNovelLike 的既有语义；错误 toast
-            // 由 ErrorCtrl 出，这里只管把 UI 拨回真实状态）。postLike 已经回滚了 bean 自身，
-            // 这一刀负责列表条目 + ObjectPool（withBookmarked 一并同步）。
-            // 不回滚的后果是用户对着一颗红心以为收藏成功了，而服务端上什么都没有。
-            feedViewModel.updateItems(IllustFeedItem::class.java) {
-                if (it.illust.id == illustId) it.withBookmarked(uiLiked) else it
-            }
-        }
+        )
         // 乐观状态写进列表条目而不是只写按钮：滑走再滑回不闪色；成功广播回流后是幂等 no-op
         feedViewModel.updateItems(IllustFeedItem::class.java) {
             if (it.illust.id == illustId) it.withBookmarked(willBookmark) else it

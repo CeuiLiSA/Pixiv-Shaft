@@ -37,6 +37,23 @@ public data class PendingAction(
     public val owner: String = "",
 )
 
+/**
+ * 一次可重试失败的影响范围。
+ *
+ * 分这两档的理由是「这个错误说明了谁不行」：429 说明**这个账号**这段时间不能再发请求了，
+ * 那么后面排着的每一条都得等；而 400 / 401 只说明**这一条**（或这一刻的 token）不行，
+ * 把整队一起冻住只会让一条坏行连累所有人 —— 一条永远 400 的动作按默认参数能把整个队列
+ * 卡住 7.5 分钟，而队列里躺的是别的作品的收藏。
+ */
+public enum class RetryScope {
+
+    /** 整队冷却：在这条的退避时间过去之前，**任何**动作都不发。用于 429 / 5xx。 */
+    QUEUE,
+
+    /** 只推迟这一条，其余动作照常按最小间隔发。用于 400 / 401 / 403 这类单条或会话级错误。 */
+    ACTION,
+}
+
 /** [ActionHandler.execute] 的结果。把 HTTP 状态码翻译成这三种之一是调用方的责任。 */
 public sealed interface ActionOutcome {
 
@@ -46,15 +63,23 @@ public sealed interface ActionOutcome {
     /**
      * 可重试的失败（429 / 5xx / 网络断开）。
      *
-     * 触发的是**整队冷却**而不是单条退避：pixiv 的 429 是账号级速率限制，
-     * 只让失败那条退避、后面的照常发，只会继续撞墙。
-     *
      * @param retryAfterMs 响应里的 `Retry-After`（毫秒）。非空时作为冷却时长的下限，
      *                     与指数退避取较大者。
+     * @param scope        这次失败该冻住整队还是只推迟这一条，见 [RetryScope]。默认整队 ——
+     *                     分不清的时候少发请求总比继续撞墙安全。
+     * @param countsAsAttempt 这次失败算不算消耗一次重试预算（[QueuePolicy.maxAttempts]）。
+     *        传 false 表示「这次根本没试成，不该记在这条动作头上」—— 典型是断网：请求压根
+     *        没离开设备，服务端也从没见过它。按默认参数，5 次预算配上指数退避只够撑 7.5 分钟，
+     *        也就是说坐一趟地铁回来，用户排队的收藏已经被判终态失败、回滚、弹了 toast，
+     *        而「进程被杀也能续上」的持久化承诺正是为了这种场景才存在的。
+     *        注意传 false 的失败**不会**让退避时长增长（它按未变的 attempt 算），
+     *        所以只能给「等外部条件恢复」这类原因用，别拿它兜住会一直失败的请求。
      */
     public data class Retry(
         public val retryAfterMs: Long? = null,
         public val cause: Throwable? = null,
+        public val scope: RetryScope = RetryScope.QUEUE,
+        public val countsAsAttempt: Boolean = true,
     ) : ActionOutcome
 
     /**

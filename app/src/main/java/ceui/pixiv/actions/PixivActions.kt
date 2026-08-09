@@ -1,6 +1,9 @@
 package ceui.pixiv.actions
 
+import android.content.Intent
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.activities.Shaft
+import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.loxia.Illust
@@ -19,9 +22,21 @@ import ceui.pixiv.widgets.RateAppManager
  * 埋点刻意**不**在这里发：这一刻请求还没出去，之后可能因为限流打满重试或作品已删除
  * 而终态失败并被回滚，而埋点发出去就撤不回来。
  *
+ * 同理**不弹「收藏成功」**：那一刻请求还没发出去，报成功就是骗用户，而失败时队列几分钟后
+ * 还会补一个「收藏失败」的 toast 自相矛盾。反馈由爱心本身承担，失败时队列会把它拨回去。
+ *
+ * ## 一幅作品的三个表示
+ *
+ * 同一个作品在仓库里同时以 [Illust]（V3 详情 / feeds 条目读它）、[IllustsBean]（legacy 详情、
+ * IAdapter、下载链路读它，且是**可变共享实例**）和各列表条目自己的拷贝存在，[ObjectPool] 里
+ * 前两者还是两个独立的键。所以每次收藏态变更都要三管齐下：写 [Illust] 池条目、写 [IllustsBean]
+ * （传进来的实例 + 池里那份）、发 [Params.LIKED_ILLUST] 广播让各列表把自己的拷贝拨过去。
+ * 漏掉任何一路的表现都是「这个页面红了那个页面还是灰的」，而且回滚时同样会漏。
+ *
  * 之所以要有这么一层门面：仓库里原本有三套并行的收藏写法（legacy 的 `PixivOperate`、
  * V3 的 `DetailFeedSupport`、小说卡片自己的 scope），乐观更新、埋点、私密收藏设置各写各的，
- * 行为不一致。新代码一律走这里。
+ * 行为不一致。现在 `PixivOperate.postLike` / `postFollowUser` 也只是本门面的薄封装，
+ * 所有收藏 / 关注写操作都从这里进同一条限流队列。
  */
 object PixivActions {
 
@@ -52,17 +67,79 @@ object PixivActions {
         restrict: String = defaultBookmarkRestrict(),
     ) {
         if (illust.is_bookmarked == bookmark) return
-
-        val delta = if (bookmark) 1 else -1
-        ObjectPool.update(
-            illust.copy(
-                is_bookmarked = bookmark,
-                total_bookmarks = illust.total_bookmarks?.plus(delta),
-            )
+        applyIllustBookmark(
+            illustId = illust.id,
+            bookmark = bookmark,
+            restrict = restrict,
+            bean = null,
+            authorId = illust.user?.id,
+            authorFollowed = illust.user?.is_followed,
         )
+    }
+
+    /**
+     * legacy 表示的入口（[IllustsBean] 是 IAdapter / 详情 pager / 下载链路共享的可变实例）。
+     *
+     * [bean] 会被就地改写：`PixivOperate.postLike` 一族按 bean 当前的 `is_bookmarked` 决定
+     * 发收藏还是取消，bean 停在旧值的话用户下一次点击会被反转成相反的操作。
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun toggleIllustBookmark(bean: IllustsBean, restrict: String = defaultBookmarkRestrict()) {
+        setIllustBookmark(bean, !bean.isIs_bookmarked, restrict)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun setIllustBookmark(
+        bean: IllustsBean,
+        bookmark: Boolean,
+        restrict: String = defaultBookmarkRestrict(),
+    ) {
+        if (bean.isIs_bookmarked == bookmark) return
+        applyIllustBookmark(
+            illustId = bean.id.toLong(),
+            bookmark = bookmark,
+            restrict = restrict,
+            bean = bean,
+            authorId = bean.user?.id?.toLong(),
+            authorFollowed = bean.user?.isIs_followed,
+        )
+    }
+
+    /**
+     * @param authorFollowed 调用方手上那份作者数据的关注态，供「收藏后自动关注」判重。
+     *                       它和 [ObjectPool] 里的记录**任意一边**说已关注就不再发 ——
+     *                       只信作品里带的那份（legacy postLike 的判据）会给刚在别处关注过的
+     *                       作者重复发一次；只信池子则在池里没有这个作者时同样会重复发。
+     */
+    private fun applyIllustBookmark(
+        illustId: Long,
+        bookmark: Boolean,
+        restrict: String,
+        bean: IllustsBean?,
+        authorId: Long?,
+        authorFollowed: Boolean?,
+    ) {
+        writeIllustBookmarkLocally(illustId, bookmark, bean)
         if (bookmark) RateAppManager.onUserEngaged()
 
-        enqueueBookmark(PixivActionTypes.ILLUST_BOOKMARK, illust.id, bookmark, restrict)
+        PixivActionQueue.enqueue(
+            ActionRequest(
+                type = PixivActionTypes.ILLUST_BOOKMARK,
+                dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
+                payload = Shaft.sGson.toJson(BookmarkPayload(illustId, bookmark, restrict)),
+            )
+        )
+
+        // 收藏后自动关注作者（对齐 legacy postLike）。同样走队列 —— 直发的话它会和队列里
+        // 同一个作者的关注/取关抢着写 ObjectPool，谁后到谁说了算。
+        if (bookmark && authorId != null && authorId > 0L &&
+            Shaft.sSettings.isAutoFollowAfterStar &&
+            authorFollowed != true && !isFollowed(authorId)
+        ) {
+            setUserFollow(authorId, follow = true)
+        }
     }
 
     // ── 小说 ────────────────────────────────────────────────────────────────
@@ -91,7 +168,13 @@ object PixivActions {
         )
         if (bookmark) RateAppManager.onUserEngaged()
 
-        enqueueBookmark(PixivActionTypes.NOVEL_BOOKMARK, novel.id, bookmark, restrict)
+        PixivActionQueue.enqueue(
+            ActionRequest(
+                type = PixivActionTypes.NOVEL_BOOKMARK,
+                dedupeKey = "${PixivActionTypes.NOVEL_BOOKMARK}:${novel.id}",
+                payload = Shaft.sGson.toJson(BookmarkPayload(novel.id, bookmark, restrict)),
+            )
+        )
     }
 
     // ── 关注 ────────────────────────────────────────────────────────────────
@@ -99,6 +182,62 @@ object PixivActions {
     @JvmStatic
     @JvmOverloads
     fun setUserFollow(
+        userId: Long,
+        follow: Boolean,
+        restrict: String = Params.TYPE_PUBLIC,
+    ) {
+        writeUserFollowLocally(userId, follow, restrict)
+        if (follow) RateAppManager.onUserEngaged()
+
+        PixivActionQueue.enqueue(
+            ActionRequest(
+                type = PixivActionTypes.USER_FOLLOW,
+                // 合并键只带 userId：同一个人的关注/取关反复横跳只留最后一次。
+                dedupeKey = "${PixivActionTypes.USER_FOLLOW}:$userId",
+                payload = Shaft.sGson.toJson(FollowPayload(userId, follow, restrict)),
+            )
+        )
+    }
+
+    // ── 本地状态写入（乐观更新与队列回滚共用同一份，保证两边覆盖的表示完全一致）──────
+
+    /**
+     * 把收藏态写进这幅作品的每一个共享表示，并广播出去。
+     *
+     * 幂等：已是目标态的表示原样跳过（`total_bookmarks` 的加减因此不会被重复调用叠加）。
+     * 队列回滚时传相反的值再调一次即可，不需要另写一套。
+     */
+    internal fun writeIllustBookmarkLocally(
+        illustId: Long,
+        bookmark: Boolean,
+        bean: IllustsBean? = null,
+    ) {
+        ObjectPool.get<Illust>(illustId).value?.let { illust ->
+            if (illust.is_bookmarked != bookmark) {
+                val delta = if (bookmark) 1 else -1
+                ObjectPool.update(
+                    illust.copy(
+                        is_bookmarked = bookmark,
+                        total_bookmarks = illust.total_bookmarks?.plus(delta),
+                    )
+                )
+            }
+        }
+
+        val pooled = ObjectPool.get<IllustsBean>(illustId).value
+        bean?.setIs_bookmarked(bookmark)
+        if (pooled != null && pooled !== bean) {
+            pooled.setIs_bookmarked(bookmark)
+        }
+        // 池里已有就更新池里那份（与调用方的 bean 可能不是同一实例）；池里没有就把手上这份放进去，
+        // 否则 V3 详情页按 id 读池会渲染出一颗灰心。
+        (pooled ?: bean)?.let { ObjectPool.update(it) }
+
+        broadcast(Params.LIKED_ILLUST, illustId, bookmark)
+    }
+
+    /** 关注态版本的 [writeIllustBookmarkLocally]。同样幂等，回滚传相反的值复用。 */
+    internal fun writeUserFollowLocally(
         userId: Long,
         follow: Boolean,
         restrict: String = Params.TYPE_PUBLIC,
@@ -113,7 +252,6 @@ object PixivActions {
                     AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE
                 },
             )
-            RateAppManager.onUserEngaged()
         } else {
             ObjectPool.unFollowUser(userId)
             Shaft.appViewModel.updateFollowUserStatus(
@@ -121,24 +259,28 @@ object PixivActions {
                 AppLevelViewModel.FollowUserStatus.NOT_FOLLOW,
             )
         }
-
-        PixivActionQueue.enqueue(
-            ActionRequest(
-                type = PixivActionTypes.USER_FOLLOW,
-                // 合并键只带 userId：同一个人的关注/取关反复横跳只留最后一次。
-                dedupeKey = "${PixivActionTypes.USER_FOLLOW}:$userId",
-                payload = Shaft.sGson.toJson(FollowPayload(userId, follow, restrict)),
-            )
-        )
+        broadcast(Params.LIKED_USER, userId, follow)
     }
 
-    private fun enqueueBookmark(type: String, id: Long, bookmark: Boolean, restrict: String) {
-        PixivActionQueue.enqueue(
-            ActionRequest(
-                type = type,
-                dedupeKey = "$type:$id",
-                payload = Shaft.sGson.toJson(BookmarkPayload(id, bookmark, restrict)),
-            )
-        )
+    private fun isFollowed(userId: Long): Boolean =
+        ObjectPool.get<ceui.loxia.User>(userId).value?.is_followed == true ||
+            ObjectPool.get<ceui.lisa.models.UserBean>(userId).value?.isIs_followed == true
+
+    /**
+     * legacy 的三条跨列表同步广播（[Params.LIKED_ILLUST] / [Params.LIKED_NOVEL] /
+     * [Params.LIKED_USER]）共用的载荷契约：id 走 **int**，值放 [Params.IS_LIKED]。
+     * 接收侧（[ceui.pixiv.ui.common.FeedLikeSync]、legacy CommonReceiver）一直按 int 读，
+     * 这里不能自行加宽，否则对面读到 0。
+     *
+     * 过去这条广播是**请求成功之后**才发的；改走队列后它必须在点击这一刻就发出去 ——
+     * 否则列表要等几分钟（甚至一次冷却）才跟上乐观态。失败时队列回滚会带相反的值再发一次。
+     */
+    private fun broadcast(action: String, id: Long, liked: Boolean) {
+        val ctx = Shaft.getContext() ?: return
+        val intent = Intent(action).apply {
+            putExtra(Params.ID, id.toInt())
+            putExtra(Params.IS_LIKED, liked)
+        }
+        LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent)
     }
 }

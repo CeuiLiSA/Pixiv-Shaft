@@ -166,15 +166,14 @@ abstract class UserFeedFragment(
         val target = user.is_followed != true
         renderFollow(cell.binding, target) // 当帧翻文案（异步 updateItems 落地兜底）
         applyFollow(userId, target)
-        // 复用 legacy follow op：发 LIKED_USER 广播 + ObjectPool + toast + 埋点（无损）。
-        // 失败回滚：全局 Rx 链没有回调的话，乐观态会一直留到用户下拉刷新才被纠正。
-        // VM 先取成局部值——回调可能在本 Fragment 销毁之后才到，届时不再碰 Fragment 属性。
-        val viewModel = feedViewModel
-        val rollback = Runnable { applyFollow(viewModel, userId, !target) }
+        // 复用 legacy follow op：它现在是 PixivActions 的薄封装，本地态 + LIKED_USER 广播当帧
+        // 生效，请求进 PixivActionQueue 限流后发。失败回滚也由队列统一做：它会带相反的值再发
+        // 一次 LIKED_USER，本页 onViewCreated 挂的 FeedLikeSync 收到就把条目拨回去（幂等）。
+        // 不再用回调式回滚——队列可能在冷却几分钟后才判定失败，那时本 Fragment 早销毁了。
         if (target) {
-            PixivOperate.postFollowUser(userId.toInt(), Params.TYPE_PUBLIC, rollback)
+            PixivOperate.postFollowUser(userId.toInt(), Params.TYPE_PUBLIC)
         } else {
-            PixivOperate.postUnFollowUser(userId.toInt(), rollback)
+            PixivOperate.postUnFollowUser(userId.toInt())
         }
     }
 
@@ -183,13 +182,10 @@ abstract class UserFeedFragment(
         val user = cell.itemOrNull?.user ?: return
         val userId = user.id
         // 长按恒为「私密关注」（目标态固定 true），所以不必像 toggleFollow 那样回 VM 读当前态；
-        // 但失败仍要回滚到「未关注」。
+        // 失败回滚同 toggleFollow，由队列的 LIKED_USER 广播完成。
         renderFollow(cell.binding, true)
         applyFollow(userId, true)
-        val viewModel = feedViewModel
-        PixivOperate.postFollowUser(userId.toInt(), Params.TYPE_PRIVATE) {
-            applyFollow(viewModel, userId, false)
-        }
+        PixivOperate.postFollowUser(userId.toInt(), Params.TYPE_PRIVATE)
     }
 
     private fun applyFollow(userId: Long, followed: Boolean) {

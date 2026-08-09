@@ -5,9 +5,9 @@ import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -16,11 +16,14 @@ import ceui.pixiv.actionqueue.ActionEvent
 import ceui.pixiv.actionqueue.ActionQueue
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.actionqueue.QueuePolicy
+import ceui.pixiv.db.discovery.ProfileManager
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.websocket.NetworkMonitor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -53,29 +56,43 @@ object PixivActionQueue {
     @Volatile
     private var queue: ActionQueue? = null
 
+    @Volatile
+    private var network: NetworkMonitor? = null
+
     /** 幂等。在 [Shaft] 的 onCreate 里调，必须排在 SessionManager.initialize 之后（gate 要读登录态）。 */
     @JvmStatic
     fun init(context: Context) {
         if (!initialized.compareAndSet(false, true)) return
+        val app = context.applicationContext
+        val monitor = NetworkMonitor(app)
+        network = monitor
+        val isOnline = { monitor.isConnected }
+
         val instance = ActionQueue.withRoomStore(
-            context = context.applicationContext,
+            context = app,
             handlers = mapOf(
-                PixivActionTypes.ILLUST_BOOKMARK to IllustBookmarkHandler(),
-                PixivActionTypes.NOVEL_BOOKMARK to NovelBookmarkHandler(),
-                PixivActionTypes.USER_FOLLOW to UserFollowHandler(),
+                PixivActionTypes.ILLUST_BOOKMARK to IllustBookmarkHandler(isOnline),
+                PixivActionTypes.NOVEL_BOOKMARK to NovelBookmarkHandler(isOnline),
+                PixivActionTypes.USER_FOLLOW to UserFollowHandler(isOnline),
             ),
             policy = QueuePolicy(minGapMs = MIN_GAP_MS),
             // 未登录时只睡不发。否则退登状态下一整队请求会全部 401，
             // 白白烧完重试次数把用户真实的收藏意图变成终态失败。
-            gate = { SessionManager.isLoggedIn },
+            //
+            // 没网时同样只睡不发：请求发出去也只会 IOException，而按默认参数 5 次重试
+            // 加起来只撑得住 7.5 分钟 —— 坐一趟地铁回来，用户排队的收藏已经被烧成终态
+            // 失败并回滚了，而「离线也不丢」正是这个队列存在的理由。真在飞行途中掉线的
+            // 那一条由 handler 判成「不计入尝试次数」兜底（见 toActionOutcome）。
+            gate = { SessionManager.isLoggedIn && monitor.isConnected },
             // 行按登录用户分账。库是跨登录态持久的：A 排队没发完的收藏，如果不认归属，
             // 会在 B 登录之后用 B 的 token 发出去，收藏进 B 的账号。
             owner = { SessionManager.loggedInUid.toString() },
             onError = { message, t -> Timber.tag(TAG).e(t, message) },
         )
         queue = instance
-        instance.start()
         observeFailures(instance)
+        instance.start()
+        observeGateSignals(instance, monitor)
         pruneStaleFailures(instance)
         Timber.tag(TAG).i("action queue started, minGap=%dms", MIN_GAP_MS)
     }
@@ -88,6 +105,26 @@ object PixivActionQueue {
             return
         }
         instance.enqueue(request)
+    }
+
+    /**
+     * 闸门条件恢复时立刻踢一脚队列。
+     *
+     * 不踢的话只能等兜底轮询（[QueuePolicy.idlePollMs]，60 秒）：网络刚回来 / 刚登录完，
+     * 用户看着一排红心却要再等一分钟才真的发出去，而这恰恰是最可能被系统回收进程的时刻。
+     */
+    private fun observeGateSignals(instance: ActionQueue, monitor: NetworkMonitor) {
+        feedbackScope.launch {
+            monitor.observeConnectivity.collect { online ->
+                if (online) instance.resume()
+            }
+        }
+        // 登录 / 换账号：owner 变了，队列要重新按新账号取行。
+        feedbackScope.launch {
+            withContext(Dispatchers.Main) {
+                SessionManager.loggedInAccount.observeForever { instance.resume() }
+            }
+        }
     }
 
     /**
@@ -113,6 +150,12 @@ object PixivActionQueue {
     /**
      * 订阅执行结果：成功时补埋点，终态失败时回滚乐观更新。
      *
+     * 必须排在 [ActionQueue.start] **之前**，而且要 [CoroutineStart.UNDISPATCHED]：
+     * [ActionQueue.events] 没有 replay，事件落在没有订阅者的空档里就是永久丢失 ——
+     * 界面不回滚，行也不会被 forget 掉。普通 launch 只是「把协程排进 Default 派发队列」，
+     * 调用返回时收集者往往还没注册上，先后顺序等于没保证；UNDISPATCHED 会就地把协程体跑到
+     * 第一个挂起点，也就是 collect 真正把自己挂进 SharedFlow 之后才返回。
+     *
      * 只有 [ActionEvent.Failed] 才回滚：[ActionEvent.Retrying] 之后还会再试，
      * 那时回滚会让界面上的爱心来回跳。
      *
@@ -120,7 +163,7 @@ object PixivActionQueue {
      * 不能把整个订阅带走，否则这个进程剩下的时间里所有失败都不再回滚也不再提示。
      */
     private fun observeFailures(instance: ActionQueue) {
-        feedbackScope.launch {
+        feedbackScope.launch(start = CoroutineStart.UNDISPATCHED) {
             instance.events.collect { event ->
                 try {
                     when (event) {
@@ -150,7 +193,8 @@ object PixivActionQueue {
      *
      * 不能在点击时就报：那条动作还可能因为 429 打满重试、作品已删除等原因终态失败并被回滚，
      * 而埋点一旦发出去就撤不回来（协议里没有反向事件），社区热度榜就会按一堆从未发生过的
-     * 收藏来排序。
+     * 收藏来排序。发现画像（[ProfileManager]）同理 —— 它决定后续推荐，喂进去的必须是真的
+     * 发生过的行为。
      */
     private fun report(event: ActionEvent.Succeeded) {
         val gson = Shaft.sGson
@@ -170,6 +214,11 @@ object PixivActionQueue {
                     payload.id,
                     illust,
                 )
+                // 画像只吃 IllustsBean（要读 tags 和作者）。池里没有就跳过：进程重启后
+                // 补发的那条本来就没有 bean 可读，漏一次画像强化远好过为它多打一次网络。
+                if (payload.bookmark) {
+                    ObjectPool.get<IllustsBean>(payload.id).value?.let(ProfileManager::onBookmarkIllust)
+                }
             }
 
             PixivActionTypes.NOVEL_BOOKMARK -> {
@@ -188,6 +237,11 @@ object PixivActionQueue {
                 // 调用方不用先把 User 取到手 —— 省掉了 UActivity 里那次「等 profile 回来
                 // 才敢关注」的等待，那期间页面被销毁的话意图就丢了。
                 EventReporter.reportFollowUser(payload.userId, payload.follow)
+                if (payload.follow) {
+                    ProfileManager.onFollowUser(payload.userId)
+                } else {
+                    ProfileManager.onUnfollowUser(payload.userId)
+                }
             }
         }
     }
@@ -202,22 +256,26 @@ object PixivActionQueue {
         rollback(event)
     }
 
+    /**
+     * 回滚乐观更新。
+     *
+     * 写回用的是 [PixivActions] 里那两个「写本地状态」的函数本身，只是传相反的值 ——
+     * 乐观更新要覆盖的表示（[Illust] 池条目、[IllustsBean] 池条目与调用方手上的实例、
+     * 跨列表广播）一个都不能漏，而分成两套写法的必然结局是回滚这一侧漏掉其中一路，
+     * 表现是「失败提示弹了但那颗心还红着」。
+     */
     private fun rollback(event: ActionEvent.Failed) {
         val gson = Shaft.sGson
         when (event.action.type) {
             PixivActionTypes.ILLUST_BOOKMARK -> {
                 val payload = gson.fromJson(event.action.payload, BookmarkPayload::class.java)
-                val illust = ObjectPool.get<Illust>(payload.id).value
                 // 队列已经确认没有更新的意图压着（supersededByPending），这里再比一次当前值，
                 // 挡的是队列之外改过状态的路径（例如详情页刚从服务端刷回了真值）。
-                if (illust != null && illust.is_bookmarked == payload.bookmark) {
-                    val delta = if (payload.bookmark) -1 else 1
-                    ObjectPool.update(
-                        illust.copy(
-                            is_bookmarked = !payload.bookmark,
-                            total_bookmarks = illust.total_bookmarks?.plus(delta),
-                        )
-                    )
+                // 池里两个表示都没有时按 null 处理照常回滚：列表条目持有的是自己的拷贝，
+                // 它们只认广播，不回滚就一直红着。
+                val current = currentIllustBookmarked(payload.id)
+                if (current == null || current == payload.bookmark) {
+                    PixivActions.writeIllustBookmarkLocally(payload.id, !payload.bookmark)
                 }
                 toast(R.string.v3_widget_bookmark_failed)
             }
@@ -243,23 +301,12 @@ object PixivActionQueue {
             PixivActionTypes.USER_FOLLOW -> {
                 val payload = gson.fromJson(event.action.payload, FollowPayload::class.java)
                 val user = ObjectPool.get<User>(payload.userId).value
-                val userId = payload.userId.toInt()
-                // 与收藏两支同样的守卫：当前关注态已经不是我们乐观写进去的那个值时就别动它
+                // 与收藏那支同样的守卫：当前关注态已经不是我们乐观写进去的那个值时就别动它
                 //（提示照弹 —— 用户仍然需要知道这次关注没成）。
                 if (user == null || user.is_followed == payload.follow) {
-                    if (payload.follow) {
-                        ObjectPool.unFollowUser(payload.userId)
-                        Shaft.appViewModel.updateFollowUserStatus(
-                            userId,
-                            AppLevelViewModel.FollowUserStatus.NOT_FOLLOW,
-                        )
-                    } else {
-                        ObjectPool.followUser(payload.userId)
-                        Shaft.appViewModel.updateFollowUserStatus(
-                            userId,
-                            AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC,
-                        )
-                    }
+                    // 回滚「取关」时只能恢复成公开关注：原来是不是私密关注这条信息本来就
+                    // 没有随取关请求带出去（对齐 legacy postUnFollowUser 的失败回滚）。
+                    PixivActions.writeUserFollowLocally(payload.userId, !payload.follow)
                 }
                 val ctx = Shaft.getContext()
                 if (ctx != null) {
@@ -268,6 +315,11 @@ object PixivActionQueue {
             }
         }
     }
+
+    /** 这幅作品当前的收藏态；两个表示都不在池里时返回 null。legacy 那份优先（它是可变共享实例）。 */
+    private fun currentIllustBookmarked(illustId: Long): Boolean? =
+        ObjectPool.get<IllustsBean>(illustId).value?.isIs_bookmarked
+            ?: ObjectPool.get<Illust>(illustId).value?.is_bookmarked
 
     /** 与 NovelFeedFragment.sendNovelLikedBroadcast 同一份契约：id 走 int，值放 IS_LIKED。 */
     private fun broadcastNovelBookmark(novelId: Long, liked: Boolean) {

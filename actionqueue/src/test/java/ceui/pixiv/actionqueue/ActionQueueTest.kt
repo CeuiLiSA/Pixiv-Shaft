@@ -137,6 +137,68 @@ class ActionQueueTest {
     }
 
     @Test
+    fun `ACTION 作用域的重试只推迟这一条 不冻住整队`() = runTest {
+        val store = FakeActionStore()
+        val ranAt = mutableListOf<Pair<Long, String>>()
+        val q = queue(store, ActionHandler { action ->
+            ranAt += testScheduler.currentTime to action.payload
+            // 第一条是永远 400 的坏行；它不该把后面别人的收藏一起冻住。
+            if (action.payload == "bad") {
+                ActionOutcome.Retry(cause = RuntimeException("HTTP 400"), scope = RetryScope.ACTION)
+            } else {
+                ActionOutcome.Success
+            }
+        })
+
+        q.enqueueAndWait(request("bad", key = "illust:1"))
+        q.enqueueAndWait(request("good", key = "illust:2"))
+        q.start()
+        advanceTimeBy(10_000)
+
+        // 坏行退避 30 秒，好行只等了一个最小间隔 —— 换成整队冷却的话它得等 30 秒。
+        assertEquals(listOf(0L to "bad", 2_000L to "good"), ranAt)
+        assertEquals(30_000L, store.rows.single().notBefore)
+    }
+
+    @Test
+    fun `断网不消耗重试预算 网络回来后照常发出`() = runTest {
+        val store = FakeActionStore()
+        val events = mutableListOf<ActionEvent>()
+        var offline = true
+        val ranAt = mutableListOf<Long>()
+        val q = queue(
+            store,
+            ActionHandler {
+                ranAt += testScheduler.currentTime
+                if (offline) {
+                    ActionOutcome.Retry(
+                        cause = java.io.IOException("no route to host"),
+                        countsAsAttempt = false,
+                    )
+                } else {
+                    ActionOutcome.Success
+                }
+            },
+            policy = policy(maxAttempts = 3, initialCooldownMs = 30_000L),
+        )
+        backgroundScope.launch { q.events.collect { events += it } }
+
+        q.enqueueAndWait(request("a"))
+        q.start()
+
+        // 断网 20 分钟：按 maxAttempts=3 早该烧成终态失败了，但一次预算都不该被消耗。
+        advanceTimeBy(20 * 60_000L)
+        assertTrue("断网期间不该判终态失败", events.none { it is ActionEvent.Failed })
+        assertEquals(0, store.rows.single().attempt)
+        assertTrue("应当一直在重试", ranAt.size > 3)
+
+        offline = false
+        advanceTimeBy(60_000L)
+        assertTrue("网络回来后必须真的发出去", store.rows.isEmpty())
+        assertEquals(1, events.count { it is ActionEvent.Succeeded })
+    }
+
+    @Test
     fun `Retry-After 比指数退避长时以服务端为准`() = runTest {
         val store = FakeActionStore()
         val ranAt = mutableListOf<Long>()
