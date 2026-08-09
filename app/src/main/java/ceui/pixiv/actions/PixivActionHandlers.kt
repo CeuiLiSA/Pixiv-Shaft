@@ -39,8 +39,15 @@ internal fun Throwable.toActionOutcome(): ActionOutcome = when (this) {
     is HttpException -> when (val code = code()) {
         429 -> ActionOutcome.Retry(retryAfterMs = retryAfterMs(), cause = this)
         408 -> ActionOutcome.Retry(cause = this)
-        // 401/403 多半是 access token 过期。TokenFetcherInterceptor 只在 400 上刷新，
-        // 所以这里靠重试等下一次刷新；真的退登了会被 gate 拦住，不会空转。
+        // 400 是 pixiv 表达「access token 过期」用的码，正常情况下由
+        // TokenFetcherInterceptor 在链内刷新并重放，外面根本看不到。能漏到这里
+        // 说明那次刷新自己失败了（刚连上网时 refreshTokenBlocking 超时、oauth 端点
+        // 5xx…），而 SessionManager.refreshAccessToken 对任何异常都只是返回 null。
+        // 判终态失败的话，用户一次网络抖动就会看到爱心弹回去 —— 而那时 token 多半
+        // 已经刷好了，同一个请求两秒后就能成功。宁可按可重试算：真是参数非法，
+        // 五次之后照样收敛成终态失败，只是慢一点。
+        400 -> ActionOutcome.Retry(cause = this)
+        // 401/403 同样多半是 token 过期；真的退登了会被 gate 拦住，不会空转。
         401, 403 -> ActionOutcome.Retry(cause = this)
         in 500..599 -> ActionOutcome.Retry(cause = this)
         else -> ActionOutcome.Fail("HTTP $code", this)

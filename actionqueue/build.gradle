@@ -9,6 +9,12 @@ android {
         minSdkVersion 24
         targetSdkVersion 36
         consumerProguardFiles 'consumer-rules.pro'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    sourceSets {
+        // MigrationTestHelper 要在设备上读到导出的 schema JSON 才能建旧版库并校验新版。
+        androidTest.assets.srcDirs += files("$projectDir/schemas")
     }
 
     buildTypes {
@@ -56,6 +62,12 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+
+    // 手写 Migration 只有跑一遍真 SQLite 才知道对不对：Room 会逐字校验列和索引定义，
+    // 少一个索引、类型写错都是启动时 IllegalStateException，而队列里躺的是用户的收藏。
+    androidTestImplementation 'androidx.room:room-testing:2.7.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
 
     // 刻意不引：retrofit / okhttp / gson / :models / 任何 pixiv 代码。
     // 本模块不认识「收藏」，只认识「一个带 type 的 payload 字符串和一个执行器」。

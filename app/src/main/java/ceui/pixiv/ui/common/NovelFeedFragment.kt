@@ -24,9 +24,7 @@ import ceui.lisa.utils.V3Palette
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Client
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
-import ceui.loxia.getHumanReadableMessage
-import ceui.pixiv.events.EventReporter
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -41,47 +39,22 @@ import ceui.pixiv.utils.playLikePressHaptic
 import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.widgets.RateAppManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /** 收藏态局部重绑的 payload 标记（按引用识别）。 */
 private val PAYLOAD_NOVEL_BOOKMARK = Any()
 
 /**
- * 小说收藏提交用的进程级 scope（对齐插画侧：那边走 [ceui.lisa.utils.PixivOperate.postLike] 的全局
- * Rx 链，同样不随 view 死）。
- *
- * 收藏是**用户已经按下去的意图**，一旦乐观态写进了比 view 长命的 VM，请求就必须发完——挂
- * `viewLifecycleOwner.lifecycleScope` 的话（`ceui.loxia.launchSuspend` 就是），点完立刻返回上一页
- * 会让协程被取消：请求可能根本没到服务端，而 VM 里的乐观态还在（回退分支挂在 `catch (Exception)`
- * 之后，CancellationException 直接 rethrow 跳过它），回到列表显示已收藏、服务端却没有，且再无回滚时机。
- *
- * Main.immediate：回调（updateItems / toast / 广播）都要在主线程，且点击当帧同步跑到第一个挂起点。
- * SupervisorJob + handler：单次收藏失败不牵连其它，且游离 scope 里的漏网异常不许崩进程。
- */
-private val novelBookmarkScope = CoroutineScope(
-    SupervisorJob() +
-        Dispatchers.Main.immediate +
-        CoroutineExceptionHandler { _, t -> Timber.w(t, "小说收藏协程异常，忽略") }
-)
-
-/**
  * 小说列表页的共享基类（对齐插画侧 [IllustFeedFragment]）。子类只声明数据源
  *（feedViewModels + mapper 产出 [NovelFeedItem]）；本类统一提供主力小说卡（recy_novel）：
  *
- * - 全程 loxia [Novel] data class：收藏走 [Client] 的 addNovelBookmark/removeNovelBookmark，
+ * - 全程 loxia [Novel] data class：收藏走 [ceui.pixiv.actions.PixivActions] 的持久化队列，
  *   跳转走 [DetailFeedSupport] 的 openNovelDetail/openUserActivity，标签流 [ceui.pixiv.widgets.V3TagFlowView]
  *   直接吃 loxia [ceui.loxia.Tag]——不并存 legacy 可变 bean、不做 gson 往返；
- * - 收藏：乐观切态 + 尊重私密收藏设置 + 成功 toast + 收藏后自动关注作者(isAutoFollowAfterStar)
- *   + 事件埋点 + RateApp + 网络失败回退，并收发 LIKED_NOVEL 广播与其它小说列表双向同步收藏态；
+ * - 收藏：乐观切态 + 收藏后自动关注作者(isAutoFollowAfterStar)，私密收藏设置 / 埋点 / RateApp /
+ *   失败回滚都在队列侧统一处理，并收发 LIKED_NOVEL 广播与其它小说列表双向同步收藏态；
  * - 点击语义：卡片开小说详情 / 封面看封面大图 / 头像·作者进画师页 / 系列进小说系列页 /
  *   爱心长按进「按标签收藏」；
  * - 收藏态只有 is_bookmarked / total_bookmarks 变时走局部重绑 payload，不重跑 Glide(对齐插画卡)；
@@ -237,9 +210,16 @@ abstract class NovelFeedFragment(
     }
 
     /**
-     * 收藏切换：点按当帧乐观翻心 + updateItems 落地(DiffUtil 局部重绑),再走 loxia 网络。
-     * 与 legacy NAdapter.postLikeNovel 逐条对齐:尊重私密收藏 / 成功 toast / 收藏后自动关注作者 /
-     * 事件埋点 / RateApp / 发 LIKED_NOVEL 广播同步其它列表。网络失败回退并弹 toast。
+     * 收藏切换：点按当帧乐观翻心 + updateItems 落地(DiffUtil 局部重绑),写操作交给
+     * [PixivActions] 的队列。
+     *
+     * 不再自己直发接口：同一本小说在阅读器 / 详情页那边已经是排队发的，这边同步直发的话，
+     * 队列里压着的「取消收藏」会在几秒后把用户刚在列表里点的收藏又删掉。私密收藏设置、
+     * 埋点、RateApp 一并由队列侧统一处理（埋点改到服务端确认之后才发）。
+     *
+     * 成功 toast 去掉了：这一刻请求还没发出去（队列可能正在冷却），报成功是骗用户；
+     * 反馈由爱心本身承担。失败时队列会回滚 ObjectPool 并发 LIKED_NOVEL 广播，本列表的
+     * receiver 收到后把条目拨回去（[withBookmarked] 幂等）。
      */
     private fun toggleNovelLike(cell: FeedCell<NovelFeedItem, RecyNovelBinding>) {
         // 收藏态的真源是 VM 的当前状态，不是 cell.item —— 后者是 adapter **已提交的快照**，要等
@@ -260,71 +240,17 @@ abstract class NovelFeedFragment(
             cell.binding.like.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
         }
         applyNovelBookmark(novelId, target)
-        val restrict = if (Shaft.sSettings.isPrivateStar()) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
-        // VM 先取成局部值：提交跑在比 view 长命的 scope 上，此后一律不再碰 Fragment
-        //（见 [novelBookmarkScope]；Fragment 已销毁时碰它的属性可能抛）。
-        val viewModel = feedViewModel
-        val appContext = Shaft.getContext()
-        novelBookmarkScope.launch {
-            // 只有收藏网络调用本身失败才回退 UI + 提示。收藏成功之后的埋点/toast/关注/广播
-            // 都是「收藏已成功」的后续动作,任一失败都不能把已成功的收藏回退掉误导用户
-            //（对齐 legacy postLikeNovel:自动关注是独立 fire-and-forget,失败静默）。
-            try {
-                if (target) {
-                    Client.appApi.addNovelBookmark(novelId, restrict)
-                } else {
-                    Client.appApi.removeNovelBookmark(novelId)
-                }
-            } catch (ce: CancellationException) {
-                throw ce
-            } catch (ex: Exception) {
-                // 回退条目状态,可见卡片重绑爱心
-                applyNovelBookmark(viewModel, novelId, !target)
-                Timber.e(ex, "小说收藏失败")
-                // 文案映射自身也可能出岔子（HttpException 的错误体只能读一次等），
-                // 或映射出空白 —— 错误提示这条路上不允许再抛第二个异常、也不该弹空 toast。
-                val message = runCatching { ex.getHumanReadableMessage(appContext) }
-                    .getOrNull()
-                    ?.takeIf { it.isNotBlank() }
-                    ?: appContext.getString(R.string.v3_widget_bookmark_failed)
-                Common.showToast(message)
-                return@launch
-            }
-
-            // ↓ 收藏已提交成功,以下副作用失败均不回退收藏
-            if (target) RateAppManager.onUserEngaged()
-            EventReporter.report(
-                if (target) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
-                EventReporter.Target.NOVEL,
-                novelId,
-                novel,
-            )
-            Common.showToast(
-                appContext.getString(
-                    when {
-                        !target -> R.string.cancel_like_illust
-                        restrict == Params.TYPE_PUBLIC -> R.string.like_novel_success_public
-                        else -> R.string.like_novel_success_private
-                    }
-                )
-            )
-            // 广播同步其它小说列表(含仍 legacy 的收藏/画师小说列表)。会回流到本列表自己的
-            // receiver,withBookmarked 幂等,无副作用。
-            sendNovelLikedBroadcast(novelId, target)
-            // 收藏后自动关注作者(对齐 legacy postLikeNovel):独立 try,失败静默,绝不回退收藏
-            val user = novel.user
-            if (target && Shaft.sSettings.isAutoFollowAfterStar() &&
-                user != null && user.is_followed != true
-            ) {
-                try {
-                    Client.appApi.postFollow(user.id, Params.TYPE_PUBLIC)
-                    ObjectPool.followUser(user.id)
-                } catch (ce: CancellationException) {
-                    throw ce
-                } catch (ex: Exception) {
-                    Timber.w(ex, "小说收藏后自动关注作者失败(静默)")
-                }
-            }
+        PixivActions.setNovelBookmark(novel, target)
+        // 广播同步其它小说列表(含仍 legacy 的收藏/画师小说列表)。会回流到本列表自己的
+        // receiver,withBookmarked 幂等,无副作用。
+        sendNovelLikedBroadcast(novelId, target)
+        // 收藏后自动关注作者(对齐 legacy postLikeNovel)。同样走队列 —— 直发的话它会和
+        // 队列里同一个作者的关注/取关抢着写 ObjectPool，谁后到谁说了算。
+        val user = novel.user
+        if (target && Shaft.sSettings.isAutoFollowAfterStar() &&
+            user != null && user.is_followed != true
+        ) {
+            PixivActions.setUserFollow(user.id, follow = true)
         }
     }
 

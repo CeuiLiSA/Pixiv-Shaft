@@ -11,7 +11,7 @@ internal class RoomActionStore(private val context: Context) : ActionStore {
 
     private val dao: ActionDao by lazy { ActionQueueDatabase.get(context).actionDao() }
 
-    override suspend fun enqueue(request: ActionRequest, nowMs: Long): Long {
+    override suspend fun enqueue(request: ActionRequest, nowMs: Long, owner: String): Long {
         val entity = ActionEntity(
             type = request.type,
             dedupeKey = request.dedupeKey,
@@ -22,12 +22,13 @@ internal class RoomActionStore(private val context: Context) : ActionStore {
             notBefore = 0L,
             createdAt = nowMs,
             lastError = null,
+            owner = owner,
         )
         return if (request.coalesce) dao.insertCoalescing(entity) else dao.insert(entity)
     }
 
-    override suspend fun nextRunnable(nowMs: Long): StoredAction? =
-        dao.nextRunnable(nowMs)?.let { entity ->
+    override suspend fun nextRunnable(nowMs: Long, owner: String): StoredAction? =
+        dao.nextRunnable(nowMs, owner)?.let { entity ->
             StoredAction(
                 action = PendingAction(
                     id = entity.id,
@@ -35,12 +36,19 @@ internal class RoomActionStore(private val context: Context) : ActionStore {
                     dedupeKey = entity.dedupeKey,
                     payload = entity.payload,
                     attempt = entity.attempt,
+                    owner = entity.owner,
                 ),
                 gapMs = entity.gapMs,
             )
         }
 
-    override suspend fun earliestNotBeforeMs(): Long? = dao.earliestNotBefore()
+    override suspend fun earliestNotBeforeMs(owner: String): Long? = dao.earliestNotBefore(owner)
+
+    override suspend fun hasPending(
+        dedupeKey: String,
+        owner: String,
+        excludingId: Long,
+    ): Boolean = dao.countPendingByDedupeKey(dedupeKey, owner, excludingId) > 0
 
     override suspend fun markRunning(id: Long): Unit = dao.markRunning(id)
 
@@ -56,16 +64,25 @@ internal class RoomActionStore(private val context: Context) : ActionStore {
 
     override suspend fun resurrectRunning(): Int = dao.resurrectRunning()
 
-    override suspend fun pendingCount(): Int = dao.pendingCount()
+    override suspend fun pendingCount(owner: String): Int = dao.pendingCount(owner)
 
-    override suspend fun failedCount(): Int = dao.failedCount()
+    override suspend fun failedCount(owner: String): Int = dao.failedCount(owner)
 
-    override suspend fun retryAllFailed(nowMs: Long): Int = dao.retryAllFailed(nowMs)
+    override suspend fun retryAllFailed(nowMs: Long, owner: String): Int =
+        dao.retryAllFailed(nowMs, owner)
 
-    override suspend fun clearFailed(): Int = dao.clearFailed()
+    override suspend fun clearFailed(owner: String): Int = dao.clearFailed(owner)
+
+    override suspend fun loadCooldownUntilMs(): Long = dao.readMeta(KEY_COOLDOWN_UNTIL) ?: 0L
+
+    override suspend fun saveCooldownUntilMs(untilMs: Long) {
+        dao.writeMeta(QueueMetaEntity(KEY_COOLDOWN_UNTIL, untilMs))
+    }
 
     private companion object {
         /** 异常 message 可能带整段 HTML 响应体，截断防止把库撑大。 */
         const val MAX_ERROR_LEN = 500
+
+        const val KEY_COOLDOWN_UNTIL = "cooldown_until_ms"
     }
 }

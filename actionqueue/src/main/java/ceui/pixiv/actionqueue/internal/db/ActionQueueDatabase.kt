@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * 本模块私有的库，文件名 `pixiv_action_queue.db`。
@@ -16,8 +18,8 @@ import androidx.room.RoomDatabase
  * 所以 `exportSchema = true` 且 schemas/ 要跟着提交。
  */
 @Database(
-    entities = [ActionEntity::class],
-    version = 1,
+    entities = [ActionEntity::class, QueueMetaEntity::class],
+    version = 2,
     exportSchema = true,
 )
 internal abstract class ActionQueueDatabase : RoomDatabase() {
@@ -27,6 +29,38 @@ internal abstract class ActionQueueDatabase : RoomDatabase() {
     companion object {
 
         private const val DB_NAME = "pixiv_action_queue.db"
+
+        /**
+         * v1 → v2：行加 `owner`（归属账号），另起 `queue_meta` 存整队冷却截止时刻。
+         *
+         * v1 的存量行一律删掉，不是保留。它们没有归属信息，留着就只有两种结局：要么按
+         * 「谁登录谁执行」处理，那正是这次要修的跨账号重放；要么塞一个猜的 owner，
+         * 猜错同样会发到错的账号上。代价是极少量还没发出去的点击丢失 —— v1 只存在于
+         * 未发布的开发版里，且用户在界面上看到的乐观状态本来就会在下次刷新时被服务端纠正。
+         */
+        internal val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM `queued_action`")
+                db.execSQL(
+                    "ALTER TABLE `queued_action` ADD COLUMN `owner` TEXT NOT NULL DEFAULT ''"
+                )
+                // 索引跟着换掉 owner 维度，Room 会在启动时逐字校验索引定义。
+                db.execSQL("DROP INDEX IF EXISTS `index_queued_action_status_notBefore_id`")
+                db.execSQL("DROP INDEX IF EXISTS `index_queued_action_dedupeKey_status`")
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_queued_action_status_owner_notBefore_id` " +
+                        "ON `queued_action` (`status`, `owner`, `notBefore`, `id`)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_queued_action_dedupeKey_owner_status` " +
+                        "ON `queued_action` (`dedupeKey`, `owner`, `status`)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `queue_meta` (" +
+                        "`key` TEXT NOT NULL, `value` INTEGER NOT NULL, PRIMARY KEY(`key`))"
+                )
+            }
+        }
 
         @Volatile
         private var instance: ActionQueueDatabase? = null
@@ -42,6 +76,7 @@ internal abstract class ActionQueueDatabase : RoomDatabase() {
                 ActionQueueDatabase::class.java,
                 DB_NAME,
             )
+                .addMigrations(MIGRATION_1_2)
                 // 不开 allowMainThreadQueries：本库所有访问都在协程里，
                 // 开了只会把「不小心在主线程读库」这类问题掩盖掉。
                 .build()

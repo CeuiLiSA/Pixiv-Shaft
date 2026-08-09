@@ -21,7 +21,12 @@ public data class ActionRequest(
     public val gapMs: Long = 0L,
 )
 
-/** 交给 [ActionHandler] 执行的一条动作。 */
+/**
+ * 交给 [ActionHandler] 执行的一条动作。
+ *
+ * @param owner 入队时的归属标识（见 [ActionQueue] 的 `owner` 参数）。队列只执行归属等于
+ *              当前 owner 的行，[dedupeKey] 的合并也按 owner 分组。
+ */
 public data class PendingAction(
     public val id: Long,
     public val type: String,
@@ -29,6 +34,7 @@ public data class PendingAction(
     public val payload: String,
     /** 已经失败重试过几次。首次执行为 0。 */
     public val attempt: Int,
+    public val owner: String = "",
 )
 
 /** [ActionHandler.execute] 的结果。把 HTTP 状态码翻译成这三种之一是调用方的责任。 */
@@ -78,11 +84,17 @@ public sealed interface ActionEvent {
     /**
      * 终态失败：要么 handler 返回了 [ActionOutcome.Fail]，要么重试次数耗尽。
      * **这是 UI 回滚乐观更新的唯一时机**（[ActionEvent.Retrying] 不要回滚，还会再试）。
+     *
+     * @param supersededByPending 同 [PendingAction.dedupeKey] 上还压着一条更新的待执行意图。
+     *        为 true 时**不要回滚**：用户在这条失败之前又点了一次，那条马上就要发出去，
+     *        此时回滚等于用旧结果覆盖新意图。判断「是不是同一个意图」只能靠这个标记，
+     *        比较当前值是不够的 —— 收藏→取消→收藏之后当前值和失败那条恰好相等。
      */
     public data class Failed(
         override val action: PendingAction,
         public val reason: String,
         public val cause: Throwable?,
+        public val supersededByPending: Boolean = false,
     ) : ActionEvent
 }
 

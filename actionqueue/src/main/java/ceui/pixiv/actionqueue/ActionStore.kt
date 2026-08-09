@@ -15,31 +15,52 @@ public data class StoredAction(
  * 生产实现是 [ActionQueue.withRoomStore] 里装配的 Room 版。
  *
  * 所有方法都在 IO 上下文被调用，实现不需要自己切线程。
+ *
+ * ## owner
+ *
+ * 每一行都带一个入队时刻的归属标识（app 侧传登录用户 id）。取行、计数、合并**一律**
+ * 按 owner 过滤：库是跨登录态持久的，不分归属的话 A 排队没发完的收藏会在 B 登录之后
+ * 用 B 的 token 发出去。
  */
 public interface ActionStore {
 
     /**
      * 入队，返回行 id。
      *
-     * [ActionRequest.coalesce] 为 true 时，实现**必须**在同一个事务里先删掉同
-     * [ActionRequest.dedupeKey] 的所有 PENDING 行再插入 —— 分两步做会在高频连点下
+     * [ActionRequest.coalesce] 为 true 时，实现**必须**在同一个事务里先删掉同 [owner] 下
+     * 同 [ActionRequest.dedupeKey] 的所有 PENDING 行再插入 —— 分两步做会在高频连点下
      * 漏掉并发插进来的行。
+     *
+     * 被合并掉的行里如果有正在退避重试的（attempt > 0 / notBefore 在未来），新行**必须**
+     * 继承它们中最大的 attempt 和 notBefore：否则用户对着一个一直失败的目标反复点，
+     * 每点一次重试预算就清零一次，这条动作永远到不了终态失败，既不回滚也不提示，
+     * 还会一直把整队冷却顶起来。
      */
-    public suspend fun enqueue(request: ActionRequest, nowMs: Long): Long
-
-    /** 取下一条可执行的（PENDING 且 notBefore <= [nowMs]），按入队顺序。没有则返回 null。 */
-    public suspend fun nextRunnable(nowMs: Long): StoredAction?
+    public suspend fun enqueue(request: ActionRequest, nowMs: Long, owner: String): Long
 
     /**
-     * 所有 PENDING 行里最早的 notBefore。用来算「该睡多久」，
+     * 取下一条可执行的（属于 [owner]、PENDING 且 notBefore <= [nowMs]），按入队顺序。
+     * 没有则返回 null。
+     */
+    public suspend fun nextRunnable(nowMs: Long, owner: String): StoredAction?
+
+    /**
+     * [owner] 名下所有 PENDING 行里最早的 notBefore。用来算「该睡多久」，
      * 避免退避中的行被兜底轮询间隔拖慢。全空则返回 null。
      */
-    public suspend fun earliestNotBeforeMs(): Long?
+    public suspend fun earliestNotBeforeMs(owner: String): Long?
+
+    /**
+     * [owner] 名下是否还有同 [dedupeKey] 的 PENDING 行（[excludingId] 那条不算）。
+     * 用来判断一条失败的动作是不是已经被用户更新的意图顶掉了，见
+     * [ActionEvent.Failed.supersededByPending]。
+     */
+    public suspend fun hasPending(dedupeKey: String, owner: String, excludingId: Long): Boolean
 
     /** 标记为执行中。进程若在此后被杀，靠 [resurrectRunning] 复位。 */
     public suspend fun markRunning(id: Long)
 
-    /** 执行成功，删除该行。 */
+    /** 执行成功（或调用方主动丢弃），删除该行。 */
     public suspend fun delete(id: Long)
 
     /** 放回 PENDING 且**不**增加尝试次数。用于队列被主动停止时归还在手的行。 */
@@ -48,7 +69,7 @@ public interface ActionStore {
     /** 尝试次数 +1，放回 PENDING，并把 notBefore 推到 [notBeforeMs]。保持原有的排队顺序。 */
     public suspend fun rescheduleForRetry(id: Long, notBeforeMs: Long)
 
-    /** 终态失败，留在库里供用户查看和手动重试。 */
+    /** 终态失败，留在库里供调用方回滚后清理。 */
     public suspend fun markFailed(id: Long, reason: String)
 
     /**
@@ -57,13 +78,24 @@ public interface ActionStore {
      */
     public suspend fun resurrectRunning(): Int
 
-    public suspend fun pendingCount(): Int
+    public suspend fun pendingCount(owner: String): Int
 
-    public suspend fun failedCount(): Int
+    public suspend fun failedCount(owner: String): Int
 
-    /** 把所有 FAILED 重置为 PENDING（尝试次数清零）。@return 重置了几条。 */
-    public suspend fun retryAllFailed(nowMs: Long): Int
+    /** 把 [owner] 名下所有 FAILED 重置为 PENDING（尝试次数清零）。@return 重置了几条。 */
+    public suspend fun retryAllFailed(nowMs: Long, owner: String): Int
 
-    /** 清空 FAILED。@return 删了几条。 */
-    public suspend fun clearFailed(): Int
+    /** 清空 [owner] 名下的 FAILED。@return 删了几条。 */
+    public suspend fun clearFailed(owner: String): Int
+
+    /**
+     * 读回上次持久化的整队冷却截止时刻，没有则 0。
+     *
+     * 冷却必须过进程：撞 429 之后队列要静默 30 秒到 5 分钟，而「后台待了几分钟被系统回收」
+     * 恰恰是这个窗口里最可能发生的事。只存在内存里的话，下次启动会带着一整队 notBefore=0
+     * 的行原地重新撞同一个还没过期的账号级限流。
+     */
+    public suspend fun loadCooldownUntilMs(): Long
+
+    public suspend fun saveCooldownUntilMs(untilMs: Long)
 }

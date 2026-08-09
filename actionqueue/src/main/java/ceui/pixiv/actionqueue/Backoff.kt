@@ -7,8 +7,11 @@ import kotlin.random.Random
  * 指数退避 + 抖动，算出撞到可重试失败之后整队要冷却多久。
  *
  * @param priorAttempts 这条动作**之前**已经失败过几次（首次失败传 0）。
- * @param retryAfterMs  服务端 `Retry-After`。服务端说的话优先级最高：即使超过
+ * @param retryAfterMs  服务端 `Retry-After`。服务端说的话优先级高于指数退避：即使超过
  *                      [QueuePolicy.maxCooldownMs] 也照听，硬顶着它继续发只会被继续拒。
+ *                      但采信有上限 [QueuePolicy.maxRetryAfterMs] —— 一个离谱的大值
+ *                      （或者被中间层改写过的头）能把整队冻到进程结束，而冻住期间用户
+ *                      每一次收藏都只是变红然后石沉大海。
  */
 internal fun computeCooldownMs(
     priorAttempts: Int,
@@ -28,5 +31,6 @@ internal fun computeCooldownMs(
         (exponential + random.nextDouble(-jitterSpan, jitterSpan)).toLong()
     }
 
-    return maxOf(jittered.coerceAtLeast(0L), retryAfterMs ?: 0L)
+    val serverAsked = (retryAfterMs ?: 0L).coerceIn(0L, policy.maxRetryAfterMs)
+    return maxOf(jittered.coerceAtLeast(0L), serverAsked)
 }

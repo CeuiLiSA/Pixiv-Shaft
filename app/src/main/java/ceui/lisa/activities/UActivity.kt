@@ -29,10 +29,8 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
-import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
-import ceui.loxia.User
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.ProgressTextButton
 import ceui.pixiv.actions.PixivActions
@@ -46,7 +44,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResponse> {
     private var userId = 0
@@ -334,67 +331,34 @@ fun Fragment.followUser(sender: ProgressIndicator, userId: Int, followType: Stri
     activity?.followUser(sender, userId, followType)
 }
 
+/**
+ * 关注。本地状态立刻生效，真正的请求由 [PixivActionQueue] 限流后发出。
+ *
+ * 刻意不弹「关注成功」：这一刻请求还没发出去 —— 队列可能正在 429 冷却里，也可能因为
+ * 登录态失效被闸门挡着，此时报成功就是在骗用户，而几分钟后队列打满重试还会再补一个
+ * 「操作失败」的 toast 自相矛盾。反馈由按钮本身的关注态承担，失败时队列会把它拨回去。
+ *
+ * 埋点也由队列在服务端确认之后再发（见 PixivActionQueue.report），所以这里不再需要先
+ * 把 User 取到手 —— 原先那次 getUserProfile 等待期间页面被销毁的话，关注意图会跟着丢掉。
+ *
+ * [sender] 已经没有可等的异步过程了，保留只为不改这个函数在六个调用点上的签名。
+ */
 fun FragmentActivity.followUser(sender: ProgressIndicator, userId: Int, followType: String) {
-    lifecycleScope.launch {
-        try {
-            sender.showProgress()
-            // Best-effort attach a full User payload so server can fill
-            // user_meta. Cheap path: ObjectPool (already cached on detail
-            // pages). Fallback: a single getUserProfile call — only on
-            // pool misses (quick-follow from list cells), so the hot path
-            // stays fast.
-            val userObj = ObjectPool.get<User>(userId.toLong()).value
-                ?: runCatching { Client.appApi.getUserProfile(userId.toLong()).user }
-                    .getOrNull()
-            // 本地状态立刻生效，真正的 follow 请求由队列限流后发出。原先这里有个
-            // delay(500L) 等服务端落库再刷 UI，乐观更新之后那 500ms 纯粹是白等。
-            PixivActions.setUserFollow(
-                userId = userId.toLong(),
-                follow = true,
-                restrict = followType,
-                userForReport = userObj,
-            )
-            Common.showToast(
-                getString(
-                    if (followType == Params.TYPE_PUBLIC) R.string.like_success_public
-                    else R.string.like_success_private
-                )
-            )
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            Common.showToast(ex.message)
-        } finally {
-            sender.hideProgress()
-        }
-    }
+    PixivActions.setUserFollow(
+        userId = userId.toLong(),
+        follow = true,
+        restrict = followType,
+    )
 }
 
 fun Fragment.unfollowUser(sender: ProgressIndicator, userId: Int) {
     activity?.unfollowUser(sender, userId)
 }
 
+/** 取关。语义与 [followUser] 完全对称，同样不弹「已取消关注」。 */
 fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Int) {
-    lifecycleScope.launch {
-        try {
-            sender.showProgress()
-            // Same cache-then-fetch pattern as followUser; unfollow is
-            // probably preceded by a follow on the same user so ObjectPool
-            // usually hits, fallback only fires when going through old
-            // history list quick-actions.
-            val userObj = ObjectPool.get<User>(userId.toLong()).value
-                ?: runCatching { Client.appApi.getUserProfile(userId.toLong()).user }
-                    .getOrNull()
-            PixivActions.setUserFollow(
-                userId = userId.toLong(),
-                follow = false,
-                userForReport = userObj,
-            )
-            Common.showToast(getString(R.string.cancel_like))
-        } catch (ex: Exception) {
-            Timber.e(ex)
-            Common.showToast(ex.message)
-        } finally {
-            sender.hideProgress()
-        }
-    }
+    PixivActions.setUserFollow(
+        userId = userId.toLong(),
+        follow = false,
+    )
 }

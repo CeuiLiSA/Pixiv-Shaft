@@ -17,6 +17,7 @@ import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
+import ceui.pixiv.actions.PixivActions
 import ceui.loxia.WebNovel
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.model.Page
@@ -32,7 +33,6 @@ import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.feature.SearchEngine
 import ceui.pixiv.ui.novel.reader.model.SearchHit
 import ceui.pixiv.ui.novel.reader.paginate.ChapterOutlineEntry
-import ceui.lisa.utils.Params
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -358,31 +358,23 @@ class NovelReaderV3ViewModel(
 
     // ---- Bookmark toggle ----------------------------------------------------
 
+    /**
+     * 收藏切换。写操作走 [PixivActions]，与 NovelTextFragment / 小说卡片同一条队列。
+     *
+     * 不能自己直接打接口：那条路是同步的，而 [PixivActions] 是乐观 + 排队的，两者都拿
+     * ObjectPool 的 `is_bookmarked` 当真值。队列还在冷却里时，池子里已经是「已收藏」而
+     * 服务端什么都没收到，这里读到 true 就会立刻发一个删除请求去删一个根本不存在的收藏，
+     * 等冷却结束队列再把添加发出去，最终收藏态与用户最后一次操作相反。
+     */
     suspend fun toggleBookmark(): String {
         if (isLocal) return ctx().getString(R.string.local_novel_bookmark_unsupported)
         return runCatching {
             val novel = ObjectPool.get<Novel>(novelId).value
                 ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
             novel ?: return ctx().getString(R.string.msg_novel_loading)
-            if (novel.is_bookmarked == true) {
-                Client.appApi.removeNovelBookmark(novelId)
-                ObjectPool.update(
-                    novel.copy(
-                        is_bookmarked = false,
-                        total_bookmarks = novel.total_bookmarks?.minus(1),
-                    ),
-                )
-                ctx().getString(R.string.msg_unbookmarked)
-            } else {
-                Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
-                ObjectPool.update(
-                    novel.copy(
-                        is_bookmarked = true,
-                        total_bookmarks = novel.total_bookmarks?.plus(1),
-                    ),
-                )
-                ctx().getString(R.string.msg_bookmarked)
-            }
+            val bookmarked = novel.is_bookmarked == true
+            PixivActions.setNovelBookmark(novel, !bookmarked)
+            ctx().getString(if (bookmarked) R.string.msg_unbookmarked else R.string.msg_bookmarked)
         }.getOrElse { ctx().getString(R.string.msg_operation_fail, it.message.orEmpty()) }
     }
 

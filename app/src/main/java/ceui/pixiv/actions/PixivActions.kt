@@ -6,17 +6,18 @@ import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
-import ceui.loxia.User
 import ceui.pixiv.actionqueue.ActionRequest
-import ceui.pixiv.events.EventReporter
 import ceui.pixiv.widgets.RateAppManager
 
 /**
  * 收藏 / 关注的统一入口。UI 调这里，**立即返回**。
  *
- * 三件事按顺序发生：本地状态立刻改掉（用户看到爱心马上变红）→ 埋点 → 请求进队列。
- * 真正的网络请求由 [PixivActionQueue] 串行、按 2 秒间隔发出，撞 429 会整队冷却并自动重试；
- * 进程被杀后下次启动继续发。终态失败时队列会回滚这里做的乐观更新并提示用户。
+ * 本地状态立刻改掉（用户看到爱心马上变红），请求进队列。真正的网络请求由
+ * [PixivActionQueue] 串行、按 2 秒间隔发出，撞 429 会整队冷却并自动重试；进程被杀后
+ * 下次启动继续发。成功之后由队列补埋点，终态失败时由队列回滚这里做的乐观更新并提示用户。
+ *
+ * 埋点刻意**不**在这里发：这一刻请求还没出去，之后可能因为限流打满重试或作品已删除
+ * 而终态失败并被回滚，而埋点发出去就撤不回来。
  *
  * 之所以要有这么一层门面：仓库里原本有三套并行的收藏写法（legacy 的 `PixivOperate`、
  * V3 的 `DetailFeedSupport`、小说卡片自己的 scope），乐观更新、埋点、私密收藏设置各写各的，
@@ -24,11 +25,22 @@ import ceui.pixiv.widgets.RateAppManager
  */
 object PixivActions {
 
+    /**
+     * 收藏的默认可见性。
+     *
+     * 必须读设置：仓库里每一个收藏入口（feed 卡片、小说卡片、桌面小组件、legacy 的
+     * PixivOperate）都尊重「私密收藏」开关，这个门面是为了消灭这类不一致才存在的，
+     * 自己写死 public 等于把用户明确要求保密的收藏公开挂到主页上。
+     */
+    @JvmStatic
+    fun defaultBookmarkRestrict(): String =
+        if (Shaft.sSettings.isPrivateStar) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
+
     // ── 插画 / 漫画 ──────────────────────────────────────────────────────────
 
     @JvmStatic
     @JvmOverloads
-    fun toggleIllustBookmark(illust: Illust, restrict: String = Params.TYPE_PUBLIC) {
+    fun toggleIllustBookmark(illust: Illust, restrict: String = defaultBookmarkRestrict()) {
         setIllustBookmark(illust, illust.is_bookmarked != true, restrict)
     }
 
@@ -37,7 +49,7 @@ object PixivActions {
     fun setIllustBookmark(
         illust: Illust,
         bookmark: Boolean,
-        restrict: String = Params.TYPE_PUBLIC,
+        restrict: String = defaultBookmarkRestrict(),
     ) {
         if (illust.is_bookmarked == bookmark) return
 
@@ -48,15 +60,6 @@ object PixivActions {
                 total_bookmarks = illust.total_bookmarks?.plus(delta),
             )
         )
-
-        // pixiv 把漫画存成 type == "manga" 的 illust，按语义目标分开埋点。
-        val target = if (illust.type == "manga") EventReporter.Target.MANGA else EventReporter.Target.ILLUST
-        EventReporter.report(
-            if (bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
-            target,
-            illust.id,
-            illust,
-        )
         if (bookmark) RateAppManager.onUserEngaged()
 
         enqueueBookmark(PixivActionTypes.ILLUST_BOOKMARK, illust.id, bookmark, restrict)
@@ -66,7 +69,7 @@ object PixivActions {
 
     @JvmStatic
     @JvmOverloads
-    fun toggleNovelBookmark(novel: Novel, restrict: String = Params.TYPE_PUBLIC) {
+    fun toggleNovelBookmark(novel: Novel, restrict: String = defaultBookmarkRestrict()) {
         setNovelBookmark(novel, novel.is_bookmarked != true, restrict)
     }
 
@@ -75,7 +78,7 @@ object PixivActions {
     fun setNovelBookmark(
         novel: Novel,
         bookmark: Boolean,
-        restrict: String = Params.TYPE_PUBLIC,
+        restrict: String = defaultBookmarkRestrict(),
     ) {
         if (novel.is_bookmarked == bookmark) return
 
@@ -86,12 +89,6 @@ object PixivActions {
                 total_bookmarks = novel.total_bookmarks?.plus(delta),
             )
         )
-        EventReporter.report(
-            if (bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
-            EventReporter.Target.NOVEL,
-            novel.id,
-            novel,
-        )
         if (bookmark) RateAppManager.onUserEngaged()
 
         enqueueBookmark(PixivActionTypes.NOVEL_BOOKMARK, novel.id, bookmark, restrict)
@@ -99,16 +96,12 @@ object PixivActions {
 
     // ── 关注 ────────────────────────────────────────────────────────────────
 
-    /**
-     * @param userForReport 仅用于埋点上报时带上完整 user 信息，可空。
-     */
     @JvmStatic
     @JvmOverloads
     fun setUserFollow(
         userId: Long,
         follow: Boolean,
         restrict: String = Params.TYPE_PUBLIC,
-        userForReport: User? = null,
     ) {
         if (follow) {
             ObjectPool.followUser(userId)
@@ -128,13 +121,6 @@ object PixivActions {
                 AppLevelViewModel.FollowUserStatus.NOT_FOLLOW,
             )
         }
-
-        EventReporter.report(
-            if (follow) EventReporter.Type.FOLLOW else EventReporter.Type.UNFOLLOW,
-            EventReporter.Target.USER,
-            userId,
-            userForReport,
-        )
 
         PixivActionQueue.enqueue(
             ActionRequest(

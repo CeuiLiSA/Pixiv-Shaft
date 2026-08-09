@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.coroutineContext
@@ -33,6 +35,7 @@ import kotlin.random.Random
  *     context = app,
  *     handlers = mapOf(ActionTypes.ILLUST_BOOKMARK to IllustBookmarkHandler()),
  *     gate = { SessionManager.isLoggedIn },
+ *     owner = { SessionManager.loggedInUid.toString() },
  * )
  * queue.start()
  * queue.enqueue(ActionRequest(type = ..., dedupeKey = "illust_bookmark:123", payload = json))
@@ -48,7 +51,10 @@ import kotlin.random.Random
  * @param handlers 按 [ActionRequest.type] 索引的执行器。构造后不可变；找不到 type 的动作
  *                 会被直接判终态失败，而不是无声堆积。
  * @param gate     放行闸门，返回 false 时消费者只睡不取（例如未登录）。抛异常等同于 false。
+ * @param owner    归属标识提供者，通常是当前登录用户 id。入队时记在行上，取行时按它过滤 ——
+ *                 库跨登录态持久，不分归属的话 A 没发完的收藏会用 B 的 token 发出去。
  * @param scope    队列自己的生命周期。默认是进程级 IO scope；测试传 TestScope。
+ * @param onError  存储层 / 入队泵出错时的回调。模块不依赖 Timber，日志交给调用方。
  */
 public class ActionQueue(
     private val store: ActionStore,
@@ -56,8 +62,10 @@ public class ActionQueue(
     private val policy: QueuePolicy = QueuePolicy(),
     private val clock: Clock = Clock.SYSTEM,
     private val gate: suspend () -> Boolean = { true },
+    private val owner: suspend () -> String = { "" },
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
     private val random: Random = Random.Default,
+    private val onError: (String, Throwable) -> Unit = { _, _ -> },
 ) {
 
     private val handlers: Map<String, ActionHandler> = handlers.toMap()
@@ -70,6 +78,18 @@ public class ActionQueue(
      * 高频 UPDATE 下 InvalidationTracker 会在首次 emit 之后静默不再触发。
      */
     private val wakeups = Channel<Unit>(Channel.CONFLATED)
+
+    /**
+     * 入队请求的排队通道。UNLIMITED + 单个消费协程 = 写库顺序**严格等于**调用顺序。
+     *
+     * 不能让 [enqueue] 各自 `scope.launch` 去写库：那些协程落在多线程的 IO 池上，
+     * 连点两下爱心（收藏、取消）时后发的那条可能先落库，随后先发的那条再把它合并掉，
+     * 结果队列发出的是「收藏」而界面显示的是「未收藏」，且永远不会自愈。
+     */
+    private val enqueueRequests = Channel<ActionRequest>(Channel.UNLIMITED)
+
+    /** [enqueueAndWait] 与入队泵共用，保证两条路径的写库互不交错。 */
+    private val enqueueMutex = Mutex()
 
     private val _events = MutableSharedFlow<ActionEvent>(
         extraBufferCapacity = 64,
@@ -93,17 +113,43 @@ public class ActionQueue(
     /** 下一条最早可以开始执行的时刻，节流用。冷启动为 0 ⇒ 首条立即执行，不平白等一个间隔。 */
     private var nextAllowedAtMs: Long = 0L
 
-    /** 整队冷却截止时刻，撞到可重试失败时推高。 */
+    /**
+     * 整队冷却截止时刻，撞到可重试失败时推高。写内存的同时落库（见
+     * [ActionStore.loadCooldownUntilMs]）—— 冷却动辄几分钟，进程在这个窗口里被回收是常态。
+     */
     private var cooldownUntilMs: Long = 0L
+
+    init {
+        scope.launch {
+            for (request in enqueueRequests) {
+                try {
+                    enqueueAndWait(request)
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (t: Throwable) {
+                    // 写库失败只丢这一条，泵必须活着：它死了之后所有点击都会静默消失，
+                    // 而界面上的乐观状态还在。
+                    onError("enqueue failed: ${request.dedupeKey}", t)
+                }
+            }
+        }
+    }
 
     /** 启动消费循环。幂等，重复调用无副作用。 */
     @Synchronized
     public fun start() {
         if (loopJob?.isActive == true) return
         loopJob = scope.launch {
-            // 上次进程被杀时留下的 RUNNING 复位。代价是那条可能被执行两次，
-            // 这正是 ActionHandler 要求幂等的原因。
-            store.resurrectRunning()
+            try {
+                // 上次进程被杀时留下的 RUNNING 复位。代价是那条可能被执行两次，
+                // 这正是 ActionHandler 要求幂等的原因。
+                store.resurrectRunning()
+                cooldownUntilMs = store.loadCooldownUntilMs()
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (t: Throwable) {
+                onError("queue startup recovery failed", t)
+            }
             runLoop()
         }
     }
@@ -115,16 +161,25 @@ public class ActionQueue(
         loopJob = null
     }
 
-    /** 入队，立即返回。写库在 [scope] 上异步做，调用方（通常是 UI 线程）不阻塞。 */
+    /**
+     * 入队，立即返回。写库在 [scope] 上异步做，调用方（通常是 UI 线程）不阻塞，
+     * 但多次调用之间的**先后顺序被保证**，见 [enqueueRequests]。
+     */
     public fun enqueue(request: ActionRequest) {
-        scope.launch { enqueueAndWait(request) }
+        val result = enqueueRequests.trySend(request)
+        if (result.isFailure) {
+            onError(
+                "enqueue channel rejected: ${request.dedupeKey}",
+                result.exceptionOrNull() ?: IllegalStateException("channel closed"),
+            )
+        }
     }
 
     /** 入队并等待落库，返回行 id。需要确知已持久化时用它。 */
-    public suspend fun enqueueAndWait(request: ActionRequest): Long {
-        val id = store.enqueue(request, clock.nowMs())
+    public suspend fun enqueueAndWait(request: ActionRequest): Long = enqueueMutex.withLock {
+        val id = store.enqueue(request, clock.nowMs(), currentOwner())
         wakeups.trySend(Unit)
-        return id
+        id
     }
 
     public fun pause() {
@@ -137,23 +192,42 @@ public class ActionQueue(
         wakeups.trySend(Unit)
     }
 
-    /** 把所有终态失败的行重新排队。@return 重置了几条。 */
+    /** 把当前归属下所有终态失败的行重新排队。@return 重置了几条。 */
     public suspend fun retryAllFailed(): Int {
-        val count = store.retryAllFailed(clock.nowMs())
-        cooldownUntilMs = 0L
+        val count = store.retryAllFailed(clock.nowMs(), currentOwner())
+        setCooldown(0L)
         wakeups.trySend(Unit)
         return count
     }
 
-    public suspend fun clearFailed(): Int = store.clearFailed()
+    /**
+     * 丢弃一条动作。调用方处理完 [ActionEvent.Failed]（回滚 + 提示）之后用它把行删掉，
+     * 否则 FAILED 会在库里长期堆积 —— 每行还带着最长 500 字的错误文本。
+     */
+    public suspend fun forget(actionId: Long) {
+        store.delete(actionId)
+    }
 
-    public suspend fun pendingCount(): Int = store.pendingCount()
+    public suspend fun clearFailed(): Int = store.clearFailed(currentOwner())
 
-    public suspend fun failedCount(): Int = store.failedCount()
+    public suspend fun pendingCount(): Int = store.pendingCount(currentOwner())
+
+    public suspend fun failedCount(): Int = store.failedCount(currentOwner())
 
     private suspend fun runLoop() {
         while (coroutineContext.isActive) {
-            val sleepMs = step()
+            val sleepMs = try {
+                step()
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (t: Throwable) {
+                // 存储层炸了（磁盘满、库损坏）不能把消费者一起带走：那样这个进程剩下的
+                // 时间里每一次收藏都只写了乐观状态却永远发不出去，而且异常还会顺着没有
+                // CoroutineExceptionHandler 的 scope 冒到默认处理器上崩掉进程。
+                // 退一步，睡一轮再试 —— 磁盘满这类故障是可恢复的。
+                onError("queue step failed", t)
+                policy.idlePollMs
+            }
             if (sleepMs > 0L) {
                 withTimeoutOrNull(sleepMs) { wakeups.receive() }
             }
@@ -165,7 +239,8 @@ public class ActionQueue(
      * @return 建议休眠的毫秒数；0 表示立刻进行下一轮。
      */
     private suspend fun step(): Long {
-        val pending = store.pendingCount()
+        val who = currentOwner()
+        val pending = store.pendingCount(who)
 
         if (_paused.value || !gateAllows()) {
             _state.value = QueueState.Suspended(pending)
@@ -184,11 +259,11 @@ public class ActionQueue(
             return nextAllowedAtMs - now
         }
 
-        val stored = store.nextRunnable(now)
+        val stored = store.nextRunnable(now, who)
         if (stored == null) {
             _state.value = if (pending == 0) QueueState.Idle else QueueState.Working(pending)
             // 有 PENDING 但都还没到 notBefore：睡到最早那条到点为止，别被兜底轮询拖慢。
-            val earliest = store.earliestNotBeforeMs()
+            val earliest = store.earliestNotBeforeMs(who)
             return if (earliest != null && earliest > now) {
                 minOf(earliest - now, policy.idlePollMs)
             } else {
@@ -200,6 +275,16 @@ public class ActionQueue(
         execute(stored)
         return 0L
     }
+
+    private suspend fun currentOwner(): String =
+        try {
+            owner()
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (t: Throwable) {
+            onError("owner provider failed", t)
+            ""
+        }
 
     private suspend fun gateAllows(): Boolean =
         try {
@@ -219,7 +304,7 @@ public class ActionQueue(
             // 判终态失败而不是留在队里，否则它会永远排在队首挡住后面所有动作。
             val reason = "no handler registered for type=${action.type}"
             store.markFailed(action.id, reason)
-            _events.tryEmit(ActionEvent.Failed(action, reason, null))
+            emitFailed(action, reason, null)
             return
         }
 
@@ -243,13 +328,13 @@ public class ActionQueue(
         when (outcome) {
             is ActionOutcome.Success -> {
                 store.delete(action.id)
-                cooldownUntilMs = 0L
+                setCooldown(0L)
                 _events.tryEmit(ActionEvent.Succeeded(action))
             }
 
             is ActionOutcome.Fail -> {
                 store.markFailed(action.id, outcome.reason)
-                _events.tryEmit(ActionEvent.Failed(action, outcome.reason, outcome.cause))
+                emitFailed(action, outcome.reason, outcome.cause)
             }
 
             is ActionOutcome.Retry -> {
@@ -258,7 +343,7 @@ public class ActionQueue(
                     val reason = "failed after $attemptsMade attempts: " +
                         (outcome.cause?.message ?: "unknown error")
                     store.markFailed(action.id, reason)
-                    _events.tryEmit(ActionEvent.Failed(action, reason, outcome.cause))
+                    emitFailed(action, reason, outcome.cause)
                 } else {
                     val cooldown = computeCooldownMs(
                         priorAttempts = action.attempt,
@@ -269,12 +354,37 @@ public class ActionQueue(
                     val retryAt = clock.nowMs() + cooldown
                     // 整队冷却而不是单条退避：429 是账号级的，只退避失败那条，
                     // 后面的照发只会接着撞。
-                    cooldownUntilMs = retryAt
+                    setCooldown(retryAt)
                     store.rescheduleForRetry(action.id, retryAt)
                     _events.tryEmit(ActionEvent.Retrying(action, retryAt, outcome.cause))
                 }
             }
         }
+    }
+
+    /**
+     * 广播终态失败，并带上「这条是不是已经被更新的意图顶掉了」。
+     *
+     * 查一次库而不是让 UI 去比较当前值：收藏→取消→收藏之后，当前值和失败那条恰好相等，
+     * 比值的判据会误判成「可以回滚」，把用户还没发出去的最新意图覆盖掉。
+     */
+    private suspend fun emitFailed(action: PendingAction, reason: String, cause: Throwable?) {
+        val superseded = try {
+            store.hasPending(action.dedupeKey, action.owner, action.id)
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (t: Throwable) {
+            onError("hasPending failed: ${action.dedupeKey}", t)
+            false
+        }
+        _events.tryEmit(ActionEvent.Failed(action, reason, cause, superseded))
+    }
+
+    private suspend fun setCooldown(untilMs: Long) {
+        // 每条动作成功都会把冷却清零，值没变就别写库 —— 那是每次收藏一次多余的写事务。
+        if (cooldownUntilMs == untilMs) return
+        cooldownUntilMs = untilMs
+        store.saveCooldownUntilMs(untilMs)
     }
 
     public companion object {
@@ -290,14 +400,18 @@ public class ActionQueue(
             policy: QueuePolicy = QueuePolicy(),
             clock: Clock = Clock.SYSTEM,
             gate: suspend () -> Boolean = { true },
+            owner: suspend () -> String = { "" },
             scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+            onError: (String, Throwable) -> Unit = { _, _ -> },
         ): ActionQueue = ActionQueue(
             store = RoomActionStore(context.applicationContext),
             handlers = handlers,
             policy = policy,
             clock = clock,
             gate = gate,
+            owner = owner,
             scope = scope,
+            onError = onError,
         )
     }
 }

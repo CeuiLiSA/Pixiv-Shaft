@@ -41,12 +41,14 @@ class ActionQueueTest {
         handler: ActionHandler,
         policy: QueuePolicy = policy(),
         gate: suspend () -> Boolean = { true },
+        owner: suspend () -> String = { "" },
     ) = ActionQueue(
         store = store,
         handlers = mapOf(type to handler),
         policy = policy,
         clock = { testScheduler.currentTime },
         gate = gate,
+        owner = owner,
         scope = backgroundScope,
         random = Random(0),
     )
@@ -175,7 +177,7 @@ class ActionQueueTest {
 
         // 第二条只等了一个节流间隔，没有被 30 秒冷却拖住。
         assertEquals(listOf(0L, 2_000L), ranAt)
-        assertEquals(1, store.failedCount())
+        assertEquals(1, store.failedCount(""))
     }
 
     @Test
@@ -195,8 +197,8 @@ class ActionQueueTest {
 
         assertEquals(2, events.count { it is ActionEvent.Retrying })
         assertEquals(1, events.count { it is ActionEvent.Failed })
-        assertEquals(1, store.failedCount())
-        assertNull(store.nextRunnable(Long.MAX_VALUE))
+        assertEquals(1, store.failedCount(""))
+        assertNull(store.nextRunnable(Long.MAX_VALUE, ""))
     }
 
     @Test
@@ -237,7 +239,7 @@ class ActionQueueTest {
         advanceTimeBy(10_000)
 
         assertEquals(listOf("ok"), seen)
-        assertEquals(1, store.failedCount())
+        assertEquals(1, store.failedCount(""))
     }
 
     @Test
@@ -278,14 +280,173 @@ class ActionQueueTest {
         q.enqueueAndWait(request("a"))
         q.start()
         advanceTimeBy(5_000)
-        assertEquals(1, store.failedCount())
+        assertEquals(1, store.failedCount(""))
 
         shouldFail = false
         assertEquals(1, q.retryAllFailed())
         advanceTimeBy(5_000)
 
         assertEquals(2, ranAt.size)
-        assertEquals(0, store.failedCount())
+        assertEquals(0, store.failedCount(""))
         assertTrue(store.rows.isEmpty())
+    }
+
+    @Test
+    fun `再点一次不会把正在退避的重试预算清零`() = runTest {
+        val store = FakeActionStore()
+        val q = queue(
+            store,
+            ActionHandler { ActionOutcome.Retry(cause = RuntimeException("boom")) },
+            policy = policy(maxAttempts = 3, initialCooldownMs = 1_000L),
+        )
+
+        q.enqueueAndWait(request("a"))
+        q.start()
+        advanceTimeBy(100)
+        assertEquals(1, store.rows.single().attempt)
+
+        // 用户看红心没动，又点了一次。合并掉的那条已经失败过一次，新行必须继承 ——
+        // 否则 attempt 永远回到 0，这条动作到不了 maxAttempts，既不回滚也不提示。
+        q.enqueueAndWait(request("a-again"))
+
+        val row = store.rows.single()
+        assertEquals("a-again", row.payload)
+        assertEquals(1, row.attempt)
+        assertEquals(1_000L, row.notBefore)
+    }
+
+    @Test
+    fun `存储层抛异常不会杀死消费循环`() = runTest {
+        val store = FakeActionStore()
+        val errors = mutableListOf<String>()
+        val ranAt = mutableListOf<Long>()
+        val q = ActionQueue(
+            store = store,
+            handlers = mapOf(type to ActionHandler {
+                ranAt += testScheduler.currentTime
+                ActionOutcome.Success
+            }),
+            policy = policy(),
+            clock = { testScheduler.currentTime },
+            scope = backgroundScope,
+            random = Random(0),
+            onError = { message, _ -> errors += message },
+        )
+
+        q.enqueueAndWait(request("a"))
+        store.failWith = { IllegalStateException("disk full") }
+        q.start()
+        advanceTimeBy(5_000)
+        assertTrue("读库炸了不该有动作被执行", ranAt.isEmpty())
+        assertTrue("应当上报存储故障", errors.isNotEmpty())
+
+        // 磁盘腾出来之后，消费者必须还活着 —— 否则这个进程剩下的时间里所有收藏
+        // 都只写了乐观状态、永远发不出去。
+        store.failWith = null
+        advanceTimeBy(120_000)
+        assertEquals(1, ranAt.size)
+    }
+
+    @Test
+    fun `整队冷却跨进程恢复 不会重启后原地重撞限流`() = runTest {
+        val store = FakeActionStore()
+        val ranAt = mutableListOf<Long>()
+        // 上个进程撞了 429，冷却到 50 秒；它没来得及给这两条排 notBefore 就被系统回收了。
+        store.seedCooldown(50_000L)
+        store.seedPending(type, "a", key = "illust:1")
+        store.seedPending(type, "b", key = "illust:2")
+        val q = queue(store, ActionHandler {
+            ranAt += testScheduler.currentTime
+            ActionOutcome.Success
+        })
+
+        q.start()
+        advanceTimeBy(30_000)
+        assertTrue("冷却还没过就不许发", ranAt.isEmpty())
+
+        advanceTimeBy(25_000)
+        // 冷却到点才放行，随后照常按最小间隔一条条发。
+        assertEquals(listOf(50_000L, 52_000L), ranAt)
+    }
+
+    @Test
+    fun `失败时若同目标还压着更新的意图 则标记为已被顶替`() = runTest {
+        val store = FakeActionStore()
+        val events = mutableListOf<ActionEvent.Failed>()
+        val q = queue(store, ActionHandler { action ->
+            if (action.payload == "old") ActionOutcome.Fail("gone") else ActionOutcome.Success
+        })
+        backgroundScope.launch {
+            q.events.collect { if (it is ActionEvent.Failed) events += it }
+        }
+
+        q.enqueueAndWait(request("old").copy(coalesce = false))
+        q.enqueueAndWait(request("new").copy(coalesce = false))
+        q.start()
+        advanceTimeBy(10_000)
+
+        // 收藏→取消→收藏之后当前值和失败那条恰好相等，比值判断会误回滚；
+        // 判据只能是「同 dedupeKey 上还有没有待执行的行」。
+        assertEquals(1, events.size)
+        assertTrue("同目标还有 PENDING，UI 不该回滚", events.single().supersededByPending)
+    }
+
+    @Test
+    fun `队列只发当前账号的行`() = runTest {
+        val store = FakeActionStore()
+        val seen = mutableListOf<String>()
+        var uid = "B"
+        val q = queue(
+            store,
+            ActionHandler { action ->
+                seen += action.payload
+                ActionOutcome.Success
+            },
+            owner = { uid },
+        )
+
+        // A 退登前排下的收藏，绝不该用 B 的 token 发出去。
+        store.seedPending(type, "A-bookmark", key = "illust:1", owner = "A")
+        q.start()
+        advanceTimeBy(120_000)
+        assertTrue(seen.isEmpty())
+
+        uid = "A"
+        q.resume()
+        advanceTimeBy(5_000)
+        assertEquals(listOf("A-bookmark"), seen)
+    }
+
+    @Test
+    fun `离谱的 Retry-After 按上限采信 不会把队列冻到进程结束`() = runTest {
+        val store = FakeActionStore()
+        val q = queue(store, ActionHandler {
+            ActionOutcome.Retry(retryAfterMs = 86_400_000L) // 服务端说等一天
+        })
+
+        q.enqueueAndWait(request("a"))
+        q.start()
+        advanceTimeBy(100)
+
+        assertEquals(QueuePolicy().maxRetryAfterMs, store.rows.single().notBefore)
+    }
+
+    @Test
+    fun `连点的入队顺序等于调用顺序`() = runTest {
+        val store = FakeActionStore()
+        val seen = mutableListOf<String>()
+        val q = queue(store, ActionHandler { action ->
+            seen += action.payload
+            ActionOutcome.Success
+        })
+
+        // 走 fire-and-forget 的 enqueue（UI 实际用的那条路），合并之后必须留下最后一次意图。
+        q.enqueue(request("bookmark"))
+        q.enqueue(request("unbookmark"))
+        q.enqueue(request("bookmark-again"))
+        q.start()
+        advanceTimeBy(10_000)
+
+        assertEquals(listOf("bookmark-again"), seen)
     }
 }
