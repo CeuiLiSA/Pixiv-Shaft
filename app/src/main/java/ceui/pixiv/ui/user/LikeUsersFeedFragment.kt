@@ -10,11 +10,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
+import ceui.lisa.core.RemoteRepo
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecySimpleUserBinding
 import ceui.lisa.model.ListSimpleUser
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.UserBean
+import ceui.lisa.repo.NovelBookmarkUserRepo
 import ceui.lisa.repo.SimpleUserRepo
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
@@ -67,8 +69,14 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     override val feedViewModel by feedViewModels {
         // 零捕获：先把 arg 读进局部 val，只把 illustId(Int) 传进 source（source 归 VM 长期持有，
         // 绝不能捕获 Fragment）。
-        val illust = requireArguments().getSerializable(Params.CONTENT) as IllustsBean
-        LikeUsersFeedSource(illust.id)
+        val args = requireArguments()
+        val novelId = args.getLong(Params.NOVEL_ID, 0L).takeIf { it != 0L }
+        val illust = args.getSerializable(Params.CONTENT) as? IllustsBean
+        when {
+            novelId != null -> LikeUsersFeedSource(novelId)
+            illust != null -> LikeUsersFeedSource(illust.id)
+            else -> error("LikeUsersFeedFragment 缺少作品参数")
+        }
     }
 
     /**
@@ -105,8 +113,11 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         pinHostGlide(userGlide)
         setUpToolbar(binding, feedBinding.feedListView)
         // 标题读局部 val（零捕获），复刻 legacy getToolbarTitle。
-        val illust = requireArguments().getSerializable(Params.CONTENT) as IllustsBean
-        binding.toolbarTitle.text = "喜欢" + illust.title + "的用户"
+        val args = requireArguments()
+        val novelId = args.getLong(Params.NOVEL_ID, 0L).takeIf { it != 0L }
+        val title = args.getString(Params.TITLE)
+            ?: (args.getSerializable(Params.CONTENT) as? IllustsBean)?.title
+        binding.toolbarTitle.text = "喜欢" + title + "的用户"
 
         LocalBroadcastManager.getInstance(requireContext())
             .registerReceiver(followSyncReceiver, IntentFilter(Params.LIKED_USER))
@@ -214,6 +225,16 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
                 }
             }
         }
+
+        @JvmStatic
+        fun newInstance(novelId: Long, novelTitle: String?): LikeUsersFeedFragment {
+            return LikeUsersFeedFragment().apply {
+                arguments = Bundle().apply {
+                    putLong(Params.NOVEL_ID, novelId)
+                    putString(Params.TITLE, novelTitle)
+                }
+            }
+        }
     }
 }
 
@@ -251,9 +272,12 @@ class LikeUserFeedItem(
  *
  * 零 Fragment 捕获：只吃 illustId(Int)，repo 内部持 illustId + next_url 分页状态。
  */
-class LikeUsersFeedSource(illustId: Int) : FeedSource<String> {
+class LikeUsersFeedSource private constructor(
+    private val repo: RemoteRepo<ListSimpleUser>,
+) : FeedSource<String> {
 
-    private val repo = SimpleUserRepo(illustId)
+    constructor(illustId: Int) : this(SimpleUserRepo(illustId))
+    constructor(novelId: Long) : this(NovelBookmarkUserRepo(novelId))
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val resp: ListSimpleUser = if (cursor == null) {

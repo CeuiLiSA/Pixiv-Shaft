@@ -15,3 +15,14 @@ class SimpleUserRepo(private val illustID: Int) : RemoteRepo<ListSimpleUser>() {
         return Retro.getAppApi().getNextSimpleUser(nextUrl)
     }
 }
+
+class NovelBookmarkUserRepo(private val novelID: Long) : RemoteRepo<ListSimpleUser>() {
+
+    override fun initApi(): Observable<ListSimpleUser> {
+        return Retro.getAppApi().getUsersWhoLikeThisNovel(novelID)
+    }
+
+    override fun initNextApi(): Observable<ListSimpleUser> {
+        return Retro.getAppApi().getNextSimpleUser(nextUrl)
+    }
+}

@@ -461,6 +461,9 @@ public interface AppApi {
     @GET("v1/illust/bookmark/users?filter=for_android")
     Observable<ListSimpleUser> getUsersWhoLikeThisIllust(@Query("illust_id") int illust_id);
 
+    @GET("v1/novel/bookmark/users?filter=for_android")
+    Observable<ListSimpleUser> getUsersWhoLikeThisNovel(@Query("novel_id") long novel_id);
+
     @GET("v2/novel/series")
     Observable<ListNovelOfSeries> getNovelSeries(@Query("series_id") int series_id);
 
