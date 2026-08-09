@@ -26,6 +26,13 @@
             app:showAsAction="never" />
 
         <item
+            android:id="@+id/action_classic_card"
+            android:orderInCategory="160"
+            android:checkable="true"
+            android:title="@string/history_classic_card"
+            app:showAsAction="never" />
+
+        <item
             android:id="@+id/action_export_history"
             android:orderInCategory="200"
             android:title="@string/view_history_export"

@@ -22,11 +22,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.activities.BaseActivity
+import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.interfaces.Callback
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Local
 import ceui.loxia.Client
 import ceui.loxia.CloudHistoryConsent
 import ceui.pixiv.db.RecordType
@@ -144,12 +146,24 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
      */
     private fun setupSearchMenu() {
         binding.toolbar.inflateMenu(R.menu.history_v3)
+        binding.toolbar.menu.findItem(R.id.action_classic_card)?.isChecked =
+            Shaft.sSettings.isClassicHistoryCard()
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_delete -> { showClearAllDialog(); true }
                 R.id.action_export_history -> { exportHistory(); true }
                 R.id.action_import_history -> { pickImportFile(); true }
                 R.id.action_multi_select -> { enterSelectionMode(); true }
+                R.id.action_classic_card -> {
+                    val classic = !Shaft.sSettings.isClassicHistoryCard()
+                    Shaft.sSettings.setClassicHistoryCard(classic)
+                    Local.setSettings(Shaft.sSettings)
+                    item.isChecked = classic
+                    childFragmentManager.fragments.forEach { child ->
+                        if (child is FragmentHistoryList) child.applyCardStyle()
+                    }
+                    true
+                }
                 R.id.action_select_all_toggle -> { activeSelectionTab?.toggleSelectAll(); refreshSelectionToolbar(); true }
                 R.id.action_delete_selected -> { confirmDeleteSelected(); true }
                 else -> false

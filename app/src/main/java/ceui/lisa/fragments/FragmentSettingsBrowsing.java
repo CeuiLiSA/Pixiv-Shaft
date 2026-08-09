@@ -68,6 +68,18 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         });
         baseBind.saveHistoryRela.setOnClickListener(v -> baseBind.saveHistory.performClick());
 
+        // 浏览记录「插画/漫画」tab 怀旧单列卡片开关，与浏览历史页 toolbar 的「怀旧卡片」勾选项联动
+        baseBind.classicHistoryCard.setChecked(Shaft.sSettings.isClassicHistoryCard());
+        baseBind.classicHistoryCard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setClassicHistoryCard(isChecked);
+                Common.showToast(getString(R.string.string_428), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.classicHistoryCardRela.setOnClickListener(v -> baseBind.classicHistoryCard.performClick());
+
         // 浏览记录云同步开关 + 清除云端记录 (issue #889)
         baseBind.cloudHistorySync.setChecked(Shaft.sSettings.isCloudHistorySync());
         baseBind.cloudHistorySync.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

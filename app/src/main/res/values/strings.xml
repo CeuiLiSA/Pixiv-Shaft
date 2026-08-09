@@ -1724,6 +1724,8 @@
 
     <!-- 浏览历史多选删除 -->
     <string name="history_multi_select">多选</string>
+    <string name="history_classic_card">怀旧卡片</string>
+    <string name="history_classic_setting">怀旧版浏览记录</string>
     <string name="history_selected_count">已选 %1$d 项</string>
     <string name="history_multi_delete_message">确定删除选中的 %1$d 项浏览记录吗？</string>
     <string name="history_multi_delete_done">已删除 %1$d 项</string>

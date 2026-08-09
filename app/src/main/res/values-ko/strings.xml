@@ -1561,6 +1561,8 @@
     <string name="bulk_select_select_all">전체 선택</string>
     <string name="bulk_select_clear_all">선택 해제</string>
     <string name="history_multi_select">다중 선택</string>
+    <string name="history_classic_card">클래식 카드</string>
+    <string name="history_classic_setting">클래식형 열람 기록</string>
     <string name="history_selected_count">%1$d개 선택됨</string>
     <string name="history_multi_delete_message">선택한 %1$d개의 기록을 삭제하시겠습니까?</string>
     <string name="history_multi_delete_done">%1$d개 삭제됨</string>

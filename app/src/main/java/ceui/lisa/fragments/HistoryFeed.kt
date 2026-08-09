@@ -2,12 +2,14 @@ package ceui.lisa.fragments
 
 import android.content.Intent
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
+import ceui.lisa.databinding.CellHistoryClassicBinding
 import ceui.lisa.databinding.CellHistoryIllustV3Binding
 import ceui.lisa.databinding.CellHistoryNovelV3Binding
 import ceui.lisa.models.IllustsBean
@@ -394,6 +396,67 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
         binding.author.text = novel.user?.name.orEmpty()
         binding.time.text = historyTimeFormat.format(entity.time)
         binding.badgeAi.isVisible = novel.isCreatedByAI()
+
+        HistorySelectBadge.bind(binding.selectCheck, item.isSelectionMode, item.isSelected)
+        binding.deleteItem.isVisible = !item.isSelectionMode
+    }
+
+/**
+ * 怀旧单列横卡（旧 FragmentHistory 卡片），仅「插画/漫画」tab 使用。
+ * 布局结构照搬旧版 recy_view_history，配色跟随 V3 主题；多选/单删交互与 V3 渲染器对齐。
+ */
+fun FragmentHistoryList.historyClassicIllustRenderer(): FeedRenderer<HistoryIllustFeedItem, CellHistoryClassicBinding> =
+    feedRenderer(
+        inflate = CellHistoryClassicBinding::inflate,
+        create = { cell ->
+            val binding = cell.binding
+            binding.root.setOnClickListener {
+                val item = cell.itemOrNull ?: return@setOnClickListener
+                if (item.isSelectionMode) toggleHistorySelect(item.entity)
+                else openHistoryIllust(item.illust)
+            }
+            binding.root.setOnLongClickListener {
+                val item = cell.itemOrNull ?: return@setOnLongClickListener false
+                if (!item.isSelectionMode) confirmDeleteHistory(item.entity)
+                true
+            }
+            binding.deleteItem.setOnClickListener {
+                cell.itemOrNull?.let { item -> confirmDeleteHistory(item.entity) }
+            }
+            binding.author.setOnClickListener {
+                cell.itemOrNull?.illust?.user?.id?.let { uid -> openHistoryUser(uid) }
+            }
+        },
+        recycle = { it.binding.illustImage.clearGlideOnRecycle() },
+    ) { cell ->
+        val binding = cell.binding
+        val item = cell.item
+        val illust = item.illust
+        val entity = item.entity
+        val context = binding.root.context
+
+        // 旧版 HistoryAdapter 的方形缩略图宽度 = (屏宽 - 4dp) / 2；
+        // 卡片固定 150dp 高，图片高度被卡在 150dp（对齐旧版，不再比旧卡高）
+        val size = (context.resources.displayMetrics.widthPixels -
+                context.resources.getDimensionPixelSize(R.dimen.four_dp)) / 2
+        binding.illustImage.updateLayoutParams {
+            width = size
+        }
+        Glide.with(context).load(GlideUtil.getMediumImg(illust))
+            .placeholder(R.color.v3_surface_2)
+            .into(binding.illustImage)
+        binding.title.text = illust.title
+        binding.author.text = "by: ${illust.user?.name.orEmpty()}"
+        binding.time.text = historyTimeFormat.format(entity.time)
+
+        // P 数徽标在左上角；多选态隐藏，避免与左上角勾选徽标重叠
+        val showPSize = !item.isSelectionMode &&
+            (illust.isGif || illust.page_count > 1)
+        binding.pSize.isVisible = showPSize
+        binding.pSize.text = when {
+            illust.isGif -> "GIF"
+            else -> String.format(Locale.getDefault(), "%dP", illust.page_count)
+        }
 
         HistorySelectBadge.bind(binding.selectCheck, item.isSelectionMode, item.isSelected)
         binding.deleteItem.isVisible = !item.isSelectionMode

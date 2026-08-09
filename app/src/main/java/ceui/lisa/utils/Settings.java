@@ -67,6 +67,17 @@ public class Settings {
         this.lineCount = lineCount;
     }
 
+    //浏览记录「插画/漫画」tab 是否使用怀旧单列横卡（旧 FragmentHistory 样式），默认 false = V3 竖卡瀑布流
+    private boolean classicHistoryCard = false;
+
+    public boolean isClassicHistoryCard() {
+        return classicHistoryCard;
+    }
+
+    public void setClassicHistoryCard(boolean classicHistoryCard) {
+        this.classicHistoryCard = classicHistoryCard;
+    }
+
     public boolean isUseStaggeredLayout() {
         return useStaggeredLayout;
     }

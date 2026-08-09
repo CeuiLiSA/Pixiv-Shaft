@@ -1561,6 +1561,8 @@
     <string name="bulk_select_select_all">Выбрать всё</string>
     <string name="bulk_select_clear_all">Снять выбор</string>
     <string name="history_multi_select">Выбрать несколько</string>
+    <string name="history_classic_card">Классические карточки</string>
+    <string name="history_classic_setting">Классическая история просмотра</string>
     <string name="history_selected_count">Выбрано: %1$d</string>
     <string name="history_multi_delete_message">Удалить выбранные записи (%1$d)?</string>
     <string name="history_multi_delete_done">Удалено: %1$d</string>

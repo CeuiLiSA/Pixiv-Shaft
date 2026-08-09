@@ -1561,6 +1561,8 @@
     <string name="bulk_select_select_all">Tümünü seç</string>
     <string name="bulk_select_clear_all">Seçimi kaldır</string>
     <string name="history_multi_select">Çoklu seçim</string>
+    <string name="history_classic_card">Klasik kartlar</string>
+    <string name="history_classic_setting">Klasik geçmiş görünümü</string>
     <string name="history_selected_count">%1$d seçildi</string>
     <string name="history_multi_delete_message">Seçili %1$d kayıt silinsin mi?</string>
     <string name="history_multi_delete_done">%1$d öğe silindi</string>

@@ -9,6 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
@@ -22,12 +23,14 @@ import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
+import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.updateItems
+import ceui.pixiv.utils.ppppx
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import kotlinx.coroutines.NonCancellable
@@ -63,14 +66,23 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
         SimpleDateFormat(getString(R.string.string_350), Locale.getDefault())
     }
 
-    override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> =
-        listOf(historyIllustRenderer(), historyNovelRenderer())
+    override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
+        val illustRenderer = if (useClassicCards()) {
+            historyClassicIllustRenderer()
+        } else {
+            historyIllustRenderer()
+        }
+        return listOf(illustRenderer, historyNovelRenderer())
+    }
 
     override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
         // 插画历史跟随用户「每行几列」设置（与全仓插画瀑布流同源，见 IllustFeedFragment）——
         // 曾经这里硬编码成 2，是唯一一条自成一派、无视该设置的插画列表。小说历史是竖向单列卡。
         // 用 StaggeredManager 而不是裸 StaggeredGridLayoutManager：后者存在的理由就是吞掉
         // AOSP predictive-layout 在 fling + 插页同帧时的内部崩溃。
+        if (useClassicCards()) {
+            return LinearLayoutManager(requireContext())
+        }
         val spanCount = if (historyType == TYPE_NOVEL) 1 else Shaft.sSettings.lineCount
         return StaggeredManager(spanCount, RecyclerView.VERTICAL)
     }
@@ -82,6 +94,10 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
         // 自带的 5dp layout_margin 撑间距 —— 比全站标准窄一圈、几乎贴着屏幕边,且不跟 lineCount 走。
         // 小说历史是单列:SpacesItemDecoration 按 spanIndex 算左右偏移,单列会算出左 8dp/右 4dp 的
         // 偏心,故不挂,继续用 cell_history_novel_v3 自带的 margin。
+        if (useClassicCards()) {
+            listView.addItemDecoration(LinearItemDecoration(12.ppppx))
+            return
+        }
         if (historyType != TYPE_NOVEL) {
             listView.addItemDecoration(SpacesItemDecoration(DensityUtil.dp2px(8.0f)))
         }
@@ -212,6 +228,16 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
     fun reloadFromDao() {
         if (view == null) return
         feedViewModel.refresh()
+    }
+
+    /** 怀旧卡片开关：仅「插画/漫画」tab 生效（小说 tab 本来就是单列）。 */
+    private fun useClassicCards(): Boolean =
+        historyType != TYPE_NOVEL && Shaft.sSettings.isClassicHistoryCard()
+
+    /** 怀旧卡片开关变化后重建列表：换渲染器 + 布局，数据留在 VM 不重拉。 */
+    fun applyCardStyle() {
+        if (view == null) return
+        rebuildList()
     }
 
     // ── SelectableHistoryTab：多选删除，具体状态在 [selectionVm] ──────────────────

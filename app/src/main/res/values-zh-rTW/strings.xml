@@ -1563,6 +1563,8 @@
     <string name="bulk_select_select_all">全選</string>
     <string name="bulk_select_clear_all">取消全選</string>
     <string name="history_multi_select">多選</string>
+    <string name="history_classic_card">懷舊卡片</string>
+    <string name="history_classic_setting">懷舊版瀏覽紀錄</string>
     <string name="history_selected_count">已選 %1$d 項</string>
     <string name="history_multi_delete_message">確定刪除選中的 %1$d 項瀏覽紀錄嗎？</string>
     <string name="history_multi_delete_done">已刪除 %1$d 項</string>

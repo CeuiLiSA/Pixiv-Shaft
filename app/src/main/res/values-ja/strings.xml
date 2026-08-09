@@ -1561,6 +1561,8 @@
     <string name="bulk_select_select_all">すべて選択</string>
     <string name="bulk_select_clear_all">選択解除</string>
     <string name="history_multi_select">複数選択</string>
+    <string name="history_classic_card">クラシックカード</string>
+    <string name="history_classic_setting">クラシック版閲覧履歴</string>
     <string name="history_selected_count">%1$d 件選択中</string>
     <string name="history_multi_delete_message">選択した %1$d 件の履歴を削除しますか？</string>
     <string name="history_multi_delete_done">%1$d 件を削除しました</string>
