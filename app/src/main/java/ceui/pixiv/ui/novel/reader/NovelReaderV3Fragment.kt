@@ -575,7 +575,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     private fun togglePixivBookmark() {
         viewLifecycleOwner.lifecycleScope.launch {
-            Toaster.showShort(viewModel.toggleBookmark())
+            // 成功路径返回空串：请求还没发出去，此时报「已收藏」是骗用户。反馈由顶栏
+            // 那颗爱心承担（它 observe ObjectPool 里的 Novel），失败时队列会把它拨回去。
+            viewModel.toggleBookmark().takeIf { it.isNotEmpty() }?.let(Toaster::showShort)
         }
     }
 

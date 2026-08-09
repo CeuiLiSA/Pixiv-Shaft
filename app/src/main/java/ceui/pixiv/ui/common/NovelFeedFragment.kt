@@ -9,7 +9,6 @@ import android.widget.ImageButton
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
@@ -240,10 +239,10 @@ abstract class NovelFeedFragment(
             cell.binding.like.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
         }
         applyNovelBookmark(novelId, target)
+        // 跨列表同步的 LIKED_NOVEL 广播由 PixivActions 内部发（与插画那支同一套写法）——
+        // 此处不再自己补一遍：这里补过之后，从阅读器 / V3 详情流收藏同一本小说时别处的列表
+        // 依然不同步，而那正是把广播收进门面里要解决的问题。
         PixivActions.setNovelBookmark(novel, target)
-        // 广播同步其它小说列表(含仍 legacy 的收藏/画师小说列表)。会回流到本列表自己的
-        // receiver,withBookmarked 幂等,无副作用。
-        sendNovelLikedBroadcast(novelId, target)
         // 收藏后自动关注作者(对齐 legacy postLikeNovel)。同样走队列 —— 直发的话它会和
         // 队列里同一个作者的关注/取关抢着写 ObjectPool，谁后到谁说了算。
         val user = novel.user
@@ -266,16 +265,6 @@ abstract class NovelFeedFragment(
         viewModel.updateItems(NovelFeedItem::class.java) { item ->
             if (item.novel.id == novelId) item.withBookmarked(liked) else item
         }
-    }
-
-    private fun sendNovelLikedBroadcast(novelId: Long, liked: Boolean) {
-        val intent = Intent(Params.LIKED_NOVEL).apply {
-            // LIKED_NOVEL 契约里 id 走 int(NovelBean.id/CommonReceiver.getInt);小说 id 在 int 范围内。
-            putExtra(Params.ID, novelId.toInt())
-            putExtra(Params.IS_LIKED, liked)
-        }
-        // 用 app context(LBM 是 app 级单例):send 跑在网络回来后的协程里,不依赖 view 存活。
-        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent)
     }
 
     private fun openNovelAuthor(novel: Novel) {

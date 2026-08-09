@@ -365,6 +365,12 @@ class NovelReaderV3ViewModel(
      * ObjectPool 的 `is_bookmarked` 当真值。队列还在冷却里时，池子里已经是「已收藏」而
      * 服务端什么都没收到，这里读到 true 就会立刻发一个删除请求去删一个根本不存在的收藏，
      * 等冷却结束队列再把添加发出去，最终收藏态与用户最后一次操作相反。
+     *
+     * @return 要提示给用户的话；**成功路径返回空串**，调用方不弹。这一刻请求还没发出去，
+     *         报「已收藏」是骗用户，而失败时队列几分钟后还会补一个「收藏失败」自相矛盾
+     *         （插画与关注在迁进队列时已经这么改了，这里是漏掉的最后一处）。反馈由顶栏那颗
+     *         爱心承担：它 observe 的是 ObjectPool 里的 Novel，乐观写当帧变红，队列回滚时
+     *         自动拨回去。
      */
     suspend fun toggleBookmark(): String {
         if (isLocal) return ctx().getString(R.string.local_novel_bookmark_unsupported)
@@ -372,9 +378,8 @@ class NovelReaderV3ViewModel(
             val novel = ObjectPool.get<Novel>(novelId).value
                 ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
             novel ?: return ctx().getString(R.string.msg_novel_loading)
-            val bookmarked = novel.is_bookmarked == true
-            PixivActions.setNovelBookmark(novel, !bookmarked)
-            ctx().getString(if (bookmarked) R.string.msg_unbookmarked else R.string.msg_bookmarked)
+            PixivActions.setNovelBookmark(novel, novel.is_bookmarked != true)
+            ""
         }.getOrElse { ctx().getString(R.string.msg_operation_fail, it.message.orEmpty()) }
     }
 

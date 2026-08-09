@@ -14,7 +14,14 @@ public data class StoredAction(
  * 不需要 Android instrumentation；以及将来想换掉 Room 时不用碰调度代码。
  * 生产实现是 [ActionQueue.withRoomStore] 里装配的 Room 版。
  *
- * 所有方法都在 IO 上下文被调用，实现不需要自己切线程。
+ * ## 线程
+ *
+ * 调用方**不保证** dispatcher。消费循环与入队泵跑在构造 [ActionQueue] 时传进来的 scope 上
+ * （生产装配是 `Dispatchers.IO`），但 [ActionQueue] 那几个公开的 suspend 方法
+ * （`forget` / `clearFailed` / `retryAllFailed` / `pendingCount` / `failedCount` /
+ * `enqueueAndWait`）是在**调用方**的上下文里跑的 —— app 侧就是在 `Dispatchers.Default` 上调的。
+ * 所以实现要做阻塞 IO 的话必须自己切线程；生产实现是 Room，它的 suspend DAO 自带调度，
+ * 因此不需要额外处理。
  *
  * ## owner
  *
