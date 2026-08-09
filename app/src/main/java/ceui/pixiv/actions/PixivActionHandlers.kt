@@ -121,8 +121,12 @@ private suspend fun attempt(
  * 调用方必须把 null 判成[ActionOutcome.Fail]，**不能**让异常裸抛给队列：队列对未分类的异常
  * 一律按可重试处理，于是一条永远解析不了的行（版本回退后读到新版写入的 json）会把重试预算
  * 和整队节流配额一起烧光，而它无论如何都不可能成功。
+ *
+ * 失败反馈那一路（[ceui.pixiv.actions.PixivActionQueue] 的 report / rollback）必须用**同一个**
+ * 函数解析：执行侧对着解析不了的 payload 判了终态失败，反馈侧若还是裸 `fromJson`，就会在处理
+ * 这条失败时自己抛出去 —— 结果是既不回滚也不提示，乐观 UI 永久停在错误状态。
  */
-private inline fun <reified T> PendingAction.parsePayload(): T? =
+internal inline fun <reified T> PendingAction.parsePayload(): T? =
     runCatching { Shaft.sGson.fromJson(payload, T::class.java) }.getOrNull()
 
 private fun badPayload(action: PendingAction): ActionOutcome =

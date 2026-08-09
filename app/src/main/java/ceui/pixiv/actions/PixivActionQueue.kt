@@ -1,13 +1,10 @@
 package ceui.pixiv.actions
 
 import android.content.Context
-import android.content.Intent
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.Params
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -15,6 +12,7 @@ import ceui.loxia.User
 import ceui.pixiv.actionqueue.ActionEvent
 import ceui.pixiv.actionqueue.ActionQueue
 import ceui.pixiv.actionqueue.ActionRequest
+import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
 import ceui.pixiv.db.discovery.ProfileManager
 import ceui.pixiv.events.EventReporter
@@ -112,17 +110,20 @@ object PixivActionQueue {
      *
      * 不踢的话只能等兜底轮询（[QueuePolicy.idlePollMs]，60 秒）：网络刚回来 / 刚登录完，
      * 用户看着一排红心却要再等一分钟才真的发出去，而这恰恰是最可能被系统回收进程的时刻。
+     *
+     * 用 [ActionQueue.kick] 而不是 `resume()`：后者还会清掉暂停标志，等于让一次网络抖动
+     * 顺手解除用户主动按下的暂停。这里要的只是「重新看一眼队列」。
      */
     private fun observeGateSignals(instance: ActionQueue, monitor: NetworkMonitor) {
         feedbackScope.launch {
             monitor.observeConnectivity.collect { online ->
-                if (online) instance.resume()
+                if (online) instance.kick()
             }
         }
         // 登录 / 换账号：owner 变了，队列要重新按新账号取行。
         feedbackScope.launch {
             withContext(Dispatchers.Main) {
-                SessionManager.loggedInAccount.observeForever { instance.resume() }
+                SessionManager.loggedInAccount.observeForever { instance.kick() }
             }
         }
     }
@@ -173,9 +174,14 @@ object PixivActionQueue {
                                 "action failed: type=%s reason=%s superseded=%b",
                                 event.action.type, event.reason, event.supersededByPending,
                             )
-                            withContext(Dispatchers.Main) { handleFailure(event) }
-                            // 反馈已经做完，这一行没有别的用处了，别让它在库里堆着。
-                            instance.forget(event.action.id)
+                            try {
+                                withContext(Dispatchers.Main) { handleFailure(event) }
+                            } finally {
+                                // 反馈做没做成，这一行都没有别的用处了 —— 必须在 finally 里删。
+                                // 放在 handleFailure 之后的话，它一抛异常这行就以 FAILED 留在库里，
+                                // 一直堆到下次进程启动才被 pruneStaleFailures 收走。
+                                instance.forget(event.action.id)
+                            }
                         }
                         else -> Unit
                     }
@@ -197,10 +203,10 @@ object PixivActionQueue {
      * 发生过的行为。
      */
     private fun report(event: ActionEvent.Succeeded) {
-        val gson = Shaft.sGson
-        when (event.action.type) {
+        val action = event.action
+        when (action.type) {
             PixivActionTypes.ILLUST_BOOKMARK -> {
-                val payload = gson.fromJson(event.action.payload, BookmarkPayload::class.java)
+                val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
                 val illust = ObjectPool.get<Illust>(payload.id).value
                 // pixiv 把漫画存成 type == "manga" 的 illust，按语义目标分开埋点。
                 val target = if (illust?.type == "manga") {
@@ -222,7 +228,7 @@ object PixivActionQueue {
             }
 
             PixivActionTypes.NOVEL_BOOKMARK -> {
-                val payload = gson.fromJson(event.action.payload, BookmarkPayload::class.java)
+                val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
                 EventReporter.report(
                     if (payload.bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
                     EventReporter.Target.NOVEL,
@@ -232,7 +238,7 @@ object PixivActionQueue {
             }
 
             PixivActionTypes.USER_FOLLOW -> {
-                val payload = gson.fromJson(event.action.payload, FollowPayload::class.java)
+                val payload = action.parsePayload<FollowPayload>() ?: return unparsable(action)
                 // reportFollowUser 自己做 ObjectPool 命中→getUserProfile 兜底的解析，
                 // 调用方不用先把 User 取到手 —— 省掉了 UActivity 里那次「等 profile 回来
                 // 才敢关注」的等待，那期间页面被销毁的话意图就丢了。
@@ -265,10 +271,10 @@ object PixivActionQueue {
      * 表现是「失败提示弹了但那颗心还红着」。
      */
     private fun rollback(event: ActionEvent.Failed) {
-        val gson = Shaft.sGson
-        when (event.action.type) {
+        val action = event.action
+        when (action.type) {
             PixivActionTypes.ILLUST_BOOKMARK -> {
-                val payload = gson.fromJson(event.action.payload, BookmarkPayload::class.java)
+                val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
                 // 队列已经确认没有更新的意图压着（supersededByPending），这里再比一次当前值，
                 // 挡的是队列之外改过状态的路径（例如详情页刚从服务端刷回了真值）。
                 // 池里两个表示都没有时按 null 处理照常回滚：列表条目持有的是自己的拷贝，
@@ -281,25 +287,19 @@ object PixivActionQueue {
             }
 
             PixivActionTypes.NOVEL_BOOKMARK -> {
-                val payload = gson.fromJson(event.action.payload, BookmarkPayload::class.java)
-                val novel = ObjectPool.get<Novel>(payload.id).value
-                if (novel != null && novel.is_bookmarked == payload.bookmark) {
-                    ObjectPool.update(
-                        novel.copy(
-                            is_bookmarked = !payload.bookmark,
-                            total_bookmarks = novel.total_bookmarks
-                                ?.plus(if (payload.bookmark) -1 else 1),
-                        )
-                    )
+                val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
+                // 与插画那支同一套守卫与同一个写入函数（含 LIKED_NOVEL 广播，小说列表条目
+                // 持有的是自己的拷贝、只认广播）。守卫不通过时连广播也不发 —— 那说明状态
+                // 已经被队列之外的路径改过，再拨一次等于用旧结果覆盖服务端刚刷回的真值。
+                val current = ObjectPool.get<Novel>(payload.id).value?.is_bookmarked
+                if (current == null || current == payload.bookmark) {
+                    PixivActions.writeNovelBookmarkLocally(payload.id, !payload.bookmark)
                 }
-                // 小说列表的条目状态是 FeedViewModel 自己的一份拷贝，不读 ObjectPool，
-                // 只能靠这条广播把爱心拨回去（NovelFeedItem.withBookmarked 幂等）。
-                broadcastNovelBookmark(payload.id, !payload.bookmark)
                 toast(R.string.v3_widget_bookmark_failed)
             }
 
             PixivActionTypes.USER_FOLLOW -> {
-                val payload = gson.fromJson(event.action.payload, FollowPayload::class.java)
+                val payload = action.parsePayload<FollowPayload>() ?: return unparsable(action)
                 val user = ObjectPool.get<User>(payload.userId).value
                 // 与收藏那支同样的守卫：当前关注态已经不是我们乐观写进去的那个值时就别动它
                 //（提示照弹 —— 用户仍然需要知道这次关注没成）。
@@ -321,14 +321,18 @@ object PixivActionQueue {
         ObjectPool.get<IllustsBean>(illustId).value?.isIs_bookmarked
             ?: ObjectPool.get<Illust>(illustId).value?.is_bookmarked
 
-    /** 与 NovelFeedFragment.sendNovelLikedBroadcast 同一份契约：id 走 int，值放 IS_LIKED。 */
-    private fun broadcastNovelBookmark(novelId: Long, liked: Boolean) {
-        val ctx = Shaft.getContext() ?: return
-        val intent = Intent(Params.LIKED_NOVEL).apply {
-            putExtra(Params.ID, novelId.toInt())
-            putExtra(Params.IS_LIKED, liked)
-        }
-        LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent)
+    /**
+     * payload 解析不了时的统一出口 —— 只可能是版本回退后读到了新版写入的 json。
+     *
+     * 执行侧对同一份 payload 已经判过终态失败（见 [parsePayload]），反馈侧必须用同一个宽容的
+     * 解析：裸 `fromJson` 会在处理这条失败时自己抛出去，那样既不回滚也不提示，乐观 UI 就永久
+     * 停在错误状态了。回滚不了也没关系 —— 界面上的收藏态本来就会在下次从服务端刷新时被纠正。
+     */
+    private fun unparsable(action: PendingAction) {
+        Timber.tag(TAG).e(
+            "unparsable payload, skipping feedback: type=%s id=%d",
+            action.type, action.id,
+        )
     }
 
     private fun toast(resId: Int) {

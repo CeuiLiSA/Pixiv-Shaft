@@ -324,7 +324,34 @@ class ActionQueueTest {
         assertTrue("未登录时不该发请求", ranAt.isEmpty())
 
         loggedIn = true
-        q.resume() // 主动踢一脚唤醒，省得等兜底轮询
+        q.kick() // 主动踢一脚唤醒，省得等兜底轮询（注意不是 resume：闸门开了不代表要解除暂停）
+        advanceTimeBy(5_000)
+        assertEquals(1, ranAt.size)
+    }
+
+    @Test
+    fun `踢一脚只唤醒循环 不会解除暂停`() = runTest {
+        val store = FakeActionStore()
+        val ranAt = mutableListOf<Long>()
+        val q = queue(store, ActionHandler {
+            ranAt += testScheduler.currentTime
+            ActionOutcome.Success
+        })
+
+        q.enqueueAndWait(request("a"))
+        q.pause()
+        q.start()
+        advanceTimeBy(120_000)
+        assertTrue("暂停期间不该发请求", ranAt.isEmpty())
+
+        // 网络回来 / 登录完成走的就是 kick 这条路。它只该唤醒循环重新评估一次，
+        // 绝不能顺手把用户主动按下的暂停解除掉 —— 否则一次网络抖动就把暂停开关废了。
+        q.kick()
+        advanceTimeBy(120_000)
+        assertTrue("kick 不该解除暂停", ranAt.isEmpty())
+        assertTrue(q.isPaused.value)
+
+        q.resume()
         advanceTimeBy(5_000)
         assertEquals(1, ranAt.size)
     }
@@ -474,7 +501,7 @@ class ActionQueueTest {
         assertTrue(seen.isEmpty())
 
         uid = "A"
-        q.resume()
+        q.kick()
         advanceTimeBy(5_000)
         assertEquals(listOf("A-bookmark"), seen)
     }

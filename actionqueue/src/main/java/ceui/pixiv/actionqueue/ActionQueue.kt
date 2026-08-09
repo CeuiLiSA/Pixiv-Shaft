@@ -178,25 +178,37 @@ public class ActionQueue(
     /** 入队并等待落库，返回行 id。需要确知已持久化时用它。 */
     public suspend fun enqueueAndWait(request: ActionRequest): Long = enqueueMutex.withLock {
         val id = store.enqueue(request, clock.nowMs(), currentOwner())
-        wakeups.trySend(Unit)
+        kick()
         id
+    }
+
+    /**
+     * 踢一脚消费循环：立刻重新评估一次，不等 [QueuePolicy.idlePollMs] 的兜底轮询。
+     *
+     * **闸门条件恢复时（网络回来、登录完成）用这个，不要用 [resume]。** 两者都会唤醒循环，
+     * 但 [resume] 还会把暂停标志清零 —— 那意味着用户主动按下的「暂停队列」会被一次网络抖动
+     * 顺手解除掉。区分开的成本只有这一个方法。
+     */
+    public fun kick() {
+        wakeups.trySend(Unit)
     }
 
     public fun pause() {
         _paused.value = true
-        wakeups.trySend(Unit)
+        kick()
     }
 
+    /** 解除 [pause]。只想唤醒循环、不想动暂停标志的话用 [kick]。 */
     public fun resume() {
         _paused.value = false
-        wakeups.trySend(Unit)
+        kick()
     }
 
     /** 把当前归属下所有终态失败的行重新排队。@return 重置了几条。 */
     public suspend fun retryAllFailed(): Int {
         val count = store.retryAllFailed(clock.nowMs(), currentOwner())
         setCooldown(0L)
-        wakeups.trySend(Unit)
+        kick()
         return count
     }
 

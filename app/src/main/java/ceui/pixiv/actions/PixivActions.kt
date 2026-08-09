@@ -159,13 +159,7 @@ object PixivActions {
     ) {
         if (novel.is_bookmarked == bookmark) return
 
-        val delta = if (bookmark) 1 else -1
-        ObjectPool.update(
-            novel.copy(
-                is_bookmarked = bookmark,
-                total_bookmarks = novel.total_bookmarks?.plus(delta),
-            )
-        )
+        writeNovelBookmarkLocally(novel.id, bookmark, novel)
         if (bookmark) RateAppManager.onUserEngaged()
 
         PixivActionQueue.enqueue(
@@ -234,6 +228,34 @@ object PixivActions {
         (pooled ?: bean)?.let { ObjectPool.update(it) }
 
         broadcast(Params.LIKED_ILLUST, illustId, bookmark)
+    }
+
+    /**
+     * 小说版本的 [writeIllustBookmarkLocally]。同样幂等，回滚传相反的值复用。
+     *
+     * 广播必须在这里发、而不是留给各个调用点：小说列表条目的收藏态是 FeedViewModel 自己的一份
+     * 拷贝，不读 [ObjectPool]，只认 [Params.LIKED_NOVEL]。此前只有 NovelFeedFragment 在自己的
+     * 点击处补了广播，于是从 V3 阅读器或 V3 详情流收藏同一部小说时，别处的小说列表永远不同步；
+     * 而队列回滚却是发广播的 —— 一侧发一侧不发，正是插画那支用共用函数消灭掉的那类裂缝。
+     *
+     * @param novel 调用方手上那份实例，仅在池里还没有这部小说时用作兜底数据源。
+     */
+    internal fun writeNovelBookmarkLocally(
+        novelId: Long,
+        bookmark: Boolean,
+        novel: Novel? = null,
+    ) {
+        val current = ObjectPool.get<Novel>(novelId).value ?: novel
+        if (current != null && current.is_bookmarked != bookmark) {
+            val delta = if (bookmark) 1 else -1
+            ObjectPool.update(
+                current.copy(
+                    is_bookmarked = bookmark,
+                    total_bookmarks = current.total_bookmarks?.plus(delta),
+                )
+            )
+        }
+        broadcast(Params.LIKED_NOVEL, novelId, bookmark)
     }
 
     /** 关注态版本的 [writeIllustBookmarkLocally]。同样幂等，回滚传相反的值复用。 */
