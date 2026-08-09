@@ -459,6 +459,53 @@ class ActionQueueTest {
     }
 
     @Test
+    fun `墙钟错乱写下的离谱冷却在启动时被钳掉并写回库`() = runTest {
+        val store = FakeActionStore()
+        val ranAt = mutableListOf<Long>()
+        // 上个进程在一个偏前的墙钟（RTC 失效的设备开机常见）下撞了 429，落库的截止时刻是一年后；
+        // 随后 NTP 把时钟校回来。不钳的话 now < cooldownUntilMs 从此恒真，而清零冷却又要靠
+        // 「某条动作执行成功」—— 队列就静默停摆到用户重装为止。
+        store.seedCooldown(365L * 24 * 60 * 60 * 1000L)
+        store.seedPending(type, "a", key = "illust:1")
+        val q = queue(store, ActionHandler {
+            ranAt += testScheduler.currentTime
+            ActionOutcome.Success
+        })
+
+        q.start()
+        advanceTimeBy(100)
+
+        // 钳完必须写回库：只改内存的话下次冷启动会照着坏值再钳一轮，白冻到进程结束。
+        val ceiling = policy().maxPossibleCooldownMs
+        assertEquals(ceiling, store.cooldownUntilMs)
+        assertTrue("钳完之前照旧不许发", ranAt.isEmpty())
+
+        advanceTimeBy(ceiling)
+        assertEquals(listOf(ceiling), ranAt)
+    }
+
+    @Test
+    fun `落在上限之内的冷却原样恢复 不被钳短`() = runTest {
+        val store = FakeActionStore()
+        val ranAt = mutableListOf<Long>()
+        // 服务端 Retry-After 说等 20 分钟，进程随即被系统回收 —— 这是合法值，一秒都不许削。
+        val legit = 20 * 60_000L
+        store.seedCooldown(legit)
+        store.seedPending(type, "a", key = "illust:1")
+        val q = queue(store, ActionHandler {
+            ranAt += testScheduler.currentTime
+            ActionOutcome.Success
+        })
+
+        q.start()
+        advanceTimeBy(legit - 1_000)
+        assertTrue("合法冷却没到点就不许发", ranAt.isEmpty())
+
+        advanceTimeBy(2_000)
+        assertEquals(listOf(legit), ranAt)
+    }
+
+    @Test
     fun `失败时若同目标还压着更新的意图 则标记为已被顶替`() = runTest {
         val store = FakeActionStore()
         val events = mutableListOf<ActionEvent.Failed>()

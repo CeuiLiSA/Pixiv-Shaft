@@ -38,4 +38,15 @@ public data class QueuePolicy(
         require(jitterRatio in 0.0..1.0) { "jitterRatio must be in [0, 1]" }
         require(idlePollMs > 0) { "idlePollMs must be > 0" }
     }
+
+    /**
+     * 单次冷却在这套参数下可能达到的最长时长，即 [computeCooldownMs] 返回值的上确界：
+     * 指数退避封顶在 [maxCooldownMs] 再叠一层正向抖动，服务端 `Retry-After` 封顶在
+     * [maxRetryAfterMs]，两者取大。
+     *
+     * 用来钳制从库里读回的冷却截止时刻（见 [ActionQueue.start]）—— 任何一个超过
+     * 「此刻 + 本值」的截止时刻，都不可能是这个队列在一个正常的墙钟下写出来的。
+     */
+    internal val maxPossibleCooldownMs: Long
+        get() = maxOf(maxRetryAfterMs, (maxCooldownMs * (1.0 + jitterRatio)).toLong())
 }
