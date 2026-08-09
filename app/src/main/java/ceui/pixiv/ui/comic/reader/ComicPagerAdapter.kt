@@ -14,7 +14,6 @@ import ceui.pixiv.imageloader.Disposable
 import ceui.pixiv.imageloader.ImageLoadState
 import ceui.pixiv.imageloader.ImageLoaderV3
 import ceui.pixiv.imageloader.observeState
-import ceui.pixiv.ui.common.enableTileBitmapFilter
 import ceui.pixiv.ui.task.TaskStatus
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.util.OffsetCompat
@@ -48,8 +47,6 @@ class ComicPagerAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PageHolder {
         val binding = CellComicPageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        // 低分屏上子采样瓦片未过滤缩小绘制会满屏锯齿（#735），开双线性过滤
-        binding.image.enableTileBitmapFilter()
         binding.image.layoutParams = binding.image.layoutParams.apply {
             height = if (fillHeight) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT
         }

@@ -10,7 +10,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
-import ceui.pixiv.ui.common.enableTileBitmapFilter
 import ceui.pixiv.ui.common.saveImageToGallery
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
@@ -36,8 +35,6 @@ class RembgPreviewFragment : Fragment() {
         val path = arguments?.getString(KEY_PATH) ?: return
 
         val imagePreview = view.findViewById<SketchZoomImageView>(R.id.image_preview)
-        // 低分屏上子采样瓦片未过滤缩小绘制会满屏锯齿（#735），开双线性过滤
-        imagePreview.enableTileBitmapFilter()
         imagePreview.loadImage(File(path))
 
         view.findViewById<TextView>(R.id.btn_save).setOnClickListener {
