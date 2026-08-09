@@ -38,6 +38,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.common.NovelActionReceiver
 import ceui.pixiv.ui.common.NovelMultiSelectReceiver
+import ceui.pixiv.ui.common.coverUrl
 import ceui.pixiv.ui.common.bindCopyChip
 import ceui.pixiv.ui.common.bindCopyLinkChip
 import ceui.pixiv.ui.common.bindOpenLinkChip
@@ -254,7 +255,7 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
         val fmt = NumberFormat.getInstance()
 
         // cover
-        val coverUrl = novel.image_urls?.let { it.medium ?: it.square_medium ?: it.large }
+        val coverUrl = novel.coverUrl
         Glide.with(ctx).load(GlideUtil.getUrl(coverUrl))
             .placeholder(R.color.v3_surface_2).error(R.color.v3_surface_2)
             .centerCrop().into(b.novelCover)

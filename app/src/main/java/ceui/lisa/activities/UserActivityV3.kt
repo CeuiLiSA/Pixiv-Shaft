@@ -35,6 +35,7 @@ import ceui.loxia.ProgressTextButton
 import ceui.loxia.WebUserDetail
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.common.coverUrl
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayoutMediator
 import com.qmuiteam.qmui.skin.QMUISkinManager
@@ -74,6 +75,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     // 把旋转前保存的 fragment state 当成「已废弃」清掉。
     private val tabKinds = mutableListOf<TabKind>()
     private var pagerAdapter: FragmentStateAdapter? = null
+    private var novelBannerLoading = false
 
     // user/detail 返回的确定数量(插画/漫画/小说/公开插画收藏),>0 时追加到 tab label 后面。
     // 收藏 tab 用 total_illust_bookmarks_public —— 与 header 统计条同源;小说收藏数 API 不给,不凑。
@@ -236,6 +238,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     // UserBean 池更新 → updateFollowState 重绑关注按钮;
                     // user LiveData 更新 → displayUser 重绑 header UI(幂等)。
                     ObjectPool.updateUser(userResponse.user)
+                    // 下拉刷新后允许重选最新有封面小说(封面可能随新投稿变化)
+                    mUserViewModel.setNovelBannerLoaded(false)
                     mUserViewModel.user.value = userResponse
                 }
 
@@ -491,6 +495,12 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             }
         }
 
+        // 纯小说作者通常没有 profile 背景图(background_image_url 为空)：
+        // 拉一页小说列表，挑最新一篇有真实封面(非占位图)的作品当 banner。
+        if (bannerUrl.isNullOrEmpty() && isNovelistOnly && !mUserViewModel.isNovelBannerLoaded()) {
+            loadNovelCoverBanner()
+        }
+
         // Avatar
         Glide.with(mContext).load(GlideUtil.getHead(user)).into(baseBind.userAvatar)
         val avatarUrl = user.profile_image_urls?.getMaxImage()
@@ -547,6 +557,39 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // 收藏数不再进统计条 —— 「收藏」tab label 自带数字(updateTabCount)
 
         // 标签筛选条(issue #569)不再单独请求 —— 改由插画列表首屏回调 onUserIllustFirstPage 驱动,复用同一份数据
+    }
+
+    /**
+     * 纯小说作者页 banner 兜底：拉一页 /v1/user/novels，
+     * 挑最新一篇 URL 不含 novel_thumb 占位的小说封面做背景，点击跳该小说详情。
+     * 失败或无封面时静默，保留现有渐变占位。
+     */
+    private fun loadNovelCoverBanner() {
+        if (novelBannerLoading) return
+        novelBannerLoading = true
+        lifecycleScope.launch {
+            val resp = runCatching { Client.appApi.getUserCreatedNovels(userId.toLong()) }.getOrNull()
+            val novel = resp?.novels?.firstOrNull {
+                it.coverUrl?.contains("/common/images/novel_thumb/") == false
+            }
+            novelBannerLoading = false
+            if (novel == null || isDestroyed) return@launch
+            val cover = novel.coverUrl ?: return@launch
+            mUserViewModel.novelBannerNovelId = novel.id
+            mUserViewModel.setNovelBannerLoaded(true)
+            baseBind.bannerImage.visibility = View.VISIBLE
+            baseBind.bannerImage.colorFilter = android.graphics.PorterDuffColorFilter(
+                0x66000000.toInt(),
+                android.graphics.PorterDuff.Mode.SRC_ATOP,
+            )
+            Glide.with(mContext).load(GlideUtil.getUrl(cover)).into(baseBind.bannerImage)
+            baseBind.bannerImage.setOnClickListener {
+                startActivity(Intent(this@UserActivityV3, TemplateActivity::class.java).apply {
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+                    putExtra(Params.NOVEL_ID, novel.id)
+                })
+            }
+        }
     }
 
     private fun displayWebUserDetail(detail: WebUserDetail) {

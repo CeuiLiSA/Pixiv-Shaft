@@ -188,7 +188,7 @@ abstract class NovelFeedFragment(
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()
 
-        val coverUrl = novel.image_urls?.let { it.large ?: it.medium ?: it.square_medium }
+        val coverUrl = novel.coverUrl
         novelGlide.load(GlideUtil.getUrl(coverUrl))
             .placeholder(R.color.v3_surface_2).error(R.color.v3_surface_2)
             .into(b.cover)
