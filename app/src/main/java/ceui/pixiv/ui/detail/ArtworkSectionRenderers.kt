@@ -338,6 +338,20 @@ internal fun ArtworkV3Fragment.statsRenderer() =
     feedRenderer<ArtworkStatsItem, SectionV3StatsBinding>(
         inflate = SectionV3StatsBinding::inflate,
         fullSpan = true,
+        create = { cell ->
+            val wrap = cell.binding.statBookmarkWrap
+            applyTouchScale(wrap)
+            wrap.setOnClickListener {
+                val illust = cell.item.illust
+                val ctx = wrap.context
+                ctx.startActivity(
+                    Intent(ctx, TemplateActivity::class.java).apply {
+                        putExtra(Params.CONTENT, illust)
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "喜欢这个作品的用户")
+                    }
+                )
+            }
+        },
     ) { cell ->
         val illust = cell.item.illust
         val fmt = NumberFormat.getNumberInstance()
