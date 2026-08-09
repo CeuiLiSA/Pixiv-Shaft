@@ -17,6 +17,7 @@ import ceui.pixiv.actionqueue.QueuePolicy
 import ceui.pixiv.db.discovery.ProfileManager
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.websocket.AppNetworkMonitor
 import ceui.pixiv.websocket.NetworkMonitor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -54,16 +55,14 @@ object PixivActionQueue {
     @Volatile
     private var queue: ActionQueue? = null
 
-    @Volatile
-    private var network: NetworkMonitor? = null
-
     /** 幂等。在 [Shaft] 的 onCreate 里调，必须排在 SessionManager.initialize 之后（gate 要读登录态）。 */
     @JvmStatic
     fun init(context: Context) {
         if (!initialized.compareAndSet(false, true)) return
         val app = context.applicationContext
-        val monitor = NetworkMonitor(app)
-        network = monitor
+        // 进程级共用那一个 monitor：它按订阅数注册/注销系统 NetworkCallback，各自 new 一个
+        // 等于各注册一个回调，与该类「全进程只注册一个」的设计相悖。
+        val monitor = AppNetworkMonitor.get(app)
         val isOnline = { monitor.isConnected }
 
         val instance = ActionQueue.withRoomStore(

@@ -123,6 +123,15 @@ PENDING 再插），同一目标只保留用户的**最后一次意图**，三�
 回收」恰恰是这个窗口里最可能发生的事。只存内存的话，下次启动会带着一整队 `notBefore=0`
 的行原地重新撞同一个还没过期的账号级限流。
 
+但读回来时要**钳掉墙钟错乱写出的离谱值**。落库的是绝对时刻而 `Clock.SYSTEM` 是墙钟：
+RTC 失效的设备开机常带一个偏前的时间，此时撞一次 429 写下的截止时刻就是「偏前的时间 + 冷却」，
+等 NTP 把时钟校回来，`now < cooldownUntilMs` 从此恒真。而清零冷却只有「某条动作执行成功」和
+`retryAllFailed()` 两条路，前者被冻着就不可能发生 —— 队列会静默停摆到重装为止。
+`start()` 按 `QueuePolicy.maxPossibleCooldownMs`（指数退避封顶叠抖动 与 `maxRetryAfterMs` 取大，
+即单次冷却的上确界）钳一刀：合法值按定义就在这个上界内，一个都不会被削短。
+**钳完写回库**——只改内存的话每次冷启动都会照着坏值重新钳一轮，白冻到进程结束；写回去的是绝对
+时刻，真实时间一过就自愈。
+
 合并入队时，被删掉的 PENDING 行若正在退避（`attempt > 0` / `notBefore` 在未来），新行
 **继承**它们最大的 `attempt` 和 `notBefore`。不继承的话，用户对着一个一直失败的目标反复点，
 每点一次重试预算就清零一次，这条动作永远到不了 `maxAttempts`，既不判终态失败也不回滚，
@@ -235,14 +244,23 @@ refresh 超时等）。判终态失败的话，一次网络抖动就会让爱心
     `IllustSeriesFeed` / `RequestPlanDetailFragment`
   顺带删掉了原先硬编码的 `delay(500L)`（等服务端落库再刷 UI，乐观更新后纯属白等）。
 
-**未迁移**，按 429 风险从高到低：
+**已迁移**（legacy RxJava 写路径，现在都只是 `PixivActions` 的薄封装）：
 
-1. `PixivOperate.postLike`（`ceui/lisa/utils/PixivOperate.java:227`）—— legacy RxJava 链，
-   12 处调用点，含 feeds 卡片爱心（`IllustFeedFragment.kt:182`，连点重灾区）。
-   迁移要一并处理 `ErrorCtrl` 回调、`LIKED_ILLUST` 广播、自动关注、自动下载这几个副作用。
-2. `SelectTagFeedFragment.kt:245`（带标签收藏，四路 `postLike*WithTags`）
-3. `PixivOperate.postFollowUser` / `postUnFollowUser`
-4. `WidgetBookmarkWorker.kt:38`（`blockingFirst()` in CoroutineWorker，失败明确不重试）
+- `PixivOperate.postLike`（12 处调用点，含 feeds 卡片爱心 `IllustFeedFragment`，连点重灾区）
+- `PixivOperate.postFollowUser` / `postUnFollowUser`
+- `SelectTagFeedFragment.submitStar`（按标签收藏）—— 带标签和不带标签打的是**同一个**
+  `bookmark/add` 端点，是互相覆盖不是叠加，所以共用 dedupeKey。标签随 payload 走
+  （`BookmarkPayload.tags`，追加字段，老行反序列化为 null 正好落到不带标签那一支）。
+  顺带修掉：此前它只发 `LIKED_*` 广播、不写 ObjectPool，按标签收藏之后读池渲染的 V3 详情页
+  那颗心还是灰的。
+- `PixivOperate.postLikeNovel(NovelBean, String, View)` 已**删除**（全仓无调用方，
+  留着只是给下一个人一个绕开队列的现成入口）。
+
+**未迁移**：
+
+1. `WidgetBookmarkWorker.kt:38`（`blockingFirst()` in CoroutineWorker，失败明确不重试）。
+   它不写 ObjectPool 也不发广播，且与队列并行——「app 内取消收藏（进队列，正在冷却）→
+   小组件收藏（直发）」会以相反顺序落到服务端。
 
 **已知但本次没动的架构裂缝**：收藏状态目前有三个真源
 （`IllustsBean.is_bookmarked` 可变共享实例 / `Illust.is_bookmarked` immutable /
@@ -263,5 +281,10 @@ ObjectPool 里可能是 gson merge 出来的第三个克隆），且 legacy 链�
   真要做调试页时再加，届时 4.5 的「反馈完即删」要改成保留失败行。
 - **`EventReporter` 复用本模块**：它的 `queue` 是纯内存 `ArrayDeque`
   （`EventReporter.kt:97`），进程一死未上报的埋点就丢 —— 正是这个模块要解决的问题。
-- **删掉 `ceui/pixiv/ui/task/BookmarkTask.kt`**：`QueuedRunnable` 的半成品子类，
-  全仓无调用方，小说分支还是空 TODO。本模块已经取代它的定位。
+- **无归属行与陈旧行的清理**：退登期间入队的行 owner 记的是 `"0"`，旧账号的行同理 ——
+  既不会被执行也不会被 `clearFailed(owner)` 收走。且队列没有时效，半年前排下的 PENDING
+  在用户重新登录后照发。`ActionEntity.createdAt` 已经落库但没有任何查询读它，
+  加一次启动期按 `createdAt` 的扫尾即可。
+- **断网判定 fail-open**：`NetworkMonitor.isConnected` 在 `SecurityException`（部分 OEM ROM）
+  时返回 `true`。那类机器上真断网会被判成「在线 IOException」→ 计入重试预算 →
+  7.5 分钟烧完转终态失败并回滚，正是 `countsAsAttempt` 要避开的场景。

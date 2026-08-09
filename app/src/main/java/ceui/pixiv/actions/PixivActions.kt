@@ -107,12 +107,7 @@ object PixivActions {
         )
     }
 
-    /**
-     * @param authorFollowed 调用方手上那份作者数据的关注态，供「收藏后自动关注」判重。
-     *                       它和 [ObjectPool] 里的记录**任意一边**说已关注就不再发 ——
-     *                       只信作品里带的那份（legacy postLike 的判据）会给刚在别处关注过的
-     *                       作者重复发一次；只信池子则在池里没有这个作者时同样会重复发。
-     */
+    /** @param authorFollowed 调用方手上那份作者数据的关注态，见 [autoFollowAuthor]。 */
     private fun applyIllustBookmark(
         illustId: Long,
         bookmark: Boolean,
@@ -132,14 +127,67 @@ object PixivActions {
             )
         )
 
-        // 收藏后自动关注作者（对齐 legacy postLike）。同样走队列 —— 直发的话它会和队列里
-        // 同一个作者的关注/取关抢着写 ObjectPool，谁后到谁说了算。
-        if (bookmark && authorId != null && authorId > 0L &&
-            Shaft.sSettings.isAutoFollowAfterStar &&
-            authorFollowed != true && !isFollowed(authorId)
-        ) {
-            setUserFollow(authorId, follow = true)
-        }
+        if (bookmark) autoFollowAuthor(authorId, authorFollowed)
+    }
+
+    /**
+     * 「收藏后自动关注作者」（对齐 legacy postLike / postLikeNovel）。同样走队列 —— 直发的话
+     * 它会和队列里同一个作者的关注/取关抢着写 [ObjectPool]，谁后到谁说了算。
+     *
+     * 收在门面里而不是让每个收藏入口各写一遍：判重要同时看**两边**。
+     *
+     * @param authorFollowed 调用方手上那份作者数据的关注态。它和 [ObjectPool] 里的记录任意一边
+     *                       说已关注就不再发 —— 只信作品里带的那份（legacy postLike 的判据）会给
+     *                       刚在别处关注过的作者重复发一次；只信池子则在池里没有这个作者时同样
+     *                       会重复发。小说卡片那支原先只判前者，正是这条不一致。
+     */
+    internal fun autoFollowAuthor(authorId: Long?, authorFollowed: Boolean?) {
+        if (authorId == null || authorId <= 0L) return
+        if (!Shaft.sSettings.isAutoFollowAfterStar) return
+        if (authorFollowed == true || isFollowed(authorId)) return
+        setUserFollow(authorId, follow = true)
+    }
+
+    // ── 按标签收藏 ──────────────────────────────────────────────────────────
+
+    /**
+     * 「按标签收藏」sheet 提交（[ceui.pixiv.ui.bookmark.SelectTagFeedFragment]）。
+     *
+     * 与不带标签的收藏**共用 dedupeKey**：两者打的是同一个 `bookmark/add` 端点，对同一作品是
+     * 互相覆盖而不是叠加的，所以「先在卡片上点了心、再开 sheet 选标签提交」只该发最后那一次。
+     *
+     * 刻意**不**跟着做自动关注：legacy 的 FragmentSB.submitStar 也没有，这里只把发请求这一步
+     * 换成入队，不顺手改变行为。
+     */
+    @JvmStatic
+    fun bookmarkIllustWithTags(illustId: Long, restrict: String, tags: List<String>) {
+        writeIllustBookmarkLocally(illustId, true)
+        RateAppManager.onUserEngaged()
+        PixivActionQueue.enqueue(
+            ActionRequest(
+                type = PixivActionTypes.ILLUST_BOOKMARK,
+                dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
+                payload = Shaft.sGson.toJson(
+                    BookmarkPayload(illustId, true, restrict, tags.ifEmpty { null })
+                ),
+            )
+        )
+    }
+
+    /** 小说版本的 [bookmarkIllustWithTags]。 */
+    @JvmStatic
+    fun bookmarkNovelWithTags(novelId: Long, restrict: String, tags: List<String>) {
+        writeNovelBookmarkLocally(novelId, true)
+        RateAppManager.onUserEngaged()
+        PixivActionQueue.enqueue(
+            ActionRequest(
+                type = PixivActionTypes.NOVEL_BOOKMARK,
+                dedupeKey = "${PixivActionTypes.NOVEL_BOOKMARK}:$novelId",
+                payload = Shaft.sGson.toJson(
+                    BookmarkPayload(novelId, true, restrict, tags.ifEmpty { null })
+                ),
+            )
+        )
     }
 
     // ── 小说 ────────────────────────────────────────────────────────────────
