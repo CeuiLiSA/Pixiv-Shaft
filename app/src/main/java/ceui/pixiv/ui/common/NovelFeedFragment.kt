@@ -243,13 +243,11 @@ abstract class NovelFeedFragment(
         // 此处不再自己补一遍：这里补过之后，从阅读器 / V3 详情流收藏同一本小说时别处的列表
         // 依然不同步，而那正是把广播收进门面里要解决的问题。
         PixivActions.setNovelBookmark(novel, target)
-        // 收藏后自动关注作者(对齐 legacy postLikeNovel)。同样走队列 —— 直发的话它会和
-        // 队列里同一个作者的关注/取关抢着写 ObjectPool，谁后到谁说了算。
-        val user = novel.user
-        if (target && Shaft.sSettings.isAutoFollowAfterStar() &&
-            user != null && user.is_followed != true
-        ) {
-            PixivActions.setUserFollow(user.id, follow = true)
+        // 收藏后自动关注作者。判重也交给门面：此前这里只看 novel.user.is_followed，池里刚
+        // 关注过的作者判不出来，会重复发一次关注（插画那支一直是两边都查的）。
+        if (target) {
+            val user = novel.user
+            PixivActions.autoFollowAuthor(user?.id, user?.is_followed)
         }
     }
 

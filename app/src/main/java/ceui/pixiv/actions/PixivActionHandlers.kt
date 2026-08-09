@@ -16,11 +16,20 @@ internal object PixivActionTypes {
     const val USER_FOLLOW = "user_follow"
 }
 
-/** @param bookmark true = 收藏，false = 取消收藏 */
+/**
+ * @param bookmark true = 收藏，false = 取消收藏
+ * @param tags     收藏夹标签（「按标签收藏」sheet 提交的那份）。空或 null 走不带标签的端点。
+ *                 取消收藏时恒为 null —— 删除端点不吃标签。
+ *
+ * 字段是**追加**的：旧版本写下的行没有这一项，gson 反序列化后为 null，正好落到不带标签的
+ * 那一支；反过来新版写的行被旧版读到时，多出来的字段被 gson 忽略。所以加它不需要动
+ * payload 版本号，也不会让队列里已经排着的行变成解析不了的坏行。
+ */
 internal data class BookmarkPayload(
     val id: Long,
     val bookmark: Boolean,
     val restrict: String,
+    val tags: List<String>? = null,
 )
 
 /** @param follow true = 关注，false = 取关 */
@@ -132,13 +141,23 @@ internal inline fun <reified T> PendingAction.parsePayload(): T? =
 private fun badPayload(action: PendingAction): ActionOutcome =
     ActionOutcome.Fail("unparsable payload: ${action.payload.take(120)}")
 
+/** 非空标签列表，没有则 null。gson 可能给回 null、空表，或含空串的表（旧行/手输标签）。 */
+private fun BookmarkPayload.cleanTags(): List<String>? =
+    tags?.filter { it.isNotBlank() }?.takeIf { it.isNotEmpty() }
+
 internal class IllustBookmarkHandler(private val isOnline: () -> Boolean) : ActionHandler {
     override suspend fun execute(action: PendingAction): ActionOutcome {
         val payload = action.parsePayload<BookmarkPayload>() ?: return badPayload(action)
-        return if (payload.bookmark) {
-            attempt(isOnline) { Client.appApi.postBookmark(payload.id, payload.restrict) }
-        } else {
-            attempt(isOnline, deleting = true) { Client.appApi.removeBookmark(payload.id) }
+        if (!payload.bookmark) {
+            return attempt(isOnline, deleting = true) { Client.appApi.removeBookmark(payload.id) }
+        }
+        val tags = payload.cleanTags()
+        return attempt(isOnline) {
+            if (tags == null) {
+                Client.appApi.postBookmark(payload.id, payload.restrict)
+            } else {
+                Client.appApi.postBookmarkWithTags(payload.id, payload.restrict, tags)
+            }
         }
     }
 }
@@ -146,10 +165,18 @@ internal class IllustBookmarkHandler(private val isOnline: () -> Boolean) : Acti
 internal class NovelBookmarkHandler(private val isOnline: () -> Boolean) : ActionHandler {
     override suspend fun execute(action: PendingAction): ActionOutcome {
         val payload = action.parsePayload<BookmarkPayload>() ?: return badPayload(action)
-        return if (payload.bookmark) {
-            attempt(isOnline) { Client.appApi.addNovelBookmark(payload.id, payload.restrict) }
-        } else {
-            attempt(isOnline, deleting = true) { Client.appApi.removeNovelBookmark(payload.id) }
+        if (!payload.bookmark) {
+            return attempt(isOnline, deleting = true) {
+                Client.appApi.removeNovelBookmark(payload.id)
+            }
+        }
+        val tags = payload.cleanTags()
+        return attempt(isOnline) {
+            if (tags == null) {
+                Client.appApi.addNovelBookmark(payload.id, payload.restrict)
+            } else {
+                Client.appApi.addNovelBookmarkWithTags(payload.id, payload.restrict, tags)
+            }
         }
     }
 }

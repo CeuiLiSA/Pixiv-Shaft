@@ -2,22 +2,16 @@ package ceui.pixiv.ui.bookmark
 
 import android.os.Bundle
 import android.text.InputType
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import androidx.appcompat.view.ContextThemeWrapper
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewbinding.ViewBinding
-import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.V3Palette
 import ceui.lisa.databinding.RecySelectTagBinding
-import ceui.lisa.http.ErrorCtrl
-import ceui.lisa.http.Retro
 import ceui.lisa.model.ListBookmarkTag
-import ceui.lisa.models.NullResponse
 import ceui.lisa.models.TagsBean
 import ceui.lisa.repo.SelectTagRepo
 import ceui.lisa.utils.Common
@@ -31,14 +25,12 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.utils.ppppx
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -58,8 +50,8 @@ import kotlinx.coroutines.withContext
  * 撤掉了——收藏是就地完成的轻动作，不该离开当前页。
  *
  * 对宿主暴露三件事：[showAddTagDialog]、[submitStar]、以及内部的选中态收集；其余业务行为
- * 一比一保留 legacy 语义：同义词自动勾选（issue #904）、全选设置、提交（illust/novel × 有无
- * 标签四路 + toast + LIKED 广播）。
+ * 一比一保留 legacy 语义：同义词自动勾选（issue #904）、全选设置。提交这一步已改走
+ * [PixivActions] 的限流队列（原因见 [submitStar]），不再自己打接口。
  */
 class SelectTagFeedFragment : FeedFragment() {
 
@@ -232,69 +224,43 @@ class SelectTagFeedFragment : FeedFragment() {
 
     // ── 提交 ────────────────────────────────────────────────────────────
     /**
-     * 复刻 FragmentSB.submitStar：收集选中标签名 → 按 type × 有无标签四路调 postLike*；
-     * restrict = 私密开关 ? private : public。成功后 toast（私密/公开）+ [setFollowed] 广播，
-     * 再回调 [onSuccess] 让宿主收场（sheet 关掉自己）。
+     * 提交：收集选中标签名 → 走 [PixivActions] 的带标签收藏入口 → 立即回调 [onSuccess]
+     * 让宿主收场（sheet 关掉自己）。restrict = 私密开关 ? private : public。
      *
      * 私密开关的真值由宿主持有（开关长在 sheet 的底部条上），所以从参数进来，不再自己读 view。
      *
-     * 保留 legacy 的 RxJava + [ErrorCtrl] 链路，让错误处理与成功回调时序与旧版**逐字节一致**
-     * （task 明确允许，且 ErrorCtrl 的错误解析无法在协程侧无损重写）。
+     * ## 为什么从 legacy 的 RxJava + ErrorCtrl 链换成入队
+     *
+     * 原先这里直接打 `postLike*WithTags`，与仓库里其他收藏入口并行。两条写路径都拿
+     * [ceui.loxia.ObjectPool] 当真源，队列正在冷却时它们会以相反的顺序落到服务端 ——
+     * 「卡片上点心（进队列）→ 开 sheet 选标签提交（直发）」这种再普通不过的操作，最终状态
+     * 由谁先到决定，而不是由用户最后做的那件事决定。而且带标签和不带标签打的是**同一个**
+     * `bookmark/add` 端点，是互相覆盖的关系，共用 dedupeKey 之后连点只发最后一次。
+     *
+     * 顺带修掉的老问题：原先只发一条 `LIKED_*` 广播，不写 ObjectPool —— 于是按标签收藏之后，
+     * 读池渲染的 V3 详情页那颗心还是灰的。现在本地状态由门面统一写（池 + 广播两路都覆盖）。
+     *
+     * 成功 toast 去掉了，对齐 §4.7 的口径：这一刻请求还没发出去（队列可能正在冷却或被闸门
+     * 挡着），报成功是骗用户，而几分钟后终态失败还会补一个「收藏失败」自相矛盾。反馈由那颗
+     * 立刻变红的心承担，失败时队列会把它拨回去并广播。sheet 关闭本身也是一次确认。
      */
     fun submitStar(isPrivate: Boolean, onSuccess: () -> Unit) {
-        val activity = activity ?: return
         val selectedNames = feedViewModel.uiState.value.items
             .filterIsInstance<SelectTagFeedItem>()
             .filter { it.tag.isSelectedLocalOrRemote }
             .mapNotNull { it.tag.name }
 
         val restrict = if (isPrivate) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
-        val toastMsg = getString(
-            if (isPrivate) R.string.like_novel_success_private else R.string.like_novel_success_public
-        )
-
-        val api: Observable<NullResponse>? = if (selectedNames.isEmpty()) {
-            when (type) {
-                Params.TYPE_ILLUST -> Retro.getAppApi().postLikeIllust(illustID, restrict)
-                Params.TYPE_NOVEL -> Retro.getAppApi().postLikeNovel(illustID, restrict)
-                else -> null
-            }
-        } else {
-            val tags = selectedNames.toTypedArray()
-            when (type) {
-                Params.TYPE_ILLUST ->
-                    Retro.getAppApi().postLikeIllustWithTags(illustID, restrict, *tags)
-                Params.TYPE_NOVEL ->
-                    Retro.getAppApi().postLikeNovelWithTags(illustID, restrict, *tags)
-                else -> null
-            }
+        val targetId = illustID.toLong()
+        when (type) {
+            Params.TYPE_ILLUST ->
+                PixivActions.bookmarkIllustWithTags(targetId, restrict, selectedNames)
+            Params.TYPE_NOVEL ->
+                PixivActions.bookmarkNovelWithTags(targetId, restrict, selectedNames)
+            // 未知 type：不猜端点，也不假装成功——直接不收场，sheet 留在原地。
+            else -> return
         }
-        api ?: return
-        api.subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : ErrorCtrl<NullResponse>() {
-                override fun next(nullResponse: NullResponse?) {
-                    Common.showToast(toastMsg)
-                    setFollowed(activity)
-                    onSuccess()
-                }
-            })
-    }
-
-    /**
-     * 复刻 FragmentSB.setFollowed：广播 LIKED_ILLUST/LIKED_NOVEL(ID + IS_LIKED=true) 通知别处
-     * 刷新收藏态。
-     *
-     * 不再 `activity.finish()`——宿主已经从「整页 activity」变成 sheet，关闭动作交回给宿主
-     * （[submitStar] 的 onSuccess 回调），否则这里会把承载 sheet 的整个页面一起关掉。
-     */
-    private fun setFollowed(activity: androidx.fragment.app.FragmentActivity) {
-        val action = if (type == Params.TYPE_ILLUST) Params.LIKED_ILLUST else Params.LIKED_NOVEL
-        val intent = Intent(action).apply {
-            putExtra(Params.ID, illustID)
-            putExtra(Params.IS_LIKED, true)
-        }
-        LocalBroadcastManager.getInstance(activity).sendBroadcast(intent)
+        onSuccess()
     }
 
     companion object {

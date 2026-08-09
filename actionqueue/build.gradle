@@ -58,7 +58,11 @@ dependencies {
 
     // :app 没有显式声明 coroutines（靠 lifecycle-ktx 传递引入 1.10.2）。本模块不依赖
     // lifecycle，必须自己声明，版本对齐 :app 传递解析出的结果，避免两个版本并存。
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    //
+    // 是 api 不是 implementation：coroutines 的类型长在本模块的**公开 API** 上
+    // （events: SharedFlow / state: StateFlow / 一票 suspend 函数）。用 implementation 的话
+    // 消费方必须自己另外声明才编得过 —— 现在 :app 恰好能编过纯属沾了 lifecycle-ktx 传递引入的光。
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'

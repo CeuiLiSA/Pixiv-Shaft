@@ -48,11 +48,34 @@ interface API {
         @Field("restrict") restrict: String = Params.TYPE_PUBLIC
     )
 
+    /**
+     * 带收藏夹标签的收藏。与 [postBookmark] 是同一个端点，只是多带 `tags[]` ——
+     * 端点相同意味着它们对同一作品是互相覆盖的，不是叠加，所以队列里共用同一个 dedupeKey。
+     *
+     * 标签用 `List<String>` 而不是 legacy 那样的 `vararg`：payload 从 json 反序列化回来就是
+     * 列表，摊成 vararg 只是为了迁就 [ceui.lisa.http.AppApi] 的旧签名。
+     */
+    @FormUrlEncoded
+    @POST("/v2/illust/bookmark/add")
+    suspend fun postBookmarkWithTags(
+        @Field("illust_id") illust_id: Long,
+        @Field("restrict") restrict: String,
+        @Field("tags[]") tags: List<String>
+    )
+
     @FormUrlEncoded
     @POST("/v2/novel/bookmark/add")
     suspend fun addNovelBookmark(
         @Field("novel_id") novel_id: Long,
         @Field("restrict") followType: String
+    )
+
+    @FormUrlEncoded
+    @POST("/v2/novel/bookmark/add")
+    suspend fun addNovelBookmarkWithTags(
+        @Field("novel_id") novel_id: Long,
+        @Field("restrict") restrict: String,
+        @Field("tags[]") tags: List<String>
     )
 
     @FormUrlEncoded

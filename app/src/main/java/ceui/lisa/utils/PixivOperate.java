@@ -11,7 +11,6 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.ImageView;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -77,10 +76,8 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
-import ceui.pixiv.events.EventReporter;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.actions.PixivActions;
-import ceui.pixiv.widgets.RateAppManager;
 
 import static com.blankj.utilcode.util.ColorUtils.getColor;
 import static com.blankj.utilcode.util.StringUtils.getString;
@@ -198,80 +195,10 @@ public class PixivOperate {
         PixivOperate.insertIllustViewHistory(illustsBean);
     }
 
-    public static void postLikeNovel(NovelBean novelBean, String starType, View view) {
-        if (novelBean == null) {
-            return;
-        }
-
-        if (novelBean.isIs_bookmarked()) { //已收藏
-            novelBean.setIs_bookmarked(false);
-            Retro.getAppApi().postDislikeNovel(novelBean.getId())
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            Intent intent = new Intent(Params.LIKED_NOVEL);
-                            intent.putExtra(Params.ID, novelBean.getId());
-                            intent.putExtra(Params.IS_LIKED, false);
-                            LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-
-                            // like 标签在不同页面可能是 Button 或普通 TextView(小说卡片改版后)。
-                            // Button 是 TextView 子类,统一按 TextView 判定即可两者都刷新。
-                            if (view instanceof TextView) {
-                                ((TextView) view).setText(getString(R.string.string_180));
-                            }
-                            Common.showToast(getString(R.string.cancel_like_illust));
-
-                            EventReporter.INSTANCE.report(
-                                    EventReporter.Type.UNBOOKMARK,
-                                    EventReporter.Target.NOVEL,
-                                    (long) novelBean.getId(),
-                                    novelBean);
-                        }
-                    });
-        } else { //没有收藏
-            novelBean.setIs_bookmarked(true);
-            String pendingType = Shaft.sSettings.isPrivateStar() ? Params.TYPE_PRIVATE : starType;
-            Retro.getAppApi().postLikeNovel(novelBean.getId(), pendingType)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            RateAppManager.INSTANCE.onUserEngaged();
-                            Intent intent = new Intent(Params.LIKED_NOVEL);
-                            intent.putExtra(Params.ID, novelBean.getId());
-                            intent.putExtra(Params.IS_LIKED, true);
-                            LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-
-                            if (view instanceof TextView) {
-                                ((TextView) view).setText(getString(R.string.string_179));
-                            }
-                            if (Params.TYPE_PUBLIC.equals(pendingType)) {
-                                Common.showToast(getString(R.string.like_novel_success_public));
-                            } else {
-                                Common.showToast(getString(R.string.like_novel_success_private));
-                            }
-
-                            EventReporter.INSTANCE.report(
-                                    EventReporter.Type.BOOKMARK,
-                                    EventReporter.Target.NOVEL,
-                                    (long) novelBean.getId(),
-                                    novelBean);
-
-                            //收藏后自动关注作者
-                            if (Shaft.sSettings.isAutoFollowAfterStar()
-                                    && novelBean.getUser() != null
-                                    && !novelBean.getUser().isIs_followed()) {
-                                postFollowUser(novelBean.getUser().getId(), Params.TYPE_PUBLIC);
-                                novelBean.getUser().setIs_followed(true);
-                            }
-                        }
-                    });
-        }
-    }
+    // postLikeNovel(NovelBean, String, View) 已删除：全仓无调用方（小说收藏的现役入口是
+    // PixivActions.setNovelBookmark / toggleNovelBookmark，走限流队列），而它还留着一整条
+    // 自己打接口 + 自己发广播 + 自己做自动关注的老路径。留着只会给下一个人一个绕开队列的
+    // 现成入口——两条写路径都拿 ObjectPool 当真源，队列冷却时会以相反顺序落到服务端。
 
     /**
      * @param userModel The model of current user

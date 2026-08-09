@@ -6,6 +6,7 @@ import ceui.pixiv.session.SessionManager
 import okhttp3.logging.HttpLoggingInterceptor
 import timber.log.Timber
 import ceui.pixiv.websocket.ExponentialBackoffWithJitter
+import ceui.pixiv.websocket.AppNetworkMonitor
 import ceui.pixiv.websocket.NetworkMonitor
 import ceui.pixiv.websocket.RobustWebSocketClient
 import ceui.pixiv.websocket.WebSocketClient
@@ -99,7 +100,8 @@ object ShaftChatWsClient {
             baseClient = okHttp,
             config = config,
             authProvider = authProvider,
-            connectivityObserver = NetworkMonitor(context.applicationContext),
+            // 进程级共用（见 AppNetworkMonitor）：各自 new 一个等于各注册一个系统 NetworkCallback。
+            connectivityObserver = AppNetworkMonitor.get(context),
         )
     }
 }
