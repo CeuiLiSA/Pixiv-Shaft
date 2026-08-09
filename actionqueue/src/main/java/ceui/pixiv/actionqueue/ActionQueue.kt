@@ -144,7 +144,7 @@ public class ActionQueue(
                 // 上次进程被杀时留下的 RUNNING 复位。代价是那条可能被执行两次，
                 // 这正是 ActionHandler 要求幂等的原因。
                 store.resurrectRunning()
-                cooldownUntilMs = store.loadCooldownUntilMs()
+                restoreCooldown()
             } catch (ce: CancellationException) {
                 throw ce
             } catch (t: Throwable) {
@@ -392,6 +392,36 @@ public class ActionQueue(
             false
         }
         _events.tryEmit(ActionEvent.Failed(action, reason, cause, superseded))
+    }
+
+    /**
+     * 读回上次进程留下的整队冷却，并钳掉墙钟错乱写出来的离谱值。
+     *
+     * 落库的是**绝对时刻**，而 [Clock.SYSTEM] 是墙钟。RTC 失效的设备开机时常带一个偏前的
+     * 时间（厂商固件里那种 2036 年），此时撞一次 429 写下的截止时刻就是「偏前的时间 + 冷却」；
+     * 随后 NTP 把时钟校回来，`now < cooldownUntilMs` 从此恒真。
+     *
+     * 而清零冷却只有两条路：某条动作执行成功，或调用方主动 [retryAllFailed] —— 前者被冻着就
+     * 不可能发生，于是队列静默停摆，用户每一次收藏都只是变红然后石沉大海。所以这里按
+     * [QueuePolicy.maxPossibleCooldownMs] 钳一刀：合法写下的值一个都不会被削短（它们按定义
+     * 就在这个上界之内），而错乱的值最多只能再冻这么久。
+     *
+     * 钳完**必须写回库**。只改内存的话，下次启动会照着库里那个坏值重新钳出一个新的截止时刻，
+     * 于是每次冷启动都白冻一轮，永远等不到那次能把它清零的成功。写回去之后这个值是绝对的，
+     * 真实时间一过就自愈。
+     */
+    private suspend fun restoreCooldown() {
+        val loaded = store.loadCooldownUntilMs()
+        val ceiling = clock.nowMs() + policy.maxPossibleCooldownMs
+        if (loaded > ceiling) {
+            onError(
+                "cooldown until $loaded is beyond any value this queue could write, clamping",
+                IllegalStateException("bogus persisted cooldown"),
+            )
+            setCooldown(ceiling)
+        } else {
+            cooldownUntilMs = loaded
+        }
     }
 
     private suspend fun setCooldown(untilMs: Long) {
