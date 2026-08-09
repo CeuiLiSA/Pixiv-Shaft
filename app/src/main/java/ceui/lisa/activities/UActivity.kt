@@ -125,6 +125,15 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         }
     }
 
+    /** 看的是自己：把服务端最新资料回写会话，侧边栏/“我的”头像跟着更新。 */
+    private fun writeBackSelfProfile(userResponse: UserDetailResponse) {
+        if (userId.toLong() != SessionManager.loggedInUid) return
+        val loxiaUser = Shaft.sGson.fromJson(
+            Shaft.sGson.toJson(userResponse.user), ceui.loxia.User::class.java
+        )
+        SessionManager.ingestFreshUser(loxiaUser, userId.toLong())
+    }
+
     override fun initData() {
         if (Shaft.sSettings.isUseArtworkV3) {
             val intent = Intent(mContext, UserActivityV3::class.java)
@@ -141,6 +150,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 override fun success(userResponse: UserDetailResponse) {
                     ObjectPool.updateUser(userResponse.user)
                     mUserViewModel.user.value = userResponse
+                    writeBackSelfProfile(userResponse)
                     runCatching {
                         val loxiaUser = Shaft.sGson.fromJson(Shaft.sGson.toJson(userResponse.user), ceui.loxia.User::class.java)
                         (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UActivity, loxiaUser)

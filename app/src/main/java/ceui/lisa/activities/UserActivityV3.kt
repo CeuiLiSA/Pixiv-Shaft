@@ -237,12 +237,22 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     // user LiveData 更新 → displayUser 重绑 header UI(幂等)。
                     ObjectPool.updateUser(userResponse.user)
                     mUserViewModel.user.value = userResponse
+                    writeBackSelfProfile(userResponse)
                 }
 
                 override fun must() {
                     baseBind.refreshLayout.isRefreshing = false
                 }
             })
+    }
+
+    /** 看的是自己：把服务端最新资料回写会话，侧边栏/“我的”头像跟着更新。 */
+    private fun writeBackSelfProfile(userResponse: UserDetailResponse) {
+        if (userId.toLong() != SessionManager.loggedInUid) return
+        val loxiaUser = Shaft.sGson.fromJson(
+            Shaft.sGson.toJson(userResponse.user), ceui.loxia.User::class.java
+        )
+        SessionManager.ingestFreshUser(loxiaUser, userId.toLong())
     }
 
     override fun initData() {
@@ -255,6 +265,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 override fun success(userResponse: UserDetailResponse) {
                     ObjectPool.updateUser(userResponse.user)
                     mUserViewModel.user.value = userResponse
+                    writeBackSelfProfile(userResponse)
                     // Record user visit history
                     runCatching {
                         val loxiaUser = Shaft.sGson.fromJson(Shaft.sGson.toJson(userResponse.user), ceui.loxia.User::class.java)

@@ -8,15 +8,20 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.models.UserModel
 import ceui.lisa.utils.Common
 import ceui.loxia.AccountResponse
+import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
+import ceui.loxia.UserGender
 import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -200,6 +205,74 @@ object SessionManager {
             _loggedInAccount.postValue(accountResponse)
         }
     }
+
+    private val profileSyncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private const val PROFILE_SYNC_COOLDOWN_MS = 10 * 60 * 1000L
+    private const val PROFILE_SYNC_FAILURE_COOLDOWN_MS = 60 * 1000L
+    @Volatile
+    private var lastProfileSyncAt = 0L
+    @Volatile
+    private var lastProfileSyncFailedAt = 0L
+    @Volatile
+    private var profileSyncInFlight = false
+
+    /**
+     * 把服务端刚拉到的“自己”的资料合并进当前会话并持久化。
+     *
+     * [uid] 是请求发起时的登录 uid，写入前再和当前会话比对，防止“请求在途时切换了账号”
+     * 把上一个账号的资料盖到当前账号头上。必须在主线程调用（内部 setValue 更新 LiveData）。
+     */
+    fun ingestFreshUser(fresh: User?, uid: Long) {
+        if (fresh == null || !fresh.exist()) return
+        val current = _loggedInAccount.value ?: return
+        val old = current.user ?: return
+        if (old.id != uid) return
+        val merged = current.copy(user = old.mergedWith(fresh))
+        prefStore.putString(USER_KEY, gson.toJson(merged))
+        _loggedInAccount.value = merged
+    }
+
+    /**
+     * 前台静默同步：去抖 + 单飞 + 失败静默。头像/昵称在站外被修改后，
+     * 回到前台会自动拉一次自己的 user/detail 并写回会话。
+     */
+    fun syncLoggedInProfileIfNeeded() {
+        val uid = loggedInUid
+        if (uid == 0L) return
+        val now = System.currentTimeMillis()
+        if (now - lastProfileSyncAt < PROFILE_SYNC_COOLDOWN_MS) return
+        if (now - lastProfileSyncFailedAt < PROFILE_SYNC_FAILURE_COOLDOWN_MS) return
+        if (profileSyncInFlight) return
+        profileSyncInFlight = true
+        profileSyncScope.launch {
+            try {
+                val fresh = Client.appApi.getUserProfile(uid).user
+                withContext(Dispatchers.Main) {
+                    ingestFreshUser(fresh, uid)
+                }
+                lastProfileSyncAt = System.currentTimeMillis()
+            } catch (t: Throwable) {
+                Timber.w(t, "sync logged-in profile failed, keep cached data")
+                lastProfileSyncFailedAt = System.currentTimeMillis()
+            } finally {
+                profileSyncInFlight = false
+            }
+        }
+    }
+
+    /** fresh 有值的字段覆盖旧值，缺的字段保留旧值——避免 user/detail 缺 mail_address 等字段时把会话弄丢信息。 */
+    private fun User.mergedWith(fresh: User): User = copy(
+        account = fresh.account ?: account,
+        name = fresh.name ?: name,
+        pixiv_id = fresh.pixiv_id ?: pixiv_id,
+        profile_image_urls = fresh.profile_image_urls ?: profile_image_urls,
+        is_mail_authorized = fresh.is_mail_authorized ?: is_mail_authorized,
+        is_premium = fresh.is_premium ?: is_premium,
+        mail_address = fresh.mail_address ?: mail_address,
+        x_restrict = fresh.x_restrict ?: x_restrict,
+        comment = fresh.comment ?: comment,
+        gender = if (fresh.gender != UserGender.UNKNOWN) fresh.gender else gender,
+    )
 
     /**
      * Returns "Bearer xxx" format token for API Authorization header.
