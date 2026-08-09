@@ -23,9 +23,8 @@ import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.launchSuspend
-import ceui.pixiv.events.EventReporter
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.widgets.RateAppManager
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -118,23 +117,14 @@ fun Fragment.openIllustsInViewer(illusts: List<Illust>, position: Int) {
 
 // ── 收藏切换（写穿 ObjectPool + 埋点）──────────────────────────────────────
 
+// 只负责把 illust/novel 取到手，剩下的乐观更新 + 埋点 + 排队都在 PixivActions 里。
+// 这里不再直接打 bookmark 接口 —— 连点爱心过去是点几次发几次请求，很容易 429。
 fun Fragment.toggleIllustBookmark(sender: ProgressIndicator, illustId: Long) {
     launchSuspend(sender) {
         val illust = ObjectPool.get<Illust>(illustId).value
             ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
             ?: return@launchSuspend
-        // Pixiv 把漫画存成 type == "manga" 的 illust，按语义目标分开埋点。
-        val target = if (illust.type == "manga") EventReporter.Target.MANGA else EventReporter.Target.ILLUST
-        if (illust.is_bookmarked == true) {
-            Client.appApi.removeBookmark(illustId)
-            ObjectPool.update(illust.copy(is_bookmarked = false, total_bookmarks = illust.total_bookmarks?.minus(1)))
-            EventReporter.report(EventReporter.Type.UNBOOKMARK, target, illustId, illust)
-        } else {
-            Client.appApi.postBookmark(illustId)
-            RateAppManager.onUserEngaged()
-            ObjectPool.update(illust.copy(is_bookmarked = true, total_bookmarks = illust.total_bookmarks?.plus(1)))
-            EventReporter.report(EventReporter.Type.BOOKMARK, target, illustId, illust)
-        }
+        PixivActions.toggleIllustBookmark(illust)
     }
 }
 
@@ -143,16 +133,7 @@ fun Fragment.toggleNovelBookmark(sender: ProgressIndicator, novelId: Long) {
         val novel = ObjectPool.get<Novel>(novelId).value
             ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
             ?: return@launchSuspend
-        if (novel.is_bookmarked == true) {
-            Client.appApi.removeNovelBookmark(novelId)
-            ObjectPool.update(novel.copy(is_bookmarked = false, total_bookmarks = novel.total_bookmarks?.minus(1)))
-            EventReporter.report(EventReporter.Type.UNBOOKMARK, EventReporter.Target.NOVEL, novelId, novel)
-        } else {
-            Client.appApi.addNovelBookmark(novelId, Params.TYPE_PUBLIC)
-            RateAppManager.onUserEngaged()
-            ObjectPool.update(novel.copy(is_bookmarked = true, total_bookmarks = novel.total_bookmarks?.plus(1)))
-            EventReporter.report(EventReporter.Type.BOOKMARK, EventReporter.Target.NOVEL, novelId, novel)
-        }
+        PixivActions.toggleNovelBookmark(novel)
     }
 }
 

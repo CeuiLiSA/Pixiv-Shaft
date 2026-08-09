@@ -36,6 +36,11 @@ buildscript {
 plugins {
     id 'org.jetbrains.kotlin.android' version '2.1.20' apply false
     id 'org.jetbrains.kotlin.jvm' version '2.1.20' apply false
+    // KSP 版本尾号必须与 Kotlin 版本严格对应（2.1.20-2.0.1 = KSP2 for Kotlin 2.1.20）。
+    // :app 仍用 kapt（Glide 编译器只有 kapt 版），新模块一律用 KSP —— kapt 在 Kotlin 2.x
+    // 已进入维护模式，且会把 kotlin-compiler-embeddable 拖进 classpath（见 buildscript 里
+    // kotlinter 被停用的注释，同一个坑）。
+    id 'com.google.devtools.ksp' version '2.1.20-2.0.1' apply false
 }
 
 allprojects {

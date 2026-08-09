@@ -328,6 +328,13 @@ public class Shaft extends Application implements ServicesProvider {
         // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
         ceui.pixiv.events.EventReporter.INSTANCE.init(this);
 
+        // 收藏/关注的持久化限流队列。这类写操作原本是点一次发一次，连点或批量操作
+        // 很容易被 pixiv 429；现在统一排队串行发送，撞限流整队冷却并自动重试，
+        // 进程被杀后下次启动继续把没发完的发出去。
+        // 安全顺序：必须在 SessionManager.initialize 之后（gate 读登录态）、
+        // EventReporter.init 之后（PixivActions 会埋点）。
+        ceui.pixiv.actions.PixivActionQueue.init(this);
+
         // shaft-api-v2 chat WebSocket gateway. App-scoped — 一个 WebSocketManager
         // 全局复用,生命周期与进程一致(匿名协议没有"退登")。必须在
         // EventReporter.init 之后,因为 ShaftHmacAuthProvider 要靠

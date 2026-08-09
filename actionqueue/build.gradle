@@ -1,0 +1,62 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'com.google.devtools.ksp'
+
+android {
+    compileSdk 36
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 36
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+    namespace 'ceui.pixiv.actionqueue'
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+kotlin {
+    // 库模块：强制显式 public/internal + 显式返回类型。少了它，重构时很容易把本该
+    // internal 的实现细节顺手暴露成 API，之后再收回来就是破坏性变更。
+    explicitApi()
+}
+
+ksp {
+    // 队列里躺的是用户还没生效的收藏/关注，销毁式迁移会静默吞掉它们，所以这个库
+    // 不允许 fallbackToDestructiveMigration，必须手写 Migration —— 而手写 Migration
+    // 的前提是 schema JSON 有导出并入库。
+    arg('room.schemaLocation', "$projectDir/schemas")
+}
+
+dependencies {
+    implementation 'androidx.room:room-runtime:2.7.2'
+    implementation 'androidx.room:room-ktx:2.7.2'
+    ksp 'androidx.room:room-compiler:2.7.2'
+
+    // :app 没有显式声明 coroutines（靠 lifecycle-ktx 传递引入 1.10.2）。本模块不依赖
+    // lifecycle，必须自己声明，版本对齐 :app 传递解析出的结果，避免两个版本并存。
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+
+    // 刻意不引：retrofit / okhttp / gson / :models / 任何 pixiv 代码。
+    // 本模块不认识「收藏」，只认识「一个带 type 的 payload 字符串和一个执行器」。
+}

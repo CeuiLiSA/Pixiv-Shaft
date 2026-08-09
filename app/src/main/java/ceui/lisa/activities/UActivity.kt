@@ -35,8 +35,8 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.ProgressTextButton
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.widgets.RateAppManager
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.github.ybq.android.spinkit.style.Wave
@@ -45,10 +45,8 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import ceui.pixiv.events.EventReporter
 
 class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResponse> {
     private var userId = 0
@@ -340,8 +338,6 @@ fun FragmentActivity.followUser(sender: ProgressIndicator, userId: Int, followTy
     lifecycleScope.launch {
         try {
             sender.showProgress()
-            Client.appApi.postFollow(userId.toLong(), followType)
-            RateAppManager.onUserEngaged()
             // Best-effort attach a full User payload so server can fill
             // user_meta. Cheap path: ObjectPool (already cached on detail
             // pages). Fallback: a single getUserProfile call — only on
@@ -350,27 +346,20 @@ fun FragmentActivity.followUser(sender: ProgressIndicator, userId: Int, followTy
             val userObj = ObjectPool.get<User>(userId.toLong()).value
                 ?: runCatching { Client.appApi.getUserProfile(userId.toLong()).user }
                     .getOrNull()
-            EventReporter.report(
-                EventReporter.Type.FOLLOW,
-                EventReporter.Target.USER,
-                userId.toLong(),
-                userObj,
+            // 本地状态立刻生效，真正的 follow 请求由队列限流后发出。原先这里有个
+            // delay(500L) 等服务端落库再刷 UI，乐观更新之后那 500ms 纯粹是白等。
+            PixivActions.setUserFollow(
+                userId = userId.toLong(),
+                follow = true,
+                restrict = followType,
+                userForReport = userObj,
             )
-            delay(500L)
-            ObjectPool.followUser(userId.toLong())
-            if (followType == Params.TYPE_PUBLIC) {
-                Shaft.appViewModel.updateFollowUserStatus(
-                    userId,
-                    AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC
+            Common.showToast(
+                getString(
+                    if (followType == Params.TYPE_PUBLIC) R.string.like_success_public
+                    else R.string.like_success_private
                 )
-                Common.showToast(getString(R.string.like_success_public))
-            } else {
-                Shaft.appViewModel.updateFollowUserStatus(
-                    userId,
-                    AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE
-                )
-                Common.showToast(getString(R.string.like_success_private))
-            }
+            )
         } catch (ex: Exception) {
             ex.printStackTrace()
             Common.showToast(ex.message)
@@ -388,7 +377,6 @@ fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Int) {
     lifecycleScope.launch {
         try {
             sender.showProgress()
-            Client.appApi.postUnFollow(userId.toLong())
             // Same cache-then-fetch pattern as followUser; unfollow is
             // probably preceded by a follow on the same user so ObjectPool
             // usually hits, fallback only fires when going through old
@@ -396,18 +384,11 @@ fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Int) {
             val userObj = ObjectPool.get<User>(userId.toLong()).value
                 ?: runCatching { Client.appApi.getUserProfile(userId.toLong()).user }
                     .getOrNull()
-            EventReporter.report(
-                EventReporter.Type.UNFOLLOW,
-                EventReporter.Target.USER,
-                userId.toLong(),
-                userObj,
+            PixivActions.setUserFollow(
+                userId = userId.toLong(),
+                follow = false,
+                userForReport = userObj,
             )
-            delay(500L)
-            Shaft.appViewModel.updateFollowUserStatus(
-                userId,
-                AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
-            )
-            ObjectPool.unFollowUser(userId.toLong())
             Common.showToast(getString(R.string.cancel_like))
         } catch (ex: Exception) {
             Timber.e(ex)

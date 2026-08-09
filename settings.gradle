@@ -1,1 +1,1 @@
-include ':app', ':models', ':progressmanager', ':flowlayout-lib'
+include ':app', ':models', ':progressmanager', ':flowlayout-lib', ':actionqueue'

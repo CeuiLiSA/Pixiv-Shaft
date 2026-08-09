@@ -254,6 +254,7 @@ dependencies {
     implementation project(path: ':models')
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
+    implementation project(path: ':actionqueue')
     implementation 'com.tencent:mmkv-static:2.2.3'
     // 部分华为等 OEM 上 libmmkv.so 偶发 dlopen "not found"，ReLinker 兜底从 APK 抠 .so 按绝对路径加载。
     implementation 'com.getkeepsafe.relinker:relinker:1.4.5'
