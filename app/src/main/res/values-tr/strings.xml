@@ -2346,4 +2346,6 @@
     <string name="pixiv_block_submitting">Gönderiliyor…</string>
     <string name="pixiv_block_need_web_login">Bu özellik web arayüzü üzerinden çalışır; ek olarak web\'de bir kez daha giriş yapmanız gerekir.</string>
     <string name="user_tag_filter_empty_need_web_login">Eser bulunamadı.\nBu özellik web arayüzü üzerinden çalışır; bu etiket altındaki tüm eserleri görmek için web\'de bir kez daha giriş yapmanız gerekir</string>
+    <string name="spoiler_hide_illust">Bu eseri gizle</string>
+    <string name="spoiler_reveal_illust">Bu eserin gizlemesini kaldır</string>
 </resources>

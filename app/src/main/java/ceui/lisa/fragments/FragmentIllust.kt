@@ -161,6 +161,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 } else {
                     baseBind.contentFrame.isVisible = false
                     baseBind.abandonedFrame.isVisible = true
+                    // 整页遮罩不再是一块纯黑：糊掉的作品图 + spoiler 粒子。
+                    // bind 幂等(同一封面不重发请求)，可以跟着 observer 每次发射照调。
+                    baseBind.abandonedSpoiler.bind(Glide.with(this@FragmentIllust), GlideUtil.getMediumImg(illust))
                     baseBind.cancelMuteIllust.isVisible = illustEntity != null
                     baseBind.cancelMuteUser.isVisible = userEntity != null
 

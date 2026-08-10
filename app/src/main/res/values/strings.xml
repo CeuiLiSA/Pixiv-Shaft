@@ -2552,4 +2552,7 @@
     <!-- 画师页 chip 来自 app-api、筛选走网页 ajax，两边可见范围可能不一致；只给线索不下断言，
          见 UserIllustByTagFeedFragment.emptyStateText 的 KDoc（非 issue #956 的实证成因） -->
     <string name="user_tag_filter_empty_need_web_login">没有筛到作品。\n该功能通过网页接口实现，需要额外进行一次网页登录才能看到该标签下的全部作品</string>
+    <!-- 插画卡长按菜单：本地遮罩（模糊图 + spoiler 粒子），只在本机生效，随时可取消 -->
+    <string name="spoiler_hide_illust">屏蔽此作品</string>
+    <string name="spoiler_reveal_illust">取消屏蔽此作品</string>
 </resources>

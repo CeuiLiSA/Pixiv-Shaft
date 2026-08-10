@@ -2346,4 +2346,6 @@
     <string name="pixiv_block_submitting">전송 중…</string>
     <string name="pixiv_block_need_web_login">이 기능은 웹 인터페이스로 동작하므로, 추가로 웹에 한 번 더 로그인해야 합니다.</string>
     <string name="user_tag_filter_empty_need_web_login">작품을 찾지 못했습니다.\n이 기능은 웹 인터페이스로 동작하므로, 이 태그의 모든 작품을 보려면 웹에 한 번 더 로그인해야 합니다</string>
+    <string name="spoiler_hide_illust">이 작품 가리기</string>
+    <string name="spoiler_reveal_illust">이 작품 가리기 해제</string>
 </resources>

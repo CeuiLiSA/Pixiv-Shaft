@@ -581,6 +581,14 @@
             android:background="@color/black"
             android:visibility="gone">
 
+            <!-- 遮罩底：糊掉的作品图 + spoiler 粒子(与瀑布流「屏蔽此作品」同一套观感),
+                 取代原来的一块纯黑。按钮排在它后面,盖在上面照常点。 -->
+            <ceui.pixiv.widget.SpoilerBlurView
+                android:id="@+id/abandoned_spoiler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no" />
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -2346,4 +2346,6 @@
     <string name="pixiv_block_submitting">送信中…</string>
     <string name="pixiv_block_need_web_login">この機能はウェブインターフェースで動作するため、追加で一度ウェブにログインする必要があります。</string>
     <string name="user_tag_filter_empty_need_web_login">作品が見つかりませんでした。\nこの機能はウェブインターフェースで動作するため、このタグのすべての作品を見るには、追加でウェブに一度ログインする必要があります</string>
+    <string name="spoiler_hide_illust">この作品を隠す</string>
+    <string name="spoiler_reveal_illust">この作品の非表示を解除</string>
 </resources>

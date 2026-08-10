@@ -2346,4 +2346,6 @@
     <string name="pixiv_block_submitting">Отправка…</string>
     <string name="pixiv_block_need_web_login">Эта функция работает через веб-интерфейс, поэтому нужно дополнительно войти через веб.</string>
     <string name="user_tag_filter_empty_need_web_login">Работы не найдены.\nЭта функция работает через веб-интерфейс, поэтому, чтобы увидеть все работы по этому тегу, нужно дополнительно войти через веб</string>
+    <string name="spoiler_hide_illust">Скрыть эту работу</string>
+    <string name="spoiler_reveal_illust">Показать эту работу</string>
 </resources>

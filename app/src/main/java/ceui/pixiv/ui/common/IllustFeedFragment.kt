@@ -167,6 +167,31 @@ abstract class IllustFeedFragment(
             .firstOrNull { it is IllustFeedItem && it.illust.id == illustId } as? IllustFeedItem
     }
 
+    // ── 屏蔽此作品（本地遮罩）────────────────────────────────────────────────
+
+    /**
+     * 开关某条作品的「屏蔽」遮罩：写设备本地名单（[IllustSpoilerStore]），再让屏上那张卡当帧
+     * 换成模糊图 + 粒子（或还原）。长按菜单和「点已屏蔽的卡揭开」都走这里。
+     *
+     * 走 `notifyItemChanged(payload)` 而不是 [FeedViewModel] 的条目变更：屏蔽态不在条目上
+     * （理由见 [PAYLOAD_ILLUST_SPOILER_CHANGED]），列表数据一个字节没变，没有 diff 可跑。
+     * 这条通知是纯 UI 的一次性重绑，被后续 submitList 覆盖也无所谓——全量绑定同样现读名单。
+     *
+     * 只管本页：同一作品在其他已存活列表里的卡片不会立刻变，等它们自己滑动复用重绑
+     *（bind 现读名单）就同步了。
+     */
+    internal fun setIllustSpoilered(illustId: Long, spoilered: Boolean) {
+        // 已是目标态时 store 返回 false，直接省掉这次重绑（图会重发一次 Glide 请求）
+        if (!IllustSpoilerStore.setSpoilered(illustId, spoilered)) return
+        val adapter = feedAdapter ?: return
+        val position = adapter.currentList.indexOfFirst {
+            it is IllustFeedItem && it.illust.id == illustId
+        }
+        if (position >= 0) {
+            adapter.notifyItemChanged(position, PAYLOAD_ILLUST_SPOILER_CHANGED)
+        }
+    }
+
     // ── 收藏 ────────────────────────────────────────────────────────────────
 
     internal fun toggleLike(item: IllustFeedItem) {

@@ -38,6 +38,7 @@ import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Dev
+import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
@@ -286,7 +287,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             dao.getIllustMuteEntityByID(illust.id),
             dao.getUserMuteEntityByIDLiveData(userId),
         ).observe(viewLifecycleOwner) { (illustEntity, userEntity) ->
-            chromeBind.abandonedFrame.isVisible = illustEntity != null || userEntity != null
+            val muted = illustEntity != null || userEntity != null
+            chromeBind.abandonedFrame.isVisible = muted
+            // 整页遮罩不再是一块纯黑：糊掉的作品图 + spoiler 粒子（与瀑布流「屏蔽此作品」同款）。
+            // 只在真要显示遮罩时贴图——本 observer 在**没被屏蔽**时也照常发射（那才是常态），
+            // 无脑 bind 等于每开一个作品都白解码 + 白模糊一张图。bind 自身按 cacheKey 幂等，
+            // 屏蔽期间的重复发射不会重发请求；粒子由 SpoilerParticleView 按可见性自行起停。
+            if (muted) {
+                chromeBind.abandonedSpoiler.bind(illustGlide, GlideUtil.getMediumImg(illust))
+            }
             chromeBind.cancelMuteIllust.isVisible = illustEntity != null
             chromeBind.cancelMuteUser.isVisible = userEntity != null
             if (illustEntity != null) {

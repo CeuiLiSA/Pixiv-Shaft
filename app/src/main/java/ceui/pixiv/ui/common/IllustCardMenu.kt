@@ -15,7 +15,7 @@ import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
 
 /**
- * 插画卡长按菜单：屏蔽 / 相关评论 / 批量下载 / 单作品下载 / 幻灯片 / 稍后再看。
+ * 插画卡长按菜单：屏蔽此作品 / 屏蔽设定 / 相关评论 / 批量下载 / 单作品下载 / 幻灯片 / 稍后再看。
  *
  * 从 [IllustFeedFragment] 搬出来单独放一个文件：菜单是一组独立的动作编排，跟「列表怎么加载」
  * 和「卡片怎么画」都无关，挤在基类里只是让那个类更长。
@@ -27,7 +27,21 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
     val bean = item.bean
     val entityWrapper = requireEntityWrapper()
     val inWatchLater = entityWrapper.isInWatchLater(item.illust.id)
+    val spoilered = IllustSpoilerStore.isSpoilered(item.illust.id)
     showV3Menu("IllustFeedCardMenu") {
+        // 本地遮罩，不动服务端也不动屏蔽名单：卡片留在原位，只是糊掉 + 盖粒子。
+        // 排在最前面——它是长按这张卡最直接的诉求，而下面那条「屏蔽设定」是按标签/画师的全局设定。
+        val spoilerLabel = getString(
+            if (spoilered) R.string.spoiler_reveal_illust else R.string.spoiler_hide_illust
+        )
+        val spoilerIcon = if (spoilered) {
+            R.drawable.ic_baseline_remove_red_eye_24
+        } else {
+            R.drawable.ic_visibility_off_black_24dp
+        }
+        item(spoilerLabel, spoilerIcon) {
+            setIllustSpoilered(item.illust.id, !spoilered)
+        }
         item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
             MuteDialog.newInstance(bean).show(childFragmentManager, "MuteDialog")
         }
