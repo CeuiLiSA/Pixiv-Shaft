@@ -87,12 +87,14 @@ suspend fun downloadUgoira(
                 }
             }
             handle.onFinish()
-            UgoiraDownloadRecord.record(illust, handle.uri)
-            Timber.tag(TAG).i("[UGOIRA] done via 播放引擎帧序列 illust=$illustId (${frames.files.size}帧, rife=${frames.interpolated}) uri=${handle.uri}")
         } catch (t: Throwable) {
             runCatching { handle.onAbort() }
             throw t
         }
+        // onFinish 之后的收尾必须落在 try 之外：这个 catch 会 onAbort，而 MediaStore 后端的
+        // onAbort 是 contentResolver.delete(uri) —— 已经 commit 的成品在里面抛一次就被删了。
+        UgoiraDownloadRecord.record(illust, handle.uri)
+        Timber.tag(TAG).i("[UGOIRA] done via 播放引擎帧序列 illust=$illustId (${frames.files.size}帧, rife=${frames.interpolated}) uri=${handle.uri}")
     }
 
     // 0) 用户在详情页看过的话,帧序列已经在盘上(补帧版优先)。直接编,省掉 meta/下载/解压/补帧。
@@ -178,13 +180,15 @@ suspend fun downloadUgoira(
                     encodeFramesToGif(unzipFolder, resp, bos)
                 }
                 handle.onFinish()
-                UgoiraDownloadRecord.record(illust, handle.uri)
-                Timber.tag(TAG).i("[UGOIRA] done illust=$illustId uri=${handle.uri}")
             } catch (t: Throwable) {
                 // onAbort 让 backend 清掉部分写入的 .pending-NNNN 文件；不调用就会留 0 字节孤儿
                 runCatching { handle.onAbort() }
                 throw t
             }
+            // 同 encodeFromFrames：写记录在 try 之外，别让收尾动作有机会触发 onAbort 把
+            // 已经 commit 的成品删掉。
+            UgoiraDownloadRecord.record(illust, handle.uri)
+            Timber.tag(TAG).i("[UGOIRA] done illust=$illustId uri=${handle.uri}")
         }
 
         // 5) 成品已落到用户目录 → cache 里的 zip / 解压帧就是死重量,趁还握着文件锁删掉。

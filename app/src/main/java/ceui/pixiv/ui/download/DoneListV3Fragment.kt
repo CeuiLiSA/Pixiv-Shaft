@@ -501,14 +501,19 @@ private class DoneAdapterV3(
             // 多页 illust：左上角只显示 "Np"（去掉 "MANGA · " 冗余前缀）。
             // 单页 illust：徽章直接隐藏 —— 没有页数信息可言。
             // 之前的渐隐 + 透明背景文字在暗色图上几乎读不出，改为白字 + 70% 黑底。
-            val pageCount = when {
-                group.pageCount > 1 -> group.pageCount
-                (illust?.page_count ?: 1) > 1 -> illust?.page_count ?: 1
-                else -> 1
+            //
+            // 动图不参与页数那套：它本来就没有「页」，而老版本留下的中间 zip 行和新的 GIF 行
+            // 同属一个 illustId，分组后 group.pageCount 会是 2，照页数算法会渲染出骗人的「2P」。
+            // 标成 GIF 也顺带说明了它点开去的是详情页而不是大图查看器。
+            val badge: String? = when {
+                illust?.isGif == true -> "GIF"
+                group.pageCount > 1 -> "${group.pageCount}P"
+                (illust?.page_count ?: 1) > 1 -> "${illust?.page_count ?: 1}P"
+                else -> null
             }
-            if (pageCount > 1) {
+            if (badge != null) {
                 h.typeBadge.visibility = View.VISIBLE
-                h.typeBadge.text = "${pageCount}P"
+                h.typeBadge.text = badge
             } else {
                 h.typeBadge.visibility = View.GONE
             }

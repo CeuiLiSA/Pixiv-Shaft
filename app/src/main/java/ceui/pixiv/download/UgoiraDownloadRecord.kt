@@ -31,7 +31,16 @@ import timber.log.Timber
  */
 object UgoiraDownloadRecord {
 
-    /** @param uri GIF 成品的最终位置（content:// 或 file://）。须在 IO 线程调用。 */
+    /**
+     * **本函数不抛异常，这是调用方依赖的契约。**
+     * 它跑在 `handle.onFinish()` 之后，而各 backend 的 `onAbort()` 会删掉目标
+     * （MediaStore 那条是 `contentResolver.delete(uri)`）。从这里漏出去一个异常，
+     * 若落进调用方那种「catch → onAbort」的收尾里，被删的就是刚 commit 成功的成品。
+     * 调用方另外把它排在 try 之外双保险，两道都别拆。
+     *
+     * @param uri GIF 成品的最终位置（content:// 或 file://）。须在 IO 线程调用
+     *            （Room 主线程写会抛，抛了也只是丢一条记录，不会崩）。
+     */
     @JvmStatic
     fun record(illust: IllustsBean, uri: Uri) {
         runCatching {
@@ -54,7 +63,7 @@ object UgoiraDownloadRecord {
                 Intent(Params.DOWNLOAD_FINISH).putExtra(Params.CONTENT, entity),
             )
         }.onFailure {
-            Timber.w(it, "[UGOIRA] 下载记录写入失败 illust=%d", illust.id)
+            Timber.w(it, "[UGOIRA] 下载记录写入 / 完成通知失败 illust=%d", illust.id)
         }
     }
 }
