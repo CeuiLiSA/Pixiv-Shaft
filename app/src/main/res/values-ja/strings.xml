@@ -1588,6 +1588,22 @@
     <string name="bulk_bookmark_enqueued">キューに追加：ブックマーク %1$d 件</string>
     <string name="bulk_unbookmark_enqueued">キューに追加：ブックマーク解除 %1$d 件</string>
     <string name="bulk_bookmark_nothing">選択した作品はすべてその状態です</string>
+
+    <!-- 小説の一括操作ページ（issue #974、イラスト側とは別ページ） -->
+    <string name="bulk_select_novel_entry">一括操作</string>
+    <string name="bulk_select_novel_title">一括操作 · 小説を選択</string>
+    <string name="bulk_select_novel_summary">%1$d 件 · %2$d 件選択中</string>
+    <string name="bulk_select_novel_confirm">ダウンロード（%1$d 件）</string>
+    <string name="bulk_select_novel_meta_bookmarked">%1$s · ブックマーク済み</string>
+    <string name="bulk_bookmark_novel_menu_add">一括ブックマーク（%1$d 件）</string>
+    <string name="bulk_bookmark_novel_menu_add_private">一括で非公開ブックマーク（%1$d 件）</string>
+    <string name="bulk_bookmark_novel_menu_remove">一括ブックマーク解除（%1$d 件）</string>
+    <string name="bulk_bookmark_novel_confirm_title">小説を一括ブックマーク</string>
+    <string name="bulk_bookmark_novel_confirm_message">%1$d 件の小説を%2$sに追加します。\n\nリクエストはキューで 1 件ずつ送信され（pixiv のレート制限対策）、すべて送信し終えるまで約 %3$d 分かかります。</string>
+    <string name="bulk_unbookmark_novel_confirm_title">小説のブックマークを一括解除</string>
+    <string name="bulk_unbookmark_novel_confirm_message">%1$d 件の小説のブックマークを解除します。この操作は取り消せません。\n\nリクエストはキューで 1 件ずつ送信され（pixiv のレート制限対策）、すべて送信し終えるまで約 %2$d 分かかります。</string>
+    <string name="bulk_bookmark_novel_enqueued">キューに追加：ブックマーク %1$d 件</string>
+    <string name="bulk_unbookmark_novel_enqueued">キューに追加：ブックマーク解除 %1$d 件</string>
     <string name="bulk_enqueue_empty">キューに追加できる作品がありません</string>
     <string name="bulk_enqueue_truncated">件数が多すぎます。%1$d 件に切り詰めました</string>
     <string name="bulk_enqueue_started">%1$d 件をキューに追加しています</string>

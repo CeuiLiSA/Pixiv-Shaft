@@ -1752,6 +1752,22 @@
     <string name="bulk_unbookmark_enqueued">已加入队列：取消收藏 %1$d 项</string>
     <string name="bulk_bookmark_nothing">选中的作品都已经是该状态</string>
 
+    <!-- 小说批量操作页（issue #974，独立于插画那页） -->
+    <string name="bulk_select_novel_entry">批量操作</string>
+    <string name="bulk_select_novel_title">批量操作 · 选择小说</string>
+    <string name="bulk_select_novel_summary">共 %1$d 篇 · 已选 %2$d 篇</string>
+    <string name="bulk_select_novel_confirm">下载选中小说 (%1$d 篇)</string>
+    <string name="bulk_select_novel_meta_bookmarked">%1$s · 已收藏</string>
+    <string name="bulk_bookmark_novel_menu_add">批量收藏 (%1$d 篇)</string>
+    <string name="bulk_bookmark_novel_menu_add_private">批量私密收藏 (%1$d 篇)</string>
+    <string name="bulk_bookmark_novel_menu_remove">批量取消收藏 (%1$d 篇)</string>
+    <string name="bulk_bookmark_novel_confirm_title">批量收藏小说</string>
+    <string name="bulk_bookmark_novel_confirm_message">将把 %1$d 篇小说加入%2$s。\n\n请求会进入队列逐条发送（避免触发 pixiv 限流），全部发完约需 %3$d 分钟。</string>
+    <string name="bulk_unbookmark_novel_confirm_title">批量取消收藏小说</string>
+    <string name="bulk_unbookmark_novel_confirm_message">将取消 %1$d 篇小说的收藏，此操作不可撤销。\n\n请求会进入队列逐条发送（避免触发 pixiv 限流），全部发完约需 %2$d 分钟。</string>
+    <string name="bulk_bookmark_novel_enqueued">已加入队列：收藏 %1$d 篇</string>
+    <string name="bulk_unbookmark_novel_enqueued">已加入队列：取消收藏 %1$d 篇</string>
+
     <!-- Legacy batch enqueue 提示 -->
     <string name="bulk_enqueue_empty">没有可入队的作品</string>
     <string name="bulk_enqueue_truncated">数量过多，已截断到 %1$d 项</string>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说批量选择的一行。**不是**插画那种封面网格：pixiv 的小说封面里有很大一部分是
+  同一张默认渐变图，3 列铺开根本分不出哪篇是哪篇——小说必须靠标题认。所以这里是
+  「小封面 + 标题 + 作者 + 字数」的列表行，勾选态靠整行的 tonal 底 + 右侧勾标表达。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_novel_bulk_row"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="10dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="8dp">
+
+    <FrameLayout
+        android:layout_width="52dp"
+        android:layout_height="70dp"
+        android:background="@drawable/bg_novel_bulk_cover"
+        android:clipToOutline="true">
+
+        <ImageView
+            android:id="@+id/cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/v3_text_1"
+            android:textSize="14sp"
+            tools:text="とある小説のタイトル、それはとても長い" />
+
+        <TextView
+            android:id="@+id/author"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_2"
+            android:textSize="12sp"
+            tools:text="作者名" />
+
+        <TextView
+            android:id="@+id/meta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_3"
+            android:textSize="11sp"
+            tools:text="12,345 字 · 已收藏" />
+    </LinearLayout>
+
+    <!-- 未选中：空心圆（bg_novel_bulk_check_idle，src 为空）
+         选中：  实心 colorPrimary 圆 + 白勾（同插画格子的 checkBadge） -->
+    <ImageView
+        android:id="@+id/checkBadge"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:background="@drawable/bg_novel_bulk_check_idle"
+        android:contentDescription="@null"
+        android:padding="3dp"
+        app:tint="#FFFFFF" />
+</LinearLayout>

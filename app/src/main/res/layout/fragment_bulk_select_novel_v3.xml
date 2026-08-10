@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说批量选择页（issue #974）。骨架与 fragment_bulk_select_v3 同一套 V3 语言
+  （toolbar + hint + 列表 + MD3-E connected button group），但**内容区是竖列表不是网格**，
+  且没有「导出链接」——那导的是每张图的 original 直链，小说没有这个东西。
+
+  底栏两段的 drawable（bg_bulk_action_primary / trailing）跟插画页共用：那两个文件是
+  纯样式，不带任何插画语义，两页共享一套按钮外观正是想要的。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/v3_bg"
+        app:elevation="0dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/v3_bg"
+            app:contentInsetStartWithNavigation="0dp"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:title="@string/bulk_select_novel_title"
+            app:titleTextAppearance="@style/TextAppearance.AppCompat.Title"
+            app:titleTextColor="@color/v3_text_1" />
+
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="10dp"
+            android:textColor="@color/v3_text_3"
+            android:textSize="11sp"
+            tools:text="共 32 篇 · 已选 12 篇" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingStart="6dp"
+        android:paddingTop="2dp"
+        android:paddingEnd="6dp"
+        android:paddingBottom="80dp"
+        tools:listitem="@layout/cell_bulk_select_novel_v3" />
+
+    <!-- margin / padding 一律用 Start/End：Horizontal 那套是 API 26 的属性，minSdk 24
+         上会被静默忽略（不报错，只是没间距），底栏会贴着屏幕两边。 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnConfirm"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_bulk_action_primary"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:maxLines="1"
+            android:minWidth="0dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:textAllCaps="false"
+            android:textColor="@color/bulk_action_primary_text"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="下载选中小说 (12 篇)" />
+
+        <Space
+            android:layout_width="3dp"
+            android:layout_height="1dp" />
+
+        <LinearLayout
+            android:id="@+id/btnBookmarkActions"
+            android:layout_width="76dp"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_bulk_action_trailing"
+            android:clickable="true"
+            android:contentDescription="@string/bulk_bookmark_actions"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_like_heart_fill"
+                app:tint="@color/v3_blue" />
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="1dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_arrow_drop_down_20dp"
+                app:tint="@color/v3_blue" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

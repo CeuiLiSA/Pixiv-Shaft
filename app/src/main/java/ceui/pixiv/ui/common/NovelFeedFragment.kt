@@ -113,6 +113,27 @@ abstract class NovelFeedFragment(
         inflate = RecyNovelBinding::inflate,
         create = { cell ->
             cell.binding.root.setOnClick { openNovelDetail(cell.item.novel.id) }
+            // 长按 = 批量操作入口（issue #974），语义对齐插画卡的长按菜单。
+            // 挂在基类的 renderer 上，所有小说列表页（推荐 / 收藏 / 关注 / 用户 / 搜索…）一起有。
+            //
+            // **必须逐个可点子 view 都挂，只挂 root 是不够的**：子 view 一旦 clickable 就会
+            // 在 ACTION_DOWN 时把事件吃掉，父 view 根本收不到长按；而 clickable 但不
+            // longClickable 的 view 会把这次长按在抬手时**当成一次普通点击**处理 ——
+            // 表现就是「想长按封面/作者/系列，结果直接跳走了」（真机上按在系列名上必现）。
+            // like 不挂：它自己的长按是「按标签收藏」，不能被顶掉。
+            val onCardLongPress = View.OnLongClickListener { v ->
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                showNovelCardMenu()
+                true
+            }
+            listOf(
+                cell.binding.root,
+                cell.binding.cover,
+                cell.binding.userHead,
+                cell.binding.author,
+                cell.binding.series,
+                cell.binding.novelTag,
+            ).forEach { it.setOnLongClickListener(onCardLongPress) }
             cell.binding.cover.setOnClick { openCoverImage(cell.item.novel) }
             cell.binding.userHead.setOnClick { openNovelAuthor(cell.item.novel) }
             cell.binding.author.setOnClick { openNovelAuthor(cell.item.novel) }
@@ -200,6 +221,11 @@ abstract class NovelFeedFragment(
     private fun renderNovelLike(button: ImageButton, liked: Boolean) {
         val color = if (liked) R.color.has_bookmarked else R.color.not_bookmarked
         button.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(button.context, color))
+    }
+
+    /** VM 里当前整表的小说条目。对齐 [IllustFeedFragment.currentIllustItems]。 */
+    internal fun currentNovelItems(): List<NovelFeedItem> {
+        return feedViewModel.uiState.value.items.filterIsInstance<NovelFeedItem>()
     }
 
     /** VM 里当前这条小说的最新条目（真源）；已被刷新挤掉则 null。对齐 [IllustFeedFragment.currentIllustItem]。 */

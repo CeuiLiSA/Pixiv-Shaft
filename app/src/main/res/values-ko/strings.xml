@@ -1588,6 +1588,22 @@
     <string name="bulk_bookmark_enqueued">큐에 추가: 북마크 %1$d개</string>
     <string name="bulk_unbookmark_enqueued">큐에 추가: 북마크 해제 %1$d개</string>
     <string name="bulk_bookmark_nothing">선택한 작품이 모두 이미 해당 상태입니다</string>
+
+    <!-- 소설 일괄 작업 페이지 (issue #974, 일러스트 쪽과 별도) -->
+    <string name="bulk_select_novel_entry">일괄 작업</string>
+    <string name="bulk_select_novel_title">일괄 작업 · 소설 선택</string>
+    <string name="bulk_select_novel_summary">총 %1$d편 · %2$d편 선택됨</string>
+    <string name="bulk_select_novel_confirm">다운로드 (%1$d편)</string>
+    <string name="bulk_select_novel_meta_bookmarked">%1$s · 북마크됨</string>
+    <string name="bulk_bookmark_novel_menu_add">일괄 북마크 (%1$d편)</string>
+    <string name="bulk_bookmark_novel_menu_add_private">일괄 비공개 북마크 (%1$d편)</string>
+    <string name="bulk_bookmark_novel_menu_remove">일괄 북마크 해제 (%1$d편)</string>
+    <string name="bulk_bookmark_novel_confirm_title">소설 일괄 북마크</string>
+    <string name="bulk_bookmark_novel_confirm_message">%1$d편의 소설을 %2$s에 추가합니다.\n\n요청은 큐를 통해 하나씩 전송되며(pixiv 속도 제한 회피), 모두 보내는 데 약 %3$d분이 걸립니다.</string>
+    <string name="bulk_unbookmark_novel_confirm_title">소설 북마크 일괄 해제</string>
+    <string name="bulk_unbookmark_novel_confirm_message">%1$d편의 소설의 북마크를 해제합니다. 되돌릴 수 없습니다.\n\n요청은 큐를 통해 하나씩 전송되며(pixiv 속도 제한 회피), 모두 보내는 데 약 %2$d분이 걸립니다.</string>
+    <string name="bulk_bookmark_novel_enqueued">큐에 추가: 북마크 %1$d편</string>
+    <string name="bulk_unbookmark_novel_enqueued">큐에 추가: 북마크 해제 %1$d편</string>
     <string name="bulk_enqueue_empty">큐에 추가할 작품이 없습니다</string>
     <string name="bulk_enqueue_truncated">수가 너무 많습니다. %1$d개로 잘랐습니다</string>
     <string name="bulk_enqueue_started">%1$d개 큐 추가 시작</string>

@@ -148,6 +148,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new ceui.pixiv.ui.download.DownloadManagerV3Fragment();
                 case "批量选择":
                     return new ceui.pixiv.ui.bulk.BulkSelectV3Fragment();
+                case "小说批量选择":
+                    return new ceui.pixiv.ui.bulk.NovelBulkSelectV3Fragment();
                 case "画廊":
                     // feeds 框架版画廊，替代 legacy FragmentWalkThrough
                     return new ceui.pixiv.ui.home.WalkthroughFeedFragment();

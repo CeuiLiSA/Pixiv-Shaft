@@ -1590,6 +1590,22 @@
     <string name="bulk_bookmark_enqueued">已加入佇列：收藏 %1$d 項</string>
     <string name="bulk_unbookmark_enqueued">已加入佇列：取消收藏 %1$d 項</string>
     <string name="bulk_bookmark_nothing">選中的作品都已經是該狀態</string>
+
+    <!-- 小說批次操作頁（issue #974，獨立於插畫那頁） -->
+    <string name="bulk_select_novel_entry">批次操作</string>
+    <string name="bulk_select_novel_title">批次操作 · 選擇小說</string>
+    <string name="bulk_select_novel_summary">共 %1$d 篇 · 已選 %2$d 篇</string>
+    <string name="bulk_select_novel_confirm">下載選中小說 (%1$d 篇)</string>
+    <string name="bulk_select_novel_meta_bookmarked">%1$s · 已收藏</string>
+    <string name="bulk_bookmark_novel_menu_add">批次收藏 (%1$d 篇)</string>
+    <string name="bulk_bookmark_novel_menu_add_private">批次私密收藏 (%1$d 篇)</string>
+    <string name="bulk_bookmark_novel_menu_remove">批次取消收藏 (%1$d 篇)</string>
+    <string name="bulk_bookmark_novel_confirm_title">批次收藏小說</string>
+    <string name="bulk_bookmark_novel_confirm_message">將把 %1$d 篇小說加入%2$s。\n\n請求會進入佇列逐條送出（避免觸發 pixiv 限流），全部送完約需 %3$d 分鐘。</string>
+    <string name="bulk_unbookmark_novel_confirm_title">批次取消收藏小說</string>
+    <string name="bulk_unbookmark_novel_confirm_message">將取消 %1$d 篇小說的收藏，此操作無法復原。\n\n請求會進入佇列逐條送出（避免觸發 pixiv 限流），全部送完約需 %2$d 分鐘。</string>
+    <string name="bulk_bookmark_novel_enqueued">已加入佇列：收藏 %1$d 篇</string>
+    <string name="bulk_unbookmark_novel_enqueued">已加入佇列：取消收藏 %1$d 篇</string>
     <string name="bulk_enqueue_empty">沒有可入隊的作品</string>
     <string name="bulk_enqueue_truncated">數量過多，已截斷至 %1$d 項</string>
     <string name="bulk_enqueue_started">已發起入隊 %1$d 項</string>

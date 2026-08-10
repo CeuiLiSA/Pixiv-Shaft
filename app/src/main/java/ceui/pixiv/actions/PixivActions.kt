@@ -190,6 +190,46 @@ object PixivActions {
         return todo.size
     }
 
+    /** [setIllustBookmarks] 的小说版。语义、线程模型、异常兜底完全一致，见那边的注释。 */
+    @JvmStatic
+    fun pendingNovelBookmarkCount(novels: List<Novel>, bookmark: Boolean): Int =
+        novels.count { it.is_bookmarked != bookmark }
+
+    /**
+     * [setIllustBookmarks] 的小说版：循环调 [setNovelBookmark]，返回实际入队条数。
+     *
+     * 小说这一支**没有**「收藏后自动关注作者」—— 单张小说卡本来就没有（见
+     * [setNovelBookmark]），批量不该凭空多出一个副作用。
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun setNovelBookmarks(
+        novels: List<Novel>,
+        bookmark: Boolean,
+        restrict: String = defaultBookmarkRestrict(),
+    ): Int {
+        val todo = novels.filter { it.is_bookmarked != bookmark }
+        if (todo.isEmpty()) return 0
+        bulkScope.launch {
+            var failed = 0
+            todo.chunked(BULK_CHUNK).forEach { chunk ->
+                chunk.forEach { novel ->
+                    try {
+                        setNovelBookmark(novel, bookmark, restrict)
+                    } catch (ce: CancellationException) {
+                        throw ce
+                    } catch (t: Throwable) {
+                        failed++
+                        Timber.tag(TAG).e(t, "bulk bookmark failed for novel %d", novel.id)
+                    }
+                }
+                yield()
+            }
+            if (failed > 0) Timber.tag(TAG).w("%d of %d novels failed to enqueue", failed, todo.size)
+        }
+        return todo.size
+    }
+
     /** @param authorFollowed 调用方手上那份作者数据的关注态，见 [autoFollowAuthor]。 */
     private fun applyIllustBookmark(
         illustId: Long,

@@ -1588,6 +1588,22 @@
     <string name="bulk_bookmark_enqueued">В очереди: добавить в закладки %1$d</string>
     <string name="bulk_unbookmark_enqueued">В очереди: убрать из закладок %1$d</string>
     <string name="bulk_bookmark_nothing">Все выбранные работы уже в этом состоянии</string>
+
+    <!-- Страница массовых действий с новеллами (issue #974, отдельно от иллюстраций) -->
+    <string name="bulk_select_novel_entry">Массовые действия</string>
+    <string name="bulk_select_novel_title">Массовые действия · Выбор новелл</string>
+    <string name="bulk_select_novel_summary">Всего %1$d · выбрано %2$d</string>
+    <string name="bulk_select_novel_confirm">Скачать (%1$d новелл)</string>
+    <string name="bulk_select_novel_meta_bookmarked">%1$s · в закладках</string>
+    <string name="bulk_bookmark_novel_menu_add">Добавить в закладки (%1$d)</string>
+    <string name="bulk_bookmark_novel_menu_add_private">Добавить в скрытые закладки (%1$d)</string>
+    <string name="bulk_bookmark_novel_menu_remove">Убрать из закладок (%1$d)</string>
+    <string name="bulk_bookmark_novel_confirm_title">Массовые закладки новелл</string>
+    <string name="bulk_bookmark_novel_confirm_message">%1$d новелл будут добавлены в %2$s.\n\nЗапросы отправляются по одному через очередь (чтобы не поймать ограничение pixiv); на отправку всех уйдёт около %3$d мин.</string>
+    <string name="bulk_unbookmark_novel_confirm_title">Массовое удаление закладок новелл</string>
+    <string name="bulk_unbookmark_novel_confirm_message">Закладки будут убраны у %1$d новелл. Отменить это нельзя.\n\nЗапросы отправляются по одному через очередь (чтобы не поймать ограничение pixiv); на отправку всех уйдёт около %2$d мин.</string>
+    <string name="bulk_bookmark_novel_enqueued">В очереди: добавить в закладки %1$d</string>
+    <string name="bulk_unbookmark_novel_enqueued">В очереди: убрать из закладок %1$d</string>
     <string name="bulk_enqueue_empty">Нет работ для очереди</string>
     <string name="bulk_enqueue_truncated">Слишком много элементов, обрезано до %1$d</string>
     <string name="bulk_enqueue_started">Добавляем в очередь: %1$d</string>

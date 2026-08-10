@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  未选中时的空心圆（MD3 list 里 checkbox 的位置）。留一个可见的空槽而不是什么都不画：
+  用户要先看得出「这一行是可以勾的」，才会去点它。选中时换成实心的
+  bulk_select_check_bg + 白勾。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/v3_text_3" />
+</shape>

@@ -1588,6 +1588,22 @@
     <string name="bulk_bookmark_enqueued">Kuyruğa alındı: %1$d eser favorileniyor</string>
     <string name="bulk_unbookmark_enqueued">Kuyruğa alındı: %1$d eser favorilerden çıkarılıyor</string>
     <string name="bulk_bookmark_nothing">Seçilen eserlerin hepsi zaten bu durumda</string>
+
+    <!-- Roman toplu işlem sayfası (issue #974, illüstrasyon sayfasından ayrı) -->
+    <string name="bulk_select_novel_entry">Toplu işlem</string>
+    <string name="bulk_select_novel_title">Toplu işlem · Roman seç</string>
+    <string name="bulk_select_novel_summary">Toplam %1$d · %2$d seçili</string>
+    <string name="bulk_select_novel_confirm">İndir (%1$d roman)</string>
+    <string name="bulk_select_novel_meta_bookmarked">%1$s · favoride</string>
+    <string name="bulk_bookmark_novel_menu_add">Toplu favorile (%1$d roman)</string>
+    <string name="bulk_bookmark_novel_menu_add_private">Toplu gizli favorile (%1$d roman)</string>
+    <string name="bulk_bookmark_novel_menu_remove">Toplu favoriden çıkar (%1$d roman)</string>
+    <string name="bulk_bookmark_novel_confirm_title">Romanları toplu favorile</string>
+    <string name="bulk_bookmark_novel_confirm_message">%1$d roman %2$s listesine eklenecek.\n\nİstekler pixiv hız sınırına takılmamak için kuyrukta tek tek gönderilir; hepsinin gönderilmesi yaklaşık %3$d dakika sürer.</string>
+    <string name="bulk_unbookmark_novel_confirm_title">Roman favorilerini toplu kaldır</string>
+    <string name="bulk_unbookmark_novel_confirm_message">%1$d roman favorilerden çıkarılacak. Bu işlem geri alınamaz.\n\nİstekler pixiv hız sınırına takılmamak için kuyrukta tek tek gönderilir; hepsinin gönderilmesi yaklaşık %2$d dakika sürer.</string>
+    <string name="bulk_bookmark_novel_enqueued">Kuyruğa alındı: %1$d roman favorileniyor</string>
+    <string name="bulk_unbookmark_novel_enqueued">Kuyruğa alındı: %1$d roman favorilerden çıkarılıyor</string>
     <string name="bulk_enqueue_empty">Kuyruğa eklenecek eser yok</string>
     <string name="bulk_enqueue_truncated">Çok fazla öğe, %1$d ile sınırlandı</string>
     <string name="bulk_enqueue_started">%1$d öğe kuyruğa ekleniyor</string>

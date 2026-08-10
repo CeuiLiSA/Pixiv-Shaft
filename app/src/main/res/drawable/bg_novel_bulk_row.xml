@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说批量选择行的背景。选中态用和底栏尾段同一块 bulk_action_tonal（MD3-E tonal
+  容器色）+ 20dp 大圆角，跟按钮组读作同一套语言；未选中透明，只留 ripple。
+
+  不沿用插画格子那套「半透 scrim 盖在图上」：那是因为格子里除了封面没有别的东西，
+  只能往图上叠色；小说行的主体是标题文字，往文字上盖一层蓝会直接压低可读性。
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <selector>
+            <item android:state_selected="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="20dp" />
+                    <solid android:color="@color/bulk_action_tonal" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="20dp" />
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

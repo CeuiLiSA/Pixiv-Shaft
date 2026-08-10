@@ -226,8 +226,14 @@ PixivActions.setUserFollow(userId, follow = true, restrict = Params.TYPE_PUBLIC)
 ```kotlin
 val enqueued = PixivActions.setIllustBookmarks(illusts, bookmark = true)  // 返回实际入队条数
 PixivActions.pendingIllustBookmarkCount(illusts, bookmark = true)         // 动手前先问要发几条
+PixivActions.setNovelBookmarks(novels, bookmark = true)                   // 小说版，同语义
+PixivActions.pendingNovelBookmarkCount(novels, bookmark = true)
 PixivActions.estimatedQueueMinutes(count)                                 // 全部发完约几分钟
 ```
+
+小说那支**没有**「收藏后自动关注作者」—— 单张小说卡本来就没有，批量不该凭空多一个副作用。
+页面是两个（`BulkSelectV3Fragment` / `NovelBulkSelectV3Fragment`），因为下载后端、模型、
+可导出的东西全不一样；共用的只有这个门面和底栏那套 MD3-E 按钮 drawable。
 
 「怎么发」全是队列的事，批量侧一件都不重复实现；门面在批量这一层只多做三件单条不需要的事：
 剔掉已经是目标态的项（否则 toast 上的数字不等于真会发出去的请求数）、分块 `yield`

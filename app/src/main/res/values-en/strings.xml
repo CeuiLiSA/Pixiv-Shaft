@@ -1588,6 +1588,22 @@
     <string name="bulk_bookmark_enqueued">Queued: bookmark %1$d works</string>
     <string name="bulk_unbookmark_enqueued">Queued: remove bookmark from %1$d works</string>
     <string name="bulk_bookmark_nothing">All selected works are already in that state</string>
+
+    <!-- Novel bulk actions page (issue #974, separate from the illustration one) -->
+    <string name="bulk_select_novel_entry">Batch actions</string>
+    <string name="bulk_select_novel_title">Batch actions · Select novels</string>
+    <string name="bulk_select_novel_summary">%1$d total · %2$d selected</string>
+    <string name="bulk_select_novel_confirm">Download (%1$d novels)</string>
+    <string name="bulk_select_novel_meta_bookmarked">%1$s · bookmarked</string>
+    <string name="bulk_bookmark_novel_menu_add">Bookmark %1$d novels</string>
+    <string name="bulk_bookmark_novel_menu_add_private">Bookmark %1$d novels privately</string>
+    <string name="bulk_bookmark_novel_menu_remove">Remove bookmark from %1$d novels</string>
+    <string name="bulk_bookmark_novel_confirm_title">Bulk bookmark novels</string>
+    <string name="bulk_bookmark_novel_confirm_message">%1$d novels will be added to your %2$s.\n\nRequests are sent one by one through a queue (to avoid pixiv rate limits); it takes about %3$d minute(s) to send them all.</string>
+    <string name="bulk_unbookmark_novel_confirm_title">Bulk remove novel bookmarks</string>
+    <string name="bulk_unbookmark_novel_confirm_message">Bookmarks will be removed from %1$d novels. This cannot be undone.\n\nRequests are sent one by one through a queue (to avoid pixiv rate limits); it takes about %2$d minute(s) to send them all.</string>
+    <string name="bulk_bookmark_novel_enqueued">Queued: bookmark %1$d novels</string>
+    <string name="bulk_unbookmark_novel_enqueued">Queued: remove bookmark from %1$d novels</string>
     <string name="bulk_enqueue_empty">No works to enqueue</string>
     <string name="bulk_enqueue_truncated">Too many items, truncated to %1$d</string>
     <string name="bulk_enqueue_started">Enqueueing %1$d items</string>

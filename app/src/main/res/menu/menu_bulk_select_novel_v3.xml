@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说批量选择 toolbar：只有 master-checkbox 一个按钮，icon 跟选中态切
+  （没全选 → ic_select_all_24；已全选 → ic_deselect_24），运行时由 Fragment 覆盖。
+
+  没有插画那页的「导出链接」：那导的是每张图的 original 直链，小说没有这种东西。
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_select_toggle"
+        android:icon="@drawable/ic_select_all_24"
+        android:title="@string/bulk_select_select_all"
+        app:showAsAction="always" />
+</menu>
