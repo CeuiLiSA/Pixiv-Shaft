@@ -244,7 +244,7 @@
     <!-- 批量操作底栏尾段(MD3-E tonal 按钮)的底色:v3_blue 14% 透明。v3_surface_2(#0E000000)
          压在 v3_bg 上几乎看不出边界,挨着实心蓝的首段更显得像块空白;带一点强调色才读得出
          "同一组按钮的低一档层级"。夜间见 values-night。 -->
-    <color name="bulk_action_tonal">#242B6FCC</color>
+    <color name="bulk_action_tonal">#2E2B6FCC</color>
     <color name="v3_green">#1DA88A</color>
     <color name="v3_purple">#7C5CC8</color>
     <!-- 评论毛玻璃卡片:近纯白 95%,浮在模糊+压暗的作品背景上仍保证深色文字可读,卡片间隙透出模糊图,日夜各自适配 -->

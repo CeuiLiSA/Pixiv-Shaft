@@ -94,6 +94,18 @@ object PixivActionQueue {
         Timber.tag(TAG).i("action queue started, minGap=%dms", MIN_GAP_MS)
     }
 
+    /**
+     * [count] 条动作全部发完大概几分钟。节奏是本对象定的（[MIN_GAP_MS] 串行间隔），
+     * 所以估算也留在这里，别让调用方去猜一个常量。
+     *
+     * 向上取整且至少 1，免得批量确认框上写着「约 0 分钟」。冷却和重试不算在内 ——
+     * 这是下界，撞了限流只会更久。
+     */
+    internal fun estimatedMinutes(count: Int): Int {
+        val totalMs = count.toLong() * MIN_GAP_MS
+        return maxOf(1L, (totalMs + MS_PER_MINUTE - 1) / MS_PER_MINUTE).toInt()
+    }
+
     internal fun enqueue(request: ActionRequest) {
         val instance = queue
         if (instance == null) {
@@ -340,11 +352,8 @@ object PixivActionQueue {
 
     private const val TAG = "PixivActionQueue"
 
-    /**
-     * pixiv 对收藏/关注的速率限制没有公开文档，2 秒是实测不触发 429 的保守值。
-     *
-     * 对外可见是为了让批量入队的界面能估算「全部发完大概要多久」——
-     * 一次勾 500 项的批量收藏要跑十几分钟，不先说清楚，用户会以为是卡住了。
-     */
-    internal const val MIN_GAP_MS = 2_000L
+    /** pixiv 对收藏/关注的速率限制没有公开文档，2 秒是实测不触发 429 的保守值。 */
+    private const val MIN_GAP_MS = 2_000L
+
+    private const val MS_PER_MINUTE = 60_000L
 }

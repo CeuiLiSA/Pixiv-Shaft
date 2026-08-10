@@ -63,11 +63,17 @@
       收藏动作走菜单而不是再摊平成第三段：段宽越分越窄，而
       「取消收藏」这类词在 ru / tr 下长得多，摊平一定会截断；菜单行没有宽度约束。
     -->
+    <!--
+      margin / padding 一律用 Start/End 而不是 Horizontal：后者是 API 26 才有的属性，
+      本模块 minSdk 24，在 24/25 上会被静默忽略（不报错，只是没有间距），
+      底栏会直接贴着屏幕两边。
+    -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
+        android:layout_marginStart="12dp"
         android:layout_marginTop="4dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginBottom="12dp"
         android:baselineAligned="false"
         android:orientation="horizontal">
@@ -83,7 +89,8 @@
             android:fontFamily="monospace"
             android:maxLines="1"
             android:minWidth="0dp"
-            android:paddingHorizontal="10dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:textAllCaps="false"
             android:textColor="@color/bulk_action_primary_text"
             android:textSize="12sp"

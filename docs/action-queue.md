@@ -221,11 +221,22 @@ PixivActions.setUserFollow(userId, follow = true, restrict = Params.TYPE_PUBLIC)
 仓库里每个收藏入口都尊重这个开关，门面自己写死 public 等于把用户明确要求保密的收藏
 公开挂到主页上。
 
-**批量入口**（`BulkBookmarkEnqueue`，批量选择页底栏，issue #974）也只是循环调同一个门面，
-不另起写路径。它额外做三件门面管不了的事：剔掉已经是目标态的项（否则 toast 上的数字不等于
-真正会发出去的请求数）、分块 `yield` 让主线程（每项都要写几个 ObjectPool 表示再发一条广播）、
-用进程级 scope（调用方入队后立刻 `finish()`）。一次几百项意味着队列要按 2 秒间隔跑十几分钟，
-所以确认框里明写预计耗时 —— 不说的话用户会当成没生效。
+**批量入口**（批量选择页底栏，issue #974）也在同一个门面里，就是循环调 `setIllustBookmark`：
+
+```kotlin
+val enqueued = PixivActions.setIllustBookmarks(illusts, bookmark = true)  // 返回实际入队条数
+PixivActions.pendingIllustBookmarkCount(illusts, bookmark = true)         // 动手前先问要发几条
+PixivActions.estimatedQueueMinutes(count)                                 // 全部发完约几分钟
+```
+
+「怎么发」全是队列的事，批量侧一件都不重复实现；门面在批量这一层只多做三件单条不需要的事：
+剔掉已经是目标态的项（否则 toast 上的数字不等于真会发出去的请求数）、分块 `yield`
+（每项要写几个 ObjectPool 表示、发一条广播、碰一次 MMKV，几千项连着跑完足够掉帧 ——
+注意 scope **不能**用 `Main.immediate`，那样 `yield()` 退化成空操作，分块等于没写）、
+以及逐项 try/catch（一处抛出会让循环当场结束，剩下的项静默丢掉）。
+
+耗时估算留在 `PixivActionQueue.estimatedMinutes`：节奏是队列定的（`MIN_GAP_MS`），
+不该让调用方去猜一个常量。一次几百项就是十几分钟，确认框里明写 —— 不说的话用户会当成没生效。
 
 HTTP 状态码到 `ActionOutcome` 的翻译在 `PixivActionHandlers.kt`：
 429 / 408 / 400 / 401 / 403 / 5xx / IOException → `Retry`，其余 → `Fail`。

@@ -11,6 +11,14 @@ import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.widgets.RateAppManager
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
+import timber.log.Timber
 
 /**
  * 收藏 / 关注的统一入口。UI 调这里，**立即返回**。
@@ -105,6 +113,81 @@ object PixivActions {
             authorId = bean.user?.id?.toLong(),
             authorFollowed = bean.user?.isIs_followed,
         )
+    }
+
+    // ── 批量收藏 / 取消收藏 ──────────────────────────────────────────────────
+
+    /**
+     * 批量入口专用的 scope（批量选择页底栏，issue #974）。
+     *
+     * **必须是 Main**：[writeIllustBookmarkLocally] 最终写的是 [ObjectPool] 里的
+     * `MutableLiveData.setValue`，子线程调会抛。
+     *
+     * **不能用 `Main.immediate`**：那样 `yield()` 会退化成空操作（`isDispatchNeeded` 在主线程
+     * 恒为假 → 走 `yieldUndispatched()` → 主线程没有 unconfined 队列可入 → 直接返回「没挂起」），
+     * 几千项就会挤在同一个 looper message 里跑完，稳定 ANR。
+     *
+     * **必须自带 [CoroutineExceptionHandler]**（同 [PixivActionQueue] 的 feedbackScope）：
+     * SupervisorJob 只隔离兄弟协程、不吞异常，漏网的抛出会冒到默认处理器上崩进程。
+     *
+     * **必须活得比调用方久**：批量页入队后立刻 `finish()`，挂在它生命周期上的协程会被连坐取消，
+     * 剩下的项就静默丢了 —— 而 toast 已经跟用户说了「已加入队列 N 项」。
+     */
+    private val bulkScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Main +
+            CoroutineExceptionHandler { _, t -> Timber.tag(TAG).e(t, "bulk bookmark scope crashed") }
+    )
+
+    /**
+     * [illusts] 里收藏态还不是 [bookmark] 的项数 —— 也就是**真正会发出去的请求数**。
+     *
+     * UI 要在动手之前就拿到它：勾了 200 项其中 190 项本来就收藏着的话，
+     * 「批量收藏 (200 项)」是句假话，用户会照着它去等一个不会发生的进度。
+     */
+    @JvmStatic
+    fun pendingIllustBookmarkCount(illusts: List<IllustsBean>, bookmark: Boolean): Int =
+        illusts.count { it.isIs_bookmarked != bookmark }
+
+    /**
+     * 批量收藏 / 取消收藏。立即返回**真正入队的项数**（已经是目标态的会被跳过）。
+     *
+     * 就是循环调 [setIllustBookmark]，刻意不另走一条写路径 —— 仓库原本就是「三套并行的收藏
+     * 写法行为各不相同」，这个门面正是为了消灭那类不一致才存在的。请求怎么发、怎么去重、
+     * 怎么退避、进程被杀怎么续，全是 `:actionqueue` 的事，这里一件都不重复实现。
+     *
+     * 门面在这一层只多做两件单条路径不需要的事：
+     *  - **分块 [yield]**：每项要写几个 [ObjectPool] 表示（[Illust] 那一路还带 gson merge）、
+     *    发一条跨列表广播、碰一次 MMKV，几千项连着跑完足够掉帧；
+     *  - **逐项 try/catch**：上面任何一处抛出来都会让整个循环当场结束，而剩下的项就这么
+     *    静默丢了。同仓 [PixivActionQueue] 的事件订阅是同一条理由单独兜每一条事件的。
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun setIllustBookmarks(
+        illusts: List<IllustsBean>,
+        bookmark: Boolean,
+        restrict: String = defaultBookmarkRestrict(),
+    ): Int {
+        val todo = illusts.filter { it.isIs_bookmarked != bookmark }
+        if (todo.isEmpty()) return 0
+        bulkScope.launch {
+            var failed = 0
+            todo.chunked(BULK_CHUNK).forEach { chunk ->
+                chunk.forEach { illust ->
+                    try {
+                        setIllustBookmark(illust, bookmark, restrict)
+                    } catch (ce: CancellationException) {
+                        throw ce
+                    } catch (t: Throwable) {
+                        failed++
+                        Timber.tag(TAG).e(t, "bulk bookmark failed for illust %d", illust.id)
+                    }
+                }
+                yield()
+            }
+            if (failed > 0) Timber.tag(TAG).w("%d of %d items failed to enqueue", failed, todo.size)
+        }
+        return todo.size
     }
 
     /** @param authorFollowed 调用方手上那份作者数据的关注态，见 [autoFollowAuthor]。 */
@@ -353,4 +436,21 @@ object PixivActions {
         }
         LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent)
     }
+
+    /**
+     * 一批动作全部发完大概几分钟 —— 队列是串行 + 最小间隔的，几百项就是十几分钟起步，
+     * 批量入口的确认框要拿它跟用户说清楚，否则会被当成没生效。真正的节奏在
+     * [PixivActionQueue] 手里，这里只是门面的转发（UI 不直接碰队列）。
+     */
+    @JvmStatic
+    fun estimatedQueueMinutes(count: Int): Int = PixivActionQueue.estimatedMinutes(count)
+
+    /**
+     * 批量写入每让一次主线程处理多少项。按一帧 16ms 的预算倒推的悲观值：单项最贵的一路是
+     * `ObjectPool.update(Illust)` 触发的 gson merge，量级到亚毫秒，25 项即使全走最贵路径也还
+     * 在一帧之内；再小只会平白多几百次 looper 往返。
+     */
+    private const val BULK_CHUNK = 25
+
+    private const val TAG = "PixivActions"
 }

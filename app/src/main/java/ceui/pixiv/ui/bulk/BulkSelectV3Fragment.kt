@@ -47,8 +47,8 @@ import kotlinx.coroutines.withContext
  *  - 底部是 MD3-E connected button group（见 fragment_bulk_select_v3.xml）：
  *    · 首段（filled）：把选中的灌入 download_queue（走 LegacyBatchEnqueue），完成后跳转
  *      "下载管理" V3 总览页让用户看到入队进度，然后 finish 当前页
- *    · 尾段（tonal）：批量收藏 / 批量取消收藏（issue #974），走 BulkBookmarkEnqueue →
- *      PixivActions → `:actionqueue` 限流队列
+ *    · 尾段（tonal）：批量收藏 / 批量取消收藏（issue #974），走 PixivActions 门面的批量入口
+ *      → `:actionqueue` 限流队列
  */
 class BulkSelectV3Fragment : Fragment() {
 
@@ -194,15 +194,16 @@ class BulkSelectV3Fragment : Fragment() {
     /**
      * 底栏尾段的 V3 菜单：批量收藏 / 批量取消收藏（issue #974）。
      *
-     * 两项都带**真正会发出去的条数**（已经是目标态的项由 [BulkBookmarkEnqueue.pendingCount]
-     * 剔掉），而不是勾选数 —— 勾了 200 项其中 190 项本来就收藏着的话，「批量收藏 (200 项)」
-     * 是句假话，用户会照着它去等一个不会发生的进度。
+     * 两项都带**真正会发出去的条数**（已经是目标态的项由
+     * [PixivActions.pendingIllustBookmarkCount] 剔掉），而不是勾选数 —— 勾了 200 项其中
+     * 190 项本来就收藏着的话，「批量收藏 (200 项)」是句假话，用户会照着它去等一个不会
+     * 发生的进度。
      */
     private fun showBookmarkActionsMenu() {
         val picked = selectedBeans()
         if (picked.isEmpty()) return
-        val toBookmark = BulkBookmarkEnqueue.pendingCount(picked, bookmark = true)
-        val toUnbookmark = BulkBookmarkEnqueue.pendingCount(picked, bookmark = false)
+        val toBookmark = PixivActions.pendingIllustBookmarkCount(picked, bookmark = true)
+        val toUnbookmark = PixivActions.pendingIllustBookmarkCount(picked, bookmark = false)
         val restrict = PixivActions.defaultBookmarkRestrict()
         val isPrivate = restrict == Params.TYPE_PRIVATE
         val addLabel = getString(
@@ -251,7 +252,7 @@ class BulkSelectV3Fragment : Fragment() {
                 R.string.bulk_bookmark_confirm_message,
                 count,
                 restrictLabel,
-                BulkBookmarkEnqueue.estimatedMinutes(count),
+                PixivActions.estimatedQueueMinutes(count),
             )
         )
         if (Shaft.sSettings.isAutoFollowAfterStar) {
@@ -264,8 +265,11 @@ class BulkSelectV3Fragment : Fragment() {
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.bulk_bookmark_confirm_go, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
-                BulkBookmarkEnqueue.enqueue(picked, bookmark = true, restrict = restrict)
-                requireActivity().finish()
+                enqueueBookmarks(picked, bookmark = true, restrict = restrict)
+                // QMUIDialog 拿的是 Activity context、不跟 fragment 生命周期绑定，
+                // 点到这里时 fragment 可能已经 detach（requireActivity() 会抛）。
+                // 入队本身已经交给进程级 scope，收不收得到这个 finish 都不影响它。
+                activity?.finish()
             }
             .create()
             .show()
@@ -284,7 +288,7 @@ class BulkSelectV3Fragment : Fragment() {
                 getString(
                     R.string.bulk_unbookmark_confirm_message,
                     count,
-                    BulkBookmarkEnqueue.estimatedMinutes(count),
+                    PixivActions.estimatedQueueMinutes(count),
                 )
             )
             .setSkinManager(QMUISkinManager.defaultInstance(ctx))
@@ -292,13 +296,33 @@ class BulkSelectV3Fragment : Fragment() {
             .addAction(0, R.string.bulk_bookmark_confirm_go, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 // restrict 对取消收藏无意义（delete 端点不带），传默认值占位。
-                BulkBookmarkEnqueue.enqueue(
+                enqueueBookmarks(
                     picked, bookmark = false, restrict = PixivActions.defaultBookmarkRestrict(),
                 )
-                requireActivity().finish()
+                // QMUIDialog 拿的是 Activity context、不跟 fragment 生命周期绑定，
+                // 点到这里时 fragment 可能已经 detach（requireActivity() 会抛）。
+                // 入队本身已经交给进程级 scope，收不收得到这个 finish 都不影响它。
+                activity?.finish()
             }
             .create()
             .show()
+    }
+
+    /**
+     * 门面负责入队，这里只把它返回的**实际入队条数**报给用户。
+     *
+     * 报的是返回值而不是确认框上那个数：两者之间隔着一次用户点击，期间队列可能刚好回滚了
+     * 某条失败的收藏，实际要发的条数就变了。
+     */
+    private fun enqueueBookmarks(picked: List<IllustsBean>, bookmark: Boolean, restrict: String) {
+        val enqueued = PixivActions.setIllustBookmarks(picked, bookmark, restrict)
+        if (enqueued == 0) {
+            Toaster.showShort(R.string.bulk_bookmark_nothing)
+            return
+        }
+        val template =
+            if (bookmark) R.string.bulk_bookmark_enqueued else R.string.bulk_unbookmark_enqueued
+        Toaster.showShort(getString(template, enqueued))
     }
 
     /**
