@@ -6,6 +6,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.pixiv.download.DownloadsRegistry
+import ceui.pixiv.download.UgoiraDownloadRecord
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.RelativePath
@@ -35,6 +36,9 @@ object OutPut {
                 }
             }
             handle.onFinish()
+            // 成品 GIF 才算「已完成」里的那条下载记录（issue #920）——
+            // 中间 zip 不再写库，见 [ceui.lisa.core.Manager] 完成分支。
+            UgoiraDownloadRecord.record(illust, handle.uri)
             Common.showToast(string(R.string.save_gif_success))
         } catch (t: Throwable) {
             Timber.e(t, "outPutGif failed")

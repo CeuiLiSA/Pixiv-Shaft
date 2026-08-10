@@ -24,7 +24,10 @@ import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
+import ceui.lisa.activities.VActivity
+import ceui.lisa.core.Container
 import ceui.lisa.core.ManagerReactive
+import ceui.lisa.core.PageData
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadDao
 import ceui.lisa.database.DownloadEntity
@@ -230,6 +233,19 @@ class DoneListV3Fragment : Fragment() {
             openNovel(group)
             return
         }
+        // 动图和小说一样得单独分流：ImageDetailActivity 是静态大图查看器，喂它一个 GIF
+        // （更早是喂中间 zip）只会得到一片黑（issue #920）。回作品详情页，由页面内联的
+        // UgoiraPlayerView 正常逐帧播放。
+        //
+        // 只认 illustGson 里 type=ugoira 的**完整** bean。DownloadImporter 扫进来的行
+        // illustGson 是 `{"id":N,"shaft_imported":true}`，isGif 判不出来也 visible=false，
+        // 送进 VActivity 会走它的「不可见作品」兜底分支去读空的 image_urls；那些行本来就
+        // 指着真正的 .gif 文件，留在原来的查看器里反而是能看的。
+        val ugoira = group.parsedIllust?.takeIf { it.isGif }
+        if (ugoira != null) {
+            openArtwork(ugoira)
+            return
+        }
         // 取该 illust 全部 page 的 filePath（按 fileName 自然顺序）
         val paths: ArrayList<String> = ArrayList(group.allFilePaths)
         val intent = Intent(requireContext(), ImageDetailActivity::class.java)
@@ -237,6 +253,22 @@ class DoneListV3Fragment : Fragment() {
         intent.putExtra("dataType", "下载详情")
         intent.putExtra("index", 0)
         startActivity(intent)
+    }
+
+    /**
+     * 走 [VActivity] 打开单个作品 —— 与 [QueueListV3Fragment.openVActivity] 同一套：
+     * 由它按 `isUseArtworkV3` 分发到 V3 / V2 详情页，不在这里各选一棵树。
+     */
+    private fun openArtwork(illust: IllustsBean) {
+        val ctx = context ?: return
+        val pageData = PageData(listOf(illust))
+        Container.get().addPageToMap(pageData)
+        startActivity(
+            Intent(ctx, VActivity::class.java).apply {
+                putExtra(Params.POSITION, 0)
+                putExtra(Params.PAGE_UUID, pageData.uuid)
+            },
+        )
     }
 
     // fileName 形如 "pixiv_shaft_novel_<id>"；老纪录 / Cache key 改名等异常时

@@ -9,6 +9,7 @@ import ceui.lisa.models.GifResponse
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
 import ceui.pixiv.download.DownloadsRegistry
+import ceui.pixiv.download.UgoiraDownloadRecord
 import ceui.pixiv.download.config.DownloadItems
 import com.blankj.utilcode.util.ZipUtils
 import kotlinx.coroutines.Dispatchers
@@ -86,6 +87,7 @@ suspend fun downloadUgoira(
                 }
             }
             handle.onFinish()
+            UgoiraDownloadRecord.record(illust, handle.uri)
             Timber.tag(TAG).i("[UGOIRA] done via 播放引擎帧序列 illust=$illustId (${frames.files.size}帧, rife=${frames.interpolated}) uri=${handle.uri}")
         } catch (t: Throwable) {
             runCatching { handle.onAbort() }
@@ -176,6 +178,7 @@ suspend fun downloadUgoira(
                     encodeFramesToGif(unzipFolder, resp, bos)
                 }
                 handle.onFinish()
+                UgoiraDownloadRecord.record(illust, handle.uri)
                 Timber.tag(TAG).i("[UGOIRA] done illust=$illustId uri=${handle.uri}")
             } catch (t: Throwable) {
                 // onAbort 让 backend 清掉部分写入的 .pending-NNNN 文件；不调用就会留 0 字节孤儿

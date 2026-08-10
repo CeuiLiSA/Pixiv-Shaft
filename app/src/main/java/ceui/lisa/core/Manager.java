@@ -868,24 +868,33 @@ public class Manager {
             // 已经在上面发出去了，这里都是"附加完成动作"，断了任意一条都不至于让
             // 整个 illust 的下载流程卡死。
             DownloadEntity downloadEntity = null;
-            try {
-                downloadEntity = new DownloadEntity();
-                downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
-                downloadEntity.setFileName(downloadItem.getName());
-                downloadEntity.setDownloadTime(System.currentTimeMillis());
-                downloadEntity.setFilePath(factory.getFileUri().toString());
-                // 已知 illust id，直接 set，insertDownload 就不必再解析 illustGson。
-                downloadEntity.setIllustId(downloadItem.getIllust().getId());
-                // v41 的 page 列：DownloadItem.index 就是 0 基页码。让「已存在则跳过」和
-                // 详情页复用本地文件能按 (illustId, page) 查，不依赖文件叫什么名字。
-                downloadEntity.setPage(downloadItem.getIndex());
-                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(downloadEntity);
-                Common.showLog("[DL-CACHE] db inserted DownloadEntity fileName=" + downloadEntity.getFileName()
-                        + " filePath=" + downloadEntity.getFilePath());
-                ManagerReactive.pokeDoneTable();
-            } catch (Throwable t) {
-                Common.showLog("[DL] DownloadEntity insert failed (file already on disk, skipping 已完成 tab record): " + t);
-                downloadEntity = null;
+            // 动图这条 DownloadItem 下的是 app cache 里的中间 zip
+            // （Android10DownloadFactory22 → LegacyFile.gifZipFile），不是用户拿到的成品。
+            // 把它记进「已完成」，卡片的 filePath 就指着一个压缩包，点开等于拿 zip 当图片
+            // 解码 —— 一片黑（issue #920）。成品 GIF 由 UgoiraDownloadRecord 在真正编完
+            // 落盘后自己记一行；zip 这里不写库、也不发完成广播。
+            if (downloadItem.getIllust().isGif()) {
+                Common.showLog("[DL] ugoira zip is an intermediate artefact, no 已完成 record");
+            } else {
+                try {
+                    downloadEntity = new DownloadEntity();
+                    downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
+                    downloadEntity.setFileName(downloadItem.getName());
+                    downloadEntity.setDownloadTime(System.currentTimeMillis());
+                    downloadEntity.setFilePath(factory.getFileUri().toString());
+                    // 已知 illust id，直接 set，insertDownload 就不必再解析 illustGson。
+                    downloadEntity.setIllustId(downloadItem.getIllust().getId());
+                    // v41 的 page 列：DownloadItem.index 就是 0 基页码。让「已存在则跳过」和
+                    // 详情页复用本地文件能按 (illustId, page) 查，不依赖文件叫什么名字。
+                    downloadEntity.setPage(downloadItem.getIndex());
+                    AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(downloadEntity);
+                    Common.showLog("[DL-CACHE] db inserted DownloadEntity fileName=" + downloadEntity.getFileName()
+                            + " filePath=" + downloadEntity.getFilePath());
+                    ManagerReactive.pokeDoneTable();
+                } catch (Throwable t) {
+                    Common.showLog("[DL] DownloadEntity insert failed (file already on disk, skipping 已完成 tab record): " + t);
+                    downloadEntity = null;
+                }
             }
 
             try {
