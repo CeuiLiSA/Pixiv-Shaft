@@ -125,7 +125,7 @@ abstract class UserFeedFragment(
         val user = preview.user
         val ctx = b.root.context
 
-        // 3 张方形预览图，边长 = 屏宽/3。只显示插画预览（用户裁决：不足留空，见类文档）。
+        // 3 张方形预览图，边长 = 屏宽/3。默认只显示插画预览（不足留空，见类文档）。
         val size = ctx.resources.displayMetrics.widthPixels / 3
         val slots = listOf(b.userShowOne, b.userShowTwo, b.userShowThree)
         slots.forEach { iv ->
@@ -140,11 +140,9 @@ abstract class UserFeedFragment(
         }
         val illusts = preview.illusts
         // 关注列表打开 fillPreviewWithNovelCovers 时，插画不足的位置用小说封面补位
-        //（跳过 novel_thumb 占位图，与作者页 banner 同口径）。
+        //（realCoverUrl 跳过占位图，与作者页 banner 同口径 —— 补位铺一张灰底还不如留空）。
         val novelCovers = if (fillPreviewWithNovelCovers) {
-            preview.novels.orEmpty()
-                .mapNotNull { it.coverUrl }
-                .filterNot { it.contains("/common/images/novel_thumb/") }
+            preview.novels.orEmpty().mapNotNull { it.realCoverUrl }
         } else {
             emptyList()
         }
