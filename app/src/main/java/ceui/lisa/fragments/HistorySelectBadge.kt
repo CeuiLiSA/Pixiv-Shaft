@@ -51,6 +51,10 @@ object HistorySelectBadge {
     /**
      * 增量绑定入口：payload 全是 [PAYLOAD_HISTORY_SELECTION] 时只刷勾标与删除钮（不碰 Glide）
      * 并返回 true；混进不认识的 payload 就返回 false，由框架回落全量绑定。
+     *
+     * 空列表也返回 false：`all {}` 对空集恒真，会把「没有任何变更信息」当成「只有选择态变了」
+     * 而跳掉图片/文字的绑定。今天 FeedAdapter.bindInternal 已经把空 payload 路由到全量绑定、
+     * 走不到这里，但这个判断是本函数自己的契约，不该寄存在调用方的实现细节上。
      */
     fun bindSelectionPayload(
         payloads: List<Any>,
@@ -59,6 +63,7 @@ object HistorySelectBadge {
         selectionMode: Boolean,
         selected: Boolean,
     ): Boolean {
+        if (payloads.isEmpty()) return false
         if (!payloads.all { it === PAYLOAD_HISTORY_SELECTION }) return false
         bindSelection(badge, deleteItem, selectionMode, selected)
         return true
