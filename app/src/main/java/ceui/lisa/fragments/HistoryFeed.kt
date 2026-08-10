@@ -298,6 +298,25 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },
+        // 内容指纹（illustID + time，与 equals 同一套）没变、只有选择态翻转 → 走增量，
+        // 不重跑 Glide。理由见 PAYLOAD_HISTORY_SELECTION 的注释。
+        changePayload = { old, new ->
+            if (old.entity.illustID == new.entity.illustID &&
+                old.entity.time == new.entity.time &&
+                (old.isSelectionMode != new.isSelectionMode || old.isSelected != new.isSelected)
+            ) {
+                PAYLOAD_HISTORY_SELECTION
+            } else {
+                null
+            }
+        },
+        bindPayloads = { cell, payloads ->
+            val item = cell.item
+            HistorySelectBadge.bindSelectionPayload(
+                payloads, cell.binding.selectCheck, cell.binding.deleteItem,
+                item.isSelectionMode, item.isSelected,
+            )
+        },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item
@@ -346,8 +365,9 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
             else -> binding.pSize.isVisible = false
         }
 
-        HistorySelectBadge.bind(binding.selectCheck, item.isSelectionMode, item.isSelected)
-        binding.deleteItem.isVisible = !item.isSelectionMode
+        HistorySelectBadge.bindSelection(
+            binding.selectCheck, binding.deleteItem, item.isSelectionMode, item.isSelected,
+        )
     }
 
 fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedItem, CellHistoryNovelV3Binding> =
@@ -381,6 +401,24 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },
+        // 同 historyIllustRenderer：选择态只刷勾标与删除钮，避免重发 Glide 造成封面闪烁。
+        changePayload = { old, new ->
+            if (old.entity.illustID == new.entity.illustID &&
+                old.entity.time == new.entity.time &&
+                (old.isSelectionMode != new.isSelectionMode || old.isSelected != new.isSelected)
+            ) {
+                PAYLOAD_HISTORY_SELECTION
+            } else {
+                null
+            }
+        },
+        bindPayloads = { cell, payloads ->
+            val item = cell.item
+            HistorySelectBadge.bindSelectionPayload(
+                payloads, cell.binding.selectCheck, cell.binding.deleteItem,
+                item.isSelectionMode, item.isSelected,
+            )
+        },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item
@@ -395,6 +433,7 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
         binding.time.text = historyTimeFormat.format(entity.time)
         binding.badgeAi.isVisible = novel.isCreatedByAI()
 
-        HistorySelectBadge.bind(binding.selectCheck, item.isSelectionMode, item.isSelected)
-        binding.deleteItem.isVisible = !item.isSelectionMode
+        HistorySelectBadge.bindSelection(
+            binding.selectCheck, binding.deleteItem, item.isSelectionMode, item.isSelected,
+        )
     }

@@ -1,7 +1,6 @@
 package ceui.lisa.fragments
 
 import android.content.Intent
-import androidx.core.view.isVisible
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.UActivity
 import ceui.lisa.database.AppDatabase
@@ -147,6 +146,28 @@ fun FragmentHistoryUserList.historyUserRenderer(): FeedRenderer<HistoryUserFeedI
             }
         },
         recycle = { it.binding.userAvatar.clearGlideOnRecycle() },
+        // 选择态变化只刷勾标与删除钮，不重跑头像 Glide。理由见 PAYLOAD_HISTORY_SELECTION。
+        //
+        // 本 tab 的 equals 是 data class 自动生成的（entity + user + 两个选择态），而 GeneralEntity
+        // 与 User 参与的是各自的 equals；选择态回灌走 copy()，两个引用都原样带过来，因此这里按
+        // 引用判「内容没变」比 equals 更严格 —— 严格的那一侧只会多回落全量绑定，不会漏刷。
+        changePayload = { old, new ->
+            if (old.entity === new.entity &&
+                old.user === new.user &&
+                (old.isSelectionMode != new.isSelectionMode || old.isSelected != new.isSelected)
+            ) {
+                PAYLOAD_HISTORY_SELECTION
+            } else {
+                null
+            }
+        },
+        bindPayloads = { cell, payloads ->
+            val item = cell.item
+            HistorySelectBadge.bindSelectionPayload(
+                payloads, cell.binding.selectCheck, cell.binding.deleteItem,
+                item.isSelectionMode, item.isSelected,
+            )
+        },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item
@@ -161,6 +182,7 @@ fun FragmentHistoryUserList.historyUserRenderer(): FeedRenderer<HistoryUserFeedI
             Glide.with(context).load(GlideUtil.getUrl(avatarUrl)).into(binding.userAvatar)
         }
 
-        HistorySelectBadge.bind(binding.selectCheck, item.isSelectionMode, item.isSelected)
-        binding.deleteItem.isVisible = !item.isSelectionMode
+        HistorySelectBadge.bindSelection(
+            binding.selectCheck, binding.deleteItem, item.isSelectionMode, item.isSelected,
+        )
     }
