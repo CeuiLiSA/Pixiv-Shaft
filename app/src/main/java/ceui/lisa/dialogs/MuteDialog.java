@@ -8,6 +8,7 @@ import android.widget.TextView;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,12 +27,21 @@ import ceui.lisa.utils.PixivOperate;
 public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
 
     private IllustsBean mIllust;
+    private List<TagsBean> mTags;
     private final List<TagsBean> selected = new ArrayList<>();
     private final List<Boolean> muteNotEffect = new ArrayList<>();
 
     public static MuteDialog newInstance(IllustsBean illustsBean) {
         Bundle args = new Bundle();
         args.putSerializable(Params.CONTENT, illustsBean);
+        MuteDialog fragment = new MuteDialog();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static MuteDialog newInstance(List<TagsBean> tags) {
+        Bundle args = new Bundle();
+        args.putSerializable(Params.CONTENT, (Serializable) tags);
         MuteDialog fragment = new MuteDialog();
         fragment.setArguments(args);
         return fragment;
@@ -46,7 +56,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
     void initView(View v) {
         // 计算 tag 状态
         List<TagsBean> muted = IllustNovelFilter.getMutedTags();
-        List<TagsBean> illustTags = mIllust.getTags();
+        List<TagsBean> illustTags = mTags;
         Set<Integer> selectedIndex = new HashSet<>();
         for (int i = 0; i < illustTags.size(); i++) {
             TagsBean tagsBean = illustTags.get(i);
@@ -63,7 +73,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
             }
         }
 
-        TagAdapter<TagsBean> adapter = new TagAdapter<TagsBean>(mIllust.getTags()) {
+        TagAdapter<TagsBean> adapter = new TagAdapter<TagsBean>(mTags) {
             @Override
             public View getView(FlowLayout parent, int position, TagsBean o) {
                 View view = View.inflate(mContext, R.layout.recy_single_tag_text, null);
@@ -80,7 +90,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
                 super.onSelected(position, view);
                 ((TextView) view).setTextColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
                 view.setBackgroundResource(R.drawable.tag_stroke_checked_bg);
-                selected.add(mIllust.getTags().get(position));
+                selected.add(mTags.get(position));
             }
 
             @Override
@@ -92,7 +102,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
                     view.setBackgroundResource(R.drawable.tag_stroke_bg);
                 }
                 ((TextView) view).setTextColor(getResources().getColor(R.color.tag_text_unselect));
-                selected.remove(mIllust.getTags().get(position));
+                selected.remove(mTags.get(position));
             }
         };
         baseBind.tagLayout.setAdapter(adapter);
@@ -137,6 +147,12 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
 
     @Override
     public void initBundle(Bundle bundle) {
-        mIllust = ((IllustsBean) bundle.getSerializable(Params.CONTENT));
+        Object content = bundle.getSerializable(Params.CONTENT);
+        if (content instanceof IllustsBean) {
+            mIllust = (IllustsBean) content;
+            mTags = mIllust.getTags();
+        } else if (content instanceof List) {
+            mTags = (List<TagsBean>) content;
+        }
     }
 }

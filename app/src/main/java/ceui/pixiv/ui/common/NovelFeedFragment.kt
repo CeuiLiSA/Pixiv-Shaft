@@ -123,7 +123,7 @@ abstract class NovelFeedFragment(
             // like 不挂：它自己的长按是「按标签收藏」，不能被顶掉。
             val onCardLongPress = View.OnLongClickListener { v ->
                 v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                showNovelCardMenu()
+                showNovelCardMenu(cell.item)
                 true
             }
             listOf(
