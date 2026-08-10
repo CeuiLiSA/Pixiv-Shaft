@@ -46,6 +46,9 @@ import kotlinx.coroutines.launch
  */
 class FollowUserFeedFragment : UserFeedFragment() {
 
+    /** 关注列表里小说家密度高：插画不足 3 张时用小说封面补位（对齐 legacy UAdapter）。 */
+    override val fillPreviewWithNovelCovers: Boolean = true
+
     // legacy 用 int USER_ID（TemplateActivity 路由 getIntExtra / FragmentCollection 传
     // (int) SessionManager.loggedInUid）；loxia 侧接口收 Long，取用处再转。
     private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {

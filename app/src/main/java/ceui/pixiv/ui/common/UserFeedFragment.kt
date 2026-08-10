@@ -39,11 +39,10 @@ private val PAYLOAD_USER_FOLLOW = Any()
  * 粉丝 [ceui.pixiv.ui.user.UserFansFeedFragment]、推荐用户 [ceui.pixiv.ui.user.RecmdUserFeedFragment]、
  * 画师榜 [ceui.pixiv.ui.recommend.ArtistRankFeedFragment]。
  *
- * **3 张预览图只显插画，不足留空——这是用户裁决，适用于本基类的每一个页面，别再翻。**
- * legacy `UAdapter` 在插画不足 3 张时会拿小说封面补位；迁移时问过一轮
- *「关注列表里小说家密度比搜索页高得多，是不是该恢复补位」，答复是**不需要**。
- * 所以 [ceui.loxia.UserPreview.novels] 保持 `List<Any>?`（拿不到封面 URL 也无所谓），
- * 不必为了补位把它改成 `List<Novel>`。
+ * **3 张预览图默认只显插画，不足留空**。legacy `UAdapter` 在插画不足 3 张时会拿小说封面补位；
+ * 关注列表里小说家密度高、空三格观感差，所以由 [ceui.pixiv.ui.user.FollowUserFeedFragment]
+ * 打开 [fillPreviewWithNovelCovers] 恢复补位，其余用户列表页维持「不足留空」。
+ * 补位需要封面 URL，[ceui.loxia.UserPreview.novels] 相应解析为 `List<Novel>`。
  *
  * 卡片布局与交互语义源自 legacy `UAdapter`（迁移时逐条对齐）。**该类已随最后一个调用方一起
  * 删除**，要考古去 git 历史，别在工作区找。
@@ -51,6 +50,13 @@ private val PAYLOAD_USER_FOLLOW = Any()
 abstract class UserFeedFragment(
     @LayoutRes contentLayoutId: Int = R.layout.fragment_feed,
 ) : FeedFragment(contentLayoutId) {
+
+    /**
+     * 插画不足 3 张时是否用小说封面补位（对齐 legacy UAdapter 的行为）。
+     * 默认关：搜索/相关/粉丝等用户列表页保持「不足留空」；
+     * 关注列表由 FollowUserFeedFragment 打开，因为那里小说家密度高、空三格观感差。
+     */
+    protected open val fillPreviewWithNovelCovers: Boolean = false
 
     /**
      * 头像 + 3 张预览图的 Glide 请求管理器，建一次复用（对齐插画侧 [IllustFeedFragment.illustGlide]）。
@@ -119,7 +125,7 @@ abstract class UserFeedFragment(
         val user = preview.user
         val ctx = b.root.context
 
-        // 3 张方形预览图，边长 = 屏宽/3。只显示插画预览（用户裁决：不足留空，见类文档）。
+        // 3 张方形预览图，边长 = 屏宽/3。默认只显示插画预览（不足留空，见类文档）。
         val size = ctx.resources.displayMetrics.widthPixels / 3
         val slots = listOf(b.userShowOne, b.userShowTwo, b.userShowThree)
         slots.forEach { iv ->
@@ -133,9 +139,16 @@ abstract class UserFeedFragment(
             }
         }
         val illusts = preview.illusts
+        // 关注列表打开 fillPreviewWithNovelCovers 时，插画不足的位置用小说封面补位
+        //（realCoverUrl 跳过占位图，与作者页 banner 同口径 —— 补位铺一张灰底还不如留空）。
+        val novelCovers = if (fillPreviewWithNovelCovers) {
+            preview.novels.orEmpty().mapNotNull { it.realCoverUrl }
+        } else {
+            emptyList()
+        }
         slots.forEachIndexed { i, iv ->
-            val illust = illusts.getOrNull(i)
-            val url = illust?.image_urls?.let { it.square_medium ?: it.medium }
+            val url = illusts.getOrNull(i)?.image_urls?.let { it.square_medium ?: it.medium }
+                ?: novelCovers.getOrNull(i - illusts.size)
             userGlide.load(GlideUtil.getUrl(url)).placeholder(R.color.light_bg).into(iv)
         }
 

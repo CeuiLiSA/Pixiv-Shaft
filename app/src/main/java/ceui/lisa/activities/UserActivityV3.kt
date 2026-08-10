@@ -2,6 +2,8 @@ package ceui.lisa.activities
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
@@ -30,10 +32,13 @@ import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.loxia.Client
 import ceui.loxia.Event
+import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.WebUserDetail
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.common.realCoverUrl
+import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayoutMediator
@@ -41,8 +46,10 @@ import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.text.NumberFormat
 
 private const val KEY_TAB_KINDS = "user_v3_tab_kinds"
@@ -74,6 +81,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     // 把旋转前保存的 fragment state 当成「已废弃」清掉。
     private val tabKinds = mutableListOf<TabKind>()
     private var pagerAdapter: FragmentStateAdapter? = null
+    private var novelBannerLoading = false
 
     // user/detail 返回的确定数量(插画/漫画/小说/公开插画收藏),>0 时追加到 tab label 后面。
     // 收藏 tab 用 total_illust_bookmarks_public —— 与 header 统计条同源;小说收藏数 API 不给,不凑。
@@ -236,6 +244,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     // UserBean 池更新 → updateFollowState 重绑关注按钮;
                     // user LiveData 更新 → displayUser 重绑 header UI(幂等)。
                     ObjectPool.updateUser(userResponse.user)
+                    // 下拉刷新后允许重选最新有封面小说(封面可能随新投稿变化)
+                    mUserViewModel.novelBannerFetched = false
+                    mUserViewModel.novelBannerNovel = null
                     mUserViewModel.user.value = userResponse
                     writeBackSelfProfile(userResponse)
                 }
@@ -489,16 +500,15 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // Banner
         val bannerUrl = profile.background_image_url
         if (!bannerUrl.isNullOrEmpty()) {
-            baseBind.bannerImage.visibility = View.VISIBLE
-            // 40% 黑色 overlay 贴在图片像素上 — 用 colorFilter 而不是单独 scrim view，
-            // 和 CollapsingToolbarLayout 的 parallax + contentScrim 不会打架。
-            baseBind.bannerImage.colorFilter = android.graphics.PorterDuffColorFilter(
-                0x66000000.toInt(),
-                android.graphics.PorterDuff.Mode.SRC_ATOP,
-            )
-            Glide.with(mContext).load(GlideUtil.getUrl(bannerUrl)).into(baseBind.bannerImage)
-            baseBind.bannerImage.setOnClickListener {
-                openImageDetail(bannerUrl, "user_${user.id}_profile_banner")
+            showBanner(bannerUrl) { openImageDetail(bannerUrl, "user_${user.id}_profile_banner") }
+        } else if (isNovelistOnly) {
+            // 纯小说作者通常没有 profile 背景图(background_image_url 为空)：
+            // 拉一页小说列表，挑最新一篇有真实封面(非占位图)的作品当 banner。
+            val picked = mUserViewModel.novelBannerNovel
+            when {
+                // 已选过：重建后直接重绑,不重复请求(选择存活在 ViewModel 上)
+                picked != null -> bindNovelCoverBanner(picked)
+                !mUserViewModel.novelBannerFetched -> loadNovelCoverBanner()
             }
         }
 
@@ -558,6 +568,57 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // 收藏数不再进统计条 —— 「收藏」tab label 自带数字(updateTabCount)
 
         // 标签筛选条(issue #569)不再单独请求 —— 改由插画列表首屏回调 onUserIllustFirstPage 驱动,复用同一份数据
+    }
+
+    /**
+     * 显示 header banner。40% 黑色 overlay 贴在图片像素上 —— 用 colorFilter 而不是单独 scrim view，
+     * 和 CollapsingToolbarLayout 的 parallax + contentScrim 不会打架。
+     */
+    private fun showBanner(url: String, onClick: () -> Unit) {
+        baseBind.bannerImage.visibility = View.VISIBLE
+        baseBind.bannerImage.colorFilter = PorterDuffColorFilter(0x66000000, PorterDuff.Mode.SRC_ATOP)
+        Glide.with(mContext).load(GlideUtil.getUrl(url)).into(baseBind.bannerImage)
+        baseBind.bannerImage.setOnClickListener { onClick() }
+    }
+
+    /** 拿某篇小说的封面当 banner，点击进这篇小说（先过「列表点击直接进正文」设置）。 */
+    private fun bindNovelCoverBanner(novel: Novel) {
+        val cover = novel.realCoverUrl ?: return
+        showBanner(cover) {
+            if (tryOpenNovelReaderDirect(novel.id)) return@showBanner
+            startActivity(Intent(this, TemplateActivity::class.java).apply {
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+                putExtra(Params.NOVEL_ID, novel.id)
+            })
+        }
+    }
+
+    /**
+     * 纯小说作者页 banner 兜底：拉一页 /v1/user/novels，挑最新一篇有真实封面（非占位图）的作品。
+     * 选中结果记在 ViewModel 上，Activity 重建后直接重绑、不重复请求；下拉刷新时页面清掉它重选。
+     * 请求失败静默保留渐变占位，且不落 fetched 标记，下次进 displayUser 还能再试。
+     */
+    private fun loadNovelCoverBanner() {
+        if (novelBannerLoading) return
+        novelBannerLoading = true
+        lifecycleScope.launch {
+            val resp = try {
+                Client.appApi.getUserCreatedNovels(userId.toLong())
+            } catch (ce: CancellationException) {
+                // 页面销毁 → lifecycleScope 取消：必须放行，否则协程取消被当成一次「请求失败」吞掉
+                throw ce
+            } catch (ex: Exception) {
+                Timber.w(ex, "拉取小说封面 banner 失败")
+                null
+            } finally {
+                novelBannerLoading = false
+            } ?: return@launch
+
+            mUserViewModel.novelBannerFetched = true
+            val novel = resp.novels.firstOrNull { it.realCoverUrl != null } ?: return@launch
+            mUserViewModel.novelBannerNovel = novel
+            bindNovelCoverBanner(novel)
+        }
     }
 
     private fun displayWebUserDetail(detail: WebUserDetail) {
