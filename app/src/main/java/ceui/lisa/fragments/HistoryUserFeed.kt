@@ -29,6 +29,9 @@ import timber.log.Timber
 // ── FeedItem 模型（原 HistoryUserHolder 的数据部分）。isSelectionMode/isSelected 由
 //    FragmentHistoryUserList.syncSelection 通过 updateItems 回灌，键为 entity.id(uid)。──
 
+/** 历史选择态变化的增量 payload：只刷勾标/删除钮，不重跑头像加载。 */
+private val PAYLOAD_HISTORY_SELECTION = Any()
+
 data class HistoryUserFeedItem(
     val entity: GeneralEntity,
     val user: User?,
@@ -147,6 +150,29 @@ fun FragmentHistoryUserList.historyUserRenderer(): FeedRenderer<HistoryUserFeedI
             }
         },
         recycle = { it.binding.userAvatar.clearGlideOnRecycle() },
+        // 选择态变化（isSelectionMode/isSelected）只刷勾标与删除钮，不重跑头像 Glide 加载。
+        changePayload = { old, new ->
+            // 用户 tab 的 data class equals 是 entity+user+两个选择字段；
+            // 选择流程里 entity/user 引用不变，引用相等即可安全走增量。
+            if (old.entity == new.entity &&
+                old.user === new.user &&
+                (old.isSelectionMode != new.isSelectionMode || old.isSelected != new.isSelected)
+            ) {
+                PAYLOAD_HISTORY_SELECTION
+            } else {
+                null
+            }
+        },
+        bindPayloads = { cell, payloads ->
+            if (payloads.all { it === PAYLOAD_HISTORY_SELECTION }) {
+                val item = cell.item
+                HistorySelectBadge.bind(cell.binding.selectCheck, item.isSelectionMode, item.isSelected)
+                cell.binding.deleteItem.isVisible = !item.isSelectionMode
+                true
+            } else {
+                false
+            }
+        },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item

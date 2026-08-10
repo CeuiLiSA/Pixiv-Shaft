@@ -35,6 +35,9 @@ import java.util.Locale
 /** 历史卡封面高度下限 = 宽的 0.5 倍(对齐改造前 `coerceAtLeast(itemWidth / 2)` 的语义)。 */
 private const val MIN_HISTORY_HEIGHT_RATIO = 0.5f
 
+/** 历史选择态变化的增量 payload：只刷勾标/删除钮，不重跑图片加载。 */
+private val PAYLOAD_HISTORY_SELECTION = Any()
+
 // ── FeedItem 模型（原 HistoryIllustHolder / HistoryNovelHolder 的数据部分）─────────────
 // isSelectionMode / isSelected 由 FragmentHistoryList.syncSelection 通过 updateItems 回灌。
 
@@ -298,6 +301,28 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },
+        // 选择态变化（isSelectionMode/isSelected）只刷勾标与删除钮，不重跑 Glide——
+        // 全量重绑会让 Glide 清掉当前 bitmap 换占位色再异步载入，造成勾选瞬间图片闪烁。
+        changePayload = { old, new ->
+            if (old.entity.illustID == new.entity.illustID &&
+                old.entity.time == new.entity.time &&
+                (old.isSelectionMode != new.isSelectionMode || old.isSelected != new.isSelected)
+            ) {
+                PAYLOAD_HISTORY_SELECTION
+            } else {
+                null
+            }
+        },
+        bindPayloads = { cell, payloads ->
+            if (payloads.all { it === PAYLOAD_HISTORY_SELECTION }) {
+                val item = cell.item
+                HistorySelectBadge.bind(cell.binding.selectCheck, item.isSelectionMode, item.isSelected)
+                cell.binding.deleteItem.isVisible = !item.isSelectionMode
+                true
+            } else {
+                false
+            }
+        },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item
@@ -381,6 +406,27 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },
+        // 同 historyIllustRenderer：选择态只刷勾标与删除钮，避免重发 Glide 造成闪烁。
+        changePayload = { old, new ->
+            if (old.entity.illustID == new.entity.illustID &&
+                old.entity.time == new.entity.time &&
+                (old.isSelectionMode != new.isSelectionMode || old.isSelected != new.isSelected)
+            ) {
+                PAYLOAD_HISTORY_SELECTION
+            } else {
+                null
+            }
+        },
+        bindPayloads = { cell, payloads ->
+            if (payloads.all { it === PAYLOAD_HISTORY_SELECTION }) {
+                val item = cell.item
+                HistorySelectBadge.bind(cell.binding.selectCheck, item.isSelectionMode, item.isSelected)
+                cell.binding.deleteItem.isVisible = !item.isSelectionMode
+                true
+            } else {
+                false
+            }
+        },
     ) { cell ->
         val binding = cell.binding
         val item = cell.item
