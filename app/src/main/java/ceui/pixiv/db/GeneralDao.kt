@@ -41,4 +41,16 @@ interface GeneralDao {
     // 根据 recordType 返回所有 id 列表
     @Query("SELECT id FROM general_table WHERE recordType = :recordType")
     fun getAllIdsByRecordType(recordType: Int): List<Long>
+
+    // 同一 recordType 下再按 entityType 过滤（小说/插画共用 WATCH_LATER 时必须分开，
+    // 否则小说 JSON 会被插画页解析成一张坏卡）。
+    @Query("SELECT id FROM general_table WHERE recordType = :recordType AND entityType = :entityType")
+    fun getAllIdsByRecordTypeAndEntityType(recordType: Int, entityType: Int): List<Long>
+
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType AND entityType = :entityType ORDER BY updatedTime DESC LIMIT :limit OFFSET :offset")
+    fun getByRecordTypeAndEntityType(recordType: Int, entityType: Int, offset: Int, limit: Int = 30): List<GeneralEntity>
+
+    // 只清空某个 recordType + entityType 的记录（小说「清空稍后再看」不能把插画一起删了）。
+    @Query("DELETE FROM general_table WHERE recordType = :recordType AND entityType = :entityType")
+    fun deleteAllByRecordTypeAndEntityType(recordType: Int, entityType: Int)
 }

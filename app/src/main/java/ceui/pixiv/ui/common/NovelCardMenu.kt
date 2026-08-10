@@ -5,7 +5,9 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.dialogs.MuteDialog
 import ceui.lisa.models.TagsBean
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
+import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.ui.bulk.NovelBulkSelectStorage
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
@@ -16,14 +18,32 @@ import com.hjq.toast.Toaster
  *
  * 写成菜单而不是长按直接跳，是为了跟插画卡的手势语义一致 —— 那边长按弹的也是菜单；
  * 长按把人直接扔进一个全屏页，既没有说明也没有反悔的机会。后续要加的小说卡动作
- *（屏蔽此作品、稍后再看…）都往这里加。
+ *（屏蔽、下载这一篇…）都往这里加。
+ *
+ * 已落地：屏蔽此作品（本地遮罩 + 整卡粒子）、屏蔽设定、相关评论、批量操作、单篇下载、稍后再看。
  *
  * 整表快照在 lambda 内部才取：只有真的点了那一项时才复制列表，展开菜单本身零成本
  *（同 [showCardMenu]）。
  */
 internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
     val novel = item.novel
+    val entityWrapper = requireEntityWrapper()
+    val inWatchLater = entityWrapper.isInWatchLater(novel.id)
+    val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
     showV3Menu("NovelFeedCardMenu") {
+        // 屏蔽此作品：本地遮罩（封面模糊 + 粒子），条目留在原位置，点卡片或本项可取消。
+        // 排在最前面——它是长按这张卡最直接的诉求（对齐插画菜单）。
+        val spoilerLabel = getString(
+            if (spoilered) R.string.spoiler_reveal_illust else R.string.spoiler_hide_illust
+        )
+        val spoilerIcon = if (spoilered) {
+            R.drawable.ic_baseline_remove_red_eye_24
+        } else {
+            R.drawable.ic_visibility_off_black_24dp
+        }
+        item(spoilerLabel, spoilerIcon) {
+            setNovelSpoilered(novel.id, !spoilered)
+        }
         // 屏蔽设定：与插画卡同一套屏蔽表（IllustNovelFilter 对 loxia Novel 有同款重载），
         // 只是 MuteDialog 换成喂 tag 列表的重载，不需要 legacy IllustsBean。
         item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
@@ -67,6 +87,19 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
                     }
                 },
             )
+        }
+        val watchLaterLabel = getString(
+            if (inWatchLater) R.string.watch_later_remove else R.string.watch_later_add
+        )
+        item(watchLaterLabel, R.drawable.ic_watch_later_24) {
+            val appContext = requireContext().applicationContext
+            if (inWatchLater) {
+                entityWrapper.removeFromWatchLater(appContext, novel.id)
+                Common.showToast(R.string.watch_later_removed)
+            } else {
+                entityWrapper.addToWatchLater(appContext, novel)
+                Common.showToast(R.string.watch_later_added)
+            }
         }
     }
 }

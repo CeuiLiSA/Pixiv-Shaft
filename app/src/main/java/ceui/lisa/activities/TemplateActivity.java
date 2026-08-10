@@ -101,7 +101,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "浏览记录":
                     return new FragmentHistoryTabs();
                 case "稍后再看":
-                    return new ceui.pixiv.ui.watchlater.WatchLaterFeedFragment();
+                    return new ceui.pixiv.ui.watchlater.WatchLaterTabsFragment();
                 case "网页链接": {
                     String url = intent.getStringExtra(Params.URL);
                     String title = intent.getStringExtra(Params.TITLE);

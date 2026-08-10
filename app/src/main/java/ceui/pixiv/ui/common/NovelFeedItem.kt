@@ -72,6 +72,17 @@ class NovelFeedItem(
         }
 
         /**
+         * 不做任何内容过滤、直接把小说建成条目。给「用户手动存下来的本地快照」用
+         *（小说稍后再看页）：存的时候能存，回来就得看得见——R18 / 屏蔽标签 / 屏蔽画师
+         * 那些全局过滤是冲着发现面去的，不能把用户主动收藏的东西二次滤掉
+         *（同插画侧 [ceui.pixiv.ui.common.IllustFeedItem.rawFromBean] 的约定）。
+         */
+        fun rawFromNovel(novel: Novel?): NovelFeedItem? {
+            if (novel == null) return null
+            return NovelFeedItem(novel)
+        }
+
+        /**
          * 与 legacy [ceui.lisa.core.Mapper] 的小说分支逐条对齐（tag / id / 作者 / R18 过滤）。
          * 走 [IllustNovelFilter] 的 loxia Novel 重载，无需 NovelBean。
          */

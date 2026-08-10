@@ -238,5 +238,15 @@
                 android:layout_marginTop="12dp"
                 app:flexWrap="wrap" />
         </LinearLayout>
+
+        <!-- Telegram spoiler 粒子层（整卡遮盖式模糊）。盖满整卡、按卡圆角裁切；
+             renderer 绑定时按 NovelSpoilerStore 现读状态设 GONE/可见。 -->
+        <ceui.pixiv.widget.SpoilerParticleView
+            android:id="@+id/spoiler_particles"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:visibility="gone"
+            app:spv_cornerRadius="20dp" />
     </androidx.cardview.widget.CardView>
 </layout>

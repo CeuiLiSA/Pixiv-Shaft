@@ -294,7 +294,7 @@ private fun IllustFeedFragment.loadIllustImage(
  * GPU 输出，形参 alpha 是**绘制时**参数，得在每帧 onDraw 里传新值（要么自己起 ValueAnimator
  * 推 invalidate，要么让 view 每帧重绘）；View.alpha 由渲染管线直接处理，一行搞定且不多画一帧。
  */
-private fun renderSpoilerParticles(
+internal fun renderSpoilerParticles(
     view: SpoilerParticleView,
     show: Boolean,
     animate: Boolean,
