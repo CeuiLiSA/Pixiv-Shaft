@@ -339,7 +339,6 @@
     <string name="string_110">作品をシェア</string>
     <string name="string_111">ミュート設定</string>
     <string name="string_112">コメントを見る</string>
-    <string name="string_113">まとめてダウンロード</string>
     <string name="string_114">すき！</string>
     <string name="string_115">0.00 KB / 不明なサイズ</string>
     <string name="string_116">作品ID</string>
@@ -1590,7 +1589,7 @@
     <string name="bulk_bookmark_nothing">選択した作品はすべてその状態です</string>
 
     <!-- 小説の一括操作ページ（issue #974、イラスト側とは別ページ） -->
-    <string name="bulk_select_novel_entry">一括操作</string>
+    <string name="bulk_actions_entry">一括操作</string>
     <string name="bulk_select_novel_title">一括操作 · 小説を選択</string>
     <string name="bulk_select_novel_summary">%1$d 件 · %2$d 件選択中</string>
     <string name="bulk_select_novel_confirm">ダウンロード（%1$d 件）</string>

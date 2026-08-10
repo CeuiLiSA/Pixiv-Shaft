@@ -339,7 +339,6 @@
     <string name="string_110">Поделиться иллюстрациями</string>
     <string name="string_111">Настройки скрытия</string>
     <string name="string_112">Посмотреть комментарии</string>
-    <string name="string_113">Массовая загрузка</string>
     <string name="string_114">Добавить в закладки</string>
     <string name="string_115">0.00KB / размер неизвестен</string>
     <string name="string_116">ID иллюстрации</string>
@@ -1590,7 +1589,7 @@
     <string name="bulk_bookmark_nothing">Все выбранные работы уже в этом состоянии</string>
 
     <!-- Страница массовых действий с новеллами (issue #974, отдельно от иллюстраций) -->
-    <string name="bulk_select_novel_entry">Массовые действия</string>
+    <string name="bulk_actions_entry">Массовые действия</string>
     <string name="bulk_select_novel_title">Массовые действия · Выбор новелл</string>
     <string name="bulk_select_novel_summary">Всего %1$d · выбрано %2$d</string>
     <string name="bulk_select_novel_confirm">Скачать (%1$d новелл)</string>

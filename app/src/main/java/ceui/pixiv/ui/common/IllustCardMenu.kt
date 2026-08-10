@@ -38,8 +38,11 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
                 putExtra(Params.ILLUST_TITLE, bean.title)
             })
         }
-        item(getString(R.string.string_113), R.drawable.ic_file_download_black_24dp) {
-            // 批量下载：整个列表交给 V3 多选页勾选（对齐 legacy IAdapter popup / MultiDownload）
+        // 标签和图标都不再说「下载」：这个入口通向的多选页现在除了下载还能批量收藏 /
+        // 取消收藏（issue #974），继续挂个下载箭头会让用户以为点进去只能下载。
+        // 与小说卡长按菜单共用同一个 bulk_actions_entry —— 两处是同一件事，不该有两套措辞。
+        item(getString(R.string.bulk_actions_entry), R.drawable.ic_select_all_24) {
+            // 整个列表交给 V3 多选页勾选（对齐 legacy IAdapter popup / MultiDownload）
             val beans = currentIllustItems().map { it.bean }
             if (beans.isNotEmpty()) {
                 BulkSelectStorage.put(beans)

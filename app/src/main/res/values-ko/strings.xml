@@ -339,7 +339,6 @@
     <string name="string_110">작품 을 공유 하 다</string>
     <string name="string_111">차단 설정</string>
     <string name="string_112">댓 글 을 보다</string>
-    <string name="string_113">대량 다운로드</string>
     <string name="string_114">수집 하 다.</string>
     <string name="string_115">0.00KB / 연결 되 지 않 음</string>
     <string name="string_116">작품 ID</string>
@@ -1590,7 +1589,7 @@
     <string name="bulk_bookmark_nothing">선택한 작품이 모두 이미 해당 상태입니다</string>
 
     <!-- 소설 일괄 작업 페이지 (issue #974, 일러스트 쪽과 별도) -->
-    <string name="bulk_select_novel_entry">일괄 작업</string>
+    <string name="bulk_actions_entry">일괄 작업</string>
     <string name="bulk_select_novel_title">일괄 작업 · 소설 선택</string>
     <string name="bulk_select_novel_summary">총 %1$d편 · %2$d편 선택됨</string>
     <string name="bulk_select_novel_confirm">다운로드 (%1$d편)</string>

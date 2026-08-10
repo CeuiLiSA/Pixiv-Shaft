@@ -361,7 +361,6 @@
     <string name="string_110">分享作品</string>
     <string name="string_111">屏蔽设定</string>
     <string name="string_112">查看评论</string>
-    <string name="string_113">批量下载</string>
     <string name="string_114">收藏</string>
     <string name="string_115">0.00KB / 未连接</string>
     <string name="string_116">作品ID</string>
@@ -1753,7 +1752,7 @@
     <string name="bulk_bookmark_nothing">选中的作品都已经是该状态</string>
 
     <!-- 小说批量操作页（issue #974，独立于插画那页） -->
-    <string name="bulk_select_novel_entry">批量操作</string>
+    <string name="bulk_actions_entry">批量操作</string>
     <string name="bulk_select_novel_title">批量操作 · 选择小说</string>
     <string name="bulk_select_novel_summary">共 %1$d 篇 · 已选 %2$d 篇</string>
     <string name="bulk_select_novel_confirm">下载选中小说 (%1$d 篇)</string>

@@ -341,7 +341,6 @@
     <string name="string_110">分享作品</string>
     <string name="string_111">遮罩設定</string>
     <string name="string_112">查看評論</string>
-    <string name="string_113">批次下載</string>
     <string name="string_114">收藏</string>
     <string name="string_115">0.00KB /未知大小</string>
     <string name="string_116">作品 ID</string>
@@ -1592,7 +1591,7 @@
     <string name="bulk_bookmark_nothing">選中的作品都已經是該狀態</string>
 
     <!-- 小說批次操作頁（issue #974，獨立於插畫那頁） -->
-    <string name="bulk_select_novel_entry">批次操作</string>
+    <string name="bulk_actions_entry">批次操作</string>
     <string name="bulk_select_novel_title">批次操作 · 選擇小說</string>
     <string name="bulk_select_novel_summary">共 %1$d 篇 · 已選 %2$d 篇</string>
     <string name="bulk_select_novel_confirm">下載選中小說 (%1$d 篇)</string>

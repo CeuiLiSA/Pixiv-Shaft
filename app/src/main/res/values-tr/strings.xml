@@ -339,7 +339,6 @@
     <string name="string_110">Eseri paylaş</string>
     <string name="string_111">Engel ayarları</string>
     <string name="string_112">Yorumları gör</string>
-    <string name="string_113">Çoklu indir</string>
     <string name="string_114">Koleksiyon</string>
     <string name="string_115">0.00KB / Boyut bilinmiyor</string>
     <string name="string_116">Eser ID</string>
@@ -1590,7 +1589,7 @@
     <string name="bulk_bookmark_nothing">Seçilen eserlerin hepsi zaten bu durumda</string>
 
     <!-- Roman toplu işlem sayfası (issue #974, illüstrasyon sayfasından ayrı) -->
-    <string name="bulk_select_novel_entry">Toplu işlem</string>
+    <string name="bulk_actions_entry">Toplu işlem</string>
     <string name="bulk_select_novel_title">Toplu işlem · Roman seç</string>
     <string name="bulk_select_novel_summary">Toplam %1$d · %2$d seçili</string>
     <string name="bulk_select_novel_confirm">İndir (%1$d roman)</string>

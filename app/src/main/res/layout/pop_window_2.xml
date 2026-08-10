@@ -107,7 +107,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:textColor="@color/rank_text_color"
-            android:text="@string/string_113"
+            android:text="@string/bulk_actions_entry"
             android:textSize="15sp"
             android:layout_toEndOf="@+id/s2"
             android:layout_marginStart="@dimen/sixteen_dp"

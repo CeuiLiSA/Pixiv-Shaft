@@ -339,7 +339,6 @@
     <string name="string_110">Share artworks</string>
     <string name="string_111">Mute setting</string>
     <string name="string_112">View comments</string>
-    <string name="string_113">Batch download</string>
     <string name="string_114">Collect</string>
     <string name="string_115">0.00KB / unknown size</string>
     <string name="string_116">Work ID</string>
@@ -1590,7 +1589,7 @@
     <string name="bulk_bookmark_nothing">All selected works are already in that state</string>
 
     <!-- Novel bulk actions page (issue #974, separate from the illustration one) -->
-    <string name="bulk_select_novel_entry">Batch actions</string>
+    <string name="bulk_actions_entry">Batch actions</string>
     <string name="bulk_select_novel_title">Batch actions · Select novels</string>
     <string name="bulk_select_novel_summary">%1$d total · %2$d selected</string>
     <string name="bulk_select_novel_confirm">Download (%1$d novels)</string>

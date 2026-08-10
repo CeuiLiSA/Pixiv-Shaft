@@ -18,7 +18,7 @@ import ceui.pixiv.ui.detail.showV3Menu
  */
 internal fun NovelFeedFragment.showNovelCardMenu() {
     showV3Menu("NovelFeedCardMenu") {
-        item(getString(R.string.bulk_select_novel_entry), R.drawable.ic_select_all_24) {
+        item(getString(R.string.bulk_actions_entry), R.drawable.ic_select_all_24) {
             val novels = currentNovelItems().map { it.novel }
             if (novels.isEmpty()) return@item
             NovelBulkSelectStorage.put(novels)
