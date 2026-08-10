@@ -172,7 +172,12 @@ open class RecmdIllustFeedFragment(
     }
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
-        return listOf(rankHeaderRenderer(), staggerIllustRenderer())
+        return listOf(
+            rankHeaderRenderer(),
+            // RecmdIllustFeedFragment 也承载独立「推荐漫画」页；粒子只覆盖 MainActivity
+            // 首页的推荐插画 item，不能借共享 renderer 泄漏到其它 IllustFeed 页面。
+            staggerIllustRenderer(showSpoilerParticles = dataType == TYPE_ILLUST),
+        )
     }
 
     private fun rankHeaderRenderer() = feedRenderer<RankPreviewHeaderItem, RecyRecmdHeaderBinding>(

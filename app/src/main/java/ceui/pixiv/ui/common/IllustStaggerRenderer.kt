@@ -39,7 +39,9 @@ private const val MAX_HEIGHT_RATIO = 2.0f
  * 随 view 生死（[FeedFragment.onDestroyView] 清 adapter），引用 Fragment 安全 —— 不违反
  * `feedViewModels` 的零捕获约定（那条约定管的是 VM 长期持有的 FeedSource / mapper）。
  */
-internal fun IllustFeedFragment.staggerIllustRenderer():
+internal fun IllustFeedFragment.staggerIllustRenderer(
+    showSpoilerParticles: Boolean = false,
+):
         FeedRenderer<IllustFeedItem, RecyIllustStaggerBinding> =
     feedRenderer<IllustFeedItem, RecyIllustStaggerBinding>(
         inflate = RecyIllustStaggerBinding::inflate,
@@ -88,9 +90,18 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             }
         },
         recycle = { cell ->
+            cell.binding.spoilerParticles.setParticleAnimationRunning(false)
             illustGlide.clear(cell.binding.illustImage)
             cell.binding.illustImage.tag = null
             resetLikeAnim(cell.binding)
+        },
+        attach = { cell ->
+            if (showSpoilerParticles) {
+                cell.binding.spoilerParticles.setParticleAnimationRunning(true)
+            }
+        },
+        detach = { cell ->
+            cell.binding.spoilerParticles.setParticleAnimationRunning(false)
         },
         changePayload = ::illustLikeChangePayload,
         bindPayloads = { cell, payloads ->
@@ -113,6 +124,11 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             1f
         }
         cell.binding.illustImage.setHeightRatio(ratio)
+
+        // 只在首页推荐插画启用；View 本身不 clickable，不会截走卡片点击/长按。
+        // 预取阶段即使完成 bind，也要等 holder attach 后才真正开始逐帧模拟。
+        cell.binding.spoilerParticles.isVisible = showSpoilerParticles
+        cell.binding.spoilerParticles.setParticleAnimationRunning(showSpoilerParticles)
 
         val imgUrl = if (Shaft.sSettings.isShowLargeThumbnailImage()) {
             GlideUtil.getLargeImage(bean)

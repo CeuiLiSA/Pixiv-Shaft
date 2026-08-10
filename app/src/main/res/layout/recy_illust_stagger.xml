@@ -37,6 +37,16 @@
                 android:layout_height="wrap_content"
                 android:scaleType="centerCrop" />
 
+            <!-- Telegram SpoilerEffect2 的共享 GPU 纹理宿主。共享卡片布局里的其他列表会在
+                 renderer 绑定时设为 GONE；角标和收藏按钮排在它后面，保持清晰可操作。 -->
+            <ceui.pixiv.widget.SpoilerParticleView
+                android:id="@+id/spoiler_particles"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:visibility="gone"
+                app:spv_cornerRadius="@dimen/eight_dp" />
+
 
             <LinearLayout
                 android:layout_width="wrap_content"
