@@ -35,7 +35,6 @@ import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.BackupUtils;
 import ceui.lisa.utils.BackupUtils.BackupEntity;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
@@ -309,7 +308,6 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                         dialog.dismiss();
                         target.getUser().setIs_login(true);
                         Local.saveUser(target);
-                        Dev.refreshUser = true;
                         Common.restart();
                     }
                 })

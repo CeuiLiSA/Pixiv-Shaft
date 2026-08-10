@@ -37,7 +37,6 @@ import ceui.lisa.databinding.ItemLanguageRowBinding
 import ceui.lisa.models.UserModel
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.Dev
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import ceui.pixiv.i18n.AppLocales
@@ -536,7 +535,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             return
         }
         Local.saveUser(exportUser)
-        Dev.refreshUser = true
         UserEntity().apply {
             loginTime = System.currentTimeMillis()
             userID = exportUser.user.id

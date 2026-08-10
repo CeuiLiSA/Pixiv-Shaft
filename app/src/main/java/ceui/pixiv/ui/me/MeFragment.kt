@@ -53,8 +53,8 @@ class MeFragment : Fragment(R.layout.fragment_me) {
         // hero 不需要 statusBar top padding —— 背景图就该延伸到 status bar 下面;
         // 内容(avatar 行)靠 layout_gravity=bottom 自然在底部,不受 inset 影响。
 
-        // 头像/昵称跟随会话变化自动重绑：登录态、切号、编辑资料、前台静默同步都会 post 新值。
-        // LiveData 首次 observe 会立即回调当前值，等价于原来的 bindUserHeader(view)。
+        // 头像/昵称跟随会话变化自动重绑:登录态、切号、编辑资料、前台静默同步都会写回新值。
+        // observe 会在视图 STARTED 时先回放一次当前账号完成首绑,取代原来的 bindUserHeader(view)。
         SessionManager.loggedInAccount.observe(viewLifecycleOwner) { bindUserHeader(view) }
         bindHeroBackground(view)
         bindStatsRow(view)

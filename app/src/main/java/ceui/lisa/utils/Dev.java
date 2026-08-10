@@ -2,8 +2,6 @@ package ceui.lisa.utils;
 
 public class Dev {
 
-    public static boolean refreshUser = false;
-
     public static boolean hideMainActivityStatus = true;
 
 
