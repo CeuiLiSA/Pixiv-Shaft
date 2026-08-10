@@ -15,18 +15,26 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
+import ceui.lisa.utils.Params
+import ceui.pixiv.actions.PixivActions
+import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.download.DownloadExportLinks
 import ceui.pixiv.ui.download.originalUrlsOf
 import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * V3 风格批量下载 · 多选页。
+ * V3 风格批量操作 · 多选页。
  *
  * 入口：IAdapter / TagAdapter 长按 → MultiDownload.startDownload() → TemplateActivity("批量选择") →
  *       本 fragment 取 BulkSelectStorage.consume() 拿到列表
@@ -36,8 +44,11 @@ import kotlinx.coroutines.withContext
  *    走 toolbar「全选」一下即可）
  *  - 全选 / 反选 在 toolbar 右上 menu（不再占用底部 bar）
  *  - 选中态：粗 v3_blue 边框 + 实色圆形勾标 + 微缩小 0.94，三层视觉差
- *  - 确认按钮：把选中的灌入 download_queue（走 LegacyBatchEnqueue），完成后跳转
- *    "下载管理" V3 总览页让用户看到入队进度，然后 finish 当前页
+ *  - 底部是 MD3-E connected button group（见 fragment_bulk_select_v3.xml）：
+ *    · 首段（filled）：把选中的灌入 download_queue（走 LegacyBatchEnqueue），完成后跳转
+ *      "下载管理" V3 总览页让用户看到入队进度，然后 finish 当前页
+ *    · 尾段（tonal）：批量收藏 / 批量取消收藏（issue #974），走 BulkBookmarkEnqueue →
+ *      PixivActions → `:actionqueue` 限流队列
  */
 class BulkSelectV3Fragment : Fragment() {
 
@@ -57,6 +68,7 @@ class BulkSelectV3Fragment : Fragment() {
     private lateinit var toolbar: Toolbar
     private lateinit var hint: TextView
     private lateinit var btnConfirm: Button
+    private lateinit var btnBookmarkActions: View
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -92,6 +104,8 @@ class BulkSelectV3Fragment : Fragment() {
 
         hint = view.findViewById(R.id.hint)
         btnConfirm = view.findViewById(R.id.btnConfirm)
+        btnBookmarkActions = view.findViewById(R.id.btnBookmarkActions)
+        btnBookmarkActions.setOnClickListener { showBookmarkActionsMenu() }
 
         val grid = view.findViewById<RecyclerView>(R.id.grid)
         grid.layoutManager = GridLayoutManager(requireContext(), 3)
@@ -103,6 +117,7 @@ class BulkSelectV3Fragment : Fragment() {
             hint.text = getString(R.string.bulk_select_no_items)
             btnConfirm.isEnabled = false
             btnConfirm.text = "—"
+            setBookmarkActionsEnabled(false)
             // 没东西可选，菜单也禁用了避免误导
             toolbar.menu.findItem(R.id.action_select_toggle)?.isEnabled = false
             toolbar.menu.findItem(R.id.action_export)?.isEnabled = false
@@ -110,6 +125,7 @@ class BulkSelectV3Fragment : Fragment() {
         }
         hint.text = getString(R.string.bulk_select_loading)
         btnConfirm.isEnabled = false
+        setBookmarkActionsEnabled(false)
         viewLifecycleOwner.lifecycleScope.launch {
             val prepared = withContext(Dispatchers.IO) {
                 raw.map { illust ->
@@ -171,6 +187,130 @@ class BulkSelectV3Fragment : Fragment() {
         }
     }
 
+    /** 当前勾选的 legacy bean 快照。收藏链路读的就是这份可变共享实例。 */
+    private fun selectedBeans(): List<IllustsBean> =
+        items.filter { it.selected && it.selectable }.map { it.illust }
+
+    /**
+     * 底栏尾段的 V3 菜单：批量收藏 / 批量取消收藏（issue #974）。
+     *
+     * 两项都带**真正会发出去的条数**（已经是目标态的项由 [BulkBookmarkEnqueue.pendingCount]
+     * 剔掉），而不是勾选数 —— 勾了 200 项其中 190 项本来就收藏着的话，「批量收藏 (200 项)」
+     * 是句假话，用户会照着它去等一个不会发生的进度。
+     */
+    private fun showBookmarkActionsMenu() {
+        val picked = selectedBeans()
+        if (picked.isEmpty()) return
+        val toBookmark = BulkBookmarkEnqueue.pendingCount(picked, bookmark = true)
+        val toUnbookmark = BulkBookmarkEnqueue.pendingCount(picked, bookmark = false)
+        val restrict = PixivActions.defaultBookmarkRestrict()
+        val isPrivate = restrict == Params.TYPE_PRIVATE
+        val addLabel = getString(
+            if (isPrivate) R.string.bulk_bookmark_menu_add_private
+            else R.string.bulk_bookmark_menu_add,
+            toBookmark,
+        )
+        showV3Menu("BulkBookmarkMenu") {
+            item(addLabel, R.drawable.ic_like_heart_fill) {
+                confirmBookmark(picked, toBookmark, restrict, isPrivate)
+            }
+            item(
+                getString(R.string.bulk_bookmark_menu_remove, toUnbookmark),
+                R.drawable.ic_like_heart_outline,
+            ) {
+                confirmUnbookmark(picked, toUnbookmark)
+            }
+        }
+    }
+
+    /**
+     * 收藏前的确认框。要讲清三件用户看不见但影响很大的事：会收进公开还是私密（跟随「私密收藏」
+     * 设置，和单张爱心同一个判据）、请求是排队逐条发的、以及全部发完大概要多久 —— 队列按
+     * 最小间隔串行，勾几百项就是十几分钟，不说清楚会被当成没生效。
+     *
+     * 「收藏后自动关注作者」开着时额外补一句：那会让未关注的作者一并进关注队列，
+     * 单张收藏时这是一次不起眼的副作用，批量时却是一次性关注几十上百个人。
+     */
+    private fun confirmBookmark(
+        picked: List<IllustsBean>,
+        count: Int,
+        restrict: String,
+        isPrivate: Boolean,
+    ) {
+        if (count == 0) {
+            Toaster.showShort(R.string.bulk_bookmark_nothing)
+            return
+        }
+        val ctx = context ?: return
+        val restrictLabel = getString(
+            if (isPrivate) R.string.bulk_bookmark_restrict_private
+            else R.string.bulk_bookmark_restrict_public
+        )
+        val message = StringBuilder(
+            getString(
+                R.string.bulk_bookmark_confirm_message,
+                count,
+                restrictLabel,
+                BulkBookmarkEnqueue.estimatedMinutes(count),
+            )
+        )
+        if (Shaft.sSettings.isAutoFollowAfterStar) {
+            message.append(getString(R.string.bulk_bookmark_confirm_autofollow))
+        }
+        QMUIDialog.MessageDialogBuilder(ctx)
+            .setTitle(R.string.bulk_bookmark_confirm_title)
+            .setMessage(message.toString())
+            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .addAction(R.string.cancel) { d, _ -> d.dismiss() }
+            .addAction(0, R.string.bulk_bookmark_confirm_go, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+                d.dismiss()
+                BulkBookmarkEnqueue.enqueue(picked, bookmark = true, restrict = restrict)
+                requireActivity().finish()
+            }
+            .create()
+            .show()
+    }
+
+    /** 取消收藏的确认框。这一支是删数据且没有撤销，所以按钮用 NEGATIVE 语义。 */
+    private fun confirmUnbookmark(picked: List<IllustsBean>, count: Int) {
+        if (count == 0) {
+            Toaster.showShort(R.string.bulk_bookmark_nothing)
+            return
+        }
+        val ctx = context ?: return
+        QMUIDialog.MessageDialogBuilder(ctx)
+            .setTitle(R.string.bulk_unbookmark_confirm_title)
+            .setMessage(
+                getString(
+                    R.string.bulk_unbookmark_confirm_message,
+                    count,
+                    BulkBookmarkEnqueue.estimatedMinutes(count),
+                )
+            )
+            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .addAction(R.string.cancel) { d, _ -> d.dismiss() }
+            .addAction(0, R.string.bulk_bookmark_confirm_go, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                d.dismiss()
+                // restrict 对取消收藏无意义（delete 端点不带），传默认值占位。
+                BulkBookmarkEnqueue.enqueue(
+                    picked, bookmark = false, restrict = PixivActions.defaultBookmarkRestrict(),
+                )
+                requireActivity().finish()
+            }
+            .create()
+            .show()
+    }
+
+    /**
+     * 尾段的禁用态。它是个 LinearLayout，[View.setEnabled] 只会把自己的
+     * background selector 切到 disabled 那支，里面两个 ImageView 的 tint 不跟着走 ——
+     * 所以另外压一层 alpha，让图标也一起暗下去。
+     */
+    private fun setBookmarkActionsEnabled(enabled: Boolean) {
+        btnBookmarkActions.isEnabled = enabled
+        btnBookmarkActions.alpha = if (enabled) 1f else 0.4f
+    }
+
     private fun selectAllToggle() {
         val anyUnselected = items.any { it.selectable && !it.selected }
         val target = anyUnselected // 有未选 → 全选；否则 → 全不选
@@ -204,8 +344,9 @@ class BulkSelectV3Fragment : Fragment() {
         } else {
             getString(R.string.bulk_select_confirm_empty)
         }
-        // 导出按钮跟 confirm 同步：没勾选 → 没东西可导
+        // 导出按钮、收藏动作都跟 confirm 同步：没勾选 → 没东西可做
         toolbar.menu.findItem(R.id.action_export)?.isEnabled = selected > 0
+        setBookmarkActionsEnabled(selected > 0)
         refreshSelectToggleIcon(selected)
     }
 

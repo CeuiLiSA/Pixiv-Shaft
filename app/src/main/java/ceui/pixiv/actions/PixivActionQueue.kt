@@ -340,6 +340,11 @@ object PixivActionQueue {
 
     private const val TAG = "PixivActionQueue"
 
-    /** pixiv 对收藏/关注的速率限制没有公开文档，2 秒是实测不触发 429 的保守值。 */
-    private const val MIN_GAP_MS = 2_000L
+    /**
+     * pixiv 对收藏/关注的速率限制没有公开文档，2 秒是实测不触发 429 的保守值。
+     *
+     * 对外可见是为了让批量入队的界面能估算「全部发完大概要多久」——
+     * 一次勾 500 项的批量收藏要跑十几分钟，不先说清楚，用户会以为是卡住了。
+     */
+    internal const val MIN_GAP_MS = 2_000L
 }

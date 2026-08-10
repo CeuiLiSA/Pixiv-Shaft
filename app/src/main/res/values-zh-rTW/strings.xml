@@ -1558,7 +1558,7 @@
     <string name="more_actions">更多</string>
     <string name="bulk_type_illust">插畫</string>
     <string name="bulk_type_manga">漫畫</string>
-    <string name="bulk_select_title">批次下載 · 選擇作品</string>
+    <string name="bulk_select_title">批次操作 · 選擇作品</string>
     <string name="bulk_download_summary">批次下載完成：共 %1$d 個，成功 %2$d，失敗 %3$d</string>
     <string name="bulk_select_select_all">全選</string>
     <string name="bulk_select_clear_all">取消全選</string>
@@ -1571,8 +1571,25 @@
     <string name="bulk_select_loading">載入中…</string>
     <string name="bulk_select_summary">共 %1$d 項 · 已選 %2$d 項 (%3$d 張圖)</string>
     <string name="bulk_select_summary_with_gif">共 %1$d 項 · 已選 %2$d 項 (%3$d 張圖) · 跳過 %4$d 個動圖（請到作品頁單獨下載）</string>
-    <string name="bulk_select_confirm">加入下載佇列 (%1$d 項 / %2$d 張圖) →</string>
+    <string name="bulk_select_confirm">加入下載佇列 (%1$d 項 / %2$d 張)</string>
     <string name="bulk_select_confirm_empty">請至少選擇 1 項</string>
+
+    <!-- 批次收藏 / 取消收藏（走 :actionqueue 限流佇列） -->
+    <string name="bulk_bookmark_actions">批次收藏操作</string>
+    <string name="bulk_bookmark_menu_add">批次收藏 (%1$d 項)</string>
+    <string name="bulk_bookmark_menu_add_private">批次私密收藏 (%1$d 項)</string>
+    <string name="bulk_bookmark_menu_remove">批次取消收藏 (%1$d 項)</string>
+    <string name="bulk_bookmark_restrict_public">公開收藏</string>
+    <string name="bulk_bookmark_restrict_private">私密收藏</string>
+    <string name="bulk_bookmark_confirm_title">批次收藏</string>
+    <string name="bulk_bookmark_confirm_message">將把 %1$d 項作品加入%2$s。\n\n請求會進入佇列逐條送出（避免觸發 pixiv 限流），全部送完約需 %3$d 分鐘。</string>
+    <string name="bulk_bookmark_confirm_autofollow">\n\n「收藏後自動追蹤作者」已開啟，未追蹤的作者會一併進入追蹤佇列。</string>
+    <string name="bulk_unbookmark_confirm_title">批次取消收藏</string>
+    <string name="bulk_unbookmark_confirm_message">將取消 %1$d 項作品的收藏，此操作無法復原。\n\n請求會進入佇列逐條送出（避免觸發 pixiv 限流），全部送完約需 %2$d 分鐘。</string>
+    <string name="bulk_bookmark_confirm_go">開始</string>
+    <string name="bulk_bookmark_enqueued">已加入佇列：收藏 %1$d 項</string>
+    <string name="bulk_unbookmark_enqueued">已加入佇列：取消收藏 %1$d 項</string>
+    <string name="bulk_bookmark_nothing">選中的作品都已經是該狀態</string>
     <string name="bulk_enqueue_empty">沒有可入隊的作品</string>
     <string name="bulk_enqueue_truncated">數量過多，已截斷至 %1$d 項</string>
     <string name="bulk_enqueue_started">已發起入隊 %1$d 項</string>

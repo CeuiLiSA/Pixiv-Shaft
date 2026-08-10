@@ -115,6 +115,8 @@
     <color name="v3_blue">#3D8BFD</color>
     <!-- 夜间用更亮的 v3_blue 30% 透明,在 dark 图上更明显 (#4D = 30%) -->
     <color name="bulk_select_scrim">#4D3D8BFD</color>
+    <!-- 批量操作底栏尾段(MD3-E tonal 按钮)底色:夜间用更亮的 v3_blue 14% 透明 -->
+    <color name="bulk_action_tonal">#243D8BFD</color>
     <color name="v3_green">#2DD4A8</color>
     <color name="v3_purple">#9F7AEA</color>
     <!-- 评论毛玻璃卡片:抬升的炭黑 95%,从近黑背景上浮起,浅色文字可读 -->

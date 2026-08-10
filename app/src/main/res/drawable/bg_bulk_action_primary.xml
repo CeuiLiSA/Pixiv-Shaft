@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  批量操作底栏 · MD3-E connected button group 的**首段**（下载 CTA）。
+
+  三个 MD3-E 特征都在这里：
+   - **不对称圆角**：朝外的一侧接近全圆（24dp），朝内、紧贴下一段的一侧收成 8dp，
+     让两段读起来是「一组」而不是「两个各自独立的按钮」。
+   - **按压形变（shape morph）**：按下时四角一起收到 12dp。MD3-E 用形状而不是只用
+     颜色来做按压反馈，深浅两套主题下都看得见。
+   - **filled 层级**：本段是主操作，用主题强调色实心底 + 白字；尾段是 tonal。
+
+  禁用态（一项都没勾选）换成中性的 v3_surface_2，文字色由
+  color/bulk_action_primary_text 的 selector 跟着切。
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#33FFFFFF">
+    <item>
+        <selector>
+            <item android:state_enabled="false">
+                <shape android:shape="rectangle">
+                    <corners
+                        android:bottomLeftRadius="24dp"
+                        android:bottomRightRadius="8dp"
+                        android:topLeftRadius="24dp"
+                        android:topRightRadius="8dp" />
+                    <solid android:color="@color/v3_surface_2" />
+                </shape>
+            </item>
+            <item android:state_pressed="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="@color/v3_blue" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners
+                        android:bottomLeftRadius="24dp"
+                        android:bottomRightRadius="8dp"
+                        android:topLeftRadius="24dp"
+                        android:topRightRadius="8dp" />
+                    <solid android:color="@color/v3_blue" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

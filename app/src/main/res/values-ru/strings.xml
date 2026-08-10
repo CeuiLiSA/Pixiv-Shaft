@@ -1556,7 +1556,7 @@
     <string name="more_actions">Ещё</string>
     <string name="bulk_type_illust">иллюстрации</string>
     <string name="bulk_type_manga">манга</string>
-    <string name="bulk_select_title">Массовая загрузка · Выбор работ</string>
+    <string name="bulk_select_title">Массовые действия · Выбор работ</string>
     <string name="bulk_download_summary">Массовая загрузка завершена: всего %1$d, успешно %2$d, с ошибкой %3$d</string>
     <string name="bulk_select_select_all">Выбрать всё</string>
     <string name="bulk_select_clear_all">Снять выбор</string>
@@ -1569,8 +1569,25 @@
     <string name="bulk_select_loading">Загрузка…</string>
     <string name="bulk_select_summary">Всего %1$d · выбрано %2$d (%3$d изобр.)</string>
     <string name="bulk_select_summary_with_gif">Всего %1$d · выбрано %2$d (%3$d изобр.) · пропущено GIF: %4$d (скачайте со страницы иллюстрации)</string>
-    <string name="bulk_select_confirm">Добавить в очередь (%1$d работ / %2$d изобр.) →</string>
+    <string name="bulk_select_confirm">Скачать (%1$d / %2$d изобр.)</string>
     <string name="bulk_select_confirm_empty">Выберите хотя бы 1</string>
+
+    <!-- Массовое добавление / удаление закладок (через очередь :actionqueue) -->
+    <string name="bulk_bookmark_actions">Массовые действия с закладками</string>
+    <string name="bulk_bookmark_menu_add">Добавить в закладки (%1$d)</string>
+    <string name="bulk_bookmark_menu_add_private">Добавить в скрытые закладки (%1$d)</string>
+    <string name="bulk_bookmark_menu_remove">Убрать из закладок (%1$d)</string>
+    <string name="bulk_bookmark_restrict_public">открытые закладки</string>
+    <string name="bulk_bookmark_restrict_private">скрытые закладки</string>
+    <string name="bulk_bookmark_confirm_title">Массовые закладки</string>
+    <string name="bulk_bookmark_confirm_message">%1$d работ будут добавлены в %2$s.\n\nЗапросы отправляются по одному через очередь (чтобы не поймать ограничение pixiv); на отправку всех уйдёт около %3$d мин.</string>
+    <string name="bulk_bookmark_confirm_autofollow">\n\nВключено «Автоподписка на автора после добавления в закладки»: авторы, на которых вы ещё не подписаны, тоже попадут в очередь подписок.</string>
+    <string name="bulk_unbookmark_confirm_title">Массовое удаление закладок</string>
+    <string name="bulk_unbookmark_confirm_message">Закладки будут убраны у %1$d работ. Отменить это нельзя.\n\nЗапросы отправляются по одному через очередь (чтобы не поймать ограничение pixiv); на отправку всех уйдёт около %2$d мин.</string>
+    <string name="bulk_bookmark_confirm_go">Начать</string>
+    <string name="bulk_bookmark_enqueued">В очереди: добавить в закладки %1$d</string>
+    <string name="bulk_unbookmark_enqueued">В очереди: убрать из закладок %1$d</string>
+    <string name="bulk_bookmark_nothing">Все выбранные работы уже в этом состоянии</string>
     <string name="bulk_enqueue_empty">Нет работ для очереди</string>
     <string name="bulk_enqueue_truncated">Слишком много элементов, обрезано до %1$d</string>
     <string name="bulk_enqueue_started">Добавляем в очередь: %1$d</string>

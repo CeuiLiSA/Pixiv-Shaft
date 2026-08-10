@@ -1556,7 +1556,7 @@
     <string name="more_actions">More</string>
     <string name="bulk_type_illust">illustrations</string>
     <string name="bulk_type_manga">manga</string>
-    <string name="bulk_select_title">Batch download · Select works</string>
+    <string name="bulk_select_title">Batch actions · Select works</string>
     <string name="bulk_download_summary">Batch download finished: %1$d total, %2$d succeeded, %3$d failed</string>
     <string name="bulk_select_select_all">Select all</string>
     <string name="bulk_select_clear_all">Deselect all</string>
@@ -1569,8 +1569,25 @@
     <string name="bulk_select_loading">Loading…</string>
     <string name="bulk_select_summary">%1$d total · %2$d selected (%3$d images)</string>
     <string name="bulk_select_summary_with_gif">%1$d total · %2$d selected (%3$d images) · %4$d GIFs skipped (download from artwork page)</string>
-    <string name="bulk_select_confirm">Enqueue (%1$d works / %2$d images) →</string>
+    <string name="bulk_select_confirm">Download (%1$d works / %2$d imgs)</string>
     <string name="bulk_select_confirm_empty">Select at least 1</string>
+
+    <!-- Bulk bookmark / unbookmark (goes through the :actionqueue rate-limited queue) -->
+    <string name="bulk_bookmark_actions">Bulk bookmark actions</string>
+    <string name="bulk_bookmark_menu_add">Bookmark %1$d works</string>
+    <string name="bulk_bookmark_menu_add_private">Bookmark %1$d works privately</string>
+    <string name="bulk_bookmark_menu_remove">Remove bookmark from %1$d works</string>
+    <string name="bulk_bookmark_restrict_public">public bookmarks</string>
+    <string name="bulk_bookmark_restrict_private">private bookmarks</string>
+    <string name="bulk_bookmark_confirm_title">Bulk bookmark</string>
+    <string name="bulk_bookmark_confirm_message">%1$d works will be added to your %2$s.\n\nRequests are sent one by one through a queue (to avoid pixiv rate limits); it takes about %3$d minute(s) to send them all.</string>
+    <string name="bulk_bookmark_confirm_autofollow">\n\n“Auto-follow artist after bookmarking” is on, so artists you do not follow yet will be queued for following as well.</string>
+    <string name="bulk_unbookmark_confirm_title">Bulk remove bookmark</string>
+    <string name="bulk_unbookmark_confirm_message">Bookmarks will be removed from %1$d works. This cannot be undone.\n\nRequests are sent one by one through a queue (to avoid pixiv rate limits); it takes about %2$d minute(s) to send them all.</string>
+    <string name="bulk_bookmark_confirm_go">Start</string>
+    <string name="bulk_bookmark_enqueued">Queued: bookmark %1$d works</string>
+    <string name="bulk_unbookmark_enqueued">Queued: remove bookmark from %1$d works</string>
+    <string name="bulk_bookmark_nothing">All selected works are already in that state</string>
     <string name="bulk_enqueue_empty">No works to enqueue</string>
     <string name="bulk_enqueue_truncated">Too many items, truncated to %1$d</string>
     <string name="bulk_enqueue_started">Enqueueing %1$d items</string>

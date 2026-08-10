@@ -1556,7 +1556,7 @@
     <string name="more_actions">Daha fazla</string>
     <string name="bulk_type_illust">illüstrasyonlar</string>
     <string name="bulk_type_manga">manga</string>
-    <string name="bulk_select_title">Toplu indirme · Eserleri seç</string>
+    <string name="bulk_select_title">Toplu işlem · Eserleri seç</string>
     <string name="bulk_download_summary">Toplu indirme tamamlandı: toplam %1$d, %2$d başarılı, %3$d başarısız</string>
     <string name="bulk_select_select_all">Tümünü seç</string>
     <string name="bulk_select_clear_all">Seçimi kaldır</string>
@@ -1569,8 +1569,25 @@
     <string name="bulk_select_loading">Yükleniyor…</string>
     <string name="bulk_select_summary">Toplam %1$d · %2$d seçili (%3$d resim)</string>
     <string name="bulk_select_summary_with_gif">Toplam %1$d · %2$d seçili (%3$d resim) · %4$d GIF atlandı (eser sayfasından indirin)</string>
-    <string name="bulk_select_confirm">Kuyruğa ekle (%1$d öğe / %2$d resim) →</string>
+    <string name="bulk_select_confirm">İndir (%1$d / %2$d resim)</string>
     <string name="bulk_select_confirm_empty">En az 1 öğe seçin</string>
+
+    <!-- Toplu favorileme / favoriden çıkarma (:actionqueue hız sınırlı kuyruğu üzerinden) -->
+    <string name="bulk_bookmark_actions">Toplu favori işlemleri</string>
+    <string name="bulk_bookmark_menu_add">Toplu favorile (%1$d öğe)</string>
+    <string name="bulk_bookmark_menu_add_private">Toplu gizli favorile (%1$d öğe)</string>
+    <string name="bulk_bookmark_menu_remove">Toplu favoriden çıkar (%1$d öğe)</string>
+    <string name="bulk_bookmark_restrict_public">herkese açık favoriler</string>
+    <string name="bulk_bookmark_restrict_private">gizli favoriler</string>
+    <string name="bulk_bookmark_confirm_title">Toplu favorileme</string>
+    <string name="bulk_bookmark_confirm_message">%1$d eser %2$s listesine eklenecek.\n\nİstekler pixiv hız sınırına takılmamak için kuyrukta tek tek gönderilir; hepsinin gönderilmesi yaklaşık %3$d dakika sürer.</string>
+    <string name="bulk_bookmark_confirm_autofollow">\n\n“Favoriledikten sonra sanatçıyı otomatik takip et” açık; henüz takip etmediğiniz sanatçılar da takip kuyruğuna girer.</string>
+    <string name="bulk_unbookmark_confirm_title">Toplu favoriden çıkarma</string>
+    <string name="bulk_unbookmark_confirm_message">%1$d eser favorilerden çıkarılacak. Bu işlem geri alınamaz.\n\nİstekler pixiv hız sınırına takılmamak için kuyrukta tek tek gönderilir; hepsinin gönderilmesi yaklaşık %2$d dakika sürer.</string>
+    <string name="bulk_bookmark_confirm_go">Başlat</string>
+    <string name="bulk_bookmark_enqueued">Kuyruğa alındı: %1$d eser favorileniyor</string>
+    <string name="bulk_unbookmark_enqueued">Kuyruğa alındı: %1$d eser favorilerden çıkarılıyor</string>
+    <string name="bulk_bookmark_nothing">Seçilen eserlerin hepsi zaten bu durumda</string>
     <string name="bulk_enqueue_empty">Kuyruğa eklenecek eser yok</string>
     <string name="bulk_enqueue_truncated">Çok fazla öğe, %1$d ile sınırlandı</string>
     <string name="bulk_enqueue_started">%1$d öğe kuyruğa ekleniyor</string>

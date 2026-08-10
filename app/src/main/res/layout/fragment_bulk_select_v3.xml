@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  批量选择页。toolbar 右上挂 menu_bulk_select_v3（全选 / 反选），
-  底部 bar 只剩 hint + 确认按钮。
+  批量选择页。toolbar 右上挂 menu_bulk_select_v3（全选 / 导出链接），
+  底部是 MD3-E connected button group：下载 CTA + 收藏动作。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -52,26 +52,73 @@
         android:paddingBottom="80dp"
         tools:listitem="@layout/cell_bulk_select_v3" />
 
-    <!-- 底部确认 bar：全选 / 反选 已挪到 toolbar 右上，这里只剩 CTA -->
-    <androidx.cardview.widget.CardView
+    <!--
+      底部操作 bar：全选 / 导出 在 toolbar 右上，这里是 MD3-E connected button group。
+
+      首段 = 下载 CTA（filled，主操作，语义和改版前完全一致）；
+      尾段 = 收藏动作（tonal，点开 V3 菜单选批量收藏 / 批量取消收藏）。
+      两段之间只留 3dp 缝、相邻的圆角收成 8dp，读起来是一组而不是两个按钮；
+      按压时形状收成 12dp（见 bg_bulk_action_*）。
+
+      收藏动作走菜单而不是再摊平成第三段：段宽越分越窄，而
+      「取消收藏」这类词在 ru / tr 下长得多，摊平一定会截断；菜单行没有宽度约束。
+    -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="12dp"
-        android:layout_marginVertical="10dp"
-        app:cardBackgroundColor="@color/v3_surface_1"
-        app:cardCornerRadius="14dp"
-        app:cardElevation="0dp">
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="12dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnConfirm"
             style="?attr/borderlessButtonStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_bulk_action_primary"
+            android:ellipsize="end"
             android:fontFamily="monospace"
-            android:paddingVertical="12dp"
-            android:textColor="@color/v3_blue"
-            android:textSize="14sp"
+            android:maxLines="1"
+            android:minWidth="0dp"
+            android:paddingHorizontal="10dp"
+            android:textAllCaps="false"
+            android:textColor="@color/bulk_action_primary_text"
+            android:textSize="12sp"
             android:textStyle="bold"
-            tools:text="加入下载队列 (32 项 / 87 张图) →" />
-    </androidx.cardview.widget.CardView>
+            tools:text="加入下载队列 (32 项 / 87 张)" />
+
+        <Space
+            android:layout_width="3dp"
+            android:layout_height="1dp" />
+
+        <LinearLayout
+            android:id="@+id/btnBookmarkActions"
+            android:layout_width="76dp"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_bulk_action_trailing"
+            android:clickable="true"
+            android:contentDescription="@string/bulk_bookmark_actions"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_like_heart_fill"
+                app:tint="@color/v3_blue" />
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="1dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_arrow_drop_down_20dp"
+                app:tint="@color/v3_blue" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

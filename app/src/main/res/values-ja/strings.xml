@@ -1556,7 +1556,7 @@
     <string name="more_actions">その他</string>
     <string name="bulk_type_illust">イラスト</string>
     <string name="bulk_type_manga">マンガ</string>
-    <string name="bulk_select_title">一括ダウンロード · 作品を選択</string>
+    <string name="bulk_select_title">一括操作 · 作品を選択</string>
     <string name="bulk_download_summary">一括ダウンロード完了：全%1$d件、成功%2$d件、失敗%3$d件</string>
     <string name="bulk_select_select_all">すべて選択</string>
     <string name="bulk_select_clear_all">選択解除</string>
@@ -1569,8 +1569,25 @@
     <string name="bulk_select_loading">読み込み中…</string>
     <string name="bulk_select_summary">%1$d 件 · %2$d 件選択中（%3$d 枚）</string>
     <string name="bulk_select_summary_with_gif">%1$d 件 · %2$d 件選択中（%3$d 枚）· GIF %4$d 件をスキップ（作品ページから個別にダウンロード）</string>
-    <string name="bulk_select_confirm">ダウンロードキューに追加（%1$d 件 / %2$d 枚）→</string>
+    <string name="bulk_select_confirm">ダウンロード（%1$d 件 / %2$d 枚）</string>
     <string name="bulk_select_confirm_empty">1件以上選択してください</string>
+
+    <!-- 一括ブックマーク / 解除（:actionqueue のレート制限キュー経由） -->
+    <string name="bulk_bookmark_actions">一括ブックマーク操作</string>
+    <string name="bulk_bookmark_menu_add">一括ブックマーク（%1$d 件）</string>
+    <string name="bulk_bookmark_menu_add_private">一括で非公開ブックマーク（%1$d 件）</string>
+    <string name="bulk_bookmark_menu_remove">一括ブックマーク解除（%1$d 件）</string>
+    <string name="bulk_bookmark_restrict_public">公開ブックマーク</string>
+    <string name="bulk_bookmark_restrict_private">非公開ブックマーク</string>
+    <string name="bulk_bookmark_confirm_title">一括ブックマーク</string>
+    <string name="bulk_bookmark_confirm_message">%1$d 件の作品を%2$sに追加します。\n\nリクエストはキューで 1 件ずつ送信され（pixiv のレート制限対策）、すべて送信し終えるまで約 %3$d 分かかります。</string>
+    <string name="bulk_bookmark_confirm_autofollow">\n\n「ブックマーク後に作者を自動フォロー」がオンのため、未フォローの作者もフォローキューに入ります。</string>
+    <string name="bulk_unbookmark_confirm_title">一括ブックマーク解除</string>
+    <string name="bulk_unbookmark_confirm_message">%1$d 件の作品のブックマークを解除します。この操作は取り消せません。\n\nリクエストはキューで 1 件ずつ送信され（pixiv のレート制限対策）、すべて送信し終えるまで約 %2$d 分かかります。</string>
+    <string name="bulk_bookmark_confirm_go">開始</string>
+    <string name="bulk_bookmark_enqueued">キューに追加：ブックマーク %1$d 件</string>
+    <string name="bulk_unbookmark_enqueued">キューに追加：ブックマーク解除 %1$d 件</string>
+    <string name="bulk_bookmark_nothing">選択した作品はすべてその状態です</string>
     <string name="bulk_enqueue_empty">キューに追加できる作品がありません</string>
     <string name="bulk_enqueue_truncated">件数が多すぎます。%1$d 件に切り詰めました</string>
     <string name="bulk_enqueue_started">%1$d 件をキューに追加しています</string>

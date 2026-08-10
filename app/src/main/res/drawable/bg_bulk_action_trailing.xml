@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  批量操作底栏 · MD3-E connected button group 的**尾段**（收藏动作，点开菜单）。
+
+  圆角与 bg_bulk_action_primary 镜像：贴着首段的左侧收成 8dp，朝外的右侧 24dp。
+  按压同样形变到 12dp。层级比首段低一档 —— tonal（强调色低透明度底 + 强调色图标），
+  不跟主操作抢视觉重量。
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <selector>
+            <item android:state_enabled="false">
+                <shape android:shape="rectangle">
+                    <corners
+                        android:bottomLeftRadius="8dp"
+                        android:bottomRightRadius="24dp"
+                        android:topLeftRadius="8dp"
+                        android:topRightRadius="24dp" />
+                    <solid android:color="@color/v3_surface_1" />
+                </shape>
+            </item>
+            <item android:state_pressed="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="@color/bulk_action_tonal" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners
+                        android:bottomLeftRadius="8dp"
+                        android:bottomRightRadius="24dp"
+                        android:topLeftRadius="8dp"
+                        android:topRightRadius="24dp" />
+                    <solid android:color="@color/bulk_action_tonal" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

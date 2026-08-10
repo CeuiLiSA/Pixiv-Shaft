@@ -1556,7 +1556,7 @@
     <string name="more_actions">더보기</string>
     <string name="bulk_type_illust">일러스트</string>
     <string name="bulk_type_manga">만화</string>
-    <string name="bulk_select_title">일괄 다운로드 · 작품 선택</string>
+    <string name="bulk_select_title">일괄 작업 · 작품 선택</string>
     <string name="bulk_download_summary">일괄 다운로드 완료: 총 %1$d개, 성공 %2$d개, 실패 %3$d개</string>
     <string name="bulk_select_select_all">전체 선택</string>
     <string name="bulk_select_clear_all">선택 해제</string>
@@ -1569,8 +1569,25 @@
     <string name="bulk_select_loading">로딩 중…</string>
     <string name="bulk_select_summary">%1$d개 · %2$d개 선택됨 (%3$d장)</string>
     <string name="bulk_select_summary_with_gif">%1$d개 · %2$d개 선택됨 (%3$d장) · GIF %4$d개 건너뜀 (작품 페이지에서 개별 다운로드)</string>
-    <string name="bulk_select_confirm">다운로드 큐에 추가 (%1$d개 / %2$d장) →</string>
+    <string name="bulk_select_confirm">다운로드 (%1$d개 / %2$d장)</string>
     <string name="bulk_select_confirm_empty">최소 1개 이상 선택하세요</string>
+
+    <!-- 일괄 북마크 / 해제 (:actionqueue 속도 제한 큐 경유) -->
+    <string name="bulk_bookmark_actions">일괄 북마크 작업</string>
+    <string name="bulk_bookmark_menu_add">일괄 북마크 (%1$d개)</string>
+    <string name="bulk_bookmark_menu_add_private">일괄 비공개 북마크 (%1$d개)</string>
+    <string name="bulk_bookmark_menu_remove">일괄 북마크 해제 (%1$d개)</string>
+    <string name="bulk_bookmark_restrict_public">공개 북마크</string>
+    <string name="bulk_bookmark_restrict_private">비공개 북마크</string>
+    <string name="bulk_bookmark_confirm_title">일괄 북마크</string>
+    <string name="bulk_bookmark_confirm_message">%1$d개 작품을 %2$s에 추가합니다.\n\n요청은 큐를 통해 하나씩 전송되며(pixiv 속도 제한 회피), 모두 보내는 데 약 %3$d분이 걸립니다.</string>
+    <string name="bulk_bookmark_confirm_autofollow">\n\n“북마크 후 작가 자동 팔로우”가 켜져 있어 아직 팔로우하지 않은 작가도 팔로우 큐에 들어갑니다.</string>
+    <string name="bulk_unbookmark_confirm_title">일괄 북마크 해제</string>
+    <string name="bulk_unbookmark_confirm_message">%1$d개 작품의 북마크를 해제합니다. 되돌릴 수 없습니다.\n\n요청은 큐를 통해 하나씩 전송되며(pixiv 속도 제한 회피), 모두 보내는 데 약 %2$d분이 걸립니다.</string>
+    <string name="bulk_bookmark_confirm_go">시작</string>
+    <string name="bulk_bookmark_enqueued">큐에 추가: 북마크 %1$d개</string>
+    <string name="bulk_unbookmark_enqueued">큐에 추가: 북마크 해제 %1$d개</string>
+    <string name="bulk_bookmark_nothing">선택한 작품이 모두 이미 해당 상태입니다</string>
     <string name="bulk_enqueue_empty">큐에 추가할 작품이 없습니다</string>
     <string name="bulk_enqueue_truncated">수가 너무 많습니다. %1$d개로 잘랐습니다</string>
     <string name="bulk_enqueue_started">%1$d개 큐 추가 시작</string>

@@ -1717,7 +1717,7 @@
     <string name="bulk_type_manga">漫画</string>
 
     <!-- Bulk select page -->
-    <string name="bulk_select_title">批量下载 · 选择作品</string>
+    <string name="bulk_select_title">批量操作 · 选择作品</string>
     <string name="bulk_download_summary">批量下载完成：共 %1$d 个，成功 %2$d，失败 %3$d</string>
     <string name="bulk_select_select_all">全选</string>
     <string name="bulk_select_clear_all">取消全选</string>
@@ -1732,8 +1732,25 @@
     <string name="bulk_select_loading">加载中…</string>
     <string name="bulk_select_summary">共 %1$d 项 · 已选 %2$d 项 (%3$d 张图)</string>
     <string name="bulk_select_summary_with_gif">共 %1$d 项 · 已选 %2$d 项 (%3$d 张图) · 跳过 %4$d 个动图（请到作品页单独下载）</string>
-    <string name="bulk_select_confirm">加入下载队列 (%1$d 项 / %2$d 张图) →</string>
+    <string name="bulk_select_confirm">加入下载队列 (%1$d 项 / %2$d 张)</string>
     <string name="bulk_select_confirm_empty">请至少选择 1 项</string>
+
+    <!-- 批量收藏 / 取消收藏（走 :actionqueue 限流队列） -->
+    <string name="bulk_bookmark_actions">批量收藏操作</string>
+    <string name="bulk_bookmark_menu_add">批量收藏 (%1$d 项)</string>
+    <string name="bulk_bookmark_menu_add_private">批量私密收藏 (%1$d 项)</string>
+    <string name="bulk_bookmark_menu_remove">批量取消收藏 (%1$d 项)</string>
+    <string name="bulk_bookmark_restrict_public">公开收藏</string>
+    <string name="bulk_bookmark_restrict_private">私密收藏</string>
+    <string name="bulk_bookmark_confirm_title">批量收藏</string>
+    <string name="bulk_bookmark_confirm_message">将把 %1$d 项作品加入%2$s。\n\n请求会进入队列逐条发送（避免触发 pixiv 限流），全部发完约需 %3$d 分钟。</string>
+    <string name="bulk_bookmark_confirm_autofollow">\n\n「收藏后自动关注作者」已开启，未关注的作者会一并进入关注队列。</string>
+    <string name="bulk_unbookmark_confirm_title">批量取消收藏</string>
+    <string name="bulk_unbookmark_confirm_message">将取消 %1$d 项作品的收藏，此操作不可撤销。\n\n请求会进入队列逐条发送（避免触发 pixiv 限流），全部发完约需 %2$d 分钟。</string>
+    <string name="bulk_bookmark_confirm_go">开始</string>
+    <string name="bulk_bookmark_enqueued">已加入队列：收藏 %1$d 项</string>
+    <string name="bulk_unbookmark_enqueued">已加入队列：取消收藏 %1$d 项</string>
+    <string name="bulk_bookmark_nothing">选中的作品都已经是该状态</string>
 
     <!-- Legacy batch enqueue 提示 -->
     <string name="bulk_enqueue_empty">没有可入队的作品</string>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  批量操作底栏首段（filled）的文字色。启用时压在 v3_blue 实心底上 —— 固定纯白，
+  日夜两套 v3_blue 都够暗，不能跟着 v3_text_1 走（浅色主题下那是近黑）。
+  禁用时底色换成中性的 v3_surface_2，文字跟着降到 v3_text_3。
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/v3_text_3" android:state_enabled="false" />
+    <item android:color="#FFFFFFFF" />
+</selector>

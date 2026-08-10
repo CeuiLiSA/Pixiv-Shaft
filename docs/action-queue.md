@@ -221,6 +221,12 @@ PixivActions.setUserFollow(userId, follow = true, restrict = Params.TYPE_PUBLIC)
 仓库里每个收藏入口都尊重这个开关，门面自己写死 public 等于把用户明确要求保密的收藏
 公开挂到主页上。
 
+**批量入口**（`BulkBookmarkEnqueue`，批量选择页底栏，issue #974）也只是循环调同一个门面，
+不另起写路径。它额外做三件门面管不了的事：剔掉已经是目标态的项（否则 toast 上的数字不等于
+真正会发出去的请求数）、分块 `yield` 让主线程（每项都要写几个 ObjectPool 表示再发一条广播）、
+用进程级 scope（调用方入队后立刻 `finish()`）。一次几百项意味着队列要按 2 秒间隔跑十几分钟，
+所以确认框里明写预计耗时 —— 不说的话用户会当成没生效。
+
 HTTP 状态码到 `ActionOutcome` 的翻译在 `PixivActionHandlers.kt`：
 429 / 408 / 400 / 401 / 403 / 5xx / IOException → `Retry`，其余 → `Fail`。
 400 也重试：它正是 pixiv 表达「access token 过期」用的码，正常由
