@@ -177,6 +177,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             intent.getIntExtra(Params.USER_ID, 0));
                 case "喜欢这个作品的用户":
                     return LikeUsersFeedFragment.newInstance((IllustsBean) intent.getSerializableExtra(Params.CONTENT));
+                case "喜欢这部小说的用户":
+                    return LikeUsersFeedFragment.newInstance(
+                            intent.getLongExtra(Params.NOVEL_ID, 0L),
+                            intent.getStringExtra(Params.TITLE));
                 case "小说系列详情": {
                     // Legacy 路由——桥接到新页 NovelSeriesFragment。保留 case
                     // 兼容外部深链或仍在路上的字符串拼接调用；内部入口都已迁到

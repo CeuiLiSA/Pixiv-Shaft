@@ -3,6 +3,7 @@ package ceui.pixiv.ui.novel
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
+import android.view.MotionEvent
 import android.view.View
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
@@ -11,6 +12,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.fragments.WebNovelParser
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.CellNovelActionsBinding
@@ -244,6 +246,22 @@ fun novelProfileRenderer(
     return feedRenderer(
         inflate = CellNovelProfileBinding::inflate,
         fullSpan = true,
+        create = { cell ->
+            val wrap = cell.binding.statBookmarkWrap
+            applyTouchScale(wrap)
+            wrap.setOnClickListener {
+                val novelId = cell.item.novelId
+                val ctx = wrap.context
+                val title = ObjectPool.get<Novel>(novelId).value?.title
+                ctx.startActivity(
+                    Intent(ctx, TemplateActivity::class.java).apply {
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "喜欢这部小说的用户")
+                        putExtra(Params.NOVEL_ID, novelId)
+                        putExtra(Params.TITLE, title)
+                    }
+                )
+            }
+        },
         recycle = { cell -> slots[cell]?.detach() },
     ) { cell ->
         val b = cell.binding
@@ -283,6 +301,19 @@ fun novelProfileRenderer(
             b.chipNovelLink.bindCopyLinkChip(R.string.novel_chip_novel_link, novelUrl)
             b.chipOpenNovelLink.bindOpenLinkChip(R.string.novel_chip_open_novel_link, novelUrl)
         }
+    }
+}
+
+private fun applyTouchScale(view: View, scale: Float = 0.97f) {
+    view.setOnTouchListener { v, event ->
+        when (event.action) {
+            MotionEvent.ACTION_DOWN ->
+                v.animate().scaleX(scale).scaleY(scale).setDuration(200).start()
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                v.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+        }
+        false
     }
 }
 

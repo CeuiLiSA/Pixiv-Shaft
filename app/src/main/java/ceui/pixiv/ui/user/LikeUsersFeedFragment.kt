@@ -10,11 +10,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
+import ceui.lisa.core.RemoteRepo
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecySimpleUserBinding
 import ceui.lisa.model.ListSimpleUser
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.UserBean
+import ceui.lisa.repo.NovelBookmarkUserRepo
 import ceui.lisa.repo.SimpleUserRepo
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
@@ -43,10 +45,12 @@ import kotlinx.coroutines.withContext
 
 /**
  * 「喜欢这个作品的用户」列表页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentListSimpleUser] +
- * SimpleUserAdapter(非 muted)）。
+ * SimpleUserAdapter(非 muted)）。插画、小说共用本页：插画走 [Params.CONTENT]([IllustsBean])，
+ * 小说走 [Params.NOVEL_ID] + [Params.TITLE]，除数据源和标题外的一切（行渲染、关注同步）完全复用。
  *
  * TemplateActivity 宿主、自带 toolbar（fragment_toolbar_feed）。数据源直接包裹既有的
- * [SimpleUserRepo]（getUsersWhoLikeThisIllust + getNextSimpleUser），把 Rx→suspend 桥一下即可，
+ * [SimpleUserRepo]（getUsersWhoLikeThisIllust + getNextSimpleUser）或
+ * [NovelBookmarkUserRepo]（getUsersWhoLikeThisNovel + getNextSimpleUser），把 Rx→suspend 桥一下即可，
  * 翻页跟随 next_url。
  *
  * **row 复刻 muted 那套 recy_simple_user，但去掉 muted 专属交互**：这里是普通的「点赞用户」列表，
@@ -65,10 +69,16 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：先把 arg 读进局部 val，只把 illustId(Int) 传进 source（source 归 VM 长期持有，
-        // 绝不能捕获 Fragment）。
-        val illust = requireArguments().getSerializable(Params.CONTENT) as IllustsBean
-        LikeUsersFeedSource(illust.id)
+        // 零捕获：先把 arg 读进局部 val，只把作品 id（插画 Int / 小说 Long）传进 source
+        // （source 归 VM 长期持有，绝不能捕获 Fragment）。
+        val args = requireArguments()
+        val novelId = args.getLong(Params.NOVEL_ID, 0L).takeIf { it != 0L }
+        val illust = args.getSerializable(Params.CONTENT) as? IllustsBean
+        when {
+            novelId != null -> LikeUsersFeedSource(novelId)
+            illust != null -> LikeUsersFeedSource(illust.id)
+            else -> error("LikeUsersFeedFragment 缺少作品参数")
+        }
     }
 
     /**
@@ -105,8 +115,12 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         pinHostGlide(userGlide)
         setUpToolbar(binding, feedBinding.feedListView)
         // 标题读局部 val（零捕获），复刻 legacy getToolbarTitle。
-        val illust = requireArguments().getSerializable(Params.CONTENT) as IllustsBean
-        binding.toolbarTitle.text = "喜欢" + illust.title + "的用户"
+        // 小说侧的标题是调用方从 ObjectPool 顺手取的，取不到就是 null——orEmpty 兜住，
+        // 宁可少个书名也不能把「喜欢null的用户」摆到 toolbar 上。
+        val args = requireArguments()
+        val title = args.getString(Params.TITLE)
+            ?: (args.getSerializable(Params.CONTENT) as? IllustsBean)?.title
+        binding.toolbarTitle.text = "喜欢" + title.orEmpty() + "的用户"
 
         LocalBroadcastManager.getInstance(requireContext())
             .registerReceiver(followSyncReceiver, IntentFilter(Params.LIKED_USER))
@@ -214,6 +228,16 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
                 }
             }
         }
+
+        @JvmStatic
+        fun newInstance(novelId: Long, novelTitle: String?): LikeUsersFeedFragment {
+            return LikeUsersFeedFragment().apply {
+                arguments = Bundle().apply {
+                    putLong(Params.NOVEL_ID, novelId)
+                    putString(Params.TITLE, novelTitle)
+                }
+            }
+        }
     }
 }
 
@@ -244,16 +268,20 @@ class LikeUserFeedItem(
 }
 
 /**
- * 点赞用户数据源：包裹 [SimpleUserRepo]（cursor = next_url）。
- * load(null) → initApi(getUsersWhoLikeThisIllust)；load(cursor) → setNextUrl + initNextApi(getNextSimpleUser)。
+ * 点赞用户数据源：包裹 [SimpleUserRepo] / [NovelBookmarkUserRepo]（cursor = next_url）。
+ * load(null) → initApi(getUsersWhoLikeThisIllust / getUsersWhoLikeThisNovel)；
+ * load(cursor) → setNextUrl + initNextApi(getNextSimpleUser)——翻页两边共用同一个 next_url 接口。
  * 请求发起切 IO（awaitFirstValue 内部 subscribeOn(io)，此处外层 withContext 只为对齐既有桥接写法）；
  * 映射切 Default。短页 / 无 next_url（空串）即到底返回 null。
  *
- * 零 Fragment 捕获：只吃 illustId(Int)，repo 内部持 illustId + next_url 分页状态。
+ * 零 Fragment 捕获：只吃作品 id（插画 Int / 小说 Long），repo 内部持 id + next_url 分页状态。
  */
-class LikeUsersFeedSource(illustId: Int) : FeedSource<String> {
+class LikeUsersFeedSource private constructor(
+    private val repo: RemoteRepo<ListSimpleUser>,
+) : FeedSource<String> {
 
-    private val repo = SimpleUserRepo(illustId)
+    constructor(illustId: Int) : this(SimpleUserRepo(illustId))
+    constructor(novelId: Long) : this(NovelBookmarkUserRepo(novelId))
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val resp: ListSimpleUser = if (cursor == null) {
