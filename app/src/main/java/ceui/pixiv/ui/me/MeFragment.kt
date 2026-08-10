@@ -53,7 +53,9 @@ class MeFragment : Fragment(R.layout.fragment_me) {
         // hero 不需要 statusBar top padding —— 背景图就该延伸到 status bar 下面;
         // 内容(avatar 行)靠 layout_gravity=bottom 自然在底部,不受 inset 影响。
 
-        bindUserHeader(view)
+        // 头像/昵称跟随会话变化自动重绑:登录态、切号、编辑资料、前台静默同步都会写回新值。
+        // observe 会在视图 STARTED 时先回放一次当前账号完成首绑,取代原来的 bindUserHeader(view)。
+        SessionManager.loggedInAccount.observe(viewLifecycleOwner) { bindUserHeader(view) }
         bindHeroBackground(view)
         bindStatsRow(view)
         bindSections(view)
@@ -69,9 +71,10 @@ class MeFragment : Fragment(R.layout.fragment_me) {
         if (uid == 0L) return
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val bannerUrl = runCatching {
-                Client.appApi.getUserProfile(uid).profile?.background_image_url
-            }.getOrNull()
+            // 这次请求本身就带着自己的最新 user，顺手回写会话，头像/昵称一起更新
+            val profile = runCatching { Client.appApi.getUserProfile(uid) }.getOrNull()
+            SessionManager.ingestFreshUser(profile?.user, uid)
+            val bannerUrl = profile?.profile?.background_image_url
             if (!bannerUrl.isNullOrEmpty() && view != null) {
                 Glide.with(this@MeFragment)
                     .load(GlideUrlChild(bannerUrl))

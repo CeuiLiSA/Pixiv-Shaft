@@ -147,7 +147,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
                 ceui.pixiv.db.discovery.ProfileManager.ACTION_PROFILE_READY);
         LocalBroadcastManager.getInstance(this).registerReceiver(profileReadyReceiver, profileFilter);
 
-        initDrawerHeader();
+        // 侧边栏账号区完全由会话驱动：observe 在 onStart 先回放当前账号完成首绑,
+        // 之后登录/切号/编辑资料/前台静默同步的每次写回都会自动重绑,不再需要
+        // 手动 initDrawerHeader() 首绑 + Dev.refreshUser 在 onResume 补刷那一套。
+        SessionManager.INSTANCE.getLoggedInAccount().observe(this, account -> initDrawerHeader());
         baseBind.drawerHeader.setOnClickListener(v -> openMyUserPage());
         // 侧边栏头像单击进自己主页；长按仍是 R18 临时过滤开关
         baseBind.userHead.setOnClickListener(v -> openMyUserPage());
@@ -707,10 +710,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
     @Override
     protected void onResume() {
         super.onResume();
-        if (Dev.refreshUser) {
-            initDrawerHeader();
-            Dev.refreshUser = false;
-        }
+        // 回到前台时静默拉一次自己的资料(去抖 + 失败静默),在站外换头像后也能自动更新;
+        // 侧边栏账号区由 loggedInAccount 观察者负责重绑。
+        SessionManager.INSTANCE.syncLoggedInProfileIfNeeded();
         // 发现入口(画像)/ 聊天室 / 广场开关可能在别的页面变化,回来时重建抽屉
         buildDrawerMenu();
     }
