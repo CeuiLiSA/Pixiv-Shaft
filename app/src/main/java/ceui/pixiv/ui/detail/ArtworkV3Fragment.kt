@@ -125,6 +125,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private var composerActive = false
     private var fabShown = true
 
+    /** 整页屏蔽遮罩是否正盖着。盖着时底部胶囊一律收起，见 [setMuteMaskActive]。 */
+    private var muteMaskActive = false
+
     private var sectionLoader: SectionLoader? = null
     private var artistObservedUserId: Long = 0L
     private var muteObserved = false
@@ -294,6 +297,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         ).observe(viewLifecycleOwner) { (illustEntity, userEntity) ->
             val muted = illustEntity != null || userEntity != null
             chromeBind.abandonedFrame.isVisible = muted
+            setMuteMaskActive(muted)
             // 整页遮罩不再是一块纯黑：糊掉的作品图 + spoiler 粒子（与瀑布流「屏蔽此作品」同款）。
             // 只在真要显示遮罩时贴图——本 observer 在**没被屏蔽**时也照常发射（那才是常态），
             // 无脑 bind 等于每开一个作品都白解码 + 白模糊一张图。bind 自身按 cacheKey 幂等，
@@ -353,6 +357,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         commentComposer = null
         composerActive = false
         fabShown = true
+        muteMaskActive = false
         // 跳评论的基线钉扎(#970)随视图作废:留着的话,视图重建(回退栈重显/旋转)后首次
         // render 的数据落地就会把新列表拽去评论区。
         commentsJumpRealign = false
@@ -638,6 +643,30 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
     }
 
+    /**
+     * 整页遮罩盖上 / 揭掉时同步底部胶囊（下载 / 收藏 / 评论）。
+     *
+     * 遮罩是盖住内容的一整层，但胶囊在布局里排在它**后面**（fab_bar 在 abandoned_frame 之前
+     * 声明，画在上面）、又有自己的显隐动画，不跟着收的话就浮在糊掉的图上：屏蔽了的作品照样
+     * 能一键收藏、下载、跳评论，屏蔽等于只糊了张图。
+     *
+     * 用一个状态位挡在 [showFabBar] 里，而不是就地 hide 一次：列表滚动监听会在上滑时把胶囊
+     * 放回来（`onScrolled` → [showFabBar]），遮罩底下的列表虽然点不到、fling 惯性和程序滚动
+     * 仍会走那条回调，单靠一次 hide 挡不住。
+     *
+     * 幂等（值没变直接返回）是必须的：本 observer 在**没被屏蔽**时也照常发射，每次都调
+     * [showFabBar] 会把用户下滑收起的胶囊硬顶回来。
+     */
+    private fun setMuteMaskActive(active: Boolean) {
+        if (muteMaskActive == active) return
+        muteMaskActive = active
+        if (active) {
+            hideFabBar(immediate = true)
+        } else {
+            showFabBar()
+        }
+    }
+
     private fun hideFabBar(immediate: Boolean = false) {
         if (!fabShown && !immediate) return
         fabShown = false
@@ -661,6 +690,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private fun showFabBar() {
         if (composerActive) return // 内联输入栏浮着时不放回胶囊
+        if (muteMaskActive) return // 整页屏蔽遮罩盖着时同理，见 setMuteMaskActive
         if (fabShown) return
         fabShown = true
         val fabBar = chromeBind.fabBar.root
