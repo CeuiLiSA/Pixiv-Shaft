@@ -154,7 +154,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         bottomBar = bb
         val ch = ReaderChrome(tb, bb)
         chrome = ch
-        ch.onVisibilityChanged = { renderProgressOverlay() }
+        ch.onVisibilityChanged = { refreshProgressOverlay() }
         val so = ReaderSearchOverlay(binding.readerSearchOverlay)
 
         wireTopBar(tb)
@@ -348,21 +348,37 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     /**
      * 常驻阅读进度（#994）：横向翻页与纵向无极滚动都统一显示百分比 —— 纵向没有
-     * 「页」的概念,百分比是两种模式唯一能对齐的口径。底栏展开时不显示,那时底栏
-     * 自己就有读数,再叠一层纯属重复。
+     * 「页」的概念,百分比是两种模式唯一能对齐的口径。
+     *
+     * [percent] 传 null 表示「当前没有有效读数」(还没排完版 / 空章节),此时清空而
+     * 不是留着上一章的旧数字骗人。
      */
-    private fun renderProgressOverlay(percent: Int? = null) {
-        percent?.let { progressOverlayText = "${it.coerceIn(0, 100)}%" }
+    private fun setProgressPercent(percent: Int?) {
+        progressOverlayText = percent?.let { "${it.coerceIn(0, 100)}%" }.orEmpty()
+        refreshProgressOverlay()
+    }
+
+    /**
+     * 只刷新可见性/文案,不改读数。底栏展开时不显示——那时底栏自己就有读数,再叠
+     * 一层纯属重复。
+     *
+     * setText 一定要先比一次:纵向滚动是逐帧 onScrolled 回调,而百分比整本书也才变
+     * 100 次,不拦住的话每帧都要重建一次 StaticLayout + 多分配一个 String。
+     */
+    private fun refreshProgressOverlay() {
         val show = ReaderSettings.showBottomProgress &&
             chrome?.isShown != true &&
             progressOverlayText.isNotEmpty()
-        binding.readerProgressOverlayText.text = progressOverlayText
         binding.readerProgressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+        if (show && binding.readerProgressOverlayText.text?.toString() != progressOverlayText) {
+            binding.readerProgressOverlayText.text = progressOverlayText
+        }
     }
 
     /**
      * 翻页模式的百分比按「已读完的页数 / 总页数」算,所以首页不是 0%、末页正好
      * 100%,和纵向滚到底同为 100%,两种模式来回切不会跳数。
+     * totalPages 为 0 时返回 null(而不是去除以 0)。
      */
     private fun pagedPercent(pageIndex: Int, totalPages: Int): Int? {
         if (totalPages <= 0) return null
@@ -404,7 +420,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     binding.root.setBackgroundColor(t.backgroundColor)
                     applyLoadingTint(t)
                     // showBottomProgress 走 Layout 事件,开关拨完立刻生效。
-                    renderProgressOverlay()
+                    refreshProgressOverlay()
                 }
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.Interaction -> {
@@ -439,7 +455,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             rv.bind(pag.pages, pag.startPageIndex)
             rv.setFlipMode(ReaderSettings.flipMode)
             bb.setProgress(pag.startPageIndex, pag.pages.size)
-            renderProgressOverlay(pagedPercent(pag.startPageIndex, pag.pages.size))
+            setProgressPercent(pagedPercent(pag.startPageIndex, pag.pages.size))
         }
 
         viewModel.currentPageIndex.observe(viewLifecycleOwner) { index ->
@@ -450,7 +466,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             if (ReaderSettings.readingDirection == ReadingDirection.Vertical) return@observe
             val total = viewModel.pagination.value?.pages?.size ?: 0
             bb.setProgress(index, total)
-            renderProgressOverlay(pagedPercent(index, total))
+            setProgressPercent(pagedPercent(index, total))
         }
 
         ObjectPool.get<Novel>(resolveNovelId()).observe(viewLifecycleOwner) { novel ->
@@ -548,7 +564,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 // Drive the bottom-bar SeekBar in vertical mode (issue: 纵向翻页底部
                 // 进度条不联动). Paged mode is driven separately by currentPageIndex.
                 bottomBar?.setScrollProgress(progress)
-                renderProgressOverlay((progress.coerceIn(0f, 1f) * 100).toInt())
+                setProgressPercent((progress.coerceIn(0f, 1f) * 100).toInt())
             }
 
             // Text selection — same menu as paged mode
@@ -1206,6 +1222,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         readerView = null
         scrollReaderView = null
         bottomBar = null
+        // chrome 持有顶/底栏的 ViewBinding,不放会把整棵已销毁的 view 树吊在
+        // fragment 上（Activity Embedding 下 fragment 比 view 活得久）。
+        chrome?.onVisibilityChanged = null
+        chrome = null
         watchlistDisposables.clear()
     }
 
