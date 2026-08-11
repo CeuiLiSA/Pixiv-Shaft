@@ -297,6 +297,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private fun setupToolbarMenu(illust: IllustsBean) {
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
+        // 动图(ugoira)的 original 是 zip,画质增强/抠图没法处理,隐藏这两项(对齐 V3 详情页)。
+        if (illust.isGif) {
+            baseBind.toolbar.menu?.findItem(R.id.action_ai_upscale)?.isVisible = false
+            baseBind.toolbar.menu?.findItem(R.id.action_ai_rembg)?.isVisible = false
+        }
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
         baseBind.toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {

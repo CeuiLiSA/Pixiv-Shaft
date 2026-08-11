@@ -205,4 +205,10 @@
         </LinearLayout>
     </FrameLayout>
 
+    <!-- AI 画质增强 / 智能抠图共用覆盖层(加载中进度 + 完成态),与经典 FragmentIllust 同一份布局。 -->
+    <include
+        layout="@layout/view_ai_upscale_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </FrameLayout>

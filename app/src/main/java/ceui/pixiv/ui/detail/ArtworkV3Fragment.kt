@@ -64,6 +64,9 @@ import ceui.pixiv.ui.common.staggerIllustRenderer
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.task.PageLoadRetryController
 import ceui.pixiv.ui.task.renderImageLoadStatusBanner
+import ceui.pixiv.ui.upscale.IllustAiHelper
+import ceui.pixiv.ui.upscale.ModelPickerDialog
+import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
@@ -111,6 +114,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // 顶部大图页共享的那一个 adapter(所有页 bind 都委托给它)。isGif 时不建(走 ugoira renderer)。
     private var pageAdapter: IllustAdapter? = null
     private lateinit var retryController: PageLoadRetryController
+    private lateinit var aiHelper: IllustAiHelper
 
     // chrome
     private var _chromeBind: FragmentArtworkV3Binding? = null
@@ -204,6 +208,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
         sectionLoader = SectionLoader(illustId, feedViewModel, viewLifecycleOwner)
+        aiHelper = IllustAiHelper(this, chromeBind.root)
+        aiHelper.restoreUpscaleIfRunning(illustId.toInt())
 
         // 旋转 / 视图重建:feedViewModel 的列表存活(可能是展开态),但 pageAdapter 会重建为
         // 折叠态。二者不一致会出「p0 顶着展开胶囊、p1/p2 却已显示」的矛盾 UI。对齐 legacy(旋转即
@@ -909,9 +915,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 item(getString(R.string.string_0), R.drawable.ic_remove_red_eye_black_24dp) {
                     applyForceOriginal()
                 }
-            }
-            item(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
-                ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { }
+                item(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
+                    ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                        aiHelper.performUpscale(illust, model)
+                    }
+                }
+                item(getString(R.string.string_ai_rembg), R.drawable.ic_baseline_filter_24) {
+                    RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                        aiHelper.performRembg(illust, model)
+                    }
+                }
             }
             if (Dev.showPlazaShareInArtwork) {
                 item(getString(R.string.plaza_share_illust_to_plaza), R.drawable.ic_plaza_forum_24) {

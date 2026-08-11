@@ -141,27 +141,32 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
-                val titles = arrayOf<CharSequence>(
-                    getString(R.string.string_ai_upscale),
-                    getString(R.string.string_ai_rembg),
-                    getString(R.string.string_ai_manga_translate_inline),
-                    getString(R.string.string_ai_manga_translate_manual),
-                    getString(R.string.string_set_wallpaper)
-                )
-                QMUIMenuPopup.show(this, anchor, titles) { index, _ ->
-                    val illust = mIllustsBean ?: return@show
-                    val pageIndex = baseBind!!.viewPager.currentItem
-                    when (index) {
-                        0 -> ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                            performAiUpscale(illust, pageIndex, model)
+                val illust = mIllustsBean ?: return@setOnClickListener
+                // 动图(ugoira)的 original 是 zip,画质增强/抠图没法处理,不展示这两项(对齐 V3 详情页)。
+                val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
+                if (!illust.isGif) {
+                    actions += getString(R.string.string_ai_upscale) to {
+                        ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                            performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
                         }
-                        1 -> RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                            performAiRembg(illust, pageIndex, model)
-                        }
-                        2 -> performAiMangaTranslateInline(illust, pageIndex)
-                        3 -> performAiMangaTranslateManual(illust, pageIndex)
-                        4 -> performSetWallpaper(illust, pageIndex)
                     }
+                    actions += getString(R.string.string_ai_rembg) to {
+                        RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                            performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
+                        }
+                    }
+                }
+                actions += getString(R.string.string_ai_manga_translate_inline) to {
+                    performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+                }
+                actions += getString(R.string.string_ai_manga_translate_manual) to {
+                    performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
+                }
+                actions += getString(R.string.string_set_wallpaper) to {
+                    performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
+                }
+                QMUIMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
+                    actions[index].second()
                 }
             }
             baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
