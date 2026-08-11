@@ -27,10 +27,11 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
     val bean = item.bean
     val entityWrapper = requireEntityWrapper()
     val inWatchLater = entityWrapper.isInWatchLater(item.illust.id)
-    val spoilered = IllustSpoilerStore.isSpoilered(item.illust.id)
+    val spoilered = IllustMuteStore.isMuted(item.illust.id)
     showV3Menu("IllustFeedCardMenu") {
-        // 本地遮罩，不动服务端也不动屏蔽名单：卡片留在原位，只是糊掉 + 盖粒子。
-        // 排在最前面——它是长按这张卡最直接的诉求，而下面那条「屏蔽设定」是按标签/画师的全局设定。
+        // 屏蔽这一件作品：不动服务端，往本地屏蔽记录（tag_mute_table）写一行，卡片留在原位
+        // 糊掉 + 盖粒子；「屏蔽记录」页能看到并删除。下面那条「屏蔽设定」是按标签/画师的全局设定。
+        // 排在最前面——它是长按这张卡最直接的诉求。
         val spoilerLabel = getString(
             if (spoilered) R.string.spoiler_reveal_illust else R.string.spoiler_hide_illust
         )
@@ -40,7 +41,7 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
             R.drawable.ic_visibility_off_black_24dp
         }
         item(spoilerLabel, spoilerIcon) {
-            setIllustSpoilered(item.illust.id, !spoilered)
+            setIllustMuted(item, !spoilered)
         }
         item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
             MuteTagSheet.show(childFragmentManager, bean.tags)

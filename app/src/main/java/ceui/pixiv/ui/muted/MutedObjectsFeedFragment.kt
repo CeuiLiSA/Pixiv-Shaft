@@ -32,6 +32,9 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.ui.common.IllustMuteStore
+import ceui.pixiv.ui.common.MutedWorkStore
+import ceui.pixiv.ui.common.NovelMuteStore
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
 import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
@@ -52,6 +55,13 @@ import java.util.Locale
 /** MuteEntity.type：1=插画/漫画，2=小说（0=标签、3=用户不进本页）。 */
 private const val TYPE_ILLUST = 1
 private const val TYPE_NOVEL = 2
+
+/** 本页的行对应哪份内存名单（[MutedWorkStore]）；两种 type 之外的行不该出现在本页。 */
+private fun muteStoreFor(type: Int): MutedWorkStore? = when (type) {
+    TYPE_ILLUST -> IllustMuteStore
+    TYPE_NOVEL -> NovelMuteStore
+    else -> null
+}
 
 /**
  * 「屏蔽作品」列表页（feeds 框架版，替代 legacy FragmentMutedObjects + MuteWorksAdapter）。
@@ -149,15 +159,17 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
                     .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 3)))
                     .placeholder(R.color.light_bg)
                     .into(b.illustImage)
-                b.title.text = illust.title
-                b.author.text = "by: ${illust.user?.name.orEmpty()}"
+                b.title.text = titleOr(illust.title, illust.id)
+                b.author.text = authorLine(illust.user?.name)
                 when {
                     illust.isGif -> {
                         b.pSize.isVisible = true
                         b.pSize.text = "GIF"
                     }
 
-                    illust.page_count == 1 -> b.pSize.isVisible = false
+                    // <=0 是「记录里没有页数」——老 MMKV 名单迁过来的 id 壳行就是这样，
+                    // 不加这条会挂一个「0P」角标出来。1P 本来就不显示。
+                    illust.page_count <= 1 -> b.pSize.isVisible = false
                     else -> {
                         b.pSize.isVisible = true
                         b.pSize.text = String.format(Locale.getDefault(), "%dP", illust.page_count)
@@ -177,8 +189,8 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
                     .load(GlideUtil.getUrl(novel.image_urls?.medium))
                     .placeholder(R.color.light_bg)
                     .into(b.illustImage)
-                b.title.text = novel.title
-                b.author.text = "by: ${novel.user?.name.orEmpty()}"
+                b.title.text = titleOr(novel.title, novel.id)
+                b.author.text = authorLine(novel.user?.name)
                 b.pSize.isVisible = true
                 b.pSize.text = "小说"
             }
@@ -186,6 +198,19 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
             else -> clearCard(b)
         }
     }
+
+    /**
+     * 记录里只有 id、没有标题的行退回 `#id`。
+     *
+     * 这类行来自老 MMKV 遮罩名单的一次性迁移（见 [MutedWorkStore]）：那边只存过作品 id，
+     * 标题封面作者都补不回来。留个 `#id` 至少让这一条看得见、点得到删除按钮。
+     */
+    private fun titleOr(title: String?, id: Int): CharSequence =
+        title?.takeIf { it.isNotBlank() } ?: "#$id"
+
+    /** 同上：作者名缺失就整行留空，不显示一个孤零零的 "by: "。 */
+    private fun authorLine(name: String?): CharSequence =
+        name?.takeIf { it.isNotBlank() }?.let { "by: $it" } ?: ""
 
     /** 脏 JSON 兜底（app 自写数据几乎不会命中）：清掉复用残留，避免显示上一条内容。 */
     private fun clearCard(b: RecyViewHistoryBinding) {
@@ -228,8 +253,20 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
             .addAction(0, R.string.string_141, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 lifecycleScope.launch {
-                    withContext(Dispatchers.IO) {
-                        AppDatabase.getAppDatabase(appContext).searchDao().deleteMuteEntity(entity)
+                    // 删库和内存名单一并交给 store：它的 false 方向是无条件删的，正是给这种
+                    // 「库里有行、内存未必有」的入口准备的。绝不能自己 deleteMuteEntity ——
+                    // 那会绕开 store 的单线程写队列，和排队中的 insert 抢顺序，把刚删的行复活
+                    //（见 MutedWorkStore 类注释）。顺带把列表卡片的遮罩判定同步掉，否则回到
+                    // 瀑布流那张卡还糊着。
+                    val store = muteStoreFor(entity.type)
+                    if (store != null) {
+                        store.setMuted(entity.id.toLong(), false)
+                    } else {
+                        // 理论上到不了（本页只有 type 1/2），留着别让脏行删不掉
+                        withContext(Dispatchers.IO) {
+                            AppDatabase.getAppDatabase(appContext).searchDao()
+                                .deleteMuteEntity(entity)
+                        }
                     }
                     feedViewModel.removeItems { it is MutedObjectFeedItem && it.sameEntity(entity) }
                     Common.showToast(R.string.string_220)

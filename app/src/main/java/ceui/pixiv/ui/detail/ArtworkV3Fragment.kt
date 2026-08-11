@@ -27,6 +27,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
+import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.database.AppDatabase
@@ -274,6 +275,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 屏蔽遮罩(对齐经典 [ceui.lisa.fragments.FragmentIllust] 的 observeMuteStatus):作品或画师
      * 命中屏蔽记录时全屏盖住整页,给出取消屏蔽 / 离开入口。V3 原先只有菜单里的写库动作、没有任何
      * 消费方,「屏蔽这个作品」点完页面纹丝不动(#983)。
+     *
+     * **作品那一路要减去「本次进程已揭开」**（[IllustMuteStore.isRevealed]，故把它的版本号也
+     * 并进 combineLatest 一起观察）。瀑布流里点一下打码卡是「揭开看一眼」而不是取消屏蔽，
+     * 揭开之后再点才开详情——这里若只认 Room 里那一行，用户刚看清的作品点进来照样被整页挡死,
+     * 「揭开」就永远只是个缩略图特效,想真看内容只能永久删掉屏蔽记录。画师屏蔽不吃这条:
+     * reveal 是作品粒度的。
+     *
+     * 经典 [ceui.lisa.fragments.FragmentIllust] 那份不用跟改:legacy 列表对屏蔽作品走的是
+     * {@code IllustNovelFilter.judgeID} 整条过滤,卡片根本不存在,不存在「揭开后点进来」这条路径。
      */
     private fun attachMuteObserver(illust: IllustsBean) {
         if (muteObserved) return
@@ -286,8 +296,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         combineLatest(
             dao.getIllustMuteEntityByID(illust.id),
             dao.getUserMuteEntityByIDLiveData(userId),
-        ).observe(viewLifecycleOwner) { (illustEntity, userEntity) ->
-            val muted = illustEntity != null || userEntity != null
+            // 揭开态不在库里,只能靠版本号驱动重算(值本身不用,变了就重新问一次 isRevealed)
+            IllustMuteStore.revisionLive,
+        ).observe(viewLifecycleOwner) { (illustEntity, userEntity, _) ->
+            val illustMuted = illustEntity != null &&
+                    !IllustMuteStore.isRevealed(illust.id.toLong())
+            val muted = illustMuted || userEntity != null
             chromeBind.abandonedFrame.isVisible = muted
             // 整页遮罩不再是一块纯黑：糊掉的作品图 + spoiler 粒子（与瀑布流「屏蔽此作品」同款）。
             // 只在真要显示遮罩时贴图——本 observer 在**没被屏蔽**时也照常发射（那才是常态），
@@ -303,7 +317,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     viewLifecycleOwner.lifecycleScope.launch {
                         it.showProgress()
                         delay(600L)
-                        dao.deleteMuteEntity(illustEntity)
+                        // 删库和内存名单一并交给 store（它无条件删这一行）：瀑布流卡片的遮罩
+                        // 判定读的是内存名单，而自己 deleteMuteEntity 还会绕开 store 的单线程
+                        // 写队列，和排队中的 insert 抢顺序把这行复活（见 MutedWorkStore 类注释）。
+                        // 本页的整页遮罩由上面那条 LiveData 在行真正删掉后自行收起。
+                        IllustMuteStore.setMuted(illustEntity.id.toLong(), false)
                         it.hideProgress()
                     }
                 }

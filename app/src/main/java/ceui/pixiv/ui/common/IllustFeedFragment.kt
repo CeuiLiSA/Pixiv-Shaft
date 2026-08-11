@@ -136,6 +136,7 @@ abstract class IllustFeedFragment(
         ).bind(requireContext(), viewLifecycleOwner)
         IllustFeedPoolSync(syncViewModel, ::poolableBeansOf)
             .bind(viewLifecycleOwner, feedViewModel.uiState)
+        observeMuteRevision()
     }
 
     override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
@@ -167,28 +168,109 @@ abstract class IllustFeedFragment(
             .firstOrNull { it is IllustFeedItem && it.illust.id == illustId } as? IllustFeedItem
     }
 
-    // ── 屏蔽此作品（本地遮罩）────────────────────────────────────────────────
+    // ── 屏蔽此作品（遮罩 + 屏蔽记录）──────────────────────────────────────────
+
+    /** 本页卡片上一次渲染时的 [IllustMuteStore.revision]，见 [observeMuteRevision]。 */
+    private var lastMuteRevision = IllustMuteStore.revision
 
     /**
-     * 开关某条作品的「屏蔽」遮罩：写设备本地名单（[IllustSpoilerStore]），再让屏上那张卡当帧
-     * 换成模糊图 + 粒子（或还原）。长按菜单和「点已屏蔽的卡揭开」都走这里。
+     * 开关某条作品的屏蔽：写 [IllustMuteStore]（内存当帧生效、Room 的 `tag_mute_table` 异步落地，
+     * 于是「屏蔽记录」页里能看到这一条），再让屏上那张卡当帧换成模糊图 + 粒子（或还原）。
+     * **只有长按菜单里那条明写着「屏蔽 / 取消屏蔽此作品」的项走这里**；点卡片是
+     * [revealIllust]（揭开看一眼），两者别混——理由见 [MutedWorkStore] 的类注释。
+     *
+     * 收 [IllustFeedItem] 而不是裸 id：屏蔽方向要把整个 bean 序列化进记录，「屏蔽记录」页靠它
+     * 画封面/标题/作者。取消方向用不上，store 那边也就不会去调 payload。
+     */
+    internal fun setIllustMuted(item: IllustFeedItem, muted: Boolean) {
+        // 已是目标态时 store 返回 false，直接省掉这次重绑（图会重发一次 Glide 请求）
+        if (!IllustMuteStore.setMuted(item.illust.id, muted) { item.bean }) return
+        rebindIllustCard(item.illust.id)
+    }
+
+    /**
+     * 揭开一张打码的卡（对齐 Telegram spoiler：点一下露出内容）。**不动屏蔽名单、不动库** ——
+     * 这一条只是让本次进程里先看一眼，重启后照旧糊着。
+     *
+     * 曾经这里是直接 `setMuted(false)`，也就是「点一下卡片 = 永久删掉那条屏蔽记录」：
+     * 误触一次就把屏蔽悄悄取消了（记录页那条也没了），而卡片上没有任何反馈。更糟的是打码与否
+     * 取决于该卡上次 bind 的时刻，而判定读的是全局名单——另一个列表里没重绑过的卡看着完全正常，
+     * 点它想开详情，结果详情没开、记录被删。
+     */
+    internal fun revealIllust(item: IllustFeedItem) {
+        if (!IllustMuteStore.reveal(item.illust.id)) return
+        rebindIllustCard(item.illust.id)
+    }
+
+    /**
+     * 让屏上那张卡当帧换成模糊图 + 粒子（或还原）。
      *
      * 走 `notifyItemChanged(payload)` 而不是 [FeedViewModel] 的条目变更：屏蔽态不在条目上
      * （理由见 [PAYLOAD_ILLUST_SPOILER_CHANGED]），列表数据一个字节没变，没有 diff 可跑。
      * 这条通知是纯 UI 的一次性重绑，被后续 submitList 覆盖也无所谓——全量绑定同样现读名单。
      *
-     * 只管本页：同一作品在其他已存活列表里的卡片不会立刻变，等它们自己滑动复用重绑
-     *（bind 现读名单）就同步了。
+     * 只管本页那一张；别的页由 [observeMuteRevision] 跟上。顺手记下版本号，免得订阅回调为自己
+     * 刚做的这次变更再空跑一遍整屏（粒子会白淡入淡出一次）。
      */
-    internal fun setIllustSpoilered(illustId: Long, spoilered: Boolean) {
-        // 已是目标态时 store 返回 false，直接省掉这次重绑（图会重发一次 Glide 请求）
-        if (!IllustSpoilerStore.setSpoilered(illustId, spoilered)) return
+    private fun rebindIllustCard(illustId: Long) {
+        lastMuteRevision = IllustMuteStore.revision
         val adapter = feedAdapter ?: return
         val position = adapter.currentList.indexOfFirst {
             it is IllustFeedItem && it.illust.id == illustId
         }
         if (position >= 0) {
             adapter.notifyItemChanged(position, PAYLOAD_ILLUST_SPOILER_CHANGED)
+        }
+    }
+
+    /**
+     * 订阅屏蔽名单的版本号，变了就给本页所有插画卡补一次 spoiler 重绑。
+     *
+     * 屏蔽态不在条目上、bind 时现读，所以别处改完名单（详情页的「取消屏蔽」、「屏蔽记录」页
+     * 的删除、备份恢复/导入、老 MMKV 名单迁移落地）是通知不到已经绑好的卡片的。指望「等它自己
+     * 滑动复用重绑」不成立：短列表和已经在屏幕上的卡根本不会被回收，那张卡就一直糊着
+     *（或一直不糊）到页面重建。
+     *
+     * **用 LiveData 而不是在 onResume 里比对版本号**：本仓大量 pager 是单参
+     * `FragmentPagerAdapter` + `setOffscreenPageLimit(n-1)`（`MainActivity.initFragment` 就是），
+     * 同一 pager 的所有 tab 同时常驻 RESUMED，左右滑一次 onResume 都不会触发——在 A tab 屏蔽的卡，
+     * 滑到同样含它的 B tab 会一直不打码。LiveData 按 STARTED 投递，兄弟页当场收到。
+     *
+     * 发 payload 而不是 notifyDataSetChanged：插画卡认得它，只重算屏蔽相关的那几件事，图的请求
+     * key 没变时直接跳过，不会满屏重发 Glide 请求。
+     */
+    private fun observeMuteRevision() {
+        IllustMuteStore.revisionLive.observe(viewLifecycleOwner) { revision ->
+            if (revision == lastMuteRevision) return@observe
+            lastMuteRevision = revision
+            rebindAllIllustCards()
+        }
+    }
+
+    /**
+     * 给 currentList 里**每一段连续的 [IllustFeedItem]** 发 spoiler payload。
+     *
+     * 逐段发而不是 `notifyItemRangeChanged(0, itemCount)`：混排页里通知到的非插画条目会因为
+     * 「不认识这个 payload」被框架退回**全量重绑**。纯瀑布流页看不出差别，[ArtworkV3Fragment]
+     * 这种就要命了——它也是 IllustFeedFragment，条目里混着大图页（重绑即重新发大图 Glide 请求）、
+     * ugoira 播放器和评论，全被一条与它们无关的屏蔽通知砸一遍。纯插画列表仍然只发一次区间通知。
+     */
+    private fun rebindAllIllustCards() {
+        val adapter = feedAdapter ?: return
+        val items = adapter.currentList
+        var start = -1
+        items.forEachIndexed { index, item ->
+            if (item is IllustFeedItem) {
+                if (start < 0) start = index
+            } else if (start >= 0) {
+                adapter.notifyItemRangeChanged(start, index - start, PAYLOAD_ILLUST_SPOILER_CHANGED)
+                start = -1
+            }
+        }
+        if (start >= 0) {
+            adapter.notifyItemRangeChanged(
+                start, items.size - start, PAYLOAD_ILLUST_SPOILER_CHANGED,
+            )
         }
     }
 

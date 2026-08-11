@@ -59,8 +59,19 @@ interface SearchDao {
     @get:Query("SELECT * FROM tag_mute_table WHERE type = 1 OR type = 2 ORDER BY searchTime DESC ")
     val mutedWorks: List<MuteEntity>
 
-    @get:Query("SELECT * FROM tag_mute_table WHERE type = 1 ORDER BY searchTime DESC ")
-    val mutedIllusts: List<MuteEntity>
+    /**
+     * 某一类屏蔽作品的 id 全集（不带 tagJson）。
+     *
+     * 给 [ceui.pixiv.ui.common.MutedWorkStore] 预热内存名单用：判定跑在列表 bind 的热路径上，
+     * 只需要 id，不该把每行几 KB 的作品 JSON 也读出来再扔掉。
+     *
+     * 「某个作品是否被屏蔽」一律问 store 的内存名单，不要为此再加按 type 拉全表的查询：
+     * [ceui.lisa.core.Mapper] 是逐条判的，那种查询每调一次就把每行的作品 JSON 读出来再扔掉
+     *（此前的 `mutedIllusts` / `mutedNovels` 就是这么用的，已删）。整表带 JSON 的读只有
+     * 「屏蔽记录」页需要，走 [mutedWorks]。
+     */
+    @Query("SELECT id FROM tag_mute_table WHERE type = :type")
+    fun getMutedWorkIds(type: Int): List<Int>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 ORDER BY searchTime DESC LIMIT :limit OFFSET :offset")
     fun getMutedUser(limit: Int, offset: Int): List<MuteEntity>

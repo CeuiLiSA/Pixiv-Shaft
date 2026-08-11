@@ -13,6 +13,8 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
+import ceui.pixiv.ui.common.IllustMuteStore;
+import ceui.pixiv.ui.common.NovelMuteStore;
 import ceui.loxia.Novel;
 import ceui.loxia.Tag;
 import ceui.loxia.User;
@@ -27,32 +29,33 @@ public class IllustNovelFilter {
         return judgeID(illust) || judgeTag(illust) || judgeUserID(illust) ;
     }
 
+    /**
+     * 命中「屏蔽此作品」记录（{@code tag_mute_table} 的 type 1/2）就整条从列表里删掉。
+     *
+     * <p><b>只给画不出遮罩的列表用</b>——legacy {@link ceui.lisa.core.Mapper} 那批老列表、以及
+     * 首页排行榜预览头那种横向条（它们走 legacy RAdapter，没有模糊层和粒子层）。feeds 框架下的
+     * 插画/小说卡**不挂这条**：那边被屏蔽的作品是**遮罩**——卡片留在原位糊掉 + 盖粒子，点一下
+     * 揭开、长按菜单能取消（见 {@code ceui.pixiv.ui.common.MutedWorkStore}）。在条目过滤链上滤掉
+     * 就等于 UI 上根本不存在这一条，取消屏蔽无处下手。改动这条界之前先看那个类的注释。
+     *
+     * <p>问的是 store 的内存名单而不是查库：{@link ceui.lisa.core.Mapper} 是**逐条**调这个方法的，
+     * 而原先每次调用都要跑一趟 {@code SELECT * FROM tag_mute_table WHERE type = 1} —— 每行都把几 KB
+     * 的作品 JSON 读出来再扔掉，一页 30 条就是 30 次全表扫。store 手里正好有一份同源的 id Set。
+     * 顺带也消掉了「内存已屏蔽、异步 insert 还没落盘」这段时间里老列表与 feeds 的分歧。
+     */
     public static boolean judgeID(IllustsBean illust) {
-        List<MuteEntity> temp = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getMutedIllusts();
-        boolean isBanned = false;
-        if (!Common.isEmpty(temp)) {
-            for (MuteEntity muteEntity : temp) {
-                if (muteEntity.getId() == illust.getId()) {
-                    isBanned = true;
-                    break;
-                }
-            }
-        }
-        return isBanned;
+        return IllustMuteStore.INSTANCE.isMuted(illust.getId());
     }
 
+    /**
+     * 小说版，界同上。
+     *
+     * <p>问的是**小说**那份名单（type=2）而不是插画的：插画 id 与小说 id 是两条互相独立的自增
+     * 序列，同号完全可能。这里原本查的是插画那批，于是「屏蔽插画 #12345」会顺带让小说 #12345
+     * 从列表里消失，而真正屏蔽掉的小说一篇也拦不住。
+     */
     public static boolean judgeID(NovelBean illust) {
-        List<MuteEntity> temp = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getMutedIllusts();
-        boolean isBanned = false;
-        if (!Common.isEmpty(temp)) {
-            for (MuteEntity muteEntity : temp) {
-                if (muteEntity.getId() == illust.getId()) {
-                    isBanned = true;
-                    break;
-                }
-            }
-        }
-        return isBanned;
+        return NovelMuteStore.INSTANCE.isMuted(illust.getId());
     }
 
     public static boolean judgeUserID(IllustsBean illust) {
@@ -152,16 +155,9 @@ public class IllustNovelFilter {
         return judgeID(novel) || judgeTag(novel) || judgeUserID(novel);
     }
 
+    /** loxia {@link Novel} 版，与上面的 {@link NovelBean} 重载同口径（小说那份名单）。 */
     public static boolean judgeID(Novel novel) {
-        List<MuteEntity> temp = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getMutedIllusts();
-        if (!Common.isEmpty(temp)) {
-            for (MuteEntity muteEntity : temp) {
-                if (muteEntity.getId() == novel.getId()) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return NovelMuteStore.INSTANCE.isMuted(novel.getId());
     }
 
     public static boolean judgeUserID(Novel novel) {

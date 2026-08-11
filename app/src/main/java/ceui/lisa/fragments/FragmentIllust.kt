@@ -38,6 +38,7 @@ import ceui.lisa.adapters.AbstractIllustAdapter
 import ceui.lisa.adapters.IllustAdapter
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
+import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
@@ -173,7 +174,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                             viewLifecycleOwner.lifecycleScope.launch {
                                 it.showProgress()
                                 delay(600L)
-                                dao.deleteMuteEntity(illustEntity)
+                                // 同 ArtworkV3Fragment：删库和内存名单一并交给 store，
+                                // 别自己 deleteMuteEntity 绕开它的单线程写队列
+                                IllustMuteStore.setMuted(illustEntity.id.toLong(), false)
                                 it.hideProgress()
                             }
                         }
