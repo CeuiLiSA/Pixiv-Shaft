@@ -8,7 +8,6 @@ import android.widget.TextView;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,8 +25,7 @@ import ceui.lisa.utils.PixivOperate;
 
 public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
 
-    private IllustsBean mIllust;
-    private List<TagsBean> mTags;
+    private List<TagsBean> mTags = new ArrayList<>();
     private final List<TagsBean> selected = new ArrayList<>();
     private final List<Boolean> muteNotEffect = new ArrayList<>();
 
@@ -39,9 +37,14 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
         return fragment;
     }
 
-    public static MuteDialog newInstance(List<TagsBean> tags) {
+    /**
+     * 直接喂一组标签（小说卡长按菜单走这条：loxia Novel 没有 legacy IllustsBean）。
+     * 形参收成 ArrayList 而不是 List —— Bundle 只收 Serializable，声明成 List 就得在这里
+     * 强转，把「调用方传了个不可序列化的 List」从编译期错误降级成运行期崩溃。
+     */
+    public static MuteDialog newInstance(ArrayList<TagsBean> tags) {
         Bundle args = new Bundle();
-        args.putSerializable(Params.CONTENT, (Serializable) tags);
+        args.putSerializable(Params.CONTENT, tags);
         MuteDialog fragment = new MuteDialog();
         fragment.setArguments(args);
         return fragment;
@@ -146,13 +149,16 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void initBundle(Bundle bundle) {
         Object content = bundle.getSerializable(Params.CONTENT);
+        List<TagsBean> tags = null;
         if (content instanceof IllustsBean) {
-            mIllust = (IllustsBean) content;
-            mTags = mIllust.getTags();
+            tags = ((IllustsBean) content).getTags();
         } else if (content instanceof List) {
-            mTags = (List<TagsBean>) content;
+            tags = (List<TagsBean>) content;
         }
+        // 兜到空列表：initView 上来就 mTags.size()，null 会当场 NPE。
+        mTags = tags != null ? tags : new ArrayList<>();
     }
 }

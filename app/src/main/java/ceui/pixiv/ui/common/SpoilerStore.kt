@@ -16,16 +16,18 @@ import java.util.concurrent.ConcurrentHashMap
  * [ceui.pixiv.ui.synonym.SynonymBuiltinDict] 里那条理由）。key 就是作品 id 的十进制串，
  * 值恒为 true —— 「不在名单里」即未屏蔽，取消屏蔽直接删 key，不留 false 墓碑。
  *
- * 全表在首次访问时一次性读进内存 Set：判定发生在瀑布流 bind 的热路径上（fling 时每秒几十次），
+ * 全表在首次访问时一次性读进内存 Set：判定发生在列表 bind 的热路径上（fling 时每秒几十次），
  * 不该每次都过一趟 JNI。写入同时更新内存与磁盘，两边不会分家。
+ *
+ * 插画与小说各持一个实例（[IllustSpoilerStore] / [NovelSpoilerStore]），**表必须分开**：
+ * 插画 id 与小说 id 是两条互相独立的自增序列，同号完全可能，合表会让屏蔽一本小说顺带糊掉
+ * 一张同号插画。
  *
  * 依赖 `Shaft.onCreate` 里的 `MMKV.initialize()` 先跑过（同 ComicReaderProgressStore）。
  */
-object IllustSpoilerStore {
+open class SpoilerStore(private val mmkvId: String) {
 
-    private const val MMKV_ID = "illust_spoiler_v1"
-
-    private val store: MMKV by lazy { MMKV.mmkvWithID(MMKV_ID) }
+    private val store: MMKV by lazy { MMKV.mmkvWithID(mmkvId) }
 
     /** 线程安全的 Set：读在主线程（bind），写也在主线程（菜单/点击），但不值得为此赌上一次 CME。 */
     private val spoileredIds: MutableSet<Long> by lazy {
@@ -34,7 +36,7 @@ object IllustSpoilerStore {
         }
     }
 
-    fun isSpoilered(illustId: Long): Boolean = illustId > 0L && spoileredIds.contains(illustId)
+    fun isSpoilered(workId: Long): Boolean = workId > 0L && spoileredIds.contains(workId)
 
     /**
      * 设置屏蔽态。
@@ -42,17 +44,23 @@ object IllustSpoilerStore {
      * @return 状态是否**真的**变了。已经是目标态返回 false，调用方据此跳过重绑——
      * 幂等守卫放在这里，省得每个入口各写一遍（对齐 [IllustFeedItem.withBookmarked] 的做法）。
      */
-    fun setSpoilered(illustId: Long, spoilered: Boolean): Boolean {
-        if (illustId <= 0L) return false
-        val key = illustId.toString()
+    fun setSpoilered(workId: Long, spoilered: Boolean): Boolean {
+        if (workId <= 0L) return false
+        val key = workId.toString()
         return if (spoilered) {
-            if (!spoileredIds.add(illustId)) return false
+            if (!spoileredIds.add(workId)) return false
             store.encode(key, true)
             true
         } else {
-            if (!spoileredIds.remove(illustId)) return false
+            if (!spoileredIds.remove(workId)) return false
             store.removeValueForKey(key)
             true
         }
     }
 }
+
+/** 插画卡（recy_illust_stagger）的遮罩名单。 */
+object IllustSpoilerStore : SpoilerStore("illust_spoiler_v1")
+
+/** 小说卡（recy_novel）的遮罩名单。 */
+object NovelSpoilerStore : SpoilerStore("novel_spoiler_v1")

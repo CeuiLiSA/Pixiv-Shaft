@@ -72,11 +72,22 @@ class WatchLaterTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
         }
     }
 
+    /** 按 FragmentPagerAdapter 的 tag 取活着的子 tab（旋转后也准）。同 FragmentHistoryTabs 的取法。 */
+    private fun childTabAt(position: Int): Fragment? {
+        return childFragmentManager.findFragmentByTag("android:switcher:${binding.viewPager.id}:$position")
+    }
+
+    /** 当前 tab 的列表是不是空的（子页还没建出来也算空）。 */
+    private fun isTabEmpty(position: Int): Boolean {
+        return if (position == 0) {
+            (childTabAt(0) as? WatchLaterFeedFragment)?.currentBeans().isNullOrEmpty()
+        } else {
+            (childTabAt(1) as? NovelWatchLaterFeedFragment)?.currentNovelItems().isNullOrEmpty()
+        }
+    }
+
     private fun playAll() {
-        val child = childFragmentManager.findFragmentByTag(
-            "android:switcher:${binding.viewPager.id}:0"
-        ) as? WatchLaterFeedFragment
-        val beans = child?.currentBeans().orEmpty()
+        val beans = (childTabAt(0) as? WatchLaterFeedFragment)?.currentBeans().orEmpty()
         if (beans.isEmpty()) {
             Common.showToast(R.string.watch_later_empty)
         } else {
@@ -86,6 +97,11 @@ class WatchLaterTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
 
     private fun confirmClear(position: Int) {
         val ctx = context ?: return
+        // 空列表不该走二次确认再报一句「已清空」——那是在清空一个本来就空的东西。
+        if (isTabEmpty(position)) {
+            Common.showToast(R.string.watch_later_empty)
+            return
+        }
         // EntityWrapper 是 app 单例；提前抓好，弹窗动作异步触发时 fragment 可能已 detach。
         val entityWrapper = requireEntityWrapper()
         QMUIDialog.MessageDialogBuilder(ctx)

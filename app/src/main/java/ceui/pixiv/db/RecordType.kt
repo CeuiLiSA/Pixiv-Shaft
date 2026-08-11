@@ -12,4 +12,11 @@ object RecordType {
     // 稍后再看:本地收藏一批想稍后浏览的插画。仅本地(不上报云端),复用 general_table
     // 存 ceui.loxia.Illust JSON,渲染走 IllustCardHolder,与浏览历史同一套。
     const val WATCH_LATER = 7
+
+    // 稍后再看(小说)。**必须是独立的 recordType,不能跟 WATCH_LATER 共用再靠 entityType 分流**:
+    // general_table 的主键是 (id, recordType),不含 entityType;而插画 id 与小说 id 是两条互相
+    // 独立的自增序列(小说 id 现在约 2600 万,2012 年前的老插画 id 全落在这个区间),同号完全可能。
+    // 共用一个 recordType 时,加入同号小说会被 OnConflictStrategy.REPLACE 静默覆盖掉那张插画,
+    // 而按 (recordType, id) 删除又会把两条一起删。分开就没有这些事。
+    const val WATCH_LATER_NOVEL = 8
 }

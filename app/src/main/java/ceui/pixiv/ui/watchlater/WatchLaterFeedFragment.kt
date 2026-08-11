@@ -11,7 +11,6 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.IllustsBean
-import ceui.pixiv.db.EntityType
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.feeds.FeedItem
@@ -43,6 +42,10 @@ class WatchLaterFeedFragment : IllustFeedFragment() {
         // 零捕获：source 不吃任何参数，DB 走 application context。
         WatchLaterFeedSource()
     }
+
+    // 本页原来是 fragment_toolbar_feed，底部 systemBars inset 由 setUpToolbar 顺手吃掉；
+    // 改成裸 fragment_feed 交给 tab 宿主后那条路没了，得自己补，否则末条卡压在手势条底下。
+    override val applyBottomSafeInset: Boolean = true
 
     /**
      * 本地数据源不给详情页 pager 续读游标（基类 KDoc：本地源必须覆写成 null）。
@@ -108,15 +111,15 @@ class WatchLaterFeedFragment : IllustFeedFragment() {
  *
  * 零 Fragment 捕获：无参构造，DB 走 [Shaft.getContext] 的 application context。
  *
- * 小说与插画共用 RecordType.WATCH_LATER，靠 entityType 分开：这里只读 ILLUST，小说 JSON
- *（隔壁 NovelWatchLaterFeedSource）绝不会被解析成一张坏插画卡。
+ * 小说的稍后再看是独立的 RecordType.WATCH_LATER_NOVEL（隔壁 NovelWatchLaterFeedSource），
+ * 本表只有插画，小说 JSON 绝不会被解析成一张坏插画卡。
  */
 class WatchLaterFeedSource : FeedSource<String> {
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val items: List<FeedItem> = withContext(Dispatchers.IO) {
             AppDatabase.getAppDatabase(Shaft.getContext()).generalDao()
-                .getByRecordTypeAndEntityType(RecordType.WATCH_LATER, EntityType.ILLUST, 0, Int.MAX_VALUE)
+                .getByRecordType(RecordType.WATCH_LATER, 0, Int.MAX_VALUE)
                 .mapNotNull { entity ->
                     val bean = runCatching {
                         Shaft.sGson.fromJson(entity.json, IllustsBean::class.java)

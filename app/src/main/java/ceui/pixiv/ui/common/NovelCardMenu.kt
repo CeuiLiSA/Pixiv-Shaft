@@ -11,7 +11,6 @@ import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.ui.bulk.NovelBulkSelectStorage
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
-import com.hjq.toast.Toaster
 
 /**
  * 小说卡长按菜单（issue #974）。对齐插画卡的 [showCardMenu]：长按 = 打开「这一列表级别」的动作。
@@ -28,8 +27,18 @@ import com.hjq.toast.Toaster
 internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
     val novel = item.novel
     val entityWrapper = requireEntityWrapper()
-    val inWatchLater = entityWrapper.isInWatchLater(novel.id)
+    val inWatchLater = entityWrapper.isNovelInWatchLater(novel.id)
     val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
+    // loxia Tag.name 可空，而 MuteDialog / PixivOperate.muteTag 都直接 name.equals / name.hashCode，
+    // 空名字会当场 NPE；顺手把 translated_name 也带上，「标签屏蔽记录」页才有译名可显示。
+    val tagsToMute = novel.tags.orEmpty()
+        .filter { !it.name.isNullOrBlank() }
+        .map { tag ->
+            TagsBean().apply {
+                name = tag.name
+                translated_name = tag.translated_name
+            }
+        }
     showV3Menu("NovelFeedCardMenu") {
         // 屏蔽此作品：本地遮罩（封面模糊 + 粒子），条目留在原位置，点卡片或本项可取消。
         // 排在最前面——它是长按这张卡最直接的诉求（对齐插画菜单）。
@@ -46,12 +55,11 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
         }
         // 屏蔽设定：与插画卡同一套屏蔽表（IllustNovelFilter 对 loxia Novel 有同款重载），
         // 只是 MuteDialog 换成喂 tag 列表的重载，不需要 legacy IllustsBean。
-        item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
-            val tags = ArrayList<TagsBean>().apply {
-                novel.tags.orEmpty().forEach { add(TagsBean().apply { name = it.name }) }
+        // 无标签的小说压根不挂这一项——挂了点下去也只能静默无反应。
+        if (tagsToMute.isNotEmpty()) {
+            item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
+                MuteDialog.newInstance(ArrayList(tagsToMute)).show(childFragmentManager, "MuteDialog")
             }
-            if (tags.isEmpty()) return@item
-            MuteDialog.newInstance(tags).show(childFragmentManager, "MuteDialog")
         }
         // 相关评论：与 NovelTextFragment.onClickNovelComments 同一条路，
         // TemplateActivity 按 NOVEL_ID 走 ObjectType.NOVEL 的 CommentsFragment。
@@ -77,7 +85,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
                 novels = listOf(novel),
                 onFinished = { failures ->
                     if (isAdded) {
-                        Toaster.show(
+                        Common.showToast(
                             if (failures.isEmpty()) {
                                 getString(R.string.batch_download_all_ok)
                             } else {
@@ -94,10 +102,10 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
         item(watchLaterLabel, R.drawable.ic_watch_later_24) {
             val appContext = requireContext().applicationContext
             if (inWatchLater) {
-                entityWrapper.removeFromWatchLater(appContext, novel.id)
+                entityWrapper.removeNovelFromWatchLater(appContext, novel.id)
                 Common.showToast(R.string.watch_later_removed)
             } else {
-                entityWrapper.addToWatchLater(appContext, novel)
+                entityWrapper.addNovelToWatchLater(appContext, novel)
                 Common.showToast(R.string.watch_later_added)
             }
         }

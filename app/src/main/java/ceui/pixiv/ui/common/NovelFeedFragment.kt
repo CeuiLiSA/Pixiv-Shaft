@@ -145,8 +145,9 @@ abstract class NovelFeedFragment(
             // 表现就是「想长按封面/作者/系列，结果直接跳走了」（真机上按在系列名上必现）。
             // like 不挂：它自己的长按是「按标签收藏」，不能被顶掉。
             val onCardLongPress = View.OnLongClickListener { v ->
+                val pressed = cell.itemOrNull ?: return@OnLongClickListener false
                 v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                showNovelCardMenu(cell.item)
+                showNovelCardMenu(pressed)
                 true
             }
             listOf(
@@ -178,9 +179,23 @@ abstract class NovelFeedFragment(
             }
         },
         recycle = { cell ->
+            // 淡入淡出可能正跑到一半就被回收：连 animator 一起停掉并把 alpha 归位，
+            // 否则复用到下一条目时粒子层带着半透明残值出场（对齐插画卡）。
+            cell.binding.spoilerParticles.animate().cancel()
+            cell.binding.spoilerParticles.alpha = 1f
+            cell.binding.spoilerParticles.setParticleAnimationRunning(false)
             novelGlide.clear(cell.binding.cover)
             cell.binding.cover.tag = null
             novelGlide.clear(cell.binding.userHead)
+        },
+        // detach 停了逐帧模拟，就必须有对称的 attach 把它开回来：RecyclerView 的 mCachedViews
+        // 里的 holder 是「只 detach、不重新 onBind」的，滚出去一点点再滚回来不会走绑定，
+        // 少了这个钩子 requestedRunning 永远停在 false，粒子层直接一帧都不画（对齐插画卡）。
+        attach = { cell ->
+            val spoilered = cell.itemOrNull?.let { NovelSpoilerStore.isSpoilered(it.novel.id) }
+            if (spoilered == true) {
+                cell.binding.spoilerParticles.setParticleAnimationRunning(true)
+            }
         },
         detach = { cell ->
             cell.binding.spoilerParticles.setParticleAnimationRunning(false)
@@ -237,7 +252,7 @@ abstract class NovelFeedFragment(
         trendingScore: Float?,
         spoilered: Boolean,
     ) {
-        applyNovelSpoilerMask(b, masked = spoilered)
+        applyNovelSpoilerMask(b, novel, masked = spoilered)
         if (!spoilered) {
             renderNovelCardText(b, novel, trendingScore)
         }
@@ -294,27 +309,33 @@ abstract class NovelFeedFragment(
      * [masked]=false：把这些复位（正常分支随后会重新赋真实文本与可见性）。
      * 封面仍由 [loadNovelCover] 出模糊位图，整卡粒子层由调用方铺。
      */
-    private fun applyNovelSpoilerMask(b: RecyNovelBinding, masked: Boolean) {
+    private fun applyNovelSpoilerMask(b: RecyNovelBinding, novel: Novel, masked: Boolean) {
+        if (masked) {
+            // 系列这一行的可见性平时由 renderNovelCardText 按有无系列切；屏蔽分支不管的话，
+            // 同一本小说长什么样就取决于这个 holder 上一条是谁——复用到有系列的卡就凭空多一根条。
+            val series = novel.series
+            b.series.isVisible = series != null && !series.title.isNullOrEmpty()
+            // 屏蔽态下系列不再跳系列页，但也不能只 setOnClickListener(null)：那不会把
+            // clickable 复位回 false，view 会继续吃掉触摸事件又什么都不做，root 的 revealOr
+            // 收不到，表现就是「点这根条没反应」。跟卡片其它区域一样先揭开。
+            b.series.setOnClick { revealOr(novel.id) {} }
+        }
         listOf(b.title, b.author, b.series).forEach { tv ->
             if (masked) {
                 // 单个空格 + wrap_content：占位条高度自然等于该行文字行高。
                 // 不能动 TextView.height —— 那改的是 min/maxHeight，复位时会钳死正常文本。
                 tv.text = " "
-                tv.background = spoilerBarDrawable
+                // 每个 view 必须拿到独立的 Drawable 实例：bounds 和 callback 都存在实例上，
+                // 共用一份会被最后布局的那个 view 改掉尺寸（title 是整行宽，author 还要
+                // 减掉头像和日期）。setBackgroundResource 走 Resources 层，ConstantState
+                // 仍是共享的，不多占内存。
+                tv.setBackgroundResource(R.drawable.bg_novel_spoiler_bar)
             } else {
                 tv.background = null
             }
         }
         listOf(b.date, b.bookmarkCount, b.howManyWord, b.badgeAi, b.trendingScore, b.novelTag, b.userHead, b.like)
             .forEach { it.isVisible = !masked }
-        if (masked) {
-            b.series.setOnClickListener(null)
-        }
-    }
-
-    /** 屏蔽占位条背景：shape 无状态，全卡复用同一份即可。 */
-    private val spoilerBarDrawable by lazy {
-        ContextCompat.getDrawable(requireContext(), R.drawable.bg_novel_spoiler_bar)
     }
 
     /**

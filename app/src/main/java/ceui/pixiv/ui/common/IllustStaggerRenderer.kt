@@ -21,7 +21,6 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.recommend.bindTrendingScore
 import ceui.pixiv.utils.playLikePressHaptic
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.widget.SpoilerParticleView
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import jp.wasabeef.glide.transformations.BlurTransformation
@@ -34,10 +33,6 @@ private const val MAX_HEIGHT_RATIO = 2.0f
 /** 屏蔽态的 Glide 模糊参数（对齐画师头图 [ceui.pixiv.ui.muted] 那套 25/3，够糊到认不出内容）。 */
 private const val SPOILER_BLUR_RADIUS = 25
 private const val SPOILER_BLUR_SAMPLING = 3
-
-/** 粒子层淡入淡出时长：跟着 Glide 的 crossfade（默认 300ms）走，图和粒子一起变。 */
-private const val SPOILER_FADE_IN_MS = 260L
-private const val SPOILER_FADE_OUT_MS = 200L
 
 /**
  * 「屏蔽此作品」态变化的局部重绑 payload（按引用识别）。
@@ -286,50 +281,6 @@ private fun IllustFeedFragment.loadIllustImage(
         .into(binding.illustImage)
 }
 
-/**
- * 粒子层的显隐。[animate] 只在「用户刚点了屏蔽/揭开」时为 true——全量绑定（含复用、滚动回来）
- * 一律硬切，否则每张滑上屏的卡都要白白播一遍淡入。
- *
- * 淡入淡出用 View 的 alpha 而不是 SpoilerEffect2 的 alpha 形参：粒子纹理是所有卡片共享的一张
- * GPU 输出，形参 alpha 是**绘制时**参数，得在每帧 onDraw 里传新值（要么自己起 ValueAnimator
- * 推 invalidate，要么让 view 每帧重绘）；View.alpha 由渲染管线直接处理，一行搞定且不多画一帧。
- */
-internal fun renderSpoilerParticles(
-    view: SpoilerParticleView,
-    show: Boolean,
-    animate: Boolean,
-) {
-    view.animate().cancel()
-    if (show) {
-        // 已经稳定显示中就别再动它（局部重绑可能在粒子本来就常驻的首页推荐上触发）
-        if (view.isVisible && view.alpha == 1f) {
-            view.setParticleAnimationRunning(true)
-            return
-        }
-        view.alpha = if (animate) 0f else 1f
-        view.isVisible = true
-        view.setParticleAnimationRunning(true)
-        if (animate) {
-            view.animate().alpha(1f).setDuration(SPOILER_FADE_IN_MS).start()
-        }
-    } else {
-        if (animate && view.isVisible) {
-            view.animate()
-                .alpha(0f)
-                .setDuration(SPOILER_FADE_OUT_MS)
-                .withEndAction {
-                    view.isVisible = false
-                    view.alpha = 1f
-                    view.setParticleAnimationRunning(false)
-                }
-                .start()
-        } else {
-            view.isVisible = false
-            view.alpha = 1f
-            view.setParticleAnimationRunning(false)
-        }
-    }
-}
 
 /** 未收藏 = 白色空心描边爱心，已收藏 = 红色实心爱心（图上永远配深色圆底座）。 */
 internal fun renderLikeState(button: ImageView, liked: Boolean) {
