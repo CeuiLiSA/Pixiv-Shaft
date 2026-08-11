@@ -6,6 +6,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
+import ceui.pixiv.db.HistoryBackfill
 import ceui.pixiv.db.HistoryReporter
 import ceui.pixiv.session.SessionManager
 import com.qmuiteam.qmui.skin.QMUISkinManager
@@ -38,6 +39,8 @@ object CloudHistoryConsent {
     @JvmStatic
     fun setEnabled(enabled: Boolean) {
         persist(enabled, consentShown = true)
+        // 开启的这一刻把存量本地历史回填到云端(#989)。自带幂等/去重门槛,重复调无害。
+        if (enabled) HistoryBackfill.maybeSchedule()
     }
 
     /**
@@ -68,6 +71,7 @@ object CloudHistoryConsent {
                 QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 Timber.tag(TAG).i("[consent] user chose KEEP")
                 persist(enabled = true, consentShown = true)
+                HistoryBackfill.maybeSchedule() // 明确同意后立刻回填存量本地历史(#989)
                 d.dismiss()
                 onResolved?.invoke()
             }

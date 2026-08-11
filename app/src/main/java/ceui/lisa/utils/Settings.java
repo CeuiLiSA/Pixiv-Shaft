@@ -174,6 +174,8 @@ public class Settings {
     private boolean cloudHistorySync = true;
     // 同意框是否已经弹过(每台设备一次)。
     private boolean cloudHistoryConsentShown = false;
+    // 存量本地历史已回填到云端的账号 uid(#989),0 = 未回填。见 HistoryBackfill。
+    private long cloudHistoryBackfillDoneUid = 0L;
 
     private boolean r18DivideSave = false;
 
@@ -478,6 +480,14 @@ public class Settings {
 
     public void setCloudHistoryConsentShown(boolean cloudHistoryConsentShown) {
         this.cloudHistoryConsentShown = cloudHistoryConsentShown;
+    }
+
+    public long getCloudHistoryBackfillDoneUid() {
+        return cloudHistoryBackfillDoneUid;
+    }
+
+    public void setCloudHistoryBackfillDoneUid(long cloudHistoryBackfillDoneUid) {
+        this.cloudHistoryBackfillDoneUid = cloudHistoryBackfillDoneUid;
     }
 
     public String getSearchFilter() {

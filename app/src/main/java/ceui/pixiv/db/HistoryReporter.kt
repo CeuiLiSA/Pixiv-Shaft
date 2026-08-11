@@ -54,7 +54,8 @@ object HistoryReporter {
         if (SessionManager.loggedInUid <= 0L) return // history is per-viewer
         // drop oldest if the backend has been unreachable and the queue piled up
         while (queue.size >= MAX_QUEUE) queue.poll()
-        queue.add(HistoryReportItem(targetType, targetId, payload))
+        // viewed_at 在入队时定格:flush 有 2s 合并窗口,靠服务端打点会把浏览时间记成上传时间
+        queue.add(HistoryReportItem(targetType, targetId, payload, System.currentTimeMillis()))
         if (queue.size >= MAX_BATCH) {
             scope.launch { flush() }
         } else {

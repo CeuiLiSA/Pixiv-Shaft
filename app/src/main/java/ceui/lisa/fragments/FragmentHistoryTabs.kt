@@ -29,6 +29,7 @@ import ceui.lisa.interfaces.Callback
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.CloudHistoryConsent
+import ceui.pixiv.db.HistoryBackfill
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
@@ -124,6 +125,9 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
         // 而不是一进首页就弹(见 issue #889)。已弹过/未登录则什么都不做。
         // 选 KEEP 后读取会切到云端,所以选完要重刷一下子 tab。
         view.post { activity?.let { CloudHistoryConsent.maybeShowConsent(it) { reloadAllTabs() } } }
+        // 存量本地历史回填(#989):同意框弹出之前就开着同步的老用户,persist 不会再触发,
+        // 打开历史页是他们唯一稳定的补触发点。自带「按 uid 只跑一次 + 正在跑不重入」门槛。
+        HistoryBackfill.maybeSchedule()
     }
 
     /** 让现存的子 tab 各自重走 VM.loadFirst(),按当前 useRemote() 重读数据源。 */

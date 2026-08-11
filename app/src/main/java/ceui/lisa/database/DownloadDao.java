@@ -306,6 +306,13 @@ public interface DownloadDao {
     @Query("SELECT COUNT(*) FROM illust_table WHERE type = :type")
     int getViewHistoryCountByType(int type);
 
+    /**
+     * 按 id 批量取 (illustID, time) 投影,云端历史物化回写(#989)用来做 LWW 比较。
+     * 调用方一次最多传一页(≤100 个 id),不会撞 SQLite 999 变量上限。
+     */
+    @Query("SELECT illustID, time FROM illust_table WHERE illustID IN (:ids)")
+    List<HistoryIdTime> getViewHistoryTimes(List<Integer> ids);
+
     @Query("DELETE FROM illust_table WHERE type = :type")
     void deleteAllHistoryByType(int type);
 

@@ -4,14 +4,14 @@ import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
-import ceui.lisa.models.IllustsBean
 import ceui.loxia.Client
 import ceui.loxia.HistoryReportBody
 import ceui.loxia.HistoryReportItem
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
+import ceui.pixiv.db.toHistoryReportItem
+import ceui.pixiv.db.toUserHistoryReportItem
 import ceui.pixiv.session.SessionManager
-import com.google.gson.JsonParser
 import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -143,21 +143,11 @@ object BrowseHistoryBackup {
         if (uid <= 0L) return
         if (!Shaft.sSettings.isCloudHistorySync || !Shaft.sSettings.isCloudHistoryConsentShown) return
 
+        // 共享 #989 回填的映射:带真实浏览时间(viewed_at),服务端只认「更新的浏览」——
+        // 导入老备份不会把云端顺序刷成「刚刚看过」,重复导入也是 no-op。
         val items = ArrayList<HistoryReportItem>()
-        payload.illustHistory.forEach { e ->
-            val tree = runCatching { JsonParser.parseString(e.illustJson) }.getOrNull() ?: return@forEach
-            val targetType = if (e.type == 1) {
-                "novel"
-            } else {
-                val ib = runCatching { Shaft.sGson.fromJson(e.illustJson, IllustsBean::class.java) }.getOrNull()
-                if (ib?.type == "manga") "manga" else "illust"
-            }
-            items.add(HistoryReportItem(targetType, e.illustID.toLong(), tree))
-        }
-        payload.userHistory.forEach { e ->
-            val tree = runCatching { JsonParser.parseString(e.json) }.getOrNull() ?: return@forEach
-            items.add(HistoryReportItem("user", e.id, tree))
-        }
+        payload.illustHistory.forEach { e -> e.toHistoryReportItem()?.let { items.add(it) } }
+        payload.userHistory.forEach { e -> e.toUserHistoryReportItem()?.let { items.add(it) } }
         items.chunked(MAX_CLOUD_BATCH).forEach { batch ->
             runCatching { Client.pixshaft.reportHistory(uid, HistoryReportBody(batch)) }
                 .onFailure { Timber.w(it, "history import cloud push failed (${batch.size} items)") }

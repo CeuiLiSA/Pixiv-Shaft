@@ -153,7 +153,7 @@ class HistoryFeedSource(
                 try {
                     Client.pixshaft.listHistory(
                         SessionManager.loggedInUid, serverType, query, null, SEARCH_LIMIT,
-                    ).items.mapNotNull { remoteToEntity(it) }
+                    ).items.mapNotNull { remoteToEntity(it) }.also { materializeRemotePage(it) }
                 } catch (ex: Exception) {
                     Timber.w(ex, "remote history search unavailable, falling back to local")
                     dao.searchViewHistoryByType(query, historyType)
@@ -171,6 +171,7 @@ class HistoryFeedSource(
                     SessionManager.loggedInUid, serverType, null, cursor, PAGE_SIZE,
                 )
                 val mapped = resp.items.mapNotNull { remoteToEntity(it) }
+                materializeRemotePage(mapped)
                 // 刚同意云同步时云端可能还是空的 → 回退本地，否则列表会突然刷成空白。
                 if (cursor == null && mapped.isEmpty()) {
                     forcedLocal = true
@@ -206,6 +207,25 @@ class HistoryFeedSource(
             null
         }
         FeedPage(entities.toFeedItems(), next)
+    }
+
+    /**
+     * 云端页 LWW 物化回本地(#989):云端独有的记录(其它设备浏览的)落回 illust_table,
+     * 断网/关同步切回本地读时才不会凭空消失。只「新盖旧」——本地 time 更新说明本机
+     * 之后又看过,不能被云端旧快照打回;云端也绝不因「没有某条」而删本地(本地是超集,
+     * 云端只是每类保留最新 1000 条的副本,eviction 不该传染成本地丢数据)。
+     * 失败只 warn:物化是顺带的,绝不影响列表展示。
+     */
+    private fun materializeRemotePage(entities: List<IllustHistoryEntity>) {
+        if (entities.isEmpty()) return
+        // 用户关了「保存浏览记录」= 本地库别替他写
+        if (!Shaft.sSettings.isSaveViewHistory) return
+        runCatching {
+            val existing = dao.getViewHistoryTimes(entities.map { it.illustID })
+                .associate { it.illustID to it.time }
+            val fresh = entities.filter { it.time > (existing[it.illustID] ?: Long.MIN_VALUE) }
+            if (fresh.isNotEmpty()) dao.insertHistories(fresh)
+        }.onFailure { Timber.w(it, "history materialize-to-local failed (ignored)") }
     }
 
     /** 把远端条目映射回 illust_table 的 entity 形态，复用既有渲染。 */

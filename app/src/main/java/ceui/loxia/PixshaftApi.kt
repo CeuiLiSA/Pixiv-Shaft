@@ -145,6 +145,9 @@ data class HistoryReportItem(
     val target_type: String,
     val target_id: Long,
     val payload: JsonElement?,
+    // 真实浏览时刻(ms)。服务端只在它比已存行更新时才覆盖/置顶,所以回填存量本地
+    // 历史不会把云端顺序刷成「刚刚看过」(#989)。null → 服务端打点(旧行为)。
+    val viewed_at: Long? = null,
 )
 
 data class HistoryReportAck(

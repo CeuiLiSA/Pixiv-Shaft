@@ -63,6 +63,7 @@ class HistoryUserFeedSource : FeedSource<String> {
                     SessionManager.loggedInUid, "user", null, cursor, PAGE_SIZE,
                 )
                 val mapped = resp.items.mapNotNull { remoteToEntity(it) }
+                materializeRemotePage(mapped)
                 if (cursor == null && mapped.isEmpty()) {
                     forcedLocal = true
                 } else {
@@ -85,6 +86,19 @@ class HistoryUserFeedSource : FeedSource<String> {
             null
         }
         FeedPage(entities.map { it.toUserFeedItem() }, next)
+    }
+
+    /** 云端页 LWW 物化回 general_table(#989),语义同 HistoryFeedSource.materializeRemotePage。 */
+    private fun materializeRemotePage(entities: List<GeneralEntity>) {
+        if (entities.isEmpty()) return
+        if (!Shaft.sSettings.isSaveViewHistory) return
+        runCatching {
+            val existing = dao
+                .getTimesByRecordTypeAndIds(RecordType.VIEW_USER_HISTORY, entities.map { it.id })
+                .associate { it.id to it.updatedTime }
+            val fresh = entities.filter { it.updatedTime > (existing[it.id] ?: Long.MIN_VALUE) }
+            if (fresh.isNotEmpty()) dao.insertAll(fresh)
+        }.onFailure { Timber.w(it, "user history materialize-to-local failed (ignored)") }
     }
 
     private fun remoteToEntity(entry: HistoryEntry): GeneralEntity? {

@@ -14,6 +14,10 @@ interface GeneralDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(generalEntity: GeneralEntity): Long  // 返回插入行 ID
 
+    // 批量写入(一批一个事务),云端历史物化回写(#989)整页落库用
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(entities: List<GeneralEntity>)
+
     // ✅  查询所有数据，Room 正确解析 suspend 方法
     @Query("SELECT * FROM general_table")
     fun getAll(): List<GeneralEntity> //
@@ -41,4 +45,15 @@ interface GeneralDao {
     // 根据 recordType 返回所有 id 列表
     @Query("SELECT id FROM general_table WHERE recordType = :recordType")
     fun getAllIdsByRecordType(recordType: Int): List<Long>
+
+    // 按 id 批量取 (id, updatedTime) 投影,云端历史物化回写(#989)做 LWW 比较,
+    // 不拖 json 大字段。一次一页(≤100 id),不撞 SQLite 999 变量上限。
+    @Query("SELECT id, updatedTime FROM general_table WHERE recordType = :recordType AND id IN (:ids)")
+    fun getTimesByRecordTypeAndIds(recordType: Int, ids: List<Long>): List<RecordIdTime>
 }
+
+/** [GeneralDao.getTimesByRecordTypeAndIds] 的投影结果。 */
+data class RecordIdTime(
+    val id: Long,
+    val updatedTime: Long,
+)
