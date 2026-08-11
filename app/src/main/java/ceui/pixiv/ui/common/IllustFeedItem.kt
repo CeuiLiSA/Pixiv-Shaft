@@ -164,7 +164,7 @@ class IllustFeedItem(
             if (!bean.isVisible) return false
             if (IllustNovelFilter.judgeTag(bean)) return false
             // 不挂 judgeID：被「屏蔽此作品」记下的单件作品在 feeds 里是**遮罩**而不是过滤——
-            // 卡片留在原位糊掉 + 盖粒子，点一下能揭开（见 [ceui.pixiv.ui.common.IllustMuteStore]）。
+            // 卡片留在原位糊掉 + 盖粒子，点一下即取消屏蔽（见 [ceui.pixiv.ui.common.IllustMuteStore]）。
             // 在这里滤掉的话条目压根不存在，取消屏蔽就无处下手。judgeID 仍留给画不出遮罩的老列表。
             // 屏蔽画师过滤：在「该画师本人作品页」让步（skipMuteUserFilter）——整页都是这个画师，
             // 全滤空只会触发空页追载狂翻页（offset 30/60/90…）；你主动点进他主页就该看到其作品

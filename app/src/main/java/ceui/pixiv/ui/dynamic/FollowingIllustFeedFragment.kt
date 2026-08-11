@@ -75,8 +75,8 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
             listOf(
                 timelineIllustRenderer(
                     onClick = { item -> openDetail(item) },
-                    // 屏蔽的卡先揭开看一眼（不取消屏蔽），同瀑布流卡
-                    onRevealMuted = { item -> revealIllust(item) },
+                    // 打码的卡点一下 = 取消屏蔽，同瀑布流卡
+                    onUnmute = { item -> setIllustMuted(item, false) },
                 )
             )
         } else {

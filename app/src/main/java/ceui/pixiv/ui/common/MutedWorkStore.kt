@@ -26,17 +26,16 @@ import java.util.concurrent.atomic.AtomicInteger
  * [ceui.pixiv.ui.dynamic.timelineIllustRenderer] 就是）必须自己补上打码，否则屏蔽在那张卡上
  * 等于没发生：图原样铺开、连个记号都没有。新增插画/小说 renderer 时先回答「屏蔽态长什么样」。
  *
- * ## 三种状态，别混
+ * ## 只有一个状态：[isMuted]
  *
- * - [isMuted]：**在不在名单里**。菜单标签（屏蔽 / 取消屏蔽）、[ceui.lisa.helper.IllustNovelFilter]
- *   的老列表过滤读它。
- * - [isMasked]：**这一刻该不该打码** = 在名单里 且 本次进程里没被 [reveal] 揭开过。所有 renderer
- *   画卡片读它。
- * - [reveal]：「揭开看一眼」，**只影响本进程的显示**，既不动名单也不动库。
+ * 在名单里 = 一定打码（模糊图 + 粒子），不在 = 一定正常。菜单标签（屏蔽 / 取消屏蔽）、
+ * renderer 画卡片、[ceui.lisa.helper.IllustNovelFilter] 的老列表过滤，读的都是这一个。
  *
- * 揭开与取消屏蔽必须分开：点一下卡片是极易误触的动作，让它去删一条持久化的屏蔽记录，
- * 等于手一滑就把屏蔽悄悄取消了（记录页那条也跟着没了），而卡片上没有任何反馈。
- * 取消屏蔽只走长按菜单里那条写着「取消屏蔽此作品」的项、详情页的取消按钮、以及记录页的删除。
+ * **打码卡的点击 = 取消屏蔽**（`setMuted(id, false)`），和长按菜单里「取消屏蔽此作品」、
+ * 详情页的取消按钮、记录页的删除完全等价：一律删掉那条持久化记录。曾经这里还有第三种
+ * 状态「揭开看一眼」（只放开本进程的显示、不动名单），已按产品决定去掉——代价是点一下卡片
+ * 就删掉一条屏蔽记录，且卡上除了图变清楚没有别的反馈。别再把「只是想看一眼」的语义加回来，
+ * 那会让同一个手势有两种结果、还得再引一个不落盘的状态。
  *
  * ## 存储与线程
  *
@@ -64,13 +63,7 @@ open class MutedWorkStore(
     private val mutedIds = ConcurrentHashMap.newKeySet<Long>()
 
     /**
-     * 本次进程里被「揭开看一眼」的作品。**故意不持久化**：揭开是一次性的查看动作，
-     * 重启 app 该糊的还得糊回来，否则误触一次就等于永久取消了屏蔽的观感。
-     */
-    private val revealedIds = ConcurrentHashMap.newKeySet<Long>()
-
-    /**
-     * 名单/揭开态的版本号，每次变更 +1。
+     * 名单的版本号，每次变更 +1。
      *
      * 给已经绑好的卡片做补绑用：屏蔽态不在条目上，靠 bind 时现读，而别的页面（详情页取消屏蔽、
      * 「屏蔽记录」页删除、备份恢复）改完名单是没法通知到那些卡片的。光靠「等它自己滑动复用重绑」
@@ -95,7 +88,7 @@ open class MutedWorkStore(
      * 左右滑动一次 onResume 都不会触发。在 A tab 屏蔽一张卡，滑到同样含这张卡的 B tab，
      * 那张卡就一直不打码。LiveData 没这个问题：它按 STARTED 投递，兄弟页当场就收到。
      *
-     * 变更可能发生在任意线程（bind 线程 reveal、io 线程迁移/作废），故一律 `postValue`。
+     * 变更可能发生在任意线程（主线程点屏蔽/取消、io 线程迁移/作废），故一律 `postValue`。
      * 值单调递增，只表示「变过了」，订阅方自己比对水位去重。
      */
     val revisionLive: LiveData<Int>
@@ -199,37 +192,11 @@ open class MutedWorkStore(
         legacy.clearAll()
     }
 
-    /** 在不在屏蔽名单里（与「这一刻打不打码」无关，那个问 [isMasked]）。 */
+    /** 在不在屏蔽名单里 = 这一刻该不该打码。renderer、菜单标签、老列表过滤一律读这个。 */
     fun isMuted(workId: Long): Boolean {
         if (workId <= 0L) return false
         ensureLoaded()
         return mutedIds.contains(workId)
-    }
-
-    /** 卡片这一刻该不该打码：在名单里、且本次进程里没被 [reveal] 揭开过。renderer 一律读这个。 */
-    fun isMasked(workId: Long): Boolean = isMuted(workId) && !revealedIds.contains(workId)
-
-    /**
-     * 本次进程里被「揭开看一眼」过没有。
-     *
-     * 给**详情页的整页遮罩**用（[ceui.pixiv.ui.detail.ArtworkV3Fragment] 的 attachMuteObserver）：
-     * 那道遮罩的另一半判定来自 Room 的行，不问这里的话，用户在瀑布流点开的那张卡（已揭开、
-     * 图都看清了）点进详情照样被整页挡死，「揭开看一眼」就永远只能看个缩略图。
-     * 列表卡片不要读这个，读 [isMasked]。
-     */
-    fun isRevealed(workId: Long): Boolean = revealedIds.contains(workId)
-
-    /**
-     * 「揭开看一眼」：只把这一次进程内的显示放开，**不动名单、不动库**。
-     * 点已打码的卡片走这里（对齐 Telegram spoiler），不要拿它当取消屏蔽用。
-     *
-     * @return 是否真的从「打码」翻到了「揭开」；已经看得见就返回 false，调用方据此跳过重绑。
-     */
-    fun reveal(workId: Long): Boolean {
-        if (workId <= 0L || !isMuted(workId)) return false
-        if (!revealedIds.add(workId)) return false
-        bumpRevision()
-        return true
     }
 
     /**
@@ -252,10 +219,7 @@ open class MutedWorkStore(
         if (workId <= 0L) return false
         ensureLoaded()
         val changed = if (muted) mutedIds.add(workId) else mutedIds.remove(workId)
-        // 重新屏蔽要把上次的「揭开」撤掉（否则刚屏蔽完还是看得见）；取消屏蔽之后那条揭开
-        // 记录也没有意义，一并清掉，免得再屏蔽时它还留着。
-        val wasRevealed = revealedIds.remove(workId)
-        if (changed || wasRevealed) {
+        if (changed) {
             bumpRevision()
         }
         val id = workId.toInt()
@@ -290,7 +254,6 @@ open class MutedWorkStore(
         synchronized(this) {
             loaded = false
             mutedIds.clear()
-            revealedIds.clear()
         }
         bumpRevision()
     }

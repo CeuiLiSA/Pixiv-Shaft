@@ -35,7 +35,7 @@ public class IllustNovelFilter {
      * <p><b>只给画不出遮罩的列表用</b>——legacy {@link ceui.lisa.core.Mapper} 那批老列表、以及
      * 首页排行榜预览头那种横向条（它们走 legacy RAdapter，没有模糊层和粒子层）。feeds 框架下的
      * 插画/小说卡**不挂这条**：那边被屏蔽的作品是**遮罩**——卡片留在原位糊掉 + 盖粒子，点一下
-     * 揭开、长按菜单能取消（见 {@code ceui.pixiv.ui.common.MutedWorkStore}）。在条目过滤链上滤掉
+     * 即取消屏蔽、长按菜单同样能取消（见 {@code ceui.pixiv.ui.common.MutedWorkStore}）。在条目过滤链上滤掉
      * 就等于 UI 上根本不存在这一条，取消屏蔽无处下手。改动这条界之前先看那个类的注释。
      *
      * <p>问的是 store 的内存名单而不是查库：{@link ceui.lisa.core.Mapper} 是**逐条**调这个方法的，

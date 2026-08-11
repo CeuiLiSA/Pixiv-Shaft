@@ -66,8 +66,8 @@ private data class TimelineGridImageKey(
  * （瀑布流模式的卡才有，那套在 [ceui.pixiv.ui.common.IllustFeedFragment.staggerIllustRenderer]）。
  *
  * 「屏蔽此作品」在这张卡上同样是**遮罩**：图（单图和宫格每一格）走 Glide 出模糊位图、标题藏起来，
- * 点一下先揭开（[onRevealMuted]）而不是开详情。本卡没有粒子层——布局里没有 SpoilerParticleView，
- * 单靠整块模糊 + 无标题已经足够表达「这条被你屏蔽了」。
+ * 点一下是取消屏蔽（[onUnmute]）而不是开详情。本卡没有粒子层——布局里没有
+ * SpoilerParticleView，单靠整块模糊 + 无标题已经足够表达「这条被你屏蔽了」。
  *
  * ⚠️ 这段打码不是可选装饰：[ceui.pixiv.ui.common.IllustFeedItem] 的过滤链**不再**按屏蔽记录
  * 删条目（那样就没法在卡上取消屏蔽了），所以被屏蔽的作品一定会走到这里。少了打码，屏蔽在
@@ -75,11 +75,12 @@ private data class TimelineGridImageKey(
  */
 fun timelineIllustRenderer(
     onClick: (IllustFeedItem) -> Unit,
-    onRevealMuted: (IllustFeedItem) -> Unit,
+    onUnmute: (IllustFeedItem) -> Unit,
 ): FeedRenderer<IllustFeedItem, RecyTimelineIllustBinding> {
-    // 打码的卡先揭开、不开详情：否则手一滑就把刚遮住的东西整幅铺开了。
+    // 打码的卡：点一下先取消屏蔽、不开详情，再点才进详情。否则手一滑就把刚遮住的东西整幅铺开了。
+    // 本卡没有长按菜单，这也是时间线模式下唯一的撤销入口。
     val handleTap: (IllustFeedItem) -> Unit = { item ->
-        if (IllustMuteStore.isMasked(item.illust.id)) onRevealMuted(item) else onClick(item)
+        if (IllustMuteStore.isMuted(item.illust.id)) onUnmute(item) else onClick(item)
     }
     return feedRenderer(
         inflate = RecyTimelineIllustBinding::inflate,
@@ -113,7 +114,7 @@ private fun bindTimelineCard(cell: FeedCell<IllustFeedItem, RecyTimelineIllustBi
     // 打码态 bind 时现读（条目本身不带这个状态，同瀑布流卡）；
     // 没被回收的卡由 IllustFeedFragment.observeMuteRevision 补一次 payload 重绑
     //（本 renderer 不认识那个 payload，会按框架约定退回全量绑定，也就是重跑这里）。
-    val masked = IllustMuteStore.isMasked(cell.item.illust.id)
+    val masked = IllustMuteStore.isMuted(cell.item.illust.id)
 
     val user = bean.user
     b.userName.text = user?.name ?: ""

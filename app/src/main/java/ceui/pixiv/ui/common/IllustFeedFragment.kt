@@ -176,8 +176,10 @@ abstract class IllustFeedFragment(
     /**
      * 开关某条作品的屏蔽：写 [IllustMuteStore]（内存当帧生效、Room 的 `tag_mute_table` 异步落地，
      * 于是「屏蔽记录」页里能看到这一条），再让屏上那张卡当帧换成模糊图 + 粒子（或还原）。
-     * **只有长按菜单里那条明写着「屏蔽 / 取消屏蔽此作品」的项走这里**；点卡片是
-     * [revealIllust]（揭开看一眼），两者别混——理由见 [MutedWorkStore] 的类注释。
+     *
+     * 三个入口都走这里：长按菜单里的「屏蔽 / 取消屏蔽此作品」，以及**点一下已打码的卡片**
+     * （= 取消屏蔽，见 [staggerIllustRenderer] 的点击处理）。屏蔽态只有「在不在名单里」一种，
+     * 没有「只揭开不取消」的中间态——理由见 [MutedWorkStore] 的类注释。
      *
      * 收 [IllustFeedItem] 而不是裸 id：屏蔽方向要把整个 bean 序列化进记录，「屏蔽记录」页靠它
      * 画封面/标题/作者。取消方向用不上，store 那边也就不会去调 payload。
@@ -185,20 +187,6 @@ abstract class IllustFeedFragment(
     internal fun setIllustMuted(item: IllustFeedItem, muted: Boolean) {
         // 已是目标态时 store 返回 false，直接省掉这次重绑（图会重发一次 Glide 请求）
         if (!IllustMuteStore.setMuted(item.illust.id, muted) { item.bean }) return
-        rebindIllustCard(item.illust.id)
-    }
-
-    /**
-     * 揭开一张打码的卡（对齐 Telegram spoiler：点一下露出内容）。**不动屏蔽名单、不动库** ——
-     * 这一条只是让本次进程里先看一眼，重启后照旧糊着。
-     *
-     * 曾经这里是直接 `setMuted(false)`，也就是「点一下卡片 = 永久删掉那条屏蔽记录」：
-     * 误触一次就把屏蔽悄悄取消了（记录页那条也没了），而卡片上没有任何反馈。更糟的是打码与否
-     * 取决于该卡上次 bind 的时刻，而判定读的是全局名单——另一个列表里没重绑过的卡看着完全正常，
-     * 点它想开详情，结果详情没开、记录被删。
-     */
-    internal fun revealIllust(item: IllustFeedItem) {
-        if (!IllustMuteStore.reveal(item.illust.id)) return
         rebindIllustCard(item.illust.id)
     }
 

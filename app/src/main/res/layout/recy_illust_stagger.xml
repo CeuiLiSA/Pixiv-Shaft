@@ -48,7 +48,12 @@
                 app:spv_cornerRadius="@dimen/eight_dp" />
 
 
+            <!-- 角标行。整行带 id 是为了屏蔽态一把藏掉（每个角标各自的显隐仍由绑定按作品算，
+                 见 IllustStaggerRenderer.applyIllustSpoilerMask）：R-18 / 页数 / GIF / AI 这些
+                 正是屏蔽要盖住的信息，图糊了角标还写着就漏了一半。legacy IAdapter 不碰这一层，
+                 它那边被屏蔽的作品整条不进列表。 -->
             <LinearLayout
+                android:id="@+id/badge_row"
                 android:layout_width="wrap_content"
                 android:orientation="horizontal"
                 android:padding="@dimen/six_dp"
