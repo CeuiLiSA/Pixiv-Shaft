@@ -10,10 +10,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.models.IllustsBean
-import ceui.lisa.utils.Common
-import ceui.loxia.requireEntityWrapper
+import ceui.pixiv.db.EntityType
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.feeds.FeedItem
@@ -22,13 +20,6 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
-import ceui.pixiv.ui.common.setUpToolbar
-import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.detail.showV3Menu
-import ceui.pixiv.ui.slideshow.SlideshowLauncher
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -42,15 +33,20 @@ import kotlinx.coroutines.withContext
  *
  * toolbar 用 feeds 独立页统一的 fragment_toolbar_feed（webview 5 件套），不再是本页原来那套
  * layout_toolbar；原 navi_more 的入口换成 toolbar 菜单里的「更多」，点开仍是同一个 V3 菜单 sheet。
+ *
+ * 现状：入口改为 tab 结构（[WatchLaterTabsFragment]，对齐浏览记录页）后，本页不再自带 toolbar，
+ * 返回 / 标题 / 「更多」菜单（播放全部、清空）统一由宿主出，本页只负责列表本体。
  */
-class WatchLaterFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
-
-    private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
+class WatchLaterFeedFragment : IllustFeedFragment() {
 
     override val feedViewModel by feedViewModels {
         // 零捕获：source 不吃任何参数，DB 走 application context。
         WatchLaterFeedSource()
     }
+
+    // 本页原来是 fragment_toolbar_feed，底部 systemBars inset 由 setUpToolbar 顺手吃掉；
+    // 改成裸 fragment_feed 交给 tab 宿主后那条路没了，得自己补，否则末条卡压在手势条底下。
+    override val applyBottomSafeInset: Boolean = true
 
     /**
      * 本地数据源不给详情页 pager 续读游标（基类 KDoc：本地源必须覆写成 null）。
@@ -81,24 +77,15 @@ class WatchLaterFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed
 
     private val changeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
+            // 小说那半边的增删跟本页无关，重拉一次是整表 Gson 反序列化，白花。
+            // 读不到类型（老广播）就照常刷，不赌。
+            if (intent?.getIntExtra(EntityWrapper.EXTRA_ENTITY_TYPE, -1) == EntityType.NOVEL) return
             feedViewModel.refresh()
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUpToolbar(binding, feedBinding.feedListView)
-        binding.toolbarTitle.text = getString(R.string.watch_later)
-        binding.toolbar.inflateMenu(R.menu.watch_later)
-        binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_more) {
-                showActionMenu()
-                true
-            } else {
-                false
-            }
-        }
-
         LocalBroadcastManager.getInstance(requireContext())
             .registerReceiver(changeReceiver, IntentFilter(EntityWrapper.ACTION_WATCH_LATER_CHANGED))
     }
@@ -114,45 +101,7 @@ class WatchLaterFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed
     }
 
     /** 列表当前快照：供「播放全部」「清空前判空」取用（原 WatchLaterViewModel.current）。 */
-    private fun currentBeans(): List<IllustsBean> = currentIllustItems().map { it.bean }
-
-    private fun showActionMenu() {
-        showV3Menu("WatchLaterMenu") {
-            item(getString(R.string.watch_later_play_all), R.drawable.ic_baseline_play_arrow_24) {
-                val current = currentBeans()
-                if (current.isEmpty()) {
-                    Common.showToast(R.string.watch_later_empty)
-                } else {
-                    SlideshowLauncher.launchFromIllustsBeans(requireContext(), ArrayList(current), 0, true)
-                }
-            }
-            item(getString(R.string.watch_later_clear), R.drawable.ic_not_interested_black_24dp) {
-                confirmClear()
-            }
-        }
-    }
-
-    private fun confirmClear() {
-        val ctx = context ?: return
-        if (currentBeans().isEmpty()) {
-            Common.showToast(R.string.watch_later_empty)
-            return
-        }
-        // EntityWrapper 是 app 单例；提前抓好，弹窗动作异步触发时 fragment 可能已 detach。
-        val entityWrapper = requireEntityWrapper()
-        QMUIDialog.MessageDialogBuilder(ctx)
-            .setTitle(R.string.watch_later)
-            .setMessage(R.string.watch_later_clear_confirm)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
-            .addAction(R.string.string_142) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.watch_later_clear_ok, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
-                d.dismiss()
-                // clearWatchLater 会发广播触发 refresh，不用手动清列表。
-                entityWrapper.clearWatchLater(ctx.applicationContext)
-                Common.showToast(R.string.watch_later_cleared)
-            }
-            .show()
-    }
+    internal fun currentBeans(): List<IllustsBean> = currentIllustItems().map { it.bean }
 }
 
 /**
@@ -165,6 +114,9 @@ class WatchLaterFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed
  * 否则改一下设置列表就凭空少几张，还找不回来。legacy IAdapter 路径同样不过滤，此处即对齐。
  *
  * 零 Fragment 捕获：无参构造，DB 走 [Shaft.getContext] 的 application context。
+ *
+ * 小说的稍后再看是独立的 RecordType.WATCH_LATER_NOVEL（隔壁 NovelWatchLaterFeedSource），
+ * 本表只有插画，小说 JSON 绝不会被解析成一张坏插画卡。
  */
 class WatchLaterFeedSource : FeedSource<String> {
 

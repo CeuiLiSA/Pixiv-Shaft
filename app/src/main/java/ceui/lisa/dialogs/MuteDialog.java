@@ -25,13 +25,26 @@ import ceui.lisa.utils.PixivOperate;
 
 public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
 
-    private IllustsBean mIllust;
+    private List<TagsBean> mTags = new ArrayList<>();
     private final List<TagsBean> selected = new ArrayList<>();
     private final List<Boolean> muteNotEffect = new ArrayList<>();
 
     public static MuteDialog newInstance(IllustsBean illustsBean) {
         Bundle args = new Bundle();
         args.putSerializable(Params.CONTENT, illustsBean);
+        MuteDialog fragment = new MuteDialog();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    /**
+     * 直接喂一组标签（小说卡长按菜单走这条：loxia Novel 没有 legacy IllustsBean）。
+     * 形参收成 ArrayList 而不是 List —— Bundle 只收 Serializable，声明成 List 就得在这里
+     * 强转，把「调用方传了个不可序列化的 List」从编译期错误降级成运行期崩溃。
+     */
+    public static MuteDialog newInstance(ArrayList<TagsBean> tags) {
+        Bundle args = new Bundle();
+        args.putSerializable(Params.CONTENT, tags);
         MuteDialog fragment = new MuteDialog();
         fragment.setArguments(args);
         return fragment;
@@ -46,7 +59,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
     void initView(View v) {
         // 计算 tag 状态
         List<TagsBean> muted = IllustNovelFilter.getMutedTags();
-        List<TagsBean> illustTags = mIllust.getTags();
+        List<TagsBean> illustTags = mTags;
         Set<Integer> selectedIndex = new HashSet<>();
         for (int i = 0; i < illustTags.size(); i++) {
             TagsBean tagsBean = illustTags.get(i);
@@ -63,7 +76,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
             }
         }
 
-        TagAdapter<TagsBean> adapter = new TagAdapter<TagsBean>(mIllust.getTags()) {
+        TagAdapter<TagsBean> adapter = new TagAdapter<TagsBean>(mTags) {
             @Override
             public View getView(FlowLayout parent, int position, TagsBean o) {
                 View view = View.inflate(mContext, R.layout.recy_single_tag_text, null);
@@ -80,7 +93,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
                 super.onSelected(position, view);
                 ((TextView) view).setTextColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
                 view.setBackgroundResource(R.drawable.tag_stroke_checked_bg);
-                selected.add(mIllust.getTags().get(position));
+                selected.add(mTags.get(position));
             }
 
             @Override
@@ -92,7 +105,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
                     view.setBackgroundResource(R.drawable.tag_stroke_bg);
                 }
                 ((TextView) view).setTextColor(getResources().getColor(R.color.tag_text_unselect));
-                selected.remove(mIllust.getTags().get(position));
+                selected.remove(mTags.get(position));
             }
         };
         baseBind.tagLayout.setAdapter(adapter);
@@ -136,7 +149,16 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void initBundle(Bundle bundle) {
-        mIllust = ((IllustsBean) bundle.getSerializable(Params.CONTENT));
+        Object content = bundle.getSerializable(Params.CONTENT);
+        List<TagsBean> tags = null;
+        if (content instanceof IllustsBean) {
+            tags = ((IllustsBean) content).getTags();
+        } else if (content instanceof List) {
+            tags = (List<TagsBean>) content;
+        }
+        // 兜到空列表：initView 上来就 mTags.size()，null 会当场 NPE。
+        mTags = tags != null ? tags : new ArrayList<>();
     }
 }

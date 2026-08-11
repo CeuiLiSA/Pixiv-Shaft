@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.ImageButton
+import android.widget.ImageView
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -40,10 +41,27 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestOptions.bitmapTransform
+import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
 
 /** 收藏态局部重绑的 payload 标记（按引用识别）。 */
 private val PAYLOAD_NOVEL_BOOKMARK = Any()
+
+/** 屏蔽态局部重绑的 payload 标记（对齐插画侧 PAYLOAD_ILLUST_SPOILER_CHANGED）。 */
+private val PAYLOAD_NOVEL_SPOILER_CHANGED = Any()
+
+/** 封面 Glide 请求去重 key（存在 ImageView.tag 上）：url + 请求尺寸 + 是否模糊。 */
+private data class NovelImageRequestKey(
+    val cacheKey: String?,
+    val width: Int,
+    val height: Int,
+    val blurred: Boolean,
+)
+
+private const val NOVEL_SPOILER_BLUR_RADIUS = 25
+private const val NOVEL_SPOILER_BLUR_SAMPLING = 3
 
 /**
  * 小说列表页的共享基类（对齐插画侧 [IllustFeedFragment]）。子类只声明数据源
@@ -112,7 +130,12 @@ abstract class NovelFeedFragment(
     protected fun novelCardRenderer() = feedRenderer<NovelFeedItem, RecyNovelBinding>(
         inflate = RecyNovelBinding::inflate,
         create = { cell ->
-            cell.binding.root.setOnClick { openNovelDetail(cell.item.novel.id) }
+            cell.binding.root.setOnClick {
+                val tapped = cell.itemOrNull ?: return@setOnClick
+                // 已屏蔽的卡先「揭开」再看（对齐插画卡）：否则「屏蔽」等于没屏蔽，
+                // 手一滑就把刚盖住的东西整屏铺开了。取消屏蔽的另一个入口是长按菜单同一项。
+                revealOr(tapped.novel.id) { openNovelDetail(tapped.novel.id) }
+            }
             // 长按 = 批量操作入口（issue #974），语义对齐插画卡的长按菜单。
             // 挂在基类的 renderer 上，所有小说列表页（推荐 / 收藏 / 关注 / 用户 / 搜索…）一起有。
             //
@@ -122,8 +145,9 @@ abstract class NovelFeedFragment(
             // 表现就是「想长按封面/作者/系列，结果直接跳走了」（真机上按在系列名上必现）。
             // like 不挂：它自己的长按是「按标签收藏」，不能被顶掉。
             val onCardLongPress = View.OnLongClickListener { v ->
+                val pressed = cell.itemOrNull ?: return@OnLongClickListener false
                 v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                showNovelCardMenu()
+                showNovelCardMenu(pressed)
                 true
             }
             listOf(
@@ -134,9 +158,20 @@ abstract class NovelFeedFragment(
                 cell.binding.series,
                 cell.binding.novelTag,
             ).forEach { it.setOnLongClickListener(onCardLongPress) }
-            cell.binding.cover.setOnClick { openCoverImage(cell.item.novel) }
-            cell.binding.userHead.setOnClick { openNovelAuthor(cell.item.novel) }
-            cell.binding.author.setOnClick { openNovelAuthor(cell.item.novel) }
+            // 封面 / 头像 / 作者名都有独立点击，屏蔽态同样要先揭开——否则点封面会直接
+            // 打开未模糊的大图、点作者会进作者页，等于把刚盖住的东西整屏铺开。
+            cell.binding.cover.setOnClick {
+                val tapped = cell.itemOrNull ?: return@setOnClick
+                revealOr(tapped.novel.id) { openCoverImage(tapped.novel) }
+            }
+            cell.binding.userHead.setOnClick {
+                val tapped = cell.itemOrNull ?: return@setOnClick
+                revealOr(tapped.novel.id) { openNovelAuthor(tapped.novel) }
+            }
+            cell.binding.author.setOnClick {
+                val tapped = cell.itemOrNull ?: return@setOnClick
+                revealOr(tapped.novel.id) { openNovelAuthor(tapped.novel) }
+            }
             cell.binding.like.setOnClick { toggleNovelLike(cell) }
             cell.binding.like.setOnLongClickListener {
                 openNovelTagBookmark(cell.item.novel)
@@ -144,8 +179,26 @@ abstract class NovelFeedFragment(
             }
         },
         recycle = { cell ->
+            // 淡入淡出可能正跑到一半就被回收：连 animator 一起停掉并把 alpha 归位，
+            // 否则复用到下一条目时粒子层带着半透明残值出场（对齐插画卡）。
+            cell.binding.spoilerParticles.animate().cancel()
+            cell.binding.spoilerParticles.alpha = 1f
+            cell.binding.spoilerParticles.setParticleAnimationRunning(false)
             novelGlide.clear(cell.binding.cover)
+            cell.binding.cover.tag = null
             novelGlide.clear(cell.binding.userHead)
+        },
+        // detach 停了逐帧模拟，就必须有对称的 attach 把它开回来：RecyclerView 的 mCachedViews
+        // 里的 holder 是「只 detach、不重新 onBind」的，滚出去一点点再滚回来不会走绑定，
+        // 少了这个钩子 requestedRunning 永远停在 false，粒子层直接一帧都不画（对齐插画卡）。
+        attach = { cell ->
+            val spoilered = cell.itemOrNull?.let { NovelSpoilerStore.isSpoilered(it.novel.id) }
+            if (spoilered == true) {
+                cell.binding.spoilerParticles.setParticleAnimationRunning(true)
+            }
+        },
+        detach = { cell ->
+            cell.binding.spoilerParticles.setParticleAnimationRunning(false)
         },
         changePayload = { old, new ->
             // 只有收藏态/收藏数变了 → 局部重绑;其它字段(含热度分)变则回退全量绑定
@@ -157,10 +210,23 @@ abstract class NovelFeedFragment(
             ) PAYLOAD_NOVEL_BOOKMARK else null
         },
         bindPayloads = { cell, payloads ->
-            if (payloads.all { it === PAYLOAD_NOVEL_BOOKMARK }) {
-                val novel = cell.item.novel
-                renderNovelLike(cell.binding.like, novel.is_bookmarked == true)
-                cell.binding.bookmarkCount.text = (novel.total_bookmarks ?: 0).toString()
+            val known = payloads.all {
+                it === PAYLOAD_NOVEL_BOOKMARK || it === PAYLOAD_NOVEL_SPOILER_CHANGED
+            }
+            if (known) {
+                if (payloads.any { it === PAYLOAD_NOVEL_BOOKMARK }) {
+                    val novel = cell.item.novel
+                    renderNovelLike(cell.binding.like, novel.is_bookmarked == true)
+                    cell.binding.bookmarkCount.text = (novel.total_bookmarks ?: 0).toString()
+                }
+                if (payloads.any { it === PAYLOAD_NOVEL_SPOILER_CHANGED }) {
+                    val novel = cell.item.novel
+                    val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
+                    loadNovelCover(cell.binding.cover, novel, spoilered)
+                    renderSpoilerParticles(cell.binding.spoilerParticles, show = spoilered, animate = true)
+                    // 掩码涉及多个 view（文字换占位条/次级信息隐藏），跟全量绑定共用同一分支。
+                    bindNovelCardContent(cell.binding, novel, cell.item.trendingScore, spoilered)
+                }
                 true
             } else {
                 false
@@ -171,6 +237,28 @@ abstract class NovelFeedFragment(
     private fun bindNovelCard(cell: FeedCell<NovelFeedItem, RecyNovelBinding>) {
         val b = cell.binding
         val novel = cell.item.novel
+        // 屏蔽态的真源是本地名单（NovelSpoilerStore），bind 时现读：其它页面屏蔽了同一本
+        // 小说，本页滑动复用一次就跟上（条目本身不带这个状态，见 PAYLOAD_NOVEL_SPOILER_CHANGED）。
+        val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
+        loadNovelCover(b.cover, novel, spoilered)
+        renderSpoilerParticles(b.spoilerParticles, show = spoilered, animate = false)
+        bindNovelCardContent(b, novel, cell.item.trendingScore, spoilered)
+    }
+
+    /** 内容区绑定的两分支入口：屏蔽态走掩码（占位条 + 隐藏次级信息），否则走正常文本。 */
+    private fun bindNovelCardContent(
+        b: RecyNovelBinding,
+        novel: Novel,
+        trendingScore: Float?,
+        spoilered: Boolean,
+    ) {
+        applyNovelSpoilerMask(b, novel, masked = spoilered)
+        if (!spoilered) {
+            renderNovelCardText(b, novel, trendingScore)
+        }
+    }
+
+    private fun renderNovelCardText(b: RecyNovelBinding, novel: Novel, trendingScore: Float?) {
         val ctx = b.root.context
         val palette = V3Palette.from(ctx)
 
@@ -193,7 +281,7 @@ abstract class NovelFeedFragment(
         val wordCount = novel.text_length ?: 0
         b.howManyWord.text = ctx.getString(R.string.v3_novel_word_count, wordCount.toString())
         // 热度分（本月收藏/当前最热 shaft-api-v2 注入）露左上角 pill；普通列表 trendingScore=null → 自动隐藏。
-        b.trendingScore.bindTrendingScore(cell.item.trendingScore)
+        b.trendingScore.bindTrendingScore(trendingScore)
         // AI 生成角标（novel_ai_type == 2，与 card/v3/history/detail 同口径）
         b.badgeAi.isVisible = novel.novel_ai_type == 2
 
@@ -208,13 +296,108 @@ abstract class NovelFeedFragment(
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()
 
-        val coverUrl = novel.coverUrl
-        novelGlide.load(GlideUtil.getUrl(coverUrl))
-            .placeholder(R.color.v3_surface_2).error(R.color.v3_surface_2)
-            .into(b.cover)
         novel.user?.let { novelGlide.load(GlideUtil.getHead(it)).into(b.userHead) }
 
         renderNovelLike(b.like, novel.is_bookmarked == true)
+    }
+
+    /**
+     * 屏蔽掩码开关（遮盖式伪模糊，全 API 一致）。
+     *
+     * [masked]=true：标题/作者/系列文字换成圆角占位条，日期/收藏数/字数/AI 角标/热度 pill/
+     * 标签/头像/爱心全部隐藏；
+     * [masked]=false：把这些复位（正常分支随后会重新赋真实文本与可见性）。
+     * 封面仍由 [loadNovelCover] 出模糊位图，整卡粒子层由调用方铺。
+     */
+    private fun applyNovelSpoilerMask(b: RecyNovelBinding, novel: Novel, masked: Boolean) {
+        if (masked) {
+            // 系列这一行的可见性平时由 renderNovelCardText 按有无系列切；屏蔽分支不管的话，
+            // 同一本小说长什么样就取决于这个 holder 上一条是谁——复用到有系列的卡就凭空多一根条。
+            val series = novel.series
+            b.series.isVisible = series != null && !series.title.isNullOrEmpty()
+            // 屏蔽态下系列不再跳系列页，但也不能只 setOnClickListener(null)：那不会把
+            // clickable 复位回 false，view 会继续吃掉触摸事件又什么都不做，root 的 revealOr
+            // 收不到，表现就是「点这根条没反应」。跟卡片其它区域一样先揭开。
+            //
+            // 用裸 setOnClickListener 而不是 setOnClick：后者每次调用都要
+            // AnimatorInflater.loadStateListAnimator 现造一个 StateListAnimator，而这里在
+            // 每次绑定的热路径上；一根占位条也不需要按压渐隐。
+            b.series.setOnClickListener { revealOr(novel.id) }
+        }
+        listOf(b.title, b.author, b.series).forEach { tv ->
+            if (masked) {
+                // 单个空格 + wrap_content：占位条高度自然等于该行文字行高。
+                // 不能动 TextView.height —— 那改的是 min/maxHeight，复位时会钳死正常文本。
+                tv.text = " "
+                // 每个 view 必须拿到独立的 Drawable 实例：bounds 和 callback 都存在实例上，
+                // 共用一份会被最后布局的那个 view 改掉尺寸（title 是整行宽，author 还要
+                // 减掉头像和日期）。setBackgroundResource 走 Resources 层，ConstantState
+                // 仍是共享的，不多占内存。
+                tv.setBackgroundResource(R.drawable.bg_novel_spoiler_bar)
+            } else {
+                tv.background = null
+            }
+        }
+        listOf(b.date, b.bookmarkCount, b.howManyWord, b.badgeAi, b.trendingScore, b.novelTag, b.userHead, b.like)
+            .forEach { it.isVisible = !masked }
+    }
+
+    /**
+     * 屏蔽态下任何「想点开内容」的入口都先揭开（卡片本身 / 封面大图 / 头像 / 作者名），
+     * 否则屏蔽卡上点封面会直接打开未模糊的原图、点作者会进作者页。
+     *
+     * [action] 缺省为空：屏蔽态下的占位条只需要「点一下揭开」，正常态下没有别的行为。
+     */
+    private fun revealOr(novelId: Long, action: () -> Unit = {}) {
+        if (NovelSpoilerStore.isSpoilered(novelId)) {
+            setNovelSpoilered(novelId, false)
+        } else {
+            action()
+        }
+    }
+
+    /**
+     * 封面图加载：屏蔽态直接让 Glide 出一张模糊位图（变换进 cacheKey，与原因各存各的，
+     * 滚回来是缓存命中；不用 View 层模糊——那类做法在列表复用里每帧都要重算）。
+     * 请求 key 存 tag，真没变时跳过这次重新加载，避免局部重绑时白发一次请求。
+     */
+    private fun loadNovelCover(cover: ImageView, novel: Novel, spoilered: Boolean) {
+        val url = GlideUtil.getUrl(novel.coverUrl)
+        val width = 90.ppppx
+        val height = 134.ppppx
+        val requestKey = NovelImageRequestKey(url?.cacheKey, width, height, spoilered)
+        if (cover.tag == requestKey) return
+        cover.tag = requestKey
+        var request = novelGlide.load(url).override(width, height)
+        if (spoilered) {
+            request = request.apply(
+                bitmapTransform(BlurTransformation(NOVEL_SPOILER_BLUR_RADIUS, NOVEL_SPOILER_BLUR_SAMPLING))
+            )
+        }
+        request
+            .placeholder(R.color.v3_surface_2)
+            .error(R.color.v3_surface_2)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(cover)
+    }
+
+    /**
+     * 开关某本小说的「屏蔽」遮罩：写本地名单（[NovelSpoilerStore]），再让屏幕上那张卡当帧
+     * 换成模糊图 + 粒子（或还原）。长按菜单和「点已屏蔽的卡揭开」都走这里。
+     *
+     * 走 `notifyItemChanged(payload)` 而不是 [FeedViewModel] 的条目变更：屏蔽态不在条目上，
+     * 列表数据一个字节没变，没有 diff 可跑。这条通知是纯 UI 的一次性重绑，被后续 submitList
+     * 覆盖也无所谓——全量绑定同样现读名单。
+     */
+    internal fun setNovelSpoilered(novelId: Long, spoilered: Boolean) {
+        if (!NovelSpoilerStore.setSpoilered(novelId, spoilered)) return
+        val adapter = feedAdapter ?: return
+        val position = adapter.currentList.indexOfFirst {
+            it is NovelFeedItem && it.novel.id == novelId
+        }
+        if (position >= 0) {
+            adapter.notifyItemChanged(position, PAYLOAD_NOVEL_SPOILER_CHANGED)
+        }
     }
 
     /** 未收藏=灰，已收藏=红（爱心图标 ic_like_illust_6 由布局给，这里只切 tint）。 */

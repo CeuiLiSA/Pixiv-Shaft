@@ -28,6 +28,9 @@ class EntityWrapper(
 
     // 稍后再看的插画 id,内存缓存用于长按菜单即时判断「已加入 / 未加入」,避免每次查 DB。
     private val _watchLaterIllustIds: MutableSet<Long> = ConcurrentHashMap.newKeySet()
+    // 稍后再看的小说 id（与插画各占一个 recordType，见 RecordType.WATCH_LATER_NOVEL 的注释：
+    // 插画号段与小说号段会撞，共用 recordType 会在 (id, recordType) 主键上互相覆盖）。
+    private val _watchLaterNovelIds: MutableSet<Long> = ConcurrentHashMap.newKeySet()
 
     fun initialize() {
         MainScope().launch {
@@ -38,6 +41,7 @@ class EntityWrapper(
                 _blockingUserIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_USER))
                 _blockingNovelIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_NOVEL))
                 _watchLaterIllustIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.WATCH_LATER))
+                _watchLaterNovelIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.WATCH_LATER_NOVEL))
             }
         }
     }
@@ -54,6 +58,8 @@ class EntityWrapper(
                 _blockingNovelIds.add(entity.id)
             } else if (entity.recordType == RecordType.WATCH_LATER) {
                 _watchLaterIllustIds.add(entity.id)
+            } else if (entity.recordType == RecordType.WATCH_LATER_NOVEL) {
+                _watchLaterNovelIds.add(entity.id)
             }
             Timber.d("EntityWrapper insertEntity done ${entity.id}")
         } catch (ex: Exception) {
@@ -73,6 +79,8 @@ class EntityWrapper(
                 _blockingNovelIds.remove(id)
             } else if (recordType == RecordType.WATCH_LATER) {
                 _watchLaterIllustIds.remove(id)
+            } else if (recordType == RecordType.WATCH_LATER_NOVEL) {
+                _watchLaterNovelIds.remove(id)
             }
             Timber.d("EntityWrapper deleteEntity done $id")
         } catch (ex: Exception) {
@@ -163,36 +171,76 @@ class EntityWrapper(
         val json = Shaft.sGson.toJson(illust)
         MainScope().launch(Dispatchers.IO) {
             insertEntity(context, GeneralEntity(illust.id, json, EntityType.ILLUST, RecordType.WATCH_LATER))
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.ILLUST)
+        }
+    }
+
+    fun addNovelToWatchLater(context: Context, novel: Novel) {
+        val json = Shaft.sGson.toJson(novel)
+        MainScope().launch(Dispatchers.IO) {
+            insertEntity(context, GeneralEntity(novel.id, json, EntityType.NOVEL, RecordType.WATCH_LATER_NOVEL))
+            notifyWatchLaterChanged(EntityType.NOVEL)
         }
     }
 
     fun removeFromWatchLater(context: Context, illustId: Long) {
         MainScope().launch(Dispatchers.IO) {
             deleteEntity(context, RecordType.WATCH_LATER, illustId)
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.ILLUST)
         }
     }
 
-    fun clearWatchLater(context: Context) {
+    fun removeNovelFromWatchLater(context: Context, novelId: Long) {
+        MainScope().launch(Dispatchers.IO) {
+            deleteEntity(context, RecordType.WATCH_LATER_NOVEL, novelId)
+            notifyWatchLaterChanged(EntityType.NOVEL)
+        }
+    }
+
+    fun clearIllustWatchLater(context: Context) {
         MainScope().launch(Dispatchers.IO) {
             AppDatabase.getAppDatabase(context).generalDao().deleteAllByRecordType(RecordType.WATCH_LATER)
             _watchLaterIllustIds.clear()
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.ILLUST)
         }
     }
 
+    fun clearNovelWatchLater(context: Context) {
+        MainScope().launch(Dispatchers.IO) {
+            AppDatabase.getAppDatabase(context).generalDao().deleteAllByRecordType(RecordType.WATCH_LATER_NOVEL)
+            _watchLaterNovelIds.clear()
+            notifyWatchLaterChanged(EntityType.NOVEL)
+        }
+    }
+
+    // 插画与小说各查各的集合：两条 id 序列会撞号，取并集会把「隔壁那个同号作品已加入」
+    // 误报成本作品已加入，再点一下就把隔壁那条删了。
     fun isInWatchLater(illustId: Long): Boolean {
         return _watchLaterIllustIds.contains(illustId)
     }
 
-    // 稍后再看列表变更后发本地广播,WatchLaterFeedFragment 收到重新拉 DB。
-    // LocalBroadcastManager.sendBroadcast 内部 post 到主线程,IO 线程调也安全。
-    private fun notifyWatchLaterChanged() {
-        LocalBroadcastManager.getInstance(context).sendBroadcast(Intent(ACTION_WATCH_LATER_CHANGED))
+    fun isNovelInWatchLater(novelId: Long): Boolean {
+        return _watchLaterNovelIds.contains(novelId)
+    }
+
+    /**
+     * 稍后再看列表变更后发本地广播，对应 tab 收到重新拉 DB。
+     * LocalBroadcastManager.sendBroadcast 内部 post 到主线程，IO 线程调也安全。
+     *
+     * 带上 [EXTRA_ENTITY_TYPE]：插画 tab 和小说 tab 是同时活着的（ViewPager 离屏页也建视图），
+     * 不分流的话，加一本小说会连带把整张插画表重读一遍并逐条 Gson 反序列化 —— 那边一个字节
+     * 都没变。收方按类型早退即可。
+     */
+    private fun notifyWatchLaterChanged(entityType: Int) {
+        LocalBroadcastManager.getInstance(context).sendBroadcast(
+            Intent(ACTION_WATCH_LATER_CHANGED).putExtra(EXTRA_ENTITY_TYPE, entityType)
+        )
     }
 
     companion object {
         const val ACTION_WATCH_LATER_CHANGED = "ceui.pixiv.action.WATCH_LATER_CHANGED"
+
+        /** 本次变更的作品类型（[EntityType]）。读不到就当「两边都可能变了」，各自照常刷。 */
+        const val EXTRA_ENTITY_TYPE = "entityType"
     }
 }

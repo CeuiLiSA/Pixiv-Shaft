@@ -3,8 +3,14 @@ package ceui.pixiv.ui.common
 import android.content.Intent
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.dialogs.MuteDialog
+import ceui.lisa.models.TagsBean
+import ceui.lisa.utils.Common
+import ceui.lisa.utils.Params
+import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.ui.bulk.NovelBulkSelectStorage
 import ceui.pixiv.ui.detail.showV3Menu
+import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 
 /**
  * 小说卡长按菜单（issue #974）。对齐插画卡的 [showCardMenu]：长按 = 打开「这一列表级别」的动作。
@@ -13,11 +19,56 @@ import ceui.pixiv.ui.detail.showV3Menu
  * 长按把人直接扔进一个全屏页，既没有说明也没有反悔的机会。后续要加的小说卡动作
  *（屏蔽、下载这一篇…）都往这里加。
  *
+ * 已落地：屏蔽此作品（本地遮罩 + 整卡粒子）、屏蔽设定、相关评论、批量操作、单篇下载、稍后再看。
+ *
  * 整表快照在 lambda 内部才取：只有真的点了那一项时才复制列表，展开菜单本身零成本
  *（同 [showCardMenu]）。
  */
-internal fun NovelFeedFragment.showNovelCardMenu() {
+internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
+    val novel = item.novel
+    val entityWrapper = requireEntityWrapper()
+    val inWatchLater = entityWrapper.isNovelInWatchLater(novel.id)
+    val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
+    // loxia Tag.name 可空，而 MuteDialog / PixivOperate.muteTag 都直接 name.equals / name.hashCode，
+    // 空名字会当场 NPE；顺手把 translated_name 也带上，「标签屏蔽记录」页才有译名可显示。
+    val tagsToMute = novel.tags.orEmpty()
+        .filter { !it.name.isNullOrBlank() }
+        .map { tag ->
+            TagsBean().apply {
+                name = tag.name
+                translated_name = tag.translated_name
+            }
+        }
     showV3Menu("NovelFeedCardMenu") {
+        // 屏蔽此作品：本地遮罩（封面模糊 + 粒子），条目留在原位置，点卡片或本项可取消。
+        // 排在最前面——它是长按这张卡最直接的诉求（对齐插画菜单）。
+        val spoilerLabel = getString(
+            if (spoilered) R.string.spoiler_reveal_illust else R.string.spoiler_hide_illust
+        )
+        val spoilerIcon = if (spoilered) {
+            R.drawable.ic_baseline_remove_red_eye_24
+        } else {
+            R.drawable.ic_visibility_off_black_24dp
+        }
+        item(spoilerLabel, spoilerIcon) {
+            setNovelSpoilered(novel.id, !spoilered)
+        }
+        // 屏蔽设定：与插画卡同一套屏蔽表（IllustNovelFilter 对 loxia Novel 有同款重载），
+        // 只是 MuteDialog 换成喂 tag 列表的重载，不需要 legacy IllustsBean。
+        // 无标签的小说压根不挂这一项——挂了点下去也只能静默无反应。
+        if (tagsToMute.isNotEmpty()) {
+            item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
+                MuteDialog.newInstance(ArrayList(tagsToMute)).show(childFragmentManager, "MuteDialog")
+            }
+        }
+        // 相关评论：与 NovelTextFragment.onClickNovelComments 同一条路，
+        // TemplateActivity 按 NOVEL_ID 走 ObjectType.NOVEL 的 CommentsFragment。
+        item(getString(R.string.string_112), R.drawable.ic_baseline_comment_24) {
+            startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                putExtra(Params.NOVEL_ID, novel.id.toInt())
+            })
+        }
         item(getString(R.string.bulk_actions_entry), R.drawable.ic_select_all_24) {
             val novels = currentNovelItems().map { it.novel }
             if (novels.isEmpty()) return@item
@@ -25,6 +76,38 @@ internal fun NovelFeedFragment.showNovelCardMenu() {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
                 putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说批量选择") // route key, not UI text
             })
+        }
+        // 下载这一篇：复用批量/系列下载同一条落盘链路（BatchDownloadNovelsTask），
+        // 不灌 download_queue——小说下载本来就不走那张表。
+        item(getString(R.string.string_339), R.drawable.ic_file_download_black_24dp) {
+            BatchDownloadNovelsTask(
+                activity = requireActivity(),
+                novels = listOf(novel),
+                onFinished = { failures ->
+                    if (isAdded) {
+                        Common.showToast(
+                            if (failures.isEmpty()) {
+                                getString(R.string.batch_download_all_ok)
+                            } else {
+                                getString(R.string.batch_download_some_failed, failures.size)
+                            }
+                        )
+                    }
+                },
+            )
+        }
+        val watchLaterLabel = getString(
+            if (inWatchLater) R.string.watch_later_remove else R.string.watch_later_add
+        )
+        item(watchLaterLabel, R.drawable.ic_watch_later_24) {
+            val appContext = requireContext().applicationContext
+            if (inWatchLater) {
+                entityWrapper.removeNovelFromWatchLater(appContext, novel.id)
+                Common.showToast(R.string.watch_later_removed)
+            } else {
+                entityWrapper.addNovelToWatchLater(appContext, novel)
+                Common.showToast(R.string.watch_later_added)
+            }
         }
     }
 }
