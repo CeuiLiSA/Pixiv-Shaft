@@ -2,6 +2,7 @@ package ceui.lisa.dialogs;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -81,7 +82,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
             public View getView(FlowLayout parent, int position, TagsBean o) {
                 View view = View.inflate(mContext, R.layout.recy_single_tag_text, null);
                 TextView tag = view.findViewById(R.id.tag_title);
-                tag.setText(o.getName());
+                tag.setText(displayName(o));
                 if (muteNotEffect.get(position)) {
                     tag.setBackgroundResource(R.drawable.tag_stroke_checked_not_enable_bg);
                 }
@@ -141,6 +142,20 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
         if (selectedIndex.size() != 0) {
             adapter.setSelectedList(selectedIndex);
         }
+    }
+
+    /**
+     * 勾选框里的标签文案：`原文/译名`，和插画详情页的标签流、「标签屏蔽记录」列表同一套写法
+     * （issue #992）—— 这里以前只显示原文，一堆日文标签摆在一起根本挑不出要屏蔽哪个。
+     * 译名缺失或与原文一致时退回纯原文，不做无意义的重复。
+     */
+    private static String displayName(TagsBean tag) {
+        String name = tag.getName();
+        String translated = tag.getTranslated_name();
+        if (TextUtils.isEmpty(translated) || translated.equals(name)) {
+            return name;
+        }
+        return name + "/" + translated;
     }
 
     @Override
