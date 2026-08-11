@@ -40,6 +40,13 @@ class ArtworkV3ViewModel(
 
     private var illustBean: IllustsBean? = null
 
+    /**
+     * 用户在本页主动开启的“加载原图”开关（跨旋转保留）。
+     * 传给顶层大图 [IllustAdapter] 的 isForceOriginal，覆盖全局
+     * isShowOriginalPreviewImage 之外的逐作品需求；见 ArtworkV3Fragment.showMoreMenu。
+     */
+    var forceOriginalPreview: Boolean = false
+
     private val _isBookmarked = MutableLiveData<Boolean>()
     val isBookmarked: LiveData<Boolean> = _isBookmarked
 

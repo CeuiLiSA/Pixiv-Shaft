@@ -65,6 +65,9 @@ import ceui.pixiv.ui.common.staggerIllustRenderer
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.task.PageLoadRetryController
 import ceui.pixiv.ui.task.renderImageLoadStatusBanner
+import ceui.pixiv.ui.upscale.IllustAiHelper
+import ceui.pixiv.ui.upscale.ModelPickerDialog
+import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
@@ -112,6 +115,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // 顶部大图页共享的那一个 adapter(所有页 bind 都委托给它)。isGif 时不建(走 ugoira renderer)。
     private var pageAdapter: IllustAdapter? = null
     private lateinit var retryController: PageLoadRetryController
+    private var aiHelper: IllustAiHelper? = null
 
     // chrome
     private var _chromeBind: FragmentArtworkV3Binding? = null
@@ -208,6 +212,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
         sectionLoader = SectionLoader(illustId, feedViewModel, viewLifecycleOwner)
+        aiHelper = IllustAiHelper(this, chromeBind.root).also {
+            it.restoreUpscaleIfRunning(illustId.toInt())
+        }
 
         // 旋转 / 视图重建:feedViewModel 的列表存活(可能是展开态),但 pageAdapter 会重建为
         // 折叠态。二者不一致会出「p0 顶着展开胶囊、p1/p2 却已显示」的矛盾 UI。对齐 legacy(旋转即
@@ -369,6 +376,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         artistObservedUserId = 0L
         muteObserved = false
         sectionLoader = null
+        // helper 持有本次 rootView；Fragment 留在返回栈时必须随 View 生命周期断开引用。
+        aiHelper = null
         _fabBarController = null
         _chromeBind = null
         super.onDestroyView()
@@ -386,7 +395,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val activity = requireActivity()
         val adapter: IllustAdapter = if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
             val collapsible = CollapsibleIllustAdapter(
-                activity, this, illust, maxHeight, false,
+                activity, this, illust, maxHeight, artworkViewModel.forceOriginalPreview,
                 onComicReaderClick = { openComicReader() },
                 onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
             )
@@ -394,7 +403,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
             collapsible
         } else {
-            object : IllustAdapter(activity, this, illust, maxHeight, false) {
+            object : IllustAdapter(activity, this, illust, maxHeight, artworkViewModel.forceOriginalPreview) {
                 override fun onBindViewHolder(
                     holder: ViewHolder<RecyIllustDetailBinding>,
                     position: Int,
@@ -431,6 +440,29 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         artworkViewModel.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
         pageAdapter = adapter
         return adapter
+    }
+
+    /**
+     * “加载原图”：重建共享的顶层大图 adapter（isForceOriginal=true），
+     * 并 bump 所有页面条目的 rebindTick，让外层 FeedAdapter 原地重绑。
+     * 多 P 折叠作品保留展开态，避免点一下菜单就折回第一页。
+     */
+    private fun applyForceOriginal() {
+        // 全局已经是原图模式时，当前 adapter 本来就按 original 加载。不要为了一个等价状态
+        // 释放 / 重建 adapter、重扫本地下载并重绑全部已展开页面，避免无意义的闪动和 IO。
+        if (Shaft.sSettings.isShowOriginalPreviewImage || artworkViewModel.forceOriginalPreview) return
+        // 先置位再动 adapter：若首帧大图还没懒建（pageAdapter == null），
+        // 后续 ensurePageAdapter() 也会带着这个开关创建，点击不丢。
+        artworkViewModel.forceOriginalPreview = true
+        val old = pageAdapter ?: return
+        val wasExpanded = (old as? CollapsibleIllustAdapter)?.isExpanded == true
+        old.release()
+        pageAdapter = null
+        val newAdapter = ensurePageAdapter() ?: return
+        if (wasExpanded) {
+            (newAdapter as? CollapsibleIllustAdapter)?.expand()
+        }
+        feedViewModel.updateItems<ArtworkPageItem> { it.copy(rebindTick = it.rebindTick + 1) }
     }
 
     private fun openComicReader() {
@@ -924,8 +956,20 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 )
                 startActivity(intent)
             }
-            item(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
-                ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { }
+            if (!illust.isGif) {
+                item(getString(R.string.string_0), R.drawable.ic_remove_red_eye_black_24dp) {
+                    applyForceOriginal()
+                }
+                item(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
+                    ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                        aiHelper?.performUpscale(illust, model)
+                    }
+                }
+                item(getString(R.string.string_ai_rembg), R.drawable.ic_baseline_filter_24) {
+                    RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                        aiHelper?.performRembg(illust, model)
+                    }
+                }
             }
             if (Dev.showPlazaShareInArtwork) {
                 item(getString(R.string.plaza_share_illust_to_plaza), R.drawable.ic_plaza_forum_24) {
