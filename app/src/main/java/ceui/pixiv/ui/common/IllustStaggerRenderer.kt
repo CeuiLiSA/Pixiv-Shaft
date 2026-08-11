@@ -71,9 +71,7 @@ private data class IllustImageRequestKey(
  * 随 view 生死（[FeedFragment.onDestroyView] 清 adapter），引用 Fragment 安全 —— 不违反
  * `feedViewModels` 的零捕获约定（那条约定管的是 VM 长期持有的 FeedSource / mapper）。
  */
-internal fun IllustFeedFragment.staggerIllustRenderer(
-    showSpoilerParticles: Boolean = false,
-):
+internal fun IllustFeedFragment.staggerIllustRenderer():
         FeedRenderer<IllustFeedItem, RecyIllustStaggerBinding> =
     feedRenderer<IllustFeedItem, RecyIllustStaggerBinding>(
         inflate = RecyIllustStaggerBinding::inflate,
@@ -143,7 +141,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer(
         },
         attach = { cell ->
             val spoilered = cell.itemOrNull?.let { IllustSpoilerStore.isSpoilered(it.illust.id) }
-            if (showSpoilerParticles || spoilered == true) {
+            if (spoilered == true) {
                 cell.binding.spoilerParticles.setParticleAnimationRunning(true)
             }
         },
@@ -171,7 +169,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer(
                     // 跟 Glide 换图的 crossfade 同步，不要硬切
                     renderSpoilerParticles(
                         cell.binding.spoilerParticles,
-                        show = showSpoilerParticles || spoilered,
+                        show = spoilered,
                         animate = true,
                     )
                 }
@@ -187,12 +185,13 @@ internal fun IllustFeedFragment.staggerIllustRenderer(
         // 屏蔽态的真源是设备本地名单，bind 时现读：别的页面屏蔽了同一作品，本页滑动复用一次
         // 就跟上了（条目本身不带这个状态，见 PAYLOAD_ILLUST_SPOILER_CHANGED 的注释）
         val spoilered = IllustSpoilerStore.isSpoilered(cell.item.illust.id)
-        // 粒子层：首页推荐全员开（showSpoilerParticles），其余页面只给被屏蔽的卡开。
+        // 粒子层只跟屏蔽态走：没被屏蔽的卡一律不画。之前首页推荐是「全员开」，
+        // 整屏卡片都在跑逐帧粒子——既看不出是装饰还是屏蔽提示，也白烧一屏的帧。
         // View 本身不 clickable，不会截走卡片点击/长按。
         // 预取阶段即使完成 bind，也要等 holder attach 后才真正开始逐帧模拟。
         renderSpoilerParticles(
             cell.binding.spoilerParticles,
-            show = showSpoilerParticles || spoilered,
+            show = spoilered,
             animate = false,
         )
         loadIllustImage(cell.binding, bean, spoilered)
