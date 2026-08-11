@@ -93,7 +93,8 @@ class NovelFeedItem(
             skipSpamFilter: Boolean = false,
         ): Boolean {
             if (IllustNovelFilter.judgeTag(novel)) return false
-            if (IllustNovelFilter.judgeID(novel)) return false
+            // 不挂 judgeID：理由同插画侧——「屏蔽此作品」在 feeds 里是遮罩不是过滤，
+            // 滤掉了就没法在卡片上取消（见 [ceui.pixiv.ui.common.NovelMuteStore]）。
             // 屏蔽画师过滤在「该作者本人小说页」让步（同插画侧）：整页都是这个作者，全滤空只会触发
             // 空页追载狂翻页；主动点进作者页就该看到其小说。
             if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(novel)) return false

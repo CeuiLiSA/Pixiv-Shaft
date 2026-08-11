@@ -28,7 +28,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
     val novel = item.novel
     val entityWrapper = requireEntityWrapper()
     val inWatchLater = entityWrapper.isNovelInWatchLater(novel.id)
-    val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
+    val spoilered = NovelMuteStore.isMuted(novel.id)
     // 顺手把 translated_name 也带上：屏蔽 sheet 的胶囊和「标签屏蔽记录」页都要显示译名。
     val tagsToMute = novel.tags.orEmpty()
         .filter { !it.name.isNullOrBlank() }
@@ -39,7 +39,8 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
             }
         }
     showV3Menu("NovelFeedCardMenu") {
-        // 屏蔽此作品：本地遮罩（封面模糊 + 粒子），条目留在原位置，点卡片或本项可取消。
+        // 屏蔽此作品：往本地屏蔽记录（tag_mute_table）写一行 + 遮罩（封面模糊 + 粒子），
+        // 条目留在原位置，点卡片或本项可取消，「屏蔽记录」页也能看到并删除。
         // 排在最前面——它是长按这张卡最直接的诉求（对齐插画菜单）。
         val spoilerLabel = getString(
             if (spoilered) R.string.spoiler_reveal_illust else R.string.spoiler_hide_illust
@@ -50,7 +51,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
             R.drawable.ic_visibility_off_black_24dp
         }
         item(spoilerLabel, spoilerIcon) {
-            setNovelSpoilered(novel.id, !spoilered)
+            setNovelMuted(novel, !spoilered)
         }
         // 屏蔽设定：与插画卡同一套屏蔽表（IllustNovelFilter 对 loxia Novel 有同款重载），
         // MuteTagSheet 本来就只吃 tag 列表，不需要 legacy IllustsBean。

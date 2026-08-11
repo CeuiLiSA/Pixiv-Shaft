@@ -1,11 +1,8 @@
 package ceui.pixiv.db
 
-import ceui.lisa.activities.Shaft
 import ceui.lisa.database.IllustHistoryEntity
-import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Before
 import org.junit.Test
 
 /**
@@ -15,11 +12,6 @@ import org.junit.Test
  *    一条不合法会 400 掉整批并中止整个回填。
  */
 class HistoryReportMappingTest {
-
-    @Before
-    fun setUp() {
-        Shaft.sGson = Gson()
-    }
 
     private fun entity(id: Int, type: Int, json: String?, time: Long) =
         IllustHistoryEntity().also {

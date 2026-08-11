@@ -37,6 +37,7 @@ import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Params;
 import ceui.pixiv.feeds.FeedFragment;
+import ceui.pixiv.ui.common.MutedWorkStores;
 import ceui.pixiv.ui.muted.MutedObjectsFeedFragment;
 import ceui.pixiv.ui.muted.MutedTagsFeedFragment;
 import ceui.pixiv.ui.muted.MutedUserFeedFragment;
@@ -309,6 +310,9 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                                 Common.showToast(getString(R.string.mute_records_import_invalid)));
                         return;
                     }
+                    // 上面绕过 MutedWorkStore 直接灌了行，它的内存名单必须整份重读，
+                    // 否则导入进来的屏蔽作品在列表里一张都不打码。
+                    MutedWorkStores.invalidateAll();
                     int finalImported = imported;
                     mActivity.runOnUiThread(() -> {
                         refreshAllMutedTabs();

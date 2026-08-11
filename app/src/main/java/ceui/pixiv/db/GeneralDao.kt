@@ -50,6 +50,11 @@ interface GeneralDao {
     // 不拖 json 大字段。一次一页(≤100 id),不撞 SQLite 999 变量上限。
     @Query("SELECT id, updatedTime FROM general_table WHERE recordType = :recordType AND id IN (:ids)")
     fun getTimesByRecordTypeAndIds(recordType: Int, ids: List<Long>): List<RecordIdTime>
+
+    // 云端回填(#989)的 keyset 分页,理由见 DownloadDao.getViewHistoryByTypeBefore:
+    // offset 分页会被回填期间的新写入整体位移,页边界行被永久漏推。
+    @Query("SELECT * FROM general_table WHERE recordType = :recordType AND updatedTime < :beforeTime ORDER BY updatedTime DESC LIMIT :limit")
+    fun getByRecordTypeBefore(recordType: Int, beforeTime: Long, limit: Int): List<GeneralEntity>
 }
 
 /** [GeneralDao.getTimesByRecordTypeAndIds] 的投影结果。 */

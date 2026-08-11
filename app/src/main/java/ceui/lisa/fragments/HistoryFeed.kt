@@ -215,6 +215,9 @@ class HistoryFeedSource(
      * 之后又看过,不能被云端旧快照打回;云端也绝不因「没有某条」而删本地(本地是超集,
      * 云端只是每类保留最新 1000 条的副本,eviction 不该传染成本地丢数据)。
      * 失败只 warn:物化是顺带的,绝不影响列表展示。
+     *
+     * 已知取舍:本地删过、但当时远端删除失败的条目,会在这里被当成「云端独有」写回本地
+     * ——删除语义的真解是 tombstone(#989 长期项),现阶段与既有「删除失败即复活」一致。
      */
     private fun materializeRemotePage(entities: List<IllustHistoryEntity>) {
         if (entities.isEmpty()) return
@@ -222,8 +225,17 @@ class HistoryFeedSource(
         if (!Shaft.sSettings.isSaveViewHistory) return
         runCatching {
             val existing = dao.getViewHistoryTimes(entities.map { it.illustID })
-                .associate { it.illustID to it.time }
-            val fresh = entities.filter { it.time > (existing[it.illustID] ?: Long.MIN_VALUE) }
+                .associateBy { it.illustID }
+            val fresh = entities.filter { e ->
+                val local = existing[e.illustID]
+                when {
+                    local == null -> true
+                    // 主键只有 illustID:小说与插画同号会同槽。类型不同一律不动——
+                    // REPLACE 会吃掉另一个 tab 的记录,宁可少物化一条也不能丢数据。
+                    local.type != e.type -> false
+                    else -> e.time > local.time
+                }
+            }
             if (fresh.isNotEmpty()) dao.insertHistories(fresh)
         }.onFailure { Timber.w(it, "history materialize-to-local failed (ignored)") }
     }

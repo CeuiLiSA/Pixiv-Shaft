@@ -1,7 +1,11 @@
 /*
- * Telegram Android SpoilerEffect2, adapted only for Pixiv-Shaft package and dependency names.
+ * Telegram Android SpoilerEffect2, adapted for Pixiv-Shaft package and dependency names.
  * Upstream: https://github.com/DrKLO/Telegram
  * Revision: 45ab8f4308496e1f01026a97fcdb0d58a5274474
+ *
+ * Behavioural change vs upstream: the shared instance is now kept per window instead of once per
+ * process — this app draws spoilers in several Activities, and upstream's single instance leaves
+ * its TextureView in whichever window created it. See the {@code instances} field comment.
  * Licensed under GNU GPL v2; see the repository root LICENSE.
  */
 package ceui.pixiv.widget.telegram;
@@ -49,7 +53,26 @@ public class SpoilerEffect2 {
         return true;
     }
 
-    private static HashMap<Integer, SpoilerEffect2> instance;
+    /**
+     * 活着的实例，**按 (type, 窗口) 各一份**。
+     *
+     * <p>上游是单 Activity 的应用，这里一个 map key 只按 type 存一份全进程共享的实例就够了。
+     * 本仓不是：粒子在瀑布流卡（MainActivity/TemplateActivity）和作品详情页的整页遮罩
+     * （VActivity）上都要画。而实例的 TextureView 是 {@link #makeTextureViewContainer} 塞进
+     * **某一个 Activity 的 DecorView** 里的，那块 SurfaceTexture 随那个窗口一起生灭：窗口一走
+     * {@code onSurfaceTextureDestroyed} 就把渲染线程 halt 掉且**永不重启**（它只在 surface
+     * 重新 available 时才建线程，而挂在死窗口上的 TextureView 再也等不到）。共享一份的后果是
+     * 「在详情页屏蔽一件作品、返回瀑布流，卡片模糊了但粒子一动不动」——holder 拿到的是上一个
+     * 窗口留下的空纹理。平板分屏（Activity Embedding）下两个窗口同时可见，更是必须各一份。
+     *
+     * <p>按 rootView 找而不是按 Activity 找：这一层只认得 view 树，且 {@link #destroy()} 本来
+     * 就是拿 container 的 parent 摘干净的。表长实际上就是 1（同一时刻通常只有一个窗口在画粒子）：
+     * 最后一个 holder detach 30ms 后 {@code checkDestroy} 会销毁该实例并从这里摘掉，所以线性扫
+     * 比 HashMap 还省。**只在主线程读写**（holder 的 attach/detach、checkDestroy 都在主线程），
+     * 与上游对那个静态 map 的假设一致，不额外加锁。
+     */
+    private static final ArrayList<SpoilerEffect2> instances = new ArrayList<>();
+
     public static SpoilerEffect2 getInstance(View view) {
         return getInstance(TYPE_DEFAULT, view);
     }
@@ -59,20 +82,29 @@ public class SpoilerEffect2 {
     }
 
     public static SpoilerEffect2 getInstance(int type, View view, ViewGroup rootView) {
-        if (view == null || !supports()) {
+        if (view == null || !supports() || rootView == null) {
             return null;
         }
         AndroidUtilities.initialize(view);
-        if (instance == null) {
-            instance = new HashMap<>();
+        SpoilerEffect2 e = null;
+        for (int i = instances.size() - 1; i >= 0; --i) {
+            SpoilerEffect2 s = instances.get(i);
+            // 已销毁、或所在窗口已经没了（Activity 销毁 → 整棵树 detach，container 的 parent
+            // 还在、但不再 attachedToWindow）的一律摘掉：它的 surface 早随窗口销毁、渲染线程也
+            // 已 halt，留着只会白攥住一个死 Activity 的 DecorView。这里只丢引用不 destroy()，
+            // 是因为 destroy() 会反过来动 instances，索引循环里改两次表要出错。
+            if (s.destroyed || !s.textureViewContainer.isAttachedToWindow()) {
+                instances.remove(i);
+                continue;
+            }
+            if (s.type == type && s.textureViewContainer.getRootView() == rootView) {
+                e = s;
+            }
         }
-        SpoilerEffect2 e = instance.get(type);
         if (e == null) {
             final int sz = getSize();
-            if (rootView == null) {
-                return null;
-            }
-            instance.put(type, e = new SpoilerEffect2(type, makeTextureViewContainer(rootView), sz, sz));
+            e = new SpoilerEffect2(type, makeTextureViewContainer(rootView), sz, sz);
+            instances.add(e);
         }
         e.attach(view);
         return e;
@@ -91,15 +123,15 @@ public class SpoilerEffect2 {
     }
 
     public static void pause(boolean pause) {
-        if (instance == null) return;
-        for (SpoilerEffect2 s : instance.values()) {
+        for (int i = 0; i < instances.size(); ++i) {
+            SpoilerEffect2 s = instances.get(i);
             if (s.thread != null) s.thread.pause(pause);
         }
     }
 
     public static void pause(int type, boolean pause) {
-        if (instance == null) return;
-        for (SpoilerEffect2 s : instance.values()) {
+        for (int i = 0; i < instances.size(); ++i) {
+            SpoilerEffect2 s = instances.get(i);
             if (s.type == type && s.thread != null) s.thread.pause(pause);
         }
     }
@@ -233,7 +265,9 @@ public class SpoilerEffect2 {
 
     private void destroy() {
         destroyed = true;
-        instance = null;
+        // 只摘自己这一条：别的窗口那份还有 holder 在用（上游这里是 instance = null，
+        // 因为它全进程只有一份）
+        instances.remove(this);
         if (thread != null) {
             thread.halt();
             thread = null;

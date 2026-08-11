@@ -104,6 +104,7 @@ abstract class NovelFeedFragment(
             idOf = { it.novel.id },
             transform = { item, liked -> item.withBookmarked(liked) },
         ).bind(requireContext(), viewLifecycleOwner)
+        observeMuteRevision()
     }
 
     override fun onListReady(listView: RecyclerView) {
@@ -132,9 +133,9 @@ abstract class NovelFeedFragment(
         create = { cell ->
             cell.binding.root.setOnClick {
                 val tapped = cell.itemOrNull ?: return@setOnClick
-                // 已屏蔽的卡先「揭开」再看（对齐插画卡）：否则「屏蔽」等于没屏蔽，
-                // 手一滑就把刚盖住的东西整屏铺开了。取消屏蔽的另一个入口是长按菜单同一项。
-                revealOr(tapped.novel.id) { openNovelDetail(tapped.novel.id) }
+                // 已屏蔽的卡：点一下 = 取消屏蔽，再点才打开（对齐插画卡）。不直接打开——
+                // 否则「屏蔽」等于没屏蔽，手一滑就把刚盖住的东西整屏铺开了。
+                unmuteOr(tapped.novel) { openNovelDetail(tapped.novel.id) }
             }
             // 长按 = 批量操作入口（issue #974），语义对齐插画卡的长按菜单。
             // 挂在基类的 renderer 上，所有小说列表页（推荐 / 收藏 / 关注 / 用户 / 搜索…）一起有。
@@ -158,19 +159,19 @@ abstract class NovelFeedFragment(
                 cell.binding.series,
                 cell.binding.novelTag,
             ).forEach { it.setOnLongClickListener(onCardLongPress) }
-            // 封面 / 头像 / 作者名都有独立点击，屏蔽态同样要先揭开——否则点封面会直接
+            // 封面 / 头像 / 作者名都有独立点击，屏蔽态同样是先取消屏蔽——否则点封面会直接
             // 打开未模糊的大图、点作者会进作者页，等于把刚盖住的东西整屏铺开。
             cell.binding.cover.setOnClick {
                 val tapped = cell.itemOrNull ?: return@setOnClick
-                revealOr(tapped.novel.id) { openCoverImage(tapped.novel) }
+                unmuteOr(tapped.novel) { openCoverImage(tapped.novel) }
             }
             cell.binding.userHead.setOnClick {
                 val tapped = cell.itemOrNull ?: return@setOnClick
-                revealOr(tapped.novel.id) { openNovelAuthor(tapped.novel) }
+                unmuteOr(tapped.novel) { openNovelAuthor(tapped.novel) }
             }
             cell.binding.author.setOnClick {
                 val tapped = cell.itemOrNull ?: return@setOnClick
-                revealOr(tapped.novel.id) { openNovelAuthor(tapped.novel) }
+                unmuteOr(tapped.novel) { openNovelAuthor(tapped.novel) }
             }
             cell.binding.like.setOnClick { toggleNovelLike(cell) }
             cell.binding.like.setOnLongClickListener {
@@ -192,7 +193,7 @@ abstract class NovelFeedFragment(
         // 里的 holder 是「只 detach、不重新 onBind」的，滚出去一点点再滚回来不会走绑定，
         // 少了这个钩子 requestedRunning 永远停在 false，粒子层直接一帧都不画（对齐插画卡）。
         attach = { cell ->
-            val spoilered = cell.itemOrNull?.let { NovelSpoilerStore.isSpoilered(it.novel.id) }
+            val spoilered = cell.itemOrNull?.let { NovelMuteStore.isMuted(it.novel.id) }
             if (spoilered == true) {
                 cell.binding.spoilerParticles.setParticleAnimationRunning(true)
             }
@@ -221,7 +222,7 @@ abstract class NovelFeedFragment(
                 }
                 if (payloads.any { it === PAYLOAD_NOVEL_SPOILER_CHANGED }) {
                     val novel = cell.item.novel
-                    val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
+                    val spoilered = NovelMuteStore.isMuted(novel.id)
                     loadNovelCover(cell.binding.cover, novel, spoilered)
                     renderSpoilerParticles(cell.binding.spoilerParticles, show = spoilered, animate = true)
                     // 掩码涉及多个 view（文字换占位条/次级信息隐藏），跟全量绑定共用同一分支。
@@ -237,9 +238,10 @@ abstract class NovelFeedFragment(
     private fun bindNovelCard(cell: FeedCell<NovelFeedItem, RecyNovelBinding>) {
         val b = cell.binding
         val novel = cell.item.novel
-        // 屏蔽态的真源是本地名单（NovelSpoilerStore），bind 时现读：其它页面屏蔽了同一本
-        // 小说，本页滑动复用一次就跟上（条目本身不带这个状态，见 PAYLOAD_NOVEL_SPOILER_CHANGED）。
-        val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
+        // 打码与否的真源是屏蔽名单（NovelMuteStore），bind 时现读：其它页面屏蔽了同一本小说，
+        // 本页滑动复用一次就跟上（条目本身不带这个状态，见 PAYLOAD_NOVEL_SPOILER_CHANGED；
+        // 没被回收的卡由 observeMuteRevision 补绑）。
+        val spoilered = NovelMuteStore.isMuted(novel.id)
         loadNovelCover(b.cover, novel, spoilered)
         renderSpoilerParticles(b.spoilerParticles, show = spoilered, animate = false)
         bindNovelCardContent(b, novel, cell.item.trendingScore, spoilered)
@@ -316,13 +318,13 @@ abstract class NovelFeedFragment(
             val series = novel.series
             b.series.isVisible = series != null && !series.title.isNullOrEmpty()
             // 屏蔽态下系列不再跳系列页，但也不能只 setOnClickListener(null)：那不会把
-            // clickable 复位回 false，view 会继续吃掉触摸事件又什么都不做，root 的 revealOr
-            // 收不到，表现就是「点这根条没反应」。跟卡片其它区域一样先揭开。
+            // clickable 复位回 false，view 会继续吃掉触摸事件又什么都不做，root 的 unmuteOr
+            // 收不到，表现就是「点这根条没反应」。跟卡片其它区域一样先取消屏蔽。
             //
             // 用裸 setOnClickListener 而不是 setOnClick：后者每次调用都要
             // AnimatorInflater.loadStateListAnimator 现造一个 StateListAnimator，而这里在
             // 每次绑定的热路径上；一根占位条也不需要按压渐隐。
-            b.series.setOnClickListener { revealOr(novel.id) }
+            b.series.setOnClickListener { unmuteOr(novel) }
         }
         listOf(b.title, b.author, b.series).forEach { tv ->
             if (masked) {
@@ -343,14 +345,17 @@ abstract class NovelFeedFragment(
     }
 
     /**
-     * 屏蔽态下任何「想点开内容」的入口都先揭开（卡片本身 / 封面大图 / 头像 / 作者名），
-     * 否则屏蔽卡上点封面会直接打开未模糊的原图、点作者会进作者页。
+     * 打码态下任何「想点开内容」的入口都先取消屏蔽（卡片本身 / 封面大图 / 头像 / 作者名 /
+     * 系列条），否则屏蔽卡上点封面会直接打开未模糊的原图、点作者会进作者页。
      *
-     * [action] 缺省为空：屏蔽态下的占位条只需要「点一下揭开」，正常态下没有别的行为。
+     * 取消屏蔽 = 删掉那条持久化记录，与长按菜单里那一项等价（对齐插画卡）。这五个点击区
+     * 任何一个都能误触，误触的代价就是那条屏蔽记录没了。
+     *
+     * [action] 缺省为空：打码态下的占位条只需要「点一下取消屏蔽」，正常态下没有别的行为。
      */
-    private fun revealOr(novelId: Long, action: () -> Unit = {}) {
-        if (NovelSpoilerStore.isSpoilered(novelId)) {
-            setNovelSpoilered(novelId, false)
+    private fun unmuteOr(novel: Novel, action: () -> Unit = {}) {
+        if (NovelMuteStore.isMuted(novel.id)) {
+            setNovelMuted(novel, false)
         } else {
             action()
         }
@@ -382,21 +387,74 @@ abstract class NovelFeedFragment(
     }
 
     /**
-     * 开关某本小说的「屏蔽」遮罩：写本地名单（[NovelSpoilerStore]），再让屏幕上那张卡当帧
-     * 换成模糊图 + 粒子（或还原）。长按菜单和「点已屏蔽的卡揭开」都走这里。
+     * 开关某本小说的屏蔽：写 [NovelMuteStore]（内存当帧生效、Room 的 `tag_mute_table` 异步落地，
+     * 于是「屏蔽记录」页里能看到这一条），再让屏幕上那张卡当帧换成模糊图 + 粒子（或还原）。
+     *
+     * 长按菜单里的「屏蔽 / 取消屏蔽此作品」和**点一下已打码的卡**（[unmuteOr]，= 取消屏蔽）
+     * 都走这里。屏蔽态只有「在不在名单里」一种——理由见 [MutedWorkStore] 的类注释。
+     *
+     * 收 [Novel] 而不是裸 id：屏蔽方向要把整本小说序列化进记录（字段名与 NovelBean 对得上，
+     * 「屏蔽记录」页直接按 NovelBean 解出来画封面/标题/作者）。取消方向用不上。
+     */
+    internal fun setNovelMuted(novel: Novel, muted: Boolean) {
+        if (!NovelMuteStore.setMuted(novel.id, muted) { novel }) return
+        rebindNovelCard(novel.id)
+    }
+
+    /**
+     * 让屏上那张卡当帧换成模糊图 + 粒子（或还原）。
      *
      * 走 `notifyItemChanged(payload)` 而不是 [FeedViewModel] 的条目变更：屏蔽态不在条目上，
      * 列表数据一个字节没变，没有 diff 可跑。这条通知是纯 UI 的一次性重绑，被后续 submitList
      * 覆盖也无所谓——全量绑定同样现读名单。
+     *
+     * 只管本页那一张；别的页由 [observeMuteRevision] 跟上。顺手记下版本号，免得订阅回调为自己
+     * 刚做的这次变更再空跑一遍整屏。
      */
-    internal fun setNovelSpoilered(novelId: Long, spoilered: Boolean) {
-        if (!NovelSpoilerStore.setSpoilered(novelId, spoilered)) return
+    private fun rebindNovelCard(novelId: Long) {
+        lastMuteRevision = NovelMuteStore.revision
         val adapter = feedAdapter ?: return
         val position = adapter.currentList.indexOfFirst {
             it is NovelFeedItem && it.novel.id == novelId
         }
         if (position >= 0) {
             adapter.notifyItemChanged(position, PAYLOAD_NOVEL_SPOILER_CHANGED)
+        }
+    }
+
+    /** 本页卡片上一次渲染时的 [NovelMuteStore.revision]，见 [observeMuteRevision]。 */
+    private var lastMuteRevision = NovelMuteStore.revision
+
+    /**
+     * 订阅屏蔽名单的版本号，变了就给本页所有小说卡补一次 spoiler 重绑。
+     * 理由（含「为什么不能写成 onResume 里比版本号」）与插画侧逐字相同，
+     * 见 [IllustFeedFragment.observeMuteRevision]；逐段发 payload 的理由见
+     * [IllustFeedFragment.rebindAllIllustCards]。
+     */
+    private fun observeMuteRevision() {
+        NovelMuteStore.revisionLive.observe(viewLifecycleOwner) { revision ->
+            if (revision == lastMuteRevision) return@observe
+            lastMuteRevision = revision
+            rebindAllNovelCards()
+        }
+    }
+
+    private fun rebindAllNovelCards() {
+        val adapter = feedAdapter ?: return
+        val items = adapter.currentList
+        var start = -1
+        items.forEachIndexed { index, item ->
+            if (item is NovelFeedItem) {
+                if (start < 0) start = index
+            } else if (start >= 0) {
+                adapter.notifyItemRangeChanged(start, index - start, PAYLOAD_NOVEL_SPOILER_CHANGED)
+                start = -1
+            }
+        }
+        if (start >= 0) {
+            adapter.notifyItemRangeChanged(
+                start, items.size - start, PAYLOAD_NOVEL_SPOILER_CHANGED,
+            )
         }
     }
 

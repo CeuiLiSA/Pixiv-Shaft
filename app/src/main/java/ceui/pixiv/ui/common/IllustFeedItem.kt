@@ -149,9 +149,9 @@ class IllustFeedItem(
          * 空页追载兜住，不会翻页停摆。
          * [skipAiFilter]：同理，给「AI 专属榜单」用——用户主动点进 AI 榜,全局「屏蔽 AI 作品」
          * 就不该把它清空（那是用户设的「我平时不想看到 AI」，不是「我点开 AI 榜也不想看」）。
-         * 只让步 AI 这一条：屏蔽画师/标签/作品 ID、R18 过滤在 AI 榜里照常生效。
+         * 只让步 AI 这一条：屏蔽画师/标签、R18 过滤在 AI 榜里照常生效。
          *
-         * ⚠️ 这里面 judgeTag/judgeID/judgeUserID 各是一次**同步 Room 查询**，调用方必须在后台线程
+         * ⚠️ 这里面 judgeTag/judgeUserID 各是一次**同步 Room 查询**，调用方必须在后台线程
          * 跑（各 mapper 已由 PixivFeedSource 派到 Dispatchers.Default；详情回传链见
          * [IllustFeedDetailSync]），并且要容忍它抛错（Room 磁盘异常）。
          */
@@ -163,7 +163,9 @@ class IllustFeedItem(
         ): Boolean {
             if (!bean.isVisible) return false
             if (IllustNovelFilter.judgeTag(bean)) return false
-            if (IllustNovelFilter.judgeID(bean)) return false
+            // 不挂 judgeID：被「屏蔽此作品」记下的单件作品在 feeds 里是**遮罩**而不是过滤——
+            // 卡片留在原位糊掉 + 盖粒子，点一下即取消屏蔽（见 [ceui.pixiv.ui.common.IllustMuteStore]）。
+            // 在这里滤掉的话条目压根不存在，取消屏蔽就无处下手。judgeID 仍留给画不出遮罩的老列表。
             // 屏蔽画师过滤：在「该画师本人作品页」让步（skipMuteUserFilter）——整页都是这个画师，
             // 全滤空只会触发空页追载狂翻页（offset 30/60/90…）；你主动点进他主页就该看到其作品
             // （同 skipR18Filter / skipAiFilter「点进专属页就别用全局过滤把它清空」的思路）。

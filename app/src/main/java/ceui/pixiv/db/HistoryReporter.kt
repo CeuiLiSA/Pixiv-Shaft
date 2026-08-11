@@ -45,8 +45,9 @@ object HistoryReporter {
      * opens the history page ([CloudHistoryConsent] / FragmentHistoryTabs). Until
      * they've actually been asked, nothing leaves the device — otherwise moving the
      * dialog off the home screen would mean uploading before consent was ever shown.
+     * Internal so [HistoryBackfill] gates on the exact same condition.
      */
-    private fun cloudSyncAllowed(): Boolean =
+    internal fun cloudSyncAllowed(): Boolean =
         Shaft.sSettings.isCloudHistorySync && Shaft.sSettings.isCloudHistoryConsentShown
 
     fun enqueue(targetType: String, targetId: Long, payload: JsonElement?) {

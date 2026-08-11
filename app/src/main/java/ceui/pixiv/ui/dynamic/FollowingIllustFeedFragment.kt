@@ -72,7 +72,13 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
         return if (isTimelineMode) {
-            listOf(timelineIllustRenderer { item -> openDetail(item) })
+            listOf(
+                timelineIllustRenderer(
+                    onClick = { item -> openDetail(item) },
+                    // 打码的卡点一下 = 取消屏蔽，同瀑布流卡
+                    onUnmute = { item -> setIllustMuted(item, false) },
+                )
+            )
         } else {
             super.onCreateRenderers()
         }

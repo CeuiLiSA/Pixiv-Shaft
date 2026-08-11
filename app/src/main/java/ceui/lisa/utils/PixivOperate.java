@@ -78,6 +78,8 @@ import retrofit2.Callback;
 
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.actions.PixivActions;
+import ceui.pixiv.ui.common.IllustMuteStore;
+import ceui.pixiv.ui.common.NovelMuteStore;
 
 import static com.blankj.utilcode.util.ColorUtils.getColor;
 import static com.blankj.utilcode.util.StringUtils.getString;
@@ -428,23 +430,19 @@ public class PixivOperate {
         Common.showToast(Shaft.getContext().getString(R.string.string_383));
     }
 
+    /**
+     * 屏蔽单件插画。写库和内存名单一并交给 {@link IllustMuteStore}（顺带把落库挪出主线程）——
+     * 瀑布流卡片的遮罩判定读的是它的内存镜像，这里若直接 insertMuteTag，已经在跑的列表要等
+     * 进程重启才认这条记录。
+     */
     public static void muteIllust(IllustsBean illust) {
-        MuteEntity muteEntity = new MuteEntity();
-        muteEntity.setType(Params.MUTE_ILLUST);
-        muteEntity.setId(illust.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(illust));
-        muteEntity.setSearchTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        IllustMuteStore.INSTANCE.setMuted(illust.getId(), true, () -> illust);
         Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
 
+    /** 屏蔽单篇小说，同 {@link #muteIllust}。 */
     public static void muteNovel(NovelBean novelBean) {
-        MuteEntity muteEntity = new MuteEntity();
-        muteEntity.setType(Params.MUTE_NOVEL);
-        muteEntity.setId(novelBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(novelBean));
-        muteEntity.setSearchTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        NovelMuteStore.INSTANCE.setMuted(novelBean.getId(), true, () -> novelBean);
         Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
 

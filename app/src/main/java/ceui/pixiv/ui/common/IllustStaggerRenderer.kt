@@ -38,8 +38,10 @@ private const val SPOILER_BLUR_SAMPLING = 3
  * 「屏蔽此作品」态变化的局部重绑 payload（按引用识别）。
  *
  * 和 [PAYLOAD_ILLUST_LIKE_CHANGED] 不同，它**不来自 DiffUtil**：屏蔽态的真源是
- * [IllustSpoilerStore]（设备本地名单），不在 [IllustFeedItem] 上，条目内容压根没变。
- * 由 [IllustFeedFragment.setIllustSpoilered] 直接 `notifyItemChanged(pos, payload)` 派发。
+ * [IllustMuteStore]（Room 屏蔽记录的内存镜像），不在 [IllustFeedItem] 上，
+ * 条目内容压根没变。由 [IllustFeedFragment.setIllustMuted] 直接
+ * `notifyItemChanged(pos, payload)` 派发，另由订阅 [IllustMuteStore.revisionLive] 的
+ * `IllustFeedFragment.observeMuteRevision` 给全页插画卡补发（别处改了名单时）。
  *
  * 为什么屏蔽态不进条目：进了就得让每个 `IllustFeedItem` 构造点都带上它、还要在
  * [IllustFeedItem.withBookmarked] 里手动接力；更要命的是**别的页面早已构造好的条目会揣着
@@ -78,11 +80,11 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         create = { cell ->
             cell.binding.root.setOnClick {
                 val tapped = cell.itemOrNull ?: return@setOnClick
-                // 已屏蔽的卡先「揭开」再说（对齐 Telegram spoiler：点一下露出内容），不直接开详情——
-                // 否则「屏蔽」等于没屏蔽，手一滑就把刚遮住的东西整屏铺开了。取消屏蔽的另一个入口
-                // 是长按菜单同一项（标签会变成「取消屏蔽」）。
-                if (IllustSpoilerStore.isSpoilered(tapped.illust.id)) {
-                    setIllustSpoilered(tapped.illust.id, false)
+                // 打码的卡：点一下 = 取消屏蔽（删掉那条屏蔽记录），当帧还原成正常卡，
+                // 再点才开详情。不直接开详情——否则「屏蔽」等于没屏蔽，手一滑就把刚遮住的
+                // 东西整屏铺开了。与长按菜单「取消屏蔽此作品」走的是同一个口。
+                if (IllustMuteStore.isMuted(tapped.illust.id)) {
+                    setIllustMuted(tapped, false)
                 } else {
                     openDetail(tapped)
                 }
@@ -140,7 +142,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             resetLikeAnim(cell.binding)
         },
         attach = { cell ->
-            val spoilered = cell.itemOrNull?.let { IllustSpoilerStore.isSpoilered(it.illust.id) }
+            val spoilered = cell.itemOrNull?.let { IllustMuteStore.isMuted(it.illust.id) }
             if (spoilered == true) {
                 cell.binding.spoilerParticles.setParticleAnimationRunning(true)
             }
@@ -163,15 +165,17 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                     val bean = cell.item.bean
                     // 一律用 illust.id（Long）当名单 key：legacy bean.id 是 int，
                     // 两边混着用早晚会在同一份名单里对不上号
-                    val spoilered = IllustSpoilerStore.isSpoilered(cell.item.illust.id)
+                    val spoilered = IllustMuteStore.isMuted(cell.item.illust.id)
                     loadIllustImage(cell.binding, bean, spoilered)
-                    // 这条路径是用户刚点下「屏蔽 / 揭开」的那一下：粒子淡进淡出，
+                    // 这条路径是用户刚点下「屏蔽 / 取消屏蔽」的那一下：粒子淡进淡出，
                     // 跟 Glide 换图的 crossfade 同步，不要硬切
                     renderSpoilerParticles(
                         cell.binding.spoilerParticles,
                         show = spoilered,
                         animate = true,
                     )
+                    // 叠在图上的操作层跟着屏蔽态走。和全量绑定共用同一分支，两边永远一致
+                    applyIllustSpoilerMask(cell.binding, spoilered)
                 }
                 true
             } else {
@@ -182,9 +186,10 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         val bean = cell.item.bean
         cell.binding.illustImage.setHeightRatio(heightRatioOf(bean))
 
-        // 屏蔽态的真源是设备本地名单，bind 时现读：别的页面屏蔽了同一作品，本页滑动复用一次
-        // 就跟上了（条目本身不带这个状态，见 PAYLOAD_ILLUST_SPOILER_CHANGED 的注释）
-        val spoilered = IllustSpoilerStore.isSpoilered(cell.item.illust.id)
+        // 打码与否的真源是屏蔽名单，bind 时现读：别的页面屏蔽了同一作品，本页滑动复用一次
+        // 就跟上了（条目本身不带这个状态，见 PAYLOAD_ILLUST_SPOILER_CHANGED 的注释；
+        // 没被回收的卡由 IllustFeedFragment.observeMuteRevision 补绑）
+        val spoilered = IllustMuteStore.isMuted(cell.item.illust.id)
         // 粒子层只跟屏蔽态走：没被屏蔽的卡一律不画。之前首页推荐是「全员开」，
         // 整屏卡片都在跑逐帧粒子——既看不出是装饰还是屏蔽提示，也白烧一屏的帧。
         // View 本身不 clickable，不会截走卡片点击/长按。
@@ -208,9 +213,36 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         cell.binding.trendingScore.bindTrendingScore(bean.trendingScore)
         // 全量绑定可能是复用的卡换了条目：上一条残留的爆发动画/缩放必须清干净
         resetLikeAnim(cell.binding)
-        cell.binding.likeButton.isVisible = !hideLikeButton
         renderLikeState(cell.binding.likeButton, cell.item.illust.is_bookmarked == true)
+        // 放在最后：这一步会按屏蔽态覆盖上面那批角标行 / 爱心的可见性
+        applyIllustSpoilerMask(cell.binding, spoilered)
     }
+
+/**
+ * 屏蔽态下把**叠在作品图上的整层**藏掉：收藏爱心（连同它的爆发动画层）和角标行
+ * （站长推荐 / R-18 / 页数 / GIF / AI / NEW）。对齐小说卡的 `applyNovelSpoilerMask`。
+ *
+ * 少了这一步，屏蔽只糊了图：R-18、页数、AI 这些信息照样写在卡上（图糊了角标还在就漏了一半），
+ * 而且爱心还能点——能给一件自己刚屏蔽掉的作品收藏，长按还能进「按标签收藏」。
+ *
+ * 只切**整行/整个按钮**的可见性，不碰每个角标各自的显隐（那是上面全量绑定按作品算的）：
+ * 取消屏蔽走局部重绑时不会重算角标，把行放回来就能恢复成正确的那一套。爱心的可见性是
+ * 两个条件的与——屏蔽态之外还有 [IllustFeedFragment.hideLikeButton]（自己的收藏页 + 那条
+ * 「收藏页隐藏收藏按钮」设置），漏掉它会让那些页面在取消屏蔽后凭空多出一颗爱心。
+ *
+ * 爆发动画层单独收一次：屏蔽发生在 lottie 正播到一半时（长按菜单点屏蔽），只藏爱心的话
+ * 那 72dp 的动画层会继续在糊掉的图上炸完。
+ */
+private fun IllustFeedFragment.applyIllustSpoilerMask(
+    binding: RecyIllustStaggerBinding,
+    masked: Boolean,
+) {
+    binding.badgeRow.isVisible = !masked
+    binding.likeButton.isVisible = !masked && !hideLikeButton
+    if (masked) {
+        resetLikeAnim(binding)
+    }
+}
 
 /**
  * 只按元数据驱动宽高比（钳到宽的 0.6~2.0 倍，对齐 IAdapter），不等 Glide 量像素；

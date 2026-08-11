@@ -27,6 +27,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
+import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.database.AppDatabase
@@ -127,6 +128,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private var commentComposer: CommentComposerController? = null
     private var composerActive = false
     private var fabShown = true
+
+    /** 整页屏蔽遮罩是否正盖着。盖着时底部胶囊一律收起，见 [setMuteMaskActive]。 */
+    private var muteMaskActive = false
 
     private var sectionLoader: SectionLoader? = null
     private var artistObservedUserId: Long = 0L
@@ -281,6 +285,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 屏蔽遮罩(对齐经典 [ceui.lisa.fragments.FragmentIllust] 的 observeMuteStatus):作品或画师
      * 命中屏蔽记录时全屏盖住整页,给出取消屏蔽 / 离开入口。V3 原先只有菜单里的写库动作、没有任何
      * 消费方,「屏蔽这个作品」点完页面纹丝不动(#983)。
+     *
+     * 两路判定都直接来自 Room 的行,没有「本进程内临时可见」这种中间态:瀑布流里点一下打码卡
+     * 就是取消屏蔽,那一行当场就删了,再点进详情自然不会被挡。所以这里只观察库,不必再掺
+     * [IllustMuteStore] 的版本号。
      */
     private fun attachMuteObserver(illust: IllustsBean) {
         if (muteObserved) return
@@ -296,6 +304,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         ).observe(viewLifecycleOwner) { (illustEntity, userEntity) ->
             val muted = illustEntity != null || userEntity != null
             chromeBind.abandonedFrame.isVisible = muted
+            setMuteMaskActive(muted)
             // 整页遮罩不再是一块纯黑：糊掉的作品图 + spoiler 粒子（与瀑布流「屏蔽此作品」同款）。
             // 只在真要显示遮罩时贴图——本 observer 在**没被屏蔽**时也照常发射（那才是常态），
             // 无脑 bind 等于每开一个作品都白解码 + 白模糊一张图。bind 自身按 cacheKey 幂等，
@@ -310,7 +319,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     viewLifecycleOwner.lifecycleScope.launch {
                         it.showProgress()
                         delay(600L)
-                        dao.deleteMuteEntity(illustEntity)
+                        // 删库和内存名单一并交给 store（它无条件删这一行）：瀑布流卡片的遮罩
+                        // 判定读的是内存名单，而自己 deleteMuteEntity 还会绕开 store 的单线程
+                        // 写队列，和排队中的 insert 抢顺序把这行复活（见 MutedWorkStore 类注释）。
+                        // 本页的整页遮罩由上面那条 LiveData 在行真正删掉后自行收起。
+                        IllustMuteStore.setMuted(illustEntity.id.toLong(), false)
                         it.hideProgress()
                     }
                 }
@@ -351,6 +364,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         commentComposer = null
         composerActive = false
         fabShown = true
+        muteMaskActive = false
         // 跳评论的基线钉扎(#970)随视图作废:留着的话,视图重建(回退栈重显/旋转)后首次
         // render 的数据落地就会把新列表拽去评论区。
         commentsJumpRealign = false
@@ -661,6 +675,31 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
     }
 
+    /**
+     * 整页遮罩盖上 / 揭掉时同步底部胶囊（下载 / 收藏 / 评论）。
+     *
+     * 遮罩本该盖住胶囊——`fab_bar` 在 `abandoned_frame` **之前**声明。但 view_v3_fab_bar 的根
+     * 带 `android:elevation="12dp"`，遮罩是 0，而同一个父容器**先按 Z 排序、再按声明顺序**画，
+     * 于是胶囊浮在糊掉的图上：屏蔽了的作品照样能一键收藏、下载、跳评论，屏蔽等于只糊了张图。
+     * 别改成给遮罩提 elevation —— 那只挡住「看见」，胶囊仍在底下响应点击。
+     *
+     * 用一个状态位挡在 [showFabBar] 里，而不是就地 hide 一次：列表滚动监听会在上滑时把胶囊
+     * 放回来（`onScrolled` → [showFabBar]），遮罩底下的列表虽然点不到、fling 惯性和程序滚动
+     * 仍会走那条回调，单靠一次 hide 挡不住。
+     *
+     * 幂等（值没变直接返回）是必须的：本 observer 在**没被屏蔽**时也照常发射，每次都调
+     * [showFabBar] 会把用户下滑收起的胶囊硬顶回来。
+     */
+    private fun setMuteMaskActive(active: Boolean) {
+        if (muteMaskActive == active) return
+        muteMaskActive = active
+        if (active) {
+            hideFabBar(immediate = true)
+        } else {
+            showFabBar()
+        }
+    }
+
     private fun hideFabBar(immediate: Boolean = false) {
         if (!fabShown && !immediate) return
         fabShown = false
@@ -684,6 +723,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private fun showFabBar() {
         if (composerActive) return // 内联输入栏浮着时不放回胶囊
+        if (muteMaskActive) return // 整页屏蔽遮罩盖着时同理，见 setMuteMaskActive
         if (fabShown) return
         fabShown = true
         val fabBar = chromeBind.fabBar.root

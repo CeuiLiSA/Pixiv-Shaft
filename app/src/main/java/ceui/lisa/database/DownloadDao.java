@@ -307,11 +307,20 @@ public interface DownloadDao {
     int getViewHistoryCountByType(int type);
 
     /**
-     * 按 id 批量取 (illustID, time) 投影,云端历史物化回写(#989)用来做 LWW 比较。
+     * 按 id 批量取 (illustID, time, type) 投影,云端历史物化回写(#989)用来做 LWW 比较。
+     * type 必须带上:本表主键只有 illustID,小说与插画同号会同槽,物化侧靠它拒绝跨类覆盖。
      * 调用方一次最多传一页(≤100 个 id),不会撞 SQLite 999 变量上限。
      */
-    @Query("SELECT illustID, time FROM illust_table WHERE illustID IN (:ids)")
+    @Query("SELECT illustID, time, type FROM illust_table WHERE illustID IN (:ids)")
     List<HistoryIdTime> getViewHistoryTimes(List<Integer> ids);
+
+    /**
+     * 云端回填(#989)用的 keyset 分页:严格按 time 递减往老走。不能用 LIMIT/OFFSET——
+     * 回填期间用户继续浏览会往表头插新行,offset 整体后移,页边界的老记录会被跳过,
+     * 而回填按 uid 只跑一次,漏了就永远漏了。同一毫秒的并列行会被 &lt; 略过,可忽略。
+     */
+    @Query("SELECT * FROM illust_table WHERE type = :type AND time < :beforeTime ORDER BY time DESC LIMIT :limit")
+    List<IllustHistoryEntity> getViewHistoryByTypeBefore(int type, long beforeTime, int limit);
 
     @Query("DELETE FROM illust_table WHERE type = :type")
     void deleteAllHistoryByType(int type);

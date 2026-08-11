@@ -33,6 +33,7 @@ import ceui.lisa.feature.FeatureEntity;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadConfigBackup;
 import ceui.pixiv.download.config.DownloadConfigStore;
+import ceui.pixiv.ui.common.MutedWorkStores;
 
 public class BackupUtils {
 
@@ -285,6 +286,9 @@ public class BackupUtils {
             for (MuteEntity muteEntity : muteEntityList) {
                 searchDao.insertMuteTag(muteEntity);
             }
+            // 这里绕过 MutedWorkStore 直接灌了行，它的内存名单必须整份重读，
+            // 否则恢复回来的屏蔽作品在列表里一张都不打码。
+            MutedWorkStores.invalidateAll();
         }
         List<FeatureEntity> featureEntityList = backupEntity.getFeatureEntityList();
         if (featureEntityList != null && !featureEntityList.isEmpty()) {

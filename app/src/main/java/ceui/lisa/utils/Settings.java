@@ -174,7 +174,8 @@ public class Settings {
     private boolean cloudHistorySync = true;
     // 同意框是否已经弹过(每台设备一次)。
     private boolean cloudHistoryConsentShown = false;
-    // 存量本地历史已回填到云端的账号 uid(#989),0 = 未回填。见 HistoryBackfill。
+    // 存量本地历史回填(#989)的完成标记,每设备一次:0 = 未回填,非 0 = 已回填(值为当时的
+    // 登录 uid,仅作记录)。关云同步或导入历史备份时清零重跑。见 HistoryBackfill 类注释。
     private long cloudHistoryBackfillDoneUid = 0L;
 
     private boolean r18DivideSave = false;

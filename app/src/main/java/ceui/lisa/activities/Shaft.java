@@ -345,6 +345,12 @@ public class Shaft extends Application implements ServicesProvider {
         // ChatBannerBridge 订阅 gateway.incoming。
         ceui.pixiv.banner.InAppBanners.INSTANCE.bootstrap(this);
 
+        // 「屏蔽此作品」名单预热：判定跑在列表 bind 的热路径上（同步读内存 Set），名单本身来自
+        // Room，这里提前读好，免得首屏第一次 bind 在主线程查库。顺带把老 MMKV 遮罩名单
+        // 迁进 Room（一次性，见 MutedWorkStore）。warmUp 自己排到 store 的落库线程上跑，
+        // 不用在这里另起一条。
+        ceui.pixiv.ui.common.MutedWorkStores.warmUp();
+
         // 初始化发现池 + 异步构建用户画像
         Timber.d("Discovery/Init >>> initializing DiscoveryPool");
         ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.initialize();

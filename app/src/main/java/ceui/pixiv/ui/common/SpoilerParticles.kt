@@ -11,7 +11,7 @@ private const val SPOILER_FADE_OUT_MS = 200L
  * 粒子层的显隐。插画卡（[staggerIllustRenderer]）和小说卡（[NovelFeedFragment]）共用，
  * 所以放在中立文件里 —— 搁在某一边的 renderer 里，改那张卡的人不会知道自己在动另一张。
  *
- * [animate] 只在「用户刚点了屏蔽/揭开」时为 true——全量绑定（含复用、滚动回来）一律硬切，
+ * [animate] 只在「用户刚点了屏蔽/取消屏蔽」时为 true——全量绑定（含复用、滚动回来）一律硬切，
  * 否则每张滑上屏的卡都要白白播一遍淡入。
  *
  * 淡入淡出用 View 的 alpha 而不是 SpoilerEffect2 的 alpha 形参：粒子纹理是所有卡片共享的一张
