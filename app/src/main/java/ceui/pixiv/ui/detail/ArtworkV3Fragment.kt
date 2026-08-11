@@ -646,9 +646,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /**
      * 整页遮罩盖上 / 揭掉时同步底部胶囊（下载 / 收藏 / 评论）。
      *
-     * 遮罩是盖住内容的一整层，但胶囊在布局里排在它**后面**（fab_bar 在 abandoned_frame 之前
-     * 声明，画在上面）、又有自己的显隐动画，不跟着收的话就浮在糊掉的图上：屏蔽了的作品照样
-     * 能一键收藏、下载、跳评论，屏蔽等于只糊了张图。
+     * 遮罩本该盖住胶囊——`fab_bar` 在 `abandoned_frame` **之前**声明。但 view_v3_fab_bar 的根
+     * 带 `android:elevation="12dp"`，遮罩是 0，而同一个父容器**先按 Z 排序、再按声明顺序**画，
+     * 于是胶囊浮在糊掉的图上：屏蔽了的作品照样能一键收藏、下载、跳评论，屏蔽等于只糊了张图。
+     * 别改成给遮罩提 elevation —— 那只挡住「看见」，胶囊仍在底下响应点击。
      *
      * 用一个状态位挡在 [showFabBar] 里，而不是就地 hide 一次：列表滚动监听会在上滑时把胶囊
      * 放回来（`onScrolled` → [showFabBar]），遮罩底下的列表虽然点不到、fling 惯性和程序滚动
