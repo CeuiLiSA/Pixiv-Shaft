@@ -90,7 +90,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
     private var mReceiver: CallBackReceiver? = null
     private var recyHeight = 0
-    private lateinit var aiHelper: IllustAiHelper
+    private var aiHelper: IllustAiHelper? = null
 
     // ObjectPool 的每一次发射都会重跑一遍 updateIllust(收藏回流是最常见的一次),下面这组状态用来
     // 让「重建图片区」「重建标签区」「挂 sheet callback」「发头像 Glide 请求」这几件带视觉副作用的
@@ -349,13 +349,13 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 }
                 R.id.action_ai_upscale -> {
                     ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                        aiHelper.performUpscale(illust, model)
+                        aiHelper?.performUpscale(illust, model)
                     }
                     true
                 }
                 R.id.action_ai_rembg -> {
                     ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                        aiHelper.performRembg(illust, model)
+                        aiHelper?.performRembg(illust, model)
                     }
                     true
                 }
@@ -698,7 +698,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         mReceiver?.let {
             LocalBroadcastManager.getInstance(mContext).registerReceiver(it, intentFilter)
         }
-        aiHelper.restoreUpscaleIfRunning(safeArgs.illustId)
+        aiHelper?.restoreUpscaleIfRunning(safeArgs.illustId)
     }
 
     override fun onDestroy() {
@@ -719,6 +719,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         bottomSheetCallbackAttached = false
         sheetDeltaY = 0
         loadedAvatarUrl = null
+        aiHelper = null
         super.onDestroyView()
     }
 

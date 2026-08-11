@@ -21,6 +21,9 @@ class IllustAiHelper(
     private val fragment: Fragment,
     private val rootView: View
 ) {
+    /** 同一任务可能被“恢复任务”和重复点击同时接入；每个 view 生命周期只观察一次。 */
+    private var observedUpscaleTask: UpscaleTask? = null
+
     private val context: Context get() = fragment.requireContext()
     private val lifecycleOwner: LifecycleOwner get() = fragment.viewLifecycleOwner
 
@@ -105,20 +108,24 @@ class IllustAiHelper(
             UpscaleStatus.Running, UpscaleStatus.Done -> observeUpscaleTask(task)
             UpscaleStatus.Failed -> {
                 Common.showToast(R.string.string_ai_upscale_failed)
-                UpscaleTaskPool.removeTask(key)
+                removeTaskIfCurrent(task)
             }
             else -> {}
         }
     }
 
     private fun observeUpscaleTask(task: UpscaleTask) {
-        fun navigateToCompare() {
-            val result = task.resultFile.value ?: return
+        if (observedUpscaleTask === task) return
+        observedUpscaleTask = task
+
+        fun navigateToCompare(): Boolean {
+            val result = task.resultFile.value ?: return false
             val intent = Intent(context, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
             intent.putExtra("upscaled_path", result.absolutePath)
             intent.putExtra("original_path", task.originalFilePath)
             fragment.startActivity(intent)
+            return true
         }
 
         fun showDoneState() {
@@ -129,15 +136,16 @@ class IllustAiHelper(
         }
 
         viewCompare.setOnClickListener {
-            navigateToCompare()
-            overlayRoot.visibility = View.GONE
-            UpscaleTaskPool.removeTask(task.taskKey)
+            if (navigateToCompare()) {
+                overlayRoot.visibility = View.GONE
+                removeTaskIfCurrent(task)
+            }
         }
         dismiss.setOnClickListener {
             overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                 overlayRoot.visibility = View.GONE
             }.start()
-            UpscaleTaskPool.removeTask(task.taskKey)
+            removeTaskIfCurrent(task)
         }
 
         task.status.observe(lifecycleOwner) { status ->
@@ -153,11 +161,13 @@ class IllustAiHelper(
                     statusText.text = context.getString(R.string.string_ai_upscale_running, task.model.displayName)
                 }
                 UpscaleStatus.Done -> {
-                    if (fragment.isResumed) {
+                    if (fragment.isResumed && navigateToCompare()) {
                         overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                             overlayRoot.visibility = View.GONE
                         }.start()
-                        navigateToCompare()
+                        // 自动打开对比页后任务已完成使命。若留在池里，返回详情再旋转会把 Done
+                        // 任务恢复出来并二次跳转，同时结果文件引用也会被进程长期持有。
+                        removeTaskIfCurrent(task)
                     } else {
                         showDoneState()
                     }
@@ -167,7 +177,7 @@ class IllustAiHelper(
                         overlayRoot.visibility = View.GONE
                     }.start()
                     Common.showToast(R.string.string_ai_upscale_failed)
-                    UpscaleTaskPool.removeTask(task.taskKey)
+                    removeTaskIfCurrent(task)
                 }
                 else -> {}
             }
@@ -179,6 +189,16 @@ class IllustAiHelper(
         }
         task.eta.observe(lifecycleOwner) { eta ->
             etaText.text = if (eta > 0) "预计 ${String.format("%.0f", eta)} 秒后完成" else ""
+        }
+    }
+
+    /** 旧页面的终态回调不能误删同 key 下已经由别处启动的新任务。 */
+    private fun removeTaskIfCurrent(task: UpscaleTask) {
+        if (UpscaleTaskPool.getTask(task.taskKey) === task) {
+            UpscaleTaskPool.removeTask(task.taskKey)
+        }
+        if (observedUpscaleTask === task) {
+            observedUpscaleTask = null
         }
     }
 }

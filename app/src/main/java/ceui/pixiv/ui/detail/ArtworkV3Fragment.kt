@@ -114,7 +114,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // 顶部大图页共享的那一个 adapter(所有页 bind 都委托给它)。isGif 时不建(走 ugoira renderer)。
     private var pageAdapter: IllustAdapter? = null
     private lateinit var retryController: PageLoadRetryController
-    private lateinit var aiHelper: IllustAiHelper
+    private var aiHelper: IllustAiHelper? = null
 
     // chrome
     private var _chromeBind: FragmentArtworkV3Binding? = null
@@ -208,8 +208,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
         sectionLoader = SectionLoader(illustId, feedViewModel, viewLifecycleOwner)
-        aiHelper = IllustAiHelper(this, chromeBind.root)
-        aiHelper.restoreUpscaleIfRunning(illustId.toInt())
+        aiHelper = IllustAiHelper(this, chromeBind.root).also {
+            it.restoreUpscaleIfRunning(illustId.toInt())
+        }
 
         // 旋转 / 视图重建:feedViewModel 的列表存活(可能是展开态),但 pageAdapter 会重建为
         // 折叠态。二者不一致会出「p0 顶着展开胶囊、p1/p2 却已显示」的矛盾 UI。对齐 legacy(旋转即
@@ -361,6 +362,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         artistObservedUserId = 0L
         muteObserved = false
         sectionLoader = null
+        // helper 持有本次 rootView；Fragment 留在返回栈时必须随 View 生命周期断开引用。
+        aiHelper = null
         _fabBarController = null
         _chromeBind = null
         super.onDestroyView()
@@ -431,7 +434,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 多 P 折叠作品保留展开态，避免点一下菜单就折回第一页。
      */
     private fun applyForceOriginal() {
-        if (artworkViewModel.forceOriginalPreview) return
+        // 全局已经是原图模式时，当前 adapter 本来就按 original 加载。不要为了一个等价状态
+        // 释放 / 重建 adapter、重扫本地下载并重绑全部已展开页面，避免无意义的闪动和 IO。
+        if (Shaft.sSettings.isShowOriginalPreviewImage || artworkViewModel.forceOriginalPreview) return
         // 先置位再动 adapter：若首帧大图还没懒建（pageAdapter == null），
         // 后续 ensurePageAdapter() 也会带着这个开关创建，点击不丢。
         artworkViewModel.forceOriginalPreview = true
@@ -917,12 +922,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 }
                 item(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
                     ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                        aiHelper.performUpscale(illust, model)
+                        aiHelper?.performUpscale(illust, model)
                     }
                 }
                 item(getString(R.string.string_ai_rembg), R.drawable.ic_baseline_filter_24) {
                     RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                        aiHelper.performRembg(illust, model)
+                        aiHelper?.performRembg(illust, model)
                     }
                 }
             }
