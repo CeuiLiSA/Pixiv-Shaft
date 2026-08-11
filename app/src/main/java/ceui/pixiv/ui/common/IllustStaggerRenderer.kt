@@ -281,7 +281,6 @@ private fun IllustFeedFragment.loadIllustImage(
         .into(binding.illustImage)
 }
 
-
 /** 未收藏 = 白色空心描边爱心，已收藏 = 红色实心爱心（图上永远配深色圆底座）。 */
 internal fun renderLikeState(button: ImageView, liked: Boolean) {
     button.setImageResource(

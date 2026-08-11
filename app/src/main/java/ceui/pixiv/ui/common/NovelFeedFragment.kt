@@ -318,7 +318,11 @@ abstract class NovelFeedFragment(
             // 屏蔽态下系列不再跳系列页，但也不能只 setOnClickListener(null)：那不会把
             // clickable 复位回 false，view 会继续吃掉触摸事件又什么都不做，root 的 revealOr
             // 收不到，表现就是「点这根条没反应」。跟卡片其它区域一样先揭开。
-            b.series.setOnClick { revealOr(novel.id) {} }
+            //
+            // 用裸 setOnClickListener 而不是 setOnClick：后者每次调用都要
+            // AnimatorInflater.loadStateListAnimator 现造一个 StateListAnimator，而这里在
+            // 每次绑定的热路径上；一根占位条也不需要按压渐隐。
+            b.series.setOnClickListener { revealOr(novel.id) }
         }
         listOf(b.title, b.author, b.series).forEach { tv ->
             if (masked) {
@@ -341,8 +345,10 @@ abstract class NovelFeedFragment(
     /**
      * 屏蔽态下任何「想点开内容」的入口都先揭开（卡片本身 / 封面大图 / 头像 / 作者名），
      * 否则屏蔽卡上点封面会直接打开未模糊的原图、点作者会进作者页。
+     *
+     * [action] 缺省为空：屏蔽态下的占位条只需要「点一下揭开」，正常态下没有别的行为。
      */
-    private fun revealOr(novelId: Long, action: () -> Unit) {
+    private fun revealOr(novelId: Long, action: () -> Unit = {}) {
         if (NovelSpoilerStore.isSpoilered(novelId)) {
             setNovelSpoilered(novelId, false)
         } else {

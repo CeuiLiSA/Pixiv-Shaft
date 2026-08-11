@@ -11,6 +11,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.loxia.Novel
+import ceui.pixiv.db.EntityType
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.feeds.FeedItem
@@ -45,6 +46,9 @@ class NovelWatchLaterFeedFragment : NovelFeedFragment() {
 
     private val changeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
+            // 插画那半边的增删跟本页无关，重拉一次是整表 Gson 反序列化，白花。
+            // 读不到类型（老广播）就照常刷，不赌。
+            if (intent?.getIntExtra(EntityWrapper.EXTRA_ENTITY_TYPE, -1) == EntityType.ILLUST) return
             feedViewModel.refresh()
         }
     }

@@ -171,7 +171,7 @@ class EntityWrapper(
         val json = Shaft.sGson.toJson(illust)
         MainScope().launch(Dispatchers.IO) {
             insertEntity(context, GeneralEntity(illust.id, json, EntityType.ILLUST, RecordType.WATCH_LATER))
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.ILLUST)
         }
     }
 
@@ -179,21 +179,21 @@ class EntityWrapper(
         val json = Shaft.sGson.toJson(novel)
         MainScope().launch(Dispatchers.IO) {
             insertEntity(context, GeneralEntity(novel.id, json, EntityType.NOVEL, RecordType.WATCH_LATER_NOVEL))
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.NOVEL)
         }
     }
 
     fun removeFromWatchLater(context: Context, illustId: Long) {
         MainScope().launch(Dispatchers.IO) {
             deleteEntity(context, RecordType.WATCH_LATER, illustId)
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.ILLUST)
         }
     }
 
     fun removeNovelFromWatchLater(context: Context, novelId: Long) {
         MainScope().launch(Dispatchers.IO) {
             deleteEntity(context, RecordType.WATCH_LATER_NOVEL, novelId)
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.NOVEL)
         }
     }
 
@@ -201,7 +201,7 @@ class EntityWrapper(
         MainScope().launch(Dispatchers.IO) {
             AppDatabase.getAppDatabase(context).generalDao().deleteAllByRecordType(RecordType.WATCH_LATER)
             _watchLaterIllustIds.clear()
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.ILLUST)
         }
     }
 
@@ -209,7 +209,7 @@ class EntityWrapper(
         MainScope().launch(Dispatchers.IO) {
             AppDatabase.getAppDatabase(context).generalDao().deleteAllByRecordType(RecordType.WATCH_LATER_NOVEL)
             _watchLaterNovelIds.clear()
-            notifyWatchLaterChanged()
+            notifyWatchLaterChanged(EntityType.NOVEL)
         }
     }
 
@@ -223,13 +223,24 @@ class EntityWrapper(
         return _watchLaterNovelIds.contains(novelId)
     }
 
-    // 稍后再看列表变更后发本地广播,WatchLaterFeedFragment 收到重新拉 DB。
-    // LocalBroadcastManager.sendBroadcast 内部 post 到主线程,IO 线程调也安全。
-    private fun notifyWatchLaterChanged() {
-        LocalBroadcastManager.getInstance(context).sendBroadcast(Intent(ACTION_WATCH_LATER_CHANGED))
+    /**
+     * 稍后再看列表变更后发本地广播，对应 tab 收到重新拉 DB。
+     * LocalBroadcastManager.sendBroadcast 内部 post 到主线程，IO 线程调也安全。
+     *
+     * 带上 [EXTRA_ENTITY_TYPE]：插画 tab 和小说 tab 是同时活着的（ViewPager 离屏页也建视图），
+     * 不分流的话，加一本小说会连带把整张插画表重读一遍并逐条 Gson 反序列化 —— 那边一个字节
+     * 都没变。收方按类型早退即可。
+     */
+    private fun notifyWatchLaterChanged(entityType: Int) {
+        LocalBroadcastManager.getInstance(context).sendBroadcast(
+            Intent(ACTION_WATCH_LATER_CHANGED).putExtra(EXTRA_ENTITY_TYPE, entityType)
+        )
     }
 
     companion object {
         const val ACTION_WATCH_LATER_CHANGED = "ceui.pixiv.action.WATCH_LATER_CHANGED"
+
+        /** 本次变更的作品类型（[EntityType]）。读不到就当「两边都可能变了」，各自照常刷。 */
+        const val EXTRA_ENTITY_TYPE = "entityType"
     }
 }
