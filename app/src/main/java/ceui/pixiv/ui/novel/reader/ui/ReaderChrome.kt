@@ -24,6 +24,9 @@ class ReaderChrome(
 
     val isShown: Boolean get() = shown
 
+    /** 展开/收起时回调,让常驻阅读进度这类底部叠加层避开底栏。 */
+    var onVisibilityChanged: ((shown: Boolean) -> Unit)? = null
+
     init {
         // Start hidden.
         topView.alpha = 0f
@@ -38,6 +41,7 @@ class ReaderChrome(
         animateTo(target = 1f, animate, onEnd = null)
         topView.visibility = View.VISIBLE
         bottomView.visibility = View.VISIBLE
+        onVisibilityChanged?.invoke(true)
     }
 
     fun hide(animate: Boolean = true) {
@@ -47,6 +51,7 @@ class ReaderChrome(
             topView.visibility = View.GONE
             bottomView.visibility = View.GONE
         })
+        onVisibilityChanged?.invoke(false)
     }
 
     fun toggle() {

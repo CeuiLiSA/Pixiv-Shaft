@@ -1149,7 +1149,7 @@
     <string name="setting_immersive">Immersive (hide status bar)</string>
     <string name="setting_keep_screen_on">Keep screen on</string>
     <string name="setting_show_top_progress">Show top progress</string>
-    <string name="setting_show_bottom_progress">Show bottom progress</string>
+    <string name="setting_show_bottom_progress">Show reading progress at bottom</string>
     <string name="setting_touch_locked">Lock touch (prevent mis-touch)</string>
     <string name="setting_eye_break">Eye break reminder</string>
     <string name="setting_image_placement">Vertical position</string>

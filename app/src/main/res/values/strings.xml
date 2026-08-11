@@ -1254,7 +1254,7 @@
     <string name="setting_immersive">沉浸式（隐藏状态栏）</string>
     <string name="setting_keep_screen_on">屏幕常亮</string>
     <string name="setting_show_top_progress">显示顶部进度条</string>
-    <string name="setting_show_bottom_progress">显示底部进度条</string>
+    <string name="setting_show_bottom_progress">底部显示阅读进度</string>
     <string name="setting_touch_locked">锁定触控（防误触）</string>
     <string name="setting_eye_break">护眼提醒</string>
     <string name="setting_image_placement">垂直位置</string>

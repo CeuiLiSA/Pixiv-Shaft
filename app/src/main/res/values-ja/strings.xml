@@ -1149,7 +1149,7 @@
     <string name="setting_immersive">没入モード（ステータスバー非表示）</string>
     <string name="setting_keep_screen_on">画面を常時オン</string>
     <string name="setting_show_top_progress">上部プログレス表示</string>
-    <string name="setting_show_bottom_progress">下部プログレス表示</string>
+    <string name="setting_show_bottom_progress">画面下部に読書進捗を表示</string>
     <string name="setting_touch_locked">タッチロック（誤操作防止）</string>
     <string name="setting_eye_break">目の休憩リマインダー</string>
     <string name="setting_image_placement">縦位置</string>

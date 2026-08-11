@@ -188,6 +188,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowTouchLocked.bindSwitch(
             getString(R.string.setting_touch_locked), ReaderSettings.touchLocked,
         ) { ReaderSettings.touchLocked = it }
+        s.rowShowBottomProgress.bindSwitch(
+            getString(R.string.setting_show_bottom_progress), ReaderSettings.showBottomProgress,
+        ) { ReaderSettings.showBottomProgress = it }
         s.rowEyeBreak.bindIntSlider(
             getString(R.string.setting_eye_break), 0, 120, ReaderSettings.eyeBreakReminderMinutes, "min",
         ) { ReaderSettings.eyeBreakReminderMinutes = it }

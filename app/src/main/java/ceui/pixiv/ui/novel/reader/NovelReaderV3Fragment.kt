@@ -110,6 +110,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     // Held so ensureScrollReaderView's onScrollProgressChanged callback can
     // drive the bottom seekbar without having to be inlined into onViewCreated.
     private var bottomBar: ReaderBottomBar? = null
+    private var chrome: ReaderChrome? = null
+    /** 常驻阅读进度当前读数（形如 "43%"），随翻页/滚动刷新。 */
+    private var progressOverlayText: String = ""
 
     private var searchRegex: Boolean = false
     private var activeSelection: TextSelection? = null
@@ -150,6 +153,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         val bb = ReaderBottomBar(binding.readerBottomBar)
         bottomBar = bb
         val ch = ReaderChrome(tb, bb)
+        chrome = ch
+        ch.onVisibilityChanged = { renderProgressOverlay() }
         val so = ReaderSearchOverlay(binding.readerSearchOverlay)
 
         wireTopBar(tb)
@@ -337,6 +342,31 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private fun applyLoadingTint(theme: ReaderTheme) {
         binding.readerLoading.setIndicatorColor(theme.accentColor)
         binding.readerLoading.trackColor = ColorUtils.setAlphaComponent(theme.accentColor, 0x33)
+        // 用正文色而不是 secondaryTextColor：后者在牛皮纸这类低对比主题上几乎看不清。
+        binding.readerProgressOverlayText.setTextColor(theme.textColor)
+    }
+
+    /**
+     * 常驻阅读进度（#994）：横向翻页与纵向无极滚动都统一显示百分比 —— 纵向没有
+     * 「页」的概念,百分比是两种模式唯一能对齐的口径。底栏展开时不显示,那时底栏
+     * 自己就有读数,再叠一层纯属重复。
+     */
+    private fun renderProgressOverlay(percent: Int? = null) {
+        percent?.let { progressOverlayText = "${it.coerceIn(0, 100)}%" }
+        val show = ReaderSettings.showBottomProgress &&
+            chrome?.isShown != true &&
+            progressOverlayText.isNotEmpty()
+        binding.readerProgressOverlayText.text = progressOverlayText
+        binding.readerProgressOverlay.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * 翻页模式的百分比按「已读完的页数 / 总页数」算,所以首页不是 0%、末页正好
+     * 100%,和纵向滚到底同为 100%,两种模式来回切不会跳数。
+     */
+    private fun pagedPercent(pageIndex: Int, totalPages: Int): Int? {
+        if (totalPages <= 0) return null
+        return ((pageIndex.coerceIn(0, totalPages - 1) + 1) * 100) / totalPages
     }
 
     /**
@@ -373,6 +403,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     val t = ReaderTheme.findPresetById(ReaderSettings.themeId) ?: ReaderTheme.KRAFT
                     binding.root.setBackgroundColor(t.backgroundColor)
                     applyLoadingTint(t)
+                    // showBottomProgress 走 Layout 事件,开关拨完立刻生效。
+                    renderProgressOverlay()
                 }
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.Interaction -> {
@@ -407,6 +439,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             rv.bind(pag.pages, pag.startPageIndex)
             rv.setFlipMode(ReaderSettings.flipMode)
             bb.setProgress(pag.startPageIndex, pag.pages.size)
+            renderProgressOverlay(pagedPercent(pag.startPageIndex, pag.pages.size))
         }
 
         viewModel.currentPageIndex.observe(viewLifecycleOwner) { index ->
@@ -415,7 +448,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             // instead — letting setProgress run here would flip the bar back to
             // page mode and zero out the scroll fraction.
             if (ReaderSettings.readingDirection == ReadingDirection.Vertical) return@observe
-            bb.setProgress(index, viewModel.pagination.value?.pages?.size ?: 0)
+            val total = viewModel.pagination.value?.pages?.size ?: 0
+            bb.setProgress(index, total)
+            renderProgressOverlay(pagedPercent(index, total))
         }
 
         ObjectPool.get<Novel>(resolveNovelId()).observe(viewLifecycleOwner) { novel ->
@@ -513,6 +548,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 // Drive the bottom-bar SeekBar in vertical mode (issue: 纵向翻页底部
                 // 进度条不联动). Paged mode is driven separately by currentPageIndex.
                 bottomBar?.setScrollProgress(progress)
+                renderProgressOverlay((progress.coerceIn(0f, 1f) * 100).toInt())
             }
 
             // Text selection — same menu as paged mode

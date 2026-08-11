@@ -1149,7 +1149,7 @@
     <string name="setting_immersive">Полноэкранный режим (скрыть статус-бар)</string>
     <string name="setting_keep_screen_on">Не выключать экран</string>
     <string name="setting_show_top_progress">Показывать прогресс сверху</string>
-    <string name="setting_show_bottom_progress">Показывать прогресс снизу</string>
+    <string name="setting_show_bottom_progress">Показывать прогресс чтения внизу</string>
     <string name="setting_touch_locked">Блокировать касания</string>
     <string name="setting_eye_break">Напоминание для отдыха глаз</string>
     <string name="setting_image_placement">Вертикальное положение</string>

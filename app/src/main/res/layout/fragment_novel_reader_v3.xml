@@ -14,6 +14,36 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- 常驻阅读进度(#994)。刻意贴屏幕物理底边、不吃 navigationBar inset;水平方向
+         落在四分之一线(右侧那条,即 75% 处)而不是正中或角落 —— 角落容易被大 R 角屏
+         切掉。声明在两条 bar 之前,chrome 展开时被底栏盖住,同时代码里也会主动隐藏。 -->
+    <LinearLayout
+        android:id="@+id/reader_progress_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <!-- 左侧留 50%,读数块再占 50% 并居中 → 文字中心正好压在 75% 那条线上。 -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/reader_progress_overlay_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:paddingBottom="6dp"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="87%" />
+    </LinearLayout>
+
     <include
         android:id="@+id/reader_top_bar"
         layout="@layout/layout_reader_top_bar"

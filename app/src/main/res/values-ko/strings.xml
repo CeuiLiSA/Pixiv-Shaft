@@ -1149,7 +1149,7 @@
     <string name="setting_immersive">몰입 모드 (상태바 숨김)</string>
     <string name="setting_keep_screen_on">화면 항상 켜기</string>
     <string name="setting_show_top_progress">상단 진행률 표시</string>
-    <string name="setting_show_bottom_progress">하단 진행률 표시</string>
+    <string name="setting_show_bottom_progress">하단에 읽기 진행률 표시</string>
     <string name="setting_touch_locked">터치 잠금 (오작동 방지)</string>
     <string name="setting_eye_break">눈 휴식 알림</string>
     <string name="setting_image_placement">세로 위치</string>

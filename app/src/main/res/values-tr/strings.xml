@@ -1149,7 +1149,7 @@
     <string name="setting_immersive">Tam ekran (durum çubuğunu gizle)</string>
     <string name="setting_keep_screen_on">Ekranı açık tut</string>
     <string name="setting_show_top_progress">Üst ilerleme çubuğu</string>
-    <string name="setting_show_bottom_progress">Alt ilerleme çubuğu</string>
+    <string name="setting_show_bottom_progress">Alt kısımda okuma ilerlemesini göster</string>
     <string name="setting_touch_locked">Dokunma kilidi (yanlış dokunma önleme)</string>
     <string name="setting_eye_break">Göz dinlendirme hatırlatıcısı</string>
     <string name="setting_image_placement">Dikey konum</string>
