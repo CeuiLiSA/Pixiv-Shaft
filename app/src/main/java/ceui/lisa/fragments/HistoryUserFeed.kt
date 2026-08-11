@@ -88,7 +88,8 @@ class HistoryUserFeedSource : FeedSource<String> {
         FeedPage(entities.map { it.toUserFeedItem() }, next)
     }
 
-    /** 云端页 LWW 物化回 general_table(#989),语义同 HistoryFeedSource.materializeRemotePage。 */
+    /** 云端页 LWW 物化回 general_table(#989),语义与已知取舍同 HistoryFeedSource.materializeRemotePage
+     *  (general_table 主键是 (id, recordType),无同号跨类互盖问题,不需要 type 守卫)。 */
     private fun materializeRemotePage(entities: List<GeneralEntity>) {
         if (entities.isEmpty()) return
         if (!Shaft.sSettings.isSaveViewHistory) return

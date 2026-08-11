@@ -4,18 +4,13 @@ import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
-import ceui.loxia.Client
-import ceui.loxia.HistoryReportBody
-import ceui.loxia.HistoryReportItem
+import ceui.lisa.utils.Local
 import ceui.pixiv.db.GeneralEntity
+import ceui.pixiv.db.HistoryBackfill
 import ceui.pixiv.db.RecordType
-import ceui.pixiv.db.toHistoryReportItem
-import ceui.pixiv.db.toUserHistoryReportItem
-import ceui.pixiv.session.SessionManager
 import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
@@ -32,9 +27,6 @@ import java.io.OutputStreamWriter
  * 和用户(general_table 里 [RecordType.VIEW_USER_HISTORY] 那批)。
  */
 object BrowseHistoryBackup {
-
-    /** 云端批量 upsert 上限是 100(见 pixshaft-api server.js HISTORY_MAX_BATCH)。 */
-    private const val MAX_CLOUD_BATCH = 100
 
     /** 本页导出的文件结构:两张表各一段,Gson 直接序列化 entity。 */
     data class Payload(
@@ -105,7 +97,12 @@ object BrowseHistoryBackup {
 
     /**
      * 解析 + 写本地库,返回导入条数。JSON 解析失败抛异常(调用方提示「格式不正确」)。
-     * 导入成功且开了云同步则顺手推一份到云端([pushToCloudIfEnabled])。
+     *
+     * 导入成功后清掉回填标记再触发 [HistoryBackfill]:云端推送统一走那一条通道
+     * (keyset 分页、≤100/批、批间限速、失败中止下次重试、按服务端保留上限封顶),
+     * 不再自己起一个无限速循环把服务端 60/min 的写限流打爆。条目带真实浏览时间,
+     * 服务端只认「更新的浏览」——导入老备份不会把云端顺序刷成「刚刚看过」;代价是
+     * 比云端保留窗口(每类最新 1000 条)更老的条目只活在本地,云端模式下翻不到它们。
      */
     suspend fun importFromJson(context: Context, json: String): Int = withContext(Dispatchers.IO) {
         val raw = Shaft.sGson.fromJson(json, RawBackup::class.java)
@@ -129,28 +126,12 @@ object BrowseHistoryBackup {
                 imported++
             }
         }
-        if (imported > 0) pushToCloudIfEnabled(payload)
-        imported
-    }
-
-    /**
-     * 开了云同步(且已登录、已弹过同意框 —— 与 HistoryListViewModel.useRemote() 同条件)时,
-     * 把导入的条目批量 upsert 到云端,否则云端模式下导入的本地行依然显示不出来。
-     * 失败只 warn:本地已经写好,云端推送是尽力而为。
-     */
-    private suspend fun pushToCloudIfEnabled(payload: Payload) {
-        val uid = SessionManager.loggedInUid
-        if (uid <= 0L) return
-        if (!Shaft.sSettings.isCloudHistorySync || !Shaft.sSettings.isCloudHistoryConsentShown) return
-
-        // 共享 #989 回填的映射:带真实浏览时间(viewed_at),服务端只认「更新的浏览」——
-        // 导入老备份不会把云端顺序刷成「刚刚看过」,重复导入也是 no-op。
-        val items = ArrayList<HistoryReportItem>()
-        payload.illustHistory.forEach { e -> e.toHistoryReportItem()?.let { items.add(it) } }
-        payload.userHistory.forEach { e -> e.toUserHistoryReportItem()?.let { items.add(it) } }
-        items.chunked(MAX_CLOUD_BATCH).forEach { batch ->
-            runCatching { Client.pixshaft.reportHistory(uid, HistoryReportBody(batch)) }
-                .onFailure { Timber.w(it, "history import cloud push failed (${batch.size} items)") }
+        if (imported > 0) {
+            // 本地库刚被导入改写 → 回填标记作废,重跑一遍把新行推上云端(幂等,旧行全是 no-op)。
+            Shaft.sSettings.cloudHistoryBackfillDoneUid = 0L
+            Local.setSettings(Shaft.sSettings)
+            HistoryBackfill.maybeSchedule()
         }
+        imported
     }
 }

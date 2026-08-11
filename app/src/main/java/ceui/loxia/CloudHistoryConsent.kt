@@ -28,6 +28,9 @@ object CloudHistoryConsent {
     private fun persist(enabled: Boolean, consentShown: Boolean) {
         Shaft.sSettings.isCloudHistorySync = enabled
         Shaft.sSettings.isCloudHistoryConsentShown = consentShown
+        // 关同步顺手清回填标记:关同步期间的浏览只落本地,重开时回填重跑一遍才能把
+        // 这段缺口补传上去(回填幂等,已在云端的行都是 no-op)。见 HistoryBackfill。
+        if (!enabled) Shaft.sSettings.cloudHistoryBackfillDoneUid = 0L
         Local.setSettings(Shaft.sSettings)
         if (!enabled) HistoryReporter.clearPending()
         // Tell the server the new toggle state so the admin "opted out" list is

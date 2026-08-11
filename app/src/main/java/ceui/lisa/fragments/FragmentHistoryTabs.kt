@@ -126,7 +126,7 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
         // 选 KEEP 后读取会切到云端,所以选完要重刷一下子 tab。
         view.post { activity?.let { CloudHistoryConsent.maybeShowConsent(it) { reloadAllTabs() } } }
         // 存量本地历史回填(#989):同意框弹出之前就开着同步的老用户,persist 不会再触发,
-        // 打开历史页是他们唯一稳定的补触发点。自带「按 uid 只跑一次 + 正在跑不重入」门槛。
+        // 打开历史页是他们唯一稳定的补触发点。自带「每设备一次 + 正在跑不重入」门槛。
         HistoryBackfill.maybeSchedule()
     }
 
