@@ -2350,4 +2350,9 @@
     <string name="user_tag_filter_empty_need_web_login">沒有篩到作品。\n該功能透過網頁介面實作，需要額外進行一次網頁登入才能看到該標籤下的全部作品</string>
     <string name="spoiler_hide_illust">遮蔽此作品</string>
     <string name="spoiler_reveal_illust">取消遮蔽此作品</string>
+
+    <string name="mute_sheet_subtitle">勾選的標籤會加入屏蔽列表，取消勾選即解除</string>
+    <string name="mute_sheet_ineffective">未生效</string>
+    <string name="mute_sheet_empty">這個作品沒有標籤</string>
+    <string name="mute_sheet_summary">已選 %1$d / %2$d</string>
 </resources>

@@ -2348,4 +2348,9 @@
     <string name="user_tag_filter_empty_need_web_login">Работы не найдены.\nЭта функция работает через веб-интерфейс, поэтому, чтобы увидеть все работы по этому тегу, нужно дополнительно войти через веб</string>
     <string name="spoiler_hide_illust">Скрыть эту работу</string>
     <string name="spoiler_reveal_illust">Показать эту работу</string>
+
+    <string name="mute_sheet_subtitle">Отмеченные теги скрываются, снятие отметки отменяет скрытие</string>
+    <string name="mute_sheet_ineffective">неактивно</string>
+    <string name="mute_sheet_empty">У этой работы нет тегов</string>
+    <string name="mute_sheet_summary">Выбрано %1$d / %2$d</string>
 </resources>

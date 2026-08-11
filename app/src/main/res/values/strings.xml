@@ -2555,4 +2555,10 @@
     <!-- 插画卡长按菜单：本地遮罩（模糊图 + spoiler 粒子），只在本机生效，随时可取消 -->
     <string name="spoiler_hide_illust">屏蔽此作品</string>
     <string name="spoiler_reveal_illust">取消屏蔽此作品</string>
+
+    <!-- issue #992: 「屏蔽设定」MD3-E bottom sheet（MuteTagSheet） -->
+    <string name="mute_sheet_subtitle">勾选的标签会加入屏蔽列表，取消勾选即解除</string>
+    <string name="mute_sheet_ineffective">未生效</string>
+    <string name="mute_sheet_empty">这个作品没有标签</string>
+    <string name="mute_sheet_summary">已选 %1$d / %2$d</string>
 </resources>

@@ -29,7 +29,6 @@
     <color name="deep_dark">#212121</color>
     <color name="hito_bg">#000339</color>
     <color name="trans">#00eeeeee</color>
-    <color name="tag_text_unselect">#737373</color>
     <!-- 标签 chip 文字（未选中态）。原本两套都是 #F0F0F0，白天模式下白对白彻底看不见。
          白天用深色，夜间保持浅色（在 values-night 里）。 -->
     <color name="novel_text_unselect">#1F1F1F</color>

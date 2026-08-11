@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「屏蔽设定」MD3-Expressive bottom sheet 的 chrome，取代原先居中弹出的
+  dialog_mute_tag.xml（zhy TagFlowLayout + 三颗 Borderless 按钮）。
+
+  骨架与 sheet_select_tag.xml 一致（拖拽把手 / headline+supporting / 分割线 / 滚动区 /
+  底部动作条）——这两张 sheet 干的是同一类事（在一堆标签里勾选），不该长成两个样子。
+
+  标签胶囊不写在 XML 里：数量、译名、三态（未屏蔽 / 已屏蔽 / 已屏蔽但未生效）都要在
+  运行时定，且选中态要做 MD3-E 的形状变形 + 弹簧回弹，静态 selector 表达不了。
+  见 [ceui.pixiv.ui.muted.MuteTagSheet.createChip]。
+
+  # 主题
+  root 挂 Theme.Material3.DayNight.NoActionBar（同 sheet_select_tag.xml）：本 App 主题继承
+  QMUI、不含 MD3 属性，不套这层则 MaterialButton / BottomSheetDragHandleView 全部 inflate
+  不出来。代价是 colorPrimary 退回 MD3 基线紫，所以强调色一律由 Kotlin 侧用 V3Palette
+  运行时 tint 回来（见 MuteTagSheet.applyAccent）。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_m3e_sheet_top"
+    android:orientation="vertical"
+    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/drag_handle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" />
+
+    <!-- 标题行：MD3-E 的 headline + supporting 双行排版；右侧「屏蔽记录」是 tonal 次操作 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="14dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/sheet_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/string_111"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:id="@+id/sheet_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/mute_sheet_subtitle"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_history"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/muted_history"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingStart="20dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="18dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/tag_flow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap" />
+
+            <!-- 无标签的作品（罕见但存在）：不留一片空白，明说没得选 -->
+            <TextView
+                android:id="@+id/empty_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingVertical="36dp"
+                android:text="@string/mute_sheet_empty"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- 底部动作条：左侧实时计数（MD3-E 喜欢把状态摆在动作旁边），右侧 取消 + filled 保存 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/selection_summary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/string_18"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:paddingStart="28dp"
+            android:paddingEnd="28dp"
+            android:text="@string/save"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
+
+</LinearLayout>

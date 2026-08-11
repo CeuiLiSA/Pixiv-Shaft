@@ -40,7 +40,7 @@ import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
-import ceui.lisa.dialogs.MuteDialog
+import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.ObjectSpec
@@ -310,7 +310,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     false
                 }
                 R.id.action_dislike -> {
-                    MuteDialog.newInstance(illust).show(childFragmentManager, "MuteDialog")
+                    MuteTagSheet.show(childFragmentManager, illust.tags)
                     true
                 }
                 R.id.action_copy_link -> {

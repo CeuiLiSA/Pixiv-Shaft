@@ -2348,4 +2348,9 @@
     <string name="user_tag_filter_empty_need_web_login">작품을 찾지 못했습니다.\n이 기능은 웹 인터페이스로 동작하므로, 이 태그의 모든 작품을 보려면 웹에 한 번 더 로그인해야 합니다</string>
     <string name="spoiler_hide_illust">이 작품 가리기</string>
     <string name="spoiler_reveal_illust">이 작품 가리기 해제</string>
+
+    <string name="mute_sheet_subtitle">체크한 태그는 뮤트되고, 해제하면 뮤트가 풀립니다</string>
+    <string name="mute_sheet_ineffective">비활성</string>
+    <string name="mute_sheet_empty">이 작품에는 태그가 없습니다</string>
+    <string name="mute_sheet_summary">%1$d / %2$d 선택됨</string>
 </resources>

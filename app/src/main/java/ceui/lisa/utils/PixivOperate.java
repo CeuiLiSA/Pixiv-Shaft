@@ -459,6 +459,14 @@ public class PixivOperate {
     }
 
     public static void unMuteTag(TagsBean tagsBean) {
+        unMuteTag(tagsBean, true);
+    }
+
+    /**
+     * 批量取消屏蔽时把 toast 关掉（{@code showToast=false}）——一次解开多个标签会连弹好几条，
+     * 由调用方在末尾统一发一条即可。见 {@code ceui.pixiv.ui.muted.MuteTagSheet.save()}。
+     */
+    public static void unMuteTag(TagsBean tagsBean, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         String tagName = tagsBean.getName();
         muteEntity.setType(Params.MUTE_TAG);
@@ -466,7 +474,9 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
-        Common.showToast(Shaft.getContext().getString(R.string.string_135));
+        if (showToast) {
+            Common.showToast(Shaft.getContext().getString(R.string.string_135));
+        }
     }
 
     public static void insertIllustViewHistory(IllustsBean illust) {

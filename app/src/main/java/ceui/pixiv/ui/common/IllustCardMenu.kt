@@ -4,7 +4,7 @@ import android.content.Intent
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.dialogs.MuteDialog
+import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
@@ -43,7 +43,7 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
             setIllustSpoilered(item.illust.id, !spoilered)
         }
         item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
-            MuteDialog.newInstance(bean).show(childFragmentManager, "MuteDialog")
+            MuteTagSheet.show(childFragmentManager, bean.tags)
         }
         item(getString(R.string.string_112), R.drawable.ic_baseline_comment_24) {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {

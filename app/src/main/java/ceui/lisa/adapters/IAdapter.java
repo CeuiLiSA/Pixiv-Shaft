@@ -35,7 +35,7 @@ import ceui.lisa.activities.VActivity;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
-import ceui.lisa.dialogs.MuteDialog;
+import ceui.pixiv.ui.muted.MuteTagSheet;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -269,8 +269,9 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 popView.findViewById(R.id.mute_setting).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        MuteDialog muteDialog = MuteDialog.newInstance(illust);
-                        muteDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), "MuteDialog");
+                        MuteTagSheet.show(
+                                ((FragmentActivity) mContext).getSupportFragmentManager(),
+                                illust.getTags());
                         mNormalPopup.dismiss();
                     }
                 });

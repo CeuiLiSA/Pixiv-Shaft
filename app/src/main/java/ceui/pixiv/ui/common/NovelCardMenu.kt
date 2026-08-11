@@ -3,7 +3,7 @@ package ceui.pixiv.ui.common
 import android.content.Intent
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.dialogs.MuteDialog
+import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
@@ -29,8 +29,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
     val entityWrapper = requireEntityWrapper()
     val inWatchLater = entityWrapper.isNovelInWatchLater(novel.id)
     val spoilered = NovelSpoilerStore.isSpoilered(novel.id)
-    // loxia Tag.name 可空，而 MuteDialog / PixivOperate.muteTag 都直接 name.equals / name.hashCode，
-    // 空名字会当场 NPE；顺手把 translated_name 也带上，「标签屏蔽记录」页才有译名可显示。
+    // 顺手把 translated_name 也带上：屏蔽 sheet 的胶囊和「标签屏蔽记录」页都要显示译名。
     val tagsToMute = novel.tags.orEmpty()
         .filter { !it.name.isNullOrBlank() }
         .map { tag ->
@@ -54,11 +53,11 @@ internal fun NovelFeedFragment.showNovelCardMenu(item: NovelFeedItem) {
             setNovelSpoilered(novel.id, !spoilered)
         }
         // 屏蔽设定：与插画卡同一套屏蔽表（IllustNovelFilter 对 loxia Novel 有同款重载），
-        // 只是 MuteDialog 换成喂 tag 列表的重载，不需要 legacy IllustsBean。
+        // MuteTagSheet 本来就只吃 tag 列表，不需要 legacy IllustsBean。
         // 无标签的小说压根不挂这一项——挂了点下去也只能静默无反应。
         if (tagsToMute.isNotEmpty()) {
             item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
-                MuteDialog.newInstance(ArrayList(tagsToMute)).show(childFragmentManager, "MuteDialog")
+                MuteTagSheet.show(childFragmentManager, tagsToMute)
             }
         }
         // 相关评论：与 NovelTextFragment.onClickNovelComments 同一条路，

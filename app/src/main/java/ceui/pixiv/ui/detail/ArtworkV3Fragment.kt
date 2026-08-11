@@ -32,7 +32,7 @@ import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.databinding.RecyIllustDetailBinding
-import ceui.lisa.dialogs.MuteDialog
+import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.models.IllustsBean
@@ -869,7 +869,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 Common.copy(requireContext(), ShareIllust.URL_Head + illust.id)
             }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
-                MuteDialog.newInstance(illust).show(childFragmentManager, "MuteDialog")
+                MuteTagSheet.show(childFragmentManager, illust.tags)
             }
             item(getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
                 PixivOperate.muteIllust(illust)
