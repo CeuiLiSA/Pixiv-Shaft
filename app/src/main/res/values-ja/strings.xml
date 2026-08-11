@@ -2353,4 +2353,5 @@
     <string name="mute_sheet_ineffective">無効</string>
     <string name="mute_sheet_empty">この作品にはタグがありません</string>
     <string name="mute_sheet_summary">%1$d / %2$d 件選択</string>
+    <string name="private_follow_by_default">デフォルトで非公開フォロー</string>
 </resources>

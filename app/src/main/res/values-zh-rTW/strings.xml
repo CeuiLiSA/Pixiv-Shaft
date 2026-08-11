@@ -2355,4 +2355,5 @@
     <string name="mute_sheet_ineffective">未生效</string>
     <string name="mute_sheet_empty">這個作品沒有標籤</string>
     <string name="mute_sheet_summary">已選 %1$d / %2$d</string>
+    <string name="private_follow_by_default">關注作者預設私人關注</string>
 </resources>

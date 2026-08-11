@@ -32,6 +32,7 @@ import ceui.loxia.ProgressTextButton
 import ceui.loxia.User
 import ceui.loxia.findActionReceiverOrNull
 import ceui.loxia.findFragmentOrNull
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
@@ -265,7 +266,7 @@ fun seriesAuthorRenderer(): FeedRenderer<SeriesAuthorFeedItem, SectionV3ArtistBi
             val nowFollowed = (ObjectPool.get<User>(user.id).value ?: user).is_followed == true
             renderFollow(!nowFollowed)
             if (nowFollowed) fragment.unfollowUser(it as ProgressTextButton, user.id.toInt())
-            else fragment.followUser(it as ProgressTextButton, user.id.toInt(), Params.TYPE_PUBLIC)
+            else fragment.followUser(it as ProgressTextButton, user.id.toInt(), PixivActions.defaultFollowRestrict())
         }
         b.followBtn.setOnLongClickListener {
             val fragment = it.findFragmentOrNull<Fragment>() ?: return@setOnLongClickListener false

@@ -129,6 +129,7 @@ object SettingsCatalog {
 
         // 收藏与互动
         add(Entry(BOOKMARKS, "show_like_button_rela", R.string.string_335, keywords = "私密收藏 非公开 私人 private bookmark"))
+        add(Entry(BOOKMARKS, "private_follow_rela", R.string.private_follow_by_default, keywords = "私密关注 悄悄关注 非公开 私人 关注 private follow"))
         add(Entry(BOOKMARKS, "hide_star_bar_rela", R.string.string_371, keywords = "隐藏 收藏按钮 我的收藏"))
         add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品"))
         add(Entry(BOOKMARKS, "select_all_tag_rela", R.string.string_372, keywords = "标签 全选 tag 收藏"))

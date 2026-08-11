@@ -2561,4 +2561,5 @@
     <string name="mute_sheet_ineffective">未生效</string>
     <string name="mute_sheet_empty">这个作品没有标签</string>
     <string name="mute_sheet_summary">已选 %1$d / %2$d</string>
+    <string name="private_follow_by_default">关注作者默认私人关注</string>
 </resources>

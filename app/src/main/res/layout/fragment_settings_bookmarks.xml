@@ -72,6 +72,24 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/private_follow_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/private_follow_by_default" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/private_follow"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/hide_star_bar_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/bg_m3_row_mid">

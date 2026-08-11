@@ -27,6 +27,7 @@ import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.V3Palette
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
@@ -434,7 +435,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         } else {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
-            baseBind.follow.setOnClick { followUser(it, userId, Params.TYPE_PUBLIC) }
+            baseBind.follow.setOnClick { followUser(it, userId, PixivActions.defaultFollowRestrict()) }
             baseBind.follow.setOnLongClickListener {
                 followUser(it as ProgressTextButton, userId, Params.TYPE_PRIVATE)
                 true

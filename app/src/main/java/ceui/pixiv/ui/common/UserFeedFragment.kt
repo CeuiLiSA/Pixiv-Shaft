@@ -14,6 +14,7 @@ import ceui.lisa.utils.PixivOperate
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.User
 import ceui.loxia.UserPreview
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -184,7 +185,7 @@ abstract class UserFeedFragment(
         // 一次 LIKED_USER，本页 onViewCreated 挂的 FeedLikeSync 收到就把条目拨回去（幂等）。
         // 不再用回调式回滚——队列可能在冷却几分钟后才判定失败，那时本 Fragment 早销毁了。
         if (target) {
-            PixivOperate.postFollowUser(userId.toInt(), Params.TYPE_PUBLIC)
+            PixivOperate.postFollowUser(userId.toInt(), PixivActions.defaultFollowRestrict())
         } else {
             PixivOperate.postUnFollowUser(userId.toInt())
         }

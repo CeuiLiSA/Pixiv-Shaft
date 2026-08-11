@@ -2353,4 +2353,5 @@
     <string name="mute_sheet_ineffective">inactive</string>
     <string name="mute_sheet_empty">This work has no tags</string>
     <string name="mute_sheet_summary">%1$d / %2$d selected</string>
+    <string name="private_follow_by_default">Follow artists privately by default</string>
 </resources>

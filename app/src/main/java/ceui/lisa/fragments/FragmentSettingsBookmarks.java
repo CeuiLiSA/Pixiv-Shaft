@@ -29,6 +29,17 @@ public class FragmentSettingsBookmarks extends SettingsPageFragment<FragmentSett
         });
         baseBind.showLikeButtonRela.setOnClickListener(v -> baseBind.showLikeButton.performClick());
 
+        baseBind.privateFollow.setChecked(Shaft.sSettings.isPrivateFollow());
+        baseBind.privateFollow.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setPrivateFollow(isChecked);
+                Common.showToast(getString(R.string.string_428), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.privateFollowRela.setOnClickListener(v -> baseBind.privateFollow.performClick());
+
         baseBind.hideStarBar.setChecked(Shaft.sSettings.isHideStarButtonAtMyCollection());
         baseBind.hideStarBar.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override

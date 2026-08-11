@@ -30,6 +30,7 @@ import ceui.lisa.utils.V3Palette
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.User
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -128,7 +129,7 @@ class RequestPlanDetailFragment : Fragment(R.layout.fragment_request_plan_detail
             palette.applyFollowBtn(ab.followBtn)
             ab.followBtn.setTextColor(Color.WHITE)
             ab.followBtn.setOnClick {
-                followUser(it as ProgressTextButton, user.id.toInt(), Params.TYPE_PUBLIC)
+                followUser(it as ProgressTextButton, user.id.toInt(), PixivActions.defaultFollowRestrict())
             }
             ab.followBtn.setOnLongClickListener {
                 followUser(ab.followBtn, user.id.toInt(), Params.TYPE_PRIVATE); true

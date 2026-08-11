@@ -145,6 +145,9 @@ public class Settings {
     //默认私人收藏
     private boolean privateStar = false;
 
+    //默认私人关注（长按关注的语义保持不变，只改短按的默认可见性）
+    private boolean privateFollow = false;
+
     //列表页面是否显示收藏按钮
     private boolean showLikeButton = true;
 
@@ -379,6 +382,14 @@ public class Settings {
 
     public void setPrivateStar(boolean privateStar) {
         this.privateStar = privateStar;
+    }
+
+    public boolean isPrivateFollow() {
+        return privateFollow;
+    }
+
+    public void setPrivateFollow(boolean privateFollow) {
+        this.privateFollow = privateFollow;
     }
 
     public void setNovelPath(String novelPath) {

@@ -2353,4 +2353,5 @@
     <string name="mute_sheet_ineffective">неактивно</string>
     <string name="mute_sheet_empty">У этой работы нет тегов</string>
     <string name="mute_sheet_summary">Выбрано %1$d / %2$d</string>
+    <string name="private_follow_by_default">По умолчанию подписываться приватно</string>
 </resources>

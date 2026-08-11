@@ -59,6 +59,17 @@ object PixivActions {
     fun defaultBookmarkRestrict(): String =
         if (Shaft.sSettings.isPrivateStar) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
 
+    /**
+     * 关注的默认可见性（issue #993），[defaultBookmarkRestrict] 的关注版。
+     *
+     * 只管**短按 / 自动关注**这条默认路径：长按恒为私密关注的语义不经过它，那些调用点仍
+     * 显式传 [Params.TYPE_PRIVATE]。取关不吃 restrict（`postUnFollow` 没有这个参数），
+     * 所以取关那一路传什么都一样。
+     */
+    @JvmStatic
+    fun defaultFollowRestrict(): String =
+        if (Shaft.sSettings.isPrivateFollow) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
+
     // ── 插画 / 漫画 ──────────────────────────────────────────────────────────
 
     @JvmStatic
@@ -349,7 +360,7 @@ object PixivActions {
     fun setUserFollow(
         userId: Long,
         follow: Boolean,
-        restrict: String = Params.TYPE_PUBLIC,
+        restrict: String = defaultFollowRestrict(),
     ) {
         writeUserFollowLocally(userId, follow, restrict)
         if (follow) RateAppManager.onUserEngaged()

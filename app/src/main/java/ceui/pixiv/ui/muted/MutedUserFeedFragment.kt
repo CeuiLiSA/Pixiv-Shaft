@@ -17,6 +17,7 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.view.LinearItemDecoration
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -131,7 +132,7 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
             PixivOperate.postUnFollowUser(user.id)
             user.isIs_followed = false
         } else {
-            PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC)
+            PixivOperate.postFollowUser(user.id, PixivActions.defaultFollowRestrict())
             user.isIs_followed = true
         }
         renderFollow(cell.binding, user.isIs_followed)

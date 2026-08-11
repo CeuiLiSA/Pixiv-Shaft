@@ -51,6 +51,7 @@ import ceui.lisa.utils.SearchTypeUtil
 import ceui.loxia.Comment
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -431,7 +432,7 @@ private fun ArtworkV3Fragment.bindArtistFollowState(b: SectionV3ArtistBinding, u
         b.followBtn.text = ctx.getString(R.string.follow)
         palette.applyFollowBtn(b.followBtn)
         b.followBtn.setTextColor(Color.WHITE)
-        b.followBtn.setOnClick { followUser(it as ProgressTextButton, user.id, Params.TYPE_PUBLIC) }
+        b.followBtn.setOnClick { followUser(it as ProgressTextButton, user.id, PixivActions.defaultFollowRestrict()) }
         b.followBtn.setOnLongClickListener {
             followUser(b.followBtn, user.id, Params.TYPE_PRIVATE); true
         }

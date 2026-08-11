@@ -2353,4 +2353,5 @@
     <string name="mute_sheet_ineffective">비활성</string>
     <string name="mute_sheet_empty">이 작품에는 태그가 없습니다</string>
     <string name="mute_sheet_summary">%1$d / %2$d 선택됨</string>
+    <string name="private_follow_by_default">기본으로 비공개 팔로우</string>
 </resources>

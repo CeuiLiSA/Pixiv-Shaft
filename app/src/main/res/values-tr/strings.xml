@@ -2353,4 +2353,5 @@
     <string name="mute_sheet_ineffective">etkin değil</string>
     <string name="mute_sheet_empty">Bu eserde etiket yok</string>
     <string name="mute_sheet_summary">%1$d / %2$d seçildi</string>
+    <string name="private_follow_by_default">Sanatçıları varsayılan olarak gizli takip et</string>
 </resources>

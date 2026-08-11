@@ -36,6 +36,7 @@ import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.adapters.AbstractIllustAdapter
 import ceui.lisa.adapters.IllustAdapter
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
@@ -203,7 +204,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
-                followUser(it, user.id, Params.TYPE_PUBLIC)
+                followUser(it, user.id, PixivActions.defaultFollowRestrict())
             }
             baseBind.follow.setOnLongClickListener {
                 followUser((it as ProgressTextButton), user.id, Params.TYPE_PRIVATE)

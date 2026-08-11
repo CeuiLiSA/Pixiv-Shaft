@@ -116,7 +116,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
-                followUser(it, userId, Params.TYPE_PUBLIC)
+                followUser(it, userId, PixivActions.defaultFollowRestrict())
             }
             baseBind.follow.setOnLongClickListener {
                 followUser(it as ProgressTextButton, userId, Params.TYPE_PRIVATE)
