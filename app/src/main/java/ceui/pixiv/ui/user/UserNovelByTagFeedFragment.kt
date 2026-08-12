@@ -10,6 +10,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.utils.Params
 import ceui.loxia.ImageUrls
 import ceui.loxia.Novel
+import ceui.loxia.Series
 import ceui.loxia.Tag
 import ceui.loxia.User
 import ceui.loxia.UserTagNovel
@@ -72,7 +73,8 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
             }
         }
 
-    private var hadWebCookieOnPause = false
+    /** null = 还没 pause 过；理由与插画侧同（别让首次 onResume 把 autoLoad 的首屏重发一遍）。 */
+    private var hadWebCookieOnPause: Boolean? = null
 
     override fun onPause() {
         super.onPause()
@@ -81,7 +83,7 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
 
     override fun onResume() {
         super.onResume()
-        if (!hadWebCookieOnPause && SessionManager.hasWebCookie) {
+        if (hadWebCookieOnPause == false && SessionManager.hasWebCookie) {
             feedViewModel.refresh()
         }
     }
@@ -147,9 +149,13 @@ class UserNovelByTagFeedSource(
 /**
  * 网页精简小说 → loxia [Novel]。封面本就是 novel-cover-master 的 600x600，与 app-api 缩略图
  * 同一 CDN，直接三档同填；tags 只有字符串名，无译名。visible 置 true 避免被当不可见滤掉。
+ *
+ * 系列信息网页也给（seriesId/seriesTitle，单篇为 null），照填 —— 不填的话本页每张卡都缺
+ * 主力小说卡的「系列」那一行，同一本小说在别的列表里有、在这里没有。
  */
 internal fun UserTagNovel.toNovel(): Novel {
     val cover = url?.takeIf { it.isNotEmpty() }
+    val series = seriesId?.toLongOrNull()?.let { Series(id = it, title = seriesTitle) }
     return Novel(
         id = id,
         title = title ?: "",
@@ -157,6 +163,7 @@ internal fun UserTagNovel.toNovel(): Novel {
         create_date = createDate,
         image_urls = cover?.let { ImageUrls(large = it, medium = it, square_medium = it) },
         tags = tags?.map { Tag(name = it) } ?: emptyList(),
+        series = series,
         text_length = textCount,
         total_bookmarks = bookmarkCount,
         // 已同步网页 cookie 时 bookmarkData 非 null = 已收藏;匿名视角恒 null,

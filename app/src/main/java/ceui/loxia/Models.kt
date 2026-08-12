@@ -769,6 +769,9 @@ data class UserTagNovel(
     // 登录视角已收藏时是 {id, private} 对象,匿名/未收藏为 null —— 只用「是否为 null」判收藏态
     val bookmarkData: Any? = null,
     val createDate: String? = null,
+    // 系列作品才有,单篇为 null;id 是字符串形态("1462193"),映射时 toLongOrNull 兜住空串
+    val seriesId: String? = null,
+    val seriesTitle: String? = null,
 ) : Serializable
 
 data class RelatedUserBody (

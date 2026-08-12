@@ -104,8 +104,12 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
      * 从空态那个「去登录」跳出去登完回来时，页面还停在旧的空结果上——用户刚登完却看见
      * 同一句「需要登录」和同一个按钮。同步到网页会话就自动重拉一次。
      * 只在「走时没有、回来有了」这一档触发，别把普通的切后台回来也变成刷新。
+     *
+     * null = 还没 pause 过（首次 onResume）。不能用 false 当初值：VM 是 autoLoad 的，首屏在
+     * init 里已经发出去了，此时若用户本来就有网页 cookie，`!false && true` 恒成立 —— 一进页面
+     * 就把在飞的首屏 cancel 掉重发一次，恰恰对本页唯一能正常工作的那批用户每次都多打一枪。
      */
-    private var hadWebCookieOnPause = false
+    private var hadWebCookieOnPause: Boolean? = null
 
     override fun onPause() {
         super.onPause()
@@ -114,7 +118,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
 
     override fun onResume() {
         super.onResume()
-        if (!hadWebCookieOnPause && SessionManager.hasWebCookie) {
+        if (hadWebCookieOnPause == false && SessionManager.hasWebCookie) {
             feedViewModel.refresh()
         }
     }
