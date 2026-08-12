@@ -115,6 +115,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      *   <li>兜底(无 cookie / 精简 bean 无尺寸):图片解码后由 {@link #rememberDecodedRatio}
      *       用位图宽高定下。</li>
      * </ul>
+     * ajax 缺失时,多 P 后续页还会先用 P1 宽高当「先验占位」过渡(见
+     * {@link #applyRatioOrPlaceholder},先验高超 maxHeight 时退回旧全高占位):
+     * 只设展示盒、不落本表,解码校正照常发生。
      * 缓存进此表 → 滑走再回、回收重绑时首帧直接套用,消除抖动;{@link #release()} 时清空。
      */
     private final Map<Integer, Float> pageRatio = new ConcurrentHashMap<>();
@@ -329,15 +332,40 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     }
 
     /**
-     * ratio 已知就套用(首帧即终值),未知就退回占位高({@code maxHeight} 或布局默认)并返回
-     * {@code changeSize=true} —— 让 {@link #loadIllust} 走「解码后定 ratio」的兜底路径。
+     * ratio 已知就套用(首帧即终值),未知时先试 P1 先验占位,再退回占位高({@code maxHeight} 或
+     * 布局默认)并返回 {@code changeSize=true} —— 让 {@link #loadIllust} 走「解码后定 ratio」的兜底路径。
+     *
+     * <p>多 P 后续页在 ajax 尺寸缺失(无 cookie / R18 / 受限 / 精简 bean)时,原先一律拿整屏高
+     * {@code maxHeight} 当空白容器,图一到再从全高跳到自然高,首帧跳幅度最大。这里改用
+     * {@link IllustsBean} 的 P1 宽高当先验比例:同画布作品占位 ≈ 自然高,首帧跳基本归零;
+     * 混比作品也由解码校正一帧内回真值。
+     *
+     * <p>先验高超过 {@code maxHeight}(P1 为超长竖图)时退回旧的全高占位——把「先验过高」这个
+     * 最坏分支直接还原成旧行为,保证改动不劣于旧版;长条作品维持既有体验,不做放大跳变的冒险。
+     *
+     * <p>先验只是过渡,不是真值:不写 {@link #pageRatio},仍返回 {@code changeSize=true}。
+     * 两层 {@code illust}/{@code illust_hd} 同时设 ratio,保持同盒同框(回收重绑时
+     * {@code illust_hd} 可能残留上一轮的 ratio,单设 {@code illust} 会让原图 overlay 短暂错位)。
+     *
      * @return changeSize:true 表示 ratio 未知、需解码后定。
      */
     private boolean applyRatioOrPlaceholder(ViewHolder<RecyIllustDetailBinding> holder, int position) {
         Float ratio = pageRatio.get(position);
         if (ratio != null && ratio > 0f) {
             holder.baseBind.illust.setHeightRatio(ratio);
+            holder.baseBind.illustHd.setHeightRatio(ratio);
             return false;
+        }
+        // 多 P 后续页:P1 宽高(bean 必有)当先验比例占位,替代 maxHeight 全高空白容器。
+        // 先验高不超过 maxHeight 才生效:P1 超长竖图退回旧占位,把混比作品的最坏跳变限制在旧行为量级。
+        if (position > 0 && allIllust.getWidth() > 0 && allIllust.getHeight() > 0) {
+            float prior = (float) allIllust.getHeight() / allIllust.getWidth();
+            int priorHeight = Math.round((float) imageSize * prior);
+            if (maxHeight <= 0 || priorHeight <= maxHeight) {
+                holder.baseBind.illust.setHeightRatio(prior);
+                holder.baseBind.illustHd.setHeightRatio(prior);
+                return true;
+            }
         }
         int placeholder = maxHeight > 0 ? maxHeight : holder.baseBind.illust.getLayoutParams().height;
         setFixedHeight(holder, placeholder);
@@ -347,6 +375,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     /** 关掉 ratio 自measure、改用固定像素高(扁图垫底 / 尺寸未知的占位)。FIT_CENTER 居中不裁。 */
     private void setFixedHeight(ViewHolder<RecyIllustDetailBinding> holder, int height) {
         holder.baseBind.illust.setHeightRatio(0f);
+        // 固定高盒子里 illust_hd 也关 ratio,靠 RelativeLayout 四边对齐跟随 illust,避免残留旧 ratio 错位。
+        holder.baseBind.illustHd.setHeightRatio(0f);
         ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
         if (params != null && height > 0 && params.height != height) {
             params.height = height;
@@ -371,7 +401,6 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         int naturalHeight = Math.round((float) imageSize * ratio);
         if (position == 0 && allIllust.getPage_count() == 1 && maxHeight > 0 && naturalHeight < maxHeight) {
             setFixedHeight(holder, maxHeight);
-            holder.baseBind.illustHd.setHeightRatio(0f);
         } else {
             holder.baseBind.illust.setHeightRatio(ratio);
             holder.baseBind.illustHd.setHeightRatio(ratio);
