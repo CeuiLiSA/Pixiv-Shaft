@@ -113,7 +113,12 @@ class ChatBannerBridge(
 
     // 公开聊天室 push banner 同时受两个「试验性」开关约束:聊天室入口本身开启,且 banner 开关开启。
     // 任一关闭都不弹,因此设置页隐藏 push 行时即使其值残留为 true 也不会误弹。
+    //
+    // lite(google/Play)渠道直接判死:那边设置页没有这两个开关(见 FragmentSettingsExperimental),
+    // 而开关值会随「设置备份还原」/ 云同步从 github 包带过来 —— 只认设置的话,Play 用户会收到
+    // 一个自己关不掉的全局房 banner。这里只压全局房,1v1 私信 banner 仍照常(理由见上面的 ⚠️)。
     private fun publicChatBannerEnabled(): Boolean {
+        if (ceui.lisa.BuildConfig.IS_LITE) return false
         val settings = ceui.lisa.activities.Shaft.sSettings ?: return false
         return settings.isShowChatRoomEntry && settings.isShowChatRoomPushBanner
     }
