@@ -172,9 +172,14 @@ object SettingsCatalog {
         add(Entry(DATA, "clear_bulk_download_cache", R.string.clear_bulk_download_cache, keywords = "批量下载 数据库 清理 占用 瘦身 空间 cache"))
 
         // 试验性
-        add(Entry(EXPERIMENTAL, "show_chat_room_entry_rela", R.string.setting_show_chat_room_entry, R.string.setting_chat_room_entry_warning, keywords = "聊天室 聊天 侧边栏 chat"))
-        add(Entry(EXPERIMENTAL, "show_chat_room_push_banner_rela", R.string.setting_show_chat_room_push_banner, keywords = "推送 横幅 新消息 通知 banner push"))
-        add(Entry(EXPERIMENTAL, "show_plaza_entry_rela", R.string.setting_show_plaza_entry, keywords = "广场 侧边栏 plaza"))
+        // 聊天室 / 广场是站外 UGC 入口，google(Play) 渠道合规起见整组不出现——认 IS_LITE
+        // 而不是 debug 口径，lite 的 debug 包同样没有（与 FragmentSettingsExperimental 一致）。
+        // 不进索引 = 搜索不会跳到隐藏行，目录页那条子项预览也自动少掉这几项。
+        if (!ceui.lisa.BuildConfig.IS_LITE) {
+            add(Entry(EXPERIMENTAL, "show_chat_room_entry_rela", R.string.setting_show_chat_room_entry, R.string.setting_chat_room_entry_warning, keywords = "聊天室 聊天 侧边栏 chat"))
+            add(Entry(EXPERIMENTAL, "show_chat_room_push_banner_rela", R.string.setting_show_chat_room_push_banner, keywords = "推送 横幅 新消息 通知 banner push"))
+            add(Entry(EXPERIMENTAL, "show_plaza_entry_rela", R.string.setting_show_plaza_entry, keywords = "广场 侧边栏 plaza"))
+        }
         add(Entry(EXPERIMENTAL, "is_firebase_enable_rela", R.string.string_367, keywords = "统计 分析 隐私 数据收集 遥测 firebase analytics"))
     }
 

@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -21,6 +22,22 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
 
     @Override
     protected void initData() {
+        // google(Play)渠道:聊天室 / 广场是站外 UGC 入口,合规起见整组不出现。认 IS_LITE
+        // 而不是 debug 口径 —— lite 的 debug 包同样没有,与 SettingsCatalog 索引一致。
+        if (ceui.lisa.BuildConfig.IS_LITE) {
+            baseBind.showChatRoomEntryRela.setVisibility(View.GONE);
+            baseBind.showChatRoomPushBannerRela.setVisibility(View.GONE);
+            baseBind.showChatRoomPushBannerDivider.setVisibility(View.GONE);
+            baseBind.showPlazaEntryRela.setVisibility(View.GONE);
+            // 上面整组消失后 Firebase 成了页内唯一一行,它原本用来跟前一组拉开的
+            // 上外边距就成了页首一块空白,去掉。
+            ViewGroup.MarginLayoutParams lp =
+                    (ViewGroup.MarginLayoutParams) baseBind.isFirebaseEnableRela.getLayoutParams();
+            lp.topMargin = 0;
+            bindFirebaseRow();
+            return;
+        }
+
         boolean chatRoomOn = Shaft.sSettings.isShowChatRoomEntry();
         baseBind.showChatRoomEntry.setChecked(chatRoomOn);
         // push banner 行只在「聊天室入口」开启时展示
@@ -69,6 +86,10 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         baseBind.showPlazaEntryRela.setOnClickListener(v ->
                 baseBind.showPlazaEntry.performClick());
 
+        bindFirebaseRow();
+    }
+
+    private void bindFirebaseRow() {
         baseBind.isFirebaseEnable.setChecked(Shaft.sSettings.isFirebaseEnable());
         baseBind.isFirebaseEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
