@@ -47,6 +47,8 @@ sealed class PageElement {
         val resourceId: Long,
         val pageIndexInIllust: Int,
         val imageUrl: String?,
+        /** true = 「自动混排插画」插入的图（issue #999），渲染时带圆角。 */
+        val isMix: Boolean = false,
     ) : PageElement() {
         enum class ImageType { PixivImage, UploadedImage }
     }

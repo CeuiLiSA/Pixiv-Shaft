@@ -378,7 +378,7 @@ class NovelReaderView @JvmOverloads constructor(
         }
         // Image hit-test precedes tap-zones: single-tap on an image opens the
         // standalone viewer (pixiv illust page or image detail, decided by host).
-        val hit = findImageAt(y)
+        val hit = findImageAt(x, y)
         if (hit != null) {
             onImageTap?.invoke(hit)
             return
@@ -399,10 +399,29 @@ class NovelReaderView @JvmOverloads constructor(
         }
     }
 
-    private fun findImageAt(y: Float): PageElement.Image? {
+    /**
+     * 只有位图**实际落位的矩形**算命中（与 [PageRenderer.imagePlacementRect] 同一份几何），
+     * 图外的留白照常走翻页/呼出菜单的 tap-zone——整页图不该吞掉所有点击（issue #999）。
+     * 位图还没加载出来时占位框铺满目标区，此时整块可点，与旧行为一致。
+     */
+    private fun findImageAt(x: Float, y: Float): PageElement.Image? {
         val page = pages.getOrNull(currentIndex) ?: return null
         for (el in page.elements) {
-            if (el is PageElement.Image && y >= el.top && y <= el.bottom) return el
+            if (el !is PageElement.Image) continue
+            if (y < el.top || y > el.bottom) continue
+            val st = style
+            val geom = geometry
+            val bitmap = bitmapSource.bitmapFor(el)
+            if (st == null || geom == null || bitmap == null) return el
+            val rect = PageRenderer.imagePlacementRect(
+                bitmap = bitmap,
+                left = geom.paddingLeft,
+                top = el.top,
+                right = width - geom.paddingLeft,
+                bottom = el.bottom,
+                scaleMode = st.imageScaleMode,
+            )
+            if (rect.contains(x, y)) return el
         }
         return null
     }

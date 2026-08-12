@@ -39,6 +39,14 @@
                 layout="@layout/item_reader_setting_slider"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
+
+            <View style="@style/ReaderRowDivider"/>
+
+            <include
+                android:id="@+id/row_illust_mix"
+                layout="@layout/item_reader_setting_segmented"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
         </LinearLayout>
     </LinearLayout>
 </layout>

@@ -23,6 +23,7 @@ import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
 import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
+import ceui.pixiv.ui.novel.reader.model.NovelIllustSource
 import ceui.pixiv.ui.novel.reader.model.ScreenOrientation
 import ceui.pixiv.ui.novel.reader.paginate.TypefaceProvider
 import ceui.pixiv.ui.novel.reader.settings.PresetFonts
@@ -211,6 +212,15 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowPreloadImage.bindIntSlider(
             getString(R.string.setting_preload_images), 0, 8, ReaderSettings.preloadImageAhead,
         ) { ReaderSettings.preloadImageAhead = it }
+        s.rowIllustMix.bindSegmented(
+            ctx, getString(R.string.setting_illust_mix),
+            listOf(
+                getString(R.string.setting_illust_mix_none) to NovelIllustSource.None,
+                getString(R.string.setting_illust_mix_followed) to NovelIllustSource.Followed,
+                getString(R.string.setting_illust_mix_discover) to NovelIllustSource.Discover,
+            ),
+            ReaderSettings.illustMixSource,
+        ) { ReaderSettings.illustMixSource = it }
     }
 
     // ---- Item binders -----------------------------------------------------

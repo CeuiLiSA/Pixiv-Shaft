@@ -15,16 +15,20 @@ import ceui.lisa.database.NovelAnnotationEntity
 import ceui.lisa.database.NovelBookmarkEntity
 import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
+import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.pixiv.actions.PixivActions
 import ceui.loxia.WebNovel
 import ceui.pixiv.ui.novel.reader.model.ContentToken
+import ceui.pixiv.ui.novel.reader.model.NovelIllustSource
 import ceui.pixiv.ui.novel.reader.model.Page
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
+import ceui.pixiv.ui.novel.reader.paginate.IllustMixInserter
 import ceui.pixiv.ui.novel.reader.paginate.ImageResolver
 import ceui.pixiv.ui.novel.reader.paginate.Paginator
+import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
@@ -113,6 +117,16 @@ class NovelReaderV3ViewModel(
     private var tokens: List<ContentToken> = emptyList()
     private var imageResolver: (ContentToken) -> String? = { null }
 
+    // ---- 自动混排插画（issue #999）----
+    // mixIllusts 只作用于展示链路（displayTokens / displayImageResolver）；
+    // tokens 本体保持纯净，导出 / 复制 / 章节大纲 / NovelTextCache 都不受影响。
+    private var mixIllusts: List<Illust> = emptyList()
+    private var mixIllustsSource: NovelIllustSource? = null
+
+    /** 取材拉到手后 +1，阅读页 observe 它来重绑纵向滚动视图（横向由内部 repaginate 覆盖）。 */
+    private val _illustMixVersion = MutableLiveData(0)
+    val illustMixVersion: LiveData<Int> = _illustMixVersion
+
     private var pendingStyle: TypeStyle? = null
     private var pendingGeometry: PageGeometry? = null
     private var desiredCharIndex: Int = 0
@@ -156,6 +170,7 @@ class NovelReaderV3ViewModel(
                 desiredCharIndex = ReaderProgressStore.loadCharIndex(novelId)
                 _markerPage.postValue(parsed.first.marker?.page ?: 0)
                 _loadState.postValue(LoadState.Loaded(novel, parsed.first, parsed.second))
+                maybeFetchMixIllusts()
                 repaginateIfReady()
             }.onFailure { throwable ->
                 Timber.tag("NovelReaderV3").e(throwable)
@@ -183,7 +198,56 @@ class NovelReaderV3ViewModel(
         imageResolver = ImageResolver.of(parsed.first)
         desiredCharIndex = ReaderProgressStore.loadCharIndex(novelId)
         _loadState.postValue(LoadState.Loaded(null, parsed.first, parsed.second))
+        maybeFetchMixIllusts()
         repaginateIfReady()
+    }
+
+    // ---- 自动混排插画（issue #999）--------------------------------------------
+
+    /**
+     * 展示用 token 流：混排开着且取材已就绪时，在原始 [tokens] 上插入零宽度
+     * PixivImage；否则原样返回（关着 / 拉取失败 / 来源切换后旧数据不复用），
+     * 阅读页自然回退纯文字。横向 [repaginateIfReady] 与纵向 rebind 都从这取。
+     */
+    fun displayTokens(): List<ContentToken> {
+        val source = ReaderSettings.illustMixSource
+        if (source == NovelIllustSource.None) return tokens
+        if (mixIllustsSource != source || mixIllusts.isEmpty()) return tokens
+        return IllustMixInserter.insert(tokens, mixIllusts.map { it.id }, seed = novelId)
+    }
+
+    /** 内嵌插图照旧走 webNovel 的对象表，查不到再落到混排取材的 URL 表。 */
+    fun displayImageResolver(): (ContentToken) -> String? {
+        val base = imageResolver
+        if (mixIllusts.isEmpty()) return base
+        val urls = mixIllusts.associateBy({ it.id }, { NovelIllustMixStore.pickUrl(it) })
+        return { token ->
+            base(token) ?: (token as? ContentToken.PixivImage)?.let { urls[it.illustId] }
+        }
+    }
+
+    /** 设置面板切换来源后由阅读页调用：需要就补拉取材，并立即按新口径重排版。 */
+    fun onIllustMixSettingChanged() {
+        maybeFetchMixIllusts()
+        repaginateIfReady()
+    }
+
+    private fun maybeFetchMixIllusts() {
+        val source = ReaderSettings.illustMixSource
+        if (source == NovelIllustSource.None) return
+        if (mixIllustsSource == source && mixIllusts.isNotEmpty()) return
+        viewModelScope.launch {
+            runCatching { NovelIllustMixStore.get(source) }
+                .onSuccess { list ->
+                    // 来源在拉取途中又被切走就丢弃结果，别用旧口径的图污染新设置。
+                    if (list.isEmpty() || ReaderSettings.illustMixSource != source) return@onSuccess
+                    mixIllusts = list
+                    mixIllustsSource = source
+                    repaginateIfReady()
+                    _illustMixVersion.value = (_illustMixVersion.value ?: 0) + 1
+                }
+                .onFailure { Timber.tag("NovelReaderV3").w(it, "illust mix fetch failed, fall back to plain text") }
+        }
     }
 
     fun updateLayout(style: TypeStyle, geometry: PageGeometry) {
@@ -499,11 +563,11 @@ class NovelReaderV3ViewModel(
     private fun repaginateIfReady() {
         val style = pendingStyle ?: return
         val geom = pendingGeometry ?: return
-        val toks = tokens
+        val toks = displayTokens()
         if (toks.isEmpty()) return
         if (geom.contentWidth <= 0 || geom.contentHeight <= 0) return
         paginationJob?.cancel()
-        val resolver = imageResolver
+        val resolver = displayImageResolver()
         val startChar = desiredCharIndex
         // Pagination runs on [paginationThread] — a dedicated HandlerThread
         // whose Looper satisfies the AppCompatTextView that [TextMeasurer]

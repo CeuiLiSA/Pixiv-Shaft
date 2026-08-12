@@ -1163,6 +1163,10 @@
     <string name="setting_image_fill">Заполнить</string>
     <string name="setting_image_original">Оригинал</string>
     <string name="setting_preload_images">Предзагрузка изображений</string>
+    <string name="setting_illust_mix">Авто-вставка иллюстраций</string>
+    <string name="setting_illust_mix_none">Выкл.</string>
+    <string name="setting_illust_mix_followed">Подписки</string>
+    <string name="setting_illust_mix_discover">Обзор</string>
     <string name="action_copy">Копировать</string>
     <string name="action_select_all">Выделить всё</string>
     <string name="action_highlight">Выделить</string>

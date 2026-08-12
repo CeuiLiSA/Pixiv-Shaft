@@ -1163,6 +1163,10 @@
     <string name="setting_image_fill">채우기</string>
     <string name="setting_image_original">원본</string>
     <string name="setting_preload_images">이미지 미리 로드</string>
+    <string name="setting_illust_mix">일러스트 자동 삽입</string>
+    <string name="setting_illust_mix_none">사용 안 함</string>
+    <string name="setting_illust_mix_followed">팔로우 중</string>
+    <string name="setting_illust_mix_discover">디스커버리</string>
     <string name="action_copy">복사</string>
     <string name="action_select_all">전체 선택</string>
     <string name="action_highlight">하이라이트</string>

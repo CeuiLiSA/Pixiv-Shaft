@@ -1165,6 +1165,10 @@
     <string name="setting_image_fill">填充</string>
     <string name="setting_image_original">原始</string>
     <string name="setting_preload_images">預載圖片</string>
+    <string name="setting_illust_mix">自動混排插畫</string>
+    <string name="setting_illust_mix_none">不混排</string>
+    <string name="setting_illust_mix_followed">關注畫師</string>
+    <string name="setting_illust_mix_discover">發現頁</string>
     <string name="action_copy">複製</string>
     <string name="action_select_all">全選</string>
     <string name="action_highlight">標記</string>

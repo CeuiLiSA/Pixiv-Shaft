@@ -93,6 +93,7 @@ class Paginator(
                         resourceId = token.illustId,
                         pageIndexInIllust = token.pageIndex,
                         imageUrl = imageUrlResolver(token),
+                        isMix = token.isMix,
                     ),
                 )
             }

@@ -1163,6 +1163,10 @@
     <string name="setting_image_fill">フィル</string>
     <string name="setting_image_original">原寸</string>
     <string name="setting_preload_images">画像先読み</string>
+    <string name="setting_illust_mix">イラスト自動挿入</string>
+    <string name="setting_illust_mix_none">なし</string>
+    <string name="setting_illust_mix_followed">フォロー中</string>
+    <string name="setting_illust_mix_discover">ディスカバリー</string>
     <string name="action_copy">コピー</string>
     <string name="action_select_all">すべて選択</string>
     <string name="action_highlight">ハイライト</string>

@@ -6,6 +6,7 @@ import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
 import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
+import ceui.pixiv.ui.novel.reader.model.NovelIllustSource
 import ceui.pixiv.ui.novel.reader.model.ScreenOrientation
 import com.tencent.mmkv.MMKV
 
@@ -36,6 +37,7 @@ object ReaderSettings {
         object Interaction : ChangeEvent()
         object Image : ChangeEvent()
         object Reminder : ChangeEvent()
+        object IllustMix : ChangeEvent()
     }
 
     // ---------- Typography ----------
@@ -264,6 +266,20 @@ object ReaderSettings {
             emit(ChangeEvent.Image)
         }
 
+    /**
+     * 正文自动混排插画的取材来源（issue #999），默认不混排。
+     * 不进 [Snapshot]：变更走专属 [ChangeEvent.IllustMix]，由阅读页直接触发
+     * 重排版 + 纵向重绑，不依赖 pushStyleAndGeometryIfReady 的快照去重。
+     */
+    var illustMixSource: NovelIllustSource
+        get() = runCatching {
+            NovelIllustSource.valueOf(store.decodeString(K_ILLUST_MIX_SOURCE, NovelIllustSource.None.name) ?: NovelIllustSource.None.name)
+        }.getOrDefault(NovelIllustSource.None)
+        set(value) {
+            store.encode(K_ILLUST_MIX_SOURCE, value.name)
+            emit(ChangeEvent.IllustMix)
+        }
+
     // ---------- TTS ----------
     var ttsSpeed: Float
         get() = store.decodeFloat(K_TTS_SPEED, 1f).coerceIn(0.5f, 2.0f)
@@ -404,6 +420,7 @@ object ReaderSettings {
     private const val K_IMG_PLACEMENT = "r_img_placement"
     private const val K_IMG_SCALE = "r_img_scale"
     private const val K_PRELOAD_AHEAD = "r_preload_ahead"
+    private const val K_ILLUST_MIX_SOURCE = "r_illust_mix_source"
     private const val K_TTS_SPEED = "r_tts_speed"
     private const val K_TTS_PITCH = "r_tts_pitch"
     private const val K_TTS_ENGINE = "r_tts_engine"

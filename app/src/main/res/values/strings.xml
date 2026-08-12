@@ -1268,6 +1268,10 @@
     <string name="setting_image_fill">填充</string>
     <string name="setting_image_original">原始</string>
     <string name="setting_preload_images">预加载图片</string>
+    <string name="setting_illust_mix">自动混排插画</string>
+    <string name="setting_illust_mix_none">不混排</string>
+    <string name="setting_illust_mix_followed">关注画师</string>
+    <string name="setting_illust_mix_discover">发现页</string>
 
     <!-- Reader actions & menus -->
     <string name="action_copy">复制</string>

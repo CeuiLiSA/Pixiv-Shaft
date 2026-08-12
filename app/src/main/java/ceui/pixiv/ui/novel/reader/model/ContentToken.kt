@@ -26,6 +26,8 @@ sealed class ContentToken {
         override val sourceEnd: Int,
         val illustId: Long,
         val pageIndex: Int,
+        /** true = 「自动混排插画」插入的图（issue #999），渲染时带圆角；正文内嵌 `[pixivimage:]` 为 false。 */
+        val isMix: Boolean = false,
     ) : ContentToken()
 
     data class UploadedImage(

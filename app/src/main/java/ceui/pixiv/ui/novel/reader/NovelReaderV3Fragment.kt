@@ -54,7 +54,6 @@ import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.render.GlideImageBitmapSource
 import ceui.pixiv.ui.novel.reader.render.HighlightRange
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
-import ceui.pixiv.ui.novel.reader.paginate.ImageResolver
 import ceui.pixiv.ui.novel.reader.render.NovelReaderView
 import ceui.pixiv.ui.novel.reader.render.NovelScrollReaderView
 import ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView
@@ -423,6 +422,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     refreshProgressOverlay()
                 }
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
+                ReaderSettings.ChangeEvent.IllustMix -> {
+                    // 混排来源切换：VM 补拉取材 + 直接重排版（绕开 updateLayout 的
+                    // style/geometry 去重——本设置不改排版样式，只改 token 流）。
+                    viewModel.onIllustMixSettingChanged()
+                    rebindScrollViewIfActive()
+                }
                 ReaderSettings.ChangeEvent.Interaction -> {
                     rv.setTouchLocked(ReaderSettings.touchLocked)
                     rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
@@ -477,6 +482,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
         viewModel.markerPage.observe(viewLifecycleOwner) { page ->
             tb.setMarked((page ?: 0) > 0)
+        }
+
+        // 混排取材是异步拉的：到货后重绑纵向滚动视图把插图上屏
+        // （横向模式由 VM 内部 repaginate 覆盖，走 pagination observer）。
+        viewModel.illustMixVersion.observe(viewLifecycleOwner) { version ->
+            if ((version ?: 0) > 0) rebindScrollViewIfActive()
         }
 
         viewModel.annotations.observe(viewLifecycleOwner) { list ->
@@ -617,7 +628,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         // On first bind (charAnchors empty), fall back to persisted progress.
         val currentChar = sv.currentCharIndex().takeIf { it > 0 }
             ?: ReaderProgressStore.loadCharIndex(viewModel.novelId)
-        sv.bind(loaded.tokens, style, geom, ImageResolver.of(loaded.webNovel))
+        // displayTokens/displayImageResolver：混排插画只进展示链路，loaded.tokens 保持纯净。
+        sv.bind(viewModel.displayTokens(), style, geom, viewModel.displayImageResolver())
         if (currentChar > 0) sv.jumpToCharIndex(currentChar)
         // Make sure the bottom seekbar gets at least one update even when
         // currentChar == 0 (fresh entry, no saved progress) — otherwise the

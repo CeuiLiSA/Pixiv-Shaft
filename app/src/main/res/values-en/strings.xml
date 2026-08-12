@@ -1163,6 +1163,10 @@
     <string name="setting_image_fill">Fill</string>
     <string name="setting_image_original">Original</string>
     <string name="setting_preload_images">Preload images</string>
+    <string name="setting_illust_mix">Auto-insert illustrations</string>
+    <string name="setting_illust_mix_none">Off</string>
+    <string name="setting_illust_mix_followed">Following</string>
+    <string name="setting_illust_mix_discover">Discovery</string>
     <string name="action_copy">Copy</string>
     <string name="action_select_all">Select all</string>
     <string name="action_highlight">Highlight</string>

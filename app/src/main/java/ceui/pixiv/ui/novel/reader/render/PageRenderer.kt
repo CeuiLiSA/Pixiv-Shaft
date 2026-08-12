@@ -53,6 +53,10 @@ object PageRenderer {
         textAlign = Paint.Align.CENTER
     }
 
+    /** 混排插画圆角半径（dp），横纵两个渲染器保持一致。 */
+    const val MIX_IMAGE_CORNER_DP = 16f
+    private val mixImagePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+
     fun drawBackground(
         canvas: Canvas,
         width: Int,
@@ -175,34 +179,63 @@ object PageRenderer {
         }
 
         val targetRect = RectF(left, top, right, bottom)
-        val matrix = Matrix()
         val src = Rect(0, 0, bitmap.width, bitmap.height)
-        when (style.imageScaleMode) {
-            ImageScaleMode.Fill -> {
-                matrix.setRectToRect(RectF(src), targetRect, Matrix.ScaleToFit.FILL)
-            }
+        // 位图实际落位的矩形：圆角要贴着它裁（Fit 模式下 targetRect 的留白处没有像素，
+        // 贴 targetRect 四角就看不出圆），图片点击命中也以它为准（见 NovelReaderView.findImageAt）。
+        val drawnRect = imagePlacementRect(bitmap, left, top, right, bottom, style.imageScaleMode)
+        val matrix = Matrix()
+        // Fit 的落位矩形与位图同宽高比、Original 的与位图同尺寸，三种模式下
+        // setRectToRect(FILL) 都退化成各自想要的等比缩放 / 纯平移。
+        matrix.setRectToRect(RectF(src), drawnRect, Matrix.ScaleToFit.FILL)
+        val clipSave = canvas.save()
+        canvas.clipRect(targetRect)
+        if (element.isMix) {
+            // BitmapShader + drawRoundRect 拿到抗锯齿圆角；clipPath 不吃 AA，角上会锯齿。
+            val radius = ceui.lisa.activities.Shaft.getContext().resources.displayMetrics.density * MIX_IMAGE_CORNER_DP
+            val shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+            shader.setLocalMatrix(matrix)
+            mixImagePaint.shader = shader
+            canvas.drawRoundRect(drawnRect, radius, radius, mixImagePaint)
+            mixImagePaint.shader = null
+        } else {
+            canvas.drawBitmap(bitmap, matrix, null)
+        }
+        canvas.restoreToCount(clipSave)
+    }
+
+    /**
+     * [bitmap] 按 [scaleMode] 排进 `[left,top,right,bottom]` 目标区后的实际落位矩形
+     * （未与目标区求交，Original 大图可能溢出目标区）。绘制与点击命中共用这一份几何，
+     * 保证「点到的就是画出来的」。
+     */
+    fun imagePlacementRect(
+        bitmap: Bitmap,
+        left: Float,
+        top: Float,
+        right: Float,
+        bottom: Float,
+        scaleMode: ImageScaleMode,
+    ): RectF {
+        val target = RectF(left, top, right, bottom)
+        return when (scaleMode) {
+            ImageScaleMode.Fill -> target
             ImageScaleMode.Fit -> {
                 val scale = minOf(
-                    targetRect.width() / bitmap.width,
-                    targetRect.height() / bitmap.height,
+                    target.width() / bitmap.width,
+                    target.height() / bitmap.height,
                 )
                 val drawWidth = bitmap.width * scale
                 val drawHeight = bitmap.height * scale
-                val dx = targetRect.left + (targetRect.width() - drawWidth) / 2f
-                val dy = targetRect.top + (targetRect.height() - drawHeight) / 2f
-                matrix.setScale(scale, scale)
-                matrix.postTranslate(dx, dy)
+                val dx = target.left + (target.width() - drawWidth) / 2f
+                val dy = target.top + (target.height() - drawHeight) / 2f
+                RectF(dx, dy, dx + drawWidth, dy + drawHeight)
             }
             ImageScaleMode.Original -> {
-                val dx = targetRect.left + (targetRect.width() - bitmap.width) / 2f
-                val dy = targetRect.top + (targetRect.height() - bitmap.height) / 2f
-                matrix.postTranslate(dx, dy)
+                val dx = target.left + (target.width() - bitmap.width) / 2f
+                val dy = target.top + (target.height() - bitmap.height) / 2f
+                RectF(dx, dy, dx + bitmap.width, dy + bitmap.height)
             }
         }
-        val clipSave = canvas.save()
-        canvas.clipRect(targetRect)
-        canvas.drawBitmap(bitmap, matrix, null)
-        canvas.restoreToCount(clipSave)
     }
 
     private fun drawImagePlaceholder(

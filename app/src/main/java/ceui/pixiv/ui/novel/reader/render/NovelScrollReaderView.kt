@@ -501,6 +501,16 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
             )
+            if (token is ContentToken.PixivImage && token.isMix) {
+                // 混排插画带圆角（issue #999）；adjustViewBounds 让 view 贴着图，outline 裁的就是图本身。
+                val radius = resources.displayMetrics.density * PageRenderer.MIX_IMAGE_CORNER_DP
+                outlineProvider = object : android.view.ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: android.graphics.Outline) {
+                        outline.setRoundRect(0, 0, view.width, view.height, radius)
+                    }
+                }
+                clipToOutline = true
+            }
             Glide.with(context.applicationContext)
                 .load(GlideUrlChild(url))
                 .into(this)
@@ -517,6 +527,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
                     absoluteCharStart = token.sourceStart, absoluteCharEnd = token.sourceEnd,
                     imageType = PageElement.Image.ImageType.PixivImage,
                     resourceId = token.illustId, pageIndexInIllust = token.pageIndex, imageUrl = url,
+                    isMix = token.isMix,
                 )
                 else -> null
             }
