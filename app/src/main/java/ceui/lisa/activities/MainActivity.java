@@ -322,10 +322,19 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
                         REQUEST_CODE_STORAGE_PERMISSION);
             }
         } else {
+            // 不能走「startActivity + finish()」的蹦床：TabletActivityEmbedding 的
+            // SplitPairRule(MainActivity, *) 带 finishSecondaryWithPrimary=ALWAYS，而且
+            // TaskFragment 配对在手机窗宽（<600dp）下照样成立——minWidthDp 只管摆不摆成双栏。
+            // 蹦床一 finish，刚 RESUME 的登录页作为 secondary 被连坐 finish，task 清空回桌面：
+            // 未登录用户在有 WM Extensions 的设备上表现为「点开秒退、无崩溃无日志」的死循环
+            // （v4.8.4/4.8.5 线上事故）。改用 CLEAR_TASK 让登录页直接成为 task root，
+            // 系统清 task 不构成 primary-finish 连坐；与 Common.logOut 的写法保持一致。
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-            finish();
         }
     }
 
