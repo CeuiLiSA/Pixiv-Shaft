@@ -325,7 +325,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             })
         // user/follow/detail:把「已关注」细分成 公开/非公开 写进 AppLevelViewModel。这个请求
         // 一度被删掉,理由是 getFollowUserLiveData 全仓没有读者 —— 现在关注按钮读它来区分
-        // 「已关注」/「私人关注中」(issue #997),理由不再成立。user/detail 的 is_followed 只是
+        // 「已关注」/「悄悄关注中」(issue #997),理由不再成立。user/detail 的 is_followed 只是
         // 个 bool,给不出可见性,而开了「关注作者默认私人关注」之后短按也可能是私密的。
         // 失败不管:精确态拿不到时 followedLabelRes 保守回落「已关注」。
         Retro.getAppApi().getFollowDetail(userId)
