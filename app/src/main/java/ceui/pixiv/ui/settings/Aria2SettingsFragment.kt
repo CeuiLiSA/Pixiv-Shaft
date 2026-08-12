@@ -17,6 +17,7 @@ import ceui.pixiv.ui.common.viewBinding
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -119,6 +120,10 @@ class Aria2SettingsFragment : Fragment(R.layout.fragment_aria2_settings) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                // 光拦 CancellationException 不够:取消发生时阻塞中的网络调用会继续跑完,
+                // 最终抛上来的是真实 IO 异常而不是 CancellationException —— 此时 view
+                // 已销毁,碰 binding 必崩(FragmentViewBindingDelegate requireView)。
+                ensureActive()
                 binding.aria2TestBtn.isEnabled = true
                 Toaster.show(getString(R.string.aria2_test_failed, e.message ?: e.toString()))
             }

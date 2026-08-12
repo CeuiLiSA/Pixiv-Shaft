@@ -20,6 +20,7 @@ import com.hjq.toast.Toaster
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 /**
@@ -167,6 +168,10 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                // 光拦 CancellationException 不够:取消发生时阻塞中的 OkHttp 调用会继续
+                // 跑完,最终抛上来的是真实 IO 异常而不是 CancellationException —— 此时
+                // view 已销毁,碰 binding 必崩(FragmentViewBindingDelegate requireView)。
+                ensureActive()
                 binding.aiTranslateTestBtn.isEnabled = true
                 Toaster.show(getString(R.string.ai_translate_test_failed, e.message ?: e.toString()))
             }
@@ -199,6 +204,7 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                ensureActive() // 理由同 testConfig:取消后可能带着真实 IO 异常回来
                 binding.aiTranslateFetchModelsBtn.isEnabled = true
                 Toaster.show(getString(R.string.ai_translate_fetch_models_failed, e.message ?: e.toString()))
             }

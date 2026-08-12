@@ -214,6 +214,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     private fun reportScrollProgress() {
+        // post{} 排进主线程队列的 runnable 不随 view detach 取消:fragment view 销毁后
+        // 才执行的话,回调链(setProgressPercent → refreshProgressOverlay)会去取已
+        // 销毁的 binding,FragmentViewBindingDelegate.requireView() 直接崩。
+        if (!isAttachedToWindow) return
         val cb = onScrollProgressChanged ?: return
         val range = computeVerticalScrollRange() - computeVerticalScrollExtent()
         val progress = if (range > 0) computeVerticalScrollOffset().toFloat() / range else 0f
