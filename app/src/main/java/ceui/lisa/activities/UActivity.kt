@@ -102,6 +102,12 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             updateUser(user)
             Common.showLog("updateUser invoke ${user.isIs_followed}")
         }
+        // 「怎么关的」是另一半事实，有自己的通知渠道。见 FollowVisibility.changes。
+        FollowVisibility.changes.observe(this) { changed ->
+            if (changed == userId.toLong()) {
+                ObjectPool.get<UserBean>(userId.toLong()).value?.let { updateUser(it) }
+            }
+        }
     }
 
     private fun updateUser(user: UserBean) {
@@ -177,10 +183,8 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .subscribe(object : NullCtrl<UserFollowDetail>() {
                 override fun success(userFollowDetail: UserFollowDetail) {
                     Shaft.appViewModel.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
-                    // 本地动过的话 writeRemote 自己会丢弃这份快照，这里只需按结果决定重不重绘。
-                    if (FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(userFollowDetail))) {
-                        ObjectPool.get<UserBean>(userId.toLong()).value?.let { updateUser(it) }
-                    }
+                    // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
+                    FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(userFollowDetail))
                 }
             })
     }

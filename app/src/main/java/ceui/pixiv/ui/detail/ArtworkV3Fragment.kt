@@ -26,6 +26,7 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.lisa.adapters.IllustAdapter
@@ -642,10 +643,25 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun attachArtistFollowObserver(authorId: Long) {
         if (authorId <= 0L || authorId == artistObservedUserId) return
         artistObservedUserId = authorId
+        // 关注了没：ObjectPool 的 UserBean。
         ObjectPool.get<ceui.lisa.models.UserBean>(authorId).observe(viewLifecycleOwner) {
-            feedViewModel.updateItems<ArtworkArtistItem> { item ->
-                val fresh = ArtworkArtistItem.resolveIsFollowed(item.illust)
-                if (item.isFollowed == fresh) item else ArtworkArtistItem(item.illust, fresh)
+            refreshArtistFollowItem()
+        }
+        // 怎么关的：FollowVisibility。两条渠道缺一不可 —— 画师主页拿 user/follow/detail 补上
+        // 「原来是私密关注」时 is_followed 一个字节都没变，上面那条不会响（issue #997 追加反馈）。
+        FollowVisibility.changes.observe(viewLifecycleOwner) { changed ->
+            if (changed == authorId) refreshArtistFollowItem()
+        }
+    }
+
+    private fun refreshArtistFollowItem() {
+        feedViewModel.updateItems<ArtworkArtistItem> { item ->
+            val followed = ArtworkArtistItem.resolveIsFollowed(item.illust)
+            val private = ArtworkArtistItem.resolvePrivateFollow(item.illust)
+            if (item.isFollowed == followed && item.isPrivateFollow == private) {
+                item
+            } else {
+                ArtworkArtistItem(item.illust, followed, private)
             }
         }
     }

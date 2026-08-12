@@ -1,5 +1,7 @@
 package ceui.pixiv.actions
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import ceui.lisa.utils.Params
 import java.util.concurrent.ConcurrentHashMap
 
@@ -34,6 +36,21 @@ object FollowVisibility {
     private val localRestrict = ConcurrentHashMap<Long, String>()
     private val remoteRestrict = ConcurrentHashMap<Long, String>()
 
+    private val _changes = MutableLiveData<Long>()
+
+    /**
+     * 刚变过可见性的 userId。
+     *
+     * **可见性得有自己的通知渠道，不能搭 `is_followed` 的便车。** 两者是正交的事实：
+     * `user/follow/detail` 在画师主页补上「原来是私密关注」时，`is_followed` 一个字节都没变，
+     * [ceui.loxia.ObjectPool] 的 UserBean 观察者根本不会响。少了这条渠道，就会出现
+     * 「重启 app → 详情页显示『已关注』→ 进画师主页看到『悄悄关注中』→ 返回详情页还是『已关注』」
+     * —— 详情页压根不知道该重绘（issue #997 追加反馈）。
+     *
+     * 观察它的页面：V2/V3 画师主页、V2/V3 插画详情页作者栏。都只在 id 对得上时才重绘。
+     */
+    val changes: LiveData<Long> = _changes
+
     /**
      * 用户在本机做出的关注 / 取关。[restrict] 传 null 表示取关（可见性不再适用）。
      *
@@ -43,6 +60,7 @@ object FollowVisibility {
      */
     fun writeLocal(userId: Long, restrict: String?) {
         localRestrict[userId] = restrict ?: NONE
+        _changes.value = userId
     }
 
     /**
@@ -55,17 +73,15 @@ object FollowVisibility {
     fun clearLocal(userId: Long) {
         localRestrict.remove(userId)
         remoteRestrict.remove(userId)
+        _changes.value = userId
     }
 
-    /**
-     * `user/follow/detail` 下发的可见性。本地写过就静默丢弃（见类注释）。
-     *
-     * @return 是否真的写进去了 —— 调用方据此决定要不要重绘，省得白刷一次 UI。
-     */
-    fun writeRemote(userId: Long, restrict: String?): Boolean {
-        if (localRestrict.containsKey(userId)) return false
-        remoteRestrict[userId] = restrict ?: NONE
-        return true
+    /** `user/follow/detail` 下发的可见性。本地写过就静默丢弃（见类注释）。 */
+    fun writeRemote(userId: Long, restrict: String?) {
+        if (localRestrict.containsKey(userId)) return
+        val fresh = restrict ?: NONE
+        if (remoteRestrict.put(userId, fresh) == fresh) return // 值没变就别惊动 UI
+        _changes.value = userId
     }
 
     /** 这个用户当前是不是「悄悄关注中」。本地优先，其次服务端，都没有就当公开。 */

@@ -52,6 +52,7 @@ import ceui.lisa.utils.SearchTypeUtil
 import ceui.loxia.Comment
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
+import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
@@ -116,12 +117,17 @@ class ArtworkTagsItem(val illust: IllustsBean) : FeedItem {
 class ArtworkArtistItem(
     val illust: IllustsBean,
     val isFollowed: Boolean = resolveIsFollowed(illust),
+    // 可见性必须进 equals：从画师主页拿到「原来是私密关注」返回时,is_followed 没变,
+    // 只有这个字段变了。不带上它 DiffUtil 就判定条目没动,作者栏会一直停在「已关注」。
+    val isPrivateFollow: Boolean = resolvePrivateFollow(illust),
 ) : FeedItem {
     override val feedKey: Any get() = "artwork_artist"
     override fun equals(other: Any?) =
-        other is ArtworkArtistItem && other.illust === illust && other.isFollowed == isFollowed
+        other is ArtworkArtistItem && other.illust === illust &&
+            other.isFollowed == isFollowed && other.isPrivateFollow == isPrivateFollow
 
-    override fun hashCode() = System.identityHashCode(illust) * 31 + isFollowed.hashCode()
+    override fun hashCode() =
+        (System.identityHashCode(illust) * 31 + isFollowed.hashCode()) * 31 + isPrivateFollow.hashCode()
 
     companion object {
         // illust.user 只是快照。作者主页打开会 ObjectPool.updateUser 换掉池条目, illust.user 变孤儿。
@@ -130,6 +136,11 @@ class ArtworkArtistItem(
             val user = illust.user ?: return false
             return ObjectPool.get<UserBean>(user.id.toLong()).value?.isIs_followed
                 ?: user.isIs_followed
+        }
+
+        fun resolvePrivateFollow(illust: IllustsBean): Boolean {
+            val user = illust.user ?: return false
+            return FollowVisibility.isPrivate(user.id.toLong())
         }
     }
 }

@@ -37,6 +37,7 @@ import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.adapters.AbstractIllustAdapter
 import ceui.lisa.adapters.IllustAdapter
+import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
@@ -127,6 +128,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         userLiveData.observe(viewLifecycleOwner) { user ->
             updateUser(user)
             Common.showLog("updateUser invoke ${user.isIs_followed}")
+        }
+        // 「怎么关的」不在 UserBean 里，变化时上面那条不会响 —— 同 V3 详情页，见 FollowVisibility.changes。
+        FollowVisibility.changes.observe(viewLifecycleOwner) { changed ->
+            if (changed == userId.toLong()) userLiveData.value?.let { updateUser(it) }
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(baseBind.root) { v, windowInsets ->

@@ -138,6 +138,13 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         ObjectPool.get<UserBean>(userId.toLong()).observe(this) { user ->
             updateFollowState(user)
         }
+        // 「怎么关的」是另一半事实，有自己的通知渠道（user/follow/detail 补上私密关注时
+        // is_followed 没变，上面那条不会响）。见 FollowVisibility.changes。
+        FollowVisibility.changes.observe(this) { changed ->
+            if (changed == userId.toLong()) {
+                ObjectPool.get<UserBean>(userId.toLong()).value?.let { updateFollowState(it) }
+            }
+        }
     }
 
     override fun initView() {
@@ -328,10 +335,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             .subscribe(object : NullCtrl<UserFollowDetail>() {
                 override fun success(followDetail: UserFollowDetail) {
                     Shaft.appViewModel.updateFollowUserStatus(userId, followStatusOf(followDetail))
-                    // 本地动过的话 writeRemote 自己会丢弃这份快照，这里只需按结果决定重不重绘。
-                    if (FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(followDetail))) {
-                        ObjectPool.get<UserBean>(userId.toLong()).value?.let { updateFollowState(it) }
-                    }
+                    // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
+                    FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(followDetail))
                 }
             })
 
