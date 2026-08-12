@@ -1,6 +1,7 @@
 package ceui.lisa.update
 
 import android.app.DownloadManager
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -432,7 +433,11 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
 
     private fun openInBrowser(url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        startActivity(intent)
+        try {
+            startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            Common.showToast(getString(R.string.msg_no_browser))
+        }
     }
 
     override fun onDestroyView() {

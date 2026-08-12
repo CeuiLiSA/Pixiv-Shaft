@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Intent;
 import android.net.SSLCertificateSocketFactory;
@@ -261,7 +262,11 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         baseBind.ibMenu.setVisibility(View.VISIBLE);
         baseBind.ibMenu.setOnClickListener(v -> {
             String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
-            mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
+            try {
+                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
+            } catch (ActivityNotFoundException e) {
+                Common.showToast(getString(R.string.msg_no_browser));
+            }
         });
         Common.showLog(className + url);
         mWebView = mAgentWeb.getWebCreator().getWebView();
@@ -410,13 +415,21 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
                 case OPEN_IN_BROWSER: {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(mIntentUrl));
-                    mActivity.startActivity(intent);
+                    try {
+                        mActivity.startActivity(intent);
+                    } catch (ActivityNotFoundException e) {
+                        Common.showToast(getString(R.string.msg_no_browser));
+                    }
                     break;
                 }
                 case OPEN_IMAGE: {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.setDataAndType(Uri.parse(mIntentUrl), "image/*");
-                    mActivity.startActivity(intent);
+                    try {
+                        mActivity.startActivity(intent);
+                    } catch (ActivityNotFoundException e) {
+                        Common.showToast(getString(R.string.msg_no_browser));
+                    }
                     break;
                 }
                 case COPY_LINK_ADDRESS: {

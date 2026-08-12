@@ -93,7 +93,11 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
                 } else {
                     intent.data = Uri.parse("https://weibo.com/u/7062240999")
                 }
-                startActivity(intent)
+                try {
+                    startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Common.showToast(getString(R.string.msg_no_browser))
+                }
             }
             baseBind.goTelegram.setOnClickListener {
                 val uri = Uri.parse("https://t.me/joinchat/QBTiWBvo-jda7SEl4VgK-Q")
@@ -176,7 +180,11 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
                 intent.addCategory(Intent.CATEGORY_DEFAULT)
                 intent.addCategory(Intent.CATEGORY_BROWSABLE)
                 intent.data = Uri.parse("https://github.com/CeuiLiSA/Pixiv-Shaft")
-                startActivity(intent)
+                try {
+                    startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Common.showToast(getString(R.string.msg_no_browser))
+                }
             }
         }
     }
