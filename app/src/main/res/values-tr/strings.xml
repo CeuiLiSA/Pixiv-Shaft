@@ -832,6 +832,8 @@
     <string name="add_user_to_blacklist">Bu kullanıcıyı kara listeye ekle</string>
     <string name="follow">Takip et</string>
     <string name="unfollow">Takibi bırak</string>
+    <string name="user_followed">Takip ediliyor</string>
+    <string name="user_followed_private">Gizli takip</string>
     <string name="created_by_ai">AI ile oluşturuldu</string>
     <string name="has_been_downloaded"> İndirme tamamlandı</string>
     <string name="delete_ai_illust">AI ile oluşturulan eserleri gizle</string>

@@ -11,16 +11,18 @@ public class UserFollowDetail {
         this.follow_detail = follow_detail;
     }
 
+    // 三个判定都要能吃下缺字段的响应：follow_detail 整块可能不下发，restrict 在未关注时
+    // 也可能是 null。原先是裸解引用 + restrict.equals(...)，两处都会主线程 NPE。
     public boolean isFollow(){
-        return getFollow_detail().isIs_followed();
+        return follow_detail != null && follow_detail.isIs_followed();
     }
 
     public boolean isPublicFollow(){
-        return getFollow_detail().isIs_followed() && getFollow_detail().getRestrict().equals(Restrict.PUBLIC);
+        return isFollow() && Restrict.PUBLIC.equals(follow_detail.getRestrict());
     }
 
     public boolean isPrivateFollow(){
-        return getFollow_detail().isIs_followed() && getFollow_detail().getRestrict().equals(Restrict.PRIVATE);
+        return isFollow() && Restrict.PRIVATE.equals(follow_detail.getRestrict());
     }
 
     public static class FollowDetail{

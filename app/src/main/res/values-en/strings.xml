@@ -832,6 +832,8 @@
     <string name="add_user_to_blacklist">Add this user to Blacklist</string>
     <string name="follow">Follow</string>
     <string name="unfollow">UnFollow</string>
+    <string name="user_followed">Following</string>
+    <string name="user_followed_private">Following privately</string>
     <string name="created_by_ai">AI-generated</string>
     <string name="has_been_downloaded"> download completed</string>
     <string name="delete_ai_illust">Hide AI-generated works</string>

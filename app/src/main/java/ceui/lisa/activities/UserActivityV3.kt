@@ -21,6 +21,7 @@ import ceui.lisa.http.NullCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.models.UserBean
 import ceui.lisa.models.UserDetailResponse
+import ceui.lisa.models.UserFollowDetail
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.DensityUtil
@@ -135,6 +136,13 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
         ObjectPool.get<UserBean>(userId.toLong()).observe(this) { user ->
             updateFollowState(user)
+        }
+
+        // 关注按钮要区分公开/私人，而 UserBean.is_followed 只是个 bool —— 可见性只在
+        // AppLevelViewModel 里（PixivActions 关注时当帧写精确态，user/follow/detail 回来时
+        // 写服务端真值）。两个源都要能重绘按钮，所以这里再挂一个观察者。
+        Shaft.appViewModel.getFollowUserLiveData(userId).observe(this) {
+            ObjectPool.get<UserBean>(userId.toLong()).value?.let { user -> updateFollowState(user) }
         }
     }
 
@@ -315,9 +323,19 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     baseBind.progress.visibility = View.INVISIBLE
                 }
             })
-        // 不再进页就拉 user/follow/detail:它只为把「已关注」细分成 公开/非公开 写进
-        // AppLevelViewModel.followUserStatus,而 getFollowUserLiveData 全仓没有任何读者 —— 纯死数据。
-        // 关注按钮的显隐由 user/detail 的 is_followed 驱动,足够了。
+        // user/follow/detail:把「已关注」细分成 公开/非公开 写进 AppLevelViewModel。这个请求
+        // 一度被删掉,理由是 getFollowUserLiveData 全仓没有读者 —— 现在关注按钮读它来区分
+        // 「已关注」/「私人关注中」(issue #997),理由不再成立。user/detail 的 is_followed 只是
+        // 个 bool,给不出可见性,而开了「关注作者默认私人关注」之后短按也可能是私密的。
+        // 失败不管:精确态拿不到时 followedLabelRes 保守回落「已关注」。
+        Retro.getAppApi().getFollowDetail(userId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : NullCtrl<UserFollowDetail>() {
+                override fun success(followDetail: UserFollowDetail) {
+                    Shaft.appViewModel.updateFollowUserStatus(userId, followStatusOf(followDetail))
+                }
+            })
 
         // Fetch supplementary data from Web API (bio HTML, badges, social links)
         lifecycleScope.launch {
@@ -440,6 +458,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         if (user.isIs_followed) {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
+            baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick { unfollowUser(it, userId) }
             baseBind.unfollow.setOnLongClickListener { true }
         } else {

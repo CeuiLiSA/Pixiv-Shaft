@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
+import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -100,12 +101,19 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             updateUser(user)
             Common.showLog("updateUser invoke ${user.isIs_followed}")
         }
+
+        // 关注可见性（公开/私人）不在 UserBean 里，只在 AppLevelViewModel —— 同 V3
+        // UserActivityV3，两个源都要能重绘按钮。见 [followedLabelRes]。
+        Shaft.appViewModel.getFollowUserLiveData(userId).observe(this) {
+            ObjectPool.get<UserBean>(userId.toLong()).value?.let { user -> updateUser(user) }
+        }
     }
 
     private fun updateUser(user: UserBean) {
         if (user.isIs_followed) {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
+            baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick {
                 unfollowUser(it, userId)
             }
@@ -173,16 +181,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserFollowDetail>() {
                 override fun success(userFollowDetail: UserFollowDetail) {
-                    //mUserViewModel.getUserFollowDetail().setValue(userFollowDetail);
-                    var followStatus = AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
-                    if (userFollowDetail.isPublicFollow) {
-                        followStatus = AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC
-                    } else if (userFollowDetail.isPrivateFollow) {
-                        followStatus = AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE
-                    } else if (userFollowDetail.isFollow) {
-                        followStatus = AppLevelViewModel.FollowUserStatus.FOLLOWED
-                    }
-                    Shaft.appViewModel.updateFollowUserStatus(userId, followStatus)
+                    Shaft.appViewModel.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
                 }
             })
     }
@@ -371,4 +370,34 @@ fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Int) {
         userId = userId.toLong(),
         follow = false,
     )
+}
+
+/**
+ * 画师主页「已关注」按钮的文案：私人关注要能和公开关注区分开（issue #997）。
+ *
+ * 关注**可见性**只存在于 [AppLevelViewModel]：pixiv 的 user/detail 只给 `is_followed` 这个
+ * bool，精确到 public/private 的信息得靠 user/follow/detail（进页时拉一次），[PixivActions]
+ * 关注时也会当帧写一份。开了「关注作者默认私人关注」之后短按也可能是私密的，而 4.8.4 起
+ * 关注成功 toast 已经删掉（那一刻请求还没发出去，报成功是骗人），按钮就成了唯一的出口。
+ *
+ * 拿不到精确态时保守回落「已关注」——UNKNOWN（follow/detail 还在路上或失败了）和粗粒度的
+ * FOLLOWED（列表页塞进来的 `is_followed`）都算。宁可少报私密，也不能把公开关注说成私人的。
+ */
+@StringRes
+fun followedLabelRes(userId: Int): Int {
+    val status = Shaft.appViewModel.getFollowUserLiveData(userId).value
+        ?: AppLevelViewModel.FollowUserStatus.UNKNOWN
+    return if (AppLevelViewModel.FollowUserStatus.isPrivateFollowed(status)) {
+        R.string.user_followed_private
+    } else {
+        R.string.user_followed
+    }
+}
+
+/** user/follow/detail 响应 → [AppLevelViewModel.FollowUserStatus]。V2/V3 画师主页共用。 */
+fun followStatusOf(followDetail: UserFollowDetail): Int = when {
+    followDetail.isPublicFollow -> AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC
+    followDetail.isPrivateFollow -> AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE
+    followDetail.isFollow -> AppLevelViewModel.FollowUserStatus.FOLLOWED
+    else -> AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
 }

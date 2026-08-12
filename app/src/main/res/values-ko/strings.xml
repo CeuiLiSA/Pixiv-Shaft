@@ -832,6 +832,8 @@
     <string name="add_user_to_blacklist">이 사용자를 블랙리스트에 추가</string>
     <string name="follow">팔로우</string>
     <string name="unfollow">언팔로우</string>
+    <string name="user_followed">팔로잉</string>
+    <string name="user_followed_private">비공개 팔로잉</string>
     <string name="created_by_ai">AI 생성</string>
     <string name="has_been_downloaded">다운로드 완료</string>
     <string name="delete_ai_illust">AI 생성 작품 숨기기</string>

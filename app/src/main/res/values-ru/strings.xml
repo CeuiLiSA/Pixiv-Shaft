@@ -832,6 +832,8 @@
     <string name="add_user_to_blacklist">Добавить пользователя в чёрный список</string>
     <string name="follow">Подписаться</string>
     <string name="unfollow">Отписаться</string>
+    <string name="user_followed">Вы подписаны</string>
+    <string name="user_followed_private">Скрытая подписка</string>
     <string name="created_by_ai">Создано ИИ</string>
     <string name="has_been_downloaded"> загрузка завершена</string>
     <string name="delete_ai_illust">Скрывать работы, созданные ИИ</string>

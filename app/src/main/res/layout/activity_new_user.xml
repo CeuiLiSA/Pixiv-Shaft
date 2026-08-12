@@ -218,7 +218,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="32dp"
                                 android:paddingHorizontal="16dp"
-                                android:text="@string/unfollow"
+                                android:text="@string/user_followed"
                                 app:ptb_progress_stroke_width="3dp"
                                 app:ptb_progress_width="14dp" />
                         </FrameLayout>

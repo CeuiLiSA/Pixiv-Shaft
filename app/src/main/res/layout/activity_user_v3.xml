@@ -170,7 +170,7 @@
                                         android:background="@drawable/bg_v3_pill_secondary"
                                         android:gravity="center"
                                         android:paddingHorizontal="30dp"
-                                        android:text="@string/unfollow"
+                                        android:text="@string/user_followed"
                                         android:textColor="#E6C4B5FD"
                                         android:textSize="13sp"
                                         android:textStyle="bold"

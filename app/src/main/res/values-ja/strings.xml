@@ -832,6 +832,8 @@
     <string name="add_user_to_blacklist">このユーザーをミュート</string>
     <string name="follow">フォロー</string>
     <string name="unfollow">フォロー解除</string>
+    <string name="user_followed">フォロー中</string>
+    <string name="user_followed_private">非公開フォロー中</string>
     <string name="created_by_ai">AI生成</string>
     <string name="has_been_downloaded">ダウンロードしました</string>
     <string name="delete_ai_illust">AI生成の作品を非表示</string>

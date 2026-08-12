@@ -834,6 +834,8 @@
     <string name="add_user_to_blacklist">講此用戶加入黑名單</string>
     <string name="follow">關注</string>
     <string name="unfollow">取消關注</string>
+    <string name="user_followed">已關注</string>
+    <string name="user_followed_private">私人關注中</string>
     <string name="created_by_ai">AI 生成</string>
     <string name="has_been_downloaded">已下載完成</string>
     <string name="delete_ai_illust">不顯示 AI 生成的作品</string>
