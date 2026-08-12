@@ -67,6 +67,9 @@ interface PixshaftApi {
     @POST("v1/account/bind/confirm")
     suspend fun bindConfirm(@Body body: BindConfirmReq): BindConfirmAck
 
+    @POST("v1/account/online")
+    suspend fun bindOnline(@Body body: BindOnlineReq): BindOnlineAck
+
     /** Restore (login page): mail a code IF [email] has a backup ([RestoreRequestAck.found]). */
     @POST("v1/account/restore/request")
     suspend fun restoreRequest(@Body body: EmailReq): RestoreRequestAck
@@ -94,7 +97,17 @@ data class BindConfirmReq(
     val account: AccountResponse,
 )
 
+data class BindOnlineReq(
+    val uid: Long,
+    val account: AccountResponse,
+)
+
 data class BindConfirmAck(
+    val ok: Boolean = false,
+    val uid: Long? = null,
+)
+
+data class BindOnlineAck(
     val ok: Boolean = false,
     val uid: Long? = null,
 )

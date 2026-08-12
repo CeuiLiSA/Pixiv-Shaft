@@ -71,6 +71,7 @@ object PixivActionQueue {
                 PixivActionTypes.ILLUST_BOOKMARK to IllustBookmarkHandler(isOnline),
                 PixivActionTypes.NOVEL_BOOKMARK to NovelBookmarkHandler(isOnline),
                 PixivActionTypes.USER_FOLLOW to UserFollowHandler(isOnline),
+                PixivActionTypes.USER_ONLINE to UserOnlineHandler(isOnline),
             ),
             policy = QueuePolicy(minGapMs = MIN_GAP_MS),
             // 未登录时只睡不发。否则退登状态下一整队请求会全部 401，

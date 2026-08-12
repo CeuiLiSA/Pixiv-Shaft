@@ -1,6 +1,7 @@
 package ceui.pixiv.actions
 
 import ceui.lisa.activities.Shaft
+import ceui.loxia.BindOnlineReq
 import ceui.pixiv.actionqueue.ActionHandler
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
@@ -14,6 +15,7 @@ internal object PixivActionTypes {
     const val ILLUST_BOOKMARK = "illust_bookmark"
     const val NOVEL_BOOKMARK = "novel_bookmark"
     const val USER_FOLLOW = "user_follow"
+    const val USER_ONLINE = "user_online"
 }
 
 /**
@@ -188,6 +190,22 @@ internal class UserFollowHandler(private val isOnline: () -> Boolean) : ActionHa
             attempt(isOnline) { Client.appApi.postFollow(payload.userId, payload.restrict) }
         } else {
             attempt(isOnline, deleting = true) { Client.appApi.postUnFollow(payload.userId) }
+        }
+    }
+}
+
+internal class UserOnlineHandler(private val isOnline: () -> Boolean) : ActionHandler {
+    override suspend fun execute(action: PendingAction): ActionOutcome {
+        // payload 就是线上格式 [BindOnlineReq]，不再经过第二个字段名不同的类 ——
+        // 之前按 OnlinePayload(userId) 解析 {"uid":...}，gson 找不到键落成 0，
+        // 服务端全部 400 bad_uid。
+        val payload = action.parsePayload<BindOnlineReq>() ?: return badPayload(action)
+        if (payload.uid <= 0L) {
+            // 服务端对 uid<=0 恒 400，重试不可能成功；立刻终态，别烧重试预算。
+            return ActionOutcome.Fail("bad uid: ${payload.uid}")
+        }
+        return attempt(isOnline) {
+            Client.pixshaft.bindOnline(payload)
         }
     }
 }

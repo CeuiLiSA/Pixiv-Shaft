@@ -6,10 +6,13 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.AppLevelViewModel
+import ceui.loxia.AccountResponse
+import ceui.loxia.BindOnlineReq
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.pixiv.actionqueue.ActionRequest
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.widgets.RateAppManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -303,6 +306,27 @@ object PixivActions {
                 dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
                 payload = Shaft.sGson.toJson(
                     BookmarkPayload(illustId, true, restrict, tags.ifEmpty { null })
+                ),
+            )
+        )
+    }
+
+    @JvmStatic
+    fun bindAccountOnline(uid: Long, accountResponse: AccountResponse) {
+        if (uid <= 0L) {
+            // 会话还没加载完 / 匿名态。入队只会换来服务端恒定的 400 bad_uid，
+            // 而且 dedupeKey 会变成 "user_online:0"，把后面真实 uid 的上报也搅浑。
+            Timber.tag(TAG).w("bindAccountOnline skipped, invalid uid=%d", uid)
+            return
+        }
+        PixivActionQueue.enqueue(
+            ActionRequest(
+                type = PixivActionTypes.USER_ONLINE,
+                dedupeKey = "${PixivActionTypes.USER_ONLINE}:${uid}",
+                // payload 直接存线上格式 [BindOnlineReq]，执行侧原样解析原样发，
+                // 不再有第二个字段名不同的 payload 类。
+                payload = Shaft.sGson.toJson(
+                    BindOnlineReq(uid, accountResponse)
                 ),
             )
         )

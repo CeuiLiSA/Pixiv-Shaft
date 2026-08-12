@@ -13,6 +13,7 @@ import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
 import com.google.gson.Gson
@@ -325,7 +326,6 @@ object SessionManager {
                 val refreshToken = _loggedInAccount.value?.refresh_token
                     ?: throw RuntimeException("refresh_token not exist")
                 val response = PixivLogin.refreshTokenBlocking(refreshToken)
-                delay(500L)
                 withContext(Dispatchers.Main) {
                     applyTokenRefresh(
                         response.accessToken,
@@ -358,6 +358,7 @@ object SessionManager {
             refresh_token = refreshToken,
             expires_in = expiresIn,
         )
+        PixivActions.bindAccountOnline(existing.user?.id ?: 0L, updated)
         prefStore.putString(USER_KEY, gson.toJson(updated))
         _loggedInAccount.value = updated
     }

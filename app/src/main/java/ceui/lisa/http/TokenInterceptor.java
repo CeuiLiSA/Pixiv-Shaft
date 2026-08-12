@@ -8,6 +8,8 @@ import ceui.lisa.R;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.loxia.UserModelConverter;
+import ceui.pixiv.actions.PixivActions;
 import ceui.pixiv.login.InvalidRefreshTokenException;
 import ceui.pixiv.login.PixivLogin;
 import ceui.pixiv.login.PixivOAuthResponse;
@@ -80,6 +82,8 @@ public class TokenInterceptor implements Interceptor {
                 if (cached.getUser() != null) {
                     cached.getUser().setIs_login(true);
                 }
+                long uid = cached.getUser() != null ? cached.getUserId() : 0L;
+                PixivActions.bindAccountOnline(uid, UserModelConverter.toAccountResponse(cached));
                 Local.saveUser(cached);
             } else {
                 SessionManager.INSTANCE.applyTokenRefresh(
