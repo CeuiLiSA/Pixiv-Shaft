@@ -30,10 +30,13 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
             baseBind.showChatRoomPushBannerDivider.setVisibility(View.GONE);
             baseBind.showPlazaEntryRela.setVisibility(View.GONE);
             // 上面整组消失后 Firebase 成了页内唯一一行,它原本用来跟前一组拉开的
-            // 上外边距就成了页首一块空白,去掉。
+            // 上外边距就成了页首一块空白,去掉。改完必须 setLayoutParams 回写:直接改 lp 字段
+            // 只是碰巧因为 initData() 跑在首次 layout 之前才生效,靠的是时序不是契约;
+            // setLayoutParams 内部会 requestLayout,任何时机调用都对。
             ViewGroup.MarginLayoutParams lp =
                     (ViewGroup.MarginLayoutParams) baseBind.isFirebaseEnableRela.getLayoutParams();
             lp.topMargin = 0;
+            baseBind.isFirebaseEnableRela.setLayoutParams(lp);
             bindFirebaseRow();
             return;
         }
