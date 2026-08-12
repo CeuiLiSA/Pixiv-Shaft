@@ -204,8 +204,16 @@ internal class UserOnlineHandler(private val isOnline: () -> Boolean) : ActionHa
             // 服务端对 uid<=0 恒 400，重试不可能成功；立刻终态，别烧重试预算。
             return ActionOutcome.Fail("bad uid: ${payload.uid}")
         }
-        return attempt(isOnline) {
+        // [toActionOutcome] 把 5xx/429 判成整队冷却，前提是整队打的都是同一个服务端
+        // （pixiv）。这条打的是 pixshaft.com —— 它宕机或限流对 pixiv 没有任何信息量，
+        // 按整队冷却会把用户排队的收藏/关注一起冻上几分钟。钳成只推迟这一条。
+        val outcome = attempt(isOnline) {
             Client.pixshaft.bindOnline(payload)
+        }
+        return if (outcome is ActionOutcome.Retry && outcome.scope == RetryScope.QUEUE) {
+            outcome.copy(scope = RetryScope.ACTION)
+        } else {
+            outcome
         }
     }
 }
