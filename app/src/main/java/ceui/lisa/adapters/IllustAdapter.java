@@ -359,8 +359,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * 同盒同比):pos0 单 P 扁图(自然高 < maxHeight)垫 maxHeight 居中,其余按真 ratio(高/宽)并存
      * {@link #pageRatio} 供回收重绑首帧直接用。两处调用同一口径:绑定时用 {@link IllustsBean} 的宽高;
      * {@link #renderOverlay} 贴原图前用「只读宽高」解码出的原图真尺寸再校准一次。
+     * <p>protected:CollapsibleIllustAdapter 覆写它给多 P 封面补「极端宽图兜高」——兜高必须挂在
+     * 这个统一入口上。若只在绑定后补一次,renderOverlay 的原图校准会重设自然 ratio 把兜高清掉,
+     * 而校准按页去重、rebind 不再触发 → 首进与滚走再滚回的封面高度不一致。
      */
-    private void applyPixelSize(ViewHolder<RecyIllustDetailBinding> holder, int position, int w, int h) {
+    protected void applyPixelSize(ViewHolder<RecyIllustDetailBinding> holder, int position, int w, int h) {
         if (w <= 0 || h <= 0) {
             return;
         }

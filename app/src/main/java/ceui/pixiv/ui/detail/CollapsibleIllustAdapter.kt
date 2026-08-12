@@ -84,10 +84,25 @@ class CollapsibleIllustAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder<RecyIllustDetailBinding>, position: Int) {
         super.onBindViewHolder(holder, position)
-        if (position == 0 && isCollapsible) {
-            floorCoverHeight(holder)
-        }
         bindExpandOverlay(holder, position, fadeIn = false)
+    }
+
+    /**
+     * 兜高统一挂在 super 的展示盒入口上:绑定期(bean 宽高)与 renderOverlay 原图落地后的真尺寸
+     * 校准都会走到这里,两条路径口径一致。此前兜高只在绑定后补一次:原图校准重设自然 ratio 把它
+     * 清掉(首进详情页封面塌回自然高),滚走再滚回时 rebind 重新兜高、校准又按页去重不再触发 →
+     * 同一封面首进与回滚后高度不一致。
+     */
+    override fun applyPixelSize(
+        holder: ViewHolder<RecyIllustDetailBinding>,
+        position: Int,
+        w: Int,
+        h: Int,
+    ) {
+        super.applyPixelSize(holder, position, w, h)
+        if (position == 0 && isCollapsible) {
+            floorCoverHeight(holder, w, h)
+        }
     }
 
     /**
@@ -98,10 +113,8 @@ class CollapsibleIllustAdapter(
      * 观感对齐 #6。仅对「自然高度 < 顶栏净空」的宽封面生效;正常/竖封面自然高度远大于阈值,
      * 原样不动、依旧无黑边贴顶。
      */
-    private fun floorCoverHeight(holder: ViewHolder<RecyIllustDetailBinding>) {
+    private fun floorCoverHeight(holder: ViewHolder<RecyIllustDetailBinding>, w: Int, h: Int) {
         val image = holder.baseBind.illust
-        val w = illust.width
-        val h = illust.height
         if (w <= 0 || h <= 0) return
         // ratio 驱动下 layoutParams.height 只是占位(240dp),真实自然高 = 屏宽 × 高/宽。
         // imageSize 由 super(AbstractIllustAdapter) 持有(protected)。
@@ -251,8 +264,13 @@ class CollapsibleIllustAdapter(
         /** How many pages to show before collapsing. */
         const val DEFAULT_COLLAPSED = 1
 
-        /** 判定「极端窄封面」的顶栏净空阈值(dp,状态栏之外)。手机上约兜宽于 2:1 的横封面。 */
-        private const val COVER_CLEARANCE_BELOW_STATUS_DP = 160
+        /**
+         * 判定「极端窄封面」的顶栏净空阈值(dp,状态栏之外)。功能上只需保证底部胶囊区
+         * (≈54dp:40dp 胶囊 + 14dp 边距)落在返回键(状态栏 + 48dp)之下,即 ≈102dp;取 120dp
+         * 留余量。之前的 160dp 过于激进:0.5 ratio 左右的「正常偏宽」封面(自然高约屏宽一半)
+         * 也被拉到 maxHeight,凭空多出大片黑边(用户反馈:首图应保持自然高度贴顶)。
+         */
+        private const val COVER_CLEARANCE_BELOW_STATUS_DP = 120
 
         /** 1P and 2P are always shown in full; 3P and up get collapsed. */
         fun shouldCollapse(pageCount: Int, collapsedCount: Int = DEFAULT_COLLAPSED): Boolean {
