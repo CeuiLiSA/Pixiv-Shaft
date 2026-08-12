@@ -46,12 +46,14 @@ interface PixivWebApi {
      * 网页在进画师页时就一次性把它拉完,所以点开面板不再发任何请求 —— 这里同样一次拿全,
      * 无分页、无需 cookie(匿名可拿)。实测某画师返回 1933 条。
      *
-     * `all=1` 比不带多出一小撮 tag;`lang` 决定 [UserWorkTag.tag_translation] 是否有值。
-     * 另有 `illustmanga/tags`(插画+漫画)、`manga/tags` 两个同构变体,按 tab 取用。
+     * [category] 取 `illusts` / `manga` / `novels`(issue #996,三者同构;另有 `illustmanga`
+     * 插画+漫画合并变体,暂未用);`all=1` 比不带多出一小撮 tag(manga/novels 实测也认这个参数);
+     * `lang` 决定 [UserWorkTag.tag_translation] 是否有值。
      */
-    @GET("/ajax/user/{user_id}/illusts/tags")
-    suspend fun getUserIllustTags(
+    @GET("/ajax/user/{user_id}/{category}/tags")
+    suspend fun getUserWorkTags(
         @Path("user_id") userId: Long,
+        @Path("category") category: String,
         @Query("all") all: Int = 1,
         @Query("lang") lang: String = "zh",
     ): WebResponse<List<UserWorkTag>>

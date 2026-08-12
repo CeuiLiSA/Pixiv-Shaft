@@ -11,25 +11,32 @@ import ceui.lisa.R
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Params
+import ceui.loxia.Novel
 import ceui.pixiv.ui.user.UserIllustFeedFragment
+import ceui.pixiv.ui.user.UserMangaFeedFragment
+import ceui.pixiv.ui.user.UserNovelFeedFragment
 import ceui.pixiv.ui.user.UserTagSearchSheet
 import ceui.pixiv.widgets.V3TagFlowView
 
 private const val ARG_USER_ID = "illust_tab_user_id"
-private const val MAX_ILLUST_TAG_CHIPS = 20 // issue #569: 高频 tag 药丸最多展示数(折叠前的候选池)
+private const val ARG_CATEGORY = "work_tab_category"
+private const val MAX_TAG_CHIPS = 20 // issue #569: 高频 tag 药丸最多展示数(折叠前的候选池)
 
 /**
- * 画师主页「插画」Tab —— 顶部标签筛选条 + 内嵌 FragmentUserIllust。
+ * 画师主页「插画 / 漫画 / 小说」Tab —— 顶部标签筛选条 + 内嵌对应作品列表。
  *
- * 筛选条(issue #569)住在页面内部,跟随 ViewPager 横滑;数据复用插画列表首屏
- * (onUserIllustFirstPage 回调),进主页零额外请求。
+ * 筛选条(issue #569)住在页面内部,跟随 ViewPager 横滑;数据复用列表首屏
+ * (onUserIllustFirstPage / onUserNovelFirstPage 回调),进主页零额外请求。
+ * issue #996 把整套筛选从插画泛化到漫画/小说:三种作品类型同一个包装,按
+ * [ARG_CATEGORY](即网页 ajax 端点段 illusts/manga/novels)分流内嵌列表、
+ * chip 跳转路由和高级搜索 sheet 的数据源。
  *
  * 固定 2 行,放不下的 tag 不再用「+N」展开(PR #947 的展开态已移除):筛选条本来就只是
  * 首屏作品本地聚合出的高频 tag,展开也看不到画师的全量标签。末尾那一格改成「高级搜索」,
  * 点开 [UserTagSearchSheet] —— 那里走网页 ajax 拿全量 tag(可达近 2000 条)、可搜索、
  * 带作品数,是「想找某个 tag」这件事的正解。
  */
-class UserV3IllustTabFragment : Fragment(), UserIllustFirstPageListener {
+class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovelFirstPageListener {
 
     private var userId = 0
     private var tagsRendered = false
@@ -39,10 +46,17 @@ class UserV3IllustTabFragment : Fragment(), UserIllustFirstPageListener {
     private var trimmedForWidth = 0
     private lateinit var filterBar: V3TagFlowView
 
+    private val category: String by lazy(LazyThreadSafetyMode.NONE) {
+        arguments?.getString(ARG_CATEGORY) ?: UserTagSearchSheet.CATEGORY_ILLUSTS
+    }
+
     companion object {
-        fun newInstance(userId: Int): UserV3IllustTabFragment =
-            UserV3IllustTabFragment().apply {
-                arguments = Bundle().apply { putInt(ARG_USER_ID, userId) }
+        fun newInstance(userId: Int, category: String): UserV3WorkTabFragment =
+            UserV3WorkTabFragment().apply {
+                arguments = Bundle().apply {
+                    putInt(ARG_USER_ID, userId)
+                    putString(ARG_CATEGORY, category)
+                }
             }
     }
 
@@ -60,13 +74,18 @@ class UserV3IllustTabFragment : Fragment(), UserIllustFirstPageListener {
         filterBar = view.findViewById(R.id.illust_filter_bar)
         // 旋转/重建时 childFragmentManager 自己恢复列表,别再 add 一份
         if (childFragmentManager.findFragmentById(R.id.illust_list_container) == null) {
+            val listFragment = when (category) {
+                UserTagSearchSheet.CATEGORY_MANGA -> UserMangaFeedFragment.newInstance(userId, false)
+                UserTagSearchSheet.CATEGORY_NOVELS -> UserNovelFeedFragment.newInstance(userId, false)
+                else -> UserIllustFeedFragment.newInstance(userId, false)
+            }
             childFragmentManager.beginTransaction()
-                .add(R.id.illust_list_container, UserIllustFeedFragment.newInstance(userId, false))
+                .add(R.id.illust_list_container, listFragment)
                 .commit()
         }
     }
 
-    /** 插画列表首屏回调:聚合高频 tag → 短到长排序 → 渲染筛选条(固定 2 行,末尾「高级搜索」)。 */
+    /** 插画/漫画列表首屏回调:聚合高频 tag → 短到长排序 → 渲染筛选条(固定 2 行,末尾「高级搜索」)。 */
     override fun onUserIllustFirstPage(illusts: List<IllustsBean>) {
         if (view == null || tagsRendered || illusts.isEmpty()) return
         // 列表首屏已按全局设置过滤过屏蔽作品/tag,这里直接按频率聚合,保留首次出现的 TagsBean(含译名)
@@ -81,11 +100,37 @@ class UserV3IllustTabFragment : Fragment(), UserIllustFirstPageListener {
                 beanOf.getOrPut(name) { t }
             }
         }
+        renderTagsFromFreq(freq, beanOf)
+    }
+
+    /** 小说列表首屏回调:loxia Tag → TagsBean 后走同一条聚合/渲染链路。 */
+    override fun onUserNovelFirstPage(novels: List<Novel>) {
+        if (view == null || tagsRendered || novels.isEmpty()) return
+        val freq = LinkedHashMap<String, Int>()
+        val beanOf = HashMap<String, TagsBean>()
+        for (novel in novels) {
+            val tags = novel.tags ?: continue
+            for (t in tags) {
+                val name = t.name ?: continue
+                if (name.isBlank()) continue
+                freq[name] = (freq[name] ?: 0) + 1
+                beanOf.getOrPut(name) {
+                    TagsBean().apply {
+                        setName(name)
+                        translated_name = t.translated_name
+                    }
+                }
+            }
+        }
+        renderTagsFromFreq(freq, beanOf)
+    }
+
+    private fun renderTagsFromFreq(freq: Map<String, Int>, beanOf: Map<String, TagsBean>) {
         if (freq.isEmpty()) return
         // 先按频率取高频 Top-N,再按 chip 视觉宽度从短到长排列 —— 换行堆叠更整齐
         allTags = freq.entries
             .sortedByDescending { it.value }
-            .take(MAX_ILLUST_TAG_CHIPS)
+            .take(MAX_TAG_CHIPS)
             .mapNotNull { beanOf[it.key] }
             .sortedBy { chipVisualWidth(it) }
         if (allTags.isEmpty()) return
@@ -97,11 +142,11 @@ class UserV3IllustTabFragment : Fragment(), UserIllustFirstPageListener {
     private fun setupFilterBar() {
         filterBar.compact = true          // 小号 chip(11.5sp)
         filterBar.showHashPrefix = false  // 列表筛选条不带「#」前缀
-        // 点击不跳搜索页,而是打开该画师按此 tag 筛选的作品页(issue #569 现有 ajax 路由)
+        // 点击不跳搜索页,而是打开该画师按此 tag 筛选的对应类型作品页(issue #569/#996 ajax 路由)
         filterBar.onTagClick = { name ->
             val intent = Intent(requireContext(), TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, userId)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画标签作品")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, UserTagSearchSheet.routeOf(category))
             intent.putExtra(Params.KEY_WORD, name)
             startActivity(intent)
         }
@@ -109,7 +154,7 @@ class UserV3IllustTabFragment : Fragment(), UserIllustFirstPageListener {
         // 是否画图标都在渲染时决定,所以三个属性必须先赋值再 setJavaTags。
         filterBar.overflowActionText = getString(R.string.user_tag_advanced_search)
         filterBar.overflowActionIcon = R.drawable.ic_baseline_filter_24
-        filterBar.onOverflowClick = { UserTagSearchSheet.show(childFragmentManager, userId) }
+        filterBar.onOverflowClick = { UserTagSearchSheet.show(childFragmentManager, userId, category) }
         // 折叠必须在展示之前完成:之前是先可见渲染全量 chip 再 post 折叠,
         // 中间一两帧用户会看到七八行 tag 闪现又缩回去。FlexboxLayout 在 measure
         // 阶段就产出 flexLines,不需要真的上屏 —— 离屏量好、同步收敛,再淡入。

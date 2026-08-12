@@ -745,6 +745,32 @@ data class UserTagIllust(
     val profileImageUrl: String? = null,
 ) : Serializable
 
+// issue #996: 网页版「按 Tag 筛选作者小说」接口 /ajax/user/{id}/novels/tag 的响应体,
+// 形状对齐 UserTagIllustBody;works 里是精简小说对象(600x600 novel-cover-master 封面 +
+// 字符串 tags + 字数/收藏数),由 UserNovelByTagFeedFragment 的 toNovel 映射成 loxia Novel。
+data class UserTagNovelBody(
+    val works: List<UserTagNovel>? = null,
+    val total: Int = 0,
+) : Serializable
+
+data class UserTagNovel(
+    val id: Long = 0L,
+    val title: String? = null,
+    val xRestrict: Int = 0,
+    val aiType: Int = 0,
+    val url: String? = null,
+    val tags: List<String>? = null,
+    val userId: Long = 0L,
+    val userName: String? = null,
+    val profileImageUrl: String? = null,
+    val textCount: Int = 0,
+    val description: String? = null,
+    val bookmarkCount: Int = 0,
+    // 登录视角已收藏时是 {id, private} 对象,匿名/未收藏为 null —— 只用「是否为 null」判收藏态
+    val bookmarkData: Any? = null,
+    val createDate: String? = null,
+) : Serializable
+
 data class RelatedUserBody (
     val thumbnails: List<WebIllust>? = null,
     val users: List<WebUser>? = null,

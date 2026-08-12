@@ -40,6 +40,7 @@ import ceui.loxia.WebUserDetail
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.realCoverUrl
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
+import ceui.pixiv.ui.user.UserTagSearchSheet
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayoutMediator
@@ -55,12 +56,17 @@ import java.text.NumberFormat
 
 private const val KEY_TAB_KINDS = "user_v3_tab_kinds"
 /**
- * 插画列表(FragmentUserIllust)首屏加载完后回调宿主(UserV3IllustTabFragment / 其他实现方),
+ * 插画/漫画列表首屏加载完后回调宿主(UserV3WorkTabFragment / 其他实现方),
  * 让「标签筛选条」复用同一份数据聚合 tag,避免再单独打一次 user/illusts。
  * 宿主非本类型时(如 TemplateActivity 独立复用该 fragment)回调被忽略。
  */
 interface UserIllustFirstPageListener {
     fun onUserIllustFirstPage(illusts: List<ceui.lisa.models.IllustsBean>)
+}
+
+/** 小说侧的同款首屏回调(issue #996:小说 Tab 也有标签筛选条),约定同上。 */
+interface UserNovelFirstPageListener {
+    fun onUserNovelFirstPage(novels: List<ceui.loxia.Novel>)
 }
 
 class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
@@ -331,11 +337,15 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             override fun getItemCount(): Int = tabKinds.size
 
             override fun createFragment(position: Int): Fragment = when (tabKinds[position]) {
-                // 插画 tab 用包装 fragment:标签筛选条在页面内部,跟随 ViewPager 横滑
-                TabKind.ILLUST -> UserV3IllustTabFragment.newInstance(userId)
-                TabKind.MANGA -> ceui.pixiv.ui.user.UserMangaFeedFragment.newInstance(userId, false)
+                // 插画/漫画/小说 tab 用包装 fragment:标签筛选条在页面内部,跟随 ViewPager 横滑
+                //(issue #996:筛选条从插画泛化到漫画/小说,按网页端点段分流)
+                TabKind.ILLUST ->
+                    UserV3WorkTabFragment.newInstance(userId, UserTagSearchSheet.CATEGORY_ILLUSTS)
+                TabKind.MANGA ->
+                    UserV3WorkTabFragment.newInstance(userId, UserTagSearchSheet.CATEGORY_MANGA)
                 TabKind.MANGA_SERIES -> ceui.pixiv.ui.user.UserMangaSeriesFeedFragment.newInstance(userId, false)
-                TabKind.NOVEL -> ceui.pixiv.ui.user.UserNovelFeedFragment.newInstance(userId, false)
+                TabKind.NOVEL ->
+                    UserV3WorkTabFragment.newInstance(userId, UserTagSearchSheet.CATEGORY_NOVELS)
                 TabKind.NOVEL_SERIES -> ceui.pixiv.ui.user.UserNovelSeriesFeedFragment.newInstance(userId, false)
                 TabKind.COLLECTION -> UserV3CollectionFragment.newInstance(userId)
                 TabKind.REQUEST -> ceui.pixiv.ui.user.RequestPlanFeedFragment.newInstance(userId)
@@ -680,8 +690,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         }
     }
 
-    // 标签筛选条(issue #569)已整体迁入 UserV3IllustTabFragment —— 它住在插画 Tab 页面内部,
-    // 跟随 ViewPager 横滑,数据复用插画列表首屏(onUserIllustFirstPage),进主页零额外请求。
+    // 标签筛选条(issue #569)已整体迁入 UserV3WorkTabFragment —— 它住在插画/漫画/小说 Tab 页面
+    // 内部,跟随 ViewPager 横滑,数据复用列表首屏(onUserIllustFirstPage 等),进主页零额外请求。
 
     private fun showMoreMenu(data: UserDetailResponse, isSelf: Boolean) {
         val isMuted = mUserViewModel.isUserMuted.value == true

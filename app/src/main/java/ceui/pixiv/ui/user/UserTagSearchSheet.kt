@@ -34,10 +34,12 @@ import java.util.Locale
 
 /**
  * 画师主页「高级搜索」—— 该画师**全量**作品标签的可搜索列表，对齐网页版画师页的同名面板。
+ * issue #996 起插画/漫画/小说三个 tab 共用：按 [category]（网页 ajax 端点段
+ * illusts/manga/novels）选 tags 数据源与点击后的筛选路由。
  *
- * 和筛选条那几个 chip 的区别在数据源：chip 是 [ceui.lisa.activities.UserV3IllustTabFragment]
+ * 和筛选条那几个 chip 的区别在数据源：chip 是 [ceui.lisa.activities.UserV3WorkTabFragment]
  * 从 app-api 首屏作品本地聚合出来的高频 tag（最多 20 个，还要按 2 行裁），这里走网页
- * `/ajax/user/{id}/illusts/tags`，一次拿到画师建过的所有 tag（实测可达近 2000 条）。
+ * `/ajax/user/{id}/{category}/tags`，一次拿到画师建过的所有 tag（实测可达近 2000 条）。
  *
  * 顺带修掉筛选条那个结构性错位：chip 的 tag 来自 app-api（已登录视角），筛选结果却走网页
  * ajax（未同步 cookie 时是匿名视角），于是「chip 在、点进去 0 件」。本 sheet 的 tag 和筛选
@@ -57,6 +59,11 @@ class UserTagSearchSheet : V3BottomSheetBase() {
 
     private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getInt(Params.USER_ID)
+    }
+
+    // 网页 ajax 端点段:illusts / manga / novels。缺省 illusts。
+    private val category: String by lazy(LazyThreadSafetyMode.NONE) {
+        requireArguments().getString(Params.CONTENT_TYPE) ?: CATEGORY_ILLUSTS
     }
 
     /** 已按 cnt 降序排好的全量 tag；过滤只在它之上做，不重排。 */
@@ -127,7 +134,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         viewLifecycleOwner.lifecycleScope.launch {
             val uid = userId.toLong()
             val tags = try {
-                Client.webApi.getUserIllustTags(uid).body
+                Client.webApi.getUserWorkTags(uid, category).body
             } catch (e: kotlinx.coroutines.CancellationException) {
                 // 不吞取消：view 销毁时 scope 被取消，必须让它继续向上传播。
                 throw e
@@ -190,7 +197,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         b.tagList.isVisible = false
     }
 
-    /** 点某个 tag = 进该画师按此 tag 筛选的作品页（复用 issue #569 的现成路由）。 */
+    /** 点某个 tag = 进该画师按此 tag 筛选的对应类型作品页（issue #569/#996 的现成路由）。 */
     private fun openTag(tag: UserWorkTag) {
         // 筛选接口吃的是原文 tag，不是译名。
         val name = tag.tag.orEmpty()
@@ -198,7 +205,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         startActivity(
             Intent(requireContext(), TemplateActivity::class.java).apply {
                 putExtra(Params.USER_ID, userId)
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画标签作品")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, routeOf(category))
                 putExtra(Params.KEY_WORD, name)
             }
         )
@@ -309,12 +316,27 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         private const val SEG_FIRST = 1
         private const val SEG_LAST = 2
 
-        fun show(fm: FragmentManager, userId: Int) {
+        // 网页 ajax 端点段,同时是本 feature 全链路(包装 tab / 本 sheet / 筛选列表页)的类别标识。
+        const val CATEGORY_ILLUSTS = "illusts"
+        const val CATEGORY_MANGA = "manga"
+        const val CATEGORY_NOVELS = "novels"
+
+        /** 类别 → TemplateActivity 的筛选列表路由(chip 与 sheet 两个入口共用这份映射)。 */
+        fun routeOf(category: String): String = when (category) {
+            CATEGORY_MANGA -> "漫画标签作品"
+            CATEGORY_NOVELS -> "小说标签作品"
+            else -> "插画标签作品"
+        }
+
+        fun show(fm: FragmentManager, userId: Int, category: String = CATEGORY_ILLUSTS) {
             // 双保险：isStateSaved 挡住 onSaveInstanceState 之后 commit 抛 IllegalStateException；
             // findFragmentByTag 挡住快速双击弹出两张 sheet。
             if (fm.isStateSaved || fm.findFragmentByTag(TAG) != null) return
             UserTagSearchSheet().apply {
-                arguments = Bundle().apply { putInt(Params.USER_ID, userId) }
+                arguments = Bundle().apply {
+                    putInt(Params.USER_ID, userId)
+                    putString(Params.CONTENT_TYPE, category)
+                }
             }.show(fm, TAG)
         }
     }

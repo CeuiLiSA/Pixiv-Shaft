@@ -28,12 +28,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * issue #569：某画师「按 Tag 筛选」后的插画作品列表（feeds 框架版，替代 legacy
+ * issue #569：某画师「按 Tag 筛选」后的插画/漫画作品列表（feeds 框架版，替代 legacy
  * FragmentUserIllustByTag + UserIllustTagRepo + IAdapter）。
  *
- * 数据走网页 ajax /ajax/user/{id}/illusts/tag（app-api 无此能力），offset 翻页；把精简的网页 work
- * 对象映射成 IllustsBean 复用标准瀑布流插画卡。列表项点进详情 / 下载时该精简 bean 缺分页图 / 原图，
- * 由详情页与下载链路的 isFullDetail 守卫回 v1/illust/detail 补全（见 ceui.loxia.fetchFullIllustDetail）。
+ * 数据走网页 ajax /ajax/user/{id}/{category}/tag（app-api 无此能力），offset 翻页；category 取
+ * `illusts` / `manga`（issue #996：两端点响应同构，共用本页，按 CONTENT_TYPE 参数分流）。
+ * 把精简的网页 work 对象映射成 IllustsBean 复用标准瀑布流插画卡。列表项点进详情 / 下载时该精简
+ * bean 缺分页图 / 原图，由详情页与下载链路的 isFullDetail 守卫回 v1/illust/detail 补全
+ *（见 ceui.loxia.fetchFullIllustDetail）。
  */
 class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
 
@@ -46,10 +48,14 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
     private val filterTag: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(Params.KEY_WORD).orEmpty()
     }
+    // 网页端点段："illusts" / "manga"。缺省 illusts,兼容旧入口(未带 CONTENT_TYPE 的老 args)。
+    private val category: String by lazy(LazyThreadSafetyMode.NONE) {
+        requireArguments().getString(Params.CONTENT_TYPE) ?: UserTagSearchSheet.CATEGORY_ILLUSTS
+    }
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：source 只吃 Int userId + String tag。
-        UserIllustByTagFeedSource(userId, filterTag)
+        // 零捕获：source 只吃 Int userId + String tag + String category。
+        UserIllustByTagFeedSource(userId, filterTag, category)
     }
 
     // 游标是网页 offset（"48"），不是 app-api illust nextUrl；base KDoc 要求本地/非 URL 源覆写成
@@ -63,7 +69,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
     override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
 
     /**
-     * 这一页有个结构性错位：筛选条上的 tag 是 [ceui.lisa.activities.UserV3IllustTabFragment]
+     * 这一页有个结构性错位：筛选条上的 tag 是 [ceui.lisa.activities.UserV3WorkTabFragment]
      * 从 **app-api**（已登录视角）首屏作品本地聚合出来的，而筛选本身走 **www.pixiv.net 的 ajax**。
      * 没同步网页 cookie 时后者是匿名身份，看不到敏感作品，于是「chip 明明在，点进去 0 件」。
      *
@@ -122,11 +128,17 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
 
     companion object {
         @JvmStatic
-        fun newInstance(userId: Int, tag: String?): UserIllustByTagFeedFragment {
+        @JvmOverloads
+        fun newInstance(
+            userId: Int,
+            tag: String?,
+            category: String = UserTagSearchSheet.CATEGORY_ILLUSTS,
+        ): UserIllustByTagFeedFragment {
             return UserIllustByTagFeedFragment().apply {
                 arguments = Bundle().apply {
                     putInt(Params.USER_ID, userId)
                     putString(Params.KEY_WORD, tag)
+                    putString(Params.CONTENT_TYPE, category)
                 }
             }
         }
@@ -134,20 +146,21 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
 }
 
 /**
- * 按 Tag 筛选画师插画的数据源：网页 ajax（Rx → suspend via [awaitFirstValue]），offset 翻页。
+ * 按 Tag 筛选画师插画/漫画的数据源：网页 ajax（Rx → suspend via [awaitFirstValue]），offset 翻页。
  * 每页精简 work → IllustsBean → [IllustFeedItem.fromBean]（含全局内容过滤，对齐 legacy 基类 Mapper）。
  * 游标 = 下一页 offset（已加载条数）；works 空或已到 total 则停。零 Fragment 捕获。
  */
 class UserIllustByTagFeedSource(
     private val userId: Int,
     private val tag: String,
+    private val category: String,
 ) : FeedSource<String> {
 
     // 游标就是下一页 offset（编码成 String，对齐 IllustFeedFragment 固定的 String 游标类型）。
     override suspend fun load(cursor: String?): FeedPage<String> {
         val offset = cursor?.toIntOrNull() ?: 0
         val resp = Retro.getWebApi()
-            .getUserIllustsByTag(userId.toLong(), tag, offset, PAGE_SIZE, "userSetting", "zh")
+            .getUserIllustsByTag(userId.toLong(), category, tag, offset, PAGE_SIZE, "userSetting", "zh")
             .awaitFirstValue()
         // 网页 ajax 的业务错误(限流、参数非法、要求登录…)是 HTTP 200 + error:true + body:null。
         // 不认这一层的话 works 空、total 0，会被渲染成「筛出来 0 件」的空白页 —— 用户既看不到

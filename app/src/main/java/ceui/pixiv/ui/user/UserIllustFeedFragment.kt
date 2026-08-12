@@ -53,7 +53,7 @@ import timber.log.Timber
  * 接口 type / 标题 / 精华 dataType / 跳转 Kind / 有无「下载全部」几处不同,见下面几个 open seam。
  *
  * 与 legacy 的行为对齐点:
- * - 两种形态:内嵌(UserV3IllustTabFragment,showToolbar=false)/ 独立(TemplateActivity「插画作品」,
+ * - 两种形态:内嵌(UserV3WorkTabFragment,showToolbar=false)/ 独立(TemplateActivity「插画作品」,
  *   showToolbar=true 带 toolbar 菜单);
  * - 首屏把数据回调给宿主([UserIllustFirstPageListener])聚合「标签筛选条」,进主页零额外请求;
  * - 「跳转」:UserIllustJumpHelper 选好 offset/日期后整体 replace 本 fragment,首屏从 offset 拉,

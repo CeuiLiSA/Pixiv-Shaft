@@ -4,7 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import ceui.lisa.R
+import ceui.lisa.activities.UserNovelFirstPageListener
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -15,6 +19,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
+import kotlinx.coroutines.launch
 
 /**
  * 「某人创作的小说」列表页（feeds 框架版，替代 legacy FragmentUserNovel + UserNovelRepo）。
@@ -60,8 +65,28 @@ class UserNovelFeedFragment : NovelFeedFragment() {
         return inflater.inflate(layoutId, container, false)
     }
 
+    /** 首屏只交付一次(标签筛选条聚合);旋转重建后 VM 已有数据会再交付一次(宿主自去重)。 */
+    private var firstPageDelivered = false
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // 首屏内容到手 → 交付宿主(小说 Tab 的标签筛选条聚合,issue #996)。
+        // 对齐插画侧 UserIllustFeedFragment:观察 uiState,取第一次非空 items,不侵入渲染链路。
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                feedViewModel.uiState.collect { state ->
+                    if (!firstPageDelivered && state.items.isNotEmpty()) {
+                        firstPageDelivered = true
+                        val novels = state.items.filterIsInstance<NovelFeedItem>().map { it.novel }
+                        val listener = parentFragment as? UserNovelFirstPageListener
+                            ?: activity as? UserNovelFirstPageListener
+                        listener?.onUserNovelFirstPage(novels)
+                    }
+                }
+            }
+        }
+
         if (!showToolbar) return
         val binding = FragmentToolbarFeedBinding.bind(view)
         setUpToolbar(binding, feedBinding.feedListView)

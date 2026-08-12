@@ -199,6 +199,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "插画标签作品": // issue #569: 按 Tag 筛选画师插画
                     return UserIllustByTagFeedFragment.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             intent.getStringExtra(Params.KEY_WORD));
+                case "漫画标签作品": // issue #996: 按 Tag 筛选画师漫画(与插画同页,网页端点段不同)
+                    return UserIllustByTagFeedFragment.newInstance(intent.getIntExtra(Params.USER_ID, 0),
+                            intent.getStringExtra(Params.KEY_WORD),
+                            ceui.pixiv.ui.user.UserTagSearchSheet.CATEGORY_MANGA);
+                case "小说标签作品": // issue #996: 按 Tag 筛选作者小说
+                    return ceui.pixiv.ui.user.UserNovelByTagFeedFragment.newInstance(
+                            intent.getIntExtra(Params.USER_ID, 0),
+                            intent.getStringExtra(Params.KEY_WORD));
                 case "约稿方案详情":
                     return ceui.pixiv.ui.user.RequestPlanDetailFragment.newInstance(
                             (ceui.pixiv.ui.user.RequestPlan) intent.getSerializableExtra(Params.CONTENT),
