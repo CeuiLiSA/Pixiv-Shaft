@@ -40,10 +40,10 @@ private val PAYLOAD_USER_FOLLOW = Any()
  * 粉丝 [ceui.pixiv.ui.user.UserFansFeedFragment]、推荐用户 [ceui.pixiv.ui.user.RecmdUserFeedFragment]、
  * 画师榜 [ceui.pixiv.ui.recommend.ArtistRankFeedFragment]。
  *
- * **3 张预览图默认只显插画，不足留空**。legacy `UAdapter` 在插画不足 3 张时会拿小说封面补位；
- * 关注列表里小说家密度高、空三格观感差，所以由 [ceui.pixiv.ui.user.FollowUserFeedFragment]
- * 打开 [fillPreviewWithNovelCovers] 恢复补位，其余用户列表页维持「不足留空」。
- * 补位需要封面 URL，[ceui.loxia.UserPreview.novels] 相应解析为 `List<Novel>`。
+ * **3 张预览图：插画不足 3 张时用小说封面补位**（对齐 legacy `UAdapter`，补位需要封面 URL，
+ * [ceui.loxia.UserPreview.novels] 相应解析为 `List<Novel>`）。补位一度只对关注列表开、其余页
+ * 「不足留空」，但纯小说作者在哪张列表里都是空三格 —— 相关用户 / 粉丝 / 搜索用户页照样难看
+ * （issue #997），而「留空」这个默认从来没有过理由，所以开关删掉、全部页面一致补位。
  *
  * 卡片布局与交互语义源自 legacy `UAdapter`（迁移时逐条对齐）。**该类已随最后一个调用方一起
  * 删除**，要考古去 git 历史，别在工作区找。
@@ -51,13 +51,6 @@ private val PAYLOAD_USER_FOLLOW = Any()
 abstract class UserFeedFragment(
     @LayoutRes contentLayoutId: Int = R.layout.fragment_feed,
 ) : FeedFragment(contentLayoutId) {
-
-    /**
-     * 插画不足 3 张时是否用小说封面补位（对齐 legacy UAdapter 的行为）。
-     * 默认关：搜索/相关/粉丝等用户列表页保持「不足留空」；
-     * 关注列表由 FollowUserFeedFragment 打开，因为那里小说家密度高、空三格观感差。
-     */
-    protected open val fillPreviewWithNovelCovers: Boolean = false
 
     /**
      * 头像 + 3 张预览图的 Glide 请求管理器，建一次复用（对齐插画侧 [IllustFeedFragment.illustGlide]）。
@@ -140,12 +133,13 @@ abstract class UserFeedFragment(
             }
         }
         val illusts = preview.illusts
-        // 关注列表打开 fillPreviewWithNovelCovers 时，插画不足的位置用小说封面补位
-        //（realCoverUrl 跳过占位图，与作者页 banner 同口径 —— 补位铺一张灰底还不如留空）。
-        val novelCovers = if (fillPreviewWithNovelCovers) {
-            preview.novels.orEmpty().mapNotNull { it.realCoverUrl }
-        } else {
+        // 插画不足的位置用小说封面补位（realCoverUrl 跳过占位图，与作者页 banner 同口径 ——
+        // 补位铺一张灰底还不如留空）。三格已被插画占满就别遍历 novels：这是 fling 帧路径，
+        // 而插画作者（绝大多数卡）走的正是这条短路。
+        val novelCovers = if (illusts.size >= slots.size) {
             emptyList()
+        } else {
+            preview.novels.orEmpty().mapNotNull { it.realCoverUrl }
         }
         slots.forEachIndexed { i, iv ->
             val url = illusts.getOrNull(i)?.image_urls?.let { it.square_medium ?: it.medium }
