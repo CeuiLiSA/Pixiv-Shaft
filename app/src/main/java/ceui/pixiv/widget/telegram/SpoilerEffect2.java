@@ -49,8 +49,14 @@ public class SpoilerEffect2 {
 
     public final int type;
 
+    /**
+     * 上游这里无条件 true，靠调用侧 LiteMode 挡低端机；本仓移植后没有那层，v4.8.4 因此在
+     * 只支持 ES2 / 驱动有问题的机器上启动即 native crash（Firebase 无日志）。现在收口到
+     * {@link ceui.pixiv.widget.SpoilerParticleSupport}：能力检查 + 上次崩在 GL 初始化窗口
+     * 的熔断。不支持的设备只出模糊遮罩，不画粒子。
+     */
     public static boolean supports() {
-        return true;
+        return ceui.pixiv.widget.SpoilerParticleSupport.isSupported(AndroidUtilities.applicationContext());
     }
 
     /**
@@ -82,10 +88,15 @@ public class SpoilerEffect2 {
     }
 
     public static SpoilerEffect2 getInstance(int type, View view, ViewGroup rootView) {
-        if (view == null || !supports() || rootView == null) {
+        if (view == null || rootView == null) {
             return null;
         }
+        // 先 initialize 再问 supports()：能力检查要用 applicationContext，
+        // 反过来的话首次调用时 context 恒 null，粒子会被永远误判为不支持。
         AndroidUtilities.initialize(view);
+        if (!supports()) {
+            return null;
+        }
         SpoilerEffect2 e = null;
         for (int i = instances.size() - 1; i >= 0; --i) {
             SpoilerEffect2 s = instances.get(i);
@@ -380,38 +391,62 @@ public class SpoilerEffect2 {
 
         @Override
         public void run() {
-            init();
-            long lastTime = System.nanoTime();
-            while (running) {
-                final long now = System.nanoTime();
-                double dt = (now - lastTime) / 1_000_000_000.;
-                lastTime = now;
+            // 整个线程 try-catch 兜底 + GL 危险窗口（init + 首帧）打点：
+            // - probe 标记落盘期间进程死掉（驱动 native crash，这里根本拦不住）＝下次启动
+            //   SpoilerParticleSupport 熔断，永久禁用粒子，打破「启动即崩」死循环；
+            // - Java 异常兜住降级为本进程禁用，纯装饰的粒子不配崩进程。
+            // finally 兜掉 init 优雅失败（running=false）和异常路径的标记清理——只有真正的
+            // 进程死亡才会把标记留在盘上。
+            try {
+                ceui.pixiv.widget.SpoilerParticleSupport.onGlProbeStarted();
+                init();
+                boolean firstFrameDrawn = false;
+                long lastTime = System.nanoTime();
+                while (running) {
+                    final long now = System.nanoTime();
+                    double dt = (now - lastTime) / 1_000_000_000.;
+                    lastTime = now;
 
-                if (dt < MIN_DELTA) {
-                    double wait = MIN_DELTA - dt;
-                    try {
-                        long milli = (long) (wait * 1000L);
-                        int nano = (int) ((wait - milli / 1000.) * 1_000_000_000);
-                        sleep(milli, nano);
-                    } catch (Exception ignore) {}
-                    dt = MIN_DELTA;
-                } else if (dt > MAX_DELTA) {
-                    dt = MAX_DELTA;
+                    if (dt < MIN_DELTA) {
+                        double wait = MIN_DELTA - dt;
+                        try {
+                            long milli = (long) (wait * 1000L);
+                            int nano = (int) ((wait - milli / 1000.) * 1_000_000_000);
+                            sleep(milli, nano);
+                        } catch (Exception ignore) {}
+                        dt = MIN_DELTA;
+                    } else if (dt > MAX_DELTA) {
+                        dt = MAX_DELTA;
+                    }
+
+                    while (paused) {
+                        try {
+                            sleep(1000);
+                        } catch (Exception ignore) {}
+                    }
+
+                    checkResize();
+                    drawFrame((float) dt);
+                    if (!firstFrameDrawn) {
+                        firstFrameDrawn = true;
+                        ceui.pixiv.widget.SpoilerParticleSupport.onGlProbeFinished();
+                    }
+
+                    AndroidUtilities.cancelRunOnUIThread(this.invalidate);
+                    AndroidUtilities.runOnUIThread(this.invalidate);
                 }
-
-                while (paused) {
-                    try {
-                        sleep(1000);
-                    } catch (Exception ignore) {}
+                die();
+            } catch (Throwable t) {
+                FileLog.e(t);
+                ceui.pixiv.widget.SpoilerParticleSupport.onRenderFailed(t);
+                try {
+                    die();
+                } catch (Throwable cleanupError) {
+                    FileLog.e(cleanupError);
                 }
-
-                checkResize();
-                drawFrame((float) dt);
-
-                AndroidUtilities.cancelRunOnUIThread(this.invalidate);
-                AndroidUtilities.runOnUIThread(this.invalidate);
+            } finally {
+                ceui.pixiv.widget.SpoilerParticleSupport.onGlProbeFinished();
             }
-            die();
         }
 
         private EGL10 egl;
@@ -457,7 +492,12 @@ public class SpoilerEffect2 {
             };
             EGLConfig[] eglConfigs = new EGLConfig[1];
             int[] numConfigs = new int[1];
-            if (!egl.eglChooseConfig(eglDisplay, configAttributes, eglConfigs, 1, numConfigs)) {
+            // 上游只看返回值。拿不到 ES3 config 的机器（Mali-400 等只支持 ES2 的老 GPU）上
+            // eglChooseConfig 会返回 true 但 numConfigs=0，eglConfigs[0] 是 null，拿它去
+            // eglCreateContext 直接死在平台 EGL 层——v4.8.4 启动闪退的其中一条路。
+            if (!egl.eglChooseConfig(eglDisplay, configAttributes, eglConfigs, 1, numConfigs)
+                    || numConfigs[0] <= 0 || eglConfigs[0] == null) {
+                FileLog.e("SpoilerEffect2, no OpenGL ES 3.0 EGL config on this device");
                 running = false;
                 return;
             }
@@ -468,13 +508,14 @@ public class SpoilerEffect2 {
                 EGL14.EGL_NONE
             };
             eglContext = egl.eglCreateContext(eglDisplay, eglConfig, EGL10.EGL_NO_CONTEXT, contextAttributes);
-            if (eglContext == null) {
+            // 失败时返回的是 EGL_NO_CONTEXT / EGL_NO_SURFACE 而不是 null，上游只判 null 等于没判
+            if (eglContext == null || eglContext == EGL10.EGL_NO_CONTEXT) {
                 running = false;
                 return;
             }
 
             eglSurface = egl.eglCreateWindowSurface(eglDisplay, eglConfig, surfaceTexture, null);
-            if (eglSurface == null) {
+            if (eglSurface == null || eglSurface == EGL10.EGL_NO_SURFACE) {
                 running = false;
                 return;
             }
