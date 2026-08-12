@@ -32,6 +32,7 @@ import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
+import ceui.lisa.activities.followedLabelRes
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.adapters.AbstractIllustAdapter
@@ -200,6 +201,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         if (user.isIs_followed) {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
+            baseBind.unfollow.text = getString(followedLabelRes(user.id))
             baseBind.unfollow.setOnClick {
                 unfollowUser(it, user.id)
             }

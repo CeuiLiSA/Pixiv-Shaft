@@ -440,14 +440,21 @@ object PixivActions {
         broadcast(Params.LIKED_NOVEL, novelId, bookmark)
     }
 
-    /** 关注态版本的 [writeIllustBookmarkLocally]。同样幂等，回滚传相反的值复用。 */
+    /**
+     * 关注态版本的 [writeIllustBookmarkLocally]。同样幂等，回滚传相反的值复用。
+     *
+     * **顺序有意义：可见性必须先于 [ObjectPool] 写。** 关注按钮的文案要区分「已关注」/
+     * 「悄悄关注中」，可见性只有 [AppLevelViewModel] 这一个来源（见 `followedLabelRes`），
+     * 而重绘是 [ObjectPool] 的 `UserBean` 观察者驱动的 —— `update()` 是主线程上的
+     * `setValue`，**同步**分发。先动 ObjectPool 的话，作者栏就在这一行里重绘完了，那时
+     * 可见性还是上一次的值，按钮会显示成「已关注」，直到下一次重绘才纠正。
+     */
     internal fun writeUserFollowLocally(
         userId: Long,
         follow: Boolean,
         restrict: String = Params.TYPE_PUBLIC,
     ) {
         if (follow) {
-            ObjectPool.followUser(userId)
             Shaft.appViewModel.updateFollowUserStatus(
                 userId.toInt(),
                 if (restrict == Params.TYPE_PUBLIC) {
@@ -456,12 +463,13 @@ object PixivActions {
                     AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE
                 },
             )
+            ObjectPool.followUser(userId)
         } else {
-            ObjectPool.unFollowUser(userId)
             Shaft.appViewModel.updateFollowUserStatus(
                 userId.toInt(),
                 AppLevelViewModel.FollowUserStatus.NOT_FOLLOW,
             )
+            ObjectPool.unFollowUser(userId)
         }
         broadcast(Params.LIKED_USER, userId, follow)
     }

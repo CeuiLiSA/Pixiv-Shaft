@@ -23,6 +23,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.VActivity
 import ceui.lisa.activities.followUser
+import ceui.lisa.activities.followedLabelRes
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.adapters.LAdapter
 import ceui.lisa.core.Container
@@ -423,7 +424,7 @@ private fun ArtworkV3Fragment.bindArtistFollowState(b: SectionV3ArtistBinding, u
     val isFollowed = ObjectPool.get<UserBean>(user.id.toLong()).value?.isIs_followed
         ?: user.isIs_followed
     if (isFollowed) {
-        b.followBtn.text = ctx.getString(R.string.unfollow)
+        b.followBtn.text = ctx.getString(followedLabelRes(user.id))
         palette.applyUnfollowBtn(b.followBtn)
         b.followBtn.setOnClick { unfollowUser(it as ProgressTextButton, user.id) }
         b.followBtn.setOnLongClickListener(null)
