@@ -28,6 +28,7 @@ import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.V3Palette
+import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.lisa.viewmodel.AppLevelViewModel
@@ -136,13 +137,6 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
         ObjectPool.get<UserBean>(userId.toLong()).observe(this) { user ->
             updateFollowState(user)
-        }
-
-        // 关注按钮要区分公开/私人，而 UserBean.is_followed 只是个 bool —— 可见性只在
-        // AppLevelViewModel 里（PixivActions 关注时当帧写精确态，user/follow/detail 回来时
-        // 写服务端真值）。两个源都要能重绘按钮，所以这里再挂一个观察者。
-        Shaft.appViewModel.getFollowUserLiveData(userId).observe(this) {
-            ObjectPool.get<UserBean>(userId.toLong()).value?.let { user -> updateFollowState(user) }
         }
     }
 
@@ -334,6 +328,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             .subscribe(object : NullCtrl<UserFollowDetail>() {
                 override fun success(followDetail: UserFollowDetail) {
                     Shaft.appViewModel.updateFollowUserStatus(userId, followStatusOf(followDetail))
+                    // 本地动过的话 writeRemote 自己会丢弃这份快照，这里只需按结果决定重不重绘。
+                    if (FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(followDetail))) {
+                        ObjectPool.get<UserBean>(userId.toLong()).value?.let { updateFollowState(it) }
+                    }
                 }
             })
 

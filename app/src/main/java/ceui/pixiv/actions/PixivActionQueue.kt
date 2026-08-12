@@ -315,8 +315,9 @@ object PixivActionQueue {
                 // 与收藏那支同样的守卫：当前关注态已经不是我们乐观写进去的那个值时就别动它
                 //（提示照弹 —— 用户仍然需要知道这次关注没成）。
                 if (user == null || user.is_followed == payload.follow) {
-                    // 回滚「取关」时只能恢复成公开关注：原来是不是私密关注这条信息本来就
-                    // 没有随取关请求带出去（对齐 legacy postUnFollowUser 的失败回滚）。
+                    // 这次操作作废，本地记的可见性一并退回「不知道」——原来是公开还是私密
+                    // 从没随请求带出去过，留空让下次 user/follow/detail 重新填，好过猜一个。
+                    FollowVisibility.clearLocal(payload.userId)
                     PixivActions.writeUserFollowLocally(payload.userId, !payload.follow)
                 }
                 val ctx = Shaft.getContext()

@@ -34,6 +34,7 @@ import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.ProgressTextButton
+import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.setOnClick
@@ -100,12 +101,6 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         ObjectPool.get<UserBean>(userId.toLong()).observe(this) { user ->
             updateUser(user)
             Common.showLog("updateUser invoke ${user.isIs_followed}")
-        }
-
-        // 关注可见性（公开/私人）不在 UserBean 里，只在 AppLevelViewModel —— 同 V3
-        // UserActivityV3，两个源都要能重绘按钮。见 [followedLabelRes]。
-        Shaft.appViewModel.getFollowUserLiveData(userId).observe(this) {
-            ObjectPool.get<UserBean>(userId.toLong()).value?.let { user -> updateUser(user) }
         }
     }
 
@@ -182,6 +177,10 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .subscribe(object : NullCtrl<UserFollowDetail>() {
                 override fun success(userFollowDetail: UserFollowDetail) {
                     Shaft.appViewModel.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
+                    // 本地动过的话 writeRemote 自己会丢弃这份快照，这里只需按结果决定重不重绘。
+                    if (FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(userFollowDetail))) {
+                        ObjectPool.get<UserBean>(userId.toLong()).value?.let { updateUser(it) }
+                    }
                 }
             })
     }
@@ -373,26 +372,21 @@ fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Int) {
 }
 
 /**
- * 画师主页「已关注」按钮的文案：私人关注要能和公开关注区分开（issue #997）。
+ * 「已关注」按钮的文案：私人关注要能和公开关注区分开（issue #997）。
  *
- * 关注**可见性**只存在于 [AppLevelViewModel]：pixiv 的 user/detail 只给 `is_followed` 这个
- * bool，精确到 public/private 的信息得靠 user/follow/detail（进页时拉一次），[PixivActions]
- * 关注时也会当帧写一份。开了「关注作者默认私人关注」之后短按也可能是私密的，而 4.8.4 起
- * 关注成功 toast 已经删掉（那一刻请求还没发出去，报成功是骗人），按钮就成了唯一的出口。
+ * pixiv 的 user/detail 只给 `is_followed` 这个 bool，「怎么关的」得单独拿 —— 见
+ * [FollowVisibility]。开了「关注作者默认私人关注」之后短按也可能是私密的，而 4.8.4 起关注成功
+ * toast 已经删掉（那一刻请求还没发出去，报成功是骗人），按钮就成了唯一的出口。
  *
- * 拿不到精确态时保守回落「已关注」——UNKNOWN（follow/detail 还在路上或失败了）和粗粒度的
- * FOLLOWED（列表页塞进来的 `is_followed`）都算。宁可少报私密，也不能把公开关注说成私人的。
+ * 不知道就回落「已关注」：宁可少报私密，也不能把公开关注说成私人的。
  */
 @StringRes
-fun followedLabelRes(userId: Int): Int {
-    val status = Shaft.appViewModel.getFollowUserLiveData(userId).value
-        ?: AppLevelViewModel.FollowUserStatus.UNKNOWN
-    return if (AppLevelViewModel.FollowUserStatus.isPrivateFollowed(status)) {
+fun followedLabelRes(userId: Int): Int =
+    if (FollowVisibility.isPrivate(userId.toLong())) {
         R.string.user_followed_private
     } else {
         R.string.user_followed
     }
-}
 
 /** user/follow/detail 响应 → [AppLevelViewModel.FollowUserStatus]。V2/V3 画师主页共用。 */
 fun followStatusOf(followDetail: UserFollowDetail): Int = when {
@@ -400,4 +394,11 @@ fun followStatusOf(followDetail: UserFollowDetail): Int = when {
     followDetail.isPrivateFollow -> AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE
     followDetail.isFollow -> AppLevelViewModel.FollowUserStatus.FOLLOWED
     else -> AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
+}
+
+/** user/follow/detail 响应里的可见性；未关注时为 null。 */
+fun followRestrictOf(followDetail: UserFollowDetail): String? = when {
+    followDetail.isPrivateFollow -> Params.TYPE_PRIVATE
+    followDetail.isFollow -> Params.TYPE_PUBLIC
+    else -> null
 }

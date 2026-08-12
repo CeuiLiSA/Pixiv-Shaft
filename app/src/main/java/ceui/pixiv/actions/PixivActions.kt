@@ -362,6 +362,8 @@ object PixivActions {
         follow: Boolean,
         restrict: String = defaultFollowRestrict(),
     ) {
+        // 先落可见性，再落关注态 —— 后者会同步通知 UI 重绘，那时前者必须已经就位。
+        FollowVisibility.writeLocal(userId, restrict.takeIf { follow })
         writeUserFollowLocally(userId, follow, restrict)
         if (follow) RateAppManager.onUserEngaged()
 
@@ -443,11 +445,9 @@ object PixivActions {
     /**
      * 关注态版本的 [writeIllustBookmarkLocally]。同样幂等，回滚传相反的值复用。
      *
-     * **顺序有意义：可见性必须先于 [ObjectPool] 写。** 关注按钮的文案要区分「已关注」/
-     * 「悄悄关注中」，可见性只有 [AppLevelViewModel] 这一个来源（见 `followedLabelRes`），
-     * 而重绘是 [ObjectPool] 的 `UserBean` 观察者驱动的 —— `update()` 是主线程上的
-     * `setValue`，**同步**分发。先动 ObjectPool 的话，作者栏就在这一行里重绘完了，那时
-     * 可见性还是上一次的值，按钮会显示成「已关注」，直到下一次重绘才纠正。
+     * 只管「关注了没」；「怎么关的」由 [FollowVisibility] 单独存，且已经在
+     * [setUserFollow] 里先写好了 —— [ObjectPool] 这一下是**同步**分发给 UserBean 观察者的，
+     * 作者栏就在这里重绘，那时可见性必须已经是新的。
      */
     internal fun writeUserFollowLocally(
         userId: Long,
