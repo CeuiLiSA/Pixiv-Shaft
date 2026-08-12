@@ -124,6 +124,8 @@ class CollapsibleIllustAdapter(
         // 极端宽封面:关掉 ratio 自 measure,拔到 maxHeight 固定高、FIT_CENTER 居中,给足上黑边托住 toolbar。
         val target = if (coverMaxHeight > 0) coverMaxHeight else coverToolbarClearance()
         image.setHeightRatio(0f)
+        // 兜高后 illust_hd 同样关 ratio,靠对齐跟随 illust 盒子,避免回收重绑残留旧 ratio 导致 overlay 错位。
+        holder.baseBind.illustHd.setHeightRatio(0f)
         val lp = image.layoutParams ?: return
         if (lp.height != target) {
             lp.height = target

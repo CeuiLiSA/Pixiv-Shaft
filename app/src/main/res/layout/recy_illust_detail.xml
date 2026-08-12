@@ -12,7 +12,9 @@
 
         <!-- 高度由 setHeightRatio 在 onMeasure 里按真实宽算(对齐瀑布流 recy_illust_stagger):
              ratio 已知(P1 靠 IllustsBean、多 P 靠网页 ajax、兜底靠解码位图)→ 首帧就量在终值,
-             不再有「兜底高→自然高」的跳。ratio 未设(=0)时退回下面的 240dp 占位高。 -->
+             不再有「兜底高→自然高」的跳。ajax 缺失时多 P 后续页先用 P1 宽高当先验占位
+             (见 IllustAdapter.applyRatioOrPlaceholder),进一步压缩首帧跳;ratio 未设(=0,
+             单 P 精简 bean / pos 0 无尺寸)时退回下面的 240dp 占位高。 -->
         <ceui.lisa.view.DynamicHeightImageView
             android:id="@+id/illust"
             android:layout_width="match_parent"
