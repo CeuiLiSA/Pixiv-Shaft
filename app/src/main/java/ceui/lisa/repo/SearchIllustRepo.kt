@@ -157,14 +157,14 @@ class SearchIllustRepo @JvmOverloads constructor(
                 heightMax,
             )
         } else if (notPremiumButWantToUsePopularSort) {
-            Nana7miSearchSerial.run("illust_first") {
+            Nana7miSearchSerial.run("illust_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=flow event=start requester_uid=%d sort=%s keyword_length=%d",
                     SessionManager.loggedInUid,
                     sortType,
                     assembledKeyword.length,
                 )
-                Observable.fromCallable {
+                lease.blockingObservable {
                     runBlocking {
                         currentNana7miSession.fetchReady()
                     }
@@ -179,6 +179,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                         currentNana7miSession.requestWithRefresh(
                             initial = newNana7mi,
                             stage = "official_search",
+                            lease = lease,
                             successDetails = { response ->
                                 "illust_count=${response.illusts?.size ?: 0} " +
                                         "has_next=${!response.next_url.isNullOrBlank()}"
@@ -261,10 +262,11 @@ class SearchIllustRepo @JvmOverloads constructor(
                 "stage=official_search_next event=request account_uid=%d",
                 payload.uid,
             )
-            Nana7miSearchSerial.run("illust_next") {
+            Nana7miSearchSerial.run("illust_next") { lease ->
                 session.requestWithRefresh(
                     initial = payload,
                     stage = "official_search_next",
+                    lease = lease,
                     successDetails = { response ->
                         "illust_count=${response.illusts?.size ?: 0} " +
                                 "has_next=${!response.next_url.isNullOrBlank()}"

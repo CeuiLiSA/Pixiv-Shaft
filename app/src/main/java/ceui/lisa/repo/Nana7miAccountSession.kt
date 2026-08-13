@@ -9,6 +9,7 @@ import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
 import ceui.pixiv.session.SessionManager
 import io.reactivex.Observable
+import io.reactivex.exceptions.Exceptions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.runBlocking
@@ -70,6 +71,7 @@ internal class Nana7miAccountSession {
     fun <T : Any> requestWithRefresh(
         initial: Nana7miPayload,
         stage: String,
+        lease: Nana7miSearchLease,
         successDetails: (T) -> String,
         request: (String) -> Observable<T>,
     ): Observable<T> = Observable.defer {
@@ -80,11 +82,14 @@ internal class Nana7miAccountSession {
             request("Bearer ${current.account.access_token}")
 
         fun renewAndExecute(reason: String): Observable<T> =
-            Observable.fromCallable {
+            lease.blockingObservable {
                 runBlocking { renew(activePayload, reason) }
             }.flatMap { renewed ->
                 val current = (renewed as? Nana7miResult.Success)?.value
                 if (current == null) {
+                    // The caller may fall back to an unauthenticated preview page. Do not leave
+                    // pagination attached to the borrowed account whose renewal just failed.
+                    payload = null
                     val cause = (renewed as? Nana7miResult.InvalidResponse)?.cause
                         ?: IllegalStateException("nana7mi refresh failed")
                     Observable.error(BorrowedAccountUnavailableException(cause))
@@ -358,7 +363,10 @@ internal fun isBorrowedAccountUnavailable(error: Throwable): Boolean =
 internal object Nana7miSearchSerial {
     private val semaphore = Semaphore(1, true)
 
-    fun <T : Any> run(stage: String, source: () -> Observable<T>): Observable<T> =
+    fun <T : Any> run(
+        stage: String,
+        source: (Nana7miSearchLease) -> Observable<T>,
+    ): Observable<T> =
         Observable.using(
             Callable {
                 val startedAt = System.nanoTime()
@@ -368,23 +376,90 @@ internal object Nana7miSearchSerial {
                     stage,
                     (System.nanoTime() - startedAt) / 1_000_000L,
                 )
-                Permit(stage)
+                Nana7miSearchLease(stage, semaphore)
             },
-            io.reactivex.functions.Function<Permit, Observable<T>> { source() },
-            io.reactivex.functions.Consumer<Permit> { it.release() },
-            true,
+            io.reactivex.functions.Function<Nana7miSearchLease, Observable<T>> { source(it) },
+            io.reactivex.functions.Consumer<Nana7miSearchLease> { it.requestRelease() },
+            false,
         )
 
-    private class Permit(private val stage: String) {
-        private var released = false
+    private const val LOG_TAG = "sadadsdasdw2"
+}
 
-        fun release() {
-            if (released) return
-            released = true
-            semaphore.release()
-            Timber.tag(LOG_TAG).d("stage=serial event=released flow=%s", stage)
+/**
+ * Keeps a serial permit alive while synchronous token work unwinds after Rx disposal.
+ *
+ * Disposing a subscribeOn task only interrupts its thread; a blocking OAuth call can ignore that
+ * interrupt, and NonCancellable persistence deliberately finishes anyway. The using disposer marks
+ * this lease for release, while [blockingObservable] performs the actual release after the running
+ * block and its synchronous downstream hand-off have returned.
+ */
+internal class Nana7miSearchLease(
+    private val stage: String,
+    private val semaphore: Semaphore,
+) {
+    private val stateLock = Any()
+    private var activeBlockingWork = 0
+    private var releaseRequested = false
+    private var released = false
+
+    fun <T : Any> blockingObservable(block: () -> T): Observable<T> = Observable.create { emitter ->
+        if (!beginBlockingWork()) {
+            emitter.tryOnError(CancellationException("nana7mi serial lease already released"))
+            return@create
+        }
+        try {
+            val value = block()
+            if (!emitter.isDisposed) {
+                // onNext synchronously runs flatMap's mapper/subscription. Keep the lease active
+                // until that hand-off returns so cancellation cannot release between refresh and
+                // installing the rotated payload.
+                emitter.onNext(value)
+                if (!emitter.isDisposed) emitter.onComplete()
+            }
+        } catch (error: Throwable) {
+            Exceptions.throwIfFatal(error)
+            if (!emitter.isDisposed) emitter.onError(error)
+        } finally {
+            endBlockingWork()
         }
     }
 
-    private const val LOG_TAG = "sadadsdasdw2"
+    private fun beginBlockingWork(): Boolean = synchronized(stateLock) {
+        if (releaseRequested) return@synchronized false
+        activeBlockingWork += 1
+        true
+    }
+
+    private fun endBlockingWork() {
+        val releaseNow = synchronized(stateLock) {
+            check(activeBlockingWork > 0)
+            activeBlockingWork -= 1
+            markReleasedIfIdle()
+        }
+        if (releaseNow) releasePermit()
+    }
+
+    fun requestRelease() {
+        val releaseNow = synchronized(stateLock) {
+            releaseRequested = true
+            markReleasedIfIdle()
+        }
+        if (releaseNow) releasePermit()
+    }
+
+    private fun markReleasedIfIdle(): Boolean {
+        if (!releaseRequested || activeBlockingWork != 0 || released) return false
+        released = true
+        return true
+    }
+
+    private fun releasePermit() {
+        semaphore.release()
+        Timber.tag(LOG_TAG).d("stage=serial event=released flow=%s", stage)
+    }
+
+    private companion object {
+        const val LOG_TAG = "sadadsdasdw2"
+    }
 }

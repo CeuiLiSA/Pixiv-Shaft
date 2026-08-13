@@ -150,14 +150,14 @@ class SearchNovelRepo @JvmOverloads constructor(
                 readingTimeMax,
             )
         } else if (notPremiumButWantToUsePopularSort) {
-            Nana7miSearchSerial.run("novel_first") {
+            Nana7miSearchSerial.run("novel_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
                     SessionManager.loggedInUid,
                     sortType,
                     assembledKeyword.length,
                 )
-                Observable.fromCallable {
+                lease.blockingObservable {
                     runBlocking { currentNana7miSession.fetchReady() }
                 }.flatMap { result ->
                     val borrowed = currentNana7miSession.payload
@@ -170,6 +170,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                         currentNana7miSession.requestWithRefresh(
                             initial = borrowed,
                             stage = "novel_official_search",
+                            lease = lease,
                             successDetails = { response ->
                                 "novel_count=${response.novels?.size ?: 0} " +
                                         "has_next=${!response.nextUrl.isNullOrBlank()}"
@@ -256,10 +257,11 @@ class SearchNovelRepo @JvmOverloads constructor(
                 "stage=novel_official_search_next event=request account_uid=%d",
                 borrowed.uid,
             )
-            Nana7miSearchSerial.run("novel_next") {
+            Nana7miSearchSerial.run("novel_next") { lease ->
                 session.requestWithRefresh(
                     initial = borrowed,
                     stage = "novel_official_search_next",
+                    lease = lease,
                     successDetails = { response ->
                         "novel_count=${response.novels?.size ?: 0} " +
                                 "has_next=${!response.nextUrl.isNullOrBlank()}"
