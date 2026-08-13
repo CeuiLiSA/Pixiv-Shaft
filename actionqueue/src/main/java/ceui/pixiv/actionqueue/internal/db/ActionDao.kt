@@ -122,6 +122,23 @@ internal interface ActionDao {
     )
     suspend fun pruneFailed(owner: String, keepLatest: Int): Int
 
+    @Query("SELECT COUNT(*) FROM queued_action WHERE owner = :owner")
+    suspend fun storedCount(owner: String): Int
+
+    @Query(
+        "DELETE FROM queued_action WHERE id IN (" +
+            "SELECT id FROM queued_action WHERE owner = :owner AND status != 'RUNNING' " +
+            "ORDER BY id ASC LIMIT :limit)"
+    )
+    suspend fun deleteOldestNotRunning(owner: String, limit: Int): Int
+
+    /** 容量裁剪必须把 count + delete 放在同一事务里，避免入队泵与消费循环交错后裁过头。 */
+    @Transaction
+    suspend fun pruneToMaxRows(owner: String, maxRows: Int): Int {
+        val overflow = (storedCount(owner) - maxRows.coerceAtLeast(1)).coerceAtLeast(0)
+        return if (overflow == 0) 0 else deleteOldestNotRunning(owner, overflow)
+    }
+
     @Query("SELECT value FROM queue_meta WHERE `key` = :key")
     suspend fun readMeta(key: String): Long?
 

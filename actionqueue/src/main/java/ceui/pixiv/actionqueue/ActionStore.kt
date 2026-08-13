@@ -18,8 +18,9 @@ public data class StoredAction(
  *
  * 调用方**不保证** dispatcher。消费循环与入队泵跑在构造 [ActionQueue] 时传进来的 scope 上
  * （生产装配是 `Dispatchers.IO`），但 [ActionQueue] 那几个公开的 suspend 方法
- * （`forget` / `clearFailed` / `pruneFailed` / `retryAllFailed` / `pendingCount` / `failedCount` /
- * `enqueueAndWait`）是在**调用方**的上下文里跑的 —— app 侧就是在 `Dispatchers.Default` 上调的。
+ * （`forget` / `clearFailed` / `pruneFailed` / `pruneToMaxRows` / `retryAllFailed` /
+ * `pendingCount` / `failedCount` / `enqueueAndWait`）是在**调用方**的上下文里跑的 —— app 侧
+ * 就是在 `Dispatchers.Default` 上调的。
  * 所以实现要做阻塞 IO 的话必须自己切线程；生产实现是 Room，它的 suspend DAO 自带调度，
  * 因此不需要额外处理。
  *
@@ -102,6 +103,15 @@ public interface ActionStore {
 
     /** 只保留 [owner] 名下最新的 [keepLatest] 条 FAILED。@return 删除了几条旧记录。 */
     public suspend fun pruneFailed(owner: String, keepLatest: Int): Int
+
+    /**
+     * 把 [owner] 名下全部状态的总行数压到 [maxRows] 以内。
+     *
+     * 从最旧的非 RUNNING 行开始删除；正在执行的动作不能被裁掉。一个 ActionQueue 同时最多
+     * 只有一条 RUNNING，因此 [maxRows] >= 1 时最终一定能回到上限内。
+     * @return 删除了几条旧记录。
+     */
+    public suspend fun pruneToMaxRows(owner: String, maxRows: Int): Int
 
     /**
      * 读回上次持久化的整队冷却截止时刻，没有则 0。

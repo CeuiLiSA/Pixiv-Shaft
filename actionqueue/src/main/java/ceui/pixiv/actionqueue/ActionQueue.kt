@@ -66,6 +66,7 @@ public class ActionQueue(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
     private val random: Random = Random.Default,
     private val onError: (String, Throwable) -> Unit = { _, _ -> },
+    private val onCapacityPruned: (Int) -> Unit = {},
 ) {
 
     private val handlers: Map<String, ActionHandler> = handlers.toMap()
@@ -80,13 +81,17 @@ public class ActionQueue(
     private val wakeups = Channel<Unit>(Channel.CONFLATED)
 
     /**
-     * 入队请求的排队通道。UNLIMITED + 单个消费协程 = 写库顺序**严格等于**调用顺序。
+     * 入队请求的排队通道。单个消费协程保证写库顺序**严格等于**调用顺序。普通业务队列默认
+     * UNLIMITED；配置了 [QueuePolicy.maxStoredActions] 的有界后台队列也用同一个上限约束尚未
+     * 落库的内存积压，避免 Room 卡顿时只限制了磁盘、内存通道却继续无限增长。
      *
      * 不能让 [enqueue] 各自 `scope.launch` 去写库：那些协程落在多线程的 IO 池上，
      * 连点两下爱心（收藏、取消）时后发的那条可能先落库，随后先发的那条再把它合并掉，
      * 结果队列发出的是「收藏」而界面显示的是「未收藏」，且永远不会自愈。
      */
-    private val enqueueRequests = Channel<ActionRequest>(Channel.UNLIMITED)
+    private val enqueueRequests = Channel<ActionRequest>(
+        capacity = policy.maxStoredActions ?: Channel.UNLIMITED,
+    )
 
     /** [enqueueAndWait] 与入队泵共用，保证两条路径的写库互不交错。 */
     private val enqueueMutex = Mutex()
@@ -144,6 +149,7 @@ public class ActionQueue(
                 // 上次进程被杀时留下的 RUNNING 复位。代价是那条可能被执行两次，
                 // 这正是 ActionHandler 要求幂等的原因。
                 store.resurrectRunning()
+                enforceCapacity(currentOwner())
                 restoreCooldown()
             } catch (ce: CancellationException) {
                 throw ce
@@ -168,18 +174,39 @@ public class ActionQueue(
     public fun enqueue(request: ActionRequest) {
         val result = enqueueRequests.trySend(request)
         if (result.isFailure) {
-            onError(
-                "enqueue channel rejected: ${request.dedupeKey}",
-                result.exceptionOrNull() ?: IllegalStateException("channel closed"),
-            )
+            if (policy.maxStoredActions != null && result.exceptionOrNull() == null) {
+                notifyCapacityPruned(1)
+            } else {
+                onError(
+                    "enqueue channel rejected: ${request.dedupeKey}",
+                    result.exceptionOrNull() ?: IllegalStateException("channel full or closed"),
+                )
+            }
         }
     }
 
     /** 入队并等待落库，返回行 id。需要确知已持久化时用它。 */
     public suspend fun enqueueAndWait(request: ActionRequest): Long = enqueueMutex.withLock {
-        val id = store.enqueue(request, clock.nowMs(), currentOwner())
+        val who = currentOwner()
+        val id = store.enqueue(request, clock.nowMs(), who)
+        enforceCapacity(who)
         kick()
         id
+    }
+
+    private suspend fun enforceCapacity(who: String) {
+        policy.maxStoredActions?.let { maxRows ->
+            val removed = store.pruneToMaxRows(who, maxRows)
+            if (removed > 0) notifyCapacityPruned(removed)
+        }
+    }
+
+    private fun notifyCapacityPruned(removed: Int) {
+        try {
+            onCapacityPruned(removed)
+        } catch (callbackError: Throwable) {
+            onError("capacity-pruned callback failed", callbackError)
+        }
     }
 
     /**
@@ -226,6 +253,10 @@ public class ActionQueue(
     public suspend fun pruneFailed(keepLatest: Int): Int =
         store.pruneFailed(currentOwner(), keepLatest.coerceAtLeast(0))
 
+    /** 对当前 owner 执行一次全状态容量裁剪。主要供启动恢复和运维入口显式调用。 */
+    public suspend fun pruneToMaxRows(maxRows: Int): Int =
+        store.pruneToMaxRows(currentOwner(), maxRows.coerceAtLeast(1))
+
     public suspend fun pendingCount(): Int = store.pendingCount(currentOwner())
 
     public suspend fun failedCount(): Int = store.failedCount(currentOwner())
@@ -242,6 +273,7 @@ public class ActionQueue(
                 // CoroutineExceptionHandler 的 scope 冒到默认处理器上崩掉进程。
                 // 退一步，睡一轮再试 —— 磁盘满这类故障是可恢复的。
                 onError("queue step failed", t)
+                recoverRunningAfterStepFailure()
                 policy.idlePollMs
             }
             if (sleepMs > 0L) {
@@ -341,42 +373,84 @@ public class ActionQueue(
         // 节流点：无论成败，下一条都要等够间隔。失败时更要等 —— 多半是被限流了。
         nextAllowedAtMs = clock.nowMs() + maxOf(policy.minGapMs, stored.gapMs)
 
-        when (outcome) {
-            is ActionOutcome.Success -> {
-                store.delete(action.id)
-                setCooldown(0L)
-                _events.tryEmit(ActionEvent.Succeeded(action))
-            }
+        var finalStatePersisted = false
+        try {
+            when (outcome) {
+                is ActionOutcome.Success -> {
+                    store.delete(action.id)
+                    finalStatePersisted = true
+                    setCooldown(0L)
+                    _events.tryEmit(ActionEvent.Succeeded(action))
+                }
 
-            is ActionOutcome.Fail -> {
-                store.markFailed(action.id, outcome.reason)
-                emitFailed(action, outcome.reason, outcome.cause)
-            }
+                is ActionOutcome.Fail -> {
+                    store.markFailed(action.id, outcome.reason)
+                    finalStatePersisted = true
+                    emitFailed(action, outcome.reason, outcome.cause)
+                }
 
-            is ActionOutcome.Retry -> {
-                val attemptsMade = action.attempt + if (outcome.countsAsAttempt) 1 else 0
-                if (outcome.countsAsAttempt && attemptsMade >= policy.maxAttempts) {
-                    val reason = "failed after $attemptsMade attempts: " +
-                        (outcome.cause?.message ?: "unknown error")
-                    store.markFailed(action.id, reason)
-                    emitFailed(action, reason, outcome.cause)
-                } else {
-                    val cooldown = computeCooldownMs(
-                        priorAttempts = action.attempt,
-                        policy = policy,
-                        retryAfterMs = outcome.retryAfterMs,
-                        random = random,
-                    )
-                    val retryAt = clock.nowMs() + cooldown
-                    // 429 是账号级速率限制，只退避失败那条、后面的照发只会接着撞，所以整队一起冻；
-                    // 而 400 / 401 这种只说明这一条不行，冻整队等于让一条坏行连累别人的收藏。
-                    if (outcome.scope == RetryScope.QUEUE) {
-                        setCooldown(retryAt)
+                is ActionOutcome.Retry -> {
+                    val attemptsMade = action.attempt + if (outcome.countsAsAttempt) 1 else 0
+                    if (outcome.countsAsAttempt && attemptsMade >= policy.maxAttempts) {
+                        val reason = "failed after $attemptsMade attempts: " +
+                            (outcome.cause?.message ?: "unknown error")
+                        store.markFailed(action.id, reason)
+                        finalStatePersisted = true
+                        emitFailed(action, reason, outcome.cause)
+                    } else {
+                        val cooldown = computeCooldownMs(
+                            priorAttempts = action.attempt,
+                            policy = policy,
+                            retryAfterMs = outcome.retryAfterMs,
+                            random = random,
+                        )
+                        val retryAt = clock.nowMs() + cooldown
+                        // 429 是账号级速率限制，只退避失败那条、后面的照发只会接着撞，所以整队一起冻；
+                        // 而 400 / 401 这种只说明这一条不行，冻整队等于让一条坏行连累别人的收藏。
+                        if (outcome.scope == RetryScope.QUEUE) {
+                            setCooldown(retryAt)
+                        }
+                        store.rescheduleForRetry(action.id, retryAt, outcome.countsAsAttempt)
+                        finalStatePersisted = true
+                        _events.tryEmit(ActionEvent.Retrying(action, retryAt, outcome.cause))
                     }
-                    store.rescheduleForRetry(action.id, retryAt, outcome.countsAsAttempt)
-                    _events.tryEmit(ActionEvent.Retrying(action, retryAt, outcome.cause))
                 }
             }
+        } catch (ce: CancellationException) {
+            if (!finalStatePersisted) {
+                withContext(NonCancellable) { releaseAfterPersistenceFailure(action, ce) }
+            }
+            throw ce
+        } catch (t: Throwable) {
+            if (!finalStatePersisted) releaseAfterPersistenceFailure(action, t)
+            throw t
+        }
+    }
+
+    /**
+     * handler 已经结束，但 SUCCESS/FAILED/PENDING 的最终写库失败：此时最危险的是把行永久留在
+     * RUNNING。event handler 必须幂等，所以宁可归还 PENDING 再发一次，也不能等到下次冷启动。
+     */
+    private suspend fun releaseAfterPersistenceFailure(action: PendingAction, cause: Throwable) {
+        onError("persist outcome failed, releasing action id=${action.id}", cause)
+        try {
+            store.releaseToPending(action.id)
+        } catch (releaseError: Throwable) {
+            onError("release RUNNING action failed id=${action.id}", releaseError)
+        }
+    }
+
+    /**
+     * 如果上面的归还也撞上短暂存储故障，消费循环每次出错后都再扫一次 RUNNING。数据库一恢复，
+     * 无需杀进程就能把孤儿行复位；同一循环串行执行，因此这里不会抢走仍在 handler 中的动作。
+     */
+    private suspend fun recoverRunningAfterStepFailure() {
+        try {
+            store.resurrectRunning()
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (recoveryError: Throwable) {
+            onError("in-process RUNNING recovery failed", recoveryError)
         }
     }
 
@@ -452,6 +526,7 @@ public class ActionQueue(
             owner: suspend () -> String = { "" },
             scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
             onError: (String, Throwable) -> Unit = { _, _ -> },
+            onCapacityPruned: (Int) -> Unit = {},
         ): ActionQueue = ActionQueue(
             store = RoomActionStore(context.applicationContext, databaseName),
             handlers = handlers,
@@ -461,6 +536,7 @@ public class ActionQueue(
             owner = owner,
             scope = scope,
             onError = onError,
+            onCapacityPruned = onCapacityPruned,
         )
     }
 }

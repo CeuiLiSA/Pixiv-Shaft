@@ -86,6 +86,9 @@ internal class RoomActionStore(
     override suspend fun pruneFailed(owner: String, keepLatest: Int): Int =
         dao.pruneFailed(owner, keepLatest.coerceAtLeast(0))
 
+    override suspend fun pruneToMaxRows(owner: String, maxRows: Int): Int =
+        dao.pruneToMaxRows(owner, maxRows.coerceAtLeast(1))
+
     override suspend fun loadCooldownUntilMs(): Long = dao.readMeta(KEY_COOLDOWN_UNTIL) ?: 0L
 
     override suspend fun saveCooldownUntilMs(untilMs: Long) {

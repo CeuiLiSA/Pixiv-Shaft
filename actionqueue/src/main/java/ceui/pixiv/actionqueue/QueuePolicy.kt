@@ -19,6 +19,10 @@ package ceui.pixiv.actionqueue
  *                         0.2 表示实际时长在 [0.8x, 1.2x] 之间。
  * @param idlePollMs       队列空闲时的兜底轮询间隔。正常情况下靠入队信号唤醒，
  *                         这个值只是防止信号丢失导致永久睡死。
+ * @param maxStoredActions 按 owner 计算的持久化总行数上限，包含 PENDING / RUNNING / FAILED。
+ *                         null 表示不限制。超过上限时从最旧的非 RUNNING 行开始裁剪；正在发送
+ *                         的动作永远不会被删除。适合遥测等允许有界丢弃的后台队列，用户业务
+ *                         动作默认保持不限制。
  */
 public data class QueuePolicy(
     public val minGapMs: Long = 2_000L,
@@ -28,6 +32,7 @@ public data class QueuePolicy(
     public val maxRetryAfterMs: Long = 30 * 60_000L,
     public val jitterRatio: Double = 0.2,
     public val idlePollMs: Long = 60_000L,
+    public val maxStoredActions: Int? = null,
 ) {
     init {
         require(minGapMs >= 0) { "minGapMs must be >= 0" }
@@ -37,6 +42,9 @@ public data class QueuePolicy(
         require(maxRetryAfterMs >= maxCooldownMs) { "maxRetryAfterMs must be >= maxCooldownMs" }
         require(jitterRatio in 0.0..1.0) { "jitterRatio must be in [0, 1]" }
         require(idlePollMs > 0) { "idlePollMs must be > 0" }
+        require(maxStoredActions == null || maxStoredActions >= 1) {
+            "maxStoredActions must be null or >= 1"
+        }
     }
 
     /**

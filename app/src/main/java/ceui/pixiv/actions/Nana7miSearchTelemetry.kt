@@ -54,6 +54,10 @@ internal object Nana7miSearchTelemetry {
 
     @JvmStatic
     fun init(context: Context) {
+        if (!enabledForSecret(BuildConfig.SHAFT_EVENTS_HMAC)) {
+            Timber.tag(TAG).i("telemetry disabled: SHAFT_EVENTS_HMAC is empty")
+            return
+        }
         if (!initialized.compareAndSet(false, true)) return
         val appContext = context.applicationContext
         try {
@@ -66,12 +70,18 @@ internal object Nana7miSearchTelemetry {
                         isOnline = { monitor.isConnected },
                     ),
                 ),
-                policy = QueuePolicy(minGapMs = MIN_GAP_MS),
+                policy = QueuePolicy(
+                    minGapMs = MIN_GAP_MS,
+                    maxStoredActions = MAX_STORED_ROWS,
+                ),
                 gate = { monitor.isConnected },
                 // The payload carries the requester uid. A global owner lets delayed telemetry
                 // finish after logout/account switching without using the new Pixiv account.
                 owner = { GLOBAL_OWNER },
                 onError = { message, error -> Timber.tag(TAG).e(error, message) },
+                onCapacityPruned = { removed ->
+                    Timber.tag(TAG).w("telemetry queue capacity pruned count=%d", removed)
+                },
             )
             queue = instance
             // Subscribe synchronously before the consumer starts. SharedFlow has no replay;
@@ -159,6 +169,8 @@ internal object Nana7miSearchTelemetry {
     private fun isPermanentFailure(reason: String): Boolean =
         reason.startsWith(PERMANENT_FAILURE_PREFIX)
 
+    internal fun enabledForSecret(secret: String): Boolean = secret.isNotBlank()
+
     internal fun permanentFailure(reason: String, cause: Throwable? = null): ActionOutcome.Fail =
         ActionOutcome.Fail(PERMANENT_FAILURE_PREFIX + reason, cause)
 
@@ -211,6 +223,7 @@ internal object Nana7miSearchTelemetry {
         initialRoute: Route,
         initialReason: String? = null,
     ): Flow? {
+        if (!enabledForSecret(BuildConfig.SHAFT_EVENTS_HMAC)) return null
         if (requesterUid <= 0L || query.length > QUERY_MAX_CHARS) {
             Timber.tag(TAG).w(
                 "telemetry flow skipped requester_uid=%d query_length=%d",
@@ -456,6 +469,7 @@ internal object Nana7miSearchTelemetry {
     private const val GLOBAL_OWNER = "nana7mi_search_telemetry"
     private const val MIN_GAP_MS = 250L
     private const val MAX_FAILED_ROWS = 500
+    private const val MAX_STORED_ROWS = 2_000
     private const val INIT_RETRY_INTERVAL_MS = 60_000L
     private const val FAILED_RETRY_INTERVAL_MS = 6L * 60L * 60L * 1_000L
     private const val PERMANENT_FAILURE_PREFIX = "permanent telemetry failure: "

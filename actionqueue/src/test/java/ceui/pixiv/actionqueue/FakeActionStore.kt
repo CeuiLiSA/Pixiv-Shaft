@@ -204,6 +204,20 @@ internal class FakeActionStore : ActionStore {
         return before - rows.size
     }
 
+    override suspend fun pruneToMaxRows(owner: String, maxRows: Int): Int {
+        checkFailure()
+        val overflow = (rows.count { it.owner == owner } - maxRows.coerceAtLeast(1)).coerceAtLeast(0)
+        if (overflow == 0) return 0
+        val doomed = rows
+            .filter { it.owner == owner && it.status != Status.RUNNING }
+            .sortedBy { it.id }
+            .take(overflow)
+            .mapTo(hashSetOf()) { it.id }
+        val before = rows.size
+        rows.removeAll { it.id in doomed }
+        return before - rows.size
+    }
+
     override suspend fun loadCooldownUntilMs(): Long {
         checkFailure()
         return cooldownUntilMs

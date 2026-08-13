@@ -13,6 +13,7 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.HttpException
@@ -72,6 +73,13 @@ class Nana7miSearchTelemetryHandlerTest {
         assertEquals("novel", reported?.contentType)
         assertEquals("next", reported?.page)
         assertEquals("failure", reported?.outcome)
+    }
+
+    @Test
+    fun `telemetry is disabled when the build has no signing secret`() {
+        assertFalse(Nana7miSearchTelemetry.enabledForSecret(""))
+        assertFalse(Nana7miSearchTelemetry.enabledForSecret("  \t"))
+        assertTrue(Nana7miSearchTelemetry.enabledForSecret("official-build-secret"))
     }
 
     @Test

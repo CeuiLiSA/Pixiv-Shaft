@@ -29,11 +29,15 @@ class ActionQueueTest {
         minGapMs: Long = 2_000L,
         maxAttempts: Int = 5,
         initialCooldownMs: Long = 30_000L,
+        idlePollMs: Long = 60_000L,
+        maxStoredActions: Int? = null,
     ) = QueuePolicy(
         minGapMs = minGapMs,
         maxAttempts = maxAttempts,
         initialCooldownMs = initialCooldownMs,
         jitterRatio = 0.0,
+        idlePollMs = idlePollMs,
+        maxStoredActions = maxStoredActions,
     )
 
     private fun TestScope.queue(
@@ -601,5 +605,139 @@ class ActionQueueTest {
         assertEquals(2, q.failedCount())
         assertEquals(1, store.failedCount("other"))
         assertEquals(listOf("mine-3", "mine-4"), store.rows.filter { it.owner == "mine" }.map { it.payload })
+    }
+
+    @Test
+    fun `全状态容量上限裁掉最旧积压但保留 RUNNING`() = runTest {
+        val store = FakeActionStore()
+        store.seedRunning(type, "in-flight")
+        val pruned = mutableListOf<Int>()
+        val q = ActionQueue(
+            store = store,
+            handlers = mapOf(type to ActionHandler { ActionOutcome.Success }),
+            policy = policy(maxStoredActions = 3),
+            clock = { testScheduler.currentTime },
+            gate = { false },
+            scope = backgroundScope,
+            random = Random(0),
+            onCapacityPruned = { pruned += it },
+        )
+
+        repeat(4) { index ->
+            q.enqueueAndWait(request("pending-$index", key = "item:$index"))
+        }
+
+        assertEquals(3, store.rows.size)
+        assertEquals(FakeActionStore.Status.RUNNING, store.rows.first().status)
+        assertEquals(listOf("in-flight", "pending-2", "pending-3"), store.rows.map { it.payload })
+        assertEquals(2, pruned.sum())
+    }
+
+    @Test
+    fun `有容量上限的队列也限制尚未落库的内存通道`() = runTest {
+        val store = FakeActionStore()
+        val dropped = mutableListOf<Int>()
+        val q = ActionQueue(
+            store = store,
+            handlers = mapOf(type to ActionHandler { ActionOutcome.Success }),
+            policy = policy(maxStoredActions = 3),
+            clock = { testScheduler.currentTime },
+            gate = { false },
+            scope = backgroundScope,
+            random = Random(0),
+            onCapacityPruned = { dropped += it },
+        )
+
+        repeat(5) { index ->
+            q.enqueue(request("queued-$index", key = "queued:$index"))
+        }
+        advanceTimeBy(1_000L)
+
+        assertEquals(listOf("queued-0", "queued-1", "queued-2"), store.rows.map { it.payload })
+        assertEquals(2, dropped.sum())
+    }
+
+    @Test
+    fun `终态写库和首次归还都失败时 RUNNING 在进程内自动复活`() = runTest {
+        val backing = FakeActionStore()
+        var failDeleteOnce = true
+        var failReleaseOnce = true
+        val flaky = object : ActionStore by backing {
+            override suspend fun delete(id: Long) {
+                if (failDeleteOnce) {
+                    failDeleteOnce = false
+                    throw IllegalStateException("delete failed")
+                }
+                backing.delete(id)
+            }
+
+            override suspend fun releaseToPending(id: Long) {
+                if (failReleaseOnce) {
+                    failReleaseOnce = false
+                    throw IllegalStateException("release failed")
+                }
+                backing.releaseToPending(id)
+            }
+        }
+        val errors = mutableListOf<String>()
+        var calls = 0
+        val q = ActionQueue(
+            store = flaky,
+            handlers = mapOf(type to ActionHandler {
+                calls++
+                ActionOutcome.Success
+            }),
+            policy = policy(minGapMs = 0L, idlePollMs = 1_000L),
+            clock = { testScheduler.currentTime },
+            scope = backgroundScope,
+            random = Random(0),
+            onError = { message, _ -> errors += message },
+        )
+
+        q.enqueueAndWait(request("idempotent-event"))
+        q.start()
+        advanceTimeBy(5_000L)
+
+        assertEquals(2, calls)
+        assertTrue(backing.rows.isEmpty())
+        assertTrue(errors.any { it.startsWith("persist outcome failed") })
+        assertTrue(errors.any { it.startsWith("release RUNNING action failed") })
+    }
+
+    @Test
+    fun `动作终态已落库时后续元数据失败不会把它复活`() = runTest {
+        val backing = FakeActionStore().apply { seedCooldown(-1L) }
+        var failCooldownSaveOnce = true
+        val flaky = object : ActionStore by backing {
+            override suspend fun saveCooldownUntilMs(untilMs: Long) {
+                if (failCooldownSaveOnce) {
+                    failCooldownSaveOnce = false
+                    throw IllegalStateException("cooldown save failed")
+                }
+                backing.saveCooldownUntilMs(untilMs)
+            }
+        }
+        val errors = mutableListOf<String>()
+        var calls = 0
+        val q = ActionQueue(
+            store = flaky,
+            handlers = mapOf(type to ActionHandler {
+                calls++
+                ActionOutcome.Success
+            }),
+            policy = policy(minGapMs = 0L, idlePollMs = 1_000L),
+            clock = { testScheduler.currentTime },
+            scope = backgroundScope,
+            random = Random(0),
+            onError = { message, _ -> errors += message },
+        )
+
+        q.enqueueAndWait(request("already-finalized"))
+        q.start()
+        advanceTimeBy(5_000L)
+
+        assertEquals(1, calls)
+        assertTrue(backing.rows.isEmpty())
+        assertTrue(errors.none { it.startsWith("persist outcome failed") })
     }
 }
