@@ -766,6 +766,7 @@
     <string name="string_ai_manga_translate">漫畫翻譯</string>
     <string name="string_ai_manga_translating">漫畫翻譯中…</string>
     <string name="string_ai_manga_translate_failed">漫畫翻譯失敗</string>
+    <string name="string_ai_manga_translate_cancelled">翻譯已取消</string>
     <string name="string_ai_manga_translate_no_text">未偵測到文字</string>
     <string name="string_manga_translate_original">原圖</string>
     <string name="string_manga_translate_translated">譯圖</string>

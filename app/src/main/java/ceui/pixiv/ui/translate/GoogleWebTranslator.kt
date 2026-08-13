@@ -149,7 +149,7 @@ object GoogleWebTranslator : Translator {
         return out
     }
 
-    private fun callGtx(text: String, targetLang: String): String {
+    private suspend fun callGtx(text: String, targetLang: String): String {
         // POST + form body,FormBody 自动 URL 编码 q 值,避免 GET URL 撑爆
         val form = FormBody.Builder()
             .add("client", "gtx")
@@ -163,12 +163,11 @@ object GoogleWebTranslator : Translator {
             .post(form)
             .header("User-Agent", "Mozilla/5.0")
             .build()
-        client.newCall(req).execute().use { resp ->
+        return awaitOkHttpCall(client.newCall(req)) { resp ->
             if (!resp.isSuccessful) {
                 throw RuntimeException("google translate http ${resp.code}")
             }
-            val body = resp.body?.string().orEmpty()
-            return parseResponse(body)
+            parseResponse(resp.body?.string().orEmpty())
         }
     }
 

@@ -764,6 +764,7 @@
     <string name="string_ai_manga_translate">Manga translation</string>
     <string name="string_ai_manga_translating">Translating manga...</string>
     <string name="string_ai_manga_translate_failed">Manga translation failed</string>
+    <string name="string_ai_manga_translate_cancelled">Manga translation cancelled</string>
     <string name="string_ai_manga_translate_no_text">No text detected</string>
     <string name="string_manga_translate_original">Original</string>
     <string name="string_manga_translate_translated">Translated</string>

@@ -764,6 +764,7 @@
     <string name="string_ai_manga_translate">Manga çevirisi</string>
     <string name="string_ai_manga_translating">Manga çevriliyor…</string>
     <string name="string_ai_manga_translate_failed">Manga çevirisi başarısız oldu</string>
+    <string name="string_ai_manga_translate_cancelled">Manga çevirisi iptal edildi</string>
     <string name="string_ai_manga_translate_no_text">Metin algılanmadı</string>
     <string name="string_manga_translate_original">Orijinal</string>
     <string name="string_manga_translate_translated">Çevrilmiş</string>

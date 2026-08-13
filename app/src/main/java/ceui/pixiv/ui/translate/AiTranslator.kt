@@ -696,7 +696,12 @@ object AiTranslator : Translator {
         false
     }
 
-    private fun nonStreamChatCompletion(
+    /**
+     * 非流式 chat/completions 调用。走 [awaitOkHttpCall],协程取消时立即掐断连接——
+     * 页面销毁后翻译工作流能及时停,不会阻塞到 readTimeout 才回来
+     * (默认 120s,最坏 600s)再误报「翻译失败」。
+     */
+    private suspend fun nonStreamChatCompletion(
         endpoint: String,
         apiKey: String,
         model: String,
@@ -713,8 +718,9 @@ object AiTranslator : Translator {
         // 请求/响应全文打 Timber(debug 可见);API key 只在 Authorization 头里,不打印。
         Timber.d("AiTranslator: POST %s model=%s body=%s", endpoint, model, requestBody)
         val startNanos = System.nanoTime()
-        (client ?: clientFor(REAL_CONNECT_TIMEOUT_SECONDS, readTimeout, Dns.SYSTEM))
-            .newCall(builder.build()).execute().use { resp ->
+        val call = (client ?: clientFor(REAL_CONNECT_TIMEOUT_SECONDS, readTimeout, Dns.SYSTEM))
+            .newCall(builder.build())
+        return awaitOkHttpCall(call) { resp ->
             val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
             if (!resp.isSuccessful) {
                 val errorBody = readBodyQuietly(resp, readTimeout)
@@ -737,7 +743,7 @@ object AiTranslator : Translator {
                 throw IOException("empty completion: ${respBody.take(200)}")
             }
             logUsageStats(root, elapsedMs, reasoningContent.length)
-            return content
+            content
         }
     }
 

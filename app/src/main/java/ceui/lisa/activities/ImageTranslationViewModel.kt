@@ -28,6 +28,7 @@ import ceui.pixiv.ui.upscale.OcrTextRegion
 import ceui.pixiv.ui.upscale.scaledBy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -62,6 +63,19 @@ class ImageTranslationViewModel : ViewModel() {
     private val _translatedPaths = MutableLiveData<Map<Int, String>>(emptyMap())
     val translatedPaths: LiveData<Map<Int, String>> get() = _translatedPaths.asLiveData()
 
+    /** 当前正在跑的 pipeline job;页面销毁时用它及时取消工作流。 */
+    private var pipelineJob: Job? = null
+
+    /**
+     * 页面销毁/用户离开触发的取消标记。置位后即使底层阻塞调用晚到的真实异常
+     * (超时、断网、HTTP 错误)逃逸出来,也不再当成「翻译失败」弹给用户——
+     * 那只是取消后的残留噪音,统一按取消语义处理。
+     */
+    private var cancelledByUser = false
+
+    /** 「翻译已取消」toast 是否已弹过,避免 cancelActiveWorkflow 与协程收尾各弹一次。 */
+    private var cancelToastShown = false
+
     /**
      * 「圈选翻译」请求事件:Activity 菜单点了之后塞进目标 pageIndex,对应那页的
      * [ceui.lisa.fragments.FragmentImageDetail] 观察到自己 index 命中就进圈选模式,
@@ -80,6 +94,26 @@ class ImageTranslationViewModel : ViewModel() {
     }
 
     /**
+     * 页面销毁时调用:立即停掉当前 pipeline 并弹「翻译已取消」。
+     * 已在跑才弹;没在跑(已成功/已失败)直接忽略,避免退出页面时误弹。
+     */
+    fun cancelActiveWorkflow() {
+        val job = pipelineJob
+        if (_running.value != true || job == null || !job.isActive) return
+        cancelledByUser = true
+        job.cancel()
+        maybeToastCancelled()
+    }
+
+    /** 取消已由用户触发(页面销毁/离开)时补一次「翻译已取消」反馈;已弹过则跳过。 */
+    private fun maybeToastCancelled() {
+        if (!cancelToastShown) {
+            cancelToastShown = true
+            Common.showToast(R.string.string_ai_manga_translate_cancelled)
+        }
+    }
+
+    /**
      * 启动 pipeline。已在跑就直接 return false,UI 自己决定要不要 toast。
      */
     fun start(
@@ -91,19 +125,30 @@ class ImageTranslationViewModel : ViewModel() {
     ): Boolean {
         if (_running.value == true) return false
         _running.value = true
+        cancelledByUser = false
+        cancelToastShown = false
         val app = context.applicationContext
-        viewModelScope.launch {
+        pipelineJob = viewModelScope.launch {
             try {
                 runPipeline(app, imageFile, pageIndex, ocrModel, ctdModel)
             } catch (e: CancellationException) {
-                // 页面/VM 销毁触发取消:必须重抛,不能当普通失败 toast,否则状态被吞
+                // 页面/VM 销毁触发取消:必须重抛,不能当普通失败 toast,否则状态被吞。
+                // 兜底弹「翻译已取消」——cancelActiveWorkflow 没走到(如系统销毁)时,
+                // 协程收尾到这里才给用户反馈;已弹过则不重复。
+                if (cancelledByUser) maybeToastCancelled()
                 throw e
             } catch (e: Exception) {
-                Timber.e(e, "ImageTranslationVM: pipeline failed")
-                Common.showToast(R.string.string_ai_manga_translate_failed)
+                if (cancelledByUser) {
+                    // 取消后晚到的阻塞调用异常:不是真实失败,不再弹「翻译失败」
+                    Timber.d(e, "ImageTranslationVM: error after user cancelled, ignored")
+                } else {
+                    Timber.e(e, "ImageTranslationVM: pipeline failed")
+                    Common.showToast(R.string.string_ai_manga_translate_failed)
+                }
             } finally {
                 _status.postValue(null)
                 _running.postValue(false)
+                pipelineJob = null
             }
         }
         return true
@@ -126,7 +171,7 @@ class ImageTranslationViewModel : ViewModel() {
                 }.onFailure { Timber.e(it, "loadModel failed") }.isSuccess
             }
             if (!loaded) {
-                Common.showToast(R.string.string_ai_ocr_failed)
+                if (!cancelledByUser) Common.showToast(R.string.string_ai_ocr_failed)
                 return
             }
         }
@@ -138,10 +183,12 @@ class ImageTranslationViewModel : ViewModel() {
         }
         val regions = ocrResult?.regions
         if (regions.isNullOrEmpty()) {
-            Common.showToast(
-                if (ocrResult == null) R.string.string_ai_ocr_failed
-                else R.string.string_ai_ocr_empty
-            )
+            if (!cancelledByUser) {
+                Common.showToast(
+                    if (ocrResult == null) R.string.string_ai_ocr_failed
+                    else R.string.string_ai_ocr_empty
+                )
+            }
             return
         }
 
@@ -161,13 +208,18 @@ class ImageTranslationViewModel : ViewModel() {
             throw e
         } catch (e: Exception) {
             // 按引擎给明确提示(谷歌被墙 → 需要代理;AI → 真实错误),别让用户当 app bug
-            Timber.e(e, "translateBatch failed")
-            promptTranslateFailedIfPossible(e)
+            if (cancelledByUser) {
+                // 页面已销毁:取消后晚到的真实错误不再弹提示,避免在别的页面误报
+                Timber.d(e, "ImageTranslationVM: translate error after user cancelled, ignored")
+            } else {
+                Timber.e(e, "translateBatch failed")
+                promptTranslateFailedIfPossible(e)
+            }
             return
         }
         if (translations.isEmpty()) {
             // batch 走完了但一条没回 — Google 多半是代理半通不通(per-item fallback 全失败)
-            promptTranslateFailedIfPossible(null)
+            if (!cancelledByUser) promptTranslateFailedIfPossible(null)
             return
         }
 
@@ -179,7 +231,7 @@ class ImageTranslationViewModel : ViewModel() {
             }.onFailure { Timber.e(it, "renderTranslated failed") }.getOrNull()
         }
         if (outFile == null) {
-            Common.showToast(R.string.string_ai_manga_translate_failed)
+            if (!cancelledByUser) Common.showToast(R.string.string_ai_manga_translate_failed)
             return
         }
 
@@ -210,18 +262,26 @@ class ImageTranslationViewModel : ViewModel() {
     ): Boolean {
         if (_running.value == true) return false
         _running.value = true
+        cancelledByUser = false
+        cancelToastShown = false
         val app = context.applicationContext
-        viewModelScope.launch {
+        pipelineJob = viewModelScope.launch {
             try {
                 runManualPipeline(app, originalFile, pageIndex, normLeft, normTop, normRight, normBottom, ocrModel)
             } catch (e: CancellationException) {
+                if (cancelledByUser) maybeToastCancelled()
                 throw e
             } catch (e: Exception) {
-                Timber.e(e, "ImageTranslationVM: manual pipeline failed")
-                Common.showToast(R.string.string_ai_manga_translate_failed)
+                if (cancelledByUser) {
+                    Timber.d(e, "ImageTranslationVM: manual error after user cancelled, ignored")
+                } else {
+                    Timber.e(e, "ImageTranslationVM: manual pipeline failed")
+                    Common.showToast(R.string.string_ai_manga_translate_failed)
+                }
             } finally {
                 _status.postValue(null)
                 _running.postValue(false)
+                pipelineJob = null
             }
         }
         return true
@@ -242,7 +302,7 @@ class ImageTranslationViewModel : ViewModel() {
                     .onFailure { Timber.e(it, "manual: loadModel failed") }.isSuccess
             }
             if (!ok) {
-                Common.showToast(R.string.string_ai_ocr_failed)
+                if (!cancelledByUser) Common.showToast(R.string.string_ai_ocr_failed)
                 return
             }
         }
@@ -255,16 +315,22 @@ class ImageTranslationViewModel : ViewModel() {
         // 3. 解码底图 + crop 选区 + 单框 OCR(全在 IO)
         _status.postValue(Status(app.getString(R.string.string_ai_manga_manual_recognizing)))
         val ocr = withContext(Dispatchers.IO) {
-            runCatching { recognizeManualRegion(baseFile, l, t, r, b) }
-                .onFailure { Timber.e(it, "manual: recognize failed") }.getOrNull()
+            try {
+                recognizeManualRegion(baseFile, l, t, r, b)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "manual: recognize failed")
+                null
+            }
         }
         if (ocr == null) {
-            Common.showToast(R.string.string_ai_manga_translate_failed)
+            if (!cancelledByUser) Common.showToast(R.string.string_ai_manga_translate_failed)
             return
         }
         try {
             if (ocr.text.isBlank()) {
-                Common.showToast(R.string.string_ai_ocr_empty)
+                if (!cancelledByUser) Common.showToast(R.string.string_ai_ocr_empty)
                 return
             }
 
@@ -275,12 +341,16 @@ class ImageTranslationViewModel : ViewModel() {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Timber.e(e, "manual: translate failed")
-                promptTranslateFailedIfPossible(e)
+                if (cancelledByUser) {
+                    Timber.d(e, "ImageTranslationVM: manual translate error after user cancelled, ignored")
+                } else {
+                    Timber.e(e, "manual: translate failed")
+                    promptTranslateFailedIfPossible(e)
+                }
                 return
             }
             if (translated.isBlank()) {
-                promptTranslateFailedIfPossible(null)
+                if (!cancelledByUser) promptTranslateFailedIfPossible(null)
                 return
             }
 
@@ -291,7 +361,7 @@ class ImageTranslationViewModel : ViewModel() {
                     .onFailure { Timber.e(it, "manual: render failed") }.getOrNull()
             }
             if (outFile == null) {
-                Common.showToast(R.string.string_ai_manga_translate_failed)
+                if (!cancelledByUser) Common.showToast(R.string.string_ai_manga_translate_failed)
                 return
             }
             publishTranslated(pageIndex, outFile.absolutePath)
@@ -308,7 +378,7 @@ class ImageTranslationViewModel : ViewModel() {
      * crop 出来喂 manga-ocr。region 直接构造在「底图像素坐标系」下,后续擦/填都在这套坐标里,
      * 不再有 sample 还原那一层。框太小 / 解码失败返回 null。
      */
-    private fun recognizeManualRegion(file: File, l: Float, t: Float, r: Float, b: Float): ManualOcr? {
+    private suspend fun recognizeManualRegion(file: File, l: Float, t: Float, r: Float, b: Float): ManualOcr? {
         val base = decodeSampled(file, MAX_RENDER_SHORT_SIDE) ?: return null
         var keep = false
         try {
@@ -543,6 +613,10 @@ class ImageTranslationViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
+        // VM 终结(Activity 销毁)时同样按取消处理:viewModelScope 已 cancel,
+        // 但阻塞调用可能还在跑,晚到的异常不能误报「翻译失败」。
+        cancelledByUser = true
+        pipelineJob?.cancel()
         // VM 终结时把 cacheDir 里这次会话产生的译图全删掉
         val paths = _translatedPaths.value.orEmpty().values.toList()
         if (paths.isNotEmpty()) {

@@ -9,9 +9,12 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import timber.log.Timber
 import java.io.File
 import java.nio.FloatBuffer
+import kotlin.coroutines.coroutineContext
 
 /**
  * comic-text-detector (dmMaze) Android port.
@@ -161,15 +164,17 @@ object ComicTextDetector {
      * @param bitmap 原图(任意尺寸),内部会 letterbox 到 1024x1024
      * @return [DetectionResult],boxes 在原图坐标系;textMask 跟原图同尺寸(没拿到则为 null)
      */
-    fun detect(
+    suspend fun detect(
         bitmap: Bitmap,
         confThreshold: Float = DEFAULT_CONF_THRESHOLD,
         iouThreshold: Float = DEFAULT_IOU_THRESHOLD,
     ): DetectionResult {
+        coroutineContext.ensureActive()
         val sess = session ?: throw IllegalStateException("CTD model not loaded")
         val env = ortEnv ?: throw IllegalStateException("CTD model not loaded")
 
         val (lb, scale, padX, padY) = letterbox(bitmap, INPUT_SIZE)
+        coroutineContext.ensureActive()
         val inputBuf = try {
             bitmapToTensor(lb)
         } finally {
@@ -182,6 +187,7 @@ object ComicTextDetector {
         val candidates = mutableListOf<DetectionBox>()
         var textMask: TextMask? = null
         try {
+            coroutineContext.ensureActive()
             val outputs = sess.run(mapOf(inputName to inputTensor))
             try {
                 val blkTensor = outputs[blkOutputIndex] as OnnxTensor
@@ -195,6 +201,8 @@ object ComicTextDetector {
                 val buf = blkTensor.floatBuffer
                 // YOLOv5: [cx, cy, w, h, obj, cls0, cls1, ...]
                 for (i in 0 until n) {
+                    // 候选框循环里逐条检查取消,大图 N 可到几千,不能让它把取消憋到最后
+                    coroutineContext.ensureActive()
                     val off = i * k
                     val obj = buf.get(off + 4)
                     if (obj < confThreshold) continue
@@ -223,10 +231,15 @@ object ComicTextDetector {
 
                 // mask:解 4D output → 反 letterbox → 二值化 → 跟原图等大 ByteArray
                 if (maskOutputIndex >= 0) {
-                    textMask = runCatching {
+                    textMask = try {
                         val maskTensor = outputs[maskOutputIndex] as OnnxTensor
                         decodeMaskToBitmapCoords(maskTensor, bitmap.width, bitmap.height, scale, padX, padY)
-                    }.onFailure { Timber.w(it, "CTD: mask decode failed, fallback to no-mask") }.getOrNull()
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Timber.w(e, "CTD: mask decode failed, fallback to no-mask")
+                        null
+                    }
                 }
             } finally {
                 outputs.close()
@@ -236,6 +249,7 @@ object ComicTextDetector {
         }
 
         // class-agnostic NMS:text/balloon 互相覆盖时取高分
+        coroutineContext.ensureActive()
         val kept = nms(candidates, iouThreshold)
         Timber.d(
             "CTD: ${candidates.size} candidates → ${kept.size} after NMS (conf>=$confThreshold, iou<=$iouThreshold)" +
@@ -263,7 +277,7 @@ object ComicTextDetector {
      *  3. 对原图每个像素 (bx, by) → letterbox 坐标 (bx*scale, by*scale) → mask 坐标 nearest sample
      *  4. 阈值 [MASK_THRESHOLD] 二值化(CTD seg head 是 sigmoid'd in [0,1])
      */
-    private fun decodeMaskToBitmapCoords(
+    private suspend fun decodeMaskToBitmapCoords(
         maskTensor: OnnxTensor,
         bmpW: Int, bmpH: Int,
         scale: Float, padX: Float, padY: Float,
@@ -281,6 +295,8 @@ object ComicTextDetector {
         val out = ByteArray(bmpW * bmpH)
         var painted = 0
         for (by in 0 until bmpH) {
+            // 逐行检查取消:mask 解到原图分辨率(几百万像素)也是秒级阻塞段
+            coroutineContext.ensureActive()
             // letterboxY = by * scale + padY,本项目 padY=0 所以化简
             val lbY = by * scale + padY
             val my = (lbY * mScaleY).toInt().coerceIn(0, mh - 1)

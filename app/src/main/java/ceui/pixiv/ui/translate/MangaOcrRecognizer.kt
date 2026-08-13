@@ -6,6 +6,7 @@ import ai.onnxruntime.OrtSession
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import kotlinx.coroutines.ensureActive
 import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
@@ -13,6 +14,7 @@ import java.io.File
 import java.nio.FloatBuffer
 import java.nio.LongBuffer
 import java.text.Normalizer
+import kotlin.coroutines.coroutineContext
 import kotlin.math.exp
 import kotlin.math.ln
 
@@ -131,7 +133,8 @@ object MangaOcrRecognizer {
      * @param bitmap Cropped image of a single text region
      * @return Recognized Japanese text + 模型自身置信度
      */
-    fun recognize(bitmap: Bitmap): OcrResult {
+    suspend fun recognize(bitmap: Bitmap): OcrResult {
+        coroutineContext.ensureActive()
         val encoder = encoderSession ?: throw IllegalStateException("Model not loaded")
         val decoder = decoderSession ?: throw IllegalStateException("Model not loaded")
         val cfg = config ?: throw IllegalStateException("Model not loaded")
@@ -158,6 +161,9 @@ object MangaOcrRecognizer {
 
         try {
             for (step in 0 until cfg.maxLength) {
+                // 自回归解码是逐 token 阻塞的,每步检查一次取消:
+                // 页面销毁后最多再跑一步 decoder,而不是等整页 OCR 全部跑完
+                coroutineContext.ensureActive()
                 val decInputTensor = OnnxTensor.createTensor(
                     env,
                     LongBuffer.wrap(decoderInputIds),

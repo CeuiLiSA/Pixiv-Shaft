@@ -58,6 +58,7 @@ import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -441,6 +442,17 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         })
     }
 
+    override fun onDestroy() {
+        // 用户返回退出页面时立刻停掉翻译流水线并弹「翻译已取消」:
+        // 不 cancel 的话 Google/AI 的阻塞 HTTP 会继续跑到超时,晚到的异常
+        // 会被当成「翻译失败」误报给已经离开的用户。
+        // 旋转等配置变更不走 isFinishing,ViewModel 存活、翻译继续,不打断。
+        if (isFinishing) {
+            translationViewModel.cancelActiveWorkflow()
+        }
+        super.onDestroy()
+    }
+
     private fun performAiRembg(illust: IllustsBean, pageIndex: Int, model: RembgModel) {
         val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
@@ -604,6 +616,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private suspend fun awaitLoadedFile(imageUrl: String): File? =
         try {
             ImageLoaderV3.obtain(imageUrl).awaitFile()
+        } catch (e: CancellationException) {
+            // 页面销毁导致协程取消:重抛,别把「取消」当成加载失败弹「识别失败」
+            throw e
         } catch (e: Exception) {
             null
         }

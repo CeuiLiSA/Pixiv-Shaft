@@ -764,6 +764,7 @@
     <string name="string_ai_manga_translate">Перевод манги</string>
     <string name="string_ai_manga_translating">Перевод манги…</string>
     <string name="string_ai_manga_translate_failed">Не удалось перевести мангу</string>
+    <string name="string_ai_manga_translate_cancelled">Перевод манги отменён</string>
     <string name="string_ai_manga_translate_no_text">Текст не найден</string>
     <string name="string_manga_translate_original">Оригинал</string>
     <string name="string_manga_translate_translated">Перевод</string>
