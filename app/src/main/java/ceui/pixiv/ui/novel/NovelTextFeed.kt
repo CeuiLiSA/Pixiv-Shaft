@@ -53,6 +53,7 @@ import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.extractPixivId
 import ceui.pixiv.utils.setOnClick
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -223,7 +224,11 @@ private suspend fun fetchNovelRelated(novelId: Long): List<NovelFeedItem> = coro
     if (ids.isEmpty()) return@coroutineScope emptyList()
     val hydrated = ids.map { id ->
         async {
-            runCatching { Client.appApi.getNovel(id).novel?.also { ObjectPool.update(it) } }.getOrNull()
+            // 单条补水失败只丢这一条，但必须放行 CancellationException——
+            // 吞掉它会把「视图销毁取消」误判成「这条补水失败」（本仓硬约定）
+            runCatching { Client.appApi.getNovel(id).novel?.also { ObjectPool.update(it) } }
+                .onFailure { if (it is CancellationException) throw it }
+                .getOrNull()
         }
     }.awaitAll().filterNotNull()
     if (hydrated.isEmpty()) error("相关小说补水全部失败 novelId=$novelId ids=${ids.size}")

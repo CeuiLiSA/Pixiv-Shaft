@@ -104,7 +104,8 @@ class NovelTextFragment :
         novelTagsRenderer(viewLifecycleOwner),
         novelCaptionRenderer(viewLifecycleOwner, captionCollapse, ::scrollCaptionBackIntoView),
         novelSectionHeaderRenderer(),
-        novelCardRenderer(),
+        // 区块卡不展示标签（issue #1005 报告人的建议：避免区块过长喧宾夺主）
+        novelCardRenderer(showTags = false),
     )
 
     override fun onListReady(listView: RecyclerView) {

@@ -127,8 +127,11 @@ abstract class NovelFeedFragment(
      * 主力小说卡（recy_novel）。收藏爱心的乐观翻色在点击处当帧完成（异步 updateItems 只是
      * 落地态兜底），封面/头像用 Glide 加载，recycle 清图避免复用错图。收藏态变更只局部重绑
      * 爱心 + 收藏数(changePayload/bindPayloads),不重跑封面 Glide。
+     *
+     * [showTags]：本页是否渲染标签流（issue #1005 小说详情的区块卡不展示标签，避免区块过长）。
+     * true 时仍受用户的「显示标签」设置约束。
      */
-    protected fun novelCardRenderer() = feedRenderer<NovelFeedItem, RecyNovelBinding>(
+    protected fun novelCardRenderer(showTags: Boolean = true) = feedRenderer<NovelFeedItem, RecyNovelBinding>(
         inflate = RecyNovelBinding::inflate,
         create = { cell ->
             cell.binding.root.setOnClick {
@@ -226,16 +229,16 @@ abstract class NovelFeedFragment(
                     loadNovelCover(cell.binding.cover, novel, spoilered)
                     renderSpoilerParticles(cell.binding.spoilerParticles, show = spoilered, animate = true)
                     // 掩码涉及多个 view（文字换占位条/次级信息隐藏），跟全量绑定共用同一分支。
-                    bindNovelCardContent(cell.binding, novel, cell.item.trendingScore, spoilered)
+                    bindNovelCardContent(cell.binding, novel, cell.item.trendingScore, spoilered, showTags)
                 }
                 true
             } else {
                 false
             }
         },
-    ) { cell -> bindNovelCard(cell) }
+    ) { cell -> bindNovelCard(cell, showTags) }
 
-    private fun bindNovelCard(cell: FeedCell<NovelFeedItem, RecyNovelBinding>) {
+    private fun bindNovelCard(cell: FeedCell<NovelFeedItem, RecyNovelBinding>, showTags: Boolean) {
         val b = cell.binding
         val novel = cell.item.novel
         // 打码与否的真源是屏蔽名单（NovelMuteStore），bind 时现读：其它页面屏蔽了同一本小说，
@@ -244,7 +247,7 @@ abstract class NovelFeedFragment(
         val spoilered = NovelMuteStore.isMuted(novel.id)
         loadNovelCover(b.cover, novel, spoilered)
         renderSpoilerParticles(b.spoilerParticles, show = spoilered, animate = false)
-        bindNovelCardContent(b, novel, cell.item.trendingScore, spoilered)
+        bindNovelCardContent(b, novel, cell.item.trendingScore, spoilered, showTags)
     }
 
     /** 内容区绑定的两分支入口：屏蔽态走掩码（占位条 + 隐藏次级信息），否则走正常文本。 */
@@ -253,14 +256,20 @@ abstract class NovelFeedFragment(
         novel: Novel,
         trendingScore: Float?,
         spoilered: Boolean,
+        showTags: Boolean,
     ) {
         applyNovelSpoilerMask(b, novel, masked = spoilered)
         if (!spoilered) {
-            renderNovelCardText(b, novel, trendingScore)
+            renderNovelCardText(b, novel, trendingScore, showTags)
         }
     }
 
-    private fun renderNovelCardText(b: RecyNovelBinding, novel: Novel, trendingScore: Float?) {
+    private fun renderNovelCardText(
+        b: RecyNovelBinding,
+        novel: Novel,
+        trendingScore: Float?,
+        showTags: Boolean,
+    ) {
         val ctx = b.root.context
         val palette = V3Palette.from(ctx)
 
@@ -290,7 +299,7 @@ abstract class NovelFeedFragment(
         // 标签流：尊重「显示标签」设置，关时喂空列表折叠。compact + 去 # 前缀，
         // 「标签折叠」开关开启时超 6 个折叠成「+N」，关闭时 maxTags=-1 全量展示；
         // searchIndex=1 让点击跳搜索页「小说」tab。
-        val tags = if (Shaft.sSettings.isShowNovelCardTags()) novel.tags.orEmpty() else emptyList()
+        val tags = if (showTags && Shaft.sSettings.isShowNovelCardTags()) novel.tags.orEmpty() else emptyList()
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
