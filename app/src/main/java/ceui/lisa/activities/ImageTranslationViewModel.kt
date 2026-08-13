@@ -19,12 +19,14 @@ import ceui.pixiv.ui.translate.MangaOcrRecognizer
 import ceui.pixiv.ui.translate.TextEraser
 import ceui.pixiv.ui.translate.TextMask
 import ceui.pixiv.ui.translate.TextRenderer
+import ceui.pixiv.ui.translate.AiTranslatePhase
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import ceui.pixiv.ui.upscale.MangaOcr
 import ceui.pixiv.ui.upscale.OcrTextRegion
 import ceui.pixiv.ui.upscale.scaledBy
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -93,6 +95,9 @@ class ImageTranslationViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 runPipeline(app, imageFile, pageIndex, ocrModel, ctdModel)
+            } catch (e: CancellationException) {
+                // 页面/VM 销毁触发取消:必须重抛,不能当普通失败 toast,否则状态被吞
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "ImageTranslationVM: pipeline failed")
                 Common.showToast(R.string.string_ai_manga_translate_failed)
@@ -149,7 +154,11 @@ class ImageTranslationViewModel : ViewModel() {
                 inputs = regions.map { it.text },
                 outputLang = appTranslateTargetLang(),
                 onItem = { i, translated -> translations[i] = translated },
+                onPhase = { phase -> postTranslatePhase(app, phase) },
             )
+        } catch (e: CancellationException) {
+            // 离开页面/重新进入导致协程取消:重抛,别把「Job was cancelled」当真实错误弹给用户
+            throw e
         } catch (e: Exception) {
             // 按引擎给明确提示(谷歌被墙 → 需要代理;AI → 真实错误),别让用户当 app bug
             Timber.e(e, "translateBatch failed")
@@ -205,6 +214,8 @@ class ImageTranslationViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 runManualPipeline(app, originalFile, pageIndex, normLeft, normTop, normRight, normBottom, ocrModel)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "ImageTranslationVM: manual pipeline failed")
                 Common.showToast(R.string.string_ai_manga_translate_failed)
@@ -260,7 +271,9 @@ class ImageTranslationViewModel : ViewModel() {
             // 4. 翻译(单条)
             _status.postValue(Status(app.getString(R.string.ocr_translating)))
             val translated = try {
-                translateSingle(ocr.text)
+                translateSingle(ocr.text, app)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "manual: translate failed")
                 promptTranslateFailedIfPossible(e)
@@ -341,14 +354,28 @@ class ImageTranslationViewModel : ViewModel() {
         }
     }
 
-    private suspend fun translateSingle(text: String): String {
+    private suspend fun translateSingle(text: String, app: Context): String {
         var out = ""
         currentTranslator().translateBatch(
             inputs = listOf(text),
             outputLang = appTranslateTargetLang(),
             onItem = { _, translated -> out = translated },
+            onPhase = { phase -> postTranslatePhase(app, phase) },
         )
         return out
+    }
+
+    /** 流式阶段回调:思考中 → 「AI 思考中…」,开始出译文 → 回到「翻译中…」。 */
+    private fun postTranslatePhase(app: Context, phase: AiTranslatePhase) {
+        _status.postValue(
+            Status(
+                if (phase == AiTranslatePhase.THINKING) {
+                    app.getString(R.string.ai_translate_thinking)
+                } else {
+                    app.getString(R.string.ocr_translating)
+                }
+            )
+        )
     }
 
     /**

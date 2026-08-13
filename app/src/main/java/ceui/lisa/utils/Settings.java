@@ -297,10 +297,16 @@ public class Settings {
     private String aiTranslateBaseUrl = "";
     /** API key，本地部署（Ollama 等）可空 */
     private String aiTranslateApiKey = "";
-    /** 模型名，如 gpt-4o-mini / deepseek-chat / sakura-14b */
+    /** 模型名，如 gpt-4o-mini / deepseek-v4-flash / sakura-14b */
     private String aiTranslateModel = "";
     /** 自定义系统提示词，可空 = 使用内置翻译提示词 */
     private String aiTranslatePrompt = "";
+    /** 思考参数模式：0=默认不加(平台默认)，1=DeepSeek thinking.type=disabled，2=SiliconFlow/千问 enable_thinking=false，3=OpenAI 系 reasoning_effort=low */
+    private int aiTranslateThinkingMode = 0;
+    /** 流式传输(SSE)，默认开启；失败自动降级非流式 */
+    private boolean aiTranslateStreaming = true;
+    /** OkHttp readTimeout 秒数，默认 120；思考型模型可调大（30~600） */
+    private int aiTranslateReadTimeoutSeconds = 120;
 
     /** 已完成 tab 的列表展示模式（0=横向列表，1=网格 2 列，2=紧凑缩图 4 列）。1 = 旧默认。 */
     private int doneListLayoutMode = 1;
@@ -984,6 +990,30 @@ public class Settings {
 
     public void setAiTranslatePrompt(String aiTranslatePrompt) {
         this.aiTranslatePrompt = aiTranslatePrompt;
+    }
+
+    public int getAiTranslateThinkingMode() {
+        return aiTranslateThinkingMode;
+    }
+
+    public void setAiTranslateThinkingMode(int aiTranslateThinkingMode) {
+        this.aiTranslateThinkingMode = aiTranslateThinkingMode;
+    }
+
+    public boolean isAiTranslateStreaming() {
+        return aiTranslateStreaming;
+    }
+
+    public void setAiTranslateStreaming(boolean aiTranslateStreaming) {
+        this.aiTranslateStreaming = aiTranslateStreaming;
+    }
+
+    public int getAiTranslateReadTimeoutSeconds() {
+        return aiTranslateReadTimeoutSeconds;
+    }
+
+    public void setAiTranslateReadTimeoutSeconds(int aiTranslateReadTimeoutSeconds) {
+        this.aiTranslateReadTimeoutSeconds = aiTranslateReadTimeoutSeconds;
     }
 
     /** clamp 到 [0,2]，0=LIST, 1=GRID, 2=COMPACT */

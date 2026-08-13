@@ -5,6 +5,7 @@ import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.loxia.launchSuspend
+import ceui.pixiv.ui.translate.AiTranslatePhase
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
@@ -26,7 +27,11 @@ fun Fragment.translateComment(text: String?) {
     Common.showToast(R.string.string_translating)
     launchSuspend {
         val translated = try {
-            currentTranslator().translate(src, appTranslateTargetLang())
+            currentTranslator().translate(src, appTranslateTargetLang()) { phase ->
+                if (phase == AiTranslatePhase.THINKING) {
+                    Common.showToast(R.string.ai_translate_thinking)
+                }
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

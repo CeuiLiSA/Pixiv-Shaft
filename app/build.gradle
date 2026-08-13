@@ -242,6 +242,8 @@ dependencies {
 
 
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    // SSE 标准解析(AiTranslator 流式翻译):与 okhttp 同版本,按规范处理多行 data/CRLF/注释行
+    implementation 'com.squareup.okhttp3:okhttp-sse:4.12.0'
 
     // Cronet (Chromium 网络栈) 提供 QUIC/HTTP3 支持，绕过 GFW 的 TCP RST
     implementation 'org.chromium.net:cronet-embedded:143.7445.0'
