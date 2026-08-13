@@ -100,6 +100,9 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
     /** 复制链接 / 导入已下载好的文件：CTD 与 OCR 各自独立入口，复用同一个对话框与导入流程。 */
     private fun showCopyOrImportDialog(isCtd: Boolean) {
         if (_binding == null) return
+        // 下载或另一行导入进行中不再开新导入：两条路径并发跑 installZip 会撞同一个
+        // staging 目录,可能换入「文件齐全但内容错乱」的模型目录
+        if (importing || downloadJob?.isActive == true) return
         val ctx = requireContext()
         val manager = if (isCtd) ComicTextDetectorModelManager else MangaOcrModelManager
         val model = if (isCtd) ctdModel else ocrModel
@@ -108,6 +111,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
             importPicker,
             manager,
             model,
+            canStart = { !importing && downloadJob?.isActive != true },
             onImportStarted = {
                 if (_binding == null) return@ModelImportController
                 importing = true
@@ -277,9 +281,10 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
             descRes = R.string.manga_translate_prep_model_ocr_desc
         }
 
-        // 只有失败态才把 status 文案做成可点击的重试入口，其他状态一律清掉监听
-        statusText.isClickable = false
+        // 只有失败态才把 status 文案做成可点击的重试入口，其他状态一律清掉监听。
+        // 顺序不能反:setOnClickListener(null) 会把 clickable 重新置回 true
         statusText.setOnClickListener(null)
+        statusText.isClickable = false
 
         when (state) {
             RowState.Pending -> {

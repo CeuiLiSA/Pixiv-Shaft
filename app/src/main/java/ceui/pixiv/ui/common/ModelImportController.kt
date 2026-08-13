@@ -31,6 +31,7 @@ class ModelImportController(
     private val picker: ActivityResultLauncher<Array<String>>,
     private val manager: ModelDownloadManager,
     private val model: DownloadableModel,
+    private val canStart: () -> Boolean = { true },
     private val onImportStarted: () -> Unit = {},
     private val onProgress: (bytesRead: Long, totalBytes: Long) -> Unit = { _, _ -> },
     private val onImported: (Boolean) -> Unit,
@@ -78,7 +79,9 @@ class ModelImportController(
 
     /** 文件选择回调统一入口：拿到 URI 后在 IO 线程导入，校验结果回抛给 [onImported]。 */
     fun handlePickedUri(uri: Uri?) {
-        if (uri == null || importInFlight) return
+        // canStart 兜的是选择器打开期间宿主状态变化的窗口（分屏下用户可以边选文件边点开始下载），
+        // 导入和下载并发跑 installZip 会撞同一个 staging 目录
+        if (uri == null || importInFlight || !canStart()) return
         val ctx = fragment.context ?: return
         if (!fragment.isAdded || fragment.view == null) return
         importInFlight = true

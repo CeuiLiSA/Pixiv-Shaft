@@ -3,6 +3,7 @@ package ceui.pixiv.ui.common
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
@@ -74,6 +75,8 @@ abstract class ModelDownloadManager {
 
             // 下载与导入共用同一套校验安装流程，保证两边行为一致
             installZip(context, model, tempZip)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "$logTag download error: ${model.assetDir}")
             false
@@ -120,6 +123,8 @@ abstract class ModelDownloadManager {
                 return@withContext false
             }
             installZip(context, model, tempZip)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "$logTag import error: ${model.assetDir}")
             false

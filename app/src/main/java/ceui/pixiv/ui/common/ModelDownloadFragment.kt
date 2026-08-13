@@ -277,33 +277,36 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
             importPicker,
             getManager(),
             model,
+            canStart = { downloadJob?.isActive != true },
             onImportStarted = {
                 if (isAdded && view != null) showImportingState()
             },
             onProgress = { bytesRead, totalBytes ->
-                if (!isAdded || view == null) return@ModelImportController
-                view?.post {
-                    if (!isAdded || view == null) return@post
-                    val now = System.currentTimeMillis()
-                    if (now - lastUIUpdateTime < 300) return@post
+                // 回调在 IO 线程逐 chunk 触发,和下载路径一样先节流再 post,
+                // 否则本地拷贝速度下每 8KB 一个 Runnable 会灌满主线程消息队列
+                val now = System.currentTimeMillis()
+                if (now - lastUIUpdateTime >= 300) {
                     lastUIUpdateTime = now
-                    val percent = if (totalBytes > 0) {
-                        (bytesRead * 100 / totalBytes).toInt().coerceIn(0, 100)
-                    } else {
-                        0
+                    view?.post {
+                        if (!isAdded || view == null) return@post
+                        if (totalBytes > 0) {
+                            val percent = (bytesRead * 100 / totalBytes).toInt().coerceIn(0, 100)
+                            baseBind.progressRing.isIndeterminate = false
+                            baseBind.progressRing.setProgressCompat(percent, true)
+                            baseBind.progressPercent.text = "$percent%"
+                        }
+                        // 拿不到总大小时保持转圈,不碰 setProgressCompat ——
+                        // material 会把 indeterminate 指示器就地切回 determinate
+                        val readMB = String.format("%.1f MB", bytesRead / 1_048_576.0)
+                        val totalMB = if (totalBytes > 0) {
+                            String.format("%.1f MB", totalBytes / 1_048_576.0)
+                        } else {
+                            model.sizeLabel
+                        }
+                        baseBind.progressSizeText.text = getString(
+                            R.string.string_rembg_model_download_size, readMB, totalMB
+                        )
                     }
-                    baseBind.progressRing.isIndeterminate = totalBytes <= 0
-                    baseBind.progressRing.setProgressCompat(percent, true)
-                    baseBind.progressPercent.text = "$percent%"
-                    val readMB = String.format("%.1f MB", bytesRead / 1_048_576.0)
-                    val totalMB = if (totalBytes > 0) {
-                        String.format("%.1f MB", totalBytes / 1_048_576.0)
-                    } else {
-                        model.sizeLabel
-                    }
-                    baseBind.progressSizeText.text = getString(
-                        R.string.string_rembg_model_download_size, readMB, totalMB
-                    )
                 }
             },
         ) { success ->
