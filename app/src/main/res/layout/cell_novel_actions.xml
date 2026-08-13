@@ -11,8 +11,9 @@
         android:orientation="horizontal"
         android:weightSum="3">
 
+        <!-- issue #1005: 原「分享」位。收藏从头卡右上角的小红心换到这里，分享去了头卡右上角 -->
         <LinearLayout
-            android:id="@+id/btn_share"
+            android:id="@+id/btn_bookmark"
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_marginEnd="6dp"
@@ -23,18 +24,25 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <ImageView
+            <!-- ProgressImageButton：收藏请求在飞时原地转圈（对齐头卡旧红心）。
+                 clickable=false 让点击落在按钮容器上，背景置空去掉 ImageButton 默认底 -->
+            <ceui.loxia.ProgressImageButton
+                android:id="@+id/bookmark_icon"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
+                android:background="@null"
+                android:clickable="false"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_share_black_24dp"
+                android:src="@drawable/icon_not_liked"
+                app:ptb_progress_stroke_width="2dp"
+                app:ptb_progress_width="12dp"
                 app:tint="@color/v3_text_1" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="@string/novel_actions_share"
+                android:text="@string/v3_label_bookmarks"
                 android:textColor="@color/v3_text_1"
                 android:textSize="13sp"
                 android:textStyle="bold" />

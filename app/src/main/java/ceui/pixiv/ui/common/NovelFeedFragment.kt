@@ -115,7 +115,7 @@ abstract class NovelFeedFragment(
      * 竖向小说列表的骨架图长得像 recy_novel（左封面 + 右标题/系列/作者 + 标签流），不是瀑布流那种
      * 等宽块——基类默认只给 StaggeredGridLayoutManager 出骨架，小说列表是 Linear，得自己给。
      */
-    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView {
+    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView? {
         return FeedNovelSkeletonView(requireContext())
     }
 

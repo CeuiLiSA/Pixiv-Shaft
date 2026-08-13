@@ -900,6 +900,21 @@ data class NovelText(
     val userId: String? = null
 )
 
+/**
+ * `/ajax/novel/{id}/recommend/init` 的 body（issue #1005）。返回的 novel 对象是网页版
+ * 卡片格式，与 loxia [Novel] 不同构——只解 id（和用来剔除无效条目的 isMasked），
+ * 完整数据由调用方经 app-api novel/detail 补水。
+ */
+data class NovelRecommendInitBody(
+    val novels: List<WebRecommendNovel>? = null,
+)
+
+data class WebRecommendNovel(
+    val id: String? = null,
+    /** true = 被屏蔽/不可见的占位条目，detail 也拉不到，直接跳过。 */
+    val isMasked: Boolean? = null,
+)
+
 data class SeriesNavigation(
     val nextNovel: NovelBean? = null,
     val prevNovel: NovelBean? = null

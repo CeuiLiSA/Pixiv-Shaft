@@ -104,30 +104,32 @@ enum class ArtworkSection {
  *(viewLifecycleOwner)的作用域,视图销毁自动取消;换视图重建一个新实例即自然重置去重集——
  * 不用在 Fragment 里为每个区块各攒一个布尔 flag。
  *
+ * 对区块类型 [S] 泛型：插画详情用 [ArtworkSection]，小说详情用
+ * [ceui.pixiv.ui.novel.NovelDetailSection]，怎么拉一个区块由 [loadSection] 注入。
+ *
  * 失败恢复有三层，按「用户什么都不用做」到「用户主动做点什么」排：
  * 1. **有界自动重试**([MAX_AUTO_RETRIES] 次，退避 [RETRY_BASE_DELAY_MS] 起步)——覆盖最常见的
  *    网络抖动；
- * 2. **网络恢复补触发**([retryFailed]，由 [ArtworkV3Fragment] 在断网→有网时调)；
+ * 2. **网络恢复补触发**([retryFailed]，由宿主 Fragment 在断网→有网时调)；
  * 3. **滚出屏幕再滚回**(自动重试耗尽后交还触发权给 attach)。
  *
  * 三层都需要，因为触发信号只有 attach 一个：区块 holder 停在屏幕内不动就不会再 attach，
  * 只靠第 3 层的话，评论 / 作者作品区块一次失败就会**永远**卡在转圈上，用户完全没有重试入口。
  */
-class SectionLoader(
-    private val illustId: Long,
-    private val feedViewModel: FeedViewModel<String>,
+class SectionLoader<S : Any>(
     private val owner: LifecycleOwner,
+    private val loadSection: suspend (S) -> Unit,
 ) {
     /** 已成功或正在飞(含自动重试等待中)的区块：不重复触发。 */
-    private val triggered = HashSet<ArtworkSection>()
+    private val triggered = HashSet<S>()
 
     /** 自动重试已耗尽、仍未成功的区块。[retryFailed] 的候选集。 */
-    private val exhausted = HashSet<ArtworkSection>()
+    private val exhausted = HashSet<S>()
 
     /** 区块 holder attach 且数据仍空时调用。 */
-    fun onVisible(section: ArtworkSection) {
+    fun onVisible(section: S) {
         if (triggered.add(section)) {
-            Timber.tag(ARTWORK_LAZY_TAG).d("区块滚到可见,触发懒加载: %s illustId=%d", section, illustId)
+            Timber.tag(ARTWORK_LAZY_TAG).d("区块滚到可见,触发懒加载: %s", section)
             launchLoad(section)
         } else {
             Timber.tag(ARTWORK_LAZY_TAG).v("区块再次可见(已加载/加载中,跳过): %s", section)
@@ -141,18 +143,18 @@ class SectionLoader(
         exhausted.clear()
         pending.forEach { section ->
             if (triggered.add(section)) {
-                Timber.tag(ARTWORK_LAZY_TAG).d("网络恢复,重试失败区块: %s illustId=%d", section, illustId)
+                Timber.tag(ARTWORK_LAZY_TAG).d("网络恢复,重试失败区块: %s", section)
                 launchLoad(section)
             }
         }
     }
 
-    private fun launchLoad(section: ArtworkSection) {
+    private fun launchLoad(section: S) {
         owner.lifecycleScope.launch {
             var attempt = 0
             while (true) {
                 try {
-                    section.load(illustId, feedViewModel)
+                    loadSection(section)
                     exhausted.remove(section)
                     return@launch
                 } catch (ce: CancellationException) {
@@ -165,13 +167,11 @@ class SectionLoader(
                         // 交还触发权：此后靠 retryFailed（网络恢复）或再次 attach（滚出去再回来）
                         triggered.remove(section)
                         exhausted.add(section)
-                        Timber.tag(ARTWORK_LAZY_TAG).e(
-                            t, "区块懒加载失败且自动重试耗尽: %s illustId=%d", section, illustId,
-                        )
+                        Timber.tag(ARTWORK_LAZY_TAG).e(t, "区块懒加载失败且自动重试耗尽: %s", section)
                         return@launch
                     }
                     Timber.tag(ARTWORK_LAZY_TAG).w(
-                        t, "区块懒加载失败,第 %d 次自动重试: %s illustId=%d", attempt, section, illustId,
+                        t, "区块懒加载失败,第 %d 次自动重试: %s", attempt, section,
                     )
                     delay(RETRY_BASE_DELAY_MS shl (attempt - 1))
                 }

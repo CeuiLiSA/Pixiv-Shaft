@@ -133,7 +133,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 整页屏蔽遮罩是否正盖着。盖着时底部胶囊一律收起，见 [setMuteMaskActive]。 */
     private var muteMaskActive = false
 
-    private var sectionLoader: SectionLoader? = null
+    private var sectionLoader: SectionLoader<ArtworkSection>? = null
     private var artistObservedUserId: Long = 0L
     private var muteObserved = false
 
@@ -212,7 +212,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         super.onViewCreated(view, savedInstanceState)
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
-        sectionLoader = SectionLoader(illustId, feedViewModel, viewLifecycleOwner)
+        sectionLoader = SectionLoader<ArtworkSection>(viewLifecycleOwner) { it.load(illustId, feedViewModel) }
         aiHelper = IllustAiHelper(this, chromeBind.root).also {
             it.restoreUpscaleIfRunning(illustId.toInt())
         }

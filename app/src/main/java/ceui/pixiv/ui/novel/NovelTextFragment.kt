@@ -8,7 +8,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
@@ -24,19 +26,21 @@ import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
 import ceui.loxia.Series
-import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
+import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.IllustIdActionReceiver
 import ceui.pixiv.ui.common.NovelActionReceiver
+import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.openIllustsInViewer
 import ceui.pixiv.ui.common.openNovelDetail
 import ceui.pixiv.ui.common.openUserActivity
 import ceui.pixiv.ui.common.shareNovel
 import ceui.pixiv.ui.common.toggleIllustBookmark
 import ceui.pixiv.ui.common.toggleNovelBookmark
+import ceui.pixiv.ui.detail.SectionLoader
 import ceui.pixiv.ui.detail.seriesAuthorRenderer
 import ceui.pixiv.ui.novel.reader.NovelTextCache
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
@@ -57,18 +61,21 @@ import timber.log.Timber
 import java.util.UUID
 
 /**
- * 小说详情页（feeds 框架版）。固定 6 张卡：标题+系列 → 作者 → 作品档案 → 功能按钮 →
- * 标签 → 简介；底部「开始阅读」浮动按钮。数据全部住在 [feedViewModel]
- * （[NovelTextFeedSource]，单页无分页）；各卡渲染器（[NovelTextFeed.kt]）观察 ObjectPool
- * 拿实时小说数据（收藏 / 元信息随点赞即时刷新）。
+ * 小说详情页（feeds 框架版）。固定卡：标题+系列 → 作者 → 作品档案 → 功能按钮 →
+ * 标签 → 简介（超长折叠 #1005）；其后是两个懒加载区块（作者往期作品 / 相关小说，
+ * issue #1005 对齐插画详情），区块卡直接复用 [NovelFeedFragment] 的主力小说卡——
+ * 收藏同步 / 屏蔽遮罩 / 长按菜单随基类一起生效；底部「开始阅读」浮动按钮。
+ * 数据住在 [feedViewModel]（[NovelTextFeedSource]，单页无分页）；各卡渲染器
+ * （[NovelTextFeed.kt]）观察 ObjectPool 拿实时小说数据（收藏 / 元信息随点赞即时刷新）。
  *
  * 入口：[TemplateActivity] 路由「小说详情」+ NOVEL_ID(Long)。跳转一律走 Intent
  * （TemplateActivity 无 NavHost，pushFragment 会崩）。
  */
 class NovelTextFragment :
-    FeedFragment(R.layout.fragment_v3_feed_bottombar),
+    NovelFeedFragment(R.layout.fragment_v3_feed_bottombar),
     NovelActionsReceiver,
     NovelActionReceiver,
+    NovelSectionReceiver,
     NovelSeriesActionReceiver,
     IllustCardActionReceiver,
     IllustIdActionReceiver,
@@ -77,6 +84,12 @@ class NovelTextFragment :
 
     private val novelId: Long by lazy { arguments?.getLong(Params.NOVEL_ID, 0L) ?: 0L }
     private var viewHistoryInserted = false
+
+    /** 简介折叠态（展开与否归 Fragment，滚走再滚回不重置，对齐插画详情）。 */
+    private val captionCollapse = NovelCaptionCollapse()
+
+    /** 懒加载区块触发器（复用插画侧实现，三层失败恢复见其 KDoc）。 */
+    private var sectionLoader: SectionLoader<NovelDetailSection>? = null
 
     override val feedViewModel by feedViewModels {
         val id = novelId
@@ -87,9 +100,11 @@ class NovelTextFragment :
         novelHeaderRenderer(viewLifecycleOwner),
         seriesAuthorRenderer(),
         novelProfileRenderer(viewLifecycleOwner),
-        novelActionsRenderer(),
+        novelActionsRenderer(viewLifecycleOwner),
         novelTagsRenderer(viewLifecycleOwner),
-        novelCaptionRenderer(viewLifecycleOwner),
+        novelCaptionRenderer(viewLifecycleOwner, captionCollapse, ::scrollCaptionBackIntoView),
+        novelSectionHeaderRenderer(),
+        novelCardRenderer(),
     )
 
     override fun onListReady(listView: RecyclerView) {
@@ -97,10 +112,30 @@ class NovelTextFragment :
         listView.addItemDecoration(LinearItemDecorationNoLRTB(18.ppppx))
     }
 
+    /** 详情页首屏是标题/简介卡，不是小说卡列表：不用基类的小说卡骨架，维持转圈圈。 */
+    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView? =
+        null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val density = resources.displayMetrics.density
         val listView = feedBinding.feedListView
+
+        // 懒加载区块触发器。下拉刷新会整代换新条目（区块头回到未加载态），此时必须换一个
+        // 触发器重置去重集——旧集里记着「已成功」，新一代的区块头会永远停在转圈上。
+        sectionLoader = SectionLoader(viewLifecycleOwner) { it.load(novelId, feedViewModel) }
+        var lastGeneration = feedViewModel.uiState.value.refreshGeneration
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                feedViewModel.uiState.collect { state ->
+                    if (state.refreshGeneration != lastGeneration) {
+                        lastGeneration = state.refreshGeneration
+                        sectionLoader =
+                            SectionLoader(viewLifecycleOwner) { it.load(novelId, feedViewModel) }
+                    }
+                }
+            }
+        }
 
         // 底部「开始阅读」浮动按钮（对齐旧 bottom_covered 里的 ItemBigReadButton）。
         val bottomBar = view.findViewById<FrameLayout>(R.id.bottom_bar)
@@ -158,6 +193,36 @@ class NovelTextFragment :
                 NovelTextCache.put(novelId, NovelTextCache.Entry(web, tokens))
             }
         }
+    }
+
+    override fun onDestroyView() {
+        sectionLoader = null
+        super.onDestroyView()
+    }
+
+    // ─── 懒加载区块（issue #1005）───────────────────────────────────────────
+
+    /** 区块头 attach/bind 且数据仍空时调用：转给 [SectionLoader]（去重 + 单飞 + 视图作用域）。 */
+    override fun onNovelSectionVisible(section: NovelDetailSection) {
+        sectionLoader?.onVisible(section)
+    }
+
+    /**
+     * 联网后补拉加载失败的区块。区块的触发信号只有 holder 的 attach/bind，用户停在
+     * 那一屏不动（区块正转圈时最常见），不补这一下就再也没有重试时机（对齐插画详情）。
+     */
+    override fun onNetworkRestored() {
+        super.onNetworkRestored()
+        sectionLoader?.retryFailed()
+    }
+
+    /** 收起超长简介后把简介块拉回视口（理由见插画侧 scrollDescBackIntoView 的 KDoc）。 */
+    private fun scrollCaptionBackIntoView(itemView: View) {
+        if (itemView.top >= 0) return
+        val rv = feedBinding.feedListView
+        val pos = rv.getChildAdapterPosition(itemView)
+        if (pos == RecyclerView.NO_POSITION) return
+        rv.scrollToPosition(pos)
     }
 
     // ─── NovelActionsReceiver ──────────────────────────────────────────────

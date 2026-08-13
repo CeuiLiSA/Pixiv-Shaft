@@ -37,5 +37,18 @@
             android:textColorLink="@color/v3_blue"
             android:textIsSelectable="true"
             android:textSize="14sp" />
+
+        <!-- issue #1005: 超长简介折叠开关（样式对齐插画详情 section_v3_description 的 desc_toggle） -->
+        <TextView
+            android:id="@+id/caption_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:text="@string/v3_desc_expand"
+            android:textColor="@color/v3_blue"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
     </LinearLayout>
 </layout>
