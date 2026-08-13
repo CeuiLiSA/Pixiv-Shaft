@@ -2569,4 +2569,12 @@
     <string name="mute_sheet_empty">这个作品没有标签</string>
     <string name="mute_sheet_summary">已选 %1$d / %2$d</string>
     <string name="private_follow_by_default">关注作者默认私人关注</string>
+    <string name="model_download_copy_or_import">复制下载链接或者导入模型文件</string>
+    <string name="model_download_dialog_title">复制链接还是导入</string>
+    <string name="model_download_dialog_message">可复制下载链接用其他方式下载后再导入该模型的 Zip 压缩包</string>
+    <string name="model_download_copy_link">复制下载链接</string>
+    <string name="model_download_import_file">导入模型文件</string>
+    <string name="model_download_import_success">模型导入成功</string>
+    <string name="model_download_import_invalid">文件错误，请确认是该模型的 Zip 压缩包</string>
+    <string name="model_download_picker_unavailable">无法打开文件选择器，请检查系统文件管理器</string>
 </resources>

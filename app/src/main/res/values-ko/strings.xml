@@ -2361,4 +2361,12 @@
     <string name="mute_sheet_empty">이 작품에는 태그가 없습니다</string>
     <string name="mute_sheet_summary">%1$d / %2$d 선택됨</string>
     <string name="private_follow_by_default">기본으로 비공개 팔로우</string>
+    <string name="model_download_copy_or_import">다운로드 링크 복사 또는 모델 파일 가져오기</string>
+    <string name="model_download_dialog_title">링크 복사 또는 가져오기</string>
+    <string name="model_download_dialog_message">다운로드 링크를 복사해 다른 방법으로 다운로드한 후 이 모델의 Zip 압축 파일을 가져올 수 있습니다</string>
+    <string name="model_download_copy_link">다운로드 링크 복사</string>
+    <string name="model_download_import_file">모델 파일 가져오기</string>
+    <string name="model_download_import_success">모델 가져오기 완료</string>
+    <string name="model_download_import_invalid">파일이 올바르지 않습니다. 이 모델의 Zip 압축 파일인지 확인해 주세요</string>
+    <string name="model_download_picker_unavailable">파일 선택기를 열 수 없습니다. 시스템 파일 관리자를 확인해 주세요</string>
 </resources>

@@ -134,6 +134,19 @@
                         android:textColor="@color/v3_text_3"
                         android:textSize="11sp"
                         tools:text="待下载 · 气泡 / 文本框检测" />
+
+                    <TextView
+                        android:id="@+id/ctd_import_link"
+                        style="@style/textMontserratMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:padding="6dp"
+                        android:stateListAnimator="@animator/button_press_alpha"
+                        android:text="@string/model_download_copy_or_import"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="12sp"
+                        tools:text="复制链接或导入已下载好的文件" />
                 </LinearLayout>
 
                 <!-- 状态指示器:待下载留空 + 下载中转圈 + 完成对勾 + 失败感叹号。
@@ -248,6 +261,19 @@
                         android:textColor="@color/v3_text_3"
                         android:textSize="11sp"
                         tools:text="待下载 · 日文识别" />
+
+                    <TextView
+                        android:id="@+id/ocr_import_link"
+                        style="@style/textMontserratMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:padding="6dp"
+                        android:stateListAnimator="@animator/button_press_alpha"
+                        android:text="@string/model_download_copy_or_import"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="12sp"
+                        tools:text="复制链接或导入已下载好的文件" />
                 </LinearLayout>
 
                 <FrameLayout

@@ -5,10 +5,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.databinding.DialogMangaTranslatePrepBinding
+import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.DownloadableModel
+import ceui.pixiv.ui.common.ModelImportController
 import ceui.pixiv.ui.common.ModelDownloadManager
 import ceui.pixiv.ui.search.v3.V3BottomSheetBase
 import ceui.pixiv.utils.setOnClick
@@ -42,6 +45,12 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
 
     private val ctdModel = ComicTextDetectorModel.CTD_BASE
     private val ocrModel = MangaOcrModel.MANGA_OCR_BASE
+    private var importController: ModelImportController? = null
+    private val importPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        importController?.handlePickedUri(uri)
+    }
 
     /** Activity 在 show 前注入:两模型都就绪后 sheet 自动 dismiss 并触发这条 callback。 */
     fun setOnReady(callback: () -> Unit) {
@@ -83,6 +92,31 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
 
         binding.btnPrimary.setOnClick { onPrimaryClick(ctx) }
         binding.btnSecondary.setOnClick { dismissAllowingStateLoss() }
+        binding.ctdImportLink.setOnClick { showCopyOrImportDialog(isCtd = true) }
+        binding.ocrImportLink.setOnClick { showCopyOrImportDialog(isCtd = false) }
+    }
+
+    /** 复制链接 / 导入已下载好的文件：CTD 与 OCR 各自独立入口，复用同一个对话框与导入流程。 */
+    private fun showCopyOrImportDialog(isCtd: Boolean) {
+        if (_binding == null) return
+        val ctx = requireContext()
+        val manager = if (isCtd) ComicTextDetectorModelManager else MangaOcrModelManager
+        val model = if (isCtd) ctdModel else ocrModel
+        importController = ModelImportController(this, importPicker, manager, model) { success ->
+            if (_binding == null) return@ModelImportController
+            if (success) {
+                renderRowState(ctx, isCtd, RowState.Ready)
+                binding.btnPrimary.text = if (bothReady(ctx)) {
+                    getString(R.string.manga_translate_prep_cta_ready)
+                } else {
+                    getString(R.string.manga_translate_prep_cta)
+                }
+                Common.showToast(ctx.getString(R.string.model_download_import_success))
+            } else {
+                Common.showToast(ctx.getString(R.string.model_download_import_invalid))
+            }
+        }
+        importController?.showCopyOrImportDialog()
     }
 
     /** 根据当前模型 ready 状态决定初始 CTA 文案。两个都 ready 直接亮「开始翻译」。 */
@@ -206,18 +240,21 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
         val progress: LinearProgressIndicator
         val statusIcon: ImageView
         val spinner: CircularProgressIndicator
+        val importLink: TextView
         val descRes: Int
         if (isCtd) {
             statusText = binding.ctdStatus
             progress = binding.ctdProgress
             statusIcon = binding.ctdStatusIcon
             spinner = binding.ctdStatusSpinner
+            importLink = binding.ctdImportLink
             descRes = R.string.manga_translate_prep_model_ctd_desc
         } else {
             statusText = binding.ocrStatus
             progress = binding.ocrProgress
             statusIcon = binding.ocrStatusIcon
             spinner = binding.ocrStatusSpinner
+            importLink = binding.ocrImportLink
             descRes = R.string.manga_translate_prep_model_ocr_desc
         }
 
@@ -230,6 +267,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
                 // 待下载状态不画右侧 icon —— 之前那个下载箭头会让人误以为是「点这里下载这一个」,
                 // 状态文案左侧已经说了「待下载」,右边留空,只有下载中 / 完成 / 失败才挂图标。
                 statusIcon.visibility = View.GONE
+                importLink.visibility = View.VISIBLE
             }
             is RowState.Downloading -> {
                 val readMB = String.format("%.1f MB", state.bytesRead / 1_048_576.0)
@@ -253,6 +291,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
                 }
                 spinner.visibility = View.VISIBLE
                 statusIcon.visibility = View.GONE
+                importLink.visibility = View.GONE
             }
             RowState.Ready -> {
                 statusText.text = getString(R.string.manga_translate_prep_status_ready)
@@ -262,6 +301,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
                 statusIcon.visibility = View.VISIBLE
                 statusIcon.setImageResource(R.drawable.ic_file_download_done_24dp)
                 statusIcon.imageTintList = android.content.res.ColorStateList.valueOf(palette.primary)
+                importLink.visibility = View.GONE
             }
             RowState.Failed -> {
                 statusText.text = getString(R.string.manga_translate_prep_status_failed)
@@ -273,6 +313,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
                 statusIcon.imageTintList = android.content.res.ColorStateList.valueOf(
                     ctx.getColor(R.color.buttonTextRed),
                 )
+                importLink.visibility = View.VISIBLE
             }
         }
     }

@@ -2361,4 +2361,12 @@
     <string name="mute_sheet_empty">Bu eserde etiket yok</string>
     <string name="mute_sheet_summary">%1$d / %2$d seçildi</string>
     <string name="private_follow_by_default">Sanatçıları varsayılan olarak gizli takip et</string>
+    <string name="model_download_copy_or_import">İndirme bağlantısını kopyala veya model dosyasını içe aktar</string>
+    <string name="model_download_dialog_title">Bağlantıyı kopyala mı, yoksa içe aktar mı?</string>
+    <string name="model_download_dialog_message">İndirme bağlantısını kopyalayıp başka bir yöntemle indirdikten sonra bu modele ait Zip arşivini içe aktarabilirsiniz</string>
+    <string name="model_download_copy_link">İndirme bağlantısını kopyala</string>
+    <string name="model_download_import_file">Model dosyasını içe aktar</string>
+    <string name="model_download_import_success">Model içe aktarıldı</string>
+    <string name="model_download_import_invalid">Dosya hatalı. Lütfen bu modele ait Zip arşivi olduğundan emin olun</string>
+    <string name="model_download_picker_unavailable">Dosya seçici açılamadı. Sistem dosya yöneticisini kontrol edin</string>
 </resources>

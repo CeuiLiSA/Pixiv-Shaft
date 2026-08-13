@@ -1,11 +1,13 @@
 package ceui.pixiv.ui.common
 
 import androidx.annotation.StringRes
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentRembgModelDownloadBinding
 import ceui.lisa.fragments.BaseLazyFragment
+import ceui.lisa.utils.Common
 import ceui.pixiv.utils.setOnClick
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
@@ -28,6 +30,12 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
     @StringRes protected abstract fun doneTextRes(): Int
 
     private val model: DownloadableModel by lazy { resolveModel() }
+    private var importController: ModelImportController? = null
+    private val importPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        importController?.handlePickedUri(uri)
+    }
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_rembg_model_download
@@ -62,6 +70,8 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.btnSecondary.visibility = android.view.View.GONE
 
         baseBind.btnPrimary.setOnClick { startDownload() }
+        baseBind.btnImport.visibility = android.view.View.VISIBLE
+        baseBind.btnImport.setOnClick { showCopyOrImportDialog() }
     }
 
     private fun showDownloadingState() {
@@ -86,6 +96,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.btnSecondary.text = getString(R.string.string_rembg_model_cancel)
         applyDefaultSecondaryColor()
         baseBind.btnSecondary.setOnClick { cancelDownload() }
+        baseBind.btnImport.visibility = android.view.View.GONE
     }
 
     private fun showDoneState() {
@@ -107,6 +118,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
             ContextCompat.getColor(requireContext(), R.color.buttonTextRed)
         )
         baseBind.btnSecondary.setOnClick { confirmDeleteModel() }
+        baseBind.btnImport.visibility = android.view.View.GONE
     }
 
     private fun applyDefaultSecondaryColor() {
@@ -154,6 +166,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.btnSecondary.text = getString(R.string.string_cancel)
         applyDefaultSecondaryColor()
         baseBind.btnSecondary.setOnClick { activity?.finish() }
+        baseBind.btnImport.visibility = android.view.View.GONE
     }
 
     private fun startDownload() {
@@ -240,5 +253,18 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         downloadJob = null
         getManager().deleteModel(requireContext(), model)
         showInitState()
+    }
+
+    private fun showCopyOrImportDialog() {
+        importController = ModelImportController(this, importPicker, getManager(), model) { success ->
+            if (!isAdded || view == null) return@ModelImportController
+            if (success) {
+                Common.showToast(getString(R.string.model_download_import_success))
+                showDoneState()
+            } else {
+                Common.showToast(getString(R.string.model_download_import_invalid))
+            }
+        }
+        importController?.showCopyOrImportDialog()
     }
 }

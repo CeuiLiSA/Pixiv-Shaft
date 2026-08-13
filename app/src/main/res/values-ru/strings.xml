@@ -2361,4 +2361,12 @@
     <string name="mute_sheet_empty">У этой работы нет тегов</string>
     <string name="mute_sheet_summary">Выбрано %1$d / %2$d</string>
     <string name="private_follow_by_default">По умолчанию подписываться приватно</string>
+    <string name="model_download_copy_or_import">Скопировать ссылку для скачивания или импортировать файл модели</string>
+    <string name="model_download_dialog_title">Скопировать ссылку или импортировать?</string>
+    <string name="model_download_dialog_message">Скопируйте ссылку для скачивания, скачайте другим способом, а затем импортируйте Zip-архив этой модели</string>
+    <string name="model_download_copy_link">Скопировать ссылку для скачивания</string>
+    <string name="model_download_import_file">Импортировать файл модели</string>
+    <string name="model_download_import_success">Модель импортирована</string>
+    <string name="model_download_import_invalid">Неверный файл. Убедитесь, что это Zip-архив этой модели</string>
+    <string name="model_download_picker_unavailable">Не удалось открыть выбор файла. Проверьте системный файловый менеджер</string>
 </resources>
