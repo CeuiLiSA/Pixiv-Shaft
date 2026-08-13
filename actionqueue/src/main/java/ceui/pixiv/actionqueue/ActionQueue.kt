@@ -222,6 +222,10 @@ public class ActionQueue(
 
     public suspend fun clearFailed(): Int = store.clearFailed(currentOwner())
 
+    /** 给无需 UI 回滚的后台队列提供有界死信保留，避免失败行无限撑大本地库。 */
+    public suspend fun pruneFailed(keepLatest: Int): Int =
+        store.pruneFailed(currentOwner(), keepLatest.coerceAtLeast(0))
+
     public suspend fun pendingCount(): Int = store.pendingCount(currentOwner())
 
     public suspend fun failedCount(): Int = store.failedCount(currentOwner())
@@ -434,13 +438,14 @@ public class ActionQueue(
     public companion object {
 
         /**
-         * 装配一个 Room 持久化的队列。数据库是本模块私有的 `pixiv_action_queue.db`，
-         * 与 app 的主库完全隔离 —— 主库已经是 v41 带 19 条手写 migration，
-         * 往里加表意味着把风险摊给所有既有表。
+         * 装配一个 Room 持久化的队列。[databaseName] 默认是本模块私有的
+         * `pixiv_action_queue.db`；调用方也可为完全独立的队列指定另一个库名。
+         * 两者都与 app 主库隔离。
          */
         public fun withRoomStore(
             context: Context,
             handlers: Map<String, ActionHandler>,
+            databaseName: String = "pixiv_action_queue.db",
             policy: QueuePolicy = QueuePolicy(),
             clock: Clock = Clock.SYSTEM,
             gate: suspend () -> Boolean = { true },
@@ -448,7 +453,7 @@ public class ActionQueue(
             scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
             onError: (String, Throwable) -> Unit = { _, _ -> },
         ): ActionQueue = ActionQueue(
-            store = RoomActionStore(context.applicationContext),
+            store = RoomActionStore(context.applicationContext, databaseName),
             handlers = handlers,
             policy = policy,
             clock = clock,

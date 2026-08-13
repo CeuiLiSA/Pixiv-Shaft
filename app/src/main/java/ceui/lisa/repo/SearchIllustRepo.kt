@@ -8,6 +8,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
+import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.prime.PrimeIllustLoader
 import ceui.pixiv.ui.search.SortType
@@ -59,11 +60,15 @@ class SearchIllustRepo @JvmOverloads constructor(
     @Volatile
     private var nana7miSession = Nana7miAccountSession()
 
+    @Volatile
+    private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
+
     override fun initApi(): Observable<ListIllust> {
         // 每轮首屏使用全新会话。即使上一轮请求取消得较晚，它也只能更新旧会话，不能把
         // 旧借用账号重新写进当前查询，污染当前结果的 next_url 翻页。
         val currentNana7miSession = Nana7miAccountSession()
         nana7miSession = currentNana7miSession
+        nana7miTelemetry = null
         if (sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE) {
             return loadTrendingBuiltinIllusts()
         }
@@ -101,13 +106,32 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 默认档「标签部分一致」不传 search_target，让标题命中也能搜到（#906）——
         // 见 [SearchTarget.toQueryValue] 注释。
         val effectiveSearchTarget = SearchTarget.toQueryValue(searchType)
+        val requesterUid = SessionManager.loggedInUid
+        val telemetry = when {
+            usePopularPreview -> Nana7miSearchTelemetry.start(
+                requesterUid = requesterUid,
+                contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
+                query = assembledKeyword,
+                initialRoute = Nana7miSearchTelemetry.Route.PREVIEW_DIRECT,
+                initialReason = "selected_preview",
+            )
+            notPremiumButWantToUsePopularSort -> Nana7miSearchTelemetry.start(
+                requesterUid = requesterUid,
+                contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
+                query = assembledKeyword,
+                initialRoute = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+            )
+            else -> null
+        }
+        nana7miTelemetry = telemetry
 
         fun fallbackPreview(reason: String): Observable<ListIllust> {
+            telemetry?.fallback(reason)
             Timber.tag(NANA7MI_LOG_TAG).w(
                 "stage=route target=popular_preview reason=%s",
                 reason,
             )
-            return Retro.getAppApi().popularPreview(
+            val source = Retro.getAppApi().popularPreview(
                 assembledKeyword,
                 effectiveStartDate,
                 effectiveEndDate,
@@ -137,10 +161,14 @@ class SearchIllustRepo @JvmOverloads constructor(
                         error.javaClass.simpleName,
                     )
                 }
+            return telemetry?.track(
+                source = source,
+                page = Nana7miSearchTelemetry.Page.FIRST,
+            ) ?: source
         }
 
-        return if (usePopularPreview) {
-            Retro.getAppApi().popularPreview(
+        val result = if (usePopularPreview) {
+            val source = Retro.getAppApi().popularPreview(
                 assembledKeyword,
                 effectiveStartDate,
                 effectiveEndDate,
@@ -156,11 +184,15 @@ class SearchIllustRepo @JvmOverloads constructor(
                 heightMin,
                 heightMax,
             )
+            telemetry?.track(
+                source = source,
+                page = Nana7miSearchTelemetry.Page.FIRST,
+            ) ?: source
         } else if (notPremiumButWantToUsePopularSort) {
             Nana7miSearchSerial.run("illust_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=flow event=start requester_uid=%d sort=%s keyword_length=%d",
-                    SessionManager.loggedInUid,
+                    requesterUid,
                     sortType,
                     assembledKeyword.length,
                 )
@@ -171,12 +203,13 @@ class SearchIllustRepo @JvmOverloads constructor(
                 }.flatMap { result ->
                     val newNana7mi = currentNana7miSession.payload
                     if (newNana7mi != null && !newNana7mi.expired) {
+                        telemetry?.borrowed(newNana7mi.uid)
                         Timber.tag(NANA7MI_LOG_TAG).d(
                             "stage=route target=official_search account_uid=%d sort=%s",
                             newNana7mi.uid,
                             sortType,
                         )
-                        currentNana7miSession.requestWithRefresh(
+                        val source = currentNana7miSession.requestWithRefresh(
                             initial = newNana7mi,
                             stage = "official_search",
                             lease = lease,
@@ -203,7 +236,13 @@ class SearchIllustRepo @JvmOverloads constructor(
                                 heightMin,
                                 heightMax,
                             )
-                        }.onErrorResumeNext { error: Throwable ->
+                        }
+                        (telemetry?.track(
+                            source = source,
+                            page = Nana7miSearchTelemetry.Page.FIRST,
+                            route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+                            borrowedUid = newNana7mi.uid,
+                        ) ?: source).onErrorResumeNext { error: Throwable ->
                             if (isBorrowedAccountUnavailable(error)) {
                                 fallbackPreview("borrowed_refresh_failed")
                             } else {
@@ -234,6 +273,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 heightMax,
             )
         }
+        return telemetry?.observeFirst(result) ?: result
     }
 
     /**
@@ -251,19 +291,24 @@ class SearchIllustRepo @JvmOverloads constructor(
 
     override fun initNextApi(): Observable<ListIllust> {
         val session = nana7miSession
+        val telemetry = nana7miTelemetry
         val payload = session.payload
         // nextUrl 与借用会话必须来自同一轮翻页。串行队列可能让真正订阅延后；若此时
         // 新首屏改写了 RemoteRepo.nextUrl，闭包里再读字段会拼出“旧账号 + 新游标”。
         val nextPageUrl = nextUrl
         return if (payload == null) {
-            Retro.getAppApi().getNextIllust(nextPageUrl)
+            val source = Retro.getAppApi().getNextIllust(nextPageUrl)
+            telemetry?.track(
+                source = source,
+                page = Nana7miSearchTelemetry.Page.NEXT,
+            ) ?: source
         } else {
             Timber.tag(NANA7MI_LOG_TAG).d(
                 "stage=official_search_next event=request account_uid=%d",
                 payload.uid,
             )
             Nana7miSearchSerial.run("illust_next") { lease ->
-                session.requestWithRefresh(
+                val source = session.requestWithRefresh(
                     initial = payload,
                     stage = "official_search_next",
                     lease = lease,
@@ -274,6 +319,12 @@ class SearchIllustRepo @JvmOverloads constructor(
                 ) { authorization ->
                     Retro.getAppApi().getNextIllustWithAuth(authorization, nextPageUrl)
                 }
+                telemetry?.track(
+                    source = source,
+                    page = Nana7miSearchTelemetry.Page.NEXT,
+                    route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+                    borrowedUid = payload.uid,
+                ) ?: source
             }
         }
     }

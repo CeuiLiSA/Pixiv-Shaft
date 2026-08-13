@@ -336,6 +336,10 @@ public class Shaft extends Application implements ServicesProvider {
         // EventReporter.init 之后（PixivActions 会埋点）。
         ceui.pixiv.actions.PixivActionQueue.init(this);
 
+        // Nana7mi 搜索遥测使用独立的 ActionQueue 数据库和消费循环：同样具备落盘/重试，
+        // 但服务端或遥测自身故障绝不能拖慢收藏、关注等用户业务动作。
+        ceui.pixiv.actions.Nana7miSearchTelemetry.INSTANCE.init(this);
+
         // AccountResponse 上报使用独立的全局 outbox：它不属于当前登录用户，切账号或
         // 登出后也必须继续补报刚 refresh 出来的新 token。
         ceui.pixiv.actions.AccountOnlineReportOutbox.INSTANCE.init(this);

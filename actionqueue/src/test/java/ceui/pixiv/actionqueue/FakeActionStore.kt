@@ -190,6 +190,20 @@ internal class FakeActionStore : ActionStore {
         return n
     }
 
+    override suspend fun pruneFailed(owner: String, keepLatest: Int): Int {
+        checkFailure()
+        val retainedIds = rows
+            .filter { it.owner == owner && it.status == Status.FAILED }
+            .sortedByDescending { it.id }
+            .take(keepLatest.coerceAtLeast(0))
+            .mapTo(hashSetOf()) { it.id }
+        val before = rows.size
+        rows.removeAll {
+            it.owner == owner && it.status == Status.FAILED && it.id !in retainedIds
+        }
+        return before - rows.size
+    }
+
     override suspend fun loadCooldownUntilMs(): Long {
         checkFailure()
         return cooldownUntilMs

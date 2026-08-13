@@ -124,4 +124,47 @@ class PixshaftNana7miApiTest {
             request.body.readUtf8(),
         )
     }
+
+    @Test
+    fun `generic search telemetry contains no result summary`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(
+                    """{"ok":true,"eventId":"123e4567-e89b-42d3-a456-426614174000","duplicate":false}""",
+                ),
+        )
+
+        val ack = api.reportNana7miSearchTelemetry(
+            Nana7miSearchTelemetryReq(
+                eventId = "123e4567-e89b-42d3-a456-426614174000",
+                flowId = "123e4567-e89b-42d3-a456-426614174001",
+                eventType = "request",
+                occurredAt = 2_000_000_000_000L,
+                requesterUid = 31660292L,
+                borrowedUid = 4867906L,
+                query = "初音ミク",
+                contentType = "novel",
+                page = "next",
+                route = "borrowed_official",
+                outcome = "failure",
+                flowOutcome = null,
+                reason = "http_500",
+                errorType = "HttpException",
+                httpStatus = 500,
+                durationMs = null,
+                appVersion = "6.8.0-debug",
+                appChannel = "github",
+            ),
+        )
+        val request = server.takeRequest()
+
+        assertTrue(ack.ok)
+        assertEquals("/v1/account/nana7mi/telemetry", request.path)
+        assertEquals(
+            """{"eventId":"123e4567-e89b-42d3-a456-426614174000","flowId":"123e4567-e89b-42d3-a456-426614174001","eventType":"request","occurredAt":2000000000000,"requesterUid":31660292,"borrowedUid":4867906,"query":"初音ミク","contentType":"novel","page":"next","route":"borrowed_official","outcome":"failure","reason":"http_500","errorType":"HttpException","httpStatus":500,"appVersion":"6.8.0-debug","appChannel":"github"}""",
+            request.body.readUtf8(),
+        )
+    }
 }

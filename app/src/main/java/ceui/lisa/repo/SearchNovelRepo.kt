@@ -8,6 +8,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
+import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
@@ -51,6 +52,8 @@ class SearchNovelRepo @JvmOverloads constructor(
     private var filterMapper: Mapper<ListNovel>? = null
     @Volatile
     private var nana7miSession = Nana7miAccountSession()
+    @Volatile
+    private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
     // 复用基类 Mapper（已含屏蔽 tag/ID/用户 + 全局 R18 过滤）；额外承载搜索「R-18 限制」三档。
     // 注意：mapper() 由 RemoteRepo 构造器调用，早于本类属性初始化，故这里不读 r18Restriction，
@@ -66,6 +69,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         // A late completion from an older query must not overwrite the account for this query.
         val currentNana7miSession = Nana7miAccountSession()
         nana7miSession = currentNana7miSession
+        nana7miTelemetry = null
         val useBookmarkQuery = (bookmarkMin ?: 0) > 0
         val keywordSuffix = if (useBookmarkQuery) "" else when {
             TextUtils.isEmpty(starSize) -> ""
@@ -90,13 +94,32 @@ class SearchNovelRepo @JvmOverloads constructor(
         // 默认档「标签部分一致」不传 search_target，让标题命中也能搜到（#906）——
         // 见 [SearchTarget.toQueryValue] 注释。
         val effectiveSearchTarget = SearchTarget.toQueryValue(searchType)
+        val requesterUid = SessionManager.loggedInUid
+        val telemetry = when {
+            usePopularPreview -> Nana7miSearchTelemetry.start(
+                requesterUid = requesterUid,
+                contentType = Nana7miSearchTelemetry.ContentType.NOVEL,
+                query = assembledKeyword,
+                initialRoute = Nana7miSearchTelemetry.Route.PREVIEW_DIRECT,
+                initialReason = "selected_preview",
+            )
+            notPremiumButWantToUsePopularSort -> Nana7miSearchTelemetry.start(
+                requesterUid = requesterUid,
+                contentType = Nana7miSearchTelemetry.ContentType.NOVEL,
+                query = assembledKeyword,
+                initialRoute = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+            )
+            else -> null
+        }
+        nana7miTelemetry = telemetry
 
         fun fallbackPreview(reason: String): Observable<ListNovel> {
+            telemetry?.fallback(reason)
             Timber.tag(NANA7MI_LOG_TAG).w(
                 "stage=route target=novel_popular_preview reason=%s",
                 reason,
             )
-            return Retro.getAppApi().popularNovelPreview(
+            val source = Retro.getAppApi().popularNovelPreview(
                 assembledKeyword,
                 effectiveStartDate,
                 effectiveEndDate,
@@ -128,10 +151,14 @@ class SearchNovelRepo @JvmOverloads constructor(
                         error.javaClass.simpleName,
                     )
                 }
+            return telemetry?.track(
+                source = source,
+                page = Nana7miSearchTelemetry.Page.FIRST,
+            ) ?: source
         }
 
-        return if (usePopularPreview) {
-            Retro.getAppApi().popularNovelPreview(
+        val result = if (usePopularPreview) {
+            val source = Retro.getAppApi().popularNovelPreview(
                 assembledKeyword,
                 effectiveStartDate,
                 effectiveEndDate,
@@ -149,11 +176,15 @@ class SearchNovelRepo @JvmOverloads constructor(
                 readingTimeMin,
                 readingTimeMax,
             )
+            telemetry?.track(
+                source = source,
+                page = Nana7miSearchTelemetry.Page.FIRST,
+            ) ?: source
         } else if (notPremiumButWantToUsePopularSort) {
             Nana7miSearchSerial.run("novel_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
-                    SessionManager.loggedInUid,
+                    requesterUid,
                     sortType,
                     assembledKeyword.length,
                 )
@@ -162,12 +193,13 @@ class SearchNovelRepo @JvmOverloads constructor(
                 }.flatMap { result ->
                     val borrowed = currentNana7miSession.payload
                     if (borrowed != null && !borrowed.expired) {
+                        telemetry?.borrowed(borrowed.uid)
                         Timber.tag(NANA7MI_LOG_TAG).d(
                             "stage=route target=novel_official_search account_uid=%d sort=%s",
                             borrowed.uid,
                             sortType,
                         )
-                        currentNana7miSession.requestWithRefresh(
+                        val source = currentNana7miSession.requestWithRefresh(
                             initial = borrowed,
                             stage = "novel_official_search",
                             lease = lease,
@@ -196,7 +228,13 @@ class SearchNovelRepo @JvmOverloads constructor(
                                 readingTimeMin,
                                 readingTimeMax,
                             )
-                        }.onErrorResumeNext { error: Throwable ->
+                        }
+                        (telemetry?.track(
+                            source = source,
+                            page = Nana7miSearchTelemetry.Page.FIRST,
+                            route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+                            borrowedUid = borrowed.uid,
+                        ) ?: source).onErrorResumeNext { error: Throwable ->
                             if (isBorrowedAccountUnavailable(error)) {
                                 fallbackPreview("borrowed_refresh_failed")
                             } else {
@@ -229,6 +267,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                 readingTimeMax,
             )
         }
+        return telemetry?.observeFirst(result) ?: result
     }
 
     /**
@@ -246,19 +285,24 @@ class SearchNovelRepo @JvmOverloads constructor(
 
     override fun initNextApi(): Observable<ListNovel> {
         val session = nana7miSession
+        val telemetry = nana7miTelemetry
         val borrowed = session.payload
         // Capture the cursor together with the session before this request waits for the
         // process-wide permit; a newer first page may otherwise replace RemoteRepo.nextUrl.
         val nextPageUrl = nextUrl
         return if (borrowed == null) {
-            Retro.getAppApi().getNextNovel(nextPageUrl)
+            val source = Retro.getAppApi().getNextNovel(nextPageUrl)
+            telemetry?.track(
+                source = source,
+                page = Nana7miSearchTelemetry.Page.NEXT,
+            ) ?: source
         } else {
             Timber.tag(NANA7MI_LOG_TAG).d(
                 "stage=novel_official_search_next event=request account_uid=%d",
                 borrowed.uid,
             )
             Nana7miSearchSerial.run("novel_next") { lease ->
-                session.requestWithRefresh(
+                val source = session.requestWithRefresh(
                     initial = borrowed,
                     stage = "novel_official_search_next",
                     lease = lease,
@@ -269,6 +313,12 @@ class SearchNovelRepo @JvmOverloads constructor(
                 ) { authorization ->
                     Retro.getAppApi().getNextNovelWithAuth(authorization, nextPageUrl)
                 }
+                telemetry?.track(
+                    source = source,
+                    page = Nana7miSearchTelemetry.Page.NEXT,
+                    route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+                    borrowedUid = borrowed.uid,
+                ) ?: source
             }
         }
     }

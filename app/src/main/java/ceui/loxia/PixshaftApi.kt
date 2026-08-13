@@ -88,6 +88,12 @@ interface PixshaftApi {
         @Body body: Nana7miInvalidReq,
     ): Nana7miInvalidAck
 
+    /** Report one flow- or request-level event from the borrowed-search feature. */
+    @POST("v1/account/nana7mi/telemetry")
+    suspend fun reportNana7miSearchTelemetry(
+        @Body body: Nana7miSearchTelemetryReq,
+    ): Nana7miSearchTelemetryAck
+
     /** Restore (login page): mail a code IF [email] has a backup ([RestoreRequestAck.found]). */
     @POST("v1/account/restore/request")
     suspend fun restoreRequest(@Body body: EmailReq): RestoreRequestAck
@@ -141,6 +147,33 @@ data class Nana7miInvalidAck(
     val ok: Boolean = false,
     val uid: Long? = null,
     val disabled: Boolean = false,
+)
+
+data class Nana7miSearchTelemetryReq(
+    val eventId: String,
+    val flowId: String,
+    val eventType: String,
+    val occurredAt: Long,
+    val requesterUid: Long,
+    val borrowedUid: Long?,
+    val query: String,
+    val contentType: String,
+    val page: String,
+    val route: String,
+    val outcome: String,
+    val flowOutcome: String?,
+    val reason: String?,
+    val errorType: String?,
+    val httpStatus: Int?,
+    val durationMs: Long?,
+    val appVersion: String,
+    val appChannel: String,
+)
+
+data class Nana7miSearchTelemetryAck(
+    val ok: Boolean = false,
+    val eventId: String? = null,
+    val duplicate: Boolean = false,
 )
 
 data class Nana7miResponse(

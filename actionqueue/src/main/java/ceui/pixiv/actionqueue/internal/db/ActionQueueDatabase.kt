@@ -6,9 +6,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 本模块私有的库，文件名 `pixiv_action_queue.db`。
+ * 本模块私有的库；默认文件名 `pixiv_action_queue.db`，也支持按队列用途使用独立库名。
  *
  * 刻意**不**并进 app 的主库：主库已经是 v41、19 条手写 migration、24 张表，
  * 往里加一张表就要给所有既有表担一次迁移风险。独立库升级互不影响。
@@ -27,8 +28,6 @@ internal abstract class ActionQueueDatabase : RoomDatabase() {
     abstract fun actionDao(): ActionDao
 
     companion object {
-
-        private const val DB_NAME = "pixiv_action_queue.db"
 
         /**
          * v1 → v2：行加 `owner`（归属账号），另起 `queue_meta` 存整队冷却截止时刻。
@@ -62,19 +61,24 @@ internal abstract class ActionQueueDatabase : RoomDatabase() {
             }
         }
 
-        @Volatile
-        private var instance: ActionQueueDatabase? = null
+        private val instances = ConcurrentHashMap<String, ActionQueueDatabase>()
 
-        fun get(context: Context): ActionQueueDatabase =
-            instance ?: synchronized(this) {
-                instance ?: build(context).also { instance = it }
+        fun get(context: Context, databaseName: String): ActionQueueDatabase {
+            require(databaseName.matches(Regex("^[A-Za-z0-9_.-]+\\.db$"))) {
+                "invalid action queue database name"
             }
+            return instances[databaseName] ?: synchronized(this) {
+                instances[databaseName] ?: build(context, databaseName).also {
+                    instances[databaseName] = it
+                }
+            }
+        }
 
-        private fun build(context: Context): ActionQueueDatabase =
+        private fun build(context: Context, databaseName: String): ActionQueueDatabase =
             Room.databaseBuilder(
                 context.applicationContext,
                 ActionQueueDatabase::class.java,
-                DB_NAME,
+                databaseName,
             )
                 .addMigrations(MIGRATION_1_2)
                 // 不开 allowMainThreadQueries：本库所有访问都在协程里，

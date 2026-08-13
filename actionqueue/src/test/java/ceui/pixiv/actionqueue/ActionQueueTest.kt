@@ -585,4 +585,21 @@ class ActionQueueTest {
 
         assertEquals(listOf("bookmark-again"), seen)
     }
+
+    @Test
+    fun `终态失败裁剪只删除当前 owner 最旧的记录`() = runTest {
+        val store = FakeActionStore()
+        repeat(5) { index ->
+            val id = store.enqueue(request("mine-$index", key = "mine:$index"), 0L, "mine")
+            store.markFailed(id, "failed")
+        }
+        val other = store.enqueue(request("other", key = "other:1"), 0L, "other")
+        store.markFailed(other, "failed")
+        val q = queue(store, ActionHandler { ActionOutcome.Success }, owner = { "mine" })
+
+        assertEquals(3, q.pruneFailed(2))
+        assertEquals(2, q.failedCount())
+        assertEquals(1, store.failedCount("other"))
+        assertEquals(listOf("mine-3", "mine-4"), store.rows.filter { it.owner == "mine" }.map { it.payload })
+    }
 }

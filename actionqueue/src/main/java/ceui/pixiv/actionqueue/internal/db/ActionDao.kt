@@ -115,6 +115,13 @@ internal interface ActionDao {
     @Query("DELETE FROM queued_action WHERE owner = :owner AND status = 'FAILED'")
     suspend fun clearFailed(owner: String): Int
 
+    @Query(
+        "DELETE FROM queued_action WHERE owner = :owner AND status = 'FAILED' AND id NOT IN (" +
+            "SELECT id FROM queued_action WHERE owner = :owner AND status = 'FAILED' " +
+            "ORDER BY id DESC LIMIT :keepLatest)"
+    )
+    suspend fun pruneFailed(owner: String, keepLatest: Int): Int
+
     @Query("SELECT value FROM queue_meta WHERE `key` = :key")
     suspend fun readMeta(key: String): Long?
 

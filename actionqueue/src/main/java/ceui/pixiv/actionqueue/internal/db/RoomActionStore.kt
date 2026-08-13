@@ -7,9 +7,14 @@ import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.StoredAction
 
 /** [ActionStore] 的 Room 实现。数据库实例懒建，首次访问发生在消费协程里（IO 线程）。 */
-internal class RoomActionStore(private val context: Context) : ActionStore {
+internal class RoomActionStore(
+    private val context: Context,
+    private val databaseName: String,
+) : ActionStore {
 
-    private val dao: ActionDao by lazy { ActionQueueDatabase.get(context).actionDao() }
+    private val dao: ActionDao by lazy {
+        ActionQueueDatabase.get(context, databaseName).actionDao()
+    }
 
     override suspend fun enqueue(request: ActionRequest, nowMs: Long, owner: String): Long {
         val entity = ActionEntity(
@@ -77,6 +82,9 @@ internal class RoomActionStore(private val context: Context) : ActionStore {
         dao.retryAllFailed(nowMs, owner)
 
     override suspend fun clearFailed(owner: String): Int = dao.clearFailed(owner)
+
+    override suspend fun pruneFailed(owner: String, keepLatest: Int): Int =
+        dao.pruneFailed(owner, keepLatest.coerceAtLeast(0))
 
     override suspend fun loadCooldownUntilMs(): Long = dao.readMeta(KEY_COOLDOWN_UNTIL) ?: 0L
 
