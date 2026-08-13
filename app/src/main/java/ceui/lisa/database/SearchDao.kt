@@ -79,6 +79,10 @@ interface SearchDao {
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
     fun getUserMuteEntityByID(userID: Int): MuteEntity?
 
+    // 标签屏蔽记录的 id 就是 tag 名的 hashCode，见 PixivOperate.muteTag
+    @Query("SELECT * FROM tag_mute_table WHERE type = 0 AND id = :tagId LIMIT 1")
+    fun getTagMuteEntityByID(tagId: Int): MuteEntity?
+
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
     fun getUserMuteEntityByIDLiveData(userID: Int): LiveData<MuteEntity>
 

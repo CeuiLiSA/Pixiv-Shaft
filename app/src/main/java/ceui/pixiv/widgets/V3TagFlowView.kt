@@ -16,6 +16,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Params
@@ -407,10 +408,27 @@ class V3TagFlowView @JvmOverloads constructor(
                 SynonymOperate.showAddAsSynonymDialog(context, name, translated)
             }
         }
-        labels.add(context.getString(R.string.v3_tag_menu_mute))
-        actions.add { muteTag(name, translated) }
+        // 已屏蔽的 tag 给「取消屏蔽」而不是再屏蔽一次（issue #1003）——重复 muteTag 的
+        // REPLACE 会把「已屏蔽但未生效」的记录重置成生效，且用户无从在此解除屏蔽。
+        val alreadyMuted = AppDatabase.getAppDatabase(context).searchDao()
+            .getTagMuteEntityByID(name.hashCode()) != null
+        if (alreadyMuted) {
+            labels.add(context.getString(R.string.v3_tag_menu_unmute))
+            actions.add { unMuteTag(name, translated) }
+        } else {
+            labels.add(context.getString(R.string.v3_tag_menu_mute))
+            actions.add { muteTag(name, translated) }
+        }
 
+        // 标题写明按中的是哪个 tag（issue #1003：列表卡片的 chip 小，容易误按）。
+        // 原文译文都给，QMUI 标题不限行数，过长会换行不会截断。
         QMUIDialog.MenuDialogBuilder(context)
+            .setTitle(buildString {
+                append(name)
+                if (hasTranslation) {
+                    append("  "); append(translated)
+                }
+            })
             .addItems(labels.toTypedArray()) { dialog, which ->
                 actions[which].invoke()
                 dialog.dismiss()
@@ -433,6 +451,15 @@ class V3TagFlowView @JvmOverloads constructor(
         }
         PixivOperate.muteTag(bean)
         Toaster.showShort(R.string.string_382)
+    }
+
+    private fun unMuteTag(name: String, translated: String?) {
+        val bean = TagsBean().apply {
+            this.name = name
+            this.translated_name = translated
+        }
+        PixivOperate.unMuteTag(bean, false)
+        Toaster.showShort(R.string.string_383)
     }
 
     private fun applyTouchScale(view: View, scale: Float) {

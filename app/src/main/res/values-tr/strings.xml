@@ -1879,6 +1879,7 @@
     <string name="v3_tag_menu_copy_original">Etiketi kopyala</string>
     <string name="v3_tag_menu_copy_translation">Çeviriyi kopyala</string>
     <string name="v3_tag_menu_mute">Bu etiketi engelle</string>
+    <string name="v3_tag_menu_unmute">Bu etiketin engelini kaldır</string>
     <string name="experimental_section">Deneysel</string>
     <string name="site_recommend">Bu Ayın Yer İmleri</string>
     <string name="current_hot">Şu An Popüler</string>

@@ -1881,6 +1881,7 @@
     <string name="v3_tag_menu_copy_original">複製 tag 原文</string>
     <string name="v3_tag_menu_copy_translation">複製 tag 譯文</string>
     <string name="v3_tag_menu_mute">封鎖此 tag</string>
+    <string name="v3_tag_menu_unmute">取消封鎖此 tag</string>
     <string name="experimental_section">試驗性</string>
     <string name="site_recommend">本月收藏</string>
     <string name="current_hot">當前最熱</string>
