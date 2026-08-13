@@ -17,9 +17,9 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
     val tagList = MutableLiveData<List<Tag>>()
 
     /** 兼容老的 radio_tab UI——存的是 0..3 索引；写时同步到 [illustFilter]/[novelFilter] 的 sort。
-     *  初始 1 = 「从新到旧」对齐 [SearchFilterV3] 的默认 [SortType.DATE_DESC]，避免首帧高亮闪一下。 */
-    val illustSelectedRadioTabIndex = MutableLiveData(1)
-    val novelSelectedRadioTabIndex = MutableLiveData(1)
+     *  初始 3 = 「按热度」对齐 [SearchFilterV3] 的默认 [SortType.POPULAR_DESC]，避免首帧高亮闪一下。 */
+    val illustSelectedRadioTabIndex = MutableLiveData(3)
+    val novelSelectedRadioTabIndex = MutableLiveData(3)
 
     /**
      * V3 Filter 的真单源——sort/bookmark/tool/lang/genre/duration/dates/ai/r18 全在这里。

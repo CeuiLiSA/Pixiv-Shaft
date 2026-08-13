@@ -36,7 +36,7 @@ import ceui.pixiv.ui.search.SortType
  *                              默认 [IllustContentType.IllustAndMangaAndUgoira] 等价于不传
  */
 data class SearchFilterV3(
-    val sort: String = SortType.DATE_DESC,
+    val sort: String = SortType.POPULAR_DESC,
     val searchTarget: SearchTarget = SearchTarget.PartialMatchForTags,
     val bookmarkBucket: BookmarkBucket = BookmarkBucket.None,
     val keywordUsersBucket: KeywordUsersBucket = KeywordUsersBucket.None,
@@ -64,7 +64,7 @@ data class SearchFilterV3(
         /**
          * 读 [Shaft.sSettings] 里的三项全局默认偏好——保证 V3 sheet 第一次打开就反映用户在
          * 设置页配的偏好，与老 [ceui.lisa.fragments.FragmentFilter] 行为一致：
-         *   - sort：`getSearchDefaultSortType()`（默认 date_desc）
+         *   - sort：`getSearchDefaultSortType()`（默认 popular_desc「按热度」）
          *   - keywordUsersBucket：`getSearchFilter()`（"" / "1000users入り" 之类）—— 这条设置
          *     从老 FragmentFilter 起就是关键字后缀语义，所以落到 keyword 维度，不是 bookmark
          *     query 维度。bookmarkBucket 维度走 query 参数，没有全局默认。
@@ -75,7 +75,7 @@ data class SearchFilterV3(
          */
         fun fromGlobalDefaults(): SearchFilterV3 {
             val s = Shaft.sSettings
-            val sort = s.searchDefaultSortType.takeIf { it.isNotEmpty() } ?: SortType.DATE_DESC
+            val sort = s.searchDefaultSortType.takeIf { it.isNotEmpty() } ?: SortType.POPULAR_DESC
             val bucketMin = Regex("""\d+""").find(s.searchFilter.orEmpty())
                 ?.value?.toIntOrNull() ?: 0
             val keywordBucket = KeywordUsersBucket.values().firstOrNull { it.min == bucketMin }
@@ -91,7 +91,7 @@ data class SearchFilterV3(
     /** 已经设置了几个非默认维度——给入口按钮显示徽标用。 */
     fun activeCount(isNovel: Boolean): Int {
         var n = 0
-        if (sort != SortType.DATE_DESC) n++
+        if (sort != SortType.POPULAR_DESC) n++
         if (searchTarget != SearchTarget.PartialMatchForTags) n++
         if (bookmarkBucket != BookmarkBucket.None) n++
         if (keywordUsersBucket != KeywordUsersBucket.None) n++

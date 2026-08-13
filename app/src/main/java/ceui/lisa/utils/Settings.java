@@ -864,9 +864,10 @@ public class Settings {
     }
 
     public String getSearchDefaultSortType() {
-        // 默认排序：date_desc（从新到旧）—— pixiv 在 popular-preview 端点上 lang 过滤效果很弱，
-        // 默认走 date_desc（searchIllust/searchNovel 端点）能让语种筛选可见地生效。
-        return TextUtils.isEmpty(searchDefaultSortType) ? PixivSearchParamUtil.SORT_TYPE_VALUE[0] : searchDefaultSortType;
+        // 默认排序：popular_desc（按热度）—— 搜索的默认诉求是「先看好的」，不是「先看新的」。
+        // 它仍走 searchIllust/searchNovel 端点（sort 透传），所以 lang 等 query 筛选照常生效；
+        // 非会员由 SearchIllustRepo/SearchNovelRepo 的借号路线跑，借不到时回落 popular-preview。
+        return TextUtils.isEmpty(searchDefaultSortType) ? PixivSearchParamUtil.POPULAR_SORT_VALUE : searchDefaultSortType;
     }
 
     public void setSearchDefaultSortType(String searchDefaultSortType) {
