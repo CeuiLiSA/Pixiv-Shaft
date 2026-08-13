@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -54,59 +55,89 @@ internal object Nana7miSearchTelemetry {
     @JvmStatic
     fun init(context: Context) {
         if (!initialized.compareAndSet(false, true)) return
-        val monitor = AppNetworkMonitor.get(context.applicationContext)
-        val instance = ActionQueue.withRoomStore(
-            context = context.applicationContext,
-            databaseName = DATABASE_NAME,
-            handlers = mapOf(
-                ACTION_TYPE to Nana7miSearchTelemetryHandler(
-                    isOnline = { monitor.isConnected },
+        val appContext = context.applicationContext
+        try {
+            val monitor = AppNetworkMonitor.get(appContext)
+            val instance = ActionQueue.withRoomStore(
+                context = appContext,
+                databaseName = DATABASE_NAME,
+                handlers = mapOf(
+                    ACTION_TYPE to Nana7miSearchTelemetryHandler(
+                        isOnline = { monitor.isConnected },
+                    ),
                 ),
-            ),
-            policy = QueuePolicy(minGapMs = MIN_GAP_MS),
-            gate = { monitor.isConnected },
-            // The payload carries the requester uid. A global owner lets delayed telemetry finish
-            // after logout/account switching without ever borrowing the new account's Pixiv token.
-            owner = { GLOBAL_OWNER },
-            onError = { message, error -> Timber.tag(TAG).e(error, message) },
-        )
-        queue = instance
-        scope.launch {
-            instance.events.collect { event ->
-                if (event is ActionEvent.Failed) {
-                    Timber.tag(TAG).w(
-                        event.cause,
-                        "telemetry delivery parked event=%s reason=%s",
-                        event.action.dedupeKey,
-                        event.reason,
-                    )
-                    try {
-                        val removed = instance.pruneFailed(MAX_FAILED_ROWS)
-                        if (removed > 0) {
-                            Timber.tag(TAG).w("telemetry dead letters pruned count=%d", removed)
+                policy = QueuePolicy(minGapMs = MIN_GAP_MS),
+                gate = { monitor.isConnected },
+                // The payload carries the requester uid. A global owner lets delayed telemetry
+                // finish after logout/account switching without using the new Pixiv account.
+                owner = { GLOBAL_OWNER },
+                onError = { message, error -> Timber.tag(TAG).e(error, message) },
+            )
+            queue = instance
+            // Subscribe synchronously before the consumer starts. SharedFlow has no replay;
+            // without this, a fast first failure could be emitted before cleanup is listening.
+            scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                instance.events.collect { event ->
+                    if (event is ActionEvent.Failed) {
+                        Timber.tag(TAG).w(
+                            event.cause,
+                            "telemetry delivery parked event=%s reason=%s",
+                            event.action.dedupeKey,
+                            event.reason,
+                        )
+                        try {
+                            if (isPermanentFailure(event.reason)) {
+                                // Bad local payloads and definitive 4xx responses cannot heal by
+                                // waiting. Delete them instead of resurrecting the same poison row
+                                // at every startup/connectivity change/six-hour sweep.
+                                instance.forget(event.action.id)
+                                Timber.tag(TAG).w(
+                                    "permanent telemetry event discarded event=%s",
+                                    event.action.dedupeKey,
+                                )
+                            } else {
+                                val removed = instance.pruneFailed(MAX_FAILED_ROWS)
+                                if (removed > 0) {
+                                    Timber.tag(TAG).w(
+                                        "telemetry dead letters pruned count=%d",
+                                        removed,
+                                    )
+                                }
+                            }
+                        } catch (error: Throwable) {
+                            // A cleanup failure must not cancel this long-lived collector.
+                            Timber.tag(TAG).w(error, "telemetry dead-letter cleanup failed")
                         }
-                    } catch (error: Throwable) {
-                        // A cleanup failure must not cancel this long-lived collector.
-                        Timber.tag(TAG).w(error, "telemetry dead-letter prune failed")
                     }
                 }
             }
-        }
-        scope.launch {
-            retryParked(instance, "startup")
-        }
-        scope.launch {
-            monitor.observeConnectivity.collect { online ->
-                if (online) retryParked(instance, "network_restored")
+            instance.start()
+            scope.launch {
+                retryParked(instance, "startup")
+            }
+            scope.launch {
+                monitor.observeConnectivity.collect { online ->
+                    if (online) retryParked(instance, "network_restored")
+                }
+            }
+            scope.launch {
+                while (isActive) {
+                    delay(FAILED_RETRY_INTERVAL_MS)
+                    retryParked(instance, "periodic")
+                }
+            }
+        } catch (error: Throwable) {
+            // Telemetry initialization is part of Application startup. A Room/network-monitor
+            // problem must never crash or brick the search process. Reset the guard and retry in
+            // process; a concurrent/manual init that succeeds makes the delayed call a no-op.
+            queue = null
+            initialized.set(false)
+            Timber.tag(TAG).e(error, "telemetry initialization failed; retrying")
+            scope.launch {
+                delay(INIT_RETRY_INTERVAL_MS)
+                init(appContext)
             }
         }
-        scope.launch {
-            while (isActive) {
-                delay(FAILED_RETRY_INTERVAL_MS)
-                retryParked(instance, "periodic")
-            }
-        }
-        instance.start()
     }
 
     private suspend fun retryParked(instance: ActionQueue, trigger: String) {
@@ -124,6 +155,12 @@ internal object Nana7miSearchTelemetry {
             Timber.tag(TAG).w(error, "telemetry recovery failed trigger=%s", trigger)
         }
     }
+
+    private fun isPermanentFailure(reason: String): Boolean =
+        reason.startsWith(PERMANENT_FAILURE_PREFIX)
+
+    internal fun permanentFailure(reason: String, cause: Throwable? = null): ActionOutcome.Fail =
+        ActionOutcome.Fail(PERMANENT_FAILURE_PREFIX + reason, cause)
 
     enum class ContentType(val wire: String) { ILLUST("illust"), NOVEL("novel") }
     enum class Page(val wire: String) { FIRST("first"), NEXT("next") }
@@ -225,9 +262,16 @@ internal object Nana7miSearchTelemetry {
         EventType.FLOW_TERMINAL.wire -> when (payload.flowOutcome) {
             FlowOutcome.CANCELLED.wire -> payload.outcome == Outcome.CANCELLED.wire
             FlowOutcome.TOTAL_FAILURE.wire -> payload.outcome == Outcome.FAILURE.wire
-            FlowOutcome.OFFICIAL_SUCCESS.wire,
-            FlowOutcome.PREVIEW_SUCCESS.wire,
-            FlowOutcome.FALLBACK_SUCCESS.wire -> payload.outcome == Outcome.SUCCESS.wire
+            FlowOutcome.OFFICIAL_SUCCESS.wire ->
+                payload.outcome == Outcome.SUCCESS.wire &&
+                        payload.route == Route.BORROWED_OFFICIAL.wire &&
+                        payload.borrowedUid != null
+            FlowOutcome.PREVIEW_SUCCESS.wire ->
+                payload.outcome == Outcome.SUCCESS.wire &&
+                        payload.route == Route.PREVIEW_DIRECT.wire
+            FlowOutcome.FALLBACK_SUCCESS.wire ->
+                payload.outcome == Outcome.SUCCESS.wire &&
+                        payload.route == Route.PREVIEW_FALLBACK.wire
             else -> false
         } && payload.durationMs != null
         else -> false
@@ -412,7 +456,9 @@ internal object Nana7miSearchTelemetry {
     private const val GLOBAL_OWNER = "nana7mi_search_telemetry"
     private const val MIN_GAP_MS = 250L
     private const val MAX_FAILED_ROWS = 500
+    private const val INIT_RETRY_INTERVAL_MS = 60_000L
     private const val FAILED_RETRY_INTERVAL_MS = 6L * 60L * 60L * 1_000L
+    private const val PERMANENT_FAILURE_PREFIX = "permanent telemetry failure: "
     private val APP_VERSION = if (BuildConfig.IS_DEBUG_MODE) {
         BuildConfig.VERSION_NAME + "-debug"
     } else {
@@ -439,7 +485,7 @@ internal class Nana7miSearchTelemetryHandler(
 ) : ActionHandler {
     override suspend fun execute(action: PendingAction): ActionOutcome {
         val parsed = action.parsePayload<Nana7miSearchTelemetry.Payload>()
-            ?: return ActionOutcome.Fail("unparsable nana7mi telemetry")
+            ?: return Nana7miSearchTelemetry.permanentFailure("unparsable payload")
         // Upgrade rows queued by the immediately preceding app build. Gson leaves newly added
         // non-present fields null because it bypasses Kotlin constructor defaults.
         val payload = parsed.copy(
@@ -448,7 +494,7 @@ internal class Nana7miSearchTelemetryHandler(
             appChannel = parsed.appChannel ?: "unknown",
         )
         if (!Nana7miSearchTelemetry.valid(payload)) {
-            return ActionOutcome.Fail("invalid nana7mi telemetry")
+            return Nana7miSearchTelemetry.permanentFailure("invalid payload")
         }
         val outcome = try {
             val ack = report(
@@ -476,19 +522,48 @@ internal class Nana7miSearchTelemetryHandler(
             if (ack.ok && ack.eventId == payload.eventId) {
                 ActionOutcome.Success
             } else {
-                ActionOutcome.Fail("nana7mi telemetry acknowledgement mismatch")
+                // A valid 2xx with a mismatched/negative acknowledgement points to a backend or
+                // rollout problem, not bad event data. Park and periodically retry it.
+                ActionOutcome.Retry(
+                    cause = IllegalStateException("nana7mi telemetry acknowledgement mismatch"),
+                    scope = RetryScope.ACTION,
+                )
             }
         } catch (ce: CancellationException) {
             throw ce
         } catch (error: Throwable) {
-            error.toActionOutcome(isOnline())
+            error.toTelemetryActionOutcome(isOnline())
         }
-        // This dedicated queue is already isolated from business actions. ACTION scope also lets
-        // later telemetry continue while one malformed/transient event backs off.
-        return if (outcome is ActionOutcome.Retry) {
-            outcome.copy(scope = RetryScope.ACTION)
-        } else {
-            outcome
-        }
+        return outcome
     }
+}
+
+/** Error policy for the pixshaft telemetry API; Pixiv token semantics do not apply here. */
+private fun Throwable.toTelemetryActionOutcome(isOnline: Boolean): ActionOutcome = when (this) {
+    is HttpException -> when (val code = code()) {
+        408 -> ActionOutcome.Retry(cause = this, scope = RetryScope.ACTION)
+        // Auth and route availability can change across an app/API rollout. Preserve these in the
+        // bounded dead-letter queue so an updated secret or newly deployed route can recover them.
+        401, 403, 404 -> ActionOutcome.Retry(cause = this, scope = RetryScope.QUEUE)
+        429 -> ActionOutcome.Retry(
+            retryAfterMs = response()?.headers()?.get("Retry-After")
+                ?.trim()
+                ?.toLongOrNull()
+                ?.times(1_000L),
+            cause = this,
+            scope = RetryScope.QUEUE,
+        )
+        // The telemetry queue is physically isolated from bookmark/follow actions, so systemic
+        // backend errors should cool this whole queue instead of letting every later row hammer it.
+        in 500..599 -> ActionOutcome.Retry(cause = this, scope = RetryScope.QUEUE)
+        else -> Nana7miSearchTelemetry.permanentFailure("HTTP $code", this)
+    }
+    is IOException -> ActionOutcome.Retry(
+        cause = this,
+        scope = if (isOnline) RetryScope.ACTION else RetryScope.QUEUE,
+        countsAsAttempt = isOnline,
+    )
+    // Converter/protocol errors can be caused by a bad backend rollout. Keep a bounded dead
+    // letter and let the six-hour recovery sweep retry after the server has been repaired.
+    else -> ActionOutcome.Retry(cause = this, scope = RetryScope.ACTION)
 }

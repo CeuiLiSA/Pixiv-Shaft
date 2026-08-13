@@ -7,11 +7,16 @@ import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
 import com.google.gson.Gson
 import io.reactivex.Observable
+import java.io.IOException
 import kotlinx.coroutines.runBlocking
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
+import retrofit2.HttpException
+import retrofit2.Response
 
 class Nana7miSearchTelemetryHandlerTest {
 
@@ -99,7 +104,92 @@ class Nana7miSearchTelemetryHandlerTest {
         val outcome = handler.execute(action(validPayload().copy(requesterUid = 0L)))
 
         assertEquals(0, calls)
-        assertEquals("invalid nana7mi telemetry", (outcome as ActionOutcome.Fail).reason)
+        assertEquals(
+            "permanent telemetry failure: invalid payload",
+            (outcome as ActionOutcome.Fail).reason,
+        )
+    }
+
+    @Test
+    fun `telemetry 400 is permanent instead of entering the six-hour retry loop`() = runBlocking {
+        val handler = Nana7miSearchTelemetryHandler(
+            isOnline = { true },
+            report = { throw httpError(400) },
+        )
+
+        val outcome = handler.execute(action(validPayload())) as ActionOutcome.Fail
+
+        assertEquals("permanent telemetry failure: HTTP 400", outcome.reason)
+    }
+
+    @Test
+    fun `auth and missing route failures survive staggered deployments`() = runBlocking {
+        for (code in listOf(401, 403, 404)) {
+            val outcome = Nana7miSearchTelemetryHandler(
+                isOnline = { true },
+                report = { throw httpError(code) },
+            ).execute(action(validPayload())) as ActionOutcome.Retry
+
+            assertEquals(ceui.pixiv.actionqueue.RetryScope.QUEUE, outcome.scope)
+        }
+    }
+
+    @Test
+    fun `terminal success route and flow outcome must agree`() = runBlocking {
+        var calls = 0
+        val handler = Nana7miSearchTelemetryHandler(
+            isOnline = { true },
+            report = {
+                calls += 1
+                Nana7miSearchTelemetryAck(ok = true, eventId = it.eventId)
+            },
+        )
+        val inconsistent = validPayload().copy(
+            eventType = "flow_terminal",
+            route = "borrowed_official",
+            outcome = "success",
+            flowOutcome = "fallback_success",
+            durationMs = 100L,
+        )
+
+        val outcome = handler.execute(action(inconsistent)) as ActionOutcome.Fail
+
+        assertEquals(0, calls)
+        assertEquals("permanent telemetry failure: invalid payload", outcome.reason)
+    }
+
+    @Test
+    fun `telemetry backend failures cool only the dedicated telemetry queue`() = runBlocking {
+        val serverFailure = Nana7miSearchTelemetryHandler(
+            isOnline = { true },
+            report = { throw httpError(503) },
+        ).execute(action(validPayload())) as ActionOutcome.Retry
+        val offlineFailure = Nana7miSearchTelemetryHandler(
+            isOnline = { false },
+            report = { throw IOException("offline") },
+        ).execute(action(validPayload())) as ActionOutcome.Retry
+
+        assertEquals(ceui.pixiv.actionqueue.RetryScope.QUEUE, serverFailure.scope)
+        assertEquals(ceui.pixiv.actionqueue.RetryScope.QUEUE, offlineFailure.scope)
+        assertFalse(offlineFailure.countsAsAttempt)
+    }
+
+    @Test
+    fun `acknowledgement mismatch is parked for backend recovery`() = runBlocking {
+        val handler = Nana7miSearchTelemetryHandler(
+            isOnline = { true },
+            report = {
+                Nana7miSearchTelemetryAck(
+                    ok = true,
+                    eventId = "123e4567-e89b-42d3-a456-426614174099",
+                )
+            },
+        )
+
+        val outcome = handler.execute(action(validPayload())) as ActionOutcome.Retry
+
+        assertEquals(ceui.pixiv.actionqueue.RetryScope.ACTION, outcome.scope)
+        assertEquals("nana7mi telemetry acknowledgement mismatch", outcome.cause?.message)
     }
 
     @Test
@@ -152,6 +242,9 @@ class Nana7miSearchTelemetryHandlerTest {
         attempt = 0,
         owner = "nana7mi_search_telemetry",
     )
+
+    private fun httpError(code: Int): HttpException =
+        HttpException(Response.error<Any>(code, "".toResponseBody()))
 
     private fun validPayload() = Nana7miSearchTelemetry.Payload(
         eventId = "123e4567-e89b-42d3-a456-426614174000",
