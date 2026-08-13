@@ -675,6 +675,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (Shaft.sSettings.isArtworkV3ShowCommentJumpFab) {
             fabBarController.setCommentJumpVisible(true)
             chromeBind.fabBar.fabComment.setOnClick { scrollToCommentsSection() }
+            // 长按直达完整评论区(#1009),与下载/收藏 FAB 的长按增强同一套习惯。
+            chromeBind.fabBar.fabComment.setOnLongClickListener {
+                val intent = Intent(requireContext(), TemplateActivity::class.java)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                intent.putExtra(Params.ILLUST_ID, illustId.toInt())
+                startActivity(intent)
+                true
+            }
         }
 
         artworkViewModel.isBookmarked.observe(viewLifecycleOwner) { bookmarked ->
