@@ -1,6 +1,8 @@
 package ceui.loxia
 
 import com.google.gson.JsonElement
+import kotlinx.coroutines.CancellationException
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -76,9 +78,9 @@ interface PixshaftApi {
      * refresh remains a client-side responsibility.
      */
     @POST("v1/account/nana7mi")
-    suspend fun fetchNana7mi(
-        @Body body: Nana7miRequest = Nana7miRequest(),
-    ): Nana7miResponse
+    suspend fun fetchNana7miRaw(
+        @Body body: Nana7miRequest,
+    ): Response<Nana7miResponse>
 
     /** Restore (login page): mail a code IF [email] has a backup ([RestoreRequestAck.found]). */
     @POST("v1/account/restore/request")
@@ -122,15 +124,79 @@ data class BindOnlineAck(
     val uid: Long? = null,
 )
 
-class Nana7miRequest
+data class Nana7miRequest(val uid: Long)
 
 data class Nana7miResponse(
-    val uid: Long = 0L,
-    val account: AccountResponse = AccountResponse(),
-    val updatedAt: Long = 0L,
-    val expiresAt: Long = 0L,
-    val expired: Boolean = false,
+    val uid: Long? = null,
+    val account: AccountResponse? = null,
+    val updatedAt: Long? = null,
+    val expiresAt: Long? = null,
+    val expired: Boolean? = null,
 )
+
+/** Validated data handed to business code; all wire-level nullable fields are resolved. */
+data class Nana7miPayload(
+    val uid: Long,
+    val account: AccountResponse,
+    val updatedAt: Long,
+    val expiresAt: Long,
+    val expired: Boolean,
+)
+
+sealed class Nana7miResult {
+    data class Success(val value: Nana7miPayload) : Nana7miResult()
+    data object NoAccount : Nana7miResult()
+    data class RateLimited(val retryAfterSeconds: Long?) : Nana7miResult()
+    data class HttpFailure(val status: Int) : Nana7miResult()
+    data object InvalidRequest : Nana7miResult()
+    data class NetworkFailure(val cause: java.io.IOException) : Nana7miResult()
+    data class InvalidResponse(val cause: Exception? = null) : Nana7miResult()
+}
+
+/**
+ * Safe Nana7mi call for business code. Cancellation still propagates, while
+ * network, HTTP and malformed-payload failures become explicit result values.
+ */
+suspend fun PixshaftApi.fetchNana7mi(uid: Long): Nana7miResult {
+    if (uid <= 0L) return Nana7miResult.InvalidRequest
+    return try {
+        val response = fetchNana7miRaw(Nana7miRequest(uid))
+        when (response.code()) {
+            404 -> Nana7miResult.NoAccount
+            429 -> Nana7miResult.RateLimited(
+                response.headers()["Retry-After"]?.toLongOrNull(),
+            )
+            else -> {
+                if (!response.isSuccessful) return Nana7miResult.HttpFailure(response.code())
+                val body = response.body() ?: return Nana7miResult.InvalidResponse()
+                val responseUid = body.uid ?: return Nana7miResult.InvalidResponse()
+                val account = body.account ?: return Nana7miResult.InvalidResponse()
+                val updatedAt = body.updatedAt ?: return Nana7miResult.InvalidResponse()
+                val expiresAt = body.expiresAt ?: return Nana7miResult.InvalidResponse()
+                val expired = body.expired ?: return Nana7miResult.InvalidResponse()
+                if (
+                    responseUid <= 0L ||
+                    account.user?.id != responseUid ||
+                    account.access_token.isNullOrBlank() ||
+                    account.refresh_token.isNullOrBlank() ||
+                    updatedAt <= 0L ||
+                    expiresAt < updatedAt
+                ) {
+                    return Nana7miResult.InvalidResponse()
+                }
+                Nana7miResult.Success(
+                    Nana7miPayload(responseUid, account, updatedAt, expiresAt, expired),
+                )
+            }
+        }
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (io: java.io.IOException) {
+        Nana7miResult.NetworkFailure(io)
+    } catch (e: Exception) {
+        Nana7miResult.InvalidResponse(e)
+    }
+}
 
 data class RestoreRequestAck(
     val ok: Boolean = false,

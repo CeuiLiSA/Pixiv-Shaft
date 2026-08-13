@@ -35,7 +35,7 @@ class PixshaftNana7miApiTest {
     }
 
     @Test
-    fun `nana7mi call posts an empty object and parses one account`() = runBlocking {
+    fun `nana7mi call posts caller uid and parses one account`() = runBlocking {
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -60,16 +60,47 @@ class PixshaftNana7miApiTest {
                 ),
         )
 
-        val response = api.fetchNana7mi()
+        val result = api.fetchNana7mi(31660292L)
         val request = server.takeRequest()
 
         assertEquals("/v1/account/nana7mi", request.path)
         assertEquals("POST", request.method)
-        assertEquals("{}", request.body.readUtf8())
+        assertEquals("{\"uid\":31660292}", request.body.readUtf8())
+        assertTrue(result is Nana7miResult.Success)
+        val response = (result as Nana7miResult.Success).value
         assertEquals(102L, response.uid)
         assertTrue(response.expired)
         assertEquals("access-102", response.account.access_token)
         assertEquals("refresh-102", response.account.refresh_token)
         assertNotNull(response.account.user)
+    }
+
+    @Test
+    fun `nana7mi maps no account and rate limit without throwing`() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(404).setBody("{\"error\":\"no_account\"}"))
+        assertTrue(api.fetchNana7mi(1L) is Nana7miResult.NoAccount)
+
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(429)
+                .setHeader("Retry-After", "17")
+                .setBody("{\"error\":\"rate_limited\"}"),
+        )
+        val limited = api.fetchNana7mi(2L)
+        assertTrue(limited is Nana7miResult.RateLimited)
+        assertEquals(17L, (limited as Nana7miResult.RateLimited).retryAfterSeconds)
+    }
+
+    @Test
+    fun `nana7mi rejects malformed success without throwing`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("{\"uid\":102,\"expired\":false}"),
+        )
+
+        assertTrue(api.fetchNana7mi(3L) is Nana7miResult.InvalidResponse)
+        assertTrue(api.fetchNana7mi(0L) is Nana7miResult.InvalidRequest)
     }
 }
