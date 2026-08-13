@@ -1,7 +1,6 @@
 package ceui.pixiv.ui.novel.reader.paginate
 
 import ceui.pixiv.ui.novel.reader.model.ContentToken
-import kotlin.random.Random
 
 /**
  * 把「自动混排插画」以 [ContentToken.PixivImage] 的形态插进 token 流（issue #999）。
@@ -22,19 +21,19 @@ object IllustMixInserter {
     const val DEFAULT_INTERVAL_PARAGRAPHS = 40
 
     /**
-     * @param illustIds 候选插画 id；已内嵌在正文里的 `[pixivimage:]` 同 id 会被跳过。
-     * @param seed 洗牌种子，传 novelId：同一篇小说每次重排版拿到同一批图、插在同一位置，
-     *   设置往返/转屏不会让插图跳来跳去。
+     * @param illustIds 候选插画 id，**顺序即消费顺序**——调用方先过
+     *   [ceui.pixiv.ui.novel.reader.IllustMixRanker] 排好相关性（内含按 novelId
+     *   的稳定洗牌，重排版/转屏不会让插图跳来跳去）；已内嵌在正文里的
+     *   `[pixivimage:]` 同 id 会被跳过。
      */
     fun insert(
         tokens: List<ContentToken>,
         illustIds: List<Long>,
         intervalParagraphs: Int = DEFAULT_INTERVAL_PARAGRAPHS,
-        seed: Long = 0L,
     ): List<ContentToken> {
         if (tokens.isEmpty() || illustIds.isEmpty() || intervalParagraphs <= 0) return tokens
         val embedded = tokens.filterIsInstance<ContentToken.PixivImage>().mapTo(HashSet()) { it.illustId }
-        val queue = ArrayDeque(illustIds.filter { it > 0 && it !in embedded }.distinct().shuffled(Random(seed)))
+        val queue = ArrayDeque(illustIds.filter { it > 0 && it !in embedded }.distinct())
         if (queue.isEmpty()) return tokens
 
         val result = ArrayList<ContentToken>(tokens.size + queue.size)

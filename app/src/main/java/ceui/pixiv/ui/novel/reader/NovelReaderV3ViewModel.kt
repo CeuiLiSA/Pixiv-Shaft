@@ -114,6 +114,9 @@ class NovelReaderV3ViewModel(
     private fun ctx(): Context = Shaft.getContext()
 
     private var webNovel: WebNovel? = null
+    // 混排取材（Related 搜 tag）与相关性排序都要小说元数据；LoadState 走 postValue，
+    // load() 里紧接着的 maybeFetchMixIllusts 读不到 value，所以单独存一份。
+    private var novel: Novel? = null
     private var tokens: List<ContentToken> = emptyList()
     private var imageResolver: (ContentToken) -> String? = { null }
 
@@ -165,6 +168,7 @@ class NovelReaderV3ViewModel(
                     }
                 }
                 webNovel = parsed.first
+                this@NovelReaderV3ViewModel.novel = novel
                 tokens = parsed.second
                 imageResolver = ImageResolver.of(parsed.first)
                 desiredCharIndex = ReaderProgressStore.loadCharIndex(novelId)
@@ -213,7 +217,7 @@ class NovelReaderV3ViewModel(
         val source = ReaderSettings.illustMixSource
         if (source == NovelIllustSource.None) return tokens
         if (mixIllustsSource != source || mixIllusts.isEmpty()) return tokens
-        return IllustMixInserter.insert(tokens, mixIllusts.map { it.id }, seed = novelId)
+        return IllustMixInserter.insert(tokens, mixIllusts.map { it.id })
     }
 
     /** 内嵌插图照旧走 webNovel 的对象表，查不到再落到混排取材的 URL 表。 */
@@ -236,12 +240,14 @@ class NovelReaderV3ViewModel(
         val source = ReaderSettings.illustMixSource
         if (source == NovelIllustSource.None) return
         if (mixIllustsSource == source && mixIllusts.isNotEmpty()) return
+        val novel = this.novel
         viewModelScope.launch {
-            runCatching { NovelIllustMixStore.get(source) }
+            runCatching { NovelIllustMixStore.get(source, novel) }
                 .onSuccess { list ->
                     // 来源在拉取途中又被切走就丢弃结果，别用旧口径的图污染新设置。
                     if (list.isEmpty() || ReaderSettings.illustMixSource != source) return@onSuccess
-                    mixIllusts = list
+                    // 消费顺序在这里定型：标签重叠/关注画师优先，同分按 novelId 稳定洗牌。
+                    mixIllusts = IllustMixRanker.rank(list, novel, seed = novelId)
                     mixIllustsSource = source
                     repaginateIfReady()
                     _illustMixVersion.value = (_illustMixVersion.value ?: 0) + 1

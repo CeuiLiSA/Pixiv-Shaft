@@ -1272,6 +1272,7 @@
     <string name="setting_illust_mix_none">不混排</string>
     <string name="setting_illust_mix_followed">关注画师</string>
     <string name="setting_illust_mix_discover">发现页</string>
+    <string name="setting_illust_mix_related">相关作品</string>
 
     <!-- Reader actions & menus -->
     <string name="action_copy">复制</string>

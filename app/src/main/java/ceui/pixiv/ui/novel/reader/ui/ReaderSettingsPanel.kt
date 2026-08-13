@@ -218,6 +218,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
                 getString(R.string.setting_illust_mix_none) to NovelIllustSource.None,
                 getString(R.string.setting_illust_mix_followed) to NovelIllustSource.Followed,
                 getString(R.string.setting_illust_mix_discover) to NovelIllustSource.Discover,
+                getString(R.string.setting_illust_mix_related) to NovelIllustSource.Related,
             ),
             ReaderSettings.illustMixSource,
         ) { ReaderSettings.illustMixSource = it }

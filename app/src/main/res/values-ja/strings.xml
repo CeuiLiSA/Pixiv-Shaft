@@ -1167,6 +1167,7 @@
     <string name="setting_illust_mix_none">なし</string>
     <string name="setting_illust_mix_followed">フォロー中</string>
     <string name="setting_illust_mix_discover">ディスカバリー</string>
+    <string name="setting_illust_mix_related">関連</string>
     <string name="action_copy">コピー</string>
     <string name="action_select_all">すべて選択</string>
     <string name="action_highlight">ハイライト</string>

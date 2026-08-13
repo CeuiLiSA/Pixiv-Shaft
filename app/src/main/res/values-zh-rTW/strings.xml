@@ -1169,6 +1169,7 @@
     <string name="setting_illust_mix_none">不混排</string>
     <string name="setting_illust_mix_followed">關注畫師</string>
     <string name="setting_illust_mix_discover">發現頁</string>
+    <string name="setting_illust_mix_related">相關作品</string>
     <string name="action_copy">複製</string>
     <string name="action_select_all">全選</string>
     <string name="action_highlight">標記</string>

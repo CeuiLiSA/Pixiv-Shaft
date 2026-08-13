@@ -1167,6 +1167,7 @@
     <string name="setting_illust_mix_none">Off</string>
     <string name="setting_illust_mix_followed">Following</string>
     <string name="setting_illust_mix_discover">Discovery</string>
+    <string name="setting_illust_mix_related">Related</string>
     <string name="action_copy">Copy</string>
     <string name="action_select_all">Select all</string>
     <string name="action_highlight">Highlight</string>

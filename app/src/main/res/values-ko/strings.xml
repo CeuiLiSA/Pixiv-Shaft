@@ -1167,6 +1167,7 @@
     <string name="setting_illust_mix_none">사용 안 함</string>
     <string name="setting_illust_mix_followed">팔로우 중</string>
     <string name="setting_illust_mix_discover">디스커버리</string>
+    <string name="setting_illust_mix_related">관련</string>
     <string name="action_copy">복사</string>
     <string name="action_select_all">전체 선택</string>
     <string name="action_highlight">하이라이트</string>

@@ -68,14 +68,13 @@ class IllustMixInserterTest {
         assertEquals(1, out.filterIsInstance<ContentToken.PixivImage>().size)
     }
 
-    @Test fun `same seed gives stable placement and order`() {
-        val tokens = paragraphs(40)
-        val ids = (100L..120L).toList()
-        val a = IllustMixInserter.insert(tokens, ids, 5, seed = 42L)
-        val b = IllustMixInserter.insert(tokens, ids, 5, seed = 42L)
+    @Test fun `consumes illust ids in the given order`() {
+        // 顺序即相关性排序的结果（IllustMixRanker），插入器不得自己洗牌
+        val tokens = paragraphs(9)
+        val out = IllustMixInserter.insert(tokens, listOf(300L, 100L, 200L), intervalParagraphs = 3)
         assertEquals(
-            a.filterIsInstance<ContentToken.PixivImage>().map { it.illustId },
-            b.filterIsInstance<ContentToken.PixivImage>().map { it.illustId },
+            listOf(300L, 100L, 200L),
+            out.filterIsInstance<ContentToken.PixivImage>().map { it.illustId },
         )
     }
 

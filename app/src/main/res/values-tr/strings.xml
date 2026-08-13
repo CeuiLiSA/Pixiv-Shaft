@@ -1167,6 +1167,7 @@
     <string name="setting_illust_mix_none">Kapalı</string>
     <string name="setting_illust_mix_followed">Takip edilenler</string>
     <string name="setting_illust_mix_discover">Keşfet</string>
+    <string name="setting_illust_mix_related">İlgili</string>
     <string name="action_copy">Kopyala</string>
     <string name="action_select_all">Tümünü seç</string>
     <string name="action_highlight">Vurgula</string>
