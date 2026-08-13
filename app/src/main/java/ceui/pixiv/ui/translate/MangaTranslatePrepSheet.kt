@@ -258,6 +258,10 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
             descRes = R.string.manga_translate_prep_model_ocr_desc
         }
 
+        // 只有失败态才把 status 文案做成可点击的重试入口，其他状态一律清掉监听
+        statusText.isClickable = false
+        statusText.setOnClickListener(null)
+
         when (state) {
             RowState.Pending -> {
                 statusText.text = getString(R.string.manga_translate_prep_status_pending, getString(descRes))
@@ -314,6 +318,8 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
                     ctx.getColor(R.color.buttonTextRed),
                 )
                 importLink.visibility = View.VISIBLE
+                statusText.isClickable = true
+                statusText.setOnClickListener { onPrimaryClick(ctx) }
             }
         }
     }
