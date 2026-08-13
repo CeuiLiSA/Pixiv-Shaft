@@ -87,6 +87,12 @@ class SearchNovelRepo @JvmOverloads constructor(
                         sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE
                 )
 
+        // 路由判断看用户选的原值，真正发出去的是归一后的值：trending_builtin 是本地概念，
+        // pixiv 的小说搜索不认（见 [SortType.forNovel]）。借号那条路尤其不能发原值——
+        // 400 Invalid value 不是 OAuth 错误，[isBorrowedAccountUnavailable] 也不成立，
+        // 于是既不回落 preview、又白借了一个号。
+        val effectiveSort = SortType.forNovel(sortType)
+
         // 投稿期间相对档当场算 today−N(每次 initApi 都重算,跨午夜窗口自动跟随今天);
         // bucket 为空时回落到自定义起止日期
         val (effectiveStartDate, effectiveEndDate) = resolveDateRange()
@@ -185,7 +191,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
                     requesterUid,
-                    sortType,
+                    effectiveSort,
                     assembledKeyword.length,
                 )
                 lease.blockingObservable {
@@ -197,7 +203,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                         Timber.tag(NANA7MI_LOG_TAG).d(
                             "stage=route target=novel_official_search account_uid=%d sort=%s",
                             borrowed.uid,
-                            sortType,
+                            effectiveSort,
                         )
                         val source = currentNana7miSession.requestWithRefresh(
                             initial = borrowed,
@@ -211,7 +217,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                             Retro.getAppApi().searchNovelWithAuth(
                                 authorization,
                                 assembledKeyword,
-                                sortType,
+                                effectiveSort,
                                 effectiveStartDate,
                                 effectiveEndDate,
                                 effectiveSearchTarget,
@@ -249,7 +255,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         } else {
             Retro.getAppApi().searchNovel(
                 assembledKeyword,
-                sortType,
+                effectiveSort,
                 effectiveStartDate,
                 effectiveEndDate,
                 effectiveSearchTarget,

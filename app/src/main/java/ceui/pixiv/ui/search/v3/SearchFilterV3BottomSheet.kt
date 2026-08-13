@@ -99,7 +99,9 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                 add(SortType.POPULAR_MALE_DESC)
                 add(SortType.POPULAR_FEMALE_DESC)
             }
-            add(SortType.TRENDING_BUILTIN)
+            // 「机内自带热度排序」的数据源是 assets 内置榜，只有插画/漫画有
+            //（[ceui.pixiv.ui.prime.PrimeIllustLoader]），小说没有这份数据，不给这一档。
+            if (!isNovel) add(SortType.TRENDING_BUILTIN)
         }
     private val bookmarkList = BookmarkBucket.values().toList()
     private val keywordUsersList = KeywordUsersBucket.values().toList()
