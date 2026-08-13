@@ -196,6 +196,14 @@ data class Nana7miPayload(
 sealed class Nana7miResult {
     data class Success(val value: Nana7miPayload) : Nana7miResult()
     data object NoAccount : Nana7miResult()
+
+    /**
+     * The borrowed account is not (or is no longer) a Pixiv premium member, so it cannot serve the
+     * premium-only sorts this whole feature exists for. Search must fall back to the preview
+     * endpoint, and [account] gets reported online so the server reclassifies the row and stops
+     * dispatching it (`saveOnline` pauses dispatch for any report whose `is_premium` is not true).
+     */
+    data class NotPremium(val uid: Long, val account: AccountResponse) : Nana7miResult()
     data class RateLimited(val retryAfterSeconds: Long?) : Nana7miResult()
     data class HttpFailure(val status: Int) : Nana7miResult()
     data object InvalidRequest : Nana7miResult()
@@ -233,6 +241,13 @@ suspend fun PixshaftApi.fetchNana7mi(uid: Long): Nana7miResult {
                     expiresAt < updatedAt
                 ) {
                     return Nana7miResult.InvalidResponse()
+                }
+                // 借号的全部意义就是会员专属 sort，非会员号发出去必然被 pixiv 拒。服务端的派发池
+                // 本来就只收 is_premium = 1，所以这里是纵深防御（也能自愈分类错乱的行）。
+                // 只认显式的 false：字段缺失(null)当作未知，照旧交给 pixiv 裁决——绝不能凭 null
+                // 把一个号踢出池子。
+                if (account.user?.is_premium == false) {
+                    return Nana7miResult.NotPremium(responseUid, account)
                 }
                 Nana7miResult.Success(
                     Nana7miPayload(responseUid, account, updatedAt, expiresAt, expired),

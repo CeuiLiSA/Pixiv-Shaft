@@ -92,6 +92,66 @@ class PixshaftNana7miApiTest {
     }
 
     @Test
+    fun `nana7mi refuses a dispatched account that lost premium`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(
+                    """
+                    {
+                      "uid": 102,
+                      "account": {
+                        "access_token": "access-102",
+                        "refresh_token": "refresh-102",
+                        "user": { "id": 102, "is_premium": false }
+                      },
+                      "updatedAt": 1999990000000,
+                      "expiresAt": 1999993300000,
+                      "expired": false
+                    }
+                    """.trimIndent(),
+                ),
+        )
+
+        val result = api.fetchNana7mi(31660292L)
+
+        assertTrue(result is Nana7miResult.NotPremium)
+        // The account travels with the result so the caller can report it back and let the server
+        // reclassify the row instead of continuing to dispatch it.
+        assertEquals(102L, (result as Nana7miResult.NotPremium).uid)
+        assertEquals("refresh-102", result.account.refresh_token)
+    }
+
+    @Test
+    fun `nana7mi treats a missing premium flag as unknown rather than lapsed`() = runBlocking {
+        // Removing an account from the pool is disruptive for every other borrower, so only an
+        // explicit `false` may do it. An absent field stays usable and lets Pixiv be the judge.
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(
+                    """
+                    {
+                      "uid": 103,
+                      "account": {
+                        "access_token": "access-103",
+                        "refresh_token": "refresh-103",
+                        "user": { "id": 103 }
+                      },
+                      "updatedAt": 1999990000000,
+                      "expiresAt": 1999993300000,
+                      "expired": false
+                    }
+                    """.trimIndent(),
+                ),
+        )
+
+        assertTrue(api.fetchNana7mi(31660292L) is Nana7miResult.Success)
+    }
+
+    @Test
     fun `nana7mi rejects malformed success without throwing`() = runBlocking {
         server.enqueue(
             MockResponse()

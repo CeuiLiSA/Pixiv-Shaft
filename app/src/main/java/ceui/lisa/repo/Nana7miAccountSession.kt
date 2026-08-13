@@ -1,5 +1,6 @@
 package ceui.lisa.repo
 
+import ceui.loxia.AccountResponse
 import ceui.loxia.Client
 import ceui.loxia.Nana7miPayload
 import ceui.loxia.Nana7miResult
@@ -8,6 +9,7 @@ import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
 import ceui.pixiv.session.SessionManager
+import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.exceptions.Exceptions
 import kotlinx.coroutines.CancellationException
@@ -45,6 +47,11 @@ internal class Nana7miAccountSession {
         )
         val fetched = Client.pixshaft.fetchNana7mi(requesterUid)
         logFetchResult(requesterUid, fetched)
+        if (fetched is Nana7miResult.NotPremium) {
+            // 服务端派发池只收 is_premium = 1，走到这里说明那一行的分类和 blob 对不上。把这份
+            // AccountResponse 原样报回去，saveOnline 会按 blob 里的真实会员状态重新分类并停止派发。
+            reportNotPremium(fetched, "fetch")
+        }
         val ready = when {
             fetched !is Nana7miResult.Success -> fetched
             !fetched.value.expired -> {
@@ -90,8 +97,15 @@ internal class Nana7miAccountSession {
                     // The caller may fall back to an unauthenticated preview page. Do not leave
                     // pagination attached to the borrowed account whose renewal just failed.
                     payload = null
-                    val cause = (renewed as? Nana7miResult.InvalidResponse)?.cause
-                        ?: IllegalStateException("nana7mi refresh failed")
+                    val cause = when (renewed) {
+                        is Nana7miResult.InvalidResponse -> renewed.cause
+                        // Losing premium mid-pagination is not a token failure, but it is just as
+                        // terminal for this borrowed account. Report it as unavailable so a first
+                        // page can still fall back to the preview endpoint.
+                        is Nana7miResult.NotPremium ->
+                            IllegalStateException("nana7mi account is no longer premium")
+                        else -> null
+                    } ?: IllegalStateException("nana7mi refresh failed")
                     Observable.error(BorrowedAccountUnavailableException(cause))
                 } else {
                     refreshedForThisPage = true
@@ -144,9 +158,32 @@ internal class Nana7miAccountSession {
             }
     }
 
+    /**
+     * Hand a lapsed borrowed account back to the server. The plain online report *is* the
+     * notification: `saveOnline` derives membership from `user.is_premium` and pauses dispatch for
+     * anything that is not premium, so no separate endpoint is involved.
+     */
+    private suspend fun reportNotPremium(result: Nana7miResult.NotPremium, stage: String) {
+        val persisted = withContext(NonCancellable) {
+            AccountOnlineReportOutbox.persistOnline(result.uid, result.account)
+        }
+        val reportResult = if (persisted) {
+            AccountOnlineReportOutbox.attemptOnline(result.uid).name.lowercase()
+        } else {
+            "persist_failed"
+        }
+        Timber.tag(LOG_TAG).w(
+            "stage=premium result=not_premium account_uid=%d source=%s report=%s",
+            result.uid,
+            stage,
+            reportResult,
+        )
+    }
+
     fun resultLabel(result: Nana7miResult): String = when (result) {
         is Nana7miResult.Success -> if (result.value.expired) "expired" else "success"
         Nana7miResult.NoAccount -> "no_account"
+        is Nana7miResult.NotPremium -> "not_premium"
         is Nana7miResult.RateLimited -> "rate_limited"
         is Nana7miResult.HttpFailure -> "http_${result.status}"
         Nana7miResult.InvalidRequest -> "invalid_request"
@@ -190,7 +227,9 @@ internal class Nana7miAccountSession {
                 uid,
                 reason,
             )
-            PixivLogin.refreshTokenBlocking(refreshToken)
+            // Detailed variant: the library's PixivOAuthResponse.user drops `is_premium`, and the
+            // membership this response reports is the only fresh signal that the account lapsed.
+            PixivLogin.refreshTokenBlockingDetailed(refreshToken)
         } catch (ce: CancellationException) {
             throw ce
         } catch (error: Exception) {
@@ -221,12 +260,27 @@ internal class Nana7miAccountSession {
             "stage=refresh result=success account_uid=%d reason=%s expires_in_seconds=%d",
             uid,
             reason,
-            oauth.expiresIn,
+            oauth.response.expiresIn,
         )
+        // pixiv 的 token 响应里带着这个号「此刻」的 is_premium。以前这里把 stale.account 的 user 原样
+        // copy 过去，等于每次刷新都用一份陈旧的会员状态覆盖服务端、还顺带刷新了 updated_at ——
+        // 掉了会员的号会因此永远留在派发池里。
+        //
+        // 只把 is_premium 这一个字段覆盖掉：pixiv 这个响应的 user 比 [ceui.loxia.User] 窄
+        // （没有 pixiv_id / gender / comment 等），整份替换会把服务端已存的更全的信息削掉。
+        // 解析失败、id 对不上或字段缺失时一律保持原样，不拿不确定的数据动别人的号。
+        val freshPremium = runCatching {
+            OAUTH_GSON.fromJson(oauth.rawBody, AccountResponse::class.java)
+        }.getOrNull()?.user?.takeIf { it.id == uid }?.is_premium
         val refreshedAccount = stale.account.copy(
-            access_token = oauth.accessToken,
-            refresh_token = oauth.refreshToken,
-            expires_in = oauth.expiresIn,
+            access_token = oauth.response.accessToken,
+            refresh_token = oauth.response.refreshToken,
+            expires_in = oauth.response.expiresIn,
+            user = if (freshPremium == null) {
+                stale.account.user
+            } else {
+                stale.account.user?.copy(is_premium = freshPremium)
+            },
         )
         val updatedAt = System.currentTimeMillis()
         val refreshedPayload = stale.copy(
@@ -263,6 +317,18 @@ internal class Nana7miAccountSession {
             uid,
             reason,
         )
+        if (freshPremium == false) {
+            // 上面那次 online 上报本身就是「通知服务端」：saveOnline 读 user.is_premium，非 true 一律
+            // stmtPauseDispatch 移出派发池（borrow_count 保留，用户续费后再次上报会自动恢复）。
+            // 刷新出来的新 token 也一并交出去了，所以这个号不会被我们刷坏，只是不再被借出。
+            Timber.tag(LOG_TAG).w(
+                "stage=premium result=not_premium account_uid=%d reason=%s report=%s",
+                uid,
+                reason,
+                reportResult.name.lowercase(),
+            )
+            return Nana7miResult.NotPremium(uid, refreshedAccount)
+        }
         Timber.tag(LOG_TAG).d(
             "stage=flow result=ready account_uid=%d updated_at=%d expires_at=%d",
             uid,
@@ -305,6 +371,12 @@ internal class Nana7miAccountSession {
                 requesterUid,
             )
 
+            is Nana7miResult.NotPremium -> logger.w(
+                "stage=fetch result=not_premium requester_uid=%d account_uid=%d",
+                requesterUid,
+                result.uid,
+            )
+
             is Nana7miResult.RateLimited -> logger.w(
                 "stage=fetch result=rate_limited requester_uid=%d retry_after_seconds=%s",
                 requesterUid,
@@ -341,6 +413,13 @@ internal class Nana7miAccountSession {
     private companion object {
         const val LOG_TAG = "sadadsdasdw2"
         const val VALID_MS = 55L * 60_000L
+
+        /**
+         * Pixiv's raw token response parses straight into [AccountResponse] (identical wire names).
+         * A local instance rather than `Shaft.sGson` — same plain `Gson()` configuration, but it
+         * keeps this path free of Application state so it stays reachable from JVM tests.
+         */
+        val OAUTH_GSON: Gson = Gson()
         const val PIXIV_OAUTH_ERROR = "Error occurred at the OAuth process"
         const val PIXIV_INVALID_REFRESH_TOKEN = "Invalid refresh token"
     }
