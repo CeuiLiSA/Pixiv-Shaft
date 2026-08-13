@@ -286,7 +286,8 @@ public class Shaft extends Application implements ServicesProvider {
         SessionManager.INSTANCE.initialize();
 
         // issue #931: 平板大屏双栏（Activity Embedding）。规则必须在任何 Activity
-        // 拉起前注册好，冷启动首帧才是左 1/3 信息流 + 右 2/3 详情；手机窗口不受影响。
+        // 拉起前注册好，冷启动首帧才是左 1/3 信息流 + 右 2/3 详情；手机（sw < 600dp）
+        // 在 install 内直接跳过注册——挂上 organizer 会让手机回前台偶发卡 5 秒（#1002）。
         // 守卫理由同上面的 WorkManager：AE 要触碰 OEM 的 WM Extensions（HarmonyOS/EMUI
         // 这层出过 #853 类怪癖），一个纯可选的平板增强不配让全量用户启动崩溃——
         // 注册失败就退回没有分栏的老行为。
