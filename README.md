@@ -194,7 +194,7 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 <br>
 
-[![Star History Chart](https://api.star-history.com/svg?repos=CeuiLiSA/Pixiv-Shaft&type=Date)](https://star-history.com/#CeuiLiSA/Pixiv-Shaft&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=CeuiLiSA/Pixiv-Shaft&type=Date)](https://star-history.dera.page/#CeuiLiSA/Pixiv-Shaft&type=Date)
 
 ## FAQ
 
