@@ -141,12 +141,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:padding="6dp"
+                        android:paddingVertical="2dp"
                         android:stateListAnimator="@animator/button_press_alpha"
                         android:text="@string/model_download_copy_or_import"
                         android:textColor="?attr/colorPrimary"
-                        android:textSize="12sp"
-                        tools:text="复制链接或导入已下载好的文件" />
+                        android:textSize="11sp"
+                        tools:text="复制下载链接或者导入模型文件" />
                 </LinearLayout>
 
                 <!-- 状态指示器:待下载留空 + 下载中转圈 + 完成对勾 + 失败感叹号。
@@ -268,12 +268,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:padding="6dp"
+                        android:paddingVertical="2dp"
                         android:stateListAnimator="@animator/button_press_alpha"
                         android:text="@string/model_download_copy_or_import"
                         android:textColor="?attr/colorPrimary"
-                        android:textSize="12sp"
-                        tools:text="复制链接或导入已下载好的文件" />
+                        android:textSize="11sp"
+                        tools:text="复制下载链接或者导入模型文件" />
                 </LinearLayout>
 
                 <FrameLayout
