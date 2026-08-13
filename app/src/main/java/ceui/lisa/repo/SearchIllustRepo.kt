@@ -296,7 +296,9 @@ class SearchIllustRepo @JvmOverloads constructor(
         // nextUrl 与借用会话必须来自同一轮翻页。串行队列可能让真正订阅延后；若此时
         // 新首屏改写了 RemoteRepo.nextUrl，闭包里再读字段会拼出“旧账号 + 新游标”。
         val nextPageUrl = nextUrl
-        return if (payload == null) {
+        return if (session.borrowedAccountLost) {
+            endBorrowedPagination("already_lost")
+        } else if (payload == null) {
             val source = Retro.getAppApi().getNextIllust(nextPageUrl)
             telemetry?.track(
                 source = source,
@@ -319,14 +321,39 @@ class SearchIllustRepo @JvmOverloads constructor(
                 ) { authorization ->
                     Retro.getAppApi().getNextIllustWithAuth(authorization, nextPageUrl)
                 }
-                telemetry?.track(
+                (telemetry?.track(
                     source = source,
                     page = Nana7miSearchTelemetry.Page.NEXT,
                     route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
                     borrowedUid = payload.uid,
-                ) ?: source
+                ) ?: source).onErrorResumeNext { error: Throwable ->
+                    if (isBorrowedAccountUnavailable(error)) {
+                        endBorrowedPagination("renew_failed")
+                    } else {
+                        Observable.error(error)
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * 借号在翻页途中失效时的终止页。
+     *
+     * 这里**绝不能**回落到 [ceui.lisa.http.AppApi.getNextIllust]：nextUrl 是「会员专属 sort」的
+     * 游标，而那个方法没有 explicit-authorization 标记，会被 Retro 的拦截器注入当前登录账号的
+     * token —— 用非会员的自己的号去打会员游标必然 400，用户每点一次重试就再撞一次，形成死循环。
+     *
+     * 返回空的终止页（无 next_url）让列表停在已拿到的结果上；重新搜索会走 [initApi] 建新会话、
+     * 借一个新号从头开始。
+     */
+    private fun endBorrowedPagination(reason: String): Observable<ListIllust> {
+        Timber.tag(NANA7MI_LOG_TAG).w(
+            "stage=official_search_next result=borrow_lost reason=%s action=end_pagination",
+            reason,
+        )
+        // Mapper.apply 会遍历 getList()，null 会 NPE —— 必须显式给空列表。
+        return Observable.just(ListIllust().apply { illusts = emptyList() })
     }
 
     override fun mapper(): Function<in ListIllust, ListIllust> {

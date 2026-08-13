@@ -36,6 +36,20 @@ internal class Nana7miAccountSession {
         private set
 
     /**
+     * True once a borrowed account backed this session's pagination and then became unusable.
+     *
+     * [payload] alone cannot express this: it is also null when nothing was ever borrowed (plain
+     * search, direct preview, or a first-page fallback), and in *those* cases the cursor belongs to
+     * the logged-in account and may be continued normally. Only here does the cursor point at a
+     * premium-only search that the logged-in account must never be used to continue.
+     *
+     * Reset comes for free: every [initApi] builds a fresh session.
+     */
+    @Volatile
+    var borrowedAccountLost: Boolean = false
+        private set
+
+    /**
      * Fetch one account. The server classifies it at 55 minutes; an expired account is refreshed
      * on the client and re-reported before it is returned to the search request.
      */
@@ -97,6 +111,7 @@ internal class Nana7miAccountSession {
                     // The caller may fall back to an unauthenticated preview page. Do not leave
                     // pagination attached to the borrowed account whose renewal just failed.
                     payload = null
+                    borrowedAccountLost = true
                     val cause = when (renewed) {
                         is Nana7miResult.InvalidResponse -> renewed.cause
                         // Losing premium mid-pagination is not a token failure, but it is just as

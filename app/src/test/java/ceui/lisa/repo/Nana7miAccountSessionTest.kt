@@ -1,11 +1,13 @@
 package ceui.lisa.repo
 
+import ceui.lisa.model.ListIllust
 import ceui.loxia.AccountResponse
 import ceui.loxia.Nana7miPayload
 import com.google.gson.Gson
 import io.reactivex.Observable
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class Nana7miAccountSessionTest {
@@ -41,6 +43,26 @@ class Nana7miAccountSessionTest {
 
         observer.assertError { it is BorrowedAccountUnavailableException }
         assertNull(session.payload)
+        // Pagination must be able to tell "never borrowed" from "borrowed then lost".
+        assertTrue(session.borrowedAccountLost)
+    }
+
+    /**
+     * The empty page both repos hand back once a borrowed account is gone mid-pagination.
+     *
+     * `Mapper.apply` iterates `getList()` unconditionally, so the list must be set rather than left
+     * null, and `getNextUrl()` must stay null so the feed stops asking for more instead of retrying
+     * a premium-only cursor with the logged-in account.
+     *
+     * (The repos' own branch ordering can't be unit-tested here — constructing a `RemoteRepo` runs
+     * `Common.showLog`, and `android.util.Log` is not mocked in JVM tests.)
+     */
+    @Test
+    fun `terminal page for a lost borrowed account is safe to map and stops pagination`() {
+        val page = ListIllust().apply { illusts = emptyList() }
+
+        assertEquals(0, page.list.size)
+        assertNull(page.nextUrl)
     }
 
     /**
