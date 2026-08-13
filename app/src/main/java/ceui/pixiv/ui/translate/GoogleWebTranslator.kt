@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.translate
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
@@ -38,7 +39,11 @@ object GoogleWebTranslator : Translator {
             .build()
     }
 
-    override suspend fun translate(input: String, outputLang: String): String = withContext(Dispatchers.IO) {
+    override suspend fun translate(
+        input: String,
+        outputLang: String,
+        onPhase: ((AiTranslatePhase) -> Unit)?,
+    ): String = withContext(Dispatchers.IO) {
         if (input.isBlank()) return@withContext input
         callGtx(input, normalizeTargetLang(outputLang))
     }
@@ -48,12 +53,14 @@ object GoogleWebTranslator : Translator {
         outputLang: String,
         onItem: ((Int, String) -> Unit)?,
         onProgress: ((Int, Int) -> Unit)?,
+        onPhase: ((AiTranslatePhase) -> Unit)?,
     ): List<String> = withContext(Dispatchers.IO) {
         if (inputs.isEmpty()) return@withContext emptyList()
 
         val results = MutableList(inputs.size) { "" }
         val tl = normalizeTargetLang(outputLang)
         val ranges = chunkByCharLimit(inputs, MAX_Q_CHARS)
+        var lastError: Exception? = null
 
         var done = 0
         for ((from, to) in ranges) {
@@ -86,23 +93,36 @@ object GoogleWebTranslator : Translator {
                         slice.size, lines.size
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.w(e, "GoogleWebTranslator: batch [%d,%d) failed, per-item fallback", from, to)
+                lastError = e
             }
             if (!batchOk) {
                 // 切回数量对不上 / HTTP / 解析挂了都走这条:每条单独跑,失败留空串
                 for (j in slice.indices) {
                     coroutineContext.ensureActive()
                     val idx = from + j
-                    val zh = runCatching { callGtx(slice[j], tl) }
-                        .onFailure { Timber.e(it, "GoogleWebTranslator: item %d failed", idx) }
-                        .getOrNull().orEmpty()
+                    val zh = try {
+                        callGtx(slice[j], tl)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Timber.e(e, "GoogleWebTranslator: item %d failed", idx)
+                        lastError = e
+                        ""
+                    }
                     results[idx] = zh
                     if (zh.isNotEmpty()) onItem?.invoke(idx, zh)
                 }
             }
             done += (to - from)
             onProgress?.invoke(done, inputs.size)
+        }
+
+        if (results.all { it.isBlank() }) {
+            throw lastError ?: RuntimeException("google translate: all items failed without an exception")
         }
 
         results

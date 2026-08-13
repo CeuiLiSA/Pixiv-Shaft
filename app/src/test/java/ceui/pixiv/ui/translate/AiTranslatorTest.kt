@@ -10,12 +10,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * [AiTranslator] 的纯函数与 HTTP 协议层测试(#975)。
  *
  * HTTP 部分走 MockWebServer + [AiTranslator.testConfig](该入口所有配置显式传参,
- * 不碰 Shaft.sSettings / Android 运行时;prompt 传非空避免走到 AppLocales)。
+ * 不碰 Shaft.sSettings / Android 运行时;prompt 传非空避免走到 AppLocales;
+ * forceStreaming=true 可强制走 SSE 通道覆盖流式协议层)。
  */
 class AiTranslatorTest {
 
@@ -36,6 +38,12 @@ class AiTranslatorTest {
 
     private fun completionJson(content: String) =
         """{"choices":[{"message":{"role":"assistant","content":${org.json.JSONObject.quote(content)}}}]}"""
+
+    /** 组装标准 SSE 响应:每个事件一条 data:,空行分隔,事件流结束。 */
+    private fun sse(vararg events: String): MockResponse =
+        MockResponse()
+            .setHeader("Content-Type", "text/event-stream")
+            .setBody(events.joinToString("\n\n") { "data: $it" } + "\n\n")
 
     // ---------- normalizeEndpoint ----------
 
@@ -197,5 +205,161 @@ class AiTranslatorTest {
         val models = AiTranslator.fetchModels(baseUrl(), "sk-test")
         assertEquals(listOf("gpt-4o-mini", "gpt-4o"), models)
         assertEquals("/v1/models", server.takeRequest().path)
+    }
+
+    // ---------- 流式(SSE)协议层(forceStreaming=true,不碰 Settings) ----------
+
+    @Test
+    fun `流式成功按 SSE 解析并回调思考生成阶段`() = runBlocking {
+        val phases = CopyOnWriteArrayList<AiTranslatePhase>()
+        server.enqueue(
+            sse(
+                """{"choices":[{"delta":{"reasoning_content":"让我想想"}}]}""",
+                """{"choices":[{"delta":{"content":"你好，世界！"}}]}""",
+                "[DONE]",
+            )
+        )
+        val out = AiTranslator.testConfig(
+            baseUrl(), "sk-test", "test-model", "translate to zh",
+            forceStreaming = true,
+            onPhase = { phases.add(it) },
+        )
+        assertEquals("你好，世界！", out)
+        assertEquals(listOf(AiTranslatePhase.THINKING, AiTranslatePhase.GENERATING), phases.toList())
+
+        val recorded = server.takeRequest()
+        assertEquals("Bearer sk-test", recorded.getHeader("Authorization"))
+        val sent = org.json.JSONObject(recorded.body.readUtf8())
+        assertEquals(true, sent.getBoolean("stream"))
+        assertTrue(sent.has("stream_options"))
+    }
+
+    @Test
+    fun `流式 delta 中 content 为 null 不拼入 null 字符串`() = runBlocking {
+        server.enqueue(
+            sse(
+                """{"choices":[{"delta":{"reasoning_content":"想","content":null}}]}""",
+                """{"choices":[{"delta":{"reasoning_content":null,"content":"你"}}]}""",
+                """{"choices":[{"delta":{"content":"好"}}]}""",
+                "[DONE]",
+            )
+        )
+        val out = AiTranslator.testConfig(baseUrl(), "", "m", "p", forceStreaming = true)
+        assertEquals("你好", out)
+    }
+
+    @Test
+    fun `流式 DONE 后主动断开仍正常收尾`() = runBlocking {
+        server.enqueue(sse("""{"choices":[{"delta":{"content":"ok"}}]}""", "[DONE]"))
+        val out = AiTranslator.testConfig(baseUrl(), "", "m", "p", forceStreaming = true)
+        assertEquals("ok", out)
+    }
+
+    @Test
+    fun `流式只思考没内容降级非流式后成功`() = runBlocking {
+        server.enqueue(sse("""{"choices":[{"delta":{"reasoning_content":"想半天"}}]}""", "[DONE]"))
+        server.enqueue(MockResponse().setBody(completionJson("你好，世界！")))
+        val out = AiTranslator.testConfig(baseUrl(), "", "m", "p", forceStreaming = true)
+        assertEquals("你好，世界！", out)
+        assertEquals(2, server.requestCount)
+    }
+
+    @Test
+    fun `非流式空响应重试一次后报 empty completion`() = runBlocking {
+        server.enqueue(MockResponse().setBody("""{"choices":[]}"""))
+        server.enqueue(MockResponse().setBody("""{"choices":[]}"""))
+        try {
+            AiTranslator.testConfig(baseUrl(), "", "m", "p")
+            fail("should throw")
+        } catch (e: Exception) {
+            assertTrue(e.message!!.contains("empty completion"))
+        }
+        assertEquals(2, server.requestCount)
+    }
+
+    @Test
+    fun `流式遇到非 SSE 响应自动降级非流式`() = runBlocking {
+        server.enqueue(MockResponse().setBody(completionJson("你好，世界！")))
+        server.enqueue(MockResponse().setBody(completionJson("你好，世界！")))
+        val out = AiTranslator.testConfig(baseUrl(), "", "m", "p", forceStreaming = true)
+        assertEquals("你好，世界！", out)
+        assertEquals(2, server.requestCount)
+    }
+
+    @Test
+    fun `流式 400 stream_options 不认时去掉重试成功`() = runBlocking {
+        server.enqueue(
+            MockResponse().setResponseCode(400)
+                .setBody("""{"error":{"message":"stream_options not supported"}}""")
+        )
+        server.enqueue(sse("""{"choices":[{"delta":{"content":"你好，世界！"}}]}""", "[DONE]"))
+        val out = AiTranslator.testConfig(baseUrl(), "k", "m", "p", forceStreaming = true)
+        assertEquals("你好，世界！", out)
+        assertEquals(2, server.requestCount)
+
+        val first = org.json.JSONObject(server.takeRequest().body.readUtf8())
+        val retried = org.json.JSONObject(server.takeRequest().body.readUtf8())
+        assertEquals(true, first.getBoolean("stream"))
+        assertTrue(first.has("stream_options"))
+        assertEquals(true, retried.getBoolean("stream"))
+        assertTrue(!retried.has("stream_options"))
+    }
+
+    @Test
+    fun `流式 400 重试仍失败则降级非流式`() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":{"message":"no stream"}}"""))
+        server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":{"message":"no stream"}}"""))
+        server.enqueue(MockResponse().setBody(completionJson("你好，世界！")))
+        val out = AiTranslator.testConfig(baseUrl(), "k", "m", "p", forceStreaming = true)
+        assertEquals("你好，世界！", out)
+        assertEquals(3, server.requestCount)
+
+        repeat(2) { server.takeRequest() }
+        val fallback = org.json.JSONObject(server.takeRequest().body.readUtf8())
+        assertEquals(false, fallback.getBoolean("stream"))
+    }
+
+    @Test
+    fun `流式 401 配置错误不重试不降级`() = runBlocking {
+        server.enqueue(
+            MockResponse().setResponseCode(401)
+                .setBody("""{"error":{"message":"Incorrect API key provided"}}""")
+        )
+        try {
+            AiTranslator.testConfig(baseUrl(), "bad", "m", "p", forceStreaming = true)
+            fail("should throw")
+        } catch (e: Exception) {
+            assertTrue(e.message!!.contains("Incorrect API key provided"))
+        }
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun `流式 5xx 降级非流式后成功`() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(500).setBody("""{"error":{"message":"boom"}}"""))
+        server.enqueue(MockResponse().setBody(completionJson("ok")))
+        val out = AiTranslator.testConfig(baseUrl(), "k", "m", "p", forceStreaming = true)
+        assertEquals("ok", out)
+        assertEquals(2, server.requestCount)
+    }
+
+    // ---------- 指令遵循校验 ----------
+
+    @Test
+    fun `测试翻译输出包含原文判未遵循指令`() = runBlocking {
+        server.enqueue(MockResponse().setBody(completionJson("「こんにちは、世界！」")))
+        try {
+            AiTranslator.testConfig(baseUrl(), "k", "m", "translate to zh")
+            fail("should throw")
+        } catch (e: Exception) {
+            assertTrue(e is java.io.IOException)
+            assertTrue(e.message!!.contains("输出了原文"))
+        }
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun `JSON 数组里的 null 元素解析为空串`() {
+        assertEquals(listOf("a", "", "c"), AiTranslator.parseJsonArrayReply("""["a",null,"c"]"""))
     }
 }

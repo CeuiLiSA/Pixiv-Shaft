@@ -2,10 +2,12 @@ package ceui.pixiv.ui.translate
 
 import android.app.Activity
 import ceui.lisa.R
+import ceui.lisa.utils.ClipBoardUtils
 import com.blankj.utilcode.util.ActivityUtils
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
 /**
@@ -30,16 +32,61 @@ internal fun promptProxyNeededIfPossible() {
  * key 无效/模型名错/服务没起,把真实错误摆给用户;走 Google 引擎才提示代理。
  */
 internal fun promptTranslateFailedIfPossible(e: Exception?) {
+    // 取消异常(「Job was cancelled」之类)不是翻译失败:是页面/任务被取消,
+    // 不该把原始 message 当错误弹给用户,静默跳过即可(调用方已按取消语义处理)。
+    if (e is CancellationException) {
+        Timber.d("TranslateProxyHint: skip cancelled translation error: %s", e.message)
+        return
+    }
     if (!AiTranslator.isActive()) {
         promptProxyNeededIfPossible()
         return
     }
-    val detail = e?.message ?: e?.toString() ?: ""
     showTranslateDialogIfPossible { activity ->
+        val body = buildFailureBody(activity, e)
         QMUIDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.ai_translate_failed_title)
-            .setMessage(detail.ifBlank { activity.getString(R.string.ai_translate_failed_title) })
+            .setMessage(body)
+            .addAction(activity.getString(R.string.string_120)) { dialog, _ ->
+                ClipBoardUtils.putTextIntoClipboard(activity, body)
+                dialog.dismiss()
+            }
     }
+}
+
+/** 错误码 + 错误消息两行拼成弹窗正文，复制按钮把同一段文字写进剪贴板。 */
+private fun buildFailureBody(activity: Activity, e: Exception?): String {
+    val code = failureCode(e)
+    val codeText = code?.toString()
+        ?: activity.getString(R.string.ai_translate_error_code_unknown)
+    val message = failureMessage(e, code, activity)
+    return activity.getString(R.string.ai_translate_error_code_label) + "：" + codeText + "\n" +
+        activity.getString(R.string.ai_translate_error_message_label) + "：" + message
+}
+
+/** HTTP 类失败有明确状态码；网络/解析等失败没有，返回 null 由 UI 显示“未知”。 */
+private fun failureCode(e: Exception?): Int? = when (e) {
+    is AiTranslator.RetryableApiException -> e.code
+    is AiTranslator.ApiConfigException -> e.code
+    else -> null
+}
+
+/**
+ * 错误消息去掉「HTTP xxx: 」前缀，避免和错误码行重复；
+ * 拿不到消息时给占位文案，而不是再贴一遍标题。
+ */
+private fun failureMessage(e: Exception?, code: Int?, activity: Activity): String {
+    val raw = when (e) {
+        is AiTranslator.RetryableApiException -> e.message
+        is AiTranslator.ApiConfigException -> e.message
+        else -> e?.message ?: e?.toString()
+    }.orEmpty()
+    val stripped = if (code != null && raw.startsWith("HTTP $code: ")) {
+        raw.removePrefix("HTTP $code: ")
+    } else {
+        raw
+    }
+    return stripped.ifBlank { activity.getString(R.string.ai_translate_failed_no_detail) }
 }
 
 private fun showTranslateDialogIfPossible(build: (Activity) -> QMUIDialog.MessageDialogBuilder) {

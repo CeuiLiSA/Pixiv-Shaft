@@ -296,6 +296,95 @@
                     android:textColorHint="@color/v3_text_3"
                     android:textSize="14sp" />
 
+                <!-- 关闭思考(默认 / thinking / enable_thinking) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/ai_translate_thinking_label"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/ai_translate_thinking_mode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_v3_chip"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="@string/ai_translate_thinking_desc"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="12sp" />
+
+                <!-- 流式传输开关 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/ai_translate_streaming_title"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="16sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/ai_translate_streaming_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <!-- 读取超时 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/ai_translate_read_timeout_label"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="13sp" />
+
+                <EditText
+                    android:id="@+id/ai_translate_read_timeout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:autofillHints=""
+                    android:background="@drawable/bg_v3_chip"
+                    android:fontFamily="monospace"
+                    android:hint="@string/ai_translate_read_timeout_placeholder"
+                    android:importantForAutofill="no"
+                    android:inputType="number"
+                    android:maxLines="1"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp"
+                    android:textColor="@color/v3_text_1"
+                    android:textColorHint="@color/v3_text_3"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="@string/ai_translate_read_timeout_hint"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="12sp" />
+
                 <!-- 操作按钮 -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -317,10 +406,10 @@
                         android:textColor="@color/white"
                         android:textSize="14sp" />
 
-                    <TextView
+                    <ceui.loxia.ProgressTextButton
                         android:id="@+id/ai_translate_test_btn"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="42dp"
                         android:layout_marginStart="10dp"
                         android:background="@drawable/bg_v3_pill_secondary"
                         android:clickable="true"
@@ -330,7 +419,9 @@
                         android:paddingVertical="11dp"
                         android:text="@string/ai_translate_btn_test"
                         android:textColor="#6C5CE7"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        app:ptb_progress_stroke_width="3dp"
+                        app:ptb_progress_width="14dp" />
                 </LinearLayout>
             </LinearLayout>
 

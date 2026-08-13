@@ -2401,7 +2401,7 @@
     <string name="ai_translate_api_key_label">API Key（本地服务可留空）</string>
     <string name="ai_translate_api_key_hint">sk-…</string>
     <string name="ai_translate_model_label">模型名</string>
-    <string name="ai_translate_model_hint">gpt-4o-mini / deepseek-chat / …</string>
+    <string name="ai_translate_model_hint">gpt-4o-mini / deepseek-v4-flash / …</string>
     <string name="ai_translate_prompt_label">自定义提示词（可选）</string>
     <string name="ai_translate_prompt_hint">留空使用内置翻译提示词</string>
     <string name="ai_translate_btn_test">测试翻译</string>
@@ -2410,10 +2410,36 @@
     <string name="ai_translate_test_success">测试成功：%1$s</string>
     <string name="ai_translate_test_failed">测试失败：%1$s</string>
     <string name="ai_translate_failed_title">AI 翻译失败</string>
+    <string name="ai_translate_error_code_label">错误码</string>
+    <string name="ai_translate_error_message_label">错误消息</string>
+    <string name="ai_translate_error_code_unknown">未知</string>
+    <string name="ai_translate_failed_no_detail">未获取到详细错误信息</string>
     <string name="ai_translate_fetch_models">获取模型列表</string>
     <string name="ai_translate_fetch_models_empty">未获取到模型</string>
     <string name="ai_translate_fetch_models_failed">获取失败：%1$s</string>
     <string name="ai_translate_toggle_key_visibility">显示或隐藏 API Key</string>
+    <string name="ai_translate_thinking_label">关闭思考（或降低思考强度）</string>
+    <string name="ai_translate_thinking_desc">默认由推理方控制是否思索。\n\nthinking适用于deepseek官方API。\nenable_thinking适用于SiliconFlow或阿里千问。</string>
+    <string name="ai_translate_thinking_mode_default">默认</string>
+    <string name="ai_translate_thinking_mode_deepseek">thinking</string>
+    <string name="ai_translate_thinking_mode_qwen">enable_thinking</string>
+    <string name="ai_translate_thinking_mode_low">low</string>
+    <string name="ai_translate_streaming_title">流式传输（SSE）</string>
+    <string name="ai_translate_read_timeout_label">读取超时（秒）</string>
+    <string name="ai_translate_read_timeout_placeholder">30~600</string>
+    <string name="ai_translate_read_timeout_hint">默认 120，思考型模型建议调高（范围30~600）</string>
+    <string name="ai_translate_read_timeout_invalid">读取超时需在 30~600 秒之间</string>
+    <string name="ai_translate_thinking">AI 思考中…</string>
+    <string name="ai_translate_unsaved_title">尚未保存</string>
+    <string name="ai_translate_unsaved_message">AI 翻译配置已修改，退出前是否保存？</string>
+    <string name="ai_translate_unsaved_save">保存并退出</string>
+    <string name="ai_translate_unsaved_discard">不保存</string>
+    <string-array name="ai_translate_thinking_modes">
+        <item>@string/ai_translate_thinking_mode_default</item>
+        <item>@string/ai_translate_thinking_mode_deepseek</item>
+        <item>@string/ai_translate_thinking_mode_qwen</item>
+        <item>@string/ai_translate_thinking_mode_low</item>
+    </string-array>
 
     <!-- 同义词词典（issue #904 按标签收藏优化）ceui.pixiv.db.synonym / ceui.pixiv.ui.synonym -->
     <string name="synonym_dict_title">同义词词典</string>
