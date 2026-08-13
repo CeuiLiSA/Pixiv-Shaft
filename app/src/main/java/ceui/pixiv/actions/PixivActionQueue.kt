@@ -4,7 +4,9 @@ import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.models.NovelBean
 import ceui.lisa.utils.Common
+import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -215,14 +217,25 @@ object PixivActionQueue {
      * 收藏来排序。发现画像（[ProfileManager]）同理 —— 它决定后续推荐，喂进去的必须是真的
      * 发生过的行为。
      */
-    private fun report(event: ActionEvent.Succeeded) {
+    private suspend fun report(event: ActionEvent.Succeeded) {
         val action = event.action
         when (action.type) {
             PixivActionTypes.ILLUST_BOOKMARK -> {
                 val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
+                // meta 兜底链:Illust 池(V3)→ IllustsBean 池(V2 点击时入池)→ API。
+                // 队列化之前(4.8.3)点击路径自带 API 兜底;收编进队列后只读 Illust 池,
+                // V2 用户的收藏事件全部无 meta 上报,操作记录页整页读不出条目(#1010),
+                // 且 manga 因取不到 type 全被误报成 illust。
                 val illust = ObjectPool.get<Illust>(payload.id).value
+                val bean = if (illust == null) ObjectPool.get<IllustsBean>(payload.id).value else null
+                val fetched = if (illust == null && bean == null) {
+                    withContext(Dispatchers.IO) {
+                        runCatching { Client.appApi.getIllust(payload.id).illust }.getOrNull()
+                    }
+                } else null
                 // pixiv 把漫画存成 type == "manga" 的 illust，按语义目标分开埋点。
-                val target = if (illust?.type == "manga") {
+                val type = illust?.type ?: bean?.type ?: fetched?.type
+                val target = if (type == "manga") {
                     EventReporter.Target.MANGA
                 } else {
                     EventReporter.Target.ILLUST
@@ -231,7 +244,7 @@ object PixivActionQueue {
                     if (payload.bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
                     target,
                     payload.id,
-                    illust,
+                    illust ?: bean ?: fetched,
                 )
                 // 画像只吃 IllustsBean（要读 tags 和作者）。池里没有就跳过：进程重启后
                 // 补发的那条本来就没有 bean 可读，漏一次画像强化远好过为它多打一次网络。
@@ -242,11 +255,17 @@ object PixivActionQueue {
 
             PixivActionTypes.NOVEL_BOOKMARK -> {
                 val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
+                // 同上:Novel 池(V3)→ NovelBean 池(V2)→ API 兜底。
+                val novel = ObjectPool.get<Novel>(payload.id).value
+                    ?: ObjectPool.get<NovelBean>(payload.id).value
+                    ?: withContext(Dispatchers.IO) {
+                        runCatching { Client.appApi.getNovel(payload.id).novel }.getOrNull()
+                    }
                 EventReporter.report(
                     if (payload.bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
                     EventReporter.Target.NOVEL,
                     payload.id,
-                    ObjectPool.get<Novel>(payload.id).value,
+                    novel,
                 )
             }
 

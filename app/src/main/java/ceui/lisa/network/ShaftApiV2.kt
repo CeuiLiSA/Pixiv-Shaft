@@ -1,5 +1,6 @@
 package ceui.lisa.network
 
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -347,7 +348,10 @@ interface ShaftApiV2 {
         val platform: String?,
         val channel: String?,
         val app_version: String?,
-        val meta: JsonObject?,
+        /** 上报时没带 payload 的事件服务端会给 `"meta": null`——声明成 JsonObject 的话
+         *  Gson 会把 JsonNull 强转失败抛 JsonSyntaxException,整页历史直接报错(#1010),
+         *  所以收成 JsonElement,由消费方 `as? JsonObject` 过滤。 */
+        val meta: JsonElement?,
     )
 
     // ── Plaza ─────────────────────────────────────────────────────────────────

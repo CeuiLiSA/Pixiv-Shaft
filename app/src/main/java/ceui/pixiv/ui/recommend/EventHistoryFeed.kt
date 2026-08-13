@@ -26,6 +26,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.utils.clearGlideOnRecycle
 import com.bumptech.glide.Glide
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -69,13 +70,14 @@ data class ParsedTarget(
     val openIntent: (Context) -> Unit,
 )
 
-private fun parseTarget(targetType: String, meta: JsonObject?): ParsedTarget? {
-    if (meta == null) return null
+private fun parseTarget(targetType: String, meta: JsonElement?): ParsedTarget? {
+    // 无 payload 的事件 meta 是 null 或 JsonNull(见 EventHistoryItem.meta 注释),行降级为纯文字。
+    val obj = meta as? JsonObject ?: return null
     val gson = Shaft.sGson
     return try {
         when (targetType) {
             "illust", "manga" -> {
-                val bean = gson.fromJson(meta, IllustsBean::class.java) ?: return null
+                val bean = gson.fromJson(obj, IllustsBean::class.java) ?: return null
                 ParsedTarget(
                     title = bean.title ?: "",
                     thumbUrl = bean.image_urls?.medium ?: bean.image_urls?.square_medium,
@@ -90,7 +92,7 @@ private fun parseTarget(targetType: String, meta: JsonObject?): ParsedTarget? {
                 )
             }
             "novel" -> {
-                val bean = gson.fromJson(meta, NovelBean::class.java) ?: return null
+                val bean = gson.fromJson(obj, NovelBean::class.java) ?: return null
                 ParsedTarget(
                     title = bean.title ?: "",
                     thumbUrl = bean.image_urls?.medium ?: bean.image_urls?.square_medium,
@@ -104,7 +106,7 @@ private fun parseTarget(targetType: String, meta: JsonObject?): ParsedTarget? {
                 )
             }
             "user" -> {
-                val bean = gson.fromJson(meta, UserBean::class.java) ?: return null
+                val bean = gson.fromJson(obj, UserBean::class.java) ?: return null
                 ParsedTarget(
                     title = bean.name ?: "",
                     thumbUrl = bean.profile_image_urls?.medium,
