@@ -8,12 +8,15 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.prime.PrimeIllustLoader
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
 import ceui.pixiv.ui.search.v3.SearchTarget
 import io.reactivex.Observable
 import io.reactivex.functions.Function
+import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 import java.time.LocalDate
 
 class SearchIllustRepo @JvmOverloads constructor(
@@ -52,7 +55,15 @@ class SearchIllustRepo @JvmOverloads constructor(
 
     private var filterMapper: FilterMapper? = null
 
+    // Repo 实例级借用会话，不切换应用登录态；插画和小说共用同一套刷新/上报规则。
+    @Volatile
+    private var nana7miSession = Nana7miAccountSession()
+
     override fun initApi(): Observable<ListIllust> {
+        // 每轮首屏使用全新会话。即使上一轮请求取消得较晚，它也只能更新旧会话，不能把
+        // 旧借用账号重新写进当前查询，污染当前结果的 next_url 翻页。
+        val currentNana7miSession = Nana7miAccountSession()
+        nana7miSession = currentNana7miSession
         if (sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE) {
             return loadTrendingBuiltinIllusts()
         }
@@ -76,12 +87,12 @@ class SearchIllustRepo @JvmOverloads constructor(
         //    非付费用户不能用人气系列 sort，需走 popular-preview。男女向两档（issue #575）
         //    平时被 V3 sheet gate 住非会员看不到，这里再兜一层防御。
         //  其余值（date_desc / date_asc / popular_*-premium）走 /v1/search/illust，sort 透传。
-        val usePopularPreview = sortType == SortType.POPULAR_PREVIEW ||
-                (isPremium != true && (
-                    sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE ||
-                    sortType == SortType.POPULAR_MALE_DESC ||
-                    sortType == SortType.POPULAR_FEMALE_DESC
-                ))
+        val usePopularPreview = sortType == SortType.POPULAR_PREVIEW
+        val notPremiumButWantToUsePopularSort = isPremium != true && (
+                sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE ||
+                        sortType == SortType.POPULAR_MALE_DESC ||
+                        sortType == SortType.POPULAR_FEMALE_DESC
+                )
 
         // 投稿期间相对档当场算 today−N（每次 initApi 都重算,跨午夜窗口自动跟随今天）;
         // bucket 为空时回落到自定义起止日期
@@ -90,6 +101,43 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 默认档「标签部分一致」不传 search_target，让标题命中也能搜到（#906）——
         // 见 [SearchTarget.toQueryValue] 注释。
         val effectiveSearchTarget = SearchTarget.toQueryValue(searchType)
+
+        fun fallbackPreview(reason: String): Observable<ListIllust> {
+            Timber.tag(NANA7MI_LOG_TAG).w(
+                "stage=route target=popular_preview reason=%s",
+                reason,
+            )
+            return Retro.getAppApi().popularPreview(
+                assembledKeyword,
+                effectiveStartDate,
+                effectiveEndDate,
+                effectiveSearchTarget,
+                bookmarkMin,
+                tool,
+                lang,
+                searchAiType,
+                ratioPattern,
+                contentType,
+                widthMin,
+                widthMax,
+                heightMin,
+                heightMax,
+            )
+                .doOnNext { response ->
+                    Timber.tag(NANA7MI_LOG_TAG).d(
+                        "stage=popular_preview result=success illust_count=%d has_next=%s",
+                        response.illusts?.size ?: 0,
+                        !response.next_url.isNullOrBlank(),
+                    )
+                }
+                .doOnError { error ->
+                    Timber.tag(NANA7MI_LOG_TAG).w(
+                        error,
+                        "stage=popular_preview result=failure error_type=%s",
+                        error.javaClass.simpleName,
+                    )
+                }
+        }
 
         return if (usePopularPreview) {
             Retro.getAppApi().popularPreview(
@@ -108,6 +156,64 @@ class SearchIllustRepo @JvmOverloads constructor(
                 heightMin,
                 heightMax,
             )
+        } else if (notPremiumButWantToUsePopularSort) {
+            Nana7miSearchSerial.run("illust_first") {
+                Timber.tag(NANA7MI_LOG_TAG).d(
+                    "stage=flow event=start requester_uid=%d sort=%s keyword_length=%d",
+                    SessionManager.loggedInUid,
+                    sortType,
+                    assembledKeyword.length,
+                )
+                Observable.fromCallable {
+                    runBlocking {
+                        currentNana7miSession.fetchReady()
+                    }
+                }.flatMap { result ->
+                    val newNana7mi = currentNana7miSession.payload
+                    if (newNana7mi != null && !newNana7mi.expired) {
+                        Timber.tag(NANA7MI_LOG_TAG).d(
+                            "stage=route target=official_search account_uid=%d sort=%s",
+                            newNana7mi.uid,
+                            sortType,
+                        )
+                        currentNana7miSession.requestWithRefresh(
+                            initial = newNana7mi,
+                            stage = "official_search",
+                            successDetails = { response ->
+                                "illust_count=${response.illusts?.size ?: 0} " +
+                                        "has_next=${!response.next_url.isNullOrBlank()}"
+                            },
+                        ) { authorization ->
+                            Retro.getAppApi().searchIllustWithAuth(
+                                authorization,
+                                assembledKeyword,
+                                sortType,
+                                effectiveStartDate,
+                                effectiveEndDate,
+                                effectiveSearchTarget,
+                                bookmarkMin,
+                                tool,
+                                lang,
+                                searchAiType,
+                                ratioPattern,
+                                contentType,
+                                widthMin,
+                                widthMax,
+                                heightMin,
+                                heightMax,
+                            )
+                        }.onErrorResumeNext { error: Throwable ->
+                            if (isBorrowedAccountUnavailable(error)) {
+                                fallbackPreview("borrowed_refresh_failed")
+                            } else {
+                                Observable.error(error)
+                            }
+                        }
+                    } else {
+                        fallbackPreview(currentNana7miSession.resultLabel(result))
+                    }
+                }
+            }
         } else {
             Retro.getAppApi().searchIllust(
                 assembledKeyword,
@@ -143,7 +249,31 @@ class SearchIllustRepo @JvmOverloads constructor(
     }
 
     override fun initNextApi(): Observable<ListIllust> {
-        return Retro.getAppApi().getNextIllust(nextUrl)
+        val session = nana7miSession
+        val payload = session.payload
+        // nextUrl 与借用会话必须来自同一轮翻页。串行队列可能让真正订阅延后；若此时
+        // 新首屏改写了 RemoteRepo.nextUrl，闭包里再读字段会拼出“旧账号 + 新游标”。
+        val nextPageUrl = nextUrl
+        return if (payload == null) {
+            Retro.getAppApi().getNextIllust(nextPageUrl)
+        } else {
+            Timber.tag(NANA7MI_LOG_TAG).d(
+                "stage=official_search_next event=request account_uid=%d",
+                payload.uid,
+            )
+            Nana7miSearchSerial.run("illust_next") {
+                session.requestWithRefresh(
+                    initial = payload,
+                    stage = "official_search_next",
+                    successDetails = { response ->
+                        "illust_count=${response.illusts?.size ?: 0} " +
+                                "has_next=${!response.next_url.isNullOrBlank()}"
+                    },
+                ) { authorization ->
+                    Retro.getAppApi().getNextIllustWithAuth(authorization, nextPageUrl)
+                }
+            }
+        }
     }
 
     override fun mapper(): Function<in ListIllust, ListIllust> {
@@ -205,5 +335,9 @@ class SearchIllustRepo @JvmOverloads constructor(
         val fromStar = if (TextUtils.isEmpty(starSize)) 0
         else Regex("""\d+""").find(starSize!!)?.value?.toIntOrNull() ?: 0
         return maxOf(fromQuery, fromStar)
+    }
+
+    private companion object {
+        const val NANA7MI_LOG_TAG = "sadadsdasdw2"
     }
 }

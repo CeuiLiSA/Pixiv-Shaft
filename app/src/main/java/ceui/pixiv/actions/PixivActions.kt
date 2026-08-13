@@ -7,7 +7,6 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.loxia.AccountResponse
-import ceui.loxia.BindOnlineReq
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -319,17 +318,7 @@ object PixivActions {
             Timber.tag(TAG).w("bindAccountOnline skipped, invalid uid=%d", uid)
             return
         }
-        PixivActionQueue.enqueue(
-            ActionRequest(
-                type = PixivActionTypes.USER_ONLINE,
-                dedupeKey = "${PixivActionTypes.USER_ONLINE}:${uid}",
-                // payload 直接存线上格式 [BindOnlineReq]，执行侧原样解析原样发，
-                // 不再有第二个字段名不同的 payload 类。
-                payload = Shaft.sGson.toJson(
-                    BindOnlineReq(uid, accountResponse)
-                ),
-            )
-        )
+        AccountOnlineReportOutbox.enqueueOnline(uid, accountResponse)
     }
 
     /** 小说版本的 [bookmarkIllustWithTags]。 */

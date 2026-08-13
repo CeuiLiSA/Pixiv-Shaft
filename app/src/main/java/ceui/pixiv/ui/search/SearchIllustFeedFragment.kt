@@ -2,6 +2,7 @@ package ceui.pixiv.ui.search
 
 import android.os.Bundle
 import android.view.View
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.model.ListIllust
 import ceui.lisa.repo.SearchIllustRepo
@@ -9,6 +10,7 @@ import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
+import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
@@ -30,6 +32,8 @@ import kotlinx.coroutines.withContext
  * 命中标签匹配档才 refresh（对齐 legacy 的 TAG_MATCH_VALUE guard，防选了小说专属 target 时插画也重搜）。
  */
 class SearchIllustFeedFragment : IllustFeedFragment() {
+
+    private var searchRefreshPending = false
 
     private val searchModel: SearchModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProvider(requireActivity())[SearchModel::class.java]
@@ -69,6 +73,33 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
         searchModel.nowGo.observe(viewLifecycleOwner) {
             // 只在「标签匹配」档响应（对齐 legacy）：选了小说专属 target 时插画 tab 不重搜。
             if (PixivSearchParamUtil.TAG_MATCH_VALUE.contains(searchModel.searchType.value)) {
+                // ViewPager 的离屏页仍处于 STARTED，LiveData 也会通知它。只让当前
+                // RESUMED tab 立即请求；离屏页合并成一次待刷新，等用户真正切过来再搜。
+                if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                    searchRefreshPending = false
+                    feedViewModel.refresh()
+                } else {
+                    searchRefreshPending = true
+                }
+            } else {
+                // A later event may target only the novel tab. Do not carry an older pending
+                // illustration refresh across that newer, incompatible SearchModel snapshot.
+                searchRefreshPending = false
+            }
+        }
+    }
+
+    override fun onResume() {
+        // 先快照切换前的加载状态：super.onResume() 会为从未加载的页面执行
+        // ensureLoaded()，这种情况已经会使用最新 SearchModel，不能紧接着再 refresh 一次。
+        // 旧页面已加载或旧请求还在跑时，则需要显式 refresh 替换成最新条件。
+        val hadExistingLoad = feedViewModel.uiState.value.let {
+            it.hasLoadedOnce || it.refresh is LoadState.Loading
+        }
+        super.onResume()
+        if (searchRefreshPending) {
+            searchRefreshPending = false
+            if (hadExistingLoad) {
                 feedViewModel.refresh()
             }
         }

@@ -103,4 +103,25 @@ class PixshaftNana7miApiTest {
         assertTrue(api.fetchNana7mi(3L) is Nana7miResult.InvalidResponse)
         assertTrue(api.fetchNana7mi(0L) is Nana7miResult.InvalidRequest)
     }
+
+    @Test
+    fun `invalid refresh report sends only uid and token hash`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""{"ok":true,"uid":102,"disabled":true}"""),
+        )
+
+        val ack = api.invalidateNana7mi(Nana7miInvalidReq(102L, "a".repeat(64)))
+        val request = server.takeRequest()
+
+        assertTrue(ack.ok)
+        assertTrue(ack.disabled)
+        assertEquals("/v1/account/nana7mi/invalid", request.path)
+        assertEquals(
+            "{\"uid\":102,\"refreshTokenHash\":\"${"a".repeat(64)}\"}",
+            request.body.readUtf8(),
+        )
+    }
 }

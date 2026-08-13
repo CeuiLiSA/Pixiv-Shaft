@@ -27,18 +27,26 @@ public class TokenInterceptor implements Interceptor {
 
     private static final String TOKEN_ERROR_1 = "Error occurred at the OAuth process";
     private static final String TOKEN_ERROR_2 = "Invalid refresh token";
+    private static final String EXPLICIT_AUTH_MARKER = "X-Shaft-Explicit-Authorization";
 
     @NotNull
     @Override
     public Response intercept(Chain chain) throws IOException {
-        Request request = chain.request();
+        Request originalRequest = chain.request();
+        // Explicitly-authorized search methods own their borrowed-token lifecycle. Strip this
+        // internal marker before the network call and never replace their Authorization with the
+        // currently logged-in account during an automatic retry.
+        boolean explicitAuthorization = "1".equals(originalRequest.header(EXPLICIT_AUTH_MARKER));
+        Request request = explicitAuthorization
+                ? originalRequest.newBuilder().removeHeader(EXPLICIT_AUTH_MARKER).build()
+                : originalRequest;
         Response response = chain.proceed(request);
 
-        if (isTokenExpired(response)) {
+        if (!explicitAuthorization && isTokenExpired(response)) {
             Timber.i("TokenInterceptor: access_token 过期，正在刷新");
             response.close();
             String newBearer = getNewToken(request.header("Authorization"));
-            Request newRequest = chain.request()
+            Request newRequest = request
                     .newBuilder()
                     .header("Authorization", newBearer)
                     .build();

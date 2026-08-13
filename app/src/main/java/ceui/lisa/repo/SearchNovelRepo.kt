@@ -8,11 +8,14 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
 import ceui.pixiv.ui.search.v3.SearchTarget
 import io.reactivex.Observable
 import io.reactivex.functions.Function
+import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 import java.time.LocalDate
 
 class SearchNovelRepo @JvmOverloads constructor(
@@ -46,6 +49,8 @@ class SearchNovelRepo @JvmOverloads constructor(
 ) : RemoteRepo<ListNovel>() {
 
     private var filterMapper: Mapper<ListNovel>? = null
+    @Volatile
+    private var nana7miSession = Nana7miAccountSession()
 
     // 复用基类 Mapper（已含屏蔽 tag/ID/用户 + 全局 R18 过滤）；额外承载搜索「R-18 限制」三档。
     // 注意：mapper() 由 RemoteRepo 构造器调用，早于本类属性初始化，故这里不读 r18Restriction，
@@ -58,6 +63,9 @@ class SearchNovelRepo @JvmOverloads constructor(
     }
 
     override fun initApi(): Observable<ListNovel> {
+        // A late completion from an older query must not overwrite the account for this query.
+        val currentNana7miSession = Nana7miAccountSession()
+        nana7miSession = currentNana7miSession
         val useBookmarkQuery = (bookmarkMin ?: 0) > 0
         val keywordSuffix = if (useBookmarkQuery) "" else when {
             TextUtils.isEmpty(starSize) -> ""
@@ -67,12 +75,13 @@ class SearchNovelRepo @JvmOverloads constructor(
         // 改由 [mapper] 的 Mapper.setSearchR18Restriction 按真实 x_restrict 客户端过滤（见 update()）。
         val assembledKeyword: String = (keyword + keywordSuffix).trim()
 
-        // 路由 sort：popular_preview 是 popular-preview endpoint 专属，传给 /v1/search/novel 会 400；
-        // popular_desc / trending_builtin 非 premium 用户也用 popular-preview（pixiv 旧约束）；
-        // 其余 (date_desc / date_asc / popular_desc-premium / trending_builtin-premium) 走主 endpoint。
-        val usePopularPreview = sortType == SortType.POPULAR_PREVIEW ||
-                ((sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE ||
-                  sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE) && isPremium != true)
+        // popular_preview 是预览 endpoint 专属；非会员选择会员人气排序时借用一个 Nana7mi
+        // 账号走正式搜索。取号/过期刷新/重新上报/400 重放由共享会话组件负责。
+        val usePopularPreview = sortType == SortType.POPULAR_PREVIEW
+        val notPremiumButWantToUsePopularSort = isPremium != true && (
+                sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE ||
+                        sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE
+                )
 
         // 投稿期间相对档当场算 today−N(每次 initApi 都重算,跨午夜窗口自动跟随今天);
         // bucket 为空时回落到自定义起止日期
@@ -81,6 +90,45 @@ class SearchNovelRepo @JvmOverloads constructor(
         // 默认档「标签部分一致」不传 search_target，让标题命中也能搜到（#906）——
         // 见 [SearchTarget.toQueryValue] 注释。
         val effectiveSearchTarget = SearchTarget.toQueryValue(searchType)
+
+        fun fallbackPreview(reason: String): Observable<ListNovel> {
+            Timber.tag(NANA7MI_LOG_TAG).w(
+                "stage=route target=novel_popular_preview reason=%s",
+                reason,
+            )
+            return Retro.getAppApi().popularNovelPreview(
+                assembledKeyword,
+                effectiveStartDate,
+                effectiveEndDate,
+                effectiveSearchTarget,
+                bookmarkMin,
+                genre,
+                lang,
+                searchAiType,
+                isOriginalOnly,
+                isReplaceableOnly,
+                textLengthMin,
+                textLengthMax,
+                wordCountMin,
+                wordCountMax,
+                readingTimeMin,
+                readingTimeMax,
+            )
+                .doOnNext { response ->
+                    Timber.tag(NANA7MI_LOG_TAG).d(
+                        "stage=novel_popular_preview result=success novel_count=%d has_next=%s",
+                        response.novels?.size ?: 0,
+                        !response.nextUrl.isNullOrBlank(),
+                    )
+                }
+                .doOnError { error ->
+                    Timber.tag(NANA7MI_LOG_TAG).w(
+                        error,
+                        "stage=novel_popular_preview result=failure error_type=%s",
+                        error.javaClass.simpleName,
+                    )
+                }
+        }
 
         return if (usePopularPreview) {
             Retro.getAppApi().popularNovelPreview(
@@ -101,6 +149,64 @@ class SearchNovelRepo @JvmOverloads constructor(
                 readingTimeMin,
                 readingTimeMax,
             )
+        } else if (notPremiumButWantToUsePopularSort) {
+            Nana7miSearchSerial.run("novel_first") {
+                Timber.tag(NANA7MI_LOG_TAG).d(
+                    "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
+                    SessionManager.loggedInUid,
+                    sortType,
+                    assembledKeyword.length,
+                )
+                Observable.fromCallable {
+                    runBlocking { currentNana7miSession.fetchReady() }
+                }.flatMap { result ->
+                    val borrowed = currentNana7miSession.payload
+                    if (borrowed != null && !borrowed.expired) {
+                        Timber.tag(NANA7MI_LOG_TAG).d(
+                            "stage=route target=novel_official_search account_uid=%d sort=%s",
+                            borrowed.uid,
+                            sortType,
+                        )
+                        currentNana7miSession.requestWithRefresh(
+                            initial = borrowed,
+                            stage = "novel_official_search",
+                            successDetails = { response ->
+                                "novel_count=${response.novels?.size ?: 0} " +
+                                        "has_next=${!response.nextUrl.isNullOrBlank()}"
+                            },
+                        ) { authorization ->
+                            Retro.getAppApi().searchNovelWithAuth(
+                                authorization,
+                                assembledKeyword,
+                                sortType,
+                                effectiveStartDate,
+                                effectiveEndDate,
+                                effectiveSearchTarget,
+                                bookmarkMin,
+                                genre,
+                                lang,
+                                searchAiType,
+                                isOriginalOnly,
+                                isReplaceableOnly,
+                                textLengthMin,
+                                textLengthMax,
+                                wordCountMin,
+                                wordCountMax,
+                                readingTimeMin,
+                                readingTimeMax,
+                            )
+                        }.onErrorResumeNext { error: Throwable ->
+                            if (isBorrowedAccountUnavailable(error)) {
+                                fallbackPreview("borrowed_refresh_failed")
+                            } else {
+                                Observable.error(error)
+                            }
+                        }
+                    } else {
+                        fallbackPreview(currentNana7miSession.resultLabel(result))
+                    }
+                }
+            }
         } else {
             Retro.getAppApi().searchNovel(
                 assembledKeyword,
@@ -138,7 +244,31 @@ class SearchNovelRepo @JvmOverloads constructor(
     }
 
     override fun initNextApi(): Observable<ListNovel> {
-        return Retro.getAppApi().getNextNovel(nextUrl)
+        val session = nana7miSession
+        val borrowed = session.payload
+        // Capture the cursor together with the session before this request waits for the
+        // process-wide permit; a newer first page may otherwise replace RemoteRepo.nextUrl.
+        val nextPageUrl = nextUrl
+        return if (borrowed == null) {
+            Retro.getAppApi().getNextNovel(nextPageUrl)
+        } else {
+            Timber.tag(NANA7MI_LOG_TAG).d(
+                "stage=novel_official_search_next event=request account_uid=%d",
+                borrowed.uid,
+            )
+            Nana7miSearchSerial.run("novel_next") {
+                session.requestWithRefresh(
+                    initial = borrowed,
+                    stage = "novel_official_search_next",
+                    successDetails = { response ->
+                        "novel_count=${response.novels?.size ?: 0} " +
+                                "has_next=${!response.nextUrl.isNullOrBlank()}"
+                    },
+                ) { authorization ->
+                    Retro.getAppApi().getNextNovelWithAuth(authorization, nextPageUrl)
+                }
+            }
+        }
     }
 
     fun update(searchModel: SearchModel) {
@@ -170,5 +300,9 @@ class SearchNovelRepo @JvmOverloads constructor(
         // R18 三档（0=不限/1=仅安全/2=仅R-18）→ 客户端按 x_restrict 过滤
         filterMapper?.setSearchR18Restriction(r18Restriction ?: 0)
         filterMapper?.setSearchOnlyAi(onlyAi)
+    }
+
+    private companion object {
+        const val NANA7MI_LOG_TAG = "sadadsdasdw2"
     }
 }

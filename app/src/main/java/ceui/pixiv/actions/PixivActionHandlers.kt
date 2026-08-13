@@ -1,7 +1,6 @@
 package ceui.pixiv.actions
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.BindOnlineReq
 import ceui.pixiv.actionqueue.ActionHandler
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
@@ -194,26 +193,14 @@ internal class UserFollowHandler(private val isOnline: () -> Boolean) : ActionHa
     }
 }
 
-internal class UserOnlineHandler(private val isOnline: () -> Boolean) : ActionHandler {
+/**
+ * Migration tombstone for rows written by builds that kept AccountResponse reports in the
+ * logged-in user's action queue. New reports use [AccountOnlineReportOutbox]. Replaying one of
+ * these owner-scoped legacy rows could overwrite a newer rotated token already delivered by the
+ * global outbox, so consume it without touching the network.
+ */
+internal class UserOnlineHandler : ActionHandler {
     override suspend fun execute(action: PendingAction): ActionOutcome {
-        // payload 就是线上格式 [BindOnlineReq]，不再经过第二个字段名不同的类 ——
-        // 之前按 OnlinePayload(userId) 解析 {"uid":...}，gson 找不到键落成 0，
-        // 服务端全部 400 bad_uid。
-        val payload = action.parsePayload<BindOnlineReq>() ?: return badPayload(action)
-        if (payload.uid <= 0L) {
-            // 服务端对 uid<=0 恒 400，重试不可能成功；立刻终态，别烧重试预算。
-            return ActionOutcome.Fail("bad uid: ${payload.uid}")
-        }
-        // [toActionOutcome] 把 5xx/429 判成整队冷却，前提是整队打的都是同一个服务端
-        // （pixiv）。这条打的是 pixshaft.com —— 它宕机或限流对 pixiv 没有任何信息量，
-        // 按整队冷却会把用户排队的收藏/关注一起冻上几分钟。钳成只推迟这一条。
-        val outcome = attempt(isOnline) {
-            Client.pixshaft.bindOnline(payload)
-        }
-        return if (outcome is ActionOutcome.Retry && outcome.scope == RetryScope.QUEUE) {
-            outcome.copy(scope = RetryScope.ACTION)
-        } else {
-            outcome
-        }
+        return ActionOutcome.Success
     }
 }

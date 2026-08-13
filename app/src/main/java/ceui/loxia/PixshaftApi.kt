@@ -82,6 +82,12 @@ interface PixshaftApi {
         @Body body: Nana7miRequest,
     ): Response<Nana7miResponse>
 
+    /** Quarantine the exact borrowed refresh token that Pixiv rejected. */
+    @POST("v1/account/nana7mi/invalid")
+    suspend fun invalidateNana7mi(
+        @Body body: Nana7miInvalidReq,
+    ): Nana7miInvalidAck
+
     /** Restore (login page): mail a code IF [email] has a backup ([RestoreRequestAck.found]). */
     @POST("v1/account/restore/request")
     suspend fun restoreRequest(@Body body: EmailReq): RestoreRequestAck
@@ -125,6 +131,17 @@ data class BindOnlineAck(
 )
 
 data class Nana7miRequest(val uid: Long)
+
+data class Nana7miInvalidReq(
+    val uid: Long,
+    val refreshTokenHash: String,
+)
+
+data class Nana7miInvalidAck(
+    val ok: Boolean = false,
+    val uid: Long? = null,
+    val disabled: Boolean = false,
+)
 
 data class Nana7miResponse(
     val uid: Long? = null,

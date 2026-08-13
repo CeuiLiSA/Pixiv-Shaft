@@ -38,6 +38,8 @@ import retrofit2.http.Field;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
@@ -121,6 +123,30 @@ public interface AppApi {
                                         @Query("height_max") Integer height_max);
 
     /**
+     * 与上面的 V3 搜索参数完全一致，但使用调用方显式传入的 OAuth token。
+     * authorization 必须是完整值（例如 "Bearer xxx"）。Retro 的 header interceptor
+     * 只会在 Authorization 缺失时注入当前登录账号，因此不会覆盖这里的值。
+    */
+    @Headers("X-Shaft-Explicit-Authorization: 1")
+    @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
+    Observable<ListIllust> searchIllustWithAuth(@Header("Authorization") String authorization,
+                                                @Query("word") String word,
+                                                @Query("sort") String sort,
+                                                @Query("start_date") String startDate,
+                                                @Query("end_date") String endDate,
+                                                @Query("search_target") String search_target,
+                                                @Query("bookmark_num_min") Integer bookmark_num_min,
+                                                @Query("tool") String tool,
+                                                @Query("lang") String lang,
+                                                @Query("search_ai_type") Integer search_ai_type,
+                                                @Query("ratio_pattern") String ratio_pattern,
+                                                @Query("content_type") String content_type,
+                                                @Query("width_min") Integer width_min,
+                                                @Query("width_max") Integer width_max,
+                                                @Query("height_min") Integer height_min,
+                                                @Query("height_max") Integer height_max);
+
+    /**
      * search_target=exact_match_for_tags,partial_match_for_tags,text(文本),keyword(关键词)
      */
     @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
@@ -150,6 +176,29 @@ public interface AppApi {
                                       @Query("word_count_max") Integer word_count_max,
                                       @Query("reading_time_min") Integer reading_time_min,
                                       @Query("reading_time_max") Integer reading_time_max);
+
+    /** Novel search with a borrowed account. The marker keeps TokenInterceptor from refreshing
+     *  or replacing this Authorization with the app's logged-in account. */
+    @Headers("X-Shaft-Explicit-Authorization: 1")
+    @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
+    Observable<ListNovel> searchNovelWithAuth(@Header("Authorization") String authorization,
+                                               @Query("word") String word,
+                                               @Query("sort") String sort,
+                                               @Query("start_date") String startDate,
+                                               @Query("end_date") String endDate,
+                                               @Query("search_target") String search_target,
+                                               @Query("bookmark_num_min") Integer bookmark_num_min,
+                                               @Query("genre") Integer genre,
+                                               @Query("lang") String lang,
+                                               @Query("search_ai_type") Integer search_ai_type,
+                                               @Query("is_original_only") Boolean is_original_only,
+                                               @Query("is_replaceable_only") Boolean is_replaceable_only,
+                                               @Query("text_length_min") Integer text_length_min,
+                                               @Query("text_length_max") Integer text_length_max,
+                                               @Query("word_count_min") Integer word_count_min,
+                                               @Query("word_count_max") Integer word_count_max,
+                                               @Query("reading_time_min") Integer reading_time_min,
+                                               @Query("reading_time_max") Integer reading_time_max);
 
 
     @GET("v2/illust/related?filter=for_android")
@@ -509,8 +558,20 @@ public interface AppApi {
     @GET
     Observable<ListIllust> getNextIllust(@Url String next_url);
 
+    /** Continue an explicitly-authorized search with the same borrowed account. */
+    @Headers("X-Shaft-Explicit-Authorization: 1")
+    @GET
+    Observable<ListIllust> getNextIllustWithAuth(@Header("Authorization") String authorization,
+                                                 @Url String next_url);
+
     @GET
     Observable<ListNovel> getNextNovel(@Url String next_url);
+
+    /** Continue an explicitly-authorized novel search with the same borrowed account. */
+    @Headers("X-Shaft-Explicit-Authorization: 1")
+    @GET
+    Observable<ListNovel> getNextNovelWithAuth(@Header("Authorization") String authorization,
+                                               @Url String next_url);
 
     @GET
     Observable<ListNovelOfSeries> getNextSeriesNovel(@Url String next_url);

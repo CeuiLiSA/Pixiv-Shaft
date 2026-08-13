@@ -71,7 +71,8 @@ object PixivActionQueue {
                 PixivActionTypes.ILLUST_BOOKMARK to IllustBookmarkHandler(isOnline),
                 PixivActionTypes.NOVEL_BOOKMARK to NovelBookmarkHandler(isOnline),
                 PixivActionTypes.USER_FOLLOW to UserFollowHandler(isOnline),
-                PixivActionTypes.USER_ONLINE to UserOnlineHandler(isOnline),
+                // Compatibility handler only drains owner-scoped rows written by old builds.
+                PixivActionTypes.USER_ONLINE to UserOnlineHandler(),
             ),
             policy = QueuePolicy(minGapMs = MIN_GAP_MS),
             // 未登录时只睡不发。否则退登状态下一整队请求会全部 401，

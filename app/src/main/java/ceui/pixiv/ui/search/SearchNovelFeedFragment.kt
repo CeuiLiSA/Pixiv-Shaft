@@ -2,6 +2,7 @@ package ceui.pixiv.ui.search
 
 import android.os.Bundle
 import android.view.View
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.activities.Shaft
 import ceui.lisa.model.ListNovel
@@ -12,6 +13,7 @@ import ceui.lisa.viewmodel.SearchModel
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
+import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
@@ -29,6 +31,8 @@ import kotlinx.coroutines.withContext
  */
 class SearchNovelFeedFragment : NovelFeedFragment() {
 
+    private var searchRefreshPending = false
+
     private val searchModel: SearchModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProvider(requireActivity())[SearchModel::class.java]
     }
@@ -42,6 +46,30 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         super.onViewCreated(view, savedInstanceState)
         searchModel.nowGo.observe(viewLifecycleOwner) {
             if (PixivSearchParamUtil.TAG_MATCH_VALUE_NOVEL.contains(searchModel.searchType.value)) {
+                // 离屏 ViewPager 页处于 STARTED 也会收到 LiveData；不在后台搜索，
+                // 只记一次待刷新，等这个 tab 真正 RESUMED 时再执行。
+                if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                    searchRefreshPending = false
+                    feedViewModel.refresh()
+                } else {
+                    searchRefreshPending = true
+                }
+            } else {
+                searchRefreshPending = false
+            }
+        }
+    }
+
+    override fun onResume() {
+        val hadExistingLoad = feedViewModel.uiState.value.let {
+            it.hasLoadedOnce || it.refresh is LoadState.Loading
+        }
+        super.onResume()
+        if (searchRefreshPending) {
+            searchRefreshPending = false
+            // 首次进入由 FeedFragment.ensureLoaded() 加载最新条件；只有旧数据或
+            // 旧请求存在时才显式刷新，避免首次进入连续发两次。
+            if (hadExistingLoad) {
                 feedViewModel.refresh()
             }
         }
