@@ -2369,4 +2369,6 @@
     <string name="model_download_import_success">Model imported</string>
     <string name="model_download_import_invalid">Invalid file. Please make sure it is the Zip archive of this model.</string>
     <string name="model_download_picker_unavailable">Unable to open the file picker. Please check your system file manager.</string>
+    <string name="model_download_importing">Importing model…</string>
+    <string name="manga_translate_prep_status_importing">Importing model…</string>
 </resources>

@@ -2369,4 +2369,6 @@
     <string name="model_download_import_success">모델 가져오기 완료</string>
     <string name="model_download_import_invalid">파일이 올바르지 않습니다. 이 모델의 Zip 압축 파일인지 확인해 주세요</string>
     <string name="model_download_picker_unavailable">파일 선택기를 열 수 없습니다. 시스템 파일 관리자를 확인해 주세요</string>
+    <string name="model_download_importing">모델 가져오는 중…</string>
+    <string name="manga_translate_prep_status_importing">모델 가져오는 중…</string>
 </resources>

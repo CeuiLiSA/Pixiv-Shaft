@@ -2369,4 +2369,6 @@
     <string name="model_download_import_success">モデルのインポートが完了しました</string>
     <string name="model_download_import_invalid">ファイルが正しくありません。このモデルの Zip 圧縮ファイルかどうか確認してください</string>
     <string name="model_download_picker_unavailable">ファイル選択画面を開けませんでした。システムのファイルマネージャーを確認してください</string>
+    <string name="model_download_importing">モデルをインポート中…</string>
+    <string name="manga_translate_prep_status_importing">モデルをインポート中…</string>
 </resources>

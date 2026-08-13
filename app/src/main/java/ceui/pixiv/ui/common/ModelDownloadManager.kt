@@ -2,6 +2,7 @@ package ceui.pixiv.ui.common
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
@@ -92,21 +93,25 @@ abstract class ModelDownloadManager {
         context: Context,
         model: DownloadableModel,
         uri: Uri,
+        onProgress: (bytesRead: Long, totalBytes: Long) -> Unit = { _, _ -> },
     ): Boolean = withContext(Dispatchers.IO) {
         val tempZip = File(context.cacheDir, "model_import_${model.assetDir}.zip")
         try {
             val input = context.contentResolver.openInputStream(uri) ?: return@withContext false
             var importedBytes = 0L
+            val totalBytes = querySize(context, uri)
             input.use { stream ->
                 FileOutputStream(tempZip).use { output ->
                     val buffer = ByteArray(8192)
                     var n: Int
                     while (stream.read(buffer).also { n = it } != -1) {
+                        coroutineContext.ensureActive()
                         importedBytes += n
                         if (importedBytes > MAX_IMPORT_FILE_BYTES) {
                             throw IllegalArgumentException("model zip too large: $importedBytes bytes")
                         }
                         output.write(buffer, 0, n)
+                        onProgress(importedBytes, totalBytes)
                     }
                 }
             }
@@ -122,6 +127,16 @@ abstract class ModelDownloadManager {
             tempZip.delete()
         }
     }
+
+    /** 从 SAF URI 读取文件大小，拿不到（部分 provider 不支持）返回 -1，UI 走不确定进度。 */
+    private fun querySize(context: Context, uri: Uri): Long = runCatching {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)
+            ?.use { cursor ->
+                if (!cursor.moveToFirst()) return@use -1L
+                val index = cursor.getColumnIndex(OpenableColumns.SIZE)
+                if (index >= 0 && !cursor.isNull(index)) cursor.getLong(index) else -1L
+            } ?: -1L
+    }.getOrDefault(-1L)
 
     /**
      * 校验并安装模型 zip（下载/导入共用）。

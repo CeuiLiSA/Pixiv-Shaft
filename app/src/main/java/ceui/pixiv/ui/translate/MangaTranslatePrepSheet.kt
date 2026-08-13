@@ -42,6 +42,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
 
     private var onReady: (() -> Unit)? = null
     private var downloadJob: Job? = null
+    private var importing = false
 
     private val ctdModel = ComicTextDetectorModel.CTD_BASE
     private val ocrModel = MangaOcrModel.MANGA_OCR_BASE
@@ -102,8 +103,23 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
         val ctx = requireContext()
         val manager = if (isCtd) ComicTextDetectorModelManager else MangaOcrModelManager
         val model = if (isCtd) ctdModel else ocrModel
-        importController = ModelImportController(this, importPicker, manager, model) { success ->
+        importController = ModelImportController(
+            this,
+            importPicker,
+            manager,
+            model,
+            onImportStarted = {
+                if (_binding == null) return@ModelImportController
+                importing = true
+                binding.btnPrimary.isClickable = false
+                binding.btnPrimary.alpha = 0.55F
+                renderRowState(ctx, isCtd, RowState.Importing)
+            },
+        ) { success ->
             if (_binding == null) return@ModelImportController
+            importing = false
+            binding.btnPrimary.isClickable = true
+            binding.btnPrimary.alpha = 1F
             if (success) {
                 renderRowState(ctx, isCtd, RowState.Ready)
                 binding.btnPrimary.text = if (bothReady(ctx)) {
@@ -113,6 +129,8 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
                 }
                 Common.showToast(ctx.getString(R.string.model_download_import_success))
             } else {
+                renderRowState(ctx, isCtd, RowState.Failed)
+                binding.btnPrimary.text = getString(R.string.manga_translate_prep_cta_retry)
                 Common.showToast(ctx.getString(R.string.model_download_import_invalid))
             }
         }
@@ -142,7 +160,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
      * - 至少一个缺 → 顺序下完缺的那个 / 那几个,完成后 fire onReady + dismiss
      */
     private fun onPrimaryClick(ctx: Context) {
-        if (downloadJob?.isActive == true) return
+        if (downloadJob?.isActive == true || importing) return
 
         if (bothReady(ctx)) {
             fireReadyAndDismiss()
@@ -223,6 +241,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
     private sealed class RowState {
         object Pending : RowState()
         data class Downloading(val bytesRead: Long, val totalBytes: Long) : RowState()
+        object Importing : RowState()
         object Ready : RowState()
         object Failed : RowState()
     }
@@ -293,6 +312,15 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
                 } else {
                     progress.isIndeterminate = true
                 }
+                spinner.visibility = View.VISIBLE
+                statusIcon.visibility = View.GONE
+                importLink.visibility = View.GONE
+            }
+            RowState.Importing -> {
+                statusText.text = getString(R.string.manga_translate_prep_status_importing)
+                statusText.setTextColor(ctx.getColor(R.color.v3_text_2))
+                progress.visibility = View.VISIBLE
+                progress.isIndeterminate = true
                 spinner.visibility = View.VISIBLE
                 statusIcon.visibility = View.GONE
                 importLink.visibility = View.GONE

@@ -2371,4 +2371,6 @@
     <string name="model_download_import_success">模型匯入成功</string>
     <string name="model_download_import_invalid">檔案錯誤，請確認是該模型的 Zip 壓縮檔</string>
     <string name="model_download_picker_unavailable">無法開啟檔案選擇器，請檢查系統檔案管理員</string>
+    <string name="model_download_importing">正在匯入模型…</string>
+    <string name="manga_translate_prep_status_importing">正在匯入模型…</string>
 </resources>

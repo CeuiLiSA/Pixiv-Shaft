@@ -31,8 +31,12 @@ class ModelImportController(
     private val picker: ActivityResultLauncher<Array<String>>,
     private val manager: ModelDownloadManager,
     private val model: DownloadableModel,
+    private val onImportStarted: () -> Unit = {},
+    private val onProgress: (bytesRead: Long, totalBytes: Long) -> Unit = { _, _ -> },
     private val onImported: (Boolean) -> Unit,
 ) {
+    /** 防重入：导入进行中再次选文件直接忽略，避免并发写同一个临时 zip / staging 目录。 */
+    private var importInFlight = false
 
     fun showCopyOrImportDialog() {
         val ctx = fragment.requireContext()
@@ -74,13 +78,16 @@ class ModelImportController(
 
     /** 文件选择回调统一入口：拿到 URI 后在 IO 线程导入，校验结果回抛给 [onImported]。 */
     fun handlePickedUri(uri: Uri?) {
-        if (uri == null) return
+        if (uri == null || importInFlight) return
         val ctx = fragment.context ?: return
         if (!fragment.isAdded || fragment.view == null) return
+        importInFlight = true
+        onImportStarted()
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val success = withContext(Dispatchers.IO) {
-                manager.importModel(ctx, model, uri)
+                manager.importModel(ctx, model, uri, onProgress)
             }
+            importInFlight = false
             onImported(success)
         }
     }

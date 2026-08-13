@@ -2369,4 +2369,6 @@
     <string name="model_download_import_success">Model içe aktarıldı</string>
     <string name="model_download_import_invalid">Dosya hatalı. Lütfen bu modele ait Zip arşivi olduğundan emin olun</string>
     <string name="model_download_picker_unavailable">Dosya seçici açılamadı. Sistem dosya yöneticisini kontrol edin</string>
+    <string name="model_download_importing">Model içe aktarılıyor…</string>
+    <string name="manga_translate_prep_status_importing">Model içe aktarılıyor…</string>
 </resources>

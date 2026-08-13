@@ -99,6 +99,22 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.btnImport.visibility = android.view.View.GONE
     }
 
+    /** 导入本地模型包：复用下载页的转圈动画，导入中隐藏所有操作入口，避免重复触发。 */
+    private fun showImportingState() {
+        baseBind.progressArea.visibility = android.view.View.VISIBLE
+        baseBind.progressRing.isIndeterminate = true
+        baseBind.progressPercent.text = "0%"
+        baseBind.progressSizeText.visibility = android.view.View.VISIBLE
+        baseBind.progressSizeText.text = getString(
+            R.string.string_rembg_model_download_size, "0 MB", model.sizeLabel
+        )
+        baseBind.statusText.visibility = android.view.View.VISIBLE
+        baseBind.statusText.text = getString(R.string.model_download_importing)
+        baseBind.btnPrimary.visibility = android.view.View.GONE
+        baseBind.btnSecondary.visibility = android.view.View.GONE
+        baseBind.btnImport.visibility = android.view.View.GONE
+    }
+
     private fun showDoneState() {
         baseBind.progressArea.visibility = android.view.View.VISIBLE
         baseBind.progressRing.isIndeterminate = false
@@ -256,13 +272,48 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
     }
 
     private fun showCopyOrImportDialog() {
-        importController = ModelImportController(this, importPicker, getManager(), model) { success ->
+        importController = ModelImportController(
+            this,
+            importPicker,
+            getManager(),
+            model,
+            onImportStarted = {
+                if (isAdded && view != null) showImportingState()
+            },
+            onProgress = { bytesRead, totalBytes ->
+                if (!isAdded || view == null) return@ModelImportController
+                view?.post {
+                    if (!isAdded || view == null) return@post
+                    val now = System.currentTimeMillis()
+                    if (now - lastUIUpdateTime < 300) return@post
+                    lastUIUpdateTime = now
+                    val percent = if (totalBytes > 0) {
+                        (bytesRead * 100 / totalBytes).toInt().coerceIn(0, 100)
+                    } else {
+                        0
+                    }
+                    baseBind.progressRing.isIndeterminate = totalBytes <= 0
+                    baseBind.progressRing.setProgressCompat(percent, true)
+                    baseBind.progressPercent.text = "$percent%"
+                    val readMB = String.format("%.1f MB", bytesRead / 1_048_576.0)
+                    val totalMB = if (totalBytes > 0) {
+                        String.format("%.1f MB", totalBytes / 1_048_576.0)
+                    } else {
+                        model.sizeLabel
+                    }
+                    baseBind.progressSizeText.text = getString(
+                        R.string.string_rembg_model_download_size, readMB, totalMB
+                    )
+                }
+            },
+        ) { success ->
             if (!isAdded || view == null) return@ModelImportController
             if (success) {
                 Common.showToast(getString(R.string.model_download_import_success))
                 showDoneState()
             } else {
                 Common.showToast(getString(R.string.model_download_import_invalid))
+                showInitState()
             }
         }
         importController?.showCopyOrImportDialog()

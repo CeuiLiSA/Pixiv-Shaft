@@ -2369,4 +2369,6 @@
     <string name="model_download_import_success">Модель импортирована</string>
     <string name="model_download_import_invalid">Неверный файл. Убедитесь, что это Zip-архив этой модели</string>
     <string name="model_download_picker_unavailable">Не удалось открыть выбор файла. Проверьте системный файловый менеджер</string>
+    <string name="model_download_importing">Импорт модели…</string>
+    <string name="manga_translate_prep_status_importing">Импорт модели…</string>
 </resources>
