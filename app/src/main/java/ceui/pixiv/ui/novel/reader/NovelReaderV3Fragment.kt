@@ -160,7 +160,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         tb.setPixivActionsVisible(!isLocalSource)
         wireBottomBar(rv, bb, ch, so)
         wireReaderView(rv, ch)
-        wireSearchOverlay(so)
+        wireSearchOverlay(so, ch)
         wireTextSelection(rv, ch)
         wireSystemBarInsets()
         wireBackPress(ch, so)
@@ -191,9 +191,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             override fun handleOnBackPressed() {
                 // 优先级 1：正文搜索 overlay 打开 → 返回手势先退出搜索（与 onClose 行为一致）。
                 if (so.isShown()) {
-                    so.setShown(false)
-                    so.clear()
-                    viewModel.clearSearch()
+                    closeSearch(so, chrome)
                     return
                 }
                 // 优先级 2：阅读器 chrome（顶/底栏）显示中 → 返回手势先收起 chrome。
@@ -280,7 +278,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
     }
 
-    private fun wireSearchOverlay(so: ReaderSearchOverlay) {
+    private fun wireSearchOverlay(so: ReaderSearchOverlay, chrome: ReaderChrome) {
         so.onQueryChanged = { runSearch(it) }
         so.onNext = { jumpToHit(1) }
         so.onPrev = { jumpToHit(-1) }
@@ -288,13 +286,19 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             searchRegex = regex
             runSearch(so.currentQuery())
         }
-        so.onClose = {
-            so.setShown(false)
-            so.clear()
-            viewModel.clearSearch()
-            scrollReaderView?.topInset = 0
-        }
+        so.onClose = { closeSearch(so, chrome) }
         so.onListClick = { showSearchHitsSheet() }
+    }
+
+    /** 关闭正文搜索的唯一路径（X 按钮与返回手势共用）。关掉后恢复 chrome：
+     *  开搜索时 chrome 被收起，若不恢复，下一次返回就直接退出阅读器，
+     *  习惯性连滑两次会误退 —— issue #1004。 */
+    private fun closeSearch(so: ReaderSearchOverlay, chrome: ReaderChrome) {
+        so.setShown(false)
+        so.clear()
+        viewModel.clearSearch()
+        scrollReaderView?.topInset = 0
+        chrome.show()
     }
 
     private fun wireTextSelection(rv: NovelReaderView, chrome: ReaderChrome) {
