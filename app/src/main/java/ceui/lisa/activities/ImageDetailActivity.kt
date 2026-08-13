@@ -58,6 +58,9 @@ import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -433,13 +436,48 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         // 系统不再回调 onBackPressed,必须用 OnBackPressedDispatcher 接管。
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (index == baseBind!!.viewPager.currentItem) {
-                    finishAfterTransition()
-                } else {
-                    mActivity.finish()
-                }
+                if (maybeConfirmAiExit()) return
+                finishViewer()
             }
         })
+    }
+
+    /**
+     * AI 翻译已向接口发过 POST(有 Token 成本)时,返回/手势退出前弹二次确认,
+     * 防止手滑退出白烧 Token。确认退出才取消流水线;选「继续翻译」则留在页面。
+     * Google 免费端点 / 还没发请求的阶段不弹,直接走原退出逻辑。
+     */
+    private fun maybeConfirmAiExit(): Boolean {
+        if (!translationViewModel.shouldConfirmAiExit()) return false
+        QMUIDialog.MessageDialogBuilder(this)
+            .setTitle(R.string.ai_translate_exit_confirm_title)
+            .setMessage(R.string.ai_translate_exit_confirm_message)
+            .setSkinManager(QMUISkinManager.defaultInstance(this))
+            .addAction(
+                0,
+                getString(R.string.ai_translate_exit_confirm_stay),
+                QMUIDialogAction.ACTION_PROP_NEGATIVE
+            ) { dialog, _ -> dialog.dismiss() }
+            .addAction(
+                0,
+                getString(R.string.ai_translate_exit_confirm_exit),
+                QMUIDialogAction.ACTION_PROP_POSITIVE
+            ) { dialog, _ ->
+                dialog.dismiss()
+                translationViewModel.cancelActiveWorkflow()
+                finishViewer()
+            }
+            .show()
+        return true
+    }
+
+    /** 统一的退出动作:停在进入页走共享元素返回动画,滑到别的页直接关。 */
+    private fun finishViewer() {
+        if (index == baseBind!!.viewPager.currentItem) {
+            finishAfterTransition()
+        } else {
+            mActivity.finish()
+        }
     }
 
     override fun onDestroy() {

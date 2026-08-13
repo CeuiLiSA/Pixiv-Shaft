@@ -2215,6 +2215,10 @@
     <string name="ai_translate_unsaved_message">AI çeviri ayarları değiştirildi. Çıkmadan önce kaydedilsin mi?</string>
     <string name="ai_translate_unsaved_save">Kaydet ve çık</string>
     <string name="ai_translate_unsaved_discard">Kaydetme</string>
+    <string name="ai_translate_exit_confirm_title">AI çeviriyor</string>
+    <string name="ai_translate_exit_confirm_message">Şimdi çıkarsanız AI çevirisi sonucu kaybolur\nve token ücreti boşa gider</string>
+    <string name="ai_translate_exit_confirm_stay">Çeviriye devam et</string>
+    <string name="ai_translate_exit_confirm_exit">Çık</string>
     <string name="synonym_dict_title">Eş Anlamlılar Sözlüğü</string>
     <string name="synonym_dict_enable">Eş anlamlılar sözlüğünü etkinleştir</string>
     <string name="keep_status_bar_when_view_image">Resimleri görüntülerken durum çubuğu alanını koru</string>

@@ -24,6 +24,8 @@ interface Translator {
      * - onItem: 单条完成后回调,用于 LiveData 增量推送
      * - onProgress: 每完成一段后回调 (done, total),用于按钮进度
      * - onPhase: 流式阶段的实时回调(思考中/生成中),非流式实现可以不回调
+     * - onRequestSent: 请求即将向远端发出(POST 已就绪)时回调。Google 免费端点不需要,
+     *   AI 引擎用于「退出二次确认」——POST 出去后 Token 已经开烧,退出会浪费。
      */
     suspend fun translateBatch(
         inputs: List<String>,
@@ -31,10 +33,12 @@ interface Translator {
         onItem: ((index: Int, translated: String) -> Unit)? = null,
         onProgress: ((done: Int, total: Int) -> Unit)? = null,
         onPhase: ((AiTranslatePhase) -> Unit)? = null,
+        onRequestSent: (() -> Unit)? = null,
     ): List<String> {
         val out = mutableListOf<String>()
         for ((i, text) in inputs.withIndex()) {
             coroutineContext.ensureActive()
+            onRequestSent?.invoke()
             val zh = try {
                 translate(text, outputLang)
             } catch (e: CancellationException) {

@@ -2215,6 +2215,10 @@
     <string name="ai_translate_unsaved_message">AI 翻訳の設定が変更されています。終了前に保存しますか？</string>
     <string name="ai_translate_unsaved_save">保存して終了</string>
     <string name="ai_translate_unsaved_discard">保存しない</string>
+    <string name="ai_translate_exit_confirm_title">AIが翻訳中です</string>
+    <string name="ai_translate_exit_confirm_message">今すぐ終了するとAI翻訳の結果が破棄され\nトークン費用を無駄にします</string>
+    <string name="ai_translate_exit_confirm_stay">翻訳を続ける</string>
+    <string name="ai_translate_exit_confirm_exit">終了する</string>
     <string name="synonym_dict_title">同義語辞書</string>
     <string name="synonym_dict_enable">同義語辞書を有効化</string>
     <string name="keep_status_bar_when_view_image">画像表示時にステータスバー領域を残す</string>

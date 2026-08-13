@@ -2215,6 +2215,10 @@
     <string name="ai_translate_unsaved_message">Настройки ИИ-перевода изменены. Сохранить перед выходом?</string>
     <string name="ai_translate_unsaved_save">Сохранить и выйти</string>
     <string name="ai_translate_unsaved_discard">Не сохранять</string>
+    <string name="ai_translate_exit_confirm_title">ИИ переводит</string>
+    <string name="ai_translate_exit_confirm_message">Если выйти сейчас, результат перевода ИИ будет потерян,\nа токены будут потрачены впустую</string>
+    <string name="ai_translate_exit_confirm_stay">Продолжить перевод</string>
+    <string name="ai_translate_exit_confirm_exit">Выйти</string>
     <string name="synonym_dict_title">Словарь синонимов</string>
     <string name="synonym_dict_enable">Включить словарь синонимов</string>
     <string name="keep_status_bar_when_view_image">Оставлять область статус-бара при просмотре изображений</string>

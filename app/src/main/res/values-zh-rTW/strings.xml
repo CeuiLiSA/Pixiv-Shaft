@@ -2217,6 +2217,10 @@
     <string name="ai_translate_unsaved_message">AI 翻譯設定已修改，結束前是否儲存？</string>
     <string name="ai_translate_unsaved_save">儲存並結束</string>
     <string name="ai_translate_unsaved_discard">不儲存</string>
+    <string name="ai_translate_exit_confirm_title">AI 已在翻譯中</string>
+    <string name="ai_translate_exit_confirm_message">現在退出會丟棄AI翻譯的結果\n並損失Token費用</string>
+    <string name="ai_translate_exit_confirm_stay">繼續翻譯</string>
+    <string name="ai_translate_exit_confirm_exit">退出</string>
     <string name="synonym_dict_title">同義詞詞典</string>
     <string name="synonym_dict_enable">啟用同義詞詞典</string>
     <string name="keep_status_bar_when_view_image">看圖時保留狀態列區域</string>

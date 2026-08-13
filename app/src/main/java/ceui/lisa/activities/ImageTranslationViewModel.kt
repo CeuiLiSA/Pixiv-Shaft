@@ -77,6 +77,13 @@ class ImageTranslationViewModel : ViewModel() {
     private var cancelToastShown = false
 
     /**
+     * 是否已向 AI 接口发起请求(POST 即将送出,Token 可能已开始烧)。
+     * 只在 AiTranslator 触发,Google 免费端点不会置位;置位后退出要二次确认。
+     */
+    @Volatile
+    private var aiRequestSent = false
+
+    /**
      * 「圈选翻译」请求事件:Activity 菜单点了之后塞进目标 pageIndex,对应那页的
      * [ceui.lisa.fragments.FragmentImageDetail] 观察到自己 index 命中就进圈选模式,
      * 进完立刻 [consumeManualSelectionRequest] 置空防止旋转/重订阅重复触发。
@@ -113,6 +120,9 @@ class ImageTranslationViewModel : ViewModel() {
         }
     }
 
+    /** AI 翻译已向接口发过 POST(有 Token 成本)且流水线仍在跑:退出前需要二次确认。 */
+    fun shouldConfirmAiExit(): Boolean = _running.value == true && aiRequestSent
+
     /**
      * 启动 pipeline。已在跑就直接 return false,UI 自己决定要不要 toast。
      */
@@ -127,6 +137,7 @@ class ImageTranslationViewModel : ViewModel() {
         _running.value = true
         cancelledByUser = false
         cancelToastShown = false
+        aiRequestSent = false
         val app = context.applicationContext
         pipelineJob = viewModelScope.launch {
             try {
@@ -202,6 +213,7 @@ class ImageTranslationViewModel : ViewModel() {
                 outputLang = appTranslateTargetLang(),
                 onItem = { i, translated -> translations[i] = translated },
                 onPhase = { phase -> postTranslatePhase(app, phase) },
+                onRequestSent = { aiRequestSent = true },
             )
         } catch (e: CancellationException) {
             // 离开页面/重新进入导致协程取消:重抛,别把「Job was cancelled」当真实错误弹给用户
@@ -264,6 +276,7 @@ class ImageTranslationViewModel : ViewModel() {
         _running.value = true
         cancelledByUser = false
         cancelToastShown = false
+        aiRequestSent = false
         val app = context.applicationContext
         pipelineJob = viewModelScope.launch {
             try {
@@ -431,6 +444,7 @@ class ImageTranslationViewModel : ViewModel() {
             outputLang = appTranslateTargetLang(),
             onItem = { _, translated -> out = translated },
             onPhase = { phase -> postTranslatePhase(app, phase) },
+            onRequestSent = { aiRequestSent = true },
         )
         return out
     }

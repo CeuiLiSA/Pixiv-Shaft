@@ -54,6 +54,8 @@ object GoogleWebTranslator : Translator {
         onItem: ((Int, String) -> Unit)?,
         onProgress: ((Int, Int) -> Unit)?,
         onPhase: ((AiTranslatePhase) -> Unit)?,
+        // Google 免费端点不烧 Token,不需要「退出二次确认」信号,这里显式忽略。
+        onRequestSent: (() -> Unit)?,
     ): List<String> = withContext(Dispatchers.IO) {
         if (inputs.isEmpty()) return@withContext emptyList()
 

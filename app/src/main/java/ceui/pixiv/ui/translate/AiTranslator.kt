@@ -173,6 +173,7 @@ object AiTranslator : Translator {
         onItem: ((Int, String) -> Unit)?,
         onProgress: ((Int, Int) -> Unit)?,
         onPhase: ((AiTranslatePhase) -> Unit)?,
+        onRequestSent: (() -> Unit)?,
     ): List<String> = withContext(Dispatchers.IO) {
         if (inputs.isEmpty()) return@withContext emptyList()
 
@@ -195,7 +196,11 @@ object AiTranslator : Translator {
                     try {
                         val payload = JSONArray().apply { slice.forEach { put(it) } }
                         val reply = requestSemaphore.withPermit {
-                            callChatCompletion(batchPrompt, payload.toString(), onPhase = phaseAggregator::report)
+                            callChatCompletion(
+                                batchPrompt, payload.toString(),
+                                onPhase = phaseAggregator::report,
+                                onRequestSent = onRequestSent,
+                            )
                         }
                         parseJsonArrayReply(reply)?.takeIf { it.size == slice.size }
                     } catch (e: CancellationException) {
@@ -235,6 +240,7 @@ object AiTranslator : Translator {
                                         systemPromptFor(outputLang),
                                         text,
                                         onPhase = phaseAggregator::report,
+                                        onRequestSent = onRequestSent,
                                     ).trim()
                                 }
                             } catch (e: CancellationException) {
@@ -377,13 +383,14 @@ object AiTranslator : Translator {
         onPhase: ((AiTranslatePhase) -> Unit)? = null,
         client: OkHttpClient? = null,
         forceStreaming: Boolean? = null,
+        onRequestSent: (() -> Unit)? = null,
     ): String {
         var lastError: Exception? = null
         repeat(2) { attempt ->
             try {
                 return doCallChatCompletion(
                     systemPrompt, userContent, overrideBaseUrl, overrideApiKey, overrideModel,
-                    onPhase, client, forceStreaming,
+                    onPhase, client, forceStreaming, onRequestSent,
                 )
             } catch (e: RetryableApiException) {
                 lastError = e
@@ -407,6 +414,7 @@ object AiTranslator : Translator {
         onPhase: ((AiTranslatePhase) -> Unit)?,
         client: OkHttpClient? = null,
         forceStreaming: Boolean? = null,
+        onRequestSent: (() -> Unit)? = null,
     ): String {
         val settings = Shaft.sSettings
         val endpoint = normalizeEndpoint(overrideBaseUrl ?: settings?.aiTranslateBaseUrl ?: "")
@@ -431,6 +439,10 @@ object AiTranslator : Translator {
                 put(JSONObject().put("role", "user").put("content", userContent))
             })
         }
+
+        // 请求体已就绪,马上要向 AI 接口发 POST(可能已烧 Token)。
+        // 此刻通知业务侧:之后用户退出要弹「二次确认」,防止手滑浪费 Token。
+        onRequestSent?.invoke()
 
         if (streaming) {
             return try {
