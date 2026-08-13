@@ -1208,6 +1208,7 @@
     <string name="msg_parse_fail">Failed to parse HTML</string>
     <string name="msg_coming_soon">Coming soon</string>
     <string name="msg_no_browser">Cannot open browser</string>
+    <string name="msg_no_webview">System WebView is unavailable on this device</string>
     <string name="msg_no_app">No app found to handle this</string>
     <string name="msg_no_translate_app">No translation app available</string>
     <string name="chooser_share_selection">Share selection</string>

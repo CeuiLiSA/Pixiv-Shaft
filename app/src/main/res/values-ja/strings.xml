@@ -1208,6 +1208,7 @@
     <string name="msg_parse_fail">HTML の解析に失敗しました</string>
     <string name="msg_coming_soon">近日公開</string>
     <string name="msg_no_browser">ブラウザを開けません</string>
+    <string name="msg_no_webview">この端末では WebView を利用できません</string>
     <string name="msg_no_app">対応するアプリが見つかりません</string>
     <string name="msg_no_translate_app">翻訳アプリがありません</string>
     <string name="chooser_share_selection">テキストを共有</string>

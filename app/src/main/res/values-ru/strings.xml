@@ -1208,6 +1208,7 @@
     <string name="msg_parse_fail">Не удалось разобрать HTML</string>
     <string name="msg_coming_soon">Скоро</string>
     <string name="msg_no_browser">Не удалось открыть браузер</string>
+    <string name="msg_no_webview">WebView недоступен на этом устройстве</string>
     <string name="msg_no_app">Нет подходящего приложения</string>
     <string name="msg_no_translate_app">Нет приложения для перевода</string>
     <string name="chooser_share_selection">Поделиться выделением</string>

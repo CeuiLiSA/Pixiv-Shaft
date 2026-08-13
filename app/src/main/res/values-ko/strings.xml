@@ -1208,6 +1208,7 @@
     <string name="msg_parse_fail">HTML 파싱 실패</string>
     <string name="msg_coming_soon">곧 제공 예정</string>
     <string name="msg_no_browser">브라우저를 열 수 없습니다</string>
+    <string name="msg_no_webview">이 기기에서는 WebView를 사용할 수 없습니다</string>
     <string name="msg_no_app">처리할 수 있는 앱이 없습니다</string>
     <string name="msg_no_translate_app">번역 앱을 찾을 수 없습니다</string>
     <string name="chooser_share_selection">텍스트 공유</string>

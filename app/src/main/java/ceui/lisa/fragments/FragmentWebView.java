@@ -172,7 +172,89 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
     @Override
     protected void initData() {
-        AgentWeb.PreAgentWeb ready = AgentWeb.with(this)
+        AgentWeb.PreAgentWeb ready;
+        try {
+            ready = createAgentWeb();
+        } catch (Exception e) {
+            // 设备上的 System WebView 被停用/卸载/正在更新时,AgentWeb 内部 new WebView()
+            // 直接抛(MissingWebViewPackageException 之类)。BaseFragment#onCreateView 会把它
+            // 吞掉,mAgentWeb 就一直是 null——白页还不算完,紧接着的 onResume 解引用它,
+            // 把整个 TemplateActivity 崩在 performResumeActivity 上。这里当场收场。
+            e.printStackTrace();
+            Common.showToast(getString(R.string.msg_no_webview));
+            finish();
+            return;
+        }
+
+        // 注入已同步的 Cookie，确保 pixiv 设置页等需要登录的页面能正常加载
+        String savedCookies = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "");
+        if (savedCookies != null && !savedCookies.isEmpty()) {
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.setAcceptCookie(true);
+            for (String cookie : savedCookies.split(";")) {
+                cookieManager.setCookie(url, cookie.trim());
+            }
+            cookieManager.flush();
+        }
+
+        mAgentWeb = ready.go(url);
+        baseBind.ibMenu.setVisibility(View.VISIBLE);
+        baseBind.ibMenu.setOnClickListener(v -> {
+            String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
+            try {
+                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
+            } catch (ActivityNotFoundException e) {
+                Common.showToast(getString(R.string.msg_no_browser));
+            }
+        });
+        Common.showLog(className + url);
+        mWebView = mAgentWeb.getWebCreator().getWebView();
+        // 放行第三方 cookie(WebView 默认屏蔽,和 WebFragment / StreetMainFragment 对齐)。
+        // 图搜的 Cloudflare Turnstile 跑在 challenges.cloudflare.com 的 iframe 里,对引擎域
+        // 是第三方——存不下验证状态就会「勾完真人框又弹回来」无限循环(#733 真机复现)。
+        CookieManager.getInstance().setAcceptThirdPartyCookies(mWebView, true);
+        // 返回键会一路退网页历史(见 TemplateActivity 的 OnBackPressedDispatcher),
+        // 退过头了就靠这个回去 —— 图搜搜半天被一次误触返回抹掉太亏(#733)。
+        baseBind.ibForward.setOnClickListener(v -> {
+            if (mWebView.canGoForward()) {
+                mWebView.goForward();
+            }
+        });
+        WebSettings settings = mWebView.getSettings();
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
+        settings.setUseWideViewPort(true);
+        registerForContextMenu(mWebView);
+        // 复制链接文本
+        final Handler handler = new LongClickHandler(this);
+        mWebView.setOnLongClickListener(v -> {
+            final Message message = handler.obtainMessage();
+            mWebView.requestFocusNodeHref(message);
+            return false;
+        });
+        mWebView.setWebChromeClient(new WebChromeClient(){
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                // 图搜：图片是调用方带进来的，直接顶上去，别再弹系统选择器让用户重挑一遍。
+                //
+                // 这一步曾经想用 JS 自动完成（onPageFinished 里注入 input.click() 顺带挂 change
+                // 自动提交），真机验证证伪：Chromium 要求用户手势才肯开文件选择器，注入的 click
+                // 拿不到手势，选择器根本不弹，后面的 change 自动提交也就没机会跑。那段 JS 只留下
+                // 站点特定的脆弱选择器，已删。现在老老实实等用户点页面自己的按钮。
+                if (reverseUploadArmed && reverseSearchImageUri != null) {
+                    reverseUploadArmed = false;
+                    filePathCallback.onReceiveValue(new Uri[]{reverseSearchImageUri});
+                    return true;
+                }
+                uploadMessageAboveL = filePathCallback;
+                openImageChooserActivity();
+                return true;
+            }
+        });
+    }
+
+    private AgentWeb.PreAgentWeb createAgentWeb() {
+        return AgentWeb.with(this)
                 .setAgentWebParent(baseBind.webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
                 .setWebViewClient(new WebViewClient() {
@@ -246,72 +328,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 })
                 .createAgentWeb()
                 .ready();
-
-        // 注入已同步的 Cookie，确保 pixiv 设置页等需要登录的页面能正常加载
-        String savedCookies = MMKV.defaultMMKV().getString(SessionManager.COOKIE_KEY, "");
-        if (savedCookies != null && !savedCookies.isEmpty()) {
-            CookieManager cookieManager = CookieManager.getInstance();
-            cookieManager.setAcceptCookie(true);
-            for (String cookie : savedCookies.split(";")) {
-                cookieManager.setCookie(url, cookie.trim());
-            }
-            cookieManager.flush();
-        }
-
-        mAgentWeb = ready.go(url);
-        baseBind.ibMenu.setVisibility(View.VISIBLE);
-        baseBind.ibMenu.setOnClickListener(v -> {
-            String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
-            try {
-                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
-            } catch (ActivityNotFoundException e) {
-                Common.showToast(getString(R.string.msg_no_browser));
-            }
-        });
-        Common.showLog(className + url);
-        mWebView = mAgentWeb.getWebCreator().getWebView();
-        // 放行第三方 cookie(WebView 默认屏蔽,和 WebFragment / StreetMainFragment 对齐)。
-        // 图搜的 Cloudflare Turnstile 跑在 challenges.cloudflare.com 的 iframe 里,对引擎域
-        // 是第三方——存不下验证状态就会「勾完真人框又弹回来」无限循环(#733 真机复现)。
-        CookieManager.getInstance().setAcceptThirdPartyCookies(mWebView, true);
-        // 返回键会一路退网页历史(见 TemplateActivity 的 OnBackPressedDispatcher),
-        // 退过头了就靠这个回去 —— 图搜搜半天被一次误触返回抹掉太亏(#733)。
-        baseBind.ibForward.setOnClickListener(v -> {
-            if (mWebView.canGoForward()) {
-                mWebView.goForward();
-            }
-        });
-        WebSettings settings = mWebView.getSettings();
-        settings.setBuiltInZoomControls(true);
-        settings.setDisplayZoomControls(false);
-        settings.setUseWideViewPort(true);
-        registerForContextMenu(mWebView);
-        // 复制链接文本
-        final Handler handler = new LongClickHandler(this);
-        mWebView.setOnLongClickListener(v -> {
-            final Message message = handler.obtainMessage();
-            mWebView.requestFocusNodeHref(message);
-            return false;
-        });
-        mWebView.setWebChromeClient(new WebChromeClient(){
-            @Override
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                // 图搜：图片是调用方带进来的，直接顶上去，别再弹系统选择器让用户重挑一遍。
-                //
-                // 这一步曾经想用 JS 自动完成（onPageFinished 里注入 input.click() 顺带挂 change
-                // 自动提交），真机验证证伪：Chromium 要求用户手势才肯开文件选择器，注入的 click
-                // 拿不到手势，选择器根本不弹，后面的 change 自动提交也就没机会跑。那段 JS 只留下
-                // 站点特定的脆弱选择器，已删。现在老老实实等用户点页面自己的按钮。
-                if (reverseUploadArmed && reverseSearchImageUri != null) {
-                    reverseUploadArmed = false;
-                    filePathCallback.onReceiveValue(new Uri[]{reverseSearchImageUri});
-                    return true;
-                }
-                uploadMessageAboveL = filePathCallback;
-                openImageChooserActivity();
-                return true;
-            }
-        });
     }
 
     /**
@@ -345,22 +361,30 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         }
     }
 
+    // WebView 建不起来时 mAgentWeb 会一直是 null(见 initData)。上面的 finish() 只是排队,
+    // 本轮的 onResume / onPause 照样会走到这里,所以三个回调都得先判空。
     @Override
     public void onPause() {
-        mAgentWeb.getWebLifeCycle().onPause();
+        if (mAgentWeb != null) {
+            mAgentWeb.getWebLifeCycle().onPause();
+        }
         super.onPause();
     }
 
     @Override
     public void onDestroy() {
-        mAgentWeb.getWebLifeCycle().onDestroy();
+        if (mAgentWeb != null) {
+            mAgentWeb.getWebLifeCycle().onDestroy();
+        }
         WeissUtil.end();
         super.onDestroy();
     }
 
     @Override
     public void onResume() {
-        mAgentWeb.getWebLifeCycle().onResume();
+        if (mAgentWeb != null) {
+            mAgentWeb.getWebLifeCycle().onResume();
+        }
         super.onResume();
     }
 

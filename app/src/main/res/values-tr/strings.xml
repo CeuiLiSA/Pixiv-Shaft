@@ -1208,6 +1208,7 @@
     <string name="msg_parse_fail">HTML ayrıştırma başarısız</string>
     <string name="msg_coming_soon">Yakında</string>
     <string name="msg_no_browser">Tarayıcı açılamıyor</string>
+    <string name="msg_no_webview">Bu cihazda WebView kullanılamıyor</string>
     <string name="msg_no_app">Uygun uygulama bulunamadı</string>
     <string name="msg_no_translate_app">Çeviri uygulaması bulunamadı</string>
     <string name="chooser_share_selection">Metni paylaş</string>

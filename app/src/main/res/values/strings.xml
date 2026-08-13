@@ -1317,6 +1317,7 @@
     <string name="msg_parse_fail">解析 HTML 失败</string>
     <string name="msg_coming_soon">敬请期待</string>
     <string name="msg_no_browser">无法打开浏览器</string>
+    <string name="msg_no_webview">此设备的 WebView 组件不可用</string>
     <string name="msg_no_app">没有找到可处理的应用</string>
     <string name="msg_no_translate_app">没有可用的翻译应用</string>
     <string name="chooser_share_selection">分享段落</string>
