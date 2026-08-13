@@ -2384,4 +2384,14 @@
     <string name="mute_sheet_empty">這個作品沒有標籤</string>
     <string name="mute_sheet_summary">已選 %1$d / %2$d</string>
     <string name="private_follow_by_default">關注作者預設私人關注</string>
+    <string name="model_download_copy_or_import">複製下載連結或匯入模型檔案</string>
+    <string name="model_download_dialog_title">複製連結還是匯入</string>
+    <string name="model_download_dialog_message">可複製下載連結用其他方式下載後，再匯入該模型的 Zip 壓縮檔</string>
+    <string name="model_download_copy_link">複製下載連結</string>
+    <string name="model_download_import_file">匯入模型檔案</string>
+    <string name="model_download_import_success">模型匯入成功</string>
+    <string name="model_download_import_invalid">檔案錯誤，請確認是該模型的 Zip 壓縮檔</string>
+    <string name="model_download_picker_unavailable">無法開啟檔案選擇器，請檢查系統檔案管理員</string>
+    <string name="model_download_importing">正在匯入模型…</string>
+    <string name="manga_translate_prep_status_importing">正在匯入模型…</string>
 </resources>

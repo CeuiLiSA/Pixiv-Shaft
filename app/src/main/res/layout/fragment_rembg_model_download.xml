@@ -213,6 +213,22 @@
                         tools:text="取消下载"
                         tools:visibility="visible" />
 
+                    <!-- 复制链接 / 导入已下载好的文件入口，仅初始态显示 -->
+                    <TextView
+                        android:id="@+id/btn_import"
+                        style="@style/textMontserratRegular"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:padding="12dp"
+                        android:stateListAnimator="@animator/button_press_alpha"
+                        android:text="@string/model_download_copy_or_import"
+                        android:textColor="@color/secondary_text_color"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:text="复制链接或导入已下载好的文件"
+                        tools:visibility="visible" />
+
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
         </FrameLayout>

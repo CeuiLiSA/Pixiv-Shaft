@@ -2382,4 +2382,14 @@
     <string name="mute_sheet_empty">This work has no tags</string>
     <string name="mute_sheet_summary">%1$d / %2$d selected</string>
     <string name="private_follow_by_default">Follow artists privately by default</string>
+    <string name="model_download_copy_or_import">Copy download link or import model file</string>
+    <string name="model_download_dialog_title">Copy link or import?</string>
+    <string name="model_download_dialog_message">Copy the download link and download it another way, then import the Zip archive of this model.</string>
+    <string name="model_download_copy_link">Copy download link</string>
+    <string name="model_download_import_file">Import model file</string>
+    <string name="model_download_import_success">Model imported</string>
+    <string name="model_download_import_invalid">Invalid file. Please make sure it is the Zip archive of this model.</string>
+    <string name="model_download_picker_unavailable">Unable to open the file picker. Please check your system file manager.</string>
+    <string name="model_download_importing">Importing model…</string>
+    <string name="manga_translate_prep_status_importing">Importing model…</string>
 </resources>

@@ -1,11 +1,13 @@
 package ceui.pixiv.ui.common
 
 import androidx.annotation.StringRes
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentRembgModelDownloadBinding
 import ceui.lisa.fragments.BaseLazyFragment
+import ceui.lisa.utils.Common
 import ceui.pixiv.utils.setOnClick
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
@@ -28,6 +30,12 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
     @StringRes protected abstract fun doneTextRes(): Int
 
     private val model: DownloadableModel by lazy { resolveModel() }
+    private var importController: ModelImportController? = null
+    private val importPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        importController?.handlePickedUri(uri)
+    }
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_rembg_model_download
@@ -62,6 +70,8 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.btnSecondary.visibility = android.view.View.GONE
 
         baseBind.btnPrimary.setOnClick { startDownload() }
+        baseBind.btnImport.visibility = android.view.View.VISIBLE
+        baseBind.btnImport.setOnClick { showCopyOrImportDialog() }
     }
 
     private fun showDownloadingState() {
@@ -86,6 +96,23 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.btnSecondary.text = getString(R.string.string_rembg_model_cancel)
         applyDefaultSecondaryColor()
         baseBind.btnSecondary.setOnClick { cancelDownload() }
+        baseBind.btnImport.visibility = android.view.View.GONE
+    }
+
+    /** 导入本地模型包：复用下载页的转圈动画，导入中隐藏所有操作入口，避免重复触发。 */
+    private fun showImportingState() {
+        baseBind.progressArea.visibility = android.view.View.VISIBLE
+        baseBind.progressRing.isIndeterminate = true
+        baseBind.progressPercent.text = "0%"
+        baseBind.progressSizeText.visibility = android.view.View.VISIBLE
+        baseBind.progressSizeText.text = getString(
+            R.string.string_rembg_model_download_size, "0 MB", model.sizeLabel
+        )
+        baseBind.statusText.visibility = android.view.View.VISIBLE
+        baseBind.statusText.text = getString(R.string.model_download_importing)
+        baseBind.btnPrimary.visibility = android.view.View.GONE
+        baseBind.btnSecondary.visibility = android.view.View.GONE
+        baseBind.btnImport.visibility = android.view.View.GONE
     }
 
     private fun showDoneState() {
@@ -107,6 +134,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
             ContextCompat.getColor(requireContext(), R.color.buttonTextRed)
         )
         baseBind.btnSecondary.setOnClick { confirmDeleteModel() }
+        baseBind.btnImport.visibility = android.view.View.GONE
     }
 
     private fun applyDefaultSecondaryColor() {
@@ -154,6 +182,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.btnSecondary.text = getString(R.string.string_cancel)
         applyDefaultSecondaryColor()
         baseBind.btnSecondary.setOnClick { activity?.finish() }
+        baseBind.btnImport.visibility = android.view.View.GONE
     }
 
     private fun startDownload() {
@@ -240,5 +269,56 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         downloadJob = null
         getManager().deleteModel(requireContext(), model)
         showInitState()
+    }
+
+    private fun showCopyOrImportDialog() {
+        importController = ModelImportController(
+            this,
+            importPicker,
+            getManager(),
+            model,
+            canStart = { downloadJob?.isActive != true },
+            onImportStarted = {
+                if (isAdded && view != null) showImportingState()
+            },
+            onProgress = { bytesRead, totalBytes ->
+                // 回调在 IO 线程逐 chunk 触发,和下载路径一样先节流再 post,
+                // 否则本地拷贝速度下每 8KB 一个 Runnable 会灌满主线程消息队列
+                val now = System.currentTimeMillis()
+                if (now - lastUIUpdateTime >= 300) {
+                    lastUIUpdateTime = now
+                    view?.post {
+                        if (!isAdded || view == null) return@post
+                        if (totalBytes > 0) {
+                            val percent = (bytesRead * 100 / totalBytes).toInt().coerceIn(0, 100)
+                            baseBind.progressRing.isIndeterminate = false
+                            baseBind.progressRing.setProgressCompat(percent, true)
+                            baseBind.progressPercent.text = "$percent%"
+                        }
+                        // 拿不到总大小时保持转圈,不碰 setProgressCompat ——
+                        // material 会把 indeterminate 指示器就地切回 determinate
+                        val readMB = String.format("%.1f MB", bytesRead / 1_048_576.0)
+                        val totalMB = if (totalBytes > 0) {
+                            String.format("%.1f MB", totalBytes / 1_048_576.0)
+                        } else {
+                            model.sizeLabel
+                        }
+                        baseBind.progressSizeText.text = getString(
+                            R.string.string_rembg_model_download_size, readMB, totalMB
+                        )
+                    }
+                }
+            },
+        ) { success ->
+            if (!isAdded || view == null) return@ModelImportController
+            if (success) {
+                Common.showToast(getString(R.string.model_download_import_success))
+                showDoneState()
+            } else {
+                Common.showToast(getString(R.string.model_download_import_invalid))
+                showInitState()
+            }
+        }
+        importController?.showCopyOrImportDialog()
     }
 }
