@@ -58,19 +58,6 @@ interface PixivWebApi {
         @Query("lang") lang: String = "zh",
     ): WebResponse<List<UserWorkTag>>
 
-    /**
-     * issue #1005: 某篇小说的「相关作品」推荐。app-api 没有 novel 版 related 端点
-     *（illust 的 /v2/illust/related 无小说对应物），借网页版小说页同款数据源。
-     * 这里只取推荐 id，完整数据由调用方用 app-api 的 novel/detail 补水——收藏态 /
-     * 过滤口径才能与其它小说列表一致。SFW 匿名可拿；失败按「无相关」降级。
-     */
-    @GET("/ajax/novel/{novel_id}/recommend/init")
-    suspend fun getNovelRecommendInit(
-        @Path("novel_id") novelId: Long,
-        @Query("limit") limit: Int,
-        @Query("lang") lang: String = "zh",
-    ): WebResponse<NovelRecommendInitBody>
-
     @GET("/ajax/user/{user_id}")
     suspend fun getWebUserDetail(
         @Path("user_id") userId: Long,
