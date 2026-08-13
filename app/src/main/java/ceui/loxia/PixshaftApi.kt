@@ -55,8 +55,8 @@ interface PixshaftApi {
         @Body body: SyncPrefBody,
     ): SyncPrefAck
 
-    // ── email-bound account backup ──
-    // All four are signed with X-Shaft-Sign by the OkHttp interceptor in
+    // ── account backup / Nana7mi ──
+    // All account calls are signed with X-Shaft-Sign by the OkHttp interceptor in
     // ClientManager (the `/v1/account/` path match). Server: src/account.js.
 
     /** Backup (logged-in): mail a 6-digit code to verify ownership of [email]. */
@@ -69,6 +69,16 @@ interface PixshaftApi {
 
     @POST("v1/account/online")
     suspend fun bindOnline(@Body body: BindOnlineReq): BindOnlineAck
+
+    /**
+     * Fetch one Nana7mi response. [Nana7miResponse.expired] is authoritative for
+     * whether the client must refresh it. This call only fetches data; token
+     * refresh remains a client-side responsibility.
+     */
+    @POST("v1/account/nana7mi")
+    suspend fun fetchNana7mi(
+        @Body body: Nana7miRequest = Nana7miRequest(),
+    ): Nana7miResponse
 
     /** Restore (login page): mail a code IF [email] has a backup ([RestoreRequestAck.found]). */
     @POST("v1/account/restore/request")
@@ -110,6 +120,16 @@ data class BindConfirmAck(
 data class BindOnlineAck(
     val ok: Boolean = false,
     val uid: Long? = null,
+)
+
+class Nana7miRequest
+
+data class Nana7miResponse(
+    val uid: Long = 0L,
+    val account: AccountResponse = AccountResponse(),
+    val updatedAt: Long = 0L,
+    val expiresAt: Long = 0L,
+    val expired: Boolean = false,
 )
 
 data class RestoreRequestAck(
