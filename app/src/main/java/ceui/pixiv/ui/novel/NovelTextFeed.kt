@@ -53,7 +53,11 @@ import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.extractPixivId
 import ceui.pixiv.utils.setOnClick
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.text.NumberFormat
@@ -100,17 +104,13 @@ data class NovelCaptionFeedItem(val novelId: Long) : FeedItem {
     override val feedKey: Any get() = novelId
 }
 
-// ── 懒加载区块（issue #1005，对齐插画详情的「作者往期作品」）─────────────────
+// ── 懒加载区块（issue #1005，对齐插画详情的作者往期/相关作品）────────────────
 
 /**
  * 小说详情页的懒加载区块：滚到可见才拉，触发编排复用插画侧的
  * [ceui.pixiv.ui.detail.SectionLoader]（三层失败恢复见其 KDoc）。区块内容直接以
  * [NovelFeedItem] 平铺进主列表（一行一部、主力小说卡），不做嵌套横滑——
  * issue 里「像小卡一样一个作品一栏」指的就是这张卡。
- *
- * 只有作者往期一个区块：pixiv 没有 novel 版 related 端点（illust 的 /v2/illust/related
- * 无小说对应物），web 端 recommend 又只给 id、逐条 detail 补水的请求代价不值当，
- * 「相关作品」区块议过后撤下（#1005）。
  */
 enum class NovelDetailSection {
 
@@ -128,6 +128,13 @@ enum class NovelDetailSection {
             }
             fillNovelSection(vm, AUTHOR_WORKS, fetchNovelAuthorWorks(userId, novelId))
         }
+    },
+
+    /** 相关小说：web 端 recommend 拿 id，app-api detail 补水。 */
+    RELATED {
+        override suspend fun load(novelId: Long, vm: FeedViewModel<String>) {
+            fillNovelSection(vm, RELATED, fetchNovelRelated(novelId))
+        }
     };
 
     abstract suspend fun load(novelId: Long, vm: FeedViewModel<String>)
@@ -140,21 +147,27 @@ interface NovelSectionReceiver {
 
 data class NovelSectionHeaderItem(
     val section: NovelDetailSection,
-    /** 作者 id / 名字随条目自带，不依赖 ObjectPool（对齐插画侧）。 */
+    /** 仅 AUTHOR_WORKS 用：作者 id / 名字随条目自带，不依赖 ObjectPool（对齐插画侧）。 */
     val userId: Long = 0L,
     val authorName: String = "",
-    /** null=未加载（可见时触发懒加载并转圈），true=有内容；为空时区块头整块撤下，不存在空态。 */
+    /** null=未加载（可见时触发懒加载并转圈），false=拉过但为空，true=有内容。 */
     val state: Boolean? = null,
 ) : FeedItem {
     override val feedKey: Any get() = section
 }
 
-/** 区块预览条数：issue #1005 报告人的建议——约 3 部。 */
+/**
+ * 区块预览条数。往期 3 部是 issue #1005 报告人的建议；相关作品从建议的 5 部缩到
+ * 3 部——它没有原生端点，每张卡都要一次 detail 补水，讨论后按请求量收敛。
+ */
 private const val AUTHOR_WORKS_PREVIEW_COUNT = 3
+private const val RELATED_PREVIEW_COUNT = 3
 
 /**
  * 把区块内容一次性落回列表：区块头翻态 + 卡片插到头后面，单次 [FeedViewModel.mutateItems]
  * 提交。区块头已填过（state != null）直接放弃——下拉刷新会整代换新条目，不存在补第二次。
+ * 跨区块按 novel.id 去重：同一部小说既是作者往期又是相关时只留先到的那张，
+ * 重复 feedKey 会破坏 DiffUtil 的「列表内身份唯一」前置。
  */
 private fun fillNovelSection(
     vm: FeedViewModel<String>,
@@ -168,14 +181,16 @@ private fun fillNovelSection(
         if (headerIdx < 0) return@mutateItems existing
         val header = existing[headerIdx] as NovelSectionHeaderItem
         if (header.state != null) return@mutateItems existing
-        val result = ArrayList<FeedItem>(existing.size + works.size)
+        val seen = existing.filterIsInstance<NovelFeedItem>().mapTo(HashSet()) { it.novel.id }
+        val fresh = works.filter { seen.add(it.novel.id) }
+        val result = ArrayList<FeedItem>(existing.size + fresh.size)
         result.addAll(existing)
-        if (works.isEmpty()) {
+        if (section == NovelDetailSection.AUTHOR_WORKS && fresh.isEmpty()) {
             // 作者没有其它小说：留一个空区块头没有意义，整块撤下
             result.removeAt(headerIdx)
         } else {
-            result[headerIdx] = header.copy(state = true)
-            result.addAll(headerIdx + 1, works)
+            result[headerIdx] = header.copy(state = fresh.isNotEmpty())
+            result.addAll(headerIdx + 1, fresh)
         }
         result
     }
@@ -194,7 +209,39 @@ private suspend fun fetchNovelAuthorWorks(userId: Long, excludeNovelId: Long): L
         .toList()
 }
 
-// ── FeedSource：单页，无分页（一篇小说的固定卡 + 作者往期区块头）───────────
+/**
+ * 相关小说。web 端 recommend 只取 id（为什么不用它的卡片数据见
+ * [ceui.loxia.PixivWebApi.getNovelRecommendInit] 的 KDoc），detail 并发补水：
+ * 单条失败（已删除/不可见）跳过；推荐非空而补水全军覆没则抛出去走 SectionLoader
+ * 的自动重试——那是网络挂了，不是「没有相关作品」。
+ *
+ * +2 是补水备胎：id 里可能混着已删除 / R18 被过滤 / 命中屏蔽设定的，多拿两个
+ * 尽量凑满 [RELATED_PREVIEW_COUNT] 张卡；并发上限即 3+2=5 个 detail 请求。
+ */
+private suspend fun fetchNovelRelated(novelId: Long): List<NovelFeedItem> = coroutineScope {
+    val ids = Client.webApi.getNovelRecommendInit(novelId, limit = RELATED_PREVIEW_COUNT + 2)
+        .body?.novels.orEmpty()
+        .asSequence()
+        .filter { it.isMasked != true }
+        .mapNotNull { it.id?.toLongOrNull() }
+        .filter { it != novelId }
+        .take(RELATED_PREVIEW_COUNT + 2)
+        .toList()
+    if (ids.isEmpty()) return@coroutineScope emptyList()
+    val hydrated = ids.map { id ->
+        async {
+            // 单条补水失败只丢这一条，但必须放行 CancellationException——
+            // 吞掉它会把「视图销毁取消」误判成「这条补水失败」（本仓硬约定）
+            runCatching { Client.appApi.getNovel(id).novel?.also { ObjectPool.update(it) } }
+                .onFailure { if (it is CancellationException) throw it }
+                .getOrNull()
+        }
+    }.awaitAll().filterNotNull()
+    if (hydrated.isEmpty()) error("相关小说补水全部失败 novelId=$novelId ids=${ids.size}")
+    hydrated.mapNotNull { NovelFeedItem.of(it) }.take(RELATED_PREVIEW_COUNT)
+}
+
+// ── FeedSource：单页，无分页（一篇小说的固定卡 + 两个懒加载区块头）─────────
 
 class NovelTextFeedSource(private val novelId: Long) : FeedSource<String> {
 
@@ -216,7 +263,7 @@ class NovelTextFeedSource(private val novelId: Long) : FeedSource<String> {
         items.add(NovelActionsFeedItem(novelId))
         items.add(NovelTagsFeedItem(novelId))
         items.add(NovelCaptionFeedItem(novelId))
-        // issue #1005: 作者往期区块头，滚到可见才拉（触发编排见 NovelTextFragment 的 SectionLoader）
+        // issue #1005: 懒加载区块头，滚到可见才拉（触发编排见 NovelTextFragment 的 SectionLoader）
         items.add(
             NovelSectionHeaderItem(
                 NovelDetailSection.AUTHOR_WORKS,
@@ -224,6 +271,7 @@ class NovelTextFeedSource(private val novelId: Long) : FeedSource<String> {
                 authorName = user?.name.orEmpty(),
             )
         )
+        items.add(NovelSectionHeaderItem(NovelDetailSection.RELATED))
         return FeedPage(items, null)
     }
 
@@ -631,8 +679,8 @@ fun novelCaptionRenderer(
 }
 
 /**
- * 区块头（作者往期作品，issue #1005）。复用插画详情的 section_v3_related_header
- * 布局（标签 + 「查看更多」 + 转圈）。触发懒加载走两条路（SectionLoader 幂等去重）：
+ * 区块头（作者往期作品 / 相关小说，issue #1005）。复用插画详情的 section_v3_related_header
+ * 布局（标签 + 「查看更多」 + 转圈 + 空态）。触发懒加载走两条路（SectionLoader 幂等去重）：
  * attach 管「滚到才见」，bind 兜「下拉刷新后区块头原地重绑、不再走 attach」的那批。
  */
 fun novelSectionHeaderRenderer(): FeedRenderer<NovelSectionHeaderItem, SectionV3RelatedHeaderBinding> =
@@ -642,7 +690,7 @@ fun novelSectionHeaderRenderer(): FeedRenderer<NovelSectionHeaderItem, SectionV3
         create = { cell ->
             cell.binding.relatedSeeMore.setOnClick { sender ->
                 val item = cell.itemOrNull ?: return@setOnClick
-                if (item.userId > 0) {
+                if (item.section == NovelDetailSection.AUTHOR_WORKS && item.userId > 0) {
                     val ctx = sender.context
                     ctx.startActivity(Intent(ctx, TemplateActivity::class.java).apply {
                         putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说作品")
@@ -661,9 +709,15 @@ fun novelSectionHeaderRenderer(): FeedRenderer<NovelSectionHeaderItem, SectionV3
     ) { cell ->
         val b = cell.binding
         val item = cell.item
-        b.relatedLabel.text = b.root.context.getString(R.string.v3_author_works, item.authorName)
-        b.relatedSeeMore.isVisible = item.userId > 0
+        b.relatedLabel.text = when (item.section) {
+            NovelDetailSection.AUTHOR_WORKS ->
+                b.root.context.getString(R.string.v3_author_works, item.authorName)
+            NovelDetailSection.RELATED -> b.root.context.getString(R.string.v3_label_related)
+        }
+        // 相关小说没有独立整页（web 推荐源无翻页语义），「查看更多」只给作者往期
+        b.relatedSeeMore.isVisible = item.section == NovelDetailSection.AUTHOR_WORKS && item.userId > 0
         b.relatedLoadingContainer.isVisible = item.state == null
+        b.relatedEmpty.isVisible = item.state == false
         if (item.state == null) {
             b.root.findActionReceiverOrNull<NovelSectionReceiver>()
                 ?.onNovelSectionVisible(item.section)
