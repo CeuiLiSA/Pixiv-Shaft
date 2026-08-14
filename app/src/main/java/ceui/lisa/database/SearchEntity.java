@@ -30,7 +30,7 @@ public final class SearchEntity {
     private long searchTime;//Time from 1970s to now
     private int searchType;
     private boolean pinned;
-    // 固定标签的预览 illust json，shape 镜像 PrimeTagResult: {tag, resp:{illusts:[...]}}
+    // 固定标签的预览 illust json，shape 沿用旧 Prime 内置榜 assets: {tag, resp:{illusts:[...]}}
     // 当前只塞 main 一张；只在 pinned=true 时写入，取消固定时置 null。
     private String previewIllustsJson;
 

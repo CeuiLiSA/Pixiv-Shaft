@@ -7,7 +7,7 @@ import ceui.pixiv.ui.search.SortType
  * V3 搜索筛选器的不可变状态。SearchViewModel 持有 illust + novel 两份独立 LiveData。
  *
  * 涵盖维度：
- *   1. sort                  — 排序（含官方新加的 trending_builtin）
+ *   1. sort                  — 排序（会员多两档男/女性向人气）
  *   2. searchTarget          — 匹配方式（illust 3 项 / novel 4 项）
  *   3. bookmarkBucket        — 收藏量起步值，走官方 `bookmark_num_min` query 参数
  *                              （popular 排序需要 premium 才生效）
@@ -75,7 +75,9 @@ data class SearchFilterV3(
          */
         fun fromGlobalDefaults(): SearchFilterV3 {
             val s = Shaft.sSettings
-            val sort = s.searchDefaultSortType.takeIf { it.isNotEmpty() } ?: SortType.POPULAR_DESC
+            // sanitize：老配置里可能存着已下线的「机内自带热度排序」，归一到官方热度排序。
+            val sort = SortType.sanitize(s.searchDefaultSortType)?.takeIf { it.isNotEmpty() }
+                ?: SortType.POPULAR_DESC
             val bucketMin = Regex("""\d+""").find(s.searchFilter.orEmpty())
                 ?.value?.toIntOrNull() ?: 0
             val keywordBucket = KeywordUsersBucket.values().firstOrNull { it.min == bucketMin }

@@ -29,9 +29,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Prime 标签目录页（feeds 框架版）。数据来自内置 assets JSON，一次性全量读出，
- * 没有分页也没有网络请求，因此不接 [FeedSource.loadFromCache] 本地优先缓存——
- * 数据本身就在本地，缓存一层纯属多余。
+ * Prime 标签目录页（feeds 框架版）。目录（`prime_index.json`）仍是内置 assets，几十 KB、
+ * 一次性全量读出，没有分页也没有网络请求，因此不接 [FeedSource.loadFromCache] 本地优先
+ * 缓存——数据本身就在本地，缓存一层纯属多余。
+ *
+ * 点进某个标签之后的插画才走网络（见 [PrimeTagDetailFragment]）。
  */
 class PrimeTagsFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
@@ -74,10 +76,12 @@ class PrimeTagsFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     }
 
     private fun onClickPrimeTag(indexItem: PrimeTagIndexItem) {
+        // file_path 不合规就没有服务端 key，这条目录项点不开——静默忽略，别开一个必然空的页。
+        val key = indexItem.tagKey ?: return
         val intent = Intent(requireContext(), TemplateActivity::class.java)
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PrimeTagDetail")
         intent.putExtra("name", indexItem.tag.translated_name)
-        intent.putExtra("path", indexItem.filePath)
+        intent.putExtra("key", key)
         startActivity(intent)
     }
 

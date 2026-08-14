@@ -124,10 +124,10 @@ class SearchIllustFeedSource(private val searchModel: SearchModel) : FeedSource<
         // 8 个必填参数先给 null，全部由 update(searchModel) 填；构造时 super 已建好 FilterMapper。
         val r = repo ?: SearchIllustRepo(null, null, null, null, null, null, null, null).also { repo = it }
         val list: ListIllust = if (cursor == null) {
-            // initApi() 必须切 IO：在「内置热门榜」档位会同步读 assets + gson 全量解析整包 illust。
-            // 而 FeedSource.load 由 viewModelScope(Dispatchers.Main.immediate)发起，在第一个
-            // 真正的挂起点(awaitFirstValue 里的 subscribeOn(io))之前一直跑在主线程，这段重活不切 IO
-            // 就会静默卡主线程。（搜索历史写入已上移到 SearchActivity，update 不再做 Room I/O。）
+            // initApi() 切 IO：FeedSource.load 由 viewModelScope(Dispatchers.Main.immediate)
+            // 发起，在第一个真正的挂起点(awaitFirstValue 里的 subscribeOn(io))之前一直跑在主线程，
+            // 非会员那条路还会在这里同步借号(runBlocking)，不切 IO 就会静默卡主线程。
+            //（搜索历史写入已上移到 SearchActivity，update 不再做 Room I/O。）
             val api = withContext(Dispatchers.IO) {
                 r.update(searchModel) // 读最新参数 + 配置 FilterMapper
                 r.initApi()

@@ -661,7 +661,6 @@
     <string name="string_431">검색</string>
     <string name="string_432">일러스트레이터</string>
     <string name="string_64_1">열도 정렬 (회원 만 사용 가능)</string>
-    <string name="string_trending_builtin">내장 인기순 정렬</string>
     <string name="string_token_refreshing">로그인이 만료됐어요, 다시 로그인 중~</string>
     <string name="string_ai_upscale">AI 화질 향상 (2x)</string>
     <string name="string_ai_upscale_running">%s 처리 중…</string>
@@ -1782,7 +1781,6 @@
     <string name="search_filter_v3_sort_popular_desc">인기 순</string>
     <string name="search_filter_v3_sort_popular_male_desc">남성 인기 순</string>
     <string name="search_filter_v3_sort_popular_female_desc">여성 인기 순</string>
-    <string name="search_filter_v3_sort_trending">트렌딩</string>
     <string name="search_filter_v3_target_partial">태그 부분 일치</string>
     <string name="search_filter_v3_target_exact">태그 완전 일치</string>
     <string name="search_filter_v3_target_title_caption">제목/설명</string>

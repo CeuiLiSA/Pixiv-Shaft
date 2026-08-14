@@ -99,9 +99,6 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                 add(SortType.POPULAR_MALE_DESC)
                 add(SortType.POPULAR_FEMALE_DESC)
             }
-            // 「机内自带热度排序」的数据源是 assets 内置榜，只有插画/漫画有
-            //（[ceui.pixiv.ui.prime.PrimeIllustLoader]），小说没有这份数据，不给这一档。
-            if (!isNovel) add(SortType.TRENDING_BUILTIN)
         }
     private val bookmarkList = BookmarkBucket.values().toList()
     private val keywordUsersList = KeywordUsersBucket.values().toList()
@@ -376,7 +373,7 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         val now = System.currentTimeMillis()
         if (isNovel) searchViewModel.triggerSearchNovelEvent(now)
         else searchViewModel.triggerSearchIllustMangaEvent(now)
-        // sort 可能从 trending_builtin 之类 radio 没有的项变了——同步 radio 索引（仅新版用）
+        // sort 可能变成了 radio 没有的项（会员的男/女性向人气）——同步 radio 索引（仅新版用）
         val sortIndex = searchViewModel.sortToRadioIndex(currentFilter().sort)
         if (isNovel) searchViewModel.novelSelectedRadioTabIndex.value = sortIndex
         else searchViewModel.illustSelectedRadioTabIndex.value = sortIndex
@@ -393,7 +390,6 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         SortType.POPULAR_DESC        -> R.string.search_filter_v3_sort_popular_desc
         SortType.POPULAR_MALE_DESC   -> R.string.search_filter_v3_sort_popular_male_desc
         SortType.POPULAR_FEMALE_DESC -> R.string.search_filter_v3_sort_popular_female_desc
-        SortType.TRENDING_BUILTIN    -> R.string.search_filter_v3_sort_trending
         else                         -> R.string.search_filter_v3_sort_popular_preview
     })
 

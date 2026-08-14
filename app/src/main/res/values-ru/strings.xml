@@ -661,7 +661,6 @@
     <string name="string_431">Поиск</string>
     <string name="string_432">Иллюстратор</string>
     <string name="string_64_1">Сортировка по популярности (ограничение для пользователей без Premium)</string>
-    <string name="string_trending_builtin">Встроенная сортировка по популярности</string>
     <string name="string_token_refreshing">Сессия истекла, выполняется повторный вход~</string>
     <string name="string_ai_upscale">ИИ-улучшение (2x)</string>
     <string name="string_ai_upscale_running">%s: идёт улучшение, подождите…</string>
@@ -1782,7 +1781,6 @@
     <string name="search_filter_v3_sort_popular_desc">По популярности</string>
     <string name="search_filter_v3_sort_popular_male_desc">Популярно у мужчин</string>
     <string name="search_filter_v3_sort_popular_female_desc">Популярно у женщин</string>
-    <string name="search_filter_v3_sort_trending">В тренде</string>
     <string name="search_filter_v3_target_partial">Частичное совпадение тегов</string>
     <string name="search_filter_v3_target_exact">Точное совпадение тегов</string>
     <string name="search_filter_v3_target_title_caption">Название / описание</string>

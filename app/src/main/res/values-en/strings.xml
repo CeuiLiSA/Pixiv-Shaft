@@ -661,7 +661,6 @@
     <string name="string_431">Search</string>
     <string name="string_432">Illustrator</string>
     <string name="string_64_1">Sort by popularity (Restrictions for non-premium users)</string>
-    <string name="string_trending_builtin">Built-in popularity sort</string>
     <string name="string_token_refreshing">Session expired, logging you back in~</string>
     <string name="string_ai_upscale">AI Enhance (2x)</string>
     <string name="string_ai_upscale_running">%s enhancing, please wait…</string>
@@ -1782,7 +1781,6 @@
     <string name="search_filter_v3_sort_popular_desc">Most popular</string>
     <string name="search_filter_v3_sort_popular_male_desc">Popular (male)</string>
     <string name="search_filter_v3_sort_popular_female_desc">Popular (female)</string>
-    <string name="search_filter_v3_sort_trending">Trending</string>
     <string name="search_filter_v3_target_partial">Partial tag match</string>
     <string name="search_filter_v3_target_exact">Exact tag match</string>
     <string name="search_filter_v3_target_title_caption">Title / caption</string>

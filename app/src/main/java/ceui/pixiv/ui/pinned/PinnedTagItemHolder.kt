@@ -14,8 +14,8 @@ import timber.log.Timber
  *
  * 数据来源：[ceui.lisa.utils.PixivOperate.insertPinnedSearchHistory] 写入的 `search_table`
  * 行，里面 `previewIllustsJson` 是 `{tag, resp:{illusts:[…]}}` 这种 shape 的 JSON
- * （镜像 [ceui.pixiv.ui.prime.PrimeTagResult]，由 [ceui.pixiv.utils.buildPinnedTagPreviewJson]
- * 写入）。
+ * （由 [ceui.pixiv.utils.buildPinnedTagPreviewJson] 写入，沿用旧 Prime 内置榜 assets 的
+ * `{tag, resp:{illusts}}` 外形）。
  *
  * 字段命名 / 暴露形式刻意对齐 [ceui.pixiv.ui.prime.PrimeTagItemHolder] —— 这样 cell xml 就能
  * 一比一抄 `cell_item_prime_tag.xml` 的 binding 表达式。

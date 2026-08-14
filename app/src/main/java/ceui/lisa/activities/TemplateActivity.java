@@ -377,13 +377,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "PinnedTagsList":
                     return new ceui.pixiv.ui.pinned.PinnedTagsFragment();
                 case "PrimeTagDetail":
-                    String path = intent.getStringExtra("path");
-                    assert path != null;
+                    // key = 老 assets 文件名里那段 sha256，现在是 pixshaft-api 的路径参数。
+                    String primeKey = intent.getStringExtra("key");
+                    assert primeKey != null;
 
                     String name = intent.getStringExtra("name");
                     assert name != null;
 
-                    return PrimeTagDetailFragment.Companion.newInstance(name, path);
+                    return PrimeTagDetailFragment.Companion.newInstance(name, primeKey);
                 case "我的插画收藏":
                     return FragmentCollection.newInstance(0);
                 case "我的小说收藏":

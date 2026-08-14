@@ -218,7 +218,8 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         DiscoverTagAdapter adapter = new DiscoverTagAdapter(data, mContext);
         adapter.setOnItemClickListener((v, position, viewType) -> {
             PrimeTagIndexItem item = data.get(position);
-            if (item.getTag() == null) {
+            // 没有 tag 或 file_path 不合规(拿不到服务端 key)就点不开,静默忽略。
+            if (item.getTag() == null || item.getTagKey() == null) {
                 return;
             }
             String name = item.getTag().getTranslated_name() != null
@@ -226,7 +227,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PrimeTagDetail");
             intent.putExtra("name", name);
-            intent.putExtra("path", item.getFilePath());
+            intent.putExtra("key", item.getTagKey());
             startActivity(intent);
         });
         crossfadeSwap(baseBind.tagRail, adapter);

@@ -661,7 +661,6 @@
     <string name="string_431">検索</string>
     <string name="string_432">ユーザー</string>
     <string name="string_64_1">人気順</string>
-    <string name="string_trending_builtin">内蔵人気順ソート</string>
     <string name="string_token_refreshing">ログイン期限切れ、再ログイン中~</string>
     <string name="string_ai_upscale">AI 高画質化 (2x)</string>
     <string name="string_ai_upscale_running">%s で処理中…</string>
@@ -1782,7 +1781,6 @@
     <string name="search_filter_v3_sort_popular_desc">人気順</string>
     <string name="search_filter_v3_sort_popular_male_desc">男性に人気順</string>
     <string name="search_filter_v3_sort_popular_female_desc">女性に人気順</string>
-    <string name="search_filter_v3_sort_trending">トレンド</string>
     <string name="search_filter_v3_target_partial">タグ部分一致</string>
     <string name="search_filter_v3_target_exact">タグ完全一致</string>
     <string name="search_filter_v3_target_title_caption">タイトル/キャプション</string>

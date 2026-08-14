@@ -298,7 +298,7 @@ public abstract class AppDatabase extends RoomDatabase {
             database.execSQL("ALTER TABLE download_queue ADD COLUMN illustGson TEXT");
         }
     };
-    // 迁移 34 -> 35：固定标签存预览 illust json（shape 镜像 PrimeTagResult）
+    // 迁移 34 -> 35：固定标签存预览 illust json（shape 见 SearchEntity.previewIllustsJson）
     private static final Migration MIGRATION_34_35 = new Migration(34, 35) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {

@@ -10,7 +10,6 @@ import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.ui.prime.PrimeIllustLoader
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
 import ceui.pixiv.ui.search.v3.SearchTarget
@@ -69,12 +68,8 @@ class SearchIllustRepo @JvmOverloads constructor(
         val currentNana7miSession = Nana7miAccountSession()
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
-        if (sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE) {
-            return loadTrendingBuiltinIllusts()
-        }
         // 关键字写搜索历史已上移到 SearchActivity（首搜 initModel + 重搜 nowGo，按 id 去重收口）。
-        // 不再寄生在这里——原来会被上面的 trending_builtin 提前 return 跳过，且只有插画 tab 触发，
-        // 小说/作者 tab 与「内置热门榜」排序都漏写。
+        // 不再寄生在这里——原来只有插画 tab 触发，小说/作者 tab 漏写。
 
         // 收藏量两条桶并存：
         //  - bookmarkMin 走官方 `bookmark_num_min` query 参数（仅会员 popular 生效）
@@ -363,23 +358,11 @@ class SearchIllustRepo @JvmOverloads constructor(
         return this.filterMapper!!
     }
 
-    private fun loadTrendingBuiltinIllusts(): Observable<ListIllust> {
-        val result = PrimeIllustLoader.loadForKeyword(keyword)
-        if (result != null) {
-            return Observable.just(result)
-        }
-        val (effectiveStartDate, effectiveEndDate) = resolveDateRange()
-        return Retro.getAppApi().popularPreview(
-            keyword ?: "", effectiveStartDate, effectiveEndDate,
-            SearchTarget.toQueryValue(searchType),
-            bookmarkMin, tool, lang, searchAiType, ratioPattern, contentType,
-            widthMin, widthMax, heightMin, heightMax,
-        )
-    }
-
     fun update(searchModel: SearchModel) {
         keyword = searchModel.keyword.value
-        sortType = searchModel.sortType.value
+        // 已下线的「机内自带热度排序」在这里就归一掉（老配置里可能还存着），下游一路
+        // 只会看到 pixiv 认识的值。见 [SortType.sanitize]。
+        sortType = SortType.sanitize(searchModel.sortType.value)
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
         //isPopular = pop

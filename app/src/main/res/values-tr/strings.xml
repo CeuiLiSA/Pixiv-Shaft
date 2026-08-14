@@ -661,7 +661,6 @@
     <string name="string_431">Ara</string>
     <string name="string_432">İllüstratör</string>
     <string name="string_64_1">Popülerliğe göre sırala (Premium üyeliğin yoksa kısıtlıdır)</string>
-    <string name="string_trending_builtin">Dahili popülerlik sıralaması</string>
     <string name="string_token_refreshing">Oturum doldu, tekrar giriliyor...</string>
     <string name="string_ai_upscale">AI Kalite Artırma (2x)</string>
     <string name="string_ai_upscale_running">%s ile işleniyor...</string>
@@ -1782,7 +1781,6 @@
     <string name="search_filter_v3_sort_popular_desc">En popüler</string>
     <string name="search_filter_v3_sort_popular_male_desc">Popüler (erkek)</string>
     <string name="search_filter_v3_sort_popular_female_desc">Popüler (kadın)</string>
-    <string name="search_filter_v3_sort_trending">Trend</string>
     <string name="search_filter_v3_target_partial">Etiket kısmi eşleşme</string>
     <string name="search_filter_v3_target_exact">Etiket tam eşleşme</string>
     <string name="search_filter_v3_target_title_caption">Başlık / açıklama</string>

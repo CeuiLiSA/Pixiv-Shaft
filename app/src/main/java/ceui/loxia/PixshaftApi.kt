@@ -57,6 +57,23 @@ interface PixshaftApi {
         @Body body: SyncPrefBody,
     ): SyncPrefAck
 
+    /**
+     * 一页「热度标签」精选插画。
+     *
+     * 这份内置榜以前是 APK 里 183MB 的 `assets/pixiv_prime/prime_tag_for_<sha256>.txt`
+     * （压缩后仍占安装包约 19MB），点一个标签就把整包 300 条读进内存。现在数据搬到
+     * pixshaft-api，App 只留 `prime_index.json` 目录（离线可渲染货架），插画按页取。
+     *
+     * [key] 就是老文件名里那段 sha256，仍由 index 的 `file_path` 带着。
+     * 服务端 `limit` 上限 30；[PrimeTagIllustPage.next_offset] 为 null 即到底。
+     */
+    @GET("v1/prime/tags/{key}/illusts")
+    suspend fun primeTagIllusts(
+        @Path("key") key: String,
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int,
+    ): PrimeTagIllustPage
+
     // ── account backup / Nana7mi ──
     // All account calls are signed with X-Shaft-Sign by the OkHttp interceptor in
     // ClientManager (the `/v1/account/` path match). Server: src/account.js.
@@ -110,6 +127,20 @@ interface PixshaftApi {
     @POST("v1/account/bind/delete")
     suspend fun bindDelete(@Body body: UidReq): BindDeleteAck
 }
+
+/**
+ * 一页 Prime 标签插画。[illusts] 是快照里 pixiv 原样的作品对象，和实时搜索结果同一个模型；
+ * [next_offset] 是下一页游标，null = 该标签已翻完。
+ */
+data class PrimeTagIllustPage(
+    val key: String = "",
+    val tag: Tag? = null,
+    val total: Int = 0,
+    val offset: Int = 0,
+    val limit: Int = 0,
+    val illusts: List<Illust> = emptyList(),
+    val next_offset: Int? = null,
+)
 
 data class EmailReq(val email: String)
 

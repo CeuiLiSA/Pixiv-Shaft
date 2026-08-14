@@ -45,7 +45,6 @@ import ceui.lisa.utils.SearchTypeUtil;
 import ceui.lisa.viewmodel.SearchModel;
 import ceui.loxia.ObjectType;
 import ceui.pixiv.session.SessionManager;
-import ceui.pixiv.ui.prime.PrimeIllustLoader;
 import ceui.pixiv.ui.search.SearchHintViewModel;
 import ceui.pixiv.ui.search.v3.SearchFilterV3BottomSheet;
 import ceui.pixiv.ui.search.v3.SearchFilterV3LegacyBridge;

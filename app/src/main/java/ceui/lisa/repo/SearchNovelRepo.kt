@@ -82,16 +82,8 @@ class SearchNovelRepo @JvmOverloads constructor(
         // popular_preview 是预览 endpoint 专属；非会员选择会员人气排序时借用一个 Nana7mi
         // 账号走正式搜索。取号/过期刷新/重新上报/400 重放由共享会话组件负责。
         val usePopularPreview = sortType == SortType.POPULAR_PREVIEW
-        val notPremiumButWantToUsePopularSort = isPremium != true && (
-                sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE ||
-                        sortType == PixivSearchParamUtil.TRENDING_BUILTIN_SORT_VALUE
-                )
-
-        // 路由判断看用户选的原值，真正发出去的是归一后的值：trending_builtin 是本地概念，
-        // pixiv 的小说搜索不认（见 [SortType.forNovel]）。借号那条路尤其不能发原值——
-        // 400 Invalid value 不是 OAuth 错误，[isBorrowedAccountUnavailable] 也不成立，
-        // 于是既不回落 preview、又白借了一个号。
-        val effectiveSort = SortType.forNovel(sortType)
+        val notPremiumButWantToUsePopularSort =
+            isPremium != true && sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE
 
         // 投稿期间相对档当场算 today−N(每次 initApi 都重算,跨午夜窗口自动跟随今天);
         // bucket 为空时回落到自定义起止日期
@@ -191,7 +183,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
                     requesterUid,
-                    effectiveSort,
+                    sortType,
                     assembledKeyword.length,
                 )
                 lease.blockingObservable {
@@ -203,7 +195,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                         Timber.tag(NANA7MI_LOG_TAG).d(
                             "stage=route target=novel_official_search account_uid=%d sort=%s",
                             borrowed.uid,
-                            effectiveSort,
+                            sortType,
                         )
                         val source = currentNana7miSession.requestWithRefresh(
                             initial = borrowed,
@@ -217,7 +209,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                             Retro.getAppApi().searchNovelWithAuth(
                                 authorization,
                                 assembledKeyword,
-                                effectiveSort,
+                                sortType,
                                 effectiveStartDate,
                                 effectiveEndDate,
                                 effectiveSearchTarget,
@@ -255,7 +247,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         } else {
             Retro.getAppApi().searchNovel(
                 assembledKeyword,
-                effectiveSort,
+                sortType,
                 effectiveStartDate,
                 effectiveEndDate,
                 effectiveSearchTarget,
@@ -358,7 +350,10 @@ class SearchNovelRepo @JvmOverloads constructor(
 
     fun update(searchModel: SearchModel) {
         keyword = searchModel.keyword.value
-        sortType = searchModel.sortType.value
+        // 已下线的「机内自带热度排序」在这里就归一掉（老配置里可能还存着），下游一路
+        // 只会看到 pixiv 认识的值——原样发出去是 400 Invalid value，而且 400 不是 OAuth
+        // 错误，[isBorrowedAccountUnavailable] 也不成立，会既不回落 preview 又白借一个号。
+        sortType = SortType.sanitize(searchModel.sortType.value)
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
         isPremium = searchModel.isPremium.value

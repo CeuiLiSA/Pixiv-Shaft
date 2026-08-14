@@ -663,7 +663,6 @@
     <string name="string_431">搜尋</string>
     <string name="string_432">畫師</string>
     <string name="string_64_1">熱度排序（非會員僅顯示部分）</string>
-    <string name="string_trending_builtin">機內自帶熱度排序</string>
     <string name="string_token_refreshing">登入過期了，幫你重新登入中~</string>
     <string name="string_ai_upscale">畫質增強 (2x)</string>
     <string name="string_ai_upscale_running">%s 增強中，請稍候…</string>
@@ -1784,7 +1783,6 @@
     <string name="search_filter_v3_sort_popular_desc">依熱度</string>
     <string name="search_filter_v3_sort_popular_male_desc">男性向熱度</string>
     <string name="search_filter_v3_sort_popular_female_desc">女性向熱度</string>
-    <string name="search_filter_v3_sort_trending">綜合趨勢</string>
     <string name="search_filter_v3_target_partial">標籤部分匹配</string>
     <string name="search_filter_v3_target_exact">標籤完全匹配</string>
     <string name="search_filter_v3_target_title_caption">標題/簡介</string>
