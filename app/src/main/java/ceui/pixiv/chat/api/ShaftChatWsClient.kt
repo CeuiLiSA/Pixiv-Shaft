@@ -2,6 +2,7 @@ package ceui.pixiv.chat.api
 
 import android.content.Context
 import ceui.lisa.BuildConfig
+import ceui.lisa.http.NetTimeouts
 import ceui.pixiv.session.SessionManager
 import okhttp3.logging.HttpLoggingInterceptor
 import timber.log.Timber
@@ -59,10 +60,10 @@ object ShaftChatWsClient {
         ) + "/api/v1/chat/ws"
 
         val okHttpBuilder = OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
             // readTimeout is enforced inside RobustWebSocketClient (set to 0
             // there). writeTimeout is fine to set on the base client.
-            .writeTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
         if (BuildConfig.IS_DEBUG_MODE) {
             // Logs the upgrade handshake (101 / 401 / 429 / 503 — see docs

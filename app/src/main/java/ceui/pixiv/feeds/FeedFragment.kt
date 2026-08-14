@@ -24,7 +24,10 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentFeedBinding
 import ceui.lisa.utils.V3Palette
 import ceui.loxia.getHumanReadableMessage
+import ceui.loxia.openNetworkTestPage
 import ceui.loxia.requireNetworkStateManager
+import ceui.loxia.showNetworkErrorDialog
+import ceui.pixiv.chat.base.isNetworkClassError
 import ceui.pixiv.utils.NetworkStateManager
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.launch
@@ -322,9 +325,14 @@ abstract class FeedFragment(
         }
     }
 
-    /** 屏幕上有内容时刷新失败的提示，默认 Toast 出人话文案；子类可覆盖。 */
+    /**
+     * 屏幕上有内容时刷新失败的提示：网络类错误（断网 / 超时 / SSL）弹窗并给「去网络测试」
+     * 入口，其余错误维持 Toast 出人话文案；子类可覆盖。
+     */
     protected open fun onRefreshFailedWithContent(throwable: Throwable) {
-        Toaster.showShort(humanReadableErrorOf(throwable) ?: getString(R.string.list_load_failed_tap_retry))
+        if (!showNetworkErrorDialog(activity, throwable)) {
+            Toaster.showShort(humanReadableErrorOf(throwable) ?: getString(R.string.list_load_failed_tap_retry))
+        }
     }
 
     /**
@@ -495,8 +503,15 @@ abstract class FeedFragment(
         }
         binding.feedEmptyImage.isVisible = stateImage != 0
 
-        // 动作按钮只跟空态走：错误态已经有「点击重试」，加载态更没得点。
-        val action = if (state.showEmptyState) emptyStateAction else null
+        // 动作按钮：空态走页面自己的 action；网络类错误（断网/超时/SSL）在「点击重试」下方
+        // 补一个「去网络测试」入口，其余错误态保持纯「点击重试」，加载态更没得点。
+        val action = when {
+            state.showEmptyState -> emptyStateAction
+            state.showFullscreenError &&
+                (state.refresh as LoadState.Error).throwable.isNetworkClassError() ->
+                getString(R.string.network_test_error_action) to { openNetworkTestPage(requireContext()) }
+            else -> null
+        }
         binding.feedStateAction.isVisible = action != null
         if (action != null) {
             binding.feedStateAction.text = action.first

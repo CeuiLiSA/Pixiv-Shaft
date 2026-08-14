@@ -3,6 +3,7 @@ package ceui.pixiv.ui.common
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import ceui.lisa.http.NetTimeouts
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -26,7 +27,8 @@ abstract class ModelDownloadManager {
     private val client by lazy {
         OkHttpClient.Builder()
             .followRedirects(true)
-            .connectTimeout(30, TimeUnit.SECONDS)
+            // 连接阶段全项目统一 3s（NetTimeouts）；readTimeout 保留给大模型文件的下载传输（60~180s）
+            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
             .build()
     }

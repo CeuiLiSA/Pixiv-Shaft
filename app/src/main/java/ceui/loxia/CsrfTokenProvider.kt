@@ -2,11 +2,13 @@ package ceui.loxia
 
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CronetInterceptor
+import ceui.lisa.http.NetTimeouts
 import ceui.pixiv.session.SessionManager
 import com.tencent.mmkv.MMKV
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 /**
  * Fetches and caches the x-csrf-token required by Pixiv web POST APIs.
@@ -35,11 +37,24 @@ object CsrfTokenProvider {
      * Fetch a fresh token from the Pixiv homepage. Call from a background thread.
      */
     private fun buildClient(): OkHttpClient {
-        val builder = OkHttpClient.Builder().followRedirects(true)
+        val builder = OkHttpClient.Builder()
+            .followRedirects(true)
+            // 连接统一 3s；读超时放宽到 BODY_READ_SECONDS：抓的是 www.pixiv.net 整页 HTML
+            //（可达数百 KB），慢网下 3s 读超时会误杀 CSRF 抓取，而失败只是暂无 token、下次再抓。
+            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(NetTimeouts.BODY_READ_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
         // issue #959: 直连下 www.pixiv.net 同样打不通,token 兜底抓取必须走 Cronet,
         // 否则「拉黑」在没梯子时永远卡在「CSRF token 未就绪」。每次现建:直连开关随时可切。
         if (Shaft.sSettings?.isDirectConnect == true) {
-            builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+            // Cronet 请求不走 OkHttp 分阶段超时，拦截器整体上限显式放宽到 BODY_READ_SECONDS，
+            // 与上面的 readTimeout 同值：直连模式下整页 HTML 抓取不被默认 3s 截断。
+            builder.addInterceptor(
+                CronetInterceptor(
+                    CronetInterceptor.getEngine(Shaft.getContext()),
+                    NetTimeouts.BODY_READ_SECONDS,
+                ),
+            )
         }
         return builder.build()
     }

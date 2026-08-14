@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.translate
 
+import ceui.lisa.http.NetTimeouts
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -34,8 +35,8 @@ object GoogleWebTranslator : Translator {
 
     private val client by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
             .build()
     }
 

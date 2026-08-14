@@ -80,6 +80,9 @@ public class Manager {
      *
      * `newBuilder()` 继承全局 client 的 DNS / SSL / interceptor / ProgressManager
      * 配置，只覆盖 protocols。直连模式下全局已经是 H1.1，这里再强制一次也无害（幂等）。
+     *
+     * readTimeout 显式恢复到 10s：全局 client 已按「全项目 3s 钳制」收敛，但这里下载的是
+     * 原图大文件，3s 空闲读超时会在慢速 CDN 上误杀传输（与 ugoira zip / 模型下载同一例外口径）。
      */
     private volatile OkHttpClient mDownloadOkHttpClient;
     private OkHttpClient getDownloadOkHttpClient() {
@@ -90,6 +93,7 @@ public class Manager {
                 OkHttpClient base = ((Shaft) Shaft.getContext()).getOkHttpClient();
                 mDownloadOkHttpClient = base.newBuilder()
                         .protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1))
+                        .readTimeout(ceui.lisa.http.NetTimeouts.DOWNLOAD_READ_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
                         .build();
             }
             return mDownloadOkHttpClient;

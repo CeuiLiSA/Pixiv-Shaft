@@ -45,3 +45,15 @@ fun AppError.toUserMessage(context: Context): String = when (this) {
  */
 fun Throwable.toUserMessage(context: Context): String =
     toAppError().toUserMessage(context)
+
+/**
+ * 网络类错误：断网 / 超时 / SSL。这类错误用户重试大概率还是失败，真正的出路是去
+ * 「网络测试」页诊断（DNS 污染、代理、TLS 握手），所以错误态/弹窗要额外给入口。
+ * 判定复用 [toAppError] 的分类，避免在 UI 层再手搓一套 Throwable 判断。
+ */
+fun Throwable.isNetworkClassError(): Boolean = when (toAppError()) {
+    is AppError.NetworkUnavailable,
+    is AppError.RequestTimeout,
+    is AppError.SecurityError -> true
+    else -> false
+}

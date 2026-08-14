@@ -1981,6 +1981,8 @@
     <string name="saf_perf_test_diag_raw_failed">[4] Ошибка чистого createFile: %1$s %2$s</string>
     <string name="saf_perf_test_diag_conclusion">→ Один вызов listFiles(root): %1$.1f мс · backend.replace: %2$.1f мс · чистый createFile: %3$.1f мс. Разница приходится на повторные listFiles в цепочке backend.</string>
     <string name="nav_network_test_entry">Тест сети</string>
+    <string name="network_test_error_dialog_title">Проблема с сетью</string>
+    <string name="network_test_error_action">Запустить проверку сети</string>
     <string name="network_test_subtitle">Диагностика подключения · DNS-подмены · TLS-рукопожатия</string>
     <string name="network_test_run">Начать тест</string>
     <string name="network_test_running">Идёт тест…</string>

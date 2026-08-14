@@ -1,6 +1,7 @@
 package ceui.pixiv.events
 
 import ceui.lisa.BuildConfig
+import ceui.lisa.http.NetTimeouts
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.RequestBody
@@ -19,7 +20,7 @@ import java.util.concurrent.TimeUnit
  * Deliberately NOT routed through ceui.loxia.Client: pixiv auth headers,
  * token-refresh logic and Cronet are irrelevant here, and a separate
  * OkHttp instance keeps short event timeouts from interfering with the
- * 10s timeouts used for pixiv calls.
+ * 3s timeouts used for pixiv calls.
  */
 interface ShaftEventsApi {
 
@@ -62,9 +63,9 @@ object ShaftEventsClient {
 
     private fun build(): ShaftEventsApi {
         val builder = OkHttpClient.Builder()
-            .connectTimeout(8, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
             // HTTP/2 is fine over cleartext for this server (no TLS) since the
             // network_security_config base policy already permits cleartext.
             .protocols(listOf(Protocol.HTTP_1_1))

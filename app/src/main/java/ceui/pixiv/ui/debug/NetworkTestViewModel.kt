@@ -562,7 +562,13 @@ class NetworkTestViewModel : ViewModel() {
     }
 
     private fun addCronet(builder: OkHttpClient.Builder) {
-        builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+        // 网络测试页的测量窗口（5~20s）刻意不跟随全项目 3s 钳制：Cronet 请求不走 OkHttp
+        // 分阶段超时，拦截器整体上限直接取 builder 已配置的 readTimeout，慢但正常的端点
+        // 会被量成「高延迟」而不是被 3s 截断误报失败。
+        val capSeconds = builder.readTimeout(TimeUnit.SECONDS).toLong()
+        builder.addInterceptor(
+            CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext()), capSeconds),
+        )
     }
 
     /** 该目标本次握手实际走的路径，标在步骤 label 上让用户看清测的是哪条链路。 */

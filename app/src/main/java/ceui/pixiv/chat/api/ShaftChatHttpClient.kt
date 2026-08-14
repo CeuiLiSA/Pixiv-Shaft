@@ -1,6 +1,7 @@
 package ceui.pixiv.chat.api
 
 import ceui.lisa.BuildConfig
+import ceui.lisa.http.NetTimeouts
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
@@ -20,9 +21,9 @@ object ShaftChatHttpClient {
 
     private fun build(): ShaftChatApi {
         val builder = OkHttpClient.Builder()
-            .connectTimeout(8, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
 
         if (BuildConfig.IS_DEBUG_MODE) {

@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.translate
 
 import ceui.lisa.activities.Shaft
+import ceui.lisa.http.NetTimeouts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -83,19 +84,21 @@ object AiTranslator : Translator {
     private const val MAX_ERROR_BODY_BYTES = 8192
 
     /** 失败响应体读取的兜底超时(秒):网关不关流时快速失败,别把「翻译中」拖成无限。 */
-    private const val ERROR_BODY_READ_TIMEOUT_SECONDS = 10L
+    private const val ERROR_BODY_READ_TIMEOUT_SECONDS = NetTimeouts.API_READ_SECONDS
 
     /** 非流式成功响应逐段读取的块大小(字节)。 */
     private const val JSON_READ_CHUNK_BYTES = 8192
 
     /** 获取模型列表/测试翻译的 connect 固定短超时(秒),不跟翻译请求共享。 */
-    private const val QUICK_REQUEST_TIMEOUT_SECONDS = 3L
+    private const val QUICK_REQUEST_TIMEOUT_SECONDS = NetTimeouts.API_READ_SECONDS
 
     /** DNS 解析超时(秒):OkHttp 的 connectTimeout 管不到 DNS,必须单独掐断。 */
     private const val DNS_RESOLVE_TIMEOUT_SECONDS = 1L
 
     /** 真实翻译请求的 connect 超时(秒)。 */
-    private const val REAL_CONNECT_TIMEOUT_SECONDS = 15L
+    // 连接阶段统一 3s（与全项目钳制一致）；readTimeout 是用户可配的翻译等待时长（30~600s），
+    // 流式响应期间要留给思考型模型时间，不属于「连不上」场景，不钳制。
+    private const val REAL_CONNECT_TIMEOUT_SECONDS = NetTimeouts.CONNECT_SECONDS
 
     private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
 
@@ -655,7 +658,7 @@ object AiTranslator : Translator {
         val sink = ByteArray(MAX_ERROR_BODY_BYTES)
         var total = 0
         try {
-            // 兜底取「客户端 readTimeout 与固定 10s」的较小值:模型列表 3s 客户端不会被拉到 10s
+            // 兜底取「客户端 readTimeout 与固定 3s」的较小值:模型列表 3s 客户端不会被拉到更长
             val capSeconds = minOf(readTimeoutSeconds.toLong(), ERROR_BODY_READ_TIMEOUT_SECONDS)
             source.timeout().timeout(capSeconds, TimeUnit.SECONDS)
             while (total < sink.size) {

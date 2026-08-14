@@ -1,5 +1,6 @@
 package ceui.pixiv.download.aria2
 
+import ceui.lisa.http.NetTimeouts
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -125,9 +126,9 @@ class Aria2Client(
 
         private val sharedClient: OkHttpClient by lazy {
             OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
                 .build()
         }
     }

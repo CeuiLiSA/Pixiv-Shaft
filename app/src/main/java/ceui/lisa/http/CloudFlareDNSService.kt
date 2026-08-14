@@ -32,8 +32,8 @@ interface CloudFlareDNSService {
         private val dohClient: OkHttpClient by lazy {
             OkHttpClient.Builder()
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .connectTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
+                .connectTimeout(NetTimeouts.CONNECT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(NetTimeouts.API_READ_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
                 .build()
         }
 
