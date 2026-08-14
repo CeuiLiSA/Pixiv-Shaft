@@ -106,6 +106,8 @@ class NetworkTestViewModel : ViewModel() {
     val imageDownloadReport = MutableLiveData<TargetReport?>(null)
     val imageDownloadSlow = MutableLiveData(false)
     val imageDimensionFailed = MutableLiveData(false)
+    /** 检测到 DNS 污染、但污染域握手均成功（DoH/直连绕过生效）：总览黄底污染 + 绿底「网络勉强可用」。 */
+    val pollutionBypassed = MutableLiveData(false)
 
     val dohEnabled: Boolean get() = Shaft.sSettings?.isUseSecureDns == true
     val directConnect: Boolean get() = Shaft.sSettings?.isDirectConnect == true
@@ -152,6 +154,7 @@ class NetworkTestViewModel : ViewModel() {
         imageDownloadReport.value = null
         imageDownloadSlow.value = false
         imageDimensionFailed.value = false
+        pollutionBypassed.value = false
         imageDownloadFailed = false
         fakeIpDialogShown = false
         fakeIpDetected = false
@@ -182,9 +185,14 @@ class NetworkTestViewModel : ViewModel() {
                     TargetConfig("pixshaft.com", "Shaft 云服务 · 浏览记录同步", null, TargetKind.PIXSHAFT),
                 )
                 val polluted = mutableListOf<String>()
+                val bypassOk = mutableListOf<Boolean>()
                 for (cfg in configs) {
                     val idx = addTarget(TargetReport(cfg.host, cfg.subtitle))
-                    if (testTarget(idx, cfg, doh, direct)) polluted.add(cfg.host)
+                    val (isPolluted, hsOk) = testTarget(idx, cfg, doh, direct)
+                    if (isPolluted) {
+                        polluted.add(cfg.host)
+                        bypassOk.add(hsOk)
+                    }
                 }
 
                 // 所有目标握手测完之后，再做真实图片下载（插画 + 头像），联动当前图片代理。
@@ -194,6 +202,11 @@ class NetworkTestViewModel : ViewModel() {
                 val anyHighLatency = work.any { it.status == TargetStatus.HIGH_LATENCY }
                 val anyExtremeLatency = work.any { it.status == TargetStatus.EXTREME_LATENCY }
                 val anyDegraded = work.any { it.status == TargetStatus.DEGRADED } || imageDownloadFailed
+                // 污染但握手全部成功 = 应用内绕过路径（DoH/直连）生效：
+                // 总览改成黄底「检测到 DNS 污染」+ 绿底「网络勉强可用」并列，而不是刺眼的失败判定。
+                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it } &&
+                    !anyFailed && !anyHighLatency && !anyExtremeLatency && !anyDegraded
+                pollutionBypassed.postValue(bypassActive)
                 // 高延迟与超高延迟都算「延迟高」，用于小字提示的判断。
                 val latencyHosts = work.filter {
                     it.status == TargetStatus.HIGH_LATENCY || it.status == TargetStatus.EXTREME_LATENCY
@@ -264,8 +277,8 @@ class NetworkTestViewModel : ViewModel() {
         }
     }
 
-    /** @return 该目标本机 DNS 是否被判定为污染。 */
-    private fun testTarget(idx: Int, cfg: TargetConfig, doh: Boolean, direct: Boolean): Boolean {
+    /** @return (该目标本机 DNS 是否被判定为污染, 污染时握手是否成功——决定绕过是否生效)。 */
+    private fun testTarget(idx: Int, cfg: TargetConfig, doh: Boolean, direct: Boolean): Pair<Boolean, Boolean> {
         log("========== ${cfg.host} ==========")
 
         val sysAddrs = try {
@@ -274,7 +287,7 @@ class NetworkTestViewModel : ViewModel() {
             addStep(idx, TestStep("系统 DNS 解析", "解析失败: ${e.message}", StepStatus.FAIL))
             log("系统 DNS 解析失败: ${e.message}")
             setStatus(idx, TargetStatus.FAILED)
-            return false
+            return false to false
         }
         val ipv4 = sysAddrs.filterIsInstance<Inet4Address>()
         // fake-ip 检测：代理接管 DNS 时返回保留地址。不取消目标——跳过 DNS/ping，仅测握手，
@@ -311,7 +324,7 @@ class NetworkTestViewModel : ViewModel() {
                 }
             }
             log("")
-            return false
+            return false to false
         }
         log("DNS: " + sysAddrs.joinToString(", ") { it.hostAddress ?: "?" })
 
@@ -417,7 +430,7 @@ class NetworkTestViewModel : ViewModel() {
             addStep(idx, TestStep("跳过连通性 / 握手", detail, StepStatus.WARN))
             log("跳过后续: $detail")
             setStatus(idx, if (polluted) TargetStatus.POLLUTED else TargetStatus.FAILED)
-            return polluted
+            return polluted to false
         }
         if (polluted && cleanV4.isEmpty() && targetIp === appIp) {
             addStep(
@@ -451,7 +464,7 @@ class NetworkTestViewModel : ViewModel() {
         setStatus(idx, status)
         if (hs.ok) appendLatencyToSubtitle(idx, hs.avgMs, hs.maxMs)
         log("")
-        return polluted
+        return polluted to hs.ok
     }
 
     private fun tcpPing(idx: Int, ip: String, port: Int) {
@@ -822,7 +835,8 @@ class NetworkTestViewModel : ViewModel() {
 
     /**
      * 图片下载专用客户端，镜像 Shaft.onCreate 的图片 OkHttpClient：
-     * 全局强制 HTTP/1.1；仅「PIXIV 官方 + 直连」装无 SNI / 信任所有证书 / HttpDns 覆写，
+     * 全局强制 HTTP/1.1；「PIXIV 官方 + (直连 或 安全 DNS)」装 HttpDns 覆写，
+     * 其中直连还额外装无 SNI / 信任所有证书，
      * 其它模式（pixiv.cat 等反代、自定义反代）退回系统 DNS + 标准 TLS。
      */
     private fun buildImageDownloadClient(): OkHttpClient {
@@ -832,15 +846,28 @@ class NetworkTestViewModel : ViewModel() {
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(8, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
-        if (directConnect && !ImageHostManager.requiresStandardClient()) {
-            try {
-                builder.sslSocketFactory(RubySSLSocketFactory(), TrustAllCertManager())
-                builder.hostnameVerifier { _, _ -> true }
-            } catch (e: Exception) {
-                Timber.e(e, "image download no-SNI SSL init error")
+        if ((directConnect || dohEnabled) && !ImageHostManager.requiresStandardClient()) {
+            if (directConnect) {
+                try {
+                    builder.sslSocketFactory(RubySSLSocketFactory(), TrustAllCertManager())
+                    builder.hostnameVerifier { _, _ -> true }
+                } catch (e: Exception) {
+                    Timber.e(e, "image download no-SNI SSL init error")
+                }
             }
             builder.dns(HttpDns.getInstance())
         }
+        return builder.build()
+    }
+
+    /** 网页探测专用客户端，镜像 createWebAPIService：H1.1 + Web 头；直连开启时经 Cronet(QUIC)。 */
+    private fun buildWebProbeClient(): OkHttpClient {
+        val builder = OkHttpClient.Builder()
+            .connectTimeout(8, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .protocols(listOf(Protocol.HTTP_1_1))
+            .addInterceptor(WebHeaderInterceptor())
+        if (directConnect) addCronet(builder)
         return builder.build()
     }
 
@@ -921,11 +948,7 @@ class NetworkTestViewModel : ViewModel() {
 
     /** 现场抓样例作品的插画地址 + 画师头像地址（匿名 SFW 可用），失败返回 null。 */
     private fun fetchSampleUrls(): Pair<String?, String?> {
-        val client = OkHttpClient.Builder()
-            .connectTimeout(8, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .protocols(listOf(Protocol.HTTP_1_1))
-            .build()
+        val client = buildWebProbeClient()
         return try {
             var illustUrl: String? = null
             var userId: String? = null
@@ -954,11 +977,7 @@ class NetworkTestViewModel : ViewModel() {
 
     /** GET /ajax/user/{id} 拿画师头像地址；[client] 为空时自建一个。 */
     private fun fetchAvatarUrl(userId: String, shared: OkHttpClient? = null): String? {
-        val client = shared ?: OkHttpClient.Builder()
-            .connectTimeout(8, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .protocols(listOf(Protocol.HTTP_1_1))
-            .build()
+        val client = shared ?: buildWebProbeClient()
         return try {
             client.newCall(
                 Request.Builder().url("https://www.pixiv.net/ajax/user/$userId?full=1&lang=zh").get().build(),
@@ -983,11 +1002,7 @@ class NetworkTestViewModel : ViewModel() {
      * 不拉图片本身。@return (步骤, 是否拿到尺寸)。
      */
     private fun probeImageDimensions(source: String): Pair<TestStep, Boolean> {
-        val client = OkHttpClient.Builder()
-            .connectTimeout(8, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .protocols(listOf(Protocol.HTTP_1_1))
-            .build()
+        val client = buildWebProbeClient()
         val t0 = System.currentTimeMillis()
         return try {
             val request = Request.Builder()

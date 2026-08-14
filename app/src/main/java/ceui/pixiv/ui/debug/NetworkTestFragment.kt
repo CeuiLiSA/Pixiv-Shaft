@@ -47,6 +47,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
     private lateinit var summaryPill: TextView
     private lateinit var summaryPillSlow: TextView
     private lateinit var summaryPillDim: TextView
+    private lateinit var summaryPillBypass: TextView
     private lateinit var summarySub: TextView
     private lateinit var emptyState: View
     private lateinit var resultsSection: View
@@ -88,6 +89,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         summaryPill = view.findViewById(R.id.summary_pill)
         summaryPillSlow = view.findViewById(R.id.summary_pill_slow)
         summaryPillDim = view.findViewById(R.id.summary_pill_dim)
+        summaryPillBypass = view.findViewById(R.id.summary_pill_bypass)
         summarySub = view.findViewById(R.id.summary_sub)
         emptyState = view.findViewById(R.id.empty_state)
         resultsSection = view.findViewById(R.id.results_section)
@@ -153,6 +155,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         viewModel.overallSub.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
         viewModel.imageDownloadSlow.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
         viewModel.imageDimensionFailed.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
+        viewModel.pollutionBypassed.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
         // 日志默认收起：隐藏时不做 TextView 刷新（大文本逐行重建是渐进掉帧来源之一），展开时再同步。
         viewModel.rawLog.observe(viewLifecycleOwner) {
             if (rawLogShown) rawLogText.text = it
@@ -205,6 +208,10 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             return
         }
         summaryCard.visibility = View.VISIBLE
+        // DNS 污染但绕过生效：黄底污染 pill 旁并列绿底「网络勉强可用」。
+        val bypassed = viewModel.pollutionBypassed.value == true
+        summaryPillBypass.visibility = if (bypassed) View.VISIBLE else View.GONE
+        if (bypassed) applyPill(summaryPillBypass, getString(R.string.network_test_overall_bypass_ok), R.color.v3_green)
         // 下载缓慢与主状态并列显示（黄底）。
         val slow = viewModel.imageDownloadSlow.value == true
         summaryPillSlow.visibility = if (slow) View.VISIBLE else View.GONE
@@ -234,8 +241,13 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
                 summarySub.setText(R.string.network_test_overall_degraded_sub)
             }
             OverallStatus.POLLUTED -> {
-                applyPill(summaryPill, "● " + getString(R.string.network_test_overall_polluted), R.color.v3_danger)
-                summarySub.setText(R.string.network_test_overall_polluted_sub)
+                if (bypassed) {
+                    applyPill(summaryPill, "● " + getString(R.string.network_test_overall_polluted), R.color.v3_gold)
+                    summarySub.setText(R.string.network_test_overall_polluted_bypass_sub)
+                } else {
+                    applyPill(summaryPill, "● " + getString(R.string.network_test_overall_polluted), R.color.v3_danger)
+                    summarySub.setText(R.string.network_test_overall_polluted_sub)
+                }
             }
         }
     }

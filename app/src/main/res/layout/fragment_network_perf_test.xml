@@ -156,6 +156,19 @@
                         android:textStyle="bold"
                         android:visibility="gone"
                         tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/summary_pill_bypass"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:text="@string/network_test_overall_bypass_ok"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
                 </LinearLayout>
 
                 <TextView
