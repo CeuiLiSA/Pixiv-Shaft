@@ -90,6 +90,29 @@ object RifeInterpolator {
     }
 
     /**
+     * 补帧后的逐帧延迟:每个原帧延迟 d 均分成 [multiplier] 段,逐段沿累积时间轴四舍五入到
+     * 1ms —— 每段都落在 d/multiplier 的 ±1ms 内,一组之和精确等于 d(量化误差不累积)。
+     *
+     * **不对齐 10ms**:10ms 是 GIF 的延迟粒度(cs),曾经是播放容器的硬约束;代价是 50ms 的
+     * 原帧被劈成 30+20 —— 插出来的那帧偏离正确时刻 20%,每个原帧边界都「一顿一快」,
+     * 帧数翻倍了观感却不匀,补帧的收益被自己抵掉一半。现在播放走 mp4(PTS 微秒级),这里
+     * 只需给出真实时刻;10ms 量化下沉到 [ceui.pixiv.ui.bulk.gifFrameDelaysMs],只在真出 GIF 时做。
+     */
+    internal fun splitDelays(delays: List<Int>, multiplier: Int): List<Int> {
+        if (multiplier <= 1) return delays
+        val out = ArrayList<Int>(delays.size * multiplier)
+        for (d in delays) {
+            var assigned = 0
+            for (j in 1..multiplier) {
+                val target = (j * d + multiplier / 2) / multiplier
+                out.add(target - assigned)
+                assigned = target
+            }
+        }
+        return out
+    }
+
+    /**
      * 这条 ugoira 该补几倍:每轮 2x,直到「补后延迟会低于 [TARGET_MIN_DELAY_MS]」
      * 或「总帧数超 [MAX_OUTPUT_FRAMES]」或到 [MAX_MULTIPLIER]。返回 1 表示不值得补。
      */
@@ -143,17 +166,7 @@ object RifeInterpolator {
                 return null
             }
 
-            // 延迟:原帧 d 均分成 multiplier 段,逐段累积取整到 10ms 粒度 ——
-            // 每段都是整数 cs(GIF 真实粒度)、总时长精确等于 d,量化误差不随帧累积。
-            val newDelays = ArrayList<Int>(n * multiplier)
-            for (d in delays) {
-                var assigned = 0
-                for (j in 1..multiplier) {
-                    val target = (j * d.toDouble() / multiplier / 10.0).let { Math.round(it) * 10 }.toInt()
-                    newDelays.add(target - assigned)
-                    assigned = target
-                }
-            }
+            val newDelays = splitDelays(delays, multiplier)
             onProgress(100)
             Timber.tag(TAG).i(
                 "补帧完成 %d帧 ×%d → %d帧 耗时 %dms",

@@ -94,6 +94,10 @@ object UgoiraEngine {
     // 只差几秒编码的普通动图也要排队分钟级;且 GPU 上多个 ncnn 进程并行只会互相拖慢。
     private val rifeGate = Semaphore(1)
 
+    // mp4 压制单独串行:硬件编码器实例数是设备级稀缺资源(不少机器只有 1~2 个 AVC 编码
+    // 实例),并行开只会 configure 失败;而单条压制本来就只要一两秒。
+    private val videoGate = Semaphore(1)
+
     /**
      * illustId -> 文件级互斥。播放引擎与保存链路([downloadUgoira])共写同一
      * zip/.part/解压目录,「边看边存同一条」无锁并发写会把 zip 持久写坏 —— 落盘一个
@@ -264,9 +268,25 @@ object UgoiraEngine {
                     freed += dir.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
                     if (dir.deleteRecursively()) removed++
                 }
+                // 再收 frames_<id>/video.mp4.tmp:压制途中被杀留下的半成品。正主目录还活着,
+                // 上面那轮目录清扫不会认领它,而 readFramesDir 只认 video.mp4 —— 不收就没人收。
+                // (同一条动图下次被打开时压制会先删 tmp,但没人再打开的就一直躺着。)
+                val liveIds = synchronized(lock) { jobs.keys.toSet() }
+                LegacyFile.gifCacheFolder(context).listFiles()
+                    ?.filter { it.isDirectory && it.name.startsWith(FRAMES_DIR_PREFIX) }
+                    ?.forEach { dir ->
+                        val id = dir.name.removePrefix(FRAMES_DIR_PREFIX)
+                            .takeWhile { it.isDigit() }.toIntOrNull()
+                        if (id != null && id in liveIds) return@forEach
+                        val tmp = File(dir, UgoiraVideoEncoder.VIDEO_TMP_FILE_NAME)
+                        if (tmp.isFile) {
+                            freed += tmp.length()
+                            if (tmp.delete()) removed++
+                        }
+                    }
                 if (removed > 0) {
                     Timber.tag(UGOIRA_LOG_TAG)
-                        .i("[sweep] 清掉 %d 个残留目录(rife_work / frames.tmp),回收 %d KB", removed, freed / 1024)
+                        .i("[sweep] 清掉 %d 个残留(rife_work / frames.tmp / video.mp4.tmp),回收 %d KB", removed, freed / 1024)
                 }
             }.onFailure { Timber.tag(UGOIRA_LOG_TAG).w(it, "[sweep] 清扫残留补帧目录失败") }
         }
@@ -341,6 +361,66 @@ object UgoiraEngine {
         }
     }
 
+    /**
+     * pipeline 唯一的收口:确保这版帧序列**有 mp4**,然后发布。
+     *
+     * 三条产出路径(磁盘命中补帧版 / 磁盘命中原速版且不值得补 / 完整跑完)都走这里,
+     * 保证「发布出去的一定是能硬解播放的那一版」—— 播放器不必处理「先播帧序列、压好再切
+     * mp4」的中途换版(会看到一次跳变)。
+     */
+    private suspend fun finishAndPublish(
+        id: Int,
+        frames: UgoiraFrames,
+        flow: MutableStateFlow<UgoiraProgress>,
+    ): UgoiraFrames {
+        val final = ensureVideo(id, frames, flow)
+        publishFrames(id, final)
+        return final
+    }
+
+    /**
+     * 帧序列 → mp4(缺就压)。压不出来就原样返回,播放回退到 [ceui.pixiv.ui.detail.FrameSequencePlayer]
+     * —— 引入 mp4 不该让任何一条原本能播的动图变得不能播,所以除取消外任何 Throwable 都只降级。
+     *
+     * 握 per-illust 文件锁写目录(与保存链路互斥);调用方必须**不持有**该锁。
+     */
+    private suspend fun ensureVideo(
+        id: Int,
+        frames: UgoiraFrames,
+        flow: MutableStateFlow<UgoiraProgress>,
+    ): UgoiraFrames {
+        if (frames.video != null || UgoiraVideoEncoder.deviceUnsupported) return frames
+        return try {
+            videoGate.withPermit {
+                fileLockFor(id).withLock {
+                    // 等锁期间别条链路可能刚压好同一版
+                    readFramesDir(frames.dir, frames.interpolated)?.video?.let {
+                        return@withLock frames.copy(video = it)
+                    }
+                    flow.value = UgoiraProgress(UgoiraPhase.ENCODE, 0)
+                    Timber.tag(UGOIRA_LOG_TAG)
+                        .i("[pipeline] illust=%d mp4 压制开始 (%d帧)", id, frames.files.size)
+                    var lastQuarter = -1
+                    val video = UgoiraVideoEncoder.encode(
+                        frames.dir, frames.files, frames.delaysMs,
+                    ) { pct ->
+                        flow.value = UgoiraProgress(UgoiraPhase.ENCODE, pct)
+                        if (pct / 25 != lastQuarter) {
+                            lastQuarter = pct / 25
+                            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d mp4 压制 %d%%", id, pct)
+                        }
+                    }
+                    if (video != null) frames.copy(video = video) else frames
+                }
+            }
+        } catch (c: CancellationException) {
+            throw c
+        } catch (t: Throwable) {
+            Timber.tag(UGOIRA_LOG_TAG).w(t, "[pipeline] illust=%d mp4 压制异常,回退帧序列播放", id)
+            frames
+        }
+    }
+
     private suspend fun runPipeline(illust: IllustsBean): UgoiraFrames {
         val id = illust.id
         val flow = flowFor(id)
@@ -355,9 +435,12 @@ object UgoiraEngine {
 
             // 磁盘上已有想要的那一版帧序列:直接用。
             readFramesDir(framesDirFor(ctx, illust, useRife), useRife)?.let {
-                publishFrames(id, it)
-                Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 磁盘命中帧序列 -> %s (%d帧),直接返回", id, it.dir.name, it.files.size)
-                return it
+                val ready = finishAndPublish(id, it, flow)
+                Timber.tag(UGOIRA_LOG_TAG).i(
+                    "[pipeline] illust=%d 磁盘命中帧序列 -> %s (%d帧, mp4=%b),直接返回",
+                    id, ready.dir.name, ready.files.size, ready.video != null,
+                )
+                return ready
             }
 
             // 想要补帧版但盘上只有原速版:延迟就躺在 delays.txt 里,先判「值不值得补」。
@@ -367,12 +450,12 @@ object UgoiraEngine {
             if (useRife) {
                 readFramesDir(framesDirFor(ctx, illust, false), false)?.let { base ->
                     if (!RifeInterpolator.worthInterpolating(base.delaysMs)) {
-                        publishFrames(id, base)
+                        val ready = finishAndPublish(id, base, flow)
                         Timber.tag(UGOIRA_LOG_TAG).i(
-                            "[pipeline] illust=%d 磁盘命中原速帧序列且不值得补帧(%d帧,最小延迟%dms),直接返回",
-                            id, base.files.size, base.delaysMs.min(),
+                            "[pipeline] illust=%d 磁盘命中原速帧序列且不值得补帧(%d帧,最小延迟%dms,mp4=%b),直接返回",
+                            id, ready.files.size, ready.delaysMs.min(), ready.video != null,
                         )
-                        return base
+                        return ready
                     }
                 }
             }
@@ -535,10 +618,15 @@ object UgoiraEngine {
             }
             val r = result ?: throw IllegalStateException("no frames produced for illust=$id")
             // 只在最终版确定后发布一次:补帧成功就是补帧版,补帧失败/不适用/开关关着就是原速版。
-            // 中途不发布 —— 播放器要么不动,要么直接以最终帧率动起来。
-            publishFrames(id, r)
-            Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d ===== SUCCESS ===== %s (%d帧) 耗时 %dms", id, r.dir.name, r.files.size, System.currentTimeMillis() - t0)
-            return r
+            // 中途不发布 —— 播放器要么不动,要么直接以最终帧率动起来。压制 mp4 也在发布之前
+            // 做完(finishAndPublish),免得先播一版软解帧序列再切硬解、看到一次跳变。
+            val ready = finishAndPublish(id, r, flow)
+            Timber.tag(UGOIRA_LOG_TAG).i(
+                "[pipeline] illust=%d ===== SUCCESS ===== %s (%d帧, mp4=%b) 耗时 %dms",
+                id, ready.dir.name, ready.files.size, ready.video != null,
+                System.currentTimeMillis() - t0,
+            )
+            return ready
         } catch (c: CancellationException) {
             Timber.tag(UGOIRA_LOG_TAG).i("[pipeline] illust=%d 已取消(划走无人看 / 进程回收) 耗时 %dms", id, System.currentTimeMillis() - t0)
             throw c
@@ -705,17 +793,25 @@ internal fun ugoiraDelays(frameCount: Int, resp: GifResponse): List<Int> {
 
 // ── 播放用帧序列 ─────────────────────────────────────────────────────────────
 // 播放不再走 GIF:GIF 在 Glide 里是纯 Java 软解 LZW(实测 490x445 单帧约 25ms),4x 补帧的
-// 20ms 预算根本喂不饱它,只能把动作拖慢。改成直接播 JPEG 帧序列 —— native 解码快数倍,
-// 且时序由 [FrameSequencePlayer] 的绝对时间轴掌控。GIF 只在用户点「保存」时才编。
+// 20ms 预算根本喂不饱它,只能把动作拖慢。第一步改成播 JPEG 帧序列(native 解码快数倍);
+// 现在再进一步,帧序列落盘后**顺手压一个 H.264 mp4**([UgoiraVideoEncoder]),播放优先走
+// 硬件解码([ceui.pixiv.ui.detail.UgoiraVideoPlayer]) —— 软解 JPEG 在补帧后的 20ms 预算下
+// 仍会因降频跟不上而丢帧,硬解不会。JPEG 帧序列保留:压制失败/设备不支持时的回退版本,
+// 也是「保存为 GIF」的帧源。GIF 只在用户点「保存」时才编。
 
-/** 可直接喂给 `FrameSequencePlayer` 的帧序列。[files] 与 [delaysMs] 一一对应。 */
+/**
+ * 可播放的一版 ugoira。[files] 与 [delaysMs] 一一对应,供 `FrameSequencePlayer` 使用;
+ * [video] 非空时优先走 `UgoiraVideoPlayer` 硬解播放(同一份内容的 mp4 版本)。
+ */
 data class UgoiraFrames(
     val dir: File,
     val files: List<File>,
     val delaysMs: List<Int>,
     val interpolated: Boolean,
+    /** 同目录下压好的 mp4(`video.mp4`);null = 还没压 / 压不出来,回退帧序列播放。 */
+    val video: File? = null,
 ) {
-    /** 一圈总时长 —— 补帧前后必须相等,播放器靠它做无缝升级。 */
+    /** 一圈总时长 —— 补帧前后必须相等,播放器靠它做无缝升级;也是 mp4 的循环长度。 */
     val totalMs: Int get() = delaysMs.sum()
 }
 
@@ -745,7 +841,9 @@ internal fun readFramesDir(dir: File, interpolated: Boolean): UgoiraFrames? {
         .filter { it.isFile && it.name.endsWith(".jpg") }
         .sortedBy { it.nameWithoutExtension.toIntOrNull() ?: Int.MAX_VALUE }
     if (files.size != delays.size) return null
-    return UgoiraFrames(dir, files, delays, interpolated)
+    // mp4 是可选增强:不在就是 null,回退帧序列播放(老缓存目录天然如此)。
+    val video = File(dir, UgoiraVideoEncoder.VIDEO_FILE_NAME).takeIf { it.isFile && it.length() > 0 }
+    return UgoiraFrames(dir, files, delays, interpolated, video)
 }
 
 /**
@@ -870,6 +968,33 @@ private fun buildGlobalPalette(files: List<File>): ByteArray? {
     return if (w == buf.size) buf else buf.copyOf(w)
 }
 
+/**
+ * 把帧序列的真实延迟量化成 GIF 能表达的延迟(必为 10ms 的整数倍)。
+ *
+ * GIF 的延迟单位是 cs(10ms),且 [AnimatedGifEncoder.setDelay] 是**截断**取整 ——
+ * 逐帧独立取整会让一圈总时长整体漂移(25ms 全被截成 20ms 就是快 20%)。所以按
+ * **累积时间轴**量化:第 i 帧的结束时刻四舍五入到 10ms,差值才是本帧延迟,单帧误差
+ * ≤5ms 且不累积,一圈总时长与帧序列(和 mp4)一致。
+ *
+ * 有了这一层,补帧产出的延迟就可以是任意毫秒数([RifeInterpolator.splitDelays] 因此
+ * 不必再自己对齐 10ms,那会让插出来的帧偏离正确时刻),容器的粒度限制留在容器这一层。
+ */
+internal fun gifFrameDelaysMs(delaysMs: List<Int>, frameCount: Int): List<Int> {
+    val out = ArrayList<Int>(frameCount)
+    var elapsedMs = 0   // 帧序列的真实累积时刻
+    var assignedMs = 0  // 已写进 GIF 的累积时刻(必为 10 的倍数)
+    for (i in 0 until frameCount) {
+        elapsedMs += delaysMs.getOrElse(i) { 60 }
+        val target = (elapsedMs + 5) / 10 * 10
+        // 两帧落进同一个 10ms 桶时给 10ms 兜底:GIF 的 0 延迟会被看图器当「尽快播」处理,
+        // 反而更糟。只可能出现在原始 metadata 就 <10ms 的病态动图上。
+        val frameDelay = (target - assignedMs).coerceAtLeast(10)
+        assignedMs += frameDelay
+        out.add(frameDelay)
+    }
+    return out
+}
+
 /** 按显式 [delaysMs] 逐帧编码(RIFE 补帧后延迟已减半,不再来自 metadata)。 */
 internal fun encodeFramesToGif(
     files: List<File>,
@@ -884,8 +1009,9 @@ internal fun encodeFramesToGif(
     // 抽样失败(帧全解不开)就退回逐帧,不影响出片。
     buildGlobalPalette(files)?.let { encoder.setGlobalPalette(it) }
     val total = files.size
+    val gifDelays = gifFrameDelaysMs(delaysMs, files.size)
     for ((i, f) in files.withIndex()) {
-        encoder.setDelay(delaysMs.getOrElse(i) { 60 })
+        encoder.setDelay(gifDelays[i])
         val bmp: Bitmap? = BitmapFactory.decodeFile(f.absolutePath)
         if (bmp != null) {
             encoder.addFrame(bmp)

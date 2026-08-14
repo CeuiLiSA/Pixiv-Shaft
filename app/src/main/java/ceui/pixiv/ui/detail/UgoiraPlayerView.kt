@@ -2,6 +2,8 @@ package ceui.pixiv.ui.detail
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Matrix
+import android.graphics.SurfaceTexture
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
@@ -9,6 +11,8 @@ import android.graphics.drawable.RippleDrawable
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.Surface
+import android.view.TextureView
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -66,6 +70,16 @@ class UgoiraPlayerView @JvmOverloads constructor(
 
     private val imageView = ImageView(context).apply {
         scaleType = ImageView.ScaleType.FIT_CENTER
+    }
+
+    /**
+     * mp4 硬解播放的画布,压在预览图之上。非 opaque:首帧上屏前 / letterbox 的黑边处
+     * 透出下面的预览图,不会闪一片黑。没有 mp4(压制失败、老缓存)时保持 GONE,
+     * 画面仍由 [imageView] + [FrameSequencePlayer] 承担。
+     */
+    private val textureView = TextureView(context).apply {
+        isOpaque = false
+        isVisible = false
     }
     // 构造时拿一次 RequestManager；回收可能发生在 View 已 detach 之后，此时再 Glide.with(view)
     // 会重复做 ViewTree/lifecycle 查找，极端销毁时序下还可能命中已销毁 Activity。
@@ -232,6 +246,16 @@ class UgoiraPlayerView @JvmOverloads constructor(
 
     private var job: Job? = null
     private var player: FrameSequencePlayer? = null
+
+    /** mp4 硬解播放器 + 它正在播的那一版(SurfaceTexture 晚于 playFrames 就绪时靠它补开播)。 */
+    private var videoPlayer: UgoiraVideoPlayer? = null
+    private var videoFrames: UgoiraFrames? = null
+    private var videoSurface: Surface? = null
+    private var videoW = 0
+    private var videoH = 0
+
+    /** 这一版的 mp4 解码失败过 → 本 View 不再对它走硬解,老老实实播帧序列。 */
+    private var videoBrokenDir: String? = null
     private var playingDir: String? = null
     private var playbackActive = false
     /** 点过播放且帧序列还没就绪（下载/解压/压制中）。切走再切回时继续显示进度、不弹按钮。 */
@@ -259,6 +283,26 @@ class UgoiraPlayerView @JvmOverloads constructor(
 
     init {
         addView(imageView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+        addView(textureView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+        textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+            override fun onSurfaceTextureAvailable(st: SurfaceTexture, w: Int, h: Int) {
+                val illust = boundIllust ?: return
+                val frames = videoFrames ?: return
+                startVideo(illust, frames, st)
+            }
+
+            override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) {
+                applyVideoTransform()
+            }
+
+            override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
+                // stopVideo 会 join 解码线程 —— 返回 true 时确实没人再往这个 Surface 送帧了
+                stopVideo()
+                return true
+            }
+
+            override fun onSurfaceTextureUpdated(st: SurfaceTexture) = Unit
+        }
         addView(
             overlay,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER),
@@ -297,6 +341,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         var targetH = (screenW.toLong() * h / w).toInt()
         if (maxHeight > 0 && targetH > maxHeight) targetH = maxHeight
         imageView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, targetH)
+        textureView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, targetH)
 
         // 预览图打底(拿到 gif 前先显示首帧/大图)。同一 holder 的无关重绑不能把正在播的 GIF
         // 又替换回预览图。
@@ -334,6 +379,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         boundOwner = null
         boundIllust = null
         autoHealedDir = null
+        videoBrokenDir = null
         retryButton.setOnClickListener(null)
         retryButton.isVisible = false
         playButton.setOnClickListener(null)
@@ -351,6 +397,11 @@ class UgoiraPlayerView @JvmOverloads constructor(
         job = null
         player?.stop()
         player = null
+        stopVideo()
+        videoFrames = null
+        // 收起 TextureView(它的 SurfaceTexture 随之销毁),画面交还给下面的预览图 ——
+        // 和帧序列路径「停下时保留 ImageView 上最后一帧/预览图」的观感一致。
+        textureView.isVisible = false
         playingDir = null
         // 不在这里清 ImageView；开关关闭时：下载/压制中保留进度浮层，否则把按钮放回来，
         // 左右切回秒显、无弹跳；真正释放放在 recycle()（holder 进回收池）再做。
@@ -438,29 +489,46 @@ class UgoiraPlayerView @JvmOverloads constructor(
             } catch (t: Throwable) {
                 progressJob.cancel()
                 framesJob.cancel()
-                // 已经播上原速版了就别退回「重试」——补帧失败不该毁掉能看的画面
-                if (player == null) {
+                // 已经播上原速版了就别退回「重试」——补帧失败不该毁掉能看的画面。
+                // 硬解路径下 player 是 null(画面由 videoPlayer 出),两个都要看。
+                val playing = player != null || videoPlayer != null
+                if (!playing) {
                     playbackActive = false
                     downloadInFlight = false
                     hideOverlay()
                     retryButton.isVisible = true
                 }
-                Timber.tag(UGOIRA_LOG_TAG).w(t, "[player] illust=%d 加载失败(已在播=%b)", illust.id, player != null)
+                Timber.tag(UGOIRA_LOG_TAG).w(t, "[player] illust=%d 加载失败(已在播=%b)", illust.id, playing)
             }
         }
     }
 
     /**
-     * 换上一版帧序列开播。同一版重复回调直接忽略(StateFlow 会重放当前值);换版时旧播放器
-     * stop、新播放器 start —— 两版一圈时长相同,视觉上接得住。
+     * 换上一版开播。同一版重复回调直接忽略(StateFlow 会重放当前值);换版时旧播放器 stop、
+     * 新播放器 start —— 两版一圈时长相同,视觉上接得住。
+     *
+     * **有 mp4 就走硬解**([UgoiraVideoPlayer]):每帧按 PTS 排进合成器时间轴,一帧都不丢。
+     * 没有 mp4(压制失败 / 设备无编码器 / 老缓存目录)或这一版硬解翻过车,才退回
+     * [FrameSequencePlayer] 的软解帧序列。
      */
     private fun playFrames(illust: IllustsBean, frames: UgoiraFrames) {
         if (playingDir == frames.dir.path) return
         if (frames.files.isEmpty()) return
         downloadInFlight = false
-        player?.stop()
         playingDir = frames.dir.path
         retryButton.isVisible = false
+        if (frames.video != null && videoBrokenDir != frames.dir.path) {
+            playVideo(illust, frames)
+        } else {
+            playFrameSequence(illust, frames)
+        }
+    }
+
+    /** 软解帧序列(回退路径)。 */
+    private fun playFrameSequence(illust: IllustsBean, frames: UgoiraFrames) {
+        stopVideo()
+        textureView.isVisible = false
+        player?.stop()
         player = FrameSequencePlayer(
             frames.files,
             frames.delaysMs,
@@ -468,9 +536,94 @@ class UgoiraPlayerView @JvmOverloads constructor(
             onError = { onPlaybackBroken(illust, frames) },
         ).also { it.start() }
         Timber.tag(UGOIRA_LOG_TAG).i(
-            "[player] illust=%d 开播 %s (%d帧, 一圈%dms, 补帧=%b)",
+            "[player] illust=%d 开播帧序列 %s (%d帧, 一圈%dms, 补帧=%b)",
             illust.id, frames.dir.name, frames.files.size, frames.totalMs, frames.interpolated,
         )
+    }
+
+    /** mp4 硬解。SurfaceTexture 还没就绪就先记下,由 listener 的 onAvailable 接着开播。 */
+    private fun playVideo(illust: IllustsBean, frames: UgoiraFrames) {
+        player?.stop()
+        player = null
+        stopVideo()
+        videoFrames = frames
+        textureView.isVisible = true
+        val texture = textureView.surfaceTexture
+        if (textureView.isAvailable && texture != null) {
+            startVideo(illust, frames, texture)
+        } else {
+            Timber.tag(UGOIRA_LOG_TAG)
+                .i("[player] illust=%d SurfaceTexture 未就绪,等 onAvailable 再开播", illust.id)
+        }
+    }
+
+    private fun startVideo(illust: IllustsBean, frames: UgoiraFrames, texture: SurfaceTexture) {
+        val video = frames.video ?: return
+        stopVideo()
+        val surface = Surface(texture)
+        videoSurface = surface
+        videoPlayer = UgoiraVideoPlayer(
+            videoFile = video,
+            loopDurationMs = frames.totalMs,
+            // 自适应刷新率的机器(Pixel 8 是 60/120 切换)会在播放中途改刷新率,所以每次
+            // 现读,不缓存。View 还没 attach 时 display 为 null,退 60Hz。
+            refreshRateHz = { display?.refreshRate ?: 60f },
+            onVideoSize = { w, h ->
+                videoW = w
+                videoH = h
+                applyVideoTransform()
+            },
+            onFirstFrame = {
+                // 首帧已上屏:预览图被 TextureView 盖住,这里不用做别的
+            },
+            onError = { onVideoBroken(illust, frames) },
+        ).also { it.start(surface) }
+        Timber.tag(UGOIRA_LOG_TAG).i(
+            "[player] illust=%d 开播 mp4 %s (%d帧, 一圈%dms, 补帧=%b)",
+            illust.id, frames.dir.name, frames.files.size, frames.totalMs, frames.interpolated,
+        )
+    }
+
+    private fun stopVideo() {
+        // 只有确认解码线程已退出才 release Surface;超时(理论上不该发生)时宁可把这个
+        // Surface 漏给 finalizer 收,也不能让解码器对着已销毁的 Surface 送帧。
+        val joined = videoPlayer?.stop() ?: true
+        videoPlayer = null
+        if (joined) videoSurface?.release()
+        videoSurface = null
+    }
+
+    /**
+     * mp4 解码失败(文件被清 / 设备解码器抽风):这一版不再走硬解,当场退回帧序列。
+     * 帧序列就在同一个目录里,画面不会中断到需要用户重试。
+     */
+    private fun onVideoBroken(illust: IllustsBean, frames: UgoiraFrames) {
+        if (playingDir != frames.dir.path) return // 过期回调,不动现场
+        videoBrokenDir = frames.dir.path
+        videoFrames = null
+        Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d mp4 解码失败,改播帧序列", illust.id)
+        playFrameSequence(illust, frames)
+    }
+
+    /**
+     * TextureView 默认把内容拉伸填满自己;这里按视频原始宽高做 FIT_CENTER,和 [imageView]
+     * 的 scaleType 保持一致 —— 详情页高度被 maxHeight 截断时,画面才不会被压扁。
+     */
+    private fun applyVideoTransform() {
+        val vw = videoW
+        val vh = videoH
+        val w = textureView.width
+        val h = textureView.height
+        if (vw <= 0 || vh <= 0 || w <= 0 || h <= 0) return
+        val scale = minOf(w.toFloat() / vw, h.toFloat() / vh)
+        val matrix = Matrix()
+        matrix.setScale(vw * scale / w, vh * scale / h, w / 2f, h / 2f)
+        textureView.setTransform(matrix)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        applyVideoTransform()
     }
 
     /**
