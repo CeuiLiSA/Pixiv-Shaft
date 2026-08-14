@@ -391,23 +391,40 @@ public class PixivOperate {
     }
 
     public static void muteUser(UserBean userBean) {
+        muteUser(userBean, true);
+    }
+
+    /**
+     * {@code showToast=false} 给「屏蔽设定」sheet 用:它一次保存可能同时动标签和作者,
+     * 逐项弹 toast 会连着刷好几条,由调用方在最后统一发一条(同 {@link #unMuteTag(TagsBean, boolean)})。
+     */
+    public static void muteUser(UserBean userBean, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
         muteEntity.setId(userBean.getId());
         muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
-        Common.showToast(Shaft.getContext().getString(R.string.string_382));
+        if (showToast) {
+            Common.showToast(Shaft.getContext().getString(R.string.string_382));
+        }
     }
 
     public static void unMuteUser(UserBean userBean) {
+        unMuteUser(userBean, true);
+    }
+
+    /** 见 {@link #muteUser(UserBean, boolean)}。 */
+    public static void unMuteUser(UserBean userBean, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
         muteEntity.setId(userBean.getId());
         muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
-        Common.showToast(Shaft.getContext().getString(R.string.string_383));
+        if (showToast) {
+            Common.showToast(Shaft.getContext().getString(R.string.string_383));
+        }
     }
 
     public static void blockUser(UserBean userBean) {

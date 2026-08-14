@@ -271,7 +271,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                     public void onClick(View v) {
                         MuteTagSheet.show(
                                 ((FragmentActivity) mContext).getSupportFragmentManager(),
-                                illust.getTags());
+                                illust.getTags(),
+                                illust.getUser());
                         mNormalPopup.dismiss();
                     }
                 });

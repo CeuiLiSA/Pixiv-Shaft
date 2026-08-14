@@ -2387,10 +2387,15 @@
     <string name="spoiler_hide_illust">Bu eseri gizle</string>
     <string name="spoiler_reveal_illust">Bu eserin gizlemesini kaldır</string>
 
-    <string name="mute_sheet_subtitle">İşaretlenen etiketler sessize alınır, işareti kaldırmak geri alır</string>
+    <string name="mute_sheet_subtitle">İşaretlenen ögeler sessize alınır, işareti kaldırmak geri alır</string>
     <string name="mute_sheet_ineffective">etkin değil</string>
     <string name="mute_sheet_empty">Bu eserde etiket yok</string>
     <string name="mute_sheet_summary">%1$d / %2$d seçildi</string>
+    <!-- issue #1015 -->
+    <string name="mute_sheet_section_tag">Etikete göre sessize al</string>
+    <string name="mute_sheet_section_tag_hint">İşaretli etiketlerden birini taşıyan eserler filtrelenir</string>
+    <string name="mute_sheet_section_author">Sanatçıya göre sessize al</string>
+    <string name="mute_sheet_section_author_hint">Bu sanatçının tüm eserleri filtrelenir, yalnızca bu cihazda geçerlidir</string>
     <string name="private_follow_by_default">Sanatçıları varsayılan olarak gizli takip et</string>
     <string name="model_download_copy_or_import">İndirme bağlantısını kopyala veya model dosyasını içe aktar</string>
     <string name="model_download_dialog_title">Bağlantıyı kopyala mı, yoksa içe aktar mı?</string>

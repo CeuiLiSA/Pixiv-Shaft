@@ -2387,10 +2387,15 @@
     <string name="spoiler_hide_illust">이 작품 가리기</string>
     <string name="spoiler_reveal_illust">이 작품 가리기 해제</string>
 
-    <string name="mute_sheet_subtitle">체크한 태그는 뮤트되고, 해제하면 뮤트가 풀립니다</string>
+    <string name="mute_sheet_subtitle">체크한 항목은 뮤트되고, 해제하면 뮤트가 풀립니다</string>
     <string name="mute_sheet_ineffective">비활성</string>
     <string name="mute_sheet_empty">이 작품에는 태그가 없습니다</string>
     <string name="mute_sheet_summary">%1$d / %2$d 선택됨</string>
+    <!-- issue #1015 -->
+    <string name="mute_sheet_section_tag">태그로 뮤트</string>
+    <string name="mute_sheet_section_tag_hint">체크한 태그가 있는 작품이 걸러집니다</string>
+    <string name="mute_sheet_section_author">작가로 뮤트</string>
+    <string name="mute_sheet_section_author_hint">이 작가의 모든 작품이 걸러집니다. 이 기기에서만 적용됩니다</string>
     <string name="private_follow_by_default">기본으로 비공개 팔로우</string>
     <string name="model_download_copy_or_import">다운로드 링크 복사 또는 모델 파일 가져오기</string>
     <string name="model_download_dialog_title">링크 복사 또는 가져오기</string>

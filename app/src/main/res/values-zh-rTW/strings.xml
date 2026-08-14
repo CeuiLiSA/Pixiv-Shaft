@@ -2389,10 +2389,15 @@
     <string name="spoiler_hide_illust">遮蔽此作品</string>
     <string name="spoiler_reveal_illust">取消遮蔽此作品</string>
 
-    <string name="mute_sheet_subtitle">勾選的標籤會加入屏蔽列表，取消勾選即解除</string>
+    <string name="mute_sheet_subtitle">勾選即加入屏蔽列表，取消勾選即解除</string>
     <string name="mute_sheet_ineffective">未生效</string>
     <string name="mute_sheet_empty">這個作品沒有標籤</string>
     <string name="mute_sheet_summary">已選 %1$d / %2$d</string>
+    <!-- issue #1015 -->
+    <string name="mute_sheet_section_tag">按標籤屏蔽</string>
+    <string name="mute_sheet_section_tag_hint">命中任一勾選標籤的作品會被過濾</string>
+    <string name="mute_sheet_section_author">按作者屏蔽</string>
+    <string name="mute_sheet_section_author_hint">這位作者的全部作品都會被過濾，僅在本機生效</string>
     <string name="private_follow_by_default">關注作者預設私人關注</string>
     <string name="model_download_copy_or_import">複製下載連結或匯入模型檔案</string>
     <string name="model_download_dialog_title">複製連結還是匯入</string>

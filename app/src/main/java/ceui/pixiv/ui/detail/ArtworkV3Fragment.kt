@@ -965,7 +965,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 Common.copy(requireContext(), ShareIllust.URL_Head + illust.id)
             }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
-                MuteTagSheet.show(childFragmentManager, illust.tags)
+                MuteTagSheet.show(childFragmentManager, illust.tags, illust.user)
             }
             item(getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
                 PixivOperate.muteIllust(illust)

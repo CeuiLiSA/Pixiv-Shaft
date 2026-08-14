@@ -327,7 +327,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     false
                 }
                 R.id.action_dislike -> {
-                    MuteTagSheet.show(childFragmentManager, illust.tags)
+                    MuteTagSheet.show(childFragmentManager, illust.tags, illust.user)
                     true
                 }
                 R.id.action_copy_link -> {

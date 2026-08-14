@@ -2601,10 +2601,15 @@
     <string name="spoiler_reveal_illust">取消屏蔽此作品</string>
 
     <!-- issue #992: 「屏蔽设定」MD3-E bottom sheet（MuteTagSheet） -->
-    <string name="mute_sheet_subtitle">勾选的标签会加入屏蔽列表，取消勾选即解除</string>
+    <string name="mute_sheet_subtitle">勾选即加入屏蔽列表，取消勾选即解除</string>
     <string name="mute_sheet_ineffective">未生效</string>
     <string name="mute_sheet_empty">这个作品没有标签</string>
     <string name="mute_sheet_summary">已选 %1$d / %2$d</string>
+    <!-- issue #1015: sheet 拆成「按标签」/「按作者」两个 section -->
+    <string name="mute_sheet_section_tag">按标签屏蔽</string>
+    <string name="mute_sheet_section_tag_hint">命中任一勾选标签的作品会被过滤</string>
+    <string name="mute_sheet_section_author">按作者屏蔽</string>
+    <string name="mute_sheet_section_author_hint">这位作者的全部作品都会被过滤，仅在本机生效</string>
     <string name="private_follow_by_default">关注作者默认私人关注</string>
     <string name="model_download_copy_or_import">复制下载链接或者导入模型文件</string>
     <string name="model_download_dialog_title">复制链接还是导入</string>

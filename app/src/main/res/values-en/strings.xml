@@ -2387,10 +2387,15 @@
     <string name="spoiler_hide_illust">Hide this artwork</string>
     <string name="spoiler_reveal_illust">Unhide this artwork</string>
 
-    <string name="mute_sheet_subtitle">Checked tags are muted; unchecking removes them</string>
+    <string name="mute_sheet_subtitle">Checked items are muted; unchecking removes them</string>
     <string name="mute_sheet_ineffective">inactive</string>
     <string name="mute_sheet_empty">This work has no tags</string>
     <string name="mute_sheet_summary">%1$d / %2$d selected</string>
+    <!-- issue #1015 -->
+    <string name="mute_sheet_section_tag">Mute by tag</string>
+    <string name="mute_sheet_section_tag_hint">Works matching any checked tag are filtered out</string>
+    <string name="mute_sheet_section_author">Mute by artist</string>
+    <string name="mute_sheet_section_author_hint">All works by this artist are filtered out, on this device only</string>
     <string name="private_follow_by_default">Follow artists privately by default</string>
     <string name="model_download_copy_or_import">Copy download link or import model file</string>
     <string name="model_download_dialog_title">Copy link or import?</string>

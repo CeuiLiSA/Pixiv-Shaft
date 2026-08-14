@@ -44,7 +44,7 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
             setIllustMuted(item, !spoilered)
         }
         item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
-            MuteTagSheet.show(childFragmentManager, bean.tags)
+            MuteTagSheet.show(childFragmentManager, bean.tags, bean.user)
         }
         item(getString(R.string.string_112), R.drawable.ic_baseline_comment_24) {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {

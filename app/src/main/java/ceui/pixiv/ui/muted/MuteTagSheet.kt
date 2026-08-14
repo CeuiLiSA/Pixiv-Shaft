@@ -19,10 +19,13 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.SheetMuteTagBinding
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.models.TagsBean
+import ceui.lisa.models.UserBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
@@ -58,6 +61,15 @@ import kotlin.math.roundToInt
  * 一个长得像开关、却只单向生效的控件是在骗人。本版保存时按差集写：
  * 新勾上的 → [PixivOperate.muteTag]，被取消勾选的 → [PixivOperate.unMuteTag]；
  * 保持原样的一个都不动（重新 mute 会把「未生效」的记录重置成生效，那是数据损失）。
+ *
+ * ## 两个 section（issue #1015）
+ * 「按标签屏蔽」+「按作者屏蔽」。作者那一格就是**同一种胶囊、同一种勾选语义、同一颗保存按钮**，
+ * 只是落到 `tag_mute_table` 的 `type=MUTE_USER` 那一行（[PixivOperate.muteUser]）——所以它是
+ * 一个 section 而不是二级弹窗或者新菜单项：用户要做的事没变，变的只是屏蔽的维度。
+ *
+ * 这里**只有本地屏蔽，没有 pixiv 官方的「拉黑」**（[ceui.pixiv.ui.user.PixivBlockOperate]）。
+ * 拉黑要发网络请求、会失败、且一般用户全站只有 1 个额度，塞进「勾一下→保存」这套即时可逆的
+ * 开关语义里必然骗人；它继续留在画师主页的菜单里。
  */
 class MuteTagSheet : BottomSheetDialogFragment() {
 
@@ -82,6 +94,15 @@ class MuteTagSheet : BottomSheetDialogFragment() {
 
     /** 当前勾选集合，初值 = [originallyMuted]。 */
     private val selected = mutableSetOf<String>()
+
+    /** 这件作品的作者；拿不到（legacy 入口可能没传）则整个「按作者屏蔽」section 不出现。 */
+    private val author: UserBean? by lazy {
+        arguments?.getSerializable(KEY_AUTHOR) as? UserBean
+    }
+
+    /** 作者维度的「原状态 / 当前勾选」，等价于标签那两个集合，只是就一个对象所以是布尔。 */
+    private var authorOriginallyMuted = false
+    private var authorSelected = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -112,8 +133,11 @@ class MuteTagSheet : BottomSheetDialogFragment() {
             dismissAllowingStateLoss()
         }
 
+        // 没有标签时，section 1 的说明换成「这个作品没有标签」——两句同时出现是自相矛盾的。
         binding.emptyHint.isVisible = tags.isEmpty()
-        binding.btnSave.isVisible = tags.isNotEmpty()
+        binding.sectionTagHint.isVisible = tags.isNotEmpty()
+        // 只要还有一个维度可勾就得留着保存键：无标签但有作者的作品照样能屏蔽作者。
+        binding.btnSave.isVisible = tags.isNotEmpty() || author != null
         buildChips()
         updateSummary()
     }
@@ -131,10 +155,21 @@ class MuteTagSheet : BottomSheetDialogFragment() {
             if (!record.isEffective) ineffective.add(tag.name)
         }
         selected.addAll(originallyMuted)
+
+        // 作者维度按 id 查一行就够（type=MUTE_USER）。它没有「未生效」这一态——
+        // IllustNovelFilter.judgeUserID 只看记录在不在，所以作者胶囊只有两态。
+        author?.let { user ->
+            val authorMuted = AppDatabase.getAppDatabase(Shaft.getContext())
+                .searchDao()
+                .getUserMuteEntityByID(user.id) != null
+            authorOriginallyMuted = authorMuted
+            authorSelected = authorMuted
+        }
     }
 
     /**
-     * 强调色刷到两颗按钮上：保存 = filled 实心（主操作），屏蔽记录 = tonal 淡底（次操作）。
+     * 强调色刷到两颗按钮和两个 section 标题上：保存 = filled 实心（主操作），
+     * 屏蔽记录 = tonal 淡底（次操作），section 标题 = 强调色的 MD3 subhead。
      * 用代码 tint 而非主题属性——见类注释。
      */
     private fun applyAccent() {
@@ -143,17 +178,57 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         binding.btnHistory.backgroundTintList = ColorStateList.valueOf(palette.alpha15)
         binding.btnHistory.setTextColor(palette.textAccent)
         binding.btnCancel.setTextColor(palette.textAccent)
+        binding.sectionTagTitle.setTextColor(palette.textAccent)
+        binding.sectionAuthorTitle.setTextColor(palette.textAccent)
     }
 
     private fun buildChips() {
         val flow = binding.tagFlow
         flow.removeAllViews()
-        tags.forEach { flow.addView(createChip(it)) }
+        tags.forEach { flow.addView(createTagChip(it)) }
+
+        val user = author
+        binding.sectionAuthor.isVisible = user != null
+        binding.authorFlow.removeAllViews()
+        if (user != null) {
+            binding.authorFlow.addView(createAuthorChip(user))
+        }
     }
 
-    private fun createChip(tag: TagsBean): TextView {
+    /**
+     * 作者胶囊：和标签胶囊同一套外观与勾选手感（[renderChip]），只是没有「未生效」那一态。
+     * 名字空了退回 account、再退回 id——胶囊上必须有字，一个空胶囊点不明白。
+     */
+    private fun createAuthorChip(user: UserBean): TextView {
+        val chip = newChip()
+        chip.text = listOfNotNull(user.name, user.account)
+            .firstOrNull { it.isNotBlank() } ?: user.id.toString()
+        renderChip(chip, authorSelected, false)
+        chip.setOnClickListener {
+            authorSelected = !authorSelected
+            renderChip(chip, authorSelected, false)
+            updateSummary()
+        }
+        return chip
+    }
+
+    private fun createTagChip(tag: TagsBean): TextView {
         val name = tag.name
-        val chip = TextView(requireContext()).apply {
+        val chip = newChip()
+        chip.text = chipLabel(tag)
+        renderChip(chip, name in selected, name in ineffective)
+        chip.setOnClickListener {
+            if (!selected.remove(name)) selected.add(name)
+            chip.text = chipLabel(tag)
+            renderChip(chip, name in selected, name in ineffective)
+            updateSummary()
+        }
+        return chip
+    }
+
+    /** 空白胶囊壳子：尺寸 / 间距 / 可点性，配色与图标交给 [renderChip] 按状态刷。 */
+    private fun newChip(): TextView {
+        return TextView(requireContext()).apply {
             textSize = 13.5F
             gravity = Gravity.CENTER_VERTICAL
             typeface = Typeface.DEFAULT
@@ -171,15 +246,6 @@ class MuteTagSheet : BottomSheetDialogFragment() {
             lp.bottomMargin = 8.ppppx
             layoutParams = lp
         }
-        chip.text = chipLabel(tag)
-        renderChip(chip, name in selected, name in ineffective)
-        chip.setOnClickListener {
-            if (!selected.remove(name)) selected.add(name)
-            chip.text = chipLabel(tag)
-            renderChip(chip, name in selected, name in ineffective)
-            updateSummary()
-        }
-        return chip
     }
 
     /**
@@ -265,22 +331,27 @@ class MuteTagSheet : BottomSheetDialogFragment() {
             }
         }
 
+    /** 计数横跨两个 section：底部那行说的是「这张 sheet 上一共勾了几个」，不分维度。 */
     private fun updateSummary() {
-        binding.selectionSummary.text = if (tags.isEmpty()) {
+        val authorSlot = if (author != null) 1 else 0
+        val total = tags.size + authorSlot
+        binding.selectionSummary.text = if (total == 0) {
             ""
         } else {
-            getString(R.string.mute_sheet_summary, selected.size, tags.size)
+            val count = selected.size + (if (authorSelected) 1 else 0)
+            getString(R.string.mute_sheet_summary, count, total)
         }
     }
 
     /**
      * 差集落库：新勾上的 mute，被取消勾选的 unmute，没动的一个都不碰
-     *（重新 mute 会把「未生效」记录重置回生效）。
+     *（重新 mute 会把「未生效」记录重置回生效）。作者那一格同理，只是差集退化成一个布尔翻转。
      */
     private fun save() {
         val toMute = tags.filter { it.name in selected && it.name !in originallyMuted }
         val toUnMute = originallyMuted - selected
-        if (toMute.isEmpty() && toUnMute.isEmpty()) {
+        val user = author?.takeIf { authorSelected != authorOriginallyMuted }
+        if (toMute.isEmpty() && toUnMute.isEmpty() && user == null) {
             dismissAllowingStateLoss()
             return
         }
@@ -288,6 +359,14 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         toUnMute.forEach { name ->
             // 删除按主键 (name.hashCode(), MUTE_TAG) 走，只需要名字；toast 交给外面统一发一条。
             PixivOperate.unMuteTag(TagsBean().apply { this.name = name }, false)
+        }
+        // 同样吞掉自带 toast：一次保存可能既动标签又动作者，连弹三条 toast 是噪音。
+        user?.let {
+            if (authorSelected) {
+                PixivOperate.muteUser(it, false)
+            } else {
+                PixivOperate.unMuteUser(it, false)
+            }
         }
         Common.showToast(getString(R.string.operate_success))
         dismissAllowingStateLoss()
@@ -315,16 +394,28 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         /** [TemplateActivity] 的路由 key，不是 UI 文案。 */
         private const val MUTED_TAGS_ROUTE = "标签屏蔽记录"
 
+        /** 作者 bean 的 argument key（[UserBean] 本身 Serializable，整只带过来即可）。 */
+        private const val KEY_AUTHOR = "mute_sheet_author"
+
         /**
          * 唯一入口。空名字的标签直接滤掉——[PixivOperate.muteTag] 上来就 `name.hashCode()`，
          * 喂 null 会当场 NPE。重复 show 由 TAG 挡掉（长按菜单容易连点）。
+         *
+         * [author] 决定「按作者屏蔽」那个 section 出不出现；不传就只有标签那一段，
+         * 老调用点不改也不会坏。
          */
         @JvmStatic
-        fun show(fm: FragmentManager, tags: List<TagsBean>?) {
+        @JvmOverloads
+        fun show(fm: FragmentManager, tags: List<TagsBean>?, author: UserBean? = null) {
             if (fm.isStateSaved || fm.findFragmentByTag(TAG) != null) return
             val payload = ArrayList(tags.orEmpty().filter { !it.name.isNullOrBlank() })
+            // id=0 的作者当没有：mute 记录拿 id 当主键，写进去就是「屏蔽记录」页上一行删不掉的脏数据。
+            val validAuthor = author?.takeIf { it.id != 0 }
             MuteTagSheet().apply {
-                arguments = Bundle().apply { putSerializable(Params.CONTENT, payload) }
+                arguments = Bundle().apply {
+                    putSerializable(Params.CONTENT, payload)
+                    validAuthor?.let { putSerializable(KEY_AUTHOR, it) }
+                }
             }.show(fm, TAG)
         }
     }

@@ -95,6 +95,37 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!--
+              两个 section：按标签屏蔽 / 按作者屏蔽（issue #1015）。两边都是「勾上=加入屏蔽列表，
+              取消勾选=解除」的同一种开关，所以共用同一套胶囊和同一颗保存按钮，只靠 MD3 的
+              subhead + supporting 分区，不另开二级弹窗。
+
+              section 标题走强调色（MuteTagSheet.applyAccent 运行时 tint）——见本文件顶部注释：
+              root 套的是 MD3 基线主题，colorPrimary 不是用户选的主题色，一律由 Kotlin 侧刷。
+            -->
+
+            <!-- Section 1 · 按标签屏蔽 -->
+            <TextView
+                android:id="@+id/section_tag_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="@string/mute_sheet_section_tag"
+                android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+            <TextView
+                android:id="@+id/section_tag_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="10dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="@string/mute_sheet_section_tag_hint"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/tag_flow"
                 android:layout_width="match_parent"
@@ -108,11 +139,52 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:paddingVertical="36dp"
+                android:paddingVertical="24dp"
                 android:text="@string/mute_sheet_empty"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:visibility="gone" />
+
+            <!--
+              Section 2 · 按作者屏蔽。作者信息不一定拿得到（legacy 入口可能没有），
+              拿不到就整段 gone，不留一个空标题。
+            -->
+            <LinearLayout
+                android:id="@+id/section_author"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/section_author_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:text="@string/mute_sheet_section_author"
+                    android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+                <TextView
+                    android:id="@+id/section_author_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="10dp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:text="@string/mute_sheet_section_author_hint"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/author_flow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:alignItems="flex_start"
+                    app:flexWrap="wrap" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

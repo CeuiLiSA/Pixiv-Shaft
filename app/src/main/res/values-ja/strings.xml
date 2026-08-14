@@ -2387,10 +2387,15 @@
     <string name="spoiler_hide_illust">この作品を隠す</string>
     <string name="spoiler_reveal_illust">この作品の非表示を解除</string>
 
-    <string name="mute_sheet_subtitle">チェックしたタグをミュートし、外すと解除します</string>
+    <string name="mute_sheet_subtitle">チェックした項目をミュートし、外すと解除します</string>
     <string name="mute_sheet_ineffective">無効</string>
     <string name="mute_sheet_empty">この作品にはタグがありません</string>
     <string name="mute_sheet_summary">%1$d / %2$d 件選択</string>
+    <!-- issue #1015 -->
+    <string name="mute_sheet_section_tag">タグでミュート</string>
+    <string name="mute_sheet_section_tag_hint">チェックしたタグを含む作品が除外されます</string>
+    <string name="mute_sheet_section_author">作者でミュート</string>
+    <string name="mute_sheet_section_author_hint">この作者の作品がすべて除外されます（この端末のみ）</string>
     <string name="private_follow_by_default">デフォルトで非公開フォロー</string>
     <string name="model_download_copy_or_import">ダウンロードリンクをコピーするか、モデルファイルをインポート</string>
     <string name="model_download_dialog_title">リンクをコピーしますか、それともインポートしますか</string>

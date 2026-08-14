@@ -2387,10 +2387,15 @@
     <string name="spoiler_hide_illust">Скрыть эту работу</string>
     <string name="spoiler_reveal_illust">Показать эту работу</string>
 
-    <string name="mute_sheet_subtitle">Отмеченные теги скрываются, снятие отметки отменяет скрытие</string>
+    <string name="mute_sheet_subtitle">Отмеченные пункты скрываются, снятие отметки отменяет скрытие</string>
     <string name="mute_sheet_ineffective">неактивно</string>
     <string name="mute_sheet_empty">У этой работы нет тегов</string>
     <string name="mute_sheet_summary">Выбрано %1$d / %2$d</string>
+    <!-- issue #1015 -->
+    <string name="mute_sheet_section_tag">Скрывать по тегу</string>
+    <string name="mute_sheet_section_tag_hint">Работы с любым из отмеченных тегов будут отфильтрованы</string>
+    <string name="mute_sheet_section_author">Скрывать по автору</string>
+    <string name="mute_sheet_section_author_hint">Все работы этого автора будут отфильтрованы, только на этом устройстве</string>
     <string name="private_follow_by_default">По умолчанию подписываться приватно</string>
     <string name="model_download_copy_or_import">Скопировать ссылку для скачивания или импортировать файл модели</string>
     <string name="model_download_dialog_title">Скопировать ссылку или импортировать?</string>
