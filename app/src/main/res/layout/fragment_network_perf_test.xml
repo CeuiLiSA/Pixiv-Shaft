@@ -89,6 +89,17 @@
                     android:textSize="12sp"
                     android:textStyle="bold"
                     tools:text="直连关" />
+
+                <TextView
+                    android:id="@+id/chip_host"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="图片代理 · Pixiv 官方" />
             </LinearLayout>
 
             <!-- 总览卡：跑完才显示。大状态行 + 副说明。 -->
@@ -104,15 +115,48 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <TextView
-                    android:id="@+id/summary_pill"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="7dp"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    tools:text="● 网络通畅" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/summary_pill"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        tools:text="● 网络通畅" />
+
+                    <TextView
+                        android:id="@+id/summary_pill_slow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:text="@string/network_test_slow_download"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/summary_pill_dim"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:text="@string/network_test_dim_probe_failed_top"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/summary_sub"
@@ -179,6 +223,25 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical" />
             </LinearLayout>
+
+            <!-- 图片下载探测：所有目标握手测完后自动执行，展示风格与作品 API 探测一致。 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:letterSpacing="0.12"
+                android:text="@string/network_test_section_image_download"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/image_download_result_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical" />
 
             <!-- 作品 API 探测卡：独立功能，始终可见。 -->
             <TextView

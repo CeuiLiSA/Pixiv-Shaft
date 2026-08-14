@@ -56,6 +56,18 @@
             android:textSize="11sp"
             android:textStyle="bold"
             tools:text="通畅" />
+
+        <TextView
+            android:id="@+id/target_status_pill_extra"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="5dp"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="探测失败" />
     </LinearLayout>
 
     <LinearLayout
