@@ -761,10 +761,19 @@ class NetworkTestViewModel : ViewModel() {
             steps.add(step)
             imageDownloadReport.postValue(TargetReport(title, sub, TargetStatus.RUNNING, steps.toList()))
         }
+        /** 原位替换最后一步：running 占位 → 最终结果，保持卡片渐进更新。 */
+        fun replaceLast(step: TestStep) {
+            if (steps.isNotEmpty()) steps[steps.size - 1] = step
+            imageDownloadReport.postValue(TargetReport(title, sub, TargetStatus.RUNNING, steps.toList()))
+        }
+        // 预置空白卡片：地址准备 + 尺寸探测在慢网上可能耗时十几秒，先让卡片立刻出现
+        // （RUNNING + 空步骤），步骤随后逐条填充，不再“干等半天后啪一下整张弹出”。
+        imageDownloadReport.postValue(TargetReport(title, sub, TargetStatus.RUNNING, emptyList()))
         var dimOk = false
         var downloadSlow = false
         try {
             // 1. 地址准备：优先复用 www.pixiv.net 探测结果，否则现场抓，再不行用内置样例。
+            push(TestStep("准备图片地址", "获取中…", StepStatus.RUNNING))
             var illustUrl = probeIllustUrl
             var avatarUrl: String? = null
             var dimSource = "复用 www.pixiv.net 探测"
@@ -778,24 +787,34 @@ class NetworkTestViewModel : ViewModel() {
             }
             if (illustUrl == null) illustUrl = FALLBACK_ILLUST_URL
             if (avatarUrl == null) avatarUrl = FALLBACK_AVATAR_URL
+            replaceLast(
+                TestStep(
+                    "准备图片地址",
+                    "来源 $dimSource · 插画 + 头像已就绪",
+                    if (dimSource == "内置样例兜底") StepStatus.WARN else StepStatus.OK,
+                ),
+            )
             log("图片下载地址: $dimSource")
             log("  插画: $illustUrl")
             log("  头像: $avatarUrl")
 
             // 2. 探测图片尺寸：网页 ajax 拿第一页真实宽高；拿不到就并列黄底「探测失败」。
+            push(TestStep("探测图片尺寸", "获取中…", StepStatus.RUNNING))
             val (dimStep, dimProbeOk) = probeImageDimensions(dimSource)
             dimOk = dimProbeOk
-            push(dimStep)
+            replaceLast(dimStep)
             imageDimensionFailed.postValue(!dimOk)
 
             val hostDesc = imageHostDesc()
             log("图片代理路由: $hostDesc")
             push(TestStep("图片代理路由", hostDesc, StepStatus.INFO))
 
+            push(TestStep("插画图片下载", "下载中…", StepStatus.RUNNING))
             val (illustStep, illustSlow) = downloadImageStep("插画图片下载", illustUrl)
-            push(illustStep)
+            replaceLast(illustStep)
+            push(TestStep("头像图片下载", "下载中…", StepStatus.RUNNING))
             val (avatarStep, avatarSlow) = downloadImageStep("头像图片下载", avatarUrl)
-            push(avatarStep)
+            replaceLast(avatarStep)
 
             downloadSlow = illustSlow || avatarSlow
             imageDownloadSlow.postValue(downloadSlow)
@@ -823,7 +842,17 @@ class NetworkTestViewModel : ViewModel() {
             )
         } catch (e: Exception) {
             log("图片下载阶段异常: ${e.javaClass.simpleName}: ${e.message}")
-            push(TestStep("图片下载失败", e.javaClass.simpleName + (e.message?.let { ": $it" } ?: ""), StepStatus.FAIL))
+            val failStep = TestStep(
+                "图片下载失败",
+                e.javaClass.simpleName + (e.message?.let { ": $it" } ?: ""),
+                StepStatus.FAIL,
+            )
+            // 最后一步若还是 running 占位，原位替换成失败，避免占位与失败两条并存。
+            if (steps.isNotEmpty() && steps.last().status == StepStatus.RUNNING) {
+                replaceLast(failStep)
+            } else {
+                push(failStep)
+            }
             imageDownloadFailed = true
             imageDownloadSlow.postValue(false)
             imageDownloadReport.postValue(
@@ -851,7 +880,7 @@ class NetworkTestViewModel : ViewModel() {
     private fun buildImageDownloadClient(): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectionPool(ConnectionPool(0, 1, TimeUnit.SECONDS))
-            .connectTimeout(8, TimeUnit.SECONDS)
+            .connectTimeout(3, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(8, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
@@ -874,7 +903,7 @@ class NetworkTestViewModel : ViewModel() {
         // 网页探测 readTimeout：同时作为 Cronet 直连的整体请求上限（见 addCronet 参数）。
         val readTimeoutSeconds = 15L
         val builder = OkHttpClient.Builder()
-            .connectTimeout(8, TimeUnit.SECONDS)
+            .connectTimeout(3, TimeUnit.SECONDS)
             .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
             .addInterceptor(WebHeaderInterceptor())
@@ -948,6 +977,7 @@ class NetworkTestViewModel : ViewModel() {
                 }
             }
         } catch (e: Exception) {
+            Timber.e(e)
             log("$label: 请求失败 ${e.message}")
             result = TestStep(label, "请求失败: ${e.javaClass.simpleName}: ${e.message}", StepStatus.FAIL) to false
         } finally {
@@ -978,6 +1008,7 @@ class NetworkTestViewModel : ViewModel() {
             val avatarUrl = userId?.let { fetchAvatarUrl(it, client) }
             illustUrl to avatarUrl
         } catch (e: Exception) {
+            Timber.e(e)
             log("现场抓取样例地址失败: ${e.message}")
             null to null
         } finally {
@@ -998,6 +1029,7 @@ class NetworkTestViewModel : ViewModel() {
                 bodyObj?.get("image")?.takeIf { it.isJsonPrimitive }?.asString
             }
         } catch (e: Exception) {
+            Timber.e(e)
             log("获取画师头像地址失败: ${e.message}")
             null
         } finally {
@@ -1040,6 +1072,7 @@ class NetworkTestViewModel : ViewModel() {
                 }
             }
         } catch (e: Exception) {
+            Timber.e(e)
             log("探测图片尺寸失败: ${e.javaClass.simpleName}: ${e.message}")
             TestStep("探测图片尺寸", "请求失败: ${e.javaClass.simpleName}: ${e.message}", StepStatus.WARN) to false
         } finally {
