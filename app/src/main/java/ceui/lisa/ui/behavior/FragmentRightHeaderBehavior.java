@@ -33,6 +33,13 @@ public class FragmentRightHeaderBehavior extends CoordinatorLayout.Behavior<View
     @Override
     public boolean onDependentViewChanged(@NonNull CoordinatorLayout parent, @NonNull View child, @NonNull View dependency) {
         child.setTranslationY(dependency.getTranslationY() * 0.6f);
+        // content sheet 的 translationY 从 0（完全展开）滑到 -headerHeight（完全折叠），
+        // 头部跟着从不透明淡出到全透明。这里无条件写 alpha，保证回到展开态一定复原成 1。
+        final float headerHeight = child.getHeight();
+        final float progress = headerHeight > 0f
+                ? Math.min(1f, Math.max(0f, -dependency.getTranslationY() / headerHeight))
+                : 0f;
+        child.setAlpha(1f - progress);
         return true;
     }
 
