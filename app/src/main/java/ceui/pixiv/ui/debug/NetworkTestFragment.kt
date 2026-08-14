@@ -330,6 +330,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         TargetStatus.EXTREME_LATENCY -> "超高延迟" to R.color.v3_danger
         TargetStatus.DEGRADED -> "部分异常" to R.color.v3_orange
         TargetStatus.POLLUTED -> "DNS 污染" to R.color.v3_danger
+        TargetStatus.POLLUTED_BYPASSED -> "已绕过" to R.color.v3_gold
         TargetStatus.FAILED -> "失败" to R.color.v3_danger
     }
 

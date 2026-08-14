@@ -49,7 +49,7 @@ data class TestStep(
 /**
  * 单个目标（域名）的整体判定，决定卡片右上角 pill。
  */
-enum class TargetStatus { RUNNING, OK, HIGH_LATENCY, EXTREME_LATENCY, DEGRADED, POLLUTED, FAILED }
+enum class TargetStatus { RUNNING, OK, HIGH_LATENCY, EXTREME_LATENCY, DEGRADED, POLLUTED, POLLUTED_BYPASSED, FAILED }
 
 data class TargetReport(
     val title: String,
@@ -202,10 +202,11 @@ class NetworkTestViewModel : ViewModel() {
                 val anyHighLatency = work.any { it.status == TargetStatus.HIGH_LATENCY }
                 val anyExtremeLatency = work.any { it.status == TargetStatus.EXTREME_LATENCY }
                 val anyDegraded = work.any { it.status == TargetStatus.DEGRADED } || imageDownloadFailed
-                // 污染但握手全部成功 = 应用内绕过路径（DoH/直连）生效：
+                // 污染但污染域握手全部成功 = 应用内绕过路径（DoH/直连）生效：
                 // 总览改成黄底「检测到 DNS 污染」+ 绿底「网络勉强可用」并列，而不是刺眼的失败判定。
-                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it } &&
-                    !anyFailed && !anyHighLatency && !anyExtremeLatency && !anyDegraded
+                // 判定只看污染域自身的握手结果；图片下载失败 / 延迟 / 其它目标降级另有独立卡片与 pill，
+                // 不掺进绕过判定，否则「安全 DNS 开 + 握手成功」的真实场景会被连带否决成红色污染。
+                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it } && !anyFailed
                 pollutionBypassed.postValue(bypassActive)
                 // 高延迟与超高延迟都算「延迟高」，用于小字提示的判断。
                 val latencyHosts = work.filter {
@@ -453,7 +454,8 @@ class NetworkTestViewModel : ViewModel() {
         }
 
         val status = when {
-            polluted -> TargetStatus.POLLUTED
+            polluted && !hs.ok -> TargetStatus.POLLUTED
+            polluted -> TargetStatus.POLLUTED_BYPASSED
             !hs.ok -> TargetStatus.FAILED
             hs.maxMs > EXTREME_LATENCY_MS -> TargetStatus.EXTREME_LATENCY
             hs.avgMs > HIGH_LATENCY_MS -> TargetStatus.HIGH_LATENCY
