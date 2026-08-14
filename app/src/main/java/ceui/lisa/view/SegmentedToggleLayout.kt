@@ -2,6 +2,7 @@ package ceui.lisa.view
 
 import android.animation.AnimatorInflater
 import android.content.Context
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
@@ -57,7 +58,16 @@ class SegmentedToggleLayout @JvmOverloads constructor(
         titles.forEachIndexed { index, titleRes ->
             val cell = newCell(titleRes)
             cell.setOnClickListener { v -> onCellClick(index, v) }
-            addView(cell)
+            // 带权重的 wrap_content：宽松时 remainingExcess 为 0，谁也不拉伸，胶囊照旧贴合文字；
+            // 挤不下时 LinearLayout 把亏空按权重摊到各段上，文字省略号收窄而不是被裁掉
+            // ——最后一段被整段裁掉的话，那一项就再也点不到了。
+            //
+            // 权重取「自然宽度」而不是清一色的 1：等权重是等**像素**让步，短标签先被榨干
+            // （1.3x 字号下「插画/漫画 · 小说」会变成「插画/漫... · 小...」）。按自然宽度分配
+            // 才是等**比例**收缩，长标签先让，短的那段始终留得住。
+            addView(cell, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                weight = naturalWidthOf(cell)
+            })
             cells.add(cell)
         }
         renderSelection()
@@ -86,11 +96,17 @@ class SegmentedToggleLayout @JvmOverloads constructor(
         setPadding(horizontal, vertical, horizontal, vertical)
         setTextSize(TypedValue.COMPLEX_UNIT_PX, textSizePx)
         setText(titleRes)
+        maxLines = 1
+        ellipsize = TextUtils.TruncateAt.END
         isClickable = true
         isFocusable = true
         stateListAnimator =
             AnimatorInflater.loadStateListAnimator(context, R.animator.button_press_alpha)
     }
+
+    /** 一段不被压缩时该占多宽（文字 + 左右内边距）。只在建段时算一次。 */
+    private fun naturalWidthOf(cell: TextView): Float =
+        cell.paint.measureText(cell.text.toString()) + cell.paddingStart + cell.paddingEnd
 
     private fun onCellClick(index: Int, view: View) {
         if (index == currentIndex) {

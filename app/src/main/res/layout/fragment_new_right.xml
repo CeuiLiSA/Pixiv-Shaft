@@ -156,23 +156,37 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <!-- 动态类型切换:插画/漫画 · 小说(点一下就切,与右侧筛选条同款控件) -->
-                        <ceui.lisa.view.SegmentedToggleLayout
-                            android:id="@+id/dynamic_type_toggle"
+                        <!-- 动态类型切换:插画/漫画 · 小说(点一下就切,与右侧筛选条同款控件)。
+                             外面这层 FrameLayout 是给它兜宽度上限用的:直接给 toggle 挂
+                             alignParentStart + toStartOf,RelativeLayout 会当「拉满这段」处理,
+                             wrap_content 失效、胶囊背景拖出一条尾巴。套一层反而两头都满足——
+                             壳子被拉满,toggle 在壳子里拿到 AT_MOST,仍按内容收窄,同时超大
+                             字号(2.0x 无障碍字体)下也不会压到右边的筛选条上。 -->
+                        <FrameLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
-                            android:layout_marginStart="16dp"
+                            android:layout_marginStart="8dp"
                             android:layout_marginTop="10dp"
                             android:layout_marginBottom="10dp"
-                            app:stl_textSize="16sp" />
+                            android:layout_toStartOf="@+id/dynamic_actions">
+
+                            <ceui.lisa.view.SegmentedToggleLayout
+                                android:id="@+id/dynamic_type_toggle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:stl_textSize="16sp" />
+
+                        </FrameLayout>
 
                         <LinearLayout
+                            android:id="@+id/dynamic_actions"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:layout_marginEnd="16dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
