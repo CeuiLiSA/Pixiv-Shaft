@@ -793,6 +793,7 @@
     <string name="string_ai_manga_translate">漫画翻译</string>
     <string name="string_ai_manga_translating">漫画翻译中…</string>
     <string name="string_ai_manga_translate_failed">漫画翻译失败</string>
+    <string name="string_ai_manga_translate_cancelled">翻译已取消</string>
     <string name="string_ai_manga_translate_no_text">未检测到文字</string>
     <string name="string_manga_translate_original">原图</string>
     <string name="string_manga_translate_translated">译图</string>
@@ -2436,6 +2437,10 @@
     <string name="ai_translate_unsaved_message">AI 翻译配置已修改，退出前是否保存？</string>
     <string name="ai_translate_unsaved_save">保存并退出</string>
     <string name="ai_translate_unsaved_discard">不保存</string>
+    <string name="ai_translate_exit_confirm_title">AI已在翻译中</string>
+    <string name="ai_translate_exit_confirm_message">现在退出会丢弃AI翻译的结果\n并损失Token费用</string>
+    <string name="ai_translate_exit_confirm_stay">继续翻译</string>
+    <string name="ai_translate_exit_confirm_exit">退出</string>
     <string-array name="ai_translate_thinking_modes">
         <item>@string/ai_translate_thinking_mode_default</item>
         <item>@string/ai_translate_thinking_mode_deepseek</item>

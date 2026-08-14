@@ -764,6 +764,7 @@
     <string name="string_ai_manga_translate">Manga translation</string>
     <string name="string_ai_manga_translating">Translating manga...</string>
     <string name="string_ai_manga_translate_failed">Manga translation failed</string>
+    <string name="string_ai_manga_translate_cancelled">Manga translation cancelled</string>
     <string name="string_ai_manga_translate_no_text">No text detected</string>
     <string name="string_manga_translate_original">Original</string>
     <string name="string_manga_translate_translated">Translated</string>
@@ -2214,6 +2215,10 @@
     <string name="ai_translate_unsaved_message">AI translation settings have been modified. Save before leaving?</string>
     <string name="ai_translate_unsaved_save">Save and exit</string>
     <string name="ai_translate_unsaved_discard">Discard</string>
+    <string name="ai_translate_exit_confirm_title">AI is translating</string>
+    <string name="ai_translate_exit_confirm_message">Exiting now will discard the AI translation result\nand waste token costs</string>
+    <string name="ai_translate_exit_confirm_stay">Keep translating</string>
+    <string name="ai_translate_exit_confirm_exit">Exit</string>
     <string name="synonym_dict_title">Synonym Dictionary</string>
     <string name="synonym_dict_enable">Enable synonym dictionary</string>
     <string name="keep_status_bar_when_view_image">Keep status bar area when viewing images</string>

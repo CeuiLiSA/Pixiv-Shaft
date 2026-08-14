@@ -764,6 +764,7 @@
     <string name="string_ai_manga_translate">만화 번역</string>
     <string name="string_ai_manga_translating">만화 번역 중…</string>
     <string name="string_ai_manga_translate_failed">만화 번역 실패</string>
+    <string name="string_ai_manga_translate_cancelled">만화 번역이 취소되었습니다</string>
     <string name="string_ai_manga_translate_no_text">텍스트를 감지하지 못했습니다</string>
     <string name="string_manga_translate_original">원본</string>
     <string name="string_manga_translate_translated">번역본</string>
@@ -2214,6 +2215,10 @@
     <string name="ai_translate_unsaved_message">AI 번역 설정이 변경되었습니다. 종료 전에 저장하시겠습니까?</string>
     <string name="ai_translate_unsaved_save">저장하고 종료</string>
     <string name="ai_translate_unsaved_discard">저장 안 함</string>
+    <string name="ai_translate_exit_confirm_title">AI 번역 중입니다</string>
+    <string name="ai_translate_exit_confirm_message">지금 종료하면 AI 번역 결과가 사라지고\n토큰 비용이 낭비됩니다</string>
+    <string name="ai_translate_exit_confirm_stay">계속 번역</string>
+    <string name="ai_translate_exit_confirm_exit">종료</string>
     <string name="synonym_dict_title">동의어 사전</string>
     <string name="synonym_dict_enable">동의어 사전 사용</string>
     <string name="keep_status_bar_when_view_image">이미지 볼 때 상태 표시줄 영역 유지</string>

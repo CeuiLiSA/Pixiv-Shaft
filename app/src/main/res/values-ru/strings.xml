@@ -764,6 +764,7 @@
     <string name="string_ai_manga_translate">Перевод манги</string>
     <string name="string_ai_manga_translating">Перевод манги…</string>
     <string name="string_ai_manga_translate_failed">Не удалось перевести мангу</string>
+    <string name="string_ai_manga_translate_cancelled">Перевод манги отменён</string>
     <string name="string_ai_manga_translate_no_text">Текст не найден</string>
     <string name="string_manga_translate_original">Оригинал</string>
     <string name="string_manga_translate_translated">Перевод</string>
@@ -2214,6 +2215,10 @@
     <string name="ai_translate_unsaved_message">Настройки ИИ-перевода изменены. Сохранить перед выходом?</string>
     <string name="ai_translate_unsaved_save">Сохранить и выйти</string>
     <string name="ai_translate_unsaved_discard">Не сохранять</string>
+    <string name="ai_translate_exit_confirm_title">ИИ переводит</string>
+    <string name="ai_translate_exit_confirm_message">Если выйти сейчас, результат перевода ИИ будет потерян,\nа токены будут потрачены впустую</string>
+    <string name="ai_translate_exit_confirm_stay">Продолжить перевод</string>
+    <string name="ai_translate_exit_confirm_exit">Выйти</string>
     <string name="synonym_dict_title">Словарь синонимов</string>
     <string name="synonym_dict_enable">Включить словарь синонимов</string>
     <string name="keep_status_bar_when_view_image">Оставлять область статус-бара при просмотре изображений</string>

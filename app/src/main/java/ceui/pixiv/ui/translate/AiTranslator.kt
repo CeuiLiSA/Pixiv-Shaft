@@ -173,6 +173,7 @@ object AiTranslator : Translator {
         onItem: ((Int, String) -> Unit)?,
         onProgress: ((Int, Int) -> Unit)?,
         onPhase: ((AiTranslatePhase) -> Unit)?,
+        onRequestSent: (() -> Unit)?,
     ): List<String> = withContext(Dispatchers.IO) {
         if (inputs.isEmpty()) return@withContext emptyList()
 
@@ -195,7 +196,11 @@ object AiTranslator : Translator {
                     try {
                         val payload = JSONArray().apply { slice.forEach { put(it) } }
                         val reply = requestSemaphore.withPermit {
-                            callChatCompletion(batchPrompt, payload.toString(), onPhase = phaseAggregator::report)
+                            callChatCompletion(
+                                batchPrompt, payload.toString(),
+                                onPhase = phaseAggregator::report,
+                                onRequestSent = onRequestSent,
+                            )
                         }
                         parseJsonArrayReply(reply)?.takeIf { it.size == slice.size }
                     } catch (e: CancellationException) {
@@ -235,6 +240,7 @@ object AiTranslator : Translator {
                                         systemPromptFor(outputLang),
                                         text,
                                         onPhase = phaseAggregator::report,
+                                        onRequestSent = onRequestSent,
                                     ).trim()
                                 }
                             } catch (e: CancellationException) {
@@ -377,13 +383,14 @@ object AiTranslator : Translator {
         onPhase: ((AiTranslatePhase) -> Unit)? = null,
         client: OkHttpClient? = null,
         forceStreaming: Boolean? = null,
+        onRequestSent: (() -> Unit)? = null,
     ): String {
         var lastError: Exception? = null
         repeat(2) { attempt ->
             try {
                 return doCallChatCompletion(
                     systemPrompt, userContent, overrideBaseUrl, overrideApiKey, overrideModel,
-                    onPhase, client, forceStreaming,
+                    onPhase, client, forceStreaming, onRequestSent,
                 )
             } catch (e: RetryableApiException) {
                 lastError = e
@@ -407,6 +414,7 @@ object AiTranslator : Translator {
         onPhase: ((AiTranslatePhase) -> Unit)?,
         client: OkHttpClient? = null,
         forceStreaming: Boolean? = null,
+        onRequestSent: (() -> Unit)? = null,
     ): String {
         val settings = Shaft.sSettings
         val endpoint = normalizeEndpoint(overrideBaseUrl ?: settings?.aiTranslateBaseUrl ?: "")
@@ -431,6 +439,10 @@ object AiTranslator : Translator {
                 put(JSONObject().put("role", "user").put("content", userContent))
             })
         }
+
+        // 请求体已就绪,马上要向 AI 接口发 POST(可能已烧 Token)。
+        // 此刻通知业务侧:之后用户退出要弹「二次确认」,防止手滑浪费 Token。
+        onRequestSent?.invoke()
 
         if (streaming) {
             return try {
@@ -696,7 +708,12 @@ object AiTranslator : Translator {
         false
     }
 
-    private fun nonStreamChatCompletion(
+    /**
+     * 非流式 chat/completions 调用。走 [awaitOkHttpCall],协程取消时立即掐断连接——
+     * 页面销毁后翻译工作流能及时停,不会阻塞到 readTimeout 才回来
+     * (默认 120s,最坏 600s)再误报「翻译失败」。
+     */
+    private suspend fun nonStreamChatCompletion(
         endpoint: String,
         apiKey: String,
         model: String,
@@ -713,8 +730,9 @@ object AiTranslator : Translator {
         // 请求/响应全文打 Timber(debug 可见);API key 只在 Authorization 头里,不打印。
         Timber.d("AiTranslator: POST %s model=%s body=%s", endpoint, model, requestBody)
         val startNanos = System.nanoTime()
-        (client ?: clientFor(REAL_CONNECT_TIMEOUT_SECONDS, readTimeout, Dns.SYSTEM))
-            .newCall(builder.build()).execute().use { resp ->
+        val call = (client ?: clientFor(REAL_CONNECT_TIMEOUT_SECONDS, readTimeout, Dns.SYSTEM))
+            .newCall(builder.build())
+        return awaitOkHttpCall(call) { resp ->
             val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
             if (!resp.isSuccessful) {
                 val errorBody = readBodyQuietly(resp, readTimeout)
@@ -737,7 +755,7 @@ object AiTranslator : Translator {
                 throw IOException("empty completion: ${respBody.take(200)}")
             }
             logUsageStats(root, elapsedMs, reasoningContent.length)
-            return content
+            content
         }
     }
 

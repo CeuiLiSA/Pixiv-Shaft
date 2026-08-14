@@ -15,11 +15,14 @@ import ceui.pixiv.ui.translate.ComicTextDetector
 import ceui.pixiv.ui.translate.DetectionBox
 import ceui.pixiv.ui.translate.MangaOcrRecognizer
 import ceui.pixiv.ui.translate.TextMask
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.coroutines.coroutineContext
 
 /**
  * OCR 文本框,**坐标系契约:统一在"原图"分辨率下**。
@@ -126,6 +129,9 @@ object MangaOcr {
         inputFile: File,
         onProgress: ((stage: String, fraction: Float) -> Unit)? = null
     ): MangaOcrResult? = withContext(Dispatchers.IO) {
+        // 整段 OCR 是秒级阻塞工作,必须在这里逐段检查取消,否则页面销毁后
+        // 气泡检测 + 逐框识别会整段跑完才返回,「工作流无法中断」就出在这一层
+        coroutineContext.ensureActive()
         if (!MangaOcrRecognizer.isLoaded) {
             Timber.e("MangaOcr: manga-ocr model not loaded")
             return@withContext null
@@ -152,12 +158,15 @@ object MangaOcr {
                 Timber.e("MangaOcr: failed to decode input")
                 return@withContext null
             }
+            coroutineContext.ensureActive()
             Timber.d("MangaOcr: orig ${bounds.outWidth}x${bounds.outHeight} sample=$sample → ${bitmap!!.width}x${bitmap!!.height}")
 
             // 检测阶段没有可靠百分比 → 用 NaN 通知 caller 切 indeterminate ring
             onProgress?.invoke(context.getString(R.string.string_ai_ocr_detecting), Float.NaN)
 
+            coroutineContext.ensureActive()
             val detResult = ComicTextDetector.detect(bitmap!!)
+            coroutineContext.ensureActive()
             val rawRegions = detResult.boxes.map { it.toOcrTextRegion() }
             Timber.d("MangaOcr: CTD returned ${rawRegions.size} regions, mask=${detResult.textMask?.let { "${it.width}x${it.height}" } ?: "null"}")
 
@@ -178,6 +187,8 @@ object MangaOcr {
 
             val total = viableRegions.size
             val enhanced = viableRegions.mapIndexedNotNull { idx, region ->
+                // 逐 region 检查取消:一页常有几十个气泡,不能让取消憋到全部识别完
+                coroutineContext.ensureActive()
                 onProgress?.invoke(
                     context.getString(R.string.string_ai_ocr_recognizing, idx + 1, total),
                     idx.toFloat() / total.coerceAtLeast(1)
@@ -194,6 +205,9 @@ object MangaOcr {
                     )
                     if (trimmed.isBlank()) null
                     else region.copy(text = trimmed, recogConfidence = result.confidence)
+                } catch (e: CancellationException) {
+                    // 页面销毁取消:必须重抛,不能被当成「该 region 识别失败」吞掉继续跑
+                    throw e
                 } catch (e: Exception) {
                     Timber.e(e, "MangaOcr: manga-ocr failed for region, dropping")
                     null
@@ -201,6 +215,7 @@ object MangaOcr {
                     cropped?.recycle()
                 }
             }
+            coroutineContext.ensureActive()
             onProgress?.invoke(context.getString(R.string.string_ai_ocr_done), 1f)
 
             val confident = enhanced.filter { it.recogConfidence >= MIN_RECOG_CONFIDENCE }
@@ -220,6 +235,9 @@ object MangaOcr {
                 )
             }
             MangaOcrResult(regions = finalRegions, textMask = detResult.textMask, ocrSample = sample)
+        } catch (e: CancellationException) {
+            // 取消不是 OCR 失败:重抛给上层按「翻译取消」处理,别记成 error 日志
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "MangaOcr error")
             null

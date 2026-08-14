@@ -58,6 +58,10 @@ import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -432,13 +436,59 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         // 系统不再回调 onBackPressed,必须用 OnBackPressedDispatcher 接管。
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (index == baseBind!!.viewPager.currentItem) {
-                    finishAfterTransition()
-                } else {
-                    mActivity.finish()
-                }
+                if (maybeConfirmAiExit()) return
+                finishViewer()
             }
         })
+    }
+
+    /**
+     * AI 翻译已向接口发过 POST(有 Token 成本)时,返回/手势退出前弹二次确认,
+     * 防止手滑退出白烧 Token。确认退出才取消流水线;选「继续翻译」则留在页面。
+     * Google 免费端点 / 还没发请求的阶段不弹,直接走原退出逻辑。
+     */
+    private fun maybeConfirmAiExit(): Boolean {
+        if (!translationViewModel.shouldConfirmAiExit()) return false
+        QMUIDialog.MessageDialogBuilder(this)
+            .setTitle(R.string.ai_translate_exit_confirm_title)
+            .setMessage(R.string.ai_translate_exit_confirm_message)
+            .setSkinManager(QMUISkinManager.defaultInstance(this))
+            .addAction(
+                0,
+                getString(R.string.ai_translate_exit_confirm_stay),
+                QMUIDialogAction.ACTION_PROP_NEGATIVE
+            ) { dialog, _ -> dialog.dismiss() }
+            .addAction(
+                0,
+                getString(R.string.ai_translate_exit_confirm_exit),
+                QMUIDialogAction.ACTION_PROP_POSITIVE
+            ) { dialog, _ ->
+                dialog.dismiss()
+                translationViewModel.cancelActiveWorkflow()
+                finishViewer()
+            }
+            .show()
+        return true
+    }
+
+    /** 统一的退出动作:停在进入页走共享元素返回动画,滑到别的页直接关。 */
+    private fun finishViewer() {
+        if (index == baseBind!!.viewPager.currentItem) {
+            finishAfterTransition()
+        } else {
+            mActivity.finish()
+        }
+    }
+
+    override fun onDestroy() {
+        // 用户返回退出页面时立刻停掉翻译流水线并弹「翻译已取消」:
+        // 不 cancel 的话 Google/AI 的阻塞 HTTP 会继续跑到超时,晚到的异常
+        // 会被当成「翻译失败」误报给已经离开的用户。
+        // 旋转等配置变更不走 isFinishing,ViewModel 存活、翻译继续,不打断。
+        if (isFinishing) {
+            translationViewModel.cancelActiveWorkflow()
+        }
+        super.onDestroy()
     }
 
     private fun performAiRembg(illust: IllustsBean, pageIndex: Int, model: RembgModel) {
@@ -604,6 +654,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private suspend fun awaitLoadedFile(imageUrl: String): File? =
         try {
             ImageLoaderV3.obtain(imageUrl).awaitFile()
+        } catch (e: CancellationException) {
+            // 页面销毁导致协程取消:重抛,别把「取消」当成加载失败弹「识别失败」
+            throw e
         } catch (e: Exception) {
             null
         }
