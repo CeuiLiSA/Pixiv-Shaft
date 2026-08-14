@@ -516,10 +516,12 @@ class NetworkTestViewModel : ViewModel() {
      * 交给系统 DNS + 代理接管路由。
      */
     private fun buildHandshakeClient(cfg: TargetConfig, ip: InetAddress?, direct: Boolean, pin: Boolean = true): OkHttpClient {
+        // 握手采样 readTimeout：同时作为 Cronet 直连的整体请求上限（见 addCronet 参数）。
+        val readTimeoutSeconds = 5L
         val builder = OkHttpClient.Builder()
             .connectionPool(ConnectionPool(0, 1, TimeUnit.SECONDS))
             .connectTimeout(5, TimeUnit.SECONDS)
-            .readTimeout(5, TimeUnit.SECONDS)
+            .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
             .writeTimeout(5, TimeUnit.SECONDS)
         if (pin && ip != null) {
             val pinnedDns = object : Dns {
@@ -531,7 +533,7 @@ class NetworkTestViewModel : ViewModel() {
             TargetKind.APP_API -> {
                 builder.protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
                 builder.addInterceptor(HeaderInterceptor())
-                if (direct) addCronet(builder)
+                if (direct) addCronet(builder, readTimeoutSeconds)
             }
             TargetKind.IMAGE -> {
                 // 直连覆写（无 SNI / HttpDns 硬编码 IP）只对官方 i.pximg.net 有效；
@@ -549,25 +551,24 @@ class NetworkTestViewModel : ViewModel() {
             }
             TargetKind.PIXSHAFT -> {
                 builder.protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
-                if (direct) addCronet(builder)
+                if (direct) addCronet(builder, readTimeoutSeconds)
             }
             TargetKind.WEB_API -> {
                 // 镜像 createWebAPIService：H1 + Web 头 + 直连 Cronet。
                 builder.protocols(listOf(Protocol.HTTP_1_1))
                 builder.addInterceptor(WebHeaderInterceptor())
-                if (direct) addCronet(builder)
+                if (direct) addCronet(builder, readTimeoutSeconds)
             }
         }
         return builder.build()
     }
 
-    private fun addCronet(builder: OkHttpClient.Builder) {
+    private fun addCronet(builder: OkHttpClient.Builder, requestTimeoutSeconds: Long) {
         // 网络测试页的测量窗口（5~20s）刻意不跟随全项目 3s 钳制：Cronet 请求不走 OkHttp
-        // 分阶段超时，拦截器整体上限直接取 builder 已配置的 readTimeout，慢但正常的端点
-        // 会被量成「高延迟」而不是被 3s 截断误报失败。
-        val capSeconds = builder.readTimeout(TimeUnit.SECONDS).toLong()
+        // 分阶段超时，拦截器整体上限显式传值（与各探测 client 的 readTimeout 一致），
+        // 慢但正常的端点会被量成「高延迟」而不是被 3s 截断误报失败。
         builder.addInterceptor(
-            CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext()), capSeconds),
+            CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext()), requestTimeoutSeconds),
         )
     }
 
@@ -870,12 +871,14 @@ class NetworkTestViewModel : ViewModel() {
 
     /** 网页探测专用客户端，镜像 createWebAPIService：H1.1 + Web 头；直连开启时经 Cronet(QUIC)。 */
     private fun buildWebProbeClient(): OkHttpClient {
+        // 网页探测 readTimeout：同时作为 Cronet 直连的整体请求上限（见 addCronet 参数）。
+        val readTimeoutSeconds = 15L
         val builder = OkHttpClient.Builder()
             .connectTimeout(8, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
             .addInterceptor(WebHeaderInterceptor())
-        if (directConnect) addCronet(builder)
+        if (directConnect) addCronet(builder, readTimeoutSeconds)
         return builder.build()
     }
 
