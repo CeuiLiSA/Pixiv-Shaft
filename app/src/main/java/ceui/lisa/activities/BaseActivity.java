@@ -205,6 +205,12 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
 
     private void updateTheme() {
         int current = Shaft.sSettings.getThemeIndex();
+        // 自定义主题色（issue #1014）：覆盖 color 资源必须早于 setTheme，理由见 Shaft.updateTheme。
+        if (ceui.pixiv.ui.settings.CustomThemeColor.isActive()) {
+            ceui.pixiv.ui.settings.CustomThemeColor.applyResourceOverride(this);
+            setTheme(R.style.AppTheme_Custom);
+            return;
+        }
         switch (current) {
             case 0:
                 setTheme(R.style.AppTheme_Index0);

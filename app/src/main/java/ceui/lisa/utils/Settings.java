@@ -83,6 +83,21 @@ public class Settings {
         this.themeIndex = themeIndex;
     }
 
+    /**
+     * 自定义主题色的 {@code #RRGGBB}（issue #1014）。只在
+     * {@code themeIndex == }{@link ceui.pixiv.ui.settings.CustomThemeColor#INDEX} 时被读；
+     * 没设过是 null，解析一律走 {@link ceui.pixiv.ui.settings.CustomThemeColor#normalize}。
+     */
+    private String customThemeColor;
+
+    public String getCustomThemeColor() {
+        return customThemeColor;
+    }
+
+    public void setCustomThemeColor(String customThemeColor) {
+        this.customThemeColor = customThemeColor;
+    }
+
     //主页显示R18
     private boolean mainViewR18 = false;
 

@@ -2612,4 +2612,10 @@
     <string name="model_download_picker_unavailable">无法打开文件选择器，请检查系统文件管理器</string>
     <string name="model_download_importing">正在导入模型…</string>
     <string name="manga_translate_prep_status_importing">正在导入模型…</string>
+    <!-- 自定义主题色（issue #1014） -->
+    <string name="custom_theme_color_entry">自定义</string>
+    <string name="custom_theme_color_title">自定义主题色</string>
+    <string name="custom_theme_color_hex_label">色值</string>
+    <string name="custom_theme_color_hex_hint">#RRGGBB</string>
+    <string name="custom_theme_color_hint">支持 #RRGGBB 与 #RGB 两种写法，不支持带透明度的 8 位色值。</string>
 </resources>

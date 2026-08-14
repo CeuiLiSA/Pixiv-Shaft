@@ -2398,4 +2398,10 @@
     <string name="model_download_picker_unavailable">ファイル選択画面を開けませんでした。システムのファイルマネージャーを確認してください</string>
     <string name="model_download_importing">モデルをインポート中…</string>
     <string name="manga_translate_prep_status_importing">モデルをインポート中…</string>
+    <!-- カスタムテーマカラー (issue #1014) -->
+    <string name="custom_theme_color_entry">カスタム</string>
+    <string name="custom_theme_color_title">カスタムテーマカラー</string>
+    <string name="custom_theme_color_hex_label">カラーコード</string>
+    <string name="custom_theme_color_hex_hint">#RRGGBB</string>
+    <string name="custom_theme_color_hint">#RRGGBB と #RGB の短縮形に対応しています。透明度付きの 8 桁の値には対応していません。</string>
 </resources>

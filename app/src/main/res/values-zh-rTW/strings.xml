@@ -2400,4 +2400,10 @@
     <string name="model_download_picker_unavailable">無法開啟檔案選擇器，請檢查系統檔案管理員</string>
     <string name="model_download_importing">正在匯入模型…</string>
     <string name="manga_translate_prep_status_importing">正在匯入模型…</string>
+    <!-- 自訂主題色（issue #1014） -->
+    <string name="custom_theme_color_entry">自訂</string>
+    <string name="custom_theme_color_title">自訂主題色</string>
+    <string name="custom_theme_color_hex_label">色碼</string>
+    <string name="custom_theme_color_hex_hint">#RRGGBB</string>
+    <string name="custom_theme_color_hint">支援 #RRGGBB 與 #RGB 兩種寫法，不支援帶透明度的 8 位色碼。</string>
 </resources>

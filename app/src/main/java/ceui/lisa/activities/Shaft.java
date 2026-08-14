@@ -35,7 +35,6 @@ import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.session.SessionManager;
-import ceui.pixiv.ui.settings.ThemeColorCatalog;
 import ceui.pixiv.utils.NetworkStateManager;
 import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.plugins.RxJavaPlugins;
@@ -595,6 +594,15 @@ public class Shaft extends Application implements ServicesProvider {
      * */
     private void updateTheme() {
         int current = Shaft.sSettings.getThemeIndex();
+        // 自定义主题色（issue #1014）：先把 @color/custom_theme_primary 换成用户的色值，再
+        // setTheme —— theme attr 是 setTheme 那一刻解析的，顺序反了就拿到占位色。
+        // 系统不支持（< Android 11）或存的色值非法时 isActive() 为 false，索引 -1 落进下面
+        // switch 的 default，回落 0 号预设。
+        if (ceui.pixiv.ui.settings.CustomThemeColor.isActive()) {
+            ceui.pixiv.ui.settings.CustomThemeColor.applyResourceOverride(this);
+            setTheme(R.style.AppTheme_Custom);
+            return;
+        }
         switch (current) {
             case 0:
                 setTheme(R.style.AppTheme_Index0);
@@ -637,9 +645,13 @@ public class Shaft extends Application implements ServicesProvider {
      * 「主题色彩」列表页读的是同一份，以前这里的 switch 是第二份硬编码，已经和列表页漂了
      * （6 号一处 #F44336 一处 #f44336，Color.parseColor 大小写不敏感所以没人发现）。
      * 越界回落 0 号，与 updateTheme 的 default 分支一致。
+     *
+     * <p>自定义档（issue #1014）在预设目录之外，所以从
+     * {@link ceui.pixiv.ui.settings.CustomThemeColor#currentHex()} 出——它自己负责「自定义没
+     * 生效就回落预设目录」，两条路的回落规则保持同义。
      */
     public static String getThemeColor() {
-        return ThemeColorCatalog.hexOf(Shaft.sSettings.getThemeIndex());
+        return ceui.pixiv.ui.settings.CustomThemeColor.currentHex();
     }
 
     @Override

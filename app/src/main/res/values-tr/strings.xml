@@ -2398,4 +2398,10 @@
     <string name="model_download_picker_unavailable">Dosya seçici açılamadı. Sistem dosya yöneticisini kontrol edin</string>
     <string name="model_download_importing">Model içe aktarılıyor…</string>
     <string name="manga_translate_prep_status_importing">Model içe aktarılıyor…</string>
+    <!-- Özel tema rengi (issue #1014) -->
+    <string name="custom_theme_color_entry">Özel</string>
+    <string name="custom_theme_color_title">Özel tema rengi</string>
+    <string name="custom_theme_color_hex_label">Renk kodu</string>
+    <string name="custom_theme_color_hex_hint">#RRGGBB</string>
+    <string name="custom_theme_color_hint">#RRGGBB ve kısaltılmış #RGB biçimleri desteklenir. Saydamlık içeren 8 haneli değerler desteklenmez.</string>
 </resources>

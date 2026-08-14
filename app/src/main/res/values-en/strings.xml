@@ -2398,4 +2398,10 @@
     <string name="model_download_picker_unavailable">Unable to open the file picker. Please check your system file manager.</string>
     <string name="model_download_importing">Importing model…</string>
     <string name="manga_translate_prep_status_importing">Importing model…</string>
+    <!-- Custom theme color (issue #1014) -->
+    <string name="custom_theme_color_entry">Custom</string>
+    <string name="custom_theme_color_title">Custom theme color</string>
+    <string name="custom_theme_color_hex_label">Hex</string>
+    <string name="custom_theme_color_hex_hint">#RRGGBB</string>
+    <string name="custom_theme_color_hint">Both #RRGGBB and the #RGB shorthand work. 8-digit values with alpha are not supported.</string>
 </resources>

@@ -138,6 +138,16 @@
         <item name="colorPrimaryDark">#C2185B</item>
     </style>
 
+    <!--
+      自定义主题色档（issue #1014）。和上面十个预设的唯一区别：colorPrimary 不写字面量，
+      指向两个可被运行时覆盖的 color 资源。覆盖动作在 setTheme 之前由
+      [ceui.pixiv.ui.settings.CustomThemeColor.applyResourceOverride] 做（API 30+）。
+    -->
+    <style name="AppTheme.Custom" parent="AppTheme">
+        <item name="colorPrimary">@color/custom_theme_primary</item>
+        <item name="colorPrimaryDark">@color/custom_theme_primary_dark</item>
+    </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

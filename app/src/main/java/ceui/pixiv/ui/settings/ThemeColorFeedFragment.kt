@@ -47,6 +47,11 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         super.onViewCreated(view, savedInstanceState)
         setUpToolbar(binding, feedBinding.feedListView)
         binding.toolbarTitle.text = getString(R.string.string_324)
+        childFragmentManager.setFragmentResultListener(
+            CustomThemeColorSheet.REQUEST_KEY, viewLifecycleOwner
+        ) { _, bundle ->
+            bundle.getString(CustomThemeColorSheet.KEY_HEX)?.let(::onPickCustomColor)
+        }
     }
 
     /**
@@ -82,10 +87,27 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
      * `setTheme(AppTheme_IndexN)`，只能靠重进程整体换掉，没法就地重绘。
      *
      * 点当前这一行直接吞掉 —— 否则用户点一下自己正在用的颜色，App 会白重启一次。
+     * 「自定义」那一行例外：它每次都要开 picker，用户就是来改色值的。
      */
     private fun onPickColor(item: ThemeColorFeedItem) {
+        if (item.index == CustomThemeColor.INDEX) {
+            CustomThemeColorSheet().show(childFragmentManager, "custom_theme_color")
+            return
+        }
         if (item.index == Shaft.sSettings.themeIndex) return
         Shaft.sSettings.themeIndex = item.index
+        Local.setSettings(Shaft.sSettings)
+        Common.restart()
+        Common.showToast(getString(R.string.string_428), 2)
+    }
+
+    /** picker 回来的色值：写盘 + 切到自定义档 + 重启，规则与 [onPickColor] 一致。 */
+    private fun onPickCustomColor(hex: String) {
+        val alreadyUsing = Shaft.sSettings.themeIndex == CustomThemeColor.INDEX &&
+                CustomThemeColor.normalize(Shaft.sSettings.customThemeColor) == hex
+        if (alreadyUsing) return
+        Shaft.sSettings.customThemeColor = hex
+        Shaft.sSettings.themeIndex = CustomThemeColor.INDEX
         Local.setSettings(Shaft.sSettings)
         Common.restart()
         Common.showToast(getString(R.string.string_428), 2)
@@ -113,7 +135,18 @@ data class ThemeColorFeedItem(
  */
 private fun themeColorItems(): List<FeedItem> {
     val current = Shaft.sSettings.themeIndex
-    return ThemeColorCatalog.entries.mapIndexed { index, entry ->
+    val presets = ThemeColorCatalog.entries.mapIndexed { index, entry ->
         ThemeColorFeedItem(index, entry.nameRes, entry.hex, index == current)
     }
+    // 自定义档（issue #1014）排在十个预设之后。系统不支持时整行不出现 —— 理由见
+    // [CustomThemeColor] 的类注释（API 30 以下没法把任意色值送进 ?attr/colorPrimary）。
+    if (!CustomThemeColor.isSupported) return presets
+    val customHex = CustomThemeColor.savedColor()?.let(CustomThemeColor::toHex)
+        ?: ThemeColorCatalog.hexOf(current)
+    return presets + ThemeColorFeedItem(
+        index = CustomThemeColor.INDEX,
+        nameRes = R.string.custom_theme_color_entry,
+        hex = customHex,
+        selected = current == CustomThemeColor.INDEX,
+    )
 }

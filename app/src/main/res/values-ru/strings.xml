@@ -2398,4 +2398,10 @@
     <string name="model_download_picker_unavailable">Не удалось открыть выбор файла. Проверьте системный файловый менеджер</string>
     <string name="model_download_importing">Импорт модели…</string>
     <string name="manga_translate_prep_status_importing">Импорт модели…</string>
+    <!-- Свой цвет темы (issue #1014) -->
+    <string name="custom_theme_color_entry">Свой цвет</string>
+    <string name="custom_theme_color_title">Свой цвет темы</string>
+    <string name="custom_theme_color_hex_label">Код цвета</string>
+    <string name="custom_theme_color_hex_hint">#RRGGBB</string>
+    <string name="custom_theme_color_hint">Поддерживаются форматы #RRGGBB и сокращённый #RGB. Восьмизначные значения с прозрачностью не поддерживаются.</string>
 </resources>

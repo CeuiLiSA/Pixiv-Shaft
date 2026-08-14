@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自定义主题色 picker（issue #1014）—— CustomThemeColorSheet。
+     MD3 色彩选择器的标准三件套：HSV 方块 + 色相条 + HEX 输入框，外加一块大圆角预览。
+     方块和色相条是手绘控件（见 ColorPickerViews.kt，Material 没有官方 color picker 控件）。
+     头部 / 卡片 / 间距沿用 V3 sheet 那一套（dialog_search_filter_number_range.xml 同款）。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_v3_sheet_top"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp">
+
+        <TextView
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start|center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="@string/cancel"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/sheet_title"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/custom_theme_color_title"
+            android:textColor="@color/v3_text_1"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btn_confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end|center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="@string/sure"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingStart="14dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 预览块：底色 = 当前选中的色，由 sheet 在代码里塞 GradientDrawable（28dp 圆角）。
+                 HEX 文字压在上面，字色按底色亮度自动切黑/白。 -->
+            <FrameLayout
+                android:id="@+id/preview"
+                android:layout_width="match_parent"
+                android:layout_height="92dp">
+
+                <TextView
+                    android:id="@+id/preview_hex"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.06" />
+            </FrameLayout>
+
+            <ceui.pixiv.ui.settings.SaturationValueView
+                android:id="@+id/sv_square"
+                android:layout_width="match_parent"
+                android:layout_height="196dp"
+                android:layout_marginTop="16dp" />
+
+            <ceui.pixiv.ui.settings.HueSliderView
+                android:id="@+id/hue_slider"
+                android:layout_width="match_parent"
+                android:layout_height="28dp"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="18dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_v3_settings_card"
+                android:clipToOutline="true"
+                android:orientation="vertical"
+                android:tag="v3_card">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/custom_theme_color_hex_label"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="15sp" />
+
+                    <EditText
+                        android:id="@+id/hex_input"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:digits="#0123456789ABCDEFabcdef"
+                        android:gravity="end"
+                        android:hint="@string/custom_theme_color_hex_hint"
+                        android:imeOptions="actionDone"
+                        android:inputType="textNoSuggestions"
+                        android:maxLength="7"
+                        android:maxLines="1"
+                        android:textColor="@color/v3_text_1"
+                        android:textColorHint="@color/v3_text_3"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="18dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="18dp"
+                android:text="@string/custom_theme_color_hint"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>
