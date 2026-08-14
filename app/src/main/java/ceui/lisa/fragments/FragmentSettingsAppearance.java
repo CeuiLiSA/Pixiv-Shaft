@@ -27,6 +27,7 @@ import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.ui.settings.CustomThemeColor;
 import ceui.pixiv.ui.settings.ThemeColorCatalog;
 import ceui.pixiv.widget.RecommendCardWidgetProvider;
 import ceui.pixiv.widget.RecommendStripWidgetProvider;
@@ -333,6 +334,13 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
     }
 
     private void setThemeName() {
+        // 自定义档（issue #1014）不在预设目录里：nameResOf 拿 -1 会走越界回落，把「自定义」
+        // 显示成 0 号预设「矢尹紫」。带上色值，用户一眼能对上自己设的那个色。
+        if (CustomThemeColor.isActive()) {
+            baseBind.colorSelect.setText(
+                    getString(R.string.custom_theme_color_entry) + " " + CustomThemeColor.currentHex());
+            return;
+        }
         final int index = Shaft.sSettings.getThemeIndex();
         baseBind.colorSelect.setText(getString(ThemeColorCatalog.nameResOf(index)));
     }
