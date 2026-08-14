@@ -58,6 +58,12 @@ data class SearchFilterV3(
     // novel 专属（pixiv iOS 8.6.5 「仅限原创作品」/「仅限支持单词置换的作品」开关）
     val isOriginalOnly: Boolean = false,
     val isReplaceableOnly: Boolean = false,
+    /**
+     * 「系列作品归纳」（仅 novel，issue #1016）—— 对齐网页版的「シリーズ単位で表示」。
+     * app-api 没有这个参数，开启后整条小说搜索改走网页 ajax（`gs=1`），
+     * 见 [ceui.pixiv.ui.search.SearchNovelSeriesWebSource]。
+     */
+    val groupBySeries: Boolean = false,
 ) {
 
     companion object {
@@ -106,6 +112,7 @@ data class SearchFilterV3(
         if (r18Mode != R18Mode.All) n++
         if (isNovel && isOriginalOnly) n++
         if (isNovel && isReplaceableOnly) n++
+        if (isNovel && groupBySeries) n++
         if (!isNovel && ratioPattern != null) n++
         if (!isNovel && resolutionBucket != null) n++
         if (!isNovel && contentType != IllustContentType.IllustAndMangaAndUgoira) n++

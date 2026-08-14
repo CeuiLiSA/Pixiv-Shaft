@@ -20,9 +20,9 @@ import java.io.Serializable
 
 /**
  * 「其他条件」子 sheet —— 收纳次要维度：AI 三选一（全部/屏蔽AI/仅看AI）+ 小说专属
- * （仅限原创 / 仅限单词置换）+ R-18 限制三选一。
+ * （仅限原创 / 仅限单词置换 / 系列作品归纳）+ R-18 限制三选一。
  *
- * 小说专属两个 switch 仅在 isNovel = true 时显示；illust 模式整张卡片隐藏，结果回传时
+ * 小说专属三个 switch 仅在 isNovel = true 时显示；illust 模式整张卡片隐藏，结果回传时
  * 也固定 false。AI「全部 / 屏蔽AI」两档提交时把 [Shaft.sSettings.isDeleteAIIllust] 落成
  * false/true——与 [ceui.lisa.fragments.FragmentFilter] 历史行为对齐，避免设置项分裂；「仅看AI」
  * 是单次搜索的临时维度，提交时**不碰任何设置**（issue #909：只影响搜索、不持久化）。
@@ -35,6 +35,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
     private var draftR18: R18Mode = R18Mode.All
     private var draftOriginalOnly: Boolean = false
     private var draftReplaceableOnly: Boolean = false
+    private var draftGroupBySeries: Boolean = false
     /** illust-only;null = 「不限」。父 sheet 通过 args 注入初值 + 候选列表。 */
     private var draftTool: String? = null
 
@@ -56,6 +57,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
         val isOriginalOnly: Boolean,
         val isReplaceableOnly: Boolean,
         val tool: String?,
+        val groupBySeries: Boolean = false,
     ) : Serializable
 
     private var _binding: DialogSearchFilterOtherBinding? = null
@@ -74,13 +76,15 @@ class OtherFilterSheet : V3BottomSheetBase() {
         draftR18 = patch?.r18Mode ?: R18Mode.All
         draftOriginalOnly = patch?.isOriginalOnly ?: false
         draftReplaceableOnly = patch?.isReplaceableOnly ?: false
+        draftGroupBySeries = patch?.groupBySeries ?: false
         draftTool = patch?.tool
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putSerializable(KEY_DRAFT,
-            Patch(draftAiMode, draftR18, draftOriginalOnly, draftReplaceableOnly, draftTool))
+            Patch(draftAiMode, draftR18, draftOriginalOnly, draftReplaceableOnly, draftTool,
+                draftGroupBySeries))
     }
 
     override fun onCreateView(
@@ -118,11 +122,14 @@ class OtherFilterSheet : V3BottomSheetBase() {
             // 小说专属 switch：illust 模式下卡片整体隐藏，强制 false 防止状态串味儿
             val originalOnly = if (isNovel) draftOriginalOnly else false
             val replaceableOnly = if (isNovel) draftReplaceableOnly else false
+            val groupBySeries = if (isNovel) draftGroupBySeries else false
             // 制图工具同理：novel 模式整张卡片隐藏，强制清 null
             val tool = if (isNovel) null else draftTool
             parentFragmentManager.setFragmentResult(
                 requestKey,
-                bundleOf(KEY_PATCH to Patch(draftAiMode, draftR18, originalOnly, replaceableOnly, tool)),
+                bundleOf(KEY_PATCH to Patch(
+                    draftAiMode, draftR18, originalOnly, replaceableOnly, tool, groupBySeries,
+                )),
             )
             dismissAllowingStateLoss()
         }
@@ -165,6 +172,14 @@ class OtherFilterSheet : V3BottomSheetBase() {
                 R.string.search_filter_v3_row_replaceable_only,
                 draftReplaceableOnly,
             ) { draftReplaceableOnly = it }
+            // 系列归纳这行**保留副标题**：开启后整条小说搜索改走网页接口，热门排序与 R-18
+            // 的可用性都跟着变（issue #1016），不写清楚用户只会以为搜索坏了。
+            bindNovelSwitch(
+                binding.rowGroupBySeries,
+                R.string.search_filter_v3_row_group_by_series,
+                draftGroupBySeries,
+                subtitleRes = R.string.search_filter_v3_group_by_series_subtitle,
+            ) { draftGroupBySeries = it }
         }
 
         // R-18 三选一
@@ -206,11 +221,14 @@ class OtherFilterSheet : V3BottomSheetBase() {
         row: CellSearchFilterSwitchRowBinding,
         titleRes: Int,
         initial: Boolean,
+        subtitleRes: Int? = null,
         onChange: (Boolean) -> Unit,
     ) {
         row.switchTitle.setText(titleRes)
-        // 这两行 iOS 没有副标题，隐藏掉 cell_search_filter_switch_row 自带的 subtitle 槽位
-        row.switchSubtitle.isVisible = false
+        // 对齐 iOS 的两行没有副标题，隐藏掉 cell_search_filter_switch_row 自带的 subtitle 槽位；
+        // 系列归纳那行要靠它讲清接口切换的代价，显式给了 subtitleRes 才显示。
+        row.switchSubtitle.isVisible = subtitleRes != null
+        subtitleRes?.let { row.switchSubtitle.setText(it) }
         row.switchToggle.thumbTintList = ColorStateList.valueOf(palette.primary)
         row.switchToggle.isChecked = initial
         row.switchToggle.setOnCheckedChangeListener { _, checked -> onChange(checked) }
@@ -272,6 +290,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
                     current.isOriginalOnly,
                     current.isReplaceableOnly,
                     current.tool,
+                    current.groupBySeries,
                 ))
             }
         }

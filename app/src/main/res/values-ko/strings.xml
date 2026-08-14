@@ -1883,6 +1883,11 @@
     <string name="search_filter_v3_date_unset">미설정</string>
     <string name="search_filter_v3_row_original_only">오리지널 작품만</string>
     <string name="search_filter_v3_row_replaceable_only">단어 치환 가능 작품만</string>
+    <string name="search_filter_v3_row_group_by_series">시리즈 단위로 묶기</string>
+    <string name="search_filter_v3_group_by_series_subtitle">같은 시리즈를 한 항목으로 묶습니다. 웹 API를 사용하므로 인기순은 프리미엄이, R-18 결과는 웹 로그인이 필요합니다</string>
+    <string name="search_novel_series_card_ongoing">시리즈 · 총 %1$d화</string>
+    <string name="search_novel_series_card_concluded">시리즈 · 총 %1$d화 · 완결</string>
+    <string name="search_novel_group_by_series_empty_need_web_login">시리즈 묶기는 웹 API를 사용합니다. 웹에 로그인하지 않으면 R-18 등은 표시되지 않습니다</string>
     <string name="slideshow_play">슬라이드쇼 재생</string>
     <string name="slideshow_empty">재생할 이미지가 없습니다</string>
     <string name="v3_tag_menu_copy_original">태그 원문 복사</string>

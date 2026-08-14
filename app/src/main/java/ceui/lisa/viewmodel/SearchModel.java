@@ -63,6 +63,9 @@ public class SearchModel extends ViewModel {
     private final MutableLiveData<Integer> wordCountMax = new MutableLiveData<>();
     private final MutableLiveData<Integer> readingTimeMin = new MutableLiveData<>();
     private final MutableLiveData<Integer> readingTimeMax = new MutableLiveData<>();
+    // 「系列作品归纳」（仅 novel，issue #1016）—— app-api 无此能力，开启后整条小说搜索改走
+    // 网页 ajax（gs=1），见 ceui.pixiv.ui.search.SearchNovelSeriesWebSource。
+    private final MutableLiveData<Boolean> groupBySeries = new MutableLiveData<>();
 
     public MutableLiveData<String> getKeyword() {
         return keyword;
@@ -188,5 +191,9 @@ public class SearchModel extends ViewModel {
 
     public MutableLiveData<Integer> getReadingTimeMax() {
         return readingTimeMax;
+    }
+
+    public MutableLiveData<Boolean> getGroupBySeries() {
+        return groupBySeries;
     }
 }

@@ -1883,6 +1883,11 @@
     <string name="search_filter_v3_date_unset">未設定</string>
     <string name="search_filter_v3_row_original_only">オリジナル作品のみ</string>
     <string name="search_filter_v3_row_replaceable_only">単語置換対応作品のみ</string>
+    <string name="search_filter_v3_row_group_by_series">シリーズ単位で表示</string>
+    <string name="search_filter_v3_group_by_series_subtitle">同じシリーズを1件にまとめます。ウェブ版APIを使うため、人気順はプレミアム、R-18の表示にはウェブ版へのログインが必要です</string>
+    <string name="search_novel_series_card_ongoing">シリーズ · 全%1$d話</string>
+    <string name="search_novel_series_card_concluded">シリーズ · 全%1$d話 · 完結</string>
+    <string name="search_novel_group_by_series_empty_need_web_login">シリーズ単位の表示はウェブ版APIを使います。ウェブ版にログインしていないとR-18などが表示されません</string>
     <string name="slideshow_play">スライドショー再生</string>
     <string name="slideshow_empty">再生できる画像がありません</string>
     <string name="v3_tag_menu_copy_original">タグ名をコピー</string>

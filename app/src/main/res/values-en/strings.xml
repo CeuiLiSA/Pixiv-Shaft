@@ -1883,6 +1883,11 @@
     <string name="search_filter_v3_date_unset">Not set</string>
     <string name="search_filter_v3_row_original_only">Original works only</string>
     <string name="search_filter_v3_row_replaceable_only">Word-replaceable only</string>
+    <string name="search_filter_v3_row_group_by_series">Group works by series</string>
+    <string name="search_filter_v3_group_by_series_subtitle">Collapses each series into one entry. Uses the pixiv web API: popular sort needs premium, R-18 results need a web login</string>
+    <string name="search_novel_series_card_ongoing">Series · %1$d episodes</string>
+    <string name="search_novel_series_card_concluded">Series · %1$d episodes · Completed</string>
+    <string name="search_novel_group_by_series_empty_need_web_login">Series grouping uses the pixiv web API — R-18 and other results stay hidden until you log in on the web</string>
     <string name="slideshow_play">Play slideshow</string>
     <string name="slideshow_empty">No images to play</string>
     <string name="v3_tag_menu_copy_original">Copy tag name</string>

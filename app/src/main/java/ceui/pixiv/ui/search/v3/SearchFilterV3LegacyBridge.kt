@@ -185,6 +185,7 @@ object SearchFilterV3LegacyBridge {
             aiMode = if (searchModel.onlyAi.value == true) AiMode.OnlyAi else baseline.aiMode,
             isOriginalOnly = isNovel && searchModel.isOriginalOnly.value == true,
             isReplaceableOnly = isNovel && searchModel.isReplaceableOnly.value == true,
+            groupBySeries = isNovel && searchModel.groupBySeries.value == true,
             ratioPattern = ratio,
             resolutionBucket = resolution,
             contentType = contentType,
@@ -238,6 +239,9 @@ object SearchFilterV3LegacyBridge {
         searchModel.onlyAi.value = filter.aiMode == AiMode.OnlyAi
         searchModel.isOriginalOnly.value = filter.isOriginalOnly
         searchModel.isReplaceableOnly.value = filter.isReplaceableOnly
+        // 系列归纳仅 novel；illust filter 恒 false 写下来无副作用（插画路径不读它），真正生效的
+        // 那次写入由 searchNovelEvent 在触发 nowGo 之前补（见 install 的第 3 步）。
+        searchModel.groupBySeries.value = filter.groupBySeries
         // ratio_pattern 仅 illust/manga；novel 路径 SearchIllustRepo 不读，写入 SearchModel 也无副作用
         searchModel.ratioPattern.value = filter.ratioPattern?.apiValue
         // 作品类别仅 illust/manga；默认档「插画、漫画、动图」等价于不传 → null,与 buildSearchConfig 对齐

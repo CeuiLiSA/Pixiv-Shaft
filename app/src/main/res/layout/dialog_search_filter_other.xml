@@ -166,6 +166,17 @@
                 <include
                     android:id="@+id/row_replaceable_only"
                     layout="@layout/cell_search_filter_switch_row" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="18dp"
+                    android:background="@color/v3_border_2" />
+
+                <!-- 系列作品归纳（issue #1016）—— 副标题槽位在这行是留着的,要写明它换走网页接口 -->
+                <include
+                    android:id="@+id/row_group_by_series"
+                    layout="@layout/cell_search_filter_switch_row" />
             </LinearLayout>
 
             <Space

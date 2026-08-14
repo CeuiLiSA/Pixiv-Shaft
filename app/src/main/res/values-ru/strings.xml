@@ -1883,6 +1883,11 @@
     <string name="search_filter_v3_date_unset">Не задано</string>
     <string name="search_filter_v3_row_original_only">Только оригинальные работы</string>
     <string name="search_filter_v3_row_replaceable_only">Только с заменяемыми словами</string>
+    <string name="search_filter_v3_row_group_by_series">Группировать по сериям</string>
+    <string name="search_filter_v3_group_by_series_subtitle">Сворачивает серию в одну запись. Используется веб-API pixiv: сортировка по популярности требует премиум, а результаты R-18 — входа на сайте</string>
+    <string name="search_novel_series_card_ongoing">Серия · %1$d ч.</string>
+    <string name="search_novel_series_card_concluded">Серия · %1$d ч. · Завершена</string>
+    <string name="search_novel_group_by_series_empty_need_web_login">Группировка по сериям использует веб-API: без входа на сайте результаты R-18 и часть других не видны</string>
     <string name="slideshow_play">Запустить слайд-шоу</string>
     <string name="slideshow_empty">Нет изображений для показа</string>
     <string name="v3_tag_menu_copy_original">Копировать тег</string>

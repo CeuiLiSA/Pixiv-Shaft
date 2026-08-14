@@ -1883,6 +1883,11 @@
     <string name="search_filter_v3_date_unset">Belirsiz</string>
     <string name="search_filter_v3_row_original_only">Yalnızca özgün eserler</string>
     <string name="search_filter_v3_row_replaceable_only">Yalnızca kelime değiştirilebilir</string>
+    <string name="search_filter_v3_row_group_by_series">Seri olarak grupla</string>
+    <string name="search_filter_v3_group_by_series_subtitle">Aynı seriyi tek girdide toplar. pixiv web API kullanır: popülerlik sıralaması premium, R-18 sonuçları web girişi gerektirir</string>
+    <string name="search_novel_series_card_ongoing">Seri · %1$d bölüm</string>
+    <string name="search_novel_series_card_concluded">Seri · %1$d bölüm · Tamamlandı</string>
+    <string name="search_novel_group_by_series_empty_need_web_login">Seri gruplama web API kullanır; web girişi yapılmadan R-18 ve bazı sonuçlar görünmez</string>
     <string name="slideshow_play">Slayt gösterisi</string>
     <string name="slideshow_empty">Oynatılacak resim yok</string>
     <string name="v3_tag_menu_copy_original">Etiketi kopyala</string>

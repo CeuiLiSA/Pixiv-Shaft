@@ -107,6 +107,44 @@ interface PixivWebApi {
         @Query("word") word: String,
     ): CircleResponse
 
+    /**
+     * issue #1016: 网页版小说搜索的「シリーズ単位で表示」（前端叫 groupBySeries，落到 `gs=1`）。
+     * 同系列的上百章塌成一条系列卡，app-api 的 `/v1/search/novel` 没有对应参数，只能走网页。
+     *
+     * 参数名与 app-api 那套完全不同（对照见 [ceui.pixiv.ui.search.SearchNovelSeriesWebSource]）：
+     * `s_mode` 小说侧的 `s_tc` 是**正文**（不是插画的标题简介），`scd/ecd` 是投稿期间，
+     * `blt` 是收藏数下限，`tlt/tgt`·`wlt/wgt`·`rlt/rgt` 分别是字数 / 单词数 / 阅读用时区间。
+     *
+     * 匿名（无网页 cookie）也能调通，但两处会降级：R-18 结果拿不到；`order=popular_d` 被服务端
+     * 静默忽略（网页热门排序是会员专属，app 那条借号的路子在这里用不上——借来的是 app-api
+     * 的 OAuth token，不是网页会员 cookie）。
+     */
+    @GET("/ajax/search/novels/{word}")
+    suspend fun searchNovelsGroupedBySeries(
+        @Path("word") word: String,
+        @Query("word") wordQuery: String,
+        @Query("p") page: Int,
+        @Query("gs") groupBySeries: Int,
+        @Query("order") order: String,
+        @Query("mode") mode: String,
+        @Query("s_mode") sMode: String,
+        @Query("scd") startDate: String? = null,
+        @Query("ecd") endDate: String? = null,
+        @Query("blt") bookmarkMin: Int? = null,
+        @Query("tlt") textLengthMin: Int? = null,
+        @Query("tgt") textLengthMax: Int? = null,
+        @Query("wlt") wordCountMin: Int? = null,
+        @Query("wgt") wordCountMax: Int? = null,
+        @Query("rlt") readingTimeMin: Int? = null,
+        @Query("rgt") readingTimeMax: Int? = null,
+        @Query("original_only") originalOnly: Int? = null,
+        @Query("genre") genre: Int? = null,
+        @Query("work_lang") workLang: String? = null,
+        @Query("replaceable_only") replaceableOnly: Int? = null,
+        @Query("ai_type") aiType: Int? = null,
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<WebNovelSearchBody>
+
     @POST("/ajax/street/v2/main")
     suspend fun getStreetMain(
         @Header("x-csrf-token") csrfToken: String,

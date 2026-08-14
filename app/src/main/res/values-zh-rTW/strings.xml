@@ -1885,6 +1885,11 @@
     <string name="search_filter_v3_date_unset">未設定</string>
     <string name="search_filter_v3_row_original_only">僅限原創作品</string>
     <string name="search_filter_v3_row_replaceable_only">僅限支援單字置換的作品</string>
+    <string name="search_filter_v3_row_group_by_series">系列作品歸納</string>
+    <string name="search_filter_v3_group_by_series_subtitle">同一系列的連載合併成一條；此模式走網頁介面，熱門排序需 pixiv 會員、R-18 結果需網頁登入</string>
+    <string name="search_novel_series_card_ongoing">系列 · 全 %1$d 話</string>
+    <string name="search_novel_series_card_concluded">系列 · 全 %1$d 話 · 已完結</string>
+    <string name="search_novel_group_by_series_empty_need_web_login">系列歸納走網頁介面，未登入網頁時看不到 R-18 等結果</string>
     <string name="slideshow_play">幻燈片播放</string>
     <string name="slideshow_empty">沒有可播放的圖片</string>
     <string name="v3_tag_menu_copy_original">複製 tag 原文</string>

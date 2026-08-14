@@ -6,6 +6,7 @@ import ceui.lisa.models.ModelObject
 import ceui.lisa.models.NovelBean
 import ceui.lisa.models.NovelDetail.NovelMarkerBean
 import ceui.lisa.models.ObjectSpec
+import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 import java.io.Serializable
 
@@ -772,6 +773,68 @@ data class UserTagNovel(
     // 系列作品才有,单篇为 null;id 是字符串形态("1462193"),映射时 toLongOrNull 兜住空串
     val seriesId: String? = null,
     val seriesTitle: String? = null,
+) : Serializable
+
+/**
+ * issue #1016: 网页版小说搜索开了「シリーズ単位で表示」(`/ajax/search/novels/{word}` + `gs=1`)
+ * 之后的响应体。app-api 的 `/v1/search/novel` 没有这个能力，同一个系列的上百章会一条条铺满
+ * 搜索结果——归纳模式只有网页端有。
+ */
+data class WebNovelSearchBody(
+    val novel: WebNovelSearchSection? = null,
+) : Serializable
+
+data class WebNovelSearchSection(
+    val data: List<WebNovelCollection>? = null,
+    val total: Int = 0,
+    /** 最后一页页码（匿名视角封顶 10 页）——翻页到它为止。 */
+    val lastPage: Int = 0,
+) : Serializable
+
+/**
+ * 归纳模式下的一条结果。**这是个混合列表**：
+ *   - 系列条目：[novelId] 为 null，[id] 就是小说系列 id（可直接喂 `/v1/novel/series/{id}`），
+ *     带 [episodeCount] / [isConcluded]；
+ *   - 单篇条目：[novelId] 非空且才是真正的小说 id，[id] 是 pixiv 给单篇造的 collection id
+ *     （与系列 id 同号段，**不能**当小说 id 用）。
+ *
+ * 判别一律用 [novelId] 是否为空，别用 `isOneshot`——后者在两种条目上都出现过。
+ */
+data class WebNovelCollection(
+    val id: String? = null,
+    val novelId: String? = null,
+    val title: String? = null,
+    val caption: String? = null,
+    val cover: WebNovelCover? = null,
+    val tags: List<String>? = null,
+    val xRestrict: Int = 0,
+    val aiType: Int = 0,
+    val userId: Long = 0L,
+    val userName: String? = null,
+    val profileImageUrl: String? = null,
+    val bookmarkCount: Int = 0,
+    val isConcluded: Boolean = false,
+    /** 系列条目：总话数 / 已公开话数（未公开的付费话不算）。 */
+    val episodeCount: Int = 0,
+    val publishedEpisodeCount: Int = 0,
+    val textLength: Int = 0,
+    val publishedTextLength: Int = 0,
+    val createDateTime: String? = null,
+    val latestPublishDateTime: String? = null,
+    val publishedDateTime: String? = null,
+    // 登录视角已收藏时是 {id, private} 对象，匿名/未收藏为 null —— 同 [UserTagNovel.bookmarkData]
+    val bookmarkData: Any? = null,
+) : Serializable
+
+data class WebNovelCover(
+    val urls: WebNovelCoverUrls? = null,
+) : Serializable
+
+/** 封面多尺寸。JSON 的 key 数字开头（`240mw` / `480mw`），只能靠 SerializedName 对上。 */
+data class WebNovelCoverUrls(
+    @SerializedName("240mw") val width240: String? = null,
+    @SerializedName("480mw") val width480: String? = null,
+    val original: String? = null,
 ) : Serializable
 
 data class RelatedUserBody (

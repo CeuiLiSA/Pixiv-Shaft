@@ -2081,6 +2081,11 @@
     <string name="search_filter_v3_date_unset">未设置</string>
     <string name="search_filter_v3_row_original_only">仅限原创作品</string>
     <string name="search_filter_v3_row_replaceable_only">仅限支持单词置换的作品</string>
+    <string name="search_filter_v3_row_group_by_series">系列作品归纳</string>
+    <string name="search_filter_v3_group_by_series_subtitle">同一系列的连载合并成一条；该模式走网页接口，热门排序需 pixiv 会员、R-18 结果需网页登录</string>
+    <string name="search_novel_series_card_ongoing">系列 · 全 %1$d 话</string>
+    <string name="search_novel_series_card_concluded">系列 · 全 %1$d 话 · 已完结</string>
+    <string name="search_novel_group_by_series_empty_need_web_login">系列归纳走网页接口，未登录网页时看不到 R-18 等结果</string>
     <string name="search_results_withheld_notice" translatable="false">根据相关法律法规和政策，“%1$s”搜索结果未予显示。</string>
 
 

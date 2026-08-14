@@ -324,6 +324,7 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                     isOriginalOnly = patch.isOriginalOnly,
                     isReplaceableOnly = patch.isReplaceableOnly,
                     tool = patch.tool,
+                    groupBySeries = patch.groupBySeries,
                 )
             }
         }
@@ -545,6 +546,9 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         }
         if (isNovel && filter.isReplaceableOnly) {
             flags += getString(R.string.search_filter_v3_row_replaceable_only)
+        }
+        if (isNovel && filter.groupBySeries) {
+            flags += getString(R.string.search_filter_v3_row_group_by_series)
         }
         return if (flags.isEmpty()) getString(R.string.search_filter_v3_other_summary_none)
         else flags.joinToString(" · ")
