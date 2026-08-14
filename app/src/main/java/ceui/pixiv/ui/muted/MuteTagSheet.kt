@@ -27,15 +27,19 @@ import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.models.TagsBean
 import ceui.lisa.models.UserBean
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.V3Palette
 import ceui.pixiv.utils.makeSheetTransparentAndFillNavBar
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.screenHeight
+import com.bumptech.glide.Glide
+import com.google.android.material.R as MaterialR
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.color.MaterialColors
 import kotlin.math.roundToInt
 
 /**
@@ -63,9 +67,13 @@ import kotlin.math.roundToInt
  * 保持原样的一个都不动（重新 mute 会把「未生效」的记录重置成生效，那是数据损失）。
  *
  * ## 两个 section（issue #1015）
- * 「按标签屏蔽」+「按作者屏蔽」。作者那一格就是**同一种胶囊、同一种勾选语义、同一颗保存按钮**，
- * 只是落到 `tag_mute_table` 的 `type=MUTE_USER` 那一行（[PixivOperate.muteUser]）——所以它是
+ * 「按标签屏蔽」+「按作者屏蔽」。两段是**同一种勾选语义、同一颗保存按钮、同一个计数**，
+ * 作者那一行落到 `tag_mute_table` 的 `type=MUTE_USER`（[PixivOperate.muteUser]）——所以它是
  * 一个 section 而不是二级弹窗或者新菜单项：用户要做的事没变，变的只是屏蔽的维度。
+ *
+ * 但**控件形状是两样的**：标签是胶囊（从一堆同类里挑几个），作者是 MD3 的 list item
+ *（头像 + 名字 + 开关）。一个具体的人该有脸、有名字、有一个明确的开关，把他压成一枚
+ * 只有文字的胶囊，既认不出是谁，也让人以为作者和标签是同一类东西。
  *
  * 这里**只有本地屏蔽，没有 pixiv 官方的「拉黑」**（[ceui.pixiv.ui.user.PixivBlockOperate]）。
  * 拉黑要发网络请求、会失败、且一般用户全站只有 1 个额度，塞进「勾一下→保存」这套即时可逆的
@@ -139,6 +147,7 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         // 只要还有一个维度可勾就得留着保存键：无标签但有作者的作品照样能屏蔽作者。
         binding.btnSave.isVisible = tags.isNotEmpty() || author != null
         buildChips()
+        bindAuthorSection()
         updateSummary()
     }
 
@@ -157,7 +166,7 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         selected.addAll(originallyMuted)
 
         // 作者维度按 id 查一行就够（type=MUTE_USER）。它没有「未生效」这一态——
-        // IllustNovelFilter.judgeUserID 只看记录在不在，所以作者胶囊只有两态。
+        // IllustNovelFilter.judgeUserID 只看记录在不在，所以那一行就是个开 / 关。
         author?.let { user ->
             val authorMuted = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
@@ -180,55 +189,69 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         binding.btnCancel.setTextColor(palette.textAccent)
         binding.sectionTagTitle.setTextColor(palette.textAccent)
         binding.sectionAuthorTitle.setTextColor(palette.textAccent)
+
+        // 作者开关：只有选中态染主题色，未选中态走 MD3 的中性 outline / surface token。
+        //
+        // 刻意不照抄 SelectTagBottomSheet 那颗私密开关（它未选中态的 thumb 用 palette.textSecondary，
+        // 暗色下是个亮紫点）：那边 switch 旁边有文字标签、且是个次要选项，这里它是整行**唯一**的
+        // 状态指示，一颗紫 thumb 配紫色 track 边会被读成「已经开着了」。
+        val sw = binding.authorSwitch
+        val outline = MaterialColors.getColor(sw, MaterialR.attr.colorOutline)
+        val trackOff = MaterialColors.getColor(sw, MaterialR.attr.colorSurfaceContainerHighest)
+
+        // 头像描边：主题色，和 section 标题同一档（[V3Palette.textAccent]，暗色下会提亮到够看见）。
+        // 写在这里而不是 XML：CircleImageView 用 TypedArray.getColor 读 civ_border_color，
+        // 主题属性一旦没解析上，它的默认值是**纯黑**——在暗色 sheet 上就成了「看不见的 border」。
+        binding.authorAvatar.borderColor = palette.textAccent
+        val switchStates = arrayOf(
+            intArrayOf(android.R.attr.state_checked),
+            intArrayOf(-android.R.attr.state_checked),
+        )
+        sw.thumbTintList = ColorStateList(switchStates, intArrayOf(Color.WHITE, outline))
+        sw.trackTintList = ColorStateList(switchStates, intArrayOf(palette.primary, trackOff))
+        sw.trackDecorationTintList = ColorStateList(switchStates, intArrayOf(palette.primary, outline))
     }
 
     private fun buildChips() {
         val flow = binding.tagFlow
         flow.removeAllViews()
-        tags.forEach { flow.addView(createTagChip(it)) }
-
-        val user = author
-        binding.sectionAuthor.isVisible = user != null
-        binding.authorFlow.removeAllViews()
-        if (user != null) {
-            binding.authorFlow.addView(createAuthorChip(user))
-        }
+        tags.forEach { flow.addView(createChip(it)) }
     }
 
     /**
-     * 作者胶囊：和标签胶囊同一套外观与勾选手感（[renderChip]），只是没有「未生效」那一态。
-     * 名字空了退回 account、再退回 id——胶囊上必须有字，一个空胶囊点不明白。
+     * 「按作者屏蔽」那一行：头像 + 名字 + 开关，MD3 的 list item，**不是**上面那种胶囊。
+     * 胶囊适合「从一堆同类里挑几个」；作者是一个具体的人，该有脸、有名字、有一个明确的开关。
+     *
+     * 名字空了退回 account、再退回 id——这一行必须能认出是谁。
      */
-    private fun createAuthorChip(user: UserBean): TextView {
-        val chip = newChip()
-        chip.text = listOfNotNull(user.name, user.account)
+    private fun bindAuthorSection() {
+        val user = author
+        binding.sectionAuthor.isVisible = user != null
+        if (user == null) return
+
+        binding.authorName.text = listOfNotNull(user.name, user.account)
             .firstOrNull { it.isNotBlank() } ?: user.id.toString()
-        renderChip(chip, authorSelected, false)
-        chip.setOnClickListener {
+        // getUrl 对空 URL 返回 null（见其注释），所以缺头像的精简 bean 走 fallback 而不是 error。
+        // 切圆交给 CircleImageView，不用 circleCrop——见布局里的注释。
+        Glide.with(this)
+            .load(GlideUtil.getUrl(user.profile_image_urls?.medium))
+            .placeholder(R.drawable.no_profile)
+            .fallback(R.drawable.no_profile)
+            .error(R.drawable.no_profile)
+            .into(binding.authorAvatar)
+
+        binding.authorSwitch.isChecked = authorSelected
+        // 开关自己不可点（XML 里 clickable=false），统一由整行驱动：两条路径会切出双击回弹。
+        binding.authorRow.setOnClickListener {
             authorSelected = !authorSelected
-            renderChip(chip, authorSelected, false)
+            binding.authorSwitch.isChecked = authorSelected
             updateSummary()
         }
-        return chip
     }
 
-    private fun createTagChip(tag: TagsBean): TextView {
+    private fun createChip(tag: TagsBean): TextView {
         val name = tag.name
-        val chip = newChip()
-        chip.text = chipLabel(tag)
-        renderChip(chip, name in selected, name in ineffective)
-        chip.setOnClickListener {
-            if (!selected.remove(name)) selected.add(name)
-            chip.text = chipLabel(tag)
-            renderChip(chip, name in selected, name in ineffective)
-            updateSummary()
-        }
-        return chip
-    }
-
-    /** 空白胶囊壳子：尺寸 / 间距 / 可点性，配色与图标交给 [renderChip] 按状态刷。 */
-    private fun newChip(): TextView {
-        return TextView(requireContext()).apply {
+        val chip = TextView(requireContext()).apply {
             textSize = 13.5F
             gravity = Gravity.CENTER_VERTICAL
             typeface = Typeface.DEFAULT
@@ -246,6 +269,15 @@ class MuteTagSheet : BottomSheetDialogFragment() {
             lp.bottomMargin = 8.ppppx
             layoutParams = lp
         }
+        chip.text = chipLabel(tag)
+        renderChip(chip, name in selected, name in ineffective)
+        chip.setOnClickListener {
+            if (!selected.remove(name)) selected.add(name)
+            chip.text = chipLabel(tag)
+            renderChip(chip, name in selected, name in ineffective)
+            updateSummary()
+        }
+        return chip
     }
 
     /**

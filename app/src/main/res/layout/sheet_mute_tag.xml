@@ -178,12 +178,56 @@
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
-                <com.google.android.flexbox.FlexboxLayout
-                    android:id="@+id/author_flow"
+                <!--
+                  作者是一个「实体」，不是一枚标签：这里用 MD3 的 list item（leading 头像 +
+                  headline + trailing switch），而不是跟上面一样的胶囊。胶囊适合「从一堆同类里
+                  挑几个」；一个具体的人该有脸、有名字、有一个明确的开关。
+
+                  整行可点，点哪儿都等于拨开关 —— 所以 switch 自己 clickable=false，
+                  否则会出现「点行」和「点开关」两条独立的路径，容易切出双击回弹。
+                -->
+                <LinearLayout
+                    android:id="@+id/author_row"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:alignItems="flex_start"
-                    app:flexWrap="wrap" />
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:minHeight="56dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp">
+
+                    <!--
+                      用 CircleImageView 而不是 ImageView + Glide circleCrop：全 App 的头像
+                      都是它（含「屏蔽记录」页的 recy_simple_user），且它连占位图一起切圆——
+                      circleCrop 只作用于加载完成的图，头像没加载出来那一瞬会是个方块。
+                    -->
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/author_avatar"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="@null"
+                        app:civ_border_width="1dp" />
+
+                    <TextView
+                        android:id="@+id/author_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginEnd="12dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/author_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
