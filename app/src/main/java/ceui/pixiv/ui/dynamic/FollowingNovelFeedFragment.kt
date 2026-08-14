@@ -90,7 +90,7 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
     }
 
     /**
-     * 切筛选范围（宿主 GlareLayout 选中另一项时调）。对齐 legacy FragmentNewNovels.setRestrict：
+     * 切筛选范围（宿主筛选条选中另一项时调）。对齐 legacy FragmentNewNovels.setRestrict：
      * **变了才重拉**，没变是 no-op。
      */
     fun setRestrict(restrict: String) {

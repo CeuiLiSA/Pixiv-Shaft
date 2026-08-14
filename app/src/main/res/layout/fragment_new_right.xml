@@ -156,27 +156,16 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <!-- 动态类型切换:插画/漫画 ▾(点按弹菜单) -->
-                        <TextView
-                            android:id="@+id/dynamic_type_switcher"
+                        <!-- 动态类型切换:插画/漫画 · 小说(点一下就切,与右侧筛选条同款控件) -->
+                        <ceui.lisa.view.SegmentedToggleLayout
+                            android:id="@+id/dynamic_type_toggle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_marginTop="12dp"
-                            android:layout_marginBottom="12dp"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:drawablePadding="2dp"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:paddingStart="6dp"
-                            android:paddingEnd="6dp"
-                            android:text="@string/dynamic_type_illust_manga"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            app:drawableEndCompat="@drawable/ic_arrow_drop_down_20dp"
-                            app:drawableTint="@color/v3_text_2" />
+                            android:layout_alignParentStart="true"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            app:stl_textSize="16sp" />
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -201,8 +190,9 @@
                                 android:tint="@color/glare_unselected_text"
                                 tools:ignore="HardcodedText,UseAppTint" />
 
-                            <ceui.lisa.view.GlareLayout
-                                android:id="@+id/glare_layout"
+                            <!-- 筛选范围:全部 · 公开 · 私人 -->
+                            <ceui.lisa.view.SegmentedToggleLayout
+                                android:id="@+id/restrict_toggle"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
 

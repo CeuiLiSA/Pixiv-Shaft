@@ -16,7 +16,7 @@ import ceui.lisa.utils.Params
  * [RestrictViewModel] 记——两者故意分开，切模式时才好判断后台那条列表要不要重拉，
  * 不为看不见的列表白发请求。
  *
- * 只在主线程读写（GlareLayout / 类型菜单回调、shell 的视图重建）。
+ * 只在主线程读写（筛选条 / 类型条回调、shell 的视图重建）。
  */
 class DynamicPageViewModel : ViewModel() {
 

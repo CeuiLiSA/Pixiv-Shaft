@@ -18,7 +18,6 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.QMUIMenuPopup;
 import ceui.lisa.utils.V3Palette;
 import ceui.lisa.view.OnCheckChangeListener;
 import ceui.pixiv.ui.dynamic.DynamicPageViewModel;
@@ -27,8 +26,8 @@ import ceui.pixiv.ui.dynamic.FollowingNovelFeedFragment;
 import ceui.pixiv.ui.user.RecmdUserRailFeedFragment;
 
 /**
- * 「动态」tab 的外壳:固定 header(抽屉 + 标题 + 搜索) + 推荐用户货架 + 内容 sheet(类型菜单 /
- * 布局切换 / 全部·公开·私人 筛选条)。三块内容都是各自独立的子 fragment,本类只负责摆放与转发,
+ * 「动态」tab 的外壳:固定 header(抽屉 + 标题 + 搜索) + 推荐用户货架 + 内容 sheet(插画/漫画·小说
+ * 类型条 / 布局切换 / 全部·公开·私人 筛选条)。三块内容都是各自独立的子 fragment,本类只负责摆放与转发,
  * 自己不碰网络、不持有列表数据——与 FragmentLeft / FragmentPv 同一套「宿主留 legacy、
  * 列表走 feeds」的分工。
  *
@@ -52,10 +51,14 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     private static final String TAG_ILLUST = "FollowingIllustFeedFragment";
     private static final String TAG_NOVEL = "FollowingNovelFeedFragment";
 
-    /** 筛选条三个位置对应的 restrict 值(顺序与 GlareLayout 的 左/中/右 一致)。 */
+    /** 筛选条三个位置对应的 restrict 值(顺序与 setSegments 里的段序一致)。 */
     private static final String[] RESTRICT_BY_INDEX = {
             Params.TYPE_ALL, Params.TYPE_PUBLIC, Params.TYPE_PRIVATE
     };
+
+    /** 类型条的段序。 */
+    private static final int TYPE_INDEX_ILLUST = 0;
+    private static final int TYPE_INDEX_NOVEL = 1;
 
     private DynamicPageViewModel pageModel;
     private RecmdUserRailFeedFragment railFragment;
@@ -93,8 +96,9 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
 
         // 筛选条:视图重建后先按页面状态回填选中态(控件自身默认是「全部」),再挂监听,
         // 免得回填动作被当成用户操作触发一次重拉
-        baseBind.glareLayout.setCurrentState(indexOfRestrict(pageModel.getRestrict()));
-        baseBind.glareLayout.setListener(new OnCheckChangeListener() {
+        baseBind.restrictToggle.setSegments(R.string.string_390, R.string.string_391, R.string.string_392);
+        baseBind.restrictToggle.setCurrentState(indexOfRestrict(pageModel.getRestrict()));
+        baseBind.restrictToggle.setListener(new OnCheckChangeListener() {
             @Override
             public void onSelect(int index, View view) {
                 if (index >= 0 && index < RESTRICT_BY_INDEX.length) {
@@ -111,7 +115,21 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
             }
         });
 
-        baseBind.dynamicTypeSwitcher.setOnClickListener(this::showTypeSwitcherMenu);
+        // 类型条:同款分段控件,点一下直接切(以前是「点开下拉菜单再点选项」两次点击,#1017)。
+        // 同样是先建段、再回填、最后挂监听,回填不该触发切模式。
+        baseBind.dynamicTypeToggle.setSegments(R.string.dynamic_type_illust_manga, R.string.string_171);
+        baseBind.dynamicTypeToggle.setListener(new OnCheckChangeListener() {
+            @Override
+            public void onSelect(int index, View view) {
+                switchMode(index == TYPE_INDEX_ILLUST);
+            }
+
+            @Override
+            public void onReselect(int index, View view) {
+                // 点当前这项 = 用户想回到自己已经在看的东西,什么也不用做
+            }
+        });
+
         baseBind.dynamicTitleLayout.setOnClickListener(v -> scrollActiveListToTop());
         baseBind.timelineToggle.setOnClickListener(v -> toggleTimelineMode());
         renderTimelineToggle();
@@ -168,14 +186,6 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
                 .commitNowAllowingStateLoss();
     }
 
-    private void showTypeSwitcherMenu(View anchor) {
-        CharSequence[] titles = new CharSequence[]{
-                mContext.getString(R.string.dynamic_type_illust_manga),
-                mContext.getString(R.string.string_171)
-        };
-        QMUIMenuPopup.show(mContext, anchor, titles, (index, text) -> switchMode(index == 0));
-    }
-
     private void switchMode(boolean wantIllust) {
         if (pageModel.isIllustMode() == wantIllust) {
             return;
@@ -185,7 +195,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     }
 
     /**
-     * 纯视图部分:两条列表容器的显隐 + 类型文案 + 布局按钮显隐。不碰子 fragment,
+     * 纯视图部分:两条列表容器的显隐 + 类型条选中态 + 布局按钮显隐。不碰子 fragment,
      * 所以视图一建好就能调(此时 {@link #ensureChildFragments()} 可能还没跑)。
      */
     private void renderModeChrome() {
@@ -194,8 +204,8 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
         baseBind.novelListContainer.setVisibility(illust ? View.GONE : View.VISIBLE);
         // 布局切换只对插画列表有意义(小说列表只有一种排布)
         baseBind.timelineToggle.setVisibility(illust ? View.VISIBLE : View.GONE);
-        baseBind.dynamicTypeSwitcher.setText(
-                illust ? R.string.dynamic_type_illust_manga : R.string.string_171);
+        // setCurrentState 不回调 listener,所以这里回填不会反过来再触发一次 switchMode
+        baseBind.dynamicTypeToggle.setCurrentState(illust ? TYPE_INDEX_ILLUST : TYPE_INDEX_NOVEL);
     }
 
     /**

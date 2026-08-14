@@ -16,7 +16,7 @@ import ceui.lisa.utils.Params
  * 2. 它必须与列表数据一起跨视图重建存活——否则旋转后数据还是「私人」而这里复位成「全部」，
  *    下次 setRestrict 会误判成「没变」而不重拉，筛选条和内容当场对不上。
  *
- * 写在主线程（GlareLayout 回调）。读发生在数据源里：目前 `load` 跑在 viewModelScope
+ * 写在主线程（筛选条回调）。读发生在数据源里：目前 `load` 跑在 viewModelScope
  * （Main.immediate），但那是 FeedViewModel 的内部实现细节、不是本类能依赖的契约，
  * 所以标 @Volatile，让「换个调度器也不会读到陈旧值」这件事不依赖别处的实现。
  */

@@ -27,7 +27,7 @@ import ceui.pixiv.ui.common.IllustFeedItem
  * 两件本页特有的事，其余（收藏、长按菜单、详情 pager 续拉回流、合池）全部继承自
  * [IllustFeedFragment]：
  *
- * 1. **筛选范围**（全部 / 公开 / 私人）：宿主的 GlareLayout 通过 [setRestrict] 推进来。
+ * 1. **筛选范围**（全部 / 公开 / 私人）：宿主的筛选条通过 [setRestrict] 推进来。
  *    值存在 [RestrictViewModel] 而不是 Fragment 字段——数据源归 FeedViewModel 长期持有、
  *    比 Fragment 实例活得久，按零捕获约定不能读 Fragment 字段；而 [RestrictViewModel] 与
  *    FeedViewModel 同一个 store、同生共死，捕获它既不漏也不会读到上一代的值。
@@ -103,7 +103,7 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
     }
 
     /**
-     * 切筛选范围（宿主 GlareLayout 选中另一项时调）。对齐 legacy 的
+     * 切筛选范围（宿主筛选条选中另一项时调）。对齐 legacy 的
      * `RightRepo.setRestrict + forceRefresh`：**变了才重拉**，没变是 no-op。
      */
     fun setRestrict(restrict: String) {

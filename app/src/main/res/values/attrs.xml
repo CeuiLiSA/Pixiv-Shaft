@@ -28,6 +28,10 @@
         <attr name="spv_cornerRadius" format="dimension" />
     </declare-styleable>
 
+    <declare-styleable name="SegmentedToggleLayout">
+        <attr name="stl_textSize" format="dimension" />
+    </declare-styleable>
+
     <!-- Chat subsystem (borrowed from Peanut; see ceui.pixiv.chat.base.widget.EmptyStateView) -->
     <declare-styleable name="EmptyStateView">
         <attr name="es_icon" format="reference" />
