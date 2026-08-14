@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.utils.V3Palette
+import ceui.pixiv.ui.settings.CustomThemeColor
 
 /**
  * 两级设置页的目录：分类定义 + 全量设置项索引（搜索用）。
@@ -84,7 +85,15 @@ object SettingsCatalog {
 
         // 界面（与布局分段同序：主题与语言 → 导航与主页 → 列表展示 → 桌面小组件）
         add(Entry(APPEARANCE, "theme_mode_rela", R.string.theme_mode, keywords = "夜间 暗色 深色 黑暗 日间 浅色 白天 跟随系统 dark light night mode"))
-        add(Entry(APPEARANCE, "color_select_rela", R.string.string_324, keywords = "主题色 颜色 配色 强调色 粉色 accent color"))
+        // 「主题色彩」这一行底下藏着自定义 HEX（issue #1014），别名要单独铺 —— [search] 是整串
+        // 子串匹配，中文不分词，用户敲「自定义颜色」时 haystack 里必须有这一整串才命中，
+        // 光有「自定义」+「颜色」两个独立词是搜不到的。
+        // 自定义档只在 Android 11+ 存在，别名跟着条件加：老机器搜过去也没那一行，不如搜不到。
+        val customColorAliases = if (CustomThemeColor.isSupported) {
+            // 「自定义主题色彩」写全，它自带涵盖「自定义主题色」和「主题色彩」两种敲法
+            " 自定义颜色 自定义主题色彩 自定义色值 十六进制 hex 色号 取色器 拾色器 调色板 custom color color picker"
+        } else ""
+        add(Entry(APPEARANCE, "color_select_rela", R.string.string_324, keywords = "主题色 颜色 配色 强调色 粉色 accent color$customColorAliases"))
         add(Entry(APPEARANCE, "app_language_rela", R.string.language, keywords = "语言 简体 繁体 英文 日文 韩文 中文 language english"))
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
