@@ -37,7 +37,9 @@ internal suspend fun <T> awaitOkHttpCall(
                         cont.resumeWith(Result.success(result))
                     }
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                // 必须兜 Throwable 而不是 Exception:响应体解析可能抛 OutOfMemoryError,
+                // 漏掉的话 cont 永远不 resume,协程就无声挂死到页面销毁——正是这里要消灭的问题。
                 if (cont.isCancelled) {
                     cont.resumeWith(Result.failure(CancellationException("okhttp call cancelled", e)))
                 } else {

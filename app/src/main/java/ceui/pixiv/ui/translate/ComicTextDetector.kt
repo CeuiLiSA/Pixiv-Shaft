@@ -174,8 +174,10 @@ object ComicTextDetector {
         val env = ortEnv ?: throw IllegalStateException("CTD model not loaded")
 
         val (lb, scale, padX, padY) = letterbox(bitmap, INPUT_SIZE)
-        coroutineContext.ensureActive()
         val inputBuf = try {
+            // letterbox 期间可能已被取消。检查必须在 try 里:抛出去也要走 finally 把 lb
+            // (1024x1024 ARGB,约 4MB native)回收掉,别取消一次漏一张
+            coroutineContext.ensureActive()
             bitmapToTensor(lb)
         } finally {
             if (lb !== bitmap) lb.recycle()
