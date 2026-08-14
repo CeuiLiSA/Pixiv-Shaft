@@ -6,6 +6,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
+import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
@@ -20,10 +21,20 @@ import ceui.pixiv.ui.slideshow.SlideshowLauncher
  * 从 [IllustFeedFragment] 搬出来单独放一个文件：菜单是一组独立的动作编排，跟「列表怎么加载」
  * 和「卡片怎么画」都无关，挤在基类里只是让那个类更长。
  *
- * 各动作里的整表快照（`currentIllustItems()`）都在 lambda 内部取 —— 只在真的点了那一项时才
+ * 各动作里的整表快照（[scopedBeans]）都在 lambda 内部取 —— 只在真的点了那一项时才
  * 复制列表，展开菜单本身零成本。
+ *
+ * @param scopedBeans 「批量操作」「幻灯片」作用的作品集合。默认是本页整张插画列表；页内的
+ *   子列表（首页顶部的横向排行榜预览条）传自己那一份 —— 从榜单卡长按点「幻灯片」却放起
+ *   底下推荐流，是两份互不相干的数据混在一个菜单里。
+ * @param onToggleSpoiler 「屏蔽 / 取消屏蔽此作品」怎么落地。默认走本页瀑布流卡的遮罩重绑
+ *   （[IllustFeedFragment.setIllustMuted]）；画不出遮罩的列表（横向排行榜预览条）自行覆盖。
  */
-internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
+internal fun IllustFeedFragment.showCardMenu(
+    item: IllustFeedItem,
+    scopedBeans: () -> List<IllustsBean> = { currentIllustItems().map { it.bean } },
+    onToggleSpoiler: (Boolean) -> Unit = { setIllustMuted(item, it) },
+) {
     val bean = item.bean
     val entityWrapper = requireEntityWrapper()
     val inWatchLater = entityWrapper.isInWatchLater(item.illust.id)
@@ -41,7 +52,7 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
             R.drawable.ic_visibility_off_black_24dp
         }
         item(spoilerLabel, spoilerIcon) {
-            setIllustMuted(item, !spoilered)
+            onToggleSpoiler(!spoilered)
         }
         item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
             MuteTagSheet.show(childFragmentManager, bean.tags, bean.user)
@@ -58,7 +69,7 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
         // 与小说卡长按菜单共用同一个 bulk_actions_entry —— 两处是同一件事，不该有两套措辞。
         item(getString(R.string.bulk_actions_entry), R.drawable.ic_select_all_24) {
             // 整个列表交给 V3 多选页勾选（对齐 legacy IAdapter popup / MultiDownload）
-            val beans = currentIllustItems().map { it.bean }
+            val beans = scopedBeans()
             if (beans.isNotEmpty()) {
                 BulkSelectStorage.put(beans)
                 startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
@@ -73,7 +84,7 @@ internal fun IllustFeedFragment.showCardMenu(item: IllustFeedItem) {
             }
         }
         item(getString(R.string.slideshow_play), R.drawable.ic_baseline_play_arrow_24) {
-            val beans = currentIllustItems().map { it.bean }
+            val beans = scopedBeans()
             val position = beans.indexOfFirst { it.id == bean.id }.coerceAtLeast(0)
             SlideshowLauncher.launchFromIllustsBeans(
                 requireContext(), ArrayList(beans), position, true,

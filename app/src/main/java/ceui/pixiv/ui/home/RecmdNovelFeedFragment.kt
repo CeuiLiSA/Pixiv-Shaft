@@ -18,6 +18,7 @@ import ceui.lisa.view.LinearItemHorizontalDecoration
 import ceui.lisa.view.LinearItemWithHeadDecoration
 import ceui.loxia.Client
 import ceui.loxia.Novel
+import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedLoadPhase
 import ceui.pixiv.feeds.FeedRenderer
@@ -26,7 +27,9 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
+import ceui.pixiv.ui.common.NovelMuteStore
 import ceui.pixiv.ui.common.openNovelDetail
+import ceui.pixiv.ui.common.showNovelCardMenu
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -80,15 +83,44 @@ class RecmdNovelFeedFragment : NovelFeedFragment() {
                 cell.binding.ranking.setHasFixedSize(true)
             },
         ) { cell ->
-            val item = cell.item
-            cell.binding.topRela.isVisible = true
-            // 同一批榜单重复 bind（滚动回收再回来）不重设 adapter，保留横向滚动位置。
-            if (cell.binding.ranking.tag != item) {
-                cell.binding.ranking.tag = item
-                cell.binding.ranking.adapter =
-                    RecmdNovelRankAdapter(item.rankNovels) { novelId -> openNovelDetail(novelId) }
-            }
+            bindRankStrip(cell)
         }
+
+    /**
+     * 榜单预览条的内容绑定。点击开详情，长按弹和小说卡同一套菜单（[showNovelCardMenu]），
+     * 「批量操作」作用在榜单这一份数据上而不是底下那条推荐流。
+     *
+     * 「屏蔽此作品」在这里的语义是**整张卡消失**而不是打码：横向条没有模糊层和粒子层，
+     * 没有「点一下取消屏蔽」的落脚点。名单 bind 时现读、屏蔽后当帧重建 adapter，与
+     * [mapRecmdNovelPage] 下次刷新的过滤口径一致；反悔走「屏蔽记录」页。同插画侧
+     * [RecmdIllustFeedFragment] 的榜单条。
+     */
+    private fun bindRankStrip(cell: FeedCell<NovelRankPreviewHeaderItem, RecyRecmdHeaderBinding>) {
+        val item = cell.itemOrNull ?: return
+        cell.binding.topRela.isVisible = true
+        val novels = item.rankNovels.filterNot { NovelMuteStore.isMuted(it.id) }
+        // 同一批榜单重复 bind（滚动回收再回来）不重设 adapter，保留横向滚动位置。
+        // 按 id 序列而不是条目本身认「同一批」：屏蔽掉一篇后条目没变、可见集合变了，得重建。
+        val batchKey = novels.map { it.id }
+        if (cell.binding.ranking.tag == batchKey) return
+        cell.binding.ranking.tag = batchKey
+        cell.binding.ranking.adapter = RecmdNovelRankAdapter(
+            novels = novels,
+            onClickNovel = { novelId -> openNovelDetail(novelId) },
+            onLongClickNovel = { novel ->
+                showNovelCardMenu(
+                    // 这批小说在 mapRecmdNovelPage 里已经滤过了，不再跑一遍内容过滤
+                    NovelFeedItem(novel),
+                    scopedNovels = { novels },
+                    onToggleSpoiler = { muted ->
+                        if (NovelMuteStore.setMuted(novel.id, muted) { novel }) {
+                            bindRankStrip(cell)
+                        }
+                    },
+                )
+            },
+        )
+    }
 
     companion object {
         /**
@@ -134,11 +166,12 @@ class NovelRankPreviewHeaderItem(val rankNovels: List<Novel>) : FeedItem {
 
 /**
  * 排行榜预览头里的横向小说卡 adapter（loxia 原生，recy_rank_novel_horizontal，替代 legacy NHAdapter）。
- * 点击开小说详情（走 novelId，不传序列化 bean）。
+ * 点击开小说详情（走 novelId，不传序列化 bean），长按弹小说卡菜单。
  */
 private class RecmdNovelRankAdapter(
     private val novels: List<Novel>,
     private val onClickNovel: (Long) -> Unit,
+    private val onLongClickNovel: (Novel) -> Unit,
 ) : RecyclerView.Adapter<RecmdNovelRankAdapter.VH>() {
 
     class VH(val binding: RecyRankNovelHorizontalBinding) : RecyclerView.ViewHolder(binding.root)
@@ -167,5 +200,9 @@ private class RecmdNovelRankAdapter(
         Glide.with(ctx).load(GlideUtil.getUrl(novel.user?.profile_image_urls?.medium))
             .placeholder(R.color.v3_surface_2).into(b.userHead)
         b.root.setOnClick { onClickNovel(novel.id) }
+        b.root.setOnLongClickListener {
+            onLongClickNovel(novel)
+            true
+        }
     }
 }

@@ -33,6 +33,7 @@ import ceui.lisa.view.SpacesItemWithHeadDecoration
 import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.pixiv.db.discovery.DiscoveryPool
+import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedLoadPhase
 import ceui.pixiv.feeds.FeedRenderer
@@ -41,6 +42,8 @@ import ceui.pixiv.feeds.pixiv.cachedPixivFeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.common.IllustMuteStore
+import ceui.pixiv.ui.common.showCardMenu
 import ceui.pixiv.ui.common.staggerIllustRenderer
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.utils.setOnClick
@@ -55,7 +58,8 @@ import kotlinx.coroutines.withContext
  *
  * 与 legacy 的行为对齐点：
  * - 首屏响应的 ranking_illusts 渲染横向排行榜预览（RAdapter hero 卡），
- *   「查看更多」进 RankActivity，卡片点击开 VActivity（一次性 PageData，同 legacy IllustHeader）；
+ *   「查看更多」进 RankActivity，卡片点击开 VActivity（一次性 PageData，同 legacy IllustHeader），
+ *   长按弹和瀑布流卡同一套菜单（见 [bindRankStrip]）；
  * - 排行榜预览的 bean 同样合入 ObjectPool + 灌关注状态（poolableBeansOf 覆盖）；
  * - 每页数据过滤前整页喂 DiscoveryPool（对齐 RecmdIllustRepo）；
  * - 「收藏时显示相关作品」：收藏成功后 FRAGMENT_ADD_RELATED_DATA 回流，
@@ -195,23 +199,53 @@ open class RecmdIllustFeedFragment(
             cell.binding.ranking.setHasFixedSize(true)
         },
     ) { cell ->
-        val item = cell.item
+        bindRankStrip(cell)
+    }
+
+    /**
+     * 榜单预览条的内容绑定。点击开详情，长按弹和瀑布流卡同一套菜单（[showCardMenu]）——
+     * 只是「批量操作」「幻灯片」作用在榜单这一份数据上，不是底下那条推荐流。
+     *
+     * 「屏蔽此作品」在这里的语义是**整张卡消失**而不是打码：横向条走 legacy [RAdapter]，
+     * 没有模糊层和粒子层（见 [ceui.lisa.helper.IllustNovelFilter.judgeID] 的注释），
+     * 也就没有「点一下取消屏蔽」的落脚点。所以名单在 bind 时现读、屏蔽后当帧重建 adapter，
+     * 与 [mapRecmdPage] 下次刷新时的过滤口径（`IllustNovelFilter.judge` 含 judgeID）一致；
+     * 反悔走「屏蔽记录」页，同其他画不出遮罩的老列表。
+     */
+    private fun bindRankStrip(cell: FeedCell<RankPreviewHeaderItem, RecyRecmdHeaderBinding>) {
+        val item = cell.itemOrNull ?: return
+        val beans = item.rankBeans.filterNot { IllustMuteStore.isMuted(it.id.toLong()) }
         // 同一份数据重复 bind（滚动回收再回来）不重设 adapter，保留横向滚动位置
-        //（对齐 legacy 单例 header 只在数据到达时 show 一次的语义）
-        if (cell.binding.ranking.tag != item) {
-            cell.binding.ranking.tag = item
-            val adapter = RAdapter(item.rankBeans, requireContext())
-            adapter.setOnItemClickListener { _, position, _ ->
-                // 一次性 PageData（同 legacy IllustHeader）：排行榜预览无 nextUrl，与主列表互不认领
-                val pageData = PageData(item.rankBeans)
-                Container.get().addPageToMap(pageData)
-                startActivity(Intent(requireContext(), VActivity::class.java).apply {
-                    putExtra(Params.POSITION, position)
-                    putExtra(Params.PAGE_UUID, pageData.getUUID())
-                })
-            }
-            cell.binding.ranking.adapter = adapter
+        //（对齐 legacy 单例 header 只在数据到达时 show 一次的语义）。
+        // 按 id 序列而不是条目本身认「同一份」：屏蔽掉一张后条目没变、可见集合变了，得重建。
+        val batchKey = beans.map { it.id }
+        if (cell.binding.ranking.tag == batchKey) return
+        cell.binding.ranking.tag = batchKey
+        val adapter = RAdapter(beans, requireContext())
+        adapter.setOnItemClickListener { _, position, _ ->
+            // 一次性 PageData（同 legacy IllustHeader）：排行榜预览无 nextUrl，与主列表互不认领
+            val pageData = PageData(beans)
+            Container.get().addPageToMap(pageData)
+            startActivity(Intent(requireContext(), VActivity::class.java).apply {
+                putExtra(Params.POSITION, position)
+                putExtra(Params.PAGE_UUID, pageData.getUUID())
+            })
         }
+        adapter.setOnItemLongClickListener { _, position, _ ->
+            val bean = beans.getOrNull(position) ?: return@setOnItemLongClickListener
+            // rawFromBean 不再跑一遍内容过滤：这批 bean 在 mapRecmdPage 里已经滤过了
+            val menuItem = IllustFeedItem.rawFromBean(bean) ?: return@setOnItemLongClickListener
+            showCardMenu(
+                menuItem,
+                scopedBeans = { beans },
+                onToggleSpoiler = { muted ->
+                    if (IllustMuteStore.setMuted(bean.id.toLong(), muted) { bean }) {
+                        bindRankStrip(cell)
+                    }
+                },
+            )
+        }
+        cell.binding.ranking.adapter = adapter
     }
 
     companion object {

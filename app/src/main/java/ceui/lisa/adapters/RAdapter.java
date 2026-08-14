@@ -41,5 +41,13 @@ public class RAdapter extends BaseAdapter<IllustsBean, RecyRankIllustHorizontalB
         if (mOnItemClickListener != null) {
             bindView.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
+        // 长按(对齐 IAdapter):不设监听的调用方(发现页货架)行为不变,itemView 连 longClickable
+        // 都不会被打开。返回 true 吃掉这一下,否则横向条会把它当成点击继续往下传。
+        if (mOnItemLongClickListener != null) {
+            bindView.itemView.setOnLongClickListener(v -> {
+                mOnItemLongClickListener.onItemLongClick(v, position, 0);
+                return true;
+            });
+        }
     }
 }
