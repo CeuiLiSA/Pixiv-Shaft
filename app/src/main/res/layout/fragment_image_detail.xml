@@ -6,9 +6,10 @@
 
     </data>
 
+    <!-- 页面自身不铺黑底(黑底在 activity 根布局上):下拉关闭把 ViewPager 拖走时,
+         跟手缩小的必须是图片本体而不是一整块黑色矩形 -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:background="@color/black"
         android:layout_height="match_parent">
 
         <com.github.panpf.zoomimage.SketchZoomImageView

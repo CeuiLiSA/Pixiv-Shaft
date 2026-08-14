@@ -21,6 +21,7 @@ import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
+import ceui.lisa.view.DragDismissLayout
 import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.imageloader.Disposable
 import ceui.pixiv.imageloader.ImageLoadState
@@ -308,6 +309,21 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 return true
             }
         })
+    }
+
+    /**
+     * 供大图页 DragDismissLayout 判定能否起竖向拖拽关闭手势。
+     * 无论当前缩放倍率，到顶后可继续下拉，到底后可继续上推；
+     * 图片还能沿当前方向平移时仍归 ZoomImage。圈选翻译模式下框选层接管触摸，不参与。
+     */
+    fun canSwipeToDismiss(direction: DragDismissLayout.Direction): Boolean {
+        if (view == null || baseBind == null) return false
+        if (baseBind.manualSelectionOverlay.visibility == View.VISIBLE) return false
+        val scrollDirection = when (direction) {
+            DragDismissLayout.Direction.UP -> 1
+            DragDismissLayout.Direction.DOWN -> -1
+        }
+        return !baseBind.image.canScrollVertically(scrollDirection)
     }
 
     public override fun initBundle(bundle: Bundle) {

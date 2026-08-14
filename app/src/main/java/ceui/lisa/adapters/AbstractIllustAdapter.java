@@ -43,6 +43,11 @@ public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
             intent.putExtra("illust", allIllust);
             intent.putExtra("dataType", "二级详情");
             intent.putExtra("index", position);
+            // 点击处的屏幕矩形:大图页(透明窗口)从这里展开进场,下拉收掉时缩回同一位置
+            int[] loc = new int[2];
+            v.getLocationOnScreen(loc);
+            intent.putExtra(ImageDetailActivity.EXTRA_ENTER_BOUNDS, new int[]{
+                    loc[0], loc[1], loc[0] + v.getWidth(), loc[1] + v.getHeight()});
             mContext.startActivity(intent);
         });
     }

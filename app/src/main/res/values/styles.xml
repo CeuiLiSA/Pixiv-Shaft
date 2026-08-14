@@ -459,6 +459,23 @@
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
 
+    <!-- 大图查看页(ImageDetailActivity):透明窗口,一级详情留在身后可见,黑底/展开/下拉收起
+         全部自绘,做成小红书式「全屏弹窗」观感。「窗口透明(能看见身后 Activity)」这件事由系统
+         在启动时读 manifest 主题决定,所以必须声明在 manifest 上;运行期 BaseActivity.updateTheme
+         会按用户主题色重新 setTheme,窗口属性由 ImageViewerWindowOverlay 补回。 -->
+    <style name="ImageViewerTheme" parent="AppTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <!-- 叠在任意用户主题色 AppTheme_IndexN 之上的窗口透明属性,见 ImageDetailActivity.setTheme -->
+    <style name="ImageViewerWindowOverlay" parent="">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
     <style name="SlideshowTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

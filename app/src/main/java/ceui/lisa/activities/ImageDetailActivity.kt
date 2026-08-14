@@ -3,6 +3,7 @@ package ceui.lisa.activities
 import android.app.WallpaperManager
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -21,7 +22,9 @@ import ceui.lisa.R
 import ceui.lisa.databinding.ActivityImageDetailBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.fragments.FragmentImageDetail
+import ceui.lisa.helper.ImageViewerTransition
 import ceui.lisa.helper.PageTransformerHelper
+import ceui.lisa.view.DragDismissLayout
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
@@ -87,6 +90,26 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private var index = 0
     private val viewModel by viewModels<ToggleToolnarViewModel>()
 
+    /** 小红书式全屏弹窗转场(进场展开/竖向拖拽跟手/收场缩回),见 [ImageViewerTransition]。 */
+    private var viewerTransition: ImageViewerTransition? = null
+    private var restoredFromSavedState = false
+    private var entryOrientation = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        // 重建恢复(旋转关掉 configChanges 的场景不会走到,但进程重建会)不播进场动画
+        restoredFromSavedState = savedInstanceState != null
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun setTheme(resid: Int) {
+        super.setTheme(resid)
+        // BaseActivity.updateTheme 会按用户主题色 setTheme(AppTheme_IndexN),把 manifest 里
+        // ImageViewerTheme 的透明 windowBackground 盖回不透明;每次 setTheme 后都叠回窗口
+        // 透明属性,保证 PhoneWindow 生成 DecorView 时读到透明背景。「能看见身后 Activity」
+        // 本身由 manifest 主题在启动时决定,不受运行期换主题影响。
+        theme.applyStyle(R.style.ImageViewerWindowOverlay, true)
+    }
+
     /** 「二级详情」的下载 + 收藏胶囊(与一级 V3 详情页共用),仅该模式下装配。 */
     private var fabBar: V3FabBarController? = null
 
@@ -133,6 +156,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 infoItems.forEach { it.animateFadeInQuickly() }
             }
         }
+        setupViewerTransition(btnAi)
         if ("二级详情" == dataType) {
             currentPage = findViewById(R.id.current_page)
             mIllustsBean = intent.getSerializableExtra("illust") as IllustsBean?
@@ -293,6 +317,57 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /**
+     * 装配小红书式全屏弹窗转场:根布局(透明窗口上的黑底 + 竖向手势层)在图片到顶/底后
+     * 接管继续外拉，驱动 ViewPager 跟手位移/缩小,黑底与工具条透明度交给 [ImageViewerTransition];
+     * 松手过阈值走统一收场(缩回缩略图矩形或沿手势方向淡出),否则回弹。进场从发起端带来的
+     * [EXTRA_ENTER_BOUNDS] 缩略图矩形展开,没带则居中放大淡入。
+     */
+    private fun setupViewerTransition(btnAi: View) {
+        val rootLayout = baseBind!!.root as DragDismissLayout
+        val chrome = listOfNotNull(baseBind?.bottomRela, btnAi)
+        val transition = ImageViewerTransition(
+            rootLayout,
+            baseBind!!.viewPager,
+            chrome,
+            intent.getIntArrayExtra(EXTRA_ENTER_BOUNDS),
+        )
+        viewerTransition = transition
+        entryOrientation = resources.configuration.orientation
+        rootLayout.dragTargetView = baseBind!!.viewPager
+        rootLayout.callback = object : DragDismissLayout.Callback {
+            override fun canStartDismissDrag(direction: DragDismissLayout.Direction): Boolean =
+                currentImageFragment()?.canSwipeToDismiss(direction) ?: true
+
+            override fun onDismissDragUpdate(fraction: Float) =
+                transition.onDragProgress(fraction)
+
+            override fun onDismissDragRelease(
+                shouldDismiss: Boolean,
+                direction: DragDismissLayout.Direction,
+                velocityY: Float,
+            ) {
+                // AI 翻译烧着 Token 时手势收掉也要走二次确认,与返回键同一闸口
+                if (shouldDismiss && !maybeConfirmAiExit()) {
+                    dismissViewer(direction)
+                } else {
+                    transition.springBack()
+                }
+            }
+        }
+        if (restoredFromSavedState) {
+            transition.showImmediately()
+        } else {
+            transition.playEnter()
+        }
+    }
+
+    /** FragmentPagerAdapter 内建 tag 规则定位当前页 fragment(三种 dataType 的页面都是它)。 */
+    private fun currentImageFragment(): FragmentImageDetail? =
+        supportFragmentManager.findFragmentByTag(
+            "android:switcher:" + R.id.view_pager + ":" + baseBind!!.viewPager.currentItem
+        ) as? FragmentImageDetail
+
+    /**
      * 「二级详情」装配底部下载 + 收藏胶囊(布局/着色/顺序偏好/底距逻辑与一级 V3 详情页
      * 共用 [V3FabBarController];点击语义归本页:下载 = 保存**当前页**,收藏 = 收藏整个作品)。
      */
@@ -430,10 +505,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
 
     override fun initData() {
-        postponeEnterTransition()
-        // 返回键/返回手势:停在进入时那一页 → 走共享元素返回动画(finishAfterTransition),
-        // 已滑到别的页 → 无共享元素可回,直接关。targetSdk 35+ 后预测式返回默认开启,
-        // 系统不再回调 onBackPressed,必须用 OnBackPressedDispatcher 接管。
+        // 返回键/返回手势与下拉收掉共用 dismissViewer 收场动画。targetSdk 35+ 后预测式返回
+        // 默认开启,系统不再回调 onBackPressed,必须用 OnBackPressedDispatcher 接管。
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (maybeConfirmAiExit()) return
@@ -471,13 +544,23 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         return true
     }
 
-    /** 统一的退出动作:停在进入页走共享元素返回动画,滑到别的页直接关。 */
+    /** 统一的退出入口(返回键 / AI 确认框的「退出」都走这里)。 */
     private fun finishViewer() {
-        if (index == baseBind!!.viewPager.currentItem) {
-            finishAfterTransition()
-        } else {
+        dismissViewer()
+    }
+
+    /**
+     * 收场:还停在进入那一页且没转过屏 → 缩回缩略图矩形;翻到别的页/转过屏后矩形已对不上,
+     * 沿关闭手势方向淡出。动画播完才真正 finish(透明主题 windowAnimationStyle=@null,系统不再叠动画)。
+     */
+    private fun dismissViewer(direction: DragDismissLayout.Direction = DragDismissLayout.Direction.DOWN) {
+        val transition = viewerTransition ?: run {
             mActivity.finish()
+            return
         }
+        val backToBounds = index == baseBind?.viewPager?.currentItem &&
+                resources.configuration.orientation == entryOrientation
+        transition.playExit(backToBounds, direction) { mActivity.finish() }
     }
 
     override fun onDestroy() {
@@ -804,5 +887,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     override fun hideStatusBar(): Boolean {
         return true
+    }
+
+    companion object {
+        /** 进场缩略图矩形(屏幕坐标 [left, top, right, bottom]),发起端可选携带;没带则居中淡入。 */
+        const val EXTRA_ENTER_BOUNDS = "enter_bounds"
     }
 }

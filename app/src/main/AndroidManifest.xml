@@ -113,7 +113,7 @@
         <activity
             android:name=".activities.ImageDetailActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:theme="@style/SplashTheme" />
+            android:theme="@style/ImageViewerTheme" />
         <activity
             android:name=".activities.OutWakeActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
