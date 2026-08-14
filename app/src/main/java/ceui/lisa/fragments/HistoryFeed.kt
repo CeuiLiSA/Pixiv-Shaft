@@ -34,6 +34,8 @@ import java.util.Locale
 
 /** 历史卡封面高度下限 = 宽的 0.5 倍(对齐改造前 `coerceAtLeast(itemWidth / 2)` 的语义)。 */
 private const val MIN_HISTORY_HEIGHT_RATIO = 0.5f
+/** 历史卡封面高度上限 = 宽的 2.0 倍(对齐收藏页瀑布流 staggerIllustRenderer 的钳制区间)。 */
+private const val MAX_HISTORY_HEIGHT_RATIO = 2.0f
 
 // ── FeedItem 模型（原 HistoryIllustHolder / HistoryNovelHolder 的数据部分）─────────────
 // isSelectionMode / isSelected 由 FragmentHistoryList.syncSelection 通过 updateItems 回灌。
@@ -365,7 +367,8 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         // 卡整体高 1.5~2 倍。默认值是 2 列,所以只在非默认档露馅。
         // 顺带治了绝对像素的老毛病:复用的卡片横竖屏切换后会揣着旧方向的尺寸。
         val ratio = if (illust.width > 0 && illust.height > 0) {
-            (illust.height.toFloat() / illust.width).coerceAtLeast(MIN_HISTORY_HEIGHT_RATIO)
+            (illust.height.toFloat() / illust.width)
+                .coerceIn(MIN_HISTORY_HEIGHT_RATIO, MAX_HISTORY_HEIGHT_RATIO)
         } else {
             1f
         }
