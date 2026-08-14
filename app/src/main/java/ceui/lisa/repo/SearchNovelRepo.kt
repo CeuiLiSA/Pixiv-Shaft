@@ -348,8 +348,9 @@ class SearchNovelRepo @JvmOverloads constructor(
         return Observable.just(ListNovel().apply { novels = emptyList() })
     }
 
-    fun update(searchModel: SearchModel) {
-        keyword = searchModel.keyword.value
+    fun update(searchModel: SearchModel, keywordSnapshot: String? = searchModel.keyword.value) {
+        // 与政策门控共用本代 keyword 快照，避免检查和实际 Retrofit 参数之间产生时序窗口。
+        keyword = keywordSnapshot
         // 已下线的「机内自带热度排序」在这里就归一掉（老配置里可能还存着），下游一路
         // 只会看到 pixiv 认识的值——原样发出去是 400 Invalid value，而且 400 不是 OAuth
         // 错误，[isBorrowedAccountUnavailable] 也不成立，会既不回落 preview 又白借一个号。

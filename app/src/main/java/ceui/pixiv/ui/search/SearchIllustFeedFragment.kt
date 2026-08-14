@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import ceui.lisa.R
 import ceui.lisa.model.ListIllust
 import ceui.lisa.repo.SearchIllustRepo
 import ceui.lisa.utils.PixivSearchParamUtil
@@ -45,6 +46,11 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
         SearchIllustFeedSource(searchModel)
     }
 
+    override val emptyStateText: CharSequence
+        get() = SearchRiskPolicy.withheldQuery(searchModel.keyword.value)?.let { query ->
+            getString(R.string.search_results_withheld_notice, query)
+        } ?: super.emptyStateText
+
     /**
      * 不把搜索游标交给详情页 pager 续读（基类默认会交）。
      *
@@ -71,8 +77,15 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         searchModel.nowGo.observe(viewLifecycleOwner) {
-            // 只在「标签匹配」档响应（对齐 legacy）：选了小说专属 target 时插画 tab 不重搜。
-            if (PixivSearchParamUtil.TAG_MATCH_VALUE.contains(searchModel.searchType.value)) {
+            // 普通查询仍只在「标签匹配」档响应（对齐 legacy）。命中本地策略时则所有
+            // 分栏都必须刷新为空，避免切换 tab 后短暂看到上一次搜索留下的结果。
+            val shouldWithhold = SearchRiskPolicy.shouldWithhold(searchModel.keyword.value)
+            if (shouldWithhold) {
+                // 本地短路不会发网络；离屏页也立即清空，避免 ViewPager 滑动过程中在
+                // onResume 之前露出上一代结果。
+                searchRefreshPending = false
+                feedViewModel.refresh()
+            } else if (PixivSearchParamUtil.TAG_MATCH_VALUE.contains(searchModel.searchType.value)) {
                 // ViewPager 的离屏页仍处于 STARTED，LiveData 也会通知它。只让当前
                 // RESUMED tab 立即请求；离屏页合并成一次待刷新，等用户真正切过来再搜。
                 if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -121,6 +134,21 @@ class SearchIllustFeedSource(private val searchModel: SearchModel) : FeedSource<
     private var repo: SearchIllustRepo? = null
 
     override suspend fun load(cursor: String?): FeedPage<String> {
+        // 策略只决定一代搜索的首页；翻页沿用这一代已经固定的 nextUrl。每次键入会更新
+        // SearchModel，但未提交前不应截断屏幕上那一代安全结果的翻页。
+        val keywordSnapshot = if (cursor == null) searchModel.keyword.value.orEmpty() else null
+        if (keywordSnapshot != null) {
+            val shouldWithhold = if (SearchRiskPolicy.isWarmedUp()) {
+                SearchRiskPolicy.shouldWithhold(keywordSnapshot)
+            } else {
+                withContext(Dispatchers.Default) {
+                    SearchRiskPolicy.shouldWithhold(keywordSnapshot)
+                }
+            }
+            if (shouldWithhold) {
+                return FeedPage(emptyList(), null)
+            }
+        }
         // 8 个必填参数先给 null，全部由 update(searchModel) 填；构造时 super 已建好 FilterMapper。
         val r = repo ?: SearchIllustRepo(null, null, null, null, null, null, null, null).also { repo = it }
         val list: ListIllust = if (cursor == null) {
@@ -129,7 +157,7 @@ class SearchIllustFeedSource(private val searchModel: SearchModel) : FeedSource<
             // 非会员那条路还会在这里同步借号(runBlocking)，不切 IO 就会静默卡主线程。
             //（搜索历史写入已上移到 SearchActivity，update 不再做 Room I/O。）
             val api = withContext(Dispatchers.IO) {
-                r.update(searchModel) // 读最新参数 + 配置 FilterMapper
+                r.update(searchModel, keywordSnapshot) // 与上面的策略判断共用同一 keyword 快照
                 r.initApi()
             }
             api.awaitFirstValue()

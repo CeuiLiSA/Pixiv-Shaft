@@ -16,6 +16,7 @@ import ceui.lisa.databinding.DialogSearchFilterV3Binding
 import ceui.loxia.Client
 import ceui.loxia.ObjectType
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.search.SearchRiskPolicy
 import ceui.pixiv.ui.search.SearchViewModel
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.utils.setOnClick
@@ -789,9 +790,11 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
     internal fun ensureSearchOptionsLoaded() {
         if (searchViewModel.searchOptions.value != null) return
         // /v1/search/options 实测响应与 word 无关，但服务端要求该参数非空。
-        // 直接用用户的 keyword；空就传一个无害占位。
-        val keyword = searchViewModel.tagList.value
+        // 命中本地策略时也只发无害占位，避免筛选弹窗把原查询带到网络层。
+        val candidate = searchViewModel.tagList.value
             ?.firstOrNull()?.name?.takeIf { !it.isNullOrEmpty() }
+        val keyword = candidate
+            ?.takeUnless(SearchRiskPolicy::shouldWithhold)
             ?: PLACEHOLDER_KEYWORD
         viewLifecycleOwner.lifecycleScope.launch {
             try {

@@ -35,6 +35,7 @@ import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
 import ceui.pixiv.ui.search.SearchIllustFeedFragment;
 import ceui.pixiv.ui.search.SearchNovelFeedFragment;
+import ceui.pixiv.ui.search.SearchRiskPolicy;
 import ceui.pixiv.ui.search.SearchUserFeedFragment;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
@@ -77,6 +78,8 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
      */
     @Override
     public void initModel() {
+        // AES/GCM 提供器与词库只在搜索页用到：进页即在后台预热，避免首次键入时冷解密卡主线程。
+        Schedulers.computation().scheduleDirect(SearchRiskPolicy::warmUp);
         searchModel = new ViewModelProvider(this).get(SearchModel.class);
         hintViewModel = new ViewModelProvider(this).get(SearchHintViewModel.class);
         searchModel.getKeyword().setValue(keyWord);
@@ -101,11 +104,16 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         final String trimmed = keyword.trim();
         if (trimmed.isEmpty()) return;
         // 写库甩到 IO 线程：insertSearchHistory 是主键读 + 单条插入，search_table 极小虽轻，
-        // 但 initModel / nowGo 都跑在主线程，统一挪开不碰主线程 Room（对齐本仓
+        // 政策判断也留在这里，首次进搜索页即使后台预热尚未完成也不阻塞主线程。
+        // initModel / nowGo 都跑在主线程，统一挪开不碰主线程 Room（对齐本仓
         // insertIllustViewHistory 等既有做法）。fire-and-forget，去重靠 id REPLACE，乱序无碍；
         // 只捕获 String + 静态方法，不持有 Activity，无泄漏。
-        Schedulers.io().scheduleDirect(() ->
-                PixivOperate.insertSearchHistory(trimmed, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD));
+        Schedulers.io().scheduleDirect(() -> {
+            // 被拦截的查询不持久化；结果页仍保留当前 chip 来解释为什么未显示。
+            if (!SearchRiskPolicy.shouldWithhold(trimmed)) {
+                PixivOperate.insertSearchHistory(trimmed, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
+            }
+        });
     }
 
     @Override
@@ -284,6 +292,28 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     }
                     Common.showToast(getString(R.string.string_139));
                     return false;
+                }
+
+                // 高风险纯数字词不能落入下面的作品 ID / 用户 ID 直达分支。
+                // 先按完整查询（已有 chips + 本次输入）做政策判断，命中就像普通
+                // 关键词一样进入结果态，由三个 feed 显示统一提示。
+                String existingKeyword = joinedChips();
+                String policyQuery = TextUtils.isEmpty(existingKeyword)
+                        ? trimmedKeyword
+                        : TextUtils.isEmpty(trimmedKeyword)
+                            ? existingKeyword
+                            : existingKeyword + " " + trimmedKeyword;
+                if (SearchRiskPolicy.shouldWithhold(policyQuery)) {
+                    if (!TextUtils.isEmpty(trimmedKeyword) && !committedTags.contains(trimmedKeyword)) {
+                        committedTags.add(trimmedKeyword);
+                        refreshChipsUI();
+                    }
+                    baseBind.searchTagsFlow.getEditor().setText("");
+                    searchModel.getKeyword().setValue(joinedChips());
+                    searchModel.getNowGo().setValue("search_now");
+                    hintViewModel.hideHints();
+                    Common.hideKeyboard(mActivity);
+                    return true;
                 }
 
                 if (URLUtil.isValidUrl(trimmedKeyword)) {

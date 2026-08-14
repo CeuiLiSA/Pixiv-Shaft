@@ -2081,6 +2081,7 @@
     <string name="search_filter_v3_date_unset">未设置</string>
     <string name="search_filter_v3_row_original_only">仅限原创作品</string>
     <string name="search_filter_v3_row_replaceable_only">仅限支持单词置换的作品</string>
+    <string name="search_results_withheld_notice" translatable="false">根据相关法律法规和政策，“%1$s”搜索结果未予显示。</string>
 
 
     <string name="slideshow_play">幻灯片播放</string>

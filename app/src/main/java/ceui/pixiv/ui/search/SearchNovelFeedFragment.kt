@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.model.ListNovel
 import ceui.lisa.models.NovelBean
@@ -42,10 +43,21 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         SearchNovelFeedSource(searchModel)
     }
 
+    override val emptyStateText: CharSequence
+        get() = SearchRiskPolicy.withheldQuery(searchModel.keyword.value)?.let { query ->
+            getString(R.string.search_results_withheld_notice, query)
+        } ?: super.emptyStateText
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         searchModel.nowGo.observe(viewLifecycleOwner) {
-            if (PixivSearchParamUtil.TAG_MATCH_VALUE_NOVEL.contains(searchModel.searchType.value)) {
+            // 命中本地策略时不受普通搜索类型限制：小说页也要清空旧结果。
+            val shouldWithhold = SearchRiskPolicy.shouldWithhold(searchModel.keyword.value)
+            if (shouldWithhold) {
+                // 只走本地空页，离屏执行也不会产生请求；先于横滑可见阶段清掉旧数据。
+                searchRefreshPending = false
+                feedViewModel.refresh()
+            } else if (PixivSearchParamUtil.TAG_MATCH_VALUE_NOVEL.contains(searchModel.searchType.value)) {
                 // 离屏 ViewPager 页处于 STARTED 也会收到 LiveData；不在后台搜索，
                 // 只记一次待刷新，等这个 tab 真正 RESUMED 时再执行。
                 if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -87,9 +99,21 @@ class SearchNovelFeedSource(private val searchModel: SearchModel) : FeedSource<S
     private var repo: SearchNovelRepo? = null
 
     override suspend fun load(cursor: String?): FeedPage<String> {
+        // 首页固定本代 keyword；翻页沿用本代 repo 参数，不受尚未提交的输入草稿影响。
+        val keywordSnapshot = if (cursor == null) searchModel.keyword.value.orEmpty() else null
+        if (keywordSnapshot != null) {
+            val shouldWithhold = if (SearchRiskPolicy.isWarmedUp()) {
+                SearchRiskPolicy.shouldWithhold(keywordSnapshot)
+            } else {
+                withContext(Dispatchers.Default) {
+                    SearchRiskPolicy.shouldWithhold(keywordSnapshot)
+                }
+            }
+            if (shouldWithhold) return FeedPage(emptyList(), null)
+        }
         val r = repo ?: SearchNovelRepo(null, null, null, null, null, null, null, null).also { repo = it }
         val list: ListNovel = if (cursor == null) {
-            r.update(searchModel)
+            r.update(searchModel, keywordSnapshot)
             r.initApi().awaitFirstValue()
         } else {
             r.setNextUrl(cursor)

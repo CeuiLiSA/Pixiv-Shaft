@@ -358,8 +358,10 @@ class SearchIllustRepo @JvmOverloads constructor(
         return this.filterMapper!!
     }
 
-    fun update(searchModel: SearchModel) {
-        keyword = searchModel.keyword.value
+    fun update(searchModel: SearchModel, keywordSnapshot: String? = searchModel.keyword.value) {
+        // 搜索页在策略判断前已固定本代 keyword；这里必须复用同一快照，不能在后台切线程后
+        // 再从会随输入变化的 LiveData 取一次，否则会出现“检查的是旧词、请求发的是新词”。
+        keyword = keywordSnapshot
         // 已下线的「机内自带热度排序」在这里就归一掉（老配置里可能还存着），下游一路
         // 只会看到 pixiv 认识的值。见 [SortType.sanitize]。
         sortType = SortType.sanitize(searchModel.sortType.value)
