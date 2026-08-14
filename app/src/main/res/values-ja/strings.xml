@@ -129,6 +129,10 @@
     <string name="v3_widget_interval_minutes">%d 分</string>
     <string name="v3_widget_interval_hours">%d 時間</string>
     <string name="v3_widget_bookmark_failed">ブックマークに失敗しました。後でもう一度お試しください</string>
+    <string name="v3_widget_hide_bookmark_button">ウィジェットのブックマークボタンを隠す</string>
+    <string name="v3_widget_hide_bookmark_button_desc">ボタンが表紙に重なります。隠すと作品がはっきり見えます</string>
+    <string name="v3_widget_hide_refresh_button">ウィジェットの更新ボタンを隠す</string>
+    <string name="v3_widget_hide_refresh_button_desc">隠すと更新間隔にしたがって自動で切り替わるだけになります</string>
     <string name="novel_tag">小説のタグ</string>
     <string name="hot_tag">人気のタグ</string>
     <string name="ranking_illust">ランキング</string>

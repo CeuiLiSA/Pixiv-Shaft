@@ -296,6 +296,25 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     .show();
         });
 
+        // 小组件浮在封面上的两个按钮（#1013：挡画面）
+        baseBind.widgetHideBookmarkButton.setChecked(Shaft.sSettings.isWidgetHideBookmarkButton());
+        baseBind.widgetHideBookmarkButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setWidgetHideBookmarkButton(isChecked);
+            Local.setSettings(Shaft.sSettings);
+            refreshWidgets();
+        });
+        baseBind.widgetHideBookmarkButtonRela.setOnClickListener(
+                v -> baseBind.widgetHideBookmarkButton.performClick());
+
+        baseBind.widgetHideRefreshButton.setChecked(Shaft.sSettings.isWidgetHideRefreshButton());
+        baseBind.widgetHideRefreshButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setWidgetHideRefreshButton(isChecked);
+            Local.setSettings(Shaft.sSettings);
+            refreshWidgets();
+        });
+        baseBind.widgetHideRefreshButtonRela.setOnClickListener(
+                v -> baseBind.widgetHideRefreshButton.performClick());
+
         // APP主页显示R页面
         baseBind.mainViewR18.setChecked(Shaft.sSettings.isMainViewR18());
         baseBind.mainViewR18.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -312,6 +331,24 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
     private boolean hasWidget(Class<?> providerClass) {
         return AppWidgetManager.getInstance(mContext)
                 .getAppWidgetIds(new ComponentName(mContext, providerClass)).length > 0;
+    }
+
+    /** 按钮显隐是渲染时读的设置，桌面上已有的实例要重推一次才能立刻生效 */
+    private void refreshWidgets() {
+        notifyWidgetUpdate(RecommendCardWidgetProvider.class);
+        notifyWidgetUpdate(SpotlightWidgetProvider.class);
+    }
+
+    private void notifyWidgetUpdate(Class<?> providerClass) {
+        int[] ids = AppWidgetManager.getInstance(mContext)
+                .getAppWidgetIds(new ComponentName(mContext, providerClass));
+        if (ids.length == 0) {
+            return;
+        }
+        Intent intent = new Intent(mContext, providerClass);
+        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+        mContext.sendBroadcast(intent);
     }
 
     private String intervalDisplay(int minutes) {

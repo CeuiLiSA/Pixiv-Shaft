@@ -253,7 +253,7 @@
                     android:id="@+id/widget_refresh_interval_rela"
                     style="@style/M3SetRow"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_m3_row_single">
+                    android:background="@drawable/bg_m3_row_top">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -267,6 +267,50 @@
                     <TextView
                         android:id="@+id/widget_refresh_interval"
                         style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/widget_hide_bookmark_button_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/v3_widget_hide_bookmark_button" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/v3_widget_hide_bookmark_button_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/widget_hide_bookmark_button"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/widget_hide_refresh_button_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/v3_widget_hide_refresh_button" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/v3_widget_hide_refresh_button_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/widget_hide_refresh_button"
+                        style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
 

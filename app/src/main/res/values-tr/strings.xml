@@ -129,6 +129,10 @@
     <string name="v3_widget_interval_minutes">%d dk</string>
     <string name="v3_widget_interval_hours">%d sa</string>
     <string name="v3_widget_bookmark_failed">Favorilere eklenemedi, lütfen daha sonra tekrar deneyin</string>
+    <string name="v3_widget_hide_bookmark_button">Widget favori düğmesini gizle</string>
+    <string name="v3_widget_hide_bookmark_button_desc">Düğme kapağın üzerinde durur; gizlendiğinde eser tam görünür</string>
+    <string name="v3_widget_hide_refresh_button">Widget yenileme düğmesini gizle</string>
+    <string name="v3_widget_hide_refresh_button_desc">Gizlendiğinde eser yalnızca yenileme aralığında değişir</string>
     <string name="novel_tag">Roman Etiketleri</string>
     <string name="hot_tag">Popüler Etiketler</string>
     <string name="ranking_illust">Popüler</string>

@@ -297,6 +297,11 @@ public class Settings {
     /** 桌面小组件换图间隔（分钟），只作用于推荐类小组件；日榜固定 6 小时。WorkManager 下限 15。 */
     private int widgetRefreshIntervalMinutes = 30;
 
+    /** 隐藏小组件上浮在封面之上的收藏按钮（#1013：挡画面） */
+    private boolean widgetHideBookmarkButton = false;
+    /** 隐藏小组件上浮在封面之上的刷新按钮（#1013：挡画面） */
+    private boolean widgetHideRefreshButton = false;
+
     // ===== aria2 远程下载（#692）：启用后图片下载任务通过 JSON-RPC 发给远端 aria2（如 NAS），不在本地落盘 =====
     private boolean aria2Enabled = false;
     /** aria2 JSON-RPC 端点，如 http://192.168.1.5:6800/jsonrpc */
@@ -934,6 +939,22 @@ public class Settings {
 
     public void setWidgetRefreshIntervalMinutes(int minutes) {
         this.widgetRefreshIntervalMinutes = minutes;
+    }
+
+    public boolean isWidgetHideBookmarkButton() {
+        return widgetHideBookmarkButton;
+    }
+
+    public void setWidgetHideBookmarkButton(boolean hide) {
+        this.widgetHideBookmarkButton = hide;
+    }
+
+    public boolean isWidgetHideRefreshButton() {
+        return widgetHideRefreshButton;
+    }
+
+    public void setWidgetHideRefreshButton(boolean hide) {
+        this.widgetHideRefreshButton = hide;
     }
 
     public boolean isAria2Enabled() {

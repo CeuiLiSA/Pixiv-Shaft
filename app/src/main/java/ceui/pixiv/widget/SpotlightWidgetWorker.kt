@@ -10,6 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
 import ceui.lisa.http.Retro
 import ceui.lisa.models.IllustsBean
@@ -174,11 +175,15 @@ class SpotlightWidgetWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_root, openPi)
-        views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
-        views.setOnClickPendingIntent(
-            R.id.widget_bookmark,
-            WidgetBookmarkReceiver.pendingIntent(context, "spotlight/$widgetId", illust.id)
-        )
+        if (Shaft.sSettings.isWidgetHideBookmarkButton) {
+            views.setViewVisibility(R.id.widget_bookmark, android.view.View.GONE)
+        } else {
+            views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
+            views.setOnClickPendingIntent(
+                R.id.widget_bookmark,
+                WidgetBookmarkReceiver.pendingIntent(context, "spotlight/$widgetId", illust.id)
+            )
+        }
 
         manager.updateAppWidget(widgetId, views)
         return true

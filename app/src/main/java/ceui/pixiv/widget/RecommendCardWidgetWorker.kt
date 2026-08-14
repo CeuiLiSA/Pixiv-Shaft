@@ -10,6 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
 import ceui.lisa.http.Retro
 import ceui.lisa.models.IllustsBean
@@ -90,7 +91,7 @@ class RecommendCardWidgetWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_root, openPi)
-        views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(widgetId))
+        applyRefreshButton(views, widgetId)
         views.setViewVisibility(R.id.widget_bookmark, android.view.View.GONE)
         manager.updateAppWidget(widgetId, views)
     }
@@ -150,15 +151,29 @@ class RecommendCardWidgetWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_root, openPi)
-        views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(widgetId))
-        views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
-        views.setOnClickPendingIntent(
-            R.id.widget_bookmark,
-            WidgetBookmarkReceiver.pendingIntent(context, "card/$widgetId", illust.id)
-        )
+        applyRefreshButton(views, widgetId)
+        if (Shaft.sSettings.isWidgetHideBookmarkButton) {
+            views.setViewVisibility(R.id.widget_bookmark, android.view.View.GONE)
+        } else {
+            views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
+            views.setOnClickPendingIntent(
+                R.id.widget_bookmark,
+                WidgetBookmarkReceiver.pendingIntent(context, "card/$widgetId", illust.id)
+            )
+        }
 
         manager.updateAppWidget(widgetId, views)
         return true
+    }
+
+    /** 刷新按钮可以被设置隐藏（#1013：挡画面），隐藏时连点击热区一起去掉 */
+    private fun applyRefreshButton(views: RemoteViews, widgetId: Int) {
+        if (Shaft.sSettings.isWidgetHideRefreshButton) {
+            views.setViewVisibility(R.id.widget_refresh, android.view.View.GONE)
+        } else {
+            views.setViewVisibility(R.id.widget_refresh, android.view.View.VISIBLE)
+            views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(widgetId))
+        }
     }
 
     /** 右下角刷新：广播 ACTION_APPWIDGET_UPDATE → provider onUpdate → 重新随机一张 */
