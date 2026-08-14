@@ -63,11 +63,13 @@
                 android:textColor="@color/v3_text_3"
                 android:textSize="12sp" />
 
-            <LinearLayout
+            <!-- 环境 chip 行：Flexbox 自动换行，避免 chip 太多时最后一个被横向压缩成细柱。 -->
+            <com.google.android.flexbox.FlexboxLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:orientation="horizontal">
+                app:alignItems="center"
+                app:flexWrap="wrap">
 
                 <TextView
                     android:id="@+id/chip_doh"
@@ -100,7 +102,7 @@
                     android:textSize="12sp"
                     android:textStyle="bold"
                     tools:text="图片代理 · Pixiv 官方" />
-            </LinearLayout>
+            </com.google.android.flexbox.FlexboxLayout>
 
             <!-- 总览卡：跑完才显示。大状态行 + 副说明。 -->
             <LinearLayout
@@ -115,11 +117,12 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <!-- 总览 pill 行：Flexbox 自动换行，四个 pill 放不下时换行而不是挤压最后一个。 -->
+                <com.google.android.flexbox.FlexboxLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    app:alignItems="center"
+                    app:flexWrap="wrap">
 
                     <TextView
                         android:id="@+id/summary_pill"
@@ -169,7 +172,7 @@
                         android:textStyle="bold"
                         android:visibility="gone"
                         tools:visibility="visible" />
-                </LinearLayout>
+                </com.google.android.flexbox.FlexboxLayout>
 
                 <TextView
                     android:id="@+id/summary_sub"
