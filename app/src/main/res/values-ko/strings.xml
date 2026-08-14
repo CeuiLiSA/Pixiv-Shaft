@@ -1357,6 +1357,10 @@
     <string name="download_path_policy_replace">이미 있으면 덮어쓰기</string>
     <string name="download_path_policy_rename">이미 있으면 이름 변경</string>
     <string name="setting_overwrite_policy">같은 파일이 있을 때</string>
+    <string name="setting_ugoira_save_format">움직이는 일러스트 저장 형식</string>
+    <string name="setting_ugoira_save_format_desc">MP4는 GIF의 약 1/10 크기이며 풀컬러입니다. GIF는 호환성이 가장 좋습니다</string>
+    <string name="setting_ugoira_save_format_gif">GIF</string>
+    <string name="setting_ugoira_save_format_mp4">MP4</string>
     <string name="setting_storage_choice">저장 위치</string>
     <string name="setting_storage_pictures">시스템 갤러리(Pictures)</string>
     <string name="setting_storage_downloads">Downloads 폴더</string>

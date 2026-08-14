@@ -19,8 +19,10 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -28,11 +30,11 @@ import kotlin.coroutines.coroutineContext
  *   getGifPackage 拿 zip url + frame delays
  *   → 下载 zip 到 [LegacyFile.gifZipFile]（仅 internal cache）
  *   → 解压到 [LegacyFile.gifUnzipFolder]（仅 internal cache）
- *   → AnimatedGifEncoder **直接编进 V3 [DownloadsRegistry] 的 WriteHandle.stream**
+ *   → 按「动图保存格式」出片(mp4 / GIF)**直接写进 V3 [DownloadsRegistry] 的 WriteHandle.stream**
  *
  * 设计要点：
  *
- *  - **不走 [ceui.lisa.file.OutPut.outPutGif]**：那个 helper 内部虽然也用 V3 facade，
+ *  - **不走 [ceui.lisa.file.OutPut.outPutUgoira]**：那个 helper 内部虽然也用 V3 facade，
  *    但会在批量场景里给每条 ugoira 弹 save_gif_success / save_gif_exists toast，
  *    几十条 ugoira 一起跑会刷屏。这里直接调 [DownloadsRegistry.downloads.open]
  *    拿 WriteHandle，跳过 toast。
@@ -69,31 +71,42 @@ suspend fun downloadUgoira(
 
     Timber.tag(TAG).i("[UGOIRA] start illust=$illustId title=${illust.title}")
 
-    // 播放引擎已落盘的帧序列 → 直接编成 GIF 写进目标(V3 WriteHandle),跳过 meta/下载/解压。
+    // 播放引擎已落盘的帧序列 → 直接出片写进目标(V3 WriteHandle),跳过 meta/下载/解压。
     //
-    // 播放链路现在产出的是 JPEG 帧序列而不是 GIF(GIF 在 Glide 里是纯 Java 软解,喂不动补帧的
-    // 20ms 预算),所以「保存」是唯一需要 GIF 的地方,也只有到这里才编。用户在详情页看过的话,
-    // 帧已经在盘上(补帧版优先),这里省掉的是下载 + 解压 + 补帧,只剩编码。
+    // 格式随「动图保存格式」设置:mp4 那份播放缓存里多半已经压好(用户看过),保存就是纯拷贝;
+    // GIF 则现编 —— 播放链路不再产出 GIF,「保存」是唯一需要它的地方。用户在详情页看过的话,
+    // 帧已经在盘上(补帧版优先),这里省掉的是下载 + 解压 + 补帧。
     suspend fun encodeFromFrames(frames: UgoiraFrames) {
-        val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust))
+        // 出片格式随设置。mp4 那份多半已经在播放缓存里(用户看过),这时候只是纯拷贝;
+        // 压不出来会降级成 GIF —— 所以 handle 必须按**实际产物**开,不能按设置开。
+        val export = UgoiraEngine.exportForSave(illust)
+        val asVideo = export?.isVideo == true
+        val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust, asVideo))
         if (handle == null) {
             Timber.tag(TAG).i("[UGOIRA] skip: target already exists illust=$illustId")
+            if (export?.temporary == true) runCatching { export.file.delete() }
             return
         }
         try {
             encodeSem.withPermit {
                 BufferedOutputStream(handle.stream).use { bos ->
-                    encodeFramesToGif(frames.files, frames.delaysMs, bos)
+                    if (export != null) {
+                        BufferedInputStream(FileInputStream(export.file)).use { bis -> bis.copyTo(bos) }
+                    } else {
+                        encodeFramesToGif(frames.files, frames.delaysMs, bos)
+                    }
                 }
             }
             handle.onFinish()
         } catch (t: Throwable) {
             runCatching { handle.onAbort() }
             throw t
+        } finally {
+            if (export?.temporary == true) runCatching { export.file.delete() }
         }
         // onFinish 之后的收尾必须落在 try 之外：这个 catch 会 onAbort，而 MediaStore 后端的
         // onAbort 是 contentResolver.delete(uri) —— 已经 commit 的成品在里面抛一次就被删了。
-        UgoiraDownloadRecord.record(illust, handle.uri)
+        UgoiraDownloadRecord.record(illust, handle.uri, asVideo)
         Timber.tag(TAG).i("[UGOIRA] done via 播放引擎帧序列 illust=$illustId (${frames.files.size}帧, rife=${frames.interpolated}) uri=${handle.uri}")
     }
 
@@ -122,13 +135,12 @@ suspend fun downloadUgoira(
 
     // 2-4) zip 下载 / 解压 / 编码全程握 per-illust 文件锁,与播放引擎互斥 —— 两边共写
     //    同一 zip/.part/解压目录,「边看边存同一条」无锁并发写会把 zip 持久写坏。
-    UgoiraEngine.fileLockFor(illustId).withLock {
-        // 等锁期间播放引擎可能刚把帧序列落好(用户正在看):直接用,不重做
-        UgoiraEngine.peekPlayableFrames(illust)?.let { frames ->
-            onPhase(UgoiraPhase.ENCODE)
-            encodeFromFrames(frames)
-            return@withContext
-        }
+    //
+    //    等锁期间播放引擎可能刚把帧序列落好(用户正在看),那就没必要重下重解。但出片要
+    //    **出了锁再做**:[UgoiraEngine.exportForSave] 自己会拿同一把 per-illust 锁(它可能
+    //    得现压一份 mp4),而 kotlinx 的 Mutex 不可重入 —— 在锁里调就是死锁。
+    val lateFrames: UgoiraFrames? = UgoiraEngine.fileLockFor(illustId).withLock {
+        UgoiraEngine.peekPlayableFrames(illust)?.let { return@withLock it }
 
         // 2) 下载 zip（已存在且非空就跳过）—— internal cache，未来由 V3 cache 清理
         val zipFile = LegacyFile.gifZipFile(ctx, illust)
@@ -169,25 +181,43 @@ suspend fun downloadUgoira(
         //    上一步（DOWNLOAD_ZIP / EXTRACT），UI 显示是诚实的——它真的还没在 encode。
         encodeSem.withPermit {
             onPhase(UgoiraPhase.ENCODE)
-            val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust))
+            // 这条链路是「没看过的动图批量下载」:帧就是刚解压出来的原速帧(和以前出 GIF
+            // 用的是同一批,不含补帧)。mp4 压到临时文件再拷,压不出来就照旧出 GIF。
+            val tempVideo = if (Shaft.sSettings.isUgoiraSaveAsMp4()) {
+                val srcFrames = sortedUgoiraFrames(unzipFolder)
+                UgoiraVideoEncoder.encode(
+                    File(ctx.cacheDir, "ugoira_save_$illustId.mp4"),
+                    srcFrames, ugoiraDelays(srcFrames.size, resp),
+                )
+            } else {
+                null
+            }
+            val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust, tempVideo != null))
             if (handle == null) {
                 // OverwritePolicy.Skip + 目标已存在；当作完成
                 Timber.tag(TAG).i("[UGOIRA] skip: target already exists illust=$illustId")
+                runCatching { tempVideo?.delete() }
                 return@withPermit
             }
             try {
                 BufferedOutputStream(handle.stream).use { bos ->
-                    encodeFramesToGif(unzipFolder, resp, bos)
+                    if (tempVideo != null) {
+                        BufferedInputStream(FileInputStream(tempVideo)).use { bis -> bis.copyTo(bos) }
+                    } else {
+                        encodeFramesToGif(unzipFolder, resp, bos)
+                    }
                 }
                 handle.onFinish()
             } catch (t: Throwable) {
                 // onAbort 让 backend 清掉部分写入的 .pending-NNNN 文件；不调用就会留 0 字节孤儿
                 runCatching { handle.onAbort() }
                 throw t
+            } finally {
+                runCatching { tempVideo?.delete() }
             }
             // 同 encodeFromFrames：写记录在 try 之外，别让收尾动作有机会触发 onAbort 把
             // 已经 commit 的成品删掉。
-            UgoiraDownloadRecord.record(illust, handle.uri)
+            UgoiraDownloadRecord.record(illust, handle.uri, tempVideo != null)
             Timber.tag(TAG).i("[UGOIRA] done illust=$illustId uri=${handle.uri}")
         }
 
@@ -195,6 +225,13 @@ suspend fun downloadUgoira(
         //    gif cache 没有自动淘汰,批量下载几百条 ugoira 不清就是几十 GB。异常路径不会
         //    走到这(直接抛出 withLock),中间产物留给重试复用。
         UgoiraEngine.discardIntermediates(illustId, zipFile, unzipFolder)
+        null // 本轮自己出完片了,不用再走下面那段
+    }
+
+    // 等锁期间播放引擎抢先落好了帧序列:锁已释放,现在安全地由帧出片。
+    lateFrames?.let { frames ->
+        onPhase(UgoiraPhase.ENCODE)
+        encodeFromFrames(frames)
     }
 }
 

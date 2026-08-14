@@ -6,7 +6,7 @@ object WorkType {
 
     /**
      * 动图（ugoira）。consumer 走单独 [ceui.pixiv.ui.bulk.downloadUgoira]
-     * 管线：getGifPackage → zip 下载 → 解压 → AnimatedGifEncoder → 出 .gif，
+     * 管线：getGifPackage → zip 下载 → 解压 → 按「动图保存格式」出 .mp4 / .gif，
      * 不进 Manager.content 的页级并发模型。
      */
     const val UGOIRA = "ugoira"

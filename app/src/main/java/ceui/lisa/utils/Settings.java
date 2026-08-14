@@ -351,6 +351,17 @@ public class Settings {
     // 图片中间显示「开始播放(下载)」按钮;已缓存或左右切回也不自动播,点按钮才开始。
     private boolean autoPlayUgoira = true;
 
+    /** 动图保存成 GIF。体积大(20MB 量级)、只有 256 色,但兼容性最好。 */
+    public static final int UGOIRA_SAVE_FORMAT_GIF = 0;
+
+    /** 动图保存成 H.264 mp4(默认)。体积约为 GIF 的 1/10,全彩,且播放缓存里已经压好。 */
+    public static final int UGOIRA_SAVE_FORMAT_MP4 = 1;
+
+    // 动图保存格式。默认 MP4:同一条动图 GIF 要 20MB+ 且只有 256 色,H.264 一两 MB 还全彩,
+    // 播放缓存里本来就压好了一份,保存基本是纯拷贝。用 int 而不是 boolean 是给以后的格式
+    // (实况照片等)留位置。老用户配置里没有这个 key 时 gson 保留字段初值,同样是 MP4。
+    private int ugoiraSaveFormat = UGOIRA_SAVE_FORMAT_MP4;
+
     // 冷启动时是否自动刷新首页推荐插画（issue #955），默认开启（保持本地优先的原语义）。
     // 关掉后冷启命中磁盘快照就停在快照上，由用户下拉刷新才拉新内容
     private boolean autoRefreshHomeFeed = true;
@@ -1120,6 +1131,24 @@ public class Settings {
 
     public void setSynonymDictEnabled(boolean synonymDictEnabled) {
         this.synonymDictEnabled = synonymDictEnabled;
+    }
+
+    public int getUgoiraSaveFormat() {
+        return ugoiraSaveFormat;
+    }
+
+    public void setUgoiraSaveFormat(int ugoiraSaveFormat) {
+        this.ugoiraSaveFormat = ugoiraSaveFormat;
+    }
+
+    /**
+     * 保存链路问「这次出 mp4 还是 gif」只看这一处,别在各处比对常量。
+     *
+     * 判据写成「不是 GIF 就是 MP4」而不是「== MP4」:配置被手改过、或者被新版本写进一个
+     * 老版本还不认识的格式值时,兜底到默认的 MP4,和设置页的越界兜底口径一致。
+     */
+    public boolean isUgoiraSaveAsMp4() {
+        return ugoiraSaveFormat != UGOIRA_SAVE_FORMAT_GIF;
     }
 
     public boolean isUgoiraRifeEnable() {

@@ -1,5 +1,6 @@
 package ceui.pixiv.download.config
 
+import ceui.lisa.activities.Shaft
 import ceui.lisa.models.IllustsBean
 import ceui.loxia.Novel
 import ceui.loxia.NovelSeriesDetail
@@ -36,12 +37,21 @@ object DownloadItems {
         )
     }
 
-    /** Final rendered GIF, saved to the user's gallery. */
+    /**
+     * 动图成品(存进用户相册的那一份)。格式随「动图保存格式」设置走 —— 默认 mp4。
+     *
+     * 模板里写死的 `.gif` 后缀会被 [ceui.pixiv.download.Downloads] 按 [DownloadItem.ext]
+     * 归一,所以用户不改模板也能拿到正确后缀的文件。
+     */
     @JvmStatic
-    fun ugoira(illust: IllustsBean): DownloadItem = DownloadItem(
+    @JvmOverloads
+    fun ugoira(
+        illust: IllustsBean,
+        asMp4: Boolean = Shaft.sSettings.isUgoiraSaveAsMp4(),
+    ): DownloadItem = DownloadItem(
         bucket = Bucket.Ugoira,
-        ext = "gif",
-        mime = "image/gif",
+        ext = if (asMp4) "mp4" else "gif",
+        mime = if (asMp4) "video/mp4" else "image/gif",
         sourceUrl = illust.imageUrls?.original.orEmpty(),
         meta = metaOf(illust, pageIndex = null),
     )
@@ -67,13 +77,16 @@ object DownloadItems {
         renderedPath(illustPage(illust, pageIndex))
 
     /**
-     * Ugoira-bucket counterpart of [illustRelativePath] — the rendered GIF's
+     * Ugoira-bucket counterpart of [illustRelativePath] — the rendered ugoira
      * template path. Used by the rename sweep (issue #567) to recompute what a
-     * recorded `.gif` download should be called under the active template.
+     * recorded download should be called under the active template.
+     *
+     * [asMp4] 必须按**那一行记录的实际后缀**传,不能读当前设置 —— 用户切成 mp4 之后
+     * 早先存下的 GIF 仍然是 GIF,重命名不该把它改成 `.mp4`。
      */
     @JvmStatic
-    fun ugoiraRelativePath(illust: IllustsBean): RelativePath =
-        renderedPath(ugoira(illust))
+    fun ugoiraRelativePath(illust: IllustsBean, asMp4: Boolean): RelativePath =
+        renderedPath(ugoira(illust, asMp4))
 
     private fun renderedPath(item: DownloadItem): RelativePath {
         val config = DownloadsRegistry.store.loadOrFallback()

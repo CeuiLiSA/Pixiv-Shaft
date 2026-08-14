@@ -22,10 +22,14 @@ import java.io.FileInputStream
  */
 object OutPut {
 
+    /**
+     * 把动图成品 [from] 拷进用户存储。[asVideo] 说的是**这个文件实际是什么**(mp4 / GIF),
+     * 不是设置里选了什么 —— 压制失败时保存链路会降级出 GIF,那时候名字和 mime 都得跟着是 GIF。
+     */
     @JvmStatic
-    fun outPutGif(context: Context, from: File, illust: IllustsBean) {
+    fun outPutUgoira(context: Context, from: File, illust: IllustsBean, asVideo: Boolean) {
         try {
-            val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust))
+            val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust, asVideo))
             if (handle == null) {
                 Common.showToast(string(R.string.save_gif_exists))
                 return
@@ -36,12 +40,12 @@ object OutPut {
                 }
             }
             handle.onFinish()
-            // 成品 GIF 才算「已完成」里的那条下载记录（issue #920）——
+            // 成品（GIF / mp4）才算「已完成」里的那条下载记录（issue #920）——
             // 中间 zip 不再写库，见 [ceui.lisa.core.Manager] 完成分支。
-            UgoiraDownloadRecord.record(illust, handle.uri)
+            UgoiraDownloadRecord.record(illust, handle.uri, asVideo)
             Common.showToast(string(R.string.save_gif_success))
         } catch (t: Throwable) {
-            Timber.e(t, "outPutGif failed")
+            Timber.e(t, "outPutUgoira failed")
             Common.showToast(string(R.string.save_gif_failed, errMsg(t)))
         }
     }

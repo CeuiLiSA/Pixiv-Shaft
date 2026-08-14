@@ -19,6 +19,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DownloadLimitTypeUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.Settings;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.OverwritePolicy;
 import ceui.pixiv.download.config.StorageChoice;
@@ -178,6 +179,21 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         };
         final OverwritePolicy[] POLICY_VALUES = OverwritePolicy.values();
         refreshOverwritePolicyRow();
+        // 动图保存格式:GIF / MP4。默认 MP4——同一条动图 GIF 要 20MB+ 且只有 256 色,
+        // H.264 一两 MB 还全彩,而且播放缓存里本来就压好了一份,保存基本是纯拷贝。
+        refreshUgoiraSaveFormatRow();
+        baseBind.ugoiraSaveFormatRela.setOnClickListener(v ->
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(currentUgoiraSaveFormat())
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(ugoiraSaveFormatNames(), (dialog, which) -> {
+                            Shaft.sSettings.setUgoiraSaveFormat(which);
+                            Local.setSettings(Shaft.sSettings);
+                            refreshUgoiraSaveFormatRow();
+                            dialog.dismiss();
+                        })
+                        .show());
+
         baseBind.overwritePolicyRela.setOnClickListener(v -> {
             OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
             new QMUIDialog.CheckableDialogBuilder(mActivity)
@@ -425,6 +441,28 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         };
         baseBind.overwritePolicy.setText(names[cur.ordinal()]);
         baseBind.overwritePolicy.setAlpha(1.0f);
+    }
+
+    /** 单选项文案：下标必须和 Settings.UGOIRA_SAVE_FORMAT_* 的取值一一对应。 */
+    private String[] ugoiraSaveFormatNames() {
+        return new String[]{
+                getString(R.string.setting_ugoira_save_format_gif),
+                getString(R.string.setting_ugoira_save_format_mp4),
+        };
+    }
+
+    /** 存进去的值越界(配置被手改过 / 未来降级安装)时退回默认 MP4，别让下标越界崩掉。 */
+    private int currentUgoiraSaveFormat() {
+        int index = Shaft.sSettings.getUgoiraSaveFormat();
+        boolean valid = index == Settings.UGOIRA_SAVE_FORMAT_GIF
+                || index == Settings.UGOIRA_SAVE_FORMAT_MP4;
+        return valid ? index : Settings.UGOIRA_SAVE_FORMAT_MP4;
+    }
+
+    private void refreshUgoiraSaveFormatRow() {
+        if (baseBind == null) return;
+        baseBind.ugoiraSaveFormat.setText(ugoiraSaveFormatNames()[currentUgoiraSaveFormat()]);
+        baseBind.ugoiraSaveFormat.setAlpha(1.0f);
     }
 
     /** aria2 远程下载入口行的状态文字：已启用时显示 RPC 地址，否则显示功能简介。 */

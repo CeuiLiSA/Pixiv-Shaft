@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
@@ -174,27 +175,88 @@ object UgoiraEngine {
     }
 
     /**
-     * legacy 保存链路([ceui.lisa.download.IllustDownload].downloadGif)用:把已落盘的帧序列
-     * 编成一个**临时** GIF,交给 `OutPut.outPutGif` 拷进用户存储。
+     * 保存链路的成品文件。[isVideo] 决定写进用户存储时用哪套 ext/mime;
+     * [temporary] 为 true 时调用方**拷完必须删**(它只为这一次保存而生),
+     * 为 false 说明这就是播放缓存里的那一份,删了会害得下次重压。
+     */
+    data class UgoiraExport(val file: File, val isVideo: Boolean, val temporary: Boolean)
+
+    /**
+     * 保存链路([ceui.lisa.download.IllustDownload].downloadGif / [downloadUgoira])用:
+     * 把已落盘的帧序列变成一份可以直接拷进用户存储的成品,格式随「动图保存格式」设置走。
      *
-     * 播放链路不再缓存 GIF(改播 JPEG 帧序列),所以这里现编 —— 但帧已经在盘上,省掉的仍是
-     * 下载 + 解压 + 补帧这三个大头。返回的临时文件**由调用方用完删除**;没有帧序列则返回
-     * null,调用方回退到完整链路。阻塞编码,须在 IO 线程调用。
+     * - **mp4**:播放缓存里已经压好就直接给那一份(零成本);没压过就现压进同一个帧目录 ——
+     *   顺带让下次播放也能硬解。压不出来(设备无编码器等)自动降级成 GIF,不让保存整个失败。
+     * - **GIF**:现编一份临时文件(播放链路不再缓存 GIF)。
+     *
+     * 帧不在盘上返回 null,调用方回退到「下 zip → 解压 → 出片」的完整链路。
+     * 阻塞,须在 IO 线程调用。
      */
     @JvmStatic
-    fun encodeTempGifFromFrames(illust: IllustsBean): File? {
+    fun exportForSave(illust: IllustsBean): UgoiraExport? {
         val frames = peekPlayableFrames(illust) ?: return null
+        if (Shaft.sSettings.isUgoiraSaveAsMp4()) {
+            exportVideo(illust, frames)?.let { return it }
+        }
         val temp = File(Shaft.getContext().cacheDir, "ugoira_save_${illust.id}.gif")
         return try {
             BufferedOutputStream(FileOutputStream(temp)).use { bos ->
                 encodeFramesToGif(frames.files, frames.delaysMs, bos)
             }
             Timber.tag(UGOIRA_LOG_TAG).i("[save] illust=%d 由帧序列编出临时 GIF (%d帧, %d bytes)", illust.id, frames.files.size, temp.length())
-            temp
+            UgoiraExport(temp, isVideo = false, temporary = true)
         } catch (t: Throwable) {
             runCatching { temp.delete() }
             Timber.tag(UGOIRA_LOG_TAG).w(t, "[save] illust=%d 从帧序列编 GIF 失败,回退完整链路", illust.id)
             null
+        }
+    }
+
+    /**
+     * [exportForSave] 的「帧不在盘上就先把整条 pipeline 跑完」版本。
+     *
+     * 为什么需要它:老的保存链路(`PixivOperate.encodeGifV2`)只会产 GIF,用户设置成 mp4
+     * 时,一条**没看过**的动图走到那里就会拿到 GIF —— 设置形同虚设。这里直接借播放
+     * pipeline:下载 / 解压 / (按开关)补帧 / 压制一次做完,产物同时进播放缓存,下次打开秒开。
+     *
+     * 阻塞,可能要几秒到几分钟(下 zip + 可选补帧),**必须在 IO 线程调用**。
+     * pipeline 失败返回 null,调用方回退老链路(出 GIF)。
+     */
+    @JvmStatic
+    fun prepareAndExportForSave(illust: IllustsBean): UgoiraExport? {
+        exportForSave(illust)?.let { return it }
+        val ok = runCatching { runBlocking { loadPlayableFrames(illust) } }
+            .onFailure { Timber.tag(UGOIRA_LOG_TAG).w(it, "[save] illust=%d 完整 pipeline 失败,回退老链路", illust.id) }
+            .isSuccess
+        return if (ok) exportForSave(illust) else null
+    }
+
+    /** [exportForSave] 的 mp4 分支。压不出来返回 null(调用方降级 GIF)。 */
+    private fun exportVideo(illust: IllustsBean, frames: UgoiraFrames): UgoiraExport? {
+        frames.video?.let {
+            Timber.tag(UGOIRA_LOG_TAG).i("[save] illust=%d 直接复用播放缓存里的 mp4 (%d KB)", illust.id, it.length() / 1024)
+            return UgoiraExport(it, isVideo = true, temporary = false)
+        }
+        if (UgoiraVideoEncoder.deviceUnsupported) return null
+        // 压进帧目录(而不是临时文件):下次播放就能直接硬解,省一次压制。
+        // runBlocking 只是把 encode 的 suspend 外壳拆掉 —— 调用方本来就在 IO 线程阻塞着。
+        return runBlocking {
+            fileLockFor(illust.id).withLock {
+                readFramesDir(frames.dir, frames.interpolated)?.video?.let {
+                    return@withLock UgoiraExport(it, isVideo = true, temporary = false)
+                }
+                val out = UgoiraVideoEncoder.encode(
+                    File(frames.dir, UgoiraVideoEncoder.VIDEO_FILE_NAME),
+                    frames.files, frames.delaysMs,
+                )
+                if (out != null) {
+                    invalidate(illust.id) // 内存里那版 UgoiraFrames 还记着 video=null,清掉重取
+                    UgoiraExport(out, isVideo = true, temporary = false)
+                } else {
+                    Timber.tag(UGOIRA_LOG_TAG).w("[save] illust=%d mp4 压制失败,本次保存降级成 GIF", illust.id)
+                    null
+                }
+            }
         }
     }
 
@@ -402,7 +464,8 @@ object UgoiraEngine {
                         .i("[pipeline] illust=%d mp4 压制开始 (%d帧)", id, frames.files.size)
                     var lastQuarter = -1
                     val video = UgoiraVideoEncoder.encode(
-                        frames.dir, frames.files, frames.delaysMs,
+                        File(frames.dir, UgoiraVideoEncoder.VIDEO_FILE_NAME),
+                        frames.files, frames.delaysMs,
                     ) { pct ->
                         flow.value = UgoiraProgress(UgoiraPhase.ENCODE, pct)
                         if (pct / 25 != lastQuarter) {

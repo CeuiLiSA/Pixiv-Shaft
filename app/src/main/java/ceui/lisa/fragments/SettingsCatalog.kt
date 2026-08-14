@@ -155,6 +155,7 @@ object SettingsCatalog {
         add(Entry(DOWNLOAD, "storage_choice_rela", R.string.setting_storage_choice, keywords = "存储 保存位置 目录 文件夹 pictures downloads saf sd卡 storage"))
         add(Entry(DOWNLOAD, "file_name_rela", R.string.download_path_title, R.string.download_path_entry_desc, keywords = "文件名 命名 模板 路径 目录 分目录 重命名 filename path template"))
         add(Entry(DOWNLOAD, "overwrite_policy_rela", R.string.setting_overwrite_policy, keywords = "重复 覆盖 跳过 重命名 副本 同名 duplicate overwrite"))
+        add(Entry(DOWNLOAD, "ugoira_save_format_rela", R.string.setting_ugoira_save_format, R.string.setting_ugoira_save_format_desc, keywords = "动图 ugoira gif mp4 视频 格式 保存 体积 format video"))
         add(Entry(DOWNLOAD, "page_index_rela", R.string.setting_page_index, keywords = "页码 序号 p0 p1 多图 起始"))
         add(Entry(DOWNLOAD, "default_image_resolution_rela", R.string.setting_default_image_resolution, keywords = "清晰度 分辨率 画质 原图 保存 resolution"))
         add(Entry(DOWNLOAD, "write_exif_tags_rela", R.string.setting_write_exif_tags_title, R.string.setting_write_exif_tags_desc, keywords = "标签 关键词 exif xmp 元数据 相册 keywords metadata tags dc:subject"))

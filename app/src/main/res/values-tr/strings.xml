@@ -1357,6 +1357,10 @@
     <string name="download_path_policy_replace">Dosya varsa üzerine yaz</string>
     <string name="download_path_policy_rename">Dosya varsa yeniden adlandır</string>
     <string name="setting_overwrite_policy">Dosya zaten varsa</string>
+    <string name="setting_ugoira_save_format">Ugoira kayıt biçimi</string>
+    <string name="setting_ugoira_save_format_desc">MP4, GIF\'ten yaklaşık 10 kat küçüktür ve tam renklidir; GIF en geniş uyumluluğa sahiptir</string>
+    <string name="setting_ugoira_save_format_gif">GIF</string>
+    <string name="setting_ugoira_save_format_mp4">MP4</string>
     <string name="setting_storage_choice">Depolama konumu</string>
     <string name="setting_storage_pictures">Sistem galerisi (Pictures)</string>
     <string name="setting_storage_downloads">Downloads klasörü</string>

@@ -735,7 +735,10 @@ public class PixivOperate {
                 outStream.close();
 
                 if (autoSave) {
-                    OutPut.outPutGif(context, gifFile, illustsBean);
+                    // 这条老链路只产 GIF,所以 asVideo 恒为 false —— 名字/mime 必须跟着
+                    // **实际产物**走,不能跟着「动图保存格式」设置走。设置成 mp4 时
+                    // IllustDownload.downloadGif 会先走播放 pipeline 出 mp4,压根到不了这里。
+                    OutPut.outPutUgoira(context, gifFile, illustsBean, false);
                 }
 
                 Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));

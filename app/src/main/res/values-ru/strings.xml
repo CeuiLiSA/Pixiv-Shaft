@@ -1357,6 +1357,10 @@
     <string name="download_path_policy_replace">Заменять</string>
     <string name="download_path_policy_rename">Переименовывать</string>
     <string name="setting_overwrite_policy">Если файл уже существует</string>
+    <string name="setting_ugoira_save_format">Формат сохранения угоиры</string>
+    <string name="setting_ugoira_save_format_desc">MP4 примерно в 10 раз меньше GIF и в полном цвете; у GIF лучшая совместимость</string>
+    <string name="setting_ugoira_save_format_gif">GIF</string>
+    <string name="setting_ugoira_save_format_mp4">MP4</string>
     <string name="setting_storage_choice">Место хранения</string>
     <string name="setting_storage_pictures">Системная галерея (Pictures)</string>
     <string name="setting_storage_downloads">Папка Downloads</string>

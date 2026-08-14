@@ -229,29 +229,36 @@ public class IllustDownload {
         if(!illustsBean.isGif()){
             return;
         }
-        // 播放引擎可能已把这张 ugoira 的帧序列落盘(用户在详情页看过)。命中就直接由帧编出
-        // GIF 拷进用户存储,跳过重下 zip / 重解压 / 重补帧 —— 也避开与引擎抢写同一批缓存文件
-        // 的无锁竞争。播放链路本身不再产出 GIF(改播 JPEG 帧序列,GIF 喂不动补帧的帧率),所以
-        // 这里是现编;编码 + outPutGif 都是阻塞的,一起放后台线程。未命中 / 失败都回退到原始
+        // 播放引擎可能已把这张 ugoira 的帧序列落盘(用户在详情页看过)。命中就直接由帧出片
+        // 拷进用户存储,跳过重下 zip / 重解压 / 重补帧 —— 也避开与引擎抢写同一批缓存文件的
+        // 无锁竞争。格式随「动图保存格式」设置:mp4 时播放缓存里那份直接就能用(纯拷贝),
+        // GIF 时现编。出片 + 拷贝都是阻塞的,一起放后台线程。未命中 / 失败都回退到原始
         // 「下 zip→编码→保存」链路,行为不变。
         Schedulers.io().scheduleDirect(() -> {
-            File cached = null;
+            UgoiraEngine.UgoiraExport export = null;
             try {
-                cached = UgoiraEngine.INSTANCE.encodeTempGifFromFrames(illustsBean);
+                // 设置成 mp4 时:帧不在盘上就把整条播放 pipeline 跑完再出片 —— 下面那条老链路
+                // (getGifInfo → encodeGifV2)只会产 GIF,不这么做,没看过的动图会拿到 GIF。
+                export = Shaft.sSettings.isUgoiraSaveAsMp4()
+                        ? UgoiraEngine.INSTANCE.prepareAndExportForSave(illustsBean)
+                        : UgoiraEngine.INSTANCE.exportForSave(illustsBean);
             } catch (Throwable t) {
                 t.printStackTrace();
             }
-            if (cached != null) {
+            if (export != null) {
                 try {
-                    OutPut.outPutGif(Shaft.getContext(), cached, illustsBean);
-                    Common.showLog("[UGOIRA] downloadGif 复用播放引擎帧序列 id=" + illustsBean.getId());
+                    OutPut.outPutUgoira(Shaft.getContext(), export.getFile(), illustsBean, export.isVideo());
+                    Common.showLog("[UGOIRA] downloadGif 复用播放引擎帧序列 id=" + illustsBean.getId()
+                            + " video=" + export.isVideo());
                     return;
                 } catch (Throwable t) {
                     t.printStackTrace(); // 复用失败 → 落到下面完整链路
                 } finally {
-                    // 临时 GIF 只为这次拷贝而生,拷完就删(成功/失败都删)
-                    //noinspection ResultOfMethodCallIgnored
-                    cached.delete();
+                    // 只删「为这次保存而生」的临时文件;mp4 那份是播放缓存,删了下次还得重压
+                    if (export.getTemporary()) {
+                        //noinspection ResultOfMethodCallIgnored
+                        export.getFile().delete();
+                    }
                 }
             }
             PixivOperate.getGifInfo(illustsBean, new ErrorCtrl<GifResponse>() {

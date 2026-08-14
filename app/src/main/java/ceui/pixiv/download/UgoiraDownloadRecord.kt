@@ -13,14 +13,14 @@ import ceui.pixiv.download.config.DownloadItems
 import timber.log.Timber
 
 /**
- * 动图（ugoira）成品 GIF 落盘后往 `illust_download_table` 记一笔。
+ * 动图（ugoira）成品落盘后往 `illust_download_table` 记一笔。
  *
  * 之前「已完成」里动图那张卡记的是 [ceui.lisa.core.Manager] 下载完中间 zip 时插的行，
  * filePath 指向 app cache 里的 `xxx.zip`（issue #920）—— 点进去等于拿压缩包当图片解码，
  * 一片黑；而真正编出来的 `.gif` 反而从没进过库，批量队列下的动图更是压根不出现在列表里。
  *
- * 现在中间 zip 不再写记录，改由 GIF 真正写完的三个出口（[ceui.lisa.file.OutPut.outPutGif]
- * 与 [ceui.pixiv.ui.bulk.downloadUgoira] 的两条编码路径）调这里补一行。
+ * 现在中间 zip 不再写记录，改由成品真正写完的三个出口（[ceui.lisa.file.OutPut.outPutUgoira]
+ * 与 [ceui.pixiv.ui.bulk.downloadUgoira] 的两条出片路径）调这里补一行。
  *
  * fileName 走 [DownloadItems.ugoira] 的模板渲染名 —— 与 `RenameSweeper` 判定「这行该叫
  * 什么」用的是同一个函数（[ceui.pixiv.download.maintenance.RenameSweeper]），新写的行天然
@@ -38,15 +38,18 @@ object UgoiraDownloadRecord {
      * 若落进调用方那种「catch → onAbort」的收尾里，被删的就是刚 commit 成功的成品。
      * 调用方另外把它排在 try 之外双保险，两道都别拆。
      *
-     * @param uri GIF 成品的最终位置（content:// 或 file://）。须在 IO 线程调用
+     * @param uri 成品的最终位置（content:// 或 file://）。须在 IO 线程调用
      *            （Room 主线程写会抛，抛了也只是丢一条记录，不会崩）。
+     * @param asMp4 这次**实际**写出去的是 mp4 还是 GIF。必须由调用方按真实产物传：
+     *            设置成 mp4 但压制失败时保存链路会降级出 GIF，跟着设置读就会记下一个
+     *            `.mp4` 的名字、指着一个 `.gif` 文件，改名扫描和「已下载」判定都会错。
      */
     @JvmStatic
-    fun record(illust: IllustsBean, uri: Uri) {
+    fun record(illust: IllustsBean, uri: Uri, asMp4: Boolean) {
         runCatching {
             val entity = DownloadEntity().apply {
                 fileName = DownloadsRegistry.downloads
-                    .resolvePath(DownloadItems.ugoira(illust)).filename
+                    .resolvePath(DownloadItems.ugoira(illust, asMp4)).filename
                 filePath = uri.toString()
                 illustId = illust.id.toLong()
                 // 动图没有分页，成品就是唯一那一「页」。留 -1 会被 DownloadPageBackfill

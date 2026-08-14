@@ -116,7 +116,9 @@ object RenameSweeper {
                 // app cache（Android10DownloadFactory22 → LegacyFile.gifZipFile）。
                 // unzipAndPlay 按这个固定名回找 zip 复用本地回放 —— 改名等于断掉回放，
                 // 且它本来就不是用户目录里的成品文件。只有 .gif 行（导入的成品）参与改名。
-                if (bean.isGif && !row.fileName.endsWith(".gif", ignoreCase = true)) {
+                // 成品后缀现在有两种(动图保存格式 GIF / MP4),两种都参与改名。
+                val ugoiraIsMp4 = row.fileName.endsWith(".mp4", ignoreCase = true)
+                if (bean.isGif && !ugoiraIsMp4 && !row.fileName.endsWith(".gif", ignoreCase = true)) {
                     ugoiraCacheZips++
                     continue
                 }
@@ -129,10 +131,11 @@ object RenameSweeper {
                         continue
                     }
                 }
-                // 动图的最终产物是 GIF，走 Ugoira bucket 的模板；其余走 Illust bucket。
+                // 动图成品走 Ugoira bucket 的模板；其余走 Illust bucket。后缀按**这一行的
+                // 实际格式**算,不看当前设置 —— 切成 mp4 之后早先存的 GIF 仍然是 GIF。
                 val newName = runCatching {
                     if (bean.isGif) {
-                        DownloadItems.ugoiraRelativePath(bean).filename
+                        DownloadItems.ugoiraRelativePath(bean, ugoiraIsMp4).filename
                     } else {
                         DownloadItems.illustRelativePath(bean, pageIndex).filename
                     }

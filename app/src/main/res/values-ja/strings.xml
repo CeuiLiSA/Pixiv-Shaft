@@ -1357,6 +1357,10 @@
     <string name="download_path_policy_replace">既存なら上書き</string>
     <string name="download_path_policy_rename">既存ならリネーム</string>
     <string name="setting_overwrite_policy">同名ファイルがある場合</string>
+    <string name="setting_ugoira_save_format">うごイラの保存形式</string>
+    <string name="setting_ugoira_save_format_desc">MP4 は GIF の約 1/10 のサイズでフルカラー。GIF は互換性が最も高い</string>
+    <string name="setting_ugoira_save_format_gif">GIF</string>
+    <string name="setting_ugoira_save_format_mp4">MP4</string>
     <string name="setting_storage_choice">保存場所</string>
     <string name="setting_storage_pictures">システムギャラリー（Pictures）</string>
     <string name="setting_storage_downloads">Downloads フォルダ</string>

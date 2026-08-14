@@ -96,7 +96,7 @@ internal object UgoiraVideoEncoder {
         private set
 
     /**
-     * 把 [files] / [delaysMs] 压成 [dir]`/video.mp4`。成功返回文件,失败返回 null(调用方
+     * 把 [files] / [delaysMs] 压成 [target] 这个 mp4。成功返回它,失败返回 null(调用方
      * 保留帧序列回退)。先写 `.tmp` 再 rename,中途被杀不会留下半个能骗过校验的 mp4。
      *
      * 阻塞 CPU/GPU,内部已切 [Dispatchers.IO];[onProgress] 回帧级 0..100。
@@ -107,7 +107,7 @@ internal object UgoiraVideoEncoder {
      * 取消检查用非挂起的 [kotlinx.coroutines.ensureActive]。
      */
     suspend fun encode(
-        dir: File,
+        target: File,
         files: List<File>,
         delaysMs: List<Int>,
         onProgress: (Int) -> Unit = {},
@@ -132,9 +132,9 @@ internal object UgoiraVideoEncoder {
         val bitrate = (outW.toDouble() * outH * fps * BITS_PER_PIXEL_PER_FRAME)
             .toInt().coerceIn(MIN_BITRATE, MAX_BITRATE)
 
-        val target = File(dir, VIDEO_FILE_NAME)
-        val tmp = File(dir, VIDEO_FILE_NAME + TMP_SUFFIX)
+        val tmp = File(target.parentFile, target.name + TMP_SUFFIX)
         runCatching { tmp.delete() }
+        target.parentFile?.mkdirs()
 
         val t0 = System.currentTimeMillis()
         var codec: MediaCodec? = null
@@ -276,7 +276,7 @@ internal object UgoiraVideoEncoder {
             if (!tmp.renameTo(target)) throw IllegalStateException("rename video.mp4.tmp failed")
             Timber.tag(UGOIRA_LOG_TAG).i(
                 "[mp4] 压制完成 %s %dx%d %d帧 %dfps %dKB 耗时%dms",
-                dir.name, outW, outH, files.size, fps, target.length() / 1024,
+                target.parentFile?.name ?: target.name, outW, outH, files.size, fps, target.length() / 1024,
                 System.currentTimeMillis() - t0,
             )
             target

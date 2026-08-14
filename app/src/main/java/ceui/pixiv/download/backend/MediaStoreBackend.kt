@@ -243,7 +243,7 @@ class MediaStoreBackend(
     private fun openModern(relPath: RelativePath, mime: String): StorageBackend.WriteHandle {
         // Facade-enforced invariant: the path is guaranteed free by the time
         // we get here. Always insert fresh so the row carries the correct mime.
-        val collectionUri = collectionUri()
+        val collectionUri = collectionUri(mime)
         val relativeDir = (listOf(collectionRoot()) + relPath.directory).joinToString("/") + "/"
         val silent = SilentDownload.applies(mime)
         val values = ContentValues().apply {
@@ -564,13 +564,36 @@ class MediaStoreBackend(
         return null
     }
 
-    private fun collectionUri(): Uri = when (collection) {
-        StorageChoice.MediaStore.Collection.Images    -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    /**
+     * 插入用的集合 URI。
+     *
+     * 每个集合都有两道 provider 级的硬约束,插错了直接 `IllegalArgumentException`:
+     *  - 收哪些 mime:`Images` 不收 `video/mp4`;
+     *  - 允许哪些一级目录:`Images` = DCIM / Pictures,`Video` = DCIM / Movies / **Pictures**,
+     *    而 `Files`/`Downloads` 只允许 Download/Documents(真机实测报的就是
+     *    「Primary directory Pictures not allowed for content://media/external/file」)。
+     *
+     * 所以动图存成 mp4 时走 `Video` 集合 —— 它是唯一既收视频、又允许落在用户选的
+     * `Pictures/...` 目录里的集合,文件因此仍和 GIF 成品待在同一个文件夹。
+     *
+     * 查询(mime 传 null)一律走 Files:它是全类型超集,图片行和视频行都看得到 ——
+     * 「目标是否已存在」必须覆盖两种格式,否则用户切格式后 skip/rename 策略会失灵。
+     */
+    private fun collectionUri(mime: String? = null): Uri = when (collection) {
+        // Downloads 集合本来就收任意 mime,不用换。
         StorageChoice.MediaStore.Collection.Downloads -> {
             @Suppress("NewApi")
             MediaStore.Downloads.EXTERNAL_CONTENT_URI
         }
+
+        StorageChoice.MediaStore.Collection.Images -> when {
+            mime == null -> filesCollectionUri()
+            mime.startsWith("video/") -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            else -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
     }
+
+    private fun filesCollectionUri(): Uri = MediaStore.Files.getContentUri("external")
 
     private fun collectionRoot(): String = when (collection) {
         StorageChoice.MediaStore.Collection.Images    -> Environment.DIRECTORY_PICTURES

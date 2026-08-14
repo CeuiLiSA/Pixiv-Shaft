@@ -1359,6 +1359,10 @@
     <string name="download_path_policy_replace">已存在則覆蓋</string>
     <string name="download_path_policy_rename">已存在則重新命名</string>
     <string name="setting_overwrite_policy">檔案重複時</string>
+    <string name="setting_ugoira_save_format">動圖儲存格式</string>
+    <string name="setting_ugoira_save_format_desc">MP4 體積約為 GIF 的十分之一，且是全彩；GIF 相容性最好</string>
+    <string name="setting_ugoira_save_format_gif">GIF</string>
+    <string name="setting_ugoira_save_format_mp4">MP4</string>
     <string name="setting_storage_choice">儲存位置</string>
     <string name="setting_storage_pictures">系統相簿（Pictures）</string>
     <string name="setting_storage_downloads">下載資料夾（Downloads）</string>

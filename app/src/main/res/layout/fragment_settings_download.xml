@@ -116,6 +116,30 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/ugoira_save_format_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_ugoira_save_format" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/setting_ugoira_save_format_desc" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/ugoira_save_format"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/r18_divide_save_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/bg_m3_row_mid">
