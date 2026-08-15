@@ -14,7 +14,6 @@ import androidx.window.embedding.SplitRule
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.VPActivity
-import ceui.pixiv.ui.embedding.TabletActivityEmbedding.install
 import ceui.pixiv.ui.slideshow.SlideshowActivity
 
 /**
@@ -22,7 +21,7 @@ import ceui.pixiv.ui.slideshow.SlideshowActivity
  *
  * 本仓是多 Activity 架构（首页 MainActivity 之上叠 VActivity / UActivity /
  * SearchActivity / TemplateActivity …），所以不重写任何导航，只声明分栏规则，
- * 由 WindowManager 把同一个 task 里的 Activity 摆成左 1/3 列表 + 右 2/3 详情。
+ * 由 WindowManager 把同一个 task 里的 Activity 摆成左 3/7 列表 + 右 4/7 详情。
  * 规则只在平板（sw >= 600dp）上注册；手机完全不注册（原因见 [install]，issue #1002）。
  * 已注册的设备上，窗口宽度 < 600dp（平板分屏后的窄窗）时规则不激活；
  * 无 WM Extensions 的老设备上 RuleController 是 no-op。
@@ -31,7 +30,7 @@ object TabletActivityEmbedding {
 
     private const val SPLIT_MIN_WIDTH_DP = 600
 
-    /** 主栏（信息流）占 1/3，详情占 2/3，跟随 RTL。 */
+    /** 主栏（信息流）占 3/7，详情占 4/7，跟随 RTL；折叠屏近方形展开屏上 1/3 太窄（#1022）。 */
     private val splitAttributes = SplitAttributes.Builder()
         .setSplitType(SplitAttributes.SplitType.ratio(3f / 7f))
         .setLayoutDirection(SplitAttributes.LayoutDirection.LOCALE)
@@ -69,7 +68,7 @@ object TabletActivityEmbedding {
             .setFinishSecondaryWithPrimary(SplitRule.FinishBehavior.ALWAYS)
             .build()
 
-        // 首页没打开任何内容时右栏放占位页，保持 1/3 + 2/3 的稳定布局。
+        // 首页没打开任何内容时右栏放占位页，保持 3/7 + 4/7 的稳定布局。
         val placeholder = SplitPlaceholderRule.Builder(
             setOf(ActivityFilter(ComponentName(context, MainActivity::class.java), null)),
             Intent(context, SplitPlaceholderActivity::class.java)
@@ -79,7 +78,7 @@ object TabletActivityEmbedding {
             .setFinishPrimaryWithPlaceholder(SplitRule.FinishBehavior.ADJACENT)
             .build()
 
-        // 沉浸式查看器始终铺满整窗，不塞进 2/3 的格子里。
+        // 沉浸式查看器始终铺满整窗，不塞进 4/7 的格子里。
         val fullscreenViewers = ActivityRule.Builder(
             setOf(
                 ImageDetailActivity::class.java,
