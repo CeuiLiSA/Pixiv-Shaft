@@ -90,7 +90,7 @@ public class AppApiProxyInterceptor implements Interceptor {
         // 用户可能误填完整 PxveAPI 地址（如 https://proxy/pixiv-app-api），
         // 去掉路径里已存在的同名前缀，避免拼出 /pixiv-app-api/pixiv-app-api 双前缀 404。
         final String root = base.scheme() + "://" + base.host()
-                + (base.port() != base.defaultPort() ? ":" + base.port() : "");
+                + (base.port() != HttpUrl.defaultPort("https") ? ":" + base.port() : "");
         String basePath = base.encodedPath();
         while (basePath.endsWith("/")) {
             basePath = basePath.substring(0, basePath.length() - 1);
