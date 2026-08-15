@@ -215,11 +215,12 @@ class NetworkTestViewModel : ViewModel() {
                 }
                 // 图片服务器（官方 i.pximg.net 或当前反代域名）失败：卡片 pill 覆盖为红底
                 // 「图片无法加载」，顶部总览并列红底 pill，小字追加换图片代理的提示。
-                val imageTargetFailed = work.any {
+                // 局部变量用 imageFailed，避免与成员属性 imageTargetFailed 重名遮蔽。
+                val imageFailed = work.any {
                     it.title == imageCfg.host &&
                         (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
                 }
-                this.imageTargetFailed.postValue(imageTargetFailed)
+                imageTargetFailed.postValue(imageFailed)
                 // 污染但污染域握手全部成功 = 应用内绕过路径（DoH/直连）生效：
                 // 总览改成黄底「检测到 DNS 污染」+ 绿底「网络勉强可用」并列，而不是刺眼的失败判定。
                 // 绕过判定**只看污染域自身的握手结果**（bypassOk 只对污染域记录）；图片下载失败、
@@ -249,7 +250,7 @@ class NetworkTestViewModel : ViewModel() {
                     ov == OverallStatus.NETWORK_DOWN -> {
                         // 主 API 失败：小字说明主 API 不可达；图片服务器也失败时再追加换代理提示。
                         var base = ctx.getString(R.string.network_test_overall_unavailable_sub)
-                        if (imageTargetFailed) base += "\n$imageHint"
+                        if (imageFailed) base += "\n$imageHint"
                         base
                     }
                     ov == OverallStatus.HIGH_LATENCY || ov == OverallStatus.EXTREME_LATENCY -> {
@@ -278,7 +279,7 @@ class NetworkTestViewModel : ViewModel() {
                     ov == OverallStatus.DEGRADED -> {
                         // 部分异常：小字说明连通性/握手问题；图片服务器失败时追加换代理提示。
                         var base = ctx.getString(R.string.network_test_overall_degraded_sub)
-                        if (imageTargetFailed) base += "\n$imageHint"
+                        if (imageFailed) base += "\n$imageHint"
                         base
                     }
                     ov == OverallStatus.POLLUTED -> {
@@ -289,7 +290,7 @@ class NetworkTestViewModel : ViewModel() {
                         } else {
                             ctx.getString(R.string.network_test_overall_degraded_sub)
                         }
-                        if (imageTargetFailed) base += "\n$imageHint"
+                        if (imageFailed) base += "\n$imageHint"
                         base
                     }
                     else -> null
@@ -297,7 +298,7 @@ class NetworkTestViewModel : ViewModel() {
                 overallSub.postValue(subText)
                 // 图片服务器失败：卡片 pill 覆盖为红底「图片无法加载」（颜色仍按 FAILED/POLLUTED 取红）。
                 val imageIdx = work.indexOfFirst { it.title == imageCfg.host }
-                if (imageIdx >= 0 && imageTargetFailed) {
+                if (imageIdx >= 0 && imageFailed) {
                     work[imageIdx] = work[imageIdx].copy(
                         statusPillOverride = ctx.getString(R.string.network_test_image_unavailable),
                     )
