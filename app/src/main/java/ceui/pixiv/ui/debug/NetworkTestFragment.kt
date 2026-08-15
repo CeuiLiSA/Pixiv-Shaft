@@ -45,6 +45,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
     private lateinit var chipHost: TextView
     private lateinit var summaryCard: View
     private lateinit var summaryPill: TextView
+    private lateinit var summaryPillImage: TextView
     private lateinit var summaryPillSlow: TextView
     private lateinit var summaryPillDim: TextView
     private lateinit var summaryPillDegraded: TextView
@@ -88,6 +89,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         chipHost = view.findViewById(R.id.chip_host)
         summaryCard = view.findViewById(R.id.summary_card)
         summaryPill = view.findViewById(R.id.summary_pill)
+        summaryPillImage = view.findViewById(R.id.summary_pill_image)
         summaryPillSlow = view.findViewById(R.id.summary_pill_slow)
         summaryPillDim = view.findViewById(R.id.summary_pill_dim)
         summaryPillDegraded = view.findViewById(R.id.summary_pill_degraded)
@@ -157,6 +159,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         viewModel.overallSub.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
         viewModel.imageDownloadSlow.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
         viewModel.imageDimensionFailed.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
+        viewModel.imageTargetFailed.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
         viewModel.pollutionBypassed.observe(viewLifecycleOwner) { renderSummary(viewModel.overall.value) }
         // 日志默认收起：隐藏时不做 TextView 刷新（大文本逐行重建是渐进掉帧来源之一），展开时再同步。
         viewModel.rawLog.observe(viewLifecycleOwner) {
@@ -210,6 +213,10 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             return
         }
         summaryCard.visibility = View.VISIBLE
+        // 图片服务器失败：主状态旁并列红底「图片无法加载」（与卡片 pill 覆盖一致）。
+        val imageFailed = viewModel.imageTargetFailed.value == true
+        summaryPillImage.visibility = if (imageFailed) View.VISIBLE else View.GONE
+        if (imageFailed) applyPill(summaryPillImage, getString(R.string.network_test_image_unavailable), R.color.v3_danger)
         // DNS 污染但绕过生效：黄底污染 pill 旁并列绿底「网络勉强可用」。
         val bypassed = viewModel.pollutionBypassed.value == true
         summaryPillBypass.visibility = if (bypassed) View.VISIBLE else View.GONE

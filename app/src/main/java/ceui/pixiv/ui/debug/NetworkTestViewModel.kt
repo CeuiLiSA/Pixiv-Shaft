@@ -110,6 +110,8 @@ class NetworkTestViewModel : ViewModel() {
     val imageDimensionFailed = MutableLiveData(false)
     /** 检测到 DNS 污染、但污染域握手均成功（DoH/直连绕过生效）：总览黄底污染 + 绿底「网络勉强可用」。 */
     val pollutionBypassed = MutableLiveData(false)
+    /** 图片服务器（官方 i.pximg.net 或当前反代域名）握手失败：顶部总览并列红底「图片无法加载」pill。 */
+    val imageTargetFailed = MutableLiveData(false)
 
     val dohEnabled: Boolean get() = Shaft.sSettings?.isUseSecureDns == true
     val directConnect: Boolean get() = Shaft.sSettings?.isDirectConnect == true
@@ -157,6 +159,7 @@ class NetworkTestViewModel : ViewModel() {
         imageDownloadSlow.value = false
         imageDimensionFailed.value = false
         pollutionBypassed.value = false
+        imageTargetFailed.value = false
         imageDownloadFailed = false
         fakeIpDialogShown = false
         fakeIpDetected = false
@@ -211,11 +214,12 @@ class NetworkTestViewModel : ViewModel() {
                         (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
                 }
                 // 图片服务器（官方 i.pximg.net 或当前反代域名）失败：卡片 pill 覆盖为红底
-                // 「图片无法加载」，总览小字追加换图片代理的提示。
+                // 「图片无法加载」，顶部总览并列红底 pill，小字追加换图片代理的提示。
                 val imageTargetFailed = work.any {
                     it.title == imageCfg.host &&
                         (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
                 }
+                this.imageTargetFailed.postValue(imageTargetFailed)
                 // 污染但污染域握手全部成功 = 应用内绕过路径（DoH/直连）生效：
                 // 总览改成黄底「检测到 DNS 污染」+ 绿底「网络勉强可用」并列，而不是刺眼的失败判定。
                 // 绕过判定**只看污染域自身的握手结果**（bypassOk 只对污染域记录）；图片下载失败、
