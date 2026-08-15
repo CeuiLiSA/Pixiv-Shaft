@@ -226,8 +226,10 @@ class NetworkTestViewModel : ViewModel() {
                 // 绕过判定**只看污染域自身的握手结果**（bypassOk 只对污染域记录）；图片下载失败、
                 // 延迟、其它目标（如 pixshaft.com）失败或降级各有独立卡片与 pill，不掺进绕过判定——
                 // 否则「安全 DNS 开 + 污染域握手全成功、只是某个无关目标不可达」会被连带否决成红色污染。
-                // 唯一例外：app-api 失败时强制否决——主 API 都连不上，谈不上「勉强可用」。
-                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it } && !appApiFailed
+                // 两个强制否决项：「网络勉强可用」的前提是主链路可用——
+                //   · app-api 失败：主 API 都连不上，谈不上「勉强可用」；
+                //   · 图片服务器失败：图片都加载不了，「勉强可用」与「图片无法加载」自相矛盾，互斥。
+                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it } && !appApiFailed && !imageFailed
                 pollutionBypassed.postValue(bypassActive)
                 // 高延迟与超高延迟都算「延迟高」，用于小字提示的判断。
                 val latencyHosts = work.filter {
