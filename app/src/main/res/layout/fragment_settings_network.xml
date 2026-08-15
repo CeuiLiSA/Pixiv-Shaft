@@ -196,24 +196,6 @@
                             android:tint="@color/v3_text_2" />
                     </LinearLayout>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:lineSpacingMultiplier="1.2"
-                        android:text="@string/app_api_proxy_tip"
-                        android:textColor="@color/v3_text_3"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:lineSpacingMultiplier="1.3"
-                        android:text="@string/app_api_proxy_warning"
-                        android:textColor="@color/v3_orange"
-                        android:textSize="12sp" />
-
                 </LinearLayout>
 
                 <RelativeLayout

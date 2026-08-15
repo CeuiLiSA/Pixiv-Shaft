@@ -101,7 +101,8 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
 
         //App API 代理（PxveAPI 风格）：开关 + 代理地址输入框，输入框跟随开关显隐
         baseBind.appApiProxySwitch.setChecked(Shaft.sSettings.isUseAppApiProxy());
-        // 输入框默认完全为空（不回填已保存地址，仅显示 hint）
+        // 回填已保存的代理地址（正常输入框行为）；不设置 hint，避免展示任何示例地址
+        baseBind.appApiProxyEdit.setText(Shaft.sSettings.getAppApiProxy());
         baseBind.appApiProxyGroup.setVisibility(
                 Shaft.sSettings.isUseAppApiProxy() ? View.VISIBLE : View.GONE);
         baseBind.appApiProxySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -148,11 +149,12 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                 }
             }
         });
-        // 帮助按钮：弹窗展示代理使用说明与安全警示（app_api_proxy_warning）
+        // 帮助按钮：弹窗展示填写规范 + 安全警示（界面上不再常驻提示文字）
         baseBind.appApiProxyHelp.setOnClickListener(v ->
                 new QMUIDialog.MessageDialogBuilder(mContext)
                         .setTitle(R.string.app_api_proxy_title)
-                        .setMessage(R.string.app_api_proxy_warning)
+                        .setMessage(getString(R.string.app_api_proxy_tip) + "\n\n" +
+                                getString(R.string.app_api_proxy_warning))
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addAction(R.string.sure, (dialog, index) -> dialog.dismiss())
                         .show());
