@@ -32,9 +32,6 @@ import okio.Buffer;
 /**
  * OkHttp Interceptor 将请求通过 Cronet (QUIC/HTTP3) 发送。
  * GFW 对 pixiv SNI 做了 TCP RST，QUIC 走 UDP 可绕过。
- * 注意：Cronet 请求不走 OkHttp 的分阶段超时（connect/read/write），所以本拦截器
- * 自带整体请求上限 [requestTimeoutSeconds] 兜底。默认取 NetTimeouts.REQUEST_TIMEOUT_SECONDS
- * （3s），需要放宽的调用点（CSRF 整页抓取、网络测试测量窗口）显式传入自己的值。
  */
 public class CronetInterceptor implements Interceptor {
 
@@ -60,15 +57,9 @@ public class CronetInterceptor implements Interceptor {
     }
 
     private final CronetEngine engine;
-    private final long requestTimeoutSeconds;
 
     public CronetInterceptor(CronetEngine engine) {
-        this(engine, NetTimeouts.REQUEST_TIMEOUT_SECONDS);
-    }
-
-    public CronetInterceptor(CronetEngine engine, long requestTimeoutSeconds) {
         this.engine = engine;
-        this.requestTimeoutSeconds = requestTimeoutSeconds;
     }
 
     private static CronetEngine buildEngine(Context context) {
@@ -196,7 +187,7 @@ public class CronetInterceptor implements Interceptor {
         urlRequest.start();
 
         try {
-            if (!latch.await(requestTimeoutSeconds, TimeUnit.SECONDS)) {
+            if (!latch.await(30, TimeUnit.SECONDS)) {
                 urlRequest.cancel();
                 long elapsed = (System.nanoTime() - startTime) / 1_000_000;
                 Log.e(TAG, "←── " + method + " " + shortUrl + " TIMEOUT [" + elapsed + "ms]");

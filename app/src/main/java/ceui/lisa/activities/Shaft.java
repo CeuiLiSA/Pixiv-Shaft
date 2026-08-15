@@ -425,15 +425,9 @@ public class Shaft extends Application implements ServicesProvider {
                 Timber.e(e, "Direct-connect SSL init error");
             }
             glideBuilder.dns(ceui.lisa.http.HttpDns.getInstance());
+            glideBuilder.connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS);
+            glideBuilder.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
         }
-        // 全项目连接超时统一钳制 3 秒（连不上就快速失败，UI 引导去「网络测试」）。
-        // 读超时是显示图例外：Glide 不只加载缩略图，还按设置加载原图（详情页原图预览、
-        // 漫画阅读器默认原图、分享/幻灯片原图），慢 CDN 上大图包间停顿可能超过 3s，
-        // 收紧会把「慢但能加载」误杀成失败——所以读超时放宽到 10s，断网场景仍由
-        // connectTimeout 兜住。Manager / ugoira 从本 client newBuilder() 派生时还会
-        // 各自覆盖 readTimeout（见 Manager.getDownloadOkHttpClient / UgoiraEngine）。
-        glideBuilder.connectTimeout(ceui.lisa.http.NetTimeouts.CONNECT_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
-        glideBuilder.readTimeout(ceui.lisa.http.NetTimeouts.IMAGE_READ_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
         this.mOkHttpClient = glideBuilder.build();
 
         //计算状态栏高度并赋值

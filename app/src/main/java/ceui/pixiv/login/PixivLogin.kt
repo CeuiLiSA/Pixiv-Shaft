@@ -3,10 +3,8 @@ package ceui.pixiv.login
 import android.net.Uri
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CronetInterceptor
-import ceui.lisa.http.NetTimeouts
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
-import java.util.concurrent.TimeUnit
 
 /**
  * Pixiv OAuth 入口，包了库 [PixivOAuthClient]。
@@ -64,10 +62,6 @@ object PixivLogin {
 
     private fun buildClient(): PixivOAuthClient {
         val builder = OkHttpClient.Builder()
-            // 全项目连接/读写统一 3s（NetTimeouts）：OAuth 交换是小 JSON，连不上快速失败。
-            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
         if (Shaft.sSettings.isDirectConnect) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))

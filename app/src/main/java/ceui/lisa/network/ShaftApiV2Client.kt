@@ -1,7 +1,6 @@
 package ceui.lisa.network
 
 import ceui.lisa.BuildConfig
-import ceui.lisa.http.NetTimeouts
 import com.google.gson.Gson
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -40,9 +39,9 @@ object ShaftApiV2Client {
     }
 
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-        .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
-        .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
         .addInterceptor(
             HttpLoggingInterceptor { Timber.tag("ShaftApiV2").i(it) }
                 .apply {

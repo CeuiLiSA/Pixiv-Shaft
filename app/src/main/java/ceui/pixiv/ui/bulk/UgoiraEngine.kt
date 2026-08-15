@@ -7,7 +7,6 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.cache.Cache
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.http.ImageHostManager
-import ceui.lisa.http.NetTimeouts
 import ceui.lisa.http.Retro
 import ceui.lisa.models.FramesBean
 import ceui.lisa.models.GifResponse
@@ -602,10 +601,10 @@ private const val UGOIRA_PIPELINE_TAG = "UgoiraPipeline"
 
 // 复用 Glide 图片客户端:PIXIV 模式带直连加速(HttpDns IP 直连 + 无 SNI TLS,绕 GFW),
 // 代理模式(pixiv.cat/re/nl/自定义)是标准 DNS+TLS —— 和 app 加载图片同一条快路,只把
-// 读超时放宽到 60s 给大 zip。之前用裸 client 直连 i.pximg.net,墙内慢到 65KB/s(1MB 下 39s)。
+// 读超时放宽到 120s 给大 zip。之前用裸 client 直连 i.pximg.net,墙内慢到 65KB/s(1MB 下 39s)。
 internal val ugoiraHttpClient: OkHttpClient by lazy {
     (Shaft.getContext() as Shaft).okHttpClient.newBuilder()
-        .readTimeout(NetTimeouts.UGOIRA_READ_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
         .build()
 }
 

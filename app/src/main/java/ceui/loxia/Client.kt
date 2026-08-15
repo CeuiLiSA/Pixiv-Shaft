@@ -3,7 +3,6 @@ package ceui.loxia
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CronetInterceptor
-import ceui.lisa.http.NetTimeouts
 import ceui.pixiv.shaftapi.ShaftHmac
 import okhttp3.Dns
 import okhttp3.OkHttpClient
@@ -131,8 +130,7 @@ class ClientManager {
 
         const val HEADER_AUTH = "authorization"
 
-        // 超时策略见 ceui.lisa.http.NetTimeouts：连接统一 3s，小 API 读写 3s，
-        // 大体积传输（历史批量上传、设置包整包下载）各有例外常量。
+        const val REQUIEST_TIME = 10L
 
         const val TOKEN_ERROR_1 = "Error occurred at the OAuth process"
         const val TOKEN_ERROR_2 = "Invalid refresh token"
@@ -146,9 +144,9 @@ class ClientManager {
 
     fun <T> createAPPAPI(service: Class<T>): T {
         val okhttpClientBuilder = OkHttpClient.Builder()
-            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
+            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
@@ -168,9 +166,9 @@ class ClientManager {
 
     fun <T> createWebAPIService(service: Class<T>): T {
         val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
+            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
 
         httpBuilder.addInterceptor(WebHeaderInterceptor())
@@ -192,12 +190,10 @@ class ClientManager {
     fun <T> createPixshaftService(service: Class<T>): T {
         val httpBuilder = OkHttpClient.Builder()
             // Fail fast when the history backend is down/overloaded so the UI can
-            // fall back to the local DB quickly instead of hanging ~3s（全项目统一钳制）。
-            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-            // 写超时例外：v1/history/{uid} 批量上报（HistoryReporter 每批最多 50 条实体
-            // JSON）在慢上行上可能超过 3s，收紧会把整批历史静默丢掉，放宽到 UPLOAD_WRITE_SECONDS。
-            .writeTimeout(NetTimeouts.UPLOAD_WRITE_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
+            // fall back to the local DB quickly instead of hanging ~10s.
+            .connectTimeout(6, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(8, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
             // Sign ONLY the /v1/account/* endpoints (email-bound backup/restore)
@@ -235,9 +231,9 @@ class ClientManager {
      */
     fun <T> createComicService(service: Class<T>): T {
         val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
+            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         httpBuilder.addInterceptor(HeaderInterceptor())
@@ -262,9 +258,9 @@ class ClientManager {
      */
     fun <T> createFanboxService(service: Class<T>): T {
         val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
+            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         httpBuilder.addInterceptor(FanboxHeaderInterceptor())
@@ -293,12 +289,9 @@ class ClientManager {
         }
 
         val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-            // 读写超时例外：moon 设置包是整包 JSON（设置 + 屏蔽记录 + V3 下载配置，大用户
-            // 可达数百 KB~MB 级），下载读超时放宽到 BODY_READ_SECONDS，上传写超时放宽到
-            // UPLOAD_WRITE_SECONDS —— 连接阶段仍 3s，后端不可达照样快速失败。
-            .writeTimeout(NetTimeouts.UPLOAD_WRITE_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(NetTimeouts.BODY_READ_SECONDS, TimeUnit.SECONDS)
+            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
             .dns(moonDns)
             // 自建后端在国内,不走系统 HTTP 代理(Clash 等);

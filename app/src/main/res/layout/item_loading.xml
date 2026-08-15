@@ -75,28 +75,6 @@
                 android:textAlignment="center"
                 android:textColor="@color/colorWhite60"
                 android:textSize="14sp" />
-
-            <!-- 网络类错误（断网/超时/SSL）才显示：重试按钮下方补「去网络测试」入口，
-                 由 setUpHolderRefreshState 按异常类型控制显隐与点击。 -->
-            <TextView
-                android:id="@+id/empty_network_test_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/refresh_button_background"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:minHeight="0dp"
-                android:paddingHorizontal="20dp"
-                android:paddingVertical="8dp"
-                android:stateListAnimator="@animator/button_press_alpha"
-                android:text="@string/network_test_error_action"
-                android:textAllCaps="false"
-                android:textColor="@color/colorWhite60"
-                android:textSize="14sp"
-                android:visibility="gone" />
         </LinearLayout>
 
     </FrameLayout>

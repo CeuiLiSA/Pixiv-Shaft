@@ -1983,8 +1983,6 @@
     <string name="saf_perf_test_diag_raw_failed">[4] 裸 createFile 失敗：%1$s %2$s</string>
     <string name="saf_perf_test_diag_conclusion">→ 單次 listFiles(root) %1$.1f ms · backend.replace %2$.1f ms · 裸 createFile %3$.1f ms。差值主要來自 backend 鏈路中的重複 listFiles 成本。</string>
     <string name="nav_network_test_entry">網路測試</string>
-    <string name="network_test_error_dialog_title">網路連線異常</string>
-    <string name="network_test_error_action">去網路測試</string>
     <string name="network_test_subtitle">連通性 · DNS 汙染 · TLS 握手診斷</string>
     <string name="network_test_run">開始測試</string>
     <string name="network_test_running">測試中…</string>

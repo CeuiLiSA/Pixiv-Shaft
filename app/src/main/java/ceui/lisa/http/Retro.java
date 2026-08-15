@@ -11,7 +11,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.helper.LanguageHelper;
@@ -208,9 +207,6 @@ public class Retro {
 
     public static OkHttpClient.Builder getLogClient() {
         return new OkHttpClient.Builder()
-                .connectTimeout(NetTimeouts.CONNECT_SECONDS, TimeUnit.SECONDS)
-                .readTimeout(NetTimeouts.API_READ_SECONDS, TimeUnit.SECONDS)
-                .writeTimeout(NetTimeouts.API_WRITE_SECONDS, TimeUnit.SECONDS)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }
 
