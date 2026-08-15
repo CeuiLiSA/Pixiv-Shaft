@@ -161,23 +161,40 @@
                     android:orientation="vertical"
                     android:visibility="gone">
 
-                    <EditText
-                        android:id="@+id/app_api_proxy_edit"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:autofillHints=""
-                        android:background="@drawable/bg_v3_chip"
-                        android:fontFamily="monospace"
-                        android:hint="@string/app_api_proxy_hint"
-                        android:importantForAutofill="no"
-                        android:inputType="textUri|textNoSuggestions"
-                        android:maxLines="1"
-                        android:paddingHorizontal="14dp"
-                        android:paddingVertical="12dp"
-                        android:textColor="@color/v3_text_1"
-                        android:textColorHint="@color/v3_text_3"
-                        android:textSize="14sp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/app_api_proxy_edit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:autofillHints=""
+                            android:background="@drawable/bg_v3_chip"
+                            android:fontFamily="monospace"
+                            android:importantForAutofill="no"
+                            android:inputType="textUri|textNoSuggestions"
+                            android:maxLines="1"
+                            android:paddingHorizontal="14dp"
+                            android:paddingVertical="12dp"
+                            android:textColor="@color/v3_text_1"
+                            android:textColorHint="@color/v3_text_3"
+                            android:textSize="14sp" />
+
+                        <ImageView
+                            android:id="@+id/app_api_proxy_help"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="8dp"
+                            android:contentDescription="@string/app_api_proxy_help_desc"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_help_outline_black_24dp"
+                            android:tint="@color/v3_text_2" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="match_parent"
@@ -189,19 +206,13 @@
                         android:textSize="12sp" />
 
                     <TextView
-                        android:id="@+id/app_api_proxy_save_btn"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_v3_pill_primary"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:paddingHorizontal="22dp"
-                        android:paddingVertical="11dp"
-                        android:text="@string/app_api_proxy_btn_save"
-                        android:textColor="@color/white"
-                        android:textSize="14sp" />
+                        android:layout_marginTop="10dp"
+                        android:lineSpacingMultiplier="1.3"
+                        android:text="@string/app_api_proxy_warning"
+                        android:textColor="@color/v3_orange"
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 

@@ -2204,6 +2204,8 @@
     <string name="network_test_env_doh_off">安全 DNS 关</string>
     <string name="network_test_env_direct_on">直连开</string>
     <string name="network_test_env_direct_off">直连关</string>
+    <string name="network_test_env_proxy_on">App API 代理 开</string>
+    <string name="network_test_env_proxy_off">App API 代理 关</string>
     <string name="network_test_empty_hint">点击下方「开始测试」运行网络诊断</string>
     <string name="network_test_section_targets">连通性诊断</string>
     <string name="network_test_section_illust">作品 API 探测</string>
@@ -2552,11 +2554,9 @@
     <!-- App API 代理（PxveAPI 风格）：将 app-api/oauth 请求转发至自建 PxveAPI 等代理 -->
     <string name="app_api_proxy_title">App API 代理</string>
     <string name="app_api_proxy_summary">将 app-api/oauth 请求转发至代理（如自建 PxveAPI），与直连互斥</string>
-    <string name="app_api_proxy_hint">https://api.pxve.cc</string>
-    <string name="app_api_proxy_tip">填写代理根地址，需包含 https:// 前缀，例如 https://api.pxve.cc；请求将自动转发至 /pixiv-app-api 与 /pixiv-oauth 路径</string>
-    <string name="app_api_proxy_btn_save">保存</string>
-    <string name="app_api_proxy_empty">代理地址不能为空</string>
-    <string name="app_api_proxy_invalid">代理地址必须以 https:// 开头</string>
+    <string name="app_api_proxy_tip">填写代理根地址，需包含 https:// 前缀；请求将自动转发至 /pixiv-app-api 与 /pixiv-oauth 路径</string>
+    <string name="app_api_proxy_help_desc">代理使用说明与安全提醒</string>
+    <string name="app_api_proxy_warning">安全提醒：开启代理后，账号令牌（Authorization）会经代理服务器转发，来历不明的代理可借此窃取你的账号。请仅使用自己搭建或完全信任的代理服务。\n\n自建推荐（PxveAPI）：\n· 原项目（Deno 版）：github.com/asadahimeka/pxve-api\n· Vercel 在线部署版（Node 移植，推荐）：github.com/susulqx/pxve-api\n部署后将你的代理域名填入上方输入框。</string>
     <string name="comment_emoji_picker">表情</string>
     <string name="comment_emoji_tab_kaomoji">绘文字</string>
     <string name="comment_emoji_tab_stamp">表情贴图</string>

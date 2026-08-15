@@ -89,6 +89,17 @@
                     android:textSize="12sp"
                     android:textStyle="bold"
                     tools:text="直连关" />
+
+                <TextView
+                    android:id="@+id/chip_proxy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="App API 代理 关" />
             </LinearLayout>
 
             <!-- 总览卡：跑完才显示。大状态行 + 副说明。 -->

@@ -148,7 +148,7 @@ public class Settings {
     private String customImageHost = "";
 
     //App API 代理（PxveAPI 风格）。useAppApiProxy: true 开启，将 app-api/oauth 请求改写为
-    //https://<appApiProxy>/pixiv-app-api/* 与 /pixiv-oauth/*；appApiProxy: 代理根地址（如 https://api.pxve.cc）。
+    //https://<appApiProxy>/pixiv-app-api/* 与 /pixiv-oauth/*；appApiProxy: 代理根地址（需 https:// 前缀）。
     //与直连模式（directConnect）互斥，二者同时开启时以代理优先。
     private boolean useAppApiProxy = false;
     private String appApiProxy = "";

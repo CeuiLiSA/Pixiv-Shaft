@@ -27,6 +27,9 @@ import ceui.loxia.Client;
 /** 设置 · 网络 */
 public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettingsNetworkBinding> {
 
+    /** 互斥联动时 setChecked 会同步触发对方回调，用此标志防止递归/重复重建。 */
+    private boolean suppressSwitch = false;
+
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_network;
@@ -41,8 +44,19 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (suppressSwitch) return;
                 boolean changed = isChecked != Shaft.sSettings.isDirectConnect();
                 Shaft.sSettings.setDirectConnect(isChecked);
+                if (isChecked) {
+                    // 互斥：开启直连时自动关闭 App API 代理（Retro 装配二选一，不能并存）
+                    if (Shaft.sSettings.isUseAppApiProxy()) {
+                        Shaft.sSettings.setUseAppApiProxy(false);
+                        suppressSwitch = true;
+                        baseBind.appApiProxySwitch.setChecked(false);
+                        suppressSwitch = false;
+                        baseBind.appApiProxyGroup.setVisibility(View.GONE);
+                    }
+                }
                 Common.showToast(getString(R.string.string_428), 2);
                 Local.setSettings(Shaft.sSettings);
                 ViewGroup secureDnsParent = (ViewGroup) baseBind.useSecureDnsGroup.getParent();
@@ -87,14 +101,25 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
 
         //App API 代理（PxveAPI 风格）：开关 + 代理地址输入框，输入框跟随开关显隐
         baseBind.appApiProxySwitch.setChecked(Shaft.sSettings.isUseAppApiProxy());
-        baseBind.appApiProxyEdit.setText(Shaft.sSettings.getAppApiProxy());
+        // 输入框默认完全为空（不回填已保存地址，仅显示 hint）
         baseBind.appApiProxyGroup.setVisibility(
                 Shaft.sSettings.isUseAppApiProxy() ? View.VISIBLE : View.GONE);
         baseBind.appApiProxySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (suppressSwitch) return;
                 boolean changed = isChecked != Shaft.sSettings.isUseAppApiProxy();
                 Shaft.sSettings.setUseAppApiProxy(isChecked);
+                if (isChecked) {
+                    // 互斥：开启代理时自动关闭直连（Retro 装配二选一，不能并存）
+                    if (Shaft.sSettings.isDirectConnect()) {
+                        Shaft.sSettings.setDirectConnect(false);
+                        suppressSwitch = true;
+                        baseBind.autoDns.setChecked(false);
+                        suppressSwitch = false;
+                        baseBind.useSecureDnsGroup.setVisibility(View.GONE);
+                    }
+                }
                 Common.showToast(getString(R.string.string_428), 2);
                 Local.setSettings(Shaft.sSettings);
                 ViewGroup proxyParent = (ViewGroup) baseBind.appApiProxyGroup.getParent();
@@ -111,8 +136,26 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
             }
         });
         baseBind.appApiProxyRela.setOnClickListener(v -> baseBind.appApiProxySwitch.performClick());
-        // 保存按钮：校验后写入 Settings（参照 aria2/AI 翻译设置页的显式保存交互）
-        baseBind.appApiProxySaveBtn.setOnClickListener(v -> saveAppApiProxy());
+        // 输入框失焦时自动保存代理地址（空内容保存为空串，拦截器遇空地址直接放行）；
+        // 拦截器每次请求实时读取 Settings，地址变化即时生效，无需保存按钮
+        baseBind.appApiProxyEdit.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                CharSequence text = baseBind.appApiProxyEdit.getText();
+                String proxy = text == null ? "" : text.toString().trim();
+                if (!TextUtils.equals(proxy, Shaft.sSettings.getAppApiProxy())) {
+                    Shaft.sSettings.setAppApiProxy(proxy);
+                    Local.setSettings(Shaft.sSettings);
+                }
+            }
+        });
+        // 帮助按钮：弹窗展示代理使用说明与安全警示（app_api_proxy_warning）
+        baseBind.appApiProxyHelp.setOnClickListener(v ->
+                new QMUIDialog.MessageDialogBuilder(mContext)
+                        .setTitle(R.string.app_api_proxy_title)
+                        .setMessage(R.string.app_api_proxy_warning)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addAction(R.string.sure, (dialog, index) -> dialog.dismiss())
+                        .show());
 
         //缩略图是否显示大图
         baseBind.showLargeThumbnailImage.setChecked(Shaft.sSettings.isShowLargeThumbnailImage());
@@ -227,25 +270,5 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         Local.setSettings(Shaft.sSettings);
         refreshImageHostSummary();
         Common.showToast(getString(R.string.image_host_restart_hint), 2);
-    }
-
-    // ── App API 代理（PxveAPI 风格） ─────────────────────────────────────
-    // 填写规范与 pixiv-viewer 一致：代理地址必须带 https:// 前缀（拦截器按
-    // PxveAPI 约定自动拼接 /pixiv-app-api 与 /pixiv-oauth 路径，无需手动填写）。
-    private void saveAppApiProxy() {
-        CharSequence text = baseBind.appApiProxyEdit.getText();
-        String proxy = text == null ? "" : text.toString().trim();
-        if (TextUtils.isEmpty(proxy)) {
-            Common.showToast(getString(R.string.app_api_proxy_empty));
-            return;
-        }
-        if (!proxy.startsWith("https://")) {
-            Common.showToast(getString(R.string.app_api_proxy_invalid));
-            return;
-        }
-        Shaft.sSettings.setAppApiProxy(proxy);
-        Local.setSettings(Shaft.sSettings);
-        Common.showToast(getString(R.string.string_428), 2);
-        // 拦截器每次请求实时读取 Settings，地址变化即时生效
     }
 }
