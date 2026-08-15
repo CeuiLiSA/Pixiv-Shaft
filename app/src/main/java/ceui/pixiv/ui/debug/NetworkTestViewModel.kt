@@ -17,9 +17,13 @@ import ceui.loxia.HeaderInterceptor
 import ceui.loxia.WebHeaderInterceptor
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import okhttp3.ConnectionPool
 import okhttp3.Dns
@@ -34,6 +38,8 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.UnknownHostException
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /** 单条步骤的语义状态，决定圆点 / pill 的颜色（在 Fragment 里按状态染 v3 颜色）。 */
@@ -126,6 +132,23 @@ class NetworkTestViewModel : ViewModel() {
     /** 图片下载阶段是否有步骤失败（供总体判定降级）。 */
     private var imageDownloadFailed = false
 
+    /** http 反代等跳过连通性的图片目标：卡片判定以图片下载探测为准（探测结束回写该卡状态）。 */
+    private var imageCardRelyOnDownload = false
+
+    /** 本轮图片目标卡的标题（imageCfg.host），供下载阶段定位并回写该卡。 */
+    private var imageTargetTitle: String? = null
+
+    /** 本轮在途的 OkHttp 客户端；onCleared 时 cancelAll 中断阻塞中的 execute()，让测试尽快收尾。 */
+    private val activeClients = Collections.newSetFromMap(ConcurrentHashMap<OkHttpClient, Boolean>())
+
+    override fun onCleared() {
+        // 退出页面：viewModelScope 取消只对挂起点生效，阻塞 IO（execute / isReachable）不会被打断——
+        // 显式 cancel 在途 Call，配合 runTests 的阶段间 isActive 检查快速收尾，
+        // 避免 VM 重建 / 重进页面时旧一轮还在跑、又并发开第二轮。
+        activeClients.forEach { it.dispatcher.cancelAll() }
+        super.onCleared()
+    }
+
     /** fake-ip 提示弹窗每轮测试只弹一次。 */
     private var fakeIpDialogShown = false
 
@@ -144,6 +167,8 @@ class NetworkTestViewModel : ViewModel() {
         val subtitle: String,
         val cidrs: List<String>?,
         val kind: TargetKind,
+        /** 自定义反代为 http://（明文，非 https）：https 握手无法代表它，跳过连通性，以图片下载探测为准。 */
+        val plainHttp: Boolean = false,
     )
 
     private data class HandshakeResult(val ok: Boolean, val avgMs: Int, val maxMs: Int)
@@ -161,6 +186,8 @@ class NetworkTestViewModel : ViewModel() {
         pollutionBypassed.value = false
         imageTargetFailed.value = false
         imageDownloadFailed = false
+        imageCardRelyOnDownload = false
+        imageTargetTitle = null
         fakeIpDialogShown = false
         fakeIpDetected = false
         probeIllustUrl = null
@@ -178,16 +205,48 @@ class NetworkTestViewModel : ViewModel() {
 
                 // 图片目标联动当前图片代理：反代模式下直接把目标域名换成反代域名来测。
                 val imageProxy = imageProxyDomain()
+                // 自定义反代可能是 http://（明文）——https 握手无法代表它，跳过该目标的连通性，
+                // 卡片判定以图片下载探测为准（runImageDownloadPhase 结束会回写该卡状态）。
+                val imagePlainHttp = ImageHostManager.getMode() == ImageHostManager.Mode.CUSTOM &&
+                    ImageHostManager.getCustomHost().trim().startsWith("http://", ignoreCase = true)
+                imageCardRelyOnDownload = imagePlainHttp
                 val imageCfg = if (imageProxy != null) {
-                    TargetConfig(imageProxy, "图片服务器 · 反代 $imageProxy", null, TargetKind.IMAGE)
+                    TargetConfig(
+                        imageProxy,
+                        Shaft.getContext().getString(R.string.network_test_target_sub_image_proxy, imageProxy),
+                        null,
+                        TargetKind.IMAGE,
+                        plainHttp = imagePlainHttp,
+                    )
                 } else {
-                    TargetConfig("i.pximg.net", "图片服务器 · Pixiv Japan", PXIMG_CIDRS, TargetKind.IMAGE)
+                    TargetConfig(
+                        "i.pximg.net",
+                        Shaft.getContext().getString(R.string.network_test_target_sub_image_official),
+                        PXIMG_CIDRS,
+                        TargetKind.IMAGE,
+                    )
                 }
+                imageTargetTitle = imageCfg.host
                 val configs = listOf(
-                    TargetConfig(APP_API_HOST, "pixiv API · Cloudflare CDN", PIXIV_CIDRS, TargetKind.APP_API),
-                    TargetConfig("www.pixiv.net", "网页端点 · Cloudflare CDN", PIXIV_CIDRS, TargetKind.WEB_API),
+                    TargetConfig(
+                        APP_API_HOST,
+                        Shaft.getContext().getString(R.string.network_test_target_sub_app_api),
+                        PIXIV_CIDRS,
+                        TargetKind.APP_API,
+                    ),
+                    TargetConfig(
+                        "www.pixiv.net",
+                        Shaft.getContext().getString(R.string.network_test_target_sub_web),
+                        PIXIV_CIDRS,
+                        TargetKind.WEB_API,
+                    ),
                     imageCfg,
-                    TargetConfig("pixshaft.com", "Shaft 云服务 · 浏览记录同步", null, TargetKind.PIXSHAFT),
+                    TargetConfig(
+                        "pixshaft.com",
+                        Shaft.getContext().getString(R.string.network_test_target_sub_pixshaft),
+                        null,
+                        TargetKind.PIXSHAFT,
+                    ),
                 )
                 val polluted = mutableListOf<String>()
                 val bypassOk = mutableListOf<Boolean>()
@@ -198,9 +257,19 @@ class NetworkTestViewModel : ViewModel() {
                         polluted.add(cfg.host)
                         bypassOk.add(hsOk)
                     }
+                    // 退出页面：每个目标测完检查一次取消，提前收尾、不再测下一个
+                    // （阻塞段内取消不了，段间放行；onCleared 已 cancel 在途 Call 加速中断）。
+                    if (!isActive) {
+                        log("测试已取消（退出页面），提前结束")
+                        return@launch
+                    }
                 }
 
                 // 所有目标握手测完之后，再做真实图片下载（插画 + 头像），联动当前图片代理。
+                if (!isActive) {
+                    log("测试已取消（退出页面），跳过图片下载探测")
+                    return@launch
+                }
                 val (imageSlow, imageDimFailed) = runImageDownloadPhase()
 
                 val anyFailed = work.any { it.status == TargetStatus.FAILED }
@@ -265,16 +334,22 @@ class NetworkTestViewModel : ViewModel() {
                         }
                     }
                     ov == OverallStatus.CLEAN -> {
-                        var base = ctx.getString(R.string.network_test_overall_clean_sub)
-                        // fake-ip 下没有 DNS 解析，删掉「DNS解析」。
-                        if (fakeIpDetected) base = base.replace("DNS解析、", "")
-                        // 尺寸探测失败：删掉「尺寸探测」并追加说明。
+                        // 总览小字按段拼接：fake-ip 去掉「DNS解析」段、尺寸探测失败去掉「尺寸探测」段、
+                        // 下载缓慢换「图片下载缓慢」段。不再对整串做中文字面 replace——
+                        // 旧做法在非中文 locale 下 replace 目标根本不存在（各语言旧译与中文文案不一致）。
+                        val segs = mutableListOf<String>()
+                        if (!fakeIpDetected) segs.add(ctx.getString(R.string.network_test_clean_seg_dns))
+                        segs.add(ctx.getString(R.string.network_test_clean_seg_handshake))
+                        if (!imageDimFailed) segs.add(ctx.getString(R.string.network_test_clean_seg_dim))
+                        segs.add(
+                            ctx.getString(
+                                if (imageSlow) R.string.network_test_clean_seg_download_slow
+                                else R.string.network_test_clean_seg_download_ok,
+                            ),
+                        )
+                        var base = segs.joinToString(ctx.getString(R.string.network_test_clean_seg_sep))
                         if (imageDimFailed) {
-                            base = base.replace("尺寸探测、", "") + "\n" + ctx.getString(R.string.network_test_dim_probe_failed_impact)
-                        }
-                        // 下载缓慢：与「下载缓慢」pill 保持一致，别再说「一切正常」。
-                        if (imageSlow) {
-                            base = base.replace("图片下载一切正常。", "图片下载缓慢。")
+                            base += "\n" + ctx.getString(R.string.network_test_dim_probe_failed_impact)
                         }
                         base
                     }
@@ -324,6 +399,8 @@ class NetworkTestViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 // 兜底：任何一步意外异常都不能把「测试中」按钮卡死或让协程静默死掉。
+                // 但取消必须放行（onCleared / 退出页面时 scope 取消，吞掉会留下半场状态）。
+                if (e is CancellationException) throw e
                 log("测试异常终止: ${e.javaClass.simpleName}: ${e.message}")
                 Timber.e(e, "network test aborted")
                 overall.postValue(OverallStatus.DEGRADED)
@@ -338,10 +415,43 @@ class NetworkTestViewModel : ViewModel() {
     private fun testTarget(idx: Int, cfg: TargetConfig, doh: Boolean, direct: Boolean): Pair<Boolean, Boolean> {
         log("========== ${cfg.host} ==========")
 
+        // http 反代：握手客户端只走 HTTPS，无法代表明文反代（且 host 常带非 443 端口），
+        // 直接跳过连通性 / 握手，卡片判定由 runImageDownloadPhase 以真实下载结果回写。
+        if (cfg.kind == TargetKind.IMAGE && cfg.plainHttp) {
+            addStep(
+                idx,
+                TestStep(
+                    strRes(R.string.network_test_skip_connectivity),
+                    strRes(R.string.network_test_skip_http_proxy),
+                    StepStatus.INFO,
+                ),
+            )
+            // 占位即显示「跳过」：该卡不做连通性判定；下载成功时回写也保持「跳过」（见 syncImageTargetCard）。
+            work[idx] = work[idx].copy(
+                status = TargetStatus.OK,
+                statusPillOverride = strRes(R.string.network_test_pill_skipped),
+            )
+            publish()
+            log("图片目标为 http 反代，跳过握手，以图片下载探测为准")
+            log("")
+            return false to true
+        }
+
+        // 自定义反代可能带端口（imageProxyDomain() 保留 host:port）：DNS 解析与 TCP 探测要拆开。
+        val dnsHost = cfg.host.substringBefore(':')
+        val connPort = cfg.host.substringAfter(':', "443").toIntOrNull() ?: 443
+
         val sysAddrs = try {
-            InetAddress.getAllByName(cfg.host).toList()
+            InetAddress.getAllByName(dnsHost).toList()
         } catch (e: UnknownHostException) {
-            addStep(idx, TestStep("系统 DNS 解析", "解析失败: ${e.message}", StepStatus.FAIL))
+            addStep(
+                idx,
+                TestStep(
+                    strRes(R.string.network_test_dns_step),
+                    strRes(R.string.network_test_dns_resolve_failed, e.message),
+                    StepStatus.FAIL,
+                ),
+            )
             log("系统 DNS 解析失败: ${e.message}")
             setStatus(idx, TargetStatus.FAILED)
             return false to false
@@ -354,8 +464,8 @@ class NetworkTestViewModel : ViewModel() {
             addStep(
                 idx,
                 TestStep(
-                    "系统 DNS 解析",
-                    "返回保留地址（疑似代理 fake-ip）: ${fakeIps.joinToString()}\n跳过 DNS 校验与 ping，仅测握手",
+                    strRes(R.string.network_test_dns_step),
+                    strRes(R.string.network_test_dns_fakeip, fakeIps.joinToString()),
                     StepStatus.WARN,
                 ),
             )
@@ -377,7 +487,9 @@ class NetworkTestViewModel : ViewModel() {
                 fakeIpDialogShown = true
                 log("fake-ip 提示弹窗（本轮仅一次）")
                 viewModelScope.launch {
-                    _pollutionAlert.emit(NetworkAlert(R.string.network_test_fakeip_dialog_title, FAKE_IP_DIALOG_MESSAGE))
+                    _pollutionAlert.emit(
+                        NetworkAlert(R.string.network_test_fakeip_dialog_title, strRes(R.string.network_test_fakeip_dialog_body)),
+                    )
                 }
             }
             log("")
@@ -394,12 +506,13 @@ class NetworkTestViewModel : ViewModel() {
                 val hit = cfg.cidrs.firstOrNull { isIpInCidr(ip, it) }
                 if (hit != null) {
                     clean++
-                    sb.append("✓ $ip ∈ $hit\n")
+                    sb.append(strRes(R.string.network_test_dns_hit, ip, hit))
                 } else {
-                    sb.append("✗ $ip 不在任何已知段\n")
+                    sb.append(strRes(R.string.network_test_dns_miss, ip))
                 }
             }
-            sysAddrs.filter { it !is Inet4Address }.forEach { sb.append("· ${it.hostAddress} (IPv6, 跳过)\n") }
+            sysAddrs.filter { it !is Inet4Address }
+                .forEach { sb.append(strRes(R.string.network_test_dns_ipv6_skip, it.hostAddress)) }
             polluted = ipv4.isNotEmpty() && clean == 0
             val st = when {
                 ipv4.isEmpty() -> StepStatus.WARN
@@ -407,13 +520,13 @@ class NetworkTestViewModel : ViewModel() {
                 clean < ipv4.size -> StepStatus.WARN
                 else -> StepStatus.OK
             }
-            addStep(idx, TestStep("系统 DNS 解析 · ${sysAddrs.size} 条", sb.toString().trimEnd(), st))
+            addStep(idx, TestStep(strRes(R.string.network_test_dns_step_count, sysAddrs.size), sb.toString().trimEnd(), st))
         } else {
             addStep(
                 idx,
                 TestStep(
-                    "系统 DNS 解析 · ${sysAddrs.size} 条",
-                    sysAddrs.joinToString("\n") { "· ${it.hostAddress}" },
+                    strRes(R.string.network_test_dns_step_count, sysAddrs.size),
+                    sysAddrs.joinToString("\n") { strRes(R.string.network_test_dns_item, it.hostAddress) },
                     StepStatus.OK,
                 ),
             )
@@ -435,12 +548,13 @@ class NetworkTestViewModel : ViewModel() {
                     val hit = cfg.cidrs.firstOrNull { isIpInCidr(ip, it) }
                     if (hit != null) {
                         appClean++
-                        sb.append("✓ $ip ∈ $hit\n")
+                        sb.append(strRes(R.string.network_test_dns_hit, ip, hit))
                     } else {
-                        sb.append("✗ $ip 不在任何已知段\n")
+                        sb.append(strRes(R.string.network_test_dns_miss, ip))
                     }
                 }
-                appAddrs.filter { it !is Inet4Address }.forEach { sb.append("· ${it.hostAddress} (IPv6, 跳过)\n") }
+                appAddrs.filter { it !is Inet4Address }
+                    .forEach { sb.append(strRes(R.string.network_test_dns_ipv6_skip, it.hostAddress)) }
 
                 val appPolluted = appV4.isNotEmpty() && appClean == 0
                 val st = when {
@@ -453,7 +567,7 @@ class NetworkTestViewModel : ViewModel() {
                 addStep(
                     idx,
                     TestStep(
-                        "应用内解析 · HttpDns(DoH/直连) · ${appAddrs.size} 条",
+                        strRes(R.string.network_test_dns_app_step, appAddrs.size),
                         sb.toString().trimEnd(),
                         st,
                     ),
@@ -467,7 +581,14 @@ class NetworkTestViewModel : ViewModel() {
                     appV4.firstOrNull()
                 }
             } catch (e: Exception) {
-                addStep(idx, TestStep("应用内解析 · HttpDns", "失败: ${e.message}", StepStatus.WARN))
+                addStep(
+                    idx,
+                    TestStep(
+                        strRes(R.string.network_test_dns_app_step_plain),
+                        strRes(R.string.network_test_dns_app_failed, e.message),
+                        StepStatus.WARN,
+                    ),
+                )
             }
         }
 
@@ -479,12 +600,40 @@ class NetworkTestViewModel : ViewModel() {
         }
         val targetIp: Inet4Address? = cleanV4.firstOrNull() ?: appIp
         if (targetIp == null) {
-            val detail = if (polluted) {
-                "DNS 解析不可信，且无可用绕过路径"
-            } else {
-                "无可用 IPv4 地址"
+            // 直连 + Cronet 覆盖的域名（APP_API / WEB_API）：真实 app 直连时走
+            // CronetInterceptor 的 host_resolver_rules 钉 Cloudflare IP，根本不经本地 DNS——
+            // 本机解析被污染也应仍跑一次 Cronet 握手（不钉 IP），否则「app 明明能用」会被
+            // appApiFailed → NETWORK_DOWN 误诊成主 API 不可达。
+            if (polluted && direct &&
+                (cfg.kind == TargetKind.APP_API || cfg.kind == TargetKind.WEB_API)
+            ) {
+                log("本机 DNS 不可信，直连下 ${cfg.host} 由 Cronet 钉 IP——改走 Cronet 握手（不钉 IP）")
+                addStep(
+                    idx,
+                    TestStep(
+                        strRes(R.string.network_test_skip_cronet),
+                        strRes(R.string.network_test_skip_cronet_detail, cfg.host),
+                        StepStatus.WARN,
+                    ),
+                )
+                val hs = httpsHandshakeSampled(idx, cfg, null, direct, bypassDns = true)
+                val status = when {
+                    !hs.ok -> TargetStatus.POLLUTED
+                    hs.maxMs > EXTREME_LATENCY_MS -> TargetStatus.EXTREME_LATENCY
+                    hs.avgMs > HIGH_LATENCY_MS -> TargetStatus.HIGH_LATENCY
+                    else -> TargetStatus.POLLUTED_BYPASSED
+                }
+                setStatus(idx, status)
+                if (hs.ok) appendLatencyToSubtitle(idx, hs.avgMs, hs.maxMs)
+                log("")
+                return polluted to hs.ok
             }
-            addStep(idx, TestStep("跳过连通性 / 握手", detail, StepStatus.WARN))
+            val detail = if (polluted) {
+                strRes(R.string.network_test_skip_polluted)
+            } else {
+                strRes(R.string.network_test_skip_no_ipv4)
+            }
+            addStep(idx, TestStep(strRes(R.string.network_test_skip_connectivity), detail, StepStatus.WARN))
             log("跳过后续: $detail")
             setStatus(idx, if (polluted) TargetStatus.POLLUTED else TargetStatus.FAILED)
             return polluted to false
@@ -493,14 +642,14 @@ class NetworkTestViewModel : ViewModel() {
             addStep(
                 idx,
                 TestStep(
-                    "改走应用内解析路径",
-                    "本机 DNS 被污染，以下测试经 ${targetIp.hostAddress}(DoH/直连)",
+                    strRes(R.string.network_test_bypass_step),
+                    strRes(R.string.network_test_bypass_detail, targetIp.hostAddress),
                     StepStatus.WARN,
                 ),
             )
         }
 
-        tcpPing(idx, targetIp.hostAddress ?: "", 443)
+        tcpPing(idx, targetIp.hostAddress ?: "", connPort)
         if (direct) icmpPing(idx, targetIp)
         val hs = httpsHandshakeSampled(idx, cfg, targetIp, direct)
         // www.pixiv.net 握手后再发一次真实网页请求，验证 web 端点；失败只降级不算握手失败。
@@ -530,14 +679,18 @@ class NetworkTestViewModel : ViewModel() {
             val t0 = System.currentTimeMillis()
             Socket().use { it.connect(InetSocketAddress(ip, port), 3000) }
             val ms = System.currentTimeMillis() - t0
+            val stepLabel = strRes(R.string.network_test_tcp_step, port)
             if (ms <= 10) {
-                addStep(idx, TestStep("TCP $port 连通性", "${ms}ms · 过低无参考性，以握手耗时为准", StepStatus.WARN))
+                addStep(idx, TestStep(stepLabel, strRes(R.string.network_test_tcp_too_fast, ms), StepStatus.WARN))
             } else {
-                addStep(idx, TestStep("TCP $port 连通性", "可达 · ${ms}ms", StepStatus.OK))
+                addStep(idx, TestStep(stepLabel, strRes(R.string.network_test_tcp_ok, ms), StepStatus.OK))
             }
             log("TCP $port: ${ms}ms")
         } catch (e: Exception) {
-            addStep(idx, TestStep("TCP $port 连通性", "不可达: ${e.message}", StepStatus.FAIL))
+            addStep(
+                idx,
+                TestStep(strRes(R.string.network_test_tcp_step, port), strRes(R.string.network_test_tcp_fail, e.message), StepStatus.FAIL),
+            )
             log("TCP $port 不可达: ${e.message}")
         }
     }
@@ -552,12 +705,13 @@ class NetworkTestViewModel : ViewModel() {
             } catch (_: Exception) {
             }
         }
+        val stepLabel = strRes(R.string.network_test_icmp_step)
         if (samples.isNotEmpty()) {
             val avg = samples.average().toInt()
-            addStep(idx, TestStep("ICMP/echo Ping · 直连", "${samples.size}/3 可达 · 平均 ${avg}ms", StepStatus.OK))
+            addStep(idx, TestStep(stepLabel, strRes(R.string.network_test_icmp_ok, samples.size, avg), StepStatus.OK))
             log("ICMP: ${samples.size}/3 avg ${avg}ms")
         } else {
-            addStep(idx, TestStep("ICMP/echo Ping · 直连", "0/3 可达（部分网络禁用 ICMP，属正常）", StepStatus.WARN))
+            addStep(idx, TestStep(stepLabel, strRes(R.string.network_test_icmp_warn), StepStatus.WARN))
             log("ICMP: 0/3")
         }
     }
@@ -572,12 +726,10 @@ class NetworkTestViewModel : ViewModel() {
      * 交给系统 DNS + 代理接管路由。
      */
     private fun buildHandshakeClient(cfg: TargetConfig, ip: InetAddress?, direct: Boolean, pin: Boolean = true): OkHttpClient {
-        // 握手采样 readTimeout：同时作为 Cronet 直连的整体请求上限（见 addCronet 参数）。
-        val readTimeoutSeconds = 5L
         val builder = OkHttpClient.Builder()
             .connectionPool(ConnectionPool(0, 1, TimeUnit.SECONDS))
             .connectTimeout(5, TimeUnit.SECONDS)
-            .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
+            .readTimeout(5, TimeUnit.SECONDS)
             .writeTimeout(5, TimeUnit.SECONDS)
         if (pin && ip != null) {
             val pinnedDns = object : Dns {
@@ -589,7 +741,7 @@ class NetworkTestViewModel : ViewModel() {
             TargetKind.APP_API -> {
                 builder.protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
                 builder.addInterceptor(HeaderInterceptor())
-                if (direct) addCronet(builder, readTimeoutSeconds)
+                if (direct) addCronet(builder)
             }
             TargetKind.IMAGE -> {
                 // 直连覆写（无 SNI / HttpDns 硬编码 IP）只对官方 i.pximg.net 有效；
@@ -607,34 +759,29 @@ class NetworkTestViewModel : ViewModel() {
             }
             TargetKind.PIXSHAFT -> {
                 builder.protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
-                if (direct) addCronet(builder, readTimeoutSeconds)
+                if (direct) addCronet(builder)
             }
             TargetKind.WEB_API -> {
                 // 镜像 createWebAPIService：H1 + Web 头 + 直连 Cronet。
                 builder.protocols(listOf(Protocol.HTTP_1_1))
                 builder.addInterceptor(WebHeaderInterceptor())
-                if (direct) addCronet(builder, readTimeoutSeconds)
+                if (direct) addCronet(builder)
             }
         }
-        return builder.build()
+        return builder.build().also { activeClients.add(it) }
     }
 
-    private fun addCronet(builder: OkHttpClient.Builder, requestTimeoutSeconds: Long) {
-        // 网络测试页的测量窗口（5~20s）刻意不跟随全项目 3s 钳制：Cronet 请求不走 OkHttp
-        // 分阶段超时，拦截器整体上限显式传值（与各探测 client 的 readTimeout 一致），
-        // 慢但正常的端点会被量成「高延迟」而不是被 3s 截断误报失败。
-        builder.addInterceptor(
-            CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext()), requestTimeoutSeconds),
-        )
+    private fun addCronet(builder: OkHttpClient.Builder) {
+        builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
     }
 
     /** 该目标本次握手实际走的路径，标在步骤 label 上让用户看清测的是哪条链路。 */
     private fun handshakePathDesc(cfg: TargetConfig, direct: Boolean): String = when (cfg.kind) {
         TargetKind.IMAGE -> {
-            if (direct && !ImageHostManager.requiresStandardClient()) "无 SNI · HTTP/1.1"
-            else "标准 TLS · HTTP/1.1"
+            if (direct && !ImageHostManager.requiresStandardClient()) strRes(R.string.network_test_path_no_sni)
+            else strRes(R.string.network_test_path_standard_tls)
         }
-        else -> if (direct) "直连 Cronet/QUIC" else "标准 TLS"
+        else -> if (direct) strRes(R.string.network_test_path_cronet) else strRes(R.string.network_test_path_standard_tls)
     }
 
     /**
@@ -647,17 +794,27 @@ class NetworkTestViewModel : ViewModel() {
         ip: InetAddress?,
         direct: Boolean,
         fakeIp: Boolean = false,
+        bypassDns: Boolean = false,
     ): HandshakeResult {
-        val pathDesc = if (fakeIp) "标准 TLS · 代理接管（fake-ip）" else handshakePathDesc(cfg, direct)
+        val pathDesc = when {
+            fakeIp -> strRes(R.string.network_test_path_fakeip)
+            bypassDns -> strRes(R.string.network_test_path_cronet_bypass)
+            else -> handshakePathDesc(cfg, direct)
+        }
         val stepIdx = work[idx].steps.size
-        addStep(idx, TestStep("HTTPS 握手 · 持续 5s 采样 · $pathDesc", "采样中…", StepStatus.RUNNING))
+        addStep(
+            idx,
+            TestStep(strRes(R.string.network_test_hs_step, pathDesc), strRes(R.string.network_test_sampling), StepStatus.RUNNING),
+        )
         // fake-ip：不走直连覆写（Cronet / 无 SNI / HttpDns 对代理无意义），标准 TLS + 系统 DNS。
+        // bypassDns：本机 DNS 不可信，但直连下域名由 Cronet host_resolver_rules 钉 IP——
+        // 不把（被污染的）解析结果钉进 OkHttp，交给 Cronet 自己的规则解析。
         val client = try {
-            buildHandshakeClient(cfg, ip, if (fakeIp) false else direct, pin = !fakeIp)
+            buildHandshakeClient(cfg, ip, if (fakeIp) false else direct, pin = !fakeIp && !bypassDns)
         } catch (e: Exception) {
             // 客户端构建失败（如 Cronet 引擎初始化异常）也要落成步骤失败，而不是中断整轮测试。
             log("握手客户端构建失败: ${e.javaClass.simpleName}: ${e.message}")
-            updateStep(idx, stepIdx, "客户端构建失败: ${e.javaClass.simpleName}: ${e.message}", StepStatus.FAIL)
+            updateStep(idx, stepIdx, strRes(R.string.network_test_hs_build_failed, "${e.javaClass.simpleName}: ${e.message}"), StepStatus.FAIL)
             return HandshakeResult(false, 0, 0)
         }
         // SNI 由 socket 工厂控制，与 URL 无关；统一用域名即可（无 SNI 路径仍会被 RubySSLSocketFactory 抹掉）。
@@ -673,7 +830,8 @@ class NetworkTestViewModel : ViewModel() {
         try {
             val deadline = System.currentTimeMillis() + 5000
             var n = 0
-            while (System.currentTimeMillis() < deadline && n < 15) {
+            // viewModelScope.isActive：退出页面后立刻停采样，不再等到 5s 窗口耗尽。
+            while (System.currentTimeMillis() < deadline && n < 15 && viewModelScope.isActive) {
                 n++
                 val t0 = System.currentTimeMillis()
                 try {
@@ -692,6 +850,7 @@ class NetworkTestViewModel : ViewModel() {
                 updateStep(idx, stepIdx, handshakeDetail(samples, fail, tls, cipher, proto, firstErr), StepStatus.RUNNING)
             }
         } finally {
+            activeClients.remove(client)
             client.connectionPool.evictAll()
             client.dispatcher.executorService.shutdown()
         }
@@ -726,20 +885,20 @@ class NetworkTestViewModel : ViewModel() {
             val min = samples.min()
             val max = samples.max()
             val avg = samples.average().toInt()
-            sb.append("成功 ${samples.size}")
-            if (fail > 0) sb.append(" · 失败 $fail")
-            sb.append("\nmin ${min}ms · avg ${avg}ms · max ${max}ms · 抖动 ${max - min}ms")
+            sb.append(strRes(R.string.network_test_hs_success, samples.size))
+            if (fail > 0) sb.append(strRes(R.string.network_test_hs_fail_count, fail))
+            sb.append(strRes(R.string.network_test_hs_stats, min, avg, max, max - min))
             if (tls != null) {
-                sb.append("\n$tls")
-                cipher?.let { sb.append(" · $it") }
+                sb.append(strRes(R.string.network_test_hs_tls, tls))
+                cipher?.let { sb.append(strRes(R.string.network_test_hs_cipher, it)) }
             } else {
                 // Cronet/QUIC 路径短路了 OkHttp 的 TLS 层，没有握手对象，只能报协商出的协议。
-                proto?.let { sb.append("\n协议 $it（经直连，无 TLS 握手详情）") }
+                proto?.let { sb.append(strRes(R.string.network_test_hs_proto_direct, it)) }
             }
         } else {
-            sb.append("全部失败（$fail 次）")
-            firstErr?.let { sb.append("\n$it") }
-            sb.append("\n常见原因: 连接被重置 / 证书不受信 / TLS 版本不匹配")
+            sb.append(strRes(R.string.network_test_hs_all_failed, fail))
+            firstErr?.let { sb.append(strRes(R.string.network_test_hs_first_err, it)) }
+            sb.append(strRes(R.string.network_test_hs_reasons))
         }
         return sb.toString()
     }
@@ -751,7 +910,10 @@ class NetworkTestViewModel : ViewModel() {
      */
     private fun probeWebEndpoint(idx: Int, cfg: TargetConfig, ip: InetAddress, direct: Boolean): Boolean {
         val stepIdx = work[idx].steps.size
-        addStep(idx, TestStep("网页请求 · /ajax/illust/$SAMPLE_ILLUST_ID", "请求中…", StepStatus.RUNNING))
+        addStep(
+            idx,
+            TestStep(strRes(R.string.network_test_web_step, SAMPLE_ILLUST_ID), strRes(R.string.network_test_requesting), StepStatus.RUNNING),
+        )
         var client: OkHttpClient? = null
         var ok = false
         try {
@@ -775,18 +937,19 @@ class NetworkTestViewModel : ViewModel() {
                 probeUserId = bodyObj?.get("userId")?.takeIf { it.isJsonPrimitive }?.asString
                 ok = resp.code in 200..299 && !error && url != null
                 if (ok) {
-                    updateStep(idx, stepIdx, "HTTP ${resp.code} · ${ms}ms · 作品 #$SAMPLE_ILLUST_ID 已返回图片地址", StepStatus.OK)
+                    updateStep(idx, stepIdx, strRes(R.string.network_test_web_ok, resp.code, ms, SAMPLE_ILLUST_ID), StepStatus.OK)
                     log("网页请求: HTTP ${resp.code} ${ms}ms url=$url")
                 } else {
-                    updateStep(idx, stepIdx, "HTTP ${resp.code} · error=$error · 未拿到图片地址", StepStatus.WARN)
+                    updateStep(idx, stepIdx, strRes(R.string.network_test_web_degraded, resp.code, error), StepStatus.WARN)
                     log("网页请求异常: HTTP ${resp.code} error=$error")
                 }
             }
         } catch (e: Exception) {
-            updateStep(idx, stepIdx, "请求失败: ${e.javaClass.simpleName}: ${e.message}", StepStatus.WARN)
+            updateStep(idx, stepIdx, strRes(R.string.network_test_web_failed, "${e.javaClass.simpleName}: ${e.message}"), StepStatus.WARN)
             log("网页请求失败: ${e.message}")
         } finally {
             client?.let {
+                activeClients.remove(it)
                 it.connectionPool.evictAll()
                 it.dispatcher.executorService.shutdown()
             }
@@ -810,8 +973,8 @@ class NetworkTestViewModel : ViewModel() {
         imageDownloadRunning.postValue(true)
         imageDownloadFailed = false
 
-        val title = "图片下载探测"
-        val sub = "样例作品 #$SAMPLE_ILLUST_ID · 插画 + 头像"
+        val title = strRes(R.string.network_test_dl_title)
+        val sub = strRes(R.string.network_test_dl_sub, SAMPLE_ILLUST_ID)
         val steps = mutableListOf<TestStep>()
         fun push(step: TestStep) {
             steps.add(step)
@@ -829,47 +992,53 @@ class NetworkTestViewModel : ViewModel() {
         var downloadSlow = false
         try {
             // 1. 地址准备：优先复用 www.pixiv.net 探测结果，否则现场抓，再不行用内置样例。
-            push(TestStep("准备图片地址", "获取中…", StepStatus.RUNNING))
+            push(TestStep(strRes(R.string.network_test_dl_prepare), strRes(R.string.network_test_fetching), StepStatus.RUNNING))
             var illustUrl = probeIllustUrl
             var avatarUrl: String? = null
-            var dimSource = "复用 www.pixiv.net 探测"
+            var dimSource = strRes(R.string.network_test_dl_source_probe)
+            val fallbackSource = strRes(R.string.network_test_dl_source_fallback)
             if (illustUrl != null) {
                 avatarUrl = probeUserId?.let { fetchAvatarUrl(it) }
             } else {
                 val fetched = fetchSampleUrls()
                 illustUrl = fetched.first
                 avatarUrl = fetched.second
-                dimSource = if (illustUrl != null) "现场获取" else "内置样例兜底"
+                dimSource = if (illustUrl != null) strRes(R.string.network_test_dl_source_live) else fallbackSource
             }
             if (illustUrl == null) illustUrl = FALLBACK_ILLUST_URL
             if (avatarUrl == null) avatarUrl = FALLBACK_AVATAR_URL
             replaceLast(
                 TestStep(
-                    "准备图片地址",
-                    "来源 $dimSource · 插画 + 头像已就绪",
-                    if (dimSource == "内置样例兜底") StepStatus.WARN else StepStatus.OK,
+                    strRes(R.string.network_test_dl_prepare),
+                    strRes(R.string.network_test_dl_prepare_done, dimSource),
+                    if (dimSource == fallbackSource) StepStatus.WARN else StepStatus.OK,
                 ),
             )
             log("图片下载地址: $dimSource")
             log("  插画: $illustUrl")
             log("  头像: $avatarUrl")
+            // 退出页面：地址准备（含现场抓取）可能耗时，段间检查取消及时收尾。
+            coroutineContext.ensureActive()
 
             // 2. 探测图片尺寸：网页 ajax 拿第一页真实宽高；拿不到就并列黄底「探测失败」。
-            push(TestStep("探测图片尺寸", "获取中…", StepStatus.RUNNING))
+            push(TestStep(strRes(R.string.network_test_dl_dim), strRes(R.string.network_test_fetching), StepStatus.RUNNING))
             val (dimStep, dimProbeOk) = probeImageDimensions(dimSource)
             dimOk = dimProbeOk
             replaceLast(dimStep)
             imageDimensionFailed.postValue(!dimOk)
+            coroutineContext.ensureActive()
 
             val hostDesc = imageHostDesc()
             log("图片代理路由: $hostDesc")
-            push(TestStep("图片代理路由", hostDesc, StepStatus.INFO))
+            push(TestStep(strRes(R.string.network_test_dl_route), hostDesc, StepStatus.INFO))
 
-            push(TestStep("插画图片下载", "下载中…", StepStatus.RUNNING))
-            val (illustStep, illustSlow) = downloadImageStep("插画图片下载", illustUrl)
+            push(TestStep(strRes(R.string.network_test_dl_illust), strRes(R.string.network_test_downloading), StepStatus.RUNNING))
+            val (illustStep, illustSlow) = downloadImageStep(strRes(R.string.network_test_dl_illust), illustUrl)
             replaceLast(illustStep)
-            push(TestStep("头像图片下载", "下载中…", StepStatus.RUNNING))
-            val (avatarStep, avatarSlow) = downloadImageStep("头像图片下载", avatarUrl)
+            coroutineContext.ensureActive()
+            push(TestStep(strRes(R.string.network_test_dl_avatar), strRes(R.string.network_test_downloading), StepStatus.RUNNING))
+            // 头像只有几 KB，传输耗时恒小，不做「下载缓慢」判定（吞吐对小文件无意义）。
+            val (avatarStep, avatarSlow) = downloadImageStep(strRes(R.string.network_test_dl_avatar), avatarUrl, judgeSpeed = false)
             replaceLast(avatarStep)
 
             downloadSlow = illustSlow || avatarSlow
@@ -896,10 +1065,14 @@ class NetworkTestViewModel : ViewModel() {
                     extraPill = if (dimOk) null else Shaft.getContext().getString(R.string.network_test_dim_probe_failed),
                 ),
             )
+            // http 反代等跳过连通性的图片目标：卡片判定以图片下载探测为准。
+            if (imageCardRelyOnDownload) syncImageTargetCard(cardStatus)
         } catch (e: Exception) {
+            // 取消必须放行（退出页面 → scope 取消），不能当成「下载阶段异常」落失败卡。
+            if (e is CancellationException) throw e
             log("图片下载阶段异常: ${e.javaClass.simpleName}: ${e.message}")
             val failStep = TestStep(
-                "图片下载失败",
+                strRes(R.string.network_test_dl_fail),
                 e.javaClass.simpleName + (e.message?.let { ": $it" } ?: ""),
                 StepStatus.FAIL,
             )
@@ -920,6 +1093,7 @@ class NetworkTestViewModel : ViewModel() {
                     extraPill = if (!dimOk) Shaft.getContext().getString(R.string.network_test_dim_probe_failed) else null,
                 ),
             )
+            if (imageCardRelyOnDownload) syncImageTargetCard(TargetStatus.FAILED)
             return false to !dimOk
         } finally {
             imageDownloadRunning.postValue(false)
@@ -951,25 +1125,24 @@ class NetworkTestViewModel : ViewModel() {
             }
             builder.dns(HttpDns.getInstance())
         }
-        return builder.build()
+        return builder.build().also { activeClients.add(it) }
     }
 
     /** 网页探测专用客户端，镜像 createWebAPIService：H1.1 + Web 头；直连开启时经 Cronet(QUIC)。 */
     private fun buildWebProbeClient(): OkHttpClient {
-        // 网页探测 readTimeout：同时作为 Cronet 直连的整体请求上限（见 addCronet 参数）。
-        val readTimeoutSeconds = 15L
         val builder = OkHttpClient.Builder()
             .connectTimeout(3, TimeUnit.SECONDS)
-            .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
             .addInterceptor(WebHeaderInterceptor())
-        if (directConnect) addCronet(builder, readTimeoutSeconds)
-        return builder.build()
+        if (directConnect) addCronet(builder)
+        return builder.build().also { activeClients.add(it) }
     }
 
-    /** 下一张真图：HTTP 200 + magic bytes 校验，报告字节数 / 耗时 / 吞吐 / 实际请求 host。
+    /** 下一张真图：HTTP 200 + magic bytes 校验，报告字节数 / TTFB / 数据传输耗时 / 吞吐 / 实际请求 host。
+     *  @param judgeSpeed 是否做「下载缓慢」判定：头像只有几 KB，传输耗时恒小，吞吐无意义，传 false 跳过。
      *  @return (步骤, 是否下载缓慢)。 */
-    private fun downloadImageStep(label: String, rawUrl: String): Pair<TestStep, Boolean> {
+    private fun downloadImageStep(label: String, rawUrl: String, judgeSpeed: Boolean = true): Pair<TestStep, Boolean> {
         val realUrl = ImageHostManager.rewrite(rawUrl)
         val client = buildImageDownloadClient()
         val t0 = System.currentTimeMillis()
@@ -985,49 +1158,58 @@ class NetworkTestViewModel : ViewModel() {
                 .get()
                 .build()
             result = client.newCall(request).execute().use { resp ->
+                // TTFB：响应头到达（execute 返回）即服务端首字节前的处理 + 网络往返，
+                // 与握手 500/1000ms 阈值同量纲——整包传输耗时含读 body，不能拿去比握手阈值。
+                val ttfb = System.currentTimeMillis() - t0
                 val code = resp.code
                 val body = resp.body
                 if (body == null) {
                     log("$label: HTTP $code 无响应体")
-                    TestStep(label, "HTTP $code · 无响应体", StepStatus.FAIL) to false
+                    TestStep(label, strRes(R.string.network_test_dl_no_body, code), StepStatus.FAIL) to false
                 } else {
                     val (data, truncated) = readCapped(body.byteStream(), MAX_IMAGE_DOWNLOAD_BYTES)
                     val ms = System.currentTimeMillis() - t0
                     val format = imageMagic(data)
                     val sizeTxt = formatBytes(data.size) + if (truncated) "+" else ""
-                    val speedTxt = if (ms > 0) "${data.size * 1000L / ms / 1024}KB/s" else "-"
+                    // 数据传输时间 = 整包耗时 - TTFB（不含服务端首字节前的处理），吞吐按它算。
+                    val transferMs = (ms - ttfb).coerceAtLeast(0)
+                    val speedTxt = if (transferMs > 0) "${data.size * 1000L / transferMs / 1024}KB/s" else "-"
                     val host = realUrl.substringAfter("://").substringBefore('/')
                     val ok = code in 200..299 && format != null
 
-                    // 延迟/缓慢判定：与连通性诊断同阈值；下载缓慢 = 均速 < 1.2 × 大小(KB)。
-                    val sizeKB = data.size / 1024f
-                    val speedKBs = if (ms > 0) data.size * 1000f / ms / 1024f else 0f
-                    val slow = speedKBs < 1.2f * sizeKB
+                    // 延迟判定只看 TTFB（与握手同阈值）；下载缓慢看 body 数据传输时间——
+                    // 小样本吞吐无意义（38KB / 2KB 的图按 KB/s 判必然「缓慢」），头像更直接跳过该判定。
+                    val slow = judgeSpeed && transferMs > SLOW_TRANSFER_MS
                     val tags = mutableListOf<String>()
                     if (ok) {
-                        if (ms > EXTREME_LATENCY_MS) {
-                            tags.add("超高延迟")
-                        } else if (ms > HIGH_LATENCY_MS) {
-                            tags.add("高延迟")
+                        if (ttfb > EXTREME_LATENCY_MS) {
+                            tags.add(strRes(R.string.network_test_dl_tag_extreme))
+                        } else if (ttfb > HIGH_LATENCY_MS) {
+                            tags.add(strRes(R.string.network_test_dl_tag_high))
                         }
-                        if (slow) tags.add("下载缓慢")
+                        if (slow) tags.add(strRes(R.string.network_test_dl_tag_slow))
                     }
                     val tagTxt = if (tags.isNotEmpty()) " · " + tags.joinToString(" · ") else ""
                     log(
-                        "$label: HTTP $code · ${data.size}B · ${ms}ms · $speedTxt · $format$tagTxt · " +
+                        "$label: HTTP $code · ${data.size}B · TTFB ${ttfb}ms · 传输 ${transferMs}ms · $speedTxt · $format$tagTxt · " +
                             "$rawUrl -> $realUrl",
                     )
                     val st = when {
                         !ok -> StepStatus.FAIL
-                        ms > EXTREME_LATENCY_MS -> StepStatus.EXTREME_LATENCY
-                        ms > HIGH_LATENCY_MS -> StepStatus.HIGH_LATENCY
+                        ttfb > EXTREME_LATENCY_MS -> StepStatus.EXTREME_LATENCY
+                        ttfb > HIGH_LATENCY_MS -> StepStatus.HIGH_LATENCY
                         slow -> StepStatus.WARN
                         else -> StepStatus.OK
                     }
                     val detail = if (ok) {
-                        "HTTP $code · $sizeTxt · ${ms}ms · $speedTxt · $format ✓$tagTxt\n实际请求: $host"
+                        strRes(R.string.network_test_dl_detail_ok, code, sizeTxt, ttfb, transferMs, speedTxt, format, tagTxt, host)
                     } else {
-                        "HTTP $code · $sizeTxt · ${ms}ms${if (format != null) " · $format" else ""}\n实际请求: $host"
+                        strRes(
+                            R.string.network_test_dl_detail_fail,
+                            code, sizeTxt, ms,
+                            if (format != null) " · $format" else "",
+                            host,
+                        )
                     }
                     TestStep(label, detail, st) to slow
                 }
@@ -1035,8 +1217,9 @@ class NetworkTestViewModel : ViewModel() {
         } catch (e: Exception) {
             Timber.e(e)
             log("$label: 请求失败 ${e.message}")
-            result = TestStep(label, "请求失败: ${e.javaClass.simpleName}: ${e.message}", StepStatus.FAIL) to false
+            result = TestStep(label, strRes(R.string.network_test_dl_request_failed, "${e.javaClass.simpleName}: ${e.message}"), StepStatus.FAIL) to false
         } finally {
+            activeClients.remove(client)
             client.connectionPool.evictAll()
             client.dispatcher.executorService.shutdown()
         }
@@ -1068,6 +1251,7 @@ class NetworkTestViewModel : ViewModel() {
             log("现场抓取样例地址失败: ${e.message}")
             null to null
         } finally {
+            activeClients.remove(client)
             client.connectionPool.evictAll()
             client.dispatcher.executorService.shutdown()
         }
@@ -1090,6 +1274,7 @@ class NetworkTestViewModel : ViewModel() {
             null
         } finally {
             if (shared == null) {
+                activeClients.remove(client)
                 client.connectionPool.evictAll()
                 client.dispatcher.executorService.shutdown()
             }
@@ -1117,12 +1302,12 @@ class NetworkTestViewModel : ViewModel() {
                 val h = firstPage?.get("height")?.takeIf { it.isJsonPrimitive }?.asInt
                 if (!error && w != null && h != null && w > 0 && h > 0) {
                     log("探测图片尺寸: 宽 $w · 高 $h · 第一页 · $source · ${ms}ms")
-                    TestStep("探测图片尺寸", "宽 $w · 高 $h · 第一页 · $source · ${ms}ms", StepStatus.OK) to true
+                    TestStep(strRes(R.string.network_test_dl_dim), strRes(R.string.network_test_dim_ok, w, h, source, ms), StepStatus.OK) to true
                 } else {
                     log("探测图片尺寸失败: HTTP ${resp.code} · ${ms}ms · 未拿到第一页宽高")
                     TestStep(
-                        "探测图片尺寸",
-                        "HTTP ${resp.code} · ${ms}ms · 未拿到第一页宽高（该接口需网页 cookie）",
+                        strRes(R.string.network_test_dl_dim),
+                        strRes(R.string.network_test_dim_no_page, resp.code, ms),
                         StepStatus.WARN,
                     ) to false
                 }
@@ -1130,21 +1315,26 @@ class NetworkTestViewModel : ViewModel() {
         } catch (e: Exception) {
             Timber.e(e)
             log("探测图片尺寸失败: ${e.javaClass.simpleName}: ${e.message}")
-            TestStep("探测图片尺寸", "请求失败: ${e.javaClass.simpleName}: ${e.message}", StepStatus.WARN) to false
+            TestStep(
+                strRes(R.string.network_test_dl_dim),
+                strRes(R.string.network_test_dim_failed, "${e.javaClass.simpleName}: ${e.message}"),
+                StepStatus.WARN,
+            ) to false
         } finally {
+            activeClients.remove(client)
             client.connectionPool.evictAll()
             client.dispatcher.executorService.shutdown()
         }
     }
 
     private fun imageHostDesc(): String = when (ImageHostManager.getMode()) {
-        ImageHostManager.Mode.PIXIV -> "Pixiv 官方 · i.pximg.net 直连"
-        ImageHostManager.Mode.PIXIV_CAT -> "pixiv.cat 反代"
-        ImageHostManager.Mode.PIXIV_RE -> "pixiv.re 反代"
-        ImageHostManager.Mode.PIXIV_NL -> "pixiv.nl 反代"
+        ImageHostManager.Mode.PIXIV -> strRes(R.string.network_test_route_official)
+        ImageHostManager.Mode.PIXIV_CAT -> strRes(R.string.network_test_route_cat)
+        ImageHostManager.Mode.PIXIV_RE -> strRes(R.string.network_test_route_re)
+        ImageHostManager.Mode.PIXIV_NL -> strRes(R.string.network_test_route_nl)
         ImageHostManager.Mode.CUSTOM -> {
             val host = ImageHostManager.getCustomHost()
-            if (host.isEmpty()) "自定义反代（未配置）" else "自定义反代: $host"
+            if (host.isEmpty()) strRes(R.string.network_test_route_custom_none) else strRes(R.string.network_test_route_custom, host)
         }
     }
 
@@ -1207,8 +1397,8 @@ class NetworkTestViewModel : ViewModel() {
         illustRunning.value = true
 
         viewModelScope.launch(Dispatchers.IO) {
-            val title = "作品 #$id"
-            val sub = "GET /v1/illust/detail"
+            val title = strRes(R.string.network_test_illust_title, id)
+            val sub = strRes(R.string.network_test_illust_sub)
             val steps = mutableListOf<TestStep>()
             fun push(step: TestStep) {
                 steps.add(step)
@@ -1220,42 +1410,65 @@ class NetworkTestViewModel : ViewModel() {
                 val ms = System.currentTimeMillis() - t0
                 val il = resp.illust
                 if (il == null) {
-                    push(TestStep("API 响应", "${ms}ms · 返回体无 illust 字段", StepStatus.FAIL))
+                    push(TestStep(strRes(R.string.network_test_illust_api_step), strRes(R.string.network_test_illust_no_illust, ms), StepStatus.FAIL))
                     illustReport.postValue(TargetReport(title, sub, TargetStatus.FAILED, steps.toList()))
                     return@launch
                 }
-                push(TestStep("API 响应", "${ms}ms · HTTP 200", StepStatus.OK))
-                push(TestStep("标题 / 类型", "${il.title ?: "—"} · ${typeLabel(il.type)}", StepStatus.INFO))
+                push(TestStep(strRes(R.string.network_test_illust_api_step), strRes(R.string.network_test_illust_ok, ms), StepStatus.OK))
+                push(
+                    TestStep(
+                        strRes(R.string.network_test_illust_title_type),
+                        "${il.title ?: "—"} · ${typeLabel(il.type)}",
+                        StepStatus.INFO,
+                    ),
+                )
                 val captionLen = il.caption?.replace(Regex("<[^>]*>"), "")?.trim()?.length ?: 0
                 push(
                     TestStep(
-                        "简介",
-                        if (captionLen > 0) "有 · $captionLen 字" else "无",
+                        strRes(R.string.network_test_illust_caption),
+                        if (captionLen > 0) strRes(R.string.network_test_illust_caption_yes, captionLen) else strRes(R.string.network_test_illust_caption_no),
                         if (captionLen > 0) StepStatus.OK else StepStatus.INFO,
                     ),
                 )
-                push(TestStep("页数", "${il.page_count} P", StepStatus.INFO))
-                push(TestStep("首图分辨率", "${il.width} × ${il.height}", StepStatus.INFO))
+                push(TestStep(strRes(R.string.network_test_illust_pages), strRes(R.string.network_test_illust_pages_n, il.page_count), StepStatus.INFO))
+                push(
+                    TestStep(
+                        strRes(R.string.network_test_illust_resolution),
+                        strRes(R.string.network_test_illust_resolution_n, il.width, il.height),
+                        StepStatus.INFO,
+                    ),
+                )
                 val orig = il.meta_single_page?.original_image_url
                     ?: il.meta_pages?.firstOrNull()?.image_urls?.original
                     ?: il.image_urls?.original
-                val ext = orig?.substringAfterLast('.', "")?.takeIf { it.isNotBlank() }?.uppercase() ?: "未知"
+                val ext = orig?.substringAfterLast('.', "")?.takeIf { it.isNotBlank() }?.uppercase()
+                    ?: strRes(R.string.network_test_unknown)
                 push(
                     TestStep(
-                        "图片格式",
-                        if (orig != null) "$ext · 原图地址已返回" else "$ext · 无原图地址",
+                        strRes(R.string.network_test_illust_format),
+                        if (orig != null) strRes(R.string.network_test_illust_format_yes, ext)
+                        else strRes(R.string.network_test_illust_format_no, ext),
                         if (orig != null) StepStatus.OK else StepStatus.WARN,
                     ),
                 )
                 val flags = buildList {
-                    if (il.illust_ai_type == 2) add("AI 生成")
-                    if ((il.x_restrict ?: 0) > 0) add("R-18")
-                    if (il.is_muted == true) add("已屏蔽")
+                    if (il.illust_ai_type == 2) add(strRes(R.string.network_test_illust_flag_ai))
+                    if ((il.x_restrict ?: 0) > 0) add(strRes(R.string.network_test_illust_flag_r18))
+                    if (il.is_muted == true) add(strRes(R.string.network_test_illust_flag_muted))
                 }
-                if (flags.isNotEmpty()) push(TestStep("标记", flags.joinToString(" · "), StepStatus.INFO))
+                if (flags.isNotEmpty()) push(TestStep(strRes(R.string.network_test_illust_flags), flags.joinToString(" · "), StepStatus.INFO))
                 illustReport.postValue(TargetReport(title, sub, TargetStatus.OK, steps.toList()))
             } catch (e: Exception) {
-                push(TestStep("API 请求失败", e.javaClass.simpleName + (e.message?.let { ": $it" } ?: ""), StepStatus.FAIL))
+                // Client.appApi.getIllust 是 suspend，onCleared 取消时会真的走到这里——
+                // 必须放行 CancellationException，不能 postValue「API 请求失败: CancellationException」。
+                if (e is CancellationException) throw e
+                push(
+                    TestStep(
+                        strRes(R.string.network_test_illust_api_failed),
+                        e.javaClass.simpleName + (e.message?.let { ": $it" } ?: ""),
+                        StepStatus.FAIL,
+                    ),
+                )
                 illustReport.postValue(TargetReport(title, sub, TargetStatus.FAILED, steps.toList()))
             } finally {
                 illustRunning.postValue(false)
@@ -1264,10 +1477,10 @@ class NetworkTestViewModel : ViewModel() {
     }
 
     private fun typeLabel(type: String?): String = when (type) {
-        "illust" -> "插画"
-        "manga" -> "漫画"
-        "ugoira" -> "动图"
-        else -> type ?: "未知"
+        "illust" -> strRes(R.string.network_test_type_illust)
+        "manga" -> strRes(R.string.network_test_type_manga)
+        "ugoira" -> strRes(R.string.network_test_type_ugoira)
+        else -> type ?: strRes(R.string.network_test_unknown)
     }
 
     // ---- 状态发布 ----
@@ -1297,6 +1510,19 @@ class NetworkTestViewModel : ViewModel() {
         publish()
     }
 
+    /** 图片目标跳过连通性（http 反代）时，把该卡状态回写为图片下载探测的结果。 */
+    private fun syncImageTargetCard(status: TargetStatus) {
+        val title = imageTargetTitle ?: return
+        val imageIdx = work.indexOfFirst { it.title == title }
+        if (imageIdx >= 0) {
+            // 下载成功 → 卡仍显示「跳过」（连通性没测）；失败 / 降级 / 延迟 → 清掉「跳过」
+            // 覆盖，用标准文案（失败时总览随后覆盖为红底「图片无法加载」）。
+            val override = if (status == TargetStatus.OK) strRes(R.string.network_test_pill_skipped) else null
+            work[imageIdx] = work[imageIdx].copy(status = status, statusPillOverride = override)
+            publish()
+        }
+    }
+
     /** 把握手 avg/max 耗时标到卡片副标题，方便一眼看到每个端点的延迟。 */
     private fun appendLatencyToSubtitle(idx: Int, avgMs: Int, maxMs: Int) {
         work[idx] = work[idx].copy(subtitle = work[idx].subtitle + " · avg ${avgMs}ms · max ${maxMs}ms")
@@ -1314,15 +1540,18 @@ class NetworkTestViewModel : ViewModel() {
 
     private fun onOff(v: Boolean) = if (v) "开" else "关"
 
+    /** 取字符串资源：本页用户可见文案已全部抽到 res，多语言时逐条翻译即可。 */
+    private fun strRes(id: Int, vararg args: Any?): String = Shaft.getContext().getString(id, *args)
+
     private fun buildPollutionMessage(domains: List<String>, doh: Boolean, direct: Boolean): String {
-        val head = "以下是疑似被DNS污染的域名\n（域名解析出的IP不在已知的正确IP列表中）:\n" +
-            domains.joinToString("\n") { "· $it" }
+        val head = strRes(R.string.network_test_pollution_dialog_head) +
+            domains.joinToString("\n") { strRes(R.string.network_test_pollution_dialog_item, it) }
         val tail = if (doh && direct) {
-            "\n\n当前已同时开启直连模式和「安全 DNS（DoH）」，已尝试绕过污染，具体效果请以实际为准。"
+            strRes(R.string.network_test_pollution_dialog_tail_both)
         } else if (direct) {
-            "\n\n当前已开启直连模式，但DNS污染仍在，建议同时开启「安全 DNS（DoH）」。"
+            strRes(R.string.network_test_pollution_dialog_tail_direct)
         } else {
-            "\n\n建议在「设置 → 网络」同时开启直连模式和「安全 DNS（DoH）」来绕过污染。"
+            strRes(R.string.network_test_pollution_dialog_tail_other)
         }
         return head + tail
     }
@@ -1341,17 +1570,15 @@ class NetworkTestViewModel : ViewModel() {
 
         private fun isFakeIp(ip: String): Boolean = FAKE_IP_CIDRS.any { isIpInCidr(ip, it) }
 
-        /** 握手 avg 超过该阈值判定为「高延迟」。 */
+        /** 握手 avg / 图片下载 TTFB 超过该阈值判定为「高延迟」。 */
         private const val HIGH_LATENCY_MS = 500
 
-        /** 握手 max 超过该阈值判定为「超高延迟」（红底）。 */
+        /** 握手 max / 图片下载 TTFB 超过该阈值判定为「超高延迟」（红底）。 */
         private const val EXTREME_LATENCY_MS = 1000
 
-        /** fake-ip 提示弹窗文案（每轮只弹一次）。 */
-        private const val FAKE_IP_DIALOG_MESSAGE =
-            "当前网络启用了VPN / 代理，且DNS模式为fake-ip\n" +
-                "部分测试将会跳过\n" +
-                "建议将DNS模式改为redir-host或normal完善跳过的部分"
+        /** 图片下载 body 数据传输（不含 TTFB）超过该毫秒数判定为「下载缓慢」
+         * 当前用列片仅38KB，更多耗在TTFB上，要是传输耗的耗时高就是TCP层在硬撑 */
+        private const val SLOW_TRANSFER_MS = 100
 
         /**
          * 图片下载探测用的内置样例作品（仓库既有数据，SFW、长期稳定）与其兜底地址。

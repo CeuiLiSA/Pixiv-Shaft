@@ -238,7 +238,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             OverallStatus.CLEAN -> {
                 applyPill(summaryPill, "● " + getString(R.string.network_test_overall_clean), R.color.v3_green)
                 summarySub.text = viewModel.overallSub.value
-                    ?: getString(R.string.network_test_overall_clean_sub)
+                    ?: getString(R.string.network_test_overall_clean_sub_fallback)
             }
             OverallStatus.HIGH_LATENCY -> {
                 applyPill(summaryPill, "● " + getString(R.string.network_test_overall_high_latency), R.color.v3_orange)
@@ -351,14 +351,14 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
     }
 
     private fun targetStatusStyle(status: TargetStatus): Pair<String, Int> = when (status) {
-        TargetStatus.RUNNING -> "测试中" to R.color.v3_blue
-        TargetStatus.OK -> "通畅" to R.color.v3_green
-        TargetStatus.HIGH_LATENCY -> "高延迟" to R.color.v3_orange
-        TargetStatus.EXTREME_LATENCY -> "超高延迟" to R.color.v3_danger
-        TargetStatus.DEGRADED -> "部分异常" to R.color.v3_orange
-        TargetStatus.POLLUTED -> "DNS 污染" to R.color.v3_danger
-        TargetStatus.POLLUTED_BYPASSED -> "已绕过" to R.color.v3_gold
-        TargetStatus.FAILED -> "失败" to R.color.v3_danger
+        TargetStatus.RUNNING -> getString(R.string.network_test_status_running) to R.color.v3_blue
+        TargetStatus.OK -> getString(R.string.network_test_status_ok) to R.color.v3_green
+        TargetStatus.HIGH_LATENCY -> getString(R.string.network_test_status_high) to R.color.v3_orange
+        TargetStatus.EXTREME_LATENCY -> getString(R.string.network_test_status_extreme) to R.color.v3_danger
+        TargetStatus.DEGRADED -> getString(R.string.network_test_status_degraded) to R.color.v3_orange
+        TargetStatus.POLLUTED -> getString(R.string.network_test_status_polluted) to R.color.v3_danger
+        TargetStatus.POLLUTED_BYPASSED -> getString(R.string.network_test_status_bypassed) to R.color.v3_gold
+        TargetStatus.FAILED -> getString(R.string.network_test_status_failed) to R.color.v3_danger
     }
 
     private fun stepIcon(status: StepStatus): String = when (status) {
