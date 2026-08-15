@@ -1,17 +1,24 @@
 package ceui.lisa.fragments;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogView;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -89,15 +96,6 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         //地址非空即启用（Settings#isUseAppApiProxy 由地址派生），为空显示「不代理」。
         refreshAppApiProxySummary();
         baseBind.appApiProxyRela.setOnClickListener(v -> promptAppApiProxy());
-        // 帮助按钮：弹窗展示填写规范 + 安全警示（界面上不再常驻提示文字）
-        baseBind.appApiProxyHelp.setOnClickListener(v ->
-                new QMUIDialog.MessageDialogBuilder(mContext)
-                        .setTitle(R.string.app_api_proxy_title)
-                        .setMessage(getString(R.string.app_api_proxy_tip) + "\n\n" +
-                                getString(R.string.app_api_proxy_warning))
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                        .addAction(R.string.sure, (dialog, index) -> dialog.dismiss())
-                        .show());
 
         //缩略图是否显示大图
         baseBind.showLargeThumbnailImage.setChecked(Shaft.sSettings.isShowLargeThumbnailImage());
@@ -227,7 +225,42 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
     }
 
     private void promptAppApiProxy() {
-        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(mContext);
+        // 帮助按钮移到弹窗标题栏右上角：点击「使用 PxveAPI 代理」弹出输入框，
+        // 标题栏右侧提供帮助图标，点击后展示填写规范 + 安全警示。
+        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(mContext) {
+            @Override
+            protected View onCreateTitle(@NonNull QMUIDialog dialog,
+                                         @NonNull QMUIDialogView parent,
+                                         @NonNull Context context) {
+                View title = super.onCreateTitle(dialog, parent, context);
+                if (title == null) {
+                    return null;
+                }
+                float density = context.getResources().getDisplayMetrics().density;
+                int helpSize = Math.round(40 * density);
+                int helpPadding = Math.round(8 * density);
+
+                FrameLayout container = new FrameLayout(context);
+
+                FrameLayout.LayoutParams titleLp = new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                titleLp.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+                container.addView(title, titleLp);
+
+                ImageView help = new ImageView(context);
+                help.setImageResource(R.drawable.ic_help_outline_black_24dp);
+                help.setColorFilter(context.getColor(R.color.v3_text_2));
+                help.setContentDescription(getString(R.string.app_api_proxy_help_desc));
+                help.setPadding(helpPadding, helpPadding, helpPadding, helpPadding);
+                help.setOnClickListener(v -> showAppApiProxyHelp());
+                FrameLayout.LayoutParams helpLp = new FrameLayout.LayoutParams(helpSize, helpSize);
+                helpLp.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+                container.addView(help, helpLp);
+
+                return container;
+            }
+        };
         builder.setTitle(R.string.app_api_proxy_title)
                 .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                 .setPlaceholder(getString(R.string.app_api_proxy_hint))
@@ -255,6 +288,16 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                     dialog.dismiss();
                 })
                 .create()
+                .show();
+    }
+
+    private void showAppApiProxyHelp() {
+        new QMUIDialog.MessageDialogBuilder(mContext)
+                .setTitle(R.string.app_api_proxy_title)
+                .setMessage(getString(R.string.app_api_proxy_tip) + "\n\n" +
+                        getString(R.string.app_api_proxy_warning))
+                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .addAction(R.string.sure, (dialog, index) -> dialog.dismiss())
                 .show();
     }
 }
