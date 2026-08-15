@@ -47,6 +47,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
     private lateinit var summaryPill: TextView
     private lateinit var summaryPillSlow: TextView
     private lateinit var summaryPillDim: TextView
+    private lateinit var summaryPillDegraded: TextView
     private lateinit var summaryPillBypass: TextView
     private lateinit var summarySub: TextView
     private lateinit var emptyState: View
@@ -89,6 +90,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         summaryPill = view.findViewById(R.id.summary_pill)
         summaryPillSlow = view.findViewById(R.id.summary_pill_slow)
         summaryPillDim = view.findViewById(R.id.summary_pill_dim)
+        summaryPillDegraded = view.findViewById(R.id.summary_pill_degraded)
         summaryPillBypass = view.findViewById(R.id.summary_pill_bypass)
         summarySub = view.findViewById(R.id.summary_sub)
         emptyState = view.findViewById(R.id.empty_state)
@@ -220,6 +222,11 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         val dimFailed = viewModel.imageDimensionFailed.value == true
         summaryPillDim.visibility = if (dimFailed) View.VISIBLE else View.GONE
         if (dimFailed) applyPill(summaryPillDim, getString(R.string.network_test_dim_probe_failed_top), R.color.v3_gold)
+        // 污染但绕过未生效（污染域握手失败）：红底污染 pill 旁并列橙底「部分异常」，
+        // 小字说明连通性/握手问题；绕过生效时上面已并列「网络勉强可用」。
+        val bypassFailed = overall == OverallStatus.POLLUTED && !bypassed
+        summaryPillDegraded.visibility = if (bypassFailed) View.VISIBLE else View.GONE
+        if (bypassFailed) applyPill(summaryPillDegraded, getString(R.string.network_test_overall_degraded), R.color.v3_orange)
         when (overall) {
             OverallStatus.CLEAN -> {
                 applyPill(summaryPill, "● " + getString(R.string.network_test_overall_clean), R.color.v3_green)
@@ -238,15 +245,18 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             }
             OverallStatus.DEGRADED -> {
                 applyPill(summaryPill, "● " + getString(R.string.network_test_overall_degraded), R.color.v3_orange)
-                summarySub.setText(R.string.network_test_overall_degraded_sub)
+                // 异常终止时 ViewModel 会 post aborted_sub，优先展示它而不是固定文案
+                summarySub.text = viewModel.overallSub.value
+                    ?: getString(R.string.network_test_overall_degraded_sub)
             }
             OverallStatus.POLLUTED -> {
                 if (bypassed) {
                     applyPill(summaryPill, "● " + getString(R.string.network_test_overall_polluted), R.color.v3_gold)
                     summarySub.setText(R.string.network_test_overall_polluted_bypass_sub)
                 } else {
+                    // 污染且绕过未生效：污染 pill 旁已并列「部分异常」，小字指向连通性/握手问题
                     applyPill(summaryPill, "● " + getString(R.string.network_test_overall_polluted), R.color.v3_danger)
-                    summarySub.setText(R.string.network_test_overall_polluted_sub)
+                    summarySub.setText(R.string.network_test_overall_degraded_sub)
                 }
             }
         }

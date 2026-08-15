@@ -204,9 +204,10 @@ class NetworkTestViewModel : ViewModel() {
                 val anyDegraded = work.any { it.status == TargetStatus.DEGRADED } || imageDownloadFailed
                 // 污染但污染域握手全部成功 = 应用内绕过路径（DoH/直连）生效：
                 // 总览改成黄底「检测到 DNS 污染」+ 绿底「网络勉强可用」并列，而不是刺眼的失败判定。
-                // 判定只看污染域自身的握手结果；图片下载失败 / 延迟 / 其它目标降级另有独立卡片与 pill，
-                // 不掺进绕过判定，否则「安全 DNS 开 + 握手成功」的真实场景会被连带否决成红色污染。
-                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it } && !anyFailed
+                // 绕过判定**只看污染域自身的握手结果**（bypassOk 只对污染域记录）；图片下载失败、
+                // 延迟、其它目标（如 pixshaft.com）失败或降级各有独立卡片与 pill，不掺进绕过判定——
+                // 否则「安全 DNS 开 + 污染域握手全成功、只是某个无关目标不可达」会被连带否决成红色污染。
+                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it }
                 pollutionBypassed.postValue(bypassActive)
                 // 高延迟与超高延迟都算「延迟高」，用于小字提示的判断。
                 val latencyHosts = work.filter {
@@ -1294,7 +1295,15 @@ class NetworkTestViewModel : ViewModel() {
                 "部分测试将会跳过\n" +
                 "建议将DNS模式改为redir-host或normal完善跳过的部分"
 
-        /** 图片下载探测用的内置样例作品（仓库既有数据，SFW、长期稳定）与其兜底地址。 */
+        /**
+         * 图片下载探测用的内置样例作品（仓库既有数据，SFW、长期稳定）与其兜底地址。
+         *
+         * 注意：这是硬编码的第三方内容依赖，若该作品将来被删除 / R-18 化 / 改版式，
+         * 网页探测（/ajax/illust/{id}）与尺寸探测（/ajax/illust/{id}/pages）会拿不到
+         * 实时数据，退化到下面的内置兜底地址 —— 探测仍能跑，但「图片代理路由」卡片
+         * 的样本代表性下降。更换样例时需同步三处：SAMPLE_ILLUST_ID、
+         * FALLBACK_ILLUST_URL、FALLBACK_AVATAR_URL。
+         */
         private const val SAMPLE_ILLUST_ID = 73949833L
         private const val MAX_IMAGE_DOWNLOAD_BYTES = 1024 * 1024
         private const val FALLBACK_ILLUST_URL =
