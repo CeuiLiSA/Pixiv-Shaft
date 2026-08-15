@@ -252,12 +252,21 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             OverallStatus.POLLUTED -> {
                 if (bypassed) {
                     applyPill(summaryPill, "● " + getString(R.string.network_test_overall_polluted), R.color.v3_gold)
-                    summarySub.setText(R.string.network_test_overall_polluted_bypass_sub)
+                    // 绕过生效：小字默认绕过说明；图片服务器同时失败时 ViewModel 会追加换代理提示。
+                    summarySub.text = viewModel.overallSub.value
+                        ?: getString(R.string.network_test_overall_polluted_bypass_sub)
                 } else {
                     // 污染且绕过未生效：污染 pill 旁已并列「部分异常」，小字指向连通性/握手问题
                     applyPill(summaryPill, "● " + getString(R.string.network_test_overall_polluted), R.color.v3_danger)
-                    summarySub.setText(R.string.network_test_overall_degraded_sub)
+                    summarySub.text = viewModel.overallSub.value
+                        ?: getString(R.string.network_test_overall_degraded_sub)
                 }
+            }
+            OverallStatus.NETWORK_DOWN -> {
+                // app-api（主 API）失败：红底「网络不可用」，且 bypass 已被否决，不会并列「网络勉强可用」。
+                applyPill(summaryPill, "● " + getString(R.string.network_test_overall_unavailable), R.color.v3_danger)
+                summarySub.text = viewModel.overallSub.value
+                    ?: getString(R.string.network_test_overall_unavailable_sub)
             }
         }
     }
@@ -287,7 +296,8 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         if (subtitle.text != report.subtitle) subtitle.text = report.subtitle
 
         val (label, colorRes) = targetStatusStyle(report.status)
-        applyPill(card.findViewById(R.id.target_status_pill), label, colorRes)
+        // 图片服务器失败时 ViewModel 会把 pill 文案覆盖为「图片无法加载」（颜色仍按状态取红）。
+        applyPill(card.findViewById(R.id.target_status_pill), report.statusPillOverride ?: label, colorRes)
         // 可选并列 pill（如图片尺寸探测失败），黄底。
         val extraPill = card.findViewById<TextView>(R.id.target_status_pill_extra)
         if (report.extraPill.isNullOrBlank()) {

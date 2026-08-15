@@ -58,10 +58,12 @@ data class TargetReport(
     val steps: List<TestStep> = emptyList(),
     /** 卡片状态 pill 右侧可选的并列提示（如图片尺寸探测失败），黄底。 */
     val extraPill: String? = null,
+    /** 覆盖状态 pill 的默认文案（颜色仍按 [status] 取，如图片服务器失败显示红底「图片无法加载」）。 */
+    val statusPillOverride: String? = null,
 )
 
 /** 全局总览判定，决定顶部总览卡。 */
-enum class OverallStatus { CLEAN, HIGH_LATENCY, EXTREME_LATENCY, DEGRADED, POLLUTED }
+enum class OverallStatus { CLEAN, HIGH_LATENCY, EXTREME_LATENCY, DEGRADED, POLLUTED, NETWORK_DOWN }
 
 /** 一次性弹窗事件的载荷：标题资源 + 已组好的正文（污染 / fake-ip 共用一条通道）。 */
 data class NetworkAlert(val titleRes: Int, val message: String)
@@ -179,7 +181,7 @@ class NetworkTestViewModel : ViewModel() {
                     TargetConfig("i.pximg.net", "图片服务器 · Pixiv Japan", PXIMG_CIDRS, TargetKind.IMAGE)
                 }
                 val configs = listOf(
-                    TargetConfig("app-api.pixiv.net", "pixiv API · Cloudflare CDN", PIXIV_CIDRS, TargetKind.APP_API),
+                    TargetConfig(APP_API_HOST, "pixiv API · Cloudflare CDN", PIXIV_CIDRS, TargetKind.APP_API),
                     TargetConfig("www.pixiv.net", "网页端点 · Cloudflare CDN", PIXIV_CIDRS, TargetKind.WEB_API),
                     imageCfg,
                     TargetConfig("pixshaft.com", "Shaft 云服务 · 浏览记录同步", null, TargetKind.PIXSHAFT),
@@ -202,12 +204,25 @@ class NetworkTestViewModel : ViewModel() {
                 val anyHighLatency = work.any { it.status == TargetStatus.HIGH_LATENCY }
                 val anyExtremeLatency = work.any { it.status == TargetStatus.EXTREME_LATENCY }
                 val anyDegraded = work.any { it.status == TargetStatus.DEGRADED } || imageDownloadFailed
+                // app-api 是 app 的主 API：它失败（握手失败 / 污染且未绕过）＝网络不可用，
+                // 总览必须是红底「网络不可用」，且绝不能报「网络勉强可用」。
+                val appApiFailed = work.any {
+                    it.title == APP_API_HOST &&
+                        (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
+                }
+                // 图片服务器（官方 i.pximg.net 或当前反代域名）失败：卡片 pill 覆盖为红底
+                // 「图片无法加载」，总览小字追加换图片代理的提示。
+                val imageTargetFailed = work.any {
+                    it.title == imageCfg.host &&
+                        (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
+                }
                 // 污染但污染域握手全部成功 = 应用内绕过路径（DoH/直连）生效：
                 // 总览改成黄底「检测到 DNS 污染」+ 绿底「网络勉强可用」并列，而不是刺眼的失败判定。
                 // 绕过判定**只看污染域自身的握手结果**（bypassOk 只对污染域记录）；图片下载失败、
                 // 延迟、其它目标（如 pixshaft.com）失败或降级各有独立卡片与 pill，不掺进绕过判定——
                 // 否则「安全 DNS 开 + 污染域握手全成功、只是某个无关目标不可达」会被连带否决成红色污染。
-                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it }
+                // 唯一例外：app-api 失败时强制否决——主 API 都连不上，谈不上「勉强可用」。
+                val bypassActive = polluted.isNotEmpty() && bypassOk.all { it } && !appApiFailed
                 pollutionBypassed.postValue(bypassActive)
                 // 高延迟与超高延迟都算「延迟高」，用于小字提示的判断。
                 val latencyHosts = work.filter {
@@ -216,6 +231,7 @@ class NetworkTestViewModel : ViewModel() {
                 val imageHighLatency = latencyHosts.contains(imageCfg.host)
                 val otherHighLatency = latencyHosts.any { it != imageCfg.host }
                 val ov = when {
+                    appApiFailed -> OverallStatus.NETWORK_DOWN
                     polluted.isNotEmpty() -> OverallStatus.POLLUTED
                     anyFailed || anyDegraded -> OverallStatus.DEGRADED
                     anyExtremeLatency -> OverallStatus.EXTREME_LATENCY
@@ -224,10 +240,16 @@ class NetworkTestViewModel : ViewModel() {
                 }
                 overall.postValue(ov)
                 val ctx = Shaft.getContext()
+                val imageHint = ctx.getString(R.string.network_test_high_latency_sub_image)
                 val subText: String? = when {
+                    ov == OverallStatus.NETWORK_DOWN -> {
+                        // 主 API 失败：小字说明主 API 不可达；图片服务器也失败时再追加换代理提示。
+                        var base = ctx.getString(R.string.network_test_overall_unavailable_sub)
+                        if (imageTargetFailed) base += "\n$imageHint"
+                        base
+                    }
                     ov == OverallStatus.HIGH_LATENCY || ov == OverallStatus.EXTREME_LATENCY -> {
                         val generic = ctx.getString(R.string.network_test_overall_high_latency_sub)
-                        val imageHint = ctx.getString(R.string.network_test_high_latency_sub_image)
                         // 图片代理与其他端点都高延迟：通用提示在上，图片代理提示在下面一行。
                         when {
                             imageHighLatency && otherHighLatency -> "$generic\n$imageHint"
@@ -249,9 +271,34 @@ class NetworkTestViewModel : ViewModel() {
                         }
                         base
                     }
+                    ov == OverallStatus.DEGRADED -> {
+                        // 部分异常：小字说明连通性/握手问题；图片服务器失败时追加换代理提示。
+                        var base = ctx.getString(R.string.network_test_overall_degraded_sub)
+                        if (imageTargetFailed) base += "\n$imageHint"
+                        base
+                    }
+                    ov == OverallStatus.POLLUTED -> {
+                        // 绕过生效：小字保持绕过说明（「小字不动」）；图片服务器同时失败时追加换代理提示。
+                        // 绕过未生效：小字同「部分异常」；图片服务器失败时同样追加换代理提示。
+                        var base = if (bypassActive) {
+                            ctx.getString(R.string.network_test_overall_polluted_bypass_sub)
+                        } else {
+                            ctx.getString(R.string.network_test_overall_degraded_sub)
+                        }
+                        if (imageTargetFailed) base += "\n$imageHint"
+                        base
+                    }
                     else -> null
                 }
                 overallSub.postValue(subText)
+                // 图片服务器失败：卡片 pill 覆盖为红底「图片无法加载」（颜色仍按 FAILED/POLLUTED 取红）。
+                val imageIdx = work.indexOfFirst { it.title == imageCfg.host }
+                if (imageIdx >= 0 && imageTargetFailed) {
+                    work[imageIdx] = work[imageIdx].copy(
+                        statusPillOverride = ctx.getString(R.string.network_test_image_unavailable),
+                    )
+                    publish()
+                }
                 log(
                     "总体判定: " + when (ov) {
                         OverallStatus.CLEAN -> "网络通畅"
@@ -259,6 +306,7 @@ class NetworkTestViewModel : ViewModel() {
                         OverallStatus.EXTREME_LATENCY -> "有端点延迟极高"
                         OverallStatus.DEGRADED -> "部分异常"
                         OverallStatus.POLLUTED -> "DNS 污染"
+                        OverallStatus.NETWORK_DOWN -> "网络不可用"
                     },
                 )
                 log("总览说明: $subText")
@@ -1273,6 +1321,9 @@ class NetworkTestViewModel : ViewModel() {
     }
 
     companion object {
+        /** app 主 API 域名：它失败即总览判「网络不可用」，且否决「网络勉强可用」。 */
+        private const val APP_API_HOST = "app-api.pixiv.net"
+
         // 代理 fake-ip 模式返回的占位段：不可路由，命中即说明 DNS 被代理接管，测连通无意义。
         private val FAKE_IP_CIDRS = listOf(
             "198.18.0.0/15",   // RFC 2544 基准测试段（Clash / Surge / sing-box 默认 fake-ip 段）

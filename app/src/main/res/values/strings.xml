@@ -2226,6 +2226,9 @@
     <string name="network_test_overall_polluted_sub">本机 DNS 解析结果不可信</string>
     <string name="network_test_overall_bypass_ok">网络勉强可用</string>
     <string name="network_test_overall_polluted_bypass_sub">本机 DNS 被污染，但已通过安全 DNS/直连绕过，握手正常</string>
+    <string name="network_test_overall_unavailable">网络不可用</string>
+    <string name="network_test_overall_unavailable_sub">主 API（app-api.pixiv.net）不可达，应用主要功能不可用</string>
+    <string name="network_test_image_unavailable">图片无法加载</string>
     <string name="network_test_pollution_dialog_title">⚠ 检测到 DNS 污染</string>
     <string name="network_test_fakeip_dialog_title">⚠️ 检测到假 IP</string>
     <string name="network_test_pollution_dialog_action">我知道了</string>
