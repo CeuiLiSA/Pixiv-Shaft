@@ -14,6 +14,7 @@ import androidx.window.embedding.SplitRule
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.VPActivity
+import ceui.pixiv.ui.embedding.TabletActivityEmbedding.install
 import ceui.pixiv.ui.slideshow.SlideshowActivity
 
 /**
@@ -32,7 +33,7 @@ object TabletActivityEmbedding {
 
     /** 主栏（信息流）占 1/3，详情占 2/3，跟随 RTL。 */
     private val splitAttributes = SplitAttributes.Builder()
-        .setSplitType(SplitAttributes.SplitType.ratio(1f / 3f))
+        .setSplitType(SplitAttributes.SplitType.ratio(3f / 7f))
         .setLayoutDirection(SplitAttributes.LayoutDirection.LOCALE)
         .build()
 
