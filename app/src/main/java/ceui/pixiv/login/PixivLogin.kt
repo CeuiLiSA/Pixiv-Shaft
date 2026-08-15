@@ -2,6 +2,7 @@ package ceui.pixiv.login
 
 import android.net.Uri
 import ceui.lisa.activities.Shaft
+import ceui.lisa.http.AppApiProxyInterceptor
 import ceui.lisa.http.CronetInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Protocol

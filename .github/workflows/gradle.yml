@@ -5,9 +5,25 @@ on:
     branches:
       - master
       - classic
+    tags:
+      - v*.*.*
+  pull_request:
+    branches:
+      - master
+      - classic
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - 'renovate.json'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.github/**'
+      - '.idea/**'
+      - '!.github/workflows/**'
   workflow_dispatch:
 
 env:
+  ORIGINAL_PROJECT: "CeuiLiSA/Pixiv-Shaft"
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
 
 concurrency:
@@ -16,7 +32,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build apk (unsigned)
+    name: Build apk
     runs-on: ubuntu-24.04
 
     steps:
@@ -38,7 +54,33 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 签名材料从 Secrets 注入（keystore 与密码已从仓库移除）。
+      # keystore 解码到 $RUNNER_TEMP（仓库外）——历史 tag 的提交里还跟踪着
+      # keystore.jks，写进仓库根目录会让后面的 git checkout 撞 untracked 冲突。
+      # keystore.properties 从未被任何提交跟踪，放根目录安全。
+      # fork 的 PR 拿不到 Secrets → 跳过，build.gradle 降级为 debug 默认签名。
+      - name: Set up signing material
+        env:
+          KEYSTORE_B64: ${{ secrets.SHAFT_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.SHAFT_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SHAFT_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SHAFT_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
+            {
+              echo "storeFile=$RUNNER_TEMP/keystore.jks"
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=$KEY_ALIAS"
+              echo "keyPassword=$KEY_PASSWORD"
+            } > keystore.properties
+            echo "Signing material ready"
+          else
+            echo "No signing secrets (fork build), falling back to default debug signing"
+          fi
+
       - name: Detect branch
+        if: github.ref_type == 'branch'
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
@@ -47,28 +89,117 @@ jobs:
             echo "APK_SUFFIX=master" >> $GITHUB_ENV
           elif [ "$BRANCH_NAME" = "classic" ]; then
             echo "APK_SUFFIX=classic" >> $GITHUB_ENV
-          else
-            echo "APK_SUFFIX=manual" >> $GITHUB_ENV
           fi
 
-      # 无签名构建：不注入任何 keystore / Secrets。
-      # app/build.gradle 在缺少 keystore 时自动降级为 Android 默认 debug 签名
-      # （signingConfig hasShaftKeystore ? signingConfigs.shaft : signingConfigs.debug），
-      # 因此 debug 与 release 两个变体都能正常产出可安装的 APK。
-      - name: Build debug apk (unsigned)
+      - name: Build debug apk
+        if: github.ref_type == 'branch'
+        env:
+          SHAFT_EVENTS_HMAC: ${{ secrets.SHAFT_EVENTS_HMAC }}
         run: ./gradlew assembleGithubDebug
 
       - name: Upload debug artifact
+        if: github.ref_type == 'branch'
         uses: actions/upload-artifact@v4
         with:
           name: apk-debug-${{ env.APK_SUFFIX }}
           path: app/build/outputs/apk/github/debug
 
-      - name: Build release apk (unsigned, debug-signed)
-        run: ./gradlew assembleGithubRelease
+      - name: Get tag name
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+        run: |
+          set -x
+          version_tag=${GITHUB_REF/refs\/tags\//}
+          version_tag_short=`echo $version_tag | awk 'NR==1,/v/{sub(/v/, "");print}'`
+          echo "VERSION_TAG=$version_tag" >> $GITHUB_ENV
+          echo "VERSION_TAG_SHORT=$version_tag_short" >> $GITHUB_ENV
 
-      - name: Upload release artifact
-        uses: actions/upload-artifact@v4
+      - name: Extract tag message before checkout
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+        run: |
+          TAG_MESSAGE=$(git cat-file tag "$VERSION_TAG" 2>/dev/null | sed '1,/^$/d' || echo "")
+          if [ -z "$TAG_MESSAGE" ]; then
+            TAG_MESSAGE="Release $VERSION_TAG"
+          fi
+          # Persist to file since env vars lose multiline
+          echo "$TAG_MESSAGE" > /tmp/tag_message.txt
+
+      - name: Detect and checkout correct branch
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+        run: |
+          # Auto-detect which branch this tagged commit belongs to
+          TAG_COMMIT=$(git rev-parse HEAD)
+          CLASSIC_CONTAINS=$(git merge-base --is-ancestor "$TAG_COMMIT" origin/classic && echo yes || echo no)
+          MASTER_CONTAINS=$(git merge-base --is-ancestor "$TAG_COMMIT" origin/master && echo yes || echo no)
+
+          if [ "$CLASSIC_CONTAINS" = "yes" ] && [ "$MASTER_CONTAINS" = "no" ]; then
+            TAG_BRANCH=classic
+          elif [ "$MASTER_CONTAINS" = "yes" ] && [ "$CLASSIC_CONTAINS" = "no" ]; then
+            TAG_BRANCH=master
+          elif [ "$CLASSIC_CONTAINS" = "yes" ] && [ "$MASTER_CONTAINS" = "yes" ]; then
+            # Commit exists on both branches, pick the one whose tip is closer
+            CLASSIC_DIST=$(git rev-list --count "$TAG_COMMIT"..origin/classic)
+            MASTER_DIST=$(git rev-list --count "$TAG_COMMIT"..origin/master)
+            if [ "$CLASSIC_DIST" -le "$MASTER_DIST" ]; then
+              TAG_BRANCH=classic
+            else
+              TAG_BRANCH=master
+            fi
+          else
+            TAG_BRANCH=master
+          fi
+
+          echo "TAG_BRANCH=$TAG_BRANCH" >> $GITHUB_ENV
+          echo "Detected branch: $TAG_BRANCH"
+          git checkout "origin/$TAG_BRANCH"
+          git submodule update --init --recursive
+
+      - name: Build release apk
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+        env:
+          SHAFT_EVENTS_HMAC: ${{ secrets.SHAFT_EVENTS_HMAC }}
+        run: ./gradlew assembleGithubRelease --stacktrace
+
+      - name: Deal with release apk
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+        run: |
+          cp app/build/outputs/apk/github/release/app-github-release.apk app-release.apk
+          if [ "$TAG_BRANCH" = "classic" ]; then
+            APK_NAME="PixShaft_${VERSION_TAG_SHORT}_classic.apk"
+          else
+            APK_NAME="PixShaft_${VERSION_TAG_SHORT}.apk"
+          fi
+          cp app-release.apk "$APK_NAME"
+          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
+          sha1=`sha1sum app-release.apk | awk '{ print toupper($1) }'`
+          sha256=`sha256sum app-release.apk | awk '{ print toupper($1) }'`
+          echo "APK_SHA1=$sha1" >> $GITHUB_ENV
+          echo "APK_SHA256=$sha256" >> $GITHUB_ENV
+
+      - name: Prepare release notes
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+        run: |
+          TAG_MESSAGE=$(cat /tmp/tag_message.txt)
+
+          # Write release notes with SHA checksums
+          {
+            echo "$TAG_MESSAGE"
+            echo ""
+            echo '```'
+            echo "SHA-1: $APK_SHA1"
+            echo "SHA-256: $APK_SHA256"
+            echo '```'
+          } > release_notes.md
+
+      - name: Draft release
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+        uses: softprops/action-gh-release@v1
         with:
-          name: apk-release-${{ env.APK_SUFFIX }}
-          path: app/build/outputs/apk/github/release
+          tag_name: ${{ env.VERSION_TAG }}
+          name: ${{ env.VERSION_TAG }}
+          body_path: release_notes.md
+          files: |
+            ${{ env.APK_NAME }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
