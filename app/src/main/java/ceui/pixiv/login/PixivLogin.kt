@@ -11,6 +11,9 @@ import okhttp3.Protocol
  * Pixiv OAuth 入口，包了库 [PixivOAuthClient]。
  *
  * 懒单例；Shaft 约定改直连设置要重启，因此不做运行期重建。
+ * 注意：`client` 是 `by lazy` 单例，**进程生命周期内先登录过、再开 PxveAPI 代理，
+ * 本次会话的 token 自动刷新仍走旧客户端**（开关切换只重建 Retro/Client，
+ * 不重建这里）。代理对 token 刷新生效的时间点是「下次启动后」。
  */
 object PixivLogin {
 
@@ -64,11 +67,13 @@ object PixivLogin {
     private fun buildClient(): PixivOAuthClient {
         val builder = OkHttpClient.Builder()
             .protocols(listOf(Protocol.HTTP_1_1))
-        // App API 代理优先于直连：代理开启时 OAuth token 刷新也走代理，
-        // 否则刷新会绕过代理直连 oauth.secure.pixiv.net 而失败。
+        // App API 代理（PxveAPI 风格）与直连模式**共存**：代理拦截器挂在
+        // CronetInterceptor 之前，只改写 oauth 请求到代理域名；改写后的域名不在
+        // Cronet MAP 规则内，走系统解析。二者同时开启互不干扰。
         if (Shaft.sSettings.isUseAppApiProxy) {
             builder.addInterceptor(AppApiProxyInterceptor())
-        } else if (Shaft.sSettings.isDirectConnect) {
+        }
+        if (Shaft.sSettings.isDirectConnect) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }
         return PixivOAuthClient(

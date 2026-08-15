@@ -89,7 +89,6 @@ class NetworkTestViewModel : ViewModel() {
 
     val dohEnabled: Boolean get() = Shaft.sSettings?.isUseSecureDns == true
     val directConnect: Boolean get() = Shaft.sSettings?.isDirectConnect == true
-    val proxyEnabled: Boolean get() = Shaft.sSettings?.isUseAppApiProxy == true
 
     /** 一次性事件：检测到 DNS 污染 / fake-ip 时弹窗提醒（PR #894 的核心诉求）。 */
     private val _pollutionAlert = MutableSharedFlow<NetworkAlert>(extraBufferCapacity = 1)
@@ -119,10 +118,9 @@ class NetworkTestViewModel : ViewModel() {
 
         val doh = dohEnabled
         val direct = directConnect
-        val proxy = proxyEnabled
 
         viewModelScope.launch(Dispatchers.IO) {
-            log("环境: 安全 DNS(DoH) ${onOff(doh)} · 直连 ${onOff(direct)} · App API 代理 ${onOff(proxy)}")
+            log("环境: 安全 DNS(DoH) ${onOff(doh)} · 直连 ${onOff(direct)}")
             log("")
 
             val configs = listOf(
@@ -134,14 +132,6 @@ class NetworkTestViewModel : ViewModel() {
             for (cfg in configs) {
                 val idx = addTarget(TargetReport(cfg.host, cfg.subtitle))
                 if (testTarget(idx, cfg, doh, direct)) polluted.add(cfg.host)
-            }
-
-            // App API 代理测试：仅开启代理且已配置地址时追加（代理与直连互斥，
-            // 走用户自建域名而非 pixiv 直连，测试目标即代理本身）。
-            val proxyHost = Shaft.sSettings?.appApiProxy?.trim().orEmpty()
-            if (proxy && proxyHost.isNotEmpty()) {
-                val idx = addTarget(TargetReport("App API 代理", proxyHost))
-                testProxy(idx, proxyHost)
             }
 
             val anyFailed = work.any { it.status == TargetStatus.FAILED }
@@ -322,53 +312,6 @@ class NetworkTestViewModel : ViewModel() {
         setStatus(idx, status)
         log("")
         return polluted
-    }
-
-    /**
-     * App API 代理测试：直接请求用户配置的代理根地址，验证两点：
-     *   1. 代理 HTTPS 可达；
-     *   2. /pixiv-app-api 转发路径通 —— 无凭证时 Pixiv 返回 400/401/403 属预期
-     *      （说明请求真正到达 Pixiv 侧），404 或连接失败才是代理本身的问题。
-     */
-    private fun testProxy(idx: Int, proxy: String) {
-        log("========== App API 代理 ==========")
-        val base = if (proxy.startsWith("https://")) proxy else "https://$proxy"
-        addStep(idx, TestStep("代理地址", proxy, StepStatus.OK))
-
-        val client = OkHttpClient.Builder()
-            .connectTimeout(5, TimeUnit.SECONDS)
-            .readTimeout(5, TimeUnit.SECONDS)
-            .writeTimeout(5, TimeUnit.SECONDS)
-            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
-            .build()
-        try {
-            val t0 = System.currentTimeMillis()
-            val request = Request.Builder()
-                .url("$base/pixiv-app-api/v1/illust/ranking?mode=day")
-                .build()
-            client.newCall(request).execute().use { resp ->
-                val ms = System.currentTimeMillis() - t0
-                val code = resp.code
-                val ok = code != 404 && code in 200..499
-                val detail = when {
-                    code in 200..299 -> "可达 · ${ms}ms · 返回 $code（正常）"
-                    code == 400 || code == 401 || code == 403 ->
-                        "可达 · ${ms}ms · Pixiv 返回 $code（缺凭证的预期响应，转发链路通）"
-                    code == 404 -> "不可达 · ${ms}ms · 404（代理未转发 /pixiv-app-api 路径）"
-                    else -> "可达 · ${ms}ms · 响应 $code"
-                }
-                addStep(idx, TestStep("HTTPS 转发 /pixiv-app-api", detail, if (ok) StepStatus.OK else StepStatus.FAIL))
-                log("Proxy /pixiv-app-api: HTTP $code · ${ms}ms")
-                setStatus(idx, if (ok) TargetStatus.OK else TargetStatus.FAILED)
-            }
-        } catch (e: Exception) {
-            val msg = e.javaClass.simpleName + (e.message?.let { ": $it" } ?: "")
-            addStep(idx, TestStep("HTTPS 转发 /pixiv-app-api", "连接失败: $msg", StepStatus.FAIL))
-            log("Proxy 连接失败: $msg")
-            setStatus(idx, TargetStatus.FAILED)
-        } finally {
-            client.dispatcher.executorService.shutdown()
-        }
     }
 
     private fun tcpPing(idx: Int, ip: String, port: Int) {

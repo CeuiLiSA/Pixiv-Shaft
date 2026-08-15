@@ -41,7 +41,6 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
 
     private lateinit var chipDoh: TextView
     private lateinit var chipDirect: TextView
-    private lateinit var chipProxy: TextView
     private lateinit var summaryCard: View
     private lateinit var summaryPill: TextView
     private lateinit var summarySub: TextView
@@ -79,7 +78,6 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
 
         chipDoh = view.findViewById(R.id.chip_doh)
         chipDirect = view.findViewById(R.id.chip_direct)
-        chipProxy = view.findViewById(R.id.chip_proxy)
         summaryCard = view.findViewById(R.id.summary_card)
         summaryPill = view.findViewById(R.id.summary_pill)
         summarySub = view.findViewById(R.id.summary_sub)
@@ -171,11 +169,6 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             applyPill(chipDirect, getString(R.string.network_test_env_direct_on), R.color.v3_green)
         } else {
             applyPill(chipDirect, getString(R.string.network_test_env_direct_off), R.color.v3_text_3)
-        }
-        if (viewModel.proxyEnabled) {
-            applyPill(chipProxy, getString(R.string.network_test_env_proxy_on), R.color.v3_green)
-        } else {
-            applyPill(chipProxy, getString(R.string.network_test_env_proxy_off), R.color.v3_text_3)
         }
     }
 
