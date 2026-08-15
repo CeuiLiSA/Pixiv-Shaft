@@ -2549,6 +2549,14 @@
     <string name="image_host_custom_hint">https://你的反代域名</string>
     <string name="image_host_custom_empty">反代地址不能为空</string>
     <string name="image_host_restart_hint">重启 App 后生效</string>
+    <!-- App API 代理（PxveAPI 风格）：将 app-api/oauth 请求转发至自建 PxveAPI 等代理 -->
+    <string name="app_api_proxy_title">App API 代理</string>
+    <string name="app_api_proxy_summary">将 app-api/oauth 请求转发至代理（如自建 PxveAPI），与直连互斥</string>
+    <string name="app_api_proxy_hint">https://api.pxve.cc</string>
+    <string name="app_api_proxy_tip">填写代理根地址，需包含 https:// 前缀，例如 https://api.pxve.cc；请求将自动转发至 /pixiv-app-api 与 /pixiv-oauth 路径</string>
+    <string name="app_api_proxy_btn_save">保存</string>
+    <string name="app_api_proxy_empty">代理地址不能为空</string>
+    <string name="app_api_proxy_invalid">代理地址必须以 https:// 开头</string>
     <string name="comment_emoji_picker">表情</string>
     <string name="comment_emoji_tab_kaomoji">绘文字</string>
     <string name="comment_emoji_tab_stamp">表情贴图</string>

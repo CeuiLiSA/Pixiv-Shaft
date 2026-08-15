@@ -85,6 +85,35 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         refreshImageHostSummary();
         baseBind.imageHostRela.setOnClickListener(v -> showImageHostPicker());
 
+        //App API 代理（PxveAPI 风格）：开关 + 代理地址输入框，输入框跟随开关显隐
+        baseBind.appApiProxySwitch.setChecked(Shaft.sSettings.isUseAppApiProxy());
+        baseBind.appApiProxyEdit.setText(Shaft.sSettings.getAppApiProxy());
+        baseBind.appApiProxyGroup.setVisibility(
+                Shaft.sSettings.isUseAppApiProxy() ? View.VISIBLE : View.GONE);
+        baseBind.appApiProxySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                boolean changed = isChecked != Shaft.sSettings.isUseAppApiProxy();
+                Shaft.sSettings.setUseAppApiProxy(isChecked);
+                Common.showToast(getString(R.string.string_428), 2);
+                Local.setSettings(Shaft.sSettings);
+                ViewGroup proxyParent = (ViewGroup) baseBind.appApiProxyGroup.getParent();
+                if (proxyParent != null) {
+                    TransitionManager.beginDelayedTransition(proxyParent, new AutoTransition());
+                }
+                baseBind.appApiProxyGroup.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                if (changed) {
+                    // 挂载/卸载 AppApiProxyInterceptor 需要重建客户端（与直连开关同款）
+                    Retro.refreshAppApi();
+                    Retro.resetWebApi();
+                    Client.INSTANCE.reset();
+                }
+            }
+        });
+        baseBind.appApiProxyRela.setOnClickListener(v -> baseBind.appApiProxySwitch.performClick());
+        // 保存按钮：校验后写入 Settings（参照 aria2/AI 翻译设置页的显式保存交互）
+        baseBind.appApiProxySaveBtn.setOnClickListener(v -> saveAppApiProxy());
+
         //缩略图是否显示大图
         baseBind.showLargeThumbnailImage.setChecked(Shaft.sSettings.isShowLargeThumbnailImage());
         baseBind.showLargeThumbnailImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -198,5 +227,25 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         Local.setSettings(Shaft.sSettings);
         refreshImageHostSummary();
         Common.showToast(getString(R.string.image_host_restart_hint), 2);
+    }
+
+    // ── App API 代理（PxveAPI 风格） ─────────────────────────────────────
+    // 填写规范与 pixiv-viewer 一致：代理地址必须带 https:// 前缀（拦截器按
+    // PxveAPI 约定自动拼接 /pixiv-app-api 与 /pixiv-oauth 路径，无需手动填写）。
+    private void saveAppApiProxy() {
+        CharSequence text = baseBind.appApiProxyEdit.getText();
+        String proxy = text == null ? "" : text.toString().trim();
+        if (TextUtils.isEmpty(proxy)) {
+            Common.showToast(getString(R.string.app_api_proxy_empty));
+            return;
+        }
+        if (!proxy.startsWith("https://")) {
+            Common.showToast(getString(R.string.app_api_proxy_invalid));
+            return;
+        }
+        Shaft.sSettings.setAppApiProxy(proxy);
+        Local.setSettings(Shaft.sSettings);
+        Common.showToast(getString(R.string.string_428), 2);
+        // 拦截器每次请求实时读取 Settings，地址变化即时生效
     }
 }

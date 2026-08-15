@@ -63,7 +63,11 @@ object PixivLogin {
     private fun buildClient(): PixivOAuthClient {
         val builder = OkHttpClient.Builder()
             .protocols(listOf(Protocol.HTTP_1_1))
-        if (Shaft.sSettings.isDirectConnect) {
+        // App API 代理优先于直连：代理开启时 OAuth token 刷新也走代理，
+        // 否则刷新会绕过代理直连 oauth.secure.pixiv.net 而失败。
+        if (Shaft.sSettings.isUseAppApiProxy) {
+            builder.addInterceptor(AppApiProxyInterceptor())
+        } else if (Shaft.sSettings.isDirectConnect) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }
         return PixivOAuthClient(

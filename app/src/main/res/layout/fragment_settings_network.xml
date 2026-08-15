@@ -131,6 +131,81 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/app_api_proxy_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_m3_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            android:id="@+id/app_api_proxy_title"
+                            style="@style/M3SetTitle"
+                            android:text="@string/app_api_proxy_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/app_api_proxy_summary" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/app_api_proxy_switch"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/app_api_proxy_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/app_api_proxy_edit"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:autofillHints=""
+                        android:background="@drawable/bg_v3_chip"
+                        android:fontFamily="monospace"
+                        android:hint="@string/app_api_proxy_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="textUri|textNoSuggestions"
+                        android:maxLines="1"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="12dp"
+                        android:textColor="@color/v3_text_1"
+                        android:textColorHint="@color/v3_text_3"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingMultiplier="1.2"
+                        android:text="@string/app_api_proxy_tip"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/app_api_proxy_save_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_v3_pill_primary"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:paddingHorizontal="22dp"
+                        android:paddingVertical="11dp"
+                        android:text="@string/app_api_proxy_btn_save"
+                        android:textColor="@color/white"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <RelativeLayout
                     android:id="@+id/show_large_thumbnail_image_rela"
                     style="@style/M3SetRow"
                     android:layout_marginTop="14dp"
