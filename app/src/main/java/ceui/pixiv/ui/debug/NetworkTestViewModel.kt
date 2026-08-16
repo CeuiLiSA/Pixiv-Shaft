@@ -132,6 +132,13 @@ class NetworkTestViewModel : ViewModel() {
     /** 图片下载阶段是否有步骤失败（供总体判定降级）。 */
     private var imageDownloadFailed = false
 
+    /**
+     * 图片下载卡的延迟档（HIGH_LATENCY / EXTREME_LATENCY，其余为 null）。
+     * 下载卡不在 [work] 里，不参与 `work.any { ... }` 的统计——不单独喂给总览的话，
+     * 会出现「顶上绿底『网络通畅』、下面红底『延迟极高』」的自相矛盾。
+     */
+    private var imageDownloadLatency: TargetStatus? = null
+
     /** http 反代等跳过连通性的图片目标：卡片判定以图片下载探测为准（探测结束回写该卡状态）。 */
     private var imageCardRelyOnDownload = false
 
@@ -186,6 +193,7 @@ class NetworkTestViewModel : ViewModel() {
         pollutionBypassed.value = false
         imageTargetFailed.value = false
         imageDownloadFailed = false
+        imageDownloadLatency = null
         imageCardRelyOnDownload = false
         imageTargetTitle = null
         fakeIpDialogShown = false
@@ -273,8 +281,11 @@ class NetworkTestViewModel : ViewModel() {
                 val (imageSlow, imageDimFailed) = runImageDownloadPhase()
 
                 val anyFailed = work.any { it.status == TargetStatus.FAILED }
-                val anyHighLatency = work.any { it.status == TargetStatus.HIGH_LATENCY }
-                val anyExtremeLatency = work.any { it.status == TargetStatus.EXTREME_LATENCY }
+                // 图片下载卡不在 work 里，延迟档要单独并进来，否则总览会绿、下载卡红。
+                val anyHighLatency = work.any { it.status == TargetStatus.HIGH_LATENCY } ||
+                    imageDownloadLatency == TargetStatus.HIGH_LATENCY
+                val anyExtremeLatency = work.any { it.status == TargetStatus.EXTREME_LATENCY } ||
+                    imageDownloadLatency == TargetStatus.EXTREME_LATENCY
                 val anyDegraded = work.any { it.status == TargetStatus.DEGRADED } || imageDownloadFailed
                 // app-api 是 app 的主 API：它失败（握手失败 / 污染且未绕过）＝网络不可用，
                 // 总览必须是红底「网络不可用」，且绝不能报「网络勉强可用」。
@@ -304,7 +315,8 @@ class NetworkTestViewModel : ViewModel() {
                 val latencyHosts = work.filter {
                     it.status == TargetStatus.HIGH_LATENCY || it.status == TargetStatus.EXTREME_LATENCY
                 }.map { it.title }
-                val imageHighLatency = latencyHosts.contains(imageCfg.host)
+                // 图片下载卡的延迟同样归到「图片代理慢」，小字给换图片代理的建议。
+                val imageHighLatency = latencyHosts.contains(imageCfg.host) || imageDownloadLatency != null
                 val otherHighLatency = latencyHosts.any { it != imageCfg.host }
                 val ov = when {
                     appApiFailed -> OverallStatus.NETWORK_DOWN
@@ -1052,6 +1064,9 @@ class NetworkTestViewModel : ViewModel() {
                 else -> TargetStatus.OK
             }
             imageDownloadFailed = cardStatus == TargetStatus.FAILED
+            imageDownloadLatency = cardStatus.takeIf {
+                it == TargetStatus.HIGH_LATENCY || it == TargetStatus.EXTREME_LATENCY
+            }
             log(
                 "图片下载结果: $cardStatus · 尺寸探测=${if (dimOk) "成功" else "失败"}" +
                     " · 下载缓慢=$downloadSlow",
@@ -1083,6 +1098,7 @@ class NetworkTestViewModel : ViewModel() {
                 push(failStep)
             }
             imageDownloadFailed = true
+            imageDownloadLatency = null
             imageDownloadSlow.postValue(false)
             imageDownloadReport.postValue(
                 TargetReport(
@@ -1140,7 +1156,7 @@ class NetworkTestViewModel : ViewModel() {
     }
 
     /** 下一张真图：HTTP 200 + magic bytes 校验，报告字节数 / TTFB / 数据传输耗时 / 吞吐 / 实际请求 host。
-     *  @param judgeSpeed 是否做「下载缓慢」判定：头像只有几 KB，传输耗时恒小，吞吐无意义，传 false 跳过。
+     *  @param judgeSpeed 是否做「下载缓慢」判定：头像只有 ~10KB，测得吞吐几乎全是 RTT 噪声，传 false 跳过。
      *  @return (步骤, 是否下载缓慢)。 */
     private fun downloadImageStep(label: String, rawUrl: String, judgeSpeed: Boolean = true): Pair<TestStep, Boolean> {
         val realUrl = ImageHostManager.rewrite(rawUrl)
@@ -1158,8 +1174,9 @@ class NetworkTestViewModel : ViewModel() {
                 .get()
                 .build()
             result = client.newCall(request).execute().use { resp ->
-                // TTFB：响应头到达（execute 返回）即服务端首字节前的处理 + 网络往返，
-                // 与握手 500/1000ms 阈值同量纲——整包传输耗时含读 body，不能拿去比握手阈值。
+                // TTFB：响应头到达（execute 返回）。注意连接池为 0，每次都是新建连接，
+                // 所以这个 TTFB 天然含 TCP+TLS 握手再加一个往返，必然大于握手采样值——
+                // 不能套握手的 500/1000ms 阈值，用 IMAGE_TTFB_* 单独一套（见常量注释）。
                 val ttfb = System.currentTimeMillis() - t0
                 val code = resp.code
                 val body = resp.body
@@ -1173,18 +1190,23 @@ class NetworkTestViewModel : ViewModel() {
                     val sizeTxt = formatBytes(data.size) + if (truncated) "+" else ""
                     // 数据传输时间 = 整包耗时 - TTFB（不含服务端首字节前的处理），吞吐按它算。
                     val transferMs = (ms - ttfb).coerceAtLeast(0)
-                    val speedTxt = if (transferMs > 0) "${data.size * 1000L / transferMs / 1024}KB/s" else "-"
+                    val speedKBs = if (transferMs > 0) data.size * 1000L / transferMs / 1024 else -1L
+                    val speedTxt = if (speedKBs >= 0) "${speedKBs}KB/s" else "-"
                     val host = realUrl.substringAfter("://").substringBefore('/')
                     val ok = code in 200..299 && format != null
 
-                    // 延迟判定只看 TTFB（与握手同阈值）；下载缓慢看 body 数据传输时间——
-                    // 小样本吞吐无意义（38KB / 2KB 的图按 KB/s 判必然「缓慢」），头像更直接跳过该判定。
-                    val slow = judgeSpeed && transferMs > SLOW_TRANSFER_MS
+                    // 「下载缓慢」按吞吐判，不按绝对毫秒：样例插画只有 ~39KB，新建连接的
+                    // TCP 慢启动下光是收完 body 就要 1~2 个 RTT，绝对毫秒阈值等于在量 RTT
+                    // 而不是量带宽——RTT 稍高的线路（代理、移动网络）会恒亮「下载缓慢」。
+                    // 体积不足 MIN_SPEED_SAMPLE_BYTES（头像 ~10KB）测得的吞吐几乎全是噪声，跳过判定。
+                    val slow = judgeSpeed &&
+                        data.size >= MIN_SPEED_SAMPLE_BYTES &&
+                        speedKBs >= 0 && speedKBs < SLOW_THROUGHPUT_KBS
                     val tags = mutableListOf<String>()
                     if (ok) {
-                        if (ttfb > EXTREME_LATENCY_MS) {
+                        if (ttfb > IMAGE_TTFB_EXTREME_MS) {
                             tags.add(strRes(R.string.network_test_dl_tag_extreme))
-                        } else if (ttfb > HIGH_LATENCY_MS) {
+                        } else if (ttfb > IMAGE_TTFB_HIGH_MS) {
                             tags.add(strRes(R.string.network_test_dl_tag_high))
                         }
                         if (slow) tags.add(strRes(R.string.network_test_dl_tag_slow))
@@ -1196,8 +1218,8 @@ class NetworkTestViewModel : ViewModel() {
                     )
                     val st = when {
                         !ok -> StepStatus.FAIL
-                        ttfb > EXTREME_LATENCY_MS -> StepStatus.EXTREME_LATENCY
-                        ttfb > HIGH_LATENCY_MS -> StepStatus.HIGH_LATENCY
+                        ttfb > IMAGE_TTFB_EXTREME_MS -> StepStatus.EXTREME_LATENCY
+                        ttfb > IMAGE_TTFB_HIGH_MS -> StepStatus.HIGH_LATENCY
                         slow -> StepStatus.WARN
                         else -> StepStatus.OK
                     }
@@ -1570,15 +1592,28 @@ class NetworkTestViewModel : ViewModel() {
 
         private fun isFakeIp(ip: String): Boolean = FAKE_IP_CIDRS.any { isIpInCidr(ip, it) }
 
-        /** 握手 avg / 图片下载 TTFB 超过该阈值判定为「高延迟」。 */
+        /** 握手 avg 超过该阈值判定为「高延迟」。 */
         private const val HIGH_LATENCY_MS = 500
 
-        /** 握手 max / 图片下载 TTFB 超过该阈值判定为「超高延迟」（红底）。 */
+        /** 握手 max 超过该阈值判定为「超高延迟」（红底）。 */
         private const val EXTREME_LATENCY_MS = 1000
 
-        /** 图片下载 body 数据传输（不含 TTFB）超过该毫秒数判定为「下载缓慢」
-         * 当前用列片仅38KB，更多耗在TTFB上，要是传输耗的耗时高就是TCP层在硬撑 */
-        private const val SLOW_TRANSFER_MS = 100
+        // 图片下载的 TTFB 单独一套阈值，不复用上面的握手阈值：下载客户端连接池为 0，
+        // 每次都新建连接，TTFB = TCP+TLS 握手 + 请求往返 + 服务端处理，天然比握手采样值大
+        // 一个量级。实测健康线路（本机直出）到 i.pximg.net 的 TTFB 约 400ms，
+        // 套 500/1000ms 会让正常用户满屏「高延迟」。取约 2.5 倍余量。
+        /** 图片下载 TTFB 超过该阈值判定为「高延迟」。 */
+        private const val IMAGE_TTFB_HIGH_MS = 1000
+
+        /** 图片下载 TTFB 超过该阈值判定为「超高延迟」（红底）。 */
+        private const val IMAGE_TTFB_EXTREME_MS = 2000
+
+        /** 图片下载吞吐低于该值（KB/s）判定为「下载缓慢」。样本只有 ~39KB 且连接是新建的，
+         *  TCP 慢启动会明显压低测得吞吐，阈值取得足够低——只抓真正糟糕的链路，不抓 RTT 抖动。 */
+        private const val SLOW_THROUGHPUT_KBS = 50
+
+        /** 小于该体积的响应不做吞吐判定：头像仅 ~10KB，测出来的 KB/s 几乎全是 RTT 噪声。 */
+        private const val MIN_SPEED_SAMPLE_BYTES = 20 * 1024
 
         /**
          * 图片下载探测用的内置样例作品（仓库既有数据，SFW、长期稳定）与其兜底地址。
