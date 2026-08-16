@@ -2458,6 +2458,15 @@
     <string name="image_host_custom_hint">https://your.proxy</string>
     <string name="image_host_custom_empty">Proxy URL cannot be empty</string>
     <string name="image_host_restart_hint">Restart the app to apply</string>
+    <!-- App API 代理（PxveAPI 风格） -->
+    <string name="app_api_proxy_title">Use PxveAPI proxy</string>
+    <string name="app_api_proxy_summary">Proxies most app-api and OAuth login requests; empty means no proxy</string>
+    <string name="app_api_proxy_empty">No proxy</string>
+    <string name="app_api_proxy_hint">https://your-proxy-domain</string>
+    <string name="app_api_proxy_https_required">Invalid proxy address: it must be an https:// domain without a query string or #fragment</string>
+    <string name="app_api_proxy_tip">Enter the proxy root address including the https:// prefix. Requests are forwarded to the /pixiv-app-api and /pixiv-oauth paths automatically. Clear the field to stop using a proxy.</string>
+    <string name="app_api_proxy_help_desc">Proxy usage notes and security warning</string>
+    <string name="app_api_proxy_warning">Security warning: once the proxy is enabled, your account token (Authorization) is relayed through the proxy server, and an untrusted proxy can steal your account this way. Only use a proxy you host yourself or fully trust.\n\nSelf-hosting (PxveAPI):\n· Original project (Deno): github.com/asadahimeka/pxve-api\n· Vercel deployment (Node port): github.com/susulqx/pxve-api\nAfter deploying, enter your proxy domain in the field above.</string>
     <string name="comment_emoji_picker">Emoji</string>
     <string name="comment_emoji_tab_kaomoji">Emoji</string>
     <string name="comment_emoji_tab_stamp">Stickers</string>

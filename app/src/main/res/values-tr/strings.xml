@@ -2458,6 +2458,15 @@
     <string name="image_host_custom_hint">https://your.proxy</string>
     <string name="image_host_custom_empty">Proxy adresi boş olamaz</string>
     <string name="image_host_restart_hint">Uygulamayı yeniden başlatın</string>
+    <!-- App API 代理（PxveAPI 风格） -->
+    <string name="app_api_proxy_title">PxveAPI proxy kullan</string>
+    <string name="app_api_proxy_summary">app-api ve OAuth oturum açma isteklerinin çoğunu proxy üzerinden geçirir; boşsa proxy kullanılmaz</string>
+    <string name="app_api_proxy_empty">Proxy yok</string>
+    <string name="app_api_proxy_hint">https://proxy-alan-adiniz</string>
+    <string name="app_api_proxy_https_required">Geçersiz proxy adresi: https:// alan adı olmalı, sorgu dizesi veya #parça içermemeli</string>
+    <string name="app_api_proxy_tip">Proxy kök adresini https:// ön ekiyle birlikte girin. İstekler otomatik olarak /pixiv-app-api ve /pixiv-oauth yollarına iletilir. Alanı boşaltırsanız proxy kullanılmaz.</string>
+    <string name="app_api_proxy_help_desc">Proxy kullanım açıklaması ve güvenlik uyarısı</string>
+    <string name="app_api_proxy_warning">Güvenlik uyarısı: Proxy açıldığında hesap belirteciniz (Authorization) proxy sunucusundan geçer. Güvenilmeyen bir proxy bunu kullanarak hesabınızı çalabilir. Yalnızca kendi kurduğunuz veya tamamen güvendiğiniz bir proxy kullanın.\n\nKendiniz kurun (PxveAPI):\n· Özgün proje (Deno): github.com/asadahimeka/pxve-api\n· Vercel dağıtımı (Node uyarlaması): github.com/susulqx/pxve-api\nDağıtımdan sonra proxy alan adınızı yukarıdaki alana girin.</string>
     <string name="comment_emoji_picker">Emoji</string>
     <string name="comment_emoji_tab_kaomoji">Emoji</string>
     <string name="comment_emoji_tab_stamp">Çıkartmalar</string>

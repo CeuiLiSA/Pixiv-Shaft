@@ -1,6 +1,6 @@
 package ceui.lisa.http
 
-import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -74,7 +74,7 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `app-api 请求改写为 pixiv-app-api 前缀`() {
-        val original = HttpUrl.get("https://app-api.pixiv.net/v1/illust/detail?illust_id=1")
+        val original = "https://app-api.pixiv.net/v1/illust/detail?illust_id=1".toHttpUrl()
         val rewritten = AppApiProxyInterceptor.rewrite(original, "https://pxve.example.com")
 
         assertEquals("https://pxve.example.com/pixiv-app-api/v1/illust/detail?illust_id=1", rewritten.toString())
@@ -82,7 +82,7 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `oauth 请求改写为 pixiv-oauth 前缀`() {
-        val original = HttpUrl.get("https://oauth.secure.pixiv.net/auth/token")
+        val original = "https://oauth.secure.pixiv.net/auth/token".toHttpUrl()
         val rewritten = AppApiProxyInterceptor.rewrite(original, "pxve.example.com")
 
         assertEquals("https://pxve.example.com/pixiv-oauth/auth/token", rewritten.toString())
@@ -90,7 +90,7 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `分页 next_url 绝对地址同样被改写且保留 query`() {
-        val original = HttpUrl.get("https://app-api.pixiv.net/v2/illust/follow?restrict=all&offset=30")
+        val original = "https://app-api.pixiv.net/v2/illust/follow?restrict=all&offset=30".toHttpUrl()
         val rewritten = AppApiProxyInterceptor.rewrite(original, "https://pxve.example.com")
 
         assertEquals(
@@ -101,7 +101,7 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `代理地址带子路径时路径前缀保留`() {
-        val original = HttpUrl.get("https://app-api.pixiv.net/v1/illust/detail?illust_id=1")
+        val original = "https://app-api.pixiv.net/v1/illust/detail?illust_id=1".toHttpUrl()
         val rewritten = AppApiProxyInterceptor.rewrite(original, "https://pxve.example.com/proxy")
 
         assertEquals(
@@ -112,13 +112,13 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `图片域名不代理`() {
-        val original = HttpUrl.get("https://i.pximg.net/img-master/img/2024/01/01/00/00/00/1_p0_master1200.jpg")
+        val original = "https://i.pximg.net/img-master/img/2024/01/01/00/00/00/1_p0_master1200.jpg".toHttpUrl()
         assertNull("图片域名不匹配 app-api/oauth，不代理", AppApiProxyInterceptor.rewrite(original, "https://pxve.example.com"))
     }
 
     @Test
     fun `非 pixiv 域名不代理`() {
-        val original = HttpUrl.get("https://www.pixiv.net/ajax/user/1")
+        val original = "https://www.pixiv.net/ajax/user/1".toHttpUrl()
         assertNull(AppApiProxyInterceptor.rewrite(original, "https://pxve.example.com"))
     }
 
@@ -126,7 +126,7 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `误填完整 pixiv-app-api 地址不会双前缀`() {
-        val original = HttpUrl.get("https://app-api.pixiv.net/v1/illust/detail?illust_id=1")
+        val original = "https://app-api.pixiv.net/v1/illust/detail?illust_id=1".toHttpUrl()
         val rewritten = AppApiProxyInterceptor.rewrite(original, "https://pxve.example.com/pixiv-app-api")
 
         assertEquals("https://pxve.example.com/pixiv-app-api/v1/illust/detail?illust_id=1", rewritten.toString())
@@ -134,7 +134,7 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `误填完整 pixiv-oauth 地址不会双前缀`() {
-        val original = HttpUrl.get("https://oauth.secure.pixiv.net/auth/token")
+        val original = "https://oauth.secure.pixiv.net/auth/token".toHttpUrl()
         val rewritten = AppApiProxyInterceptor.rewrite(original, "https://pxve.example.com/pixiv-oauth")
 
         assertEquals("https://pxve.example.com/pixiv-oauth/auth/token", rewritten.toString())
@@ -144,7 +144,7 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `空代理地址返回 null`() {
-        val original = HttpUrl.get("https://app-api.pixiv.net/v1/illust/detail?illust_id=1")
+        val original = "https://app-api.pixiv.net/v1/illust/detail?illust_id=1".toHttpUrl()
         assertNull(AppApiProxyInterceptor.rewrite(original, ""))
         assertNull(AppApiProxyInterceptor.rewrite(original, "  "))
         assertNull(AppApiProxyInterceptor.rewrite(original, null))
@@ -152,13 +152,13 @@ class AppApiProxyInterceptorTest {
 
     @Test
     fun `http 明文代理地址返回 null 而非改写`() {
-        val original = HttpUrl.get("https://app-api.pixiv.net/v1/illust/detail?illust_id=1")
+        val original = "https://app-api.pixiv.net/v1/illust/detail?illust_id=1".toHttpUrl()
         assertNull("http:// 必须被拒绝，避免令牌走明文", AppApiProxyInterceptor.rewrite(original, "http://pxve.example.com"))
     }
 
     @Test
     fun `带 query 的代理地址返回 null 而非拼出非法 URL`() {
-        val original = HttpUrl.get("https://app-api.pixiv.net/v1/illust/detail?illust_id=1")
+        val original = "https://app-api.pixiv.net/v1/illust/detail?illust_id=1".toHttpUrl()
         assertNull(AppApiProxyInterceptor.rewrite(original, "https://pxve.example.com?token=1"))
     }
 

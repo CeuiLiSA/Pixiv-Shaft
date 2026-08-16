@@ -2458,6 +2458,15 @@
     <string name="image_host_custom_hint">https://your.proxy</string>
     <string name="image_host_custom_empty">プロキシ URL を入力してください</string>
     <string name="image_host_restart_hint">アプリを再起動すると反映されます</string>
+    <!-- App API 代理（PxveAPI 风格） -->
+    <string name="app_api_proxy_title">PxveAPI プロキシを使用</string>
+    <string name="app_api_proxy_summary">app-api と OAuth ログインの大部分をプロキシ経由にします。空の場合は使用しません</string>
+    <string name="app_api_proxy_empty">プロキシなし</string>
+    <string name="app_api_proxy_hint">https://プロキシのドメイン</string>
+    <string name="app_api_proxy_https_required">プロキシアドレスが無効です：https:// のドメインで、クエリや #フラグメントを含めないでください</string>
+    <string name="app_api_proxy_tip">プロキシのルートアドレスを https:// 付きで入力してください。リクエストは自動的に /pixiv-app-api と /pixiv-oauth に転送されます。空にするとプロキシを使用しません。</string>
+    <string name="app_api_proxy_help_desc">プロキシの使い方と安全上の注意</string>
+    <string name="app_api_proxy_warning">安全上の注意：プロキシを有効にすると、アカウントのトークン（Authorization）がプロキシサーバーを経由します。信頼できないプロキシはこれを悪用してアカウントを盗む可能性があります。自分で構築した、または完全に信頼できるプロキシのみを使用してください。\n\n自己ホスト（PxveAPI）：\n· 元プロジェクト（Deno 版）：github.com/asadahimeka/pxve-api\n· Vercel デプロイ版（Node 移植）：github.com/susulqx/pxve-api\nデプロイ後、上の入力欄にプロキシのドメインを入力してください。</string>
     <string name="comment_emoji_picker">絵文字</string>
     <string name="comment_emoji_tab_kaomoji">絵文字</string>
     <string name="comment_emoji_tab_stamp">スタンプ</string>

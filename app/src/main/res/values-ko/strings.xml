@@ -2458,6 +2458,15 @@
     <string name="image_host_custom_hint">https://your.proxy</string>
     <string name="image_host_custom_empty">프록시 URL을 입력하세요</string>
     <string name="image_host_restart_hint">앱을 다시 시작하면 적용됩니다</string>
+    <!-- App API 代理（PxveAPI 风格） -->
+    <string name="app_api_proxy_title">PxveAPI 프록시 사용</string>
+    <string name="app_api_proxy_summary">app-api와 OAuth 로그인 대부분을 프록시로 보냅니다. 비워 두면 사용하지 않습니다</string>
+    <string name="app_api_proxy_empty">프록시 없음</string>
+    <string name="app_api_proxy_hint">https://프록시 도메인</string>
+    <string name="app_api_proxy_https_required">프록시 주소가 올바르지 않습니다: https:// 도메인이어야 하며 쿼리나 #프래그먼트를 포함할 수 없습니다</string>
+    <string name="app_api_proxy_tip">프록시 루트 주소를 https:// 접두사와 함께 입력하세요. 요청은 자동으로 /pixiv-app-api 및 /pixiv-oauth 경로로 전달됩니다. 비우면 프록시를 사용하지 않습니다.</string>
+    <string name="app_api_proxy_help_desc">프록시 사용 설명 및 보안 안내</string>
+    <string name="app_api_proxy_warning">보안 안내: 프록시를 켜면 계정 토큰(Authorization)이 프록시 서버를 거칩니다. 신뢰할 수 없는 프록시는 이를 이용해 계정을 탈취할 수 있습니다. 직접 구축했거나 완전히 신뢰하는 프록시만 사용하세요.\n\n직접 구축(PxveAPI):\n· 원본 프로젝트(Deno): github.com/asadahimeka/pxve-api\n· Vercel 배포판(Node 이식): github.com/susulqx/pxve-api\n배포한 뒤 위 입력란에 프록시 도메인을 입력하세요.</string>
     <string name="comment_emoji_picker">이모티콘</string>
     <string name="comment_emoji_tab_kaomoji">이모티콘</string>
     <string name="comment_emoji_tab_stamp">스티커</string>

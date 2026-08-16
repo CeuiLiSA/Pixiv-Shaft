@@ -112,6 +112,9 @@ public class AppApiProxyInterceptor implements Interceptor {
     /**
      * 规范化代理根地址，返回**无尾斜杠**的根地址字符串。
      *
+     * <p>这是代理地址是否合法的**唯一事实源**：设置页保存前也调它做校验
+     * （返回 null 即提示用户），避免 UI 侧另写一套判断跟这里的规则漂移。</p>
+     *
      * <ul>
      *   <li>强制 {@code https://}：显式写 {@code http://} 或其它 scheme 直接视为非法（返回 null），
      *       避免 Authorization 令牌走明文；裸域名自动补 {@code https://} 前缀。</li>
@@ -122,7 +125,7 @@ public class AppApiProxyInterceptor implements Interceptor {
      *
      * @return 规范化后的根地址（无尾斜杠），非法返回 null
      */
-    static String normalizeBase(String proxy) {
+    public static String normalizeBase(String proxy) {
         String p = proxy == null ? "" : proxy.trim();
         if (p.isEmpty()) return null;
 

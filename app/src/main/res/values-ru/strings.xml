@@ -2458,6 +2458,15 @@
     <string name="image_host_custom_hint">https://your.proxy</string>
     <string name="image_host_custom_empty">URL прокси не может быть пустым</string>
     <string name="image_host_restart_hint">Перезапустите приложение, чтобы применить изменения</string>
+    <!-- App API 代理（PxveAPI 风格） -->
+    <string name="app_api_proxy_title">Использовать прокси PxveAPI</string>
+    <string name="app_api_proxy_summary">Проксирует большую часть запросов app-api и входа OAuth; пусто — прокси не используется</string>
+    <string name="app_api_proxy_empty">Без прокси</string>
+    <string name="app_api_proxy_hint">https://домен-вашего-прокси</string>
+    <string name="app_api_proxy_https_required">Неверный адрес прокси: требуется домен https:// без строки запроса и #фрагмента</string>
+    <string name="app_api_proxy_tip">Укажите корневой адрес прокси с префиксом https://. Запросы будут автоматически перенаправлены на пути /pixiv-app-api и /pixiv-oauth. Очистите поле, чтобы отключить прокси.</string>
+    <string name="app_api_proxy_help_desc">Описание прокси и предупреждение о безопасности</string>
+    <string name="app_api_proxy_warning">Предупреждение: при включённом прокси токен аккаунта (Authorization) проходит через прокси-сервер. Ненадёжный прокси может таким образом украсть ваш аккаунт. Используйте только собственный или полностью доверенный прокси.\n\nСвой сервер (PxveAPI):\n· Исходный проект (Deno): github.com/asadahimeka/pxve-api\n· Развёртывание на Vercel (порт на Node): github.com/susulqx/pxve-api\nПосле развёртывания укажите домен прокси в поле выше.</string>
     <string name="comment_emoji_picker">Эмодзи</string>
     <string name="comment_emoji_tab_kaomoji">Эмодзи</string>
     <string name="comment_emoji_tab_stamp">Стикеры</string>

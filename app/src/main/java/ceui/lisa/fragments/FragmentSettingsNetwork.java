@@ -24,6 +24,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsNetworkBinding;
+import ceui.lisa.http.AppApiProxyInterceptor;
 import ceui.lisa.http.HttpDns;
 import ceui.lisa.http.Retro;
 import ceui.lisa.utils.Common;
@@ -270,8 +271,12 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                 .addAction(getString(R.string.sure), (dialog, index) -> {
                     CharSequence text = builder.getEditText().getText();
                     String proxy = text == null ? "" : text.toString().trim();
-                    // 强制 https 前缀：拦截器对非 https 地址一律忽略，这里先给出明确提示
-                    if (!TextUtils.isEmpty(proxy) && !proxy.startsWith("https://")) {
+                    // 校验交给拦截器的 normalizeBase（唯一事实源）：它接受裸域名并自动补 https，
+                    // 只拒绝显式 http:// 等非 https scheme、带 query/fragment、以及解析失败。
+                    // 这里不再自己判 startsWith("https://")——那比 normalizeBase 严格，
+                    // 会把合法的裸域名（pxve.example.com）误拦掉。
+                    if (!TextUtils.isEmpty(proxy)
+                            && AppApiProxyInterceptor.normalizeBase(proxy) == null) {
                         Common.showToast(getString(R.string.app_api_proxy_https_required), 2);
                         return;
                     }
@@ -280,10 +285,13 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                     Local.setSettings(Shaft.sSettings);
                     refreshAppApiProxySummary();
                     if (changed) {
-                        // 挂载/卸载 AppApiProxyInterceptor 需要重建客户端（与直连开关同款）
+                        // 挂载/卸载 AppApiProxyInterceptor 需要重建客户端（与直连开关同款）。
+                        // resetWebApi 不需要：网页 ajax 走 www.pixiv.net，不经这个代理。
                         Retro.refreshAppApi();
-                        Retro.resetWebApi();
                         Client.INSTANCE.reset();
+                        // PixivLogin.client 是 by lazy 单例，这里重建不了 —— 本次会话的
+                        // token 自动刷新仍走旧客户端（直连 oauth）。提示用户重启才完全生效。
+                        Common.showToast(getString(R.string.image_host_restart_hint), 2);
                     }
                     dialog.dismiss();
                 })

@@ -2460,6 +2460,15 @@
     <string name="image_host_custom_hint">https://你的反代網域</string>
     <string name="image_host_custom_empty">反代位址不能為空</string>
     <string name="image_host_restart_hint">重啟 App 後生效</string>
+    <!-- App API 代理（PxveAPI 风格） -->
+    <string name="app_api_proxy_title">使用 PxveAPI 代理</string>
+    <string name="app_api_proxy_summary">代理大部分的 app-api 與 oauth 登入，空白時不代理</string>
+    <string name="app_api_proxy_empty">不代理</string>
+    <string name="app_api_proxy_hint">https://你的代理網域</string>
+    <string name="app_api_proxy_https_required">代理位址無效：需為 https:// 網域，且不能帶 query 或 #fragment</string>
+    <string name="app_api_proxy_tip">填寫代理根位址，需包含 https:// 前綴；請求將自動轉發至 /pixiv-app-api 與 /pixiv-oauth 路徑。清空則恢復不代理。</string>
+    <string name="app_api_proxy_help_desc">代理使用說明與安全提醒</string>
+    <string name="app_api_proxy_warning">安全提醒：開啟代理後，帳號權杖（Authorization）會經代理伺服器轉發，來歷不明的代理可藉此竊取你的帳號。請僅使用自己架設或完全信任的代理服務。\n\n自架（PxveAPI）：\n· 原專案（Deno 版）：github.com/asadahimeka/pxve-api\n· Vercel 線上部署版（Node 移植）：github.com/susulqx/pxve-api\n部署後將你的代理網域填入上方輸入框。</string>
     <string name="comment_emoji_picker">表情</string>
     <string name="comment_emoji_tab_kaomoji">繪文字</string>
     <string name="comment_emoji_tab_stamp">表情貼圖</string>
