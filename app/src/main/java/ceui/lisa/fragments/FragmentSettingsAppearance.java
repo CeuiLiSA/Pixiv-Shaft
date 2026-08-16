@@ -326,6 +326,16 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             }
         });
         baseBind.mainViewR18Rela.setOnClickListener(v -> baseBind.mainViewR18.performClick());
+
+        // 平板双栏（#931）：规则只能在进程启动时注册一次，所以改完必须重启
+        baseBind.tabletSplitScreen.setChecked(Shaft.sSettings.isTabletSplitScreen());
+        baseBind.tabletSplitScreen.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setTabletSplitScreen(isChecked);
+            Local.setSettings(Shaft.sSettings);
+            Common.showToast(getString(R.string.please_restart_app), 2);
+        });
+        baseBind.tabletSplitScreenRela.setOnClickListener(
+                v -> baseBind.tabletSplitScreen.performClick());
     }
 
     private boolean hasWidget(Class<?> providerClass) {

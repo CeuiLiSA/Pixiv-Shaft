@@ -13,6 +13,7 @@ import androidx.window.embedding.SplitPlaceholderRule
 import androidx.window.embedding.SplitRule
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.MainActivity
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VPActivity
 import ceui.pixiv.ui.slideshow.SlideshowActivity
 
@@ -22,7 +23,8 @@ import ceui.pixiv.ui.slideshow.SlideshowActivity
  * 本仓是多 Activity 架构（首页 MainActivity 之上叠 VActivity / UActivity /
  * SearchActivity / TemplateActivity …），所以不重写任何导航，只声明分栏规则，
  * 由 WindowManager 把同一个 task 里的 Activity 摆成左 3/7 列表 + 右 4/7 详情。
- * 规则只在平板（sw >= 600dp）上注册；手机完全不注册（原因见 [install]，issue #1002）。
+ * 默认关闭，由设置 · 界面 ·「平板双栏布局」开关控制（Settings.tabletSplitScreen）；
+ * 规则只在开关打开且是平板（sw >= 600dp）时注册，手机完全不注册（原因见 [install]，issue #1002）。
  * 已注册的设备上，窗口宽度 < 600dp（平板分屏后的窄窗）时规则不激活；
  * 无 WM Extensions 的老设备上 RuleController 是 no-op。
  */
@@ -37,6 +39,12 @@ object TabletActivityEmbedding {
         .build()
 
     fun install(context: Context) {
+        // 用户开关（设置 · 界面 · 平板双栏布局），默认关闭：不少人不喜欢左右分离的形态。
+        // 关闭时连 organizer 都不挂，等同于本特性不存在；改开关要重启进程才生效
+        // （规则只能在任何 Activity 拉起前注册一次），设置页已提示重启。
+        if (!Shaft.sSettings.isTabletSplitScreen()) {
+            return
+        }
         // issue #1002：只在平板（sw >= 600dp）上注册规则。「规则不激活 = 没影响」是错的——
         // 只要 setRules 注册过，WM Extensions 的 TaskFragmentOrganizer 就接管整个 task，
         // 手机上照样生效：finish 连坐（见 SplitPairRule 注释）之外，Android 14+ 的 shell

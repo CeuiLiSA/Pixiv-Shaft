@@ -133,6 +133,8 @@
     <string name="v3_widget_hide_bookmark_button_desc">ボタンが表紙に重なります。隠すと作品がはっきり見えます</string>
     <string name="v3_widget_hide_refresh_button">ウィジェットの更新ボタンを隠す</string>
     <string name="v3_widget_hide_refresh_button_desc">隠すと更新間隔にしたがって自動で切り替わるだけになります</string>
+    <string name="tablet_split_screen">タブレットの2画面レイアウト</string>
+    <string name="tablet_split_screen_desc">タブレットなどの大画面で一覧と詳細を左右に並べて表示します。タブレットのみ有効で、変更後はアプリの再起動が必要です</string>
     <string name="novel_tag">小説のタグ</string>
     <string name="hot_tag">人気のタグ</string>
     <string name="ranking_illust">ランキング</string>

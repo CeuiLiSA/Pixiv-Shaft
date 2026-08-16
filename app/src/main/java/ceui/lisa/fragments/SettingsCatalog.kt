@@ -98,6 +98,8 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
         add(Entry(APPEARANCE, "main_view_r18_rela", R.string.string_359, keywords = "r18 r页 主页 首页 涩图"))
+        // 别名按整串子串匹配（同上），「平板双栏」「左右分屏」这类连写说法各铺一遍
+        add(Entry(APPEARANCE, "tablet_split_screen_rela", R.string.tablet_split_screen, R.string.tablet_split_screen_desc, keywords = "平板 双栏 平板双栏 分栏 分屏 左右分屏 左右分离 大屏 宽屏 折叠屏 两栏 并排 tablet split screen two pane dual pane large screen foldable embedding"))
         add(Entry(APPEARANCE, "line_count_rela", R.string.string_336, keywords = "列数 几列 瀑布流 网格 columns grid"))
         add(Entry(APPEARANCE, "layout_mode_rela", R.string.layout_mode, keywords = "瀑布流 线性 列表 关注动态 staggered linear"))
         add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))

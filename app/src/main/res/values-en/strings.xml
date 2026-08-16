@@ -133,6 +133,8 @@
     <string name="v3_widget_hide_bookmark_button_desc">The button floats over the cover — hiding it keeps the artwork unobstructed</string>
     <string name="v3_widget_hide_refresh_button">Hide widget refresh button</string>
     <string name="v3_widget_hide_refresh_button_desc">Once hidden, the artwork only changes on the refresh interval</string>
+    <string name="tablet_split_screen">Tablet two-pane layout</string>
+    <string name="tablet_split_screen_desc">Show the list and the detail side by side on tablets and other large screens. Tablets only; restart the app after changing it</string>
     <string name="novel_tag">Novel tags</string>
     <string name="hot_tag">Popular Tags</string>
     <string name="ranking_illust">Popular</string>

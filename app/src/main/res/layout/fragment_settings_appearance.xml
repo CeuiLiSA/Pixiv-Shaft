@@ -157,7 +157,7 @@
                 <RelativeLayout
                     android:id="@+id/main_view_r18_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/bg_m3_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -168,6 +168,28 @@
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/main_view_r18"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/tablet_split_screen_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/tablet_split_screen" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/tablet_split_screen_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/tablet_split_screen"
                         style="@style/M3SetSwitch" />
 
                 </RelativeLayout>

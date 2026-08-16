@@ -133,6 +133,8 @@
     <string name="v3_widget_hide_bookmark_button_desc">버튼이 표지 위에 겹칩니다. 숨기면 작품이 가려지지 않습니다</string>
     <string name="v3_widget_hide_refresh_button">위젯 새로고침 버튼 숨기기</string>
     <string name="v3_widget_hide_refresh_button_desc">숨기면 새로고침 간격에 따라 자동으로만 바뀝니다</string>
+    <string name="tablet_split_screen">태블릿 2단 레이아웃</string>
+    <string name="tablet_split_screen_desc">태블릿 등 큰 화면에서 목록과 상세를 좌우로 나눠 표시합니다. 태블릿에서만 적용되며 변경 후 앱을 다시 시작해야 합니다</string>
     <string name="novel_tag">소설 꼬리표</string>
     <string name="hot_tag">인기 태그</string>
     <string name="ranking_illust">순위표</string>

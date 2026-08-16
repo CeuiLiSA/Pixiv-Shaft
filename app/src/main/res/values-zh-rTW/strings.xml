@@ -133,6 +133,8 @@
     <string name="v3_widget_hide_bookmark_button_desc">按鈕浮在封面上，隱藏後畫面更完整</string>
     <string name="v3_widget_hide_refresh_button">隱藏小工具刷新按鈕</string>
     <string name="v3_widget_hide_refresh_button_desc">隱藏後只按換圖間隔自動換圖</string>
+    <string name="tablet_split_screen">平板雙欄版面</string>
+    <string name="tablet_split_screen_desc">在平板等大螢幕裝置上左右分欄顯示清單與詳情，僅平板生效，切換後需重新啟動應用程式</string>
     <string name="novel_tag">小說標籤</string>
     <string name="hot_tag">熱門標籤</string>
     <string name="ranking_illust">排行榜</string>

@@ -133,6 +133,8 @@
     <string name="v3_widget_hide_bookmark_button_desc">Кнопка перекрывает обложку — без неё иллюстрация видна целиком</string>
     <string name="v3_widget_hide_refresh_button">Скрыть кнопку обновления в виджете</string>
     <string name="v3_widget_hide_refresh_button_desc">После скрытия иллюстрация меняется только по интервалу обновления</string>
+    <string name="tablet_split_screen">Двухпанельный режим на планшете</string>
+    <string name="tablet_split_screen_desc">Показывать список и подробности рядом на планшетах и других больших экранах. Только для планшетов; после изменения перезапустите приложение</string>
     <string name="novel_tag">Теги новелл</string>
     <string name="hot_tag">Популярные теги</string>
     <string name="ranking_illust">Популярное</string>

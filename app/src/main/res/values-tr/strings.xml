@@ -133,6 +133,8 @@
     <string name="v3_widget_hide_bookmark_button_desc">Düğme kapağın üzerinde durur; gizlendiğinde eser tam görünür</string>
     <string name="v3_widget_hide_refresh_button">Widget yenileme düğmesini gizle</string>
     <string name="v3_widget_hide_refresh_button_desc">Gizlendiğinde eser yalnızca yenileme aralığında değişir</string>
+    <string name="tablet_split_screen">Tablette iki bölmeli düzen</string>
+    <string name="tablet_split_screen_desc">Tablet gibi büyük ekranlarda listeyi ve ayrıntıları yan yana gösterir. Yalnızca tablette geçerlidir; değiştirdikten sonra uygulamayı yeniden başlatın</string>
     <string name="novel_tag">Roman Etiketleri</string>
     <string name="hot_tag">Popüler Etiketler</string>
     <string name="ranking_illust">Popüler</string>
