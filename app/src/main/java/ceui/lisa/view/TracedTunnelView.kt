@@ -28,7 +28,8 @@ import java.util.concurrent.Executors
  *       android:layout_width="match_parent"
  *       android:layout_height="match_parent" />
  *
- * Images must be placed in assets/prime_square/ as square JPGs.
+ * Images must be placed in assets/prime_square/ as square images already sized to
+ * [IMAGE_TILE_SIZE] —— 图集格子就这么大，再高的分辨率进不了 shader，只会白占包体。
  */
 class TracedTunnelView @JvmOverloads constructor(
     context: Context,
@@ -224,8 +225,11 @@ private class TunnelImpl(private val view: View, private val onReady: () -> Unit
             )
             val atlasCanvas = Canvas(atlasBitmap)
 
+            // 素材已经是 IMAGE_TILE_SIZE 见方，直接原尺寸解码。
+            // 这里曾经是 inSampleSize=2（那时素材是 540），现在再降一半会解成半尺寸
+            // 再被 drawBitmap 放大回格子，白白糊一道。
             val options = BitmapFactory.Options().apply {
-                inSampleSize = 2
+                inSampleSize = 1
             }
             val tilePaint = Paint(Paint.FILTER_BITMAP_FLAG)
 
