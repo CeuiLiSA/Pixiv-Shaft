@@ -1,4 +1,4 @@
-<resources>
+﻿<resources>
     <string name="app_name">Shaft</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -2204,8 +2204,10 @@
     <string name="network_test_env_doh_off">安全 DNS 关</string>
     <string name="network_test_env_direct_on">直连开</string>
     <string name="network_test_env_direct_off">直连关</string>
+    <string name="network_test_env_host_prefix">图片代理 · </string>
     <string name="network_test_empty_hint">点击下方「开始测试」运行网络诊断</string>
     <string name="network_test_section_targets">连通性诊断</string>
+    <string name="network_test_section_image_download">图片下载探测</string>
     <string name="network_test_section_illust">作品 API 探测</string>
     <string name="network_test_section_rawlog">原始日志</string>
     <string name="network_test_rawlog_show">展开</string>
@@ -2214,15 +2216,190 @@
     <string name="network_test_illust_run">测试作品 API</string>
     <string name="network_test_illust_invalid_id">请输入有效的作品 ID</string>
     <string name="network_test_overall_clean">网络通畅</string>
-    <string name="network_test_overall_clean_sub">未检测到 DNS 污染，握手正常</string>
-    <string name="network_test_overall_degraded">部分异常</string>
+    <string name="network_test_dim_probe_failed">探测失败</string>
+    <string name="network_test_dim_probe_failed_top">图片尺寸探测失败</string>
+    <string name="network_test_dim_probe_failed_impact">尺寸探测失败不会严重破坏实际体验</string>
+    <string name="network_test_overall_high_latency">有端点高延迟</string>
+    <string name="network_test_overall_high_latency_sub">如使用代理请尝试更换节点</string>
+    <string name="network_test_high_latency_sub_image">请尝试改用其他的图片代理</string>
+    <string name="network_test_overall_extreme_latency">有端点延迟极高</string>
+    <string name="network_test_slow_download">下载缓慢</string>
+    <string name="network_test_overall_degraded">有异常</string>
     <string name="network_test_overall_degraded_sub">连通性或握手存在问题，详见下方</string>
+    <string name="network_test_aborted_sub">测试异常终止，原始日志里记录了原因</string>
     <string name="network_test_overall_polluted">检测到 DNS 污染</string>
     <string name="network_test_overall_polluted_sub">本机 DNS 解析结果不可信</string>
+    <string name="network_test_overall_bypass_ok">网络勉强可用</string>
+    <string name="network_test_overall_polluted_bypass_sub">本机 DNS 被污染，但已通过安全 DNS/直连绕过，握手正常</string>
+    <string name="network_test_overall_unavailable">网络不可用</string>
+    <string name="network_test_overall_unavailable_sub">主 API（app-api.pixiv.net）不可达，应用主要功能不可用</string>
+    <string name="network_test_image_unavailable">图片无法加载</string>
     <string name="network_test_pollution_dialog_title">⚠ 检测到 DNS 污染</string>
     <string name="network_test_fakeip_dialog_title">⚠️ 检测到假 IP</string>
     <string name="network_test_pollution_dialog_action">我知道了</string>
     <string name="network_test_log_copied">日志已复制</string>
+
+    <!-- ═══ 网络测试 · 步骤/详情/弹窗（从 NetworkTestViewModel 抽出的用户可见文案；
+         多语言时逐条翻译即可。格式串的 %1$s/%2$d 占位符顺序即 getString(id, …) 传参顺序，勿调换；
+         「原始日志」里的调试输出不走这里，保持中文。═══ -->
+
+    <!-- 目标卡副标题 -->
+    <string name="network_test_target_sub_app_api">pixiv API · Cloudflare CDN</string>
+    <string name="network_test_target_sub_web">网页端点 · Cloudflare CDN</string>
+    <string name="network_test_target_sub_image_official">图片服务器 · Pixiv Japan</string>
+    <string name="network_test_target_sub_image_proxy">图片服务器 · 反代 %1$s</string>
+    <string name="network_test_target_sub_pixshaft">Shaft 云服务 · 浏览记录同步</string>
+
+    <!-- 目标卡右上角状态 pill；network_test_pill_skipped 为 http 反代跳过握手时的覆盖文案 -->
+    <string name="network_test_status_running">测试中</string>
+    <string name="network_test_status_ok">通畅</string>
+    <string name="network_test_status_high">高延迟</string>
+    <string name="network_test_status_extreme">超高延迟</string>
+    <string name="network_test_status_degraded">部分异常</string>
+    <string name="network_test_status_polluted">DNS 污染</string>
+    <string name="network_test_status_bypassed">已绕过</string>
+    <string name="network_test_status_failed">失败</string>
+    <string name="network_test_pill_skipped">跳过</string>
+
+    <!-- DNS 解析步骤（testTarget）：明细里的 ✓/✗ 逐行文本，\n 结尾以便拼接 -->
+    <string name="network_test_dns_step">系统 DNS 解析</string>
+    <string name="network_test_dns_step_count">系统 DNS 解析 · %1$d 条</string>
+    <string name="network_test_dns_resolve_failed">解析失败: %1$s</string>
+    <string name="network_test_dns_hit">✓ %1$s ∈ %2$s\n</string>
+    <string name="network_test_dns_miss">✗ %1$s 不在任何已知段\n</string>
+    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6, 跳过)\n</string>
+    <string name="network_test_dns_fakeip">返回保留地址（疑似代理 fake-ip）: %1$s\n跳过 DNS 校验与 ping，仅测握手</string>
+    <string name="network_test_dns_app_step">应用内解析 · HttpDns(DoH/直连) · %1$d 条</string>
+    <string name="network_test_dns_app_step_plain">应用内解析 · HttpDns</string>
+    <string name="network_test_dns_app_failed">失败: %1$s</string>
+    <string name="network_test_dns_item">· %1$s</string>
+
+    <!-- 跳过 / 绕过说明步骤 -->
+    <string name="network_test_skip_connectivity">跳过连通性 / 握手</string>
+    <string name="network_test_skip_http_proxy">http 反代无法用 HTTPS 握手验证，卡片以图片下载探测为准</string>
+    <string name="network_test_skip_cronet">跳过本地 DNS，改走 Cronet</string>
+    <string name="network_test_skip_cronet_detail">本机 DNS 不可信，但直连下 %1$s 由 Cronet 钉 Cloudflare IP，不受本地 DNS 影响</string>
+    <string name="network_test_skip_polluted">DNS 解析不可信，且无可用绕过路径</string>
+    <string name="network_test_skip_no_ipv4">无可用 IPv4 地址</string>
+    <string name="network_test_bypass_step">改走应用内解析路径</string>
+    <string name="network_test_bypass_detail">本机 DNS 被污染，以下测试经 %1$s(DoH/直连)</string>
+
+    <!-- TCP / ICMP 连通性 -->
+    <string name="network_test_tcp_step">TCP %1$d 连通性</string>
+    <string name="network_test_tcp_too_fast">%1$dms · 过低无参考性，以握手耗时为准</string>
+    <string name="network_test_tcp_ok">可达 · %1$dms</string>
+    <string name="network_test_tcp_fail">不可达: %1$s</string>
+    <string name="network_test_icmp_step">ICMP/echo Ping · 直连</string>
+    <string name="network_test_icmp_ok">%1$d/3 可达 · 平均 %2$dms</string>
+    <string name="network_test_icmp_warn">0/3 可达（部分网络禁用 ICMP，属正常）</string>
+
+    <!-- HTTPS 握手采样 -->
+    <string name="network_test_hs_step">HTTPS 握手 · 持续 5s 采样 · %1$s</string>
+    <string name="network_test_sampling">采样中…</string>
+    <string name="network_test_hs_build_failed">客户端构建失败: %1$s</string>
+    <string name="network_test_hs_success">成功 %1$d</string>
+    <string name="network_test_hs_fail_count"> · 失败 %1$d</string>
+    <string name="network_test_hs_stats">\nmin %1$dms · avg %2$dms · max %3$dms · 抖动 %4$dms</string>
+    <string name="network_test_hs_tls">\n%1$s</string>
+    <string name="network_test_hs_cipher"> · %1$s</string>
+    <string name="network_test_hs_proto_direct">\n协议 %1$s（经直连，无 TLS 握手详情）</string>
+    <string name="network_test_hs_all_failed">全部失败（%1$d 次）</string>
+    <string name="network_test_hs_first_err">\n%1$s</string>
+    <string name="network_test_hs_reasons">\n常见原因: 连接被重置 / 证书不受信 / TLS 版本不匹配</string>
+
+    <!-- 握手路径描述（步骤 label 后缀） -->
+    <string name="network_test_path_no_sni">无 SNI · HTTP/1.1</string>
+    <string name="network_test_path_standard_tls">标准 TLS</string>
+    <string name="network_test_path_cronet">直连 Cronet/QUIC</string>
+    <string name="network_test_path_fakeip">标准 TLS · 代理接管（fake-ip）</string>
+    <string name="network_test_path_cronet_bypass">直连 Cronet/QUIC（绕过本机 DNS）</string>
+
+    <!-- 网页请求探测 -->
+    <string name="network_test_web_step">网页请求 · /ajax/illust/%1$d</string>
+    <string name="network_test_requesting">请求中…</string>
+    <string name="network_test_web_ok">HTTP %1$d · %2$dms · 作品 #%3$d 已返回图片地址</string>
+    <string name="network_test_web_degraded">HTTP %1$d · error=%2$s · 未拿到图片地址</string>
+    <string name="network_test_web_failed">请求失败: %1$s</string>
+
+    <!-- 图片下载探测（runImageDownloadPhase / downloadImageStep） -->
+    <string name="network_test_dl_title">图片下载探测</string>
+    <string name="network_test_dl_sub">样例作品 #%1$d · 插画 + 头像</string>
+    <string name="network_test_fetching">获取中…</string>
+    <string name="network_test_downloading">下载中…</string>
+    <string name="network_test_dl_prepare">准备图片地址</string>
+    <string name="network_test_dl_source_probe">复用 www.pixiv.net 探测</string>
+    <string name="network_test_dl_source_live">现场获取</string>
+    <string name="network_test_dl_source_fallback">内置样例兜底</string>
+    <string name="network_test_dl_prepare_done">来源 %1$s · 插画 + 头像已就绪</string>
+    <string name="network_test_dl_dim">探测图片尺寸</string>
+    <string name="network_test_dl_route">图片代理路由</string>
+    <string name="network_test_dl_illust">插画图片下载</string>
+    <string name="network_test_dl_avatar">头像图片下载</string>
+    <string name="network_test_dl_fail">图片下载失败</string>
+    <string name="network_test_dl_no_body">HTTP %1$d · 无响应体</string>
+    <string name="network_test_dl_tag_extreme">超高延迟</string>
+    <string name="network_test_dl_tag_high">高延迟</string>
+    <string name="network_test_dl_tag_slow">下载缓慢</string>
+    <string name="network_test_dl_detail_ok">HTTP %1$d · %2$s · TTFB %3$dms · 传输 %4$dms · %5$s · %6$s ✓%7$s\n实际请求: %8$s</string>
+    <string name="network_test_dl_detail_fail">HTTP %1$d · %2$s · %3$dms%4$s\n实际请求: %5$s</string>
+    <string name="network_test_dl_request_failed">请求失败: %1$s</string>
+    <string name="network_test_dim_ok">宽 %1$d · 高 %2$d · 第一页 · %3$s · %4$dms</string>
+    <string name="network_test_dim_no_page">HTTP %1$d · %2$dms · 未拿到第一页宽高（该接口需网页 cookie）</string>
+    <string name="network_test_dim_failed">请求失败: %1$s</string>
+
+    <!-- 图片代理路由描述（imageHostDesc） -->
+    <string name="network_test_route_official">Pixiv 官方 · i.pximg.net 直连</string>
+    <string name="network_test_route_cat">pixiv.cat 反代</string>
+    <string name="network_test_route_re">pixiv.re 反代</string>
+    <string name="network_test_route_nl">pixiv.nl 反代</string>
+    <string name="network_test_route_custom_none">自定义反代（未配置）</string>
+    <string name="network_test_route_custom">自定义反代: %1$s</string>
+
+    <!-- 作品 API 探测（probeIllust） -->
+    <string name="network_test_illust_title">作品 #%1$d</string>
+    <string name="network_test_illust_sub">GET /v1/illust/detail</string>
+    <string name="network_test_illust_api_step">API 响应</string>
+    <string name="network_test_illust_no_illust">%1$dms · 返回体无 illust 字段</string>
+    <string name="network_test_illust_ok">%1$dms · HTTP 200</string>
+    <string name="network_test_illust_title_type">标题 / 类型</string>
+    <string name="network_test_illust_caption">简介</string>
+    <string name="network_test_illust_caption_yes">有 · %1$d 字</string>
+    <string name="network_test_illust_caption_no">无</string>
+    <string name="network_test_illust_pages">页数</string>
+    <string name="network_test_illust_pages_n">%1$d P</string>
+    <string name="network_test_illust_resolution">首图分辨率</string>
+    <string name="network_test_illust_resolution_n">%1$d × %2$d</string>
+    <string name="network_test_illust_format">图片格式</string>
+    <string name="network_test_illust_format_yes">%1$s · 原图地址已返回</string>
+    <string name="network_test_illust_format_no">%1$s · 无原图地址</string>
+    <string name="network_test_illust_flags">标记</string>
+    <string name="network_test_illust_flag_ai">AI 生成</string>
+    <string name="network_test_illust_flag_r18">R-18</string>
+    <string name="network_test_illust_flag_muted">已屏蔽</string>
+    <string name="network_test_illust_api_failed">API 请求失败</string>
+    <string name="network_test_type_illust">插画</string>
+    <string name="network_test_type_manga">漫画</string>
+    <string name="network_test_type_ugoira">动图</string>
+    <string name="network_test_unknown">未知</string>
+
+    <!-- 弹窗正文 -->
+    <string name="network_test_fakeip_dialog_body">当前网络启用了VPN / 代理，且DNS模式为fake-ip\n部分测试将会跳过\n建议将DNS模式改为redir-host或normal完善跳过的部分</string>
+    <string name="network_test_pollution_dialog_head">以下是疑似被DNS污染的域名\n（域名解析出的IP不在已知的正确IP列表中）:\n</string>
+    <string name="network_test_pollution_dialog_item">· %1$s</string>
+    <string name="network_test_pollution_dialog_tail_both">\n\n当前已同时开启直连模式和「安全 DNS（DoH）」，已尝试绕过污染，具体效果请以实际为准。</string>
+    <string name="network_test_pollution_dialog_tail_direct">\n\n当前已开启直连模式，但DNS污染仍在，建议同时开启「安全 DNS（DoH）」。</string>
+    <string name="network_test_pollution_dialog_tail_other">\n\n建议在「设置 → 网络」同时开启直连模式和「安全 DNS（DoH）」来绕过污染。</string>
+
+    <!-- 总览小字（CLEAN）：ViewModel 按段拼接，不再对整串做中文字面 replace——
+         旧做法在非中文 locale 下 replace 目标根本不存在（各语言旧译与中文文案不一致）。
+         各段独立翻译，_fallback 仅供 Fragment 在 ViewModel 派发前兜底。 -->
+    <string name="network_test_clean_seg_dns">DNS解析</string>
+    <string name="network_test_clean_seg_handshake">握手</string>
+    <string name="network_test_clean_seg_dim">尺寸探测</string>
+    <string name="network_test_clean_seg_download_ok">图片下载一切正常。</string>
+    <string name="network_test_clean_seg_download_slow">图片下载缓慢。</string>
+    <string name="network_test_clean_seg_sep">、</string>
+    <string name="network_test_overall_clean_sub_fallback">DNS解析、握手、尺寸探测、图片下载一切正常。</string>
 
     <!-- Chat subsystem (borrowed from Peanut; see ceui.pixiv.chat.*) -->
     <string name="chat_drawer_entry">聊天室</string>

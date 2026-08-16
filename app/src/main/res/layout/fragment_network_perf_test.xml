@@ -63,16 +63,19 @@
                 android:textColor="@color/v3_text_3"
                 android:textSize="12sp" />
 
-            <LinearLayout
+            <!-- 环境 chip 行：Flexbox 自动换行，避免 chip 太多时最后一个被横向压缩成细柱。 -->
+            <com.google.android.flexbox.FlexboxLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
+                android:layout_marginTop="2dp"
+                app:alignItems="center"
+                app:flexWrap="wrap">
 
                 <TextView
                     android:id="@+id/chip_doh"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
                     android:layout_marginEnd="8dp"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
@@ -84,12 +87,25 @@
                     android:id="@+id/chip_direct"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     tools:text="直连关" />
-            </LinearLayout>
+
+                <TextView
+                    android:id="@+id/chip_host"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="图片代理 · Pixiv 官方" />
+            </com.google.android.flexbox.FlexboxLayout>
 
             <!-- 总览卡：跑完才显示。大状态行 + 副说明。 -->
             <LinearLayout
@@ -100,19 +116,99 @@
                 android:background="@drawable/v3_glass_surface_xl"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp"
-                android:paddingVertical="18dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="18dp"
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <TextView
-                    android:id="@+id/summary_pill"
-                    android:layout_width="wrap_content"
+                <!-- 总览 pill 行：Flexbox 自动换行，四个 pill 放不下时换行而不是挤压最后一个。 -->
+                <com.google.android.flexbox.FlexboxLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="7dp"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    tools:text="● 网络通畅" />
+                    app:alignItems="center"
+                    app:flexWrap="wrap">
+
+                    <TextView
+                        android:id="@+id/summary_pill"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        tools:text="● 网络通畅" />
+
+                    <TextView
+                        android:id="@+id/summary_pill_image"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:text="@string/network_test_image_unavailable"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/summary_pill_slow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:text="@string/network_test_slow_download"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/summary_pill_dim"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:text="@string/network_test_dim_probe_failed_top"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/summary_pill_degraded"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:text="@string/network_test_overall_degraded"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/summary_pill_bypass"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="7dp"
+                        android:text="@string/network_test_overall_bypass_ok"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </com.google.android.flexbox.FlexboxLayout>
 
                 <TextView
                     android:id="@+id/summary_sub"
@@ -179,6 +275,25 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical" />
             </LinearLayout>
+
+            <!-- 图片下载探测：所有目标握手测完后自动执行，展示风格与作品 API 探测一致。 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:letterSpacing="0.12"
+                android:text="@string/network_test_section_image_download"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/image_download_result_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical" />
 
             <!-- 作品 API 探测卡：独立功能，始终可见。 -->
             <TextView
