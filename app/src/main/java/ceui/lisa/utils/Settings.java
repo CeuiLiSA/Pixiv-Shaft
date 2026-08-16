@@ -147,6 +147,13 @@ public class Settings {
     private int imageHostMode = 0;
     private String customImageHost = "";
 
+    //App API 代理（PxveAPI 风格）。appApiProxy: 代理根地址（需 https:// 前缀）；**地址非空即启用**，
+    //空 = 不代理（设置页独立输入选项，与直连模式可共存）。请求改写为
+    //https://<appApiProxy>/pixiv-app-api/* 与 /pixiv-oauth/*。
+    //与直连模式（directConnect）**可共存**：代理拦截器挂在 Cronet 之前，只改写 app-api/oauth 域名，
+    //其余请求原样放行给直连，二者互不干扰。
+    private String appApiProxy = "";
+
     //缩略图图片显示大图
     private boolean showLargeThumbnailImage = false;
 
@@ -548,6 +555,19 @@ public class Settings {
 
     public void setCustomImageHost(String customImageHost) {
         this.customImageHost = customImageHost;
+    }
+
+    /** App API 代理是否启用：**地址非空即启用**（空 = 不代理）。由设置页独立输入选项驱动。 */
+    public boolean isUseAppApiProxy() {
+        return !TextUtils.isEmpty(appApiProxy);
+    }
+
+    public String getAppApiProxy() {
+        return appApiProxy == null ? "" : appApiProxy;
+    }
+
+    public void setAppApiProxy(String appApiProxy) {
+        this.appApiProxy = appApiProxy;
     }
 
     public void setSearchFilter(String searchFilter) {

@@ -112,7 +112,7 @@
                 <RelativeLayout
                     android:id="@+id/image_host_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/bg_m3_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -126,6 +126,34 @@
 
                     <TextView
                         android:id="@+id/image_host_value"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <!-- App API 代理（PxveAPI 风格）：独立输入选项，与直连共存。
+                     值为空 = 不代理；点击弹窗输入 https 根地址。
+                     帮助按钮移至点击后弹出弹窗的标题栏右上角。 -->
+                <RelativeLayout
+                    android:id="@+id/app_api_proxy_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/bg_m3_row_bottom">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            android:id="@+id/app_api_proxy_title"
+                            style="@style/M3SetTitle"
+                            android:text="@string/app_api_proxy_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/app_api_proxy_summary" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/app_api_proxy_value"
                         style="@style/M3SetValue" />
 
                 </RelativeLayout>

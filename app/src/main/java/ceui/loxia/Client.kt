@@ -2,6 +2,7 @@ package ceui.loxia
 
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
+import ceui.lisa.http.AppApiProxyInterceptor
 import ceui.lisa.http.CronetInterceptor
 import ceui.pixiv.shaftapi.ShaftHmac
 import okhttp3.Dns
@@ -137,6 +138,12 @@ class ClientManager {
     }
 
     private fun applyDirectConnect(builder: OkHttpClient.Builder) {
+        // App API 代理（PxveAPI 风格）与直连模式**共存**：代理拦截器挂在
+        // CronetInterceptor 之前，只改写 app-api/oauth 请求到代理域名；改写后的域名
+        // 不在 Cronet MAP 规则内，走系统 DNS/TLS 解析，其余请求原样放行给直连。
+        if (Shaft.sSettings.isUseAppApiProxy) {
+            builder.addInterceptor(AppApiProxyInterceptor())
+        }
         if (Shaft.sSettings.isDirectConnect) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }

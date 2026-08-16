@@ -146,6 +146,13 @@ public class Retro {
         } catch (Exception e) {
             Timber.e(e, "buildRetrofit interceptor error");
         }
+        // App API 代理（PxveAPI 风格）与直连模式**共存**：代理拦截器挂在
+        // CronetInterceptor 之前，只改写 app-api/oauth 请求到代理域名；改写后的域名
+        // 不在 Cronet MAP 规则内，走系统 DNS/TLS 解析，其余请求原样放行给直连。
+        // 二者同时开启时互不干扰，关闭任意一个也互不影响。
+        if (Shaft.sSettings.isUseAppApiProxy()) {
+            builder.addInterceptor(new AppApiProxyInterceptor());
+        }
         applyDirectConnect(builder, directConnect);
         HttpLoggingInterceptor l = new HttpLoggingInterceptor(
                 message -> Timber.i(message));
