@@ -2,6 +2,8 @@ package ceui.pixiv.actions
 
 import ceui.lisa.activities.Shaft
 import ceui.loxia.Nana7miSearchTelemetryAck
+import ceui.loxia.Nana7miSearchTelemetryBatchAck
+import ceui.loxia.Nana7miSearchTelemetryBatchReq
 import ceui.loxia.Nana7miSearchTelemetryReq
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
@@ -241,6 +243,123 @@ class Nana7miSearchTelemetryHandlerTest {
             .test()
             .assertError(businessError)
     }
+
+    @Test
+    fun `batch handler delivers one request for a whole flush`() = runBlocking {
+        val events = List(3) { index ->
+            validPayload().copy(eventId = "123e4567-e89b-42d3-a456-42661417400$index")
+        }
+        val sent = mutableListOf<Nana7miSearchTelemetryBatchReq>()
+        val handler = Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            report = {
+                sent.add(it)
+                Nana7miSearchTelemetryBatchAck(ok = true, accepted = it.events.size, stored = it.events.size)
+            },
+        )
+
+        assertSame(ActionOutcome.Success, handler.execute(batchAction(events)))
+        assertEquals(1, sent.size)
+        assertEquals(events.map { it.eventId }, sent.single().events.map { it.eventId })
+    }
+
+    @Test
+    fun `batch handler drops only the invalid events`() = runBlocking {
+        val good = validPayload()
+        val bad = validPayload().copy(
+            eventId = "123e4567-e89b-42d3-a456-426614174005",
+            requesterUid = 0L,
+        )
+        var sent: Nana7miSearchTelemetryBatchReq? = null
+        val handler = Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            report = {
+                sent = it
+                Nana7miSearchTelemetryBatchAck(ok = true, accepted = it.events.size, stored = it.events.size)
+            },
+        )
+
+        assertSame(ActionOutcome.Success, handler.execute(batchAction(listOf(good, bad))))
+        assertEquals(listOf(good.eventId), sent?.events?.map { it.eventId })
+    }
+
+    @Test
+    fun `batch handler permanently drops a row with nothing deliverable`() = runBlocking {
+        var calls = 0
+        val handler = Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            report = {
+                calls += 1
+                Nana7miSearchTelemetryBatchAck(ok = true)
+            },
+        )
+
+        val empty = handler.execute(batchAction(listOf(validPayload().copy(requesterUid = 0L))))
+        val unparsable = handler.execute(
+            batchAction(emptyList()).copy(payload = """{"events":null}"""),
+        )
+
+        assertEquals(0, calls)
+        assertEquals(
+            "permanent telemetry failure: no valid events in batch",
+            (empty as ActionOutcome.Fail).reason,
+        )
+        assertEquals(
+            "permanent telemetry failure: unparsable batch payload",
+            (unparsable as ActionOutcome.Fail).reason,
+        )
+    }
+
+    @Test
+    fun `batch handler upgrades events queued by previous app build`() = runBlocking {
+        val legacy = validPayload().copy(eventType = null, appVersion = null, appChannel = null)
+        var sent: Nana7miSearchTelemetryBatchReq? = null
+        val handler = Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            report = {
+                sent = it
+                Nana7miSearchTelemetryBatchAck(ok = true, accepted = 1, stored = 1)
+            },
+        )
+
+        assertSame(ActionOutcome.Success, handler.execute(batchAction(listOf(legacy))))
+        assertEquals("request", sent?.events?.single()?.eventType)
+        assertEquals("unknown", sent?.events?.single()?.appVersion)
+        assertEquals("unknown", sent?.events?.single()?.appChannel)
+    }
+
+    @Test
+    fun `batch failures reuse the telemetry-only error policy`() = runBlocking {
+        val permanent = Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            report = { throw httpError(400) },
+        ).execute(batchAction(listOf(validPayload()))) as ActionOutcome.Fail
+        val serverFailure = Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            report = { throw httpError(503) },
+        ).execute(batchAction(listOf(validPayload()))) as ActionOutcome.Retry
+        val notAcknowledged = Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            report = { Nana7miSearchTelemetryBatchAck(ok = false) },
+        ).execute(batchAction(listOf(validPayload()))) as ActionOutcome.Retry
+
+        assertEquals("permanent telemetry failure: HTTP 400", permanent.reason)
+        assertEquals(ceui.pixiv.actionqueue.RetryScope.QUEUE, serverFailure.scope)
+        assertEquals(ceui.pixiv.actionqueue.RetryScope.ACTION, notAcknowledged.scope)
+        assertEquals(
+            "nana7mi telemetry batch not acknowledged",
+            notAcknowledged.cause?.message,
+        )
+    }
+
+    private fun batchAction(events: List<Nana7miSearchTelemetry.Payload>) = PendingAction(
+        id = 2L,
+        type = Nana7miSearchTelemetry.BATCH_ACTION_TYPE,
+        dedupeKey = "${Nana7miSearchTelemetry.BATCH_ACTION_TYPE}:123e4567-e89b-42d3-a456-426614174777",
+        payload = Shaft.sGson.toJson(Nana7miSearchTelemetry.BatchPayload(events)),
+        attempt = 0,
+        owner = "nana7mi_search_telemetry",
+    )
 
     private fun action(payload: Nana7miSearchTelemetry.Payload) = PendingAction(
         id = 1L,

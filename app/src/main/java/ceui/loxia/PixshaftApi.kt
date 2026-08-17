@@ -105,11 +105,26 @@ interface PixshaftApi {
         @Body body: Nana7miInvalidReq,
     ): Nana7miInvalidAck
 
-    /** Report one flow- or request-level event from the borrowed-search feature. */
+    /**
+     * Report one flow- or request-level event from the borrowed-search feature.
+     *
+     * Superseded by [reportNana7miSearchTelemetryBatch]; kept because installed
+     * builds still have one-event-per-row telemetry queued locally.
+     */
     @POST("v1/account/nana7mi/telemetry")
     suspend fun reportNana7miSearchTelemetry(
         @Body body: Nana7miSearchTelemetryReq,
     ): Nana7miSearchTelemetryAck
+
+    /**
+     * Report one buffered flush of borrowed-search events (server cap: 50 per
+     * request). Idempotent per `eventId`, exactly like the single-event route,
+     * so re-sending a whole batch after a network failure is safe.
+     */
+    @POST("v1/account/nana7mi/telemetry/batch")
+    suspend fun reportNana7miSearchTelemetryBatch(
+        @Body body: Nana7miSearchTelemetryBatchReq,
+    ): Nana7miSearchTelemetryBatchAck
 
     /** Restore (login page): mail a code IF [email] has a backup ([RestoreRequestAck.found]). */
     @POST("v1/account/restore/request")
@@ -205,6 +220,23 @@ data class Nana7miSearchTelemetryAck(
     val ok: Boolean = false,
     val eventId: String? = null,
     val duplicate: Boolean = false,
+)
+
+data class Nana7miSearchTelemetryBatchReq(
+    val events: List<Nana7miSearchTelemetryReq>,
+)
+
+/**
+ * [accepted] events passed server-side validation, of which [stored] were new and
+ * [duplicate] had already been recorded; [rejected] were dropped as malformed and
+ * will never be accepted, so the client must not resend them.
+ */
+data class Nana7miSearchTelemetryBatchAck(
+    val ok: Boolean = false,
+    val accepted: Int = 0,
+    val stored: Int = 0,
+    val duplicate: Int = 0,
+    val rejected: Int = 0,
 )
 
 data class Nana7miResponse(

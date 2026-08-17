@@ -5,6 +5,8 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.loxia.Client
 import ceui.loxia.Nana7miSearchTelemetryAck
+import ceui.loxia.Nana7miSearchTelemetryBatchAck
+import ceui.loxia.Nana7miSearchTelemetryBatchReq
 import ceui.loxia.Nana7miSearchTelemetryReq
 import ceui.pixiv.actionqueue.ActionEvent
 import ceui.pixiv.actionqueue.ActionHandler
@@ -38,6 +40,9 @@ import timber.log.Timber
  * flow id; every completed request gets a separate event id. Events contain no result count,
  * next-url state, response body or account token. Delivery uses its own persistent [ActionQueue]
  * so telemetry retry/backoff cannot delay bookmark or follow actions.
+ *
+ * Events are buffered and delivered in batches: one flush becomes one queue row and therefore
+ * one signed request carrying up to [MAX_BATCH_EVENTS] events. See [buffer] for the trade-off.
  */
 internal object Nana7miSearchTelemetry {
 
@@ -51,6 +56,20 @@ internal object Nana7miSearchTelemetry {
 
     @Volatile
     private var queue: ActionQueue? = null
+
+    /**
+     * Events waiting for the next flush, guarded by its own monitor.
+     *
+     * Search telemetry is bursty — one flow emits 3-5 events and every extra page adds another —
+     * so one signed request per event meant a request every few hundred milliseconds while the
+     * user scrolled. Buffering here and handing the durable queue ONE row per flush keeps the
+     * offline/retry guarantees and collapses a whole search session into a request or two.
+     *
+     * The window costs durability: events still sitting here when the process dies are lost.
+     * That is the same trade `HistoryReporter` makes, and it only ever loses the tail — anything
+     * already flushed into the queue is persisted and retried as before.
+     */
+    private val buffer = ArrayDeque<Payload>()
 
     @JvmStatic
     fun init(context: Context) {
@@ -66,6 +85,11 @@ internal object Nana7miSearchTelemetry {
                 context = appContext,
                 databaseName = DATABASE_NAME,
                 handlers = mapOf(
+                    BATCH_ACTION_TYPE to Nana7miSearchTelemetryBatchHandler(
+                        isOnline = { monitor.isConnected },
+                    ),
+                    // Compatibility only: drains the one-event-per-row telemetry that builds
+                    // before batching left in this database. Nothing enqueues this type now.
                     ACTION_TYPE to Nana7miSearchTelemetryHandler(
                         isOnline = { monitor.isConnected },
                     ),
@@ -123,6 +147,14 @@ internal object Nana7miSearchTelemetry {
             }
             instance.start()
             scope.launch {
+                // Everything buffered before/while the queue was being assembled goes out on
+                // the first tick, so events reported during startup are not dropped.
+                while (isActive) {
+                    delay(FLUSH_INTERVAL_MS)
+                    flushBuffer("tick")
+                }
+            }
+            scope.launch {
                 retryParked(instance, "startup")
             }
             scope.launch {
@@ -146,6 +178,58 @@ internal object Nana7miSearchTelemetry {
             scope.launch {
                 delay(INIT_RETRY_INTERVAL_MS)
                 init(appContext)
+            }
+        }
+    }
+
+    /**
+     * Buffers one event and flushes early when a burst fills [FLUSH_THRESHOLD_EVENTS], so a long
+     * scroll does not wait out the whole [FLUSH_INTERVAL_MS] window.
+     */
+    private fun bufferEvent(payload: Payload) {
+        var dropped = 0
+        val flushNow = synchronized(buffer) {
+            // The backend being unreachable must not turn observability into unbounded memory.
+            while (buffer.size >= MAX_BUFFERED_EVENTS) {
+                buffer.removeFirst()
+                dropped++
+            }
+            buffer.addLast(payload)
+            buffer.size >= FLUSH_THRESHOLD_EVENTS
+        }
+        if (dropped > 0) {
+            Timber.tag(TAG).w("telemetry buffer overflow, dropped oldest count=%d", dropped)
+        }
+        if (flushNow) scope.launch { flushBuffer("threshold") }
+    }
+
+    /** Hands everything buffered to the durable queue, at most [MAX_BATCH_EVENTS] events per row. */
+    private fun flushBuffer(trigger: String) {
+        val instance = queue ?: return
+        while (true) {
+            val batch = synchronized(buffer) {
+                if (buffer.isEmpty()) return
+                List(minOf(buffer.size, MAX_BATCH_EVENTS)) { buffer.removeFirst() }
+            }
+            try {
+                instance.enqueue(
+                    ActionRequest(
+                        type = BATCH_ACTION_TYPE,
+                        // Every flush is its own row: batches share no identity, and coalescing
+                        // two of them would silently discard a whole window of events.
+                        dedupeKey = "$BATCH_ACTION_TYPE:${UUID.randomUUID()}",
+                        payload = Shaft.sGson.toJson(BatchPayload(batch)),
+                        coalesce = false,
+                    ),
+                )
+                Timber.tag(TAG).d(
+                    "telemetry batch queued trigger=%s events=%d",
+                    trigger,
+                    batch.size,
+                )
+            } catch (error: Exception) {
+                // Observability must never change search success/failure behavior.
+                Timber.tag(TAG).e(error, "telemetry batch enqueue failed events=%d", batch.size)
             }
         }
     }
@@ -215,6 +299,12 @@ internal object Nana7miSearchTelemetry {
         val appVersion: String?,
         val appChannel: String?,
     )
+
+    /**
+     * One queue row = one flush. [events] is nullable because Gson bypasses Kotlin constructor
+     * defaults, so a truncated/foreign payload deserializes with a null list instead of failing.
+     */
+    data class BatchPayload(val events: List<Payload>? = null)
 
     fun start(
         requesterUid: Long,
@@ -434,19 +524,9 @@ internal object Nana7miSearchTelemetry {
                     appChannel = BuildConfig.UPDATE_CHANNEL,
                 )
                 if (!valid(payload, requesterUid.toString())) return
-                val instance = queue
-                if (instance == null) {
-                    Timber.tag(TAG).w("telemetry enqueue before init event_id=%s", eventId)
-                    return
-                }
-                instance.enqueue(
-                    ActionRequest(
-                        type = ACTION_TYPE,
-                        dedupeKey = "$ACTION_TYPE:$eventId",
-                        payload = Shaft.sGson.toJson(payload),
-                        coalesce = false,
-                    ),
-                )
+                // Buffering (instead of enqueueing here) also means events reported before the
+                // queue finished initializing are kept rather than dropped.
+                bufferEvent(payload)
             } catch (reportError: Exception) {
                 // Observability must never change search success/failure behavior.
                 Timber.tag(TAG).e(reportError, "nana7mi telemetry enqueue failed")
@@ -463,13 +543,24 @@ internal object Nana7miSearchTelemetry {
     private const val LABEL_MAX_CHARS = 100
     private const val VERSION_MAX_CHARS = 50
     private const val MAX_DURATION_MS = 24L * 60L * 60L * 1_000L
-    private const val TAG = "Nana7miTelemetry"
+    internal const val TAG = "Nana7miTelemetry"
     private const val ACTION_TYPE = "nana7mi_search_telemetry"
+    internal const val BATCH_ACTION_TYPE = "nana7mi_search_telemetry_batch"
     private const val DATABASE_NAME = "nana7mi_search_telemetry.db"
     private const val GLOBAL_OWNER = "nana7mi_search_telemetry"
     private const val MIN_GAP_MS = 250L
-    private const val MAX_FAILED_ROWS = 500
-    private const val MAX_STORED_ROWS = 2_000
+    /** Flush cadence; a whole search session usually leaves as one or two requests. */
+    private const val FLUSH_INTERVAL_MS = 30_000L
+    /** Flush early on a burst instead of making the tail of it wait a full window. */
+    private const val FLUSH_THRESHOLD_EVENTS = 20
+    /** Events per request. Must stay <= the server's NANA7MI_TELEMETRY_BATCH_MAX_EVENTS. */
+    private const val MAX_BATCH_EVENTS = 50
+    /** Ceiling for events not yet handed to the queue; oldest lose. */
+    private const val MAX_BUFFERED_EVENTS = 200
+    // Rows are batches now, so these caps are an order of magnitude smaller than the
+    // one-row-per-event era while holding far more events (500 x 50 = 25,000).
+    private const val MAX_FAILED_ROWS = 200
+    private const val MAX_STORED_ROWS = 500
     private const val INIT_RETRY_INTERVAL_MS = 60_000L
     private const val FAILED_RETRY_INTERVAL_MS = 6L * 60L * 60L * 1_000L
     private const val PERMANENT_FAILURE_PREFIX = "permanent telemetry failure: "
@@ -490,7 +581,97 @@ internal object Nana7miSearchTelemetry {
     private val FLOW_OUTCOMES = FlowOutcome.entries.mapTo(hashSetOf()) { it.wire }
 }
 
-/** Kept outside the object to make the network dependency injectable in JVM tests. */
+/**
+ * Delivers one buffered flush. Kept outside the object to make the network dependency
+ * injectable in JVM tests.
+ */
+internal class Nana7miSearchTelemetryBatchHandler(
+    private val isOnline: () -> Boolean,
+    private val report: suspend (Nana7miSearchTelemetryBatchReq) -> Nana7miSearchTelemetryBatchAck = {
+        Client.pixshaft.reportNana7miSearchTelemetryBatch(it)
+    },
+) : ActionHandler {
+    override suspend fun execute(action: PendingAction): ActionOutcome {
+        val parsed = action.parsePayload<Nana7miSearchTelemetry.BatchPayload>()
+        val stored = parsed?.events
+            ?: return Nana7miSearchTelemetry.permanentFailure("unparsable batch payload")
+        // Drop only the individually bad events: the server does the same, and failing the
+        // whole row would throw away every healthy event that was flushed next to it.
+        val events = stored.map { it.upgraded() }.filter { Nana7miSearchTelemetry.valid(it) }
+        val dropped = stored.size - events.size
+        if (dropped > 0) {
+            Timber.tag(Nana7miSearchTelemetry.TAG).w("dropped %d invalid events from batch", dropped)
+        }
+        if (events.isEmpty()) {
+            return Nana7miSearchTelemetry.permanentFailure("no valid events in batch")
+        }
+        val outcome = try {
+            val ack = report(Nana7miSearchTelemetryBatchReq(events.map { it.toRequest() }))
+            if (ack.rejected > 0) {
+                // Our validator and the server's disagree — retrying cannot fix that, so leave
+                // a trace instead of parking the row forever.
+                Timber.tag(Nana7miSearchTelemetry.TAG).w(
+                    "server rejected %d of %d batched events",
+                    ack.rejected,
+                    events.size,
+                )
+            }
+            if (ack.ok) {
+                ActionOutcome.Success
+            } else {
+                // A 2xx that does not acknowledge the batch points at a backend or rollout
+                // problem, not bad event data. Park and periodically retry it.
+                ActionOutcome.Retry(
+                    cause = IllegalStateException("nana7mi telemetry batch not acknowledged"),
+                    scope = RetryScope.ACTION,
+                )
+            }
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (error: Throwable) {
+            error.toTelemetryActionOutcome(isOnline())
+        }
+        return outcome
+    }
+}
+
+/**
+ * Upgrades a row queued by an older app build: Gson leaves fields that did not exist then null
+ * because it bypasses Kotlin constructor defaults.
+ */
+private fun Nana7miSearchTelemetry.Payload.upgraded(): Nana7miSearchTelemetry.Payload = copy(
+    eventType = eventType ?: Nana7miSearchTelemetry.EventType.REQUEST.wire,
+    appVersion = appVersion ?: "unknown",
+    appChannel = appChannel ?: "unknown",
+)
+
+/** Only call on a payload that passed [Nana7miSearchTelemetry.valid]. */
+private fun Nana7miSearchTelemetry.Payload.toRequest(): Nana7miSearchTelemetryReq =
+    Nana7miSearchTelemetryReq(
+        eventId = eventId,
+        flowId = flowId,
+        eventType = requireNotNull(eventType),
+        occurredAt = occurredAt,
+        requesterUid = requesterUid,
+        borrowedUid = borrowedUid,
+        query = query,
+        contentType = contentType,
+        page = page,
+        route = route,
+        outcome = outcome,
+        flowOutcome = flowOutcome,
+        reason = reason,
+        errorType = errorType,
+        httpStatus = httpStatus,
+        durationMs = durationMs,
+        appVersion = requireNotNull(appVersion),
+        appChannel = requireNotNull(appChannel),
+    )
+
+/**
+ * Drains one-event-per-row telemetry left by builds from before batching. Nothing enqueues this
+ * type any more; the batch handler above is the live path.
+ */
 internal class Nana7miSearchTelemetryHandler(
     private val isOnline: () -> Boolean,
     private val report: suspend (Nana7miSearchTelemetryReq) -> Nana7miSearchTelemetryAck = {
@@ -500,39 +681,12 @@ internal class Nana7miSearchTelemetryHandler(
     override suspend fun execute(action: PendingAction): ActionOutcome {
         val parsed = action.parsePayload<Nana7miSearchTelemetry.Payload>()
             ?: return Nana7miSearchTelemetry.permanentFailure("unparsable payload")
-        // Upgrade rows queued by the immediately preceding app build. Gson leaves newly added
-        // non-present fields null because it bypasses Kotlin constructor defaults.
-        val payload = parsed.copy(
-            eventType = parsed.eventType ?: Nana7miSearchTelemetry.EventType.REQUEST.wire,
-            appVersion = parsed.appVersion ?: "unknown",
-            appChannel = parsed.appChannel ?: "unknown",
-        )
+        val payload = parsed.upgraded()
         if (!Nana7miSearchTelemetry.valid(payload)) {
             return Nana7miSearchTelemetry.permanentFailure("invalid payload")
         }
         val outcome = try {
-            val ack = report(
-                Nana7miSearchTelemetryReq(
-                    eventId = payload.eventId,
-                    flowId = payload.flowId,
-                    eventType = requireNotNull(payload.eventType),
-                    occurredAt = payload.occurredAt,
-                    requesterUid = payload.requesterUid,
-                    borrowedUid = payload.borrowedUid,
-                    query = payload.query,
-                    contentType = payload.contentType,
-                    page = payload.page,
-                    route = payload.route,
-                    outcome = payload.outcome,
-                    flowOutcome = payload.flowOutcome,
-                    reason = payload.reason,
-                    errorType = payload.errorType,
-                    httpStatus = payload.httpStatus,
-                    durationMs = payload.durationMs,
-                    appVersion = requireNotNull(payload.appVersion),
-                    appChannel = requireNotNull(payload.appChannel),
-                ),
-            )
+            val ack = report(payload.toRequest())
             if (ack.ok && ack.eventId == payload.eventId) {
                 ActionOutcome.Success
             } else {
