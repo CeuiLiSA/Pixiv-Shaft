@@ -36,8 +36,8 @@ android {
     namespace 'ceui.pixiv.witstudio'
 
     // 刻意不设 resourcePrefix：全仓没有这个约定，而且本模块要接管一批 :app 既有资源名
-    // （:app 侧留引用别名指过来，见 app/src/main/res/values/wit_aliases.xml），强制前缀会
-    // 把别名方案堵死。前缀纪律靠 wit_ 命名约定与 code review 维持。
+    // （:app 侧留引用别名指过来，见 app/src/main/res/values/colors.xml 里 v3_* -> @color/wit_*
+    // 那一段），强制前缀会把别名方案堵死。前缀纪律靠 wit_ 命名约定与 code review 维持。
 }
 
 kotlin {
@@ -47,13 +47,20 @@ kotlin {
 }
 
 dependencies {
-    // 是 api 不是 implementation：这些类型长在本模块的**公开 API** 上 ——
-    // WitDialog : AppCompatDialog、WitRoundButton : AppCompatButton、
-    // PixivDialog : DialogFragment、WitBottomSheetBase : BottomSheetDialogFragment、
-    // DialogViewModel.alertTaskPool 是 CompletableDeferred。
+    // 是 api 不是 implementation：这些类型长在本模块的**公开 API** 上，
     // 用 implementation 的话消费方必须自己另外声明才编得过。
     // 版本逐条对齐 :app，避免同一依赖两个版本并存。
+    //
+    // 今天真正用到的只有 appcompat（WitDialog : AppCompatDialog、
+    // WitRoundButton : AppCompatButton）。
     api 'androidx.appcompat:appcompat:1.7.0'
+
+    // ↓ 为后续阶段预留，**当前模块内一处未用**（grep 三个包名均为 0）。
+    // 等着搬进来的是 :app 侧的 PixivDialog : DialogFragment、
+    // V3BottomSheetBase(→WitBottomSheetBase) : BottomSheetDialogFragment、
+    // DialogViewModel.alertTaskPool : CompletableDeferred。
+    // 若那次搬迁最终没发生，这三条应当一并删掉——留着会让本模块的依赖面
+    // 看起来比实际大，也和「只认识 View、Dialog 和一个 ?attr/colorPrimary」的定位不符。
     api 'androidx.fragment:fragment-ktx:1.8.5'
     api 'com.google.android.material:material:1.12.0'
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
