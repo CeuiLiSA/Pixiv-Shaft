@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
@@ -402,7 +401,6 @@ public class IllustDownload {
                 new WitDialog.MessageDialogBuilder(activity)
                         .setTitle(activity.getResources().getString(R.string.string_143))
                         .setMessage(activity.getResources().getString(R.string.string_365))
-                        .setSkinManager(WitSkinManager.defaultInstance(activity))
                         .addAction(0, activity.getResources().getString(R.string.string_142),
                                 WitDialogAction.ACTION_PROP_NEGATIVE,
                                 (dialog, index) -> dialog.dismiss())

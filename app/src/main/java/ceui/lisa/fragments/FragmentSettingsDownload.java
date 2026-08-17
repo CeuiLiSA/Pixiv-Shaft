@@ -6,7 +6,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import ceui.lisa.R;
@@ -111,7 +110,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             }
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(checkedIdx)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(NOVEL_FORMAT_NAMES, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -157,7 +155,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             }
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(checkedIdx)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(IMG_RES_NAMES, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -185,7 +182,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         baseBind.ugoiraSaveFormatRela.setOnClickListener(v ->
                 new WitDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(currentUgoiraSaveFormat())
-                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(ugoiraSaveFormatNames(), (dialog, which) -> {
                             Shaft.sSettings.setUgoiraSaveFormat(which);
                             Local.setSettings(Shaft.sSettings);
@@ -198,7 +194,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(cur.ordinal())
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(POLICY_NAMES, (dialog, which) -> {
                         OverwritePolicy selected = POLICY_VALUES[which];
                         DownloadsRegistry.getStore().update(cfg ->
@@ -226,7 +221,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         baseBind.storageChoiceRela.setOnClickListener(v ->
                 new WitDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(currentStorageIndex())
-                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(storageNames(), (dialog, which) -> {
                             dialog.dismiss();
                             if (which == 0) {
@@ -265,7 +259,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             boolean from1 = DownloadsRegistry.getStore().loadOrFallback().getPageIndexFrom1();
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(from1 ? 1 : 0)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(PAGE_INDEX_NAMES, (dialog, which) -> {
                         boolean selected = which == 1;
                         DownloadsRegistry.getStore().update(cfg ->
@@ -346,7 +339,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         baseBind.downloadLimitType.setOnClickListener(v ->
                 new WitDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(Shaft.sSettings.getDownloadLimitType())
-                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(DOWNLOAD_START_TYPE_NAMES, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -384,7 +376,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             if (current < 1) current = 1; if (current > 5) current = 5;
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(current - 1)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(CONCURRENCY_NAMES, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

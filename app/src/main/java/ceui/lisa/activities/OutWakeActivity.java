@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
@@ -264,7 +263,6 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                             new WitDialog.MessageDialogBuilder(mActivity)
                                                     .setTitle(R.string.string_216)
                                                     .setMessage(R.string.string_400)
-                                                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                                                     .addAction(R.string.string_401, new WitDialogAction.ActionListener() {
                                                         @Override
                                                         public void onClick(WitDialog dialog, int index) {

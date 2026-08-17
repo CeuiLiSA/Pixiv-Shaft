@@ -14,7 +14,6 @@ import ceui.lisa.utils.Local
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.PixivDialog
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 
@@ -91,7 +90,6 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_rembg_model_delete_confirm_title)
             .setMessage(getString(R.string.string_rembg_model_delete_confirm_message, model.displayName))
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(0, getString(R.string.string_cancel), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
                 d.dismiss()
             }

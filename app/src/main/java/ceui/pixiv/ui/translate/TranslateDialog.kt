@@ -4,7 +4,6 @@ import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -39,7 +38,6 @@ internal fun showTranslatedDialog(context: Context, message: String) {
     WitDialog.MessageDialogBuilder(context)
         .setTitle(context.getString(R.string.string_translate_caption))
         .setMessage(message)
-        .setSkinManager(WitSkinManager.defaultInstance(context))
         .addAction(context.getString(R.string.string_120)) { dialog, _ ->
             ClipBoardUtils.putTextIntoClipboard(context, message)
             dialog.dismiss()

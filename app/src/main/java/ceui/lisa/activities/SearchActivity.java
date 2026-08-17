@@ -16,7 +16,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitTipDialog;
@@ -520,7 +519,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 getString(R.string.tag_action_edit)
         };
         new WitDialog.MenuDialogBuilder(mContext)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addItems(items, (dialog, which) -> {
                     if (which == 0) {
                         Common.copy(mContext, name);

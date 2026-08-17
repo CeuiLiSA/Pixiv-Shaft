@@ -30,7 +30,6 @@ import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.bulk.BulkActions;
 import ceui.pixiv.ui.collection.LikeIllustFeedFragment;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBinding> {
@@ -228,7 +227,6 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                 getString(R.string.bulk_collection_menu_download_all)
         };
         new WitDialog.MenuDialogBuilder(mActivity)
-                .setSkinManager(WitSkinManager.defaultInstance(mActivity))
                 .addItems(items, (dialog, which) -> {
                     dialog.dismiss();
                     if (which == 0) {

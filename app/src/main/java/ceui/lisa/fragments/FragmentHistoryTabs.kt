@@ -35,7 +35,6 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.history.BrowseHistoryBackup
 import timber.log.Timber
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
@@ -308,7 +307,6 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
         WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.string_143)
             .setMessage(getString(R.string.history_multi_delete_message, count))
-            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
             .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
@@ -335,7 +333,6 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
         WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.string_143)
             .setMessage(R.string.clear_browse_history_message)
-            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
             .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {

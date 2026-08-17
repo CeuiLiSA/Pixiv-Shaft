@@ -10,7 +10,6 @@ import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.RelativePath
 import com.hjq.toast.Toaster
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +62,6 @@ internal object DownloadExportLinks {
         )
         WitDialog.MenuDialogBuilder(act)
             .setTitle(host.getString(R.string.dlmgr_done_export_summary, illustCount))
-            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addItems(items) { d, which ->
                 d.dismiss()
                 when (which) {

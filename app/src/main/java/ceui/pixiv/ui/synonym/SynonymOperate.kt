@@ -18,7 +18,6 @@ import ceui.lisa.utils.Common
 import ceui.pixiv.db.synonym.SynonymDao
 import ceui.pixiv.db.synonym.SynonymTagEntity
 import ceui.pixiv.db.synonym.SynonymTargetEntity
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogView
 import java.util.concurrent.Executors
@@ -29,7 +28,7 @@ import java.util.concurrent.Executors
  * 所有入口（3 个插画详情页 / 小说页 / 匹配框 / 管理页）共用这一套 WitDialog 流程，
  * 保证不同详情页实现之间行为一致（用户设置必须全局适配原则）。
  *
- * 弹窗一律挂 [WitSkinManager.defaultInstance] 跟随日夜皮肤。
+ * 日夜由 witstudio 自带的 values-night 处理，弹窗侧不需要挂任何皮肤管理器。
  * DB 写入后由 Room LiveData 驱动各处 UI 自动刷新，不需要手动回调链。
  *
  * 线程模型：全表级查询（getRecentTargets）放 [dbExecutor]；单目标索引查询（getTargetByName /
@@ -47,9 +46,6 @@ object SynonymOperate {
 
     private fun dao(context: Context): SynonymDao =
         AppDatabase.getAppDatabase(context).synonymDao()
-
-    private fun skin(context: Context): WitSkinManager =
-        WitSkinManager.defaultInstance(context)
 
     /** 后台查询回主线程弹窗前，确认宿主 Activity 还活着（避免 BadTokenException）。
      *  view 的 context 可能是 ContextThemeWrapper，要沿 wrapper 链找到底层 Activity 再判活。 */
@@ -108,7 +104,6 @@ object SynonymOperate {
         labels.add(context.getString(R.string.synonym_pick_target_by_name))
 
         WitDialog.MenuDialogBuilder(context)
-            .setSkinManager(skin(context))
             .addItems(labels.toTypedArray()) { dialog, which ->
                 dialog.dismiss()
                 when (which) {
@@ -139,7 +134,6 @@ object SynonymOperate {
     ) {
         val builder = WitDialog.EditTextDialogBuilder(context)
         builder.setTitle(R.string.synonym_pick_target_by_name)
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_new_target_hint))
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
@@ -171,7 +165,6 @@ object SynonymOperate {
     ) {
         val builder = WitDialog.EditTextDialogBuilder(context)
         builder.setTitle(R.string.synonym_new_target)
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_new_target_hint))
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
@@ -202,7 +195,6 @@ object SynonymOperate {
     fun showRenameTargetDialog(context: Context, target: SynonymTargetEntity) {
         val builder = WitDialog.EditTextDialogBuilder(context)
         builder.setTitle(context.getString(R.string.synonym_rename_target_title, target.name))
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_new_target_hint))
             .setDefaultText(target.name)
             .setInputType(InputType.TYPE_CLASS_TEXT)
@@ -241,7 +233,6 @@ object SynonymOperate {
     ) {
         WitDialog.MessageDialogBuilder(context)
             .setTitle(target.name)
-            .setSkinManager(skin(context))
             .setMessage(context.getString(R.string.synonym_rename_target_confirm, target.name, newName))
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
             .addAction(context.getString(R.string.sure)) { dialog, _ ->
@@ -261,7 +252,6 @@ object SynonymOperate {
     ) {
         WitDialog.MessageDialogBuilder(context)
             .setTitle(source.name + " → " + dest.name)
-            .setSkinManager(skin(context))
             .setMessage(context.getString(R.string.synonym_merge_confirm, dest.name, source.name))
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
             .addAction(context.getString(R.string.synonym_merge)) { dialog, _ ->
@@ -314,7 +304,6 @@ object SynonymOperate {
     fun showDeleteTargetDialog(context: Context, target: SynonymTargetEntity, synonymCount: Int) {
         WitDialog.MessageDialogBuilder(context)
             .setTitle(target.name)
-            .setSkinManager(skin(context))
             .setMessage(
                 context.getString(R.string.synonym_delete_target_confirm, target.name, synonymCount)
             )
@@ -339,7 +328,6 @@ object SynonymOperate {
             context.getString(R.string.synonym_new_target),
         )
         WitDialog.MenuDialogBuilder(context)
-            .setSkinManager(skin(context))
             .addItems(labels) { dialog, which ->
                 dialog.dismiss()
                 when (which) {
@@ -362,7 +350,6 @@ object SynonymOperate {
     fun showAddSynonymToTargetDialog(context: Context, target: SynonymTargetEntity) {
         val nameBuilder = WitDialog.EditTextDialogBuilder(context)
         nameBuilder.setTitle(R.string.synonym_add_synonym)
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_synonym_name_hint))
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
@@ -376,7 +363,6 @@ object SynonymOperate {
                 // 第二步：备注（可空，留空 = 无备注）。「取消」是真取消，整个添加操作中止。
                 val remarkBuilder = WitDialog.EditTextDialogBuilder(context)
                 remarkBuilder.setTitle(name)
-                    .setSkinManager(skin(context))
                     .setPlaceholder(context.getString(R.string.synonym_remark_hint))
                     .setInputType(InputType.TYPE_CLASS_TEXT)
                     .addAction(context.getString(R.string.cancel)) { d2, _ -> d2.dismiss() }
@@ -436,7 +422,6 @@ object SynonymOperate {
         actions.add { showDeleteSynonymDialog(context, synonym) }
 
         WitDialog.MenuDialogBuilder(context)
-            .setSkinManager(skin(context))
             .addItems(labels.toTypedArray()) { dialog, which ->
                 dialog.dismiss()
                 actions[which].invoke()
@@ -459,7 +444,6 @@ object SynonymOperate {
                 targets.forEach { labels.add(it.name) }
                 labels.add(context.getString(R.string.synonym_pick_target_by_name))
                 WitDialog.MenuDialogBuilder(context)
-                    .setSkinManager(skin(context))
                     .addItems(labels.toTypedArray()) { dialog, which ->
                         dialog.dismiss()
                         if (which == labels.size - 1) {
@@ -477,7 +461,6 @@ object SynonymOperate {
     private fun showMoveSynonymByNameDialog(context: Context, synonym: SynonymTagEntity) {
         val builder = WitDialog.EditTextDialogBuilder(context)
         builder.setTitle(R.string.synonym_pick_target_by_name)
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_new_target_hint))
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
@@ -563,7 +546,6 @@ object SynonymOperate {
             }
         }
             .setTitle(context.getString(R.string.synonym_edit_synonym_title))
-            .setSkinManager(skin(context))
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
             .addAction(context.getString(R.string.sure)) { dialog, _ ->
                 val newName = nameEdit.text?.toString()?.trim().orEmpty()
@@ -585,7 +567,6 @@ object SynonymOperate {
     fun showDeleteSynonymDialog(context: Context, synonym: SynonymTagEntity) {
         WitDialog.MessageDialogBuilder(context)
             .setTitle(synonym.name)
-            .setSkinManager(skin(context))
             .setMessage(context.getString(R.string.synonym_delete_synonym_confirm, synonym.name))
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
             .addAction(context.getString(R.string.synonym_delete)) { dialog, _ ->
@@ -645,7 +626,6 @@ object SynonymOperate {
             val otherTarget = dao.getTargetById(usedElsewhere.targetId)
             WitDialog.MessageDialogBuilder(context)
                 .setTitle(name)
-                .setSkinManager(skin(context))
                 .setMessage(
                     context.getString(
                         R.string.synonym_in_other_target_confirm,

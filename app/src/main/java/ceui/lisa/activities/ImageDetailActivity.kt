@@ -61,7 +61,6 @@ import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
@@ -525,7 +524,6 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         WitDialog.MessageDialogBuilder(this)
             .setTitle(R.string.ai_translate_exit_confirm_title)
             .setMessage(R.string.ai_translate_exit_confirm_message)
-            .setSkinManager(WitSkinManager.defaultInstance(this))
             .addAction(
                 0,
                 getString(R.string.ai_translate_exit_confirm_stay),

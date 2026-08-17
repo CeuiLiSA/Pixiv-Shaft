@@ -15,7 +15,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
@@ -281,7 +280,6 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         new WitDialog.MessageDialogBuilder(mActivity)
                 .setTitle("Web 首页")
                 .setMessage("Coming soon...")
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction("OK", (dialog, index) -> dialog.dismiss())
                 .show();
     }

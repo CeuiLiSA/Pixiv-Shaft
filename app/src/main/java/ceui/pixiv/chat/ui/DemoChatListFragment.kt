@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -400,7 +399,6 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     private fun confirmDeleteMessage(localKey: String) {
         WitDialog.MessageDialogBuilder(requireContext())
             .setTitle("删除消息")
-            .setSkinManager(WitSkinManager.defaultInstance(requireContext()))
             .setMessage("确定要删除这条消息吗？")
             .addAction("取消") { d, _ -> d.dismiss() }
             .addAction("删除") { d, _ ->

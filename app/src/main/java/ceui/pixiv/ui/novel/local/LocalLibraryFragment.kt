@@ -29,7 +29,6 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import com.blankj.utilcode.util.BarUtils
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 
@@ -178,7 +177,6 @@ class LocalLibraryFragment : Fragment(R.layout.fragment_local_library) {
         WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.local_novel_clear_confirm_title)
             .setMessage(R.string.local_novel_clear_confirm_msg)
-            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()

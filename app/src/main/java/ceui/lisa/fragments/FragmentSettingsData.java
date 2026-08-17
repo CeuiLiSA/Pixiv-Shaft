@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.blankj.utilcode.util.FileUtils;
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
@@ -59,7 +58,6 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             builder
                     .setTitle(getString(R.string.string_420))
                     .setMessage(getString(R.string.string_423))
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addAction(getString(R.string.string_187), new WitDialogAction.ActionListener() {
                         @Override
                         public void onClick(WitDialog dialog, int index) {
@@ -118,7 +116,6 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             new WitDialog.MessageDialogBuilder(getActivity())
                     .setTitle(R.string.moon_upload_title)
                     .setMessage(getString(R.string.moon_upload_message) + currentVer)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addAction(getString(R.string.string_187), new WitDialogAction.ActionListener() {
                         @Override
                         public void onClick(WitDialog dialog, int index) {
@@ -295,7 +292,6 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(R.string.restore_found_account_title)
                 .setMessage(R.string.restore_found_account_message)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(R.string.restore_switch_later, new WitDialogAction.ActionListener() {
                     @Override
                     public void onClick(WitDialog dialog, int index) {
@@ -386,7 +382,6 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(R.string.clear_bulk_download_cache)
                 .setMessage(R.string.clear_bulk_download_cache_message)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(R.string.cancel, (d, idx) -> d.dismiss())
                 .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE, (d, idx) -> {
                     d.dismiss();

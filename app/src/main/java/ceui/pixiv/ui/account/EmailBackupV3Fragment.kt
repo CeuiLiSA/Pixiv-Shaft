@@ -13,7 +13,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.updatePadding
 import com.blankj.utilcode.util.BarUtils
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import androidx.fragment.app.Fragment
@@ -196,7 +195,6 @@ class EmailBackupV3Fragment : Fragment() {
         WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.email_backup_unbind)
             .setMessage(R.string.email_backup_unbind_confirm)
-            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
             .addAction(0, R.string.email_backup_unbind, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()

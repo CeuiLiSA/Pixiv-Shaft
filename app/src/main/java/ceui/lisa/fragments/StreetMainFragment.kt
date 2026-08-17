@@ -23,7 +23,6 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.FragmentBaseListBinding
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.databinding.ItemStreetContentBinding
 import ceui.lisa.databinding.ItemStreetRailBinding
@@ -343,7 +342,6 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         WitDialog.MessageDialogBuilder(mActivity)
             .setTitle(getString(R.string.street_web_login_title))
             .setMessage(getString(R.string.street_web_login_message))
-            .setSkinManager(WitSkinManager.defaultInstance(mContext))
             .addAction(getString(R.string.cancel)) { dialog, _ ->
                 dialog.dismiss()
                 activity?.finish()

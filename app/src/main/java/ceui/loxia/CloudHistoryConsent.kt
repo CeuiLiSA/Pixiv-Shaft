@@ -9,7 +9,6 @@ import ceui.lisa.utils.Local
 import ceui.pixiv.db.HistoryBackfill
 import ceui.pixiv.db.HistoryReporter
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.launch
@@ -63,7 +62,6 @@ object CloudHistoryConsent {
         WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.cloud_history_consent_title)
             .setMessage(R.string.cloud_history_consent_message)
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(activity.getString(R.string.cloud_history_consent_stop)) { d, _ ->
                 Timber.tag(TAG).i("[consent] user chose STOP")
                 persist(enabled = false, consentShown = true)
@@ -95,7 +93,6 @@ object CloudHistoryConsent {
         WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.clear_cloud_history_confirm_title)
             .setMessage(R.string.clear_cloud_history_confirm_message)
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(activity.getString(R.string.string_187)) { d, _ -> d.dismiss() }
             .addAction(0, activity.getString(R.string.sure), WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()

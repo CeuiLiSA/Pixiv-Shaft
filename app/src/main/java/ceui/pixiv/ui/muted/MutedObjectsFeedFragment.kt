@@ -41,7 +41,6 @@ import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.request.RequestOptions
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import jp.wasabeef.glide.transformations.BlurTransformation
@@ -235,7 +234,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
     }
 
     /**
-     * 删除确认框：WitDialog + WitSkinManager（日夜皮肤），对齐 legacy 的标题 / 文案 / 按钮。
+     * 删除确认框：WitDialog，对齐 legacy 的标题 / 文案 / 按钮。
      * 确认后 IO 线程删 DB、再从列表移除该条、toast。
      *
      * 用 Fragment 级 [lifecycleScope]（不是 viewLifecycleOwner）：弹窗锚在 Activity 上，可能在
@@ -248,7 +247,6 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(R.string.string_352)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
             .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()

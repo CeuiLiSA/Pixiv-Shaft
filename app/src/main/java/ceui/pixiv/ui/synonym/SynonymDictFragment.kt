@@ -40,7 +40,6 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.session.SessionManager
 import com.blankj.utilcode.util.BarUtils
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -195,7 +194,6 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
     private fun confirmImportBuiltinDict() {
         WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(getString(R.string.synonym_import_builtin))
-            .setSkinManager(WitSkinManager.defaultInstance(requireContext()))
             .setMessage(getString(R.string.synonym_import_builtin_confirm))
             .addAction(getString(R.string.cancel)) { d, _ -> d.dismiss() }
             .addAction(getString(R.string.sure)) { d, _ ->
@@ -235,7 +233,6 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
         }
         WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(getString(R.string.synonym_clear_all))
-            .setSkinManager(WitSkinManager.defaultInstance(requireContext()))
             .setMessage(getString(R.string.synonym_clear_all_confirm, targetCount))
             .addAction(getString(R.string.cancel)) { d, _ -> d.dismiss() }
             .addAction(getString(R.string.synonym_delete)) { d, _ ->

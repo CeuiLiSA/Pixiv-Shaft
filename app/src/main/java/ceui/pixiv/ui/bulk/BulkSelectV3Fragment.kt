@@ -26,7 +26,6 @@ import ceui.pixiv.ui.download.DownloadExportLinks
 import ceui.pixiv.ui.download.originalUrlsOf
 import com.bumptech.glide.Glide
 import com.hjq.toast.Toaster
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -261,7 +260,6 @@ class BulkSelectV3Fragment : Fragment() {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.bulk_bookmark_confirm_title)
             .setMessage(message.toString())
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.bulk_bookmark_confirm_go, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
@@ -291,7 +289,6 @@ class BulkSelectV3Fragment : Fragment() {
                     PixivActions.estimatedQueueMinutes(count),
                 )
             )
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.bulk_bookmark_confirm_go, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()

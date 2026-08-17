@@ -20,7 +20,6 @@ import ceui.lisa.utils.Settings
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.translate.AiTranslator
 import com.hjq.toast.Toaster
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
@@ -274,7 +273,6 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
                 binding.aiTranslateThinkingMode.setText(thinkingModeNames[which])
                 dialog.dismiss()
             }
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .show()
     }
 
@@ -353,7 +351,6 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
                 binding.aiTranslateModel.setText(models[which])
                 dialog.dismiss()
             }
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .show()
     }
 

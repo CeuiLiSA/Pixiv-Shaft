@@ -36,7 +36,6 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.google.gson.reflect.TypeToken
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -172,7 +171,6 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(R.string.string_252)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
@@ -205,7 +203,6 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(R.string.string_253)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()

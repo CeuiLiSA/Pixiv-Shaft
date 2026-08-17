@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
@@ -145,7 +144,6 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
             new WitDialog.MessageDialogBuilder(getActivity())
                     .setTitle(R.string.string_rembg_model_delete_confirm_title)
                     .setMessage(getString(R.string.string_rembg_model_delete_confirm_message, model.getDisplayName()))
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addAction(0, getString(R.string.string_cancel), WitDialogAction.ACTION_PROP_NEUTRAL,
                             (d, i) -> d.dismiss())
                     .addAction(0, getString(R.string.string_rembg_model_delete), WitDialogAction.ACTION_PROP_NEGATIVE,

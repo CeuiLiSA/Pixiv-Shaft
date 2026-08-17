@@ -24,7 +24,6 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitDialogBuilder
@@ -134,7 +133,6 @@ class MutedTagsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
                     WitDialog.MessageDialogBuilder(activity)
                         .setTitle(getString(R.string.string_216))
                         .setMessage(getString(R.string.string_217))
-                        .setSkinManager(WitSkinManager.defaultInstance(activity))
                         .addAction(getString(R.string.string_218)) { dialog, _ -> dialog.dismiss() }
                         .addAction(
                             0,
@@ -159,7 +157,6 @@ class MutedTagsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
             R.id.action_add -> {
                 val builder = WitDialog.EditTextDialogBuilder(activity)
                 builder.setTitle(getString(R.string.string_210))
-                    .setSkinManager(WitSkinManager.defaultInstance(activity))
                     .setPlaceholder(getString(R.string.string_211))
                     .setInputType(InputType.TYPE_CLASS_TEXT)
                     .setActionContainerOrientation(WitDialogBuilder.VERTICAL)

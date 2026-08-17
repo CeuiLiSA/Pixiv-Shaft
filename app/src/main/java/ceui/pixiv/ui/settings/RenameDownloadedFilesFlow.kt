@@ -11,7 +11,6 @@ import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.pixiv.download.maintenance.RenameSweeper
 import ceui.pixiv.ui.bulk.FetchProgressDialog
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitDialogView
@@ -35,7 +34,6 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.rename_dl_title)
             .setMessage(R.string.rename_dl_prompt_after_save)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.rename_dl_later) { d, _ -> d.dismiss() }
             .addAction(0, R.string.rename_dl_go, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
@@ -51,7 +49,6 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.rename_dl_title)
             .setMessage(R.string.rename_dl_intro)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.rename_dl_scan, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
@@ -78,7 +75,6 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
                 }
         }
             .setTitle(host.getString(R.string.rename_dl_scanning_title))
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(host.getString(R.string.cancel)) { d, _ ->
                 scanJob?.cancel()
                 d.dismiss()
@@ -117,7 +113,6 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
             WitDialog.MessageDialogBuilder(ctx)
                 .setTitle(R.string.rename_dl_title)
                 .setMessage(previewText(plan, empty = true))
-                .setSkinManager(WitSkinManager.defaultInstance(ctx))
                 .addAction(R.string.sure) { d, _ -> d.dismiss() }
                 .create()
                 .show()
@@ -126,7 +121,6 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.rename_dl_preview_title)
             .setMessage(previewText(plan, empty = false))
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.rename_dl_confirm, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()

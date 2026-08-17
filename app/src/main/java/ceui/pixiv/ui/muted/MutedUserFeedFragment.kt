@@ -31,7 +31,6 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -190,7 +189,6 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
         WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.string_216)
             .setMessage(R.string.string_389)
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(R.string.string_218) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_219, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()

@@ -21,7 +21,6 @@ import ceui.pixiv.ui.common.UserFeedFragment
 import ceui.pixiv.ui.common.UserFeedItem
 import ceui.pixiv.ui.common.toUserFeedItems
 import ceui.pixiv.ui.common.setUpToolbar
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitTipDialog
@@ -173,7 +172,6 @@ class FollowUserFeedFragment : UserFeedFragment() {
         builder.setTitle(R.string.user_jump_page_dialog_title)
             .setPlaceholder(getString(R.string.user_jump_page_hint, totalPages))
             .setInputType(InputType.TYPE_CLASS_NUMBER)
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(R.string.sure, WitDialogAction.ActionListener { dialog, _ ->
                 val page = builder.editText.text?.toString()?.trim()?.toIntOrNull()

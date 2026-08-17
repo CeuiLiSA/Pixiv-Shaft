@@ -12,7 +12,6 @@ import androidx.fragment.app.FragmentManager
 import ceui.lisa.activities.TemplateActivity
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -340,7 +339,6 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.string_143)
             .setMessage(message)
-            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.sure) { dialog, _ -> dialog.dismiss() }
             .show()
     }

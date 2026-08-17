@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import java.util.function.IntConsumer;
@@ -181,7 +180,6 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         baseBind.searchFilterRela.setOnClickListener(v ->
                 new WitDialog.CheckableDialogBuilder(mContext)
                         .setCheckedIndex(PixivSearchParamUtil.getSizeIndex(Shaft.sSettings.getSearchFilter()))
-                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(PixivSearchParamUtil.ALL_SIZE_NAME, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -201,7 +199,6 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         baseBind.searchDefaultSortTypeRela.setOnClickListener(v ->
                 new WitDialog.CheckableDialogBuilder(mContext)
                         .setCheckedIndex(PixivSearchParamUtil.getSortTypeIndex(Shaft.sSettings.getSearchDefaultSortType()))
-                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(PixivSearchParamUtil.SORT_TYPE_NAME, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -280,7 +277,6 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                     .setDefaultText(current > 0 ? String.valueOf(current)
                             : (suggested > 0 ? String.valueOf(suggested) : ""))
                     .setInputType(InputType.TYPE_CLASS_NUMBER)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addAction(android.R.string.cancel, (dialog, index) -> dialog.dismiss())
                     .addAction(android.R.string.ok, (dialog, index) -> {
                         CharSequence entered = builder.getEditText().getText();

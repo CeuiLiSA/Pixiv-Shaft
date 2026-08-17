@@ -13,7 +13,6 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import java.util.Locale;
@@ -71,7 +70,6 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
             };
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(items, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -107,7 +105,6 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.transformTypeRela.setOnClickListener(v ->
                 new WitDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(PageTransformerHelper.getCurrentTransformerIndex())
-                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(transformerNames, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

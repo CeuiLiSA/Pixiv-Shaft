@@ -40,7 +40,6 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.github.ybq.android.spinkit.style.Wave
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -261,7 +260,6 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             if (labels.isEmpty()) return@setOnClickListener
 
             MenuDialogBuilder(mActivity)
-                .setSkinManager(WitSkinManager.defaultInstance(mActivity))
                 .addItems(labels.toTypedArray()) { dialog: DialogInterface, which: Int ->
                     dialog.dismiss()
                     actions.getOrNull(which)?.invoke()

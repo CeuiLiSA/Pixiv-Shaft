@@ -35,7 +35,6 @@ import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
 import com.hjq.toast.Toaster
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CoroutineScope
@@ -259,7 +258,6 @@ class QueueListV3Fragment : Fragment() {
         WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.dlmgr_clear_active_queue_title)
             .setMessage(R.string.dlmgr_clear_active_queue_message)
-            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()

@@ -29,7 +29,6 @@ import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.utils.ppppx
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -178,7 +177,6 @@ class SelectTagFeedFragment : FeedFragment() {
         val activity = activity ?: return
         val builder = WitDialog.EditTextDialogBuilder(activity)
         builder.setTitle("添加标签")
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .setPlaceholder("请输入标签(收藏夹)名")
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction("取消") { dialog, _ -> dialog.dismiss() }

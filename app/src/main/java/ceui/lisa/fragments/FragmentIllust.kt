@@ -72,7 +72,6 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog.CheckableDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
 import com.zhy.view.flowlayout.FlowLayout
@@ -460,7 +459,6 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             val isPinned = searchEntity != null && searchEntity.isPinned
             val tagMenuBuilder = MessageDialogBuilder(mContext)
                 .setTitle(tagName)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(if (isPinned) getString(R.string.string_443) else getString(R.string.string_442)) { dialog, index ->
                     val nextPinned = !isPinned
                     val previewJson =
@@ -652,7 +650,6 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 Params.IMAGE_RESOLUTION_SQUARE_MEDIUM
             )
             CheckableDialogBuilder(mContext)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addItems(IMG_RESOLUTION_TITLE) { dialog, which ->
                     if (illust.page_count == 1) {
                         IllustDownload.downloadIllustFirstPageWithResolution(

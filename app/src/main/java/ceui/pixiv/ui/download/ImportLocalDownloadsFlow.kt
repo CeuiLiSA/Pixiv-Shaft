@@ -16,7 +16,6 @@ import ceui.pixiv.download.importer.DownloadImporter
 import ceui.pixiv.download.importer.ImportMetadataEnricher
 import ceui.pixiv.download.importer.PageBase
 import ceui.pixiv.ui.bulk.FetchProgressDialog
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitDialogView
@@ -51,7 +50,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.dlmgr_import_title)
             .setMessage(R.string.dlmgr_import_intro)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.dlmgr_import_pick_folder) { d, _ ->
                 d.dismiss()
@@ -111,7 +109,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
                 }
         }
             .setTitle(host.getString(R.string.dlmgr_import_scanning_title))
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(host.getString(R.string.cancel)) { d, _ ->
                 scanJob?.cancel()
                 d.dismiss()
@@ -163,7 +160,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
             WitDialog.MessageDialogBuilder(ctx)
                 .setTitle(R.string.dlmgr_import_title)
                 .setMessage(emptyReason(plan))
-                .setSkinManager(WitSkinManager.defaultInstance(ctx))
                 .addAction(R.string.sure) { d, _ -> d.dismiss() }
                 .create()
                 .show()
@@ -172,7 +168,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.dlmgr_import_preview_title)
             .setMessage(previewText(plan))
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.dlmgr_import_confirm) { d, _ ->
                 d.dismiss()
@@ -202,7 +197,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
                     plan.ambiguousPageRows,
                 ),
             )
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.dlmgr_import_page_base_zero) { d, _ ->
                 d.dismiss()
@@ -276,7 +270,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
             .setMessage(
                 host.getString(R.string.dlmgr_import_done_message, result.works, result.inserted),
             )
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
         if (pending > 0) {
             builder.addAction(R.string.dlmgr_import_enrich_later) { d, _ -> d.dismiss() }
             builder.addAction(0, R.string.dlmgr_import_enrich_now, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
@@ -301,7 +294,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.dlmgr_import_enrich_now)
             .setMessage(host.getString(R.string.dlmgr_import_enrich_message, pending, minutes))
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.sure) { d, _ ->
                 d.dismiss()

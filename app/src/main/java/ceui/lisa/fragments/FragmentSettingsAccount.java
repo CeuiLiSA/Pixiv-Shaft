@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
@@ -81,7 +80,6 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
                     .setTitle(getString(R.string.string_185))
                     .setMessage(getString(R.string.string_186))
                     .setChecked(true)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addAction(getString(R.string.string_187), new WitDialogAction.ActionListener() {
                         @Override
                         public void onClick(WitDialog dialog, int index) {

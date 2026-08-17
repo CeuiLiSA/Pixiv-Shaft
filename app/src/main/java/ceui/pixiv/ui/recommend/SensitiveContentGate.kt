@@ -3,7 +3,6 @@ package ceui.pixiv.ui.recommend
 import android.app.Activity
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import timber.log.Timber
@@ -45,7 +44,6 @@ object SensitiveContentGate {
                 WitDialog.MessageDialogBuilder(activity)
                     .setTitle(R.string.sensitive_gate_title)
                     .setMessage(R.string.sensitive_gate_message)
-                    .setSkinManager(WitSkinManager.defaultInstance(activity))
                     .addAction(0, activity.getString(R.string.sensitive_gate_cancel), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
                         d.dismiss()
                     }

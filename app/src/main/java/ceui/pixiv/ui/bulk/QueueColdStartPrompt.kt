@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import ceui.lisa.R
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import timber.log.Timber
@@ -59,7 +58,6 @@ private fun showResumePrompt(
             WitDialog.MessageDialogBuilder(activity)
                 .setTitle(R.string.bulk_resume_prompt_title)
                 .setMessage(activity.getString(R.string.bulk_resume_prompt_message, pendingCount))
-                .setSkinManager(WitSkinManager.defaultInstance(activity))
                 .addAction(0, activity.getString(R.string.bulk_resume_prompt_decline), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
                     // 保持 paused —— 用户可去 下载管理 → 批量队列 手动点 "继续"
                     Timber.tag(TAG).i("user declined cold-start resume; staying paused")

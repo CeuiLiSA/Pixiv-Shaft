@@ -16,7 +16,6 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogView;
 
@@ -167,7 +166,6 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         }
         new WitDialog.CheckableDialogBuilder(mContext)
                 .setCheckedIndex(current)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -186,7 +184,6 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
     private void promptCustomImageHost() {
         final WitDialog.EditTextDialogBuilder builder = new WitDialog.EditTextDialogBuilder(mContext);
         builder.setTitle(R.string.image_host_custom)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .setPlaceholder(getString(R.string.image_host_custom_hint))
                 .setDefaultText(Shaft.sSettings.getCustomImageHost())
                 .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI)
@@ -263,7 +260,6 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
             }
         };
         builder.setTitle(R.string.app_api_proxy_title)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .setPlaceholder(getString(R.string.app_api_proxy_hint))
                 .setDefaultText(Shaft.sSettings.getAppApiProxy())
                 .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI)
@@ -304,7 +300,6 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                 .setTitle(R.string.app_api_proxy_title)
                 .setMessage(getString(R.string.app_api_proxy_tip) + "\n\n" +
                         getString(R.string.app_api_proxy_warning))
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(R.string.sure, (dialog, index) -> dialog.dismiss())
                 .show();
     }

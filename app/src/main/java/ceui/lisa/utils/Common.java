@@ -28,7 +28,6 @@ import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
 import com.hjq.toast.Toaster;
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
@@ -254,7 +253,6 @@ public class Common {
         WitDialog qmuiDialog = new WitDialog.MessageDialogBuilder(context)
                 .setTitle(context.getString(R.string.string_188))
                 .setMessage(context.getString(R.string.dont_catch_me))
-                .setSkinManager(WitSkinManager.defaultInstance(context))
                 .addAction(context.getString(R.string.string_189), new WitDialogAction.ActionListener() {
                     @Override
                     public void onClick(WitDialog dialog, int index) {

@@ -18,7 +18,6 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitTipDialog;
@@ -373,7 +372,6 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         baseBind.clearPinned.setOnClickListener(v -> new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(getString(R.string.string_143))
                 .setMessage(getString(R.string.clear_pinned_tags_msg))
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(getString(R.string.string_142), (dialog, index) -> dialog.dismiss())
                 .addAction(0, getString(R.string.string_141), WitDialogAction.ACTION_PROP_NEGATIVE, (dialog, index) -> {
                     AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAllPinned();
@@ -405,7 +403,6 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         baseBind.clearHistory.setOnClickListener(v -> new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(getString(R.string.string_143))
                 .setMessage(getString(R.string.string_144))
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(getString(R.string.string_142), (dialog, index) -> dialog.dismiss())
                 .addAction(0, getString(R.string.string_141), WitDialogAction.ACTION_PROP_NEGATIVE, (dialog, index) -> {
                     AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAllUnpinned();
@@ -482,7 +479,6 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         new WitDialog.MessageDialogBuilder(mContext)
                 .setTitle(R.string.string_87)
                 .setMessage(searchEntity.getKeyword())
-                .setSkinManager(WitSkinManager.defaultInstance(mActivity))
                 .addAction(getString(R.string.string_142), (dialog, index) -> dialog.dismiss())
                 .addAction(searchEntity.isPinned() ? getString(R.string.string_443) : getString(R.string.string_442), (dialog, index) -> {
                     searchEntity.setPinned(!searchEntity.isPinned());
@@ -536,7 +532,6 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         new WitDialog.CheckableDialogBuilder(mContext)
                 .setTitle(fromClipboard ? R.string.string_425 : R.string.string_424)
                 .setCheckedIndex(searchType)
-                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

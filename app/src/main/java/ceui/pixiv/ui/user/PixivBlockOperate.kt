@@ -14,7 +14,6 @@ import ceui.loxia.Client
 import ceui.loxia.CsrfTokenProvider
 import ceui.pixiv.chat.base.toUserMessage
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitTipDialog
@@ -135,7 +134,6 @@ object PixivBlockOperate {
                     userName,
                 )
             )
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .addAction(
                 0,
@@ -222,7 +220,6 @@ object PixivBlockOperate {
         WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.pixiv_block_title)
             .setMessage(R.string.pixiv_block_need_web_login)
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.street_web_login_confirm, WitDialogAction.ACTION_PROP_POSITIVE) { dialog, _ ->
                 dialog.dismiss()

@@ -4,7 +4,6 @@ import android.app.Activity
 import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import com.blankj.utilcode.util.ActivityUtils
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
@@ -99,7 +98,6 @@ private fun showTranslateDialogIfPossible(build: (Activity) -> WitDialog.Message
         if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
         try {
             build(activity)
-                .setSkinManager(WitSkinManager.defaultInstance(activity))
                 .addAction(0, android.R.string.ok, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                     d.dismiss()
                 }

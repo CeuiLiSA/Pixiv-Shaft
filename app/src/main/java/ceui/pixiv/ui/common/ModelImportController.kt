@@ -10,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +42,6 @@ class ModelImportController(
         val ctx = fragment.requireContext()
         val builder = WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.model_download_dialog_title)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .setMessage(fragment.getString(R.string.model_download_dialog_message))
 
         if (model.downloadUrl != null) {

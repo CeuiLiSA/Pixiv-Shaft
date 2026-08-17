@@ -37,7 +37,6 @@ import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.ui.task.CrossSeriesDownloadTask
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -189,8 +188,8 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
     }
 
     /**
-     * 多选对话框：QMUI MultiCheckableDialogBuilder。避免把 ActionMode 选择态引进卡片，
-     * 保持列表页自身不变（与 legacy 同一思路）。setSkinManager 走日夜适配（V3 弹窗惯例）。
+     * 多选对话框：[WitDialog.MultiCheckableDialogBuilder]。避免把 ActionMode 选择态引进卡片，
+     * 保持列表页自身不变（与 legacy 同一思路）。
      */
     private fun showSeriesPicker() {
         val ctx = context ?: return
@@ -204,7 +203,6 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
         val builder = WitDialog.MultiCheckableDialogBuilder(ctx)
             .setTitle(getString(R.string.cross_series_pick_dialog_title))
             .setCheckedItems(intArrayOf())
-        builder.setSkinManager(WitSkinManager.defaultInstance(ctx))
         builder.addItems(titles) { _, _ -> /* multi-state auto-tracked */ }
         builder.addAction(getString(R.string.cross_series_pick_dialog_cancel)) { d, _ -> d.dismiss() }
         builder.addAction(getString(R.string.sure)) { d, _ ->
@@ -267,7 +265,6 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
                     getString(R.string.batch_download_some_failed, failures.size)
                 )
                 .setMessage(msg)
-                .setSkinManager(WitSkinManager.defaultInstance(ctx))
                 .addAction(0, android.R.string.ok, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                     d.dismiss()
                 }

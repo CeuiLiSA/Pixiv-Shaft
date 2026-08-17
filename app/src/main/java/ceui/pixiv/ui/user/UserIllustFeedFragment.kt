@@ -33,7 +33,6 @@ import ceui.pixiv.ui.bulk.startAuthorWorksBulkDownload
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
@@ -287,7 +286,6 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(R.string.bulk_user_menu_download_all_illust)
             .setMessage(getString(R.string.bulk_user_download_all_illust_confirm, authorName, total))
-            .setSkinManager(WitSkinManager.defaultInstance(requireActivity()))
             .addAction(0, getString(R.string.cancel), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ -> d.dismiss() }
             .addAction(0, getString(android.R.string.ok)) { d, _ ->
                 d.dismiss()

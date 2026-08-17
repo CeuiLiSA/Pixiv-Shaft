@@ -13,7 +13,6 @@ import android.widget.CompoundButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import ceui.pixiv.witstudio.dialog.WitSkinManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import java.util.Arrays;
@@ -59,7 +58,6 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             };
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(THEME_NAME, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -129,7 +127,6 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             final int selectIndex = index;
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(selectIndex)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(LINE_COUNT, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -157,7 +154,6 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             int currentIndex = Shaft.sSettings.isUseStaggeredLayout() ? 0 : 1;
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(currentIndex)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(options, (dialog, which) -> {
                         if (which != currentIndex) {
                             Shaft.sSettings.setUseStaggeredLayout(which == 0);
@@ -208,7 +204,6 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             final int index = Arrays.asList(OPTION_VALUES).indexOf(current);
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(OPTION_NAMES, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -237,7 +232,6 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             };
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(ORDER_NAME, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -270,7 +264,6 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             final int index = checked >= 0 ? checked : 1; // 非预设值按默认 30 分钟高亮
             new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(INTERVAL_NAMES, (dialog, which) -> {
                         // 按值比较而不是按 index：存量值不是预设值时 index 回退高亮在
                         // 30 分钟，此时选 30 分钟仍然要落盘

@@ -11,7 +11,6 @@ import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import java.util.ArrayList
@@ -107,7 +106,6 @@ class WatchLaterTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.watch_later)
             .setMessage(R.string.watch_later_clear_confirm)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
             .addAction(0, R.string.watch_later_clear_ok, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()

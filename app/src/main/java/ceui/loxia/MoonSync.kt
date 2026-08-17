@@ -10,7 +10,6 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.config.DownloadConfigBackup
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -123,7 +122,6 @@ object MoonSync {
                         prettyTime(cloud.updatedAt),
                     )
                 )
-                .setSkinManager(WitSkinManager.defaultInstance(activity))
                 .addAction(activity.getString(R.string.moon_sync_ignore)) { d, _ ->
                     Timber.tag(TAG).i("[sync] user dismissed (ignore)")
                     d.dismiss()
@@ -288,7 +286,6 @@ object MoonSync {
                         prettyTime(cloud.updatedAt),
                     )
                 )
-                .setSkinManager(WitSkinManager.defaultInstance(activity))
                 .addAction(activity.getString(R.string.moon_sync_ignore)) { d, _ ->
                     Timber.tag(TAG).i("[manual] user dismissed")
                     d.dismiss()

@@ -30,7 +30,6 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.BarUtils
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -131,7 +130,6 @@ class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(getString(R.string.unpin_tag_confirm_message, displayName))
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_443, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 // Fragment 自身的 lifecycleScope,不是 viewLifecycleOwner 的:WitDialog 挂在
@@ -154,7 +152,6 @@ class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(R.string.clear_pinned_tags_msg)
-            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 lifecycleScope.launch {

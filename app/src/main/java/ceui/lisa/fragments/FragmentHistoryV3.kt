@@ -22,7 +22,6 @@ import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.ObjectPool
 import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme
-import ceui.pixiv.witstudio.dialog.WitSkinManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -256,7 +255,6 @@ class FragmentHistoryV3 : Fragment() {
         WitDialog.MessageDialogBuilder(activity)
             .setTitle(getString(R.string.string_143))
             .setMessage(getString(R.string.string_352))
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(getString(R.string.string_142)) { dialog, _ -> dialog.dismiss() }
             .addAction(
                 0,
@@ -295,7 +293,6 @@ class FragmentHistoryV3 : Fragment() {
         WitDialog.MessageDialogBuilder(activity)
             .setTitle(getString(R.string.string_143))
             .setMessage(getString(R.string.string_255))
-            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(getString(R.string.string_142)) { dialog, _ -> dialog.dismiss() }
             .addAction(
                 0,
