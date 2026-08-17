@@ -17,7 +17,7 @@ import ceui.pixiv.session.SessionManager
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
+import ceui.pixiv.witstudio.dialog.WitTipDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -68,8 +68,7 @@ object PixivBlockOperate {
         // 名字空着时用 ID 兜,免得确认框读成「拉黑「」后…」。
         val name = userName.ifBlank { userId.toString() }
 
-        val loading = QMUITipDialog.Builder(activity)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val loading = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.pixiv_block_checking))
             .create()
         loading.show()
@@ -156,8 +155,7 @@ object PixivBlockOperate {
         userName: String,
         block: Boolean,
     ) {
-        val loading = QMUITipDialog.Builder(activity)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val loading = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.pixiv_block_submitting))
             .create()
         loading.show()

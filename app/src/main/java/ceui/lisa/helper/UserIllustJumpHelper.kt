@@ -10,7 +10,7 @@ import ceui.lisa.repo.buildOffsetUrl
 import ceui.lisa.utils.Common
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
+import ceui.pixiv.witstudio.dialog.WitTipDialog
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -41,8 +41,7 @@ object UserIllustJumpHelper {
         onJump: OnJumpPicked
     ) {
         if (userID <= 0) return
-        val loading = QMUITipDialog.Builder(activity)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val loading = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.user_jump_loading))
             .create()
         loading.show()
@@ -175,8 +174,7 @@ object UserIllustJumpHelper {
             onJump.onPicked(0, targetIso)
             return
         }
-        val tip = QMUITipDialog.Builder(activity)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val tip = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.user_jump_locating, target.toString()))
             .create()
         tip.show()

@@ -20,7 +20,7 @@ import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogView
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
+import ceui.pixiv.witstudio.dialog.WitTipDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -245,8 +245,7 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
 
     private fun commit(plan: DownloadImporter.ImportPlan) {
         val ctx = host.context ?: return
-        val writing = QMUITipDialog.Builder(ctx)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val writing = WitTipDialog.Builder(ctx)
             .setTipWord(host.getString(R.string.dlmgr_import_writing))
             .create()
         writing.show()

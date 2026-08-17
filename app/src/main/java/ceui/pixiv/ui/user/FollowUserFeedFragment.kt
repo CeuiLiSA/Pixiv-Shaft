@@ -24,7 +24,7 @@ import ceui.pixiv.ui.common.setUpToolbar
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
+import ceui.pixiv.witstudio.dialog.WitTipDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -141,8 +141,7 @@ class FollowUserFeedFragment : UserFeedFragment() {
         if (view == null) return
         val activity = activity ?: return
         if (!activity.isAlive()) return
-        val loading = QMUITipDialog.Builder(activity)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val loading = WitTipDialog.Builder(activity)
             .setTipWord(getString(R.string.user_jump_loading))
             .create()
         loading.show()

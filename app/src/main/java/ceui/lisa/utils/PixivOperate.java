@@ -17,7 +17,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.ZipUtils;
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+import ceui.pixiv.witstudio.dialog.WitTipDialog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -209,8 +209,7 @@ public class PixivOperate {
      */
     public static void getIllustByID(long illustID, Context context) {
         //Show "Loading" icon
-        QMUITipDialog tipDialog = new QMUITipDialog.Builder(context)
-                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        WitTipDialog tipDialog = new WitTipDialog.Builder(context)
                 .setTipWord(getString(R.string.string_429))
                 .create();
         tipDialog.show();

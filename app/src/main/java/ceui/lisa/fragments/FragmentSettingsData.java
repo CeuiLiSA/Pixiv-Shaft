@@ -403,9 +403,8 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     private void runBulkDownloadCacheWipe() {
         if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
         final android.content.Context appCtx = mContext.getApplicationContext();
-        final com.qmuiteam.qmui.widget.dialog.QMUITipDialog progress =
-                new com.qmuiteam.qmui.widget.dialog.QMUITipDialog.Builder(getActivity())
-                        .setIconType(com.qmuiteam.qmui.widget.dialog.QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        final ceui.pixiv.witstudio.dialog.WitTipDialog progress =
+                new ceui.pixiv.witstudio.dialog.WitTipDialog.Builder(getActivity())
                         .setTipWord(getString(R.string.clear_bulk_download_cache_progress))
                         .create();
         progress.setCancelable(false);

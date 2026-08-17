@@ -19,7 +19,7 @@ import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+import ceui.pixiv.witstudio.dialog.WitTipDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -329,8 +329,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     }
                 }
                 else if(Common.isNumeric(trimmedKeyword)){
-                    QMUITipDialog tipDialog = new QMUITipDialog.Builder(mContext)
-                            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+                    WitTipDialog tipDialog = new WitTipDialog.Builder(mContext)
                             .setTipWord(getString(R.string.string_429))
                             .create();
                     tipDialog.show();

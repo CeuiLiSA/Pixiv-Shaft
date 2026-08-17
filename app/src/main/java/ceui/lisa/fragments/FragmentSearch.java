@@ -21,7 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+import ceui.pixiv.witstudio.dialog.WitTipDialog;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
@@ -196,8 +196,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 }
             }
             else if(Common.isNumeric(trimmedKeyword)){
-                QMUITipDialog tipDialog = new QMUITipDialog.Builder(mContext)
-                        .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+                WitTipDialog tipDialog = new WitTipDialog.Builder(mContext)
                         .setTipWord(getString(R.string.string_429))
                         .create();
                 tipDialog.show();
