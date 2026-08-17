@@ -51,6 +51,10 @@ object RemoteAppConfig {
     @Volatile
     private var fetchedForUid: Long? = null
 
+    /** [nana7miSearch] 里现在装的是哪个 uid 的答案。灰度桶按 uid 分，不能张冠李戴。 */
+    @Volatile
+    private var valueForUid: Long? = null
+
     /** 最近一次失败的 uid 和时刻（[SystemClock.elapsedRealtime]，改系统时间不受影响）。 */
     @Volatile
     private var failedForUid: Long? = null
@@ -74,11 +78,29 @@ object RemoteAppConfig {
     @JvmStatic
     fun init() {
         if (!initialized.compareAndSet(false, true)) return
-        nana7miSearch = runCatching {
-            store.getBoolean(KEY_NANA7MI_SEARCH, DEFAULT_NANA7MI_SEARCH)
-        }.getOrDefault(DEFAULT_NANA7MI_SEARCH)
-        Timber.tag(TAG).d("loaded cached config nana7mi_search_enabled=%s", nana7miSearch)
+        // 同步读，让首帧就有确定答案；一次 mmap 读，不值得为它排一次调度。
+        loadCached(SessionManager.loggedInUid)
         refreshIfStale()
+    }
+
+    /**
+     * 把 [uid] 上次的已知答案搬进内存；这个 uid 没缓存过就是默认值（关）。
+     *
+     * 缓存**按 uid 分键**：服务端的灰度桶是按 uid 算的，A 号拿到的 true 不代表 B 号也该开。
+     * 共用一个 key 的话，多账号用户切到 B 再冷启动，会在拉取返回前拿着 A 的许可去借号——正是
+     * 这个开关要拦的事。分键还顺带让切回旧账号时立刻恢复它自己的答案。
+     */
+    private fun loadCached(uid: Long) {
+        if (valueForUid == uid) return
+        nana7miSearch = runCatching {
+            store.getBoolean(cacheKey(uid), DEFAULT_NANA7MI_SEARCH)
+        }.getOrDefault(DEFAULT_NANA7MI_SEARCH)
+        valueForUid = uid
+        Timber.tag(TAG).d(
+            "loaded cached config uid=%d nana7mi_search_enabled=%s",
+            uid,
+            nana7miSearch,
+        )
     }
 
     /**
@@ -101,6 +123,9 @@ object RemoteAppConfig {
         if (!fetching.compareAndSet(false, true)) return
         scope.launch {
             try {
+                // 会话中途切了账号：先把新 uid 上次的答案顶上（一次 mmap 读），别让接下来这一
+                // 个网络往返期间继续用着上一个账号的许可。冷启动时 init 已经读过，这里是空转。
+                loadCached(uid)
                 apply(uid, Client.pixshaft.appConfig(uid.takeIf { it > 0L }))
             } catch (ce: CancellationException) {
                 throw ce
@@ -124,13 +149,16 @@ object RemoteAppConfig {
             return
         }
         nana7miSearch = enabled
-        runCatching { store.putBoolean(KEY_NANA7MI_SEARCH, enabled) }
+        valueForUid = uid
+        runCatching { store.putBoolean(cacheKey(uid), enabled) }
         Timber.tag(TAG).i("config applied uid=%d nana7mi_search_enabled=%s", uid, enabled)
     }
 
+    private fun cacheKey(uid: Long) = KEY_NANA7MI_SEARCH_PREFIX + uid
+
     private const val TAG = "RemoteAppConfig"
     private const val MMKV_ID = "remote-app-config-v1"
-    private const val KEY_NANA7MI_SEARCH = "nana7mi_search_enabled"
+    private const val KEY_NANA7MI_SEARCH_PREFIX = "nana7mi_search_enabled_"
     // 没拿到服务端许可之前不开：这是灰度中的功能，默认关比默认开安全。
     private const val DEFAULT_NANA7MI_SEARCH = false
     private const val RETRY_COOLDOWN_MS = 5 * 60 * 1000L
