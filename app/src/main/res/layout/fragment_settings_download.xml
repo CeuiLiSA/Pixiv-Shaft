@@ -56,7 +56,7 @@
                 <RelativeLayout
                     android:id="@+id/storage_choice_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_top">
+                    android:background="@drawable/wit_row_top">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -76,7 +76,7 @@
                 <RelativeLayout
                     android:id="@+id/file_name_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -98,7 +98,7 @@
                 <RelativeLayout
                     android:id="@+id/overwrite_policy_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -118,7 +118,7 @@
                 <RelativeLayout
                     android:id="@+id/ugoira_save_format_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -142,7 +142,7 @@
                 <RelativeLayout
                     android:id="@+id/r18_divide_save_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -160,7 +160,7 @@
                 <RelativeLayout
                     android:id="@+id/ai_divide_save_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -178,7 +178,7 @@
                 <RelativeLayout
                     android:id="@+id/page_index_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/wit_row_bottom">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -198,7 +198,7 @@
                 <RelativeLayout
                     android:id="@+id/default_image_resolution_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_top"
+                    android:background="@drawable/wit_row_top"
                     android:layout_marginTop="14dp">
 
                     <LinearLayout
@@ -219,7 +219,7 @@
                 <RelativeLayout
                     android:id="@+id/write_exif_tags_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -241,7 +241,7 @@
                 <RelativeLayout
                     android:id="@+id/default_novel_format_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -261,7 +261,7 @@
                 <RelativeLayout
                     android:id="@+id/novel_header_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/wit_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -283,7 +283,7 @@
                 <RelativeLayout
                     android:id="@+id/download_limit_type_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_top"
+                    android:background="@drawable/wit_row_top"
                     android:layout_marginTop="14dp">
 
                     <LinearLayout
@@ -304,7 +304,7 @@
                 <RelativeLayout
                     android:id="@+id/max_concurrent_downloads_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
@@ -324,7 +324,7 @@
                 <RelativeLayout
                     android:id="@+id/illust_long_press_download_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -342,7 +342,7 @@
                 <RelativeLayout
                     android:id="@+id/toast_download_result_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -360,7 +360,7 @@
                 <RelativeLayout
                     android:id="@+id/silent_download_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/wit_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -383,7 +383,7 @@
                     android:id="@+id/aria2_rela"
                     style="@style/M3SetRow"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_m3_row_single">
+                    android:background="@drawable/wit_row_single">
 
                     <LinearLayout style="@style/M3SetTexts">
 

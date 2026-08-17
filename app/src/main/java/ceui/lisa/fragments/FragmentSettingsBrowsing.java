@@ -7,8 +7,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -179,9 +178,8 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         final String searchFilter = Shaft.sSettings.getSearchFilter();
         baseBind.searchFilter.setText(PixivSearchParamUtil.getSizeName(searchFilter));
         baseBind.searchFilterRela.setOnClickListener(v ->
-                new QMUIDialog.CheckableDialogBuilder(mContext)
+                new WitDialog.CheckableDialogBuilder(mContext)
                         .setCheckedIndex(PixivSearchParamUtil.getSizeIndex(Shaft.sSettings.getSearchFilter()))
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addItems(PixivSearchParamUtil.ALL_SIZE_NAME, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -199,9 +197,8 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         final String searchDefaultSortType = Shaft.sSettings.getSearchDefaultSortType();
         baseBind.searchDefaultSortType.setText(PixivSearchParamUtil.getSortTypeName(searchDefaultSortType));
         baseBind.searchDefaultSortTypeRela.setOnClickListener(v ->
-                new QMUIDialog.CheckableDialogBuilder(mContext)
+                new WitDialog.CheckableDialogBuilder(mContext)
                         .setCheckedIndex(PixivSearchParamUtil.getSortTypeIndex(Shaft.sSettings.getSearchDefaultSortType()))
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addItems(PixivSearchParamUtil.SORT_TYPE_NAME, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -271,8 +268,8 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                                     IntFunction<String> validator) {
         valueText.setText(formatNovelFilterValue(getter.getAsInt()));
         row.setOnClickListener(v -> {
-            QMUIDialog.EditTextDialogBuilder builder =
-                    new QMUIDialog.EditTextDialogBuilder(mContext);
+            WitDialog.EditTextDialogBuilder builder =
+                    new WitDialog.EditTextDialogBuilder(mContext);
             int current = getter.getAsInt();
             // 当前关着就把建议值填进去，用户直接点确定即可开启（仍然可以清空/填 0 关掉）。
             builder.setTitle(getString(titleRes))
@@ -280,7 +277,6 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                     .setDefaultText(current > 0 ? String.valueOf(current)
                             : (suggested > 0 ? String.valueOf(suggested) : ""))
                     .setInputType(InputType.TYPE_CLASS_NUMBER)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                     .addAction(android.R.string.cancel, (dialog, index) -> dialog.dismiss())
                     .addAction(android.R.string.ok, (dialog, index) -> {
                         CharSequence entered = builder.getEditText().getText();

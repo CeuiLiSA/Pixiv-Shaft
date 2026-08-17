@@ -17,7 +17,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.models.TagsBean
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.db.synonym.SynonymMatcher
 import ceui.pixiv.db.synonym.TargetWithSynonyms
 import ceui.pixiv.utils.ppppx

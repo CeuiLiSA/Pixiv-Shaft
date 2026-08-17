@@ -13,7 +13,7 @@ import ceui.lisa.databinding.CellRequestPlanBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.Client
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem

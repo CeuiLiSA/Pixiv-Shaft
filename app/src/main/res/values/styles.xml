@@ -1,23 +1,70 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="QMUI.Compat.NoActionBar">
+    <!--
+        Base application theme.
+
+        parent 从 QMUI.Compat.NoActionBar 换成 AppCompat 自己的 DayNight.NoActionBar
+        （QMUI 那条链的根本来就是 Theme.AppCompat.DayNight，所以这里只是把中间那两层摘掉）。
+
+        摘掉的两层里，QMUI 在无人察觉的情况下供了一批全局属性，删依赖后必须显式接管，
+        否则不会编译报错、只会某个页面在某个模式下颜色不对。下面按「保住」和「有意放手」
+        两组分开写，每条都注明它原来是什么。
+    -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">#686bdd</item>
         <item name="colorPrimaryDark">#4749a0</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
         <item name="colorSwitchThumbNormal">#F1F1F1</item>
-        <!-- QMUI 只把这个 attr 用在 TextView 的 android:textColorHighlight 上(TextView.Compat /
-             QMUITextAppearance),覆盖它 == 只换文字选中高亮色,不碰别的按压态。 -->
-        <item name="qmui_skin_support_color_background_pressed">@color/text_selection_highlight</item>
+
+        <!-- ↓ 原本由 QMUI 的 AppConfigTheme 供给，逐条接管，取值与它一致 ↓ -->
+
+        <!-- 原 ?attr/qmui_config_color_blue。MaterialEditText 等直接吃 colorAccent，
+             先原样保住；要不要改成跟主题色走是另一件事，不混在这个 commit 里。 -->
+        <item name="colorAccent">#1B88EE</item>
+        <!-- 原 @color/qmui_config_color_white。全仓 34 个 drawable 用
+             android:tint="?attr/colorControlNormal" 画工具栏 / 操作栏图标，白色是承重的：
+             交给 AppCompat DayNight 会变成深灰，浅色模式下图标直接消失在主题色工具栏上。 -->
+        <item name="colorControlNormal">#ffffff</item>
+        <!-- 原 ?attr/qmui_config_color_black。 -->
+        <item name="android:navigationBarColor">#212832</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <!-- 原 @color/qmui_config_color_white，且 QMUI 没有 values-night —— 夜间冷启动那下
+             白闪就是它。换成 v3_bg（#FAFAFA / #08080C），日间几乎看不出差别，夜间白闪消失。 -->
+        <item name="android:windowBackground">@color/v3_bg</item>
+        <!-- 长按选中文字的高亮底色（#973）。原来是绕道 QMUI 的
+             qmui_skin_support_color_background_pressed 交给 TextView.Compat 的，
+             现在直接写在主题级的 android:textColorHighlight 上，少一层间接。 -->
+        <item name="android:textColorHighlight">@color/text_selection_highlight</item>
+        <!-- 原 Button.Compat / ImageButton.Compat。前者管 20 个布局里 <Button> 的
+             textAllCaps=false（丢了全变大写），后者管 19 个布局里 <ImageButton> 的透明底
+             （丢了每个都会长出 AppCompat 的方框按钮底）。 -->
+        <item name="android:buttonStyle">@style/Widget.Shaft.Button</item>
+        <item name="buttonStyle">@style/Widget.Shaft.Button</item>
+        <item name="android:imageButtonStyle">@style/Widget.Shaft.ImageButton</item>
+        <item name="imageButtonStyle">@style/Widget.Shaft.ImageButton</item>
+
+        <!-- ↓ 有意不接管的，全是 QMUI 塞进来的「只有浅色值」的硬编码颜色 ↓
+             android:textColorPrimary / textColorSecondary  原本都是 #1B88EE（QMUI 品牌蓝），
+               现在交回 DayNight。可见变化只有两处状态文案（列表加载失败、空态提示）由蓝变灰，
+               那本来就该是次级灰。
+             android:editTextColor + EditText.Compat        原本钉死 #212832 / #353C46，夜间深字压深底。
+             TextView.Compat(QMUITextAppearance)            原本把所有未指定颜色的 TextView 钉成 #212832，同上。
+             ListView/GridView/AutoCompleteTextView/listDivider  全仓 0 处使用，直接丢弃。 -->
+
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
-        <item name="qmui_skin_support_dialog_bg">@color/fragment_center</item>
-        <item name="qmui_skin_support_dialog_title_text_color">@color/rank_text_color</item>
-        <item name="qmui_skin_support_dialog_menu_item_text_color">@color/rank_text_color</item>
-        <item name="qmui_skin_support_dialog_edit_text_color">@color/rank_text_color</item>
+    </style>
+
+    <!-- 只为接住 QMUI 走后留下的两个缺口，没有别的用意，见 AppTheme 里的注释。 -->
+    <style name="Widget.Shaft.Button" parent="Widget.AppCompat.Button">
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.Shaft.ImageButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">@android:color/transparent</item>
     </style>
 
     <style name="ComicSheetSection">
@@ -616,7 +663,7 @@
 
     <!-- ── MD3-E 设置页 ─────────────────────────────────────────── -->
 
-    <!-- 分段分组里的一行（背景按位置用 bg_m3_row_top/mid/bottom/single） -->
+    <!-- 分段分组里的一行（背景按位置用 wit_row_top/mid/bottom/single） -->
     <style name="M3SetRow">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

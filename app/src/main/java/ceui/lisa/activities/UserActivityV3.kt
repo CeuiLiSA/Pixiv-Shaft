@@ -27,7 +27,7 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.applyV3RefreshTheme
@@ -46,8 +46,7 @@ import ceui.pixiv.ui.user.UserTagSearchSheet
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayoutMediator
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CancellationException
@@ -789,7 +788,6 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         if (labels.isEmpty()) return
 
         MenuDialogBuilder(mActivity)
-            .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
             .addItems(labels.toTypedArray()) { dialog: DialogInterface, which: Int ->
                 dialog.dismiss()
                 actions.getOrNull(which)?.invoke()

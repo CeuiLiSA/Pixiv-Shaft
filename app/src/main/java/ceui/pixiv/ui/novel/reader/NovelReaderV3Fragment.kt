@@ -16,7 +16,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.Retro
@@ -816,7 +816,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private fun pickHighlightColor() {
         val sel = activeSelection ?: return
         val options = listOf(getString(R.string.highlight_yellow) to HighlightColor.Yellow, getString(R.string.highlight_green) to HighlightColor.Green, getString(R.string.highlight_pink) to HighlightColor.Pink, getString(R.string.highlight_blue) to HighlightColor.Blue)
-        QMUIDialog.MenuDialogBuilder(requireContext())
+        WitDialog.MenuDialogBuilder(requireContext())
             .setTitle(getString(R.string.dialog_choose_highlight_color))
             .addItems(options.map { it.first }.toTypedArray()) { dialog, which ->
                 viewModel.addHighlight(sel.absoluteStart, sel.absoluteEnd, sel.text, options[which].second.argb)

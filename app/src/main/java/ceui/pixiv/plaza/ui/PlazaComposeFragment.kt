@@ -29,7 +29,7 @@ import ceui.pixiv.session.SessionManager
 import com.blankj.utilcode.util.BarUtils
 import com.bumptech.glide.Glide
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 
 /**
  * 发帖编辑器(ProjZ Post Compose 风格)。
@@ -146,7 +146,7 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_compose) {
     }
 
     private fun showAddIllustDialog() {
-        val builder = QMUIDialog.EditTextDialogBuilder(requireContext())
+        val builder = WitDialog.EditTextDialogBuilder(requireContext())
         builder.setTitle(R.string.plaza_attach_illust_by_id)
             .setPlaceholder(getString(R.string.plaza_attach_illust_id_hint))
             .setInputType(InputType.TYPE_CLASS_NUMBER)

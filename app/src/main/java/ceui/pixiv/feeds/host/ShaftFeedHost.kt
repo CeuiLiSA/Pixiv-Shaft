@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.feeds.FeedFramework

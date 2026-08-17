@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemRankPickerRowBinding
 import ceui.lisa.databinding.SheetRankPickerBinding
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.utils.makeSheetTransparentAndFillNavBar
 import ceui.pixiv.utils.screenHeight
 import com.google.android.material.bottomsheet.BottomSheetBehavior

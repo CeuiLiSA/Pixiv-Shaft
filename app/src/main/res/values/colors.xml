@@ -211,31 +211,43 @@
     <!-- MeFragment stat-card 圆角图标背景:v3_blue 10% 透明,light/dark 各自对齐 -->
     <color name="me_stat_icon_bg">#1A2B6FCC</color>
 
-    <!-- V3 Detail — Light Mode -->
-    <color name="v3_bg">#FAFAFA</color>
-    <color name="v3_surface_1">#08000000</color>
-    <color name="v3_surface_2">#0E000000</color>
-    <color name="v3_surface_3">#14000000</color>
+    <!-- V3 Detail — Light Mode
+
+         下面写成 @color/wit_* 的这批是**引用别名**，真值在 :witstudio 的
+         values{,-night}/wit_colors.xml 里，夜间值也只活在那边（本文件的 values-night 版已删除对应条目）。
+
+         为什么不直接把资源搬走、让调用方改用 wit_* 名字：本仓 nonTransitiveRClass 是开的
+         （AGP 8 默认），资源一旦挪进模块，:app 里 191 处 `R.color.v3_*`
+         代码引用就没有一个 R 装得下了。留别名则 XML（约 800 处）和代码（191 处）全部零改动，
+         色值仍只有一份、不会漂移。
+
+         ⚠️ 别在这里写回具体色值——那会静默遮蔽模块的夜间值，且不会有任何编译期报错。
+         改色去 :witstudio/src/main/res/values{,-night}/wit_colors.xml。
+         别名清理（统一改名成 wit_*）是计划里的 phase 7，纯审美，可无限期推迟。 -->
+    <color name="v3_bg">@color/wit_bg</color>
+    <color name="v3_surface_1">@color/wit_surface_1</color>
+    <color name="v3_surface_2">@color/wit_surface_2</color>
+    <color name="v3_surface_3">@color/wit_surface_3</color>
     <!-- feed_skeleton_block / feed_skeleton_highlight 已随骨架图搬进 :feeds 模块
          (feeds/src/main/res/values/colors.xml)，经资源合并本模块照常引用得到。 -->
     <!-- 进度条未完成段：比 v3_surface_2/3 对比更强，让 dark 模式下能清楚看到 track -->
-    <color name="v3_progress_track">#22000000</color>
-    <color name="v3_border_1">#0A000000</color>
-    <color name="v3_border_2">#0F000000</color>
-    <color name="v3_menu_bg">#F5F5F5</color>
+    <color name="v3_progress_track">@color/wit_progress_track</color>
+    <color name="v3_border_1">@color/wit_border_1</color>
+    <color name="v3_border_2">@color/wit_border_2</color>
+    <color name="v3_menu_bg">@color/wit_menu_bg</color>
     <!-- 长按选中文字的高亮底色。QMUI 的 TextView.Compat 把它钉成了不透明的
          qmui_config_color_background_pressed(#EEEFF1),且库里没有 night 版:夜间近白正文
          压在浅灰块上直接看不见,日间那块浅灰压在白底上又几乎看不出选中(#973)。
          日间改用 v3_blue 30% scrim(和 bulk_select_scrim 同值,选中态语言统一),
          夜间见 values-night。主题色有 10 套(含亮黄 #fee65e),所以不跟 colorPrimary 走。 -->
     <color name="text_selection_highlight">#4D2B6FCC</color>
-    <color name="v3_text_1">#1A1A2E</color>
-    <color name="v3_text_2">#991A1A2E</color>
-    <color name="v3_text_3">#551A1A2E</color>
-    <color name="v3_danger">#E5484D</color>
-    <color name="v3_pink">#E0246A</color>
-    <color name="v3_gold">#D4A020</color>
-    <color name="v3_blue">#2B6FCC</color>
+    <color name="v3_text_1">@color/wit_text_1</color>
+    <color name="v3_text_2">@color/wit_text_2</color>
+    <color name="v3_text_3">@color/wit_text_3</color>
+    <color name="v3_danger">@color/wit_danger</color>
+    <color name="v3_pink">@color/wit_pink</color>
+    <color name="v3_gold">@color/wit_gold</color>
+    <color name="v3_blue">@color/wit_blue</color>
     <!-- 批量选择 cell 选中态 scrim:v3_blue 30% 透明,叠在 thumb 上方,共享 thumb 的
          14dp clip,从根上躲掉"圆角不齐"的对比 (#4D = 30%) -->
     <color name="bulk_select_scrim">#4D2B6FCC</color>
@@ -243,14 +255,14 @@
          压在 v3_bg 上几乎看不出边界,挨着实心蓝的首段更显得像块空白;带一点强调色才读得出
          "同一组按钮的低一档层级"。夜间见 values-night。 -->
     <color name="bulk_action_tonal">#2E2B6FCC</color>
-    <color name="v3_green">#1DA88A</color>
-    <color name="v3_purple">#7C5CC8</color>
+    <color name="v3_green">@color/wit_green</color>
+    <color name="v3_purple">@color/wit_purple</color>
     <!-- 评论毛玻璃卡片:近纯白 95%,浮在模糊+压暗的作品背景上仍保证深色文字可读,卡片间隙透出模糊图,日夜各自适配 -->
-    <color name="v3_glass_card">#F2FFFFFF</color>
+    <color name="v3_glass_card">@color/wit_glass_card</color>
     <!-- 聊天收到气泡底:日=纯白(压在 v3_bg #FAFAFA 上靠 hairline+微阴影浮出),夜见 values-night -->
     <color name="chat_received_bubble">#FFFFFF</color>
-    <color name="v3_orange">#D45A30</color>
-    <color name="v3_ambient_primary">#5B4CA0</color>
+    <color name="v3_orange">@color/wit_orange</color>
+    <color name="v3_ambient_primary">@color/wit_ambient_primary</color>
     <color name="v3_ambient_glow">#335B4CA0</color>
     <color name="v3_nav_btn_bg">#33000000</color>
     <color name="v3_hero_gradient_start">#FAFAFA</color>

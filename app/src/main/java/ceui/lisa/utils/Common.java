@@ -28,9 +28,8 @@ import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
 import com.hjq.toast.Toaster;
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -251,21 +250,20 @@ public class Common {
     }
 
     public static void createDialog(Context context){
-        QMUIDialog qmuiDialog = new QMUIDialog.MessageDialogBuilder(context)
+        WitDialog qmuiDialog = new WitDialog.MessageDialogBuilder(context)
                 .setTitle(context.getString(R.string.string_188))
                 .setMessage(context.getString(R.string.dont_catch_me))
-                .setSkinManager(QMUISkinManager.defaultInstance(context))
-                .addAction(context.getString(R.string.string_189), new QMUIDialogAction.ActionListener() {
+                .addAction(context.getString(R.string.string_189), new WitDialogAction.ActionListener() {
                     @Override
-                    public void onClick(QMUIDialog dialog, int index) {
+                    public void onClick(WitDialog dialog, int index) {
                         //保存SHOW_DIALOG 为false，不再提示
                         Shaft.getMMKV().encode(Params.SHOW_DIALOG, false);
                         dialog.dismiss();
                     }
                 })
-                .addAction(context.getString(R.string.string_190), new QMUIDialogAction.ActionListener() {
+                .addAction(context.getString(R.string.string_190), new WitDialogAction.ActionListener() {
                     @Override
-                    public void onClick(QMUIDialog dialog, int index) {
+                    public void onClick(WitDialog dialog, int index) {
                         //保存SHOW_DIALOG 为true，需要继续提示
                         Shaft.getMMKV().encode(Params.SHOW_DIALOG, true);
                         dialog.dismiss();

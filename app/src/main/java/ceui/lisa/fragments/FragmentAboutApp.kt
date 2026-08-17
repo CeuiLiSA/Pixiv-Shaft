@@ -16,10 +16,10 @@ import ceui.lisa.update.UpdateBottomSheet
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PackageUtils
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
+import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import io.reactivex.disposables.Disposable
+import ceui.pixiv.witstudio.theme.WitRowStyle
 
 class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
 
@@ -38,7 +38,7 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
 
         if (BuildConfig.IS_LITE) {
             // lite 版没有更新/版本历史两行，版本行独立成单行圆角卡
-            baseBind.versionRela.setBackgroundResource(R.drawable.bg_m3_row_single)
+            baseBind.versionRela.setBackgroundResource(WitRowStyle.rowBackground(0, 1))
         }
         val palette = V3Palette.from(mContext)
         val iconCircle = ColorUtils.blendARGB(
@@ -139,7 +139,6 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
                             Common.showToast(getString(R.string.string_227))
                         }
                     }
-                    .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
                     .show()
             }
         }

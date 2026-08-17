@@ -23,8 +23,7 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.FragmentBaseListBinding
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.databinding.ItemStreetContentBinding
 import ceui.lisa.databinding.ItemStreetRailBinding
 import ceui.lisa.databinding.ItemStreetRailTagBinding
@@ -340,10 +339,9 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
     }
 
     private fun showWebLoginDialog() {
-        QMUIDialog.MessageDialogBuilder(mActivity)
+        WitDialog.MessageDialogBuilder(mActivity)
             .setTitle(getString(R.string.street_web_login_title))
             .setMessage(getString(R.string.street_web_login_message))
-            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
             .addAction(getString(R.string.cancel)) { dialog, _ ->
                 dialog.dismiss()
                 activity?.finish()

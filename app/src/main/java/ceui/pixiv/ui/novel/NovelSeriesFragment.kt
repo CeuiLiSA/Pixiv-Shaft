@@ -22,7 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemBigReadButtonBinding
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.NovelSeriesResp
@@ -56,7 +56,7 @@ import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
@@ -344,7 +344,7 @@ class NovelSeriesFragment :
         val msg = failures.joinToString(separator = "\n") { fn ->
             getString(R.string.batch_download_failure_line, fn.novel.title.orEmpty(), fn.reason.orEmpty())
         }
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(getString(R.string.batch_download_some_failed, failures.size))
             .setMessage(msg)
             .addAction(android.R.string.ok) { d, _ -> d.dismiss() }

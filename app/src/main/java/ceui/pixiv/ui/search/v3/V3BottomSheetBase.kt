@@ -15,7 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import ceui.lisa.R
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.utils.screenHeight
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -87,7 +87,7 @@ abstract class V3BottomSheetBase : BottomSheetDialogFragment() {
     /**
      * 把 `android:tag="v3_card"` 的 settings 卡片重排成新版设置页同款 MD3-E 分段分组：
      * 卡容器去掉整卡底，卡内每一行单独套 [V3Palette.cardFill] 底 + 分段圆角
-     * （段首 20dp / 段中 5dp / 段尾 20dp，同 bg_m3_row_*），行间 1dp 分割线转成 2dp 透明间隙。
+     * （段首 20dp / 段中 5dp / 段尾 20dp，同 wit_row_*），行间 1dp 分割线转成 2dp 透明间隙。
      *
      * 子类里行的显隐（illust/novel 模式）会影响首尾判定，所以在 base 的 [onViewCreated]
      * 里 post 执行；之后再动态改行显隐的 sheet（如 DateRangePickerSheet 的「清除日期」行）

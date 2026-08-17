@@ -30,7 +30,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.utils.makeSheetTransparentAndFillNavBar
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.screenHeight

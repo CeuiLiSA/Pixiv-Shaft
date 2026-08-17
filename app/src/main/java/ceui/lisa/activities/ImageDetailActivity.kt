@@ -29,7 +29,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.lisa.utils.QMUIMenuPopup
+import ceui.pixiv.witstudio.popup.WitMenuPopup
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
@@ -61,9 +61,8 @@ import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -193,7 +192,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 actions += getString(R.string.string_set_wallpaper) to {
                     performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
                 }
-                QMUIMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
+                WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
                     actions[index].second()
                 }
             }
@@ -522,19 +521,18 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      */
     private fun maybeConfirmAiExit(): Boolean {
         if (!translationViewModel.shouldConfirmAiExit()) return false
-        QMUIDialog.MessageDialogBuilder(this)
+        WitDialog.MessageDialogBuilder(this)
             .setTitle(R.string.ai_translate_exit_confirm_title)
             .setMessage(R.string.ai_translate_exit_confirm_message)
-            .setSkinManager(QMUISkinManager.defaultInstance(this))
             .addAction(
                 0,
                 getString(R.string.ai_translate_exit_confirm_stay),
-                QMUIDialogAction.ACTION_PROP_NEGATIVE
+                WitDialogAction.ACTION_PROP_NEGATIVE
             ) { dialog, _ -> dialog.dismiss() }
             .addAction(
                 0,
                 getString(R.string.ai_translate_exit_confirm_exit),
-                QMUIDialogAction.ACTION_PROP_POSITIVE
+                WitDialogAction.ACTION_PROP_POSITIVE
             ) { dialog, _ ->
                 dialog.dismiss()
                 translationViewModel.cancelActiveWorkflow()

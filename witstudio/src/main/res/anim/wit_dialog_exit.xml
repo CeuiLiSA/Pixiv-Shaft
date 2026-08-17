@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 弹窗退场：比入场短一截，收得干脆。 -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/accelerate_interpolator">
+    <scale
+        android:duration="140"
+        android:fromXScale="1.0"
+        android:fromYScale="1.0"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:toXScale="0.96"
+        android:toYScale="0.96" />
+    <alpha
+        android:duration="140"
+        android:fromAlpha="1.0"
+        android:toAlpha="0.0" />
+</set>

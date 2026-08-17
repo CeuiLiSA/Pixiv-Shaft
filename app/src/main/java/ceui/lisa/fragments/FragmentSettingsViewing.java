@@ -13,8 +13,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import java.util.Locale;
 
@@ -69,9 +68,8 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                     getString(R.string.artwork_v3_fab_order_download_left),
                     getString(R.string.artwork_v3_fab_order_bookmark_left),
             };
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                     .addItems(items, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -105,9 +103,8 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         String[] transformerNames = PageTransformerHelper.getTransformerNames();
         baseBind.transformType.setText(transformerNames[PageTransformerHelper.getCurrentTransformerIndex()]);
         baseBind.transformTypeRela.setOnClickListener(v ->
-                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                new WitDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(PageTransformerHelper.getCurrentTransformerIndex())
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addItems(transformerNames, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

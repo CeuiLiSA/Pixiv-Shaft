@@ -15,7 +15,7 @@ import androidx.annotation.DrawableRes
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import kotlin.math.roundToInt
 
 class V3MenuDialog : DialogFragment() {

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      WitPopup 的窗口动画。三个 pivot 对应 QMUI 的 ANIM_GROW_FROM_CENTER / LEFT / RIGHT，
+      给 PopupWindow.setAnimationStyle 用（所以只需要 windowEnterAnimation / windowExitAnimation
+      两项，不是完整的 window 动画集）。
+      pivotY 一律 0%：本项目的 popup 全部锚在触发控件下方，从上边缘长出来才对得上。
+    -->
+    <style name="Animation.Wit.Popup.GrowFromCenter" parent="">
+        <item name="android:windowEnterAnimation">@anim/wit_popup_grow_center_enter</item>
+        <item name="android:windowExitAnimation">@anim/wit_popup_grow_center_exit</item>
+    </style>
+
+    <style name="Animation.Wit.Popup.GrowFromLeft" parent="">
+        <item name="android:windowEnterAnimation">@anim/wit_popup_grow_left_enter</item>
+        <item name="android:windowExitAnimation">@anim/wit_popup_grow_left_exit</item>
+    </style>
+
+    <style name="Animation.Wit.Popup.GrowFromRight" parent="">
+        <item name="android:windowEnterAnimation">@anim/wit_popup_grow_right_enter</item>
+        <item name="android:windowExitAnimation">@anim/wit_popup_grow_right_exit</item>
+    </style>
+
+    <style name="Animation.Wit.Dialog" parent="">
+        <item name="android:windowEnterAnimation">@anim/wit_dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/wit_dialog_exit</item>
+    </style>
+
+    <!--
+      ⚠️ 这两个必须 parent=""，这是整个模块的架构脊梁，不是随手写的。
+
+      Dialog(context, themeResId) 走的是 ContextThemeWrapper，而它是**合并**语义：
+      先 mTheme.setTo(host 主题)，再 applyStyle(themeResId)。所以一个无父样式就是纯 overlay ——
+      host 的 ?attr/colorPrimary 原样活着，弹窗于是能跟着十档主题预设和自定义 HEX 走。
+
+      一旦挂上 Theme.AppCompat.Dialog 之类的完整主题作父，applyStyle 会把那个主题的
+      colorPrimary 一并拖进来盖掉 host 的，弹窗立刻退化成固定的 AppCompat 蓝，
+      而且不会有任何报错 —— 只会在切主题色时静默地不跟。
+
+      同样的道理让这套弹窗能横跨 phase 5（显式 AppCompat）和 phase 6（Material3）两次主题重挂
+      而零改动：它只读 host 的一个 colorPrimary，其余全部自带。
+    -->
+    <style name="ThemeOverlay.Wit.Dialog" parent="">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.55</item>
+        <item name="android:windowAnimationStyle">@style/Animation.Wit.Dialog</item>
+    </style>
+
+    <!-- 转圈提示框：不压暗背景（它是「进行中」不是「等你决定」），其余同上。 -->
+    <style name="ThemeOverlay.Wit.TipDialog" parent="">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@style/Animation.Wit.Dialog</item>
+    </style>
+
+</resources>

@@ -4,9 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import ceui.lisa.R
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import timber.log.Timber
 
 /**
@@ -52,15 +51,14 @@ private fun showResumePrompt(
     pendingCount: Int,
     onAccepted: () -> Unit,
 ) {
-    // QMUIDialog 必须在主线程展示
+    // WitDialog 必须在主线程展示
     activity.runOnUiThread {
         if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
         try {
-            QMUIDialog.MessageDialogBuilder(activity)
+            WitDialog.MessageDialogBuilder(activity)
                 .setTitle(R.string.bulk_resume_prompt_title)
                 .setMessage(activity.getString(R.string.bulk_resume_prompt_message, pendingCount))
-                .setSkinManager(QMUISkinManager.defaultInstance(activity))
-                .addAction(0, activity.getString(R.string.bulk_resume_prompt_decline), QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
+                .addAction(0, activity.getString(R.string.bulk_resume_prompt_decline), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
                     // 保持 paused —— 用户可去 下载管理 → 批量队列 手动点 "继续"
                     Timber.tag(TAG).i("user declined cold-start resume; staying paused")
                     d.dismiss()

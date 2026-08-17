@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      WitRoundButton 的默认描边宽（对齐 QMUI 的 qmui_btn_border_width）。
+      这个默认值是承重的：关注 / 取关按钮在布局里只写了 wit_borderColor、没写 wit_borderWidth，
+      全靠这条默认值才画得出那圈描边。改成 0 会让它们的边框整个消失，而且不会有任何报错。
+      两个 RoundLayout 不吃这个默认值（默认 0，与 QMUI 一致）。
+    -->
+    <dimen name="wit_round_btn_border_width">1dp</dimen>
+
+</resources>

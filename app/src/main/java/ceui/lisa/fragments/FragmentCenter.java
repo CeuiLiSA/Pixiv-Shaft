@@ -15,9 +15,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.V3Palette;
+import ceui.pixiv.witstudio.theme.V3Palette;
 import ceui.lisa.view.HorizontalSpaceDecoration;
 import ceui.pixiv.ui.discovery.DiscoverViewModel;
 import ceui.pixiv.ui.prime.PrimeTagIndexItem;
@@ -278,10 +277,9 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
     }
 
     private void showComingSoon() {
-        new QMUIDialog.MessageDialogBuilder(mActivity)
+        new WitDialog.MessageDialogBuilder(mActivity)
                 .setTitle("Web 首页")
                 .setMessage("Coming soon...")
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                 .addAction("OK", (dialog, index) -> dialog.dismiss())
                 .show();
     }

@@ -14,10 +14,9 @@ import ceui.loxia.Client
 import ceui.loxia.CsrfTokenProvider
 import ceui.pixiv.chat.base.toUserMessage
 import ceui.pixiv.session.SessionManager
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.dialog.WitTipDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -68,8 +67,7 @@ object PixivBlockOperate {
         // 名字空着时用 ID 兜,免得确认框读成「拉黑「」后…」。
         val name = userName.ifBlank { userId.toString() }
 
-        val loading = QMUITipDialog.Builder(activity)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val loading = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.pixiv_block_checking))
             .create()
         loading.show()
@@ -128,7 +126,7 @@ object PixivBlockOperate {
         userName: String,
         isBlocked: Boolean,
     ) {
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.pixiv_block_title)
             .setMessage(
                 activity.getString(
@@ -136,12 +134,11 @@ object PixivBlockOperate {
                     userName,
                 )
             )
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .addAction(
                 0,
                 if (isBlocked) R.string.pixiv_unblock_action else R.string.pixiv_block_action,
-                QMUIDialogAction.ACTION_PROP_POSITIVE,
+                WitDialogAction.ACTION_PROP_POSITIVE,
             ) { dialog, _ ->
                 dialog.dismiss()
                 performSave(activity, userId, userName, block = !isBlocked)
@@ -156,8 +153,7 @@ object PixivBlockOperate {
         userName: String,
         block: Boolean,
     ) {
-        val loading = QMUITipDialog.Builder(activity)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val loading = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.pixiv_block_submitting))
             .create()
         loading.show()
@@ -221,12 +217,11 @@ object PixivBlockOperate {
     }
 
     private fun showWebLoginNeeded(activity: Activity) {
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.pixiv_block_title)
             .setMessage(R.string.pixiv_block_need_web_login)
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .addAction(0, R.string.street_web_login_confirm, QMUIDialogAction.ACTION_PROP_POSITIVE) { dialog, _ ->
+            .addAction(0, R.string.street_web_login_confirm, WitDialogAction.ACTION_PROP_POSITIVE) { dialog, _ ->
                 dialog.dismiss()
                 activity.startActivity(
                     Intent(activity, TemplateActivity::class.java).apply {

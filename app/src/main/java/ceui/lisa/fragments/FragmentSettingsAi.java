@@ -3,9 +3,8 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -142,13 +141,12 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
                 Common.showToast(getString(R.string.string_rembg_model_long_press_to_delete));
                 return true;
             }
-            new QMUIDialog.MessageDialogBuilder(getActivity())
+            new WitDialog.MessageDialogBuilder(getActivity())
                     .setTitle(R.string.string_rembg_model_delete_confirm_title)
                     .setMessage(getString(R.string.string_rembg_model_delete_confirm_message, model.getDisplayName()))
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                    .addAction(0, getString(R.string.string_cancel), QMUIDialogAction.ACTION_PROP_NEUTRAL,
+                    .addAction(0, getString(R.string.string_cancel), WitDialogAction.ACTION_PROP_NEUTRAL,
                             (d, i) -> d.dismiss())
-                    .addAction(0, getString(R.string.string_rembg_model_delete), QMUIDialogAction.ACTION_PROP_NEGATIVE,
+                    .addAction(0, getString(R.string.string_rembg_model_delete), WitDialogAction.ACTION_PROP_NEGATIVE,
                             (d, i) -> {
                                 d.dismiss();
                                 mgr.deleteModel(mContext, model);

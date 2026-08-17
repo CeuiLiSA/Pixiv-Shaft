@@ -4,11 +4,8 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.RippleDrawable
 import android.util.TypedValue
 import android.view.View
-import android.view.ViewGroup
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.graphics.ColorUtils
@@ -16,7 +13,7 @@ import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.WitRowStyle
 import ceui.pixiv.ui.settings.CustomThemeColor
 
 /**
@@ -261,31 +258,14 @@ object SettingsCatalog {
     }
 
     /**
-     * 把设置页分段行的中性底色换成 [V3Palette.cardFill] 的主题 tint（同搜索 sheet 卡片）。
-     * bg_m3_row_* 是 ripple 包 GradientDrawable，原地 mutate 换 fill + hairline，
-     * 圆角与 ripple 保持不变；递归处理整棵子树，行以外的背景不受影响。
+     * 把设置页分段行的中性底色换成主题 tint。
+     *
+     * 实现已搬到 [WitRowStyle.applyThemedRowBg]（分段行是通用 UI 基建，不该住在设置页的目录类里）。
+     * 这里留一层同签名委托，10 个调用方一行都不用改。
      */
     @JvmStatic
     fun applyThemedRowBg(view: View) {
-        val palette = V3Palette.from(view.context)
-        val strokePx = (0.5f * view.resources.displayMetrics.density).coerceAtLeast(1f).toInt()
-        tintRowsRecursively(view, palette, strokePx)
-    }
-
-    private fun tintRowsRecursively(v: View, palette: V3Palette, strokePx: Int) {
-        val bg = v.background
-        if (bg is RippleDrawable && bg.numberOfLayers > 0 && bg.getDrawable(0) is GradientDrawable) {
-            bg.mutate()
-            (bg.getDrawable(0) as GradientDrawable).apply {
-                setColor(palette.cardFill)
-                setStroke(strokePx, palette.cardHairline)
-            }
-        }
-        if (v is ViewGroup) {
-            for (i in 0 until v.childCount) {
-                tintRowsRecursively(v.getChildAt(i), palette, strokePx)
-            }
-        }
+        WitRowStyle.applyThemedRowBg(view)
     }
 
     /**

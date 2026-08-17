@@ -91,39 +91,21 @@
     <color name="me_stat_icon_bg">#243D8BFD</color>
 
     <!-- V3 Detail — Dark Mode -->
-    <color name="v3_bg">#08080C</color>
-    <color name="v3_surface_1">#08FFFFFF</color>
-    <color name="v3_surface_2">#0EFFFFFF</color>
-    <color name="v3_surface_3">#14FFFFFF</color>
-    <!-- feed_skeleton_* 的 dark 版同样搬进了 :feeds 模块，见 values/colors.xml 的说明。 -->
+    <!-- v3_bg / v3_surface_* 的夜间真值在 :witstudio 的 values-night/wit_colors.xml，
+         这里不再重复定义——写回会静默遮蔽模块的夜间值，且没有任何编译期报错。
+         feed_skeleton_* 的 dark 版同样搬进了 :feeds 模块，见 values/colors.xml 的说明。 -->
     <!-- 进度条未完成段 dark 版：~25% 白让 #08080C 卡片背景上能看清 track -->
-    <color name="v3_progress_track">#40FFFFFF</color>
-    <color name="v3_border_1">#0AFFFFFF</color>
-    <color name="v3_border_2">#0FFFFFFF</color>
-    <color name="v3_menu_bg">#1A1A2E</color>
     <!-- 选中高亮:36% 白 scrim,在近黑背景上看得出选区,浅色正文压上去仍可读 (#973) -->
     <color name="text_selection_highlight">#5CFFFFFF</color>
-    <color name="v3_text_1">#F4F4F8</color>
-    <color name="v3_text_2">#9EF4F4F8</color>
-    <color name="v3_text_3">#5CF4F4F8</color>
-    <color name="v3_danger">#FF6369</color>
-    <color name="v3_pink">#FF2D78</color>
-    <color name="v3_gold">#FFC233</color>
-    <color name="v3_blue">#3D8BFD</color>
     <!-- 夜间用更亮的 v3_blue 30% 透明,在 dark 图上更明显 (#4D = 30%) -->
     <color name="bulk_select_scrim">#4D3D8BFD</color>
     <!-- 批量操作底栏尾段(MD3-E tonal 按钮)底色。夜间要 26%,不能跟日间一样 14%:
          底是近黑的 v3_bg(#08080C),14% 蓝混出来跟背景几乎同色,真机上尾段读起来是
          "两个图标浮在空处"而不是一块按钮,挨着实心蓝的首段更明显——"连成一组"就没了。 -->
     <color name="bulk_action_tonal">#423D8BFD</color>
-    <color name="v3_green">#2DD4A8</color>
-    <color name="v3_purple">#9F7AEA</color>
     <!-- 评论毛玻璃卡片:抬升的炭黑 95%,从近黑背景上浮起,浅色文字可读 -->
-    <color name="v3_glass_card">#F21D1D26</color>
     <!-- 聊天收到气泡底:夜=比 v3_bg(#08080C)亮一档的深靛蓝,读得出气泡边界 -->
     <color name="chat_received_bubble">#23232F</color>
-    <color name="v3_orange">#FF6F3C</color>
-    <color name="v3_ambient_primary">#7C6BC4</color>
     <color name="v3_ambient_glow">#664D3F9E</color>
     <color name="v3_nav_btn_bg">#59000000</color>
     <color name="v3_hero_gradient_start">#08080C</color>

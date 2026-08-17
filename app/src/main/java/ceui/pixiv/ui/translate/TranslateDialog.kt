@@ -4,15 +4,14 @@ import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * 详情页标题/简介翻译与评论翻译共享的「思考中」阶段提示与译文弹窗。
  *
  * 两处翻译入口(见 [ceui.pixiv.ui.detail.translateTitleAndCaption] 与
- * [ceui.pixiv.ui.comments.translateComment])此前各自复制了一份几乎相同的 QMUIDialog 装配
+ * [ceui.pixiv.ui.comments.translateComment])此前各自复制了一份几乎相同的 WitDialog 装配
  * 与 THINKING 阶段 toast,这里收拢成共享成员,避免后续改一处漏一处。
  */
 internal val onThinkingPhase: (AiTranslatePhase) -> Unit = { phase ->
@@ -36,10 +35,9 @@ internal fun onceThinkingPhase(): (AiTranslatePhase) -> Unit {
 
 /** 弹出译文弹窗(挂 SkinManager 跟随日夜皮肤),复制按钮把整段译文写进剪贴板。 */
 internal fun showTranslatedDialog(context: Context, message: String) {
-    QMUIDialog.MessageDialogBuilder(context)
+    WitDialog.MessageDialogBuilder(context)
         .setTitle(context.getString(R.string.string_translate_caption))
         .setMessage(message)
-        .setSkinManager(QMUISkinManager.defaultInstance(context))
         .addAction(context.getString(R.string.string_120)) { dialog, _ ->
             ClipBoardUtils.putTextIntoClipboard(context, message)
             dialog.dismiss()

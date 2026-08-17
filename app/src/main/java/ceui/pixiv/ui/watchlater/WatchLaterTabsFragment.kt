@@ -11,9 +11,8 @@ import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import java.util.ArrayList
 
 /**
@@ -104,12 +103,11 @@ class WatchLaterTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
         }
         // EntityWrapper 是 app 单例；提前抓好，弹窗动作异步触发时 fragment 可能已 detach。
         val entityWrapper = requireEntityWrapper()
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.watch_later)
             .setMessage(R.string.watch_later_clear_confirm)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.watch_later_clear_ok, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.watch_later_clear_ok, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 // 清空会发 WATCH_LATER_CHANGED 广播触发子 tab refresh，不用手动清列表。
                 if (position == 0) {

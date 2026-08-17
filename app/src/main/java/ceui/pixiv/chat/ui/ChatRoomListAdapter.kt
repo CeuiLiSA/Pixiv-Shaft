@@ -14,7 +14,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.ChatItemRoomBinding
 import ceui.lisa.databinding.ChatItemRoomHeroBinding
 import ceui.lisa.utils.GlideUrlChild
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.chat.base.BaseListAdapter
 import com.bumptech.glide.Glide
 

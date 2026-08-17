@@ -8,9 +8,8 @@ import android.text.TextUtils;
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -399,12 +398,11 @@ public class IllustDownload {
             }
             if (root == null || !root.exists() || !root.isDirectory()) {
                 activity.setFeedBack(feedBack);
-                new QMUIDialog.MessageDialogBuilder(activity)
+                new WitDialog.MessageDialogBuilder(activity)
                         .setTitle(activity.getResources().getString(R.string.string_143))
                         .setMessage(activity.getResources().getString(R.string.string_365))
-                        .setSkinManager(QMUISkinManager.defaultInstance(activity))
                         .addAction(0, activity.getResources().getString(R.string.string_142),
-                                QMUIDialogAction.ACTION_PROP_NEGATIVE,
+                                WitDialogAction.ACTION_PROP_NEGATIVE,
                                 (dialog, index) -> dialog.dismiss())
                         .addAction(0, activity.getResources().getString(R.string.string_366),
                                 (dialog, index) -> {

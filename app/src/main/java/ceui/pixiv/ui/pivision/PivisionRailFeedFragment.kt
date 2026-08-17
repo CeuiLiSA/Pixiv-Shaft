@@ -14,7 +14,7 @@ import ceui.lisa.databinding.FragmentPivisionRailFeedBinding
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.view.HorizontalSpaceDecoration
 import ceui.loxia.Article
 import ceui.pixiv.feeds.FeedArticleRailSkeletonView

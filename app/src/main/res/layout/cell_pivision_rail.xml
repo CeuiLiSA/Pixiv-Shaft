@@ -3,7 +3,7 @@
   发现页「pixivision 特辑」横向货架卡 (MD3-Expressive / V3),与竖版 cell_pivision 同一套语言、
   缩到货架尺寸。整卡就是一张图:封面铺满 + 底部渐变遮罩压住标题,分类 tonal 胶囊悬左上。
 
-  用普通 FrameLayout(不用 MaterialCardView / QMUIRoundRelativeLayout):圆角由 Renderer 注入
+  用普通 FrameLayout(不用 MaterialCardView / WitRoundRelativeLayout):圆角由 Renderer 注入
   V3Palette.settingsCardBg + clipToOutline 裁图,和 V3 其它卡同款,日夜双模跟随主题色。
   卡尺寸 220x160dp 与 R.dimen.article_horizontal_height 一致(货架高度按它算)。
 -->

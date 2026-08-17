@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.activities.Shaft
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.databinding.RecySelectTagBinding
 import ceui.lisa.model.ListBookmarkTag
 import ceui.lisa.models.TagsBean
@@ -29,8 +29,7 @@ import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.utils.ppppx
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -176,9 +175,8 @@ class SelectTagFeedFragment : FeedFragment() {
     // ── 添加标签（宿主 sheet 的「添加标签」按钮调进来）──────────────────────
     fun showAddTagDialog() {
         val activity = activity ?: return
-        val builder = QMUIDialog.EditTextDialogBuilder(activity)
+        val builder = WitDialog.EditTextDialogBuilder(activity)
         builder.setTitle("添加标签")
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
             .setPlaceholder("请输入标签(收藏夹)名")
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction("取消") { dialog, _ -> dialog.dismiss() }

@@ -35,9 +35,8 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.history.BrowseHistoryBackup
 import timber.log.Timber
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -305,12 +304,11 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
         val count = tab.selectedCount.value ?: 0
         if (count == 0) return
         val act = activity ?: return
-        QMUIDialog.MessageDialogBuilder(act)
+        WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.string_143)
             .setMessage(getString(R.string.history_multi_delete_message, count))
-            .setSkinManager(QMUISkinManager.defaultInstance(act))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.string_141, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 tab.deleteSelected { deleted ->
                     // 批量删 N 条要逐条打远端,耗时;期间宿主 view 若被销毁(旋转等),
@@ -332,12 +330,11 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
      */
     private fun showClearAllDialog() {
         val act = activity ?: return
-        QMUIDialog.MessageDialogBuilder(act)
+        WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.string_143)
             .setMessage(R.string.clear_browse_history_message)
-            .setSkinManager(QMUISkinManager.defaultInstance(act))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.string_141, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     withContext(Dispatchers.IO) {
                         val db = AppDatabase.getAppDatabase(act)

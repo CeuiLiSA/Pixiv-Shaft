@@ -12,6 +12,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentSettingsHubBinding
 import androidx.core.content.ContextCompat
 import ceui.lisa.utils.Common
+import ceui.pixiv.witstudio.theme.WitRowStyle
 
 /**
  * 设置主页（两级设置的第一级）：MD3-E 分类列表 + 全量设置项搜索。
@@ -27,7 +28,7 @@ class FragmentSettingsHub : BaseFragment<FragmentSettingsHubBinding>() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
 
         // 搜索胶囊底色跟随主题色（同分类行的隐约 tint）
-        val palette = ceui.lisa.utils.V3Palette.from(mContext)
+        val palette = ceui.pixiv.witstudio.theme.V3Palette.from(mContext)
         (baseBind.searchBar.background.mutate() as? android.graphics.drawable.GradientDrawable)
             ?.setColor(palette.cardFill)
 
@@ -74,7 +75,7 @@ class FragmentSettingsHub : BaseFragment<FragmentSettingsHubBinding>() {
         val inflater = LayoutInflater.from(mContext)
         val categories = SettingsCatalog.categories
         // icon 圆底也联动主题色：在行底 cardFill 上再混入一截 primary，比行底稍显色
-        val palette = ceui.lisa.utils.V3Palette.from(mContext)
+        val palette = ceui.pixiv.witstudio.theme.V3Palette.from(mContext)
         val iconCircle = androidx.core.graphics.ColorUtils.blendARGB(
             palette.cardFill, palette.primary, if (palette.isDark) 0.16f else 0.14f)
         categories.forEachIndexed { index, category ->
@@ -140,14 +141,8 @@ class FragmentSettingsHub : BaseFragment<FragmentSettingsHubBinding>() {
         }
     }
 
-    private fun backgroundFor(index: Int, total: Int): Int {
-        return when {
-            total == 1 -> R.drawable.bg_m3_row_single
-            index == 0 -> R.drawable.bg_m3_row_top
-            index == total - 1 -> R.drawable.bg_m3_row_bottom
-            else -> R.drawable.bg_m3_row_mid
-        }
-    }
+    private fun backgroundFor(index: Int, total: Int): Int =
+        WitRowStyle.rowBackground(index, total)
 
     companion object {
         private const val MAX_RESULTS = 30

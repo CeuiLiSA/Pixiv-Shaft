@@ -21,10 +21,9 @@ import ceui.pixiv.ui.common.UserFeedFragment
 import ceui.pixiv.ui.common.UserFeedItem
 import ceui.pixiv.ui.common.toUserFeedItems
 import ceui.pixiv.ui.common.setUpToolbar
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.dialog.WitTipDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -141,8 +140,7 @@ class FollowUserFeedFragment : UserFeedFragment() {
         if (view == null) return
         val activity = activity ?: return
         if (!activity.isAlive()) return
-        val loading = QMUITipDialog.Builder(activity)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val loading = WitTipDialog.Builder(activity)
             .setTipWord(getString(R.string.user_jump_loading))
             .create()
         loading.show()
@@ -170,13 +168,12 @@ class FollowUserFeedFragment : UserFeedFragment() {
     }
 
     private fun showPagePicker(activity: Activity, totalPages: Int) {
-        val builder = QMUIDialog.EditTextDialogBuilder(activity)
+        val builder = WitDialog.EditTextDialogBuilder(activity)
         builder.setTitle(R.string.user_jump_page_dialog_title)
             .setPlaceholder(getString(R.string.user_jump_page_hint, totalPages))
             .setInputType(InputType.TYPE_CLASS_NUMBER)
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
-            .addAction(R.string.sure, QMUIDialogAction.ActionListener { dialog, _ ->
+            .addAction(R.string.sure, WitDialogAction.ActionListener { dialog, _ ->
                 val page = builder.editText.text?.toString()?.trim()?.toIntOrNull()
                 // 越界不关窗，让用户直接改（对齐 legacy showPagePicker）
                 if (page == null || page < 1 || page > totalPages) {

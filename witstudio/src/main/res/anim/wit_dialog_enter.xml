@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 弹窗入场：从中心 92% 弹到 100% + 淡入。给 windowAnimationStyle 用。 -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/decelerate_interpolator">
+    <scale
+        android:duration="180"
+        android:fromXScale="0.92"
+        android:fromYScale="0.92"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:toXScale="1.0"
+        android:toYScale="1.0" />
+    <alpha
+        android:duration="150"
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0" />
+</set>

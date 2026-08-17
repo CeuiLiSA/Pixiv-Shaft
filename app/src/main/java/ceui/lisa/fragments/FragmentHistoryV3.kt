@@ -18,13 +18,12 @@ import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.FragmentHistoryV3Binding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.ObjectPool
 import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -253,15 +252,14 @@ class FragmentHistoryV3 : Fragment() {
 
     private fun showDeleteDialog(position: Int, entity: IllustHistoryEntity) {
         val activity = activity ?: return
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(getString(R.string.string_143))
             .setMessage(getString(R.string.string_352))
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
             .addAction(getString(R.string.string_142)) { dialog, _ -> dialog.dismiss() }
             .addAction(
                 0,
                 getString(R.string.string_141),
-                QMUIDialogAction.ACTION_PROP_NEGATIVE
+                WitDialogAction.ACTION_PROP_NEGATIVE
             ) { dialog, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     withContext(Dispatchers.IO) {
@@ -292,15 +290,14 @@ class FragmentHistoryV3 : Fragment() {
             Common.showToast(getString(R.string.string_254))
             return
         }
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(getString(R.string.string_143))
             .setMessage(getString(R.string.string_255))
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
             .addAction(getString(R.string.string_142)) { dialog, _ -> dialog.dismiss() }
             .addAction(
                 0,
                 getString(R.string.string_141),
-                QMUIDialogAction.ACTION_PROP_NEGATIVE
+                WitDialogAction.ACTION_PROP_NEGATIVE
             ) { dialog, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     withContext(Dispatchers.IO) {

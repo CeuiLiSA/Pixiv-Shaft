@@ -2098,6 +2098,13 @@
     <string name="v3_tag_menu_unmute">取消屏蔽此 tag</string>
 
     <string name="experimental_section">试验性</string>
+    <!--
+      弹窗画廊：剥离 QMUI 期间的临时对拍工具，debug 包专用，phase 7 删除。
+      translatable="false" 不是偷懒 —— 这三条只在 debug 包出现，翻不翻都不会有用户看到，
+      而漏翻会让 MissingTranslation 卡住 lintGithubDebug（abortOnError=true）。
+    -->
+    <string name="wit_gallery_title" translatable="false">wit studio 弹窗画廊</string>
+    <string name="wit_gallery_desc" translatable="false">调试用：逐一打开每种弹窗形态，验日夜与主题色</string>
     <string name="site_recommend">本月收藏</string>
     <string name="current_hot">当前最热</string>
     <string name="artist_rank">画师榜</string>

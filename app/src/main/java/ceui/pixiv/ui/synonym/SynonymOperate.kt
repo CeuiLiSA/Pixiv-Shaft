@@ -18,18 +18,17 @@ import ceui.lisa.utils.Common
 import ceui.pixiv.db.synonym.SynonymDao
 import ceui.pixiv.db.synonym.SynonymTagEntity
 import ceui.pixiv.db.synonym.SynonymTargetEntity
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogView
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogView
 import java.util.concurrent.Executors
 
 /**
  * 同义词词典共享操作弹窗（issue #904）。
  *
- * 所有入口（3 个插画详情页 / 小说页 / 匹配框 / 管理页）共用这一套 QMUIDialog 流程，
+ * 所有入口（3 个插画详情页 / 小说页 / 匹配框 / 管理页）共用这一套 WitDialog 流程，
  * 保证不同详情页实现之间行为一致（用户设置必须全局适配原则）。
  *
- * 弹窗一律挂 [QMUISkinManager.defaultInstance] 跟随日夜皮肤。
+ * 日夜由 witstudio 自带的 values-night 处理，弹窗侧不需要挂任何皮肤管理器。
  * DB 写入后由 Room LiveData 驱动各处 UI 自动刷新，不需要手动回调链。
  *
  * 线程模型：全表级查询（getRecentTargets）放 [dbExecutor]；单目标索引查询（getTargetByName /
@@ -47,9 +46,6 @@ object SynonymOperate {
 
     private fun dao(context: Context): SynonymDao =
         AppDatabase.getAppDatabase(context).synonymDao()
-
-    private fun skin(context: Context): QMUISkinManager =
-        QMUISkinManager.defaultInstance(context)
 
     /** 后台查询回主线程弹窗前，确认宿主 Activity 还活着（避免 BadTokenException）。
      *  view 的 context 可能是 ContextThemeWrapper，要沿 wrapper 链找到底层 Activity 再判活。 */
@@ -107,8 +103,7 @@ object SynonymOperate {
         targets.forEach { labels.add(it.name) }
         labels.add(context.getString(R.string.synonym_pick_target_by_name))
 
-        QMUIDialog.MenuDialogBuilder(context)
-            .setSkinManager(skin(context))
+        WitDialog.MenuDialogBuilder(context)
             .addItems(labels.toTypedArray()) { dialog, which ->
                 dialog.dismiss()
                 when (which) {
@@ -137,9 +132,8 @@ object SynonymOperate {
         translatedName: String?,
         onDone: (() -> Unit)?,
     ) {
-        val builder = QMUIDialog.EditTextDialogBuilder(context)
+        val builder = WitDialog.EditTextDialogBuilder(context)
         builder.setTitle(R.string.synonym_pick_target_by_name)
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_new_target_hint))
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
@@ -169,9 +163,8 @@ object SynonymOperate {
         context: Context,
         onCreated: ((SynonymTargetEntity) -> Unit)? = null,
     ) {
-        val builder = QMUIDialog.EditTextDialogBuilder(context)
+        val builder = WitDialog.EditTextDialogBuilder(context)
         builder.setTitle(R.string.synonym_new_target)
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_new_target_hint))
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
@@ -200,9 +193,8 @@ object SynonymOperate {
     /** 重命名目标标签。重命名为已存在的目标标签名 → 合并两者（issue #905） */
     @JvmStatic
     fun showRenameTargetDialog(context: Context, target: SynonymTargetEntity) {
-        val builder = QMUIDialog.EditTextDialogBuilder(context)
+        val builder = WitDialog.EditTextDialogBuilder(context)
         builder.setTitle(context.getString(R.string.synonym_rename_target_title, target.name))
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_new_target_hint))
             .setDefaultText(target.name)
             .setInputType(InputType.TYPE_CLASS_TEXT)
@@ -239,9 +231,8 @@ object SynonymOperate {
         target: SynonymTargetEntity,
         newName: String,
     ) {
-        QMUIDialog.MessageDialogBuilder(context)
+        WitDialog.MessageDialogBuilder(context)
             .setTitle(target.name)
-            .setSkinManager(skin(context))
             .setMessage(context.getString(R.string.synonym_rename_target_confirm, target.name, newName))
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
             .addAction(context.getString(R.string.sure)) { dialog, _ ->
@@ -259,9 +250,8 @@ object SynonymOperate {
         source: SynonymTargetEntity,
         dest: SynonymTargetEntity,
     ) {
-        QMUIDialog.MessageDialogBuilder(context)
+        WitDialog.MessageDialogBuilder(context)
             .setTitle(source.name + " → " + dest.name)
-            .setSkinManager(skin(context))
             .setMessage(context.getString(R.string.synonym_merge_confirm, dest.name, source.name))
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
             .addAction(context.getString(R.string.synonym_merge)) { dialog, _ ->
@@ -312,9 +302,8 @@ object SynonymOperate {
     /** 删除目标标签（issue：删除要有二次确认；不同步删除用户已收藏的标签） */
     @JvmStatic
     fun showDeleteTargetDialog(context: Context, target: SynonymTargetEntity, synonymCount: Int) {
-        QMUIDialog.MessageDialogBuilder(context)
+        WitDialog.MessageDialogBuilder(context)
             .setTitle(target.name)
-            .setSkinManager(skin(context))
             .setMessage(
                 context.getString(R.string.synonym_delete_target_confirm, target.name, synonymCount)
             )
@@ -338,8 +327,7 @@ object SynonymOperate {
             context.getString(R.string.synonym_delete),
             context.getString(R.string.synonym_new_target),
         )
-        QMUIDialog.MenuDialogBuilder(context)
-            .setSkinManager(skin(context))
+        WitDialog.MenuDialogBuilder(context)
             .addItems(labels) { dialog, which ->
                 dialog.dismiss()
                 when (which) {
@@ -360,9 +348,8 @@ object SynonymOperate {
     /** 给指定目标手动添加同义词（先输名字，再输备注，两步 EditTextDialog） */
     @JvmStatic
     fun showAddSynonymToTargetDialog(context: Context, target: SynonymTargetEntity) {
-        val nameBuilder = QMUIDialog.EditTextDialogBuilder(context)
+        val nameBuilder = WitDialog.EditTextDialogBuilder(context)
         nameBuilder.setTitle(R.string.synonym_add_synonym)
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_synonym_name_hint))
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
@@ -374,9 +361,8 @@ object SynonymOperate {
                 }
                 dialog.dismiss()
                 // 第二步：备注（可空，留空 = 无备注）。「取消」是真取消，整个添加操作中止。
-                val remarkBuilder = QMUIDialog.EditTextDialogBuilder(context)
+                val remarkBuilder = WitDialog.EditTextDialogBuilder(context)
                 remarkBuilder.setTitle(name)
-                    .setSkinManager(skin(context))
                     .setPlaceholder(context.getString(R.string.synonym_remark_hint))
                     .setInputType(InputType.TYPE_CLASS_TEXT)
                     .addAction(context.getString(R.string.cancel)) { d2, _ -> d2.dismiss() }
@@ -435,8 +421,7 @@ object SynonymOperate {
         labels.add(context.getString(R.string.synonym_delete))
         actions.add { showDeleteSynonymDialog(context, synonym) }
 
-        QMUIDialog.MenuDialogBuilder(context)
-            .setSkinManager(skin(context))
+        WitDialog.MenuDialogBuilder(context)
             .addItems(labels.toTypedArray()) { dialog, which ->
                 dialog.dismiss()
                 actions[which].invoke()
@@ -458,8 +443,7 @@ object SynonymOperate {
                 val labels = ArrayList<String>(targets.size + 1)
                 targets.forEach { labels.add(it.name) }
                 labels.add(context.getString(R.string.synonym_pick_target_by_name))
-                QMUIDialog.MenuDialogBuilder(context)
-                    .setSkinManager(skin(context))
+                WitDialog.MenuDialogBuilder(context)
                     .addItems(labels.toTypedArray()) { dialog, which ->
                         dialog.dismiss()
                         if (which == labels.size - 1) {
@@ -475,9 +459,8 @@ object SynonymOperate {
 
     /** 手动输入目标标签名移动（不在最近列表里的旧目标） */
     private fun showMoveSynonymByNameDialog(context: Context, synonym: SynonymTagEntity) {
-        val builder = QMUIDialog.EditTextDialogBuilder(context)
+        val builder = WitDialog.EditTextDialogBuilder(context)
         builder.setTitle(R.string.synonym_pick_target_by_name)
-            .setSkinManager(skin(context))
             .setPlaceholder(context.getString(R.string.synonym_new_target_hint))
             .setInputType(InputType.TYPE_CLASS_TEXT)
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
@@ -557,13 +540,12 @@ object SynonymOperate {
         container.addView(label(R.string.synonym_field_remark, 12))
         container.addView(remarkEdit)
 
-        object : QMUIDialog.CustomDialogBuilder(context) {
-            override fun onCreateContent(dialog: QMUIDialog, parent: QMUIDialogView, ctx: Context): View {
+        object : WitDialog.CustomDialogBuilder(context) {
+            override fun onCreateContent(dialog: WitDialog, parent: WitDialogView, ctx: Context): View {
                 return container
             }
         }
             .setTitle(context.getString(R.string.synonym_edit_synonym_title))
-            .setSkinManager(skin(context))
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
             .addAction(context.getString(R.string.sure)) { dialog, _ ->
                 val newName = nameEdit.text?.toString()?.trim().orEmpty()
@@ -583,9 +565,8 @@ object SynonymOperate {
     /** 删除同义词（二次确认） */
     @JvmStatic
     fun showDeleteSynonymDialog(context: Context, synonym: SynonymTagEntity) {
-        QMUIDialog.MessageDialogBuilder(context)
+        WitDialog.MessageDialogBuilder(context)
             .setTitle(synonym.name)
-            .setSkinManager(skin(context))
             .setMessage(context.getString(R.string.synonym_delete_synonym_confirm, synonym.name))
             .addAction(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
             .addAction(context.getString(R.string.synonym_delete)) { dialog, _ ->
@@ -643,9 +624,8 @@ object SynonymOperate {
             .firstOrNull { it.targetId != target.id }
         if (usedElsewhere != null) {
             val otherTarget = dao.getTargetById(usedElsewhere.targetId)
-            QMUIDialog.MessageDialogBuilder(context)
+            WitDialog.MessageDialogBuilder(context)
                 .setTitle(name)
-                .setSkinManager(skin(context))
                 .setMessage(
                     context.getString(
                         R.string.synonym_in_other_target_confirm,

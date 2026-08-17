@@ -8,7 +8,7 @@ import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedItem

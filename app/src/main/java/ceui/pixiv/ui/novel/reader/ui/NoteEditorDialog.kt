@@ -13,9 +13,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogView
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialogView
 
 interface NoteEditorCallback {
     fun onNoteSaved(annotationId: Long, charStart: Int, charEnd: Int, excerpt: String, noteText: String, color: Int)
@@ -66,8 +66,8 @@ class NoteEditorDialog : DialogFragment() {
 
         val callback = parentFragment as? NoteEditorCallback
 
-        val builder = object : QMUIDialog.CustomDialogBuilder(ctx) {
-            override fun onCreateContent(dialog: QMUIDialog, parent: QMUIDialogView, context: Context): View {
+        val builder = object : WitDialog.CustomDialogBuilder(ctx) {
+            override fun onCreateContent(dialog: WitDialog, parent: WitDialogView, context: Context): View {
                 return container
             }
         }
@@ -75,7 +75,7 @@ class NoteEditorDialog : DialogFragment() {
             .addAction(ceui.lisa.R.string.action_cancel) { d, _ -> d.dismiss() }
 
         if (showDelete) {
-            builder.addAction(0, ceui.lisa.R.string.action_delete, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            builder.addAction(0, ceui.lisa.R.string.action_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 callback?.onNoteDeleted(annotationId)
             }

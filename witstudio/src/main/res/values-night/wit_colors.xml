@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  wit studio 基础色 token —— 深色模式。
+
+  必须和 values/wit_colors.xml **逐条一一对应**：少一条，那个 token 在夜间就悄悄退回浅色值，
+  而这种漏配不会有任何编译期报错。加新 token 时两个文件一起改。
+
+  这一份是 mockup/user_detail_v3.html CSS :root 的直接转写（那份 mockup 本身是 dark-first）。
+-->
+<resources>
+
+    <!-- ── 底与面 ────────────────────────────────────────────────── -->
+    <color name="wit_bg">#08080C</color>
+    <color name="wit_surface_1">#08FFFFFF</color>
+    <color name="wit_surface_2">#0EFFFFFF</color>
+    <color name="wit_surface_3">#14FFFFFF</color>
+    <color name="wit_menu_bg">#1A1A2E</color>
+    <color name="wit_glass_card">#F21D1D26</color>
+
+    <!-- ── 描边与轨道 ────────────────────────────────────────────── -->
+    <color name="wit_border_1">#0AFFFFFF</color>
+    <color name="wit_border_2">#0FFFFFFF</color>
+    <color name="wit_progress_track">#40FFFFFF</color>
+
+    <!-- ── 文字三档 ──────────────────────────────────────────────── -->
+    <color name="wit_text_1">#F4F4F8</color>
+    <color name="wit_text_2">#9EF4F4F8</color>
+    <color name="wit_text_3">#5CF4F4F8</color>
+
+    <!-- ── 语义色 ────────────────────────────────────────────────── -->
+    <color name="wit_danger">#FF6369</color>
+    <color name="wit_pink">#FF2D78</color>
+    <color name="wit_gold">#FFC233</color>
+    <color name="wit_blue">#3D8BFD</color>
+    <color name="wit_green">#2DD4A8</color>
+    <color name="wit_purple">#9F7AEA</color>
+    <color name="wit_orange">#FF6F3C</color>
+
+    <color name="wit_ambient_primary">#7C6BC4</color>
+
+</resources>

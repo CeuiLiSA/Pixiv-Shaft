@@ -13,9 +13,8 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.updatePadding
 import com.blankj.utilcode.util.BarUtils
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -190,15 +189,14 @@ class EmailBackupV3Fragment : Fragment() {
         }
     }
 
-    /** 解绑二次确认：QMUIDialog，「解绑」按钮红色 (ACTION_PROP_NEGATIVE)。 */
+    /** 解绑二次确认：WitDialog，「解绑」按钮红色 (ACTION_PROP_NEGATIVE)。 */
     private fun showUnbindConfirm() {
         val act = activity ?: return
-        QMUIDialog.MessageDialogBuilder(act)
+        WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.email_backup_unbind)
             .setMessage(R.string.email_backup_unbind_confirm)
-            .setSkinManager(QMUISkinManager.defaultInstance(act))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.email_backup_unbind, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.email_backup_unbind, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 viewModel.unbind()
             }

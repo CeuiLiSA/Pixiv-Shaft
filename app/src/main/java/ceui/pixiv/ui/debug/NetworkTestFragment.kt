@@ -26,8 +26,7 @@ import ceui.lisa.http.ImageHostManager
 import ceui.lisa.utils.Common
 import ceui.loxia.hideKeyboard
 import com.blankj.utilcode.util.BarUtils
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.launch
 
 /**
@@ -402,10 +401,9 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
 
     private fun showPollutionDialog(alert: NetworkAlert) {
         val act = activity ?: return
-        QMUIDialog.MessageDialogBuilder(act)
+        WitDialog.MessageDialogBuilder(act)
             .setTitle(alert.titleRes)
             .setMessage(alert.message)
-            .setSkinManager(QMUISkinManager.defaultInstance(act))
             .addAction(R.string.network_test_pollution_dialog_action) { d, _ -> d.dismiss() }
             .show()
     }

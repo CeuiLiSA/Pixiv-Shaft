@@ -30,9 +30,8 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.BarUtils
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -128,13 +127,12 @@ class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
     private fun onClickDeletePinnedTag(entity: SearchEntity) {
         val ctx = context ?: return
         val displayName = entity.keyword.orEmpty()
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(getString(R.string.unpin_tag_confirm_message, displayName))
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
-            .addAction(0, R.string.string_443, QMUIDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
-                // Fragment 自身的 lifecycleScope,不是 viewLifecycleOwner 的:QMUIDialog 挂在
+            .addAction(0, R.string.string_443, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+                // Fragment 自身的 lifecycleScope,不是 viewLifecycleOwner 的:WitDialog 挂在
                 // Activity context 上,不受 Fragment 视图生命周期约束,视图已销毁(切后台被回收/
                 // 旋转)时用户才点确认,访问 viewLifecycleOwner 会直接抛 ISE 崩溃。
                 lifecycleScope.launch {
@@ -151,12 +149,11 @@ class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
 
     private fun showClearAllDialog() {
         val ctx = context ?: return
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(R.string.clear_pinned_tags_msg)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
-            .addAction(0, R.string.string_141, QMUIDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+            .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 lifecycleScope.launch {
                     withContext(Dispatchers.IO) { searchDao().deleteAllPinned() }
                     feedViewModel.refresh()

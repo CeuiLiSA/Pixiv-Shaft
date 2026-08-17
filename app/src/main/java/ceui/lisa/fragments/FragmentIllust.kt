@@ -72,9 +72,8 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.CheckableDialogBuilder
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitDialog.CheckableDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
 import kotlinx.coroutines.Dispatchers
@@ -460,7 +459,6 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             val isPinned = searchEntity != null && searchEntity.isPinned
             val tagMenuBuilder = MessageDialogBuilder(mContext)
                 .setTitle(tagName)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                 .addAction(if (isPinned) getString(R.string.string_443) else getString(R.string.string_442)) { dialog, index ->
                     val nextPinned = !isPinned
                     val previewJson =
@@ -652,7 +650,6 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 Params.IMAGE_RESOLUTION_SQUARE_MEDIUM
             )
             CheckableDialogBuilder(mContext)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                 .addItems(IMG_RESOLUTION_TITLE) { dialog, which ->
                     if (illust.page_count == 1) {
                         IllustDownload.downloadIllustFirstPageWithResolution(

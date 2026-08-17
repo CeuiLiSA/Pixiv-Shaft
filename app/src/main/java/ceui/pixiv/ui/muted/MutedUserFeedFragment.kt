@@ -31,9 +31,8 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -187,12 +186,11 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
     }
 
     private fun confirmDeleteAll(activity: android.app.Activity) {
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.string_216)
             .setMessage(R.string.string_389)
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
             .addAction(R.string.string_218) { dialog, _ -> dialog.dismiss() }
-            .addAction(0, R.string.string_219, QMUIDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+            .addAction(0, R.string.string_219, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
                 deleteAll()
             }

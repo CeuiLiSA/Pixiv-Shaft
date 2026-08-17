@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  多选弹窗的已选中方框：实心圆角矩形，勾用 evenOdd 挖成镂空，透出弹窗卡片底色。
+  只有一个 fillColor，所以运行时整体 tint 成主题色就能得到「主题色方块 + 卡片色勾」。
+  用镂空而不是「白勾」，是因为浅色主题档（如 Index4 亮黄）上白勾会看不见。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M6,3 L18,3 A3,3 0 0 1 21,6 L21,18 A3,3 0 0 1 18,21 L6,21 A3,3 0 0 1 3,18 L3,6 A3,3 0 0 1 6,3 Z M10.4,16.8 L6.2,12.6 7.6,11.2 10.4,14 16.4,8 17.8,9.4 Z" />
+</vector>

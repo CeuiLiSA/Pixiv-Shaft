@@ -3,9 +3,8 @@ package ceui.pixiv.ui.recommend
 import android.app.Activity
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import timber.log.Timber
 
 /**
@@ -42,14 +41,13 @@ object SensitiveContentGate {
         activity.runOnUiThread {
             if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
             try {
-                QMUIDialog.MessageDialogBuilder(activity)
+                WitDialog.MessageDialogBuilder(activity)
                     .setTitle(R.string.sensitive_gate_title)
                     .setMessage(R.string.sensitive_gate_message)
-                    .setSkinManager(QMUISkinManager.defaultInstance(activity))
-                    .addAction(0, activity.getString(R.string.sensitive_gate_cancel), QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
+                    .addAction(0, activity.getString(R.string.sensitive_gate_cancel), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
                         d.dismiss()
                     }
-                    .addAction(0, activity.getString(R.string.sensitive_gate_proceed), QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                    .addAction(0, activity.getString(R.string.sensitive_gate_proceed), WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                         Shaft.sPreferences?.edit()?.putBoolean(PREF_KEY_ACKED, true)?.apply()
                         d.dismiss()
                         onProceed.run()

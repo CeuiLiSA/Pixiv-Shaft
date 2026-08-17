@@ -16,11 +16,10 @@ import ceui.pixiv.download.importer.DownloadImporter
 import ceui.pixiv.download.importer.ImportMetadataEnricher
 import ceui.pixiv.download.importer.PageBase
 import ceui.pixiv.ui.bulk.FetchProgressDialog
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogView
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialogView
+import ceui.pixiv.witstudio.dialog.WitTipDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -48,10 +47,9 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
     /** 第一步：先把"要干什么、不会干什么"讲清楚，再弹系统选择器。 */
     fun start(onPick: (Intent) -> Unit) {
         val ctx = host.context ?: return
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.dlmgr_import_title)
             .setMessage(R.string.dlmgr_import_intro)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.dlmgr_import_pick_folder) { d, _ ->
                 d.dismiss()
@@ -102,8 +100,8 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
             setTextColor(ContextCompat.getColor(ctx, R.color.rank_text_color))
             text = host.getString(R.string.dlmgr_import_scanning_start)
         }
-        val progressDialog = object : QMUIDialog.CustomDialogBuilder(ctx) {
-            override fun onCreateContent(dialog: QMUIDialog, parent: QMUIDialogView, c: Context): View =
+        val progressDialog = object : WitDialog.CustomDialogBuilder(ctx) {
+            override fun onCreateContent(dialog: WitDialog, parent: WitDialogView, c: Context): View =
                 LinearLayout(c).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(dp(c, 24), dp(c, 8), dp(c, 24), dp(c, 8))
@@ -111,7 +109,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
                 }
         }
             .setTitle(host.getString(R.string.dlmgr_import_scanning_title))
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
             .addAction(host.getString(R.string.cancel)) { d, _ ->
                 scanJob?.cancel()
                 d.dismiss()
@@ -160,19 +157,17 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
     private fun showPreview(plan: DownloadImporter.ImportPlan) {
         val ctx = host.context ?: return
         if (plan.newRows == 0) {
-            QMUIDialog.MessageDialogBuilder(ctx)
+            WitDialog.MessageDialogBuilder(ctx)
                 .setTitle(R.string.dlmgr_import_title)
                 .setMessage(emptyReason(plan))
-                .setSkinManager(QMUISkinManager.defaultInstance(ctx))
                 .addAction(R.string.sure) { d, _ -> d.dismiss() }
                 .create()
                 .show()
             return
         }
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.dlmgr_import_preview_title)
             .setMessage(previewText(plan))
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.dlmgr_import_confirm) { d, _ ->
                 d.dismiss()
@@ -194,7 +189,7 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
             return
         }
         val ctx = host.context ?: return
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.dlmgr_import_page_base_title)
             .setMessage(
                 host.getString(
@@ -202,7 +197,6 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
                     plan.ambiguousPageRows,
                 ),
             )
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.dlmgr_import_page_base_zero) { d, _ ->
                 d.dismiss()
@@ -211,7 +205,7 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
             .addAction(
                 0,
                 R.string.dlmgr_import_page_base_one,
-                QMUIDialogAction.ACTION_PROP_POSITIVE,
+                WitDialogAction.ACTION_PROP_POSITIVE,
             ) { d, _ ->
                 d.dismiss()
                 commit(plan.resolveAmbiguousPages(PageBase.ONE))
@@ -245,8 +239,7 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
 
     private fun commit(plan: DownloadImporter.ImportPlan) {
         val ctx = host.context ?: return
-        val writing = QMUITipDialog.Builder(ctx)
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        val writing = WitTipDialog.Builder(ctx)
             .setTipWord(host.getString(R.string.dlmgr_import_writing))
             .create()
         writing.show()
@@ -272,15 +265,14 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
     private fun showDone(result: DownloadImporter.ImportResult) {
         val ctx = host.context ?: return
         val pending = ImportMetadataEnricher.pendingCount()
-        val builder = QMUIDialog.MessageDialogBuilder(ctx)
+        val builder = WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.dlmgr_import_done_title)
             .setMessage(
                 host.getString(R.string.dlmgr_import_done_message, result.works, result.inserted),
             )
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
         if (pending > 0) {
             builder.addAction(R.string.dlmgr_import_enrich_later) { d, _ -> d.dismiss() }
-            builder.addAction(0, R.string.dlmgr_import_enrich_now, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+            builder.addAction(0, R.string.dlmgr_import_enrich_now, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
                 confirmEnrich(pending)
             }
@@ -299,10 +291,9 @@ class ImportLocalDownloadsFlow(private val host: Fragment) {
     private fun confirmEnrich(pending: Int) {
         val ctx = host.context ?: return
         val minutes = ((pending * 2L) / 60L).coerceAtLeast(1L)
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.dlmgr_import_enrich_now)
             .setMessage(host.getString(R.string.dlmgr_import_enrich_message, pending, minutes))
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(R.string.sure) { d, _ ->
                 d.dismiss()

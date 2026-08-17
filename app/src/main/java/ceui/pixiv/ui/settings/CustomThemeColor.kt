@@ -16,7 +16,7 @@ import com.google.android.material.color.ShaftColorResourcesLoader
  *
  * ## 它是怎么落到界面上的
  *
- * 主题色的唯一权威是 `?attr/colorPrimary`（全仓 200+ 处 XML 直接引它，[ceui.lisa.utils.V3Palette]
+ * 主题色的唯一权威是 `?attr/colorPrimary`（全仓 200+ 处 XML 直接引它，[ceui.pixiv.witstudio.theme.V3Palette]
  * 整套派生色也是从这个 attr 解出来的）。theme attr 的值编译期就烤进 `AppTheme.IndexN` 了，
  * 运行时改不了 —— 所以自定义色走这条路：
  *

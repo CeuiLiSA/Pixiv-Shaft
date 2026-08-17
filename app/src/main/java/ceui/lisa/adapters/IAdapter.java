@@ -20,9 +20,9 @@ import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.target.Target;
-import com.qmuiteam.qmui.util.QMUIDisplayHelper;
-import com.qmuiteam.qmui.widget.popup.QMUIPopup;
-import com.qmuiteam.qmui.widget.popup.QMUIPopups;
+import ceui.pixiv.witstudio.theme.WitDisplay;
+import ceui.pixiv.witstudio.popup.WitPopup;
+import ceui.pixiv.witstudio.popup.WitPopups;
 
 import java.util.List;
 import java.util.Locale;
@@ -248,17 +248,17 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 IllustsBean illust = allItems.get(position);
                 View popView = View.inflate(mContext, R.layout.pop_window_2, null);
 
-                QMUIPopup mNormalPopup = QMUIPopups.popup(mContext)
-                        .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
+                WitPopup mNormalPopup = WitPopups.popup(mContext)
+                        .preferredDirection(WitPopup.DIRECTION_BOTTOM)
                         .view(popView)
                         .dimAmount(0.5f)
-                        .edgeProtection(QMUIDisplayHelper.dp2px(mContext, 20))
-                        .offsetX(QMUIDisplayHelper.dp2px(mContext, 20))
-                        .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
+                        .edgeProtection(WitDisplay.dp2px(mContext, 20))
+                        .offsetX(WitDisplay.dp2px(mContext, 20))
+                        .offsetYIfBottom(WitDisplay.dp2px(mContext, 5))
                         .shadow(true)
                         .arrow(true)
                         .bgColor(mContext.getResources().getColor(R.color.fragment_center))
-                        .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
+                        .animStyle(WitPopup.ANIM_GROW_FROM_RIGHT)
                         .onDismiss(new PopupWindow.OnDismissListener() {
                             @Override
                             public void onDismiss() {

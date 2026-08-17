@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  wit studio 基础色 token —— 浅色模式（夜间见 values-night/wit_colors.xml，两边必须一一对应）。
+
+  这些值源自 mockup/user_detail_v3.html 的 CSS :root，是 V3 设计语言的**唯一权威**。
+  :app 里原来的 v3_* 同名资源已改成指向这里的引用别名（见 app/src/main/res/values/wit_aliases.xml
+  与 colors.xml 的 V3 区块），所以约 800 处 XML `@color/v3_*` 和 191 处代码 `R.color.v3_*` 不用改。
+
+  只放**基础** token：底、面、文字、描边、六个语义色。页面语义色（v3_stat_* / v3_hero_gradient_* /
+  v3_premium_gold_* / v3_skeleton_* 等）留在 :app —— 通用 UI 库没道理知道什么叫「premium gold」。
+
+  ⚠️ 这里不放任何强调色。强调色一律由 V3Palette 从 ?attr/colorPrimary 运行时派生，
+  否则十档主题预设 + 自定义 HEX 会立刻穿帮。
+-->
+<resources>
+
+    <!-- ── 底与面 ────────────────────────────────────────────────── -->
+    <color name="wit_bg">#FAFAFA</color>
+    <color name="wit_surface_1">#08000000</color>
+    <color name="wit_surface_2">#0E000000</color>
+    <color name="wit_surface_3">#14000000</color>
+    <!-- 弹窗 / 菜单 / 分段行的实底。比 wit_bg 略深一档，靠 hairline 再拉开层次。 -->
+    <color name="wit_menu_bg">#F5F5F5</color>
+    <!-- 评论毛玻璃卡片：近纯白 95%，浮在模糊+压暗的作品背景上仍保证深色文字可读 -->
+    <color name="wit_glass_card">#F2FFFFFF</color>
+
+    <!-- ── 描边与轨道 ────────────────────────────────────────────── -->
+    <!-- MD3-E 的层次不靠 elevation，靠 0.5dp hairline + 填充对比。border_2 是分段行用的那条。 -->
+    <color name="wit_border_1">#0A000000</color>
+    <color name="wit_border_2">#0F000000</color>
+    <!-- 进度条未完成段：比 wit_surface_2/3 对比更强，让夜间也能清楚看到 track -->
+    <color name="wit_progress_track">#22000000</color>
+
+    <!-- ── 文字三档 ──────────────────────────────────────────────── -->
+    <color name="wit_text_1">#1A1A2E</color>
+    <color name="wit_text_2">#991A1A2E</color>
+    <color name="wit_text_3">#551A1A2E</color>
+
+    <!-- ── 语义色 ────────────────────────────────────────────────── -->
+    <!-- 这几个是「语义」不是「强调」：危险=红、成功=绿，跟主题色无关，切主题不该变。 -->
+    <color name="wit_danger">#E5484D</color>
+    <color name="wit_pink">#E0246A</color>
+    <color name="wit_gold">#D4A020</color>
+    <color name="wit_blue">#2B6FCC</color>
+    <color name="wit_green">#1DA88A</color>
+    <color name="wit_purple">#7C5CC8</color>
+    <color name="wit_orange">#D45A30</color>
+
+    <!-- 环境光基色（banner / 卡片氛围渐变的起点）。 -->
+    <color name="wit_ambient_primary">#5B4CA0</color>
+
+</resources>

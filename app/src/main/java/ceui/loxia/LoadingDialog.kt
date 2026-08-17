@@ -4,14 +4,13 @@ import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
+import ceui.pixiv.witstudio.dialog.WitTipDialog
 
 class LoadingDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         isCancelable = false
-        return QMUITipDialog.Builder(requireContext())
-            .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+        return WitTipDialog.Builder(requireContext())
             .create()
     }
 

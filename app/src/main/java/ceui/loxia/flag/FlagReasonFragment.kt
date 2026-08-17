@@ -17,7 +17,7 @@ import ceui.lisa.databinding.CellFlagReasonHeaderBinding
 import ceui.lisa.databinding.CellFlagTopicRowBinding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.fragments.SettingsCatalog
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.Client
 import ceui.loxia.IllustReportTopic
 import ceui.pixiv.feeds.FeedFragment
@@ -31,6 +31,7 @@ import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.witstudio.theme.WitRowStyle
 
 /**
  * 举报第一步：选违规类型（feeds 框架版）。违规类型列表由服务端 /v1/illust/report/topic-list
@@ -127,7 +128,7 @@ class FlagReasonFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         ) { cell ->
             cell.binding.topicTitle.text = cell.item.topic.topic_title.orEmpty()
             cell.binding.topicRowRoot.setBackgroundResource(cell.item.backgroundRes)
-            // bg_m3_row_* 的 solid 是静态值(v3_menu_bg),不跟主题色走；关于页同款分段行都靠这行
+            // wit_row_* 的 solid 是静态值(wit_menu_bg),不跟主题色走；关于页同款分段行都靠这行
             // 在运行时把 ripple 里的 GradientDrawable 重染成 V3Palette.cardFill(真正带主题色调的)。
             SettingsCatalog.applyThemedRowBg(cell.binding.topicRowRoot)
         }
@@ -171,12 +172,8 @@ data class FlagTopicFeedItem(
 }
 
 @DrawableRes
-private fun flagRowBackgroundFor(index: Int, count: Int): Int = when {
-    count <= 1 -> R.drawable.bg_m3_row_single
-    index == 0 -> R.drawable.bg_m3_row_top
-    index == count - 1 -> R.drawable.bg_m3_row_bottom
-    else -> R.drawable.bg_m3_row_mid
-}
+private fun flagRowBackgroundFor(index: Int, count: Int): Int =
+    WitRowStyle.rowBackground(index, count)
 
 /**
  * 举报列表的横向留白：每条左右各 [horizontal]（对齐旧版 parent_linear 的 paddingHorizontal），

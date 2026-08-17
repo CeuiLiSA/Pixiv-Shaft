@@ -14,9 +14,8 @@ import ceui.lisa.utils.Local
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.PixivDialog
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 
 class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
 
@@ -88,14 +87,13 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
             Common.showToast(getString(R.string.string_rembg_model_long_press_to_delete))
             return
         }
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_rembg_model_delete_confirm_title)
             .setMessage(getString(R.string.string_rembg_model_delete_confirm_message, model.displayName))
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
-            .addAction(0, getString(R.string.string_cancel), QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
+            .addAction(0, getString(R.string.string_cancel), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
                 d.dismiss()
             }
-            .addAction(0, getString(R.string.string_rembg_model_delete), QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, getString(R.string.string_rembg_model_delete), WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 RembgModelManager.deleteModel(ctx, model)
                 updateModelStatus()
