@@ -30,7 +30,6 @@ import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentHistoryTabs;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.pixiv.ui.user.LikeUsersFeedFragment;
-import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.pixiv.ui.user.UserMangaSeriesFeedFragment;
 import ceui.lisa.fragments.FragmentMarkdown;
@@ -134,7 +133,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return getCommentsFragment(intent);
                 }
                 case "账号管理":
-                    return new FragmentLocalUsers();
+                    // V3 / MD3-E 重做版，替代 legacy FragmentLocalUsers（当前账号 hero 卡 +
+                    // 其他账号分段行 + 添加账号独行）
+                    return new ceui.pixiv.ui.account.AccountSwitchV3Fragment();
                 case "按标签筛选": {
                     return BookedTagFeedFragment.newInstance(intent.getIntExtra(Params.DATA_TYPE, 0), intent.getStringExtra(EXTRA_KEYWORD));
                 }

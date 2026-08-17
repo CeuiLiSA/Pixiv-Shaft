@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  账号管理页「其他账号」的一行（MD3-E 分段行）：头像 + 名字 / 账号名 + 登录时间 + ⋮。
+  背景（bg_m3_row_top / mid / bottom / single）按行在组内的位置由代码设置，并交给
+  SettingsCatalog.applyThemedRowBg 染上主题色底 + hairline，与设置页的行完全同款。
+  点行 = 切到该账号，点 ⋮ = 导出登录信息 / 复制账号名。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/account_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:background="@drawable/bg_m3_row_mid"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="76dp"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingEnd="6dp">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/row_avatar"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:scaleType="centerCrop" />
+
+        <FrameLayout
+            android:id="@+id/row_premium_badge"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/v3_premium_badge_bg"
+            android:elevation="2dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="★"
+                android:textColor="#1A1A2E"
+                android:textSize="7sp" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/row_name"
+            style="@style/textMontserratSemiBold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_1"
+            android:textSize="15sp"
+            tools:text="をこめ" />
+
+        <TextView
+            android:id="@+id/row_sub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_2"
+            android:textSize="12sp"
+            tools:text="\@wokome · wokome@example.com" />
+
+        <TextView
+            android:id="@+id/row_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/v3_text_3"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:text="登录于 2026-05-23"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/row_more"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/account_switch_actions"
+        android:padding="9dp"
+        android:src="@drawable/ic_more_vert_black_24dp"
+        app:tint="@color/v3_text_3" />
+
+</LinearLayout>

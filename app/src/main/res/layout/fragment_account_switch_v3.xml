@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  账号管理（V3 / MD3-Expressive），替代 legacy fragment_local_user.xml。
+  结构：当前账号 hero 卡（大头像 + 名字 + 徽章 + 邮箱/登录时间）→「其他账号」MD3-E
+  分段行组（点行即切号，⋮ 出操作菜单）→「添加账号」独行。
+
+  动态色（hero 卡底 / 描边 / 分节标签 / 徽章）由 AccountSwitchV3Fragment 用 V3Palette
+  注入，跟随 app 主题色；正文一律 v3_text_* 适配日夜。
+
+  Toolbar 刻意**不**写 fitsSystemWindows：宿主 TemplateActivity 走 EdgeToEdge 且
+  activity_fragment.xml 不处理 inset，由 Fragment 统一在根视图上派发——顶给 toolbar、
+  底给 scroll，避免「fitsSystemWindows 消费掉 insets 导致底部拿不到导航栏高度」。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/account_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
+
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/string_251"
+            android:textColor="@color/always_white"
+            android:textSize="18sp" />
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="28dp">
+
+            <!-- ── 当前账号 hero ────────────────────────────────────── -->
+            <LinearLayout
+                android:id="@+id/current_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="18dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/current_avatar"
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:scaleType="centerCrop"
+                            app:civ_border_color="?attr/colorPrimary"
+                            app:civ_border_width="2dp" />
+
+                        <FrameLayout
+                            android:id="@+id/current_premium_badge"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="bottom|end"
+                            android:layout_marginEnd="-1dp"
+                            android:layout_marginBottom="-1dp"
+                            android:background="@drawable/v3_premium_badge_bg"
+                            android:elevation="2dp"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="★"
+                                android:textColor="#1A1A2E"
+                                android:textSize="10sp" />
+                        </FrameLayout>
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/current_name"
+                            style="@style/textMontserratSemiBold"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:letterSpacing="-0.01"
+                            android:maxLines="1"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            tools:text="ひとはﾁｬﾝ" />
+
+                        <TextView
+                            android:id="@+id/current_handle"
+                            style="@style/textMontserratMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textColor="@color/v3_text_3"
+                            android:textSize="12sp"
+                            tools:text="\@hitohachan" />
+                    </LinearLayout>
+
+                    <ImageButton
+                        android:id="@+id/current_more"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="4dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/account_switch_actions"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_more_vert_black_24dp"
+                        app:tint="@color/v3_text_3" />
+                </LinearLayout>
+
+                <!-- 徽章行：当前使用中 / Premium，底色与文字色由 V3Palette 注入 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/badge_current"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="11dp"
+                        android:paddingVertical="5dp"
+                        android:text="@string/account_switch_current_badge"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/badge_premium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:paddingHorizontal="11dp"
+                        android:paddingVertical="5dp"
+                        android:text="@string/account_switch_premium"
+                        android:textColor="@color/v3_gold"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/current_mail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="12sp"
+                    tools:text="hito@example.com" />
+
+                <TextView
+                    android:id="@+id/current_login_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:text="登录于 2026-05-23"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
+
+            <!-- ── 其他账号 ─────────────────────────────────────────── -->
+            <LinearLayout
+                android:id="@+id/others_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="6dp"
+                android:gravity="bottom"
+                android:orientation="horizontal"
+                android:paddingHorizontal="6dp">
+
+                <TextView
+                    android:id="@+id/others_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/account_switch_others"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/others_hint"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/account_switch_others_hint"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- 分段行组：AccountSwitchV3Fragment 逐条 inflate item_account_switch_row_v3 -->
+            <LinearLayout
+                android:id="@+id/others_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/others_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_m3_row_single"
+                android:gravity="center"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="22dp"
+                android:text="@string/account_switch_only_one"
+                android:textColor="@color/v3_text_3"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- ── 添加账号 ─────────────────────────────────────────── -->
+            <LinearLayout
+                android:id="@+id/add_account_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_m3_row_single"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="72dp"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="16dp">
+
+                <FrameLayout
+                    android:id="@+id/add_icon_wrap"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@drawable/bg_m3_icon_circle">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v3_person_add_24"
+                        app:tint="?attr/colorPrimary" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginEnd="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/add_account"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="@string/account_switch_add_desc"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_arrow_right" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

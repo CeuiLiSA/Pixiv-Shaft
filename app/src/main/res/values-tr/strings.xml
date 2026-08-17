@@ -2592,4 +2592,20 @@
     <string name="work_tag_edit_locked">Bu eserin etiketleri düzenlenemiyor: sanatçı izin vermemiş ya da web oturumunuz sona ermiş.</string>
     <string name="work_tag_edit_empty">Bu eserin henüz etiketi yok</string>
     <string name="work_tag_edit_need_web_login">Etiket düzenleme web arayüzü üzerinden çalışır; ek olarak web\'de bir kez daha giriş yapmanız gerekir.</string>
+
+    <!-- Hesap yönetimi (V3 / MD3-E) -->
+    <string name="account_switch_current_badge">Kullanımda</string>
+    <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_others">Diğer hesaplar</string>
+    <string name="account_switch_others_hint">Değiştirmek için dokunun</string>
+    <string name="account_switch_only_one">Bu cihazdaki tek hesap bu</string>
+    <string name="account_switch_empty">Kayıtlı hesap yok</string>
+    <string name="account_switch_add_desc">Başka bir pixiv hesabıyla giriş yapın veya kaydolun</string>
+    <string name="account_switch_login_time">Giriş: %1$s</string>
+    <string name="account_switch_actions">Hesap işlemleri</string>
+    <string name="account_switch_action_switch">Bu hesaba geç</string>
+    <string name="account_switch_action_export">Giriş bilgilerini panoya kopyala</string>
+    <string name="account_switch_action_copy_name">Hesap adını kopyala</string>
+    <string name="account_switch_exported">Giriş bilgileri panoya kopyalandı</string>
+    <string name="account_switch_switching">%1$s hesabına geçiliyor…</string>
 </resources>

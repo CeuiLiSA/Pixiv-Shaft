@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  账号操作 MD3-Expressive bottom sheet（账号管理页行尾 ⋮ / hero 卡 ⋮ 弹出）。
+  骨架与 sheet_mute_tag.xml 一致：拖拽把手 + headline/supporting 标题 + 分割线 + 动作列表。
+  legacy 这里是 QMUI 的 MenuDialogBuilder —— 方角灰底的 AppCompat 弹窗，和本页的 MD3-E
+  视觉完全对不上，所以换成同一族 sheet。
+
+  # 主题
+  root 挂 Theme.Material3.DayNight.NoActionBar：本 App 主题继承 QMUI、不含 MD3 属性，不套
+  这层则 BottomSheetDragHandleView / MaterialDivider 全部 inflate 不出来。代价是 colorPrimary
+  退回 MD3 基线紫，所以强调色由 Kotlin 侧用 V3Palette 运行时 tint（见 AccountActionsSheet）。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_m3e_sheet_top"
+    android:orientation="vertical"
+    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/sheet_avatar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:scaleType="centerCrop" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/sheet_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="をこめ" />
+
+            <TextView
+                android:id="@+id/sheet_handle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="\@wokome · wokome@example.com" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <!-- 主操作：切到这个账号。当前账号打开本 sheet 时整行隐掉。 -->
+        <LinearLayout
+            android:id="@+id/action_switch"
+            style="@style/AccountActionRow">
+
+            <ImageView
+                android:id="@+id/action_switch_icon"
+                style="@style/AccountActionIcon"
+                android:src="@drawable/ic_v3_swap_account_24" />
+
+            <TextView
+                android:id="@+id/action_switch_label"
+                style="@style/AccountActionLabel"
+                android:text="@string/account_switch_action_switch" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/action_export"
+            style="@style/AccountActionRow">
+
+            <ImageView
+                style="@style/AccountActionIcon"
+                android:src="@drawable/ic_v3_export_24" />
+
+            <TextView
+                style="@style/AccountActionLabel"
+                android:text="@string/account_switch_action_export" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/action_copy"
+            style="@style/AccountActionRow">
+
+            <ImageView
+                style="@style/AccountActionIcon"
+                android:src="@drawable/baseline_content_copy_24" />
+
+            <TextView
+                style="@style/AccountActionLabel"
+                android:text="@string/account_switch_action_copy_name" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -695,6 +695,38 @@
         <item name="android:textSize">13sp</item>
     </style>
 
+    <!-- ── 账号操作 bottom sheet（sheet_account_actions.xml）的动作行 ────────── -->
+
+    <!-- MD3 list item：56dp 高，24dp 边距，leading icon + label -->
+    <style name="AccountActionRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="AccountActionIcon">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="tint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="AccountActionLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">20dp</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
     <!-- MD3-E 阅读器滑块:主题色激活轨 + 竖胶囊手柄,轨道 6dp。 -->
     <style name="Widget.Reader.Slider" parent="Widget.AppCompat.SeekBar">
         <item name="android:progressDrawable">@drawable/reader_slider_progress</item>

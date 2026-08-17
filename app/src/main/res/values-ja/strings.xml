@@ -2592,4 +2592,20 @@
     <string name="work_tag_edit_locked">この作品のタグは編集できません。作者が編集を許可していないか、ウェブのログインが切れています。</string>
     <string name="work_tag_edit_empty">この作品にはまだタグがありません</string>
     <string name="work_tag_edit_need_web_login">タグ編集はウェブインターフェース経由のため、追加で一度ウェブにログインする必要があります。</string>
+
+    <!-- アカウント管理（V3 / MD3-E リニューアル） -->
+    <string name="account_switch_current_badge">使用中</string>
+    <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_others">他のアカウント</string>
+    <string name="account_switch_others_hint">タップで切り替え</string>
+    <string name="account_switch_only_one">この端末にはこのアカウントしかありません</string>
+    <string name="account_switch_empty">保存済みのアカウントはまだありません</string>
+    <string name="account_switch_add_desc">別の pixiv アカウントでログイン / 新規登録</string>
+    <string name="account_switch_login_time">%1$s にログイン</string>
+    <string name="account_switch_actions">アカウント操作</string>
+    <string name="account_switch_action_switch">このアカウントに切り替える</string>
+    <string name="account_switch_action_export">ログイン情報をクリップボードにコピー</string>
+    <string name="account_switch_action_copy_name">アカウント名をコピー</string>
+    <string name="account_switch_exported">ログイン情報をクリップボードにコピーしました</string>
+    <string name="account_switch_switching">%1$s に切り替えています…</string>
 </resources>

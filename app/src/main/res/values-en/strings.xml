@@ -2592,4 +2592,20 @@
     <string name="work_tag_edit_locked">Tags can\'t be edited on this work: the author did not allow it, or your web sign-in has expired.</string>
     <string name="work_tag_edit_empty">This work has no tags yet</string>
     <string name="work_tag_edit_need_web_login">Tag editing goes through the web interface, so you need to sign in on the web once more.</string>
+
+    <!-- Account manager (V3 / MD3-E redesign) -->
+    <string name="account_switch_current_badge">Currently in use</string>
+    <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_others">Other accounts</string>
+    <string name="account_switch_others_hint">Tap to switch</string>
+    <string name="account_switch_only_one">This is the only account on this device</string>
+    <string name="account_switch_empty">No saved accounts yet</string>
+    <string name="account_switch_add_desc">Sign in to or create another pixiv account</string>
+    <string name="account_switch_login_time">Signed in on %1$s</string>
+    <string name="account_switch_actions">Account actions</string>
+    <string name="account_switch_action_switch">Switch to this account</string>
+    <string name="account_switch_action_export">Copy login data to clipboard</string>
+    <string name="account_switch_action_copy_name">Copy account name</string>
+    <string name="account_switch_exported">Login data copied to clipboard</string>
+    <string name="account_switch_switching">Switching to %1$s…</string>
 </resources>

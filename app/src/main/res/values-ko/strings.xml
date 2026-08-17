@@ -2592,4 +2592,20 @@
     <string name="work_tag_edit_locked">이 작품은 태그를 편집할 수 없습니다. 작가가 편집을 허용하지 않았거나 웹 로그인이 만료되었습니다.</string>
     <string name="work_tag_edit_empty">이 작품에는 아직 태그가 없습니다</string>
     <string name="work_tag_edit_need_web_login">태그 편집은 웹 인터페이스로 동작하므로, 추가로 웹에 한 번 더 로그인해야 합니다.</string>
+
+    <!-- 계정 관리 (V3 / MD3-E 리디자인) -->
+    <string name="account_switch_current_badge">사용 중</string>
+    <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_others">다른 계정</string>
+    <string name="account_switch_others_hint">눌러서 전환</string>
+    <string name="account_switch_only_one">이 기기에는 이 계정뿐입니다</string>
+    <string name="account_switch_empty">저장된 계정이 없습니다</string>
+    <string name="account_switch_add_desc">다른 pixiv 계정으로 로그인하거나 가입하기</string>
+    <string name="account_switch_login_time">%1$s 로그인</string>
+    <string name="account_switch_actions">계정 작업</string>
+    <string name="account_switch_action_switch">이 계정으로 전환</string>
+    <string name="account_switch_action_export">로그인 정보를 클립보드에 복사</string>
+    <string name="account_switch_action_copy_name">계정 이름 복사</string>
+    <string name="account_switch_exported">로그인 정보를 클립보드에 복사했습니다</string>
+    <string name="account_switch_switching">%1$s(으)로 전환하는 중…</string>
 </resources>

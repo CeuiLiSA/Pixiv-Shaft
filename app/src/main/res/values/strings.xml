@@ -2839,4 +2839,20 @@
     <string name="work_tag_edit_locked">这个作品不能编辑标签：作者没有公开标签编辑权限，或者网页登录已经失效。</string>
     <string name="work_tag_edit_empty">这个作品还没有标签</string>
     <string name="work_tag_edit_need_web_login">编辑标签走的是网页接口，需要额外进行一次网页登录。</string>
+
+    <!-- 账号管理（V3 / MD3-E 重做版） -->
+    <string name="account_switch_current_badge">当前使用中</string>
+    <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_others">其他账号</string>
+    <string name="account_switch_others_hint">点一下即可切换</string>
+    <string name="account_switch_only_one">这台设备上只有这一个账号</string>
+    <string name="account_switch_empty">还没有已登录的账号</string>
+    <string name="account_switch_add_desc">登录或注册另一个 pixiv 账号</string>
+    <string name="account_switch_login_time">登录于 %1$s</string>
+    <string name="account_switch_actions">账号操作</string>
+    <string name="account_switch_action_switch">切换到这个账号</string>
+    <string name="account_switch_action_export">导出登录信息到剪贴板</string>
+    <string name="account_switch_action_copy_name">复制账号名</string>
+    <string name="account_switch_exported">登录信息已复制到剪贴板</string>
+    <string name="account_switch_switching">正在切换到 %1$s…</string>
 </resources>
