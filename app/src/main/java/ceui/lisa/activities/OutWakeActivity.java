@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import java.util.List;
 
@@ -261,21 +261,21 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                             mActivity.finish();
                                             Common.restart();
                                         } else {
-                                            new QMUIDialog.MessageDialogBuilder(mActivity)
+                                            new WitDialog.MessageDialogBuilder(mActivity)
                                                     .setTitle(R.string.string_216)
                                                     .setMessage(R.string.string_400)
-                                                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                                                    .addAction(R.string.string_401, new QMUIDialogAction.ActionListener() {
+                                                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
+                                                    .addAction(R.string.string_401, new WitDialogAction.ActionListener() {
                                                         @Override
-                                                        public void onClick(QMUIDialog dialog, int index) {
+                                                        public void onClick(WitDialog dialog, int index) {
                                                             dialog.dismiss();
                                                             mActivity.finish();
                                                             Common.restart();
                                                         }
                                                     })
-                                                    .addAction(R.string.string_402, new QMUIDialogAction.ActionListener() {
+                                                    .addAction(R.string.string_402, new WitDialogAction.ActionListener() {
                                                         @Override
-                                                        public void onClick(QMUIDialog dialog, int index) {
+                                                        public void onClick(WitDialog dialog, int index) {
                                                             Intent intent1 = new Intent(mContext, TemplateActivity.class);
                                                             intent1.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                                                             intent1.putExtra(Params.URL, Params.URL_R18_SETTING);

@@ -15,9 +15,9 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import java.util.List;
 
@@ -278,10 +278,10 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
     }
 
     private void showComingSoon() {
-        new QMUIDialog.MessageDialogBuilder(mActivity)
+        new WitDialog.MessageDialogBuilder(mActivity)
                 .setTitle("Web 首页")
                 .setMessage("Coming soon...")
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction("OK", (dialog, index) -> dialog.dismiss())
                 .show();
     }

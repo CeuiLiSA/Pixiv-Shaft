@@ -16,9 +16,9 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogView;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogView;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -165,9 +165,9 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         if (current < 0 || current >= items.length) {
             current = 0;
         }
-        new QMUIDialog.CheckableDialogBuilder(mContext)
+        new WitDialog.CheckableDialogBuilder(mContext)
                 .setCheckedIndex(current)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -184,9 +184,9 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
     }
 
     private void promptCustomImageHost() {
-        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(mContext);
+        final WitDialog.EditTextDialogBuilder builder = new WitDialog.EditTextDialogBuilder(mContext);
         builder.setTitle(R.string.image_host_custom)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .setPlaceholder(getString(R.string.image_host_custom_hint))
                 .setDefaultText(Shaft.sSettings.getCustomImageHost())
                 .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI)
@@ -228,10 +228,10 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
     private void promptAppApiProxy() {
         // 帮助按钮移到弹窗标题栏右上角：点击「使用 PxveAPI 代理」弹出输入框，
         // 标题栏右侧提供帮助图标，点击后展示填写规范 + 安全警示。
-        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(mContext) {
+        final WitDialog.EditTextDialogBuilder builder = new WitDialog.EditTextDialogBuilder(mContext) {
             @Override
-            protected View onCreateTitle(@NonNull QMUIDialog dialog,
-                                         @NonNull QMUIDialogView parent,
+            protected View onCreateTitle(@NonNull WitDialog dialog,
+                                         @NonNull WitDialogView parent,
                                          @NonNull Context context) {
                 View title = super.onCreateTitle(dialog, parent, context);
                 if (title == null) {
@@ -263,7 +263,7 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
             }
         };
         builder.setTitle(R.string.app_api_proxy_title)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .setPlaceholder(getString(R.string.app_api_proxy_hint))
                 .setDefaultText(Shaft.sSettings.getAppApiProxy())
                 .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI)
@@ -300,11 +300,11 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
     }
 
     private void showAppApiProxyHelp() {
-        new QMUIDialog.MessageDialogBuilder(mContext)
+        new WitDialog.MessageDialogBuilder(mContext)
                 .setTitle(R.string.app_api_proxy_title)
                 .setMessage(getString(R.string.app_api_proxy_tip) + "\n\n" +
                         getString(R.string.app_api_proxy_warning))
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(R.string.sure, (dialog, index) -> dialog.dismiss())
                 .show();
     }

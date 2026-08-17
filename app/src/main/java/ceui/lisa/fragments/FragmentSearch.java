@@ -18,9 +18,9 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitTipDialog;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
@@ -370,12 +370,12 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         });
         baseBind.pinnedTagsFlow.setOnTagLongClickListener((view, position, parent) ->
                 showHistoryActionDialog(pinned.get(position)));
-        baseBind.clearPinned.setOnClickListener(v -> new QMUIDialog.MessageDialogBuilder(getActivity())
+        baseBind.clearPinned.setOnClickListener(v -> new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(getString(R.string.string_143))
                 .setMessage(getString(R.string.clear_pinned_tags_msg))
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(getString(R.string.string_142), (dialog, index) -> dialog.dismiss())
-                .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE, (dialog, index) -> {
+                .addAction(0, getString(R.string.string_141), WitDialogAction.ACTION_PROP_NEGATIVE, (dialog, index) -> {
                     AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAllPinned();
                     Common.showToast(getString(R.string.pinned_tags_cleared));
                     dialog.dismiss();
@@ -402,12 +402,12 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         });
         baseBind.searchHistory.setOnTagLongClickListener((view, position, parent) ->
                 showHistoryActionDialog(history.get(position)));
-        baseBind.clearHistory.setOnClickListener(v -> new QMUIDialog.MessageDialogBuilder(getActivity())
+        baseBind.clearHistory.setOnClickListener(v -> new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(getString(R.string.string_143))
                 .setMessage(getString(R.string.string_144))
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(getString(R.string.string_142), (dialog, index) -> dialog.dismiss())
-                .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE, (dialog, index) -> {
+                .addAction(0, getString(R.string.string_141), WitDialogAction.ACTION_PROP_NEGATIVE, (dialog, index) -> {
                     AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAllUnpinned();
                     Common.showToast(getString(R.string.string_140));
                     dialog.dismiss();
@@ -479,10 +479,10 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private boolean showHistoryActionDialog(final SearchEntity searchEntity) {
-        new QMUIDialog.MessageDialogBuilder(mContext)
+        new WitDialog.MessageDialogBuilder(mContext)
                 .setTitle(R.string.string_87)
                 .setMessage(searchEntity.getKeyword())
-                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                .setSkinManager(WitSkinManager.defaultInstance(mActivity))
                 .addAction(getString(R.string.string_142), (dialog, index) -> dialog.dismiss())
                 .addAction(searchEntity.isPinned() ? getString(R.string.string_443) : getString(R.string.string_442), (dialog, index) -> {
                     searchEntity.setPinned(!searchEntity.isPinned());
@@ -533,10 +533,10 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     private void popUpSearchTypeSwitcher(boolean fromClipboard, String clipboardContent) {
         final String[] SEARCH_TYPE = SearchTypeUtil.SEARCH_TYPE_NAME;
-        new QMUIDialog.CheckableDialogBuilder(mContext)
+        new WitDialog.CheckableDialogBuilder(mContext)
                 .setTitle(fromClipboard ? R.string.string_425 : R.string.string_424)
                 .setCheckedIndex(searchType)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

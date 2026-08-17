@@ -39,8 +39,8 @@ import androidx.viewpager.widget.ViewPager;
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 
 import ceui.lisa.R;
@@ -638,7 +638,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
     }
 
     private void selectPhoto() {
-        new QMUIDialog.CheckableDialogBuilder(mActivity)
+        new WitDialog.CheckableDialogBuilder(mActivity)
                 .addItems(ALL_SELECT_WAY, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -691,18 +691,18 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
     public void exit() {
         if ((System.currentTimeMillis() - mExitTime) > 2000) {
             if (Manager.get().getContent().size() != 0) {
-                new QMUIDialog.MessageDialogBuilder(mContext)
+                new WitDialog.MessageDialogBuilder(mContext)
                         .setTitle(getString(R.string.shaft_hint))
                         .setMessage(mContext.getString(R.string.you_have_download_plan))
                         .addAction(R.string.cancel, (d, i) -> d.dismiss())
-                        .addAction(0, R.string.see_download_task, QMUIDialogAction.ACTION_PROP_NEUTRAL, (d, i) -> {
+                        .addAction(0, R.string.see_download_task, WitDialogAction.ACTION_PROP_NEUTRAL, (d, i) -> {
                             Intent intent = new Intent(mContext, TemplateActivity.class);
                             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
                             intent.putExtra("hideStatusBar", true);
                             startActivity(intent);
                             d.dismiss();
                         })
-                        .addAction(0, R.string.sure, QMUIDialogAction.ACTION_PROP_NEGATIVE, (d, i) -> {
+                        .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE, (d, i) -> {
                             Manager.get().stopAll();
                             finish();
                         })
