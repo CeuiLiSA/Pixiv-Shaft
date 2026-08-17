@@ -17,7 +17,7 @@ import ceui.lisa.repo.SearchNovelRepo
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivSearchParamUtil
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.viewmodel.SearchModel
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedCell

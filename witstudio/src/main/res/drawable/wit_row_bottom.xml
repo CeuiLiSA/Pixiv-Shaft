@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MD3-E 分段行背景（组内末行）：上 5dp / 下 20dp。 -->
+<!-- MD3-E 分段行背景（组内末行）：上 5dp / 下 20dp。结构约束见 wit_row_top.xml。 -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="?android:attr/colorControlHighlight">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/v3_menu_bg" />
+            <solid android:color="@color/wit_menu_bg" />
             <corners
                 android:topLeftRadius="5dp"
                 android:topRightRadius="5dp"
@@ -12,7 +12,7 @@
                 android:bottomRightRadius="20dp" />
             <stroke
                 android:width="0.5dp"
-                android:color="@color/v3_border_2" />
+                android:color="@color/wit_border_2" />
         </shape>
     </item>
 </ripple>

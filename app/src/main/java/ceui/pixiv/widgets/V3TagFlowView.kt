@@ -22,7 +22,7 @@ import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SearchTypeUtil
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.Tag
 import ceui.pixiv.ui.synonym.SynonymOperate
 import ceui.pixiv.utils.ppppx

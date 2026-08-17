@@ -22,7 +22,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentFeedBinding
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.getHumanReadableMessage
 import ceui.loxia.requireNetworkStateManager
 import ceui.pixiv.utils.NetworkStateManager

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="2dp"
-    android:background="@drawable/bg_m3_row_mid"
+    android:background="@drawable/wit_row_mid"
     android:clickable="true"
     android:minHeight="60dp"
     android:paddingStart="18dp"

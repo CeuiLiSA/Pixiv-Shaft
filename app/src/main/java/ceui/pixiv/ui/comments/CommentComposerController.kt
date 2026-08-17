@@ -12,7 +12,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.launchSuspend
 import ceui.pixiv.chat.base.panel.BottomPanelCoordinator
 import ceui.pixiv.chat.base.panel.PanelHost

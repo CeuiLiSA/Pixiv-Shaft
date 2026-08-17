@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.activities.Shaft
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.databinding.RecySelectTagBinding
 import ceui.lisa.model.ListBookmarkTag
 import ceui.lisa.models.TagsBean

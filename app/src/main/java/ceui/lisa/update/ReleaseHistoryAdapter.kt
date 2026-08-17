@@ -10,7 +10,7 @@ import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.ItemReleaseTimelineBinding
 import ceui.lisa.fragments.SettingsCatalog
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
 import io.noties.markwon.core.MarkwonTheme

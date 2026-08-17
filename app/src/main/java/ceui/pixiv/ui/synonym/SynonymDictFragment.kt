@@ -37,7 +37,7 @@ import ceui.lisa.download.IllustDownload
 import ceui.lisa.interfaces.Callback
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.session.SessionManager
 import com.blankj.utilcode.util.BarUtils
 import com.qmuiteam.qmui.skin.QMUISkinManager

@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.pixiv.ui.collection.LikeNovelFeedFragment
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.ui.collection.LikeIllustFeedFragment
 
 private const val ARG_USER_ID = "collection_user_id"

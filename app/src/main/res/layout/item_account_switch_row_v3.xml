@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   账号管理页「其他账号」的一行（MD3-E 分段行）：头像 + 名字 / 账号名 + 登录时间 + ⋮。
-  背景（bg_m3_row_top / mid / bottom / single）按行在组内的位置由代码设置，并交给
+  背景（wit_row_top / mid / bottom / single，:witstudio 提供）按行在组内的位置由代码设置，并交给
   SettingsCatalog.applyThemedRowBg 染上主题色底 + hairline，与设置页的行完全同款。
   点行 = 切到该账号，点 ⋮ = 导出登录信息 / 复制账号名。
 -->
@@ -12,7 +12,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="2dp"
-    android:background="@drawable/bg_m3_row_mid"
+    android:background="@drawable/wit_row_mid"
     android:clickable="true"
     android:focusable="true"
     android:gravity="center_vertical"

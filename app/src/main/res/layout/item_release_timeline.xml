@@ -50,7 +50,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginBottom="12dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_m3_row_single"
+            android:background="@drawable/wit_row_single"
             android:clickable="true"
             android:focusable="true"
             android:orientation="vertical"

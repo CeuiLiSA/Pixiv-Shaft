@@ -22,7 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemBigReadButtonBinding
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.loxia.NovelSeriesResp

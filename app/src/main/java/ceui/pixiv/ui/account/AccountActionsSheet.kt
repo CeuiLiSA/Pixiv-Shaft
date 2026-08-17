@@ -11,7 +11,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.SheetAccountActionsBinding
 import ceui.lisa.models.UserBean
 import ceui.lisa.utils.GlideUtil
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.utils.makeSheetTransparentAndFillNavBar
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog

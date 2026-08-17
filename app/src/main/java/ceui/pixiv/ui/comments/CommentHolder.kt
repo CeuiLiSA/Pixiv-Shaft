@@ -5,7 +5,7 @@ import android.content.res.ColorStateList
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import ceui.lisa.R
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import de.hdodenhof.circleimageview.CircleImageView
 
 /**

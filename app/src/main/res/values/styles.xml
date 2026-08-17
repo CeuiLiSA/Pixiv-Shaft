@@ -616,7 +616,7 @@
 
     <!-- ── MD3-E 设置页 ─────────────────────────────────────────── -->
 
-    <!-- 分段分组里的一行（背景按位置用 bg_m3_row_top/mid/bottom/single） -->
+    <!-- 分段分组里的一行（背景按位置用 wit_row_top/mid/bottom/single） -->
     <style name="M3SetRow">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MD3-E 分段行背景（组内首行）：上 20dp / 下 5dp。 -->
+<!-- MD3-E 分段行背景（组内首行）：上 20dp / 下 5dp。
+
+     ⚠️ 结构是承重的：ripple 在外、GradientDrawable 在 layer 0。
+     WitRowStyle.applyThemedRowBg 靠这个结构找到实底并原地 mutate 成主题 tint
+     （见 WitRowStyle）。换成 LayerDrawable 或自定义 Drawable 会让主题 tint 静默失效。 -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="?android:attr/colorControlHighlight">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/v3_menu_bg" />
+            <solid android:color="@color/wit_menu_bg" />
             <corners
                 android:topLeftRadius="20dp"
                 android:topRightRadius="20dp"
@@ -12,7 +16,7 @@
                 android:bottomRightRadius="5dp" />
             <stroke
                 android:width="0.5dp"
-                android:color="@color/v3_border_2" />
+                android:color="@color/wit_border_2" />
         </shape>
     </item>
 </ripple>

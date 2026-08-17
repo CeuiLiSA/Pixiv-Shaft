@@ -18,7 +18,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.V3Palette;
+import ceui.pixiv.witstudio.theme.V3Palette;
 import ceui.lisa.view.OnCheckChangeListener;
 import ceui.pixiv.ui.dynamic.DynamicPageViewModel;
 import ceui.pixiv.ui.dynamic.FollowingIllustFeedFragment;

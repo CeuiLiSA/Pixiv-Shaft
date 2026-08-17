@@ -26,7 +26,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.getHumanReadableMessage
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import ceui.pixiv.witstudio.theme.WitRowStyle
 
 /**
  * 账号管理（V3 / MD3-Expressive），替代 legacy `ceui.lisa.fragments.FragmentLocalUsers`。
@@ -52,7 +53,7 @@ import java.util.Locale
  * 图标，「复制账号名」则藏在长按里。现在统一收进行尾 ⋮ 弹出的 [AccountActionsSheet]，
  * 每条都带文案和图标。
  *
- * 视觉与设置页同源：行背景走 bg_m3_row_top/mid/bottom/single 并交给
+ * 视觉与设置页同源：行背景走 [WitRowStyle.rowBackground] 并交给
  * [SettingsCatalog.applyThemedRowBg] 染主题色底 + hairline；hero 卡底 / 分节标签 / 徽章
  * 由 [V3Palette] 按当前主题色算，日夜自适配。
  *
@@ -252,12 +253,8 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
     }
 
     /** MD3-E 分段行背景的四种形态（独行 / 段首 / 段中 / 段尾），同设置页。 */
-    private fun rowBackground(index: Int, total: Int): Int = when {
-        total == 1 -> R.drawable.bg_m3_row_single
-        index == 0 -> R.drawable.bg_m3_row_top
-        index == total - 1 -> R.drawable.bg_m3_row_bottom
-        else -> R.drawable.bg_m3_row_mid
-    }
+    private fun rowBackground(index: Int, total: Int): Int =
+        WitRowStyle.rowBackground(index, total)
 
     /**
      * 登录时间。loginTime 是这条账号**入库**（登录 / 剪贴板导入 / 邮箱恢复）的时刻，切号不会

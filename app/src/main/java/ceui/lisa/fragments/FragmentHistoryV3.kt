@@ -18,7 +18,7 @@ import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.FragmentHistoryV3Binding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.ObjectPool
 import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme

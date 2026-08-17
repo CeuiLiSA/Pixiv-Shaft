@@ -1,63 +1,76 @@
-package ceui.lisa.utils
+package ceui.pixiv.witstudio.theme
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.drawable.GradientDrawable
+import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 
 /**
- * Generates a full V3 dark-theme color palette from the current theme's colorPrimary.
- * All accent-derived colors are computed at runtime so every theme index "just works".
+ * 从当前主题的 `?attr/colorPrimary` 派生出整套 V3 配色。
  *
- * Usage:
- *   val p = V3Palette.from(context)
- *   followBtn.background = p.pillPrimary(...)
- *   tagCount.setTextColor(p.textAccent)
+ * 这是整个 wit studio 唯一读取宿主主题的入口，也是「换主题档 / 换自定义 HEX 全 app 自动跟随」
+ * 的实现方式：所有强调色都在运行时算出来，而不是烤进资源，所以 `AppTheme.Index0..9` 十档预设
+ * 和 `AppTheme.Custom`（`CustomThemeColor` 的 ResourcesLoader 运行时覆盖）都不需要额外适配。
+ *
+ * 用法：
+ * ```
+ * val p = V3Palette.from(context)
+ * followBtn.background = p.pillPrimary(999f * density)
+ * tagCount.setTextColor(p.textAccent)
+ * ```
+ *
+ * 日夜双模由 [isDark] 分流：[from] 读 `uiMode` 判定，派生逻辑里凡是「压亮/压暗保可读」的
+ * 地方都按模式走不同分支（见 [textAccent]、[cardFill]、[floatingPillContent]）。
  */
-class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
+public class V3Palette @JvmOverloads public constructor(
+    @ColorInt public val primary: Int,
+    public val isDark: Boolean = true,
+) {
 
     // ── derived alphas ──────────────────────────────────────────────
 
     /** 8 % — tag locked background tint */
-    @ColorInt val alpha08: Int = withAlpha(primary, 0.08f)
+    @ColorInt public val alpha08: Int = withAlpha(primary, 0.08f)
 
     /** 10 % — very subtle tint (tag count badge, shimmer) */
-    @ColorInt val alpha10: Int = withAlpha(primary, 0.10f)
+    @ColorInt public val alpha10: Int = withAlpha(primary, 0.10f)
 
     /** 15 % — tag locked border, slight surfaces */
-    @ColorInt val alpha15: Int = withAlpha(primary, 0.15f)
+    @ColorInt public val alpha15: Int = withAlpha(primary, 0.15f)
 
     /** 20 % — secondary button / chip fill */
-    @ColorInt val alpha20: Int = withAlpha(primary, 0.20f)
+    @ColorInt public val alpha20: Int = withAlpha(primary, 0.20f)
 
     /** 30 % — secondary button stroke */
-    @ColorInt val alpha30: Int = withAlpha(primary, 0.30f)
+    @ColorInt public val alpha30: Int = withAlpha(primary, 0.30f)
 
     /** 50 % — accent line, medium emphasis */
-    @ColorInt val alpha50: Int = withAlpha(primary, 0.50f)
+    @ColorInt public val alpha50: Int = withAlpha(primary, 0.50f)
 
     /** 60 % — artist banner overlay */
-    @ColorInt val alpha60: Int = withAlpha(primary, 0.60f)
+    @ColorInt public val alpha60: Int = withAlpha(primary, 0.60f)
 
     // ── text colors ─────────────────────────────────────────────────
 
     /** Primary accent text — adjusted for background readability */
-    @ColorInt val textAccent: Int = if (isDark) ensureLightEnough(primary, 0.60f)
+    @ColorInt public val textAccent: Int = if (isDark) ensureLightEnough(primary, 0.60f)
         else ensureDarkEnough(primary, 0.40f)
 
     /** Variant for secondary button label */
-    @ColorInt val textSecondary: Int = if (isDark)
+    @ColorInt public val textSecondary: Int = if (isDark)
         withAlpha(ensureLightEnough(primary, 0.72f), 0.90f)
     else withAlpha(ensureDarkEnough(primary, 0.35f), 0.90f)
 
     /** Tag locked text */
-    @ColorInt val textTag: Int = if (isDark) ensureLightEnough(primary, 0.70f)
+    @ColorInt public val textTag: Int = if (isDark) ensureLightEnough(primary, 0.70f)
         else ensureDarkEnough(primary, 0.38f)
 
     /** Series label text */
-    @ColorInt val textSeries: Int = if (isDark)
+    @ColorInt public val textSeries: Int = if (isDark)
         withAlpha(ensureLightEnough(primary, 0.68f), 0.70f)
     else withAlpha(ensureDarkEnough(primary, 0.35f), 0.70f)
 
@@ -66,20 +79,27 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
      * 浅色模式条底被 [seriesStripBg] tint 成浅粉,白字会糊,改主题色压深(L≤0.30)保证可读。
      * label 靠 XML 里 0.7 view alpha 再降一档灰度,不必单独配色。
      */
-    @ColorInt val seriesStripText: Int = if (isDark) 0xFFFFFFFF.toInt()
+    @ColorInt public val seriesStripText: Int = if (isDark) 0xFFFFFFFF.toInt()
         else ensureDarkEnough(primary, 0.30f)
 
     // ── scroll progress gradient ────────────────────────────────────
 
     /** Scroll progress bar: primary → shifted hue → gold */
-    @ColorInt val scrollProgressStart: Int = primary
-    @ColorInt val scrollProgressMid: Int = hueShift(primary, 40f)
-    @ColorInt val scrollProgressEnd: Int = 0xFFFFC233.toInt()
+    @ColorInt public val scrollProgressStart: Int = primary
+
+    @ColorInt public val scrollProgressMid: Int = hueShift(primary, 40f)
+
+    /**
+     * 收尾的金色是写死的：它是 pixiv 的品牌语义（同 premium 徽章），换主题也不该变。
+     * 这是本模块里唯一允许出现的硬编码色值，别照抄这个例外。
+     */
+    @ColorInt public val scrollProgressEnd: Int = 0xFFFFC233.toInt()
 
     // ── drawable factories ──────────────────────────────────────────
 
     /** Solid pill — follow button */
-    fun pillPrimary(radiusPx: Float = 999f): GradientDrawable =
+    @JvmOverloads
+    public fun pillPrimary(radiusPx: Float = 999f): GradientDrawable =
         GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = radiusPx
@@ -87,7 +107,8 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
         }
 
     /** Semi-transparent pill with stroke — unfollow / secondary button */
-    fun pillSecondary(radiusPx: Float = 999f, strokePx: Int = 2): GradientDrawable =
+    @JvmOverloads
+    public fun pillSecondary(radiusPx: Float = 999f, strokePx: Int = 2): GradientDrawable =
         GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = radiusPx
@@ -96,7 +117,8 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
         }
 
     /** Tag count badge background */
-    fun tagCountBg(radiusPx: Float = 999f): GradientDrawable =
+    @JvmOverloads
+    public fun tagCountBg(radiusPx: Float = 999f): GradientDrawable =
         GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = radiusPx
@@ -104,7 +126,8 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
         }
 
     /** Tag locked background (author tags) */
-    fun tagLockedBg(radiusPx: Float = 999f): GradientDrawable =
+    @JvmOverloads
+    public fun tagLockedBg(radiusPx: Float = 999f): GradientDrawable =
         GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = radiusPx
@@ -113,14 +136,14 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
         }
 
     /** Accent line (horizontal gradient: transparent → accent → accent → transparent) */
-    fun accentLine(): GradientDrawable =
+    public fun accentLine(): GradientDrawable =
         GradientDrawable(
             GradientDrawable.Orientation.LEFT_RIGHT,
             intArrayOf(0x00000000, alpha50, hueShift(alpha50, 30f), 0x00000000)
         )
 
     /** Banner placeholder — ambient gradient matching theme color */
-    fun bannerPlaceholder(): GradientDrawable {
+    public fun bannerPlaceholder(): GradientDrawable {
         val base = desaturate(primary, 0.85f)
         return GradientDrawable(
             GradientDrawable.Orientation.BL_TR,
@@ -133,14 +156,14 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
     }
 
     /** Artist banner overlay gradient */
-    fun artistBannerBg(): GradientDrawable =
+    public fun artistBannerBg(): GradientDrawable =
         GradientDrawable(
             GradientDrawable.Orientation.BL_TR,
             intArrayOf(alpha60, withAlpha(hueShift(primary, 30f), 0.50f))
         )
 
     /** Series strip gradient background */
-    fun seriesStripBg(radiusPx: Float): GradientDrawable =
+    public fun seriesStripBg(radiusPx: Float): GradientDrawable =
         GradientDrawable(
             GradientDrawable.Orientation.BL_TR,
             intArrayOf(
@@ -153,7 +176,7 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
         }
 
     /** Series icon square background */
-    fun seriesIconBg(radiusPx: Float): GradientDrawable =
+    public fun seriesIconBg(radiusPx: Float): GradientDrawable =
         GradientDrawable(
             GradientDrawable.Orientation.BL_TR,
             intArrayOf(primary, hueShift(primary, 40f))
@@ -162,7 +185,7 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
         }
 
     /** Detail panel / glass card background */
-    fun glassCardBg(radiusPx: Float): GradientDrawable =
+    public fun glassCardBg(radiusPx: Float): GradientDrawable =
         GradientDrawable(
             GradientDrawable.Orientation.TL_BR,
             intArrayOf(
@@ -175,24 +198,24 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
         }
 
     /**
-     * Settings-card 底色 —— 隐约带一点主题色，专用作背景（绝不用主题色正色）。
-     * 深色：把 primary 大幅去饱和后压到接近 sheet 底的暗度，得到一块"带主题色调的暗底"；
-     * 浅色：去饱和后提到极浅，得到一块"带主题色调的白底"。外加一条 12% 主题色 hairline，
-     * 替代静态 [ceui.lisa.R.drawable.bg_v3_settings_card]（固定中性 v3_menu_bg，切主题色不动）。
-     */
-    /**
-     * Settings-card / 悬浮胶囊的不透明底色 —— 隐约带主题色（日夜双模），见 [settingsCardBg]。
+     * Settings-card / 悬浮胶囊的不透明底色 —— 隐约带主题色（日夜双模）。
      * tint 强度刻意压得很低（饱和度只保留一小截）：能看出"和主题色有关系"即可，
      * 不能一眼读出主题色本身（樱桃粉夜间此前 42% 饱和度算出 #32151C，太粉，被打回）。
      */
-    @ColorInt val cardFill: Int = if (isDark) darken(desaturate(primary, 0.16f), 0.135f)
+    @ColorInt public val cardFill: Int = if (isDark) darken(desaturate(primary, 0.16f), 0.135f)
     else lighten(desaturate(primary, 0.50f), 0.96f)
 
     /** 与 [cardFill] 配套的 12% 主题色 hairline。 */
-    @ColorInt val cardHairline: Int = if (isDark) withAlpha(ensureLightEnough(primary, 0.60f), 0.12f)
+    @ColorInt public val cardHairline: Int = if (isDark) withAlpha(ensureLightEnough(primary, 0.60f), 0.12f)
     else withAlpha(ensureDarkEnough(primary, 0.40f), 0.12f)
 
-    fun settingsCardBg(radiusPx: Float, strokePx: Int): GradientDrawable {
+    /**
+     * Settings-card 底色 —— 隐约带一点主题色，专用作背景（绝不用主题色正色）。
+     * 深色：把 primary 大幅去饱和后压到接近 sheet 底的暗度，得到一块"带主题色调的暗底"；
+     * 浅色：去饱和后提到极浅，得到一块"带主题色调的白底"。外加一条 12% 主题色 hairline，
+     * 替代静态 `@drawable/wit_settings_card`（固定中性 wit_menu_bg，切主题色不动）。
+     */
+    public fun settingsCardBg(radiusPx: Float, strokePx: Int): GradientDrawable {
         val hairline = cardHairline
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
@@ -206,7 +229,8 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
      * 悬浮胶囊底色（fab bar / glass pill）：[cardFill] 同款主题 tint 加透明，悬浮在内容上，
      * 替代固定的 #CC1A1A2E。默认 80% 不透明（原 fab bar 的 0xCC）。
      */
-    fun floatingPillBg(radiusPx: Float, alpha: Float = 0.80f): GradientDrawable =
+    @JvmOverloads
+    public fun floatingPillBg(radiusPx: Float, alpha: Float = 0.80f): GradientDrawable =
         GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = radiusPx
@@ -218,41 +242,51 @@ class V3Palette(@ColorInt val primary: Int, val isDark: Boolean = true) {
      * 深色模式近黑靛蓝，保持纯白；浅色模式底是"带主题色调的白"，白图标会隐形，
      * 压深主题色（同 [seriesStripText] 的日夜策略）。
      */
-    @ColorInt val floatingPillContent: Int = if (isDark) 0xFFFFFFFF.toInt()
+    @ColorInt public val floatingPillContent: Int = if (isDark) 0xFFFFFFFF.toInt()
     else ensureDarkEnough(primary, 0.40f)
 
     // ── convenience ─────────────────────────────────────────────────
 
     /** Apply accent-colored follow button drawable */
-    fun applyFollowBtn(btn: View) {
+    public fun applyFollowBtn(btn: View) {
         btn.background = pillPrimary(999f * btn.resources.displayMetrics.density)
     }
 
     /** Apply accent-colored unfollow button drawable + text */
-    fun applyUnfollowBtn(btn: TextView) {
+    public fun applyUnfollowBtn(btn: TextView) {
         val d = btn.resources.displayMetrics.density
         btn.background = pillSecondary(999f * d, (1 * d).toInt())
         btn.setTextColor(textSecondary)
     }
 
     // ── companion ───────────────────────────────────────────────────
-    companion object {
+    public companion object {
 
         /** Resolve the palette from the current theme's colorPrimary */
         @JvmStatic
-        fun from(context: Context): V3Palette {
-            val primary = Common.resolveThemeAttribute(
-                context, androidx.appcompat.R.attr.colorPrimary
-            )
+        public fun from(context: Context): V3Palette {
+            val primary = resolveThemeAttribute(context, androidx.appcompat.R.attr.colorPrimary)
             val nightMode = context.resources.configuration.uiMode and
-                    android.content.res.Configuration.UI_MODE_NIGHT_MASK
-            val isDark = nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                    Configuration.UI_MODE_NIGHT_MASK
+            val isDark = nightMode == Configuration.UI_MODE_NIGHT_YES
             return V3Palette(primary, isDark)
         }
 
+        @JvmStatic
         @ColorInt
-        fun withAlpha(@ColorInt color: Int, alpha: Float): Int =
+        public fun withAlpha(@ColorInt color: Int, alpha: Float): Int =
             ColorUtils.setAlphaComponent(color, (alpha.coerceIn(0f, 1f) * 255).toInt())
+
+        /**
+         * 内联自 `ceui.lisa.utils.Common.resolveThemeAttribute`。本模块不依赖 :app，
+         * 而这是整个模块唯一需要的宿主主题查询，为它引一整个 utils 类不值当。
+         */
+        @ColorInt
+        private fun resolveThemeAttribute(context: Context, resId: Int): Int {
+            val typedValue = TypedValue()
+            context.theme.resolveAttribute(resId, typedValue, true)
+            return typedValue.data
+        }
 
         @ColorInt
         private fun ensureLightEnough(@ColorInt color: Int, minL: Float = 0.60f): Int {

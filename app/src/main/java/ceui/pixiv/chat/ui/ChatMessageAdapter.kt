@@ -22,7 +22,7 @@ import com.bumptech.glide.Glide
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.GlideUrlChild
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.chat.base.BaseListAdapter
 import ceui.pixiv.chat.data.ChatMessageEntity
 import ceui.pixiv.chat.data.SendState

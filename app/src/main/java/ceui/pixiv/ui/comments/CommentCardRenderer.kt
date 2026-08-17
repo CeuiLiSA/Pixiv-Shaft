@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.CellCommentBinding
 import ceui.lisa.utils.GlideUrlChild
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.DateParse
 import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull

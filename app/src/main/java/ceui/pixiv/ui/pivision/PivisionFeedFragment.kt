@@ -10,7 +10,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.CellPivisionBinding
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Article
 import ceui.pixiv.feeds.FeedArticleSkeletonView

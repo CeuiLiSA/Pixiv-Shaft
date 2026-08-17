@@ -14,7 +14,7 @@ import java.util.Map;
  * 借道 Material 的 ARSC 生成器，把「运行时把某个 color 资源换成任意色值」这件事拿出来给 app 用。
  *
  * <p>为什么必须这么绕：主题色最终要落到 {@code ?attr/colorPrimary}（全仓 200+ 处 XML 引用它，
- * 连 {@link ceui.lisa.utils.V3Palette} 都是从这个 attr 解出来的）。theme attr 的值在编译期就烤进
+ * 连 {@link ceui.pixiv.witstudio.theme.V3Palette} 都是从这个 attr 解出来的）。theme attr 的值在编译期就烤进
  * style 里了，运行时改不了 —— 唯一的官方口子是 API 30 的 {@code ResourcesLoader}：让
  * {@code AppTheme.Custom} 的 colorPrimary 指向 {@code @color/custom_theme_primary}，再用一张
  * 运行时生成的 ARSC 把这个 color 资源覆盖掉。

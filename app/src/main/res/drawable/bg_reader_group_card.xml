@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- MD3-E 阅读器设置分组卡:一节 = 一张圆角卡(v3_menu_bg 实底 + v3_border_2 hairline,
-     浅色模式靠 hairline 从 v3_bg 背景浮出),四角 20dp。同设置页 bg_m3_row_single 思路,
+     浅色模式靠 hairline 从 v3_bg 背景浮出),四角 20dp。同设置页 wit_row_single 思路,
      但作为整节容器一次成卡,行内用 inset divider 分隔。 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">

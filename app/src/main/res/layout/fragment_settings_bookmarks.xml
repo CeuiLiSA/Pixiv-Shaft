@@ -56,7 +56,7 @@
                 <RelativeLayout
                     android:id="@+id/show_like_button_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_top">
+                    android:background="@drawable/wit_row_top">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -74,7 +74,7 @@
                 <RelativeLayout
                     android:id="@+id/private_follow_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -92,7 +92,7 @@
                 <RelativeLayout
                     android:id="@+id/hide_star_bar_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -110,7 +110,7 @@
                 <RelativeLayout
                     android:id="@+id/filter_invalid_bookmarks_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -128,7 +128,7 @@
                 <RelativeLayout
                     android:id="@+id/select_all_tag_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -146,7 +146,7 @@
                 <RelativeLayout
                     android:id="@+id/show_related_when_star_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -164,7 +164,7 @@
                 <RelativeLayout
                     android:id="@+id/auto_follow_after_star_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -182,7 +182,7 @@
                 <RelativeLayout
                     android:id="@+id/auto_download_after_star_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -200,7 +200,7 @@
                 <RelativeLayout
                     android:id="@+id/download_auto_post_like_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/wit_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 

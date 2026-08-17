@@ -10,7 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.ViewV3FabBarBinding
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.utils.ppppx
 
 /**

@@ -56,7 +56,7 @@
                 <RelativeLayout
                     android:id="@+id/show_chat_room_entry_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_top">
+                    android:background="@drawable/wit_row_top">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -84,7 +84,7 @@
                 <RelativeLayout
                     android:id="@+id/show_chat_room_push_banner_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_mid">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -102,7 +102,7 @@
                 <RelativeLayout
                     android:id="@+id/show_plaza_entry_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/bg_m3_row_bottom">
+                    android:background="@drawable/wit_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -121,7 +121,7 @@
                     android:id="@+id/is_firebase_enable_rela"
                     style="@style/M3SetRow"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_m3_row_single">
+                    android:background="@drawable/wit_row_single">
 
                     <LinearLayout style="@style/M3SetTexts">
 

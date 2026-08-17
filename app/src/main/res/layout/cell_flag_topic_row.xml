@@ -2,7 +2,7 @@
 <!--
   举报第一步的单条违规类型行，服务端 topic-list 动态下发，条数不固定，所以运行时用
   LayoutInflater 逐条 inflate 进容器，而不是写死几条 XML。背景（top/mid/bottom/single）
-  按运行时位置在代码里挂 bg_m3_row_*。
+  按运行时位置在代码里挂 wit_row_*（见 WitRowStyle.rowBackground）。
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

@@ -20,7 +20,7 @@ import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.FragmentCommentsFeedBinding
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.V3Palette
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Client
 import ceui.loxia.Comment
