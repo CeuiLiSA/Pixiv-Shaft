@@ -36,9 +36,9 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.google.gson.reflect.TypeToken
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -169,12 +169,12 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     /** 点删除按钮：确认后删单条（对齐 legacy 的 viewType==1 分支）。 */
     private fun confirmDeleteSingle(entity: FeatureEntity) {
         val ctx = context ?: return
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(R.string.string_252)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
-            .addAction(0, R.string.string_141, QMUIDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+            .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
                 val appCtx = ctx.applicationContext
                 // Fragment 级 lifecycleScope + application context：弹窗可能在视图销毁后才回调，
@@ -202,12 +202,12 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             Common.showToast(R.string.string_254)
             return
         }
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(R.string.string_253)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
-            .addAction(0, R.string.string_141, QMUIDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+            .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
                 val appCtx = ctx.applicationContext
                 lifecycleScope.launch {

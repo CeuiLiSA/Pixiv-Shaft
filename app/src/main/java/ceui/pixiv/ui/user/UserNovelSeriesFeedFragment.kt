@@ -37,9 +37,9 @@ import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.ui.task.CrossSeriesDownloadTask
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.floor
@@ -201,10 +201,10 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
         }
         val titles: Array<CharSequence> = list.map { it.title.orEmpty() as CharSequence }.toTypedArray()
 
-        val builder = QMUIDialog.MultiCheckableDialogBuilder(ctx)
+        val builder = WitDialog.MultiCheckableDialogBuilder(ctx)
             .setTitle(getString(R.string.cross_series_pick_dialog_title))
             .setCheckedItems(intArrayOf())
-        builder.setSkinManager(QMUISkinManager.defaultInstance(ctx))
+        builder.setSkinManager(WitSkinManager.defaultInstance(ctx))
         builder.addItems(titles) { _, _ -> /* multi-state auto-tracked */ }
         builder.addAction(getString(R.string.cross_series_pick_dialog_cancel)) { d, _ -> d.dismiss() }
         builder.addAction(getString(R.string.sure)) { d, _ ->
@@ -262,13 +262,13 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
             val msg = failures.joinToString(separator = "\n") { f ->
                 "《${f.seriesTitle}》— ${f.reason}"
             }
-            QMUIDialog.MessageDialogBuilder(ctx)
+            WitDialog.MessageDialogBuilder(ctx)
                 .setTitle(
                     getString(R.string.batch_download_some_failed, failures.size)
                 )
                 .setMessage(msg)
-                .setSkinManager(QMUISkinManager.defaultInstance(ctx))
-                .addAction(0, android.R.string.ok, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+                .setSkinManager(WitSkinManager.defaultInstance(ctx))
+                .addAction(0, android.R.string.ok, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                     d.dismiss()
                 }
                 .show()

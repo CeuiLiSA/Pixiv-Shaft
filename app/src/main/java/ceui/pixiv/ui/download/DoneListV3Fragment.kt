@@ -40,9 +40,9 @@ import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
@@ -303,12 +303,12 @@ class DoneListV3Fragment : Fragment() {
     private fun showClearDoneConfirmDialog(onConfirm: () -> Unit) {
         val act = activity ?: return
         if (act.isFinishing || act.isDestroyed) return
-        QMUIDialog.MessageDialogBuilder(act)
+        WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.dlmgr_clear_done_title)
             .setMessage(R.string.dlmgr_clear_done_message)
-            .setSkinManager(QMUISkinManager.defaultInstance(act))
+            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.sure, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 onConfirm()
             }

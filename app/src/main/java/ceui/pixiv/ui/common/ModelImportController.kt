@@ -10,9 +10,9 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,16 +41,16 @@ class ModelImportController(
 
     fun showCopyOrImportDialog() {
         val ctx = fragment.requireContext()
-        val builder = QMUIDialog.MessageDialogBuilder(ctx)
+        val builder = WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.model_download_dialog_title)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .setMessage(fragment.getString(R.string.model_download_dialog_message))
 
         if (model.downloadUrl != null) {
             builder.addAction(
                 0,
                 fragment.getString(R.string.model_download_copy_link),
-                QMUIDialogAction.ACTION_PROP_POSITIVE,
+                WitDialogAction.ACTION_PROP_POSITIVE,
             ) { dialog, _ ->
                 dialog.dismiss()
                 copyLink(ctx, model)
@@ -59,7 +59,7 @@ class ModelImportController(
         builder.addAction(
             0,
             fragment.getString(R.string.model_download_import_file),
-            QMUIDialogAction.ACTION_PROP_POSITIVE,
+            WitDialogAction.ACTION_PROP_POSITIVE,
         ) { dialog, _ ->
             dialog.dismiss()
             launchPicker()

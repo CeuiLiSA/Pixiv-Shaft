@@ -28,8 +28,8 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.updateItems
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -167,11 +167,11 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
 
     internal fun confirmDeleteHistory(entity: IllustHistoryEntity) {
         val act = activity ?: return
-        QMUIDialog.MessageDialogBuilder(act)
+        WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.string_143)
             .setMessage(R.string.string_352)
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.string_141, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 deleteHistory(listOf(entity))
             }

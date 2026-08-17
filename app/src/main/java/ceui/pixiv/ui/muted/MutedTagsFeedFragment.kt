@@ -24,10 +24,10 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -131,15 +131,15 @@ class MutedTagsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
                 if (feedViewModel.uiState.value.items.isEmpty()) {
                     Common.showToast(getString(R.string.string_215))
                 } else {
-                    QMUIDialog.MessageDialogBuilder(activity)
+                    WitDialog.MessageDialogBuilder(activity)
                         .setTitle(getString(R.string.string_216))
                         .setMessage(getString(R.string.string_217))
-                        .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                        .setSkinManager(WitSkinManager.defaultInstance(activity))
                         .addAction(getString(R.string.string_218)) { dialog, _ -> dialog.dismiss() }
                         .addAction(
                             0,
                             getString(R.string.string_219),
-                            QMUIDialogAction.ACTION_PROP_NEGATIVE,
+                            WitDialogAction.ACTION_PROP_NEGATIVE,
                         ) { dialog, _ ->
                             dialog.dismiss()
                             lifecycleScope.launch {
@@ -157,12 +157,12 @@ class MutedTagsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
             }
 
             R.id.action_add -> {
-                val builder = QMUIDialog.EditTextDialogBuilder(activity)
+                val builder = WitDialog.EditTextDialogBuilder(activity)
                 builder.setTitle(getString(R.string.string_210))
-                    .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                    .setSkinManager(WitSkinManager.defaultInstance(activity))
                     .setPlaceholder(getString(R.string.string_211))
                     .setInputType(InputType.TYPE_CLASS_TEXT)
-                    .setActionContainerOrientation(QMUIDialogBuilder.VERTICAL)
+                    .setActionContainerOrientation(WitDialogBuilder.VERTICAL)
                     .addAction(getString(R.string.string_212)) { dialog, _ -> dialog.dismiss() }
                     .addAction(getString(R.string.string_437)) { dialog, _ ->
                         val text = builder.editText.text?.toString().orEmpty()

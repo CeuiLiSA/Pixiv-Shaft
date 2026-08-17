@@ -9,9 +9,9 @@ import ceui.lisa.utils.Local
 import ceui.pixiv.db.HistoryBackfill
 import ceui.pixiv.db.HistoryReporter
 import ceui.pixiv.session.SessionManager
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -60,10 +60,10 @@ object CloudHistoryConsent {
         if (activity.isFinishing || activity.isDestroyed) return false
 
         Timber.tag(TAG).i("[consent] showing one-time dialog")
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.cloud_history_consent_title)
             .setMessage(R.string.cloud_history_consent_message)
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
+            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(activity.getString(R.string.cloud_history_consent_stop)) { d, _ ->
                 Timber.tag(TAG).i("[consent] user chose STOP")
                 persist(enabled = false, consentShown = true)
@@ -71,7 +71,7 @@ object CloudHistoryConsent {
                 onResolved?.invoke()
             }
             .addAction(0, activity.getString(R.string.cloud_history_consent_keep),
-                QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+                WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 Timber.tag(TAG).i("[consent] user chose KEEP")
                 persist(enabled = true, consentShown = true)
                 HistoryBackfill.maybeSchedule() // 明确同意后立刻回填存量本地历史(#989)
@@ -92,12 +92,12 @@ object CloudHistoryConsent {
             Common.showToast(activity.getString(R.string.moon_login_required))
             return
         }
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.clear_cloud_history_confirm_title)
             .setMessage(R.string.clear_cloud_history_confirm_message)
-            .setSkinManager(QMUISkinManager.defaultInstance(activity))
+            .setSkinManager(WitSkinManager.defaultInstance(activity))
             .addAction(activity.getString(R.string.string_187)) { d, _ -> d.dismiss() }
-            .addAction(0, activity.getString(R.string.sure), QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, activity.getString(R.string.sure), WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 activity.lifecycleScope.launch {
                     try {

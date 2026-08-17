@@ -33,9 +33,9 @@ import ceui.pixiv.ui.bulk.startAuthorWorksBulkDownload
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -284,11 +284,11 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     }
 
     private fun showDownloadAllConfirm(authorName: String, total: Int) {
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(R.string.bulk_user_menu_download_all_illust)
             .setMessage(getString(R.string.bulk_user_download_all_illust_confirm, authorName, total))
-            .setSkinManager(QMUISkinManager.defaultInstance(requireActivity()))
-            .addAction(0, getString(R.string.cancel), QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ -> d.dismiss() }
+            .setSkinManager(WitSkinManager.defaultInstance(requireActivity()))
+            .addAction(0, getString(R.string.cancel), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ -> d.dismiss() }
             .addAction(0, getString(android.R.string.ok)) { d, _ ->
                 d.dismiss()
                 startAuthorWorksBulkDownload(

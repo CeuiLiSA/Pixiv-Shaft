@@ -41,9 +41,9 @@ import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.request.RequestOptions
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -120,7 +120,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
 
     /**
      * 屏蔽作品卡（recy_view_history）：复刻 MuteWorksAdapter 的 bind —— 插画封面高斯模糊、小说封面
-     * 直出，标题 / 作者 / 时间 / 右下角标。删除按钮弹确认框（QMUIDialog）；小说卡整卡点开小说详情
+     * 直出，标题 / 作者 / 时间 / 右下角标。删除按钮弹确认框（WitDialog）；小说卡整卡点开小说详情
      *（对齐 legacy itemView 直开 TemplateActivity），插画卡整卡无跳转（legacy 的 viewType 0 空实现）。
      */
     private fun mutedObjectRenderer() = feedRenderer<MutedObjectFeedItem, RecyViewHistoryBinding>(
@@ -235,7 +235,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
     }
 
     /**
-     * 删除确认框：QMUIDialog + QMUISkinManager（日夜皮肤），对齐 legacy 的标题 / 文案 / 按钮。
+     * 删除确认框：WitDialog + WitSkinManager（日夜皮肤），对齐 legacy 的标题 / 文案 / 按钮。
      * 确认后 IO 线程删 DB、再从列表移除该条、toast。
      *
      * 用 Fragment 级 [lifecycleScope]（不是 viewLifecycleOwner）：弹窗锚在 Activity 上，可能在
@@ -245,12 +245,12 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
     private fun confirmDelete(entity: MuteEntity) {
         val ctx = context ?: return
         val appContext = ctx.applicationContext
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(R.string.string_352)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.string_142) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.string_141, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 lifecycleScope.launch {
                     // 删库和内存名单一并交给 store：它的 false 方向是无条件删的，正是给这种

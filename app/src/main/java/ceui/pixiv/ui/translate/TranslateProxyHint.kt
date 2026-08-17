@@ -4,15 +4,15 @@ import android.app.Activity
 import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import com.blankj.utilcode.util.ActivityUtils
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
 /**
  * GoogleWebTranslator 走 translate.googleapis.com,国内必须有代理。
- * 翻译失败时弹一条 QMUIDialog 直接告诉用户「需要代理」— 避免只 toast 一句模糊的「翻译失败」
+ * 翻译失败时弹一条 WitDialog 直接告诉用户「需要代理」— 避免只 toast 一句模糊的「翻译失败」
  * 让人以为是 app bug 反复重试。
  *
  * 拿当前 foreground Activity 用 [ActivityUtils.getTopActivity];AndroidUtilCode 内部维护
@@ -21,7 +21,7 @@ import timber.log.Timber
  */
 internal fun promptProxyNeededIfPossible() {
     showTranslateDialogIfPossible { activity ->
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.translate_proxy_required_title)
             .setMessage(R.string.translate_proxy_required_message)
     }
@@ -44,7 +44,7 @@ internal fun promptTranslateFailedIfPossible(e: Exception?) {
     }
     showTranslateDialogIfPossible { activity ->
         val body = buildFailureBody(activity, e)
-        QMUIDialog.MessageDialogBuilder(activity)
+        WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.ai_translate_failed_title)
             .setMessage(body)
             .addAction(activity.getString(R.string.string_120)) { dialog, _ ->
@@ -89,7 +89,7 @@ private fun failureMessage(e: Exception?, code: Int?, activity: Activity): Strin
     return stripped.ifBlank { activity.getString(R.string.ai_translate_failed_no_detail) }
 }
 
-private fun showTranslateDialogIfPossible(build: (Activity) -> QMUIDialog.MessageDialogBuilder) {
+private fun showTranslateDialogIfPossible(build: (Activity) -> WitDialog.MessageDialogBuilder) {
     val activity: Activity? = ActivityUtils.getTopActivity()
     if (activity == null || activity.isFinishing || activity.isDestroyed) {
         Timber.tag("TranslateProxyHint").w("no resumed activity, skip dialog")
@@ -99,8 +99,8 @@ private fun showTranslateDialogIfPossible(build: (Activity) -> QMUIDialog.Messag
         if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
         try {
             build(activity)
-                .setSkinManager(QMUISkinManager.defaultInstance(activity))
-                .addAction(0, android.R.string.ok, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+                .setSkinManager(WitSkinManager.defaultInstance(activity))
+                .addAction(0, android.R.string.ok, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                     d.dismiss()
                 }
                 .show()

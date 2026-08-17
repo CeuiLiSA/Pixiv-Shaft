@@ -20,9 +20,9 @@ import ceui.lisa.utils.Settings
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.translate.AiTranslator
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
@@ -218,7 +218,7 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
     private fun isDirty(): Boolean = saved != currentSnapshot()
 
     private fun showUnsavedDialog() {
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(getString(R.string.ai_translate_unsaved_title))
             .setMessage(getString(R.string.ai_translate_unsaved_message))
             .addAction(android.R.string.cancel) { d, _ -> d.dismiss() }
@@ -226,7 +226,7 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
                 d.dismiss()
                 exitPage()
             }
-            .addAction(0, getString(R.string.ai_translate_unsaved_save), QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, getString(R.string.ai_translate_unsaved_save), WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 if (save()) exitPage()
             }
@@ -268,13 +268,13 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
 
     private fun showThinkingModePicker() {
         val ctx = requireContext()
-        QMUIDialog.MenuDialogBuilder(ctx)
+        WitDialog.MenuDialogBuilder(ctx)
             .addItems(thinkingModeNames) { dialog, which ->
                 thinkingMode = which
                 binding.aiTranslateThinkingMode.setText(thinkingModeNames[which])
                 dialog.dismiss()
             }
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .show()
     }
 
@@ -348,12 +348,12 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
 
     private fun showModelPicker(models: List<String>) {
         val ctx = requireContext()
-        QMUIDialog.MenuDialogBuilder(ctx)
+        WitDialog.MenuDialogBuilder(ctx)
             .addItems(models.toTypedArray()) { dialog, which ->
                 binding.aiTranslateModel.setText(models[which])
                 dialog.dismiss()
             }
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .show()
     }
 

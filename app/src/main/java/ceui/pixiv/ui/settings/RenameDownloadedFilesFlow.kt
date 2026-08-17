@@ -11,10 +11,10 @@ import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.pixiv.download.maintenance.RenameSweeper
 import ceui.pixiv.ui.bulk.FetchProgressDialog
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogView
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialogView
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -32,12 +32,12 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
     /** 命名模板改动落盘后追问一句 —— issue #567 要的就是这个入口。 */
     fun promptAfterTemplateChange() {
         val ctx = host.context ?: return
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.rename_dl_title)
             .setMessage(R.string.rename_dl_prompt_after_save)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.rename_dl_later) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.rename_dl_go, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+            .addAction(0, R.string.rename_dl_go, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
                 scan()
             }
@@ -48,12 +48,12 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
     /** 设置页常驻入口：先把「会做什么、不会做什么」讲清楚再扫。 */
     fun start() {
         val ctx = host.context ?: return
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.rename_dl_title)
             .setMessage(R.string.rename_dl_intro)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.rename_dl_scan, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+            .addAction(0, R.string.rename_dl_scan, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
                 scan()
             }
@@ -69,8 +69,8 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             text = host.getString(R.string.rename_dl_scanning_start)
         }
-        val progressDialog = object : QMUIDialog.CustomDialogBuilder(ctx) {
-            override fun onCreateContent(dialog: QMUIDialog, parent: QMUIDialogView, c: Context): View =
+        val progressDialog = object : WitDialog.CustomDialogBuilder(ctx) {
+            override fun onCreateContent(dialog: WitDialog, parent: WitDialogView, c: Context): View =
                 LinearLayout(c).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(dp(c, 24), dp(c, 8), dp(c, 24), dp(c, 8))
@@ -78,7 +78,7 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
                 }
         }
             .setTitle(host.getString(R.string.rename_dl_scanning_title))
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(host.getString(R.string.cancel)) { d, _ ->
                 scanJob?.cancel()
                 d.dismiss()
@@ -114,21 +114,21 @@ class RenameDownloadedFilesFlow(private val host: Fragment) {
     private fun showPreview(plan: RenameSweeper.RenamePlan) {
         val ctx = host.context ?: return
         if (plan.entries.isEmpty()) {
-            QMUIDialog.MessageDialogBuilder(ctx)
+            WitDialog.MessageDialogBuilder(ctx)
                 .setTitle(R.string.rename_dl_title)
                 .setMessage(previewText(plan, empty = true))
-                .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+                .setSkinManager(WitSkinManager.defaultInstance(ctx))
                 .addAction(R.string.sure) { d, _ -> d.dismiss() }
                 .create()
                 .show()
             return
         }
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.rename_dl_preview_title)
             .setMessage(previewText(plan, empty = false))
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.rename_dl_confirm, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+            .addAction(0, R.string.rename_dl_confirm, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
                 commit(plan)
             }

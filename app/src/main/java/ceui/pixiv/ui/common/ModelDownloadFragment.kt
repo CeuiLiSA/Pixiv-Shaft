@@ -9,8 +9,8 @@ import ceui.lisa.databinding.FragmentRembgModelDownloadBinding
 import ceui.lisa.fragments.BaseLazyFragment
 import ceui.lisa.utils.Common
 import ceui.pixiv.utils.setOnClick
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -146,13 +146,13 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
 
     private fun confirmDeleteModel() {
         val ctx = context ?: return
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_rembg_model_delete_confirm_title)
             .setMessage(getString(R.string.string_rembg_model_delete_confirm_message, model.displayName))
-            .addAction(0, getString(R.string.string_cancel), QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
+            .addAction(0, getString(R.string.string_cancel), WitDialogAction.ACTION_PROP_NEUTRAL) { d, _ ->
                 d.dismiss()
             }
-            .addAction(0, getString(R.string.string_rembg_model_delete), QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, getString(R.string.string_rembg_model_delete), WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 deleteModelAndReset()
             }

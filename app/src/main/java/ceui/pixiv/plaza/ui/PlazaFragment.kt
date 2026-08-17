@@ -27,8 +27,8 @@ import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import com.blankj.utilcode.util.BarUtils
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 
 /**
  * 广场。Toolbar 右上 + → 进发帖页;右下 FAB 备份入口 (移动端 reach 友好)。
@@ -179,11 +179,11 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
         // 只有自己的帖子才会到这里 (PlazaFeedAdapter 已按 selfUid 隐藏 ⋯ 按钮)。
         // MVP 只有「删除」一项,QMUI 风格统一全 app 弹窗。
         if (post.uid != SessionManager.loggedInUid) return
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setMessage(R.string.plaza_delete_confirm)
             .addAction(R.string.plaza_delete_cancel) { d, _ -> d.dismiss() }
             .addAction(
-                0, R.string.plaza_delete_confirm_yes, QMUIDialogAction.ACTION_PROP_NEGATIVE
+                0, R.string.plaza_delete_confirm_yes, WitDialogAction.ACTION_PROP_NEGATIVE
             ) { d, _ ->
                 d.dismiss()
                 viewModel.deletePost(requireContext(), post, SessionManager.loggedInUid)

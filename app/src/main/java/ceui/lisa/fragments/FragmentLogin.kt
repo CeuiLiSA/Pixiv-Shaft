@@ -42,9 +42,9 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.i18n.AppLocales
 import ceui.pixiv.login.PixivLogin
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -255,7 +255,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         }
 
         MenuDialogBuilder(mContext)
-            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+            .setSkinManager(WitSkinManager.defaultInstance(mContext))
             .setTitle(getString(R.string.browser_dialog_found_title))
             .addItems(browsers.map { it.label }.toTypedArray()) { dialog, which ->
                 dialog.dismiss()
@@ -558,7 +558,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         val dialog = MessageDialogBuilder(mContext)
             .setTitle(getString(R.string.string_143))
             .setMessage(getString(R.string.string_360))
-            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+            .setSkinManager(WitSkinManager.defaultInstance(mContext))
             .addAction(getString(R.string.cancel)) { d, _ -> d.dismiss() }
             .addAction(getString(R.string.string_361)) { d, _ ->
                 onConfirm()

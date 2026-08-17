@@ -32,8 +32,8 @@ import ceui.pixiv.download.header.HeaderPreset
 import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.ui.common.viewBinding
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 
 /**
  * "下载内容信息头设置" — lets the user choose which metadata fields are
@@ -268,11 +268,11 @@ class NovelHeaderSettingsFragment : Fragment(R.layout.fragment_novel_header_sett
             Toaster.show(getString(R.string.novel_header_preset_delete_last))
             return
         }
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(getString(R.string.novel_header_preset_delete))
             .setMessage(getString(R.string.novel_header_preset_delete_confirm, draftPresetName))
             .addAction(android.R.string.cancel) { d, _ -> d.dismiss() }
-            .addAction(0, android.R.string.ok, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, android.R.string.ok, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 val remaining = store.presets.filter { it.name != draftPresetName }
                 store = store.copy(presets = remaining, activeName = remaining.first().name)
@@ -290,7 +290,7 @@ class NovelHeaderSettingsFragment : Fragment(R.layout.fragment_novel_header_sett
         hint: String,
         onConfirm: (String) -> Unit,
     ) {
-        val builder = QMUIDialog.EditTextDialogBuilder(requireContext())
+        val builder = WitDialog.EditTextDialogBuilder(requireContext())
         builder.setTitle(title)
             .setPlaceholder(hint)
             .setDefaultText(initial)
@@ -442,11 +442,11 @@ class NovelHeaderSettingsFragment : Fragment(R.layout.fragment_novel_header_sett
     }
 
     private fun onResetDefault() {
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(getString(R.string.novel_header_reset))
             .setMessage(getString(R.string.novel_header_reset_confirm))
             .addAction(android.R.string.cancel) { d, _ -> d.dismiss() }
-            .addAction(0, android.R.string.ok, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, android.R.string.ok, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 HeaderConfigRepo.reset()
                 store = HeaderConfigRepo.load()

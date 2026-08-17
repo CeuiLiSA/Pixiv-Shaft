@@ -25,8 +25,8 @@ import ceui.pixiv.chat.base.viewBinding
 import ceui.pixiv.chat.base.viewModels
 import ceui.pixiv.session.SessionManager
 import com.blankj.utilcode.util.BarUtils
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 
 /**
  * 单帖详情页。从 plaza feed 卡片点进来,或从分享深链 / 通知打开。
@@ -207,11 +207,11 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
     private fun showMoreMenu(post: PlazaPost, anchor: View) {
         // 这里只有「删除」一项 —— 跟 feed 一致。MVP 不上 PopupMenu 实现,
         // 直接走 QMUI 的确认对话框。
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setMessage(R.string.plaza_delete_confirm)
             .addAction(R.string.plaza_delete_cancel) { d, _ -> d.dismiss() }
             .addAction(
-                0, R.string.plaza_delete_confirm_yes, QMUIDialogAction.ACTION_PROP_NEGATIVE
+                0, R.string.plaza_delete_confirm_yes, WitDialogAction.ACTION_PROP_NEGATIVE
             ) { d, _ ->
                 d.dismiss()
                 viewModel.delete(requireContext(), SessionManager.loggedInUid)

@@ -25,9 +25,9 @@ import ceui.pixiv.ui.task.FailedNovel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -286,7 +286,7 @@ class NovelBulkSelectV3Fragment : Fragment() {
             if (isPrivate) R.string.bulk_bookmark_restrict_private
             else R.string.bulk_bookmark_restrict_public
         )
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.bulk_bookmark_novel_confirm_title)
             .setMessage(
                 getString(
@@ -296,9 +296,9 @@ class NovelBulkSelectV3Fragment : Fragment() {
                     PixivActions.estimatedQueueMinutes(count),
                 )
             )
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.bulk_bookmark_confirm_go, QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+            .addAction(0, R.string.bulk_bookmark_confirm_go, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                 d.dismiss()
                 enqueueBookmarks(picked, bookmark = true, restrict = restrict)
                 finishAfterEnqueue()
@@ -314,7 +314,7 @@ class NovelBulkSelectV3Fragment : Fragment() {
             return
         }
         val ctx = context ?: return
-        QMUIDialog.MessageDialogBuilder(ctx)
+        WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.bulk_unbookmark_novel_confirm_title)
             .setMessage(
                 getString(
@@ -323,9 +323,9 @@ class NovelBulkSelectV3Fragment : Fragment() {
                     PixivActions.estimatedQueueMinutes(count),
                 )
             )
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
+            .setSkinManager(WitSkinManager.defaultInstance(ctx))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.bulk_bookmark_confirm_go, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.bulk_bookmark_confirm_go, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 // restrict 对取消收藏无意义（delete 端点不带），传默认值占位。
                 enqueueBookmarks(
@@ -345,7 +345,7 @@ class NovelBulkSelectV3Fragment : Fragment() {
      * 弄没了 —— 而且是静默的：任务被取消后 onFinished 根本不会回调，连个提示都没有。
      * 这种时候留在本页，下载自己的进度 toast 继续走。
      *
-     * 用 `activity?.` 而不是 `requireActivity()`：QMUIDialog 拿的是 Activity context、
+     * 用 `activity?.` 而不是 `requireActivity()`：WitDialog 拿的是 Activity context、
      * 不跟 fragment 生命周期绑定，点到这里时 fragment 可能已经 detach。
      * 入队本身已经交给进程级 scope，收不收得到这个 finish 都不影响它。
      */

@@ -29,9 +29,9 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import com.blankj.utilcode.util.BarUtils
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 
 /**
  * 本地小说书库 —— 用户给一个文件夹，按文件夹分系列/作者、按文件名排序当列表，
@@ -171,16 +171,16 @@ class LocalLibraryFragment : Fragment(R.layout.fragment_local_library) {
         }
     }
 
-    /** 清空书架前确认。文案明确「不会删文件」，避免用户误以为要删小说。仅 QMUIDialog。 */
+    /** 清空书架前确认。文案明确「不会删文件」，避免用户误以为要删小说。仅 WitDialog。 */
     private fun showClearConfirm() {
         val act = activity ?: return
         if (act.isFinishing || act.isDestroyed) return
-        QMUIDialog.MessageDialogBuilder(act)
+        WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.local_novel_clear_confirm_title)
             .setMessage(R.string.local_novel_clear_confirm_msg)
-            .setSkinManager(QMUISkinManager.defaultInstance(act))
+            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
-            .addAction(0, R.string.sure, QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+            .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 viewModel.clearLibrary()
             }

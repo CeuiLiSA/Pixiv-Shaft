@@ -10,9 +10,9 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.config.DownloadConfigBackup
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -114,7 +114,7 @@ object MoonSync {
                 return@launch
             }
 
-            QMUIDialog.MessageDialogBuilder(activity)
+            WitDialog.MessageDialogBuilder(activity)
                 .setTitle(R.string.moon_sync_title)
                 .setMessage(
                     activity.getString(
@@ -123,13 +123,13 @@ object MoonSync {
                         prettyTime(cloud.updatedAt),
                     )
                 )
-                .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                .setSkinManager(WitSkinManager.defaultInstance(activity))
                 .addAction(activity.getString(R.string.moon_sync_ignore)) { d, _ ->
                     Timber.tag(TAG).i("[sync] user dismissed (ignore)")
                     d.dismiss()
                     onComplete.run()
                 }
-                .addAction(0, activity.getString(R.string.moon_sync_apply_action), QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+                .addAction(0, activity.getString(R.string.moon_sync_apply_action), WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                     Timber.tag(TAG).i("[sync] user accepted → applying v%d", cloud.version)
                     d.dismiss()
                     activity.lifecycleScope.launch {
@@ -279,7 +279,7 @@ object MoonSync {
                 return@launch
             }
 
-            QMUIDialog.MessageDialogBuilder(activity)
+            WitDialog.MessageDialogBuilder(activity)
                 .setTitle(R.string.moon_sync_title)
                 .setMessage(
                     activity.getString(
@@ -288,13 +288,13 @@ object MoonSync {
                         prettyTime(cloud.updatedAt),
                     )
                 )
-                .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                .setSkinManager(WitSkinManager.defaultInstance(activity))
                 .addAction(activity.getString(R.string.moon_sync_ignore)) { d, _ ->
                     Timber.tag(TAG).i("[manual] user dismissed")
                     d.dismiss()
                 }
                 .addAction(0, activity.getString(R.string.moon_sync_apply_action),
-                    QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
+                    WitDialogAction.ACTION_PROP_POSITIVE) { d, _ ->
                     Timber.tag(TAG).i("[manual] user accepted → applying v%d", cloud.version)
                     d.dismiss()
                     activity.lifecycleScope.launch {

@@ -40,8 +40,8 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.session.SessionManager
 import com.blankj.utilcode.util.BarUtils
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -193,9 +193,9 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
      * 合并导入：不会覆盖用户已有的词典内容。
      */
     private fun confirmImportBuiltinDict() {
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(getString(R.string.synonym_import_builtin))
-            .setSkinManager(QMUISkinManager.defaultInstance(requireContext()))
+            .setSkinManager(WitSkinManager.defaultInstance(requireContext()))
             .setMessage(getString(R.string.synonym_import_builtin_confirm))
             .addAction(getString(R.string.cancel)) { d, _ -> d.dismiss() }
             .addAction(getString(R.string.sure)) { d, _ ->
@@ -233,9 +233,9 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
             Common.showToast(getString(R.string.synonym_dict_empty))
             return
         }
-        QMUIDialog.MessageDialogBuilder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(getString(R.string.synonym_clear_all))
-            .setSkinManager(QMUISkinManager.defaultInstance(requireContext()))
+            .setSkinManager(WitSkinManager.defaultInstance(requireContext()))
             .setMessage(getString(R.string.synonym_clear_all_confirm, targetCount))
             .addAction(getString(R.string.cancel)) { d, _ -> d.dismiss() }
             .addAction(getString(R.string.synonym_delete)) { d, _ ->

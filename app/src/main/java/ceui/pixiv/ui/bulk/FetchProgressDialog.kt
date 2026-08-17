@@ -12,8 +12,8 @@ import androidx.fragment.app.FragmentManager
 import ceui.lisa.activities.TemplateActivity
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -337,10 +337,10 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         val act = activity ?: return
         val message = e.message?.takeIf { it.isNotBlank() }
             ?: getString(R.string.dlmgr_active_size_failed)
-        QMUIDialog.MessageDialogBuilder(act)
+        WitDialog.MessageDialogBuilder(act)
             .setTitle(R.string.string_143)
             .setMessage(message)
-            .setSkinManager(QMUISkinManager.defaultInstance(act))
+            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addAction(R.string.sure) { dialog, _ -> dialog.dismiss() }
             .show()
     }
