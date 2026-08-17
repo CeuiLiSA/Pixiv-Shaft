@@ -14,7 +14,6 @@
     <string name="browser_dialog_found_title">Найдено следующее</string>
     <string name="action_qcode">Сканировать QR-код</string>
     <string name="title_activity_blank">Пустой экран</string>
-    <string name="empty_list_1">Здесь ничего нет</string>
     <string name="feature_empty_hint">Подборок пока нет\nВыберите «Добавить в подборку» в меню списка работ</string>
     <string name="empty_list_2">Здесь ничего нет</string>
     <string name="empty_list_3">Здесь ничего нет</string>
@@ -469,8 +468,6 @@
     <string name="string_241">Размывать миниатюры в последних задачах</string>
     <string name="string_242">Настроить схему имени файла (нажмите и перетащите)</string>
     <string name="string_243">Здесь пока ничего нет</string>
-    <string name="list_load_failed_tap_retry">Не удалось загрузить. Нажмите, чтобы повторить.</string>
-    <string name="feed_error_tap_retry">Нажмите, чтобы повторить</string>
     <string name="string_244">Фильтр по метке</string>
     <string name="string_245">Добавить в личную коллекцию</string>
     <string name="string_246">Иллюстрации</string>

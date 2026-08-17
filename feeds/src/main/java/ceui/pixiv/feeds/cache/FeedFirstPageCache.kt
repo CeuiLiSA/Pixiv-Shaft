@@ -1,7 +1,5 @@
 package ceui.pixiv.feeds.cache
 
-import ceui.lisa.activities.Shaft
-import ceui.pixiv.session.SessionManager
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -134,22 +132,3 @@ class FeedFirstPageCache<Resp : Any>(
         private const val MAX_PAYLOAD_CHARS = 1_000_000
     }
 }
-
-/**
- * 生产用工厂：绑定进程级 Room 存储 + 当前账号命名空间 + [Shaft.sGson]（与全仓模型序列化一致）。
- *
- * @param slot 该 feed 的稳定标识（如 `"recmd-illust"`）；账号命名空间由本工厂自动拼上。
- * @param maxAge 超过多旧就不再闪缓存（默认 [DEFAULT_FEED_CACHE_MAX_AGE]）。
- */
-fun <Resp : Any> feedFirstPageCache(
-    slot: String,
-    type: Class<Resp>,
-    maxAge: Duration = DEFAULT_FEED_CACHE_MAX_AGE,
-): FeedFirstPageCache<Resp> = FeedFirstPageCache(
-    slot = slot,
-    type = type,
-    maxAgeMillis = maxAge.inWholeMilliseconds,
-    backend = defaultFeedCacheBackend,
-    gson = Shaft.sGson,
-    accountId = { SessionManager.loggedInUid },
-)

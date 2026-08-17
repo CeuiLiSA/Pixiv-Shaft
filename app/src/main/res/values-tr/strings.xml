@@ -14,7 +14,6 @@
     <string name="browser_dialog_found_title">Şunlar bulundu</string>
     <string name="action_qcode">QR kodu tara</string>
     <string name="title_activity_blank">Boş Sayfa</string>
-    <string name="empty_list_1">Burası boş</string>
     <string name="feature_empty_hint">Henüz kayıtlı seçki yok\nBir eser listesinin menüsünden “Seçkiye ekle” seçin</string>
     <string name="empty_list_2">Burası boş</string>
     <string name="empty_list_3">Burası boş</string>
@@ -469,8 +468,6 @@
     <string name="string_241">Son uygulamalarda önizlemeyi bulanıklaştır</string>
     <string name="string_242">Adlandırma şeması (Basılı tutup sürükle)</string>
     <string name="string_243">Burası boş</string>
-    <string name="list_load_failed_tap_retry">Yüklenemedi. Yeniden denemek için dokunun.</string>
-    <string name="feed_error_tap_retry">Yeniden denemek için dokunun</string>
     <string name="string_244">Etikete göre filtrele</string>
     <string name="string_245">Koleksiyona ekle</string>
     <string name="string_246">Resimler</string>

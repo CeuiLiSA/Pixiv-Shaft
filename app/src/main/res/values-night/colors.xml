@@ -95,9 +95,7 @@
     <color name="v3_surface_1">#08FFFFFF</color>
     <color name="v3_surface_2">#0EFFFFFF</color>
     <color name="v3_surface_3">#14FFFFFF</color>
-    <!-- 瀑布流骨架图 dark 版：不透明中性块 + 只亮一档的柔和高光(shimmer 发光),深底看得清又不过曝 -->
-    <color name="feed_skeleton_block">#33333A</color>
-    <color name="feed_skeleton_highlight">#46464E</color>
+    <!-- feed_skeleton_* 的 dark 版同样搬进了 :feeds 模块，见 values/colors.xml 的说明。 -->
     <!-- 进度条未完成段 dark 版：~25% 白让 #08080C 卡片背景上能看清 track -->
     <color name="v3_progress_track">#40FFFFFF</color>
     <color name="v3_border_1">#0AFFFFFF</color>

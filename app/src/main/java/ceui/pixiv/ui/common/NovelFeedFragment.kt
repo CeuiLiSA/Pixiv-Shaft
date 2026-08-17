@@ -81,7 +81,7 @@ private const val NOVEL_SPOILER_BLUR_SAMPLING = 3
  * 一起删除**（见「NAdapter 三个页面全部迁 feeds」那次提交），要考古去 git 历史，别在工作区找。
  */
 abstract class NovelFeedFragment(
-    @LayoutRes contentLayoutId: Int = R.layout.fragment_feed,
+    @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
 ) : FeedFragment(contentLayoutId) {
 
     abstract override val feedViewModel: FeedViewModel<String>

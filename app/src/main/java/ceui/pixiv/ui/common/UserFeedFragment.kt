@@ -49,7 +49,7 @@ private val PAYLOAD_USER_FOLLOW = Any()
  * 删除**，要考古去 git 历史，别在工作区找。
  */
 abstract class UserFeedFragment(
-    @LayoutRes contentLayoutId: Int = R.layout.fragment_feed,
+    @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
 ) : FeedFragment(contentLayoutId) {
 
     /**

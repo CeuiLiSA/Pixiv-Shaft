@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="empty_list_1">아무것도 없다 니.</string>
+    <string name="list_load_failed_tap_retry">불러오기 실패. 탭하여 재시도.</string>
+    <string name="feed_error_tap_retry">탭하여 재시도</string>
+</resources>

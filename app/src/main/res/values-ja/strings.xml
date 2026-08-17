@@ -14,7 +14,6 @@
     <string name="browser_dialog_found_title">こちらが見つかりました</string>
     <string name="action_qcode">"QRコードをスキャン "</string>
     <string name="title_activity_blank">BlankActivity</string>
-    <string name="empty_list_1">コンテンツなし</string>
     <string name="feature_empty_hint">まだ精華リストがありません\n作品一覧のメニューから「精華に追加」を選んでください</string>
     <string name="empty_list_2">コンテンツなし</string>
     <string name="empty_list_3">コンテンツなし</string>
@@ -469,8 +468,6 @@
     <string name="string_241">最近の依頼のサムネをぼかします。</string>
     <string name="string_242">ファイル名のフォーマットを編集</string>
     <string name="string_243">コンテンツなし</string>
-    <string name="list_load_failed_tap_retry">読み込みに失敗しました。タップして再試行。</string>
-    <string name="feed_error_tap_retry">タップして再試行</string>
     <string name="string_244">タグでフィルター</string>
     <string name="string_245">すき！</string>
     <string name="string_246">イラスト作品</string>

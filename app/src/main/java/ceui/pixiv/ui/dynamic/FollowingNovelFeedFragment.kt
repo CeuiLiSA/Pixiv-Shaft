@@ -77,7 +77,7 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
     ): View {
         // showToolbar 是运行时参数，系统重建只走无参构造，不能靠构造器传 contentLayoutId，
         // 改在这里按参数选骨架（两张布局都带同结构的 feed_root）。对齐 UserNovelFeedFragment。
-        val layoutId = if (showToolbar) R.layout.fragment_toolbar_feed else R.layout.fragment_feed
+        val layoutId = if (showToolbar) R.layout.fragment_toolbar_feed else ceui.pixiv.feeds.R.layout.fragment_feed
         return inflater.inflate(layoutId, container, false)
     }
 

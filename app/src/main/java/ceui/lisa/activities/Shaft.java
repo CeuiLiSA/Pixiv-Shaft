@@ -398,6 +398,12 @@ public class Shaft extends Application implements ServicesProvider {
         int bottomOffset = BarUtils.getNavBarHeight() + (int) (48 * getResources().getDisplayMetrics().density);
         Toaster.setGravity(Gravity.BOTTOM, 0, bottomOffset);
 
+        // :feeds 列表框架的宿主装配（主题配色 / 空态插画 / 错误文案 / Toast / 网络恢复）。
+        // 必须在第一个列表页创建之前——晚了的话先建出来的页面会拿框架的 AOSP 默认配色。
+        // 只是给一个 static 字段赋个无状态单例，成本可忽略，不进延迟批。
+        // 排在 Toaster.init 之后：showMessage 直接转给 Toaster。
+        ceui.pixiv.feeds.host.ShaftFeedHost.INSTANCE.install();
+
         // Activity 会直接读这个 static，必须在第一个 Activity 之前就位。三个空
         // ConcurrentHashMap，成本可忽略。
         appViewModel = new AppLevelViewModel(this);

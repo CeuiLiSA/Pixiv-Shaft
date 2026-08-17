@@ -27,7 +27,7 @@ data class FeedUiState(
      * 需要它的不只是 UI：快照最长 [ceui.pixiv.feeds.cache.DEFAULT_FEED_CACHE_MAX_AGE]，
      * 拿旧数据重放「拉取成功」的副作用会污染下游。[FeedLoadPhase.CacheRestore] 只覆盖到
      * [FeedSource] 边界内的 mapper；住在 Fragment 层、靠 collect 本状态驱动的副作用消费方
-     * （[ceui.pixiv.ui.common.IllustFeedPoolSync] 喂 ObjectPool / 关注态）拿不到 phase，只能读这个字段。
+     * （`:app` 的 `IllustFeedPoolSync` 喂 ObjectPool / 关注态）拿不到 phase，只能读这个字段。
      * 新增此类消费方时务必门控它，否则陈旧 bean 会把更新的收藏 / 关注态盖回去。
      *
      * ⚠️ 数据源关掉「命中快照后自动刷新」（[FeedSource.refreshAfterCacheHit] 返回 false，如首页推荐
@@ -58,7 +58,7 @@ data class FeedUiState(
      * [FeedFragment] 用它决定是否**绕开跨代 diff**：新旧两代之间往往有个别 id 恰好重合
      *（榜单名次变了、推荐流回吐同一作品），ListAdapter 默认 `detectMoves=true` 会把这几个
      * 重合项当 move 锚点做移动动画，而 StaggeredGridLayoutManager 对 move + 整行重排有已知
-     * 缺陷（本仓 [ceui.lisa.helper.StaggeredManager] 就在吞它抛的 IndexOutOfBounds）——
+     * 缺陷（本仓 `:app` 的 `StaggeredManager` 就在吞它抛的 IndexOutOfBounds）——
      * 结果就是用户看到的「旧数据往上顶一下、塌成零散卡片和黑色空档，再重排成新数据」。
      * 顺带一个观感问题：重合项连 holder 带已解码的图一起被复用，所以它秒显，而全新项要等
      * Glide 走网络，两者一先一后，整屏看着很割裂。

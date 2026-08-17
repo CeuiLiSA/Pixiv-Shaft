@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="empty_list_1">Actually had nothing</string>
+    <string name="list_load_failed_tap_retry">Failed to load. Tap to retry.</string>
+    <string name="feed_error_tap_retry">Tap to retry</string>
+</resources>

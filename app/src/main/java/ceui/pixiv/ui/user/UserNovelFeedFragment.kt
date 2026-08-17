@@ -61,7 +61,7 @@ class UserNovelFeedFragment : NovelFeedFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val layoutId = if (showToolbar) R.layout.fragment_toolbar_feed else R.layout.fragment_feed
+        val layoutId = if (showToolbar) R.layout.fragment_toolbar_feed else ceui.pixiv.feeds.R.layout.fragment_feed
         return inflater.inflate(layoutId, container, false)
     }
 

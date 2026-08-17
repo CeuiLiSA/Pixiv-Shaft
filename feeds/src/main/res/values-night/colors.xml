@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 骨架图 dark 版：不透明中性块 + 只亮一档的柔和高光(shimmer 发光),深底看得清又不过曝 -->
+    <color name="feed_skeleton_block">#33333A</color>
+    <color name="feed_skeleton_highlight">#46464E</color>
+</resources>

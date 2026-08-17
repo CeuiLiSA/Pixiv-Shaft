@@ -1,7 +1,7 @@
 package ceui.pixiv.feeds
 
 import androidx.core.view.isVisible
-import ceui.lisa.databinding.ItemFeedAppendFooterBinding
+import ceui.pixiv.feeds.databinding.ItemFeedAppendFooterBinding
 
 /**
  * 框架内部的翻页 footer：追加中转菊花，追加失败变「点击重试」。

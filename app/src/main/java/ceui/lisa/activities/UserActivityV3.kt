@@ -168,7 +168,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 ) {
                     val bg = getColor(R.color.v3_bg)
                     v.findViewById<View?>(R.id.refreshLayout)?.setBackgroundColor(bg)
-                    v.findViewById<View?>(R.id.feed_root)?.setBackgroundColor(bg)
+                    v.findViewById<View?>(ceui.pixiv.feeds.R.id.feed_root)?.setBackgroundColor(bg)
                 }
             }, true
         )

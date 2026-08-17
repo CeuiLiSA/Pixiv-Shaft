@@ -34,7 +34,7 @@ fun interface FeedSource<Cursor : Any> {
      * 本地优先（可选）：冷启时从磁盘快照即时恢复上一次首屏；无缓存 / 未命中 / 损坏都返回 null。
      *
      * 默认无缓存（返回 null）——[FeedViewModel] 冷启会先调它秒显旧首屏，再照常网络刷新覆盖
-     * （RemoteMediator 语义：本地兜首屏，翻页仍走网络）。实现见 [PixivFeedSource]。
+     * （RemoteMediator 语义：本地兜首屏，翻页仍走网络）。实现见 `:app` 的 `PixivFeedSource`。
      *
      * - 必须 main-safe（重 IO / 反序列化自行切线程）；不碰网络；
      * - 不产生「拉取成功」类副作用（喂画像池、写浏览历史等只属于真正的网络 [load]，拿旧数据

@@ -14,7 +14,6 @@
     <string name="browser_dialog_found_title">다음을 찾았습니다</string>
     <string name="action_qcode">QR 코드 를 스캐닝 하 다.</string>
     <string name="title_activity_blank">공백 활성</string>
-    <string name="empty_list_1">아무것도 없다 니.</string>
     <string name="feature_empty_hint">아직 저장된 모음이 없습니다\n작품 목록 메뉴에서 ‘모음에 추가’를 선택하세요</string>
     <string name="empty_list_2">아무것도 없다 니.</string>
     <string name="empty_list_3">아무것도 없다 니.</string>
@@ -469,8 +468,6 @@
     <string name="string_241">최근 작업 의 모호 한 미리 보기 그림</string>
     <string name="string_242">이름 설정 (드래그 앤 드 롭)</string>
     <string name="string_243">여기 아무것도 없어 요.</string>
-    <string name="list_load_failed_tap_retry">불러오기 실패. 탭하여 재시도.</string>
-    <string name="feed_error_tap_retry">탭하여 재시도</string>
     <string name="string_244">라벨 로 선별 하 다</string>
     <string name="string_245">알짜 로 저장 하 다</string>
     <string name="string_246">삽화 작품</string>

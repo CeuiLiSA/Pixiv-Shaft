@@ -68,7 +68,7 @@ import kotlinx.coroutines.withContext
  * - GAP_HANDLING_NONE + SpacesItemWithHeadDecoration（带头瀑布流的间距规则）。
  */
 open class RecmdIllustFeedFragment(
-    @LayoutRes contentLayoutId: Int = R.layout.fragment_feed,
+    @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
 ) : IllustFeedFragment(contentLayoutId) {
 
     protected val dataType: String by lazy(LazyThreadSafetyMode.NONE) {

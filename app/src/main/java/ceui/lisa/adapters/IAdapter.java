@@ -168,7 +168,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         int columnHeight = (int) (columnWidth * ratio);
         requestBuilder
                 .override(columnWidth, columnHeight)
-                .placeholder(R.color.feed_skeleton_block)
+                .placeholder(ceui.pixiv.feeds.R.color.feed_skeleton_block)
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .error(getBuilder(target).override(columnWidth, columnHeight))
                 .into(bindView.baseBind.illustImage);
@@ -212,7 +212,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         GlideUrl imgUrl = Shaft.sSettings.isShowLargeThumbnailImage() ? GlideUtil.getLargeImage(target) : GlideUtil.getMediumImg(target);
         return Glide.with(mContext)
                 .load(imgUrl)
-                .placeholder(R.color.feed_skeleton_block)
+                .placeholder(ceui.pixiv.feeds.R.color.feed_skeleton_block)
                 .transition(DrawableTransitionOptions.withCrossFade());
     }
 

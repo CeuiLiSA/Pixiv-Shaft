@@ -1208,17 +1208,6 @@
     </issue>
 
     <issue
-        id="DiffUtilEquals"
-        message="Suspicious equality check: `equals()` is not implemented in FeedItem"
-        errorLine1="        return oldItem == newItem"
-        errorLine2="                       ~~">
-        <location
-            file="src/main/java/ceui/pixiv/feeds/FeedAdapter.kt"
-            line="131"
-            column="24"/>
-    </issue>
-
-    <issue
         id="GradleDependency"
         message="A newer version of org.jetbrains.kotlin:kotlin-stdlib than 2.1.21 is available: 2.2.0"
         errorLine1="    implementation &quot;org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version&quot;"

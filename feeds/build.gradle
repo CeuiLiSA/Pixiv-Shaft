@@ -1,0 +1,69 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdk 36
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 36
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    // 与包名一致：模块内的 R 就是 ceui.pixiv.feeds.R，消费方（:app）经资源合并照常
+    // 拿得到 @layout/fragment_feed 等，源码侧一行 import 都不用改。
+    namespace 'ceui.pixiv.feeds'
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+dependencies {
+    // ── api：类型长在本模块的公开 API 上，消费方不声明也要能编过 ──────────────
+    // FeedCell : RecyclerView.ViewHolder、onCreateLayoutManager(): LayoutManager
+    api 'androidx.recyclerview:recyclerview:1.3.2'
+    // FeedFragment : Fragment、Fragment.feedViewModels()
+    api 'androidx.fragment:fragment-ktx:1.8.5'
+    // FeedViewModel : ViewModel
+    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7"
+    // feedBinding.feedRefreshLayout 是 SwipeRefreshLayout（子类要碰）
+    api 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    // FeedViewModel.uiState: StateFlow、FeedSource 的一票 suspend
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    // FeedFirstPageCache 的构造参数。版本对齐 :app 当前解析结果（retrofit converter-gson
+    // 传递引入 2.10.1），别在这里悄悄把全仓 gson 顶上去。
+    api 'com.google.code.gson:gson:2.10.1'
+
+    // ── implementation：纯内部实现 ─────────────────────────────────────────
+    implementation 'androidx.core:core-ktx:1.13.1'
+    // repeatOnLifecycle / lifecycleScope
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+
+    // 刻意不引：retrofit / okhttp / Room / glide / :models / 任何 pixiv 代码。
+    // 本模块不认识 pixiv，只认识「一个能翻页的 FeedSource 和一组 FeedRenderer」。
+    // 宿主特有的东西（主题配色、Toast、错误文案、网络状态）经 FeedHost 注入，见 FeedHost.kt。
+}

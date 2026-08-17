@@ -14,7 +14,6 @@
     <string name="title_activity_blank">BlankActivity</string>
 
 
-    <string name="empty_list_1">居然啥也没有</string>
     <string name="feature_empty_hint">还没有收藏过精华\n在作品列表页的菜单里选「收藏到精华」</string>
     <string name="empty_list_2">居然啥也没有</string>
     <string name="empty_list_3">居然啥也没有</string>
@@ -491,8 +490,6 @@
     <string name="string_241">近期任务中模糊缩略图</string>
     <string name="string_242">设置命名方式（长按拖拽）</string>
     <string name="string_243">这里什么都没有呢</string>
-    <string name="list_load_failed_tap_retry">加载失败，点击重试</string>
-    <string name="feed_error_tap_retry">点击重试</string>
     <string name="string_244">按标签筛选</string>
     <string name="string_245">收藏到精华</string>
     <string name="string_246">插画作品</string>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="empty_list_1">Burası boş</string>
+    <string name="list_load_failed_tap_retry">Yüklenemedi. Yeniden denemek için dokunun.</string>
+    <string name="feed_error_tap_retry">Yeniden denemek için dokunun</string>
+</resources>

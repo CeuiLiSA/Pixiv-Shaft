@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 空态动作按钮的胶囊底。与 :app 的 bg_v3_button_primary 同形，但本模块不该反向依赖宿主资源，
+     所以自带一份；两边都只是「主题色实心 + 24dp 圆角」，跟着 ?attr/colorPrimary 走不会跑偏。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/colorPrimary" />
+    <corners android:radius="24dp" />
+</shape>

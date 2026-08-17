@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 首屏骨架图（FeedSkeletonView）：不透明中性块 + 只比块底亮一档的柔和高光(shimmer 发光),
+         对比压低不刺眼。刻意是中性灰而不是主题派生色——骨架是「内容还没到」的占位，
+         跟着主题色变反而会让人误以为是内容。 -->
+    <color name="feed_skeleton_block">#E9E9ED</color>
+    <color name="feed_skeleton_highlight">#F6F6F9</color>
+</resources>

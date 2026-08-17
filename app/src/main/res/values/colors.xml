@@ -216,9 +216,8 @@
     <color name="v3_surface_1">#08000000</color>
     <color name="v3_surface_2">#0E000000</color>
     <color name="v3_surface_3">#14000000</color>
-    <!-- 瀑布流骨架图：不透明中性块 + 只比块底亮一档的柔和高光(shimmer 发光),对比压低不刺眼 -->
-    <color name="feed_skeleton_block">#E9E9ED</color>
-    <color name="feed_skeleton_highlight">#F6F6F9</color>
+    <!-- feed_skeleton_block / feed_skeleton_highlight 已随骨架图搬进 :feeds 模块
+         (feeds/src/main/res/values/colors.xml)，经资源合并本模块照常引用得到。 -->
     <!-- 进度条未完成段：比 v3_surface_2/3 对比更强，让 dark 模式下能清楚看到 track -->
     <color name="v3_progress_track">#22000000</color>
     <color name="v3_border_1">#0A000000</color>

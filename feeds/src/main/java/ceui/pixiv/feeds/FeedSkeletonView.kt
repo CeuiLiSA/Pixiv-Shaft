@@ -13,7 +13,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
 import androidx.core.content.ContextCompat
-import ceui.lisa.R
 
 /** 一块骨架：矩形 + 自己的圆角（封面 12dp / 文字条 4dp / 头像取半径 / chip 取半高）。 */
 class SkeletonBlock(val rect: RectF, val corner: Float)

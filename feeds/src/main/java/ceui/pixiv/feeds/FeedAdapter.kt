@@ -1,5 +1,6 @@
 package ceui.pixiv.feeds
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -127,6 +128,11 @@ private class FeedDiff(
         return oldItem.javaClass == newItem.javaClass && oldItem.feedKey == newItem.feedKey
     }
 
+    // lint 只看得到 FeedItem 这个接口没实现 equals()，看不到实现方是谁。[FeedItem] 的契约
+    // 明写了「实现方用 immutable data class，内容比较依赖 data class 的 equals()」——这正是
+    // 本框架要求的东西，不是疏漏。真忘了写 equals 的实现会退化成引用比较（内容变化不重绑），
+    // 那是实现方违约，靠这条 lint 也拦不住（它对接口一律报警，对具体 data class 一律不报）。
+    @SuppressLint("DiffUtilEquals")
     override fun areContentsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean {
         return oldItem == newItem
     }

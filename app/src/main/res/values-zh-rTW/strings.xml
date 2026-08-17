@@ -14,7 +14,6 @@
     <string name="browser_dialog_found_title">查找到了這些</string>
     <string name="action_qcode">掃描 QR 碼</string>
     <string name="title_activity_blank">BlankActivity</string>
-    <string name="empty_list_1">居然什麼也沒有</string>
     <string name="feature_empty_hint">還沒有收藏過精華\n在作品列表頁的選單裡選「收藏到精華」</string>
     <string name="empty_list_2">居然什麼也沒有</string>
     <string name="empty_list_3">居然什麼也沒有</string>
@@ -471,8 +470,6 @@
     <string name="string_241">近期任務中模糊縮圖</string>
     <string name="string_242">設定命名管道（長按拖曳）</string>
     <string name="string_243">這裡什麼都沒有呢</string>
-    <string name="list_load_failed_tap_retry">載入失敗，點擊重試</string>
-    <string name="feed_error_tap_retry">點擊重試</string>
     <string name="string_244">按標籤篩選</string>
     <string name="string_245">收藏到精華</string>
     <string name="string_246">插畫作品</string>

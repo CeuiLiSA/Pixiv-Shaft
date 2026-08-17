@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/feed_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -41,9 +42,11 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
-        <!-- 空态/错误态插画。运行时按状态换图(空态=empty_img 箱子 / 错误=ic_feed_error 路障锥,
-             见 FeedFragment.render);两张都是灰色描边,统一用主题色派生色 SRC_IN tint(日夜双模,
-             见 FeedFragment.onViewCreated)。src 只是布局预览的默认图。只在有 state 文案时显示,加载态隐藏。 -->
+        <!-- 空态/错误态插画。运行时按状态换图(空态=FeedHost.emptyStateImage 给的那张 /
+             错误=ic_feed_error 路障锥,见 FeedFragment.render);两张都是灰色描边,统一用宿主
+             强调色 SRC_IN tint(日夜双模,见 FeedFragment.onViewCreated)。
+             不设 android:src —— 空态那张图归宿主,本模块没有可当默认值的资源;
+             tools:src 只喂布局预览。只在有 state 文案时显示,加载态隐藏。 -->
         <ImageView
             android:id="@+id/feed_empty_image"
             android:layout_width="120dp"
@@ -51,8 +54,8 @@
             android:layout_marginBottom="8dp"
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
-            android:src="@mipmap/empty_img"
-            android:visibility="gone" />
+            android:visibility="gone"
+            tools:src="@drawable/ic_feed_error" />
 
         <!-- gravity=center：错误态是「具体原因\n点击重试」两行（FeedFragment.render），
              不设的话第二行在 wrap_content 宽度内左对齐，歪在插画正下方。 -->
@@ -75,14 +78,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:background="@drawable/bg_v3_button_primary"
+            android:background="@drawable/feed_state_action_bg"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
             android:minWidth="96dp"
             android:paddingHorizontal="20dp"
             android:paddingVertical="11dp"
-            android:textColor="@color/white"
+            android:textColor="@android:color/white"
             android:textSize="14sp"
             android:visibility="gone" />
     </LinearLayout>

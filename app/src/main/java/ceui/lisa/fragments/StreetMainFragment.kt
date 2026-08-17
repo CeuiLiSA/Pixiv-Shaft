@@ -571,7 +571,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                     .override(columnWidth, (columnWidth * display.heightRatio).toInt())
                     // 占位底色 = 骨架块同款；collection 那种恒 400 的图也就停在这个色块上，
                     // 卡片不会塌、标题不会顶到 badge 上。
-                    .placeholder(R.color.feed_skeleton_block)
+                    .placeholder(ceui.pixiv.feeds.R.color.feed_skeleton_block)
                     .into(iv)
             } else {
                 iv.visibility = View.GONE

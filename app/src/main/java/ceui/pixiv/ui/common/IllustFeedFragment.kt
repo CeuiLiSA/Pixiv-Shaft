@@ -56,7 +56,7 @@ import java.util.UUID
  * - StaggeredManager 瀑布流（吞 SGLM predictive-layout 在 fling+插页同帧时的 AOSP 内部崩溃）。
  */
 abstract class IllustFeedFragment(
-    @LayoutRes contentLayoutId: Int = R.layout.fragment_feed,
+    @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
 ) : FeedFragment(contentLayoutId) {
 
     abstract override val feedViewModel: FeedViewModel<String>

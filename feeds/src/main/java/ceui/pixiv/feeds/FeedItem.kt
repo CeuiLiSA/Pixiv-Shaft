@@ -31,7 +31,7 @@ internal fun List<FeedItem>.dedupByIdentity(): List<FeedItem> {
  * 交给 DiffUtil 会出两种毛病，各有各的成因，判据要同时挡住：
  *
  * 1. **撕位置**：两代共有的条目若被**重排**，DiffUtil 会派发 move，而 StaggeredGridLayoutManager
- *    对 move + 整行重排有已知缺陷（本仓 [ceui.lisa.helper.StaggeredManager] 就在吞它抛的
+ *    对 move + 整行重排有已知缺陷（本仓 `:app` 的 `StaggeredManager` 就在吞它抛的
  *    IndexOutOfBounds）→ 列表塌成零散卡片 + 黑色空档再重排。
  * 2. **旧数据赖着不走**：两代若**完全不重合**，DiffUtil 会全删 + 全插。它是**后台 diff**，
  *    落地时 itemAnimator 早已恢复 → 旧内容淡出与新内容淡入同屏 = 「旧数据往上顶一下再消失」。
@@ -39,7 +39,7 @@ internal fun List<FeedItem>.dedupByIdentity(): List<FeedItem> {
  *
  * 反过来，**有共有项且没被重排**就是安全的：这说明两代是同一批内容的更新，不是换了一批。
  * 这时绝不能清空重填 —— 清空会让每个 holder 走 recycle、把
- * [ceui.pixiv.ui.common.staggerIllustRenderer] 的 imageRequestKey 清掉，于是每张卡都重发一次
+ * `:app` 的 `staggerIllustRenderer` 的 imageRequestKey 清掉，于是每张卡都重发一次
  * Glide 请求、白闪一下；而那个 tag 恰恰就是为了跳过「图其实没变」的重载才加的。逐个场景：
  *
  * - **某人的最新作品 / 某天的日榜**：刷一百次 id 和顺序都一样 → 常规路径，就地重绑内容变化

@@ -1,7 +1,7 @@
 package ceui.pixiv.feeds
 
 /**
- * 一次页映射所处的加载阶段，传给 [PixivFeedSource] 的 mapper。
+ * 一次页映射所处的加载阶段，传给 `:app` 的 `PixivFeedSource` 的 mapper。
  *
  * 取代原来的 `isFirstPage: Boolean`：多出的 [CacheRestore] 让「磁盘缓存恢复」与
  * 「真网络首屏」在映射上一致（都要建 section 头等），但在副作用上分开——缓存恢复

@@ -6,7 +6,7 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
-import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -20,13 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
-import ceui.lisa.R
-import ceui.lisa.databinding.FragmentFeedBinding
-import ceui.lisa.utils.V3Palette
-import ceui.loxia.getHumanReadableMessage
-import ceui.loxia.requireNetworkStateManager
-import ceui.pixiv.utils.NetworkStateManager
-import com.hjq.toast.Toaster
+import ceui.pixiv.feeds.databinding.FragmentFeedBinding
 import kotlinx.coroutines.launch
 
 /**
@@ -136,28 +130,27 @@ abstract class FeedFragment(
 
         installList(binding)
 
-        // 下拉刷新转圈 + 空态插画共用一个 palette：V3Palette.from 解析 ?attr/colorPrimary 并按当前
-        // uiMode 分深浅支。切主题/日夜都会重建 Activity → 走到这里重算，不用自己监听。
-        val palette = V3Palette.from(requireContext())
+        // 下拉刷新转圈 + 空态插画共用一份宿主配色（见 [FeedHost.theme]）。切主题/日夜都会重建
+        // Activity → 走到这里重算，不用自己监听。
+        val theme = feedTheme
 
         // 下拉刷新转圈：SwipeRefreshLayout 默认是 Material 蓝箭头 + #FAFAFA 近白底盘，既不跟主题
         // 也不跟日夜（这两个颜色 XML 设不了，只能在这里设，所以收口在基类——6 个 feed 布局都是
         // <include fragment_feed/>，共用同一个 feed_refresh_layout）。
-        // 箭头取 textAccent，对齐 ArtworkV3Fragment / UserActivityV3 刷新头的既有取色惯例；
-        // 底盘取 cardFill（「隐约带主题色的不透明悬浮底」，语义正是这块浮起的小圆饼），不换的话
-        // 暗色模式下是块白饼。两者日夜两支恒为「浅箭头深底 / 深箭头浅底」，对比度不会塌。
-        binding.feedRefreshLayout.setColorSchemeColors(palette.textAccent)
-        binding.feedRefreshLayout.setProgressBackgroundColorSchemeColor(palette.cardFill)
+        // 箭头取 accent，对齐宿主刷新头的既有取色惯例；底盘取 spinnerTrack（「隐约带主题色的
+        // 不透明悬浮底」，语义正是这块浮起的小圆饼），不换的话暗色模式下是块白饼。
+        // 宿主要保证两者日夜两支恒为「浅箭头深底 / 深箭头浅底」，对比度不会塌。
+        binding.feedRefreshLayout.setColorSchemeColors(theme.accent)
+        binding.feedRefreshLayout.setProgressBackgroundColorSchemeColor(theme.spinnerTrack)
         binding.feedRefreshLayout.isEnabled = refreshEnabled
         binding.feedRefreshLayout.setOnRefreshListener { feedViewModel.refresh() }
         binding.feedStateText.setOnClickListener { feedViewModel.refresh() }
 
-        // 空态/错误态的箱子插画：mipmap 是灰色描边，这里用主题色的派生色 tint。
-        // textAccent 是 readability-adjusted 的主题色（深色→提亮、浅色→压深，V3Palette 按当前
-        // uiMode 分支），比 legacy empty_layout 的裸 ?attr/colorPrimary 柔和且日夜双模都可读；
-        // 再压 60% alpha（SRC_IN）让它像插画而非实心色块。
+        // 空态/错误态插画：两张图都是灰色描边，这里用宿主强调色 tint。accent 应当是
+        // readability-adjusted 的主题色（深色→提亮、浅色→压深），比裸 ?attr/colorPrimary 柔和
+        // 且日夜双模都可读；再压 60% alpha（SRC_IN）让它像插画而非实心色块。
         binding.feedEmptyImage.imageTintList =
-            ColorStateList.valueOf(V3Palette.withAlpha(palette.textAccent, 0.6f))
+            ColorStateList.valueOf(ColorUtils.setAlphaComponent(theme.accent, EMPTY_IMAGE_ALPHA))
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -165,15 +158,9 @@ abstract class FeedFragment(
             }
         }
 
-        // 网络恢复自动重试：只认 NONE→online 的迁移，跳过 observe 注册时的粘性首发
-        //（判定对齐 [ceui.pixiv.ui.task.PageLoadRetryController]）。具体重试什么见 [onNetworkRestored]。
-        var lastNetworkType: NetworkStateManager.NetworkType? = null
-        requireNetworkStateManager().networkState.observe(viewLifecycleOwner) { type ->
-            val wasOffline = lastNetworkType == NetworkStateManager.NetworkType.NONE
-            lastNetworkType = type
-            if (!wasOffline || !type.isOnline) return@observe
-            onNetworkRestored()
-        }
+        // 网络恢复自动重试。「断网→有网」的迁移判定归宿主（[FeedHost.observeNetworkRestored]），
+        // 本模块不认识任何网络状态实现；具体重试什么见 [onNetworkRestored]。
+        FeedFramework.host.observeNetworkRestored(this) { onNetworkRestored() }
     }
 
     /**
@@ -265,21 +252,25 @@ abstract class FeedFragment(
         super.onDestroyView()
     }
 
+    /** 宿主注入的配色（见 [FeedHost.theme]）。现取不缓存：主题 / 日夜切换会重建 Activity。 */
+    protected val feedTheme: FeedTheme
+        get() = FeedFramework.host.theme(requireContext())
+
     /**
      * 裸 fragment_feed（没给自定义 contentLayoutId 的页面）刷的列表底色。
      *
-     * 默认 v3_bg —— 对齐「发现」页 fragment_new_center 的底色，也是 V3 各页的统一底。
-     * 以前这里写死 legacy 的 fragment_center（夜间 #2A2A2A），比 v3_bg（夜间 #08080C）浅一大截，
+     * 默认取宿主配色的 [FeedTheme.rootBackground] —— 它应当就是宿主各页的统一底色。以前这里
+     * 写死 legacy 的 fragment_center（夜间 #2A2A2A），比宿主 V3 底（夜间 #08080C）浅一大截，
      * 结果是：宿主布局明明写了 v3_bg（如动态页的 user_recmd_fragment），列表一 attach 就被这层
-     * 基底盖成灰块，在 v3_bg 页面上糊出一条撞色横带。PivisionFeedFragment / FollowingIllustFeedFragment
+     * 基底盖成灰块，糊出一条撞色横带。PivisionFeedFragment / FollowingIllustFeedFragment
      * 都为此在 onViewCreated 里手动回刷过一遍——那类补丁现在改成覆写本属性即可。
      *
-     * 是 @ColorInt 而不是 @ColorRes：嵌在主题派生色宿主里的列表（如动态页那张 sheet 用
-     * [V3Palette.cardFill]）要的是运行时算出来的色值，色值资源表达不了。
+     * 是 @ColorInt 而不是 @ColorRes：嵌在主题派生色宿主里的列表（如动态页那张 sheet 用宿主
+     * 算出来的 cardFill）要的是运行时算出来的色值，色值资源表达不了。
      */
     @get:ColorInt
     protected open val feedRootBackgroundColor: Int
-        get() = ContextCompat.getColor(requireContext(), R.color.v3_bg)
+        get() = feedTheme.rootBackground
 
     /**
      * 空列表时的文案，默认是通用的「居然啥也没有」。页面语义更具体时覆写
@@ -309,7 +300,7 @@ abstract class FeedFragment(
      * 首屏加载态画哪种骨架图；返回 null = 本页不用骨架，fallback 转圈圈。
      *
      * 默认只认瀑布流（[StaggeredGridLayoutManager]，列数跟随用户「每行几列」设置）——骨架必须
-     * 长得像自己那张卡，卡形状不一样的列表各自覆写（如 [ceui.pixiv.ui.common.NovelFeedFragment]
+     * 长得像自己那张卡，卡形状不一样的列表各自覆写（如 `:app` 的 `NovelFeedFragment`
      * 给竖向小说卡）。返回的 View 由基类塞进 feed_skeleton 容器并随视图销毁。
      */
     protected open fun onCreateSkeletonView(
@@ -322,19 +313,23 @@ abstract class FeedFragment(
         }
     }
 
-    /** 屏幕上有内容时刷新失败的提示，默认 Toast 出人话文案；子类可覆盖。 */
+    /** 屏幕上有内容时刷新失败的提示，默认轻提示出人话文案；子类可覆盖。 */
     protected open fun onRefreshFailedWithContent(throwable: Throwable) {
-        Toaster.showShort(humanReadableErrorOf(throwable) ?: getString(R.string.list_load_failed_tap_retry))
+        val context = requireContext()
+        FeedFramework.host.showMessage(
+            context,
+            humanReadableErrorOf(throwable) ?: getString(R.string.list_load_failed_tap_retry),
+        )
     }
 
     /**
-     * 异常 → 人话，复用全 app 统一的映射（[getHumanReadableMessage]：服务端 user_message 优先，
-     * 断网 / 超时 / SSL / 反序列化按 AppError 分档取本地化文案）。映射自身出岔子（HttpException
-     * 错误体已被上一次渲染消费掉等）或映射出空白时返回 null，调用方退回通用文案——错误提示
-     * 这条路上不允许再抛出第二个异常。
+     * 异常 → 人话，走宿主统一的映射（[FeedHost.humanReadableError]：服务端 user_message 优先，
+     * 断网 / 超时 / SSL / 反序列化分档取本地化文案）。宿主没装 / 映射自身出岔子（HttpException
+     * 错误体已被上一次渲染消费掉等）/ 映射出空白时返回 null，调用方退回框架通用文案——错误提示
+     * 这条路上不允许再抛出第二个异常，所以宿主实现即便违约抛了也在这里被吃掉。
      */
     protected fun humanReadableErrorOf(throwable: Throwable): String? =
-        runCatching { throwable.getHumanReadableMessage(requireContext()) }
+        runCatching { FeedFramework.host.humanReadableError(requireContext(), throwable) }
             .getOrNull()
             ?.takeIf { it.isNotBlank() }
 
@@ -389,7 +384,7 @@ abstract class FeedFragment(
      * - 观感：整段 remove + 整段 insert 会被 DefaultItemAnimator 演成一轮淡出淡入，而全新卡还得
      *   等 Glide 出图，动画只会把「有的秒显、有的后到」放得更明显。整代替换的正确观感是
      *   「内容就地换掉」，不是表演。
-     * - 稳定性：整段增删 + SGLM 的 predictive animation 正是 [ceui.lisa.helper.StaggeredManager]
+     * - 稳定性：整段增删 + SGLM 的 predictive animation 正是 `:app` 的 `StaggeredManager`
      *   专门吞 IndexOutOfBounds 的那个组合，没必要在这条路上惹它。
      *
      * ⚠️ 恢复必须 post 到下一帧，不能在 submitList 的回调里就地恢复：RecyclerView 是在
@@ -483,11 +478,12 @@ abstract class FeedFragment(
         }
         binding.feedStateText.isVisible = stateText != null
         binding.feedStateText.text = stateText
-        // 插画跟着文案走：空态=箱子，错误态=路障锥(同款可爱 outline 风格),加载态(只有 spinner)隐藏。
+        // 插画跟着文案走：空态=宿主给的那张(没给就不画),错误态=框架自带的路障锥,
+        // 加载态(只有 spinner)隐藏。
         // imageTintList(onViewCreated 设的派生色)在 setImageResource 后保留,两张图共用同一 tint。
         val stateImage = when {
             state.showFullscreenError -> R.drawable.ic_feed_error
-            state.showEmptyState -> R.mipmap.empty_img
+            state.showEmptyState -> FeedFramework.host.emptyStateImage(requireContext())
             else -> 0
         }
         if (stateImage != 0) {
@@ -514,5 +510,10 @@ abstract class FeedFragment(
         ) {
             onRefreshFailedWithContent(refreshError.throwable)
         }
+    }
+
+    private companion object {
+        /** 空态 / 错误态插画的 tint 透明度（0.6f 的 8bit 值）：像插画而不是实心色块。 */
+        private const val EMPTY_IMAGE_ALPHA = 153
     }
 }

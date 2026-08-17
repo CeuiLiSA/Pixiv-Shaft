@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="empty_list_1">Здесь ничего нет</string>
+    <string name="list_load_failed_tap_retry">Не удалось загрузить. Нажмите, чтобы повторить.</string>
+    <string name="feed_error_tap_retry">Нажмите, чтобы повторить</string>
+</resources>
