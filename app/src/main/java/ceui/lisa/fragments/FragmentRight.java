@@ -240,8 +240,10 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
      * 绿/粉时，这张 sheet 就成了页面上一条突兀的蓝带。改用 V3Palette.cardFill（隐约带主题色的
      * 不透明悬浮底，日夜双模，与设置卡/悬浮胶囊同一个值）。
      *
-     * QMUIRoundLinearLayout 的背景是 QMUIRoundDrawable（继承 GradientDrawable），只 setColor
-     * 不换 drawable，20dp 上圆角和 behavior 都不受影响。切主题/日夜会重建 Fragment → 这里重算。
+     * WitRoundLinearLayout 的背景是**裸 GradientDrawable**（这是 WitRoundHelper 的承重约束，
+     * 就是为了让下面这个 instanceof + setColor 继续成立；包成 RippleDrawable/LayerDrawable
+     * 会让强转静默失败——不崩，只是 sheet 不再跟主题色）。只 setColor 不换 drawable，
+     * 20dp 上圆角和 behavior 都不受影响。切主题/日夜会重建 Fragment → 这里重算。
      * 列表那半边由 FollowingIllustFeedFragment.feedRootBackgroundColor 取同一个值，两边同源。
      */
     private void tintContentSheet() {

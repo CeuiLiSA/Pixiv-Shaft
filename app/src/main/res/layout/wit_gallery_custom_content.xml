@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  弹窗画廊里 CustomDialogBuilder.setLayout(...) 的示例内容。
+  形态照抄真实调用点（RenameDownloadedFilesFlow / ImportLocalDownloadsFlow 的进度弹窗）。
+  ⚠️ 临时物件，随画廊一起在 phase 7 删除。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="20dp">
+
+    <TextView
+        android:id="@+id/gallery_custom_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="正在处理 37 / 128"
+        android:textColor="@color/v3_text_2"
+        android:textSize="15sp"
+        tools:ignore="HardcodedText"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+    <ProgressBar
+        android:id="@+id/gallery_custom_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:max="128"
+        android:progress="37" />
+
+</LinearLayout>

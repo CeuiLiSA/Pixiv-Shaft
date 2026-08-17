@@ -22,6 +22,8 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
 
     @Override
     protected void initData() {
+        bindWitGalleryRows();
+
         // google(Play)渠道:聊天室 / 广场是站外 UGC 入口,合规起见整组不出现。认 IS_LITE
         // 而不是 debug 口径 —— lite 的 debug 包同样没有,与 SettingsCatalog 索引一致。
         if (ceui.lisa.BuildConfig.IS_LITE) {
@@ -90,6 +92,23 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
                 baseBind.showPlazaEntry.performClick());
 
         bindFirebaseRow();
+    }
+
+    /**
+     * 弹窗画廊入口。剥离 QMUI 期间用来把 wit 版和 QMUI 原版并排对拍,
+     * 只在 debug 包出现;phase 7 收尾时连同这两行、布局里的两个 RelativeLayout
+     * 和 WitDialogGallery.kt 一并删除。不进 SettingsCatalog 索引——它不是用户设置。
+     */
+    private void bindWitGalleryRows() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.witGalleryRela.setVisibility(View.GONE);
+            baseBind.witGalleryQmuiRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.witGalleryRela.setOnClickListener(v ->
+                ceui.pixiv.ui.settings.WitDialogGallery.showWit(mContext));
+        baseBind.witGalleryQmuiRela.setOnClickListener(v ->
+                ceui.pixiv.ui.settings.WitDialogGallery.showQmui(mContext));
     }
 
     private void bindFirebaseRow() {
