@@ -12,6 +12,7 @@ import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.task.NovelAutoDownload
 import ceui.pixiv.widgets.RateAppManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -209,10 +210,15 @@ object PixivActions {
         novels.count { it.is_bookmarked != bookmark }
 
     /**
-     * [setIllustBookmarks] 的小说版：循环调 [setNovelBookmark]，返回实际入队条数。
+     * [setIllustBookmarks] 的小说版：循环调 [applyNovelBookmark]，返回实际入队条数。
      *
      * 小说这一支**没有**「收藏后自动关注作者」—— 单张小说卡本来就没有（见
      * [setNovelBookmark]），批量不该凭空多出一个副作用。
+     *
+     * 同理**不走「收藏后自动下载」**（所以调的是 [applyNovelBookmark] 而不是
+     * [setNovelBookmark]）：勾几百篇就是几百次抓正文，稳定把自己打到 429；而这个入口
+     * 就在批量选择页里，旁边第一颗按钮正是「下载选中小说」，用户想下会自己点。
+     * 插画那支同样如此 —— 自动下载只挂在单点收藏的调用点上。
      */
     @JvmStatic
     @JvmOverloads
@@ -228,7 +234,7 @@ object PixivActions {
             todo.chunked(BULK_CHUNK).forEach { chunk ->
                 chunk.forEach { novel ->
                     try {
-                        setNovelBookmark(novel, bookmark, restrict)
+                        applyNovelBookmark(novel, bookmark, restrict)
                     } catch (ce: CancellationException) {
                         throw ce
                     } catch (t: Throwable) {
@@ -321,9 +327,19 @@ object PixivActions {
         AccountOnlineReportOutbox.enqueueOnline(uid, accountResponse)
     }
 
-    /** 小说版本的 [bookmarkIllustWithTags]。 */
+    /**
+     * 小说版本的 [bookmarkIllustWithTags]。
+     *
+     * 与插画那支的差别只有一处：这里**跟着做「收藏后自动下载」**。理由是入口语义 ——
+     * 长按小说卡选「按标签收藏」和直接点心是同一个「我要收藏这一篇」，两者一个下载一个
+     * 不下载，在用户看来就是开关时灵时不灵。旧值来自 [ObjectPool]，必须在
+     * [writeNovelBookmarkLocally] 把它改成 true 之前读，否则本来就收藏着的那些会被重下一遍。
+     * 池里没有这部小说时不下载：文件名要靠标题 / 作者 / 系列渲染，只有一个 id 渲不出来 ——
+     * 而这个 sheet 恒由某张小说卡拉起，池里一定有那一份。
+     */
     @JvmStatic
     fun bookmarkNovelWithTags(novelId: Long, restrict: String, tags: List<String>) {
+        val pooled = ObjectPool.get<Novel>(novelId).value
         writeNovelBookmarkLocally(novelId, true)
         RateAppManager.onUserEngaged()
         PixivActionQueue.enqueue(
@@ -335,6 +351,7 @@ object PixivActions {
                 ),
             )
         )
+        if (pooled != null && pooled.is_bookmarked != true) autoDownloadNovel(pooled)
     }
 
     // ── 小说 ────────────────────────────────────────────────────────────────
@@ -353,7 +370,13 @@ object PixivActions {
         restrict: String = defaultBookmarkRestrict(),
     ) {
         if (novel.is_bookmarked == bookmark) return
+        applyNovelBookmark(novel, bookmark, restrict)
+        // 收藏后自动下载只在主动收藏（非取消）时触发，同插画那支（#880）。
+        if (bookmark) autoDownloadNovel(novel)
+    }
 
+    /** 收藏一部小说的三件事：写本地、埋 RateApp、入队。批量入口复用它绕开单点的副作用。 */
+    private fun applyNovelBookmark(novel: Novel, bookmark: Boolean, restrict: String) {
         writeNovelBookmarkLocally(novel.id, bookmark, novel)
         if (bookmark) RateAppManager.onUserEngaged()
 
@@ -364,6 +387,21 @@ object PixivActions {
                 payload = Shaft.sGson.toJson(BookmarkPayload(novel.id, bookmark, restrict)),
             )
         )
+    }
+
+    /**
+     * 「收藏后自动下载」的小说版：把整篇正文存成 TXT（[NovelAutoDownload]）。
+     *
+     * 收在门面里而不是让每个收藏入口各写一遍（插画那支正是散在五个调用点上的）：小说的
+     * 收藏入口有小说卡、V3 阅读器、系列页、V3 详情流、按标签收藏 sheet 这几处，逐个补一遍
+     * 迟早漏，而漏掉的表现是「从某个页面收藏就不下载」这种没人报得清的不一致。
+     *
+     * 判 `是否本来就收藏着` 由调用方负责：[setNovelBookmark] 靠开头的早退，
+     * [bookmarkNovelWithTags] 靠自己读池里的旧值。
+     */
+    private fun autoDownloadNovel(novel: Novel) {
+        if (!Shaft.sSettings.isAutoDownloadAfterStar) return
+        NovelAutoDownload.enqueue(novel)
     }
 
     // ── 关注 ────────────────────────────────────────────────────────────────

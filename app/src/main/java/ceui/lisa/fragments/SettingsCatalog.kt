@@ -147,7 +147,7 @@ object SettingsCatalog {
         add(Entry(BOOKMARKS, "select_all_tag_rela", R.string.string_372, keywords = "标签 全选 tag 收藏"))
         add(Entry(BOOKMARKS, "show_related_when_star_rela", R.string.string_396, keywords = "相关作品 关联 推荐 related"))
         add(Entry(BOOKMARKS, "auto_follow_after_star_rela", R.string.string_456, keywords = "自动关注 关注 follow"))
-        add(Entry(BOOKMARKS, "auto_download_after_star_rela", R.string.auto_download_after_star, keywords = "自动下载 收藏下载 download"))
+        add(Entry(BOOKMARKS, "auto_download_after_star_rela", R.string.auto_download_after_star, keywords = "自动下载 收藏下载 小说 缓存 download"))
         add(Entry(BOOKMARKS, "download_auto_post_like_rela", R.string.string_409, keywords = "自动收藏 点赞 下载 like"))
 
         // 下载
