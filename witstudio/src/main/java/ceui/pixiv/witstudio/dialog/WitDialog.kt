@@ -104,7 +104,7 @@ public class WitDialog @JvmOverloads constructor(
         public fun setMessage(@StringRes resId: Int): CheckBoxMessageDialogBuilder =
             setMessage(context.resources.getString(resId))
 
-        public fun isChecked(): Boolean = checked
+        public val isChecked: Boolean get() = checked
 
         public fun setChecked(checked: Boolean): CheckBoxMessageDialogBuilder = apply {
             this.checked = checked
@@ -186,9 +186,16 @@ public class WitDialog @JvmOverloads constructor(
 
         private var mRightImageView: AppCompatImageView? = null
 
-        public fun getEditText(): EditText = mEditText
+        /**
+         * 写成属性而不是 `fun getEditText()`,是为了让迁移保持纯改名:
+         * QMUI 是 Java,`getEditText()` 在 Kotlin 侧能当合成属性 `.editText` 用,
+         * 全仓 16 处 Kotlin 调用点就是这么写的;而 Kotlin 的**函数**没有这个待遇。
+         * 属性的 JVM 签名仍是 `getEditText()`,4 处 Java 调用点一并照顾到。
+         * 本类其余只读 getter 同理。
+         */
+        public val editText: EditText get() = mEditText
 
-        public fun getRightImageView(): AppCompatImageView? = mRightImageView
+        public val rightImageView: AppCompatImageView? get() = mRightImageView
 
         public fun setPlaceholder(placeholder: String?): EditTextDialogBuilder =
             apply { mEditText.hint = placeholder }
@@ -376,7 +383,7 @@ public class WitDialog @JvmOverloads constructor(
 
         private var mCheckedIndex: Int = -1
 
-        public fun getCheckedIndex(): Int = mCheckedIndex
+        public val checkedIndex: Int get() = mCheckedIndex
 
         public fun setCheckedIndex(checkedIndex: Int): CheckableDialogBuilder =
             apply { mCheckedIndex = checkedIndex }
@@ -413,11 +420,11 @@ public class WitDialog @JvmOverloads constructor(
             checkedIndexes?.forEach { mCheckedItems.set(it) }
         }
 
-        public fun getCheckedItemRecord(): BitSet = mCheckedItems.clone() as BitSet
+        public val checkedItemRecord: BitSet get() = mCheckedItems.clone() as BitSet
 
-        /** 返回被选中的下标数组，如选中第 1、3 项则返回 `[1, 3]`。 */
-        public fun getCheckedItemIndexes(): IntArray =
-            (0 until itemCount()).filter { isItemChecked(it) }.toIntArray()
+        /** 被选中的下标数组，如选中第 1、3 项则为 `[1, 3]`。 */
+        public val checkedItemIndexes: IntArray
+            get() = (0 until itemCount()).filter { isItemChecked(it) }.toIntArray()
 
         override fun onCreateContent(
             dialog: WitDialog,

@@ -116,7 +116,7 @@ object WitDialogGallery {
             builder.addAction("取消") { d, _ -> d.dismiss() }
             builder.addAction(0, "清除", WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
-                toast(c, "isChecked = ${builder.isChecked()}")
+                toast(c, "isChecked = ${builder.isChecked}")
             }
             builder.show()
             Unit
@@ -129,7 +129,7 @@ object WitDialogGallery {
                 .setInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI)
             builder.addAction("取消") { d, _ -> d.dismiss() }
             builder.addAction("确定") { d, _ ->
-                val value = builder.getEditText().text?.toString().orEmpty()
+                val value = builder.editText.text?.toString().orEmpty()
                 if (value.isEmpty()) {
                     // 校验不通过就早退：弹窗必须留在原地。这条语义是承重的。
                     toast(c, "不能为空（弹窗应保持打开）")
@@ -185,7 +185,7 @@ object WitDialogGallery {
             builder.addItems(MULTI_ITEMS) { _, _ -> }
             builder.addAction("取消") { d, _ -> d.dismiss() }
             builder.addAction("确定") { d, _ ->
-                val indexes = builder.getCheckedItemIndexes()
+                val indexes = builder.checkedItemIndexes
                 if (indexes.isEmpty()) {
                     toast(c, "至少选一项（弹窗应保持打开）")
                     return@addAction
