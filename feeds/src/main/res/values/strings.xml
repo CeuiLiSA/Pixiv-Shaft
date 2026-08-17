@@ -3,8 +3,10 @@
   列表框架自带的三条文案。随框架从 :app 搬来，名字刻意保持原样（翻译记忆按 name 走）。
 
   ⚠️ scripts/sort_locale_strings.py 和 scripts/find_missing_used_strings.py 的默认路径写死在
-  app/src/main/res 下，本模块的这几条不在它们的默认扫描范围内。要跑就用两个脚本的
-  source-root / source-values / target 参数把路径显式指到 feeds/src/main 下再跑一遍。
+  app/src/main/res 下，本模块的这几条不在它们的默认扫描范围内。要跑就把路径显式指到
+  feeds/src/main 下再跑一遍——注意两个脚本的参数名不一样：
+    find_missing_used_strings.py: source-root / source-values / target
+    sort_locale_strings.py:       master / target
 -->
 <resources>
     <string name="empty_list_1">居然啥也没有</string>

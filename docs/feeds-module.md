@@ -59,4 +59,10 @@ ShaftFeedHost.install()
 - **三条文案随框架搬进了模块**（`empty_list_1` / `list_load_failed_tap_retry` /
   `feed_error_tap_retry`，7 个 locale 全带）。`scripts/sort_locale_strings.py` 和
   `scripts/find_missing_used_strings.py` 的默认路径写死在 `app/src/main/res` 下，
-  跑这几条要用脚本参数把路径显式指到 `feeds/src/main`。
+  跑这几条要把路径显式指到 `feeds/src/main`，两个脚本参数名不同：
+  `find_missing_used_strings.py` 用 `--source-root` / `--source-values` / `--target`，
+  `sort_locale_strings.py` 用 `--master` / `--target`。
+- **`:app:lintGithubDebug` 不再覆盖这 2500 行**：AGP 默认不 lint 依赖模块
+  （`checkDependencies` 默认 false）。改了 `:feeds` 要单独跑 `./gradlew :feeds:lintDebug`。
+  没给 `:app` 打开 `checkDependencies`——那会把 `:models` / `:progressmanager` /
+  `:flowlayout-lib` 这些老模块的存量问题一起灌进本就是红的 app lint 里。

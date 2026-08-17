@@ -5,6 +5,7 @@ import android.util.TypedValue
 import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
+import androidx.core.content.res.use
 import androidx.fragment.app.Fragment
 
 /**
@@ -72,21 +73,41 @@ data class FeedTheme(
 ) {
     companion object {
         /**
-         * 不装 [FeedHost] 时的兜底：一律取 framework attr，任何主题都解析得出，也就不必为了
+         * 不装 [FeedHost] 时的兜底：一律取 framework attr，绝大多数主题都解析得出，也就不必为了
          * 一个默认值让本模块依赖 appcompat / material。宿主装了自己的实现就不会走到这里。
          */
         fun fromThemeAttrs(context: Context): FeedTheme = FeedTheme(
-            rootBackground = resolveColor(context, android.R.attr.colorBackground),
-            accent = resolveColor(context, android.R.attr.colorAccent),
-            spinnerTrack = resolveColor(context, android.R.attr.colorBackgroundFloating),
+            rootBackground = resolveColor(context, android.R.attr.colorBackground, FALLBACK_SURFACE),
+            accent = resolveColor(context, android.R.attr.colorAccent, FALLBACK_ACCENT),
+            spinnerTrack = resolveColor(
+                context, android.R.attr.colorBackgroundFloating, FALLBACK_SURFACE,
+            ),
         )
 
+        /**
+         * 走 [android.content.res.TypedArray.getColor] 而不是 `theme.resolveAttribute` +
+         * `TypedValue.data`，两个静默出错的口子都由它堵掉：
+         * - attr 在主题里压根没定义（`colorBackgroundFloating` 是 API 23 才有、且只有 Material
+         *   系主题给值）→ resolveAttribute 返回 false 而 [TypedValue] 是全新的，`data` 就是 0，
+         *   即 `#00000000`；
+         * - attr 指向的是一份 ColorStateList XML（TYPE_STRING）→ `data` 是字符串池下标，当色值
+         *   用就是任意垃圾色。
+         *
+         * 两种情况下列表根都会被刷成透明，宿主布局的装饰背景整页透出来——正是
+         * [FeedFragment.feedRootBackgroundColor] 的存在理由本身。所以 [fallback] 一律取不透明色：
+         * 兜底色不好看是小事，透明是 bug。
+         */
         @ColorInt
-        private fun resolveColor(context: Context, attr: Int): Int {
-            val value = TypedValue()
-            context.theme.resolveAttribute(attr, value, true)
-            return value.data
-        }
+        private fun resolveColor(context: Context, attr: Int, @ColorInt fallback: Int): Int =
+            context.obtainStyledAttributes(intArrayOf(attr)).use { it.getColor(0, fallback) }
+
+        /** attr 都拿不到时的最后兜底，对齐 AOSP Material Light 的 colorBackground。 */
+        @ColorInt
+        private val FALLBACK_SURFACE: Int = 0xFFFAFAFA.toInt()
+
+        /** 同上；压在 [FALLBACK_SURFACE] 上对比度足够，箭头和插画不会隐形。 */
+        @ColorInt
+        private val FALLBACK_ACCENT: Int = 0xFF3F51B5.toInt()
     }
 }
 
