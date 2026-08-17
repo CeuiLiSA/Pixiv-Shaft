@@ -40,8 +40,8 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.github.ybq.android.spinkit.style.Wave
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
@@ -261,7 +261,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             if (labels.isEmpty()) return@setOnClickListener
 
             MenuDialogBuilder(mActivity)
-                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                .setSkinManager(WitSkinManager.defaultInstance(mActivity))
                 .addItems(labels.toTypedArray()) { dialog: DialogInterface, which: Int ->
                     dialog.dismiss()
                     actions.getOrNull(which)?.invoke()

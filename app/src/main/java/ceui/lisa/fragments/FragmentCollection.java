@@ -30,8 +30,8 @@ import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.bulk.BulkActions;
 import ceui.pixiv.ui.collection.LikeIllustFeedFragment;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
 
 public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
@@ -190,7 +190,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     }
 
     /**
-     * 插画收藏页 (type=0) 的 toolbar 多挂一个 ⋯ overflow，弹 QMUIDialog 选具体动作；
+     * 插画收藏页 (type=0) 的 toolbar 多挂一个 ⋯ overflow，弹 WitDialog 选具体动作；
      * 其它收藏类型保持原 filter only。
      */
     private void inflateToolbarMenu() {
@@ -227,8 +227,8 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
         String[] items = new String[]{
                 getString(R.string.bulk_collection_menu_download_all)
         };
-        new QMUIDialog.MenuDialogBuilder(mActivity)
-                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+        new WitDialog.MenuDialogBuilder(mActivity)
+                .setSkinManager(WitSkinManager.defaultInstance(mActivity))
                 .addItems(items, (dialog, which) -> {
                     dialog.dismiss();
                     if (which == 0) {

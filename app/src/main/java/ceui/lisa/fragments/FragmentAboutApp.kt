@@ -17,8 +17,8 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.PackageUtils
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import io.reactivex.disposables.Disposable
 import ceui.pixiv.witstudio.theme.WitRowStyle
 
@@ -140,7 +140,7 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
                             Common.showToast(getString(R.string.string_227))
                         }
                     }
-                    .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                    .setSkinManager(WitSkinManager.defaultInstance(mActivity))
                     .show()
             }
         }

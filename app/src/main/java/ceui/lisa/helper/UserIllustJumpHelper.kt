@@ -8,8 +8,8 @@ import ceui.lisa.http.NullCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.repo.buildOffsetUrl
 import ceui.lisa.utils.Common
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitTipDialog
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -91,7 +91,7 @@ object UserIllustJumpHelper {
         } else {
             arrayOf(earliest, byDate, byPage)
         }
-        QMUIDialog.MenuDialogBuilder(activity)
+        WitDialog.MenuDialogBuilder(activity)
             .setTitle(activity.getString(R.string.user_jump_dialog_title, total, totalPages))
             .addItems(choices) { dialog, which ->
                 when (choices[which]) {
@@ -109,12 +109,12 @@ object UserIllustJumpHelper {
     }
 
     private fun pickPage(activity: Activity, totalPages: Int, onJump: OnJumpPicked) {
-        val builder = QMUIDialog.EditTextDialogBuilder(activity)
+        val builder = WitDialog.EditTextDialogBuilder(activity)
         builder.setTitle(R.string.user_jump_page_dialog_title)
             .setPlaceholder(activity.getString(R.string.user_jump_page_hint, totalPages))
             .setInputType(InputType.TYPE_CLASS_NUMBER)
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
-            .addAction(R.string.sure, QMUIDialogAction.ActionListener { dialog, _ ->
+            .addAction(R.string.sure, WitDialogAction.ActionListener { dialog, _ ->
                 val page = builder.editText.text?.toString()?.toIntOrNull()
                 if (page == null || page < 1 || page > totalPages) {
                     Common.showToast(activity.getString(R.string.user_jump_page_range_error, totalPages))

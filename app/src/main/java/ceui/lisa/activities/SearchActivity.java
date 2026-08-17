@@ -16,9 +16,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitTipDialog;
 
 import androidx.annotation.NonNull;
@@ -519,8 +519,8 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 getString(R.string.tag_action_delete),
                 getString(R.string.tag_action_edit)
         };
-        new QMUIDialog.MenuDialogBuilder(mContext)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+        new WitDialog.MenuDialogBuilder(mContext)
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addItems(items, (dialog, which) -> {
                     if (which == 0) {
                         Common.copy(mContext, name);

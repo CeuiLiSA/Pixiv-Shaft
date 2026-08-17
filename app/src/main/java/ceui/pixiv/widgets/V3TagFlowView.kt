@@ -29,7 +29,7 @@ import ceui.pixiv.utils.ppppx
 import com.google.android.flexbox.AlignItems
 import com.google.android.flexbox.FlexboxLayout
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 
 /**
  * V3 风格标签流 — 胶囊形背景 + `# name  译名` 格式 + 点击跳 SearchActivity。
@@ -422,7 +422,7 @@ class V3TagFlowView @JvmOverloads constructor(
 
         // 标题写明按中的是哪个 tag（issue #1003：列表卡片的 chip 小，容易误按）。
         // 原文译文都给，QMUI 标题不限行数，过长会换行不会截断。
-        QMUIDialog.MenuDialogBuilder(context)
+        WitDialog.MenuDialogBuilder(context)
             .setTitle(buildString {
                 append(name)
                 if (hasTranslation) {

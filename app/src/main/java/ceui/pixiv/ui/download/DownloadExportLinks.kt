@@ -10,8 +10,8 @@ import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.RelativePath
 import com.hjq.toast.Toaster
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitSkinManager
+import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -61,9 +61,9 @@ internal object DownloadExportLinks {
             host.getString(R.string.dlmgr_done_export_choose_save),
             host.getString(R.string.dlmgr_done_export_choose_share),
         )
-        QMUIDialog.MenuDialogBuilder(act)
+        WitDialog.MenuDialogBuilder(act)
             .setTitle(host.getString(R.string.dlmgr_done_export_summary, illustCount))
-            .setSkinManager(QMUISkinManager.defaultInstance(act))
+            .setSkinManager(WitSkinManager.defaultInstance(act))
             .addItems(items) { d, which ->
                 d.dismiss()
                 when (which) {

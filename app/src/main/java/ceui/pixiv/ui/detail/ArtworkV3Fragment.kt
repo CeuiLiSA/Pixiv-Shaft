@@ -71,7 +71,7 @@ import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -922,7 +922,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 Params.IMAGE_RESOLUTION_MEDIUM,
                 Params.IMAGE_RESOLUTION_SQUARE_MEDIUM,
             )
-            QMUIDialog.MenuDialogBuilder(requireContext())
+            WitDialog.MenuDialogBuilder(requireContext())
                 .addItems(resNames) { dialog, which ->
                     if (illust.page_count == 1) {
                         IllustDownload.downloadIllustFirstPageWithResolution(illust, resValues[which], baseAct)

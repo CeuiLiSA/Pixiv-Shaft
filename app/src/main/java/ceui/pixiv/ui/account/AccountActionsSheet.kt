@@ -22,7 +22,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
  * 账号管理页的「账号操作」MD3-Expressive bottom sheet：切到这个账号 / 导出登录信息 /
  * 复制账号名。由 [AccountSwitchV3Fragment] 的行尾 ⋮ 打开。
  *
- * 取代 legacy 那里的 QMUI [com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder] ——
+ * 取代 legacy 那里的 QMUI [ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder] ——
  * 方角灰底的 AppCompat 弹窗压在一页 MD3-E 卡片上非常突兀，且它只能给纯文字条目，
  * 表达不了「切号是主操作，另外两条是次操作」。
  *
