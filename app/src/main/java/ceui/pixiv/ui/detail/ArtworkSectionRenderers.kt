@@ -85,10 +85,21 @@ import java.text.NumberFormat
 
 // ── 区块条目 ────────────────────────────────────────────────────────────────
 
-class ArtworkHeroItem(val illust: IllustsBean) : FeedItem {
+class ArtworkHeroItem(
+    val illust: IllustsBean,
+    /**
+     * 信息区那个补位的翻译按钮是否显示:只在整页**没有**简介区块时显示,否则和简介区自带的
+     * 翻译按钮重复。初值按 bean 的 caption 判(与 [ArtworkV3FeedSource.buildArtworkHeaderItems]
+     * 产出简介块的条件一致);简介后台补入时由 ArtworkV3Fragment.syncDescSection 翻成 false ——
+     * 那条路径换的是**另一个** bean 实例,光看 [illust] 永远还是空 caption,收不起来。
+     */
+    val showTranslate: Boolean = illust.caption.isNullOrEmpty(),
+) : FeedItem {
     override val feedKey: Any get() = "artwork_hero"
-    override fun equals(other: Any?) = other is ArtworkHeroItem && other.illust === illust
-    override fun hashCode() = System.identityHashCode(illust)
+    override fun equals(other: Any?) =
+        other is ArtworkHeroItem && other.illust === illust && other.showTranslate == showTranslate
+
+    override fun hashCode() = System.identityHashCode(illust) * 31 + showTranslate.hashCode()
 }
 
 class ArtworkSeriesItem(val illust: IllustsBean) : FeedItem {
@@ -257,7 +268,7 @@ internal fun ArtworkV3Fragment.heroRenderer() =
         // 信息区翻译按钮：仅当作品无简介时显示。有简介的作品简介区已提供翻译按钮
         //（见 descRenderer），而简介区整体只在 caption 非空时才产出（见
         // ArtworkV3FeedSource.buildArtworkHeaderItems），无简介时这里补一个翻译标题的入口。
-        b.metaTranslate.isVisible = illust.caption.isNullOrEmpty()
+        b.metaTranslate.isVisible = cell.item.showTranslate
         b.metaTranslate.setOnClickListener {
             translateTitleAndCaption(illust.title, null)
         }
