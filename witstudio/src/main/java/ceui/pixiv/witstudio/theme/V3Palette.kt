@@ -54,11 +54,42 @@ public class V3Palette @JvmOverloads public constructor(
     /** 60 % — artist banner overlay */
     @ColorInt public val alpha60: Int = withAlpha(primary, 0.60f)
 
+    // ── 卡片底 ──────────────────────────────────────────────────────
+    // 声明位置刻意排在文字色**之前**：Kotlin 属性按书写顺序初始化，textAccent 要拿
+    // cardFill 当参考底算对比度，放在后面读到的会是还没初始化的 0。
+
+    /**
+     * Settings-card / 悬浮胶囊的不透明底色 —— 隐约带主题色（日夜双模）。
+     * tint 强度刻意压得很低（饱和度只保留一小截）：能看出"和主题色有关系"即可，
+     * 不能一眼读出主题色本身（樱桃粉夜间此前 42% 饱和度算出 #32151C，太粉，被打回）。
+     */
+    @ColorInt public val cardFill: Int = if (isDark) darken(desaturate(primary, 0.16f), 0.135f)
+    else lighten(desaturate(primary, 0.50f), 0.96f)
+
+    /** 与 [cardFill] 配套的 12% 主题色 hairline。 */
+    @ColorInt public val cardHairline: Int = if (isDark) withAlpha(ensureLightEnough(primary, 0.60f), 0.12f)
+    else withAlpha(ensureDarkEnough(primary, 0.40f), 0.12f)
+
     // ── text colors ─────────────────────────────────────────────────
 
-    /** Primary accent text — adjusted for background readability */
-    @ColorInt public val textAccent: Int = if (isDark) ensureLightEnough(primary, 0.60f)
-        else ensureDarkEnough(primary, 0.40f)
+    /**
+     * 主强调文字色。
+     *
+     * 先按 HSL 亮度压到「深色模式够亮 / 浅色模式够深」，**再过一道真实对比度校正**。
+     *
+     * 只压 HSL 的 L 是不够的：HSL 亮度不是感知亮度。#fee65e（盛夏黄档）压到 L=0.40 之后
+     * 相对亮度仍然很高，落在浅色卡片上实测只有 **2.08:1**，远低于 WCAG AA 的 4.5:1
+     * ——「取消」两个字几乎看不清。青绿 #03d0bf、老实绿 #4CAF50 是同一类。
+     * 紫 / 蓝 / 红那几档本来就够，校正循环一轮都不会跑，取值和以前逐位相同。
+     *
+     * 参考底取 [cardFill]：浅色模式它和 `wit_bg` / `wit_menu_bg` 亮度接近；
+     * 深色模式它是几个面里最亮的一个，按它算出来的文字色放到更暗的底上只会更清楚。
+     */
+    @ColorInt public val textAccent: Int = ensureContrastAgainst(
+        if (isDark) ensureLightEnough(primary, 0.60f) else ensureDarkEnough(primary, 0.40f),
+        cardFill,
+        goLighter = isDark,
+    )
 
     /** Variant for secondary button label */
     @ColorInt public val textSecondary: Int = if (isDark)
@@ -198,18 +229,6 @@ public class V3Palette @JvmOverloads public constructor(
         }
 
     /**
-     * Settings-card / 悬浮胶囊的不透明底色 —— 隐约带主题色（日夜双模）。
-     * tint 强度刻意压得很低（饱和度只保留一小截）：能看出"和主题色有关系"即可，
-     * 不能一眼读出主题色本身（樱桃粉夜间此前 42% 饱和度算出 #32151C，太粉，被打回）。
-     */
-    @ColorInt public val cardFill: Int = if (isDark) darken(desaturate(primary, 0.16f), 0.135f)
-    else lighten(desaturate(primary, 0.50f), 0.96f)
-
-    /** 与 [cardFill] 配套的 12% 主题色 hairline。 */
-    @ColorInt public val cardHairline: Int = if (isDark) withAlpha(ensureLightEnough(primary, 0.60f), 0.12f)
-    else withAlpha(ensureDarkEnough(primary, 0.40f), 0.12f)
-
-    /**
      * Settings-card 底色 —— 隐约带一点主题色，专用作背景（绝不用主题色正色）。
      * 深色：把 primary 大幅去饱和后压到接近 sheet 底的暗度，得到一块"带主题色调的暗底"；
      * 浅色：去饱和后提到极浅，得到一块"带主题色调的白底"。外加一条 12% 主题色 hairline，
@@ -303,6 +322,40 @@ public class V3Palette @JvmOverloads public constructor(
             ColorUtils.colorToHSL(color, hsl)
             if (hsl[2] > maxL) hsl[2] = maxL
             return ColorUtils.HSLToColor(hsl)
+        }
+
+        /**
+         * 把 [fg] 往 [goLighter] 指示的方向挪，直到它压在 [bg] 上的对比度够到 [minRatio]。
+         *
+         * 存在的理由是 HSL 的 L **不是**感知亮度：同样 L=0.40，紫色已经很暗，
+         * 高饱和黄却仍然很亮。[ensureDarkEnough] / [ensureLightEnough] 只管 L，
+         * 于是盛夏黄档在浅色模式下算出的强调色实测只有 2.08:1。这里用真实对比度收尾。
+         *
+         * 大多数主题档一轮都不会跑（取值与校正前逐位相同），所以这不是「统一调暗」，
+         * 而是「只修本来就不合格的那几档」。
+         *
+         * [bg] 必须不透明 —— `ColorUtils.calculateContrast` 对半透明背景会抛异常。
+         * 步长 0.02 是精度和迭代次数的折中；40 步足够从任何 L 走到 0 或 1。
+         */
+        @ColorInt
+        private fun ensureContrastAgainst(
+            @ColorInt fg: Int,
+            @ColorInt bg: Int,
+            goLighter: Boolean,
+            minRatio: Double = 4.5,
+        ): Int {
+            val opaqueBg = bg or (0xFF shl 24)
+            if (ColorUtils.calculateContrast(fg, opaqueBg) >= minRatio) return fg
+            val hsl = FloatArray(3)
+            ColorUtils.colorToHSL(fg, hsl)
+            var result = fg
+            repeat(40) {
+                hsl[2] = (hsl[2] + if (goLighter) 0.02f else -0.02f).coerceIn(0f, 1f)
+                result = ColorUtils.HSLToColor(hsl)
+                if (ColorUtils.calculateContrast(result, opaqueBg) >= minRatio) return result
+                if (hsl[2] <= 0f || hsl[2] >= 1f) return result
+            }
+            return result
         }
 
         /** Shift hue by [degrees] while keeping saturation and lightness */
