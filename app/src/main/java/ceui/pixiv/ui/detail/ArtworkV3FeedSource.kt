@@ -120,7 +120,10 @@ class ArtworkV3FeedSource(
                 list.add(ArtworkSeriesItem(illust))
             }
             list.add(ArtworkArtistItem(illust))
-            if (!TextUtils.isEmpty(illust.caption) || !TextUtils.isEmpty(illust.title)) {
+            // 产出条件仍然只看 caption:没有简介的作品(pixiv 上是多数)一旦也产出这块,
+            // 详情页就会多出「简介表头 + 翻译按钮 + 一个空正文」约 120dp 的空区块。
+            // 标题跟着一起带下去,只是为了让简介块的翻译按钮能连标题一起翻。
+            if (!TextUtils.isEmpty(illust.caption)) {
                 list.add(ArtworkDescItem(illust.caption.orEmpty(), illust.title.orEmpty()))
             }
             list.add(ArtworkTagsItem(illust))

@@ -6,6 +6,7 @@ import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * 详情页标题/简介翻译与评论翻译共享的「思考中」阶段提示与译文弹窗。
@@ -17,6 +18,19 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 internal val onThinkingPhase: (AiTranslatePhase) -> Unit = { phase ->
     if (phase == AiTranslatePhase.THINKING) {
         Common.showToast(R.string.ai_translate_thinking)
+    }
+}
+
+/**
+ * 同一次操作里并发跑多条翻译时用这个:THINKING 只提示一次,不会几条请求各弹一个「思考中」。
+ * 回调来自 IO 线程(见 [AiTranslator] 的流式解析),所以用 [AtomicBoolean] 而不是裸 var。
+ */
+internal fun onceThinkingPhase(): (AiTranslatePhase) -> Unit {
+    val shown = AtomicBoolean(false)
+    return { phase ->
+        if (phase == AiTranslatePhase.THINKING && shown.compareAndSet(false, true)) {
+            Common.showToast(R.string.ai_translate_thinking)
+        }
     }
 }
 

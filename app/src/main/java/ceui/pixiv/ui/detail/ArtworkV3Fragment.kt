@@ -554,8 +554,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * AOSP 越界。谁要把动画开回来,先想清楚这里。
      */
     private fun syncDescSection(caption: String?, title: String?) {
-        if (caption.isNullOrEmpty() && title.isNullOrEmpty()) return
-        val descCaption = caption.orEmpty()
+        // 门槛只看 caption,和 [ArtworkV3FeedSource.buildArtworkHeaderItems] 的产出条件一致:
+        // 放宽成「标题非空也补入」的话,无简介的作品会从这条后台补入的路径长出一个空简介块。
+        if (caption.isNullOrEmpty()) return
+        val descCaption = caption
         val descTitle = title.orEmpty()
         feedViewModel.mutateItems { items ->
             val at = items.indexOfFirst { it is ArtworkDescItem }
