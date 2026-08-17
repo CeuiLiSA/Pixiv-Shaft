@@ -30,8 +30,10 @@
 
         <ImageView
             android:id="@+id/desc_translate"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="16dp"
             android:contentDescription="@string/string_translate_caption"
             android:src="@drawable/ic_baseline_translate_24"
             android:tint="@color/v3_text_3" />

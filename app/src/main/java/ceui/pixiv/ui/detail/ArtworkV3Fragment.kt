@@ -554,17 +554,18 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * AOSP 越界。谁要把动画开回来,先想清楚这里。
      */
     private fun syncDescSection(caption: String?, title: String?) {
-        if (caption.isNullOrEmpty()) return
+        if (caption.isNullOrEmpty() && title.isNullOrEmpty()) return
+        val descCaption = caption.orEmpty()
         val descTitle = title.orEmpty()
         feedViewModel.mutateItems { items ->
             val at = items.indexOfFirst { it is ArtworkDescItem }
             if (at >= 0) {
-                if ((items[at] as ArtworkDescItem).caption == caption &&
+                if ((items[at] as ArtworkDescItem).caption == descCaption &&
                     (items[at] as ArtworkDescItem).title == descTitle
                 ) {
                     items
                 } else {
-                    items.toMutableList().apply { this[at] = ArtworkDescItem(caption, descTitle) }
+                    items.toMutableList().apply { this[at] = ArtworkDescItem(descCaption, descTitle) }
                 }
             } else {
                 val anchor = items.indexOfFirst { it is ArtworkTagsItem }
@@ -572,8 +573,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     items // header 还没建出来(首屏仍在飞),等下一次 fire
                 } else {
                     Timber.tag(ARTWORK_LAZY_TAG)
-                        .d("简介块后台补入 illustId=%d len=%d", illustId, caption.length)
-                    items.subList(0, anchor) + ArtworkDescItem(caption, descTitle) +
+                        .d("简介块后台补入 illustId=%d len=%d", illustId, descCaption.length)
+                    items.subList(0, anchor) + ArtworkDescItem(descCaption, descTitle) +
                             items.subList(anchor, items.size)
                 }
             }

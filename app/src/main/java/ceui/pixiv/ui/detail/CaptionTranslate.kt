@@ -2,17 +2,18 @@ package ceui.pixiv.ui.detail
 
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
-import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.loxia.launchSuspend
-import ceui.pixiv.ui.translate.AiTranslatePhase
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
+import ceui.pixiv.ui.translate.onThinkingPhase
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.ui.translate.showTranslatedDialog
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
+
+/** 标题译文与简介译文之间的分隔符。 */
+private const val TRANSLATED_MESSAGE_SEPARATOR = "\n\n"
 
 /**
  * 简介标题栏「翻译」:同时翻译标题与简介,译成 app 内语言(见 [appTranslateTargetLang])。
@@ -27,22 +28,15 @@ fun Fragment.translateTitleAndCaption(title: String?, caption: String?) {
     val ctx = requireContext()
     Common.showToast(R.string.string_translating)
     launchSuspend {
-        val translated = try {
-            val translatedTitle = if (t.isEmpty()) null else currentTranslator().translate(
-                t, appTranslateTargetLang()
-            ) { phase ->
-                if (phase == AiTranslatePhase.THINKING) {
-                    Common.showToast(R.string.ai_translate_thinking)
-                }
-            }
-            val translatedCaption = if (c.isEmpty()) null else currentTranslator().translate(
-                c, appTranslateTargetLang()
-            ) { phase ->
-                if (phase == AiTranslatePhase.THINKING) {
-                    Common.showToast(R.string.ai_translate_thinking)
-                }
-            }
-            translatedTitle to translatedCaption
+        // 只对非空字段发起批量翻译,一次取回两条(复用 translateBatch,避免两条顺序 translate)。
+        val inputs = listOfNotNull(
+            t.takeIf { it.isNotEmpty() },
+            c.takeIf { it.isNotEmpty() },
+        )
+        val results = try {
+            currentTranslator().translateBatch(
+                inputs, appTranslateTargetLang(), onPhase = onThinkingPhase
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -50,21 +44,19 @@ fun Fragment.translateTitleAndCaption(title: String?, caption: String?) {
             promptTranslateFailedIfPossible(e)
             return@launchSuspend
         }
-        val (translatedTitle, translatedCaption) = translated
+        // 输入非空但译文空白 = 翻译失败:全部失败则不弹窗(与评论翻译一致);部分失败则失败字段用占位。
+        if (results.all { it.isBlank() }) {
+            promptTranslateFailedIfPossible(null)
+            return@launchSuspend
+        }
         val placeholder = ctx.getString(R.string.no_info)
-        val titleText = translatedTitle?.takeIf { it.isNotBlank() } ?: placeholder
-        val captionText = translatedCaption?.takeIf { it.isNotBlank() } ?: placeholder
-        val message = ctx.getString(R.string.string_182) + titleText + "\n\n" +
+        var idx = 0
+        val titleText = if (t.isEmpty()) placeholder
+            else results[idx++].takeIf { it.isNotBlank() } ?: placeholder
+        val captionText = if (c.isEmpty()) placeholder
+            else results[idx].takeIf { it.isNotBlank() } ?: placeholder
+        val message = ctx.getString(R.string.string_182) + titleText + TRANSLATED_MESSAGE_SEPARATOR +
             ctx.getString(R.string.v3_translate_caption_label) + captionText
-        QMUIDialog.MessageDialogBuilder(ctx)
-            .setTitle(ctx.getString(R.string.string_translate_caption))
-            .setMessage(message)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
-            .addAction(ctx.getString(R.string.string_120)) { dialog, _ ->
-                ClipBoardUtils.putTextIntoClipboard(ctx, message)
-                dialog.dismiss()
-            }
-            .addAction(ctx.getString(R.string.sure)) { dialog, _ -> dialog.dismiss() }
-            .show()
+        showTranslatedDialog(ctx, message)
     }
 }
