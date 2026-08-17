@@ -97,7 +97,7 @@ class ArtworkSeriesItem(val illust: IllustsBean) : FeedItem {
     override fun hashCode() = System.identityHashCode(illust)
 }
 
-data class ArtworkDescItem(val caption: String) : FeedItem {
+data class ArtworkDescItem(val caption: String, val title: String = "") : FeedItem {
     override val feedKey: Any get() = "artwork_desc"
 }
 
@@ -304,6 +304,12 @@ internal fun ArtworkV3Fragment.descRenderer() =
             descExpanded = !descExpanded
             applyDescCollapseState(b)
             if (!descExpanded) scrollDescBackIntoView(b.root)
+        }
+        b.descTranslate.setOnClickListener {
+            val plain = (descFullCaption ?: HtmlCompat.fromHtml(
+                cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT
+            )).toString().trim()
+            translateTitleAndCaption(cell.item.title, plain)
         }
     }
 

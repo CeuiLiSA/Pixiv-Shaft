@@ -275,7 +275,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 顺带接住 caption 后台补拉的落地(见 ArtworkV3ViewModel.ensureTrustedCaption)。
         ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
             illust ?: return@observe
-            syncDescSection(illust.caption)
+            syncDescSection(illust.caption, illust.title)
             attachMuteObserver(illust)
             val authorId = illust.user?.id?.toLong() ?: return@observe
             attachArtistFollowObserver(authorId)
@@ -559,15 +559,21 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 预布局,也就绕开了 [ceui.lisa.helper.StaggeredManager] 注释里那个「fling + 插入同帧」的
      * AOSP 越界。谁要把动画开回来,先想清楚这里。
      */
-    private fun syncDescSection(caption: String?) {
+    private fun syncDescSection(caption: String?, title: String?) {
+        // 门槛只看 caption,和 [ArtworkV3FeedSource.buildArtworkHeaderItems] 的产出条件一致:
+        // 放宽成「标题非空也补入」的话,无简介的作品会从这条后台补入的路径长出一个空简介块。
         if (caption.isNullOrEmpty()) return
+        val descCaption = caption
+        val descTitle = title.orEmpty()
         feedViewModel.mutateItems { items ->
             val at = items.indexOfFirst { it is ArtworkDescItem }
             if (at >= 0) {
-                if ((items[at] as ArtworkDescItem).caption == caption) {
+                if ((items[at] as ArtworkDescItem).caption == descCaption &&
+                    (items[at] as ArtworkDescItem).title == descTitle
+                ) {
                     items
                 } else {
-                    items.toMutableList().apply { this[at] = ArtworkDescItem(caption) }
+                    items.toMutableList().apply { this[at] = ArtworkDescItem(descCaption, descTitle) }
                 }
             } else {
                 val anchor = items.indexOfFirst { it is ArtworkTagsItem }
@@ -575,8 +581,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     items // header 还没建出来(首屏仍在飞),等下一次 fire
                 } else {
                     Timber.tag(ARTWORK_LAZY_TAG)
-                        .d("简介块后台补入 illustId=%d len=%d", illustId, caption.length)
-                    items.subList(0, anchor) + ArtworkDescItem(caption) +
+                        .d("简介块后台补入 illustId=%d len=%d", illustId, descCaption.length)
+                    items.subList(0, anchor) + ArtworkDescItem(descCaption, descTitle) +
                             items.subList(anchor, items.size)
                 }
             }

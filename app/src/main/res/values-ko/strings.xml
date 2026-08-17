@@ -732,6 +732,7 @@
     <string name="string_translation_model_download_subtitle">%1$s 를 추가 다운로드해야 오프라인 번역을 사용할 수 있습니다</string>
     <string name="string_translation_model_download_done">번역 모델 다운로드 완료</string>
     <string name="string_translate_caption">번역</string>
+    <string name="v3_translate_caption_label">소개:</string>
     <string name="string_translating">번역 중…</string>
     <string name="string_translate_failed">번역 실패</string>
     <string name="string_translate_model_loading">번역 모델 불러오는 중…</string>

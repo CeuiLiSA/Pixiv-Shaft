@@ -732,6 +732,7 @@
     <string name="string_translation_model_download_subtitle">%1$s must be downloaded before offline translation can be used</string>
     <string name="string_translation_model_download_done">Translation model downloaded</string>
     <string name="string_translate_caption">Translate</string>
+    <string name="v3_translate_caption_label">description:</string>
     <string name="string_translating">Translating...</string>
     <string name="string_translate_failed">Translation failed</string>
     <string name="string_translate_model_loading">Loading translation model...</string>

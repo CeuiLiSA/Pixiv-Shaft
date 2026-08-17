@@ -2,15 +2,13 @@ package ceui.pixiv.ui.comments
 
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
-import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.loxia.launchSuspend
-import ceui.pixiv.ui.translate.AiTranslatePhase
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
+import ceui.pixiv.ui.translate.onThinkingPhase
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
-import com.qmuiteam.qmui.skin.QMUISkinManager
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
+import ceui.pixiv.ui.translate.showTranslatedDialog
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
@@ -27,11 +25,7 @@ fun Fragment.translateComment(text: String?) {
     Common.showToast(R.string.string_translating)
     launchSuspend {
         val translated = try {
-            currentTranslator().translate(src, appTranslateTargetLang()) { phase ->
-                if (phase == AiTranslatePhase.THINKING) {
-                    Common.showToast(R.string.ai_translate_thinking)
-                }
-            }
+            currentTranslator().translate(src, appTranslateTargetLang(), onPhase = onThinkingPhase)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -43,15 +37,6 @@ fun Fragment.translateComment(text: String?) {
             promptTranslateFailedIfPossible(null)
             return@launchSuspend
         }
-        QMUIDialog.MessageDialogBuilder(ctx)
-            .setTitle(ctx.getString(R.string.string_translate_caption))
-            .setMessage(translated)
-            .setSkinManager(QMUISkinManager.defaultInstance(ctx))
-            .addAction(ctx.getString(R.string.string_120)) { dialog, _ ->
-                ClipBoardUtils.putTextIntoClipboard(ctx, translated)
-                dialog.dismiss()
-            }
-            .addAction(ctx.getString(R.string.sure)) { dialog, _ -> dialog.dismiss() }
-            .show()
+        showTranslatedDialog(ctx, translated)
     }
 }
