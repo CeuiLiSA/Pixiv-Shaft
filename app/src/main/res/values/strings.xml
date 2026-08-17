@@ -2823,4 +2823,19 @@
     <string name="custom_theme_color_hex_label">色值</string>
     <string name="custom_theme_color_hex_hint">#RRGGBB</string>
     <string name="custom_theme_color_hint">支持 #RRGGBB 与 #RGB 两种写法，不支持带透明度的 8 位色值。</string>
+    <!-- issue #1023: pixiv 社区标签编辑（网页版作品页标签行末尾的「+」） -->
+    <string name="work_tag_edit_title">编辑标签</string>
+    <string name="work_tag_edit_entry">编辑标签</string>
+    <string name="work_tag_edit_hint">作者指定的标签无法删除；编辑标签会通知作者。</string>
+    <string name="work_tag_edit_input_hint">输入要添加的标签</string>
+    <string name="work_tag_edit_add">添加</string>
+    <string name="work_tag_edit_loading">正在读取标签…</string>
+    <string name="work_tag_edit_submitting">提交中…</string>
+    <string name="work_tag_edit_added">已添加标签</string>
+    <string name="work_tag_edit_deleted">已删除标签</string>
+    <string name="work_tag_edit_delete_confirm">确定删除标签「%1$s」？</string>
+    <string name="work_tag_edit_not_deletable">这个标签你删不了：作者指定的标签谁都改不动。</string>
+    <string name="work_tag_edit_locked">这个作品不能编辑标签：作者没有公开标签编辑权限，或者网页登录已经失效。</string>
+    <string name="work_tag_edit_empty">这个作品还没有标签</string>
+    <string name="work_tag_edit_need_web_login">编辑标签走的是网页接口，需要额外进行一次网页登录。</string>
 </resources>

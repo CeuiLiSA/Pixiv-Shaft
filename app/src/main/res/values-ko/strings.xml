@@ -2576,4 +2576,19 @@
     <string name="custom_theme_color_hex_label">색상 값</string>
     <string name="custom_theme_color_hex_hint">#RRGGBB</string>
     <string name="custom_theme_color_hint">#RRGGBB 와 #RGB 축약형을 지원합니다. 투명도가 포함된 8자리 값은 지원하지 않습니다.</string>
+    <!-- issue #1023: pixiv 태그 편집(웹 작품 페이지 태그 줄 끝의 「+」) -->
+    <string name="work_tag_edit_title">태그 편집</string>
+    <string name="work_tag_edit_entry">태그 편집</string>
+    <string name="work_tag_edit_hint">작가가 지정한 태그는 삭제할 수 없습니다. 태그를 편집하면 작가에게 알림이 갑니다.</string>
+    <string name="work_tag_edit_input_hint">추가할 태그 입력</string>
+    <string name="work_tag_edit_add">추가</string>
+    <string name="work_tag_edit_loading">태그를 불러오는 중…</string>
+    <string name="work_tag_edit_submitting">전송 중…</string>
+    <string name="work_tag_edit_added">태그를 추가했습니다</string>
+    <string name="work_tag_edit_deleted">태그를 삭제했습니다</string>
+    <string name="work_tag_edit_delete_confirm">태그 「%1$s」을(를) 삭제할까요?</string>
+    <string name="work_tag_edit_not_deletable">이 태그는 삭제할 수 없습니다. 작가가 지정한 태그는 아무도 바꿀 수 없습니다.</string>
+    <string name="work_tag_edit_locked">이 작품은 태그를 편집할 수 없습니다. 작가가 편집을 허용하지 않았거나 웹 로그인이 만료되었습니다.</string>
+    <string name="work_tag_edit_empty">이 작품에는 아직 태그가 없습니다</string>
+    <string name="work_tag_edit_need_web_login">태그 편집은 웹 인터페이스로 동작하므로, 추가로 웹에 한 번 더 로그인해야 합니다.</string>
 </resources>

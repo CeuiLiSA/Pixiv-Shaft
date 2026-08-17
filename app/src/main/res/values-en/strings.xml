@@ -2576,4 +2576,19 @@
     <string name="custom_theme_color_hex_label">Hex</string>
     <string name="custom_theme_color_hex_hint">#RRGGBB</string>
     <string name="custom_theme_color_hint">Both #RRGGBB and the #RGB shorthand work. 8-digit values with alpha are not supported.</string>
+    <!-- issue #1023: pixiv community tag editing (the "+" at the end of the tag row on the web artwork page) -->
+    <string name="work_tag_edit_title">Edit tags</string>
+    <string name="work_tag_edit_entry">Edit tags</string>
+    <string name="work_tag_edit_hint">Tags set by the author cannot be removed. The author is notified when tags change.</string>
+    <string name="work_tag_edit_input_hint">Enter a tag to add</string>
+    <string name="work_tag_edit_add">Add</string>
+    <string name="work_tag_edit_loading">Loading tags…</string>
+    <string name="work_tag_edit_submitting">Submitting…</string>
+    <string name="work_tag_edit_added">Tag added</string>
+    <string name="work_tag_edit_deleted">Tag removed</string>
+    <string name="work_tag_edit_delete_confirm">Remove the tag \"%1$s\"?</string>
+    <string name="work_tag_edit_not_deletable">You can\'t remove this one — tags set by the author are locked for everyone.</string>
+    <string name="work_tag_edit_locked">Tags can\'t be edited on this work: the author did not allow it, or your web sign-in has expired.</string>
+    <string name="work_tag_edit_empty">This work has no tags yet</string>
+    <string name="work_tag_edit_need_web_login">Tag editing goes through the web interface, so you need to sign in on the web once more.</string>
 </resources>

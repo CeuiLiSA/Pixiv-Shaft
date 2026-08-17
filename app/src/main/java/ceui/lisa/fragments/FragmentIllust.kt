@@ -17,6 +17,7 @@ import android.view.View
 import android.view.View.OnLongClickListener
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -41,6 +42,7 @@ import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
+import ceui.pixiv.ui.detail.PixivTagEditOperate
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
@@ -409,15 +411,23 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         val tagSignature = illust.tags.orEmpty().joinToString("|") {
             "${it.name.orEmpty()}/${it.translated_name.orEmpty()}"
         }
+        // issue #1023: 末尾多挂一格「编辑标签」,对齐网页版标签行末尾那个「+」。TagFlowLayout
+        // 没有 footer 概念,只能把它当第 tags.size 格来渲染,并在两个监听里按下标提前拦掉 ——
+        // 否则 illust.tags[position] 会越界。
+        val tags = illust.tags.orEmpty()
         if (tagSignature != renderedTagSignature) {
             renderedTagSignature = tagSignature
             // 同义词词典「标签匹配关系」框（issue #904）
             baseBind.synonymMatch.setWorkTags(illust.tags)
-            baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(illust.tags) {
+            baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(tags + TagsBean()) {
                 override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
                     val tv = LayoutInflater.from(mContext).inflate(
                         R.layout.recy_single_line_text_new, parent, false
                     ) as TextView
+                    if (position >= tags.size) {
+                        tv.text = "+ " + mContext.getString(R.string.work_tag_edit_entry)
+                        return tv
+                    }
                     var tag = s.name
                     if (!TextUtils.isEmpty(s.translated_name)) {
                         tag = tag + "/" + s.translated_name
@@ -428,14 +438,23 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             }
         }
         baseBind.illustTag.setOnTagClickListener { view, position, parent ->
+            if (position >= tags.size) {
+                (activity as? AppCompatActivity)?.let { host ->
+                    PixivTagEditOperate.showTagEditor(host, illust.id.toLong())
+                }
+                return@setOnTagClickListener true
+            }
             val intent = Intent(mContext, SearchActivity::class.java)
-            intent.putExtra(Params.KEY_WORD, illust.tags[position].name)
+            intent.putExtra(Params.KEY_WORD, tags[position].name)
             intent.putExtra(Params.INDEX, 0)
             startActivity(intent)
             true
         }
         baseBind.illustTag.setOnTagLongClickListener { view, position, parent ->
-            val tagBean = illust.tags[position]
+            if (position >= tags.size) {
+                return@setOnTagLongClickListener true
+            }
+            val tagBean = tags[position]
             val tagName = tagBean.name
             val searchEntity =
                 PixivOperate.getSearchHistory(tagName, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD)

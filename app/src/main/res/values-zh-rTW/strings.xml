@@ -2578,4 +2578,19 @@
     <string name="custom_theme_color_hex_label">色碼</string>
     <string name="custom_theme_color_hex_hint">#RRGGBB</string>
     <string name="custom_theme_color_hint">支援 #RRGGBB 與 #RGB 兩種寫法，不支援帶透明度的 8 位色碼。</string>
+    <!-- issue #1023: pixiv 社群標籤編輯（網頁版作品頁標籤列末尾的「+」） -->
+    <string name="work_tag_edit_title">編輯標籤</string>
+    <string name="work_tag_edit_entry">編輯標籤</string>
+    <string name="work_tag_edit_hint">作者指定的標籤無法刪除；編輯標籤會通知作者。</string>
+    <string name="work_tag_edit_input_hint">輸入要新增的標籤</string>
+    <string name="work_tag_edit_add">新增</string>
+    <string name="work_tag_edit_loading">正在讀取標籤…</string>
+    <string name="work_tag_edit_submitting">提交中…</string>
+    <string name="work_tag_edit_added">已新增標籤</string>
+    <string name="work_tag_edit_deleted">已刪除標籤</string>
+    <string name="work_tag_edit_delete_confirm">確定刪除標籤「%1$s」？</string>
+    <string name="work_tag_edit_not_deletable">這個標籤你刪不了：作者指定的標籤誰都改不動。</string>
+    <string name="work_tag_edit_locked">這個作品不能編輯標籤：作者沒有公開標籤編輯權限，或者網頁登入已經失效。</string>
+    <string name="work_tag_edit_empty">這個作品還沒有標籤</string>
+    <string name="work_tag_edit_need_web_login">編輯標籤走的是網頁介面，需要額外進行一次網頁登入。</string>
 </resources>

@@ -173,4 +173,38 @@ interface PixivWebApi {
         @Header("x-csrf-token") csrfToken: String,
         @Body request: BlockSaveRequest,
     ): WebResponse<Any>
+
+    /**
+     * issue #1023: 作品标签的可编辑态 —— 谁加的、哪些能删、我能不能加。
+     *
+     * 官方 App 没有「编辑标签」,这是网页独有的社区标签机制,所以只能走网页这条。
+     * 匿名也能 GET 到(拿来判断 writable 恒 false),真要写就得有网页 cookie。
+     */
+    @GET("/ajax/tags/illust/{illust_id}")
+    suspend fun getIllustEditableTags(
+        @Path("illust_id") illustId: Long,
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<WorkTagsBody>
+
+    /**
+     * issue #1023: 给作品加一个标签。一次一个,加多个就多调几次。
+     * 需要网页 cookie + x-csrf-token。
+     */
+    @POST("/ajax/tags/illust/{illust_id}/add")
+    suspend fun addIllustTag(
+        @Path("illust_id") illustId: Long,
+        @Header("x-csrf-token") csrfToken: String,
+        @Body request: WorkTagEditRequest,
+    ): WebResponse<Any>
+
+    /**
+     * issue #1023: 删掉作品上的一个标签。只有 [WorkEditableTag.deletable] 为 true 的那些能删。
+     * 需要网页 cookie + x-csrf-token。
+     */
+    @POST("/ajax/tags/illust/{illust_id}/delete")
+    suspend fun deleteIllustTag(
+        @Path("illust_id") illustId: Long,
+        @Header("x-csrf-token") csrfToken: String,
+        @Body request: WorkTagEditRequest,
+    ): WebResponse<Any>
 }

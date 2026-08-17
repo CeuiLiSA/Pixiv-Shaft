@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.doOnPreDraw
@@ -107,10 +108,21 @@ class ArtworkStatsItem(val illust: IllustsBean) : FeedItem {
     override fun hashCode() = System.identityHashCode(illust)
 }
 
-class ArtworkTagsItem(val illust: IllustsBean) : FeedItem {
+class ArtworkTagsItem(
+    val illust: IllustsBean,
+    /**
+     * issue #1023: 标签能被用户就地增删（pixiv 社区标签，见 [PixivTagEditOperate]），改的是
+     * **同一个 bean 实例**上的 tags —— 只按 illust 身份判等的话 DiffUtil 看不见这种变化，
+     * 编辑完 chip 不刷新。和 [ArtworkArtistItem] 把关注态纳入判等是同一个道理。
+     */
+    private val tagSignature: String =
+        illust.tags.orEmpty().joinToString("|") { it.name.orEmpty() },
+) : FeedItem {
     override val feedKey: Any get() = "artwork_tags"
-    override fun equals(other: Any?) = other is ArtworkTagsItem && other.illust === illust
-    override fun hashCode() = System.identityHashCode(illust)
+    override fun equals(other: Any?) =
+        other is ArtworkTagsItem && other.illust === illust && other.tagSignature == tagSignature
+
+    override fun hashCode() = System.identityHashCode(illust) * 31 + tagSignature.hashCode()
 }
 
 /** 关注态参与相等性:关注切换时只这条重绑。 */
@@ -380,6 +392,15 @@ internal fun ArtworkV3Fragment.tagsRenderer() =
         val illust = cell.item.illust
         val b = cell.binding
         b.tagsFlow.searchIndex = 0 // illust tab
+        // issue #1023: 标签行末尾的「编辑标签」块 —— 对齐网页版那个「+」。属性要在 setTags 之前
+        // 赋值：是否挂点击监听在渲染时决定（见 V3TagFlowView.onOverflowClick 的 KDoc）。
+        b.tagsFlow.overflowActionIcon = R.drawable.ic_add_black_24dp
+        b.tagsFlow.overflowActionText = getString(R.string.work_tag_edit_entry)
+        b.tagsFlow.onOverflowClick = {
+            (activity as? AppCompatActivity)?.let { host ->
+                PixivTagEditOperate.showTagEditor(host, illust.id.toLong()) { refreshTagsSection() }
+            }
+        }
         b.tagsFlow.setJavaTags(illust.tags.orEmpty())
         b.synonymMatch.setWorkTags(illust.tags.orEmpty())
         b.tagsFlow.onPinTag = { name, translated, newPinned ->

@@ -578,6 +578,21 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     }
 
     /**
+     * issue #1023: 用户就地编辑完标签后重绑标签区块。改的是池里那条 bean 的 tags(同一个实例),
+     * 上面那条 [ObjectPool] 观察者只管简介 / 屏蔽 / 关注,不碰标签,所以只能靠换一个新的
+     * [ArtworkTagsItem] 让 DiffUtil 看见 —— 新旧的 tagSignature 不同即重绑。
+     *
+     * [FeedViewModel.updateItems] 走的是默认 structural=true,这里会顺带 bump 一次
+     * structureVersion(条目数其实没变)。一次编辑一次、详情页统共几十条,不值得为此另开一个
+     * 非结构化的更新入口。
+     */
+    internal fun refreshTagsSection() {
+        // 编辑弹窗活得比本 Fragment 长(横屏重建 / 被顶掉),回调回来时可能已经 detach。
+        if (!isAdded) return
+        feedViewModel.updateItems<ArtworkTagsItem> { ArtworkTagsItem(it.illust) }
+    }
+
+    /**
      * 收起超长简介后把简介块拉回视口顶部(#965)。收起按钮在简介**末尾**,长简介收起时
      * 视口锚点还停在原来的绝对偏移,块一缩几千像素,画面就跳到更下面的区块去了;
      * 简介顶部仍在屏内(短简介)时无此问题,不动。

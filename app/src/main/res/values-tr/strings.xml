@@ -2576,4 +2576,19 @@
     <string name="custom_theme_color_hex_label">Renk kodu</string>
     <string name="custom_theme_color_hex_hint">#RRGGBB</string>
     <string name="custom_theme_color_hint">#RRGGBB ve kısaltılmış #RGB biçimleri desteklenir. Saydamlık içeren 8 haneli değerler desteklenmez.</string>
+    <!-- issue #1023: pixiv etiket düzenleme (web eser sayfasındaki etiket satırının sonundaki «+») -->
+    <string name="work_tag_edit_title">Etiketleri düzenle</string>
+    <string name="work_tag_edit_entry">Etiketleri düzenle</string>
+    <string name="work_tag_edit_hint">Sanatçının belirlediği etiketler silinemez. Etiketler değiştiğinde sanatçıya bildirim gider.</string>
+    <string name="work_tag_edit_input_hint">Eklenecek etiketi yazın</string>
+    <string name="work_tag_edit_add">Ekle</string>
+    <string name="work_tag_edit_loading">Etiketler yükleniyor…</string>
+    <string name="work_tag_edit_submitting">Gönderiliyor…</string>
+    <string name="work_tag_edit_added">Etiket eklendi</string>
+    <string name="work_tag_edit_deleted">Etiket silindi</string>
+    <string name="work_tag_edit_delete_confirm">«%1$s» etiketi silinsin mi?</string>
+    <string name="work_tag_edit_not_deletable">Bu etiketi silemezsiniz: sanatçının belirlediği etiketleri kimse değiştiremez.</string>
+    <string name="work_tag_edit_locked">Bu eserin etiketleri düzenlenemiyor: sanatçı izin vermemiş ya da web oturumunuz sona ermiş.</string>
+    <string name="work_tag_edit_empty">Bu eserin henüz etiketi yok</string>
+    <string name="work_tag_edit_need_web_login">Etiket düzenleme web arayüzü üzerinden çalışır; ek olarak web\'de bir kez daha giriş yapmanız gerekir.</string>
 </resources>

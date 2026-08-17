@@ -669,6 +669,44 @@ data class BlockSaveRequest(
     val action: String,
 ) : Serializable
 
+// issue #1023: 网页版作品页标签区的「可编辑态」(/ajax/tags/illust/{id})。
+// app-api 的 illust.tags 只有名字和译名,不带任何权限信息,所以要不要显示编辑入口、
+// 哪些标签能删,只能问网页这条。
+//
+// [writable] 是「当前这个人现在能不能加标签」的合成结论 —— 未登录网页、或作者关掉了
+// 「公开让其他会员编辑标签」([isLocked]=true),它都是 false;匿名请求恒为 false。
+// 所以判断入口可见性只看它一个字段就够,不必自己再与 isLocked 做一次逻辑。
+data class WorkTagsBody(
+    val authorId: String? = null,
+    val isLocked: Boolean = false,
+    val tags: List<WorkEditableTag>? = null,
+    val writable: Boolean = false,
+) : Serializable
+
+// [locked]=作者指定的标签,谁都删不掉;[deletable]=当前这个人能不能删这一条
+// (通常是自己加的那些)。两者不是互补关系,分别判断。
+data class WorkEditableTag(
+    val tag: String? = null,
+    val locked: Boolean = false,
+    val deletable: Boolean = false,
+    val userId: String? = null,
+    val userName: String? = null,
+    val translation: Map<String, String>? = null,
+) : Serializable {
+
+    /**
+     * 译名。pixiv 这里的 key 恒是 `"en"`,值却是请求 `lang` 对应语言的译名(lang=zh 时装的是
+     * 中文),所以不能按 key 取,直接拿第一个 value。
+     */
+    val translatedName: String?
+        get() = translation?.values?.firstOrNull()?.takeIf { it.isNotBlank() }
+}
+
+/** /ajax/tags/illust/{id}/add · /delete 的请求体,一次只收一个标签。 */
+data class WorkTagEditRequest(
+    val tag: String,
+) : Serializable
+
 // 网页 ajax /ajax/illust/{id}/pages 的 body 元素:每一 P 的真实原图宽高与图片地址。
 // 宽高供详情页多 P 下载前预置展示高度(见 IllustAdapter.seedPageDimensions);
 // urls 供 #592 受限作品 web 兜底时拼 meta_pages。

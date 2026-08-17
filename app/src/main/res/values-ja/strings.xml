@@ -2576,4 +2576,19 @@
     <string name="custom_theme_color_hex_label">カラーコード</string>
     <string name="custom_theme_color_hex_hint">#RRGGBB</string>
     <string name="custom_theme_color_hint">#RRGGBB と #RGB の短縮形に対応しています。透明度付きの 8 桁の値には対応していません。</string>
+    <!-- issue #1023: pixiv のタグ編集（ウェブ版作品ページのタグ行末尾の「+」） -->
+    <string name="work_tag_edit_title">タグを編集</string>
+    <string name="work_tag_edit_entry">タグを編集</string>
+    <string name="work_tag_edit_hint">作者が指定したタグは削除できません。タグを編集すると作者に通知されます。</string>
+    <string name="work_tag_edit_input_hint">追加するタグを入力</string>
+    <string name="work_tag_edit_add">追加</string>
+    <string name="work_tag_edit_loading">タグを読み込み中…</string>
+    <string name="work_tag_edit_submitting">送信中…</string>
+    <string name="work_tag_edit_added">タグを追加しました</string>
+    <string name="work_tag_edit_deleted">タグを削除しました</string>
+    <string name="work_tag_edit_delete_confirm">タグ「%1$s」を削除しますか？</string>
+    <string name="work_tag_edit_not_deletable">このタグは削除できません。作者が指定したタグは誰も変更できません。</string>
+    <string name="work_tag_edit_locked">この作品のタグは編集できません。作者が編集を許可していないか、ウェブのログインが切れています。</string>
+    <string name="work_tag_edit_empty">この作品にはまだタグがありません</string>
+    <string name="work_tag_edit_need_web_login">タグ編集はウェブインターフェース経由のため、追加で一度ウェブにログインする必要があります。</string>
 </resources>

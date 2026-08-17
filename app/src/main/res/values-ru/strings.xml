@@ -2576,4 +2576,19 @@
     <string name="custom_theme_color_hex_label">Код цвета</string>
     <string name="custom_theme_color_hex_hint">#RRGGBB</string>
     <string name="custom_theme_color_hint">Поддерживаются форматы #RRGGBB и сокращённый #RGB. Восьмизначные значения с прозрачностью не поддерживаются.</string>
+    <!-- issue #1023: редактирование тегов pixiv («+» в конце строки тегов на веб-странице работы) -->
+    <string name="work_tag_edit_title">Изменить теги</string>
+    <string name="work_tag_edit_entry">Изменить теги</string>
+    <string name="work_tag_edit_hint">Теги, заданные автором, удалить нельзя. Автор получит уведомление об изменении тегов.</string>
+    <string name="work_tag_edit_input_hint">Введите тег для добавления</string>
+    <string name="work_tag_edit_add">Добавить</string>
+    <string name="work_tag_edit_loading">Загрузка тегов…</string>
+    <string name="work_tag_edit_submitting">Отправка…</string>
+    <string name="work_tag_edit_added">Тег добавлен</string>
+    <string name="work_tag_edit_deleted">Тег удалён</string>
+    <string name="work_tag_edit_delete_confirm">Удалить тег «%1$s»?</string>
+    <string name="work_tag_edit_not_deletable">Этот тег удалить нельзя: теги, заданные автором, недоступны для изменения.</string>
+    <string name="work_tag_edit_locked">Теги этой работы изменить нельзя: автор не разрешил редактирование, либо истёк вход через веб.</string>
+    <string name="work_tag_edit_empty">У этой работы пока нет тегов</string>
+    <string name="work_tag_edit_need_web_login">Редактирование тегов работает через веб-интерфейс, поэтому нужно дополнительно войти через веб.</string>
 </resources>
