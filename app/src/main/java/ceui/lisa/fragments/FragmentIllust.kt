@@ -17,7 +17,6 @@ import android.view.View
 import android.view.View.OnLongClickListener
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -42,7 +41,7 @@ import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
-import ceui.pixiv.ui.detail.PixivTagEditOperate
+import ceui.pixiv.ui.detail.TagEditSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
@@ -439,9 +438,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
         baseBind.illustTag.setOnTagClickListener { view, position, parent ->
             if (position >= tags.size) {
-                (activity as? AppCompatActivity)?.let { host ->
-                    PixivTagEditOperate.showTagEditor(host, illust.id.toLong())
-                }
+                // 不必监听变更:V2 的标签区跟着 ObjectPool 走,TagEditSheet 写完池
+                // 本页那条 observer 自然重跑 updateIllust,tagSignature 一变就重建 adapter。
+                TagEditSheet.show(childFragmentManager, illust.id.toLong())
                 return@setOnTagClickListener true
             }
             val intent = Intent(mContext, SearchActivity::class.java)

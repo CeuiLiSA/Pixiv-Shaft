@@ -280,6 +280,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             val authorId = illust.user?.id?.toLong() ?: return@observe
             attachArtistFollowObserver(authorId)
         }
+
+        // issue #1023: 标签编辑 sheet 是 childFragmentManager 拉起来的(见 tagsRenderer),
+        // 变更经 fragment result 回来而不是 lambda —— sheet 跨横屏会重建,回调必然失效。
+        childFragmentManager.setFragmentResultListener(
+            TagEditSheet.REQUEST_TAGS_CHANGED, viewLifecycleOwner,
+        ) { _, _ -> refreshTagsSection() }
     }
 
     /**

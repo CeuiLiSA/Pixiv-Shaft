@@ -34,9 +34,10 @@ fun BottomSheetDialogFragment.letSheetDrawBehindNavBar() {
  * 做两件事:
  *  A. 把 Material 给 design_bottom_sheet 装的 inset listener 换成 noop 并清零它的 padding
  *     —— 让内容自己的背景一路铺到屏幕底,消除底部那条透明缝/黑条。
- *  B. 给内容 child 的底 padding 叠加导航栏高度 —— 让最后一行内容抬离手势条(safe area)。
+ *  B. 给内容 child 的底 padding 叠加「导航栏 / 输入法」中较高的那个 —— 让最后一行内容抬离
+ *     手势条(safe area),键盘弹起时则整块内容抬到键盘之上。
  *     内容 child 的背景仍会铺满含 padding 的区域,所以背景照样到屏幕底,只是内容上移。
- * A 保证「延伸进 safe area」,B 保证「内容不贴着手势条」。
+ * A 保证「延伸进 safe area」,B 保证「内容不贴着手势条、也不被键盘盖住」。
  */
 fun View.letDrawBehindNavBar() {
     // A
@@ -51,8 +52,15 @@ fun View.letDrawBehindNavBar() {
         // 完整显示且滚到底时抬离手势条。对不滚动的 sheet 无副作用。
         (content as? ViewGroup)?.clipToPadding = false
         ViewCompat.setOnApplyWindowInsetsListener(content) { v, insets ->
-            val navBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
-            v.updatePadding(bottom = navBottom)
+            // 必须把 Type.ime() 一起吃进来(getInsets 传 or 起来的 type 就是逐边取 max):
+            // 这一族 sheet 全部 edgeToEdge,Material 会 setDecorFitsSystemWindows(window,false),
+            // dialog window 从此不随软键盘 resize/pan —— 只垫 systemBars 的话,带输入框的 sheet
+            // (如 TagEditSheet 底部那条输入条)一点输入框就被键盘整个盖住(issue #1024)。
+            // 垫上之后 sheet 长高一个键盘的量、内容被抬到键盘之上,背景照旧铺到屏幕底。
+            val bottom = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime()
+            ).bottom
+            v.updatePadding(bottom = bottom)
             insets
         }
     }

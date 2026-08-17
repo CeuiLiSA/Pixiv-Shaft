@@ -12,7 +12,6 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.doOnPreDraw
@@ -397,9 +396,9 @@ internal fun ArtworkV3Fragment.tagsRenderer() =
         b.tagsFlow.overflowActionIcon = R.drawable.ic_add_black_24dp
         b.tagsFlow.overflowActionText = getString(R.string.work_tag_edit_entry)
         b.tagsFlow.onOverflowClick = {
-            (activity as? AppCompatActivity)?.let { host ->
-                PixivTagEditOperate.showTagEditor(host, illust.id.toLong()) { refreshTagsSection() }
-            }
+            // 变更经 fragment result 回来（listener 在 ArtworkV3Fragment 里注册，键
+            // TagEditSheet.REQUEST_TAGS_CHANGED），所以这里只管把 sheet 拉起来，不持有任何回调。
+            TagEditSheet.show(childFragmentManager, illust.id.toLong())
         }
         b.tagsFlow.setJavaTags(illust.tags.orEmpty())
         b.synonymMatch.setWorkTags(illust.tags.orEmpty())
