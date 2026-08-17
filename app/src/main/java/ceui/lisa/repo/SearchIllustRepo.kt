@@ -9,6 +9,7 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.Nana7miSearchTelemetry
+import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
@@ -87,12 +88,18 @@ class SearchIllustRepo @JvmOverloads constructor(
         //    非付费用户不能用人气系列 sort，需走 popular-preview。男女向两档（issue #575）
         //    平时被 V3 sheet gate 住非会员看不到，这里再兜一层防御。
         //  其余值（date_desc / date_asc / popular_*-premium）走 /v1/search/illust，sort 透传。
-        val usePopularPreview = sortType == SortType.POPULAR_PREVIEW
-        val notPremiumButWantToUsePopularSort = isPremium != true && (
+        val wantsPremiumOnlySort = isPremium != true && (
                 sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE ||
                         sortType == SortType.POPULAR_MALE_DESC ||
                         sortType == SortType.POPULAR_FEMALE_DESC
                 )
+        // 借号搜索可以被服务端远程关掉（pixshaft-api /v1/config）。关掉后非会员的人气排序
+        // 退回借号上线前的行为——直接走 popular-preview。绝不能落到下面的 searchIllust：
+        // 那是拿自己的非会员 token 打会员专属 sort，必然 400。
+        val nana7miEnabled = RemoteAppConfig.nana7miSearchEnabled
+        val selectedPopularPreview = sortType == SortType.POPULAR_PREVIEW
+        val usePopularPreview = selectedPopularPreview || (wantsPremiumOnlySort && !nana7miEnabled)
+        val notPremiumButWantToUsePopularSort = wantsPremiumOnlySort && nana7miEnabled
 
         // 投稿期间相对档当场算 today−N（每次 initApi 都重算,跨午夜窗口自动跟随今天）;
         // bucket 为空时回落到自定义起止日期
@@ -108,7 +115,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
                 query = assembledKeyword,
                 initialRoute = Nana7miSearchTelemetry.Route.PREVIEW_DIRECT,
-                initialReason = "selected_preview",
+                initialReason = if (selectedPopularPreview) "selected_preview" else "remote_disabled",
             )
             notPremiumButWantToUsePopularSort -> Nana7miSearchTelemetry.start(
                 requesterUid = requesterUid,

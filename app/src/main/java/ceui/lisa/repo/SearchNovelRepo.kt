@@ -9,6 +9,7 @@ import ceui.lisa.model.ListNovel
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.Nana7miSearchTelemetry
+import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
@@ -81,9 +82,15 @@ class SearchNovelRepo @JvmOverloads constructor(
 
         // popular_preview 是预览 endpoint 专属；非会员选择会员人气排序时借用一个 Nana7mi
         // 账号走正式搜索。取号/过期刷新/重新上报/400 重放由共享会话组件负责。
-        val usePopularPreview = sortType == SortType.POPULAR_PREVIEW
-        val notPremiumButWantToUsePopularSort =
+        // 借号搜索可以被服务端远程关掉（pixshaft-api /v1/config）。关掉后非会员的人气排序
+        // 退回借号上线前的行为——直接走 popular-preview；绝不能落到 searchNovel，那是拿自己
+        // 的非会员 token 打会员专属 sort，必然 400。
+        val nana7miEnabled = RemoteAppConfig.nana7miSearchEnabled
+        val wantsPremiumOnlySort =
             isPremium != true && sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE
+        val selectedPopularPreview = sortType == SortType.POPULAR_PREVIEW
+        val usePopularPreview = selectedPopularPreview || (wantsPremiumOnlySort && !nana7miEnabled)
+        val notPremiumButWantToUsePopularSort = wantsPremiumOnlySort && nana7miEnabled
 
         // 投稿期间相对档当场算 today−N(每次 initApi 都重算,跨午夜窗口自动跟随今天);
         // bucket 为空时回落到自定义起止日期
@@ -99,7 +106,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                 contentType = Nana7miSearchTelemetry.ContentType.NOVEL,
                 query = assembledKeyword,
                 initialRoute = Nana7miSearchTelemetry.Route.PREVIEW_DIRECT,
-                initialReason = "selected_preview",
+                initialReason = if (selectedPopularPreview) "selected_preview" else "remote_disabled",
             )
             notPremiumButWantToUsePopularSort -> Nana7miSearchTelemetry.start(
                 requesterUid = requesterUid,

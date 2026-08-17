@@ -340,6 +340,12 @@ public class Shaft extends Application implements ServicesProvider {
         // 但服务端或遥测自身故障绝不能拖慢收藏、关注等用户业务动作。
         ceui.pixiv.actions.Nana7miSearchTelemetry.INSTANCE.init(this);
 
+        // 服务端基础配置（pixshaft-api /v1/config）：目前只有借号搜索总开关，让它出问题时
+        // 能不发版关掉。拉取全在后台，读到的永远是内存里的最后一个已知值。
+        // 安全顺序：必须在 MMKV.initialize 之后（读缓存）、SessionManager.initialize 之后
+        // （uid 是灰度分桶键）。
+        ceui.pixiv.config.RemoteAppConfig.init();
+
         // AccountResponse 上报使用独立的全局 outbox：它不属于当前登录用户，切账号或
         // 登出后也必须继续补报刚 refresh 出来的新 token。
         ceui.pixiv.actions.AccountOnlineReportOutbox.INSTANCE.init(this);

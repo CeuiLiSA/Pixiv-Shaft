@@ -58,6 +58,15 @@ interface PixshaftApi {
     ): SyncPrefAck
 
     /**
+     * 冷启动配置：客户端自己决定不了的开关（服务端 `src/app-config.js`）。
+     *
+     * [uid] 是调用方自己的 pixiv uid，用来选灰度分桶（白名单/黑名单），不是身份凭证——
+     * 和 `/v1/account/nana7mi` 同一个约定，所以这条不签名。未登录传 null 直接不带该参数。
+     */
+    @GET("v1/config")
+    suspend fun appConfig(@Query("uid") uid: Long?): AppConfigResponse
+
+    /**
      * 一页「热度标签」精选插画。
      *
      * 这份内置榜以前是 APK 里 183MB 的 `assets/pixiv_prime/prime_tag_for_<sha256>.txt`
@@ -155,6 +164,16 @@ data class PrimeTagIllustPage(
     val limit: Int = 0,
     val illusts: List<Illust> = emptyList(),
     val next_offset: Int? = null,
+)
+
+/**
+ * 服务端基础配置。每个开关都是可空的：字段缺失（老服务端 / 新客户端）表示「服务端没意见」，
+ * 客户端保留上一次已知值，绝不能把 null 当成 false 去关功能。
+ */
+data class AppConfigResponse(
+    val uid: Long? = null,
+    val nana7miSearchEnabled: Boolean? = null,
+    val serverTime: Long? = null,
 )
 
 data class EmailReq(val email: String)
