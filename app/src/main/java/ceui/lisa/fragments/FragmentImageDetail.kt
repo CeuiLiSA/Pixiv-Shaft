@@ -380,6 +380,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
         // 长图阅读模式：自动填满宽度、从顶部开始，无需手动双击放大再滑动
         baseBind.image.zoomable.setReadMode(ReadMode.Default)
+
+        // large 占位切 original 时，保留用户已经做的缩放/平移，避免原图到位后被弹回 fit
+        baseBind.image.zoomable.setKeepTransformWhenSameAspectRatioContentSizeChanged(true)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
