@@ -254,6 +254,13 @@ internal fun ArtworkV3Fragment.heroRenderer() =
         b.metaDate.text = Common.getLocalYYYYMMDDHHMMString(illust.create_date)
         b.metaPages.text = if (illust.page_count == 1) ctx.getString(R.string.v3_page_count_one)
         else ctx.getString(R.string.v3_page_count_many, illust.page_count)
+        // 信息区翻译按钮：仅当作品无简介时显示。有简介的作品简介区已提供翻译按钮
+        //（见 descRenderer），而简介区整体只在 caption 非空时才产出（见
+        // ArtworkV3FeedSource.buildArtworkHeaderItems），无简介时这里补一个翻译标题的入口。
+        b.metaTranslate.isVisible = illust.caption.isNullOrEmpty()
+        b.metaTranslate.setOnClickListener {
+            translateTitleAndCaption(illust.title, null)
+        }
     }
 
 internal fun ArtworkV3Fragment.seriesRenderer() =
