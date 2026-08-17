@@ -1,1 +1,1 @@
-include ':app', ':models', ':progressmanager', ':flowlayout-lib', ':actionqueue'
+include ':app', ':models', ':progressmanager', ':flowlayout-lib', ':actionqueue', ':witstudio'

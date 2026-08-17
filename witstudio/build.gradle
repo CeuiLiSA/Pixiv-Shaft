@@ -1,0 +1,74 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdk 36
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 36
+        consumerProguardFiles 'consumer-rules.pro'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // 本模块自带布局（dialog / popup / menu row），全部走 viewBinding —— 本仓第一个开
+    // viewBinding 的 library 模块。刻意不开 dataBinding：库里没有一处需要 <layout> 表达式
+    // 绑定，开了只是让每次构建多跑一遍注解处理。:app 的 dataBinding 与本模块无关。
+    buildFeatures {
+        viewBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    namespace 'ceui.pixiv.witstudio'
+
+    // 刻意不设 resourcePrefix：全仓没有这个约定，而且本模块要接管一批 :app 既有资源名
+    // （:app 侧留引用别名指过来，见 app/src/main/res/values/wit_aliases.xml），强制前缀会
+    // 把别名方案堵死。前缀纪律靠 wit_ 命名约定与 code review 维持。
+}
+
+kotlin {
+    // 库模块：强制显式 public/internal + 显式返回类型。少了它，重构时很容易把本该
+    // internal 的实现细节顺手暴露成 API，之后再收回来就是破坏性变更。同 :actionqueue。
+    explicitApi()
+}
+
+dependencies {
+    // 是 api 不是 implementation：这些类型长在本模块的**公开 API** 上 ——
+    // WitDialog : AppCompatDialog、WitRoundButton : AppCompatButton、
+    // PixivDialog : DialogFragment、WitBottomSheetBase : BottomSheetDialogFragment、
+    // DialogViewModel.alertTaskPool 是 CompletableDeferred。
+    // 用 implementation 的话消费方必须自己另外声明才编得过。
+    // 版本逐条对齐 :app，避免同一依赖两个版本并存。
+    api 'androidx.appcompat:appcompat:1.7.0'
+    api 'androidx.fragment:fragment-ktx:1.8.5'
+    api 'com.google.android.material:material:1.12.0'
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7'
+
+    testImplementation 'junit:junit:4.13.2'
+
+    // 刻意不引：
+    //   - retrofit / glide / gson / :models / 任何 pixiv 业务代码 —— 本模块不认识
+    //     「插画」「用户」，只认识 View、Dialog 和一个 ?attr/colorPrimary。
+    //   - QMUI —— 本模块存在的意义就是把它替掉。
+    //   - constraintlayout —— 库内布局一律 Linear/Frame，少一层依赖传染。
+    //   - KSP —— 根 build.gradle 的「新模块一律 KSP」是针对需要注解处理的模块；
+    //     纯 UI 库没有任何 processor，挂上只是空跑一个 task。将来若需要注解处理，
+    //     用 KSP，不要用 kapt。
+}
