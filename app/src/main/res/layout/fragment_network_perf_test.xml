@@ -96,6 +96,18 @@
                     tools:text="直连关" />
 
                 <TextView
+                    android:id="@+id/chip_proxy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="使用PxveAPI · https://pxve.example.com" />
+
+                <TextView
                     android:id="@+id/chip_host"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

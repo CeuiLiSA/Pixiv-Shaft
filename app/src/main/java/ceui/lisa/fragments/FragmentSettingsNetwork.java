@@ -20,6 +20,7 @@ import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogView;
 
+import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -276,7 +277,7 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                     // 这里不再自己判 startsWith("https://")——那比 normalizeBase 严格，
                     // 会把合法的裸域名（pxve.example.com）误拦掉。
                     if (!TextUtils.isEmpty(proxy)
-                            && AppApiProxyInterceptor.normalizeBase(proxy) == null) {
+                            && AppApiProxyInterceptor.normalizeBase(proxy) == null && !BuildConfig.IS_DEBUG_MODE) {
                         Common.showToast(getString(R.string.app_api_proxy_https_required), 2);
                         return;
                     }

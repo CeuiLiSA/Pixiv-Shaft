@@ -2,6 +2,7 @@ package ceui.lisa.http;
 
 import java.io.IOException;
 
+import ceui.lisa.BuildConfig;
 import ceui.lisa.activities.Shaft;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
@@ -130,12 +131,21 @@ public class AppApiProxyInterceptor implements Interceptor {
         if (p.isEmpty()) return null;
 
         if (p.contains("://")) {
-            // 显式带 scheme：只接受 https
-            if (!p.startsWith("https://") && !p.startsWith("HTTPS://")) {
-                return null;
+            // Debug 模式下允许 http，Release 强制 https
+            if (!BuildConfig.IS_DEBUG_MODE) {
+                if (!p.startsWith("https://") && !p.startsWith("HTTPS://")) {
+                    return null;
+                }
             }
+            // Debug 模式下 http/https 都放行
+            // 但如果是 http，保留原样
         } else {
-            p = "https://" + p;
+            // 裸域名：Debug 用 http，Release 用 https（保持安全默认）
+            if (BuildConfig.IS_DEBUG_MODE) {
+                p = "http://" + p;  // Debug 默认 http，方便本地代理
+            } else {
+                p = "https://" + p;
+            }
         }
 
         final HttpUrl url;
@@ -148,7 +158,6 @@ public class AppApiProxyInterceptor implements Interceptor {
             return null;
         }
 
-        // 去末尾全部斜杠（HttpUrl.toString 对根路径恒带 "/"，需一并去掉）
         String s = url.toString();
         while (s.endsWith("/")) {
             s = s.substring(0, s.length() - 1);

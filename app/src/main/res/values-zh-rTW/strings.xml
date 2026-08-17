@@ -2001,6 +2001,8 @@
     <string name="network_test_env_doh_off">安全 DNS 關</string>
     <string name="network_test_env_direct_on">直連開</string>
     <string name="network_test_env_direct_off">直連關</string>
+    <string name="network_test_env_proxy_on">使用PxveAPI · %1$s</string>
+    <string name="network_test_env_proxy_off">使用PxveAPI · 關</string>
     <string name="network_test_empty_hint">點擊下方「開始測試」以執行網路診斷</string>
     <string name="network_test_section_targets">連通性診斷</string>
     <string name="network_test_section_illust">作品 API 探測</string>
@@ -2034,8 +2036,10 @@
     <string name="network_test_overall_polluted_bypass_sub">本機 DNS 被污染，但已透過安全 DNS/直連繞過，握手正常</string>
     <string name="network_test_overall_unavailable">網路不可用</string>
     <string name="network_test_overall_unavailable_sub">主 API（app-api.pixiv.net）不可達，應用主要功能不可用</string>
+    <string name="network_test_overall_unavailable_sub_proxy">主 API（PxveAPI 代理 %1$s）不可達，應用主要功能不可用</string>
     <string name="network_test_image_unavailable">圖片無法載入</string>
     <string name="network_test_target_sub_app_api">pixiv API · Cloudflare CDN</string>
+    <string name="network_test_target_sub_app_api_proxy">PxveAPI 代理 · %1$s</string>
     <string name="network_test_target_sub_web">網頁端點 · Cloudflare CDN</string>
     <string name="network_test_target_sub_image_official">圖片伺服器 · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">圖片伺服器 · 反代 %1$s</string>
@@ -2097,6 +2101,18 @@
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · 作品 #%3$d 已返回圖片位址</string>
     <string name="network_test_web_degraded">HTTP %1$d · error=%2$s · 未拿到圖片位址</string>
     <string name="network_test_web_failed">請求失敗: %1$s</string>
+    <string name="network_test_pxve_app_api_step">PxveAPI 轉發 · /pixiv-app-api</string>
+    <string name="network_test_pxve_oauth_step">PxveAPI 轉發 · /pixiv-oauth</string>
+    <string name="network_test_pxve_http_skip">跳過 HTTPS 握手</string>
+    <string name="network_test_pxve_http_skip_detail">Debug 模式允許 http 代理，僅驗證 /pixiv-app-api 與 /pixiv-oauth 轉發回應</string>
+    <string name="network_test_pxve_app_api_path">/pixiv-app-api</string>
+    <string name="network_test_pxve_oauth_path">/pixiv-oauth</string>
+    <string name="network_test_pxve_ok_2xx">可達 · %1$dms · HTTP %2$d（正常）</string>
+    <string name="network_test_pxve_ok_auth">可達 · %1$dms · HTTP %2$d（缺憑證的預期回應，轉發鏈路通）</string>
+    <string name="network_test_pxve_ok_other">可達 · %1$dms · HTTP %2$d</string>
+    <string name="network_test_pxve_fail_status">異常 · %1$dms · HTTP %2$d</string>
+    <string name="network_test_pxve_not_found">不可達 · %1$dms · HTTP %2$d（代理未轉發 %3$s 路徑）</string>
+    <string name="network_test_pxve_failed">連線失敗: %1$s</string>
     <string name="network_test_dl_title">圖片下載探測</string>
     <string name="network_test_dl_sub">範例作品 #%1$d · 插畫 + 頭像</string>
     <string name="network_test_fetching">取得中…</string>

@@ -42,6 +42,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
 
     private lateinit var chipDoh: TextView
     private lateinit var chipDirect: TextView
+    private lateinit var chipProxy: TextView
     private lateinit var chipHost: TextView
     private lateinit var summaryCard: View
     private lateinit var summaryPill: TextView
@@ -86,6 +87,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
 
         chipDoh = view.findViewById(R.id.chip_doh)
         chipDirect = view.findViewById(R.id.chip_direct)
+        chipProxy = view.findViewById(R.id.chip_proxy)
         chipHost = view.findViewById(R.id.chip_host)
         summaryCard = view.findViewById(R.id.summary_card)
         summaryPill = view.findViewById(R.id.summary_pill)
@@ -193,6 +195,12 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         } else {
             applyPill(chipDirect, getString(R.string.network_test_env_direct_off), R.color.v3_text_3)
         }
+        val proxyRoot = viewModel.proxyRoot
+        if (proxyRoot != null) {
+            applyPill(chipProxy, getString(R.string.network_test_env_proxy_on, maskProxyUrl(proxyRoot)), R.color.v3_green)
+        } else {
+            applyPill(chipProxy, getString(R.string.network_test_env_proxy_off), R.color.v3_text_3)
+        }
         applyPill(chipHost, getString(R.string.network_test_env_host_prefix) + imageHostLabel(), R.color.v3_blue)
     }
 
@@ -203,7 +211,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         ImageHostManager.Mode.PIXIV_NL -> getString(R.string.image_host_pixiv_nl)
         ImageHostManager.Mode.CUSTOM -> {
             val host = ImageHostManager.getCustomHost()
-            if (host.isEmpty()) getString(R.string.image_host_custom) else host
+            if (host.isEmpty()) getString(R.string.image_host_custom) else maskProxyUrl(host)
         }
     }
 
