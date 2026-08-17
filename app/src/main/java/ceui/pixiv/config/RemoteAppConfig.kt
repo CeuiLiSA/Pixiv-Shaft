@@ -21,12 +21,15 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * 1. **调用方永远不等网络。** 值先从 MMKV 读上一次的结果（首帧就有确定答案），拉取在后台
  *    跑完再覆盖。读接口是纯内存字段。
- * 2. **只有服务端明确说话才改。** 超时、5xx、字段缺失都保留上一次已知值（首次安装即默认
- *    值），也就是 fail-open —— 拉不到配置绝不能顺手把功能关了。
+ * 2. **只有服务端明确说话才改。** 超时、5xx、字段缺失都保留上一次已知值，绝不因为一次网络
+ *    抖动就把用户手里已经在用的功能掀掉。
  *
- * uid 只是灰度分桶键：服务端按它决定白/黑名单。因此登录态变化后要重拉一次，否则「只给某个
- * uid 开」要等到下次冷启动才生效；这件事由 [nana7miSearchEnabled] 的读取顺带触发，不用在
- * 登录流程里另挂钩子。
+ * 从没成功拉到过时（首次安装、或服务端一直不可达）默认是**关**：这些开关管的是灰度中的功能，
+ * 没拿到许可就不开，而不是先开着等服务端来喊停。
+ *
+ * uid 是灰度分桶键：服务端按它决定白/黑名单和灰度桶。因此登录态变化后要重拉一次，否则「这个
+ * uid 该不该开」要等到下次冷启动才知道；这件事由 [nana7miSearchEnabled] 的读取顺带触发，不用
+ * 在登录流程里另挂钩子。
  */
 object RemoteAppConfig {
 
@@ -128,6 +131,7 @@ object RemoteAppConfig {
     private const val TAG = "RemoteAppConfig"
     private const val MMKV_ID = "remote-app-config-v1"
     private const val KEY_NANA7MI_SEARCH = "nana7mi_search_enabled"
-    private const val DEFAULT_NANA7MI_SEARCH = true
+    // 没拿到服务端许可之前不开：这是灰度中的功能，默认关比默认开安全。
+    private const val DEFAULT_NANA7MI_SEARCH = false
     private const val RETRY_COOLDOWN_MS = 5 * 60 * 1000L
 }
