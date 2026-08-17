@@ -549,6 +549,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 只做「补上 / 换内容」,不做「抹掉」:池会被各种精简来源覆盖(作者其他作品、相关作品列表都会
      * 合池),拿一次空 caption 去删已经显示出来的简介,就成了简介闪一下又没了。
      *
+     * 简介块一旦在页面里,信息区那个补位的翻译按钮必须同时收起,见 [hideHeroTranslate]。
+     *
      * 位置锚在 [ArtworkTagsItem] 之前——对齐 [ArtworkV3FeedSource.buildArtworkHeaderItems] 的
      * 区块顺序(Hero /(Series)/ Artist / Desc / Tags / ...)。tags 块是无条件产出的,锚点稳定。
      * 没变化时原样返回同一个 list,[FeedViewModel.mutateItems] 据此判定 no-op,所以这个观察者
@@ -566,26 +568,51 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val descCaption = caption
         val descTitle = title.orEmpty()
         feedViewModel.mutateItems { items ->
-            val at = items.indexOfFirst { it is ArtworkDescItem }
-            if (at >= 0) {
-                if ((items[at] as ArtworkDescItem).caption == descCaption &&
-                    (items[at] as ArtworkDescItem).title == descTitle
-                ) {
-                    items
+            val withDesc = run {
+                val at = items.indexOfFirst { it is ArtworkDescItem }
+                if (at >= 0) {
+                    if ((items[at] as ArtworkDescItem).caption == descCaption &&
+                        (items[at] as ArtworkDescItem).title == descTitle
+                    ) {
+                        items
+                    } else {
+                        items.toMutableList()
+                            .apply { this[at] = ArtworkDescItem(descCaption, descTitle) }
+                    }
                 } else {
-                    items.toMutableList().apply { this[at] = ArtworkDescItem(descCaption, descTitle) }
-                }
-            } else {
-                val anchor = items.indexOfFirst { it is ArtworkTagsItem }
-                if (anchor < 0) {
-                    items // header 还没建出来(首屏仍在飞),等下一次 fire
-                } else {
-                    Timber.tag(ARTWORK_LAZY_TAG)
-                        .d("简介块后台补入 illustId=%d len=%d", illustId, descCaption.length)
-                    items.subList(0, anchor) + ArtworkDescItem(descCaption, descTitle) +
-                            items.subList(anchor, items.size)
+                    val anchor = items.indexOfFirst { it is ArtworkTagsItem }
+                    if (anchor < 0) {
+                        items // header 还没建出来(首屏仍在飞),等下一次 fire
+                    } else {
+                        Timber.tag(ARTWORK_LAZY_TAG)
+                            .d("简介块后台补入 illustId=%d len=%d", illustId, descCaption.length)
+                        items.subList(0, anchor) + ArtworkDescItem(descCaption, descTitle) +
+                                items.subList(anchor, items.size)
+                    }
                 }
             }
+            hideHeroTranslate(withDesc)
+        }
+    }
+
+    /**
+     * 简介块已经在页面里 → 收起信息区那个补位的翻译按钮([ArtworkHeroItem.showTranslate]),
+     * 否则同屏两个翻译入口。
+     *
+     * 必须在这里收:hero 条目建出来时用的是**列表页那条**空 caption 的 bean,而简介是
+     * [ceui.pixiv.ui.detail.ArtworkV3ViewModel.ensureTrustedCaption] 回源拿**另一个** bean
+     * 实例补回来的;hero 条目自己既没被替换、[ArtworkHeroItem.equals] 又只比实例身份,
+     * 不主动翻这一下的话它永远重绑不了(#960 的补拉在动态流里约一半会命中)。
+     *
+     * 没得可收时原样返回同一个 list,守住 [ceui.pixiv.feeds.FeedViewModel.mutateItems] 的
+     * 「同一个 list == no-op」约定 —— 这个观察者每次收藏 / 关注变更都会 fire。
+     */
+    private fun hideHeroTranslate(items: List<FeedItem>): List<FeedItem> {
+        val at = items.indexOfFirst { it is ArtworkHeroItem && it.showTranslate }
+        if (at < 0) return items
+        val hero = items[at] as ArtworkHeroItem
+        return items.toMutableList().apply {
+            this[at] = ArtworkHeroItem(hero.illust, showTranslate = false)
         }
     }
 

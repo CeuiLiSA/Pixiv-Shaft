@@ -34,7 +34,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="16dp"
+            android:padding="12dp"
             android:contentDescription="@string/string_translate_caption"
             android:src="@drawable/ic_baseline_translate_24"
             app:tint="@color/v3_text_3" />
