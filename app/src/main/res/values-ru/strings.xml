@@ -732,6 +732,7 @@
     <string name="string_translation_model_download_subtitle">Чтобы использовать офлайн-перевод, нужно дополнительно скачать %1$s</string>
     <string name="string_translation_model_download_done">Модель перевода загружена</string>
     <string name="string_translate_caption">Перевести</string>
+    <string name="v3_translate_caption_label">Описание:</string>
     <string name="string_translating">Перевод…</string>
     <string name="string_translate_failed">Не удалось перевести</string>
     <string name="string_translate_model_loading">Загрузка модели перевода…</string>

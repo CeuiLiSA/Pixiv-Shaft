@@ -734,6 +734,7 @@
     <string name="string_translation_model_download_subtitle">%1$s 需額外下載後才能使用離線翻譯</string>
     <string name="string_translation_model_download_done">翻譯模型下載完成</string>
     <string name="string_translate_caption">翻譯</string>
+    <string name="v3_translate_caption_label">簡介：</string>
     <string name="string_translating">翻譯中…</string>
     <string name="string_translate_failed">翻譯失敗</string>
     <string name="string_translate_model_loading">正在載入翻譯模型…</string>

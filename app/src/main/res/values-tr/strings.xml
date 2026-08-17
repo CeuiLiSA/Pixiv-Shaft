@@ -732,6 +732,7 @@
     <string name="string_translation_model_download_subtitle">Çevrimdışı çeviri için %1$s modelini ayrıca indirmeniz gerekir</string>
     <string name="string_translation_model_download_done">Çeviri modeli indirildi</string>
     <string name="string_translate_caption">Çevir</string>
+    <string name="v3_translate_caption_label">Açıklama:</string>
     <string name="string_translating">Çevriliyor…</string>
     <string name="string_translate_failed">Çeviri başarısız oldu</string>
     <string name="string_translate_model_loading">Çeviri modeli yükleniyor…</string>

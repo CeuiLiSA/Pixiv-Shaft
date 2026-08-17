@@ -121,7 +121,7 @@ class ArtworkV3FeedSource(
             }
             list.add(ArtworkArtistItem(illust))
             if (!TextUtils.isEmpty(illust.caption)) {
-                list.add(ArtworkDescItem(illust.caption))
+                list.add(ArtworkDescItem(illust.caption, illust.title.orEmpty()))
             }
             list.add(ArtworkTagsItem(illust))
             list.add(ArtworkStatsItem(illust))
