@@ -332,8 +332,12 @@ internal class Nana7miAccountSession {
             )
             return Nana7miResult.NotPremium(uid, refreshedAccount)
         }
+        // stage=expiry, not stage=flow: renew() also runs mid-pagination, and the illustration and
+        // novel flows own their own stage names ("flow" / "novel_flow"). Closing here with a flow
+        // event mislabeled every novel renewal and made "ready" show up in the middle of a page
+        // request. This pairs with the "action=renew" line that opened the renewal instead.
         Timber.tag(LOG_TAG).d(
-            "stage=flow result=ready account_uid=%d updated_at=%d expires_at=%d",
+            "stage=expiry result=renewed account_uid=%d updated_at=%d expires_at=%d",
             uid,
             refreshedPayload.updatedAt,
             refreshedPayload.expiresAt,
