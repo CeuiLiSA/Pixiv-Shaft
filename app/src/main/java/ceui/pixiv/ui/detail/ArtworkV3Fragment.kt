@@ -589,7 +589,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     internal fun refreshTagsSection() {
         // 编辑弹窗活得比本 Fragment 长(横屏重建 / 被顶掉),回调回来时可能已经 detach。
         if (!isAdded) return
-        feedViewModel.updateItems<ArtworkTagsItem> { ArtworkTagsItem(it.illust) }
+        // 必须回池现取那条 bean,不能沿用条目里那份:池对非完整版更新走 mergeKeepingExisting,
+        // 会把存的换成一个**新实例**(「作者其他作品」的响应经 Mapper 合池就会触发,而那个区块
+        // 就在标签行下面、用户多半已经滚过),此后条目手里的是旧实例。PixivTagEditOperate 改的
+        // 是池里的当前实例,拿旧实例重建则 tagSignature 原封不动,编辑成功了标签行却不动。
+        val illust = ObjectPool.getIllust(illustId).value ?: return
+        feedViewModel.updateItems<ArtworkTagsItem> { ArtworkTagsItem(illust) }
     }
 
     /**

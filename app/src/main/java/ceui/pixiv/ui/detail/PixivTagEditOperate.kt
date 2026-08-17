@@ -130,10 +130,14 @@ object PixivTagEditOperate {
     }
 
     /**
-     * csrf 失效时 pixiv 回的是 **HTTP 403**(不是 200 + `error:true`),所以清 token 重来只能挂在
-     * [HttpException] 上;业务性失败(标签已满 10 个 / 编辑太频繁 …)走 `error:true`,那种情况
-     * **绝不能**清 token —— 这份 token 是拉黑、Web 首页等功能共用的,清掉等于顺手把别人弄坏,
-     * 而直连下 [CsrfTokenProvider.fetch] 未必抓得回来。与 PixivBlockOperate.saveBlock 同款。
+     * csrf 失效时 pixiv 不回 200 + `error:true`,而是直接一个 HTTP 4xx,所以「换一份 token 重来」
+     * 只能挂在 [HttpException] 上。
+     *
+     * **但这条接口的 400 不等于 csrf 失效**:标签已满 10 个、编辑过于频繁同样是 400(见
+     * [withPixivMessage])。所以重试前**不能** [CsrfTokenProvider.clear] —— 这份 token 是拉黑、
+     * Web 首页等功能共用的,而直连下 [CsrfTokenProvider.fetch] 未必抓得回来(Cloudflare 可能对裸
+     * 请求下 JS challenge),清完抓不回就等于顺手把别人弄坏了。改成直接现抓一份覆盖:抓到就拿新的
+     * 重试,抓不到则旧 token 原样保留,重试照发、失败照样能把 pixiv 的原话带回给用户。
      */
     private suspend fun editTag(illustId: Long, tagName: String, add: Boolean, retried: Boolean) {
         val csrf = CsrfTokenProvider.get()
@@ -149,7 +153,8 @@ object PixivTagEditOperate {
             }
         } catch (ex: HttpException) {
             if (!retried && (ex.code() == 403 || ex.code() == 400)) {
-                CsrfTokenProvider.clear()
+                // 现抓覆盖,不 clear:400 多半只是业务拒绝,见本函数 KDoc。
+                CsrfTokenProvider.fetch()
                 return editTag(illustId, tagName, add, retried = true)
             }
             throw if (ex.code() == 400) ex.withPixivMessage() else ex
