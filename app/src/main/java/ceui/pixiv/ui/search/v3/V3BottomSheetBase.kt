@@ -69,9 +69,16 @@ abstract class V3BottomSheetBase : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         // 分段样式要等子类在自己的 onViewCreated 里把行显隐 / 动态行都定完再套，post 一拍。
         view.post { applySegmentedCardStyle() }
+        // 底 inset 取「系统栏 / 输入法」两者较高的那个（getInsets 传 or 起来的 type 就是逐边取 max）。
+        // 必须吃 Type.ime()：本基类走 edgeToEdge（见 [onCreateDialog]），Material 会
+        // setDecorFitsSystemWindows(window, false)，dialog window 从此不再随软键盘 resize/pan
+        // —— 不自己垫 ime 的话键盘直接盖在 sheet 上，带输入框的 sheet（范围输入 / HEX 取色）
+        // 整个输入区看不见（issue #1024）。垫上之后内容被抬到键盘之上，sheet 背景照旧铺到屏幕底。
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = bars.bottom)
+            val bottom = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime()
+            ).bottom
+            v.updatePadding(bottom = bottom)
             insets
         }
         ViewCompat.requestApplyInsets(view)

@@ -110,10 +110,15 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         // root 不垫底 —— 自绘的 bg_v3_sheet_top 一路铺到屏幕底；inset 移到 RecyclerView 的
         // paddingBottom，配合 clipToPadding=false，列表内容从导航栏底下穿过去，滚到底时
         // 最后一行又正好抬离手势条。覆盖 super 的 listener，故必须在 super.onViewCreated 之后。
+        // 键盘弹起时（ime > 0）改由 root 垫 ime：edgeToEdge 下 window 不随软键盘 resize/pan，
+        // 不垫的话键盘会把这张 sheet 连同顶部那个搜索框一起盖住（issue #1024）。垫上之后整块
+        // 内容被抬到键盘之上、列表随之压缩；键盘收起 ime 归零，又回到上面那套穿透式布局。
+        // 列表的底 inset 相应扣掉 ime —— 键盘已经盖住导航栏，再留一份就是双份留白。
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
             val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
-            v.updatePadding(bottom = 0)
-            _binding?.tagList?.updatePadding(bottom = bottom)
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            v.updatePadding(bottom = ime)
+            _binding?.tagList?.updatePadding(bottom = (bottom - ime).coerceAtLeast(0))
             insets
         }
         ViewCompat.requestApplyInsets(view)
