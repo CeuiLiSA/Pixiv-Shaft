@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 锚点在左侧时用：从左上角长出。 -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/decelerate_interpolator">
+    <scale
+        android:duration="180"
+        android:fromXScale="0.85"
+        android:fromYScale="0.85"
+        android:pivotX="0%"
+        android:pivotY="0%"
+        android:toXScale="1.0"
+        android:toYScale="1.0" />
+    <alpha
+        android:duration="180"
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0" />
+</set>

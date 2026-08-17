@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  圆角控件（WitRoundButton / WitRoundLinearLayout / WitRoundRelativeLayout）的 XML 属性。
+  对应 QMUI 的 qmui_* 同名属性，迁移时只需把前缀 qmui_ 改成 wit_。
+
+  刻意只声明**项目里实际用到的**那几个：QMUI 还有 outerNormalColor、isCircle 等一堆，
+  一个都没用上，照抄过来就是无人维护的死代码。需要了再加。
+-->
+<resources>
+
+    <declare-styleable name="WitRoundView">
+        <!-- 填充色。支持 ColorStateList（QMUI 那边默认值就是个 selector），也支持普通色值。 -->
+        <attr name="wit_backgroundColor" format="color|reference" />
+        <!-- 描边色与描边宽。宽度为 0 即不描边。 -->
+        <attr name="wit_borderColor" format="color|reference" />
+        <attr name="wit_borderWidth" format="dimension" />
+        <!-- 四角统一圆角。与下面四个单角属性互斥：单角属性只要写了任意一个，本属性就被忽略。 -->
+        <attr name="wit_radius" format="dimension" />
+        <attr name="wit_radiusTopLeft" format="dimension" />
+        <attr name="wit_radiusTopRight" format="dimension" />
+        <attr name="wit_radiusBottomLeft" format="dimension" />
+        <attr name="wit_radiusBottomRight" format="dimension" />
+        <!--
+          true 时圆角恒等于 min(宽,高)/2，也就是自动胶囊形，写死的 wit_radius 会被忽略。
+          ⚠️ WitRoundButton 的默认值是 true（对齐 QMUI 的 QMUI.RoundButton 样式）——
+          关注按钮那种「没写 radius 却是胶囊」的效果就是从这来的，改默认值会让它变方角。
+          两个 RoundLayout 的默认值是 false。
+        -->
+        <attr name="wit_isRadiusAdjustBounds" format="boolean" />
+    </declare-styleable>
+
+</resources>

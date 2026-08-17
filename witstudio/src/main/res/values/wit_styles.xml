@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      WitPopup 的窗口动画。三个 pivot 对应 QMUI 的 ANIM_GROW_FROM_CENTER / LEFT / RIGHT，
+      给 PopupWindow.setAnimationStyle 用（所以只需要 windowEnterAnimation / windowExitAnimation
+      两项，不是完整的 window 动画集）。
+      pivotY 一律 0%：本项目的 popup 全部锚在触发控件下方，从上边缘长出来才对得上。
+    -->
+    <style name="Animation.Wit.Popup.GrowFromCenter" parent="">
+        <item name="android:windowEnterAnimation">@anim/wit_popup_grow_center_enter</item>
+        <item name="android:windowExitAnimation">@anim/wit_popup_grow_center_exit</item>
+    </style>
+
+    <style name="Animation.Wit.Popup.GrowFromLeft" parent="">
+        <item name="android:windowEnterAnimation">@anim/wit_popup_grow_left_enter</item>
+        <item name="android:windowExitAnimation">@anim/wit_popup_grow_left_exit</item>
+    </style>
+
+    <style name="Animation.Wit.Popup.GrowFromRight" parent="">
+        <item name="android:windowEnterAnimation">@anim/wit_popup_grow_right_enter</item>
+        <item name="android:windowExitAnimation">@anim/wit_popup_grow_right_exit</item>
+    </style>
+
+</resources>

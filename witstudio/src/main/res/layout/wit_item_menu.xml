@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- WitMenuPopup 的列表行。文字色走 wit_text_1（日夜双模），底色由 popup 容器统一提供。 -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -7,5 +8,5 @@
     android:minHeight="48dp"
     android:paddingStart="20dp"
     android:paddingEnd="20dp"
-    android:textColor="@color/rank_text_color"
+    android:textColor="@color/wit_text_1"
     android:textSize="15sp" />

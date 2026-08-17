@@ -29,7 +29,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.lisa.utils.QMUIMenuPopup
+import ceui.pixiv.witstudio.popup.WitMenuPopup
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
@@ -193,7 +193,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 actions += getString(R.string.string_set_wallpaper) to {
                     performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
                 }
-                QMUIMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
+                WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
                     actions[index].second()
                 }
             }

@@ -135,17 +135,17 @@
             </LinearLayout>
 
             <!-- 内容 sheet:v3_menu_bg 圆角上浮(behavior 只认 id content_item) -->
-            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout
+            <ceui.pixiv.witstudio.widget.WitRoundLinearLayout
                 android:id="@+id/content_item"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/v3_menu_bg"
                 android:orientation="vertical"
                 app:layout_behavior="ceui.lisa.ui.behavior.FragmentRightContentBehavior"
-                app:qmui_backgroundColor="@color/v3_menu_bg"
-                app:qmui_borderWidth="0dp"
-                app:qmui_radiusTopLeft="20dp"
-                app:qmui_radiusTopRight="20dp">
+                app:wit_backgroundColor="@color/v3_menu_bg"
+                app:wit_borderWidth="0dp"
+                app:wit_radiusTopLeft="20dp"
+                app:wit_radiusTopRight="20dp">
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
@@ -238,7 +238,7 @@
 
                 </FrameLayout>
 
-            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout>
+            </ceui.pixiv.witstudio.widget.WitRoundLinearLayout>
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

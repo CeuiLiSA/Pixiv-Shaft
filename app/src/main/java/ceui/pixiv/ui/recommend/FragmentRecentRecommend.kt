@@ -7,7 +7,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentRecentRecommendBinding
-import ceui.lisa.utils.QMUIMenuPopup
+import ceui.pixiv.witstudio.popup.WitMenuPopup
 import ceui.pixiv.ui.common.viewBinding
 
 /**
@@ -66,11 +66,11 @@ class FragmentRecentRecommend : Fragment(R.layout.fragment_recent_recommend) {
         outState.putInt(KEY_TYPE_POS, currentTypePos)
     }
 
-    /** 弹窗口选择菜单(QMUI listPopup,跟项目里其它下拉视觉统一),选中即切换。 */
+    /** 弹窗口选择菜单(WitPopups.listPopup,跟项目里其它下拉视觉统一),选中即切换。 */
     private fun showWindowMenu() {
         val titles: Array<CharSequence> =
             windowOptions.map { getString(it.second) as CharSequence }.toTypedArray()
-        QMUIMenuPopup.show(requireContext(), binding.windowSelector, titles) { index, _ ->
+        WitMenuPopup.show(requireContext(), binding.windowSelector, titles) { index, _ ->
             val window = windowOptions[index].first
             if (window != currentWindow) {
                 applyWindow(window, restorePos = binding.viewPager.currentItem)
