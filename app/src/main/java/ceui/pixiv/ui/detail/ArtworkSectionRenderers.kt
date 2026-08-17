@@ -294,6 +294,12 @@ internal fun ArtworkV3Fragment.descRenderer() =
             applyDescCollapseState(b)
             if (!descExpanded) scrollDescBackIntoView(b.root)
         }
+        b.root.findViewById<View>(R.id.desc_translate).setOnClickListener {
+            val plain = HtmlCompat.fromHtml(
+                cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT
+            ).toString().trim()
+            translateComment(plain)
+        }
     }
 
 /** 简介折叠阈值(#965):超过这个行数才折,issue 建议 3~5 行,取上限。 */

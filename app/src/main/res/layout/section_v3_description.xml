@@ -6,16 +6,36 @@
     android:paddingHorizontal="12dp"
     android:paddingBottom="18dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:letterSpacing="0.12"
-        android:text="@string/novel_desc_label"
-        android:textAllCaps="true"
-        android:textColor="@color/v3_text_3"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.12"
+            android:text="@string/novel_desc_label"
+            android:textAllCaps="true"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/desc_translate"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="@string/string_translate_caption"
+            android:src="@drawable/ic_baseline_translate_24"
+            android:tint="@color/v3_text_3" />
+    </LinearLayout>
 
     <org.sufficientlysecure.htmltextview.HtmlTextView
         android:id="@+id/description"
@@ -42,4 +62,3 @@
         android:textStyle="bold"
         android:visibility="gone" />
 </LinearLayout>
-
