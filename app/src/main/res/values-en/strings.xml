@@ -1988,6 +1988,7 @@
     <string name="saf_perf_test_diag_raw_failed">[4] Raw createFile failed: %1$s %2$s</string>
     <string name="saf_perf_test_diag_conclusion">-&gt; Single listFiles(root) %1$.1f ms · backend.replace %2$.1f ms · raw createFile %3$.1f ms. The difference is the repeated listFiles cost in the backend chain.</string>
     <string name="nav_network_test_entry">Network test</string>
+    <string name="network_test_error_action">Run network test</string>
     <string name="network_test_subtitle">Connectivity · DNS pollution · TLS handshake diagnostics</string>
     <string name="network_test_run">Start test</string>
     <string name="network_test_running">Testing...</string>

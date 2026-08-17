@@ -1988,6 +1988,7 @@
     <string name="saf_perf_test_diag_raw_failed">[4] Ham createFile başarısız: %1$s %2$s</string>
     <string name="saf_perf_test_diag_conclusion">→ Tek listFiles(root) %1$.1f ms · backend.replace %2$.1f ms · ham createFile %3$.1f ms. Fark, backend zincirindeki tekrarlanan listFiles maliyetinden kaynaklanır.</string>
     <string name="nav_network_test_entry">Ağ testi</string>
+    <string name="network_test_error_action">Ağ testini çalıştır</string>
     <string name="network_test_subtitle">Bağlantı · DNS zehirlenmesi · TLS el sıkışma tanısı</string>
     <string name="network_test_run">Testi başlat</string>
     <string name="network_test_running">Test ediliyor…</string>

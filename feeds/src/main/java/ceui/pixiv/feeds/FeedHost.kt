@@ -57,6 +57,20 @@ interface FeedHost {
      * 必须跳过，否则每次进页面都白重试一次。
      */
     fun observeNetworkRestored(fragment: Fragment, onRestored: () -> Unit) {}
+
+    /**
+     * 是否建议在全屏错误态补「去网络测试」入口。只对网络类错误（断网 / 超时 / SSL）
+     * 返回 true：这类错误重试大概率仍失败，用户需要去诊断页而不是反复点重试。
+     * 默认 false，不装宿主就不显示。
+     */
+    fun shouldSuggestNetworkTest(context: Context, throwable: Throwable): Boolean = false
+
+    /**
+     * 打开宿主提供的网络诊断页。默认 no-op；[shouldSuggestNetworkTest] 返回 true 的宿主
+     * 必须给出可用的跳转实现。与 [shouldSuggestNetworkTest] 成对出现，
+     * 避免本模块反向依赖宿主 App 的页面路由。
+     */
+    fun openNetworkTest(context: Context) {}
 }
 
 /**

@@ -1988,6 +1988,7 @@
     <string name="saf_perf_test_diag_raw_failed">[4] 生の createFile に失敗：%1$s %2$s</string>
     <string name="saf_perf_test_diag_conclusion">→ 単発 listFiles(root) %1$.1f ms · backend.replace %2$.1f ms · 生 createFile %3$.1f ms。差は backend 側で listFiles が繰り返されるコストです。</string>
     <string name="nav_network_test_entry">ネットワークテスト</string>
+    <string name="network_test_error_action">ネットワークテストを実行</string>
     <string name="network_test_subtitle">接続性 · DNS 汚染 · TLS ハンドシェイク診断</string>
     <string name="network_test_run">テスト開始</string>
     <string name="network_test_running">テスト中…</string>

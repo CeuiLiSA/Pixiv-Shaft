@@ -3,4 +3,5 @@
     <string name="empty_list_1">Здесь ничего нет</string>
     <string name="list_load_failed_tap_retry">Не удалось загрузить. Нажмите, чтобы повторить.</string>
     <string name="feed_error_tap_retry">Нажмите, чтобы повторить</string>
+    <string name="feed_state_go_network_test">Запустить проверку сети</string>
 </resources>

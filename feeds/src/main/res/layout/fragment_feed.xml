@@ -69,8 +69,9 @@
             android:textSize="14sp"
             android:visibility="gone" />
 
-        <!-- 空态的可选动作按钮(FeedFragment.emptyStateAction)。空态光给一句解释、把用户堵在
-             死胡同里没有意义——能一键去修的就摆个按钮。刻意用 TextView 而不是 MaterialButton:
+        <!-- 动作按钮：空态走页面自己的 emptyStateAction；全屏网络类错误态(断网/超时/SSL)
+             由 FeedFragment 复用为「去网络测试」。空态光给一句解释、把用户堵在死胡同里没有
+             意义——能一键去修的就摆个按钮。刻意用 TextView 而不是 MaterialButton:
              本布局会被 AppCompat 宿主(TemplateActivity)加载,缺 Material3 attrs 会崩,
              同 fragment_comments_feed.xml 的取舍。 -->
         <TextView
