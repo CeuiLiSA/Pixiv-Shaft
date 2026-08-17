@@ -49,6 +49,20 @@ class BannerHostInstaller(
         installIfNeeded(activity)
     }
 
+    /**
+     * 给「注册得比第一个 Activity 还晚」的场景补一次安装。
+     *
+     * banner 系统整体是启动延迟批的一员（见 [ceui.lisa.activities.Shaft] 的
+     * `runDeferredInit`），跑到的时候首个 Activity 早已 created / resumed 完，两个
+     * 生命周期回调都错过了它 —— 不补这一次，最重要的首屏在整个会话里都不会有
+     * banner 宿主。[installIfNeeded] 自带 presenters 去重，重复调用无害。
+     *
+     * 必须在主线程调用（会 addView）。
+     */
+    fun installNow(activity: Activity) {
+        installIfNeeded(activity)
+    }
+
     private fun scheduleInstall(activity: Activity) {
         if (activity !is BannerHostOwner) return
         mainHandler.post {

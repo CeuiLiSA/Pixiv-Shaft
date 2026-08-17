@@ -49,7 +49,14 @@ object InAppBanners {
      */
     fun currentActivity(): Activity? = foreground.current()
 
-    fun bootstrap(app: Application) {
+    /**
+     * @param existingActivity bootstrap 发生时已经存在的前台 Activity（启动延迟批的情形）。
+     *   下面两个 lifecycle callback 是现在才注册的，它的 created / resumed 早已发生过，
+     *   不在这里补一次，首屏整场会话都不会有 banner 宿主。传 `null` 表示还没有 Activity。
+     *   必须在主线程调用。
+     */
+    @JvmOverloads
+    fun bootstrap(app: Application, existingActivity: Activity? = null) {
         if (!bootstrapped.compareAndSet(false, true)) return
 
         val binders = mapOf<String, BannerViewBinder>(
@@ -58,8 +65,14 @@ object InAppBanners {
         manager = RealBannerManager(binders = binders)
         manager.start()
 
-        app.registerActivityLifecycleCallbacks(BannerHostInstaller(manager))
+        val installer = BannerHostInstaller(manager)
+        app.registerActivityLifecycleCallbacks(installer)
         app.registerActivityLifecycleCallbacks(foreground)
+
+        existingActivity?.let {
+            foreground.seed(it)
+            installer.installNow(it)
+        }
 
         ChatBannerBridge(manager, scope).start()
 
@@ -114,6 +127,11 @@ object InAppBanners {
         private var ref: WeakReference<Activity>? = null
 
         fun current(): Activity? = ref?.get()
+
+        /** 补记一个「注册前就已经 resumed」的 Activity，见 [bootstrap] 的 existingActivity。 */
+        fun seed(activity: Activity) {
+            ref = WeakReference(activity)
+        }
 
         override fun onActivityResumed(activity: Activity) {
             ref = WeakReference(activity)

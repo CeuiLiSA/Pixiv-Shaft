@@ -63,6 +63,26 @@ public class Shaft extends Application implements ServicesProvider {
     private EntityWrapper entityWrapper;
 
     /**
+     * 主线程一直不 idle 时的兜底延时，只为「永远等不到 idle」这个病态情况存在。
+     *
+     * <p>取 5 秒是量出来的：Pixel 8 上首帧落在 ~1.2s，IdleHandler 紧跟其后回调，
+     * 兜底根本不会触发。取过 1 秒，结果是兜底反而抢在首帧之前跑，等于没延迟——
+     * 这个值必须明显大于首帧耗时，否则整个延迟批白做。
+     */
+    private static final long DEFERRED_INIT_BACKSTOP_MS = 5000L;
+    /** 旧 widget 的 WorkManager 残留已清理过的标志，见 {@link #runDeferredInit()}。 */
+    private static final String LEGACY_WIDGET_WORK_CLEARED_KEY = "legacy_widget_work_cleared_v1";
+
+    /** 见 {@link #runDeferredInit()}。只在主线程读写。 */
+    private boolean deferredInitDone = false;
+    /**
+     * 最近一个 created / resumed 的 Activity，仅供 {@link #runDeferredInit()} 里
+     * InAppBanners 补装 banner 宿主用。onActivityDestroyed 里清掉，不会漏 Activity。
+     */
+    @SuppressLint("StaticFieldLeak")
+    private Activity currentActivity;
+
+    /**
      * 状态栏高度，初始化
      */
     public static int statusHeight = 0, toolbarHeight = 0;
@@ -77,8 +97,11 @@ public class Shaft extends Application implements ServicesProvider {
     }
 
     /**
-     * 在 super.attachBaseContext 之前提前 init MMKV、再用 [AppLocales.wrapWithSavedLocale] 包出
-     * 正确 locale 的 base context。
+     * 在 super.attachBaseContext 之前：预热 SharedPreferences（见 [prefetchPreferences]）、
+     * init MMKV，再用 [AppLocales.wrapWithSavedLocale] 包出正确 locale 的 base context。
+     *
+     * 三者顺序有意义：预热排最前，它只是「起个后台加载线程」，紧随其后的 MMKV native 初始化
+     * 和 locale 包装正好用来盖住那次磁盘读。
      *
      * 影响：Application Context 的 Resources 从进程启动就是正确 locale —— 任何走
      * `Shaft.sApplicationContext.getString(...)` / `Common.showToast(...)` 之类的代码路径在
@@ -92,11 +115,35 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     protected void attachBaseContext(Context base) {
         try {
+            prefetchPreferences(base);
+        } catch (Throwable ignored) {
+            // onCreate 里有 null 兜底，纯预热失败不该影响启动。
+        }
+        try {
             initMMKV(base);
         } catch (Throwable ignored) {
             // Application.onCreate 里还会再 init 一次兜底。
         }
         super.attachBaseContext(ceui.pixiv.i18n.AppLocales.INSTANCE.wrapWithSavedLocale(base));
+    }
+
+    /**
+     * 尽可能早地把 local_data 这份 SharedPreferences 建出来，只为触发它的后台加载。
+     *
+     * <p>{@code SharedPreferencesImpl} 的构造函数里就会起线程去读、解析 XML，而所有
+     * getter 都要在一个 latch 上等它读完。实测 {@code Local.getSettings()} 里那次
+     * {@code getString} 有 ~42ms 花在等这个 latch 上（Gson 解析本身只占 ~15ms）——
+     * 也就是说主线程绝大部分时间是在干等磁盘，不是在算。
+     *
+     * <p>提到 attachBaseContext 最前面，加载线程就能和后面的 MMKV native 初始化、
+     * locale 包装、Gson 类加载并行跑，等主线程真的要读时 latch 多半已经放开。
+     *
+     * <p>拿 {@code base} 取和之后拿 Application 取的是同一个对象：
+     * {@code SharedPreferencesImpl} 缓存是 ContextImpl 里按「包名 + 文件」索引的静态表，
+     * 同进程同包必然命中同一份，这里预热的正是稍后要用的那个实例。
+     */
+    private static void prefetchPreferences(Context base) {
+        sPreferences = base.getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
     }
 
     /**
@@ -261,7 +308,11 @@ public class Shaft extends Application implements ServicesProvider {
         sGson = new Gson();
         //0.0127254
 
-        sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        // 正常路径下 attachBaseContext 的 prefetchPreferences 已经赋过值（且后台加载
+        // 早就在跑了），这里只兜住它抛异常的情况。
+        if (sPreferences == null) {
+            sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        }
 
         Timber.plant(new Timber.DebugTree());
 
@@ -297,17 +348,13 @@ public class Shaft extends Application implements ServicesProvider {
             Timber.w(t, "Activity Embedding rule install failed, tablet split disabled");
         }
 
-        // 旧 widget 删了但 WorkManager DB 里还残留它们的 PeriodicWork，
-        // 系统会反复 ClassNotFoundException。一次性清理。
-        try {
-            androidx.work.WorkManager wm = androidx.work.WorkManager.getInstance(this);
-            wm.cancelUniqueWork("illust_grid_widget_work");
-            wm.cancelUniqueWork("illust_grid_widget_work_once");
-        } catch (Throwable t) {
-            Timber.w(t, "Failed to cancel legacy widget work");
-        }
-
-        // 批量下载持久化队列（v33）：冷启动恢复 + 单并发消费循环
+        // 批量下载持久化队列（v33）：冷启动恢复 + 单并发消费循环。
+        //
+        // ⚠️ 不能挪进延迟批：init 内部在发现有 PENDING 行时会调
+        // promptResumeOnFirstActivity，那东西是靠注册 ActivityLifecycleCallbacks 等
+        // 「下一次 onActivityResumed」来弹恢复确认框的。放到 idle 里注册就晚于首个
+        // Activity 的 onResume，恢复弹窗不会出现在首屏，而是等用户下次跳页/切回前台时
+        // 突然冒出来。init 自身只有 ~3ms（同步部分只是赋 context + launch）。
         ceui.pixiv.ui.bulk.QueueDownloadManager.INSTANCE.init(this);
 
         // v38 illustId 索引列的一次性存量回填：把老下载记录的 illustId 补上，让
@@ -320,45 +367,11 @@ public class Shaft extends Application implements ServicesProvider {
         // 而不是只对之后新下载的生效。同样后台跑、跑完置标志、幂等。
         ceui.lisa.database.DownloadPageBackfill.runIfNeeded(this);
 
-        // 动图 RIFE 补帧的中间帧目录(cache/rife_work_*)残留清扫。正常路径由播放引擎的
-        // finally 兜底删除，但补帧是分钟级满载 GPU，正是最容易被系统杀后台的窗口，被杀就
-        // 留下几百 MB 中间 PNG 且没有任何东西会去收。后台跑、失败静默。
-        ceui.pixiv.ui.bulk.UgoiraEngine.sweepStaleRifeWork(this);
-
-        // 社区榜单事件上报（shaft-api-v2）。完全 fire-and-forget，失败静默，
-        // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
-        ceui.pixiv.events.EventReporter.INSTANCE.init(this);
-
-        // 收藏/关注的持久化限流队列。这类写操作原本是点一次发一次，连点或批量操作
-        // 很容易被 pixiv 429；现在统一排队串行发送，撞限流整队冷却并自动重试，
-        // 进程被杀后下次启动继续把没发完的发出去。
-        // 安全顺序：必须在 SessionManager.initialize 之后（gate 读登录态）、
-        // EventReporter.init 之后（PixivActions 会埋点）。
-        ceui.pixiv.actions.PixivActionQueue.init(this);
-
-        // Nana7mi 搜索遥测使用独立的 ActionQueue 数据库和消费循环：同样具备落盘/重试，
-        // 但服务端或遥测自身故障绝不能拖慢收藏、关注等用户业务动作。
-        ceui.pixiv.actions.Nana7miSearchTelemetry.INSTANCE.init(this);
-
         // 服务端基础配置（pixshaft-api /v1/config）：目前只有借号搜索总开关，让它出问题时
         // 能不发版关掉。拉取全在后台，读到的永远是内存里的最后一个已知值。
         // 安全顺序：必须在 MMKV.initialize 之后（读缓存）、SessionManager.initialize 之后
         // （uid 是灰度分桶键）。
         ceui.pixiv.config.RemoteAppConfig.init();
-
-        // AccountResponse 上报使用独立的全局 outbox：它不属于当前登录用户，切账号或
-        // 登出后也必须继续补报刚 refresh 出来的新 token。
-        ceui.pixiv.actions.AccountOnlineReportOutbox.INSTANCE.init(this);
-
-        // shaft-api-v2 chat WebSocket gateway. App-scoped — 一个 WebSocketManager
-        // 全局复用,生命周期与进程一致(匿名协议没有"退登")。必须在
-        // EventReporter.init 之后,因为 ShaftHmacAuthProvider 要靠
-        // currentClientId() 签 URL,init 同步把 clientId 写好。
-        ceui.pixiv.chat.api.ShaftChatGateway.INSTANCE.bootstrap(this);
-
-        // In-app banner system. 必须在 ShaftChatGateway.bootstrap 之后,
-        // ChatBannerBridge 订阅 gateway.incoming。
-        ceui.pixiv.banner.InAppBanners.INSTANCE.bootstrap(this);
 
         // 「屏蔽此作品」名单预热：判定跑在列表 bind 的热路径上（同步读内存 Set），名单本身来自
         // Room，这里提前读好，免得首屏第一次 bind 在主线程查库。顺带把老 MMKV 遮罩名单
@@ -366,76 +379,9 @@ public class Shaft extends Application implements ServicesProvider {
         // 不用在这里另起一条。
         ceui.pixiv.ui.common.MutedWorkStores.warmUp();
 
-        // 初始化发现池 + 异步构建用户画像
-        Timber.d("Discovery/Init >>> initializing DiscoveryPool");
-        ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.initialize();
-        Timber.d("Discovery/Init >>> starting ProfileManager.buildProfile on background thread");
-        new Thread(() -> {
-            try {
-                ceui.pixiv.db.discovery.ProfileManager.INSTANCE.buildProfile();
-                Timber.d("Discovery/Init <<< ProfileManager.buildProfile completed");
-            } catch (Exception e) {
-                Timber.e(e, "Discovery/Init <<< ProfileManager.buildProfile FAILED");
-            }
-        }).start();
-
-        // 同义词词典内置数据自动导入（issue #904）：启动 15 秒后后台静默导入，只导一次
-        // （flag 记 MMKV 设备本地，不随 Settings 同步）。合并导入不覆盖用户已有词典。
-        // 一次性去重清理（issue #905）：已导入旧版冗余词典的设备，清掉大小写重复/与目标同名的同义词。
-        // 双重前置条件：功能总开关打开（默认关闭，普通用户无感知）且本设备有待办（未导入/未清理）——
-        // 两个 flag 都已置位的设备不排任务不起线程，保持零开销。
-        if (sSettings.isSynonymDictEnabled()
-                && (!ceui.pixiv.ui.synonym.SynonymBuiltinDict.isImported()
-                        || !ceui.pixiv.ui.synonym.SynonymBuiltinDict.isDeduped())) {
-            new Handler(Looper.getMainLooper()).postDelayed(() ->
-                    new Thread(() -> {
-                        // 先导入后去重：保证旧设备「导入冗余版 → 清理」一次启动内完成
-                        ceui.pixiv.ui.synonym.SynonymBuiltinDict.autoImportIfNeeded(this);
-                        ceui.pixiv.ui.synonym.SynonymBuiltinDict.dedupeIfNeeded(this);
-                    }).start(), 15_000);
-        }
-
         updateTheme();
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
-
-        // 退回 H1.1 后同款 AIOOBE 仍在线上复现（栈里已经是 Http1ExchangeCodec.writeRequest），
-        // 说明成因不是 H2 帧缓冲，而是一条连接被两个 exchange 同时拿去写请求头。okhttp 连接池
-        // 那层改不动，这里兜住崩溃形态：把非 IOException 包成 IOException，让 okhttp 拆掉坏连接、
-        // 走 onFailure 而不是从 dispatcher 线程 uncaught 崩进程。详见该类注释。
-        // 必须是 network interceptor，且要挂在最外层才能连 ProgressManager 自己的 body 包装一起盖住
-        // ——ProgressManager.with() 内部就是 addNetworkInterceptor，所以得先加自己再交给它。
-        // 下载(Manager)、ugoira 由本 client newBuilder() 派生，自动继承；聊天 WebSocket 是独立 client，不在内。
-        OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(
-                new OkHttpClient.Builder()
-                        .addNetworkInterceptor(new ceui.lisa.http.BufferCorruptionGuardInterceptor()));
-        // 图片客户端一律强制 HTTP/1.1。Glide 加载缩略图网格会在单条 H2 连接上并发开大量
-        // stream，okhttp 的 Http2Writer 共享帧缓冲在这种高并发下会被写坏，抛出
-        // ArrayIndexOutOfBoundsException(okio checkOffsetAndCount / AsyncTimeout.write)导致崩溃。
-        // 下载(Manager)、ugoira 早已各自退回 H1.1，这里统一在源头兜住，非直连模式同样生效。
-        glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
-        // issue #865: 直连覆盖(HttpDns 硬编码 210.140.139.x + 无 SNI 的 TLS)只对
-        // 原始 i.pximg.net 有效，会打死 pixiv.cat / 自定义反代。所以非 PIXIV 模式下
-        // 图片客户端退回系统 DNS + 标准 TLS。API 客户端(Retro/Client 的 Cronet 直连)
-        // 与本客户端相互独立，不受影响。
-        if (sSettings.isDirectConnect()
-                && !ceui.lisa.http.ImageHostManager.INSTANCE.requiresStandardClient()) {
-            // 图片走 https://i.pximg.net 原始 URL，在 OkHttp 层面：
-            // 1. 自定义 DNS 绕过 DNS 污染
-            // 2. 无 SNI 的 TLS 绕过 GFW（图片服务器不要求 SNI）
-            // 3. HTTP/1.1 已在上面统一强制（既避免 H2 写坏崩溃，也避免 H2 复用连接被 GFW 整体干扰）
-            try {
-                ceui.lisa.http.TrustAllCertManager trustManager = new ceui.lisa.http.TrustAllCertManager();
-                glideBuilder.sslSocketFactory(new ceui.lisa.http.RubySSLSocketFactory(), trustManager);
-                glideBuilder.hostnameVerifier((hostname, session) -> true);
-            } catch (Exception e) {
-                Timber.e(e, "Direct-connect SSL init error");
-            }
-            glideBuilder.dns(ceui.lisa.http.HttpDns.getInstance());
-            glideBuilder.connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS);
-            glideBuilder.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
-        }
-        this.mOkHttpClient = glideBuilder.build();
 
         //计算状态栏高度并赋值
         statusHeight = 0;
@@ -445,35 +391,22 @@ public class Shaft extends Application implements ServicesProvider {
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
 
-        //Init the network
-        if (netWorkStateReceiver == null) {
-            netWorkStateReceiver = new NetWorkStateReceiver();
-        }
-
-        //Init Toast utils
+        // Toast 必须同步初始化：Common.showToast 遍布全 app，首帧路径上（未登录提示、
+        // deep link 解析失败等）就可能弹，晚于它初始化就是一次没人看见的 toast。
+        // 自身只有 ~2ms，不值得为它冒这个险。
         Toaster.init(this);
         int bottomOffset = BarUtils.getNavBarHeight() + (int) (48 * getResources().getDisplayMetrics().density);
         Toaster.setGravity(Gravity.BOTTOM, 0, bottomOffset);
 
-        try {
-            FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
-                    sSettings.isFirebaseEnable()
-            );
-        } catch (Exception e) {
-            Timber.w(e, "Failed to initialize Firebase Analytics");
-        }
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(netWorkStateReceiver, filter);
-
-        ShortcutHelper.addAppShortcuts();
-
+        // Activity 会直接读这个 static，必须在第一个 Activity 之前就位。三个空
+        // ConcurrentHashMap，成本可忽略。
         appViewModel = new AppLevelViewModel(this);
 
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
+                // 延迟批里 InAppBanners.bootstrap 要拿它补装 banner 宿主，见 runDeferredInit。
+                currentActivity = activity;
                 StringBuilder sb = new StringBuilder();
                 sb.append("CREATE ").append(activity.getClass().getSimpleName());
                 if (activity.getIntent() != null && activity.getIntent().getExtras() != null) {
@@ -497,6 +430,7 @@ public class Shaft extends Application implements ServicesProvider {
 
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
+                currentActivity = activity;
                 Timber.tag("ActivityTracker").d("RESUME %s", activity.getClass().getSimpleName());
             }
 
@@ -521,6 +455,9 @@ public class Shaft extends Application implements ServicesProvider {
 
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
+                if (currentActivity == activity) {
+                    currentActivity = null;
+                }
                 Timber.tag("ActivityTracker").d("DESTROY %s", activity.getClass().getSimpleName());
                 // [DEBUG-568] 三种销毁情形的区分（issue #568 的核心证据）：
                 //   isFinishing=true                                  → 用户正常返回/关闭
@@ -535,6 +472,167 @@ public class Shaft extends Application implements ServicesProvider {
                         activity.isChangingConfigurations(),
                         systemKilled ? " ★★★系统销毁了后台Activity(issue#568触发点)★★★" : "",
                         memorySnapshot());
+            }
+        });
+
+        scheduleDeferredInit();
+    }
+
+    /**
+     * 把「首帧不需要」的初始化排到主线程空闲之后。
+     *
+     * IdleHandler 在首帧画完、消息队列排空的那一刻回调，是「用户已经看到界面」和
+     * 「还没有任何交互」之间的窗口，正好用来还这些债。兜底的 postDelayed 是防
+     * 主线程一直不 idle（首帧带持续动画、或有人在狂投消息）：那种情况下遥测、
+     * 聊天 WS 不能就此永远不启动。两条路都走 {@link #runDeferredInit()}，
+     * 里头有幂等标志，谁先到算谁的。
+     */
+    private void scheduleDeferredInit() {
+        Looper.myQueue().addIdleHandler(() -> {
+            runDeferredInit();
+            return false;   // 只跑一次
+        });
+        new Handler(Looper.getMainLooper())
+                .postDelayed(this::runDeferredInit, DEFERRED_INIT_BACKSTOP_MS);
+    }
+
+    /**
+     * 延迟批。只在主线程跑（IdleHandler / main Handler 都是），所以 {@link #deferredInitDone}
+     * 不需要同步。
+     *
+     * <p><b>组内顺序仍然有意义</b>，和它们原先在 onCreate 里的相对顺序一致：
+     * EventReporter 先于 PixivActionQueue（后者埋点）和 ShaftChatGateway
+     * （签 WS URL 要 currentClientId）；ShaftChatGateway 先于 InAppBanners
+     * （ChatBannerBridge 订阅 gateway.incoming）。
+     *
+     * <p>跨组的前置条件（MMKV、SessionManager）在 onCreate 里就已经同步做完，
+     * 延迟到这里只会让它们更晚发生，不会更早。
+     *
+     * <p><b>每一步都过 {@link #step}</b>。原先这些直接写在 onCreate 里，谁抛异常谁把启动
+     * 崩掉——响亮、必现、能被崩溃上报抓到。挪进 IdleHandler 之后性质变了：
+     * {@code MessageQueue.next()} 自己把 {@code queueIdle()} 包在 try/catch 里，只留一条
+     * {@code Log.wtf} 就继续跑（见 AOSP MessageQueue），进程不会崩。也就是说不接住的话，
+     * 一次失败会静默吞掉它**后面所有**的初始化（聊天、banner、快捷方式、发现池……），
+     * 而 {@link #deferredInitDone} 已经置位，兜底那条路也不会补跑——用户只会觉得
+     * 「这些功能今天不见了」，日志里什么都没有。逐个隔离 + 打 error 日志，
+     * 让失败既不扩散也不隐身。
+     */
+    private void step(String name, Runnable body) {
+        try {
+            body.run();
+        } catch (Throwable t) {
+            Timber.e(t, "Deferred init step failed: %s", name);
+        }
+    }
+
+    private void runDeferredInit() {
+        if (deferredInitDone) {
+            return;
+        }
+        deferredInitDone = true;
+
+        // 旧 widget 删了但 WorkManager DB 里还残留它们的 PeriodicWork，
+        // 系统会反复 ClassNotFoundException。一次性清理——置位后永不再跑，
+        // 免得每次冷启都为一段历史遗留把 WorkManager（自带 Room 库 + 线程池）唤醒。
+        try {
+            if (!getMMKV().decodeBool(LEGACY_WIDGET_WORK_CLEARED_KEY, false)) {
+                androidx.work.WorkManager wm = androidx.work.WorkManager.getInstance(this);
+                wm.cancelUniqueWork("illust_grid_widget_work");
+                wm.cancelUniqueWork("illust_grid_widget_work_once");
+                getMMKV().encode(LEGACY_WIDGET_WORK_CLEARED_KEY, true);
+            }
+        } catch (Throwable t) {
+            Timber.w(t, "Failed to cancel legacy widget work");
+        }
+
+        // 动图 RIFE 补帧的中间帧目录(cache/rife_work_*)残留清扫。正常路径由播放引擎的
+        // finally 兜底删除，但补帧是分钟级满载 GPU，正是最容易被系统杀后台的窗口，被杀就
+        // 留下几百 MB 中间 PNG 且没有任何东西会去收。后台跑、失败静默。
+        step("UgoiraEngine.sweep", () -> ceui.pixiv.ui.bulk.UgoiraEngine.sweepStaleRifeWork(this));
+
+        // 社区榜单事件上报（shaft-api-v2）。完全 fire-and-forget，失败静默，
+        // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
+        step("EventReporter", () -> ceui.pixiv.events.EventReporter.INSTANCE.init(this));
+
+        // 收藏/关注的持久化限流队列。这类写操作原本是点一次发一次，连点或批量操作
+        // 很容易被 pixiv 429；现在统一排队串行发送，撞限流整队冷却并自动重试，
+        // 进程被杀后下次启动继续把没发完的发出去。
+        // 安全顺序：必须在 SessionManager.initialize 之后（gate 读登录态）、
+        // EventReporter.init 之后（PixivActions 会埋点）。
+        step("PixivActionQueue", () -> ceui.pixiv.actions.PixivActionQueue.init(this));
+
+        // Nana7mi 搜索遥测使用独立的 ActionQueue 数据库和消费循环：同样具备落盘/重试，
+        // 但服务端或遥测自身故障绝不能拖慢收藏、关注等用户业务动作。
+        step("Nana7miSearchTelemetry", () -> ceui.pixiv.actions.Nana7miSearchTelemetry.INSTANCE.init(this));
+
+        // AccountResponse 上报使用独立的全局 outbox：它不属于当前登录用户，切账号或
+        // 登出后也必须继续补报刚 refresh 出来的新 token。
+        step("AccountOnlineReportOutbox", () -> ceui.pixiv.actions.AccountOnlineReportOutbox.INSTANCE.init(this));
+
+        // shaft-api-v2 chat WebSocket gateway. App-scoped — 一个 WebSocketManager
+        // 全局复用,生命周期与进程一致(匿名协议没有"退登")。必须在
+        // EventReporter.init 之后,因为 ShaftHmacAuthProvider 要靠
+        // currentClientId() 签 URL,init 同步把 clientId 写好。
+        step("ShaftChatGateway", () -> ceui.pixiv.chat.api.ShaftChatGateway.INSTANCE.bootstrap(this));
+
+        // In-app banner system. 必须在 ShaftChatGateway.bootstrap 之后,
+        // ChatBannerBridge 订阅 gateway.incoming。
+        // 传 currentActivity：它注册的两个 lifecycle callback 现在才挂上，首个 Activity
+        // 的 created/resumed 早过去了，不补这一下首屏整场都没有 banner 宿主。
+        step("InAppBanners", () -> ceui.pixiv.banner.InAppBanners.INSTANCE.bootstrap(this, currentActivity));
+
+        // 网络变化时停掉下载队列。CONNECTIVITY_ACTION 只与下载有关，首帧不需要。
+        step("NetWorkStateReceiver", () -> {
+            if (netWorkStateReceiver == null) {
+                netWorkStateReceiver = new NetWorkStateReceiver();
+            }
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            registerReceiver(netWorkStateReceiver, filter);
+        });
+
+        try {
+            FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
+                    sSettings.isFirebaseEnable()
+            );
+        } catch (Exception e) {
+            Timber.w(e, "Failed to initialize Firebase Analytics");
+        }
+
+        // 动态快捷方式：getDynamicShortcuts 是一次 binder IPC，O+ 还要现画一张
+        // adaptive icon 位图。只有用户长按启动图标才看得到，没有任何理由抢首帧。
+        step("ShortcutHelper", ShortcutHelper::addAppShortcuts);
+
+        // 初始化发现池 + 异步构建用户画像
+        step("DiscoveryPool", () -> {
+            Timber.d("Discovery/Init >>> initializing DiscoveryPool");
+            ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.initialize();
+            Timber.d("Discovery/Init >>> starting ProfileManager.buildProfile on background thread");
+            new Thread(() -> {
+                try {
+                    ceui.pixiv.db.discovery.ProfileManager.INSTANCE.buildProfile();
+                    Timber.d("Discovery/Init <<< ProfileManager.buildProfile completed");
+                } catch (Exception e) {
+                    Timber.e(e, "Discovery/Init <<< ProfileManager.buildProfile FAILED");
+                }
+            }).start();
+        });
+
+        // 同义词词典内置数据自动导入（issue #904）：启动 15 秒后后台静默导入，只导一次
+        // （flag 记 MMKV 设备本地，不随 Settings 同步）。合并导入不覆盖用户已有词典。
+        // 一次性去重清理（issue #905）：已导入旧版冗余词典的设备，清掉大小写重复/与目标同名的同义词。
+        // 双重前置条件：功能总开关打开（默认关闭，普通用户无感知）且本设备有待办（未导入/未清理）——
+        // 两个 flag 都已置位的设备不排任务不起线程，保持零开销。
+        step("SynonymBuiltinDict", () -> {
+            if (sSettings.isSynonymDictEnabled()
+                    && (!ceui.pixiv.ui.synonym.SynonymBuiltinDict.isImported()
+                            || !ceui.pixiv.ui.synonym.SynonymBuiltinDict.isDeduped())) {
+                new Handler(Looper.getMainLooper()).postDelayed(() ->
+                        new Thread(() -> {
+                            // 先导入后去重：保证旧设备「导入冗余版 → 清理」一次启动内完成
+                            ceui.pixiv.ui.synonym.SynonymBuiltinDict.autoImportIfNeeded(this);
+                            ceui.pixiv.ui.synonym.SynonymBuiltinDict.dedupeIfNeeded(this);
+                        }).start(), 15_000);
             }
         });
     }
@@ -592,8 +690,62 @@ public class Shaft extends Application implements ServicesProvider {
         Timber.tag("DEBUG-568").w("onLowMemory | %s", memorySnapshot());
     }
 
-    public OkHttpClient getOkHttpClient() {
+    /**
+     * 图片 / 下载共用的 OkHttp 客户端，首次取用时才构建。
+     *
+     * <p>两个调用方都不在启动关键路径上：{@code GlideConfiguration.registerComponents}
+     * 由 Glide 首次加载图片时触发，{@code Manager} 只在有下载任务时派生。而构建本身在
+     * 直连模式下要新建 {@code SSLContext}（拉起 Conscrypt provider），放在 onCreate
+     * 里等于让所有用户替「可能永远不加载图片的那一帧」买单。
+     *
+     * <p>synchronized：Glide 的 registry 初始化不保证在主线程，两个调用方可能并发首次
+     * 触发，构建两个 client 会让连接池 / ProgressManager 的拦截器各存一份。
+     */
+    public synchronized OkHttpClient getOkHttpClient() {
+        if (mOkHttpClient == null) {
+            mOkHttpClient = buildOkHttpClient();
+        }
         return mOkHttpClient;
+    }
+
+    private OkHttpClient buildOkHttpClient() {
+        // 退回 H1.1 后同款 AIOOBE 仍在线上复现（栈里已经是 Http1ExchangeCodec.writeRequest），
+        // 说明成因不是 H2 帧缓冲，而是一条连接被两个 exchange 同时拿去写请求头。okhttp 连接池
+        // 那层改不动，这里兜住崩溃形态：把非 IOException 包成 IOException，让 okhttp 拆掉坏连接、
+        // 走 onFailure 而不是从 dispatcher 线程 uncaught 崩进程。详见该类注释。
+        // 必须是 network interceptor，且要挂在最外层才能连 ProgressManager 自己的 body 包装一起盖住
+        // ——ProgressManager.with() 内部就是 addNetworkInterceptor，所以得先加自己再交给它。
+        // 下载(Manager)、ugoira 由本 client newBuilder() 派生，自动继承；聊天 WebSocket 是独立 client，不在内。
+        OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(
+                new OkHttpClient.Builder()
+                        .addNetworkInterceptor(new ceui.lisa.http.BufferCorruptionGuardInterceptor()));
+        // 图片客户端一律强制 HTTP/1.1。Glide 加载缩略图网格会在单条 H2 连接上并发开大量
+        // stream，okhttp 的 Http2Writer 共享帧缓冲在这种高并发下会被写坏，抛出
+        // ArrayIndexOutOfBoundsException(okio checkOffsetAndCount / AsyncTimeout.write)导致崩溃。
+        // 下载(Manager)、ugoira 早已各自退回 H1.1，这里统一在源头兜住，非直连模式同样生效。
+        glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
+        // issue #865: 直连覆盖(HttpDns 硬编码 210.140.139.x + 无 SNI 的 TLS)只对
+        // 原始 i.pximg.net 有效，会打死 pixiv.cat / 自定义反代。所以非 PIXIV 模式下
+        // 图片客户端退回系统 DNS + 标准 TLS。API 客户端(Retro/Client 的 Cronet 直连)
+        // 与本客户端相互独立，不受影响。
+        if (sSettings.isDirectConnect()
+                && !ceui.lisa.http.ImageHostManager.INSTANCE.requiresStandardClient()) {
+            // 图片走 https://i.pximg.net 原始 URL，在 OkHttp 层面：
+            // 1. 自定义 DNS 绕过 DNS 污染
+            // 2. 无 SNI 的 TLS 绕过 GFW（图片服务器不要求 SNI）
+            // 3. HTTP/1.1 已在上面统一强制（既避免 H2 写坏崩溃，也避免 H2 复用连接被 GFW 整体干扰）
+            try {
+                ceui.lisa.http.TrustAllCertManager trustManager = new ceui.lisa.http.TrustAllCertManager();
+                glideBuilder.sslSocketFactory(new ceui.lisa.http.RubySSLSocketFactory(), trustManager);
+                glideBuilder.hostnameVerifier((hostname, session) -> true);
+            } catch (Exception e) {
+                Timber.e(e, "Direct-connect SSL init error");
+            }
+            glideBuilder.dns(ceui.lisa.http.HttpDns.getInstance());
+            glideBuilder.connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS);
+            glideBuilder.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
+        }
+        return glideBuilder.build();
     }
 
     /**
