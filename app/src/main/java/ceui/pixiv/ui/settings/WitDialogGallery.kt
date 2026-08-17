@@ -12,18 +12,14 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitTipDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogBuilder
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog
-import com.qmuiteam.qmui.skin.QMUISkinManager
 
 /**
  * 弹窗画廊 —— **临时开发工具，phase 7 随 `v3_*` 清理一并删除**。
  *
- * 目的只有一个：在动 146 处调用点**之前**，把 wit 版和 QMUI 原版并排摆出来肉眼比对。
- * 两个入口给的是同一组用例（同标题、同文案、同按钮语义），所以任何视觉差异都是实现差异，
- * 不是内容差异。也是日夜 × 主题档截图验收的载体（Index0 / Index4 / Index6 / Custom × 日夜）。
+ * 建它是为了在动 146 处调用点之前，把 wit 版和 QMUI 原版并排摆出来肉眼比对；QMUI 依赖删掉
+ * 之后对照组自然没了，剩下这一半继续用作日夜 × 主题档的截图验收载体
+ * （Index0 / Index4 / Index6 / Custom × 日夜）—— 一屏之内覆盖全部 7 种 builder 形态，
+ * 比在真实调用点之间来回导航省事得多。
  *
  * 只在 debug 包里挂出入口（见 `FragmentSettingsExperimental`）。
  */
@@ -236,188 +232,6 @@ object WitDialogGallery {
         },
     )
 
-    // ── QMUI 对照组（同一组用例，逐字对应）─────────────────────────
-
-    private val QMUI_CASES: List<Pair<String, (Context) -> Unit>> = listOf(
-        "Message · 标题 + 正文 + 双按钮" to { c: Context ->
-            QMUIDialog.MessageDialogBuilder(c)
-                .setTitle("删除下载")
-                .setMessage("确定要删除这 3 个已下载的作品吗？此操作不可撤销。")
-                .setSkinManager(QMUISkinManager.defaultInstance(c))
-                .addAction("取消") { d, _ -> d.dismiss() }
-                .addAction(0, "删除", QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ -> d.dismiss() }
-                .show()
-            Unit
-        },
-        "Message · 三按钮（NEUTRAL/POSITIVE/NEGATIVE）" to { c: Context ->
-            QMUIDialog.MessageDialogBuilder(c)
-                .setTitle("上次还有未完成的下载")
-                .setMessage("检测到 12 个未完成的下载任务，要现在继续吗？")
-                .setSkinManager(QMUISkinManager.defaultInstance(c))
-                .addAction(0, "稍后", QMUIDialogAction.ACTION_PROP_NEUTRAL) { d, _ -> d.dismiss() }
-                .addAction(0, "清空", QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ -> d.dismiss() }
-                .addAction(0, "继续", QMUIDialogAction.ACTION_PROP_POSITIVE) { d, _ -> d.dismiss() }
-                .show()
-            Unit
-        },
-        "Message · 长正文（验滚动）" to { c: Context ->
-            QMUIDialog.MessageDialogBuilder(c)
-                .setTitle("关于内容区滚动")
-                .setMessage(LONG_MESSAGE)
-                .setSkinManager(QMUISkinManager.defaultInstance(c))
-                .addAction("我知道了") { d, _ -> d.dismiss() }
-                .show()
-            Unit
-        },
-        "Message · 无标题" to { c: Context ->
-            QMUIDialog.MessageDialogBuilder(c)
-                .setMessage("没有标题时，正文的顶部留白要自己补够，不能贴着卡片上沿。")
-                .setSkinManager(QMUISkinManager.defaultInstance(c))
-                .addAction("好") { d, _ -> d.dismiss() }
-                .show()
-            Unit
-        },
-        "Message · 竖向按钮容器" to { c: Context ->
-            QMUIDialog.MessageDialogBuilder(c)
-                .setTitle("按钮文案很长时")
-                .setMessage("横排放不下就该显式传 VERTICAL，而不是指望容器自己换行。")
-                .setActionContainerOrientation(QMUIDialogBuilder.VERTICAL)
-                .setSkinManager(QMUISkinManager.defaultInstance(c))
-                .addAction("确定并且不再提示我这件事") { d, _ -> d.dismiss() }
-                .addAction("再想想") { d, _ -> d.dismiss() }
-                .show()
-            Unit
-        },
-        "CheckBoxMessage · 勾选读回" to { c: Context ->
-            val builder = QMUIDialog.CheckBoxMessageDialogBuilder(c)
-                .setTitle("清除图片缓存")
-                .setMessage("同时清除已下载的原图（不含导出到相册的文件）")
-            builder.setSkinManager(QMUISkinManager.defaultInstance(c))
-            builder.addAction("取消") { d, _ -> d.dismiss() }
-            builder.addAction(0, "清除", QMUIDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
-                d.dismiss()
-                toast(c, "isChecked = ${builder.isChecked}")
-            }
-            builder.show()
-            Unit
-        },
-        "EditText · 占位 + 默认值" to { c: Context ->
-            val builder = QMUIDialog.EditTextDialogBuilder(c)
-                .setTitle("使用 PxveAPI 代理")
-                .setPlaceholder("https://example.com/")
-                .setDefaultText("https://app-api.pixiv.net/")
-                .setInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI)
-            builder.setSkinManager(QMUISkinManager.defaultInstance(c))
-            builder.addAction("取消") { d, _ -> d.dismiss() }
-            builder.addAction("确定") { d, _ ->
-                val value = builder.editText.text?.toString().orEmpty()
-                if (value.isEmpty()) {
-                    toast(c, "不能为空（弹窗应保持打开）")
-                    return@addAction
-                }
-                d.dismiss()
-                toast(c, "输入：$value")
-            }
-            builder.show()
-            Unit
-        },
-        "Menu · 6 项" to { c: Context ->
-            QMUIDialog.MenuDialogBuilder(c)
-                .setTitle("更多操作")
-                .addItems(MENU_ITEMS) { d, which -> d.dismiss(); toast(c, "选了 ${MENU_ITEMS[which]}") }
-                .setSkinManager(QMUISkinManager.defaultInstance(c))
-                .show()
-            Unit
-        },
-        "Menu · 无标题 + 混用 addAction" to { c: Context ->
-            QMUIDialog.MenuDialogBuilder(c)
-                .addItems(MENU_ITEMS) { d, which -> d.dismiss(); toast(c, "选了 ${MENU_ITEMS[which]}") }
-                .addAction("取消") { d, _ -> d.dismiss() }
-                .setSkinManager(QMUISkinManager.defaultInstance(c))
-                .show()
-            Unit
-        },
-        "Checkable · 单选（预选第 2 项）" to { c: Context ->
-            val builder = QMUIDialog.CheckableDialogBuilder(c)
-                .setTitle("下载网络限制")
-                .setCheckedIndex(1)
-            builder.setSkinManager(QMUISkinManager.defaultInstance(c))
-            builder.addItems(CHECKABLE_ITEMS) { d, which ->
-                d.dismiss(); toast(c, "选了 ${CHECKABLE_ITEMS[which]}")
-            }
-            builder.show()
-            Unit
-        },
-        "Checkable · 30 项（验滚动 + 预选第 20 项）" to { c: Context ->
-            val items = longList()
-            val builder = QMUIDialog.CheckableDialogBuilder(c)
-                .setTitle("长列表")
-                .setCheckedIndex(19)
-            builder.setSkinManager(QMUISkinManager.defaultInstance(c))
-            builder.addItems(items) { d, which -> d.dismiss(); toast(c, "选了 ${items[which]}") }
-            builder.show()
-            Unit
-        },
-        "MultiCheckable · 多选读回" to { c: Context ->
-            val builder = QMUIDialog.MultiCheckableDialogBuilder(c)
-                .setTitle("要下载哪些类型")
-                .setCheckedItems(intArrayOf(0, 2))
-            builder.setSkinManager(QMUISkinManager.defaultInstance(c))
-            builder.addItems(MULTI_ITEMS) { _, _ -> }
-            builder.addAction("取消") { d, _ -> d.dismiss() }
-            builder.addAction("确定") { d, _ ->
-                val indexes = builder.checkedItemIndexes
-                if (indexes == null || indexes.isEmpty()) {
-                    toast(c, "至少选一项（弹窗应保持打开）")
-                    return@addAction
-                }
-                d.dismiss()
-                toast(c, "选了 " + indexes.joinToString { MULTI_ITEMS[it].toString() })
-            }
-            builder.show()
-            Unit
-        },
-        "Custom · setLayout" to { c: Context ->
-            QMUIDialog.CustomDialogBuilder(c)
-                .setLayout(R.layout.wit_gallery_custom_content)
-                .setTitle("正在重命名")
-                .setSkinManager(QMUISkinManager.defaultInstance(c))
-                .addAction("后台运行") { d, _ -> d.dismiss() }
-                .show()
-            Unit
-        },
-        "Custom · 覆写 onCreateContent" to { c: Context ->
-            object : QMUIDialog.CustomDialogBuilder(c) {
-                override fun onCreateContent(
-                    dialog: QMUIDialog,
-                    parent: com.qmuiteam.qmui.widget.dialog.QMUIDialogView,
-                    context: Context,
-                ): View = View.inflate(context, R.layout.wit_gallery_custom_content, null)
-            }
-                .setTitle("覆写扩展点")
-                .addAction("关闭") { d, _ -> d.dismiss() }
-                .show()
-            Unit
-        },
-        "TipDialog · 转圈（2 秒）" to { c: Context ->
-            val dialog = QMUITipDialog.Builder(c)
-                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .create()
-            dialog.show()
-            dialog.window?.decorView?.postDelayed({ dialog.dismiss() }, 2000L)
-            Unit
-        },
-        "TipDialog · 转圈 + 文案（2 秒）" to { c: Context ->
-            val dialog = QMUITipDialog.Builder(c)
-                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在检查屏蔽状态…")
-                .create()
-            dialog.show()
-            dialog.window?.decorView?.postDelayed({ dialog.dismiss() }, 2000L)
-            Unit
-        },
-    )
-
     /** wit 版索引。索引本身也是一个 wit MenuDialog —— 顺便当第 0 个用例看。 */
     @JvmStatic
     fun showWit(context: Context) {
@@ -481,17 +295,4 @@ object WitDialogGallery {
         showNext()
     }
 
-    /** QMUI 对照组索引。同理，索引本身就是 QMUI 版 MenuDialog 的样子。 */
-    @JvmStatic
-    fun showQmui(context: Context) {
-        val titles: Array<CharSequence> = QMUI_CASES.map { it.first as CharSequence }.toTypedArray()
-        QMUIDialog.MenuDialogBuilder(context)
-            .setTitle("QMUI 原版（对照）")
-            .addItems(titles) { dialog, which ->
-                dialog.dismiss()
-                QMUI_CASES[which].second(context)
-            }
-            .setSkinManager(QMUISkinManager.defaultInstance(context))
-            .show()
-    }
 }

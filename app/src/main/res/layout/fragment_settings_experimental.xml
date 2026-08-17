@@ -56,7 +56,7 @@
                 <RelativeLayout
                     android:id="@+id/show_chat_room_entry_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_top">
+                    android:background="@drawable/wit_row_single">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -137,7 +137,7 @@
                 </RelativeLayout>
 
                 <!--
-                  弹窗画廊 —— 剥离 QMUI 期间的临时对拍工具，只在 debug 包可见
+                  弹窗画廊 —— 临时开发工具，只在 debug 包可见
                   （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
                   ⚠️ phase 7 收尾时连同 WitDialogGallery.kt 一起删除。
                 -->
@@ -145,7 +145,7 @@
                     android:id="@+id/wit_gallery_rela"
                     style="@style/M3SetRow"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_top">
+                    android:background="@drawable/wit_row_single">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -156,20 +156,6 @@
                         <TextView
                             style="@style/M3SetDesc"
                             android:text="@string/wit_gallery_desc" />
-                    </LinearLayout>
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/wit_gallery_qmui_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/wit_gallery_qmui_title" />
                     </LinearLayout>
 
                 </RelativeLayout>

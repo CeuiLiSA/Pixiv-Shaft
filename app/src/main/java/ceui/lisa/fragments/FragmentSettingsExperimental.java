@@ -95,20 +95,17 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
     }
 
     /**
-     * 弹窗画廊入口。剥离 QMUI 期间用来把 wit 版和 QMUI 原版并排对拍,
-     * 只在 debug 包出现;phase 7 收尾时连同这两行、布局里的两个 RelativeLayout
+     * 弹窗画廊入口。一屏之内覆盖 7 种 builder 形态,是日夜 × 主题档截图验收的载体,
+     * 只在 debug 包出现;phase 7 收尾时连同这一行、布局里的 RelativeLayout
      * 和 WitDialogGallery.kt 一并删除。不进 SettingsCatalog 索引——它不是用户设置。
      */
     private void bindWitGalleryRows() {
         if (!ceui.lisa.BuildConfig.DEBUG) {
             baseBind.witGalleryRela.setVisibility(View.GONE);
-            baseBind.witGalleryQmuiRela.setVisibility(View.GONE);
             return;
         }
         baseBind.witGalleryRela.setOnClickListener(v ->
                 ceui.pixiv.ui.settings.WitDialogGallery.showWit(mContext));
-        baseBind.witGalleryQmuiRela.setOnClickListener(v ->
-                ceui.pixiv.ui.settings.WitDialogGallery.showQmui(mContext));
     }
 
     private void bindFirebaseRow() {

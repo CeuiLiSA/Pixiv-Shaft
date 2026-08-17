@@ -21,7 +21,7 @@ private const val TRANSLATED_MESSAGE_SEPARATOR = "\n\n"
 /**
  * 简介标题栏「翻译」:同时翻译标题与简介,译成 app 内语言(见 [appTranslateTargetLang])。
  * 复用 [currentTranslator](自定义 AI 优先,否则内置 Google)与 [promptTranslateFailedIfPossible]
- * 的失败提示;译文按「标题：… \n\n 简介：…」弹 QMUIDialog 展示、可一键复制,交互与评论翻译
+ * 的失败提示;译文按「标题：… \n\n 简介：…」弹 WitDialog 展示、可一键复制,交互与评论翻译
  * [ceui.pixiv.ui.comments.translateComment] 保持一致。某一条为空或翻译失败时,那一行显示占位
  * [R.string.no_info];两条都没译出来才算整体失败,走统一的失败提示、不弹译文窗。
  *

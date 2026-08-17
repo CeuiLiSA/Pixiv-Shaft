@@ -2108,7 +2108,6 @@
     -->
     <string name="wit_gallery_title" translatable="false">wit studio 弹窗画廊</string>
     <string name="wit_gallery_desc" translatable="false">调试用：逐一打开每种弹窗形态，验日夜与主题色</string>
-    <string name="wit_gallery_qmui_title" translatable="false">QMUI 原版弹窗（对照组）</string>
     <string name="site_recommend">本月收藏</string>
     <string name="current_hot">当前最热</string>
     <string name="artist_rank">画师榜</string>

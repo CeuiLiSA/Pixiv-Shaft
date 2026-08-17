@@ -240,6 +240,18 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
 
                 FrameLayout container = new FrameLayout(context);
 
+                // super 返回的标题 view 自带 24dp 左右 + 24dp 顶部内边距。直接塞进 FrameLayout
+                // 再让图标 CENTER_VERTICAL，居中的就是「文字 + 24dp 顶部内边距」这个盒子，
+                // 图标会比标题的视觉中心高出 12dp；同时 paddingEnd 只作用于标题自己，
+                // 图标会一路贴到卡片右缘。所以把纵向和右侧内边距上移到容器：
+                // 容器的内容区正好剩下文字本身，居中才对得上。
+                int titleTop = title.getPaddingTop();
+                int titleEnd = title.getPaddingEnd();
+                title.setPadding(title.getPaddingStart(), 0, 0, title.getPaddingBottom());
+                // 右内边距扣掉图标自身的 8dp 内衬，让 24dp 图形的右缘落在跟标题左缘
+                // 同一条 24dp 栏距上（对齐的是图形，不是 40dp 的点击热区）。
+                container.setPadding(0, titleTop, Math.max(0, titleEnd - helpPadding), 0);
+
                 FrameLayout.LayoutParams titleLp = new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT);
