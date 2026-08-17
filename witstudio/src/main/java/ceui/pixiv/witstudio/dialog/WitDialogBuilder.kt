@@ -25,9 +25,9 @@ import ceui.pixiv.witstudio.theme.WitDisplay
  *
  * 与 QMUI 的实现差异（不影响调用方）：
  * - 卡片是竖向 [LinearLayout] 而不是 `ConstraintLayout`，见 [WitDialogView] 的说明。
- * - 皮肤系统整个不存在。QMUI 的 `setSkinManager` 在本项目里是死代码
- *   （123 处调用，但没有 skin XML、没有初始化、没有一次 changeSkin），
- *   这里保留成 no-op（见 `WitSkinManager`），迁移完就删。
+ * - 皮肤系统整个不存在。QMUI 的 `setSkinManager` 在本项目里是死代码（123 处调用，
+ *   但没有 skin XML、没有初始化、没有一次 changeSkin），迁移时已一并删除，
+ *   日夜完全由模块自带的 values-night 承担。
  */
 public abstract class WitDialogBuilder<T : WitDialogBuilder<T>>(
     protected val context: Context,
@@ -66,14 +66,6 @@ public abstract class WitDialogBuilder<T : WitDialogBuilder<T>>(
     /** [HORIZONTAL]（默认，右对齐一行）或 [VERTICAL]（整宽竖向堆叠，按钮文案长时用）。 */
     public fun setActionContainerOrientation(orientation: Int): T =
         self().also { actionContainerOrientation = orientation }
-
-    /**
-     * QMUI 皮肤管理器的兼容位。**实现为 no-op**，只为让重命名那一步是纯 token 交换；
-     * 迁移完成后这个方法和它的 123 处调用会被一并删掉。
-     */
-    @Suppress("DEPRECATION", "UNUSED_PARAMETER")
-    @Deprecated("皮肤系统在本项目里从未启用，迁移完成后会删除")
-    public fun setSkinManager(skinManager: WitSkinManager?): T = self()
 
     // ── addAction 全家（重载与 QMUI 一一对应）───────────────────────
 

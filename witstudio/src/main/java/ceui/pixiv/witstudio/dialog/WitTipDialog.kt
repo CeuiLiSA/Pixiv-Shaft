@@ -35,10 +35,6 @@ public class WitTipDialog @JvmOverloads constructor(
 
         public fun setTipWord(tipWord: CharSequence?): Builder = apply { this.tipWord = tipWord }
 
-        @Suppress("DEPRECATION", "UNUSED_PARAMETER")
-        @Deprecated("皮肤系统在本项目里从未启用，迁移完成后会删除")
-        public fun setSkinManager(skinManager: WitSkinManager?): Builder = this
-
         @JvmOverloads
         public fun create(
             cancelable: Boolean = true,
